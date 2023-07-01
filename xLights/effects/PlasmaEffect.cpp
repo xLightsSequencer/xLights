@@ -42,7 +42,7 @@ xlEffectPanel *PlasmaEffect::CreatePanel(wxWindow *parent) {
 #define PLASMA_PRESET3          3
 #define PLASMA_PRESET4          4
 
-static inline int GetPlasmaColorScheme(const std::string &ColorSchemeStr) {
+int PlasmaEffect::GetPlasmaColorScheme(const std::string &ColorSchemeStr) {
     if (ColorSchemeStr == "Preset Colors 1") {
         return PLASMA_PRESET1;
     } else if (ColorSchemeStr == "Preset Colors 2") {
@@ -70,7 +70,7 @@ void PlasmaEffect::SetDefaultParameters() {
     SetChoiceValue(pp->Choice_Plasma_Color, "Normal");
 }
 
-void PlasmaEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Style = SettingsMap.GetInt("SLIDER_Plasma_Style", 1);

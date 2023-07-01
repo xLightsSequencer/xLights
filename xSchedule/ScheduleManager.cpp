@@ -257,7 +257,9 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
     PlayListStep* pls = nullptr;
 
     // adjust the time we received by the desired latency
-    ms += GetOptions()->GetRemoteLatency();
+    if (ms >= 0) {
+        ms += GetOptions()->GetRemoteLatency();
+    }
 
     if (filename != "" && pl != nullptr && pl->GetRunningStep() != nullptr && pl->GetRunningStep()->GetNameNoTime() == filename)
     {
@@ -286,11 +288,11 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
         }
         else
         {
-            if (ms == 0xFFFFFFFE)
+            if (ms == 0xFFFFFFFE || ms == -2)
             {
                 pl->Suspend(true);
             }
-            else if (ms == 0xFFFFFFFD)
+            else if (ms == 0xFFFFFFFD || ms == -3)
             {
                 pl->Suspend(false);
             }
@@ -356,7 +358,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
 
     if (pls != nullptr)
     {
-        if (ms == 0xFFFFFFFF)
+        if (ms == 0xFFFFFFFF || ms == -1)
         {
             if (pls->GetNameNoTime() == filename)
             {
@@ -369,7 +371,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
                 wxPostEvent(wxGetApp().GetTopWindow(), event);
             }
         }
-        else if (ms == 0xFFFFFFFE)
+        else if (ms == 0xFFFFFFFE || ms == -2)
         {
             // pause
             if (pls->GetNameNoTime() == filename)
@@ -377,7 +379,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
                 pl->Suspend(true);
             }
         }
-        else if (ms == 0xFFFFFFFD)
+        else if (ms == 0xFFFFFFFD || ms == -3)
         {
             // unpause
             if (pls->GetNameNoTime() == filename)
@@ -1214,7 +1216,7 @@ bool ScheduleManager::IsFPPRemoteOrMaster() const
 
 void ScheduleManager::CreateBrightnessArray()
 {
-    for (size_t i = 0; i < 256; i++)
+    for (size_t i = 0; i < 256; ++i)
     {
         int b = (i * _brightness) / 100;
         _brightnessArray[i] = (uint8_t)(b & 0xFF);
@@ -1534,6 +1536,7 @@ bool ScheduleManager::IsQuery(const wxString& command)
     if (c == "getplaylists" ||
         c == "getplayliststeps" ||
         c == "getmatrices" ||
+        c == "getplayingeffects" ||
         c == "getqueuedsteps" ||
         c == "listwebfolders" ||
         c == "getnextscheduledplaylist" ||
@@ -1820,7 +1823,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                 }
                 else if (command == "Start plugin") {
                     auto plugin = ((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().GetPluginFromLabel(parameters);
-                    if (plugin == "")                         {
+                    if (plugin == "") {
                         msg = "Plugin not found";
                         result = false;
                     }
@@ -1839,14 +1842,14 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         result = false;
                     }
                     else {
-                        if (!((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().StopPlugin(plugin))                             {
+                        if (!((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().StopPlugin(plugin)) {
                             msg = "Plugin could not be stopped";
                             result = false;
                         }
                     }
                     ((xScheduleApp*)wxTheApp)->GetFrame()->PluginStateChanged();
                 }
-                else if (command == "Send command to plugin")                     {
+                else if (command == "Send command to plugin") {
 
                     wxArrayString split = wxSplit(parameters, ',');
                     std::string plugin;
@@ -2788,7 +2791,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                             if (models != nullptr)
                             {
                                 auto size = models->size();
-                                for (int i = 0; i < size && start == -1; i++)
+                                for (int i = 0; i < size && start == -1; ++i)
                                 {
                                     auto m = (*models)[i];
                                     if (m["name"].AsString() == pp[1])
@@ -2896,7 +2899,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         if (parms.Count() > 0)
                         {
                             std::string newparms = "";
-                            for (size_t i = 1; i < parms.Count(); i++)
+                            for (size_t i = 1; i < parms.Count(); ++i)
                             {
                                 if (newparms != "") newparms += ",";
                                 newparms += parms[i].ToStdString();
@@ -3275,20 +3278,22 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         PixelData * p = nullptr;
                         for (const auto& it : _overlayData)
                         {
-                            if (it->GetStartChannel() == sc && it->GetSize() == ch)
+                            if (it->GetStartChannel() == sc)
                             {
-                                p = it;
                                 if (ch == 0)
                                 {
+                                    p = it;
                                     logger_base.debug("Pixel overlay data removed.");
                                     _overlayData.remove(p);
+                                    break;
                                 }
-                                else
+                                else if (it->GetSize() == ch)
                                 {
+                                    p = it;
                                     logger_base.debug("Pixel overlay data changed.");
                                     p->SetColor(c, blendMode);
+                                    break;
                                 }
-                                break;
                             }
                         }
 
@@ -3298,6 +3303,15 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                             p = new PixelData(sc, ch, c, blendMode);
                             _overlayData.push_back(p);
                         }
+                    }
+                } 
+                else if (command == "Clear all overlays")
+                {
+                    std::list<PixelData*>::iterator i = _overlayData.begin();
+                    while (i != _overlayData.end())
+                    {
+                        logger_base.debug("Pixel overlay data removed.");
+                        i = _overlayData.erase(i);
                     }
                 }
                 else if (command == "Play specified playlist step n times")
@@ -3493,7 +3507,22 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
         }
         data += "],\"reference\":\""+reference+"\"}";
     }
-    else if (c == "getplayliststeps")
+    else if (c == "getplayingeffects") {
+        bool first = true;
+        data = "{\"playingeffects\":[";
+        for (const auto& it : _eventPlayLists) {
+            if (first) {
+                first = false;
+            } else {
+                data += ",";
+            }
+            auto running = it->GetRunningStep();
+            if (running != nullptr) {
+                data += "{\"name\":\"" + running->GetNameNoTime() + "\"}";
+            }
+        }
+        data += "],\"reference\":\"" + reference + "\"}";
+    } else if (c == "getplayliststeps")
     {
         PlayList* p = GetPlayList(DecodePlayList(parameters));
 
@@ -5033,11 +5062,11 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
         }
     }
 
-    for (int i = 0; i < 20; i++)
+    for (uint32_t i = 0; i < 20; ++i)
     {
         if (priorities[i] > 1)
         {
-            wxString msg = wxString::Format("    WARN: More than one schedule has priority %d. If these trigger at the same time then it is not certain which we will choose.", i);
+            wxString msg = wxString::Format("    WARN: More than one schedule has priority %u. If these trigger at the same time then it is not certain which we will choose.", i);
             LogAndWrite(f, msg.ToStdString());
             warncount++;
         }
@@ -5806,7 +5835,7 @@ void ScheduleManager::TestFrame(uint8_t* buffer, long totalChannels, long msec)
             v1 = level2;
             v2 = level1;
         }
-        for (size_t i = start; i <= end; i++)
+        for (size_t i = start; i <= end; ++i)
         {
             if (i % 2 == 0)
             {

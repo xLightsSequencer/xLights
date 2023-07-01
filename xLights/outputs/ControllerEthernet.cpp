@@ -28,7 +28,11 @@
 #include "OPCOutput.h"
 #include "../controllers/ControllerCaps.h"
 #include "../models/ModelManager.h"
+#include "../utils/ip_utils.h"
+
+#ifndef EXCLUDENETWORKUI
 #include "../xLightsMain.h"
+#endif
 
 #pragma region Property Choices
 wxPGChoices ControllerEthernet::__types;
@@ -47,6 +51,8 @@ wxPGChoices ControllerEthernet::GetProtocols() const
         else if (it == "kinet") types.Add(OUTPUT_KINET);
         else if (it == "ddp") types.Add(OUTPUT_DDP);
         else if (it == "opc") types.Add(OUTPUT_OPC);
+        else if (it == "player only")
+            types.Add(OUTPUT_PLAYER_ONLY);
         else if (it == "twinkly")
             types.Add(OUTPUT_TWINKLY);
         else if (it == "xxx ethernet") {
@@ -71,6 +77,7 @@ void ControllerEthernet::InitialiseTypes(bool forceXXX) {
             __types.Add(OUTPUT_xxxETHERNET);
         }
         __types.Add(OUTPUT_TWINKLY);
+        __types.Add(OUTPUT_PLAYER_ONLY);
     }
     else if (forceXXX) {
         bool found = false;
@@ -141,15 +148,27 @@ wxXmlNode* ControllerEthernet::Save() {
 #pragma region Getters and Setters
 void ControllerEthernet::SetIP(const std::string& ip) {
 
-    auto const& iip = CleanupIP(ip);
+    auto const& iip = ip_utils::CleanupIP(ip);
     if (_ip != iip) {
         _ip = iip;
-        _resolvedIp = ResolveIP(_ip);
+        if (IsActive()) _resolvedIp = ip_utils::ResolveIP(_ip);
         _dirty = true;
         if (_outputManager != nullptr) _outputManager->UpdateUnmanaged();
 
         for (auto& it : GetOutputs()) {
-            it->SetIP(_ip);
+            it->SetIP(_ip, IsActive());
+            it->SetResolvedIP(_resolvedIp);
+        }
+    }
+}
+
+// because we dont resolve IPs on creation for inactive controllers then if the controller is set active we need to resolve it then
+void ControllerEthernet::PostSetActive()
+{
+    if (IsActive() && _ip != "" && _resolvedIp == "")
+    {
+        _resolvedIp = ip_utils::ResolveIP(_ip);
+        for (auto& it : GetOutputs()) {
             it->SetResolvedIP(_resolvedIp);
         }
     }
@@ -164,37 +183,52 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
 
     _type = protocol;
 
-    if (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP || _type == OUTPUT_TWINKLY) {
+    if (_type == OUTPUT_PLAYER_ONLY) {
+    
+    }
+    else if (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP || _type == OUTPUT_TWINKLY) {
         if (_type == OUTPUT_ZCPP) {
             auto zo = new ZCPPOutput();
             _outputs.push_back(zo);
-            zo->SetId(oldoutputs.front()->GetUniverse());
+            if (oldoutputs.size() != 0) {
+                zo->SetId(oldoutputs.front()->GetUniverse());
+            }
             SetId(zo->GetId());
         }
         else if (_type == OUTPUT_DDP) {
             auto ddpo = new DDPOutput();
             _outputs.push_back(ddpo);
-            if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+
+            if (oldoutputs.size() != 0) {
+                if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+                    ddpo->SetId(_outputManager->UniqueId());
+                } else {
+                    ddpo->SetId(oldoutputs.front()->GetUniverse());
+                }
+            } else if (_outputManager != nullptr) {
                 ddpo->SetId(_outputManager->UniqueId());
-            }
-            else {
-                ddpo->SetId(oldoutputs.front()->GetUniverse());
             }
             SetId(ddpo->GetId());
         } else if (_type == OUTPUT_TWINKLY) {
             auto to = new TwinklyOutput();
             _outputs.push_back(to);
-            if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+            if (oldoutputs.size() != 0) {
+                if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+                    to->SetId(_outputManager->UniqueId());
+                } else {
+                    to->SetId(oldoutputs.front()->GetUniverse());
+                }
+            } else if (_outputManager != nullptr) {
                 to->SetId(_outputManager->UniqueId());
-            } else {
-                to->SetId(oldoutputs.front()->GetUniverse());
             }
             SetId(to->GetId());
         }
-        _outputs.front()->SetChannels(totchannels);
-        _outputs.front()->SetFPPProxyIP(oldoutputs.front()->GetFPPProxyIP());
-        _outputs.front()->SetIP(oldoutputs.front()->GetIP());
-        _outputs.front()->SetSuppressDuplicateFrames(oldoutputs.front()->IsSuppressDuplicateFrames());
+        if (_outputs.size() > 0 && oldoutputs.size() != 0) {
+            _outputs.front()->SetChannels(totchannels);
+            _outputs.front()->SetFPPProxyIP(oldoutputs.front()->GetFPPProxyIP());
+            _outputs.front()->SetIP(oldoutputs.front()->GetIP(), IsActive());
+            _outputs.front()->SetSuppressDuplicateFrames(oldoutputs.front()->IsSuppressDuplicateFrames());
+        }
     }
     else {
         if (oldtype == OUTPUT_E131 || oldtype == OUTPUT_ARTNET || oldtype == OUTPUT_xxxETHERNET || oldtype == OUTPUT_OPC || oldtype == OUTPUT_KINET) {
@@ -214,10 +248,12 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                 else if (_type == OUTPUT_OPC) {
                     _outputs.push_back(new OPCOutput());
                 }
-                _outputs.back()->SetIP(oldoutputs.front()->GetIP());
-                _outputs.back()->SetUniverse(it->GetUniverse());
-                _outputs.back()->SetChannels(it->GetChannels());
-                _outputs.back()->Enable(IsActive());
+                if (_outputs.size() > 0) {
+                    _outputs.back()->SetIP(oldoutputs.front()->GetIP(), IsActive());
+                    _outputs.back()->SetUniverse(it->GetUniverse());
+                    _outputs.back()->SetChannels(it->GetChannels());
+                    _outputs.back()->Enable(IsActive());
+                }
             }
         }
         else {
@@ -226,11 +262,13 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
             int left = universes * CONVERT_CHANNELS_PER_UNIVERSE;
 
             int u = 0;
-            if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
-                u = _outputManager->UniqueId() - 1;
-            }
-            else {
-                u = oldoutputs.front()->GetUniverse() - 1;
+
+            if (oldoutputs.size() != 0) {
+                if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+                    u = _outputManager->UniqueId() - 1;
+                } else {
+                    u = oldoutputs.front()->GetUniverse() - 1;
+                }
             }
 
             for (int i = 0; i < universes; i++) {
@@ -249,11 +287,13 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                 else if (_type == OUTPUT_OPC) {
                     _outputs.push_back(new OPCOutput());
                 }
-                _outputs.back()->SetChannels(left > CONVERT_CHANNELS_PER_UNIVERSE ? CONVERT_CHANNELS_PER_UNIVERSE : left);
-                left -= _outputs.back()->GetChannels();
-                _outputs.back()->SetIP(oldoutputs.front()->GetIP());
-                _outputs.back()->SetUniverse(u + i + 1);
-                _outputs.back()->Enable(IsActive());
+                if (_outputs.size() > 0 && oldoutputs.size() != 0) {
+                    _outputs.back()->SetChannels(left > CONVERT_CHANNELS_PER_UNIVERSE ? CONVERT_CHANNELS_PER_UNIVERSE : left);
+                    left -= _outputs.back()->GetChannels();
+                    _outputs.back()->SetIP(oldoutputs.front()->GetIP(), IsActive());
+                    _outputs.back()->SetUniverse(u + i + 1);
+                    _outputs.back()->Enable(IsActive());
+                }
             }
         }
     }
@@ -500,9 +540,6 @@ bool ControllerEthernet::SupportsFullxLightsControl() const
 
 bool ControllerEthernet::SupportsDefaultBrightness() const
 {
-    if (_type == OUTPUT_ZCPP)
-        return false;
-
     auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
     if (c != nullptr) {
         return c->SupportsDefaultBrightness();
@@ -585,9 +622,13 @@ Output::PINGSTATE ControllerEthernet::Ping() {
 
     if (GetResolvedIP() == "MULTICAST") {
         _lastPingResult = Output::PINGSTATE::PING_UNAVAILABLE;
+    } else if (_outputs.size() > 0) {
+        _lastPingResult = dynamic_cast<IPOutput*>(_outputs.front())->Ping(GetResolvedIP(), GetFPPProxy());
     }
     else {
-        _lastPingResult = dynamic_cast<IPOutput*>(_outputs.front())->Ping(GetResolvedIP(), GetFPPProxy());
+        E131Output ipo;
+        ipo.SetIP(_ip, IsActive());
+        _lastPingResult = ipo.Ping(GetResolvedIP(), GetFPPProxy());
     }
     return GetLastPingState();
 }
@@ -671,7 +712,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
         it2->AllOff();
         it2->EndFrame(0);
     }
-
+    
     if (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP || _type == OUTPUT_TWINKLY) {
         _outputs.front()->SetChannels(channels);
         return true;
@@ -746,7 +787,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                 _outputs.push_back(new OPCOutput());
             }
             _outputs.back()->SetChannels(channels_per_universe);
-            _outputs.back()->SetIP(oldIP);
+            _outputs.back()->SetIP(oldIP, IsActive());
             _outputs.back()->SetUniverse(lastUsedUniverse + 1);
             _outputs.back()->SetFPPProxyIP(_fppProxy);
             _outputs.back()->SetForceLocalIP(_forceLocalIP);
@@ -762,7 +803,8 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                 if (m->IsSerialProtocol() && m->GetControllerPort() == lastSerialPort) {
                     // do nothing
                 } else if (m->IsSerialProtocol()) {
-                    if (GetControllerCaps()->NeedsFullUniverseForDMX()) {
+                    // This wass a leap before you look bug... triggered with missing .xcontroller file
+                    if (GetControllerCaps() == nullptr || GetControllerCaps()->NeedsFullUniverseForDMX()) {
                         (*o)->SetChannels(GetControllerCaps() == nullptr ? 510 : GetControllerCaps()->GetMaxSerialPortChannels()); // serial universes are always their max or 510 if we dont know the max
                         ++o;
                     } else {
@@ -839,8 +881,12 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     propertyGrid->Append(new wxEnumProperty("Protocol", "Protocol", protocols, EncodeChoices(protocols, _type)));
 
     bool allSameSize = AllSameSize();
-    if (_outputs.size() == 1) {
+    if (_outputs.size() == 0) {
+    }
+    else if (_outputs.size() == 1) {
         _outputs.front()->AddProperties(propertyGrid, allSameSize, expandProperties);
+    } else {
+        _outputs.front()->AddMultiProperties(propertyGrid, allSameSize, expandProperties);
     }
 
     if (_type == OUTPUT_KINET) {
@@ -857,6 +903,14 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
         p->SetAttribute("Max", 100);
         p->SetEditor("SpinCtrl");
         p->SetHelpString("Some controllers can receive data from more than one source and will ignore one of the sources where this priority is lower.");
+    }
+
+    if (_type == OUTPUT_TWINKLY) {
+        p = propertyGrid->Append(new wxUIntProperty("HTTP Port", "HTTPPort", dynamic_cast<TwinklyOutput*>(_outputs.front())->GetHttpPort()));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 65535);
+        p->SetEditor("SpinCtrl");
+        p->SetHelpString("Twinkly normally listens on port 80 but you may want to change the port if using Artnet To Twinkly.");
     }
 
     if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {
@@ -880,18 +934,22 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
         }
     }
 
-    auto ips = GetLocalIPs();
-    wxPGChoices choices;
-    int val = 0;
-    choices.Add("");
-    for (const auto& it : ips) {
-        if (it == _forceLocalIP)
-            val = choices.GetCount();
-        choices.Add(it);
+    if (_type != OUTPUT_PLAYER_ONLY) {
+        auto ips = GetLocalIPs();
+        wxPGChoices choices;
+        int val = 0;
+        choices.Add("");
+        for (const auto& it : ips) {
+            if (it == _forceLocalIP)
+                val = choices.GetCount();
+            choices.Add(it);
+        }
+        propertyGrid->Append(new wxEnumProperty("Force Local IP", "ForceLocalIP", choices, val));
     }
-    propertyGrid->Append(new wxEnumProperty("Force Local IP", "ForceLocalIP", choices, val));
 
-    if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {
+    if (_type == OUTPUT_PLAYER_ONLY) {
+    }
+    else if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {
         auto u = "Start Universe";
         auto uc = "Universe Count";
         auto ud = "Universes";
@@ -976,7 +1034,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
                 auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
                 p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
                 if (modelsOnUniverse != "") {
-                    if (wxSystemSettings::GetAppearance().IsDark()) {
+                    if (IsDarkMode()) {
                         p->SetBackgroundColour(wxColour(104, 128, 79));
                     } else {
                         p->SetBackgroundColour(wxColour(208, 255, 158));
@@ -1067,8 +1125,11 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         SetPriority(event.GetValue().GetLong());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Priority");
         return true;
-    }
-    else if (name == "Version") {
+    } else if (name == "HTTPPort") {
+        static_cast<TwinklyOutput*>(_outputs.front())->SetHttpPort(event.GetValue().GetLong());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::HTTPPort");
+        return true;
+    } else if (name == "Version") {
         SetVersion(event.GetValue().GetLong());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Version");
         return true;
@@ -1195,8 +1256,21 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         }
     }
 
-    if (_outputs.size() == 1) {
+    if (_outputs.size() == 0) {
+    }
+    else if (_outputs.size() == 1) {
         if (_outputs.front()->HandlePropertyEvent(event, outputModelManager)) return true;
+    }
+    else {
+        if (_outputs.front()->HandleMultiPropertyEvent(event, outputModelManager)) {
+            auto it = _outputs.begin();
+            ++it;
+            while (it != _outputs.end()) {
+                (*it)->HandleMultiPropertyEvent(event, outputModelManager);
+                ++it;
+            }
+            return true;
+        }
     }
 
     return false;
@@ -1233,7 +1307,7 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
                 }
             }
 
-            if (!IsIPValidOrHostname(GetIP())) {
+            if (!ip_utils::IsIPValidOrHostname(GetIP())) {
                 err = true;
             }
 
@@ -1245,7 +1319,7 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
             }
         }
         else {
-            if (!IsIPValidOrHostname(GetIP())) {
+            if (!ip_utils::IsIPValidOrHostname(GetIP())) {
                 p->SetBackgroundColour(*wxRED);
             }
             else {
@@ -1335,16 +1409,20 @@ void ControllerEthernet::AddOutput()
 	}
 	else if (_type == OUTPUT_OPC) {
 		_outputs.push_back(new OPCOutput());
-	}
-	else {
+    } else if (_type == OUTPUT_PLAYER_ONLY) {
+    }
+    else
+    {
 		wxASSERT(false);
 	}
-	_outputs.back()->SetIP(_outputs.front()->GetIP());
-	_outputs.back()->SetChannels(_outputs.front()->GetChannels());
-	_outputs.back()->SetFPPProxyIP(_outputs.front()->GetFPPProxyIP());
-	_outputs.back()->SetSuppressDuplicateFrames(_outputs.front()->IsSuppressDuplicateFrames());
-	_outputs.back()->SetUniverse(_outputs.front()->GetUniverse() + _outputs.size() - 1);
-	_outputs.back()->Enable(IsActive());
+    if (_outputs.size() > 0) {
+        _outputs.back()->SetIP(_outputs.front()->GetIP(), IsActive());
+        _outputs.back()->SetChannels(_outputs.front()->GetChannels());
+        _outputs.back()->SetFPPProxyIP(_outputs.front()->GetFPPProxyIP());
+        _outputs.back()->SetSuppressDuplicateFrames(_outputs.front()->IsSuppressDuplicateFrames());
+        _outputs.back()->SetUniverse(_outputs.front()->GetUniverse() + _outputs.size() - 1);
+        _outputs.back()->Enable(IsActive());
+    }
 }
 
 void ControllerEthernet::SetAllSameSize(bool allSame, OutputModelManager* omm)

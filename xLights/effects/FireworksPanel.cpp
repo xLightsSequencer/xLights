@@ -254,6 +254,8 @@ FireworksPanel::FireworksPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer73);
+	FlexGridSizer73->Fit(this);
+	FlexGridSizer73->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Explosions,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Fireworks_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnVCButtonClick);
@@ -348,8 +350,6 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
 
     wxString selection = Choice_TimingTrack->GetStringSelection();
 
-    // check if anything has been removed ... if it has clear the list and we will have to rebuild it as you cant delete items from a combo box
-    bool removed = false;
     for (size_t i = 0; i < Choice_TimingTrack->GetCount(); i++)
     {
         bool found = false;
@@ -364,7 +364,6 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
         if (!found)
         {
             Choice_TimingTrack->Clear();
-            removed = true;
             break;
         }
     }

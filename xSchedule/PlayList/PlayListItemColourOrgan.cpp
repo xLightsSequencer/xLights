@@ -24,6 +24,7 @@ PlayListItemColourOrgan::PlayListItemColourOrgan(OutputManager* outputManager, w
     _duration = 60000;
     _colour = *wxWHITE;
     _mode = "Value 2";
+    _device = "";
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
     _startNote = 1;
     _endNote = 127;
@@ -51,6 +52,7 @@ void PlayListItemColourOrgan::Load(wxXmlNode* node)
     _endNote = wxAtoi(node->GetAttribute("EndNote", "127"));
     _fadeFrames = wxAtoi(node->GetAttribute("FadeFrames", "0"));
     _threshold = wxAtoi(node->GetAttribute("Threshold", "80"));
+    _device = node->GetAttribute("Device", "");
     if (_fadeFrames == 0) {
         _fadePerFrame = 10.0;
     }
@@ -75,6 +77,7 @@ PlayListItemColourOrgan::PlayListItemColourOrgan(OutputManager* outputManager) :
     _fadeFrames = 0;
     _fadePerFrame = 1.0;
     _threshold = 80;
+    _device = "";
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
 }
 
@@ -94,6 +97,7 @@ PlayListItem* PlayListItemColourOrgan::Copy(const bool isClone) const
     res->_fadeFrames = _fadeFrames;
     res->_fadePerFrame = _fadePerFrame;
     res->_threshold = _threshold;
+    res->_device = _device;
     PlayListItem::Copy(res, isClone);
 
     return res;
@@ -113,6 +117,7 @@ wxXmlNode* PlayListItemColourOrgan::Save()
     node->AddAttribute("EndNote", wxString::Format(wxT("%i"), (int)_endNote));
     node->AddAttribute("FadeFrames", wxString::Format(wxT("%i"), (int)_fadeFrames));
     node->AddAttribute("Threshold", wxString::Format(wxT("%i"), (int)_threshold));
+    node->AddAttribute("Device", _device);
 
     PlayListItem::Save(node);
 
@@ -155,16 +160,16 @@ void PlayListItemColourOrgan::Frame(uint8_t* buffer, size_t size, size_t ms, siz
 
         float value = 0;
         
-        if (_mode == "Maximum")
-        {
-            auto res = AudioManager::GetSDL()->GetOutputSpectrum(framems);
-            if (res.size() >= _endNote)
-            {
-                for (int i = _startNote; i <= _endNote; i++)
-                {
-                    value = std::max(res[i-1], value);
+        if (_mode == "Maximum") {
+            auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
+            if (sdl != nullptr) {
+                auto res = sdl->GetSpectrum(framems);
+            if (res.size() >= _endNote) {
+                for (int i = _startNote; i <= _endNote; i++) {
+                    value = std::max(res[i - 1], value);
                 }
             }
+        }
         }
 
         if (value < ((float)_threshold * 10.0) / 255.0)
@@ -197,11 +202,20 @@ void PlayListItemColourOrgan::Frame(uint8_t* buffer, size_t size, size_t ms, siz
 void PlayListItemColourOrgan::Start(long stepLengthMS)
 {
     PlayListItem::Start(stepLengthMS);
+    auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
+    if (sdl != nullptr) {
+        sdl->StartListening();
+        sdl->PurgeInput();
+    }
 }
 
 void PlayListItemColourOrgan::Stop()
 {
     PlayListItem::Stop();
+    auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
+    if (sdl != nullptr) {
+        sdl->StopListening();
+    }
 }
 
 void PlayListItemColourOrgan::SetPixel(uint8_t* p, uint8_t r, uint8_t g, uint8_t b, APPLYMETHOD blendMode)

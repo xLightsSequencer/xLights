@@ -20,6 +20,10 @@
 #include "xLightsMain.h"
 
 #include "automation/LuaRunner.h"
+
+#if defined(PYTHON_RUNNER)
+#include "automation/PythonRunner.h"
+#endif
 #include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
@@ -37,6 +41,7 @@ const long ScriptsDialog::ID_TEXTCTRL_LOG = wxNewId();
 //*)
 
 const long ScriptsDialog::ID_MCU_VIEWSCRIPT = wxNewId();
+const long ScriptsDialog::ID_MCU_VIEWSCRIPTFOLDER = wxNewId();
 
 BEGIN_EVENT_TABLE(ScriptsDialog, wxDialog)
 	//(*EventTable(ScriptsDialog)
@@ -85,6 +90,9 @@ ScriptsDialog::ScriptsDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos
     Connect(ID_LISTBOX_SCRIPTS, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ScriptsDialog::OnListRClick);
 
     _runner = std::make_unique<LuaRunner>(_frame);
+#if defined(PYTHON_RUNNER)
+    _pyrunner = std::make_unique<PythonRunner>(_frame);
+#endif
 
     LoadScriptDir();
 }
@@ -114,6 +122,7 @@ void ScriptsDialog::OnListRClick(wxContextMenuEvent& event)
 {
     wxMenu mnu;
     mnu.Append(ID_MCU_VIEWSCRIPT, "View Script");
+    mnu.Append(ID_MCU_VIEWSCRIPTFOLDER, "Open Folder");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&ScriptsDialog::OnPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -121,6 +130,7 @@ void ScriptsDialog::OnListRClick(wxContextMenuEvent& event)
 
 void ScriptsDialog::OnPopup(wxCommandEvent& event)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (event.GetId() == ID_MCU_VIEWSCRIPT) {
         int sel = ListBoxScripts->GetSelection();
         if (sel == wxNOT_FOUND) {
@@ -131,11 +141,25 @@ void ScriptsDialog::OnPopup(wxCommandEvent& event)
         wxFileName fn(filePath);
 
         wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension(fn.GetExt());
+
+        // if there is no LUA file handler treat them as text files
+        if (ft == nullptr) {
+            ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+        }
+
         if (ft) {
             wxString command = ft->GetOpenCommand(fn.GetFullPath());
             wxUnsetEnv("LD_PRELOAD");
             wxExecute(command);
+        } else {
+            logger_base.warn("Unable to open script as no program can open the file %s.", (const char*)filePath.c_str());
         }
+    }else if (event.GetId() == ID_MCU_VIEWSCRIPTFOLDER) {
+        int sel = ListBoxScripts->GetSelection();
+        if (sel == wxNOT_FOUND) {
+            return;
+        }
+        wxLaunchDefaultApplication(wxPathOnly(_scripts.at(sel)));
     }
 }
 
@@ -174,7 +198,7 @@ void ScriptsDialog::ProcessScriptDir(wxString const& dir)
     wxDir directory;
     directory.Open(dir);
 
-    
+
     wxArrayString files;
     GetAllFilesInDir(dir, files, "*.lua");
     for (auto & file : files) {
@@ -183,6 +207,16 @@ void ScriptsDialog::ProcessScriptDir(wxString const& dir)
         _scripts.push_back(path);
         ListBoxScripts->Append(fn.GetFullName());
     }
+
+#if defined(PYTHON_RUNNER)
+    GetAllFilesInDir(dir, files, "*.py");
+    for (auto & file : files) {
+        wxFileName fn(file);
+        wxString path = fn.GetFullPath();
+        _scripts.push_back(path);
+        ListBoxScripts->Append(fn.GetFullName());
+    }
+#endif
 }
 
 void ScriptsDialog::Run_Selected_Script()
@@ -200,7 +234,11 @@ void ScriptsDialog::Run_Selected_Script()
 
     auto filePath = _scripts.at(sel);
 
-    Run_Lua_Script(filePath);
+    if (filePath.EndsWith(".lua")) {
+        Run_Lua_Script(filePath);
+    } else if (filePath.EndsWith(".py")) {
+        Run_Python_Script(filePath);
+    }
 
     ListBoxScripts->Enable();
     Button_Run->Enable();
@@ -220,6 +258,22 @@ void ScriptsDialog::Run_Lua_Script(wxString const& filepath) const
         logger_base.info("%s", (const char*)message.c_str());
     };
     _runner->Run_Script(filepath, LogMessage);
+}
+
+void ScriptsDialog::Run_Python_Script(wxString const& filepath) const
+{
+#if defined(PYTHON_RUNNER)
+    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+
+    auto LogMessage = [&](std::string const& message) {
+        TextCtrl_Log->AppendText(message);
+        TextCtrl_Log->AppendText("\n");
+        logger_base.info("%s", (const char*)message.c_str());
+    };
+    _pyrunner->Run_Script(filepath, LogMessage);
+#endif
 }
 
 

@@ -24,6 +24,7 @@
 #include "models/DMX/DmxModel.h"
 #include "models/DMX/DmxColorAbility.h"
 #include "GPURenderUtils.h"
+#include "BufferPanel.h"
 
 #include <log4cpp/Category.hh>
 #include "Parallel.h"
@@ -32,7 +33,7 @@ template <class CTX>
 class ContextPool {
 public:
 
-    ContextPool(std::function<CTX* ()> alloc, std::string type = ""): allocator(alloc), _type(type) {
+    ContextPool(std::function<CTX*()> alloc, std::string type = ""): allocator(alloc), _type(type) {
     }
     ~ContextPool() {
         while (!contexts.empty()) {
@@ -41,7 +42,11 @@ public:
             contexts.pop();
         }
     }
-
+    void PreAlloc(int num) {
+        for (int x = 0; x < num; x++) {
+            ReleaseContext(allocator());
+        }
+    }
     CTX *GetContext() {
         // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
         bool contextsEmpty = false;
@@ -69,7 +74,7 @@ public:
 private:
     std::mutex lock;
     std::queue<CTX*> contexts;
-    std::function<CTX* ()> allocator;
+    std::function<CTX*()> allocator;
     std::string _type;
 };
 
@@ -79,41 +84,17 @@ static ContextPool<PathDrawingContext> *PATH_CONTEXT_POOL = nullptr;
 void DrawingContext::Initialize(wxWindow *parent) {
     if (TEXT_CONTEXT_POOL == nullptr) {
         TEXT_CONTEXT_POOL = new ContextPool<TextDrawingContext>([parent]() {
-            if (wxThread::IsMain()) {
-                return new TextDrawingContext(10, 10 ,false);
-            } else {
-                std::mutex mtx;
-                std::condition_variable signal;
-                std::unique_lock<std::mutex> lck(mtx);
-                TextDrawingContext *tdc;
-                parent->CallAfter([&mtx, &signal, &tdc]() {
-                    std::unique_lock<std::mutex> lck(mtx);
-                    tdc = new TextDrawingContext(10, 10 ,false);
-                    signal.notify_all();
-                });
-                signal.wait(lck);
-                return tdc;
-            }
+            // atomic reference counting, can create this on background thread
+            return new TextDrawingContext(10, 10 ,false);
         });
+        //TEXT_CONTEXT_POOL->PreAlloc(10);
     }
     if (PATH_CONTEXT_POOL == nullptr) {
         PATH_CONTEXT_POOL = new ContextPool<PathDrawingContext>([parent]() {
-            if (wxThread::IsMain()) {
-                return new PathDrawingContext(10, 10 ,false);
-            } else {
-                std::mutex mtx;
-                std::condition_variable signal;
-                std::unique_lock<std::mutex> lck(mtx);
-                PathDrawingContext *tdc;
-                parent->CallAfter([&mtx, &signal, &tdc]() {
-                    std::unique_lock<std::mutex> lck(mtx);
-                    tdc = new PathDrawingContext(10, 10 ,false);
-                    signal.notify_all();
-                });
-                signal.wait(lck);
-                return tdc;
-            }
+            // atomic reference counting, can create this on background thread
+            return new PathDrawingContext(10, 10 ,false);
         });
+        //PATH_CONTEXT_POOL->PreAlloc(5);
     }
 }
 
@@ -208,10 +189,10 @@ std::string RenderBuffer::GetModelName() const
     return cur_model;
 }
 
-wxString RenderBuffer::GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const
+const wxString &RenderBuffer::GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const
 {
     if (xLightsFrame::CurrentSeqXmlFile == nullptr) {
-        return wxString();
+        return xlEMPTY_WXSTRING;
     }
     return xLightsFrame::CurrentSeqXmlFile->GetHeaderInfo(node_type);
 }
@@ -322,6 +303,37 @@ PathDrawingContext::PathDrawingContext(int BufferWi, int BufferHt, bool allowSha
 
 PathDrawingContext::~PathDrawingContext() {}
 
+// MoC - March 2023
+// The wx font map is not thread safe in some cases, effects using
+//   it from background threads need to mutex each other (and ideally
+//   the event loop thread but meh.  This is not the best place (WX
+//   would be a better place), but this is better than no place.
+//
+// The first step here was centralizing the access methods, putting a
+//   lock around them then became possible.  
+//   Per dkulp, we could, in the future, pre-populate the cache from the
+//   main thread, or we could use CallAfter or similar to do the font
+//   lookup on the main thread, which may be incrementally better than
+//   just a lock shared between background threads.
+std::mutex FONT_MAP_LOCK;
+
+std::map<std::string, wxFontInfo> FONT_MAP_TXT;
+std::map<std::string, wxFontInfo> FONT_MAP_SHP;
+
+class FontMapLock
+{
+    std::unique_lock<std::mutex> lk;
+
+public:
+    FontMapLock() :
+        lk(FONT_MAP_LOCK)
+    {}
+
+    ~FontMapLock()
+    {}
+};
+
+
 TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowShared)
 #ifdef __WXMSW__
     : DrawingContext(BufferWi, BufferHt, allowShared, true)
@@ -357,7 +369,32 @@ void DrawingContext::ResetSize(int BufferWi, int BufferHt) {
     }
 }
 
-void DrawingContext::Clear() {
+size_t DrawingContext::GetWidth() const
+{
+    if (gc != nullptr) {
+        wxDouble w = 0, h = 0;
+        gc->GetSize(&w, &h);
+        return w;
+    } else if (image != nullptr) {
+        return image->GetWidth();
+    }
+    return 0;
+}
+
+size_t DrawingContext::GetHeight() const
+{
+    if (gc != nullptr) {
+        wxDouble w = 0, h = 0;
+        gc->GetSize(&w, &h);
+        return h;
+    } else if (image != nullptr) {
+        return image->GetHeight();
+    }
+    return 0;
+}
+
+void DrawingContext::Clear()
+{
     if (dc != nullptr)
     {
         dc->SelectObject(nullBitmap);
@@ -468,7 +505,20 @@ void PathDrawingContext::SetPen(wxPen &pen) {
         gc->SetPen(pen);
 }
 
-void TextDrawingContext::SetPen(wxPen &pen) {
+void PathDrawingContext::SetBrush(wxBrush& brush)
+{
+    if (gc != nullptr)
+        gc->SetBrush(brush);
+}
+
+void PathDrawingContext::SetBrush(wxGraphicsBrush& brush)
+{
+    if (gc != nullptr)
+        gc->SetBrush(brush);
+}
+
+void TextDrawingContext::SetPen(wxPen& pen)
+{
     if (gc != nullptr) {
         gc->SetPen(pen);
     } else {
@@ -486,7 +536,13 @@ void PathDrawingContext::StrokePath(wxGraphicsPath& path)
     gc->StrokePath(path);
 }
 
-void TextDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
+void PathDrawingContext::FillPath(wxGraphicsPath& path, wxPolygonFillMode fillStyle)
+{
+    gc->FillPath(path, fillStyle);
+}
+
+void TextDrawingContext::SetFont(const wxFontInfo& font, const xlColor& color)
+{
     if (gc != nullptr) {
         int style = wxFONTFLAG_NOT_ANTIALIASED;
         if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
@@ -511,7 +567,8 @@ void TextDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
         if (style != fontStyle
             || font.GetPixelSize().y != fontSize
             || font.GetFaceName() != fontName
-            || color != fontColor) {
+            || color != fontColor)
+        {
             this->font = gc->CreateFont(font.GetPixelSize().y, font.GetFaceName(), style, color.asWxColor());
 
 #ifdef __WXMSW__
@@ -549,13 +606,76 @@ void TextDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
          lf.lfQuality,
          lf.lfPitchAndFamily,
          lf.lfFaceName);*/
-        wxString s = f.GetNativeFontInfoDesc();
-        s.Replace(";2;",";3;",false);
-        f.SetNativeFontInfo(s);
+        {
+            FontMapLock lk;
+            wxString s = f.GetNativeFontInfoDesc();
+            s.Replace(";2;", ";3;", false);
+            f.SetNativeFontInfo(s);
+        }
     #endif
         dc->SetFont(f);
         dc->SetTextForeground(color.asWxColor());
     }
+}
+
+const wxFontInfo& TextDrawingContext::GetTextFont(const std::string& FontString)
+{
+    FontMapLock locker;
+
+    if (FONT_MAP_TXT.find(FontString) == FONT_MAP_TXT.end()) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        if (!FontString.empty()) {
+            logger_base.debug("Loading font %s.", (const char*)FontString.c_str());
+            wxFont font(FontString);
+            font.SetNativeFontInfoUserDesc(FontString);
+
+            // we want "Arial 8" to be 8 pixels high and not depend on the System DPI
+            wxFontInfo info(wxSize(0, font.GetPointSize()));
+            info.FaceName(font.GetFaceName());
+            if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
+                info.Bold();
+            } else if (font.GetWeight() == wxFONTWEIGHT_LIGHT) {
+                info.Light();
+            }
+            if (font.GetUnderlined()) {
+                info.Underlined();
+            }
+            if (font.GetStrikethrough()) {
+                info.Strikethrough();
+            }
+            info.AntiAliased(false);
+            info.Encoding(font.GetEncoding());
+            FONT_MAP_TXT[FontString] = info;
+            logger_base.debug("    Added to font map.");
+        } else {
+            wxFontInfo info(wxSize(0, 12));
+            info.AntiAliased(false);
+            FONT_MAP_TXT[FontString] = info;
+        }
+    }
+    return FONT_MAP_TXT[FontString];
+}
+
+const wxFontInfo& TextDrawingContext::GetShapeFont(const std::string& font)
+{
+    FontMapLock locker;
+    if (FONT_MAP_SHP.find(font) == FONT_MAP_SHP.end()) {
+        wxFont ff(font);
+        ff.SetNativeFontInfoUserDesc(font); // This needs FontMapLock above
+
+        wxFontInfo _font = wxFontInfo(wxSize(0, 12));
+        wxString face = ff.GetFaceName();
+        if (face == WIN_NATIVE_EMOJI_FONT || face == OSX_NATIVE_EMOJI_FONT || face == LINUX_NATIVE_EMOJI_FONT) {
+            _font.FaceName(NATIVE_EMOJI_FONT);
+        } else {
+            _font.FaceName(face);
+        }
+        _font.Light();
+        _font.AntiAliased(false);
+        _font.Encoding(ff.GetEncoding());
+        FONT_MAP_SHP[font] = _font;
+    }
+    return FONT_MAP_SHP[font];
 }
 
 void TextDrawingContext::DrawText(const wxString &msg, int x, int y, double rotation) {
@@ -644,16 +764,21 @@ PathDrawingContext * RenderBuffer::GetPathDrawingContext()
     {
         _pathDrawingContext = PathDrawingContext::GetContext();
         _pathDrawingContext->ResetSize(BufferWi, BufferHt);
+    } else if (_pathDrawingContext->GetWidth() != BufferWi || _pathDrawingContext->GetHeight() != BufferHt) {
+        // varying subbuffers the size may have changed
+        _pathDrawingContext->ResetSize(BufferWi, BufferHt);
     }
 
     return _pathDrawingContext;
 }
 
-TextDrawingContext * RenderBuffer::GetTextDrawingContext()
+TextDrawingContext* RenderBuffer::GetTextDrawingContext()
 {
-    if (_textDrawingContext == nullptr)
-    {
+    if (_textDrawingContext == nullptr) {
         _textDrawingContext = TextDrawingContext::GetContext();
+        _textDrawingContext->ResetSize(BufferWi, BufferHt);
+    } else if (_textDrawingContext->GetWidth() != BufferWi || _textDrawingContext->GetHeight() != BufferHt) {
+        // varying subbuffers the size may have changed
         _textDrawingContext->ResetSize(BufferWi, BufferHt);
     }
 
@@ -676,10 +801,22 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     // This is an absurdly high number but there are circumstances right now when creating a buffer based on a zoomed in camera when these can be hit.
     //wxASSERT(NumPixels < 500000);
 
-    pixelVector.resize(NumPixels);
-    pixels = &pixelVector[0];
-    tempbufVector.resize(NumPixels);
-    tempbuf = &tempbufVector[0];
+    if (NumPixels != pixelVector.size()) {
+        bool resetPtr = pixelVector.size() == 0 || pixels == &pixelVector[0];
+        bool resetTPtr = tempbufVector.size() == 0 || tempbuf == &tempbufVector[0];
+        pixelVector.resize(NumPixels);
+        tempbufVector.resize(NumPixels);
+        if (resetPtr) {
+            // If the pixels or tempbuf ptr did not point to the first element
+            // originally, then it is pointing into GPU memory and we need
+            // to keep that pointer pointing there so the data can be retreived
+            // from the GPU.
+            pixels = &pixelVector[0];
+        }
+        if (resetTPtr) {
+            tempbuf = &tempbufVector[0];
+        }
+    }
     isTransformed = (bufferTransform != "None");
 }
 
@@ -961,7 +1098,7 @@ void RenderBuffer::SetNodePixel(int nodeNum, const xlColor &color, bool dmx_igno
     }
 }
 
-void RenderBuffer::CopyNodeColorsToPixels(std::vector<bool> &done) {
+void RenderBuffer::CopyNodeColorsToPixels(std::vector<uint8_t> &done) {
     parallel_for(0, Nodes.size(), [&](int n) {
         xlColor c;
         Nodes[n]->GetColor(c);
@@ -973,7 +1110,6 @@ void RenderBuffer::CopyNodeColorsToPixels(std::vector<bool> &done) {
                 done[y*BufferWi+x] = true;
             }
         }
-
     }, 500);
 }
 
@@ -1117,6 +1253,153 @@ void RenderBuffer::DrawThickLine( const int x0_, const int y0_, const int x1_, c
     if (e2 >-dx) { err -= dy; x0 += sx; }
     if (e2 < dy) { err += dx; y0 += sy; }
   }
+}
+
+typedef std::pair<int, int> HLine;
+
+static void ScanEdge(int x1, int y1, int x2, int y2, int setx, bool skip, std::vector<HLine> &lines, int &eidx)
+{
+  int dx = x2 - x1;
+  int dy = y2 - y1;
+  if (dy <= 0)
+    return;
+  double invs = (double)dx / (double)dy;
+
+  int idx = eidx;
+
+  for (int y = y1 + (skip ? 1 : 0); y<y2; ++y, ++idx) {
+    if (setx)
+        lines[idx].first = x1 + (int)(ceil((y - y1) * invs));
+    else
+        lines[idx].second = x1 + (int)(ceil((y - y1) * invs));
+  }
+  eidx = idx;
+}
+
+void RenderBuffer::FillConvexPoly(const std::vector<std::pair<int, int>>& opoly, const xlColor& color)
+{
+    if (opoly.empty())
+        return;
+    std::vector<std::pair<int, int>> poly;
+    poly.push_back(opoly[0]);
+    for (size_t i = 1; i < opoly.size(); ++i) {
+        if (opoly[i] != opoly[i - 1]) {
+            poly.push_back(opoly[i]);
+        }
+    }
+    if (poly[0] == poly[poly.size() - 1]) {
+        poly.pop_back();
+    }
+
+    // Loosely based on Michael Abrash's Graphics Programming Black Book (TGPBB)
+    // Feels very low tech compared to what should be here, but high tech compared to the
+    //    rest of the stuff that actually is here (shrug)
+    if (poly.size() < 3)
+       return;
+    int miny, maxy, minx, maxx;
+    minx = maxx = poly[0].first;
+    miny = maxy = poly[0].second;
+    int minidxl = 0, maxidx = 0;
+
+    // Find the top and bottom
+    for (size_t i = 1; i < poly.size(); ++i) {
+        if (poly[i].second < miny) {
+            minidxl = i;
+            miny = poly[i].second;
+        }
+        if (poly[i].second > maxy) {
+            maxidx = i;
+            maxy = poly[i].second;
+        }
+        minx = std::min(minx, poly[i].first);
+        maxx = std::max(maxx, poly[i].first);
+    }
+
+    // Empty? Off Screen?
+    if (miny == maxy)
+       return;
+    if (minx >= this->BufferWi || maxx <= 0)
+        return;
+    if (miny >= this->BufferHt || maxy <= 0)
+       return;
+
+    int minidxr = minidxl;
+    while (poly[minidxr].second == miny)
+       minidxr = (minidxr + 1) % poly.size();
+    minidxr = (minidxr + poly.size() - 1) % poly.size();
+
+    while (poly[minidxl].second == miny)
+       minidxl = (minidxl + poly.size() - 1) % poly.size();
+    minidxl = (minidxl + 1) % poly.size();
+
+    int ledir = -1;
+    bool tif = (poly[minidxl].first != poly[minidxr].first);
+    if (tif) {
+       if (poly[minidxl].first > poly[minidxr].first) {
+            ledir = 1;
+            std::swap(minidxl, minidxr);
+       }
+    } else {
+       int nidx = minidxr;
+       nidx = (nidx + 1) % poly.size();
+       int pidx = minidxl;
+       pidx = (pidx + poly.size() - 1) % poly.size();
+       int dxn = poly[nidx].first - poly[minidxl].first;
+       int dyn = poly[nidx].second - poly[minidxl].second;
+       int dxp = poly[pidx].first - poly[minidxl].first;
+       int dyp = poly[pidx].second - poly[minidxl].second;
+       if (((long long)dxn * dyp - (long long)dyn * dxp) < 0L) {
+            ledir = 1;
+            std::swap(minidxl, minidxr);
+       }
+    }
+
+    int wheight = maxy - miny - 1 + (tif ? 1 : 0);
+    if (wheight <= 0)
+       return;
+    int ystart = miny + 1 - (tif ? 1 : 0);
+
+    std::vector<HLine> hlines(wheight);
+
+    int edgept = 0;
+    int cidx = minidxl, pidx = minidxl;
+    bool skip = tif ? 0 : 1;
+
+    /* Scan convert each line in the left edge from top to bottom */
+    do {
+       cidx = (cidx + poly.size() + ledir) % poly.size();
+       ScanEdge(poly[pidx].first, poly[pidx].second,
+                poly[cidx].first, poly[cidx].second,
+                true, skip, hlines, edgept);
+       pidx = cidx;
+       skip = false;
+    } while (cidx != maxidx);
+
+    edgept = 0;
+    pidx = cidx = minidxr;
+
+    skip = tif ? 0 : 1;
+    /* Scan convert the right edge, top to bottom. X coordinates are
+       adjusted 1 to the left, effectively causing scan conversion of
+       the nearest points to the left of but not exactly on the edge */
+    do {
+       cidx = (cidx + poly.size() - ledir) % poly.size();
+       ScanEdge(poly[pidx].first - 1, poly[pidx].second,
+                poly[cidx].first - 1, poly[cidx].second,
+                false, skip, hlines, edgept);
+       pidx = cidx;
+       skip = false;
+    } while (cidx != maxidx);
+
+    // Draw the line list representing the scan converted polygon
+    for (int y = ystart, en = 0; y < int(ystart + hlines.size()); ++y, ++en) {
+       if (y < 0 || y >= BufferHt)
+            continue;
+       int sx = std::max(0, hlines[en].first);
+       int ex = std::min(hlines[en].second, BufferWi - 1);
+       for (int x = sx; x <= ex; ++x)
+            SetPixel(x, y, color, false);
+    }
 }
 
 void RenderBuffer::DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap)
@@ -1275,6 +1558,35 @@ void RenderBuffer::CopyPixelsToTempBuf() {
     memcpy(tempbuf, pixels, pixelVector.size() * 4);
 }
 
+// Gets the maximum oversized buffer size a model could have
+// Useful for models which need to track data per cell as with value curves the buffer size could
+// get as large as this during the effect
+wxPoint RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
+{
+    Model* m = frame->AllModels[cur_model];
+    if (m == nullptr) {
+        return wxPoint(-1, -1);
+    }
+    std::string bufferstyle = SettingsMap.Get("CHOICE_BufferStyle", "Default");
+    std::string transform = SettingsMap.Get("CHOICE_BufferTransform", "None");
+    std::string camera = SettingsMap.Get("CHOICE_PerPreviewCamera", "2D");
+    int w, h;
+    
+    static const std::string PER_MODEL("Per Model");
+    static const std::string DEEP("Deep");
+    if (bufferstyle.compare(0, 9, PER_MODEL) == 0) {
+        bufferstyle = bufferstyle.substr(10);
+        if (bufferstyle.compare(bufferstyle.length() - 4, 4, DEEP) == 0) {
+            bufferstyle = bufferstyle.substr(0, bufferstyle.length() - 5);
+        }
+    }
+    
+    m->GetBufferSize(bufferstyle, camera, transform, w, h, SettingsMap.GetInt("B_SPINCTRL_BufferStagger", 0));
+    float xScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
+    float yScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
+    return wxPoint(xScale * w, yScale * h);
+}
+
 float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) const {
     if (curEffEndPer == curEffStartPer) {
         return 0.0f;
@@ -1415,7 +1727,7 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     _nodeBuffer = buffer._nodeBuffer;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
-    infoCache = buffer.infoCache;
+    cur_model = buffer.cur_model;
 
     pixels = &pixelVector[0];
     _textDrawingContext = buffer._textDrawingContext;
@@ -1426,7 +1738,6 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
 void RenderBuffer::Forget()
 {
     // Forget some stuff as this is a fake render buffer and we dont want it destroyed
-    infoCache.clear();
     _textDrawingContext = nullptr;
     _pathDrawingContext = nullptr;
 }

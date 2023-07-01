@@ -50,7 +50,10 @@ class SingleStrandPanel: public xlEffectPanel
 		BulkEditSlider* Slider_Skips_BandSize;
 		BulkEditSlider* Slider_Skips_SkipSize;
 		BulkEditSlider* Slider_Skips_StartPos;
+		BulkEditSliderF1* Slider_Chase_Offset;
 		BulkEditSliderF1* Slider_Chase_Rotations;
+		BulkEditTextCtrlF1* TextCtrl_ChaseOffset;
+		BulkEditValueCurveButton* BitmapButton_Chase_OffsetVC;
 		BulkEditValueCurveButton* BitmapButton_Chase_Rotations;
 		BulkEditValueCurveButton* BitmapButton_Color_Mix1VC;
 		BulkEditValueCurveButton* BitmapButton_FX_IntensityVC;
@@ -71,12 +74,14 @@ class SingleStrandPanel: public xlEffectPanel
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
 		wxStaticText* StaticText60;
 		wxStaticText* StaticText61;
 		wxStaticText* StaticText9;
 		xlLockButton* BitmapButton_ChaseRotations;
 		xlLockButton* BitmapButton_Chase_3dFade1;
 		xlLockButton* BitmapButton_Chase_Group_All;
+		xlLockButton* BitmapButton_Chase_Offset;
 		xlLockButton* BitmapButton_Chase_Type1;
 		xlLockButton* BitmapButton_Color_Mix1;
 		xlLockButton* BitmapButton_Number_Chases;
@@ -109,6 +114,11 @@ class SingleStrandPanel: public xlEffectPanel
 		static const long ID_VALUECURVE_Chase_Rotations;
 		static const long ID_TEXTCTRL_Chase_Rotations;
 		static const long ID_BITMAPBUTTON_SLIDER_Chase_Rotations;
+		static const long ID_STATICTEXT5;
+		static const long IDD_SLIDER_Chase_Offset;
+		static const long ID_VALUECURVE_Chase_Offset;
+		static const long ID_TEXTCTRL_Chase_Offset;
+		static const long ID_BITMAPBUTTON_SLIDER_Chase_Offset;
 		static const long ID_STATICTEXT_Chase_Type1;
 		static const long ID_CHOICE_Chase_Type1;
 		static const long ID_BITMAPBUTTON_CHOICE_Chase_Type1;
@@ -157,6 +167,8 @@ class SingleStrandPanel: public xlEffectPanel
 
 		//(*Handlers(SingleStrandPanel)
 		//*)
+
+        void OnChoice_Chase_Type_Select(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };

@@ -34,6 +34,7 @@ const long FacesPanel::ID_CHOICE_Faces_FaceDefinition = wxNewId();
 const long FacesPanel::ID_STATICTEXT_Faces_Eyes = wxNewId();
 const long FacesPanel::ID_CHOICE_Faces_Eyes = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_Outline = wxNewId();
+const long FacesPanel::ID_CHECKBOX_Faces_SuppressShimmer = wxNewId();
 const long FacesPanel::ID_STATICTEXT1 = wxNewId();
 const long FacesPanel::ID_CHOICE_Faces_UseState = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_SuppressWhenNotSinging = wxNewId();
@@ -107,6 +108,10 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Faces_Outline = new BulkEditCheckBox(this, ID_CHECKBOX_Faces_Outline, _("Show outline"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_Outline"));
 	CheckBox_Faces_Outline->SetValue(false);
 	FlexGridSizer98->Add(CheckBox_Faces_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_SuppressShimmer = new BulkEditCheckBox(this, ID_CHECKBOX_Faces_SuppressShimmer, _("Suppress shimmer"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_SuppressShimmer"));
+	CheckBox_SuppressShimmer->SetValue(false);
+	FlexGridSizer98->Add(CheckBox_SuppressShimmer, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT1, _("Use State as outline"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer98->Add(StaticText2, 1, wxALL|wxEXPAND, 5);
 	Choice1 = new BulkEditStateChoice(this, ID_CHOICE_Faces_UseState, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_UseState"));
@@ -139,6 +144,8 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer7->Add(TextCtrl_Faces_TransparentBlack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer47->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer47);
+	FlexGridSizer47->Fit(this);
+	FlexGridSizer47->SetSizeHints(this);
 
 	Connect(IDD_RADIOBUTTON_Faces_Phoneme,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&FacesPanel::OnMouthMovementTypeSelected);
 	Connect(IDD_RADIOBUTTON_Faces_TimingTrack,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&FacesPanel::OnMouthMovementTypeSelected);

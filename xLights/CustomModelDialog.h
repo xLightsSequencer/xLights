@@ -29,6 +29,7 @@
  class wxStaticText;
  //*)
 
+#include <wx/timer.h>
 #include <wx/wx.h>
 #include <wx/grid.h>
 #include <wx/renderer.h>
@@ -43,6 +44,7 @@ class CopyPasteGrid;
 class wxModelGridCellRenderer;
 class ImageFilePickerCtrl;
 class ModelPreview;
+class OutputManager;
 
 wxDECLARE_EVENT(EVT_GRID_KEY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SWITCH_GRID, wxCommandEvent);
@@ -60,6 +62,9 @@ class CustomModelDialog: public wxDialog
 	std::string _saveModelData;
     CustomModel* _model = nullptr;
     bool _changed = false;
+    wxTimer timer1;
+    bool _oldOutputToLights = false;
+    OutputManager* _outputManager = nullptr;
 
     std::string GetModelData();
     void UpdatePreview(int width, int height, int depth, const std::string& modelData);
@@ -72,13 +77,20 @@ class CustomModelDialog: public wxDialog
 	void CreateSubmodelFromRow(int row);
 	void CreateMinimalSubmodelFromRow(int row);
 	void SetGridSizeForFont(const wxFont& font);
+    void StartOutputToLights();
+    bool StopOutputToLights();
+
+	void DrawDupNodes();
+    void ClearDupNodes();
 
     static const long CUSTOMMODELDLGMNU_CUT;
     static const long CUSTOMMODELDLGMNU_COPY;
     static const long CUSTOMMODELDLGMNU_PASTE;
 	static const long CUSTOMMODELDLGMNU_DELETE;
     static const long CUSTOMMODELDLGMNU_FLIPH;
+    static const long CUSTOMMODELDLGMNU_FLIPHSELECTED;
     static const long CUSTOMMODELDLGMNU_FLIPV;
+    static const long CUSTOMMODELDLGMNU_FLIPVSELECTED;
     static const long CUSTOMMODELDLGMNU_ROTATE90;
     static const long CUSTOMMODELDLGMNU_ROTATE;
     static const long CUSTOMMODELDLGMNU_REVERSE;
@@ -114,10 +126,11 @@ class CustomModelDialog: public wxDialog
 	static const long CUSTOMMODELDLGMNU_WIREHORIZONTALRIGHT;
 	static const long CUSTOMMODELDLGMNU_WIREVERTICALTOP;
 	static const long CUSTOMMODELDLGMNU_WIREVERTICALBOTTOM;
+    static const long ID_TIMER1;
 
     public:
 
-		CustomModelDialog(wxWindow* parent);
+		CustomModelDialog(wxWindow* parent, OutputManager* om);
 		virtual ~CustomModelDialog();
         float GetLineLen(const std::tuple<float, float, float>& pt1, const std::tuple<float, float, float>& pt2) const;
 
@@ -136,7 +149,9 @@ class CustomModelDialog: public wxDialog
 		wxButton* Button_ImportFromController;
 		wxCheckBox* CheckBoxAutoIncrement;
 		wxCheckBox* CheckBoxAutoNumber;
+		wxCheckBox* CheckBox_OutputToLights;
 		wxCheckBox* CheckBox_ShowWiring;
+		wxCheckBox* CheckBox_Show_Duplicates;
 		wxFlexGridSizer* FlexGridSizer10;
 		wxFlexGridSizer* Sizer1;
 		wxPanel* Panel11;
@@ -168,6 +183,8 @@ class CustomModelDialog: public wxDialog
 		static const long ID_SPINCTRL3;
 		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON3;
+		static const long ID_CHECKBOX_SHOW_DUPS;
+		static const long ID_CHECKBOX2;
 		static const long ID_BITMAPBUTTON_CUSTOM_CUT;
 		static const long ID_BITMAPBUTTON_CUSTOM_COPY;
 		static const long ID_BITMAPBUTTON_CUSTOM_PASTE;
@@ -202,6 +219,7 @@ class CustomModelDialog: public wxDialog
         std::vector<wxModelGridCellRenderer*> _renderers;
         ModelPreview* _modelPreview = nullptr;
 		int _highlightpixel = 0;
+        std::vector<std::pair<wxPoint, wxColour>> _dup_pts;
 
 	public:
 
@@ -229,8 +247,11 @@ class CustomModelDialog: public wxDialog
 		void OnResize(wxSizeEvent& event);
 		void OnCheckBox_ShowWiringClick(wxCommandEvent& event);
 		void OnButton_ImportFromControllerClick(wxCommandEvent& event);
+		void OnCheckBox_Show_DuplicatesClick(wxCommandEvent& event);
+		void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
 		//*)
 
+	    void OnTimer1Trigger(wxTimerEvent& event);
         void OnMove(wxMoveEvent& event);
         void OnCut(wxCommandEvent& event);
         void OnCopy(wxCommandEvent& event);
@@ -257,6 +278,8 @@ class CustomModelDialog: public wxDialog
         void Insert(int selRow, int selCol);
         void Shift();
 		void ShiftSelected();
+        void FlipHorzSelected();
+        void FlipVertSelected();
         void Compress();
 		void Find();
 		void FindLast();

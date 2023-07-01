@@ -100,7 +100,8 @@ static const char* CIRCLE_START_LOCATION_VALUES[] = {
 
 static wxPGChoices CIRCLE_START_LOCATION(wxArrayString(8, CIRCLE_START_LOCATION_VALUES));
 
-void CircleModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void CircleModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
 
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", parm1));
     p->SetAttribute("Min", 1);
@@ -123,7 +124,7 @@ void CircleModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     }
 
     p = grid->Append(new wxUIntProperty("Center %", "CircleCenterPercent", parm3));
-    p->SetAttribute("Min", 1);
+    p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
@@ -145,6 +146,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         //AdjustStringProperties(grid, parm1);
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStringCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStringCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleStringCount");
@@ -157,6 +159,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
     else if ("CircleLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleLightCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleLightCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleLightCount");
@@ -169,6 +172,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
     else if ("CircleCenterPercent" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
@@ -185,6 +189,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         ModelXml->AddAttribute("StartSide", v < 4 ? "T" : "B");
         ModelXml->AddAttribute("InsideOut", v & 0x2 ? "1" : "0");
 
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleStart");
@@ -320,8 +325,8 @@ void CircleModel::ExportXlightsModel()
     wxString p3 = ModelXml->GetAttribute("parm3");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ss = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
@@ -362,6 +367,7 @@ void CircleModel::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    ExportDimensions(f);
     f.Write("</circlemodel>");
     f.Close();
 }
@@ -375,8 +381,8 @@ void CircleModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         wxString p3 = root->GetAttribute("parm3");
         wxString st = root->GetAttribute("StringType");
         wxString ps = root->GetAttribute("PixelSize");
-        wxString t = root->GetAttribute("Transparency");
-        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString t = root->GetAttribute("Transparency", "0");
+        wxString mb = root->GetAttribute("ModelBrightness", "0");
         wxString a = root->GetAttribute("Antialias");
         wxString ss = root->GetAttribute("StartSide");
         wxString dir = root->GetAttribute("Dir");
@@ -418,7 +424,7 @@ void CircleModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::ImportXlightsModel");

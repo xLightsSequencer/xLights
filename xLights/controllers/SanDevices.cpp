@@ -131,11 +131,16 @@ protected:
 #pragma region SimpleHTTP
 wxInputStream *SimpleHTTP::GetInputStream(const wxString& path, wxString& startResult) {
 
-    MyHTTPStream *inp_stream;
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    MyHTTPStream *inp_stream = nullptr;
     wxString new_path;
 
     m_lastError = wxPROTO_CONNERR;  // all following returns share this type of error
-    if (!m_addr) return nullptr;
+    if (!m_addr) {
+        logger_base.error("SimpleHTTP::GetInputStream m_addr was null");
+        return nullptr;
+    }
 
     // We set m_connected back to false so wxSocketBase will know what to do.
 #ifdef __WXMAC__
@@ -145,7 +150,11 @@ wxInputStream *SimpleHTTP::GetInputStream(const wxString& path, wxString& startR
     if (!wxSocketClient::IsConnected())
         return nullptr;
 #else
-    if (!wxProtocol::Connect(*m_addr)) return nullptr;
+    if (!wxProtocol::Connect(*m_addr)) {
+        logger_base.error("SimpleHTTP::GetInputStream wxProtocol::Connect failed to %s.", (const char*)dynamic_cast<wxIPaddress*>(m_addr)->IPAddress().c_str());
+        return nullptr;
+    }
+
 #endif
 
     // Use the user-specified method if any or determine the method to use
@@ -578,6 +587,33 @@ bool SanDevices::ParseV5OutputWebpage(const std::string& page) {
     return true;
 }
 
+const std::string DecodeProtocolError(wxProtocolError err)
+{
+    switch (err) {
+    case wxPROTO_NOERR:
+        return "Success";
+    case wxPROTO_NETERR:
+        return "Network Error";
+    case wxPROTO_PROTERR:
+        return "Protocol Error";
+    case wxPROTO_CONNERR:
+        return "Connection Error";
+    case wxPROTO_INVVAL:
+        return "Invalid Value";
+    case wxPROTO_NOHNDLR:
+        return "No Handler";
+    case wxPROTO_NOFILE:
+        return "No File";
+    case wxPROTO_ABRT:
+        return "Abort";
+    case wxPROTO_RCNCT:
+        return "Reconnection Count";
+    case wxPROTO_STREAMING:
+        return "Streaming";
+    }
+    return "Unrecognised error";
+}
+
 std::string SanDevices::SDGetURL(const std::string& url, bool logresult) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -597,7 +633,7 @@ std::string SanDevices::SDGetURL(const std::string& url, bool logresult) {
         }
     }
     else {
-        logger_base.error("Unable to connect to SanDevices %s '%s' : %d.", (const char*)_ip.c_str(), (const char*)url.c_str(), _http.GetError());
+        logger_base.error("Unable to connect to SanDevices %s '%s' : %d %s.", (const char*)_ip.c_str(), (const char*)url.c_str(), _http.GetError(), (const char*)DecodeProtocolError(_http.GetError()).c_str());
         wxMessageBox(_T("Unable to connect!"));
         res = "";
     }

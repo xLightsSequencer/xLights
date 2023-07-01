@@ -10,6 +10,8 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+
+#if !defined(SKIP_SMPTE)
 #include "ListenerBase.h"
 #include "../libltc/ltc.h"
 #include <string>
@@ -22,11 +24,12 @@ class ListenerSMPTE : public ListenerBase
     LTCFrameExt _frame;
     unsigned short _buffer[4096];
     long int _total = 0;
+    std::string _device = "";
 
     void DoSync(int mode, int hours, int mins, int secs, int frames);
 
 	public:
-        ListenerSMPTE(int mode, ListenerManager* _listenerManager);
+        ListenerSMPTE(int mode, ListenerManager* _listenerManager, const std::string& device);
 		virtual ~ListenerSMPTE() {}
 		virtual void Start() override;
         virtual void Stop() override;
@@ -35,3 +38,7 @@ class ListenerSMPTE : public ListenerBase
         virtual void StopProcess() override;
         virtual void Poll() override;
 };
+
+#else
+#pragma message("Skipping SMPTE")
+#endif

@@ -12,6 +12,7 @@
 #include "E131Output.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
+#include "../utils/ip_utils.h"
 
 #include <wx/xml/xml.h>
 #include <wx/process.h>
@@ -32,7 +33,7 @@ void E131Output::CreateMultiUniverses_CONVERT(int num) {
 
     for (int i = 0; i < _numUniverses_CONVERT; i++) {
         E131Output* e = new E131Output();
-        e->SetIP(_ip);
+        e->SetIP(_ip, true);
         e->SetUniverse(_universe + i);
         e->SetChannels(_channels);
         e->_description_CONVERT = _description_CONVERT;
@@ -56,7 +57,7 @@ void E131Output::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("E131Output: %s Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
     }
@@ -65,7 +66,7 @@ void E131Output::OpenDatagram() {
         delete _datagram;
         _datagram = nullptr;
     }
-    else if (_datagram->Error() != wxSOCKET_NOERROR) {
+    else if (_datagram->Error()) {
         logger_base.error("E131Output: %s Error creating E131 datagram => %d : %s.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
@@ -74,7 +75,7 @@ void E131Output::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-E131Output::E131Output(wxXmlNode* node) : IPOutput(node) {
+E131Output::E131Output(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > 512) SetChannels(512);
     if (_autoSize_CONVERT) _autoSize_CONVERT = false;
@@ -202,7 +203,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
                 delete syncdatagram;
             }
 
-            syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+            syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
             if (syncdatagram == nullptr) {
                 logger_base.error("Error initialising E131 sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
@@ -212,7 +213,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
-            else if (syncdatagram->Error() != wxSOCKET_NOERROR) {
+            else if (syncdatagram->Error()) {
                 logger_base.error("Error creating E131 sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
@@ -278,7 +279,6 @@ void E131Output::SetTransientData(int32_t& startChannel, int nullnumber) {
     }
 
     wxASSERT(startChannel != -1);
-    //_outputNumber = on++;
     _startChannel = startChannel;
     startChannel += GetChannels();
 }
@@ -291,7 +291,7 @@ bool E131Output::Open() {
 
     if (!_enabled) return true;
     if (_ip == "") return false;
-    if (_ip != "MULTICAST" && !IsIPValid(_resolvedIp)) return false;
+    if (_ip != "MULTICAST" && !ip_utils::IsIPValid(_resolvedIp)) return false;
 
     _ok = IPOutput::Open();
     if (_fppProxyOutput) {

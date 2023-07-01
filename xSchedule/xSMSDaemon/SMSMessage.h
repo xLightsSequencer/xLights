@@ -4,7 +4,7 @@
 #include <locale>
 #include <fstream>
 
-#include "Curl.h"
+#include "utils/Curl.h"
 
 #include <wx/wx.h>
 #include <wx/uri.h>

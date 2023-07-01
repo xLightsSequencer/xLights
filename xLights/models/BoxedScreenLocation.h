@@ -92,6 +92,9 @@ public:
     void SetPerspective2D(float p) {
         perspective = p;
     }
+    virtual float GetRealWidth() const override;
+    virtual float GetRealHeight() const override;
+    virtual float GetRealDepth() const override;
 
     virtual float GetTop() const override;
     virtual float GetLeft() const override;

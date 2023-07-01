@@ -19,7 +19,8 @@
 #include "../effects/EffectManager.h"
 #include "../effects/RenderableEffect.h"
 #include "Element.h"
-#include "xLightsMain.h"
+#include "../xLightsMain.h"
+#include "../xLightsApp.h"
 
 #include <log4cpp/Category.hh>
 #include "effects/DMXEffect.h"
@@ -78,12 +79,13 @@ Effect* EffectLayer::GetEffect(int index) const
         return nullptr;
     }
 }
+
 Effect* EffectLayer::GetEffectByTime(int timeMS) {
     std::unique_lock<std::recursive_mutex> locker(lock);
-    for(std::vector<Effect*>::iterator i = mEffects.begin(); i != mEffects.end(); i++) {
-        if (timeMS >= (*i)->GetStartTimeMS() &&
-            timeMS <= (*i)->GetEndTimeMS()) {
-            return (*i);
+    for(const auto& it : mEffects) {
+        if (timeMS >= it->GetStartTimeMS() &&
+            timeMS <= it->GetEndTimeMS()) {
+            return it;
         }
     }
     return nullptr;
@@ -192,6 +194,14 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
     std::string name(n);
+    EffectManager* em = nullptr;
+    if (GetParentElement() != nullptr)
+    {
+        em = &(GetParentElement()->GetSequenceElements()->GetEffectManager());
+    } else {
+        em = &(xLightsApp::GetFrame()->GetEffectManager());
+    }
+    wxASSERT(em != nullptr);
 
     // really dont want to add effects which look invalid - some imports result in this
     if (startTimeMS > endTimeMS) return nullptr;
@@ -200,7 +210,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
         if (name == "") {
             name = "Off";
         }
-        if ((GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name) == -1) &&
+        if ((em->GetEffectIndex(name) == -1) &&
             (name != "Random"))
         {
             log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -222,7 +232,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     // make sure they dont hang over the left side
     if (startTimeMS < 0) startTimeMS = 0;
 
-    Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
+    Effect* e = new Effect(em, this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
     wxASSERT(e != nullptr);
     mEffects.push_back(e);
     if (!suppress_sort)
@@ -248,42 +258,30 @@ void EffectLayer::SortEffects()
 
 bool EffectLayer::IsStartTimeLinked(int index) const
 {
-    if (index < mEffects.size() && index > 0)
-    {
+    if (index < mEffects.size() && index > 0) {
         return mEffects[index - 1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS();
-    }
-    else
-    {
+    } else {
         return false;
     }
 }
 
 bool EffectLayer::IsEndTimeLinked(int index) const
 {
-    if (index < mEffects.size() - 1)
-    {
+    if (index < mEffects.size() - 1) {
         return mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS();
-    }
-    else
-    {
+    } else {
         return false;
     }
 }
 
 int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period) const
 {
-    if (index + 1 >= mEffects.size())
-    {
+    if (index + 1 >= mEffects.size()) {
         return NO_MIN_MAX_TIME;
-    }
-    else
-    {
-        if (mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS() && allow_collapse)
-        {
+    } else {
+        if (mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS() && allow_collapse) {
             return mEffects[index + 1]->GetEndTimeMS() - min_period;
-        }
-        else
-        {
+        } else {
             return mEffects[index + 1]->GetStartTimeMS();
         }
     }
@@ -291,18 +289,12 @@ int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse, int min_per
 
 int EffectLayer::GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period) const
 {
-    if (index == 0)
-    {
+    if (index == 0) {
         return NO_MIN_MAX_TIME;
-    }
-    else
-    {
-        if (mEffects[index - 1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS() && allow_collapse)
-        {
+    } else {
+        if (mEffects[index - 1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS() && allow_collapse) {
             return mEffects[index - 1]->GetStartTimeMS() + min_period;
-        }
-        else
-        {
+        } else {
             return mEffects[index - 1]->GetEndTimeMS();
         }
     }
@@ -313,6 +305,12 @@ int EffectLayer::GetEffectCount() const
     return mEffects.size();
 }
 
+bool EffectLayer::IsTimingLayer()
+{
+    TimingElement* te = dynamic_cast<TimingElement*>(GetParentElement());
+    return !(te == nullptr);
+}
+
 bool EffectLayer::IsFixedTimingLayer()
 {
     TimingElement* te = dynamic_cast<TimingElement*>(GetParentElement());
@@ -321,11 +319,9 @@ bool EffectLayer::IsFixedTimingLayer()
 
 bool EffectLayer::HitTestEffectByTime(int timeMS, int& index) const
 {
-    for (int i = 0; i < mEffects.size(); i++)
-    {
+    for (int i = 0; i < mEffects.size(); i++) {
         if (timeMS >= mEffects[i]->GetStartTimeMS() &&
-            timeMS <= mEffects[i]->GetEndTimeMS())
-        {
+            timeMS <= mEffects[i]->GetEndTimeMS()) {
             index = i;
             return true;
         }
@@ -1273,7 +1269,7 @@ void EffectLayer::ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& und
     }
 }
 
-void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::pair<int, int>>& pairs, const EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
+void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::tuple<int, int, float, int>>& dmxmappings, const EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
     DMXEffect* dmx = static_cast<DMXEffect*>(effectManager.GetEffect("DMX"));
 
@@ -1283,7 +1279,7 @@ void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoMa
                 (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
                 (mEffects[i]->GetSelected() == EFFECT_SELECTED))) {
             undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
-            dmx->RemapSelectedDMXEffectValues(mEffects[i], pairs);
+            dmx->RemapSelectedDMXEffectValues(mEffects[i], dmxmappings);
 
             rangeAccumulator.Add(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
         }

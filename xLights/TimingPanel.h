@@ -31,6 +31,12 @@
 
 class Model;
 
+#define IN_TRANSITION_MIN 0
+#define IN_TRANSITION_MAX 100
+
+#define OUT_TRANSITION_MIN 0
+#define OUT_TRANSITION_MAX 100
+
 class TimingPanel: public xlEffectPanel
 {
     std::string _layersSelected;
@@ -48,6 +54,31 @@ class TimingPanel: public xlEffectPanel
         void SetDefaultControls(const Model *model, bool optionbased = false);
         void ValidateWindow();
         void SetLayersSelected(std::string layersSelected) { _layersSelected = layersSelected; }
+
+		static double GetSettingVCMin(const std::string& name)
+        {
+            if (name == "T_VALUECURVE_In_Transition_Adjust")
+                return IN_TRANSITION_MIN;
+            if (name == "T_VALUECURVE_Out_Transition_Adjust")
+                return OUT_TRANSITION_MIN;
+            wxASSERT(false);
+            return 0;
+        }
+
+        static double GetSettingVCMax(const std::string& name)
+        {
+            if (name == "T_VALUECURVE_In_Transition_Adjust")
+                return IN_TRANSITION_MAX;
+            if (name == "T_VALUECURVE_Out_Transition_Adjust")
+                return OUT_TRANSITION_MAX;
+            wxASSERT(false);
+            return 100;
+        }
+
+        static int GetSettingVCDivisor(const std::string& name)
+        {
+            return 1;
+        }
 
 		//(*Declarations(TimingPanel)
 		BulkEditCheckBox* CheckBox_Canvas;

@@ -39,7 +39,7 @@ std::string __defaultPage = "index.html";
 void WebServer::GeneratePass()
 {
     wxString newPass = "";
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 16; ++i) {
         int r = rand01() * 36;
         if (r < 10) {
             newPass += char('0' + r);
@@ -607,7 +607,7 @@ bool MyRequestHandler(HttpConnection& connection, HttpRequest& request)
                 //response.AddHeader("Cache-Control", "max-age=14400");
 
                 wxFileName fn(file);
-                if (__validPass != "" && fn.GetExt().Lower().StartsWith("htm") || fn.GetExt().Lower() == "js") {
+                if (__validPass != "" && (fn.GetExt().Lower().StartsWith("htm") || fn.GetExt().Lower() == "js")) {
                     // we should replace any tokens with our token values
                     wxFile f;
                     if (f.Open(file, wxFile::OpenMode::read)) {

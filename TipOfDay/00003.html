@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00003.html" title="Troubleshooting why the visualiser won't work" category="Controller" level="Beginner" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Troubleshooting why the visualiser won't work</h1>
+        <p>It is not always clear why sometimes the visualiser button is enabled and working on the controller tab and other times it is disabled so lets run through what needs to be true for the visualiser button to work.</p>
+        <ul>
+            <li>Output to lights must be turned off. The visualiser cannot be used if you are outputting to lights.</li>
+            <li>The controller must have the "Vendor", "Model" and when it appears the "Variant" properties set to a valid value. Without these set the visualiser does not know about your controller and thus is unable to present the number of ports or enforce the limits of the controller.</li>
+            <li>The controller must not be a NULL controller. To be honest there are not many reasons these days why a NULL controller is even required today other than maybe an xSchedule virtual matrix.</li>
+        </ul>
+        <p>While not a strict requirment we would also recommend that "Auto Layout Models" and "Auto Size" also be selected. These allow xLights to juggle the model start channels to be optimised to work with your controller.</p>
+    </body>
+</html>

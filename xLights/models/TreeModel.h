@@ -21,7 +21,15 @@ class TreeModel : public MatrixModel
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return true; }
-        virtual bool SupportsWiringView() const override { return true; }
+        virtual void ExportAsCustomXModel3D() const override;
+        virtual bool SupportsExportAsCustom3D() const override
+        {
+            return true;
+        }
+        virtual bool SupportsWiringView() const override
+        {
+            return true;
+        }
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
         virtual int NodeRenderOrder() override {return 1;}

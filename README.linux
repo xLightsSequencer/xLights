@@ -42,7 +42,7 @@ If you want to create a fresh build then the container can be removed with:
 
 These instructions have been tested on the following distributions:
 
-  - Ubuntu 20.04
+  - Ubuntu 22.04
   - Fedora 35
 
 Instructions for other Linux distributions will vary. 
@@ -69,7 +69,7 @@ Instructions for other Linux distributions will vary.
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libswresample-dev libavutil-dev libavresample-dev libportmidi-dev libzstd-dev libcurl4-openssl-dev libltc-dev liblua5.3-dev wget git cbp2make
+     sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libavutil-dev libportmidi-dev libzstd-dev libcurl4-openssl-dev libltc-dev liblua5.3-dev wget git cbp2make
 
      Example commands to install packages on Fedora 35
      
@@ -81,14 +81,13 @@ Instructions for other Linux distributions will vary.
         make -f cbp2make.cbp.mak.unix
         sudo install -m 755 -p -D bin/Release/cbp2make /usr/local/bin/cbp2make 
      
-     newer versions of libportmidi combined the .so files. Easiest workaround is to add a sym link to the combine .so file:
-        sudo ln -s /usr/lib64/libportmidi.so /usr/lib64/libporttime.so
-     
-     Install other packages:
+    Install other packages:
 
      sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
      sudo dnf install gcc-c++ gtk3-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL2-devel portmidi-devel libzstd-devel curl-devel libltc-devel lua-devel
 
+     Note: newer versions of libportmidi combined the .so files. Easiest workaround is to add a sym link to the combine .so file:
+        sudo ln -s /usr/lib64/libportmidi.so /usr/lib64/libporttime.so
 
   b) Get the xLights source code by opening a terminal window and
      typing the following:

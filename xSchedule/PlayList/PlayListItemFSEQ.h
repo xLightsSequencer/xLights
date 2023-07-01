@@ -41,6 +41,7 @@ protected:
     size_t _channels;
     bool _fastStartAudio;
     std::string _cachedAudioFilename;
+    std::string _audioDevice = "";
     #pragma endregion Member Variables
 
     void LoadFiles();
@@ -65,11 +66,22 @@ public:
     virtual size_t GetDurationMS() const override { return _delay + _durationMS; }
     virtual std::string GetNameNoTime() const override;
     std::string GetFSEQFileName() const { return _fseqFileName; }
-    std::string GetAudioFile() const { return _audioFile; }
-    bool GetOverrideAudio() const { return _overrideAudio; }
+    std::string GetAudioFile() const
+    {
+        return _audioFile;
+    }
+    std::string GetAudioDevice() const
+    {
+        return _audioDevice;
+    }
+    bool GetOverrideAudio() const
+    {
+        return _overrideAudio;
+    }
     bool GetFastStartAudio() const { return _fastStartAudio; }
     void SetFSEQFileName(const std::string& fseqFileName);
     void SetAudioFile(const std::string& audioFile);
+    void SetAudioDevice(const std::string& audioDevice);
     void SetOverrideAudio(bool overrideAudio);
     void SetFastStartAudio(bool fastStartAudio);
     virtual bool ControlsTiming() const override { return _controlsTimingCache || _audioManager != nullptr; }

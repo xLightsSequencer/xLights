@@ -191,7 +191,7 @@ void StateEffect::RenameTimingTrack(std::string oldname, std::string newname, Ef
     }
 }
 
-void StateEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void StateEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     RenderState(buffer,
                 effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
                 SettingsMap.Get("CHOICE_State_StateDefinition", ""),
@@ -229,15 +229,6 @@ void StateEffect::RenderState(RenderBuffer &buffer,
             logger_base.warn("State effect starting at %dms until %dms on model %s has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char *)buffer.cur_model.c_str());
         }
     }
-
-    Element *track = elements->GetElement(trackName);
-    std::recursive_timed_mutex tmpLock;
-    std::recursive_timed_mutex *lock = &tmpLock;
-    if (track != nullptr) {
-        lock = &track->GetChangeLock();
-    }
-
-    std::unique_lock<std::recursive_timed_mutex> locker(*lock);
 
     if (buffer.cur_model == "") {
         return;
@@ -292,11 +283,16 @@ void StateEffect::RenderState(RenderBuffer &buffer,
 
     if (tstates == "") {
 
+        Element* track = elements->GetElement(trackName);
+
         // if we dont have a track then exit
         if (track == nullptr)
         {
             return;
         }
+
+        std::recursive_timed_mutex* lock = lock = &track->GetChangeLock();
+        std::unique_lock<std::recursive_timed_mutex> locker(*lock);
 
         EffectLayer *layer = track->GetEffectLayer(0);
         int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
@@ -550,40 +546,22 @@ void StateEffect::RenderState(RenderBuffer &buffer,
                         }
                     }
 
-                    wxStringTokenizer wtkz(channels, ",");
-                    while (wtkz.HasMoreTokens())
-                    {
-                        wxString valstr = wtkz.GetNextToken();
-
-                        if (type == 0) {
-                            for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
-                                wxString nn = model_info->GetNodeName(n, true);
-                                if (nn == valstr) {
-                                    buffer.SetNodePixel(n, color, true);
-                                }
-                            }
+                    if (type == 1) {
+                        for (const auto it : model_info->stateInfoNodes[definition][statename]) {
+                            buffer.SetNodePixel(it, color, true);
                         }
-                        else if (type == 1) {
-                            int start, end;
-                            if (valstr.Contains("-")) {
-                                int idx = valstr.Index('-');
-                                start = wxAtoi(valstr.Left(idx));
-                                end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
-                                if (end < start)
-                                {
-                                    std::swap(start, end);
+                    } else {
+                        wxStringTokenizer wtkz(channels, ",");
+                        while (wtkz.HasMoreTokens()) {
+                            wxString valstr = wtkz.GetNextToken();
+
+                            if (type == 0) {
+                                for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
+                                    wxString nn = model_info->GetNodeName(n, true);
+                                    if (nn == valstr) {
+                                        buffer.SetNodePixel(n, color, true);
+                                    }
                                 }
-                            }
-                            else {
-                                start = end = wxAtoi(valstr);
-                            }
-                            if (start > end) {
-                                start = end;
-                            }
-                            start--;
-                            end--;
-                            for (int n = start; n <= end; n++) {
-                                buffer.SetNodePixel(n, color, true);
                             }
                         }
                     }

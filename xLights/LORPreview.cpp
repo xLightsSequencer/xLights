@@ -22,6 +22,7 @@
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/wx.h>
+#include <wx/gdicmn.h>
 
 bool S5Model::ParseXML( wxXmlNode* m ) {
     id                 = m->GetAttribute( "id" );
@@ -215,14 +216,8 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         SetDirection( model, m );
         ScaleToPreview( model, m, previewW, previewH );
     } else if( model.shapeName.StartsWith( "Bulb" ) ) {
-        //xLights cannot really make this model....TODO convert to custom model??
-        m = xlights->AllModels.CreateDefaultModel( "Single Line", startChan );
-
-        m->SetProperty( "parm1", "1" );
-        m->SetProperty( "parm2", wxString::Format( "%d", model.parms.at( 0 ) ) ); //number of nodes
-
-        SetDirection( model, m );
-        ScalePointsToSingleLine( model, m, previewW, previewH );
+        m = xlights->AllModels.CreateDefaultModel( "Custom", startChan );
+        BulbToCustomModel(model, m, previewW, previewH);
     } else if( model.shapeName.StartsWith( "Candycane" ) ) {
         //xLights cannot model multilayer candycans, just make one big one
         m = xlights->AllModels.CreateDefaultModel( "Candy Canes", startChan );
@@ -975,6 +970,115 @@ wxArrayString LORPreview::GetPreviews( wxXmlNode* root ) const
     }
     previews.Sort();
     return previews;
+}
+
+void LORPreview::BulbToCustomModel(S5Model const& model, Model* m, int pvwW, int pvwH) const
+{
+    auto [min, max] = GetMinMax(model.points);
+    S5Point size{(max.x - min.x), (max.y - min.y)};
+    S5Point center{ min.x + size.x / 2, min.y + size.y / 2 };
+
+    int scale = 10;
+    while (!FindBulbModelScale(scale, model.points)) {
+        scale += 10;
+        if (scale > 101) { // I(Scott) am afraid of infinite while loops
+            scale = 100;
+            break;
+        }
+    }
+
+    wxPoint scalemin{ (int)(min.x * scale), (int)(min.y * scale) };
+    wxPoint scalesize{ (int)(size.x * scale), (int)(size.y * scale) };
+    auto scaleBulbs = ScaleBulbs(model.points, scale, scalemin);
+
+    std::string cm;
+    for (int y = 0; y < scalesize.y + 1; y++) {
+        for (int x = 0; x < scalesize.x + 1; x++) {
+            std::string cell;
+            if (std::find_if(scaleBulbs.cbegin(), scaleBulbs.cend(), [x, y](auto const& b) {
+                    return b.x == x && b.y == y;
+                }) != scaleBulbs.cend()) {
+                cell = "1" ;
+            }
+            cm += cell + ",";
+        }
+        cm += ";";
+    }
+    if (!cm.empty()) {
+        cm.pop_back(); // remove last semicolen
+    }
+
+    m->SetProperty("parm1", std::to_string(scalesize.x+1)); // width
+    m->SetProperty("parm2", std::to_string(scalesize.y+1)); // height
+    m->SetProperty("CustomModel", cm);
+
+    ScaleBulbToXLights(center, size, scale, m, pvwW, pvwH);
+}
+
+void LORPreview::ScaleBulbToXLights(S5Point center, S5Point size, int scale, Model* m, int pvwW, int pvwH) const
+{
+    m->SetProperty("versionNumber", "5", true);
+
+    auto xModelCenter = ScalePointToXLights(center, pvwW, pvwH);
+    auto xSize = GetXLightsSizeFromScale(size, pvwW, pvwH);
+
+    float worldPos_x = xModelCenter.x;
+    float worldPos_y = xModelCenter.y;
+    float worldPos_z = 0.0F;
+    float scalex = xSize.x * (1.0 / scale);
+    float scaley = xSize.y * (1.0 / scale);
+    float scalez = scalex;
+
+    m->SetProperty("WorldPosX", wxString::Format("%6.4f", worldPos_x));
+    m->SetProperty("WorldPosY", wxString::Format("%6.4f", worldPos_y));
+    m->SetProperty("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
+    m->SetProperty("ScaleX", wxString::Format("%6.4f", scalex));
+    m->SetProperty("ScaleY", wxString::Format("%6.4f", scaley));
+    m->SetProperty("ScaleZ", wxString::Format("%6.4f", scalez));
+
+    m->SetProperty("RotateX", "0.0000");
+    m->SetProperty("RotateY", "0.0000");
+    m->SetProperty("RotateZ", "0.0000");
+}
+
+bool LORPreview::FindBulbModelScale(int scale, std::vector<S5Point> const& bulbs) const
+{
+    if (bulbs.size() <= 1) {
+        return true;
+    }
+    for (int i = 0; i < bulbs.size(); i++) {
+        for (int j = i + 1; j < bulbs.size(); j++) {
+            int x1 = (bulbs[i].x * scale);
+            int y1 = (bulbs[i].y * scale);
+            int x2 = (bulbs[j].x * scale);
+            int y2 = (bulbs[j].y * scale);
+            if (x1 == x2 && y1 == y2) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+std::pair<S5Point, S5Point> LORPreview::GetMinMax(std::vector<S5Point> const& bulbs) const
+{
+    S5Point min;
+    S5Point max;
+    for (auto const& b:bulbs) {
+        min.x = std::min(min.x, b.x);
+        min.y = std::min(min.y, b.y);
+        max.x = std::max(max.x, b.x);
+        max.y = std::max(max.y, b.y);
+    }
+    return { min, max };
+}
+
+std::vector<wxPoint> LORPreview::ScaleBulbs(std::vector<S5Point> const& bulbs, int scale, wxPoint offset) const
+{
+    std::vector<wxPoint> points;
+    std::transform(bulbs.begin(), bulbs.end(), std::back_inserter(points),
+                   [scale, &offset](S5Point const& b) -> wxPoint { return { (int)(b.x * scale) - offset.x, (int)(b.y * scale) - offset.y }; });
+    return points;
 }
 
 #ifdef _DEBUG

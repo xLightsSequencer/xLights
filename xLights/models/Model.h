@@ -130,6 +130,9 @@ public:
     ControllerCaps* GetControllerCaps() const;
     Controller* GetController() const;
 
+    virtual bool SupportsChangingStringCount() const { return false; };
+    virtual bool ChangeStringCount(long count,  std::string& message) { return false; };
+
     std::string description;
     xlColor customColor;
     DimmingCurve* modelDimmingCurve = nullptr;
@@ -139,7 +142,8 @@ public:
     void SetPixelSize(int size);
     void SetTransparency(int t);
     void SetBlackTransparency(int t);
-
+    void ApplyDimensions(const std::string& units, float width, float height, float depth, float& min_x, float& max_x, float& min_y, float& max_y);
+    void ExportDimensions(wxFile& f) const;
 
     virtual bool AllNodesAllocated() const { return true; }
     static void ParseFaceInfo(wxXmlNode* fiNode, std::map<std::string, std::map<std::string, std::string> >& faceInfo);
@@ -147,12 +151,18 @@ public:
     wxString SerialiseFace() const;
     wxString SerialiseState() const;
     wxString SerialiseGroups() const;
+    wxString SerialiseConnection() const;
     void AddModelGroups(wxXmlNode* n, int w, int h, const wxString& name, bool& merge, bool& ask);
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
+    std::map<std::string, std::map<std::string, std::list<int> > > faceInfoNodes;
+
+    void UpdateFaceInfoNodes();
+    void UpdateStateInfoNodes();
 
     static void ParseStateInfo(wxXmlNode* fiNode, std::map<std::string, std::map<std::string, std::string> >& stateInfo);
     static void WriteStateInfo(wxXmlNode* fiNode, const std::map<std::string, std::map<std::string, std::string> >& stateInfo, bool customColours = false);
     std::map<std::string, std::map<std::string, std::string> > stateInfo;
+    std::map<std::string, std::map<std::string, std::list<int>>> stateInfoNodes;
     void AddFace(wxXmlNode* n);
     void AddState(wxXmlNode* n);
     void AddSubmodel(wxXmlNode* n);
@@ -163,16 +173,16 @@ public:
     std::map<std::string, std::map<std::string, std::string>> GetDimmingInfo() const;
     virtual std::list<std::string> CheckModelSettings() override;
     virtual const std::vector<std::string>& GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
-    virtual void GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi) const;
+    virtual void GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const;
     virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform,
-        std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep = false) const;
+        std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep = false) const;
     const ModelManager& GetModelManager() const { return modelManager; }
     virtual bool SupportsXlightsModel() { return false; }
     static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview);
     void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
     virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {}
     virtual void ExportXlightsModel() {}
-    virtual void ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname);
+    virtual void ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname, float& min_x, float& max_x, float& min_y, float& max_y);
     bool FourChannelNodes() const;
     std::list<std::string> GetShadowedBy() const;
 
@@ -197,7 +207,7 @@ public:
     virtual void AddControllerProperties(wxPropertyGridInterface* grid);
     virtual void UpdateControllerProperties(wxPropertyGridInterface* grid);
     virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) {};
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid) override {};
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override{};
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {};
     virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) override;
     virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
@@ -221,6 +231,8 @@ public:
     virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event);
     virtual const ModelScreenLocation& GetModelScreenLocation() const = 0;
     virtual ModelScreenLocation& GetModelScreenLocation() = 0;
+    bool HasIndividualStartChannels() const;
+    wxString GetIndividualStartChannel(size_t s) const;
 
     bool IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2);
 
@@ -286,8 +298,6 @@ protected:
     void ParseSubModel(wxXmlNode* subModelNode);
     void ColourClashingChains(wxPGProperty* p);
     uint32_t ApplyLowDefinition(uint32_t val) const;
-
-    std::vector<std::string> modelState;
 
 public:
     bool IsControllerConnectionValid() const;
@@ -374,6 +384,7 @@ public:
     void SetFromXml(wxXmlNode* ModelNode, bool zeroBased = false) override;
     virtual bool ModelRenamed(const std::string& oldName, const std::string& newName);
     uint32_t GetNodeCount() const;
+    NodeBaseClass* GetNode(uint32_t node) const;
     uint32_t GetChanCount() const;
     uint32_t GetActChanCount() const;
     int GetChanCountPerNode() const;
@@ -405,6 +416,9 @@ public:
 
 
     virtual int NodeRenderOrder() { return 0; }
+    float GetPreviewDimScale(ModelPreview* preview, int& w, int& h);
+    void GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordStruct& it2, int w, int h, float scale);
+    bool GetScreenLocations(ModelPreview *preview, std::map<int, std::pair<float, float>>& coords);
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip);
     std::vector<int> GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end);
     bool IsMultiCoordsPerNode() const;
@@ -423,8 +437,6 @@ public:
     virtual void DeleteHandle(int handle);
 
     bool HasState(std::string const& state) const;
-    std::vector<std::string> GetModelState() const;
-    void SaveModelState(std::vector<std::string>& state);
 
     bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     const std::string& GetStringType(void) const { return StringType; }
@@ -455,6 +467,12 @@ public:
     virtual std::string GetStartLocation() const;
     bool IsCustom(void);
     virtual bool SupportsExportAsCustom() const = 0;
+    virtual bool SupportsExportAsCustom3D() const
+    {
+        return false;
+    }
+    virtual void ExportAsCustomXModel3D() const
+    {}
     virtual bool SupportsWiringView() const = 0;
     size_t GetChannelCoords(wxArrayString& choices); //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
     static bool ParseFaceElement(const std::string& str, std::vector<wxPoint>& first_xy);
@@ -493,6 +511,12 @@ public:
         }
         return "";
     }
+
+    virtual int GetMappedStrand(int strand) const
+    {
+        return strand;
+    }
+
     virtual std::string GetNodeName(size_t x, bool def = false) const
     {
         if (x < nodeNames.size()) {
@@ -630,6 +654,8 @@ public:
         }
     }
     uint32_t GetChannelForNode(int strandIndex, int node) const;
+    
+    [[nodiscard]] std::string GetAttributesAsJSON() const;
 
 protected:
     std::vector<int> layerSizes; // inside to outside
@@ -649,8 +675,9 @@ protected:
         int height = 0;
         int renderWi = 0;
         int renderHi = 0;
+        int modelChangeCount = 0;
         bool isTransparent = false;
-        float boundingBox[6];
+        float boundingBox[6] = { 0 };
     };
     std::map<std::string, PreviewGraphicsCacheInfo*> uiCaches;
     virtual void deleteUIObjects();

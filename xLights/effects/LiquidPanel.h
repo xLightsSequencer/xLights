@@ -56,6 +56,7 @@ class LiquidPanel: public xlEffectPanel
 		BulkEditSlider* Slider_Flow3;
 		BulkEditSlider* Slider_Flow4;
 		BulkEditSlider* Slider_LifeTime;
+		BulkEditSlider* Slider_Liquid_GravityAngle;
 		BulkEditSlider* Slider_Liquid_SourceSize1;
 		BulkEditSlider* Slider_Liquid_SourceSize2;
 		BulkEditSlider* Slider_Liquid_SourceSize3;
@@ -113,6 +114,7 @@ class LiquidPanel: public xlEffectPanel
 		BulkEditValueCurveButton* BitmapButton_Flow4;
 		BulkEditValueCurveButton* BitmapButton_LifeTime;
 		BulkEditValueCurveButton* BitmapButton_Liquid_Gravity;
+		BulkEditValueCurveButton* BitmapButton_Liquid_GravityAngle;
 		BulkEditValueCurveButton* BitmapButton_Liquid_SourceSize1;
 		BulkEditValueCurveButton* BitmapButton_Liquid_SourceSize2;
 		BulkEditValueCurveButton* BitmapButton_Liquid_SourceSize3;
@@ -143,6 +145,7 @@ class LiquidPanel: public xlEffectPanel
 		wxStaticText* StaticText13;
 		wxStaticText* StaticText14;
 		wxStaticText* StaticText15;
+		wxStaticText* StaticText16;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText22;
 		wxStaticText* StaticText23;
@@ -197,6 +200,10 @@ class LiquidPanel: public xlEffectPanel
 		static const long IDD_SLIDER_Liquid_Gravity;
 		static const long ID_VALUECURVE_Liquid_Gravity;
 		static const long ID_TEXTCTRL_Liquid_Gravity;
+		static const long ID_STATICTEXT2;
+		static const long IDD_SLIDER_Liquid_GravityAngle;
+		static const long ID_VALUECURVE_Liquid_GravityAngle;
+		static const long ID_TEXTCTRL_Liquid_GravityAngle;
 		static const long ID_STATICTEXT_X1;
 		static const long IDD_SLIDER_X1;
 		static const long ID_VALUECURVE_X1;

@@ -230,12 +230,16 @@ void SubBufferPanel::ContextMenu(wxContextMenuEvent& event)
     quarters->Append(wxNewId(), "Bottom Left");
     quarters->Append(wxNewId(), "Bottom Right");
     menu.AppendSubMenu(quarters, "Quarters");
-    menu.AppendSeparator();
-    menu.Append(wxNewId(), "Oversize");
+    if (_usevc) // we only do this in the sequencer. In the submodel dialog we dont want this menu option
+    {
+        menu.AppendSeparator();
+        menu.Append(wxNewId(), "Oversize");
+    }
     menu.AppendSeparator();
     menu.Append(wxNewId(), "Edit");
     menu.AppendSeparator();
-    menu.Append(wxNewId(), "Apply to selected effects");
+    if (_usevc) // we only do this in the sequencer. In the submodel dialog we dont want this menu option
+        menu.Append(wxNewId(), "Apply to selected effects");
     menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);
     quarters->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);
     thirds->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);

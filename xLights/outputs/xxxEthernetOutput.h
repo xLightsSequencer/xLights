@@ -46,7 +46,7 @@ protected:
 public:
 
     #pragma region Constructors and Destructors
-    xxxEthernetOutput(wxXmlNode* node);
+    xxxEthernetOutput(wxXmlNode* node, bool isActive);
     xxxEthernetOutput(xxxEthernetOutput* output);
     xxxEthernetOutput();
     virtual ~xxxEthernetOutput() override;

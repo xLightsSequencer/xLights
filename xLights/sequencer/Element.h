@@ -59,6 +59,7 @@ public:
     void SetVisible(bool visible) {mVisible = visible;}
 
     virtual bool HasEffects() const;
+    [[nodiscard]] virtual int GetEffectCount() const;
  
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
     EffectLayer* GetEffectLayer(int index) const;
@@ -156,6 +157,9 @@ public:
     virtual ~TimingElement();
     
     virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_TIMING; }
+    
+    const std::string &GetSubType() const { return subType; }
+    void SetSubType(const std::string &st) { subType = st; }
 
     int GetFixedTiming() const { return mFixed; }
     void SetFixedTiming(int fixed) { mFixed = fixed; }
@@ -180,6 +184,7 @@ private:
     bool mActive = true;
     std::string mViews;
     bool _masterVisible = false;
+    std::string subType = "";
 };
 
 class SubModelElement : public Element {
@@ -217,6 +222,7 @@ public:
     int GetStrand() const { return mStrand; }
     
     virtual bool HasEffects() const override;
+    [[nodiscard]] int GetEffectCount() const override;
     bool ShowNodes() const { return mShowNodes;}
     void ShowNodes(bool b) { mShowNodes = b;}
     NodeLayer *GetNodeLayer(int n, bool create);
@@ -226,11 +232,7 @@ public:
     }
 
     int GetNodeNumber(NodeLayer* nl);
-    std::string GetStrandName() const {
-        if(GetName() == "")
-            return wxString::Format("Strand %d", mStrand + 1).ToStdString();
-        return GetName();
-    }
+    std::string GetStrandName() const;
 
     virtual std::string GetFullName() const override;
     
@@ -258,6 +260,7 @@ class ModelElement : public Element
         virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
 
         virtual bool HasEffects() const override;
+        [[nodiscard]] int GetEffectCount() const override;
         int GetSubModelAndStrandCount() const;
         int GetSubModelCount() const;
         SubModelElement *GetSubModel(int i) const;

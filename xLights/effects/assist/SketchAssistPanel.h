@@ -84,6 +84,8 @@ private:
     wxListBox* m_pathsListBox = nullptr;
     static long ID_MENU_Delete;
     static long ID_MENU_Reverse;
+    static long ID_MENU_MoveUp;
+    static long ID_MENU_MoveDown;
 
     wxString m_bgImagePath;
     wxImage m_bgImage;

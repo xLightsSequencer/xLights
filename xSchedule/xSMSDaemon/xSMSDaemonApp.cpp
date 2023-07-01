@@ -37,31 +37,31 @@
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-#pragma comment(lib, "wxbase31ud.lib")
-#pragma comment(lib, "wxbase31ud_net.lib")
-#pragma comment(lib, "wxmsw31ud_core.lib")
+#pragma comment(lib, "wxbase" WXWIDGETS_VERSION "ud.lib")
+#pragma comment(lib, "wxbase" WXWIDGETS_VERSION "ud_net.lib")
+#pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "ud_core.lib")
 #pragma comment(lib, "wxscintillad.lib")
 #pragma comment(lib, "wxregexud.lib")
-#pragma comment(lib, "wxbase31ud_xml.lib")
+#pragma comment(lib, "wxbase" WXWIDGETS_VERSION "ud_xml.lib")
 #pragma comment(lib, "wxtiffd.lib")
 #pragma comment(lib, "wxjpegd.lib")
 #pragma comment(lib, "wxpngd.lib")
 #pragma comment(lib, "wxzlibd.lib")
-#pragma comment(lib, "wxmsw31ud_qa.lib")
+#pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "ud_qa.lib")
 #pragma comment(lib, "wxexpatd.lib")
 #pragma comment(lib, "log4cpplibd.lib")
 #else
-#pragma comment(lib, "wxbase31u.lib")
-#pragma comment(lib, "wxbase31u_net.lib")
-#pragma comment(lib, "wxmsw31u_core.lib")
+#pragma comment(lib, "wxbase" WXWIDGETS_VERSION "u.lib")
+#pragma comment(lib, "wxbase" WXWIDGETS_VERSION "u_net.lib")
+#pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "u_core.lib")
 #pragma comment(lib, "wxscintilla.lib")
 #pragma comment(lib, "wxregexu.lib")
-#pragma comment(lib, "wxbase31u_xml.lib")
+#pragma comment(lib, "wxbase" WXWIDGETS_VERSION "u_xml.lib")
 #pragma comment(lib, "wxtiff.lib")
 #pragma comment(lib, "wxjpeg.lib")
 #pragma comment(lib, "wxpng.lib")
 #pragma comment(lib, "wxzlib.lib")
-#pragma comment(lib, "wxmsw31u_qa.lib")
+#pragma comment(lib, "wxmsw" WXWIDGETS_VERSION "u_qa.lib")
 #pragma comment(lib, "wxexpat.lib")
 #pragma comment(lib, "log4cpplib.lib")
 #endif
@@ -120,20 +120,6 @@ static void InitialiseLogging(bool fromMain)
 
 #ifdef __WXMSW__
         std::string initFileName = "xschedule.windows.properties";
-#endif
-#ifdef __WXOSX__
-        std::string initFileName = "xschedule.mac.properties";
-        std::string resourceName = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/xschedule.mac.properties";
-        if (!wxFile::Exists(initFileName)) {
-            if (fromMain) {
-                return;
-            }
-            else if (wxFile::Exists(resourceName)) {
-                initFileName = resourceName;
-            }
-        }
-        loggingInitialised = true;
-
 #endif
 #ifdef __LINUX__
         std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xschedule.linux.properties";

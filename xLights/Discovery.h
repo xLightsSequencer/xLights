@@ -26,6 +26,7 @@ class wxDatagramSocket;
 
 class OutputManager;
 class Discovery;
+class BonjourData;
 
 
 class WXDLLIMPEXP_CORE xlPasswordEntryDialog : public wxPasswordEntryDialog
@@ -85,7 +86,9 @@ public:
     std::string version;
     int minorVersion = 0;
     int majorVersion = 0;
+    int patchVersion = 0;
     int typeId = 0;
+    std::string uuid;
     
     std::string platform;
     std::string platformModel;
@@ -113,6 +116,9 @@ public:
     // various protocols that use broadcast or multicast requests
     void AddBroadcast(int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>&& callback);
     void AddMulticast(const std::string &mcAddr, int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>&& callback);
+    
+    // bonjour discovery (on platforms that support it)
+    void AddBonjour(const std::string &serviceName, std::function<void(const std::string &ipAddress)>&& callback);
 
     void SendBroadcastData(int port, uint8_t *buffer, int len);
     void SendData(int port, const std::string &host, uint8_t *buffer, int len);
@@ -130,6 +136,7 @@ public:
     DiscoveredData *DetectControllerType(const std::string &ip, const std::string &proxy, const std::string &htmlBuffer);
     
     DiscoveredData *FindByIp(const std::string &ip, const std::string &hostname = "", bool create = false);
+    DiscoveredData *FindByUUID(const std::string &uuid);
 private:
     void HandleAuth(int curlIdx);
     
@@ -167,7 +174,6 @@ private:
         void Init(const std::string &mc, int port);
     };
     
-    
     OutputManager *_outputManager;
     wxWindow *_frame;
     
@@ -175,6 +181,8 @@ private:
     std::vector<CurlData *> curls;
     int numCurls = 0;
     std::list<DatagramData *> datagrams;
-    
+    std::list<BonjourData *> bonjours;
+
     std::vector<DiscoveredData*> results;
+    
 };

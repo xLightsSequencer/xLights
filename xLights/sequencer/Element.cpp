@@ -11,6 +11,7 @@
 #include "Element.h"
 #include "../models/Model.h"
 #include <list>
+#include <numeric>
 #include "UtilFunctions.h"
 #include <log4cpp/Category.hh>
 #include "SequenceElements.h"
@@ -103,6 +104,15 @@ bool Element::HasEffects() const {
     return false;
 }
 
+int Element::GetEffectCount() const {
+
+    return std::accumulate(
+        mEffectLayers.begin(), 
+        mEffectLayers.end(), 0, 
+        [](int i, EffectLayer* l) {
+        return l->GetEffectCount() + i;
+        });
+}
 
 bool TimingElement::HasLyrics(int layer) const
 {
@@ -348,7 +358,12 @@ StrandElement::~StrandElement() {
 std::string StrandElement::GetFullName() const {
     return GetModelName() + "/" + GetStrandName();
 }
-
+std::string StrandElement::GetStrandName() const {
+    static const std::string STRAND = "Strand ";
+    if (GetName() == "")
+        return STRAND + std::to_string(mStrand + 1);
+    return GetName();
+}
 void StrandElement::CleanupAfterRender() {
     for (auto &a : mNodeLayers) {
         a->CleanupAfterRender();
@@ -433,6 +448,28 @@ bool StrandElement::HasEffects() const
     }
 
     return false;
+}
+
+int StrandElement::GetEffectCount() const {
+
+    int sum = std::accumulate(
+        mEffectLayers.begin(), 
+        mEffectLayers.end(), 0, 
+        [](int i, EffectLayer* l) {
+        return l->GetEffectCount() + i;
+        });
+
+    int nodesum = std::accumulate(
+        mNodeLayers.begin(), 
+        mNodeLayers.end(), 0, 
+        [](int i, NodeLayer* nl) {
+            if (nl != nullptr) {
+                return nl->GetEffectCount() + i;
+            }
+            return i;
+        });
+
+    return nodesum + sum;
 }
 
 ModelElement::ModelElement(SequenceElements *l, const std::string &name, bool selected)
@@ -555,6 +592,38 @@ bool ModelElement::HasEffects() const
     }
 
     return false;
+}
+
+int ModelElement::GetEffectCount() const {
+
+    int sum = std::accumulate(
+        mEffectLayers.begin(), 
+        mEffectLayers.end(), 0, 
+        [](int i, EffectLayer* l) {
+        return l->GetEffectCount() + i;
+        });
+
+     int strand_sum = std::accumulate(
+        mStrands.begin(), 
+        mStrands.end(), 0, 
+        [](int i, StrandElement* se) {
+            if (se != nullptr) {
+                return se->GetEffectCount() + i;
+            }
+            return i;
+        });
+
+    int sub_sum = std::accumulate(
+        mSubModels.begin(), 
+        mSubModels.end(), 0, 
+        [](int i, SubModelElement* se) {
+            if (se != nullptr) {
+                return se->GetEffectCount() + i;
+            }
+            return i;
+        });
+
+    return strand_sum + sub_sum + sum;
 }
 
 std::string  TimingElement::GetPapagayoExport(int fps) const

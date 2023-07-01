@@ -131,7 +131,8 @@ int CubeModel::CalcTransformationIndex() const
     return (GetStartIndex() * CUBE_STYLES.GetCount()) + (horizontal << 1) + (stacked << 2) + leftright;
 }
 
-void CubeModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void CubeModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
     grid->Append(new wxEnumProperty("Starting Location", "CubeStart", TOP_BOT_LEFT_RIGHT, GetStartIndex()));
     grid->Append(new wxEnumProperty("Direction", "CubeStyle", CUBE_STYLES, GetStyleIndex()));
     grid->Append(new wxEnumProperty("Strand Style", "StrandPerLine", STRAND_STYLES, GetStrandStyleIndex()));
@@ -153,7 +154,7 @@ void CubeModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Strings", "CubeStrings", GetStrings()));
+    p = grid->Append(new wxUIntProperty("# Strings", "CubeStrings", GetStrings()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
@@ -208,10 +209,10 @@ int CubeModel::GetStrandStyleIndex() const
 }
 
 int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-
     if ("CubeStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Start");
         ModelXml->AddAttribute("Start", TOP_BOT_LEFT_RIGHT.GetLabel(event.GetValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::CubeStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::CubeStart");
@@ -219,6 +220,7 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
     } else if ("CubeStyle" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Style");
         ModelXml->AddAttribute("Style", CUBE_STYLES.GetLabel(event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::CubeStyle");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeStyle");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::CubeStyle");
@@ -226,6 +228,7 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
     } else if ("StrandPerLine" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("StrandPerLine");
         ModelXml->AddAttribute("StrandPerLine", STRAND_STYLES.GetLabel(event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::StrandPerLine");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::StrandPerLine");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::StrandPerLine");
@@ -236,6 +239,7 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         {
             ModelXml->AddAttribute("StrandPerLayer", "TRUE");
         }
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::StrandPerLayer");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::StrandPerLayer");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::StrandPerLayer");
@@ -243,6 +247,7 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
     } else if ("CubeWidth" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", static_cast<int>(event.GetPropertyValue().GetLong())));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::CubeWidth");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::CubeWidth");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeWidth");
@@ -254,6 +259,7 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
     } else if ("CubeHeight" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", static_cast<int>(event.GetPropertyValue().GetLong())));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::CubeHeight");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::CubeHeight");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeHeight");
@@ -264,6 +270,7 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
     } else if ("CubeDepth" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", static_cast<int>(event.GetPropertyValue().GetLong())));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::CubeDepth");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::CubeDepth");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeDepth");
@@ -274,6 +281,7 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
     } else if ("CubeStrings" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Strings");
         ModelXml->AddAttribute("Strings", wxString::Format("%d", static_cast<int>(event.GetPropertyValue().GetLong())));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::CubeStrings");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::CubeStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeStrings");
@@ -544,7 +552,7 @@ const std::vector<std::string> &CubeModel::GetBufferStyles() const {
     return CUBE_BUFFERSTYLES;
 }
 
-void CubeModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi) const
+void CubeModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
 {
     int width = parm1;
     int height = parm2;
@@ -557,7 +565,7 @@ void CubeModel::GetBufferSize(const std::string& type, const std::string& camera
     }
     else if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel")
     {
-        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
     }
     else if (type == "Horizontal Per Strand")
     {
@@ -667,7 +675,7 @@ int CubeModel::GetNumPhysicalStrings() const
     }
 }
 
-void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep) const
+void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
 {
     int width = parm1;
     int height = parm2;
@@ -675,7 +683,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string
 
     int oldNodes = Nodes.size();
 
-    Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi);
+    Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi, stagger);
 
     if (SingleNode || SingleChannel)
     {
@@ -696,7 +704,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string
         return;
     }
 
-    GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+    GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
 
     auto locations = BuildCube();
 
@@ -987,8 +995,8 @@ void CubeModel::ExportXlightsModel()
     wxString p3 = ModelXml->GetAttribute("parm3");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ss = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
@@ -1043,6 +1051,7 @@ void CubeModel::ExportXlightsModel()
     {
         f.Write(submodel);
     }
+    ExportDimensions(f);
     f.Write("</Cubemodel>");
     f.Close();
 }
@@ -1056,8 +1065,8 @@ void CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         wxString p3 = root->GetAttribute("parm3");
         wxString st = root->GetAttribute("StringType");
         wxString ps = root->GetAttribute("PixelSize");
-        wxString t = root->GetAttribute("Transparency");
-        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString t = root->GetAttribute("Transparency", "0");
+        wxString mb = root->GetAttribute("ModelBrightness", "0");
         wxString a = root->GetAttribute("Antialias");
         wxString ss = root->GetAttribute("StartSide");
         wxString dir = root->GetAttribute("Dir");
@@ -1104,7 +1113,7 @@ void CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::ImportXlightsModel");
@@ -1184,7 +1193,7 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
     return html;
 }
 
-void CubeModel::ExportAsCustomXModel() const
+void CubeModel::ExportAsCustomXModel3D() const
 {
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
@@ -1230,8 +1239,8 @@ void CubeModel::ExportAsCustomXModel() const
     wxString d = wxString::Format("%i", depth);
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");

@@ -50,7 +50,7 @@ GlediatorReader::GlediatorReader(const std::string& filename, const wxSize& size
     }
     else
     {
-        logger_base.warn("Failer to open file %s", (const char *)_filename.c_str());
+        logger_base.warn("Failed to open file %s", (const char *)_filename.c_str());
     }
 
 }
@@ -70,7 +70,7 @@ CSVReader::CSVReader(const std::string& filename)
     }
     else
     {
-        logger_base.warn("Failer to open file %s", (const char *)_filename.c_str());
+        logger_base.warn("Failed to open file %s", (const char *)_filename.c_str());
     }
 }
 
@@ -296,7 +296,7 @@ public:
     float _frameMS;
 };
 
-void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer)
+void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

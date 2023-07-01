@@ -24,6 +24,7 @@ PlayListItemMicrophone::PlayListItemMicrophone(OutputManager* outputManager, wxX
     _duration = 60000;
     _colour = *wxWHITE;
     _mode = "Value 2";
+    _device = "";
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
     PlayListItemMicrophone::Load(node);
 }
@@ -41,6 +42,7 @@ void PlayListItemMicrophone::Load(wxXmlNode* node)
     _colour = wxColour(node->GetAttribute("Colour", "WHITE"));
     _duration = wxAtol(node->GetAttribute("Duration", "60000"));
     _blendMode = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", "1"));
+    _device = node->GetAttribute("Device", "");
 }
 
 PlayListItemMicrophone::PlayListItemMicrophone(OutputManager* outputManager) : PlayListItem()
@@ -53,6 +55,7 @@ PlayListItemMicrophone::PlayListItemMicrophone(OutputManager* outputManager) : P
     _duration = 60000;
     _colour = *wxWHITE;
     _mode = "Value 2";
+    _device = "";
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
 }
 
@@ -66,6 +69,7 @@ PlayListItem* PlayListItemMicrophone::Copy(const bool isClone) const
     res->_colour = _colour;
     res->_mode = _mode;
     res->_blendMode = _blendMode;
+    res->_device = _device;
     PlayListItem::Copy(res, isClone);
 
     return res;
@@ -79,6 +83,7 @@ wxXmlNode* PlayListItemMicrophone::Save()
     node->AddAttribute("StartChannel", _startChannel);
     node->AddAttribute("Pixels", wxString::Format(wxT("%i"), (long)_pixels));
     node->AddAttribute("Colour", _colour.GetAsString());
+    node->AddAttribute("Device", _device);
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_blendMode));
 
@@ -126,7 +131,10 @@ void PlayListItemMicrophone::Frame(uint8_t* buffer, size_t size, size_t ms, size
         
         if (_mode == "Maximum")
         {
-            value = AudioManager::GetSDL()->GetInputMax(framems);
+            auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
+            if (sdl != nullptr) {
+                value = sdl->GetMax(framems);
+            }
         }
 
         if (value == -1) value = lastValue;
@@ -148,13 +156,19 @@ void PlayListItemMicrophone::Frame(uint8_t* buffer, size_t size, size_t ms, size
 void PlayListItemMicrophone::Start(long stepLengthMS)
 {
     PlayListItem::Start(stepLengthMS);
-    AudioManager::GetSDL()->StartListening();
-    AudioManager::GetSDL()->PurgeInput();
+    auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
+    if (sdl != nullptr) {
+        sdl->StartListening();
+        sdl->PurgeInput();
+    }
 }
 
 void PlayListItemMicrophone::Stop()
 {
-    AudioManager::GetSDL()->StopListening();
+    auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
+    if (sdl != nullptr) {
+        sdl->StopListening();
+    }
 }
 
 void PlayListItemMicrophone::SetPixel(uint8_t* p, uint8_t r, uint8_t g, uint8_t b, APPLYMETHOD blendMode)

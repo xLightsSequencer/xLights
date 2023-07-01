@@ -168,8 +168,8 @@ void SphereModel::ExportXlightsModel()
     wxString p3 = ModelXml->GetAttribute("parm3");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ss = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
@@ -221,6 +221,7 @@ void SphereModel::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    ExportDimensions(f);
     f.Write("</spheremodel>");
     f.Close();
 }
@@ -234,8 +235,8 @@ void SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         wxString p3 = root->GetAttribute("parm3");
         wxString st = root->GetAttribute("StringType");
         wxString ps = root->GetAttribute("PixelSize");
-        wxString t = root->GetAttribute("Transparency");
-        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString t = root->GetAttribute("Transparency", "0");
+        wxString mb = root->GetAttribute("ModelBrightness", "0");
         wxString a = root->GetAttribute("Antialias");
         wxString ss = root->GetAttribute("StartSide");
         wxString dir = root->GetAttribute("Dir");
@@ -278,7 +279,7 @@ void SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::ImportXlightsModel");
@@ -287,7 +288,9 @@ void SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
     }
 }
 
-void SphereModel::ExportAsCustomXModel() const {
+#define SCALE_FACTOR_3D (2.0)
+void SphereModel::ExportAsCustomXModel3D() const
+{
 
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
@@ -320,13 +323,13 @@ void SphereModel::ExportAsCustomXModel() const {
     float d = maxz - minz;
 
     std::vector<std::vector<std::vector<int>>> data;
-    for (int l = 0; l < BufferWi * 2 + 1; l ++)
+    for (int l = 0; l < BufferWi * SCALE_FACTOR_3D + 1; l++)
     {
         std::vector<std::vector<int>> layer;
-        for (int  r = BufferHt * 2; r >= 0; r--)
+        for (int r = BufferHt * SCALE_FACTOR_3D + 1; r >= 0; r--)
         {
             std::vector<int> row;
-            for (int c = 0; c < BufferWi * 2 + 1; c++)
+            for (int c = 0; c < BufferWi * SCALE_FACTOR_3D + 1; c++)
             {
                 row.push_back(-1);
             }
@@ -338,12 +341,12 @@ void SphereModel::ExportAsCustomXModel() const {
     int i = 0;
     for (auto& n: Nodes)
     {
-        int xx = 2 * BufferWi * (n->Coords[0].screenX - minx) / w;
-        int yy = 2 * BufferHt * (n->Coords[0].screenY - miny) / h;
-        int zz = 2 * BufferWi * (n->Coords[0].screenZ - minz) / d;
-        wxASSERT(xx >= 0 && xx < 2 * BufferWi + 1);
-        wxASSERT(yy >= 0 && yy < 2 * BufferHt + 1);
-        wxASSERT(zz >= 0 && zz < 2 * BufferWi + 1);
+        int xx = SCALE_FACTOR_3D * (float)BufferWi * (n->Coords[0].screenX - minx) / w;
+        int yy = (SCALE_FACTOR_3D * (float)BufferHt) - (SCALE_FACTOR_3D * (float)BufferHt * (n->Coords[0].screenY - miny) / h);
+        int zz = SCALE_FACTOR_3D * (float)BufferWi * (n->Coords[0].screenZ - minz) / d;
+        wxASSERT(xx >= 0 && xx < SCALE_FACTOR_3D * BufferWi + 1);
+        wxASSERT(yy >= 0 && yy < SCALE_FACTOR_3D * BufferHt + 1);
+        wxASSERT(zz >= 0 && zz < SCALE_FACTOR_3D * BufferWi + 1);
         wxASSERT(data[zz][yy][xx] == -1);
         data[zz][yy][xx] = i++;
     }
@@ -381,14 +384,14 @@ void SphereModel::ExportAsCustomXModel() const {
         cm += ll;
     }
 
-    wxString p1 = wxString::Format("%i", 2 * BufferWi + 1);
-    wxString p2 = wxString::Format("%i", 2 * BufferHt + 1);
-    wxString dd = wxString::Format("%i", 2 * BufferWi + 1);
+    wxString p1 = wxString::Format("%i", (int)(SCALE_FACTOR_3D * BufferWi + 1));
+    wxString p2 = wxString::Format("%i", (int)(SCALE_FACTOR_3D * BufferHt + 1));
+    wxString dd = wxString::Format("%i", (int)(SCALE_FACTOR_3D * BufferWi + 1));
     wxString p3 = wxString::Format("%i", parm3);
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");

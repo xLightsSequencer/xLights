@@ -28,6 +28,7 @@
 							<handler function="OnTreeCtrl1BeginDrag" entry="EVT_TREE_BEGIN_DRAG" />
 							<handler function="OnTreeCtrl1ItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
 							<handler function="OnTreeCtrl1SelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
+							<handler function="OnTreeCtrl1KeyDown" entry="EVT_TREE_KEY_DOWN" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>

@@ -72,6 +72,7 @@ public:
     bool SupportsMultipleSimultaneousInputProtocols() const;
     bool MergeConsecutiveVirtualStrings() const;
     bool AllInputUniversesMustBeSameSize() const;
+    bool AllInputUniversesMustBe510() const;
     bool UniversesMustBeInNumericalOrder() const;
     bool UniversesMustBeSequential() const;
     bool NoWebUI() const;
@@ -82,11 +83,13 @@ public:
     bool SupportsPixelPortNullPixels() const;
     bool SupportsPixelPortEndNullPixels() const;
     bool SupportsPixelPortGrouping() const;
+    bool SupportsPixelZigZag() const;
     bool SupportsTs() const;
     bool SupportsPixelPortDirection() const;
     bool SupportsPixelPortColourOrder() const;
     bool SupportsEthernetInputProtols() const;
     bool SupportsSerialInputProtols() const;
+    bool IsPlayerOnly() const;
     bool NeedsFullUniverseForDMX() const;
     bool AllSmartRemoteTypesPerPortMustBeSame() const;
     bool DMXAfterPixels() const;
@@ -107,6 +110,7 @@ public:
     int GetMaxEndNullPixels() const;
     int GetMaxGroupPixels() const;
     int GetMinGroupPixels() const;
+    int GetMaxZigZagPixels() const;
 
     bool IsValidPixelProtocol(const std::string& protocol) const;
     bool IsValidSerialProtocol(const std::string& protocol) const;
@@ -128,6 +132,9 @@ public:
     std::vector<std::string> GetSmartRemoteTypes() const;
 
     std::string GetCustomPropertyByPath(const std::string path, const std::string& def = "") const;
+    
+    
+    std::string GetConfigDriver() const;
 
     void Dump() const;
     #pragma endregion

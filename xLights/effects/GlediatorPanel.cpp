@@ -52,6 +52,8 @@ GlediatorPanel::GlediatorPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Glediator_DurationTreatment->Append(_("Slow/Accelerate"));
 	FlexGridSizer53->Add(Choice_Glediator_DurationTreatment, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer53);
+	FlexGridSizer53->Fit(this);
+	FlexGridSizer53->SetSizeHints(this);
 	//*)
 	
 	Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&GlediatorPanel::OnVCChanged, 0, this);

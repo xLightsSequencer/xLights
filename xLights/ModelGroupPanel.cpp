@@ -9,10 +9,10 @@
  **************************************************************/
 
  //(*InternalHeaders(ModelGroupPanel)
-#include <wx/bitmap.h>
-#include <wx/image.h>
-#include <wx/intl.h>
-#include <wx/string.h>
+ #include <wx/bitmap.h>
+ #include <wx/image.h>
+ #include <wx/intl.h>
+ #include <wx/string.h>
  //*)
 
 #include <wx/artprov.h>
@@ -87,6 +87,8 @@ public:
 const long ModelGroupPanel::ID_STATICTEXT5 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT6 = wxNewId();
 const long ModelGroupPanel::ID_CHOICE1 = wxNewId();
+const long ModelGroupPanel::ID_STATICTEXT12 = wxNewId();
+const long ModelGroupPanel::ID_CHOICE2 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT4 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL1 = wxNewId();
 const long ModelGroupPanel::ID_CHOICE_PREVIEWS = wxNewId();
@@ -170,7 +172,11 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	ChoiceModelLayoutType->Append(_("Overlay - Scaled"));
 	ChoiceModelLayoutType->Append(_("Single Line Model As A Pixel"));
 	ChoiceModelLayoutType->Append(_("Default Model As A Pixel"));
-	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxEXPAND, 2);
+	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Default Camera:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
+	FlexGridSizer6->Add(StaticText12, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_DefaultCamera = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	FlexGridSizer6->Add(Choice_DefaultCamera, 1, wxALL|wxEXPAND, 5);
 	GridSizeLabel = new wxStaticText(this, ID_STATICTEXT4, _("Max Grid Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer6->Add(GridSizeLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	SizeSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("400"), wxDefaultPosition, wxDefaultSize, 0, 10, 2000, 400, _T("ID_SPINCTRL1"));
@@ -256,8 +262,11 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer3->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 0);
 	Panel_Sizer->Add(FlexGridSizer3, 0, wxEXPAND, 0);
 	SetSizer(Panel_Sizer);
+	Panel_Sizer->Fit(this);
+	Panel_Sizer->SetSizeHints(this);
 
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoiceModelLayoutTypeSelect);
+	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoice_DefaultCameraSelect);
 	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSizeSpinCtrlChange);
 	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoicePreviewsSelect);
 	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange);
@@ -288,6 +297,11 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
     ChoicePreviews->Append("Default");
     ChoicePreviews->Append("All Previews");
     ChoicePreviews->Append("Unassigned");
+
+    Choice_DefaultCamera->Append("2D");
+    for (size_t i = 0; i < Models.GetXLightsFrame()->viewpoint_mgr.GetNum3DCameras(); ++i) {
+        Choice_DefaultCamera->Append(Models.GetXLightsFrame()->viewpoint_mgr.GetCamera3D(i)->GetName());
+    }
 
     MGTextDropTarget *mdt = new MGTextDropTarget(this, ListBoxModelsInGroup, "ModelGroup");
     ListBoxModelsInGroup->SetDropTarget(mdt);
@@ -353,6 +367,12 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
     // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static wxColour BLUE_ON_DARK(100, 100, 255);
 
+    Choice_DefaultCamera->Clear();
+    Choice_DefaultCamera->Append("2D");
+    for (size_t i = 0; i < mModels.GetXLightsFrame()->viewpoint_mgr.GetNum3DCameras(); ++i) {
+        Choice_DefaultCamera->Append(mModels.GetXLightsFrame()->viewpoint_mgr.GetCamera3D(i)->GetName());
+    }
+
     int spam = ListBoxAddToModelGroup->GetTopItem();
     int spig = ListBoxModelsInGroup->GetTopItem();
 
@@ -396,7 +416,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
             if (mModels[it] != nullptr) {
                 if (mModels[it]->GetDisplayAs() == "ModelGroup") {
                     ListBoxModelsInGroup->SetItemTextColour(item,
-                                                            wxSystemSettings::GetAppearance().IsDark()
+                                                            IsDarkMode()
                                                                 ? BLUE_ON_DARK : *wxBLUE);
                 }
                 else if (Contains(it, "/")) {
@@ -423,7 +443,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                             long item = ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it.first);
                             if (it.second->GetDisplayAs() == "ModelGroup") {
                                 ListBoxAddToModelGroup->SetItemTextColour(item,
-                                                                          wxSystemSettings::GetAppearance().IsDark()
+                                                                          IsDarkMode()
                                                                               ? BLUE_ON_DARK
                                                                               : *wxBLUE);
                             }
@@ -443,6 +463,12 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                     }
                 }
             }
+        }
+
+        auto dc = e->GetAttribute("DefaultCamera", "2D");
+        Choice_DefaultCamera->SetStringSelection(dc);
+        if (Choice_DefaultCamera->GetStringSelection() != dc) {
+            Choice_DefaultCamera->SetStringSelection("2D");
         }
 
         wxString v = e->GetAttribute("layout", "minimalGrid");
@@ -670,7 +696,7 @@ void ModelGroupPanel::SaveGroupChanges()
     ModelGroup *g = (ModelGroup*)mModels[mGroup];
 
     if (g == nullptr) return;
-    
+
     mModels.GetXLightsFrame()->AbortRender();
 
     wxXmlNode *e = g->GetModelXml();
@@ -697,6 +723,8 @@ void ModelGroupPanel::SaveGroupChanges()
         e->AddAttribute("XCentreOffset", wxString::Format("%d", SpinCtrl_XCentreOffset->GetValue()));
         e->AddAttribute("YCentreOffset", wxString::Format("%d", SpinCtrl_YCentreOffset->GetValue()));
     }
+    e->DeleteAttribute("DefaultCamera");
+    e->AddAttribute("DefaultCamera", Choice_DefaultCamera->GetStringSelection());
     switch (ChoiceModelLayoutType->GetSelection()) {
     case 0:
         e->AddAttribute("layout", "grid");
@@ -716,7 +744,7 @@ void ModelGroupPanel::SaveGroupChanges()
     }
     e->AddAttribute("TagColour", ColourPickerCtrl_ModelGroupTagColour->GetColour().GetAsString());
     g->Reset();
-    layoutPanel->ModelGroupUpdated(g, false);
+    layoutPanel->ModelGroupUpdated(g, true); // if i dont set this to true then it leaves the house preview with a pointer to an invalid model which crashes
 }
 
 void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
@@ -1303,6 +1331,11 @@ void ModelGroupPanel::OnCheckBox_ShowOnlyModelsInCurrentViewClick(wxCommandEvent
 }
 
 void ModelGroupPanel::OnColourPickerCtrl_ModelGroupTagColourColourChanged(wxColourPickerEvent& event)
+{
+    SaveGroupChanges();
+}
+
+void ModelGroupPanel::OnChoice_DefaultCameraSelect(wxCommandEvent& event)
 {
     SaveGroupChanges();
 }

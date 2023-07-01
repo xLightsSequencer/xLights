@@ -33,6 +33,7 @@ class Falcon : public BaseController
     std::string _modelString;
     int _modelnum = -1;
     wxJSONValue _v4status;
+    wxJSONValue _status;
     std::string _name;
     #pragma endregion
 
@@ -71,7 +72,7 @@ class Falcon : public BaseController
     int V4_GetBoardPorts(int boardMode);
     int V4_GetMaxPortPixels(int boardMode, int protocol);
     int V4_EncodeInputProtocol(const std::string& protocol);
-    void V4_GetStartChannel(int modelUniverse, int modelUniverseStartChannel, unsigned long modelStartChannel, int& universe, unsigned long& startChannel);
+    void V4_GetStartChannel(int modelUniverse, int modelUniverseStartChannel, unsigned long modelStartChannel, int& universe, unsigned long& startChannel, bool oneBased, uint32_t controllerFirstChannel);
     int V4_EncodeColourOrder(const std::string co) const;
     int V4_GetStringFirstIndex(const std::vector<FALCON_V4_STRING>& falconStrings, const int p, const int sr);
     std::string V4_DecodePixelProtocol(int protocol);
@@ -100,7 +101,7 @@ class Falcon : public BaseController
     bool V4_ValidateWAV(const std::string& media);
 
 #ifndef DISCOVERYONLY
-    bool V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error);
+    bool V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error, bool oneBased, uint32_t firstControllerChannel);
     void V4_MakeStringsValid(Controller* controlle, UDController& cud, std::vector<FALCON_V4_STRING>& falconStrings, int addressingMode);
 #endif
 
@@ -158,6 +159,7 @@ class Falcon : public BaseController
     bool IsF48() const { return _modelnum == 48; }
     bool IsF16() const { return _modelnum == 16; }
     bool IsF4() const { return _modelnum == 4; }
+    bool IsV4() const { return _versionnum == 4; }
     bool IsV3() const { return _versionnum == 3; }
     bool IsV2() const { return _versionnum == 2; }
 
@@ -188,6 +190,7 @@ public:
     #pragma endregion
 
     #pragma region Getters and Setters
+    std::string GetMode();
     wxJSONValue V4_GetStatus() const { return _v4status; }
     std::string V4_DecodeBoardConfiguration(int config) const;
     std::string V4_DecodeMode(int mode) const;
@@ -203,5 +206,6 @@ public:
     #pragma endregion
     
     int NumConfiguredStrings();
+    
 };
 

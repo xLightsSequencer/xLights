@@ -17,6 +17,7 @@
 #include <algorithm>
 
 #include "../Color.h"
+#include "../utils/string_utils.h"
 
 #define NODE_RGB_CHAN_CNT           3
 #define NODE_RGBW_CHAN_CNT          4
@@ -79,7 +80,7 @@ public:
         offsets[2] = 2;
     }
 
-    NodeBaseClass(int StringNumber, size_t NodesPerString, const std::string& rgbOrder, const std::string& n = EMPTY_STR)
+    NodeBaseClass(int StringNumber, size_t NodesPerString, const std::string& rgbOrder, const std::string& n = xlEMPTY_STRING)
     {
         StringNum = StringNumber;
         Coords.resize(NodesPerString);
@@ -87,7 +88,7 @@ public:
         offsets[0] = rgbOrder.find('R');
         offsets[1] = rgbOrder.find('G');
         offsets[2] = rgbOrder.find('B');
-        if (n != EMPTY_STR) {
+        if (n != xlEMPTY_STRING) {
             name = new std::string(n);
         }
         else {
@@ -168,7 +169,7 @@ public:
     const std::string& GetName() const
     {
         if (name == nullptr) {
-            return EMPTY_STR;
+            return xlEMPTY_STRING;
         }
         return *name;
     }
@@ -220,14 +221,12 @@ public:
     static const std::string GRBW;
     static const std::string BRGW;
     static const std::string BGRW;
-
-    static const std::string EMPTY_STR;
 };
 
 class NodeClassRed : public NodeBaseClass
 {
 public:
-    NodeClassRed(int StringNumber, size_t NodesPerString, const std::string& n = EMPTY_STR) : NodeBaseClass(StringNumber, NodesPerString)
+    NodeClassRed(int StringNumber, size_t NodesPerString, const std::string& n = xlEMPTY_STRING) : NodeBaseClass(StringNumber, NodesPerString)
     {
         chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         offsets[0] = 0;
@@ -252,7 +251,7 @@ public:
 class NodeClassGreen : public NodeBaseClass
 {
 public:
-    NodeClassGreen(int StringNumber, size_t NodesPerString, const std::string& n = EMPTY_STR) : NodeBaseClass(StringNumber, NodesPerString)
+    NodeClassGreen(int StringNumber, size_t NodesPerString, const std::string& n = xlEMPTY_STRING) : NodeBaseClass(StringNumber, NodesPerString)
     {
         chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         offsets[1] = 0;
@@ -277,7 +276,7 @@ public:
 class NodeClassBlue : public NodeBaseClass
 {
 public:
-    NodeClassBlue(int StringNumber, size_t NodesPerString, const std::string& n = EMPTY_STR) : NodeBaseClass(StringNumber, NodesPerString)
+    NodeClassBlue(int StringNumber, size_t NodesPerString, const std::string& n = xlEMPTY_STRING) : NodeBaseClass(StringNumber, NodesPerString)
     {
         chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         offsets[2] = 0;
@@ -302,7 +301,7 @@ public:
 class NodeClassCustom : public NodeBaseClass
 {
 public:
-    NodeClassCustom(int StringNumber, size_t NodesPerString, const xlColor& c, const std::string& n = EMPTY_STR) : NodeBaseClass(StringNumber, NodesPerString)
+    NodeClassCustom(int StringNumber, size_t NodesPerString, const xlColor& c, const std::string& n = xlEMPTY_STRING) : NodeBaseClass(StringNumber, NodesPerString)
     {
         chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         offsets[0] = 0;
@@ -361,7 +360,7 @@ private:
 class NodeClassIntensity : public NodeBaseClass
 {
 public:
-    NodeClassIntensity(int StringNumber, size_t NodesPerString, const xlColor& c, const std::string& n = EMPTY_STR) : NodeBaseClass(StringNumber, NodesPerString)
+    NodeClassIntensity(int StringNumber, size_t NodesPerString, const xlColor& c, const std::string& n = xlEMPTY_STRING) : NodeBaseClass(StringNumber, NodesPerString)
     {
         chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         offsets[0] = 0;
@@ -409,7 +408,7 @@ private:
 class NodeClassWhite : public NodeBaseClass
 {
 public:
-    NodeClassWhite(int StringNumber, size_t NodesPerString, const std::string& n = EMPTY_STR) : NodeBaseClass(StringNumber, NodesPerString)
+    NodeClassWhite(int StringNumber, size_t NodesPerString, const std::string& n = xlEMPTY_STRING) : NodeBaseClass(StringNumber, NodesPerString)
     {
         chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         SetName(n);
@@ -441,7 +440,7 @@ public:
 class NodeClassRGBW : public NodeBaseClass
 {
 public:
-    NodeClassRGBW(int StringNumber, size_t NodesPerString, const std::string& rgbOrder, bool whiteLast, int rgbwtype, const std::string& n = EMPTY_STR)
+    NodeClassRGBW(int StringNumber, size_t NodesPerString, const std::string& rgbOrder, bool whiteLast, int rgbwtype, const std::string& n = xlEMPTY_STRING)
         : NodeBaseClass(StringNumber, NodesPerString, rgbOrder)
     {
         chanCnt = NODE_RGBW_CHAN_CNT;
@@ -471,14 +470,17 @@ private:
 class NodeClassSuperString : public NodeBaseClass
 {
 public:
-    NodeClassSuperString(int StringNumber, size_t NodesPerString, const std::vector<xlColor>& superStringColours, const std::string& n = EMPTY_STR)
+    NodeClassSuperString(int StringNumber, size_t NodesPerString, const std::vector<xlColor>& superStringColours, int rgbwtype, const std::string& n = xlEMPTY_STRING)
         : NodeBaseClass(StringNumber, NodesPerString, "RGB")
     {
         chanCnt = superStringColours.size();
         SetName(n);
         _superStringColours = superStringColours;
+        rgbwHandling = rgbwtype;
     }
-    NodeClassSuperString(const NodeClassSuperString& c) : NodeBaseClass(c), _superStringColours(c._superStringColours) {}
+    NodeClassSuperString(const NodeClassSuperString& c) :
+        NodeBaseClass(c), _superStringColours(c._superStringColours), rgbwHandling(c.rgbwHandling)
+    {}
 
     virtual void SetFromChannels(const unsigned char* buf) override;
     virtual void GetForChannels(unsigned char* buf) const override;
@@ -488,6 +490,7 @@ public:
     }
 private:
     std::vector<xlColor> _superStringColours;
+    uint8_t rgbwHandling;
 };
 
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;

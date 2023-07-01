@@ -22,13 +22,13 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool StrandsZigZagOnString() const override { return true;};
         virtual int NodesPerString() const override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, bool deep = false) const override;
+            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
-            int &BufferWi, int &BufferHi) const override;
+            int &BufferWi, int &BufferHi, int stagger) const override;
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
 

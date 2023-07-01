@@ -1,0 +1,61 @@
+<!-- Caution this file is generated ... do not edit-->
+<tipofday>
+   <tip url="00001.html" title="Useful definitions: String, Strand and Node" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00002.html" title="Freeze frame your sequence playback" category="Sequencer" level="Advanced" exclude=""/>
+   <tip url="00003.html" title="Troubleshooting why the visualiser won't work" category="Controller" level="Beginner" exclude=""/>
+   <tip url="00004.html" title="Force Local IP" category="Controller" level="Expert" exclude=""/>
+   <tip url="00005.html" title="Export Preview Video" category="General" level="Intermediate" exclude=""/>
+   <tip url="00006.html" title="Spiral Trees" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00007.html" title="Invalid Start Channels" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00008.html" title="Controller Active Property" category="Controller" level="Advanced" exclude=""/>
+   <tip url="00009.html" title="What is a Universe" category="Controller" level="Beginner" exclude=""/>
+   <tip url="00010.html" title="xScanner" category="Tools" level="Intermediate" exclude="OSX"/>
+   <tip url="00011.html" title="Backups" category="Tools" level="Intermediate" exclude=""/>
+   <tip url="00012.html" title="Single Screen Sequencing" category="General" level="Intermediate" exclude=""/>
+   <tip url="00013.html" title="Show Directory Structure" category="General" level="Beginner" exclude=""/>
+   <tip url="00014.html" title="Effects that care about colour order" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00015.html" title="Random effects" category="Sequencing" level="Beginner" exclude=""/>
+   <tip url="00016.html" title="Working on large sequences" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00017.html" title="Rendering text across matrix groups" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00018.html" title="Shift effects" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00019.html" title="Sequence statistics" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00020.html" title="Sequencer navigation shortcuts" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00021.html" title="Custom model remapping" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00022.html" title="Colours" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00023.html" title="Effects with problems" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00024.html" title="VUMeter cryptic names" category="Sequencer" level="Advanced" exclude=""/>
+   <tip url="00025.html" title="Exporting presets" category="Sequencer" level="Expert" exclude=""/>
+   <tip url="00026.html" title="Submodel generation" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00027.html" title="Documenting your show" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00028.html" title="Easter Eggs" category="xSchedule" level="Advanced" exclude="OSX"/>
+   <tip url="00029.html" title="Blend Effects Between Models" category="Sequencing" level="Expert" exclude=""/>
+   <tip url="00030.html" title="xSchedule Show Folder" category="xSchedule" level="Beginner" exclude="OSX"/>
+   <tip url="00031.html" title="Troubleshooting light control" category="General" level="Beginner" exclude=""/>
+   <tip url="00032.html" title="FPP Priority Scheduling" category="FPP" level="Intermediate" exclude=""/>
+   <tip url="00033.html" title="Render Order" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00034.html" title="Sorting models in views" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00035.html" title="Channels, Controllers and Models" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00036.html" title="Wiring View" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00037.html" title="Bulk Editing Effects" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00038.html" title="Export Model Data" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00039.html" title="Getting Assistance" category="General" level="Beginner" exclude=""/>
+   <tip url="00040.html" title="Effect Times" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00041.html" title="Check Sequence" category="General" level="Beginner" exclude=""/>
+   <tip url="00042.html" title="Reporting Bugs" category="General" level="Advanced" exclude=""/>
+   <tip url="00043.html" title="Locking models and effects" category="General" level="Advanced" exclude=""/>
+   <tip url="00044.html" title="Go early or go late" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00045.html" title="Package sequence" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00046.html" title="Custom model numbering" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00047.html" title="Resetting xLights to new install state" category="General" level="Expert" exclude=""/>
+   <tip url="00048.html" title="Overlapping channels" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00049.html" title="Triac failures" category="xSchedule" level="Advanced" exclude="OSX"/>
+   <tip url="00050.html" title="Sub-buffers" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00051.html" title="Render progress" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00052.html" title="Logs" category="General" level="Expert" exclude=""/>
+   <tip url="00053.html" title="Free Videos for effects" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00054.html" title="Check Sequence: Model in multiple views" category="Layout" level="Advanced" exclude=""/>
+   <tip url="moc001.html" title="Adding Labels To Timing Tracks" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="moc002.html" title="Wiring View Surprise" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="moc003.html" title="Put Only Face Outlines In House/Yard/All Group" category="Layout" level="Beginner" exclude=""/>
+   <tip url="moc004.html" title="Don't Let Effect Import Mapping Be A Drag" category="Sequencer" level="Beginner" exclude=""/>
+</tipofday>

@@ -19,6 +19,7 @@
 
 #include "DmxMovingHead.h"
 #include "DmxColorAbilityRGB.h"
+#include "DmxColorAbilityCMY.h"
 #include "DmxColorAbilityWheel.h"
 #include "DmxPresetAbility.h"
 #include "../ModelScreenLocation.h"
@@ -104,7 +105,8 @@ enum DMX_STYLE {
     DMX_STYLE_MOVING_HEAD_3D
 };
 
-void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface *grid) {
+void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
     if (DMX_STYLES.GetCount() == 0) {
         DMX_STYLES.Add("Moving Head Top");
         DMX_STYLES.Add("Moving Head Side");
@@ -116,7 +118,7 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     grid->Append(new wxEnumProperty("DMX Style", "DmxStyle", DMX_STYLES, dmx_style_val));
 
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     wxPGProperty* p = grid->Append(new wxBoolProperty("Hide Body", "HideBody", hide_body));
     p->SetAttribute("UseCheckbox", true);
@@ -218,8 +220,11 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
 
         if (color_type == 0) {
             color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
-        } else {
+        } else  if (color_type == 1) {
             color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+        }
+        else {
+            color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
@@ -249,8 +254,11 @@ void DmxMovingHead::InitModel() {
     int color_type = wxAtoi(ModelXml->GetAttribute("DmxColorType", "0"));
     if (color_type == 0) {
         color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
-    }else {
+    }else if (color_type == 1) {
         color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+    }
+    else {
+        color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
     }
 
     pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "0"));
@@ -299,7 +307,14 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(Nodes);
-
+    if (boundingBox) {
+        boundingBox[0] = -0.5;
+        boundingBox[1] = -0.5;
+        boundingBox[2] = -0.5;
+        boundingBox[3] = 0.5;
+        boundingBox[4] = 0.5;
+        boundingBox[5] = 0.5;
+    }
     sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
@@ -415,7 +430,6 @@ std::list<std::string> DmxMovingHead::CheckModelSettings()
 
 void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
 {
-    static wxStopWatch sw;
     size_t NodeCount = Nodes.size();
 
     if (pan_channel > NodeCount ||
@@ -457,16 +471,16 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     // retrieve the model state
     float old_pan_angle = 0.0f;
     float old_tilt_angle = 0.0f;
-    long old_ms = 0;
+    uint32_t old_ms = 0;
 
-    std::vector<std::string> old_state = GetModelState();
-    if (old_state.size() > 2 && active) {
-        old_ms = std::atol(old_state[0].c_str());
-        old_pan_angle = std::atof(old_state[1].c_str());
-        old_tilt_angle = std::atof(old_state[2].c_str());
+    PanTiltState &st = panTiltStates[preview->GetName().ToStdString()];
+    if (active) {
+        old_ms = st.ms;
+        old_pan_angle = st.pan_angle;
+        old_tilt_angle = st.tilt_angle;
     }
 
-    float pan_angle;
+    float pan_angle = 0;
     if (pan_channel > 0 && pan_channel <= NodeCount && active) {
         Nodes[pan_channel - 1]->GetColor(color_angle);
         pan_angle = (color_angle.red / 255.0f) * pan_deg_of_rot + pan_orient;
@@ -474,10 +488,28 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
         pan_angle = pan_orient;
     }
 
-    long ms = sw.Time();
-    long time_delta = ms - old_ms;
+    float tilt_angle = 0;
+    if (tilt_channel > 0 && tilt_channel <= NodeCount && active) {
+        Nodes[tilt_channel - 1]->GetColor(color_angle);
+        tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
+    } else {
+        tilt_angle = tilt_orient;
+    }
 
-    if (time_delta != 0 && old_state.size() > 0 && active) {
+    uint32_t ms = preview->getCurrentFrameTime();
+    uint32_t time_delta = 0;
+    if (ms > old_ms) {
+        time_delta = ms - old_ms;
+    } else if (ms == old_ms && active) {
+        pan_angle = old_pan_angle;
+        tilt_angle = old_tilt_angle;
+    }
+    if (time_delta > 500) {
+        // more than 1/2 second off, assume a jump of some sort
+        time_delta = 0;
+    }
+
+    if (time_delta != 0 && active) {
         // pan slew limiting
         if (pan_slew_limit > 0.0f) {
             float slew_limit = pan_slew_limit * (float)time_delta / 1000.0f;
@@ -492,15 +524,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     }
 
     float pan_angle_raw = pan_angle;
-    float tilt_angle;
-    if (tilt_channel > 0 && tilt_channel <= NodeCount && active) {
-        Nodes[tilt_channel - 1]->GetColor(color_angle);
-        tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
-    } else {
-        tilt_angle = tilt_orient;
-    }
 
-    if (time_delta != 0 && old_state.size() > 0 && active) {
+    if (time_delta != 0 && active) {
         // tilt slew limiting
         if (tilt_slew_limit > 0.0f) {
             float slew_limit = tilt_slew_limit * (float)time_delta / 1000.0f;
@@ -533,11 +558,9 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     }
 
     // save the model state
-    std::vector<std::string> state;
-    state.push_back(std::to_string(ms));
-    state.push_back(std::to_string(pan_angle_raw));
-    state.push_back(std::to_string(tilt_angle));
-    SaveModelState(state);
+    st.ms = ms;
+    st.pan_angle = pan_angle_raw;
+    st.tilt_angle = tilt_angle;
 
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
@@ -1099,6 +1122,7 @@ void DmxMovingHead::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</dmxmodel>");
     f.Close();
 }
@@ -1153,8 +1177,11 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         int color_type = wxAtoi(dct);
         if (color_type == 0) {
             color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
-        } else {
+        } else if (color_type == 1) {
             color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+        }
+        else {
+            color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
         }
         color_ability->ImportParameters(root, this);
 
@@ -1162,7 +1189,7 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHead::ImportXlightsModel");
@@ -1195,5 +1222,10 @@ std::vector<std::string> DmxMovingHead::GenerateNodeNames() const
     if (0 != tilt_channel && tilt_channel < names.size()) {
         names[tilt_channel - 1] = "Tilt";
     }
+
+    if (nullptr != color_ability) {
+        color_ability->SetNodeNames(names);
+    }
+
     return names;
 }

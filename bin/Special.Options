@@ -1,18 +1,21 @@
-<!-- This file sould be in your show directory.-->
-<!-- It sets obscure options not available via the UI-->
+<!-- This file sould be in your show directory. -->
+<!-- It sets obscure options not available via the UI -->
 
 <SpecialOptions>
 
-  <!-- When set to true adds a menu item to the tools menu to crash xLights-->
+  <!-- When set to true adds a menu item to the tools menu to crash xLights -->
   <!--Option name="EnableCrash" value="false"/-->
 
-  <!-- Allows control over device used in windows directx9 hardware video decode-->
+  <!-- Allows control over device used in windows directx9 hardware video decode -->
   <!--Option name="dxva2_device" value="0"/-->
 
-  <!-- Prioritises the D3DTEXTUREFILTERTYPE used in windows directx9 hardware video decode-->
+  <!-- Prioritises the D3DTEXTUREFILTERTYPE used in windows directx9 hardware video decode -->
   <!--Option name="dxva2_filter" value="-1"/-->
 
-  <!-- Controls the base URL for remote falcon-->
+  <!-- Controls the base URL for remote falcon -->
   <!--Option name="RemoteFalconURL" value=""/-->
+  
+  <!-- Forces artnet to send sync packets from the defined artnet port -->
+  <!--Option name="ForceArtNetSourcePort" value="true"/-->
 
 </SpecialOptions>

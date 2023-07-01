@@ -68,6 +68,7 @@ class xScannerFrame : public xlFrame
     std::string GetIPSubnet(const std::string& ip);
     wxTreeListItem GetSubnetItem(const std::string& subnet);
     wxTreeListItem GetIPItem(const std::string& ip, bool create = true);
+    wxString GetItemUnderParent(wxTreeListItem& parent, const std::string& label) const;
     wxTreeListItem AddItemUnderParent(wxTreeListItem& parent, const std::string& label, const std::string& value);
     void AddItemUnderParentIfNotBlank(wxTreeListItem& item, const std::string& label, const std::string& value);
     std::list<std::string> GetStartsWith(std::list<std::pair<std::string, std::string>>& res, const std::string& prefix);

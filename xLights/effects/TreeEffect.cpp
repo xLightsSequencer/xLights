@@ -64,7 +64,7 @@ void TreeEffect::adjustSettings(const std::string &version, Effect *effect, bool
     }
 }
 
-void TreeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void TreeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int Branches = SettingsMap.GetInt("SLIDER_Tree_Branches", 1);
     int tspeed = SettingsMap.GetInt("SLIDER_Tree_Speed", 10);
     bool showlights = SettingsMap.GetBool("CHECKBOX_Tree_ShowLights", false);
@@ -73,7 +73,7 @@ void TreeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     
     int x,y,i,r,ColorIdx,pixels_per_branch;
     int maxFrame,mod,branch,row,b,f_mod,m,frame;
-    int number_garlands,f_mod_odd,s_odd_row,odd_even;
+    int number_garlands,s_odd_row,odd_even;
     float V,H;
     
     number_garlands=1;
@@ -142,7 +142,6 @@ void TreeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
             
             odd_even=b%2;
             s_odd_row = buffer.BufferWi-x+1;
-            f_mod_odd = buffer.BufferWi-f_mod+1;
             
             if(branch<=b && x<=frame && // for branches below or equal to current row
                (((row==3 || (number_garlands==2 && row==6)) && (m==1 || m==6))

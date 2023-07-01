@@ -33,7 +33,6 @@ GalaxyEffect::~GalaxyEffect()
     //dtor
 }
 
-
 xlEffectPanel *GalaxyEffect::CreatePanel(wxWindow *parent) {
     return new GalaxyPanel(parent);
 }
@@ -110,18 +109,15 @@ void GalaxyEffect::SetDefaultParameters() {
 
 void CalcEndpointColor(double end_angle, double start_angle,
                        double head_end_of_tail, double color_length, int num_colors,
-                       RenderBuffer &buffer, xlColor &color)
+                       RenderBuffer& buffer, xlColor& color)
 {
-    double cv = (head_end_of_tail-end_angle) / color_length;
+    double cv = (head_end_of_tail - end_angle) / color_length;
     int ci = (int)cv;
     double cp = cv - (double)ci;
-    int c2 = std::min(ci+1, num_colors-1);
-    if( ci < c2 )
-    {
-        buffer.Get2ColorBlend(ci, c2, std::min( cp, 1.0), color);
-    }
-    else
-    {
+    int c2 = std::min(ci + 1, num_colors - 1);
+    if (ci < c2) {
+        buffer.Get2ColorBlend(ci, c2, std::min(cp, 1.0), color);
+    } else {
         buffer.palette.GetColor(c2, color);
     }
 }
@@ -134,7 +130,7 @@ double GetStep(double radius)
     return (0.5 * 360.0 / (2.0 * PI * radius));
 }
 
-void GalaxyEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer)
+void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int center_x = GetValueCurveInt("Galaxy_CenterX", 50, SettingsMap, eff_pos, GALAXY_CENTREX_MIN, GALAXY_CENTREX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

@@ -104,7 +104,6 @@
     <ClCompile Include="tmGridCell.cpp" />
     <ClCompile Include="TopEffectsPanel.cpp" />
     <ClCompile Include="UpdaterDialog.cpp" />
-    <ClCompile Include="UtilFunctions.cpp" />
     <ClCompile Include="ValueCurve.cpp" />
     <ClCompile Include="ValueCurveButton.cpp" />
     <ClCompile Include="ValueCurveDialog.cpp" />
@@ -899,22 +898,12 @@
     <ClCompile Include="graphics\opengl\DrawGLUtils.cpp">
       <Filter>graphics\opengl</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\opengl\DrawGLUtils31.cpp">
-      <Filter>graphics\opengl</Filter>
-    </ClCompile>
     <ClCompile Include="graphics\opengl\xlGLCanvas.cpp">
       <Filter>graphics\opengl</Filter>
     </ClCompile>
     <ClCompile Include="graphics\xlGraphicsAccumulators.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\opengl\Image.cpp">
-      <Filter>graphics\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="graphics\opengl\Image_Loader.cpp">
-      <Filter>graphics\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="graphics\opengl\XlightsDrawable.cpp" />
     <ClCompile Include="graphics\xlFontInfo.cpp" />
     <ClCompile Include="ScriptsDialog.cpp" />
     <ClCompile Include="..\xSchedule\wxHTTPServer\connection.cpp" />
@@ -991,6 +980,46 @@
     </ClCompile>
     <ClCompile Include="models\DMX\DmxPresetAbility.cpp">
       <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="TipOfTheDayDialog.cpp" />
+    <ClCompile Include="ModelRemap.cpp" />
+    <ClCompile Include="RestoreBackupDialog.cpp" />
+    <ClCompile Include="LayoutUtils.cpp" />
+    <ClCompile Include="preferences\CheckSequenceSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="UtilClasses.cpp" />
+    <ClCompile Include="automation\PythonRunner.cpp">
+      <Filter>automation</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\Experience.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="BulkEditComboDialog.cpp" />
+    <ClCompile Include="utils\string_utils.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="UtilFunctions.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\ip_utils.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\Curl.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="DuplicateDialog.cpp" />
+    <ClCompile Include="models\DMX\DmxColorAbilityCMY.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\GuitarEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\GuitarPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\opengl\xlOGL3GraphicsContext.cpp">
+      <Filter>graphics\opengl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1083,7 +1112,6 @@
     <ClInclude Include="TopEffectsPanel.h" />
     <ClInclude Include="UpdaterDialog.h" />
     <ClInclude Include="UtilClasses.h" />
-    <ClInclude Include="UtilFunctions.h" />
     <ClInclude Include="ValueCurve.h" />
     <ClInclude Include="ValueCurveButton.h" />
     <ClInclude Include="ValueCurveDialog.h" />
@@ -1274,7 +1302,6 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
-    <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
     <ClInclude Include="ShaderDownloadDialog.h" />
     <ClInclude Include="outputs\ZCPP.h">
       <Filter>Outputs</Filter>
@@ -1912,12 +1939,6 @@
     <ClInclude Include="graphics\xlGraphicsAccumulators.h">
       <Filter>graphics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\opengl\Image.h">
-      <Filter>graphics\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="graphics\opengl\Image_Loader.h">
-      <Filter>graphics\opengl</Filter>
-    </ClInclude>
     <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
     <ClInclude Include="graphics\xlFontInfo.h" />
     <ClInclude Include="ScriptsDialog.h" />
@@ -1992,6 +2013,48 @@
     <ClInclude Include="models\DMX\DmxPresetAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
+    <ClInclude Include="TipOfTheDayDialog.h" />
+    <ClInclude Include="ModelRemap.h" />
+    <ClInclude Include="RestoreBackupDialog.h" />
+    <ClInclude Include="LayoutUtils.h" />
+    <ClInclude Include="preferences\CheckSequenceSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="automation\PythonRunner.h">
+      <Filter>automation</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\Experience.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="BulkEditComboDialog.h" />
+    <ClInclude Include="utils\string_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="UtilFunctions.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\ip_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\Curl.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="DuplicateDialog.h" />
+    <ClInclude Include="models\DMX\DmxColorAbilityCMY.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\GuitarEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\GuitarPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\opengl\xlOGL3GraphicsContext.h">
+      <Filter>graphics\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\opengl\GL\glext.h">
+      <Filter>graphics\opengl\GL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2030,8 +2093,19 @@
     <Filter Include="common">
       <UniqueIdentifier>{d66f2316-0042-426b-8102-445d990406d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{c1416434-1c5e-4d35-9335-0e5286dca853}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="graphics\opengl\GL">
+      <UniqueIdentifier>{6ee588bc-dc96-462e-b373-e36fbb8a27e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\documentation\xlDo Commands.txt">
+      <Filter>automation</Filter>
+    </Text>
   </ItemGroup>
 </Project>

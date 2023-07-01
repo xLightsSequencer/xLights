@@ -10,7 +10,7 @@
 
 class xlMetalGraphicsContext : public xlGraphicsContext {
 public:
-    xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> target);
+    xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> target, bool enqueImmediate);
     virtual ~xlMetalGraphicsContext();
     void Commit(bool displayOnScreen, id<MTLBuffer> capture);
 
@@ -111,4 +111,6 @@ protected:
     MTLFrameData frameData;
     bool frameDataChanged = true;
     std::stack<simd::float4x4> matrixStack;
+    
+    void *lastAccumulator = nullptr;
 };

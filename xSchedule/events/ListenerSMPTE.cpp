@@ -8,6 +8,7 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+#if !defined(SKIP_SMPTE)
 #include "ListenerSMPTE.h"
 #include "ListenerManager.h"
 #include "../xScheduleMain.h"
@@ -16,8 +17,9 @@
 #include "../../xLights/AudioManager.h"
 #include <log4cpp/Category.hh>
 
-ListenerSMPTE::ListenerSMPTE(int mode, ListenerManager* listenerManager) : ListenerBase(listenerManager, "")
+ListenerSMPTE::ListenerSMPTE(int mode, ListenerManager* listenerManager, const std::string& device) : ListenerBase(listenerManager, "")
 {
+    _device = device;
     _mode = mode;
     _frameMS = 50;
 }
@@ -53,9 +55,12 @@ void ListenerSMPTE::StartProcess(const std::string& localIP)
 
     if (_decoder != nullptr)
     {
-        AudioManager::GetSDL()->StartListening();
-        AudioManager::GetSDL()->PurgeInput();
-        _isOk = true;
+        auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
+        if (sdl != nullptr) {
+            sdl->StartListening();
+            sdl->PurgeInput();
+            _isOk = true;
+        }
     }
 }
 
@@ -63,7 +68,10 @@ void ListenerSMPTE::StopProcess()
 {
      static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-     AudioManager::GetSDL()->StopListening();
+     auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
+     if (sdl != nullptr) {
+         sdl->StopListening();
+     }
 
      if (_decoder != nullptr)
      {
@@ -80,17 +88,19 @@ void ListenerSMPTE::Poll()
 
     if (_decoder == nullptr || _stop) return;
 
-    int read = AudioManager::GetSDL()->GetInputAudio((uint8_t*)_buffer, sizeof(_buffer));
+    auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
+    if (sdl != nullptr) {
+        int read = sdl->GetAudio((uint8_t*)_buffer, sizeof(_buffer));
 
-    if (read > 0)
-    {
-        ltc_decoder_write_u16(_decoder, _buffer, read / 2 /* because it is in bytes */, _total);
-        while (ltc_decoder_read(_decoder, &_frame)) {
-            SMPTETimecode stime;
-            ltc_frame_to_time(&stime, &_frame.ltc, 1);
-            DoSync(_mode, stime.hours, stime.mins, stime.secs, stime.frame);
+        if (read > 0) {
+            ltc_decoder_write_u16(_decoder, _buffer, read / 2 /* because it is in bytes */, _total);
+            while (ltc_decoder_read(_decoder, &_frame)) {
+                SMPTETimecode stime;
+                ltc_frame_to_time(&stime, &_frame.ltc, 1);
+                DoSync(_mode, stime.hours, stime.mins, stime.secs, stime.frame);
+            }
+            _total += read;
         }
-        _total += read;
     }
     wxMilliSleep(10);
 }
@@ -138,3 +148,4 @@ void ListenerSMPTE::DoSync(int mode, int hours, int mins, int secs, int frames)
 
     _listenerManager->Sync("", ms, GetType());
 }
+#endif

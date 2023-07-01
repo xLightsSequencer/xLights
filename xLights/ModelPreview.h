@@ -89,7 +89,7 @@ public:
 
     void DrawGroupCentre(float x, float y);
     void Render();
-    void Render(const unsigned char *data, bool swapBuffers=true);
+    void Render(uint32_t frameTime, const unsigned char *data, bool swapBuffers=true);
     void RenderModels(const std::vector<Model*>& models, bool selected, bool showFirstPixel);
     void RenderModel(Model* m, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
 
@@ -136,7 +136,6 @@ public:
     void SetDisplay2DCenter0(bool bb) { _center2D0 = bb; grid2dValid=false; }
 
     bool IsNoCurrentModel() { return currentModel == "&---none---&"; }
-    void SetRenderOrder(int i) { renderOrder = i; Refresh(); }
 
     void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
 
@@ -146,6 +145,8 @@ public:
     bool drawingUsingLogicalSize() const override { return true; }
     virtual bool RequiresDepthBuffer() const override { return true; }
 
+    void setCurrentFrameTime(uint32_t ft) { currentFrameTime = ft; }
+    uint32_t getCurrentFrameTime() const { return currentFrameTime; }
     xlGraphicsContext *getCurrentGraphicsContext() { return currentContext; }
     xlGraphicsProgram *getCurrentSolidProgram() { return solidProgram; }
     xlGraphicsProgram *getCurrentTransparentProgram() { return transparentProgram; }
@@ -199,6 +200,7 @@ private:
     std::string currentLayoutGroup;
     std::vector<Model*> tmpModelList;
     Model *additionalModel = nullptr;
+    uint32_t currentFrameTime = 0;
 
     xlGraphicsProgram *solidProgram = nullptr;
     xlGraphicsProgram *transparentProgram = nullptr;
@@ -210,7 +212,6 @@ private:
     xlVertexAccumulator *grid2d = nullptr;
     bool grid2dValid = false;
 
-    int renderOrder = 0;
     bool _wiring = false;
     bool _highlightFirst = false;
     bool m_mouse_down = false;

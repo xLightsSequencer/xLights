@@ -242,9 +242,9 @@ protected:
     int m_tp;
 };
 
-void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     wxPGProperty* p = grid->Append(new SkullPopupDialogProperty(this, "Skull Config", "SkullConfig", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
@@ -621,7 +621,14 @@ void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ct
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(1, 1, 1);
-
+    if (boundingBox) {
+        boundingBox[0] = -0.5;
+        boundingBox[1] = -0.5;
+        boundingBox[2] = -0.5;
+        boundingBox[3] = 0.5;
+        boundingBox[4] = 0.5;
+        boundingBox[5] = 0.5;
+    }
     sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
@@ -956,6 +963,7 @@ void DmxSkull::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</dmxmodel>");
     f.Close();
 }
@@ -1026,7 +1034,7 @@ void DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
         if (heu == "1")
             eye_ud_servo->Serialise(root, ModelXml, show_dir);
 
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkull::ImportXlightsModel");

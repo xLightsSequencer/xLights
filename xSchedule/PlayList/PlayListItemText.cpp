@@ -21,7 +21,7 @@
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
-#include "../xSMSDaemon/Curl.h"
+#include "utils/Curl.h"
 
 PlayListItemText::PlayListItemText(wxXmlNode* node) : PlayListItem(node)
 {

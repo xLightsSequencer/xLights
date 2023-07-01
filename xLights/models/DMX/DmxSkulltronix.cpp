@@ -90,9 +90,9 @@ public:
     }
 };
 
-void DmxSkulltronix::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxSkulltronix::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     AddPanTiltTypeProperties(grid);
 
@@ -394,7 +394,14 @@ void DmxSkulltronix::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsConte
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(Nodes);
-
+    if (boundingBox) {
+        boundingBox[0] = -0.5;
+        boundingBox[1] = -0.5;
+        boundingBox[2] = -0.5;
+        boundingBox[3] = 0.5;
+        boundingBox[4] = 0.5;
+        boundingBox[5] = 0.5;
+    }
     sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
@@ -1181,6 +1188,7 @@ void DmxSkulltronix::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</dmxmodel>");
     f.Close();
 }
@@ -1270,7 +1278,7 @@ void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
         GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkulltronix::ImportXlightsModel");

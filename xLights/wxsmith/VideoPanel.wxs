@@ -90,6 +90,20 @@
 										<border>2</border>
 										<option>1</option>
 									</object>
+									<object class="spacer">
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON1" variable="Button_MatchVideoDuration" member="yes">
+											<label>Match Effect To Video Duration</label>
+											<handler function="OnButton_MatchVideoDurationClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT_Video_DurationTreatment" variable="StaticText1" member="yes">
 											<label>Duration Treatment</label>
@@ -403,6 +417,35 @@
 											<style>wxTE_RIGHT</style>
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText9" member="yes">
+											<label>Sample spacing</label>
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxSlider" name="IDD_SLIDER_SampleSpacing" subclass="BulkEditSlider" variable="Slider_SampleSpacing" member="yes">
+											<max>200</max>
+											<tooltip>Use 0 to scale image. &gt;0 to sample image.</tooltip>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_SampleSpacing" subclass="BulkEditTextCtrl" variable="TextCtrl_SampleSpacing" member="yes">
+											<value>0</value>
+											<maxlength>3</maxlength>
+											<size>40,-1d</size>
+											<tooltip>Use 0 to scale image. &gt;0 to sample image.</tooltip>
+											<style>wxTE_RIGHT</style>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>

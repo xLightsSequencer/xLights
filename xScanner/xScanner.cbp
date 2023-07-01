@@ -19,7 +19,7 @@
 					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=gnu++17" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
@@ -43,8 +43,8 @@
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xScanner.map" />
 					<Add option="-Wl,--large-address-aware" />
-					<Add library="libwxmsw31ud.a" />
-					<Add library="libwxmsw31ud_gl.a" />
+					<Add library="libwxmsw33ud.a" />
+					<Add library="libwxmsw33ud_gl.a" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/iphlpapi.lib" />
@@ -69,7 +69,7 @@
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=gnu++17" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
@@ -96,19 +96,19 @@
 					<Add option="-Wl,-Map=../bin/xScanner.map" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
-					<Add library="../lib/windows/libwxmsw31u_gl.a" />
+					<Add library="../lib/windows/libwxmsw33u_gl.a" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
 					<Add library="../lib/windows/imagehlp.lib" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/Ws2_32.lib" />
 					<Add library="psapi" />
-					<Add library="../lib/windows/libwxbase31u.a" />
-					<Add library="../lib/windows/libwxbase31u_net.a" />
-					<Add library="../lib/windows/libwxbase31u_xml.a" />
+					<Add library="../lib/windows/libwxbase33u.a" />
+					<Add library="../lib/windows/libwxbase33u_net.a" />
+					<Add library="../lib/windows/libwxbase33u_xml.a" />
 					<Add library="../lib/windows/libwxexpat.a" />
 					<Add library="../lib/windows/libwxjpeg.a" />
-					<Add library="../lib/windows/libwxmsw31u_core.a" />
-					<Add library="../lib/windows/libwxmsw31u_qa.a" />
+					<Add library="../lib/windows/libwxmsw33u_core.a" />
+					<Add library="../lib/windows/libwxmsw33u_qa.a" />
 					<Add library="../lib/windows/libwxscintilla.a" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -125,7 +125,7 @@
 					<Add option="-Wall" />
 					<Add option="-std=gnu++17" />
 					<Add option="-g" />
-					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
@@ -142,7 +142,7 @@
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs log4cpp`" />
-					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
@@ -159,7 +159,7 @@
 					<Add option="-O2" />
 					<Add option="-std=gnu++17" />
 					<Add option="-Wall" />
-					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
@@ -176,7 +176,7 @@
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs log4cpp`" />
-					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
@@ -197,7 +197,7 @@
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=gnu++17" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
@@ -222,19 +222,19 @@
 					<Add option="-m64" />
 					<Add option="-Wl,-Map=../bin64/xScanner.map" />
 					<Add option="-lpthread" />
-					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
+					<Add library="../lib/windows64/libwxmsw33u_gl.a" />
 					<Add library="../lib/windows64/liblog4cpp.a" />
 					<Add library="../lib/windows64/libimagehlp.a" />
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/Ws2_32.lib" />
 					<Add library="psapi" />
-					<Add library="../lib/windows64/libwxbase31u.a" />
-					<Add library="../lib/windows64/libwxbase31u_net.a" />
-					<Add library="../lib/windows64/libwxbase31u_xml.a" />
+					<Add library="../lib/windows64/libwxbase33u.a" />
+					<Add library="../lib/windows64/libwxbase33u_net.a" />
+					<Add library="../lib/windows64/libwxbase33u_xml.a" />
 					<Add library="../lib/windows64/libwxexpat.a" />
 					<Add library="../lib/windows64/libwxjpeg.a" />
-					<Add library="../lib/windows64/libwxmsw31u_core.a" />
-					<Add library="../lib/windows64/libwxmsw31u_qa.a" />
+					<Add library="../lib/windows64/libwxmsw33u_core.a" />
+					<Add library="../lib/windows64/libwxmsw33u_qa.a" />
 					<Add library="../lib/windows64/libwxregexu.a" />
 					<Add library="../lib/windows64/libwxscintilla.a" />
 					<Add directory="../lib/windows64" />
@@ -342,6 +342,12 @@
 		<Unit filename="../xLights/outputs/xxxEthernetOutput.h" />
 		<Unit filename="../xLights/outputs/xxxSerialOutput.cpp" />
 		<Unit filename="../xLights/outputs/xxxSerialOutput.h" />
+        <Unit filename="../xLights/utils/Curl.cpp" />
+        <Unit filename="../xLights/utils/Curl.h" />
+		<Unit filename="../xLights/utils/ip_utils.cpp" />
+		<Unit filename="../xLights/utils/ip_utils.h" />
+		<Unit filename="../xLights/utils/string_utils.cpp" />
+		<Unit filename="../xLights/utils/string_utils.h" />
 		<Unit filename="../xLights/xLightsVersion.cpp" />
 		<Unit filename="../xLights/xLightsVersion.h" />
 		<Unit filename="../xSchedule/wxJSON/json_defs.h" />

@@ -52,6 +52,7 @@ class OptionsDialog: public wxDialog
 		wxButton* Button_Export;
 		wxButton* Button_Import;
 		wxButton* Button_Ok;
+		wxCheckBox* CheckBoxSuppressDarkMode;
 		wxCheckBox* CheckBox_APIOnly;
 		wxCheckBox* CheckBox_AlllowPageBypass;
 		wxCheckBox* CheckBox_DisableOutputOnPingFailure;
@@ -75,6 +76,7 @@ class OptionsDialog: public wxDialog
 		wxChoice* Choice_InputAudioDevice;
 		wxChoice* Choice_Location;
 		wxChoice* Choice_OnCrash;
+		wxChoice* Choice_SMPTEDevice;
 		wxChoice* Choice_SMPTEFrameRate;
 		wxListView* ListView_Buttons;
 		wxSpinCtrl* SpinCtrl_PasswordTimeout;
@@ -83,6 +85,7 @@ class OptionsDialog: public wxDialog
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
 		wxStaticText* StaticText13;
+		wxStaticText* StaticText14;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -115,6 +118,7 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHECKBOX15;
 		static const long ID_CHECKBOX16;
 		static const long ID_CHECKBOX17;
+		static const long ID_CHECKBOX18;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTVIEW1;
 		static const long ID_BUTTON5;
@@ -140,6 +144,8 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHOICE7;
 		static const long ID_STATICTEXT11;
 		static const long ID_CHOICE6;
+		static const long ID_STATICTEXT14;
+		static const long ID_CHOICE8;
 		static const long ID_STATICTEXT8;
 		static const long ID_CHOICE2;
 		static const long ID_STATICTEXT9;

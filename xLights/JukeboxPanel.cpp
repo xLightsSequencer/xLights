@@ -24,45 +24,32 @@
 
 ButtonControl::ButtonControl(int i)
 {
-    _element = "";
-    _layer = -1;
-    _time = -1;
     _number = i;
-    _description = "";
-    _tooltip = "";
     _type = LOOKUPTYPE::LTDISABLED;
 }
 
-ButtonControl::ButtonControl(int i, std::string description, std::string tooltip)
+ButtonControl::ButtonControl(int i, std::string description, std::string tooltip, bool loop)
 {
-    _element = "";
     _tooltip = tooltip;
-    _layer = -1;
-    _time = -1;
     _number = i;
+    _loop = loop;
     _description = description;
     _type = LOOKUPTYPE::LTDESCRIPTION;
 }
 
-ButtonControl::ButtonControl(int i, std::string element, int layer, int time, std::string tooltip)
+ButtonControl::ButtonControl(int i, std::string element, int layer, int time, std::string tooltip, bool loop)
 {
     _element = element;
     _layer = layer;
     _time = time;
     _number = i;
-    _description = "";
     _tooltip = tooltip;
+    _loop = loop;
     _type = LOOKUPTYPE::LTMLT;
 }
 
 ButtonControl::ButtonControl(wxXmlNode* n)
 {
-    _element = "";
-    _layer = -1;
-    _time = -1;
-    _number = -1;
-    _description = "";
-    _tooltip = "";
     _type = LOOKUPTYPE::LTDISABLED;
 
     if (n->GetName() == "Button") {
@@ -72,6 +59,7 @@ ButtonControl::ButtonControl(wxXmlNode* n)
         _number = wxAtoi(n->GetAttribute("Number", "-1"));
         _description = n->GetAttribute("Description", "").ToStdString();
         _tooltip = n->GetAttribute("Tooltip", "").ToStdString();
+        _loop = n->GetAttribute("Loop", "TRUE") == "TRUE";
         _type = n->GetAttribute("Type", "") == "DESCRIPTION" ? LOOKUPTYPE::LTDESCRIPTION : LOOKUPTYPE::LTMLT;
     }
 }
@@ -86,6 +74,7 @@ wxXmlNode* ButtonControl::Save()
     res->AddAttribute("Layer", wxString::Format("%d", _layer));
     res->AddAttribute("Time", wxString::Format("%d", _time));
     res->AddAttribute("Number", wxString::Format("%d", _number));
+    res->AddAttribute("Loop", _loop ? "TRUE" : "FALSE");
     return res;
 }
 
@@ -100,7 +89,10 @@ void ButtonControl::SelectEffect(MainSequencer* sequencer)
         }
 
         if (e != nullptr) {
-            sequencer->PanelEffectGrid->RaiseSelectedEffectChanged(e, false, true);
+            sequencer->PanelEffectGrid->PlayLoopedEffect(e, _loop);
+        } else {
+            wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+            wxPostEvent(sequencer->PanelEffectGrid->GetSequenceElements()->GetXLightsFrame(), playEvent);
         }
     }
 }
@@ -203,11 +195,12 @@ void JukeboxPanel::PlayItem(int item)
         _buttons[item]->SelectEffect(xLightsApp::GetFrame()->GetMainSequencer());
     } else {
         xLightsApp::GetFrame()->GetMainSequencer()->UnselectAllEffects();
-        xLightsApp::GetFrame()->SetPlayStatus(PLAY_TYPE_STOPPED);
         xLightsApp::GetFrame()->UnselectEffect();
+        xLightsApp::GetFrame()->GetOutputManager()->AllOff();
 
         // turn all the lights off in case we are outputting to lights
-        xLightsApp::GetFrame()->GetOutputManager()->AllOff();
+        wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+        wxPostEvent(xLightsApp::GetFrame(), playEvent);
     }
 }
 
@@ -258,9 +251,9 @@ void JukeboxPanel::OnButtonRClick(wxContextMenuEvent& event)
         }
 
         if (dlg.RadioButton_ED->GetValue() && dlg.Choice_Description->GetSelection() >= 0) {
-            control = new ButtonControl(button, dlg.Choice_Description->GetStringSelection().ToStdString(), dlg.TextCtrl_Tooltip->GetValue().ToStdString());
+            control = new ButtonControl(button, dlg.Choice_Description->GetStringSelection().ToStdString(), dlg.TextCtrl_Tooltip->GetValue().ToStdString(), dlg.CheckBox_LoopEffect->IsChecked());
         } else if (dlg.Choice_Model->GetSelection() >= 0) {
-            control = new ButtonControl(button, dlg.Choice_Model->GetStringSelection().ToStdString(), wxAtoi(dlg.Choice_Layer->GetStringSelection()), wxAtoi(dlg.Choice_Time->GetStringSelection()), dlg.TextCtrl_Tooltip->GetValue().ToStdString());
+            control = new ButtonControl(button, dlg.Choice_Model->GetStringSelection().ToStdString(), wxAtoi(dlg.Choice_Layer->GetStringSelection()), wxAtoi(dlg.Choice_Time->GetStringSelection()), dlg.TextCtrl_Tooltip->GetValue().ToStdString(), dlg.CheckBox_LoopEffect->IsChecked());
         }
 
         if (control != nullptr) {

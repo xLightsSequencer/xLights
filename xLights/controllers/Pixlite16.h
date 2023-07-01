@@ -30,6 +30,7 @@ public:
         uint8_t _mac[6] = {0,0,0,0,0,0};
         int _modelNameLen = 0;
         std::string _modelName = "";
+        std::string _protocolName;
         uint8_t _hwRevision = 0;
         uint8_t _minAssistantVer[3] = {0,0,0};
         int _firmwareVersionLen = 0;
@@ -56,6 +57,7 @@ public:
         std::vector<uint16_t> _outputGrouping;
         std::vector<uint8_t> _outputBrightness;
         uint8_t _numDMX = 0;
+        uint8_t _protocolsOnDMX = 0;
         uint8_t _realDMX = 0;
         std::vector<uint8_t> _dmxOn;
         std::vector<uint16_t> _dmxUniverse;
@@ -79,6 +81,11 @@ public:
         uint8_t _testMode = 0;
         std::vector<uint8_t> _testParameters;
         uint8_t _protocolVersion = 0;
+        bool _pixelsCanBeSplit = false;
+        uint8_t _maxUsedPixelPort = 0;
+        uint8_t _testOutputNum = 0;
+        uint16_t _testPixelNum = 0;
+        bool _forceExpanded = false;
     };
 
 protected:
@@ -86,11 +93,18 @@ protected:
     #pragma region Member Variables
     Config _config;
     int _protocolVersion = 0;
-    #pragma endregion
+    std::string _mk3APIVersion;
+    std::string _mk3Ver;
+    std::string _mk3Config;
+    std::string _mk3Constants;
+#pragma endregion
 
     #pragma region Encode and Decode
-    static int DecodeStringPortProtocol(std::string protocol);
-    static int DecodeSerialOutputProtocol(std::string protocol);
+    static int DecodeStringPortProtocol(const std::string& protocol);
+    static int DecodeSerialOutputProtocol(const std::string& protocol);
+    static int EncodeColourOrder(const std::string& colourOrder);
+    static std::string DecodeColourOrder(const int colourOrder);
+    static int Mk3FrequencyForProtocol(const std::string& protocol);
     #pragma endregion
 
     #pragma region Private Functions
@@ -101,13 +115,17 @@ protected:
     static bool ParseV4Config(uint8_t* data, Pixlite16::Config& config);
     static bool ParseV5Config(uint8_t* data, Pixlite16::Config& config);
     static bool ParseV6Config(uint8_t* data, Pixlite16::Config& config);
+    static bool ParseV8Config(uint8_t* data, Pixlite16::Config& config);
     int PrepareV4Config(uint8_t* data) const;
     int PrepareV5Config(uint8_t* data) const;
     int PrepareV6Config(uint8_t* data) const;
+    int PrepareV8Config(uint8_t* data) const;
 
+    static void CreateDiscovery(uint8_t* buffer);
     bool GetConfig();
 
     bool SendConfig(bool logresult = false) const;
+    bool SendMk3Config(bool logresult = false) const;
 
     static void DumpConfiguration(Pixlite16::Config& config);
     #pragma endregion
@@ -117,6 +135,7 @@ public:
     #pragma region Constructors and Destructors
     Pixlite16(const std::string& ip);
     ~Pixlite16() {}
+    bool GetMK3Config();     
     #pragma endregion
 
     #pragma region Getters and Setters

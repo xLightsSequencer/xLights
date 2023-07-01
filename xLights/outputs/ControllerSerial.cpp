@@ -259,7 +259,7 @@ void ControllerSerial::VMVChanged() {
             if (_port.find(":") != -1) {
                 ip = _port.substr(0, _port.find(":"));
             }
-            out->SetIP(ip);
+            out->SetIP(ip, IsActive());
             out->SetFPPProxyIP(_fppProxy != "" ? _fppProxy : _outputManager->GetGlobalFPPProxy());
             out->SetChannels(ch);
             _outputs.push_back(out);
@@ -284,7 +284,7 @@ void ControllerSerial::SetPort(const std::string& port) {
                         _serialOutput->SetCommPort(port.substr(port.find(":") + 1));
                     }
                 }
-                GetFirstOutput()->SetIP(ip);
+                GetFirstOutput()->SetIP(ip, IsActive());
             }
             _port = port;
             _dirty = true;

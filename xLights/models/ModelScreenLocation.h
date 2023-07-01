@@ -178,6 +178,18 @@ protected:
     virtual bool GetEdit() const { return false; }
     virtual void SetToolSize(int sz) { tool_size = sz; };
     virtual void* GetRawData() { return nullptr; }
+    virtual float GetRealWidth() const
+    {
+        return 0;
+    }
+    virtual float GetRealHeight() const
+    {
+        return 0;
+    }
+    virtual float GetRealDepth() const
+    {
+        return 0;
+    }
 
     void SetRenderSize(float NewWi, float NewHt, float NewDp = 0.0f);
     void AdjustRenderSize(float NewWi, float NewHt, float NewDp, wxXmlNode* node);
@@ -269,7 +281,7 @@ protected:
     float rotatez = 0.0f;
     mutable glm::mat4 ModelMatrix;
     mutable glm::mat4 TranslateMatrix;
-    mutable glm::quat rotate_quat;
+    mutable glm::quat rotate_quat = glm::quat(1.0, glm::vec3(0.0));
     mutable glm::vec3 aabb_min = glm::vec3(0.0f);
     mutable glm::vec3 aabb_max = glm::vec3(0.0f);
 

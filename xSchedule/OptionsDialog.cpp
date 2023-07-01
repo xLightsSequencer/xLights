@@ -47,6 +47,7 @@ const long OptionsDialog::ID_CHECKBOX14 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX15 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX16 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX17 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX18 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
 const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
@@ -72,6 +73,8 @@ const long OptionsDialog::ID_STATICTEXT12 = wxNewId();
 const long OptionsDialog::ID_CHOICE7 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT11 = wxNewId();
 const long OptionsDialog::ID_CHOICE6 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT14 = wxNewId();
+const long OptionsDialog::ID_CHOICE8 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT8 = wxNewId();
 const long OptionsDialog::ID_CHOICE2 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT9 = wxNewId();
@@ -154,6 +157,9 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     CheckBox_TimecodeWaitForNextSong = new wxCheckBox(this, ID_CHECKBOX17, _("Timecode remote wait for next song"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX17"));
     CheckBox_TimecodeWaitForNextSong->SetValue(false);
     FlexGridSizer7->Add(CheckBox_TimecodeWaitForNextSong, 1, wxALL|wxEXPAND, 5);
+    CheckBoxSuppressDarkMode = new wxCheckBox(this, ID_CHECKBOX18, _("Suppress Dark Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX18"));
+    CheckBoxSuppressDarkMode->SetValue(false);
+    FlexGridSizer7->Add(CheckBoxSuppressDarkMode, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer5->AddGrowableCol(1);
@@ -213,12 +219,12 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer3 = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizer3->AddGrowableCol(3);
-    StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Audio Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+    StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Default Audio Output Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     FlexGridSizer3->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_AudioDevice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
     Choice_AudioDevice->SetSelection( Choice_AudioDevice->Append(_("(Default)")) );
     FlexGridSizer3->Add(Choice_AudioDevice, 1, wxALL|wxEXPAND, 5);
-    StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Input Audio Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
+    StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Default Input Audio Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
     FlexGridSizer3->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_InputAudioDevice = new wxChoice(this, ID_CHOICE7, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE7"));
     FlexGridSizer3->Add(Choice_InputAudioDevice, 1, wxALL|wxEXPAND, 5);
@@ -226,6 +232,10 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     FlexGridSizer3->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_SMPTEFrameRate = new wxChoice(this, ID_CHOICE6, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE6"));
     FlexGridSizer3->Add(Choice_SMPTEFrameRate, 1, wxALL|wxEXPAND, 5);
+    StaticText14 = new wxStaticText(this, ID_STATICTEXT14, _("SMPTE Input Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT14"));
+    FlexGridSizer3->Add(StaticText14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_SMPTEDevice = new wxChoice(this, ID_CHOICE8, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE8"));
+    FlexGridSizer3->Add(Choice_SMPTEDevice, 1, wxALL|wxEXPAND, 5);
     StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("ARTNet Time Code Format:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
     FlexGridSizer3->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_ARTNetTimeCodeFormat = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
@@ -287,9 +297,11 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     }
 
     Choice_InputAudioDevice->SetSelection(Choice_InputAudioDevice->Append(_("(Default)")));
+    Choice_SMPTEDevice->SetSelection(Choice_SMPTEDevice->Append(_("(Default)")));
     auto inputAudioDevices = AudioManager::GetInputAudioDevices();
     for (const auto& it : inputAudioDevices) {
         Choice_InputAudioDevice->Append(it);
+        Choice_SMPTEDevice->Append(it);
     }
 
     auto cities = City::GetCities();
@@ -322,6 +334,12 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     CheckBox_SongMMSSFormat->SetValue(options->IsUseStepMMSSTimecodeFormat());
     CheckBox_TimecodeWaitForNextSong->SetValue(options->IsRemoteTimecodeStepAdvance());
 
+    #ifdef __WXMSW__
+        CheckBoxSuppressDarkMode->SetValue(IsSuppressDarkMode());
+    #else
+        CheckBoxSuppressDarkMode->Enable(false);
+    #endif
+
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
     SpinCtrl_PasswordTimeout->SetValue(options->GetPasswordTimeout());
 
@@ -333,11 +351,15 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     Choice_Location->SetStringSelection(options->GetCity());
     Choice_AudioDevice->SetStringSelection(options->GetAudioDevice());
     if (Choice_AudioDevice->GetSelection() == -1) {
-        Choice_AudioDevice->SetStringSelection("(Default)");
+        Choice_AudioDevice->SetSelection(0);
     }
     Choice_InputAudioDevice->SetStringSelection(options->GetInputAudioDevice());
     if (Choice_InputAudioDevice->GetSelection() == -1) {
-        Choice_InputAudioDevice->SetStringSelection("(Default)");
+        Choice_InputAudioDevice->SetSelection(0);
+    }
+    Choice_SMPTEDevice->SetStringSelection(options->GetSMPTEDevice());
+    if (Choice_SMPTEDevice->GetSelection() == -1) {
+        Choice_SMPTEDevice->SetSelection(0);
     }
 
     Choice1->AppendString("");
@@ -405,6 +427,10 @@ OptionsDialog::~OptionsDialog()
 
 void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
 {
+    #ifdef __WXMSW__
+    SetSuppressDarkMode(CheckBoxSuppressDarkMode->GetValue());
+    #endif
+
     _options->SetSync(CheckBox_Sync->GetValue());
     _options->SetSendOffWhenNotRunning(CheckBox_SendOffWhenNotRunning->GetValue());
     _options->SetParallelTransmission(CheckBox_MultithreadedTransmission->GetValue());
@@ -429,25 +455,26 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetLateStartingScheduleUsesTime(CheckBox_LastStartingSequenceUsesTime->GetValue());
     _options->SetDisableOutputOnPingFailure(CheckBox_DisableOutputOnPingFailure->GetValue());
     _options->SetSMPTEMode(_options->EncodeSMPTEMode(Choice_SMPTEFrameRate->GetStringSelection()));
+    _options->SetSMPTEDevice(Choice_SMPTEDevice->GetStringSelection());
     _options->SetStepMMSSTimecodeFormat(CheckBox_SongMMSSFormat->GetValue());
     _options->SetRemoteTimecodeStepAdvance(CheckBox_TimecodeWaitForNextSong->GetValue());
 
     if (Choice_AudioDevice->GetStringSelection() == "(Default)") {
         _options->SetAudioDevice("");
-        AudioManager::SetAudioDevice("");
+        AudioManager::GetSDLManager()->SetDefaultOutput("");
     }
     else {
         _options->SetAudioDevice(Choice_AudioDevice->GetStringSelection().ToStdString());
-        AudioManager::SetAudioDevice(Choice_AudioDevice->GetStringSelection().ToStdString());
+        AudioManager::GetSDLManager()->SetDefaultOutput(Choice_AudioDevice->GetStringSelection().ToStdString());
     }
 
     if (Choice_InputAudioDevice->GetStringSelection() == "(Default)") {
         _options->SetInputAudioDevice("");
-        AudioManager::SetInputAudioDevice("");
+        AudioManager::GetSDLManager()->SetDefaultInput("");
     }
     else {
         _options->SetInputAudioDevice(Choice_InputAudioDevice->GetStringSelection().ToStdString());
-        AudioManager::SetInputAudioDevice(Choice_InputAudioDevice->GetStringSelection().ToStdString());
+        AudioManager::GetSDLManager()->SetDefaultInput(Choice_InputAudioDevice->GetStringSelection().ToStdString());
     }
 
     _options->ClearButtons();

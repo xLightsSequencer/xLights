@@ -55,6 +55,10 @@ const long LiquidPanel::ID_STATICTEXT1 = wxNewId();
 const long LiquidPanel::IDD_SLIDER_Liquid_Gravity = wxNewId();
 const long LiquidPanel::ID_VALUECURVE_Liquid_Gravity = wxNewId();
 const long LiquidPanel::ID_TEXTCTRL_Liquid_Gravity = wxNewId();
+const long LiquidPanel::ID_STATICTEXT2 = wxNewId();
+const long LiquidPanel::IDD_SLIDER_Liquid_GravityAngle = wxNewId();
+const long LiquidPanel::ID_VALUECURVE_Liquid_GravityAngle = wxNewId();
+const long LiquidPanel::ID_TEXTCTRL_Liquid_GravityAngle = wxNewId();
 const long LiquidPanel::ID_STATICTEXT_X1 = wxNewId();
 const long LiquidPanel::IDD_SLIDER_X1 = wxNewId();
 const long LiquidPanel::ID_VALUECURVE_X1 = wxNewId();
@@ -173,11 +177,13 @@ END_EVENT_TABLE()
 LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(LiquidPanel)
+	BulkEditTextCtrl* TextCtrl_Liquid_GravityAngle;
 	BulkEditTextCtrlF1* TextCtrl35;
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer12;
 	wxFlexGridSizer* FlexGridSizer13;
+	wxFlexGridSizer* FlexGridSizer14;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -276,6 +282,18 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl35 = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Liquid_Gravity, _("10.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Liquid_Gravity"));
 	TextCtrl35->SetMaxLength(4);
 	FlexGridSizer12->Add(TextCtrl35, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText16 = new wxStaticText(this, ID_STATICTEXT2, _("Gravity Angle"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer12->Add(StaticText16, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer14 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer14->AddGrowableCol(0);
+	Slider_Liquid_GravityAngle = new BulkEditSlider(this, IDD_SLIDER_Liquid_GravityAngle, 0, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Liquid_GravityAngle"));
+	FlexGridSizer14->Add(Slider_Liquid_GravityAngle, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Liquid_GravityAngle = new BulkEditValueCurveButton(this, ID_VALUECURVE_Liquid_GravityAngle, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Liquid_GravityAngle"));
+	FlexGridSizer14->Add(BitmapButton_Liquid_GravityAngle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer12->Add(FlexGridSizer14, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_Liquid_GravityAngle = new BulkEditTextCtrl(this, ID_TEXTCTRL_Liquid_GravityAngle, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Liquid_GravityAngle"));
+	TextCtrl_Liquid_GravityAngle->SetMaxLength(3);
+	FlexGridSizer12->Add(TextCtrl_Liquid_GravityAngle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer77->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 5);
 	Notebook1 = new wxNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
 	Panel1 = new wxPanel(Notebook1, ID_PANEL1, wxPoint(115,49), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
@@ -345,6 +363,8 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer7->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	Panel1->SetSizer(FlexGridSizer6);
+	FlexGridSizer6->Fit(Panel1);
+	FlexGridSizer6->SetSizeHints(Panel1);
 	Panel2 = new wxPanel(Notebook1, ID_PANEL2, wxPoint(34,17), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
@@ -415,6 +435,8 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer8->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
 	Panel2->SetSizer(FlexGridSizer3);
+	FlexGridSizer3->Fit(Panel2);
+	FlexGridSizer3->SetSizeHints(Panel2);
 	Panel3 = new wxPanel(Notebook1, ID_PANEL3, wxPoint(89,6), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
@@ -485,6 +507,8 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer9->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
 	Panel3->SetSizer(FlexGridSizer4);
+	FlexGridSizer4->Fit(Panel3);
+	FlexGridSizer4->SetSizeHints(Panel3);
 	Panel4 = new wxPanel(Notebook1, ID_PANEL4, wxPoint(141,20), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer5->AddGrowableCol(0);
@@ -555,12 +579,16 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
 	Panel4->SetSizer(FlexGridSizer5);
+	FlexGridSizer5->Fit(Panel4);
+	FlexGridSizer5->SetSizeHints(Panel4);
 	Notebook1->AddPage(Panel1, _("1"), false);
 	Notebook1->AddPage(Panel2, _("2"), false);
 	Notebook1->AddPage(Panel3, _("3"), false);
 	Notebook1->AddPage(Panel4, _("4"), false);
 	FlexGridSizer77->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer77);
+	FlexGridSizer77->Fit(this);
+	FlexGridSizer77->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_LifeTime,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Liquid_Gravity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
@@ -593,14 +621,18 @@ LiquidPanel::LiquidPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_VALUECURVE_Liquid_SourceSize4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
 	//*)
 
+	Connect(ID_VALUECURVE_Liquid_GravityAngle, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&LiquidPanel::OnVCButtonClick);
+
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&LiquidPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&LiquidPanel::OnValidateWindow, 0, this);
 
     Slider_Liquid_Gravity->SetRange(LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX);
+    Slider_Liquid_GravityAngle->SetRange(LIQUID_GRAVITYANGLE_MIN, LIQUID_GRAVITYANGLE_MAX);
 
     BitmapButton_LifeTime->GetValue()->SetLimits(LIQUID_LIFETIME_MIN, LIQUID_LIFETIME_MAX);
     BitmapButton_Liquid_Gravity->GetValue()->SetLimits(LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX);
     BitmapButton_Liquid_Gravity->GetValue()->SetDivisor(LIQUID_GRAVITY_DIVISOR);
+    BitmapButton_Liquid_GravityAngle->GetValue()->SetLimits(LIQUID_GRAVITYANGLE_MIN, LIQUID_GRAVITYANGLE_MAX);
 
     BitmapButton_Direction1->GetValue()->SetLimits(LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX);
     BitmapButton_Flow1->GetValue()->SetLimits(LIQUID_FLOW_MIN, LIQUID_FLOW_MAX);

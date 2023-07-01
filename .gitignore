@@ -50,3 +50,6 @@ xLights/xlights_build_version.h
 *.log
 *.db
 xScanner/x64
+/xLights/enc_temp_folder
+*~
+/.vs/xLights/v17

@@ -19,16 +19,18 @@
  #include <wx/panel.h>
  #include <wx/sizer.h>
  #include <wx/splitter.h>
+ #include <wx/srchctrl.h>
  #include <wx/stattext.h>
  #include <wx/string.h>
  #include <wx/textctrl.h>
  //*)
 
 #include <wx/dnd.h>
-#include <wx/msgdlg.h>
 #include <wx/menu.h>
-#include <wx/tokenzr.h>
+#include <wx/mimetype.h>
+#include <wx/msgdlg.h>
 #include <wx/numdlg.h>
+#include <wx/tokenzr.h>
 
 #include "SubModelsDialog.h"
 #include "models/Model.h"
@@ -45,14 +47,17 @@
 #include "support/VectorMath.h"
 #include "xLightsVersion.h"
 #include "models/SubModel.h"
+#include "CheckboxSelectDialog.h"
 
 #include <log4cpp/Category.hh>
 
 wxDEFINE_EVENT(EVT_SMDROP, wxCommandEvent);
 
 //(*IdInit(SubModelsDialog)
+const long SubModelsDialog::ID_CHECKBOX2 = wxNewId();
 const long SubModelsDialog::ID_STATICTEXT1 = wxNewId();
 const long SubModelsDialog::ID_LISTCTRL_SUB_MODELS = wxNewId();
+const long SubModelsDialog::ID_SEARCHCTRL1 = wxNewId();
 const long SubModelsDialog::ID_BUTTON3 = wxNewId();
 const long SubModelsDialog::ID_BUTTON4 = wxNewId();
 const long SubModelsDialog::ID_BUTTONCOPY = wxNewId();
@@ -81,11 +86,14 @@ const long SubModelsDialog::ID_NOTEBOOK1 = wxNewId();
 const long SubModelsDialog::ID_PANEL5 = wxNewId();
 const long SubModelsDialog::ID_PANEL1 = wxNewId();
 const long SubModelsDialog::ID_SPLITTERWINDOW1 = wxNewId();
+const long SubModelsDialog::ID_STATICTEXT3 = wxNewId();
 //*)
+const long SubModelsDialog::ID_TIMER1 = wxNewId();
 
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_MODEL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_FILE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CUSTOM = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CSV = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_CSV = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_XMODEL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_TOOTHERS = wxNewId();
@@ -95,7 +103,25 @@ const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_HOR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_VER = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REVERSE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_JOIN = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_JOIN_SS = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SPLIT = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SORT_BY_NAME = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_DUPLICATE = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SUPPRESS_DUPLICATE = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SORT_POINTS = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_EVEN_ROWS = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SYMMETRIZE = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SORT_POINTS_ALL = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_COMBINE_STRANDS = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_EXPAND_STRANDS_ALL = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_BLANKS_AS_ZERO = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_BLANKS_AS_EMPTY = wxNewId();
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
 	//(*EventTable(SubModelsDialog)
@@ -103,17 +129,59 @@ BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
     EVT_COMMAND(wxID_ANY, EVT_SMDROP, SubModelsDialog::OnDrop)
 END_EVENT_TABLE()
 
-SubModelsDialog::SubModelsDialog(wxWindow* parent) :
+StretchGrid::StretchGrid (wxWindow *parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name) :
+			wxGrid (parent, id, pos, size, style, name)
+{
+    GetGridWindow()->Bind (wxEVT_SIZE, &StretchGrid::OnGridWindowSize, this);
+    Bind (wxEVT_GRID_COL_SIZE, &StretchGrid::OnColHeaderSize, this);
+}
+
+StretchGrid::~StretchGrid()
+{
+    GetGridWindow()->Unbind (wxEVT_SIZE, &StretchGrid::OnGridWindowSize, this);
+    Unbind (wxEVT_GRID_COL_SIZE, &StretchGrid::OnColHeaderSize, this);
+}
+
+void StretchGrid::OnGridWindowSize (wxSizeEvent& event)
+{
+    if (GetNumberCols() > 0)
+        AutoSizeLastCol ();
+}
+
+void StretchGrid::OnColHeaderSize (wxGridSizeEvent& event)
+{
+    if (GetNumberCols() > 0)
+        AutoSizeLastCol ();
+}
+
+void StretchGrid::AutoSizeLastCol ()
+{
+    int colWidths = 0;
+
+    for (int i = 0; i < GetNumberCols() - 1; i++)
+        colWidths += GetColWidth (i);
+
+    int finalColWidth = GetGridWindow()->GetSize().x - colWidths;
+
+    if (finalColWidth > 10)
+        SetColSize (GetNumberCols() - 1, finalColWidth);
+    else
+        SetColSize (GetNumberCols() - 1, 10);
+}
+
+SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     m_creating_bound_rect(false),
     m_bound_start_x(0),
     m_bound_start_y(0),
     m_bound_end_x(0),
     m_bound_end_y(0),
-    mPointSize(2)
+    mPointSize(PIXEL_SIZE_ON_DIALOGS),
+    _outputManager(om)
 {
 	//(*Initialize(SubModelsDialog)
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -135,13 +203,18 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	FlexGridSizer2->AddGrowableCol(1);
 	FlexGridSizer2->AddGrowableRow(0);
 	Panel2 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
-	FlexGridSizer9 = new wxFlexGridSizer(3, 1, 0, 0);
+	FlexGridSizer9 = new wxFlexGridSizer(5, 1, 0, 0);
 	FlexGridSizer9->AddGrowableCol(0);
-	FlexGridSizer9->AddGrowableRow(1);
+	FlexGridSizer9->AddGrowableRow(2);
+	CheckBox_OutputToLights = new wxCheckBox(Panel2, ID_CHECKBOX2, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CheckBox_OutputToLights->SetValue(false);
+	FlexGridSizer9->Add(CheckBox_OutputToLights, 1, wxALL|wxEXPAND, 5);
 	StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("SubModels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer9->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ListCtrl_SubModels = new wxListCtrl(Panel2, ID_LISTCTRL_SUB_MODELS, wxDefaultPosition, wxSize(164,201), wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_SUB_MODELS"));
+	ListCtrl_SubModels = new wxListCtrl(Panel2, ID_LISTCTRL_SUB_MODELS, wxDefaultPosition, wxSize(200,133), wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_SUB_MODELS"));
 	FlexGridSizer9->Add(ListCtrl_SubModels, 0, wxALL|wxEXPAND, 5);
+	SearchCtrl1 = new wxSearchCtrl(Panel2, ID_SEARCHCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SEARCHCTRL1"));
+	FlexGridSizer9->Add(SearchCtrl1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer10 = new wxFlexGridSizer(4, 3, 0, 0);
 	AddButton = new wxButton(Panel2, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	AddButton->SetToolTip(_("Add New SubModel"));
@@ -163,11 +236,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	FlexGridSizer10->Add(Button_Export, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Panel2->SetSizer(FlexGridSizer9);
-	FlexGridSizer9->Fit(Panel2);
-	FlexGridSizer9->SetSizeHints(Panel2);
 	FlexGridSizer2->Add(Panel2, 0, wxEXPAND, 0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinimumPaneSize(100);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel3 = new wxPanel(SplitterWindow1, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -198,7 +268,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	LayoutCheckbox->SetValue(false);
 	FlexGridSizer6->Add(LayoutCheckbox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxFIXED_MINSIZE, 5);
-	NodesGrid = new wxGrid(Panel1, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_GRID1"));
+	NodesGrid = new StretchGrid(Panel1, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_GRID1"));
 	NodesGrid->CreateGrid(5,1);
 	NodesGrid->EnableEditing(true);
 	NodesGrid->EnableGridLines(true);
@@ -233,47 +303,47 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	FlexGridSizer5->Add(Button_Draw_Model, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 0);
 	Panel1->SetSizer(FlexGridSizer4);
-	FlexGridSizer4->Fit(Panel1);
-	FlexGridSizer4->SetSizeHints(Panel1);
 	SubBufferPanelHolder = new wxPanel(TypeNotebook, ID_PANEL3, wxPoint(90,10), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	SubBufferSizer = new wxFlexGridSizer(1, 1, 0, 0);
 	SubBufferSizer->AddGrowableCol(0);
 	SubBufferSizer->AddGrowableRow(0);
 	SubBufferPanelHolder->SetSizer(SubBufferSizer);
-	SubBufferSizer->Fit(SubBufferPanelHolder);
-	SubBufferSizer->SetSizeHints(SubBufferPanelHolder);
 	TypeNotebook->AddPage(Panel1, _("Node Ranges"), false);
 	TypeNotebook->AddPage(SubBufferPanelHolder, _("SubBuffer"), false);
 	FlexGridSizer3->Add(TypeNotebook, 1, wxALL|wxEXPAND, 0);
 	Panel3->SetSizer(FlexGridSizer3);
-	FlexGridSizer3->Fit(Panel3);
-	FlexGridSizer3->SetSizeHints(Panel3);
 	ModelPreviewPanelLocation = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	ModelPreviewPanelLocation->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(100,100)));
 	PreviewSizer = new wxFlexGridSizer(1, 1, 0, 0);
 	PreviewSizer->AddGrowableCol(0);
 	PreviewSizer->AddGrowableRow(0);
 	ModelPreviewPanelLocation->SetSizer(PreviewSizer);
-	PreviewSizer->Fit(ModelPreviewPanelLocation);
-	PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
 	SplitterWindow1->SplitVertically(Panel3, ModelPreviewPanelLocation);
 	FlexGridSizer2->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer11->AddGrowableCol(1);
+	FlexGridSizer11->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
 	StdDialogButtonSizer1->Realize();
-	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SetSizer(FlexGridSizer1);
+	FlexGridSizer11->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	NodeNumberText = new wxStaticText(this, ID_STATICTEXT3, wxEmptyString, wxDefaultPosition, wxDLG_UNIT(this,wxSize(50,-1)), 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer11->Add(NodeNumberText, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	Layout();
 	Center();
 
+	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnCheckBox_OutputToLightsClick);
 	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsBeginDrag);
 	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsItemSelect);
 	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsItemRClick);
 	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsKeyDown);
 	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsColumnClick);
+	Connect(ID_SEARCHCTRL1,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&SubModelsDialog::OnButton_SearchClick);
+	Connect(ID_SEARCHCTRL1,wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN,(wxObjectEventFunction)&SubModelsDialog::OnButton_SearchClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddButtonClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnDeleteButtonClick);
 	Connect(ID_BUTTONCOPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_Sub_CopyClick);
@@ -283,8 +353,10 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	Connect(ID_TEXTCTRL_NAME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SubModelsDialog::OnTextCtrl_NameText_Change);
 	Connect(ID_CHOICE_BUFFER_STYLE,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SubModelsDialog::OnChoiceBufferStyleSelect);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnLayoutCheckboxClick);
+	Connect(ID_GRID1,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellRightClick);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellLeftDClick);
 	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridLabelLeftClick);
+	Connect(ID_GRID1,wxEVT_GRID_LABEL_RIGHT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellRightClick);
 	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_DCLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridLabelLeftDClick);
 	Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellSelect);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseNodesClick);
@@ -296,12 +368,16 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
 	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseRowClick);
 	Connect(ID_BUTTON_SORT_ROW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_SortRowClick);
 	Connect(ID_BUTTON_DRAW_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_Draw_ModelClick);
+	Connect(wxID_ANY,wxEVT_INIT_DIALOG,(wxObjectEventFunction)&SubModelsDialog::OnInit);
 	//*)
 
     Connect(ID_NOTEBOOK1, wxEVT_NOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)& SubModelsDialog::OnTypeNotebookPageChanged);
     Connect(wxID_ANY, EVT_SMDROP, (wxObjectEventFunction)&SubModelsDialog::OnDrop);
     Connect(ID_GRID1, wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
     //Connect(ID_GRID1, wxEVT_CHAR, (wxObjectEventFunction)&SubModelsDialog::OnGridChar);
+    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&SubModelsDialog::OnCancel);
+    Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&SubModelsDialog::OnCancel);
+    Connect(ID_TEXTCTRL_NAME, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&SubModelsDialog::ApplySubmodelName);
 
     TextCtrl_Name->Bind(wxEVT_KILL_FOCUS, &SubModelsDialog::OnTextCtrl_NameText_KillFocus, this);
 
@@ -313,20 +389,6 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
     ListCtrl_SubModels->InsertColumn(0, nm0);
 
     _parent = parent;
-
-    SetSize(1200, 800);
-    wxPoint loc;
-    wxSize sz;
-    LoadWindowPosition("xLightsSubModelDialogPosition", sz, loc);
-    if (loc.x != -1)
-    {
-        if (sz.GetWidth() < 400) sz.SetWidth(400);
-        if (sz.GetHeight() < 300) sz.SetHeight(300);
-        SetPosition(loc);
-        SetSize(sz);
-        Layout();
-    }
-    EnsureWindowHeaderIsOnScreen(this);
 
     modelPreview = new ModelPreview(ModelPreviewPanelLocation);
     modelPreview->SetMinSize(wxSize(100, 100));
@@ -365,11 +427,52 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent) :
     NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
     SetEscapeId(wxID_CANCEL);
     EnableCloseButton(false);
+
+    _oldOutputToLights = _outputManager->IsOutputting();
+    if (_oldOutputToLights) {
+        _outputManager->StopOutput();
+    }
+}
+
+/*
+According to the wx forums, set size doesn't work in the object constructor
+because the wxWidget base class recalulates the size and layout,
+It will only works if you use OnInit event or call it later.
+*/
+void SubModelsDialog::OnInit(wxInitDialogEvent& event)
+{
+    SetSize(1200, 800);
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsSubModelDialogPosition", sz, loc);
+    if (loc.x != -1)
+    {
+        if (sz.GetWidth() < 400) sz.SetWidth(400);
+        if (sz.GetHeight() < 300) sz.SetHeight(300);
+        SetPosition(loc);
+        SetSize(sz);
+    }
+    wxConfigBase* config = wxConfigBase::Get();
+    int h = config->ReadLong("SubModelsDialogSashPosition", 0);
+    if (h != 0) {
+        SplitterWindow1->SetSashPosition(h);
+    }
+
+    EnsureWindowHeaderIsOnScreen(this);
+    Layout();
 }
 
 void SubModelsDialog::OnSubbufferSize(wxSizeEvent& event)
 {
     subBufferPanel->Refresh();
+}
+
+void SubModelsDialog::OnCancel(wxCloseEvent& event)
+{
+    if (wxMessageBox("Are you sure you want to close the Submodels window?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
+        return;
+    }
+    SubModelsDialog::EndDialog(wxID_CANCEL);
 }
 
 SubModelsDialog::~SubModelsDialog()
@@ -380,7 +483,18 @@ SubModelsDialog::~SubModelsDialog()
         delete *a;
     }
     _subModels.clear();
+
     SaveWindowPosition("xLightsSubModelDialogPosition", this);
+
+    wxConfigBase* config = wxConfigBase::Get();
+    int i = SplitterWindow1->GetSashPosition();
+    config->Write("SubModelsDialogSashPosition", i);
+    config->Flush();
+
+    StopOutputToLights();
+    if (_oldOutputToLights) {
+        _outputManager->StartOutput();
+    }
 }
 
 //void SubModelsDialog::OnGridChar(wxKeyEvent& event)
@@ -637,6 +751,8 @@ void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
         wxString token = tokenizer.GetNextToken();
         int index = GetSubModelInfoIndex(token);
         if (firstindex == -1) firstindex = index - 1;
+        // unselect it
+        ListCtrl_SubModels->SetItemState(index, 0, wxLIST_STATE_SELECTED);
         ListCtrl_SubModels->DeleteItem(index);
         RemoveSubModelFromList(token);
     }
@@ -674,6 +790,7 @@ void SubModelsDialog::OnButtonImportClick(wxCommandEvent& event)
     if (_isMatrix) {
         mnu.Append(SUBMODEL_DIALOG_IMPORT_CUSTOM, "Import Custom Model Overlay");
     }
+    mnu.Append(SUBMODEL_DIALOG_IMPORT_CSV, "Import CSV as SubModel");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& SubModelsDialog::OnImportBtnPopup, nullptr, this);
     PopupMenu(&mnu);
     event.Skip();
@@ -702,7 +819,7 @@ void SubModelsDialog::OnImportBtnPopup(wxCommandEvent& event)
         wxSingleChoiceDialog dlg(GetParent(), "", "Select Model", choices);
         if (dlg.ShowModal() == wxID_OK) {
             Model *m = xlights->GetModel(dlg.GetStringSelection());
-            ReadSubModelXML(m->GetModelXml());
+            ImportSubModelXML(m->GetModelXml());
         }
     }
     else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_FILE) {
@@ -716,6 +833,11 @@ void SubModelsDialog::OnImportBtnPopup(wxCommandEvent& event)
         wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xModel Files (*.xmodel)|*.xmodel", wxFD_OPEN);
         if (filename.IsEmpty()) return;
         ImportCustomModel(filename);
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_CSV) {
+        wxString filename = wxFileSelector(_("Choose CSV file"), wxEmptyString, wxEmptyString, wxEmptyString, "CSV Files (*.csv)|*.csv", wxFD_OPEN);
+        if (filename.IsEmpty()) return;
+        ImportCSVSubModel(filename);
     }
 }
 
@@ -770,9 +892,16 @@ void SubModelsDialog::OnExportBtnPopup(wxCommandEvent& event)
 void SubModelsDialog::OnListPopup(wxCommandEvent& event)
 {
     if (event.GetId() == SUBMODEL_DIALOG_JOIN) {
-        JoinSelectedModels();
-    } else if (event.GetId() == SUBMODEL_DIALOG_SORT_BY_NAME) {
+        JoinSelectedModels(false);
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_JOIN_SS) {
+        JoinSelectedModels(true);
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_SORT_BY_NAME) {
         SortSubModelsByName();
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_SPLIT) {
+        SplitSelectedSubmodel();
     }
 }
 
@@ -859,6 +988,105 @@ void SubModelsDialog::OnNodesGridLabelLeftClick(wxGridEvent& event)
     }
 }
 
+void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
+{
+    wxMenu mnu;
+    if (event.GetRow() != -1) {
+        //NodesGrid->GoToCell(event.GetRow(), 0);
+
+        mnu.Append(SUBMODEL_DIALOG_REMOVE_DUPLICATE, "Remove Duplicates");
+        mnu.Append(SUBMODEL_DIALOG_SUPPRESS_DUPLICATE, "Suppress Duplicates");
+        mnu.Append(SUBMODEL_DIALOG_SORT_POINTS, "Sort Strand Points Geometrically...");
+        mnu.AppendSeparator();
+    }
+    mnu.Append(SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR, "Remove Duplicates All Left->Right");
+    mnu.Append(SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB, "Remove Duplicates All Top->Bottom");
+    mnu.Append(SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR, "Suppress Duplicates All Left->Right");
+    mnu.Append(SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB, "Suppress Duplicates All Top->Bottom");
+    mnu.Append(SUBMODEL_DIALOG_EVEN_ROWS, "Uniform Row Length");
+    mnu.Append(SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS, "Pivot Rows / Columns");
+    mnu.Append(SUBMODEL_DIALOG_SORT_POINTS_ALL, "Geometrically Sort Points All Strands...");
+
+    mnu.AppendSeparator();
+    mnu.Append(SUBMODEL_DIALOG_SYMMETRIZE, "Symmetrize (Rotational)");
+    mnu.Append(SUBMODEL_DIALOG_COMBINE_STRANDS, "Combine Strands");
+    
+    mnu.AppendSeparator();
+    mnu.Append(SUBMODEL_DIALOG_EXPAND_STRANDS_ALL, "Expand All Strands");
+    mnu.Append(SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL, "Compress All Strands");
+    mnu.Append(SUBMODEL_DIALOG_BLANKS_AS_ZERO, "Convert Blanks To Zeros");
+    mnu.Append(SUBMODEL_DIALOG_BLANKS_AS_EMPTY, "Convert Zeros To Empty");
+
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == SUBMODEL_DIALOG_REMOVE_DUPLICATE) {
+        RemoveDuplicates(false);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_DUPLICATE) {
+        RemoveDuplicates(true);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR) {
+        RemoveAllDuplicates(true, false);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB) {
+        RemoveAllDuplicates(false, false);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR) {
+        RemoveAllDuplicates(true, true);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB) {
+        RemoveAllDuplicates(false, true);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_EVEN_ROWS) {
+        MakeRowsUniform();
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS) {
+        PivotRowsColumns();
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_SYMMETRIZE) {
+        Symmetrize();
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS) {
+        OrderPoints(false);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS_ALL) {
+        OrderPoints(true);
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_COMBINE_STRANDS) {
+        CombineStrands();
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_EXPAND_STRANDS_ALL) {
+        processAllStrands([](wxString str) { return ExpandNodes(str); });
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL) {
+        processAllStrands([](wxString str) { return CompressNodes(str); });
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_ZERO) {
+        processAllStrands([](wxString str) {
+            auto ns = wxSplit(str, ',');
+            for (auto i = ns.begin(); i != ns.end(); ++i) {
+                if (*i == "")
+                    *i = "0";
+            }
+            return wxJoin(ns, ',');
+        });
+    }
+    if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_EMPTY) {
+        processAllStrands([](wxString str) {
+            auto ns = wxSplit(str, ',');
+            for (auto i = ns.begin(); i != ns.end(); ++i) {
+                if (*i == "0")
+                    *i = "";
+            }
+            return wxJoin(ns, ',');
+        });
+    }
+}
+
 void SubModelsDialog::OnListCtrl_SubModelsItemRClick(wxListEvent& event)
 {
     if (ListCtrl_SubModels->GetItemCount() > 0) {
@@ -868,6 +1096,11 @@ void SubModelsDialog::OnListCtrl_SubModelsItemRClick(wxListEvent& event)
         if (ListCtrl_SubModels->GetSelectedItemCount() > 1) {
             mnu.AppendSeparator();
             mnu.Append(SUBMODEL_DIALOG_JOIN, "Join");
+            mnu.Append(SUBMODEL_DIALOG_JOIN_SS, "Join Single Strand");
+        }
+        if (ListCtrl_SubModels->GetSelectedItemCount() == 1) {
+            mnu.AppendSeparator();
+            mnu.Append(SUBMODEL_DIALOG_SPLIT, "Split");
         }
 
         mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SubModelsDialog::OnListPopup, nullptr, this);
@@ -975,6 +1208,788 @@ void SubModelsDialog::OnTextCtrl_NameText_Change(wxCommandEvent& event)
 {
     //ApplySubmodelName();
 }
+
+void SubModelsDialog::OnButton_SearchClick(wxCommandEvent& event)
+{
+    int idx = GetSubModelInfoIndex(GetSelectedName());
+
+    if (idx == _subModels.size()) {
+        idx = -1;
+    }
+    auto const serachTxt = SearchCtrl1->GetValue().Lower();
+    if (serachTxt.empty()) {
+        return;
+    }
+
+    for (int i = idx + 1; i < ListCtrl_SubModels->GetItemCount(); ++i)
+    {
+        if (Contains(::Lower(ListCtrl_SubModels->GetItemText(i)), serachTxt)) {
+            UnSelectAll();
+            Select(ListCtrl_SubModels->GetItemText(i));
+            return;
+        }
+    }
+    if (ListCtrl_SubModels->GetItemCount() > 0) {
+        Select(ListCtrl_SubModels->GetItemText(0));
+    }
+}
+
+static void LogAndWrite(wxFile& f, const std::string& msg)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("CheckSequence: " + msg);
+    if (f.IsOpened()) {
+        f.Write(msg + "\r\n");
+    }
+}
+
+void SubModelsDialog::Symmetrize()
+{
+    // Validate that we have something to work on
+    wxString mname = GetSelectedName();
+    if (mname.empty()) {
+        return;
+    }
+
+    int row = NodesGrid->GetGridCursorRow();
+
+    SubModelInfo* sm = GetSubModelInfo(mname);
+    if (!sm)
+        return;
+
+    // Get user input
+    wxNumberEntryDialog dlg(this, "Degree of Symmetry", "", "Select Degree of Rotational Symmetry", 8, 2, 100);
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
+    int dos = dlg.GetValue();
+
+    wxFile f;
+    wxString filename = wxFileName::CreateTempFileName("xLightsSymmetrize") + ".txt";
+
+    bool writeToFile = true;
+    bool displayInEditor = true;
+
+    if (writeToFile || displayInEditor) {
+        f.Open(filename, wxFile::write);
+        if (!f.IsOpened()) {
+            DisplayError("Unable to create results file for Symmetrize. Aborted.", this);
+            return;
+        }
+    }
+
+    int w, h;
+    modelPreview->GetSize(&w, &h);
+
+    LogAndWrite(f, wxString::Format("Processing model: %s", mname.c_str()));
+    LogAndWrite(f, wxString::Format("Symmetrize DoS: %d", dos));
+    LogAndWrite(f, wxString::Format("Model Dimensions (based on screen): %dx%d", w, h));
+
+    //  Calculate point xys
+    std::map<int, std::pair<float, float>> coords;
+    if (!model->GetScreenLocations(modelPreview, coords)) {
+        DisplayError("Model doesn't have precisely one location per node");
+        return;
+    }
+    LogAndWrite(f, wxString::Format("Number of nodes: %d", int(coords.size())));
+
+    //  Calculate centroid
+    if (coords.empty())
+        return;
+    float cx = 0, cy = 0;
+    std::vector<float> xsv, ysv;
+    for (const auto& x : coords) {
+        cx += x.second.first;
+        cy += x.second.second;
+        xsv.push_back(x.second.first);
+        ysv.push_back(x.second.second);
+    }
+    cx /= float(coords.size());
+    cy /= float(coords.size());
+    LogAndWrite(f, wxString::Format("Centroid: %f, %f", cx, cy));
+
+    //  Calculate radius / centroid another way
+    float nx = cx, ny = cy, xx = cx, xy = cy;
+    float varx = 0, vary = 0;
+    for (const auto& x : coords) {
+        nx = std::min(nx, x.second.first);
+        xx = std::max(xx, x.second.first);
+        ny = std::min(ny, x.second.second);
+        xy = std::max(xy, x.second.second);
+
+        varx += (x.second.first - cx) * (x.second.first - cx);
+        vary += (x.second.second - cy) * (x.second.second - cy);
+    }
+    LogAndWrite(f, wxString::Format("Ranges x:%.1f-%.1f, y:%1f-%1f", nx, xx, ny, xy));
+    float clx = (nx + xx) / 2;
+    float cly = (ny + xy) / 2;
+    LogAndWrite(f, wxString::Format("Center by extremity: %f, %f", clx, cly));
+
+    // And another
+    std::sort(xsv.begin(), xsv.end());
+    std::sort(ysv.begin(), ysv.end());
+    float mcx, mcy;
+    if (xsv.size() % 2 == 1) {
+        mcx = xsv[xsv.size() / 2];
+        mcy = ysv[ysv.size() / 2];
+    } else {
+        mcx = (xsv[xsv.size() / 2] + xsv[xsv.size() / 2 + 1]) / 2;
+        mcy = (ysv[ysv.size() / 2] + ysv[ysv.size() / 2 + 1]) / 2;
+    }
+    LogAndWrite(f, wxString::Format("Center by median: %f, %f", mcx, mcy));
+
+    float dlx = xx - nx;
+    float dly = xy - ny;
+    if (dlx > 0 && dly > 0) {
+        float aspectx = dlx / std::max(dlx, dly);
+        float aspecty = dly / std::max(dlx, dly);
+
+        LogAndWrite(f, wxString::Format("Aspect ratio by extremity: %f / %f", aspectx, aspecty));
+
+        if (true) {
+            // Variance-based aspect ratio
+            float mvar = std::max(varx, vary);
+            aspectx = sqrtf(varx / mvar);
+            aspecty = sqrtf(vary / mvar);
+            LogAndWrite(f, wxString::Format("Aspect Ratio by variance: %f / %f", aspectx, aspecty));
+        }
+
+        if (aspectx < .98 || aspecty < .98) {
+            wxArrayString chs;
+            chs.push_back("Yes");
+            chs.push_back("No");
+            wxSingleChoiceDialog dlg(this, "Squarify aspect ratio?", "Aspect Ratio", chs);
+            dlg.ShowModal();
+            if (dlg.GetStringSelection() == "Yes") {
+                for (auto& pt : coords) {
+                    pt.second.first = (pt.second.first - cx) * aspecty + cx;
+                    pt.second.second = (pt.second.second - cy) * aspectx + cy;
+                }
+            }
+        }
+    }
+
+    bool handleCenterNode = false;
+    if (coords.size() % dos == 1) {
+        wxArrayString chs;
+        chs.push_back("Yes");
+        chs.push_back("No");
+        wxSingleChoiceDialog dlg(this, "Shoud a center node be identified?", "Center Node", chs);
+        dlg.ShowModal();
+        if (dlg.GetStringSelection() == "Yes") {
+            handleCenterNode = true;
+        }
+    }
+
+    //  Calculate locations in new space
+    std::map<int, std::pair<float, float>> fcoords1, fcoords2;
+    std::map<int, float> fturns;
+    for (const auto& p : coords) {
+        float dx = p.second.first - cx;
+        float dy = p.second.second - cy;
+        if (dx == 0 && dy == 0) {
+            fcoords1[p.first] = std::make_pair(cx, cy);
+            fturns[p.first] = 0;
+            continue;
+        }
+        float rad = sqrtf(dx * dx + dy * dy);
+        float ang = atan2f(dy, dx);
+        if (ang <= 0) {
+            ang += float(2 * PI);
+        }
+        ang *= float(dos);
+        float turn = float(ang / (2 * PI)); // Which trip around?  We want one from each trip.
+        if (turn >= dos)
+            turn -= dos;
+        fturns[p.first] = turn;
+        while (ang >= 2 * PI)
+            ang -= float(2 * PI);
+        ang /= float(dos);
+        fcoords1[p.first] = std::make_pair(rad * cosf(ang) + cx, rad * sinf(ang) + cy);
+        if (ang < PI / dos / 2)
+            ang += 2 * PI / dos;
+        fcoords2[p.first] = std::make_pair(rad * cosf(ang) + cx, rad * sinf(ang) + cy);
+    }
+    LogAndWrite(f, wxString::Format("Transformed nodes: %d", int(fcoords1.size())));
+
+    //  Build list that need matched, and match list
+    std::set<int> nodesNeedMatch;
+    std::map<int, std::vector<int>> matchIDToNodeSet; // vector index is relative turn #
+    std::map<int, int> nodeToMatchIDs;
+
+    // Copy and expand data
+    int origStrands = sm->strands.size();
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        auto x = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
+        for (auto n : x) {
+            if (n == "" || n == "0")
+                continue;
+            nodesNeedMatch.insert(wxAtoi(n));
+        }
+    }
+
+    // Handle the business of a center node, if any
+    if (handleCenterNode) {
+        bool first = true;
+        float ndst = 0;
+        int nnode = -1;
+        for (const auto& pt : coords) {
+            float dx = pt.second.first - cx;
+            float dy = pt.second.second - cy;
+            float dst = dx * dx + dy * dy;
+            if (first || dst < ndst) {
+                ndst = dst;
+                nnode = pt.first;
+            }
+            first = false;
+        }
+
+        nodesNeedMatch.erase(nnode);
+        nodeToMatchIDs[nnode] = matchIDToNodeSet.size();
+        matchIDToNodeSet[nodeToMatchIDs[nnode]] = std::vector<int>(dos, nnode);
+    }
+
+    int radius = 0;
+    //  For each of numerous search radii, calculate list per grid cell
+    //  We will stop if all nodes have matches
+    while (!nodesNeedMatch.empty()) {
+        std::vector<std::vector<std::vector<int>>> bins; // [x][y][which]
+        for (int x = 0; x < w; ++x) {
+            bins.push_back(std::vector<std::vector<int>>());
+            for (int y = 0; y < h; ++y) {
+                bins[x].push_back(std::vector<int>());
+            }
+        }
+
+        // Append to lists
+        for (const auto& pt : fcoords1) {
+            if (nodeToMatchIDs.count(pt.first))
+                continue; // Already matched
+
+            int bx = int(pt.second.first);
+            int by = int(pt.second.second);
+            for (int x = bx - radius; x <= bx + radius; ++x) {
+                if (x < 0 || x >= w)
+                    continue;
+                for (int y = by - radius; y <= by + radius; ++y) {
+                    if (y < 0 || y >= h)
+                        continue;
+                    bins[x][y].push_back(pt.first);
+                }
+            }
+        }
+        // Add redundant copy of some - should check if already in bin?
+        for (const auto& pt : fcoords2) {
+            if (nodeToMatchIDs.count(pt.first))
+                continue; // Already matched
+
+            int bx = int(pt.second.first);
+            int by = int(pt.second.second);
+            for (int x = bx - radius; x <= bx + radius; ++x) {
+                if (x < 0 || x >= w)
+                    continue;
+                for (int y = by - radius; y <= by + radius; ++y) {
+                    if (y < 0 || y >= h)
+                        continue;
+                    bins[x][y].push_back(pt.first);
+                }
+            }
+        }
+
+        // See if any lists are ready
+        for (int x = 0; x < w; ++x) {
+            for (int y = 0; y < h; ++y) {
+                if (int(bins[x][y].size()) < dos)
+                    continue; // Quick test without looking at bins closely, not enough here
+                std::vector<std::pair<float, int>> matches;
+                for (int pt : bins[x][y]) {
+                    if (nodeToMatchIDs.count(pt) != 0)
+                        continue; // Already matched this pass
+                    matches.push_back(std::make_pair(fturns[pt], pt));
+                }
+                if (matches.size() < dos)
+                    continue;
+                std::sort(matches.begin(), matches.end()); // Sort CCW
+
+                // Try to pick
+                float tgt = matches[0].first;
+                int found = 0;
+                for (unsigned j = 0; j < matches.size(); ++j) {
+                    if (matches[j].first >= tgt - .5 && matches[j].first <= tgt + .5) {
+                        ++found;
+                        tgt += 1;
+                    }
+                    if (found == dos)
+                        break;
+                }
+                if (found != dos)
+                    continue; // On closer inspection, nope
+
+                // OK, repeat that process and record it
+                std::vector<int> matched;
+                tgt = matches[0].first;
+                int mid = matchIDToNodeSet.size();
+                for (unsigned j = 0; j < matches.size(); ++j) {
+                    if (matches[j].first >= tgt - .5 && matches[j].first <= tgt + .5) {
+                        ++found;
+                        tgt += 1;
+                        matched.push_back(matches[j].second);
+                        nodeToMatchIDs[matches[j].second] = mid;
+                        nodesNeedMatch.erase(matches[j].second);
+                    }
+                    if (found == dos)
+                        break;
+                }
+                matchIDToNodeSet[mid] = matched;
+
+                LogAndWrite(f, wxString::Format("Found Match for %d at radius %d", matched[0], radius));
+                for (auto n : matched) {
+                    LogAndWrite(f, wxString::Format("    Member %d", n));
+                }
+            }
+        }
+
+        // Sanity
+        ++radius;
+        if (radius > 20 && !nodesNeedMatch.empty()) {
+            LogAndWrite(f, wxString::Format("Maximum search radius hit: %d", radius));
+            break;
+        }
+
+        wxSafeYield();
+    }
+
+    bool fail = false;
+    // Report any trouble
+    if (!nodesNeedMatch.empty()) {
+        LogAndWrite(f, "Note the following nodes could not be matched.  Ensure that zoom in/out is reasonable, that the model is centered, and that the point locations are clean.");
+        for (auto x : nodesNeedMatch) {
+            LogAndWrite(f, wxString::Format("  Node %d", x));
+        }
+        fail = true;
+    }
+
+    // Use match list to make new strands
+    for (int t = 1; !fail && t < dos; ++t) {
+        for (int sn = 0; sn < origStrands; ++sn) {
+            bool first = true;
+            // auto x = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - sn]), ',');
+            auto x = wxSplit(ExpandNodes(sm->strands[sn]), ',');
+            wxString str;
+            for (auto n : x) {
+                if (first) {
+                    first = false;
+                } else {
+                    str += ",";
+                }
+                if (n == "" || n == "0")
+                    continue;
+                int nn = wxAtoi(n);
+                // Find it
+                auto& matchs = matchIDToNodeSet[nodeToMatchIDs[nn]];
+                for (int ii = 0; ii < dos; ++ii) {
+                    if (matchs[ii] == nn) {
+                        int mapn = matchs[(ii + t) % dos];
+                        str += wxString::Format("%d", mapn);
+                        break;
+                    }
+                }
+            }
+            sm->strands.push_back(CompressNodes(str));
+        }
+    }
+
+    // Update UI
+    Select(GetSelectedName());
+
+    if (row >= 0) {
+        NodesGrid->SetGridCursor(row, 0);
+    }
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+
+    // Save / Display results log
+    if (f.IsOpened()) {
+        f.Close();
+    }
+
+    if (fail) {
+        DisplayError("Symmetrize encountered errors.  See log for details.", this);
+
+        if (displayInEditor) {
+            wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+            if (ft != nullptr) {
+                wxString command = ft->GetOpenCommand(filename);
+
+                if (command == "") {
+                    DisplayError(wxString::Format("Unable to show xLights Symmetrize results '%s'. See your log for the content.", filename).ToStdString(), this);
+                } else {
+                    wxUnsetEnv("LD_PRELOAD");
+                    wxExecute(command);
+                }
+                delete ft;
+            } else {
+                DisplayError(wxString::Format("Unable to show xLights Symmetrize results '%s'. See your log for the content.", filename).ToStdString(), this);
+            }
+        }
+    }
+}
+
+void SubModelsDialog::processAllStrands(wxString (*func)(wxString))
+{
+    wxString name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    int row = NodesGrid->GetGridCursorRow();
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm)
+        return;
+
+    // Process all rows
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        sm->strands[sm->strands.size() - 1 - i] = func(sm->strands[sm->strands.size() - 1 - i]);
+    }
+
+    // Update UI
+    Select(name);
+
+    if (row >= 0) {
+        NodesGrid->SetGridCursor(row, 0);
+    }
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+static wxString OrderPointsI(std::map<int, std::pair<float, float>>& coords, const wxString& instr, std::pair<float, float> centroid, bool radial, float startangle, bool ccw_outside)
+{
+    wxArrayString inp = wxSplit(ExpandNodes(instr), ',');
+
+    std::vector<std::pair<int, int>> nodeAndBlanksBefore;
+    int blanks = 0;
+    for (const auto& x : inp) {
+        if (x == "" || x == "0") {
+            ++blanks;
+        } else {
+            nodeAndBlanksBefore.push_back(std::make_pair(wxAtoi(x), blanks));
+            blanks = 0;
+        }
+    }
+
+    if (radial) {
+        std::sort(nodeAndBlanksBefore.begin(), nodeAndBlanksBefore.end(),
+                  [&coords, &centroid, startangle, ccw_outside](const std::pair<int, int>& l, const std::pair<int, int>& r) {
+                      auto cl = coords[l.first];
+                      auto cr = coords[r.first];
+
+                      float dxl = cl.first - centroid.first;
+                      float dyl = cl.second - centroid.second;
+                      float dxr = cr.first - centroid.first;
+                      float dyr = cr.second - centroid.second;
+
+                      float dl = dxl * dxl + dyl * dyl;
+                      float dr = dxr * dxr + dyr * dyr;
+
+                      // Hum, we could use dot product along angle, instead of distance...
+
+                      return ccw_outside ? (dl > dr) : (dl < dr);
+                  });
+    } else {
+        std::sort(nodeAndBlanksBefore.begin(), nodeAndBlanksBefore.end(),
+                  [&coords, &centroid, startangle, ccw_outside](const auto& l, const auto& r) {
+                      auto cl = coords[l.first];
+                      auto cr = coords[r.first];
+
+                      float angl = atan2(cl.second - centroid.second, cl.first - centroid.first);
+                      float angr = atan2(cr.second - centroid.second, cr.first - centroid.first);
+                      angl -= startangle;
+                      angr -= startangle;
+                      while (angl < 0)
+                          angl += float(2 * PI);
+                      while (angr < 0)
+                          angr += float(2 * PI);
+
+                      return ccw_outside ? (angl < angr) : (angl > angr);
+                  });
+    }
+
+    if (nodeAndBlanksBefore.empty())
+        return instr; // All Empty
+    nodeAndBlanksBefore[0].second += blanks;
+
+    wxString res;
+    for (const auto& x : nodeAndBlanksBefore) {
+        for (int i = 0; i < x.second; ++i)
+            res += ",";
+        res += wxString::Format("%d,", x.first);
+    }
+
+    return CompressNodes(res.substr(0, res.size() - 1));
+}
+
+void SubModelsDialog::OrderPoints(bool wholesub)
+{
+    // Collect up selection
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm->isRanges)
+        return;
+    if (sm->strands.empty())
+        return;
+
+    int row = NodesGrid->GetGridCursorRow();
+    if (row < 0 && !wholesub)
+        return;
+
+    // Gather the coordinates
+    std::map<int, std::pair<float, float>> coords;
+    if (!model->GetScreenLocations(modelPreview, coords)) {
+        DisplayError("Model doesn't have precisely one location per node");
+        return;
+    }
+
+    // Gather centroids
+    float wcx = 0, wcy = 0, smcx = 0, smcy = 0;
+    std::set<int> smpts;
+    for (int crow = 0; crow < int(sm->strands.size()); ++crow) {
+        auto arr = wxSplit(ExpandNodes(sm->strands[crow]), ',');
+        for (auto& x : arr) {
+            if (x.empty() || x == "0")
+                continue;
+            smpts.insert(wxAtoi(x));
+        }
+    }
+    if (smpts.empty())
+        return;
+    for (const auto& pt : coords) {
+        wcx += pt.second.first;
+        wcy += pt.second.second;
+        if (smpts.count(pt.first)) {
+            smcx += pt.second.first;
+            smcy += pt.second.second;
+        }
+    }
+    wcx /= coords.size();
+    wcy /= coords.size();
+    smcx /= smpts.size();
+    smcy /= smpts.size();
+
+    // Gather the user's requested action
+    std::pair<float, float> mctr = std::make_pair(wcx, wcy);
+    auto ctr = mctr;
+    bool radial = false;
+    float angle = 0;
+    bool ccw_outside = false;
+    bool strandCentroid = false;
+    bool startModelRelative = false;
+
+    wxArrayString chs;
+    chs.push_back("Circumferential|Start From Model Inside|CW Around Model Center");
+    chs.push_back("Circumferential|Start From Model Inside|CW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Model Inside|CW Around Strand Center");
+    chs.push_back("Circumferential|Start From Model Inside|CCW Around Model Center");
+    chs.push_back("Circumferential|Start From Model Inside|CCW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Model Inside|CCW Around Strand Center");
+    chs.push_back("Circumferential|Start From Model Outside|CW Around Model Center");
+    chs.push_back("Circumferential|Start From Model Outside|CW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Model Outside|CW Around Strand Center");
+    chs.push_back("Circumferential|Start From Model Outside|CCW Around Model Center");
+    chs.push_back("Circumferential|Start From Model Outside|CCW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Model Outside|CCW Around Strand Center");
+    chs.push_back("Circumferential|Start From Model CCW|CW Around Model Center");
+    chs.push_back("Circumferential|Start From Model CCW|CW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Model CCW|CW Around Strand Center");
+    chs.push_back("Circumferential|Start From Model CCW|CCW Around Model Center");
+    chs.push_back("Circumferential|Start From Model CCW|CCW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Model CCW|CCW Around Strand Center");
+    chs.push_back("Circumferential|Start From Model CW|CW Around Model Center");
+    chs.push_back("Circumferential|Start From Model CW|CW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Model CW|CW Around Strand Center");
+    chs.push_back("Circumferential|Start From Model CW|CCW Around Model Center");
+    chs.push_back("Circumferential|Start From Model CW|CCW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Model CW|CCW Around Strand Center");
+    chs.push_back("Circumferential|Start From Up|CW Around Model Center");
+    chs.push_back("Circumferential|Start From Up|CW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Up|CW Around Strand Center");
+    chs.push_back("Circumferential|Start From Up|CCW Around Model Center");
+    chs.push_back("Circumferential|Start From Up|CCW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Up|CCW Around Strand Center");
+    chs.push_back("Circumferential|Start From Down|CW Around Model Center");
+    chs.push_back("Circumferential|Start From Down|CW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Down|CW Around Strand Center");
+    chs.push_back("Circumferential|Start From Down|CCW Around Model Center");
+    chs.push_back("Circumferential|Start From Down|CCW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Down|CCW Around Strand Center");
+    chs.push_back("Circumferential|Start From Left|CW Around Model Center");
+    chs.push_back("Circumferential|Start From Left|CW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Left|CW Around Strand Center");
+    chs.push_back("Circumferential|Start From Left|CCW Around Model Center");
+    chs.push_back("Circumferential|Start From Left|CCW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Left|CCW Around Strand Center");
+    chs.push_back("Circumferential|Start From Right|CW Around Model Center");
+    chs.push_back("Circumferential|Start From Right|CW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Right|CW Around Strand Center");
+    chs.push_back("Circumferential|Start From Right|CCW Around Model Center");
+    chs.push_back("Circumferential|Start From Right|CCW Around Submodel Center");
+    chs.push_back("Circumferential|Start From Right|CCW Around Strand Center");
+
+    chs.push_back("Radial|From Near To Far|Model Center");
+    chs.push_back("Radial|From Near To Far|Submodel Center");
+    chs.push_back("Radial|From Near To Far|Strand Center");
+    chs.push_back("Radial|From Far To Near|Model Center");
+    chs.push_back("Radial|From Far To Near|Submodel Center");
+    chs.push_back("Radial|From Far To Near|Strand Center");
+
+    wxSingleChoiceDialog dlg(this, "Please choose direction, start/end, and centroid", "Order Type", chs);
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
+    if (dlg.GetStringSelection() == "Yes") {
+        // handleCenterNode = true;
+    }
+
+    auto choices = wxSplit(dlg.GetStringSelection(), '|');
+    if (choices.size() != 3)
+        return;
+
+    if (choices[0] == "Radial") {
+        radial = true;
+
+        if (choices[2] == "Submodel Center") {
+            ctr = std::make_pair(smcx, smcy);
+        } else if (choices[2] == "Strand Center") {
+            strandCentroid = true;
+        } else if (choices[2] == "Model Center") {
+            // Leave ctr how it is
+        } else {
+            DisplayError(wxString::Format("Unexpected radial center %s", choices[2]), this);
+            return;
+        }
+
+        if (choices[1] == "From Far To Near") {
+            ccw_outside = true;
+        } else if (choices[1] == "From Near To Far") {
+            ccw_outside = false;
+        } else {
+            DisplayError(wxString::Format("Unexpected radial direction %s", choices[1]), this);
+            return;
+        }
+    } else if (choices[0] == "Circumferential") {
+        // Circumferential
+
+        if (choices[2] == "CW Around Model Center") {
+            ccw_outside = false;
+        } else if (choices[2] == "CCW Around Model Center") {
+            ccw_outside = true;
+        } else if (choices[2] == "CW Around Submodel Center") {
+            ctr = std::make_pair(smcx, smcy);
+            ccw_outside = false;
+        } else if (choices[2] == "CCW Around Submodel Center") {
+            ctr = std::make_pair(smcx, smcy);
+            ccw_outside = true;
+        } else if (choices[2] == "CW Around Strand Center") {
+            ccw_outside = false;
+            strandCentroid = true;
+        } else if (choices[2] == "CCW Around Strand Center") {
+            ccw_outside = true;
+            strandCentroid = true;
+        } else {
+            DisplayError(wxString::Format("Unexpected circumferential mode %s", choices[2]), this);
+            return;        
+        }
+
+        float fdlt = 0.02f;
+        if (choices[1] == "Start From Up") {
+            angle = float(PI / 2);
+        } else if (choices[1] == "Start From Down") {
+            angle = float(3 * PI / 2);
+        } else if (choices[1] == "Start From Right") {
+            angle = 0;
+        } else if (choices[1] == "Start From Left") {
+            angle = float(PI);
+        } else if (choices[1] == "Start From Up") {
+            angle = float(PI / 2);
+        } else if (choices[1] == "Start From Model Inside") {
+            angle = 0;
+            startModelRelative = true;
+        } else if (choices[1] == "Start From Model Outside") {
+            angle = float(PI);
+            startModelRelative = true;
+        } else if (choices[1] == "Start From Model CW") {
+            angle = float(PI / 2);
+            startModelRelative = true;
+        } else if (choices[1] == "Start From Model CCW") {
+            angle = float(3*PI/2);
+            startModelRelative = true;
+        } else {
+            DisplayError(wxString::Format("Unexpected circumferential start %s", choices[1]), this);
+            return;
+        }
+        angle += ccw_outside ? -fdlt : fdlt;
+    } else {
+        DisplayError(wxString::Format("Unexpected mode %s", choices[0]), this);
+        return;
+    }
+
+    // Perform the work
+    int minr = 0;
+    int maxr = sm->strands.size() - 1;
+    if (!wholesub) {
+        minr = maxr = row;
+    }
+    for (int crow = minr; crow <= maxr; ++crow) {
+        auto strand = ExpandNodes(sm->strands[sm->strands.size() - 1 - crow]);
+
+        // Calculate strand points
+        float scx = 0, scy = 0;
+        int scnt = 0;
+        auto srr = wxSplit(strand, ',');
+        for (auto s : srr) {
+            if (s.empty() || s == "0")
+                continue;
+            ++scnt;
+            int pt = wxAtoi(s);
+            scx += coords[pt].first;
+            scy += coords[pt].second;
+        }
+        if (scnt == 0)
+            continue;
+        auto sctr = std::make_pair(scx / scnt, scy / scnt);
+
+        if (strandCentroid)
+            ctr = sctr;
+
+        float uangle = angle;
+        if (startModelRelative) {
+            float mangle = atan2f(wcy - sctr.second, wcx - sctr.first);
+            if (mangle < 0)
+                mangle += float(2 * PI);
+            uangle += mangle;
+        }
+
+        strand = OrderPointsI(coords, strand, ctr, radial, uangle, ccw_outside);
+        sm->strands[sm->strands.size() - 1 - crow] = strand;
+    }
+
+    // Update UI
+    Select(GetSelectedName());
+    NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+    SelectRow(row >= 0 ? row : 0);
+    ValidateWindow();
+}
+
 #pragma endregion actions
 
 void SubModelsDialog::PopulateList()
@@ -1211,6 +2226,7 @@ void SubModelsDialog::SelectAll(const wxString &names) {
 
 void SubModelsDialog::DisplayRange(const wxString &range)
 {
+    _selected.clear();
     float x1 = 0;
     float x2 = 100;
     float y1 = 0;
@@ -1234,8 +2250,8 @@ void SubModelsDialog::DisplayRange(const wxString &range)
     x2 /= 100.0;
     y1 /= 100.0;
     y2 /= 100.0;
-    x1 = std::ceil(x1);
-    y1 = std::ceil(y1);
+    x1 = std::round(x1);
+    y1 = std::round(y1);
 
     int nn = model->GetNodeCount();
     xlColor c(xlDARK_GREY);
@@ -1245,11 +2261,12 @@ void SubModelsDialog::DisplayRange(const wxString &range)
     for (int node = 0; node < nn; node++) {
         if (model->IsNodeInBufferRange(node, x1, y1, x2, y2)) {
             model->SetNodeColor(node, xlWHITE);
+            _selected.push_back(node);
         } else {
             model->SetNodeColor(node, c);
         }
     }
-    model->DisplayEffectOnWindow(modelPreview, PIXEL_SIZE_ON_DIALOGS);
+    model->DisplayEffectOnWindow(modelPreview, mPointSize);
 }
 
 void SubModelsDialog::ClearNodeColor(Model *m)
@@ -1265,25 +2282,26 @@ void SubModelsDialog::ClearNodeColor(Model *m)
 }
 
 void SubModelsDialog::SelectRow(int r) {
+    _selected.clear();
     ClearNodeColor(model);
 
     static wxColor priorc = wxColor(255, 100, 255);
     if (r == -1) {
         for (int i = 0; i < NodesGrid->GetNumberRows(); ++i) {
-            SetNodeColor(i, xlWHITE);
+            SetNodeColor(i, xlWHITE, true);
         }
     } else {
         for (int i = 0; i < NodesGrid->GetNumberRows(); ++i) {
-            SetNodeColor(i, r == i ? xlWHITE : priorc);
+            SetNodeColor(i, r == i ? xlWHITE : priorc, false);
         }
         // redo the selected row to ensure any duplicated nodes are highlighted
-        SetNodeColor(r, xlWHITE);
+        SetNodeColor(r, xlWHITE, true);
     }
     NodesGrid->Refresh();
-    model->DisplayEffectOnWindow(modelPreview, PIXEL_SIZE_ON_DIALOGS);
+    model->DisplayEffectOnWindow(modelPreview, mPointSize);
 }
 
-bool SubModelsDialog::SetNodeColor(int row, xlColor const& c) {
+bool SubModelsDialog::SetNodeColor(int row, xlColor const& c, bool highlight) {
 
     wxString v = NodesGrid->GetCellValue(row, 0);
     if (v.empty()) {
@@ -1309,6 +2327,7 @@ bool SubModelsDialog::SetNodeColor(int row, xlColor const& c) {
         while (!done) {
             if (n >= 0 && n < (int)model->GetNodeCount()) {
                 model->SetNodeColor(n, c);
+                if (highlight) _selected.push_back(n);
                 found = true;
             }
             if (start2 > end2) {
@@ -1812,21 +2831,25 @@ void SubModelsDialog::OnButton_Draw_ModelClick(wxCommandEvent& event)
         return;
     }
 
-    SubModelInfo* sm = GetSubModelInfo(name);
-    NodeSelectGrid dialog(true, name, model, sm->strands, this);
+    bool wasOutputting = StopOutputToLights();
+    { // we need to scope the dialog
+        SubModelInfo* sm = GetSubModelInfo(name);
+        NodeSelectGrid dialog(true, name, model, sm->strands, _outputManager, this);
 
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        sm->strands = dialog.GetRowData();
+        if (dialog.ShowModal() == wxID_OK) {
+            sm->strands = dialog.GetRowData();
 
-        Select(GetSelectedName());
-        dialog.Close();
+            Select(GetSelectedName());
+            dialog.Close();
 
-        Panel3->SetFocus();
-        NodesGrid->SetFocus();
+            Panel3->SetFocus();
+            NodesGrid->SetFocus();
 
-        ValidateWindow();
+            ValidateWindow();
+        }
     }
+    if (wasOutputting)
+        StartOutputToLights();
 }
 
 void SubModelsDialog::OnNodesGridLabelLeftDClick(wxGridEvent& event)
@@ -1844,23 +2867,27 @@ void SubModelsDialog::OnNodesGridCellLeftDClick(wxGridEvent& event)
 
     SubModelInfo* sm = GetSubModelInfo(name);
 
-    const wxString title = name + " - " + NodesGrid->GetRowLabelValue(row);
-    NodeSelectGrid dialog(false, title, model, sm->strands[sm->strands.size() - 1 - row], this);
+    bool wasOutputting = StopOutputToLights();
+    { // we need to scope the dialog
+        const wxString title = name + " - " + NodesGrid->GetRowLabelValue(row);
+        NodeSelectGrid dialog(false, title, model, sm->strands[sm->strands.size() - 1 - row], _outputManager, this);
 
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        sm->strands[sm->strands.size() - 1 - row] = dialog.GetNodeList(false);
+        if (dialog.ShowModal() == wxID_OK) {
+            sm->strands[sm->strands.size() - 1 - row] = dialog.GetNodeList(false);
 
-        Select(GetSelectedName());
-        dialog.Close();
+            Select(GetSelectedName());
+            dialog.Close();
 
-        NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
-        Panel3->SetFocus();
-        NodesGrid->SetFocus();
-        SelectRow(row >= 0 ? row : 0);
+            NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
+            Panel3->SetFocus();
+            NodesGrid->SetFocus();
+            SelectRow(row >= 0 ? row : 0);
 
-        ValidateWindow();
+            ValidateWindow();
+        }
     }
+    if (wasOutputting)
+        StartOutputToLights();
 }
 
 wxString SubModelsDialog::ReverseRow(wxString row)
@@ -1903,8 +2930,10 @@ void SubModelsDialog::OnPreviewLeftUp(wxMouseEvent& event)
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
 
-        SelectAllInBoundingRect(event.ShiftDown());
+        SelectAllInBoundingRect(event.ShiftDown(), event.ControlDown());
         m_creating_bound_rect = false;
+
+        modelPreview->ReleaseMouse();
 
         //RenderModel();
     }
@@ -1912,7 +2941,6 @@ void SubModelsDialog::OnPreviewLeftUp(wxMouseEvent& event)
 
 void SubModelsDialog::OnPreviewMouseLeave(wxMouseEvent& event)
 {
-    m_creating_bound_rect = false;
     RenderModel();
 }
 
@@ -1926,6 +2954,10 @@ void SubModelsDialog::OnPreviewLeftDown(wxMouseEvent& event)
     m_bound_start_y = ray_origin.y;
     m_bound_end_x = m_bound_start_x;
     m_bound_end_y = m_bound_start_y;
+
+    // Capture the mouse; this will keep it selecting even if the
+    //  user temporarily leaves the preview area...
+    modelPreview->CaptureMouse();
 }
 
 void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
@@ -1987,6 +3019,11 @@ void SubModelsDialog::OnPreviewMouseMove(wxMouseEvent& event)
         m_bound_end_y = ray_origin.y;
         RenderModel();
     }
+    wxString tt = modelPreview->GetToolTipText();
+    if (tt != "") {
+        tt = "Node: " + tt;
+    }
+    NodeNumberText->SetLabel(tt);
 }
 
 void SubModelsDialog::RenderModel()
@@ -1996,12 +3033,20 @@ void SubModelsDialog::RenderModel()
     if (m_creating_bound_rect) {
         modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
     }
-    model->DisplayEffectOnWindow(modelPreview, PIXEL_SIZE_ON_DIALOGS);
+    model->DisplayEffectOnWindow(modelPreview, mPointSize);
     modelPreview->EndDrawing();
 }
 
 void SubModelsDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
 {
+    // Trim the mouse location to the preview area
+    //   (It can go outside this area if the button is down and the mouse
+    //    has been captured.)
+    x = std::max(x, 0);
+    y = std::max(y, 0);
+    x = std::min(x, modelPreview->getWidth());
+    y = std::min(y, modelPreview->getHeight());
+
     VectorMath::ScreenPosToWorldRay(
         x, modelPreview->getHeight() - y,
         modelPreview->getWidth(), modelPreview->getHeight(),
@@ -2011,10 +3056,10 @@ void SubModelsDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm:
     );
 }
 
-void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn)
+void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
 {
     if (shiftDwn) {
-        RemoveNodes();
+        RemoveNodes(ctrlDown);
         return;
     }
     wxString name = GetSelectedName();
@@ -2063,7 +3108,7 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn)
     ValidateWindow();
 }
 
-void SubModelsDialog::RemoveNodes()
+void SubModelsDialog::RemoveNodes(bool suppress)
 {
     wxString name = GetSelectedName();
     if (name == "") {
@@ -2087,10 +3132,21 @@ void SubModelsDialog::RemoveNodes()
 
     for (auto const& newNode : nodes) {
         wxString stNode = wxString::Format("%d", newNode);
-        for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
-            if (*it == stNode) {
-                oldNodeArrray.erase(it);
-                break;
+        if (suppress) {
+            // We're going to replace the last one with space (in case it was duplicated)
+            for (auto it = oldNodeArrray.rbegin(); it != oldNodeArrray.rend(); ++it) {
+                if (*it == stNode) {
+                    *it = "";
+                    break;
+                }
+            }            
+        } else {
+            for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
+                if (*it == stNode) {
+                    oldNodeArrray.erase(it);
+                    // Note that this only erases once, in case it somehow got added multiple times...
+                    break;
+                }
             }
         }
     }
@@ -2115,7 +3171,7 @@ void SubModelsDialog::ImportSubModel(std::string filename)
     if (doc.IsOk())
     {
         wxXmlNode* root = doc.GetRoot();
-        ReadSubModelXML(root);
+        ImportSubModelXML(root);
     }
     else
     {
@@ -2125,8 +3181,6 @@ void SubModelsDialog::ImportSubModel(std::string filename)
 
 void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
 {
-    bool overRide = false;
-    bool showDialog = true;
     wxXmlNode * child = xmlData->GetChildren();
     while (child != nullptr) {
         if (child->GetName() == "subModel") {
@@ -2160,24 +3214,6 @@ void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
                     child = child->GetNext();
                     continue;
                 }
-                //Ask User what to do if different
-                if(showDialog)
-                {
-                    wxMessageDialog confirm(this, _("SubModel(s) with the Same Name Already Exist.\n Would you Like to Override Them ALL?"), _("Override SubModels"), wxYES_NO);
-                    int returnCode = confirm.ShowModal();
-                    if(returnCode == wxID_YES)
-                        overRide = true;
-                     showDialog = false;
-                }
-                if (overRide)
-                {
-                    RemoveSubModelFromList(name);
-                }
-                else
-                {
-                    //rename and add if not override
-                    sm->oldName = sm->name = GenerateSubModelName(name);
-                }
             }
             _subModels.push_back(sm);
         }
@@ -2187,13 +3223,141 @@ void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
     ValidateWindow();
 }
 
+void SubModelsDialog::ImportSubModelXML(wxXmlNode* xmlData)
+{
+    bool overRide = false;
+    bool showDialog = true;
+    wxXmlNode * child = xmlData->GetChildren();
+
+    wxArrayString choices;
+
+    while (child != nullptr) {
+        if (child->GetName() == "subModel") {
+           choices.push_back(child->GetAttribute("name"));
+        }
+        child = child->GetNext();
+    }
+
+    CheckboxSelectDialog dlg(this, "Select SubModels to Import", choices, choices);
+    OptimiseDialogPosition(&dlg);
+
+    if (dlg.ShowModal() == wxID_OK) {
+        auto const selection = dlg.GetSelectedItems();
+
+        child = xmlData->GetChildren();
+
+        while (child != nullptr) {
+            if (child->GetName() == "subModel") {
+                wxString name = child->GetAttribute("name");
+
+                if (-1 == selection.Index(name)) {
+                    child = child->GetNext();
+                    continue;
+                }
+
+                SubModelInfo *sm = new SubModelInfo(name);
+                sm->name = name;
+                sm->oldName = name;
+                sm->isRanges = child->GetAttribute("type", "ranges") == "ranges";
+                sm->vertical = child->GetAttribute("layout") == "vertical";
+                sm->subBuffer = child->GetAttribute("subBuffer");
+                sm->bufferStyle = child->GetAttribute("bufferstyle", "Default");
+                sm->strands.resize(1);
+                sm->strands[0] = "";
+                int x = 0;
+                while (child->HasAttribute(wxString::Format("line%d", x))) {
+                    if (x >= sm->strands.size()) {
+                        sm->strands.resize(x + 1);
+                    }
+                    sm->strands[x] = child->GetAttribute(wxString::Format("line%d", x));
+                    x++;
+                }
+
+                //cannot have duplicate submodels names, what to do?
+                if (GetSubModelInfoIndex(name) != -1)
+                {
+                    //Are the submodels The Same?
+                    SubModelInfo *prevSm = GetSubModelInfo(name);
+                    if (*sm == *prevSm) //skip if exactly the same
+                    {
+                        child = child->GetNext();
+                        continue;
+                    }
+                    //Ask User what to do if different
+                    if(showDialog)
+                    {
+                        wxMessageDialog confirm(this, _("SubModel(s) with the Same Name Already Exist.\n Would you Like to Override Them ALL?"), _("Override SubModels"), wxYES_NO);
+                        int returnCode = confirm.ShowModal();
+                        if(returnCode == wxID_YES)
+                            overRide = true;
+                         showDialog = false;
+                    }
+                    if (overRide)
+                    {
+                        RemoveSubModelFromList(name);
+                    }
+                    else
+                    {
+                        //rename and add if not override
+                        sm->oldName = sm->name = GenerateSubModelName(name);
+                    }
+                }
+                _subModels.push_back(sm);
+            }
+            child = child->GetNext();
+        }
+        PopulateList();
+        ValidateWindow();
+    }
+}
+
+void SubModelsDialog::ImportCSVSubModel(wxString const& filename)
+{
+    wxString name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+    SubModelInfo* sm = GetSubModelInfo(name);
+
+    wxTextFile f(filename);
+    if (f.Open()) {
+        std::list<std::string> reverse_lines;
+        wxString l = f.GetFirstLine();
+        while (!f.Eof()) {
+            if (!l.empty()) {
+                reverse_lines.push_front(CompressNodes(l));
+            }
+            l = f.GetNextLine();
+        }
+        f.Close();
+
+        sm->strands.resize(reverse_lines.size());
+        int i {0};
+        for (auto const& line : reverse_lines) {
+            sm->strands[i] = line;
+            i++;
+        }
+        ValidateWindow();
+        Select(name);
+
+        Panel3->SetFocus();
+        TextCtrl_Name->SetFocus();
+        TextCtrl_Name->SelectAll();
+    } else {
+        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.warn("Failed to Open File %s", (const char *)filename.c_str());
+    }
+}
+
 wxArrayString SubModelsDialog::getModelList(ModelManager* modelManager)
 {
     wxArrayString choices;
     for (auto it = modelManager->begin(); it != modelManager->end(); ++it)
     {
         Model* m = it->second;
-        if (m->Name() == model->Name())//Skip Current Model
+        if (m->Name() == model->Name()) //Skip Current Model
+            continue;
+        if (m->GetDisplayAs() == "ModelGroup") // skip groups as they dont have submodels
             continue;
         choices.Add(m->Name());
     }
@@ -2691,8 +3855,8 @@ void SubModelsDialog::FlipHorizontal()
 
     for (auto a : _subModels) {
         if (a->isRanges) {
-            for (auto & stand : a->strands) {
-                stand = ReverseRow(stand);
+            for (auto & strand : a->strands) {
+                strand = ReverseRow(strand);
             }
         }
     }
@@ -2767,7 +3931,267 @@ void SubModelsDialog::Reverse()
     TextCtrl_Name->SelectAll();
 }
 
-void SubModelsDialog::JoinSelectedModels()
+void SubModelsDialog::RemoveDuplicates(bool suppress)
+{
+    wxString name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+
+    int row = NodesGrid->GetGridCursorRow();
+    wxString oldnodes = ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
+
+    auto oldNodeArray = wxSplit(oldnodes, ',');
+
+    if (suppress) {
+        std::set<wxString> seen;
+        for (auto it = oldNodeArray.begin(); it != oldNodeArray.end(); ++it) {
+            if (it->empty() || *it == "0")
+                continue;
+            if (seen.count(*it)) {
+                *it = "";
+                continue;
+            }
+            seen.insert(*it);
+        }
+    } else {
+        // remove duplicated
+        auto end = oldNodeArray.end();
+        for (auto it = oldNodeArray.begin(); it != end; ++it) {
+            end = std::remove(it + 1, end, *it);
+        }
+        oldNodeArray.erase(end, oldNodeArray.end());
+    }
+
+    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArray, ','));
+    Select(GetSelectedName());
+
+    NodesGrid->SetGridCursor(row, 0);
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::RemoveAllDuplicates(bool leftright, bool suppress)
+{
+    wxString name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    int row = NodesGrid->GetGridCursorRow();
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm)
+        return;
+
+    // Copy and expand data
+    std::vector<wxArrayString> data;
+    size_t mlen = 0;
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        data.push_back(wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ','));
+        mlen = std::max(mlen, data.back().size());
+    }
+
+    std::set<wxString> seen;
+    if (leftright) {
+        for (unsigned c = 0; c < mlen; ++c) {
+            for (unsigned r = 0; r < data.size(); ++r) {
+                if (data[r].size() <= c)
+                    continue; // Not applicable to row
+                if (data[r][c] == "" || data[r][c] == "0")
+                    continue;
+                if (seen.count(data[r][c])) {
+                    if (suppress) {
+                        data[r][c] = "";
+                    } else {
+                        data[r][c] = "x"; // Deal with this later
+                    }
+                } else {
+                    seen.insert(data[r][c]);
+                }
+            }
+        }
+    } else {
+        for (unsigned r = 0; r < data.size(); ++r) {
+            for (unsigned c = 0; c < data[r].size(); ++c) {
+                if (data[r][c] == "" || data[r][c] == "0")
+                    continue;
+                if (seen.count(data[r][c])) {
+                    if (suppress) {
+                        data[r][c] = "";
+                    } else {
+                        data[r][c] = "x"; // Deal with this later
+                    }
+                } else {
+                    seen.insert(data[r][c]);
+                }
+            }
+        }
+    
+    }
+
+    // Write back
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        for (auto it = data[i].begin(); it != data[i].end();) {
+            if (*it == "x") {
+                it = data[i].erase(it);
+            } else {
+                ++it;
+            }
+        }
+        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(data[i], ','));
+    }
+
+    // Update UI
+    Select(GetSelectedName());
+
+    if (row >= 0) {
+        NodesGrid->SetGridCursor(row, 0);
+    }
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::MakeRowsUniform()
+{
+    wxString name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    int row = NodesGrid->GetGridCursorRow();
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm)
+        return;
+
+    // Copy and expand data
+    std::vector<wxArrayString> data;
+    size_t mlen = 0; // longest length of any row
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        data.push_back(wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ','));
+        mlen = std::max(mlen, data.back().size());
+    }
+
+    // Write back
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        wxArrayString ndata;
+
+        int dlt = 2 * (data[i].size());
+        int D = dlt - int(mlen);
+        int c = 0;
+        for (unsigned s = 0; s < mlen; ++s) {
+            if (D > 0) {
+                ndata.push_back(data[i][c]);
+                ++c;
+                D -= int(2 * mlen);
+            } else {
+                ndata.push_back("");
+            }
+            D += dlt;
+        }
+
+        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(ndata, ','));
+    }
+
+    // Update UI
+    Select(GetSelectedName());
+
+    if (row >= 0) {
+        NodesGrid->SetGridCursor(row, 0);
+    }
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::PivotRowsColumns()
+{
+    wxString name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm)
+        return;
+
+    // Copy and expand data
+    std::vector<wxArrayString> data;
+    size_t mlen = 0; // max len
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        data.push_back(wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ','));
+        mlen = std::max(mlen, data.back().size());
+    }
+
+    // Build pivot model
+    std::vector<wxArrayString> ndata;
+    for (unsigned i = 0; i < mlen; ++i) {
+        ndata.push_back(wxArrayString());
+        for (size_t j = 0; j < data.size(); ++j) {
+            wxString s = "";
+            if (data[j].size() > i)
+                s = data[j][i];
+            ndata[i].push_back(s);
+        }
+    }
+
+    // Write back
+    sm->strands.clear();
+    for (int i = int(mlen-1); i >= 0; --i) {
+        sm->strands.push_back(CompressNodes(wxJoin(ndata[i], ',')));
+    }
+
+    // Update UI
+    Select(GetSelectedName());
+
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::CombineStrands()
+{
+    wxString name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm)
+        return;
+
+    // Copy, expand, and concatenate data
+    wxString res = "";
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        if (i != 0) {
+            res += ",";
+        }
+        res += ExpandNodes(sm->strands[sm->strands.size() - 1 - i]);
+    }
+
+    // Write back
+    sm->strands.clear();
+    sm->strands.push_back(CompressNodes(res));
+
+    // Update UI
+    Select(GetSelectedName());
+
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::JoinSelectedModels(bool singlestrand)
 {
     wxString name = GenerateSubModelName("SubModel-1");
 
@@ -2792,8 +4216,12 @@ void SubModelsDialog::JoinSelectedModels()
         }
         new_sm->vertical = old_sm->vertical;
 
-        for (auto const& stand : old_sm->strands) {
-            new_sm->strands.push_back(stand);
+        for (auto const& strand : old_sm->strands) {
+            if (!singlestrand || new_sm->strands.empty()) {
+                new_sm->strands.push_back(strand);
+            } else {
+                new_sm->strands[0] = new_sm->strands[0] + "," + strand; 
+            }
         }
     }
 
@@ -2803,6 +4231,52 @@ void SubModelsDialog::JoinSelectedModels()
     ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)new_sm);
     ValidateWindow();
     Select(name);
+
+    Panel3->SetFocus();
+    TextCtrl_Name->SetFocus();
+    TextCtrl_Name->SelectAll();
+}
+
+void SubModelsDialog::SplitSelectedSubmodel()
+{
+    wxString names = GetSelectedNames();
+    wxStringTokenizer tokenizer(names, ",");
+
+    wxString name = "";
+    SubModelInfo* old_sm = nullptr;
+    while (tokenizer.HasMoreTokens()) {
+        wxString token = tokenizer.GetNextToken();
+        int index = GetSubModelInfoIndex(token);
+        if (index == -1) {
+            continue;
+        }
+        old_sm = _subModels.at(index);
+        if (old_sm == nullptr) {
+            continue;
+        }
+        if (!old_sm->isRanges) {
+            continue;
+        }
+        name = token;
+    }
+    if (name.empty())
+        return; // Something wrong, didn't get one submodel
+
+    int idx = 1;
+    for (auto const& strand : old_sm->strands) {
+        wxString newname = wxString::Format("%s-%02d", name, idx);
+        ++idx;
+        SubModelInfo* new_sm = new SubModelInfo(newname);
+        new_sm->isRanges = true;
+        new_sm->vertical = old_sm->vertical;
+        new_sm->strands.push_back(strand);
+        _subModels.push_back(new_sm);
+        long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), new_sm->name);
+        ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)new_sm);
+    }
+
+    ValidateWindow();
+    Select(name); // Keep old one selected... the other option would be seect all new ones
 
     Panel3->SetFocus();
     TextCtrl_Name->SetFocus();
@@ -2840,5 +4314,56 @@ void SubModelsDialog::ExportSubmodelToOtherModels()
             m->IncrementChangeCount();
             ReloadLayout = true;
         }
+    }
+}
+
+void SubModelsDialog::OnTimer1Trigger(wxTimerEvent& event)
+{
+    wxASSERT(_outputManager->IsOutputting());
+    _outputManager->StartFrame(0);
+    for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
+        auto ch = model->NodeStartChannel(n);
+        if (std::find(begin(_selected), end(_selected), n) != end(_selected)) {
+            for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
+                _outputManager->SetOneChannel(ch++, 30);
+            }
+        } else {
+            for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
+                _outputManager->SetOneChannel(ch++, 0);
+            }
+        }
+    }
+    _outputManager->EndFrame();
+}
+
+void SubModelsDialog::StartOutputToLights()
+{
+    if (!timer1.IsRunning()) {
+        _outputManager->StartOutput();
+        timer1.SetOwner(this, ID_TIMER1);
+        Connect(ID_TIMER1, wxEVT_TIMER, (wxObjectEventFunction)&SubModelsDialog::OnTimer1Trigger);
+        timer1.Start(50, false);
+    }
+}
+
+bool SubModelsDialog::StopOutputToLights()
+{
+    if (timer1.IsRunning()) {
+        timer1.Stop();
+        _outputManager->StartFrame(0);
+        _outputManager->AllOff();
+        _outputManager->EndFrame();
+        _outputManager->StopOutput();
+        return true;
+    }
+    return false;
+}
+
+void SubModelsDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
+{
+    if (CheckBox_OutputToLights->IsChecked()) {
+        StartOutputToLights();
+    } else {
+        StopOutputToLights();
     }
 }

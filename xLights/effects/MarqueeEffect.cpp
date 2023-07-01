@@ -21,7 +21,6 @@
 #include "../../include/marquee-48.xpm"
 #include "../../include/marquee-64.xpm"
 
-
 MarqueeEffect::MarqueeEffect(int id) : RenderableEffect(id, "Marquee", marquee_16, marquee_24, marquee_32, marquee_48, marquee_64)
 {
     //ctor
@@ -32,8 +31,8 @@ MarqueeEffect::~MarqueeEffect()
     //dtor
 }
 
-
-xlEffectPanel *MarqueeEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel* MarqueeEffect::CreatePanel(wxWindow* parent)
+{
     return new MarqueePanel(parent);
 }
 
@@ -98,7 +97,7 @@ static void UpdateMarqueeColor(int &position, int &band_color, int colorcnt, int
     }
 }
 
-void MarqueeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 

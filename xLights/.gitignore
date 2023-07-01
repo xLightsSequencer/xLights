@@ -10,3 +10,4 @@ Debug/
 Release/
 .vs/
 *.vcxproj.user
+packages/

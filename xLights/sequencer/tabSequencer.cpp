@@ -92,12 +92,12 @@ void xLightsFrame::CreateSequencer()
     logger_base.debug("        Model preview.");
     _modelPreviewPanel = new ModelPreview(PanelSequencer, this);
     m_mgr->AddPane(_modelPreviewPanel, wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
-                   Left().Layer(1).PaneBorder(true).BestSize(250,250).MaximizeButton(true));
+                   Left().Layer(1).PaneBorder(true).BestSize(250,250).MaximizeButton(true).Dockable(IsDockable("MP")));
 
     logger_base.debug("        House preview.");
     _housePreviewPanel = new HousePreviewPanel(PanelSequencer, this, _playControlsOnPreview, PreviewModels, LayoutGroups, false, 0, true);
     m_mgr->AddPane(_housePreviewPanel, wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
-        Left().Layer(1).BestSize(250, 250).MaximizeButton(true));
+        Left().Layer(1).BestSize(250, 250).MaximizeButton(true).Dockable(IsDockable("HP")));
 
     logger_base.debug("        Effects.");
     effectsPnl = new TopEffectsPanel(PanelSequencer);
@@ -233,6 +233,7 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     config->DeleteEntry("ToolbarLocations");
     config->DeleteEntry("xLightsMachinePerspective");
     SaveWindowPosition("xLightsSubModelDialogPosition", nullptr);
+    SaveWindowPosition("xLightsTipOfTheDay", nullptr);
     SaveWindowPosition("xLightsImportDialogPosition", nullptr);
     SaveWindowPosition("xLightsNodeSelectDialogPosition", nullptr);
     SaveWindowPosition("ControllerModelDialogPosition", nullptr);
@@ -890,22 +891,21 @@ void xLightsFrame::Scrub(wxCommandEvent& event)
     sequenceVideoPanel->UpdateVideo(ms);
 
     //have the frame, copy from SeqData
+    TimerOutput(frame);
     if (playModel != nullptr) {
         int nn = playModel->GetNodeCount();
         for (int node = 0; node < nn; node++) {
             int start = playModel->NodeStartChannel(node);
             playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
         }
-    }
-    TimerOutput(frame);
-    if (playModel != nullptr) {
+        _modelPreviewPanel->setCurrentFrameTime(ms);
         playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
     }
-    _housePreviewPanel->GetModelPreview()->Render(&_seqData[frame][0]);
+    _housePreviewPanel->GetModelPreview()->Render(ms, &_seqData[frame][0]);
     for (const auto& it : PreviewWindows) {
         ModelPreview* preview = it;
         if (preview->GetActive()) {
-            preview->Render(&_seqData[frame][0]);
+            preview->Render(ms, &_seqData[frame][0]);
         }
     }
 }
@@ -1259,6 +1259,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
         // need to do this otherwise they dont update when we drop the model
         bufferPanel->UpdateBufferStyles(AllModels[el->GetParentElement()->GetModelName()]);
+        bufferPanel->UpdateCamera(AllModels[el->GetParentElement()->GetModelName()]);
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
             DoStopSequence();
@@ -2257,15 +2258,18 @@ int xLightsFrame::GetCurrentPlayTime()
 void xLightsFrame::SetPlayStatus(int status) {
     playType = status;
     if (playType != PLAY_TYPE_STOPPED) {
-        OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+        StartOutputTimer();
         //printf("Timer started - SetPlayStatus %d\n", status);
     }
 }
 void xLightsFrame::StartOutputTimer() {
+    GPURenderUtils::prioritizeGraphics(true);
     OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
-    //printf("Timer started - StartOutputTimer %d\n", playType);
 }
-
+void xLightsFrame::StopOutputTimer() {
+    OutputTimer.Stop();
+    GPURenderUtils::prioritizeGraphics(false);
+}
 bool xLightsFrame::TimerRgbSeq(long msec)
 {
     //check if there are models that depend on timing tracks or similar that need to be rendered
@@ -2349,6 +2353,7 @@ bool xLightsFrame::TimerRgbSeq(long msec)
     int frame = curt / _seqData.FrameTime();
     if (frame < _seqData.NumFrames()) {
         //have the frame, copy from SeqData
+        TimerOutput(frame);
         if (playModel != nullptr) {
             int nn = playModel->GetNodeCount();
             for (int node = 0; node < nn; node++) {
@@ -2356,18 +2361,16 @@ bool xLightsFrame::TimerRgbSeq(long msec)
                 wxASSERT(start < _seqData.NumChannels());
                 playModel->SetNodeChannelValues(node, &_seqData[frame][start]);
             }
-        }
-        TimerOutput(frame);
-        if (playModel != nullptr) {
+            _modelPreviewPanel->setCurrentFrameTime(curt);
             playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
         }
         RecordTimingCheckpoint();
-        _housePreviewPanel->GetModelPreview()->Render(&_seqData[frame][0]);
+        _housePreviewPanel->GetModelPreview()->Render(curt, &_seqData[frame][0]);
         RecordTimingCheckpoint();
 
         for (const auto& it : PreviewWindows) {
             if (it->GetActive()) {
-                it->Render(&_seqData[frame][0]);
+                it->Render(curt, &_seqData[frame][0]);
             }
         }
         RecordTimingCheckpoint();
@@ -2570,7 +2573,7 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 				b->SetValue(true);
 				wxCommandEvent evt(wxEVT_RADIOBUTTON, b->GetId());
 				evt.SetEventObject(b);
-				wxPostEvent(b->GetEventHandler(), evt);
+                b->ProcessWindowEvent(evt); // dont post ... if we post it gets processed in the wrong order
 			}
 
 			wxChoice* ctrl = (wxChoice*)CtrlWin;
@@ -2685,6 +2688,26 @@ void xLightsFrame::SetEffectChoice(wxCommandEvent& event)
     else {
         wxASSERT(false);
     }
+}
+
+void xLightsFrame::TipOfDayReady(wxCommandEvent& event)
+{
+    // only show tip of the day if show directory is set
+    if (CurrentDir != "") {
+        // at this point if we are downloading tip of day content then the tip of day content is downloaded and ready to go
+#ifdef __WXMSW__
+        _tod.SetTODXMLFile(event.GetString());
+        _tod.DoTipOfDay(false);
+#else
+        _tod->SetTODXMLFile(event.GetString());
+        _tod->DoTipOfDay(false);
+#endif
+    }
+}
+
+void xLightsFrame::SetEffectDuration(wxCommandEvent& event)
+{
+    mainSequencer->SetEffectDuration(event.GetString(), event.GetInt());
 }
 
 void xLightsFrame::ApplyLast(wxCommandEvent& event)
@@ -2858,12 +2881,12 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         m_mgr->Update();
     }
 
-    if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF) {
+    if (tempEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF) {
         SetEffectAssistWindowState(false);
-    } else if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
+    } else if (tempEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
         bool visible = m_mgr->GetPane("EffectAssist").IsShown();
         if (!visible) {
-            mEffectAssistMode = EFFECT_ASSIST_NOT_IN_PERSPECTIVE;
+            tempEffectAssistMode = EFFECT_ASSIST_NOT_IN_PERSPECTIVE;
         }
     }
 
@@ -3111,16 +3134,20 @@ void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
     bool visible = m_mgr->GetPane("EffectAssist").IsShown();
     if (visible) {
         m_mgr->GetPane("EffectAssist").Hide();
-        mEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
+        // Dont set it permanently
+        //mEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
+        tempEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
     } else {
         m_mgr->GetPane("EffectAssist").Show();
-        mEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
+        // Dont set it permanently
+        // mEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
+        tempEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
     }
     m_mgr->Update();
     UpdateViewMenu();
 }
 
-TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
+TimingElement* xLightsFrame::AddTimingElement(const std::string& name, const std::string &subType)
 {
     std::string n = RemoveUnsafeXmlChars(name);
     int nn = 1;
@@ -3135,6 +3162,7 @@ TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
     int timingCount = _sequenceElements.GetNumberOfTimingElements();
     std::string type = "timing";
     TimingElement* e = dynamic_cast<TimingElement*>(_sequenceElements.AddElement(timingCount, n, type, true, false, true, false, false));
+    e->SetSubType(subType);
     e->AddEffectLayer();
     _sequenceElements.AddTimingToCurrentView(n);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);

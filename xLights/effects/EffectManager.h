@@ -38,6 +38,7 @@ public:
         eff_GALAXY,
         eff_GARLANDS,
         eff_GLEDIATOR,
+        eff_GUITAR,
         eff_KALEIDOSCOPE,
         eff_LIFE,
         eff_LIGHTNING,

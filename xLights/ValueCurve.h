@@ -46,12 +46,12 @@ public:
         y = yy;
         wrapped = wrap;
     }
-    bool IsNear(float xx, float yy)
+    bool IsNear(float xx, float yy) const
     {
         return (x == Normalise(xx) && yy >= y - 0.05 && yy <= y + 0.05);
     }
     void ClearWrap() { wrapped = false; }
-    bool IsWrapped() { return wrapped; }
+    bool IsWrapped() const { return wrapped; }
     bool operator==(const vcSortablePoint& r) const
     {
         return x == r.x;
@@ -174,9 +174,11 @@ public:
     std::string GetType() const { return _type; }
     std::list<vcSortablePoint> GetPoints() const { return _values; }
     void RemoveExcessCustomPoints();
-    float FindMinPointLessThan(float point);
-    float FindMaxPointGreaterThan(float point);
-    bool NearCustomPoint(float x, float y);
+    float FindMinPointLessThan(float point) const;
+    float FindMaxPointGreaterThan(float point) const;
+    bool NearCustomPoint(float x, float y) const;
+    float GetPointAt(float x) const;
+    void SetPointAt(float x, float y);
     std::string GetId() const { return _id; }
     void SetId(const std::string& id) { _id = id; }
     static void GetRangeParm1(const std::string& type, float& low, float &high);
@@ -186,4 +188,5 @@ public:
     void Reverse();
     void Flip();
     void ConvertDivider(int oldDivider, int newDivider);
+    void ScaleAndOffsetValues(float scale, int offset);
 };

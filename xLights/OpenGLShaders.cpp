@@ -99,7 +99,7 @@ using namespace TraceLog;
 
 namespace
 {
-   bool shaderLinkSuceeded( GLuint programID )
+   bool shaderLinkSuceeded( GLuint programID, const std::string &filename = "")
    {
       GLint result = GL_FALSE;
       glGetProgramiv( programID, GL_LINK_STATUS, &result );
@@ -113,13 +113,13 @@ namespace
             char*             messagePtr = &errorMessage[0];
             glGetProgramInfoLog( programID, infoLogLength, NULL, messagePtr );
             static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
-            logger_opengl.error( "shader-link failure: '%s'", messagePtr );
+            logger_opengl.error( "shader-link failure %s: '%s'", filename.c_str(), messagePtr );
          }
       }
       return result == GL_TRUE;
    }
 
-   static bool shaderCompileSuceeded( GLuint shaderID )
+   static bool shaderCompileSuceeded( GLuint shaderID, const std::string &filename = "" )
    {
       GLint result = GL_FALSE;
       glGetShaderiv( shaderID, GL_COMPILE_STATUS, &result );
@@ -139,7 +139,7 @@ namespace
              AddTraceMessage(m);
 
             static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
-            logger_opengl.error( "shader-compile failure: '%s'", messagePtr );
+            logger_opengl.error( "shader-compile failure %s: '%s'", filename.c_str(), messagePtr );
          }
       }
       return result == GL_TRUE;
@@ -167,14 +167,14 @@ std::string OpenGLShaders::PrepareShaderCodeForLogging(const std::string& code)
     do {
         reader.getline(buffer, sizeof(buffer));
         res += wxString::Format("%04d: %s\n", line++, buffer);
-    } while (!reader.eof());
+    } while (!reader.eof() && !reader.fail());
 
     Replace(res, "\r", "");
 
     return res;
 }
 
-unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::string& fragmentSource )
+unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::string& fragmentSource, const std::string &filename )
 {
     AddTraceMessage("In vshader compile");
     LOG_GL_ERRORV(GLuint vertexShader = glCreateShader( GL_VERTEX_SHADER ));
@@ -199,7 +199,7 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
     AddTraceMessage("FCompiling");
     LOG_GL_ERRORV(glCompileShader( fragmentShader ));
     AddTraceMessage("FCompile Step complete");
-    if (!shaderCompileSuceeded(fragmentShader))
+    if (!shaderCompileSuceeded(fragmentShader, filename))
     {
         AddTraceMessage("FShader failed to compile");
         LOG_GL_ERRORV(glDeleteShader(vertexShader));

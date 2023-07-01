@@ -24,6 +24,7 @@
 
 #include "PixelBuffer.h"
 #include "models/Model.h"
+#include "models/ModelGroup.h"
 #include "effects/EffectPanelUtils.h"
 #include "ValueCurveDialog.h"
 #include "SubBufferPanel.h"
@@ -35,6 +36,8 @@ const long BufferPanel::ID_CHECKBOX_ResetBufferPanel = wxNewId();
 const long BufferPanel::ID_STATICTEXT_BufferStyle = wxNewId();
 const long BufferPanel::ID_CHOICE_BufferStyle = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_CHOICE_BufferStyle = wxNewId();
+const long BufferPanel::ID_STATICTEXT3 = wxNewId();
+const long BufferPanel::ID_SPINCTRL_BufferStagger = wxNewId();
 const long BufferPanel::ID_STATICTEXT2 = wxNewId();
 const long BufferPanel::ID_CHOICE_PerPreviewCamera = wxNewId();
 const long BufferPanel::ID_STATICTEXT_BufferTransform = wxNewId();
@@ -158,12 +161,18 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	BitmapButtonBufferStyle->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButtonBufferStyle->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	BufferSizer->Add(BitmapButtonBufferStyle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText17 = new wxStaticText(ScrolledWindow1, ID_STATICTEXT3, _("Buffer Stagger"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	BufferSizer->Add(StaticText17, 1, wxALL|wxEXPAND, 2);
+	SpinCtrl_BufferStagger = new wxSpinCtrl(ScrolledWindow1, ID_SPINCTRL_BufferStagger, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 100, 0, _T("ID_SPINCTRL_BufferStagger"));
+	SpinCtrl_BufferStagger->SetValue(_T("0"));
+	BufferSizer->Add(SpinCtrl_BufferStagger, 1, wxALL|wxEXPAND, 2);
+	BufferSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	StaticText16 = new wxStaticText(ScrolledWindow1, ID_STATICTEXT2, _("Camera"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	BufferSizer->Add(StaticText16, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_PerPreviewCamera = new BulkEditChoice(ScrolledWindow1, ID_CHOICE_PerPreviewCamera, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PerPreviewCamera"));
 	Choice_PerPreviewCamera->SetSelection( Choice_PerPreviewCamera->Append(_("2D")) );
 	BufferSizer->Add(Choice_PerPreviewCamera, 1, wxALL|wxEXPAND, 2);
-	BufferSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BufferSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(ScrolledWindow1, ID_STATICTEXT_BufferTransform, _("Transformation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_BufferTransform"));
 	BufferSizer->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	BufferTransform = new BulkEditChoice(ScrolledWindow1, ID_CHOICE_BufferTransform, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_BufferTransform"));
@@ -173,6 +182,8 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	BufferTransform->Append(_("Rotate 180"));
 	BufferTransform->Append(_("Flip Vertical"));
 	BufferTransform->Append(_("Flip Horizontal"));
+	BufferTransform->Append(_("Rotate CC 90 Flip Horizontal"));
+	BufferTransform->Append(_("Rotate CW 90 Flip Horizontal"));
 	BufferSizer->Add(BufferTransform, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_BufferTransform = new xlLockButton(ScrolledWindow1, ID_BITMAPBUTTON_CHOICE_BufferTransform, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferTransform"));
 	BitmapButton_BufferTransform->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
@@ -198,7 +209,7 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	CheckBox_OverlayBkg = new BulkEditCheckBox(ScrolledWindow1, ID_CHECKBOX_OverlayBkg, _("Persistent"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_OverlayBkg"));
 	CheckBox_OverlayBkg->SetValue(false);
 	BufferSizer->Add(CheckBox_OverlayBkg, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	BufferSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BufferSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	BitmapButton_OverlayBkg = new xlLockButton(ScrolledWindow1, ID_BITMAPBUTTON_OverlayBkg, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_OverlayBkg"));
 	BitmapButton_OverlayBkg->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_OverlayBkg->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
@@ -386,12 +397,12 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	StaticText15 = new wxStaticText(ScrolledWindow2, ID_STATICTEXT1, _("Application Order"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	RotoZoomSizer->Add(StaticText15, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	ChoiceRotateOrder = new BulkEditChoice(ScrolledWindow2, ID_CHOICE_RZ_RotationOrder, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_RZ_RotationOrder"));
-	ChoiceRotateOrder->SetSelection( ChoiceRotateOrder->Append(_("X, Y, Z")) );
-	ChoiceRotateOrder->Append(_("X, Z, Y"));
-	ChoiceRotateOrder->Append(_("Y, X, Z"));
-	ChoiceRotateOrder->Append(_("Y, Z, X"));
-	ChoiceRotateOrder->Append(_("Z, X, Y"));
-	ChoiceRotateOrder->Append(_("Z, Y, X"));
+	ChoiceRotateOrder->SetSelection( ChoiceRotateOrder->Append(_("X-Y-Z")) );
+	ChoiceRotateOrder->Append(_("X-Z-Y"));
+	ChoiceRotateOrder->Append(_("Y-X-Z"));
+	ChoiceRotateOrder->Append(_("Y-Z-X"));
+	ChoiceRotateOrder->Append(_("Z-X-Y"));
+	ChoiceRotateOrder->Append(_("Z-Y-X"));
 	RotoZoomSizer->Add(ChoiceRotateOrder, 1, wxALL, 1);
 	RotoZoomSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ScrolledWindow2->SetSizer(RotoZoomSizer);
@@ -497,6 +508,10 @@ wxString BufferPanel::GetBufferString() {
         s += "B_CHOICE_BufferTransform=";
         s += BufferTransform->GetStringSelection();
         s += ",";
+    }
+
+    if (SpinCtrl_BufferStagger->GetValue() != 0) {
+        s += wxString::Format("B_SPINCTRL_BufferStagger=%d,", SpinCtrl_BufferStagger->GetValue());
     }
 
     wxString subB = subBufferPanel->GetValue();
@@ -627,7 +642,7 @@ wxString BufferPanel::GetBufferString() {
             s += wxString::Format("B_SLIDER_PivotPointX=%d,", Slider_PivotPointX->GetValue());
         }
     }
-    if (ChoiceRotateOrder->GetStringSelection() != "X, Y, Z")
+    if (ChoiceRotateOrder->GetStringSelection() != "X-Y-Z")
     {
         s += "B_CHOICE_RZ_RotationOrder=";
         s += ChoiceRotateOrder->GetStringSelection();
@@ -649,6 +664,21 @@ wxString BufferPanel::GetBufferString() {
     return s;
 }
 
+void BufferPanel::UpdateCamera(const Model* model)
+{
+    _defaultCamera = "2D";
+    Choice_PerPreviewCamera->SetStringSelection("2D");
+    if (model != nullptr) {
+        auto mg = dynamic_cast<const ModelGroup*>(model);
+        if (mg != nullptr) {
+            Choice_PerPreviewCamera->SetStringSelection(mg->GetDefaultCamera());
+            _defaultCamera = mg->GetDefaultCamera();
+        }
+    }
+
+    _mg = (model->GetDisplayAs() == "ModelGroup");
+}
+
 void BufferPanel::UpdateBufferStyles(const Model* model)
 {
     auto sel = BufferStyleChoice->GetStringSelection();
@@ -663,6 +693,8 @@ void BufferPanel::UpdateBufferStyles(const Model* model)
         BufferStyleChoice->Append("Default");
     }
     BufferStyleChoice->SetStringSelection(sel);
+
+    _mg = (model->GetDisplayAs() == "ModelGroup");
 }
 
 void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
@@ -680,13 +712,23 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
         if (BufferStyleChoice->IsEmpty()) {
             BufferStyleChoice->Append("Default");
         }
+
         Choice_PerPreviewCamera->SetStringSelection("2D");
+        if (model != nullptr) {
+            auto mg = dynamic_cast<const ModelGroup*>(model);
+            if (mg != nullptr) {
+                Choice_PerPreviewCamera->SetStringSelection(mg->GetDefaultCamera());
+            }
+        }
+
         subBufferPanel->SetDefaults();
 
         Slider_EffectBlur->SetValue(1);
         TextCtrl_EffectBlur->SetValue("1");
         BitmapButton_Blur->GetValue()->SetDefault(1.0f, 15.0f);
         BitmapButton_Blur->UpdateState();
+
+        SpinCtrl_BufferStagger->SetValue(0);
 
         BufferStyleChoice->SetSelection(0);
 
@@ -759,6 +801,25 @@ void BufferPanel::ValidateWindow()
     else
     {
         Choice_PerPreviewCamera->Disable();
+    }
+
+    // Only some buffer shapes support stagger
+    if (_mg &&
+        (bs == "Horizontal Stack"
+        || bs == "Vertical Stack"
+        //|| bs == "Horizontal Stack - Scaled"
+        //|| bs == "Vertical Stack - Scaled"
+        //|| bs == "Horizontal Per Model"
+        //|| bs == "Vertical Per Model"
+        //|| bs == "Horizontal Per Model/Strand"
+        //|| bs == "Vertical Per Model/Strand"
+        ))
+    {
+        SpinCtrl_BufferStagger->Enable();
+    }
+    else
+    {
+        SpinCtrl_BufferStagger->Disable();
     }
 
     if (BitmapButton_Blur->GetValue()->IsActive())
@@ -974,11 +1035,16 @@ void BufferPanel::OnCheckBox_ResetBufferPanelClick(wxCommandEvent& event)
     config->Write("xLightsResetBufferPanel", CheckBox_ResetBufferPanel->IsChecked());
 }
 
+bool BufferPanel::CanRenderBufferUseCamera(const std::string& rb)
+{
+    return (rb == "Per Preview" || rb == "Per Model Per Preview");
+}
+
 void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event)
 {
     auto bs = BufferStyleChoice->GetStringSelection();
 
-    if (bs == "Per Preview" || bs == "Per Model Per Preview")
+    if (BufferPanel::CanRenderBufferUseCamera(bs))
     {
         Choice_PerPreviewCamera->Clear();
 
@@ -991,7 +1057,10 @@ void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event)
             Choice_PerPreviewCamera->Append(frame->viewpoint_mgr.GetCamera3D(i)->GetName());
         }
 
-        Choice_PerPreviewCamera->SetStringSelection("2D");
+        Choice_PerPreviewCamera->SetStringSelection(_defaultCamera);
+        if (Choice_PerPreviewCamera->GetStringSelection() != _defaultCamera) {
+            Choice_PerPreviewCamera->SetStringSelection("2D");
+        }
     }
     else
     {

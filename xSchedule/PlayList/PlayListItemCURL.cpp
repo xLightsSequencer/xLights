@@ -16,7 +16,7 @@
 
 #include "PlayListItemCURL.h"
 #include "PlayListItemCURLPanel.h"
-#include "../xSMSDaemon/Curl.h"
+#include "utils/Curl.h"
 
 #include <log4cpp/Category.hh>
 

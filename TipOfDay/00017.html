@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00017.html" title="Rendering text across matrix groups" category="Sequencing" level="Intermediate" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Rendering text across matrix groups</h1>
+        <p>Using the text effect on groups of say matrices or trees will rarely give you what you expected.</p>
+        <p>The reason this happens is because when the render buffer is created for a group we look at your positioning of your model on the screen and overlay a matrix - this doesn't generate the same tight matrix buffer layout that a matrix or tree normally does.</p>
+        <p>The best solution is to use a render buffer style of "Horizontal Stacked".</p>
+    </body>
+</html>

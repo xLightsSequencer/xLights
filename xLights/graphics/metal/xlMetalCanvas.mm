@@ -52,7 +52,7 @@ public:
             msaaDesc.sampleCount = canvas->getMSAASampleCount();
             msaaTexture = [canvas->getMTLDevice() newTextureWithDescriptor:msaaDesc];
             std::string n = canvas->getName() + "-MSAATexture";
-            NSString *ns = [NSString stringWithCString:n.c_str() encoding:[NSString defaultCStringEncoding]];
+            NSString *ns = [NSString stringWithUTF8String:n.c_str()];
             [msaaTexture setLabel:ns];
         }
         return msaaTexture;
@@ -105,7 +105,7 @@ public:
             depthBufferDescriptor.sampleCount = canvas->getMSAASampleCount();
             depthTexture = [canvas->getMTLDevice() newTextureWithDescriptor:depthBufferDescriptor];
             std::string n = canvas->getName() + "-DepthBuffer";
-            NSString *ns = [NSString stringWithCString:n.c_str() encoding:[NSString defaultCStringEncoding]];
+            NSString *ns = [NSString stringWithUTF8String:n.c_str()];
             [depthTexture setLabel:ns];
         }
         return depthTexture;
@@ -188,7 +188,7 @@ bool xlMetalCanvas::drawingUsingLogicalSize() const {
 }
 
 double xlMetalCanvas::translateToBacking(double x) const {
-    return xlTranslateToRetina(*this, x);
+    return GetDPIScaleFactor() * x;
 }
 double xlMetalCanvas::mapLogicalToAbsolute(double x) const {
     if (drawingUsingLogicalSize()) {
@@ -229,11 +229,12 @@ void xlMetalCanvas::PrepareCanvas() {
     }
 }
 xlGraphicsContext * xlMetalCanvas::PrepareContextForDrawing() {
-    xlMetalGraphicsContext *ret = new xlMetalGraphicsContext(this, captureBuffer == nullptr || !captureBuffer->captureNext ? nil : captureBuffer->target);
+    xlMetalGraphicsContext *ret = new xlMetalGraphicsContext(this, captureBuffer == nullptr || !captureBuffer->captureNext ? nil : captureBuffer->target, !firstDraw);
     if (!ret->isValid()) {
         delete ret;
         return nullptr;
     }
+    firstDraw = false;
     return ret;
 }
 void xlMetalCanvas::FinishDrawing(xlGraphicsContext *ctx, bool display) {

@@ -35,6 +35,8 @@
 #include "xLightsMain.h"
 #include "controllers/ControllerUploadData.h"
 #include "controllers/ControllerCaps.h"
+#include "ModelPreview.h"
+#include "support/VectorMath.h"
 
 #pragma region ChannelTracker
 bool CompareRange(const wxLongLong& a, const wxLongLong& b)
@@ -945,7 +947,7 @@ public:
     }
     virtual std::string GetType() const override
     {
-        return "Port";
+        return "SR";
     }
     std::list<ModelTestItem*> GetModels() const
     {
@@ -966,6 +968,7 @@ class CPR_PortTestItem : public TestItemBase
     bool _channelsAvailable = false;
     std::list<CPR_SRTestItem*> _remotes;
     std::string _portName;
+    uint16_t _port = 0xFFFF;
 
     CPR_SRTestItem* GetSmartRemote(char srl, UDControllerPort* pud, ModelManager& modelManager, bool channelsAvailable)
     {
@@ -1017,6 +1020,7 @@ public:
 
         _absoluteStartChannel = pud->GetStartChannel();
         _absoluteEndChannel = pud->GetEndChannel();
+        _port = pud->GetPort();
 
         for (const auto& it : pud->GetModels()) {
             int nodes = it->Channels() / it->GetChannelsPerPixel();
@@ -1044,6 +1048,10 @@ public:
     std::list<CPR_SRTestItem*> GetRemotes() const
     {
         return _remotes;
+    }
+    uint16_t GetPort() const
+    {
+        return _port;
     }
 };
 
@@ -1126,6 +1134,7 @@ const long PixelTestDialog::ID_MNU_TEST_SELECTALL = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_DESELECTALL = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_SELECTN = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_DESELECTN = wxNewId();
+const long PixelTestDialog::ID_MNU_TEST_NUMBER = wxNewId();
 
 //(*IdInit(PixelTestDialog)
 const long PixelTestDialog::ID_BUTTON_Load = wxNewId();
@@ -1133,6 +1142,10 @@ const long PixelTestDialog::ID_BUTTON_Save = wxNewId();
 const long PixelTestDialog::ID_PANEL3 = wxNewId();
 const long PixelTestDialog::ID_PANEL6 = wxNewId();
 const long PixelTestDialog::ID_PANEL7 = wxNewId();
+const long PixelTestDialog::ID_STATICTEXT8 = wxNewId();
+const long PixelTestDialog::ID_CHOICE1 = wxNewId();
+const long PixelTestDialog::ID_PANEL11 = wxNewId();
+const long PixelTestDialog::ID_PANEL5 = wxNewId();
 const long PixelTestDialog::ID_PANEL4 = wxNewId();
 const long PixelTestDialog::ID_NOTEBOOK1 = wxNewId();
 const long PixelTestDialog::ID_PANEL1 = wxNewId();
@@ -1183,6 +1196,7 @@ const long PixelTestDialog::ID_RADIOBUTTON_RGBCycle_ABCAll = wxNewId();
 const long PixelTestDialog::ID_RADIOBUTTON_RGBCycle_ABCAllNone = wxNewId();
 const long PixelTestDialog::ID_RADIOBUTTON_RGBCycle_MixedColors = wxNewId();
 const long PixelTestDialog::ID_RADIOBUTTON_RGBCycle_RGBW = wxNewId();
+const long PixelTestDialog::ID_CHECKBOX2 = wxNewId();
 const long PixelTestDialog::ID_PANEL10 = wxNewId();
 const long PixelTestDialog::ID_NOTEBOOK2 = wxNewId();
 const long PixelTestDialog::ID_STATICTEXT1 = wxNewId();
@@ -1200,7 +1214,8 @@ END_EVENT_TABLE()
 
 // Constructor
 
-PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id)
+PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id) :
+    mPointSize(PIXEL_SIZE_ON_DIALOGS)
 {
     _lastModel = nullptr;
     _outputManager = outputManager;
@@ -1219,9 +1234,12 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     wxFlexGridSizer* FlexGridSizer12;
     wxFlexGridSizer* FlexGridSizer13;
     wxFlexGridSizer* FlexGridSizer14;
+    wxFlexGridSizer* FlexGridSizer15;
+    wxFlexGridSizer* FlexGridSizer16;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
+    wxFlexGridSizer* FlexGridSizer44;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer6;
@@ -1231,28 +1249,28 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     wxStaticBoxSizer* StaticBoxSizer1;
     wxStaticBoxSizer* StaticBoxSizer2;
 
-    Create(parent, wxID_ANY, _("Test Lights"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("Test Lights"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
     SetClientSize(wxDefaultSize);
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
     SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
     SplitterWindow1->SetSashGravity(0.5);
-    Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxPoint(95, 46), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxPoint(95,46), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer2->AddGrowableCol(0);
     FlexGridSizer2->AddGrowableRow(0);
     Notebook1 = new wxNotebook(Panel1, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
-    Notebook1->SetMinSize(wxDLG_UNIT(Panel1, wxSize(200, 200)));
+    Notebook1->SetMinSize(wxDLG_UNIT(Panel1,wxSize(200,200)));
     Panel_Outputs = new wxPanel(Notebook1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
     FlexGridSizer_Outputs = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer_Outputs->AddGrowableCol(0);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
     Button_Load = new wxButton(Panel_Outputs, ID_BUTTON_Load, _("Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Load"));
-    FlexGridSizer4->Add(Button_Load, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer4->Add(Button_Load, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     Button_Save = new wxButton(Panel_Outputs, ID_BUTTON_Save, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Save"));
-    FlexGridSizer4->Add(Button_Save, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer_Outputs->Add(FlexGridSizer4, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer4->Add(Button_Save, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer_Outputs->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
     Panel_Outputs->SetSizer(FlexGridSizer_Outputs);
     FlexGridSizer_Outputs->Fit(Panel_Outputs);
     FlexGridSizer_Outputs->SetSizeHints(Panel_Outputs);
@@ -1270,6 +1288,32 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     Panel_Models->SetSizer(FlexGridSizer_Models);
     FlexGridSizer_Models->Fit(Panel_Models);
     FlexGridSizer_Models->SetSizeHints(Panel_Models);
+    Panel_Model = new wxPanel(Notebook1, ID_PANEL5, wxPoint(210,20), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
+    FlexGridSizer15 = new wxFlexGridSizer(2, 1, 0, 0);
+    FlexGridSizer15->AddGrowableCol(0);
+    FlexGridSizer15->AddGrowableRow(1);
+    FlexGridSizer16 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer16->AddGrowableCol(1);
+    StaticText7 = new wxStaticText(Panel_Model, ID_STATICTEXT8, _("Model:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+    FlexGridSizer16->Add(StaticText7, 1, wxALL|wxEXPAND, 5);
+    Choice_VisualModel = new wxChoice(Panel_Model, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+    FlexGridSizer16->Add(Choice_VisualModel, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer15->Add(FlexGridSizer16, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer44 = new wxFlexGridSizer(1, 1, 0, 0);
+    FlexGridSizer44->AddGrowableCol(0);
+    FlexGridSizer44->AddGrowableRow(0);
+    Panel_VisualModel = new wxPanel(Panel_Model, ID_PANEL11, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL11"));
+    FlexGridSizer_VisualModelSizer = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer_VisualModelSizer->AddGrowableCol(0);
+    FlexGridSizer_VisualModelSizer->AddGrowableRow(0);
+    Panel_VisualModel->SetSizer(FlexGridSizer_VisualModelSizer);
+    FlexGridSizer_VisualModelSizer->Fit(Panel_VisualModel);
+    FlexGridSizer_VisualModelSizer->SetSizeHints(Panel_VisualModel);
+    FlexGridSizer44->Add(Panel_VisualModel, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer15->Add(FlexGridSizer44, 1, wxALL|wxEXPAND, 5);
+    Panel_Model->SetSizer(FlexGridSizer15);
+    FlexGridSizer15->Fit(Panel_Model);
+    FlexGridSizer15->SetSizeHints(Panel_Model);
     Panel_Controllers = new wxPanel(Notebook1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
     FlexGridSizer_Controllers = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer_Controllers->AddGrowableCol(0);
@@ -1280,8 +1324,9 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     Notebook1->AddPage(Panel_Outputs, _("Outputs"), false);
     Notebook1->AddPage(Panel_ModelGroups, _("Model Groups"), false);
     Notebook1->AddPage(Panel_Models, _("Models"), false);
+    Notebook1->AddPage(Panel_Model, _("Model"), false);
     Notebook1->AddPage(Panel_Controllers, _("Controllers"), false);
-    FlexGridSizer2->Add(Notebook1, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer2->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
     Panel1->SetSizer(FlexGridSizer2);
     FlexGridSizer2->Fit(Panel1);
     FlexGridSizer2->SetSizeHints(Panel1);
@@ -1292,11 +1337,11 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     FlexGridSizer14 = new wxFlexGridSizer(0, 1, 0, 0);
     CheckBox_OutputToLights = new wxCheckBox(Panel2, ID_CHECKBOX_OutputToLights, _("Output to lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_OutputToLights"));
     CheckBox_OutputToLights->SetValue(false);
-    FlexGridSizer14->Add(CheckBox_OutputToLights, 1, wxALL | wxEXPAND, 2);
+    FlexGridSizer14->Add(CheckBox_OutputToLights, 1, wxALL|wxEXPAND, 2);
     CheckBox_SuppressUnusedOutputs = new wxCheckBox(Panel2, ID_CHECKBOX1, _("Don\'t send data to unused outputs"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     CheckBox_SuppressUnusedOutputs->SetValue(false);
-    FlexGridSizer14->Add(CheckBox_SuppressUnusedOutputs, 1, wxALL | wxEXPAND, 2);
-    FlexGridSizer3->Add(FlexGridSizer14, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer14->Add(CheckBox_SuppressUnusedOutputs, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer3->Add(FlexGridSizer14, 1, wxALL|wxEXPAND, 5);
     Notebook2 = new wxNotebook(Panel2, ID_NOTEBOOK2, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK2"));
     PanelStandard = new wxPanel(Notebook2, ID_PANEL8, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL8"));
     FlexGridSizer6 = new wxFlexGridSizer(1, 4, 0, 0);
@@ -1305,52 +1350,52 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer7->AddGrowableCol(0);
     StaticText2 = new wxStaticText(PanelStandard, ID_STATICTEXT2, _("Function"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer7->Add(StaticText2, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer7->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     RadioButton_Standard_Off = new wxRadioButton(PanelStandard, ID_RADIOBUTTON_Standard_Off, _("Off"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Standard_Off"));
-    FlexGridSizer7->Add(RadioButton_Standard_Off, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer7->Add(RadioButton_Standard_Off, 1, wxALL|wxEXPAND, 5);
     RadioButton_Standard_Chase = new wxRadioButton(PanelStandard, ID_RADIOBUTTON_Standard_Chase, _("Chase"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Standard_Chase"));
-    FlexGridSizer7->Add(RadioButton_Standard_Chase, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer7->Add(RadioButton_Standard_Chase, 1, wxALL|wxEXPAND, 5);
     RadioButton_Standard_Chase13 = new wxRadioButton(PanelStandard, ID_RADIOBUTTON_Standard_Chase13, _("Chase 1/3"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Standard_Chase13"));
-    FlexGridSizer7->Add(RadioButton_Standard_Chase13, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer7->Add(RadioButton_Standard_Chase13, 1, wxALL|wxEXPAND, 5);
     RadioButton_Standard_Chase14 = new wxRadioButton(PanelStandard, ID_RADIOBUTTON_Standard_Chase14, _("Chase 1/4"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Standard_Chase14"));
-    FlexGridSizer7->Add(RadioButton_Standard_Chase14, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer7->Add(RadioButton_Standard_Chase14, 1, wxALL|wxEXPAND, 5);
     RadioButton_Standard_Chase15 = new wxRadioButton(PanelStandard, ID_RADIOBUTTON_Standard_Chase15, _("Chase 1/5"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Standard_Chase15"));
-    FlexGridSizer7->Add(RadioButton_Standard_Chase15, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer7->Add(RadioButton_Standard_Chase15, 1, wxALL|wxEXPAND, 5);
     RadioButton_Standard_Alternate = new wxRadioButton(PanelStandard, ID_RADIOBUTTON_Standard_Alternate, _("Alternate"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Standard_Alternate"));
-    FlexGridSizer7->Add(RadioButton_Standard_Alternate, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer7->Add(RadioButton_Standard_Alternate, 1, wxALL|wxEXPAND, 5);
     RadioButton_Standard_Twinkle5 = new wxRadioButton(PanelStandard, ID_RADIOBUTTON_Standard_Twinke5, _("Twinkle 5%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Standard_Twinke5"));
-    FlexGridSizer7->Add(RadioButton_Standard_Twinkle5, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer7->Add(RadioButton_Standard_Twinkle5, 1, wxALL|wxEXPAND, 5);
     RadioButton_Standard_Twinkle10 = new wxRadioButton(PanelStandard, ID_RADIOBUTTON_Standard_Twinkle10, _("Twinkle 10%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Standard_Twinkle10"));
-    FlexGridSizer7->Add(RadioButton_Standard_Twinkle10, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer7->Add(RadioButton_Standard_Twinkle10, 1, wxALL|wxEXPAND, 5);
     RadioButton_Standard_Twinkle25 = new wxRadioButton(PanelStandard, ID_RADIOBUTTON_Standard_Twinkle25, _("Twinkle 25%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Standard_Twinkle25"));
-    FlexGridSizer7->Add(RadioButton_Standard_Twinkle25, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer7->Add(RadioButton_Standard_Twinkle25, 1, wxALL|wxEXPAND, 5);
     RadioButton_Standard_Twinkle50 = new wxRadioButton(PanelStandard, ID_RADIOBUTTON_Standard_Twinkle50, _("Twinkle 50%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Standard_Twinkle50"));
-    FlexGridSizer7->Add(RadioButton_Standard_Twinkle50, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer7->Add(RadioButton_Standard_Twinkle50, 1, wxALL|wxEXPAND, 5);
     RadioButton_Standard_Shimmer = new wxRadioButton(PanelStandard, ID_RADIOBUTTON_Standard_Shimmer, _("Shimmer"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Standard_Shimmer"));
-    FlexGridSizer7->Add(RadioButton_Standard_Shimmer, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer7->Add(RadioButton_Standard_Shimmer, 1, wxALL|wxEXPAND, 5);
     RadioButton_Standard_Background = new wxRadioButton(PanelStandard, ID_RADIOBUTTON_Standard_Background, _("Background Only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_Standard_Background"));
-    FlexGridSizer7->Add(RadioButton_Standard_Background, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL | wxEXPAND, 2);
-    FlexGridSizer6->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer7->Add(RadioButton_Standard_Background, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
     FlexGridSizer8 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer8->AddGrowableCol(0);
     FlexGridSizer8->AddGrowableRow(1);
     StaticText3 = new wxStaticText(PanelStandard, ID_STATICTEXT3, _("Background\nIntensity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-    FlexGridSizer8->Add(StaticText3, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Standard_Background = new wxSlider(PanelStandard, ID_SLIDER_Standard_Background, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_LABELS | wxSL_INVERSE | wxBORDER_SIMPLE, wxDefaultValidator, _T("ID_SLIDER_Standard_Background"));
-    FlexGridSizer8->Add(Slider_Standard_Background, 1, wxALL | wxEXPAND, 5);
-    BoxSizer1->Add(FlexGridSizer8, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer8->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    Slider_Standard_Background = new wxSlider(PanelStandard, ID_SLIDER_Standard_Background, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxBORDER_SIMPLE, wxDefaultValidator, _T("ID_SLIDER_Standard_Background"));
+    FlexGridSizer8->Add(Slider_Standard_Background, 1, wxALL|wxEXPAND, 5);
+    BoxSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer9 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer9->AddGrowableCol(0);
     FlexGridSizer9->AddGrowableRow(1);
     StaticText4 = new wxStaticText(PanelStandard, ID_STATICTEXT4, _("Highlight\nIntensity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-    FlexGridSizer9->Add(StaticText4, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Standard_Highlight = new wxSlider(PanelStandard, ID_SLIDER_Standard_Highlight, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_LABELS | wxSL_INVERSE | wxBORDER_SIMPLE, wxDefaultValidator, _T("ID_SLIDER_Standard_Highlight"));
-    FlexGridSizer9->Add(Slider_Standard_Highlight, 1, wxALL | wxEXPAND, 5);
-    BoxSizer1->Add(FlexGridSizer9, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer6->Add(BoxSizer1, 1, wxALL | wxEXPAND, 2);
-    FlexGridSizer6->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer9->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    Slider_Standard_Highlight = new wxSlider(PanelStandard, ID_SLIDER_Standard_Highlight, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxBORDER_SIMPLE, wxDefaultValidator, _T("ID_SLIDER_Standard_Highlight"));
+    FlexGridSizer9->Add(Slider_Standard_Highlight, 1, wxALL|wxEXPAND, 5);
+    BoxSizer1->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer6->Add(BoxSizer1, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     PanelStandard->SetSizer(FlexGridSizer6);
     FlexGridSizer6->Fit(PanelStandard);
     FlexGridSizer6->SetSizeHints(PanelStandard);
@@ -1361,55 +1406,55 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer11->AddGrowableCol(0);
     StaticText5 = new wxStaticText(PanelRGB, ID_STATICTEXT5, _("Function"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-    FlexGridSizer11->Add(StaticText5, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer11->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     RadioButton_RGB_Off = new wxRadioButton(PanelRGB, ID_RADIOBUTTON_RGB_Off, _("Off"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGB_Off"));
-    FlexGridSizer11->Add(RadioButton_RGB_Off, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer11->Add(RadioButton_RGB_Off, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGB_Chase = new wxRadioButton(PanelRGB, ID_RADIOBUTTON_RGB_Chase, _("Chase"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGB_Chase"));
-    FlexGridSizer11->Add(RadioButton_RGB_Chase, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer11->Add(RadioButton_RGB_Chase, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGB_Chase13 = new wxRadioButton(PanelRGB, ID_RADIOBUTTON_RGB_Chase13, _("Chase 1/3"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGB_Chase13"));
-    FlexGridSizer11->Add(RadioButton_RGB_Chase13, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer11->Add(RadioButton_RGB_Chase13, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGB_Chase14 = new wxRadioButton(PanelRGB, ID_RADIOBUTTON_RGB_Chase14, _("Chase 1/4"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGB_Chase14"));
-    FlexGridSizer11->Add(RadioButton_RGB_Chase14, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer11->Add(RadioButton_RGB_Chase14, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGB_Chase15 = new wxRadioButton(PanelRGB, ID_RADIOBUTTON_RGB_Chase15, _("Chase 1/5"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGB_Chase15"));
-    FlexGridSizer11->Add(RadioButton_RGB_Chase15, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer11->Add(RadioButton_RGB_Chase15, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGB_Alternate = new wxRadioButton(PanelRGB, ID_RADIOBUTTON_RGB_Alternate, _("Alternate"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGB_Alternate"));
-    FlexGridSizer11->Add(RadioButton_RGB_Alternate, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer11->Add(RadioButton_RGB_Alternate, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGB_Twinkle5 = new wxRadioButton(PanelRGB, ID_RADIOBUTTON_RGB_Twinkle5, _("Twinkle 5%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGB_Twinkle5"));
-    FlexGridSizer11->Add(RadioButton_RGB_Twinkle5, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer11->Add(RadioButton_RGB_Twinkle5, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGB_Twinkle10 = new wxRadioButton(PanelRGB, ID_RADIOBUTTON_RGB_Twinkle10, _("Twinkle 10%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGB_Twinkle10"));
-    FlexGridSizer11->Add(RadioButton_RGB_Twinkle10, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer11->Add(RadioButton_RGB_Twinkle10, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGB_Twinkle25 = new wxRadioButton(PanelRGB, ID_RADIOBUTTON_RGB_Twinkle25, _("Twinkle 25%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGB_Twinkle25"));
-    FlexGridSizer11->Add(RadioButton_RGB_Twinkle25, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer11->Add(RadioButton_RGB_Twinkle25, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGB_Twinkle50 = new wxRadioButton(PanelRGB, ID_RADIOBUTTON_RGB_Twinkle50, _("Twinkle 50%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGB_Twinkle50"));
-    FlexGridSizer11->Add(RadioButton_RGB_Twinkle50, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer11->Add(RadioButton_RGB_Twinkle50, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGB_Shimmer = new wxRadioButton(PanelRGB, ID_RADIOBUTTON_RGB_Shimmer, _("Shimmer"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGB_Shimmer"));
-    FlexGridSizer11->Add(RadioButton_RGB_Shimmer, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer11->Add(RadioButton_RGB_Shimmer, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGB_Background = new wxRadioButton(PanelRGB, ID_RADIOBUTTON_RGB_Background, _("Background Only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGB_Background"));
-    FlexGridSizer11->Add(RadioButton_RGB_Background, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer10->Add(FlexGridSizer11, 1, wxALL | wxEXPAND, 2);
-    FlexGridSizer10->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer11->Add(RadioButton_RGB_Background, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer10->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer2 = new wxBoxSizer(wxVERTICAL);
     BoxSizer3 = new wxBoxSizer(wxHORIZONTAL);
     StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, PanelRGB, _("Background Color"));
-    Slider_RGB_BG_R = new wxSlider(PanelRGB, ID_SLIDER1, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_LABELS | wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER1"));
-    StaticBoxSizer1->Add(Slider_RGB_BG_R, 1, wxALL | wxEXPAND, 5);
-    Slider_RGB_BG_G = new wxSlider(PanelRGB, ID_SLIDER2, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_LABELS | wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER2"));
-    StaticBoxSizer1->Add(Slider_RGB_BG_G, 1, wxALL | wxEXPAND, 5);
-    Slider_RGB_BG_B = new wxSlider(PanelRGB, ID_SLIDER3, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_LABELS | wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER3"));
-    StaticBoxSizer1->Add(Slider_RGB_BG_B, 1, wxALL | wxEXPAND, 5);
-    BoxSizer3->Add(StaticBoxSizer1, 1, wxALL | wxEXPAND, 5);
-    BoxSizer2->Add(BoxSizer3, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    Slider_RGB_BG_R = new wxSlider(PanelRGB, ID_SLIDER1, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER1"));
+    StaticBoxSizer1->Add(Slider_RGB_BG_R, 1, wxALL|wxEXPAND, 5);
+    Slider_RGB_BG_G = new wxSlider(PanelRGB, ID_SLIDER2, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER2"));
+    StaticBoxSizer1->Add(Slider_RGB_BG_G, 1, wxALL|wxEXPAND, 5);
+    Slider_RGB_BG_B = new wxSlider(PanelRGB, ID_SLIDER3, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER3"));
+    StaticBoxSizer1->Add(Slider_RGB_BG_B, 1, wxALL|wxEXPAND, 5);
+    BoxSizer3->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
+    BoxSizer2->Add(BoxSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer4 = new wxBoxSizer(wxHORIZONTAL);
     StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, PanelRGB, _("Highlight Color"));
-    Slider_RGB_H_R = new wxSlider(PanelRGB, ID_SLIDER4, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_LABELS | wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER4"));
-    StaticBoxSizer2->Add(Slider_RGB_H_R, 1, wxALL | wxEXPAND, 5);
-    Slider_RGB_H_G = new wxSlider(PanelRGB, ID_SLIDER5, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_LABELS | wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER5"));
-    StaticBoxSizer2->Add(Slider_RGB_H_G, 1, wxALL | wxEXPAND, 5);
-    Slider_RGB_H_B = new wxSlider(PanelRGB, ID_SLIDER6, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_LABELS | wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER6"));
-    StaticBoxSizer2->Add(Slider_RGB_H_B, 1, wxALL | wxEXPAND, 5);
-    BoxSizer4->Add(StaticBoxSizer2, 1, wxALL | wxEXPAND, 5);
-    BoxSizer2->Add(BoxSizer4, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer10->Add(BoxSizer2, 1, wxALL | wxEXPAND, 5);
+    Slider_RGB_H_R = new wxSlider(PanelRGB, ID_SLIDER4, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER4"));
+    StaticBoxSizer2->Add(Slider_RGB_H_R, 1, wxALL|wxEXPAND, 5);
+    Slider_RGB_H_G = new wxSlider(PanelRGB, ID_SLIDER5, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER5"));
+    StaticBoxSizer2->Add(Slider_RGB_H_G, 1, wxALL|wxEXPAND, 5);
+    Slider_RGB_H_B = new wxSlider(PanelRGB, ID_SLIDER6, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER6"));
+    StaticBoxSizer2->Add(Slider_RGB_H_B, 1, wxALL|wxEXPAND, 5);
+    BoxSizer4->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
+    BoxSizer2->Add(BoxSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer10->Add(BoxSizer2, 1, wxALL|wxEXPAND, 5);
     PanelRGB->SetSizer(FlexGridSizer10);
     FlexGridSizer10->Fit(PanelRGB);
     FlexGridSizer10->SetSizeHints(PanelRGB);
@@ -1418,53 +1463,59 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     FlexGridSizer12->AddGrowableRow(0);
     FlexGridSizer13 = new wxFlexGridSizer(0, 1, 0, 0);
     StaticText6 = new wxStaticText(PanelRGBCycle, ID_STATICTEXT6, _("Function"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
-    FlexGridSizer13->Add(StaticText6, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer13->Add(StaticText6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     RadioButton_RGBCycle_Off = new wxRadioButton(PanelRGBCycle, ID_RADIOBUTTON_RGBCycle_Off, _("Off"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGBCycle_Off"));
-    FlexGridSizer13->Add(RadioButton_RGBCycle_Off, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer13->Add(RadioButton_RGBCycle_Off, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGBCycle_ABC = new wxRadioButton(PanelRGBCycle, ID_RADIOBUTTON_RGBCycle_ABC, _("A-B-C"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGBCycle_ABC"));
-    FlexGridSizer13->Add(RadioButton_RGBCycle_ABC, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer13->Add(RadioButton_RGBCycle_ABC, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGBCycle_ABCAll = new wxRadioButton(PanelRGBCycle, ID_RADIOBUTTON_RGBCycle_ABCAll, _("A-B-C-All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGBCycle_ABCAll"));
-    FlexGridSizer13->Add(RadioButton_RGBCycle_ABCAll, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer13->Add(RadioButton_RGBCycle_ABCAll, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGBCycle_ABCAllNone = new wxRadioButton(PanelRGBCycle, ID_RADIOBUTTON_RGBCycle_ABCAllNone, _("A-B-C-All-None"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGBCycle_ABCAllNone"));
-    FlexGridSizer13->Add(RadioButton_RGBCycle_ABCAllNone, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer13->Add(RadioButton_RGBCycle_ABCAllNone, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGBCycle_MixedColors = new wxRadioButton(PanelRGBCycle, ID_RADIOBUTTON_RGBCycle_MixedColors, _("Mixed Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGBCycle_MixedColors"));
-    FlexGridSizer13->Add(RadioButton_RGBCycle_MixedColors, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer13->Add(RadioButton_RGBCycle_MixedColors, 1, wxALL|wxEXPAND, 5);
     RadioButton_RGBCycle_RGBW = new wxRadioButton(PanelRGBCycle, ID_RADIOBUTTON_RGBCycle_RGBW, _("R-G-B-W"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_RGBCycle_RGBW"));
-    FlexGridSizer13->Add(RadioButton_RGBCycle_RGBW, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer12->Add(FlexGridSizer13, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer13->Add(RadioButton_RGBCycle_RGBW, 1, wxALL|wxEXPAND, 5);
+    CheckBox_Tag50th = new wxCheckBox(PanelRGBCycle, ID_CHECKBOX2, _("Tag every 50th node white @ 50%"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+    CheckBox_Tag50th->SetValue(false);
+    CheckBox_Tag50th->SetToolTip(_("This is really only useful if you are testing a single model"));
+    FlexGridSizer13->Add(CheckBox_Tag50th, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer12->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 5);
     PanelRGBCycle->SetSizer(FlexGridSizer12);
     FlexGridSizer12->Fit(PanelRGBCycle);
     FlexGridSizer12->SetSizeHints(PanelRGBCycle);
     Notebook2->AddPage(PanelStandard, _("Standard"), false);
     Notebook2->AddPage(PanelRGB, _("RGB"), false);
     Notebook2->AddPage(PanelRGBCycle, _("RGB Cycle"), false);
-    FlexGridSizer3->Add(Notebook2, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(Notebook2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer5->AddGrowableCol(1);
     StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer5->Add(StaticText1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer5->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Speed = new wxSlider(Panel2, ID_SLIDER_Speed, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Speed"));
-    FlexGridSizer5->Add(Slider_Speed, 1, wxALL | wxEXPAND, 2);
-    FlexGridSizer3->Add(FlexGridSizer5, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer5->Add(Slider_Speed, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer3->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
     Panel2->SetSizer(FlexGridSizer3);
     FlexGridSizer3->Fit(Panel2);
     FlexGridSizer3->SetSizeHints(Panel2);
     SplitterWindow1->SplitVertically(Panel1, Panel2);
-    FlexGridSizer1->Add(SplitterWindow1, 1, wxALL | wxEXPAND, 2);
+    FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 2);
     StatusBar1 = new wxStaticText(this, ID_STATICTEXT7, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxBORDER_DOUBLE, _T("ID_STATICTEXT7"));
-    FlexGridSizer1->Add(StatusBar1, 1, wxALL | wxEXPAND, 2);
+    FlexGridSizer1->Add(StatusBar1, 1, wxALL|wxEXPAND, 2);
     SetSizer(FlexGridSizer1);
     Timer1.SetOwner(this, ID_TIMER1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
-    Connect(ID_BUTTON_Load, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PixelTestDialog::OnButton_LoadClick);
-    Connect(ID_BUTTON_Save, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PixelTestDialog::OnButton_SaveClick);
-    Connect(ID_NOTEBOOK1, wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&PixelTestDialog::OnNotebook1PageChanged);
-    Connect(ID_CHECKBOX_OutputToLights, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&PixelTestDialog::OnCheckBox_OutputToLightsClick);
-    Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&PixelTestDialog::OnCheckBox_SuppressUnusedOutputsClick);
-    Connect(ID_TIMER1, wxEVT_TIMER, (wxObjectEventFunction)&PixelTestDialog::OnTimer1Trigger);
-    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&PixelTestDialog::OnClose);
+    Connect(ID_BUTTON_Load,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnButton_LoadClick);
+    Connect(ID_BUTTON_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnButton_SaveClick);
+    Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PixelTestDialog::OnChoice_VisualModelSelect);
+    Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&PixelTestDialog::OnNotebook1PageChanged);
+    Connect(ID_CHECKBOX_OutputToLights,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnCheckBox_OutputToLightsClick);
+    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnCheckBox_SuppressUnusedOutputsClick);
+    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PixelTestDialog::OnCheckBox_Tag50thClick);
+    Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&PixelTestDialog::OnTimer1Trigger);
+    Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&PixelTestDialog::OnClose);
     //*)
 
     SetSize(wxSystemSettings::GetMetric(wxSYS_SCREEN_X) * 3 / 4, wxSystemSettings::GetMetric(wxSYS_SCREEN_Y) * 3 / 4);
@@ -1519,6 +1570,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
 
     PopulateOutputTree(_outputManager);
     PopulateModelTree(_modelManager);
+    PopulateVisualModelTree(_modelManager);
     PopulateModelGroupTree(_modelManager);
     PopulateControllerTree(_outputManager, _modelManager);
     DeactivateNotClickableModels(TreeListCtrl_Outputs);
@@ -1806,6 +1858,222 @@ void PixelTestDialog::PopulateControllerTree(OutputManager* outputManager, Model
 }
 #pragma endregion
 
+#pragma region VisualModelTab
+void PixelTestDialog::PopulateVisualModelTree(ModelManager* modelManager)
+{
+    _modelPreview = new ModelPreview(Panel_VisualModel);
+    _modelPreview->SetMinSize(wxSize(150, 150));
+    FlexGridSizer_VisualModelSizer->Add(_modelPreview, 1, wxALL | wxEXPAND, 0);
+    FlexGridSizer_VisualModelSizer->Fit(Panel_VisualModel);
+    FlexGridSizer_VisualModelSizer->SetSizeHints(Panel_VisualModel);
+
+    _modelPreview->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&PixelTestDialog::OnPreviewLeftDown, nullptr, this);
+    _modelPreview->Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&PixelTestDialog::OnPreviewLeftUp, nullptr, this);
+    _modelPreview->Connect(wxEVT_MOTION, (wxObjectEventFunction)&PixelTestDialog::OnPreviewMouseMove, nullptr, this);
+    _modelPreview->Connect(wxEVT_LEAVE_WINDOW, (wxObjectEventFunction)&PixelTestDialog::OnPreviewMouseLeave, nullptr, this);
+    _modelPreview->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&PixelTestDialog::OnPreviewLeftDClick, nullptr, this);
+
+    std::list<std::string> modelNames;
+    for (const auto& it : *_modelManager) {
+        Model* m = it.second;
+
+        if (m->GetDisplayAs() != "ModelGroup") {
+            modelNames.push_back(m->GetName());
+        }
+    }
+    modelNames.sort(stdlistNumberAwareStringCompare);
+
+    Choice_VisualModel->Clear();
+    for (const auto& it : modelNames) {
+        Choice_VisualModel->AppendString(it);
+    }
+    if (Choice_VisualModel->GetCount() > 0) {
+        Choice_VisualModel->SetSelection(0);
+        SelectVisualModel(modelNames.front());
+    }
+}
+
+void PixelTestDialog::SelectVisualModel(const std::string& model)
+{
+    Model* m = _modelManager->GetModel(model);
+    _modelPreview->SetModel(m);
+
+    UpdateVisualModelFromTracker();
+    RenderModel();
+}
+
+void PixelTestDialog::UpdateVisualModelFromTracker()
+{
+    Model* m = _modelManager->GetModel(Choice_VisualModel->GetStringSelection());
+
+    if (m != nullptr) {
+        xlColor c(xlDARK_GREY);
+        xlColor cc(xlWHITE);
+        int nn = m->GetNodeCount();
+        for (int node = 0; node < nn; node++) {
+            auto n = m->GetNode(node);
+            bool on = false;
+            if (n != nullptr) {
+                for (uint8_t c = 0; c < m->GetChanCountPerNode() && !on; ++c) {
+                    on = on || _channelTracker.IsChannelOn(n->ActChan + c + 1);
+                }
+            }
+            if (on) {
+                m->SetNodeColor(node, cc);
+            } else {
+                m->SetNodeColor(node, c);
+            }
+        }
+    }
+}
+
+void PixelTestDialog::OnPreviewLeftUp(wxMouseEvent& event)
+{
+    if (m_creating_bound_rect) {
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_end_x = ray_origin.x;
+        m_bound_end_y = ray_origin.y;
+
+        m_creating_bound_rect = false;
+        SelectAllInBoundingRect(event.ShiftDown());
+
+        _modelPreview->ReleaseMouse();
+    }
+}
+
+void PixelTestDialog::OnPreviewMouseLeave(wxMouseEvent& event)
+{
+    RenderModel();
+}
+
+void PixelTestDialog::OnPreviewLeftDown(wxMouseEvent& event)
+{
+    m_creating_bound_rect = true;
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+    m_bound_start_x = ray_origin.x;
+    m_bound_start_y = ray_origin.y;
+    m_bound_end_x = m_bound_start_x;
+    m_bound_end_y = m_bound_start_y;
+
+    // Capture the mouse; this will keep it selecting even if the
+    //  user temporarily leaves the preview area...
+    _modelPreview->CaptureMouse();
+}
+
+void PixelTestDialog::OnPreviewLeftDClick(wxMouseEvent& event)
+{
+    Model* model = _modelManager->GetModel(Choice_VisualModel->GetStringSelection());
+    if (model != nullptr) {
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        int x = ray_origin.x;
+        int y = ray_origin.y;
+
+        auto stNode = model->GetNodeNear(_modelPreview, wxPoint(x, y), false);
+        if (stNode.IsEmpty())
+            return;
+
+        auto node = wxAtoi(stNode) - 1;
+        auto n = model->GetNode(node);
+
+        if (n != nullptr) {
+            bool on = false;
+            for (uint8_t c = 0; c < model->GetChanCountPerNode() && !on; ++c) {
+                on = on || _channelTracker.IsChannelOn(n->ActChan + c + 1);
+            }
+
+            if (on) {
+                _channelTracker.RemoveRange(n->ActChan + 1, n->ActChan + model->GetChanCountPerNode());
+            }
+            else {
+                _channelTracker.AddRange(n->ActChan + 1, n->ActChan + model->GetChanCountPerNode());
+            }
+            UpdateVisualModelFromTracker();
+            RenderModel();
+            _checkChannelList = true;
+        }
+    }
+}
+
+void PixelTestDialog::OnPreviewMouseMove(wxMouseEvent& event)
+{
+    event.ResumePropagation(1);
+    event.Skip();
+    if (m_creating_bound_rect) {
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_end_x = ray_origin.x;
+        m_bound_end_y = ray_origin.y;
+        RenderModel();
+    }
+}
+
+void PixelTestDialog::RenderModel()
+{
+    if (_modelPreview == nullptr || !_modelPreview->StartDrawing(mPointSize))
+        return;
+
+    Model* model = _modelManager->GetModel(Choice_VisualModel->GetStringSelection());
+    if (model != nullptr) {
+        if (m_creating_bound_rect) {
+            _modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
+        }
+        model->DisplayEffectOnWindow(_modelPreview, mPointSize);
+        _modelPreview->EndDrawing();
+    }
+}
+
+void PixelTestDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
+{
+    // Trim the mouse location to the preview area
+    //   (It can go outside this area if the button is down and the mouse
+    //    has been captured.)
+    x = std::max(x, 0);
+    y = std::max(y, 0);
+    x = std::min(x, _modelPreview->getWidth());
+    y = std::min(y, _modelPreview->getHeight());
+
+    VectorMath::ScreenPosToWorldRay(
+        x, _modelPreview->getHeight() - y,
+        _modelPreview->getWidth(), _modelPreview->getHeight(),
+        _modelPreview->GetProjViewMatrix(),
+        ray_origin,
+        ray_direction);
+}
+
+void PixelTestDialog::SelectAllInBoundingRect(bool shiftDwn)
+{
+    Model* model = _modelManager->GetModel(Choice_VisualModel->GetStringSelection());
+    if (model != nullptr) {
+        std::vector<wxRealPoint> pts;
+        std::vector<int> nodes = model->GetNodesInBoundingBox(_modelPreview, wxPoint(m_bound_start_x, m_bound_start_y), wxPoint(m_bound_end_x, m_bound_end_y));
+        if (nodes.size() == 0)
+            return;
+
+        for (auto const& n : nodes) {
+            auto nn = model->GetNode(n-1);
+            if (nn != nullptr) {
+                if (shiftDwn) {
+                    _channelTracker.RemoveRange(nn->ActChan + 1, nn->ActChan + model->GetChanCountPerNode());
+                } else {
+                    _channelTracker.AddRange(nn->ActChan + 1, nn->ActChan + model->GetChanCountPerNode());
+                }
+            }
+        }
+
+        UpdateVisualModelFromTracker();
+        RenderModel();
+        _checkChannelList = true;
+    }
+}
+#pragma endregion
+
 #pragma region ModelTab
 void PixelTestDialog::PopulateModelTree(ModelManager* modelManager)
 {
@@ -2035,6 +2303,8 @@ void PixelTestDialog::OnContextMenu(wxTreeListEvent& event)
     mnuContext.Append(ID_MNU_TEST_DESELECTALL, "Deselect All");
     mnuContext.Append(ID_MNU_TEST_SELECTN, "Select Many");
     mnuContext.Append(ID_MNU_TEST_DESELECTN, "Deselect Many");
+    if (_rcTree == TreeListCtrl_Controllers)
+        mnuContext.Append(ID_MNU_TEST_NUMBER, "Number");
 
     mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&PixelTestDialog::OnListPopup, nullptr, this);
     PopupMenu(&mnuContext);
@@ -2138,6 +2408,155 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
 
                     selected = tree->GetNextSibling(selected);
                     count--;
+                }
+            }
+        }
+    } else if (id == ID_MNU_TEST_NUMBER) {
+        if (selected.IsOk()) {
+            TestItemBase* tc = (TestItemBase*)tree->GetItemData(selected);
+
+            if (tc->IsClickable()) {
+                if (tc->GetType() == "Controller") {
+                    // controller
+                    for (auto p = tree->GetFirstChild(selected); p != nullptr; p = tree->GetNextSibling(p)) {
+                        tc = (TestItemBase*)tree->GetItemData(p);
+                        uint16_t port = ((CPR_PortTestItem*)tc)->GetPort();
+                        uint16_t pixel = 0;
+                        for (auto srporm = tree->GetFirstChild(p); srporm != nullptr; srporm = tree->GetNextSibling(srporm)) {
+                            tc = (TestItemBase*)tree->GetItemData(srporm);
+                            if (tc->GetType() == "SR") {
+                                for (auto m = tree->GetFirstChild(srporm); m != nullptr; m = tree->GetNextSibling(m)) {
+                                    for (auto px = tree->GetFirstChild(m); px != nullptr; px = tree->GetNextSibling(px)) {
+                                        tc = (TestItemBase*)tree->GetItemData(px);
+                                        if (tc != nullptr) {
+                                            if (pixel < port) {
+                                                tree->CheckItem(px, wxCHK_CHECKED);
+                                                _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                                RollUpAll(tree, px);
+                                            } else {
+                                                tree->CheckItem(px, wxCHK_UNCHECKED);
+                                                _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                                RollUpAll(tree, px);
+                                            }
+                                            ++pixel;
+                                        } else {
+                                            ModelTestItem* tm = (ModelTestItem*)tree->GetItemData(m);
+                                            if (pixel < port) {
+                                                tree->CheckItem(px, wxCHK_CHECKED);
+                                                auto ep = std::min(tm->GetLastChannel(), tm->GetFirstChannel() + (port - pixel) * tm->GetChannelsPerNode() - 1);
+                                                _channelTracker.AddRange(tm->GetFirstChannel(), ep);
+                                                if (ep != tm->GetLastChannel()) {
+                                                    _channelTracker.RemoveRange(ep + 1, tm->GetLastChannel());
+                                                }
+                                                pixel += (ep - tm->GetFirstChannel() + 1) / tm->GetChannelsPerNode();
+                                                RollUpAll(tree, px);
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                for (auto px = tree->GetFirstChild(srporm); px != nullptr; px = tree->GetNextSibling(px)) {
+                                    tc = (TestItemBase*)tree->GetItemData(px);
+                                    if (tc != nullptr) {
+                                        if (pixel < port) {
+                                            tree->CheckItem(px, wxCHK_CHECKED);
+                                            _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                            RollUpAll(tree, px);
+                                        } else {
+                                            tree->CheckItem(px, wxCHK_UNCHECKED);
+                                            _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                            RollUpAll(tree, px);
+                                        }
+                                        ++pixel;
+                                    } else {
+                                        ModelTestItem* tm = (ModelTestItem*)tree->GetItemData(srporm);
+                                        if (pixel < port) {
+                                            tree->CheckItem(px, wxCHK_CHECKED);
+                                            auto ep = std::min(tm->GetLastChannel(), tm->GetFirstChannel() + (port - pixel) * tm->GetChannelsPerNode() - 1);
+                                            _channelTracker.AddRange(tm->GetFirstChannel(), ep);
+                                            if (ep != tm->GetLastChannel()) {
+                                                _channelTracker.RemoveRange(ep + 1, tm->GetLastChannel());
+                                            }
+                                            pixel += (ep - tm->GetFirstChannel() + 1) / tm->GetChannelsPerNode();
+                                            RollUpAll(tree, px);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // port / Node
+                    // move up to the port
+                    while (tc != nullptr && tc->GetType() != "Port") {
+                        selected = tree->GetItemParent(selected);
+                        tc = (TestItemBase*)tree->GetItemData(selected);
+                    }
+                    uint16_t port = ((CPR_PortTestItem*)tc)->GetPort();
+                    uint16_t pixel = 0;
+
+                    for (auto srporm = tree->GetFirstChild(selected); srporm != nullptr; srporm = tree->GetNextSibling(srporm)) {
+                        tc = (TestItemBase*)tree->GetItemData(srporm);
+                        if (tc->GetType() == "SR") {
+                            for (auto m = tree->GetFirstChild(srporm); m != nullptr; m = tree->GetNextSibling(m)) {
+                                for (auto px = tree->GetFirstChild(m); px != nullptr; px = tree->GetNextSibling(px)) {
+                                    tc = (TestItemBase*)tree->GetItemData(px);
+                                    if (tc != nullptr) {
+                                        if (pixel < port) {
+                                            tree->CheckItem(px, wxCHK_CHECKED);
+                                            _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                            RollUpAll(tree, px);
+                                        } else {
+                                            tree->CheckItem(px, wxCHK_UNCHECKED);
+                                            _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                            RollUpAll(tree, px);
+                                        }
+                                        ++pixel;
+                                    } else {
+                                        ModelTestItem* tm = (ModelTestItem*)tree->GetItemData(m);
+                                        if (pixel < port) {
+                                            tree->CheckItem(px, wxCHK_CHECKED);
+                                            auto ep = std::min(tm->GetLastChannel(), tm->GetFirstChannel() + (port - pixel) * tm->GetChannelsPerNode() - 1);
+                                            _channelTracker.AddRange(tm->GetFirstChannel(), ep);
+                                            if (ep != tm->GetLastChannel()) {
+                                                _channelTracker.RemoveRange(ep + 1, tm->GetLastChannel());
+                                            }
+                                            pixel += (ep - tm->GetFirstChannel() + 1) / tm->GetChannelsPerNode();
+                                            RollUpAll(tree, px);
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            for (auto px = tree->GetFirstChild(srporm); px != nullptr; px = tree->GetNextSibling(px)) {
+                                tc = (TestItemBase*)tree->GetItemData(px);
+                                if (tc != nullptr) {
+                                    if (pixel < port) {
+                                        tree->CheckItem(px, wxCHK_CHECKED);
+                                        _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                        RollUpAll(tree, px);
+                                    } else {
+                                        tree->CheckItem(px, wxCHK_UNCHECKED);
+                                        _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                                        RollUpAll(tree, px);
+                                    }
+                                    ++pixel;
+                                } else {
+                                    ModelTestItem* tm = (ModelTestItem*)tree->GetItemData(srporm);
+                                    if (pixel < port) {
+                                        tree->CheckItem(px, wxCHK_CHECKED);
+                                        auto ep = std::min(tm->GetLastChannel(), tm->GetFirstChannel() + (port - pixel) * tm->GetChannelsPerNode() - 1);
+                                        _channelTracker.AddRange(tm->GetFirstChannel(), ep);
+                                        if (ep != tm->GetLastChannel()) {
+                                            _channelTracker.RemoveRange(ep + 1, tm->GetLastChannel());
+                                        }
+                                        pixel += (ep - tm->GetFirstChannel() + 1) / tm->GetChannelsPerNode();
+                                        RollUpAll(tree, px);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -2568,7 +2987,7 @@ void PixelTestDialog::OnTimer(long curtime)
     static int LastBgIntensity, LastFgIntensity, LastBgColor[3], LastFgColor[3], *ShimColor, ShimIntensity;
     static int LastSequenceSpeed;
     static int LastTwinkleRatio;
-    static int LastAutomatedTest;
+    //static int LastAutomatedTest;
     static long NextSequenceStart = -1;
     static TestFunctions LastFunc = PixelTestDialog::TestFunctions::OFF;
     static unsigned int interval, rgbCycle, TestSeqIdx;
@@ -2577,6 +2996,7 @@ void PixelTestDialog::OnTimer(long curtime)
     int v, BgColor[3], FgColor[3];
     unsigned int i;
     bool ColorChange;
+    bool fiftieth = CheckBox_Tag50th->GetValue();
 
     int NotebookSelection = Notebook2->GetSelection();
     if (NotebookSelection != LastNotebookSelection) {
@@ -2618,7 +3038,7 @@ void PixelTestDialog::OnTimer(long curtime)
         LastSequenceSpeed = -1;
         LastBgIntensity = -1;
         LastFgIntensity = -1;
-        LastAutomatedTest = -1;
+        //LastAutomatedTest = -1;
         LastTwinkleRatio = -1;
         for (i = 0; i < 3; i++) {
             LastBgColor[i] = -1;
@@ -2817,7 +3237,7 @@ void PixelTestDialog::OnTimer(long curtime)
                 BgColor[1] = sin(frequency * TestSeqIdx + 2.0) * 127 + 128;
                 BgColor[2] = sin(frequency * TestSeqIdx + 4.0) * 127 + 128;
                 TestSeqIdx++;
-                for (i = 0; i < chArray.Count(); i++) {
+                for (i = 0; i < chArray.Count(); ++i) {
                     _outputManager->SetOneChannel(chArray[i] - 1, BgColor[i % 3]);
                 }
             } else if (testFunc == PixelTestDialog::TestFunctions::RGBW) {
@@ -2877,6 +3297,15 @@ void PixelTestDialog::OnTimer(long curtime)
                     }
                     rgbCycle = (rgbCycle + 1) % _chaseGrouping;
                     NextSequenceStart += interval;
+                }
+            }
+
+            // we set the 50th pixel to white at 50%
+            if (fiftieth) {
+                for (i = 3 * (50 - 1); i < chArray.Count(); i += 150) {
+                    for (uint8_t j = 0; j < 3; j++) {
+                        _outputManager->SetOneChannel(chArray[i + j] - 1, 128);
+                    }
                 }
             }
             break;
@@ -3201,6 +3630,22 @@ void PixelTestDialog::SetSuspend(bool suspend)
 void PixelTestDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
 {
     // need to go through all items in the tree on the selected page and update them based on channels
-    wxTreeListCtrl* tree = event.GetSelection() == 0 ? TreeListCtrl_Outputs : event.GetSelection() == 1 ? TreeListCtrl_ModelGroups : TreeListCtrl_Models;
-    SetCheckBoxItemFromTracker(tree, tree->GetRootItem(), wxCheckBoxState::wxCHK_UNCHECKED);
+    wxTreeListCtrl* tree = (event.GetSelection() == 0 ? TreeListCtrl_Outputs : (event.GetSelection() == 1 ? TreeListCtrl_ModelGroups : (event.GetSelection() == 2 ? TreeListCtrl_Models : (event.GetSelection() == 4 ? TreeListCtrl_Controllers : nullptr))));
+    if (tree != nullptr) {
+        SetCheckBoxItemFromTracker(tree, tree->GetRootItem(), wxCheckBoxState::wxCHK_UNCHECKED);
+    }
+    else
+    {
+        UpdateVisualModelFromTracker();
+        RenderModel();
+    }
+}
+
+void PixelTestDialog::OnCheckBox_Tag50thClick(wxCommandEvent& event)
+{
+}
+
+void PixelTestDialog::OnChoice_VisualModelSelect(wxCommandEvent& event)
+{
+    SelectVisualModel(Choice_VisualModel->GetStringSelection().ToStdString());
 }

@@ -15,7 +15,6 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-
 #include "../../include/spirograph-16.xpm"
 #include "../../include/spirograph-24.xpm"
 #include "../../include/spirograph-32.xpm"
@@ -59,7 +58,7 @@ void SpirographEffect::SetDefaultParameters()
     SetSliderValue(sp->Slider_Spirograph_Width, 1);
 }
 
-void SpirographEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer) {
+void SpirographEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 
@@ -127,7 +126,7 @@ void SpirographEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBu
         buffer.palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
 
         buffer.palette.GetHSV(0, hsv0);
-        ColorIdx = (state + rand()) % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+        ColorIdx = (colorcnt > 0) ? (state + rand()) % colorcnt : 0; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
         buffer.palette.GetHSV(ColorIdx, hsv1); // Now go and get the hsv value for this ColorIdx
 
         // work out the normal to the point being drawn

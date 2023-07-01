@@ -42,10 +42,12 @@ class FPP : public BaseController
     std::string model;
     uint32_t majorVersion = 0;
     uint32_t minorVersion = 0;
+    uint32_t patchVersion = 0;
     std::string ranges;
     std::string mode;
     std::string pixelControllerType;
     std::string panelSize;
+    std::string uuid = "";
 
     std::string proxy;
     std::set<std::string> proxies;
@@ -74,7 +76,7 @@ class FPP : public BaseController
     bool IsMultiSyncEnabled();
     bool IsDDPInputEnabled();
 
-    bool IsVersionAtLeast(uint32_t maj, uint32_t min) const;
+    bool IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch = 0) const;
     bool IsDrive();
 
 #ifndef DISCOVERYONLY
@@ -125,7 +127,7 @@ class FPP : public BaseController
 
 #ifndef DISCOVERYONLY
     wxJSONValue CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
-    static std::string CreateVirtualDisplayMap(ModelManager* allmodels, bool center0);
+    static std::string CreateVirtualDisplayMap(ModelManager* allmodels);
     static wxJSONValue CreateUniverseFile(const std::list<Controller*>& controllers, bool input, std::map<int, int> *rngs = nullptr);
     static wxJSONValue CreateUniverseFile(Controller* controller, bool input);
 #endif
@@ -155,14 +157,22 @@ private:
     int PostJSONToURLAsFormData(const std::string& url, const std::string &extra, const wxJSONValue& val);
     int PostToURL(const std::string& url, const std::string &val, const std::string &contentType = "application/octet-stream");
     int PostToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType = "application/octet-stream");
+    int PutToURL(const std::string& url, const std::string &val, const std::string &contentType = "application/octet-stream");
+    int PutToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType = "application/octet-stream");
+    int TransferToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType, bool isPost);
+
     bool uploadOrCopyFile(const std::string &filename,
                           const std::string &file,
                           const std::string &dir);
     bool uploadFile(const std::string &filename,
                     const std::string &file);
+    bool uploadFileV7(const std::string &filename,
+                      const std::string &file,
+                      const std::string &dir);
     bool copyFile(const std::string &filename,
                   const std::string &file,
                   const std::string &dir);
+    bool callMoveFile(const std::string &filename);
 
     bool parseSysInfo(wxJSONValue& v);
     void parseControllerType(wxJSONValue& v);
@@ -181,7 +191,7 @@ private:
     std::string baseSeqName;
     FSEQFile *outputFile = nullptr;
 
-    void setupCurl();
+    void setupCurl(int timeout = 30000);
     CURL *curl = nullptr;
     std::string curlInputBuffer;
     

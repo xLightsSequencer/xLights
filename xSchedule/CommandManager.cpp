@@ -89,23 +89,23 @@ std::string Command::GetParametersTip() const
     return tip;
 }
 
-size_t Command::GetMandatoryParametersCount() const
+std::tuple<size_t,size_t> Command::GetMandatoryParametersCount() const
 {
-    size_t count = 0;
+    size_t mcount{ 0};
     for (const auto it : _parmtype) {
         if (it != PARMTYPE::OPTIONALSTRING)
-            count++;
+            mcount++;
     }
-    return count;
+    return {mcount, _parmtype.size()};
 }
 
 #ifndef EXCLUDE_COMMAND_VALIDATION
 bool Command::IsValid(wxString parms, PlayList* selectedPlayList, PlayListStep* selectedPlayListStep, Schedule* selectedSchedule, ScheduleManager* scheduleManager, wxString& msg, bool queuedMode) const
 {
     auto components = wxSplit(parms, ',');
-
-    if (_parms != -1 && components.Count() != GetMandatoryParametersCount()) {
-        msg = wxString::Format("Invalid number of parameters. Found %d when there should be %d.", (int)components.Count(), GetMandatoryParametersCount()).ToStdString();
+    auto [minp, maxp ] = GetMandatoryParametersCount();
+    if (_parms != -1 && (minp > components.Count() || maxp < components.Count())) {
+        msg = wxString::Format("Invalid number of parameters. Found %d when there should be between %d and %d.", (int)components.Count(), (int)minp, (int)maxp).ToStdString();
         return false;
     }
 
@@ -364,6 +364,7 @@ CommandManager::CommandManager()
 
     _commands.push_back(new Command("Set pixels", 2, ss, false, false, false, false, false, true, true, false, true)); // <set channels name>,<base64 encoded data>, <properties>
     _commands.push_back(new Command("Set pixel range", 4, iiss, false, false, false, false, false, true, true, false, true)); // <startchannel>,<channels>,<color>,<blendmode>
+    _commands.push_back(new Command("Clear all overlays", 0, {}, false, false, false, false, false, true, true, false, false)); // remove all the overlay channels set with either 'Set pixels' or 'Set pixel range'
 
     _commands.push_back(new Command("Run process", 3, plstit, false, false, false, false, false, true, true, true, false));
 

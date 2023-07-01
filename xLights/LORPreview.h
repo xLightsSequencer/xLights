@@ -38,6 +38,7 @@
 
 class Model;
 class xLightsFrame;
+class wxPoint;
 
 struct S5Point {
 
@@ -99,7 +100,6 @@ struct S5Group {
     std::vector<wxString> modelIds;
 
     bool ParseXML(wxXmlNode* g);
-
 };
 
 class LORPreview {
@@ -140,6 +140,12 @@ private:
     S5Point GetXLightsSizeFromScale( S5Point const& scale, int pvwW, int pvwH ) const;
 
     void CreateGroup(S5Group const& grp, std::vector < S5Model > const& models);
+
+    void BulbToCustomModel(S5Model const& model, Model* m, int pvwW, int pvwH) const;
+    void ScaleBulbToXLights(S5Point center, S5Point size, int scale, Model* m, int pvwW, int pvwH) const;
+    bool FindBulbModelScale(int scale, std::vector<S5Point> const& bulbs) const;
+    std::pair<S5Point, S5Point> GetMinMax(std::vector<S5Point> const& bulbs) const;
+    std::vector<wxPoint> ScaleBulbs(std::vector<S5Point> const& bulbs, int scale, wxPoint offset) const;
 
 #ifdef _DEBUG
     void RunTests();

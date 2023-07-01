@@ -44,6 +44,8 @@ public:
             if (!buffer->gpuRenderData) {
                 buffer->gpuRenderData = new MetalRenderBufferComputeData(buffer, pbc);
             }
+            MetalRenderBufferComputeData *mrbcd = static_cast<MetalRenderBufferComputeData*>(buffer->gpuRenderData);
+            mrbcd->bufferResized();
         }
     }
     virtual void doWaitForRenderCompletion(RenderBuffer *c) override {
@@ -65,6 +67,16 @@ public:
         }
         return false;
     }
+    virtual bool doRotoZoom(RenderBuffer *c, RotoZoomSettings &settings) override {
+        if (c->gpuRenderData) {
+            MetalRenderBufferComputeData *d = static_cast<MetalRenderBufferComputeData*>(c->gpuRenderData);
+            return d->rotoZoom(settings);
+        }
+        return false;
+    }
+    virtual void setPrioritizeGraphics(bool p) override {
+        MetalComputeUtilities::INSTANCE.prioritizeGraphics(p);
+    }
 
     bool isEnabled = true;
 };
@@ -77,6 +89,8 @@ RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
         switch (eff) {
         case EffectManager::eff_BUTTERFLY:
             return new MetalButterflyEffect(eff);
+        case EffectManager::eff_PLASMA:
+            return new MetalPlasmaEffect(eff);
         case EffectManager::eff_WARP:
             return new MetalWarpEffect(eff);
         default:

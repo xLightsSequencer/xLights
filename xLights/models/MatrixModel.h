@@ -19,15 +19,17 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual ~MatrixModel();
         virtual int GetNumStrands() const override;
 
-        virtual bool StrandsZigZagOnString() const override { return true;};
+        virtual bool StrandsZigZagOnString() const override { return true; }
 
+        bool SupportsChangingStringCount() const override{ return true; };
+        bool ChangeStringCount(long count, std::string& message) override;
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual std::list<std::string> CheckModelSettings() override;
         virtual bool SupportsLowDefinitionRender() const override

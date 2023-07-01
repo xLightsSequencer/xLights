@@ -11,7 +11,7 @@
 #include "Shaders/SIMDMathUtilities.h"
 #include "../xlMesh.h"
 
-xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> t) : xlGraphicsContext(c),  canvas(c), target(t) {
+xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> t, bool enqueImmediate) : xlGraphicsContext(c),  canvas(c), target(t) {
     id<MTLTexture> localTarget = t;
     if (target == nil) {
         id<CAMetalDrawable> d2 = [c->getMTKView() currentDrawable];
@@ -29,9 +29,12 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
         buffer = [c->getMTLCommandQueue() commandBuffer];
         
         std::string n2 = c->getName() + " CommandBuffer";
-        NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+        NSString *n = [NSString stringWithUTF8String:n2.c_str()];
         [buffer setLabel:n];
-        
+        if (enqueImmediate) {
+            [buffer enqueue];
+        }
+
         MTLRenderPassDescriptor *renderPass = [[MTLRenderPassDescriptor alloc] init];
 
         renderPass.colorAttachments[0].texture = localTarget;
@@ -65,7 +68,7 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
         
         encoder = [buffer renderCommandEncoderWithDescriptor:renderPass];
         n2 = c->getName() + " Encoder";
-        n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+        n = [NSString stringWithUTF8String:n2.c_str()];
         [encoder setLabel:n];
         
         if (c->RequiresDepthBuffer()) {
@@ -83,6 +86,9 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(xlMetalCanvas *c, id<MTLTexture> 
         frameData.pointSmoothMin = 0.25;
         frameData.pointSmoothMax = 0.5;
         frameData.brightness = 1.0;
+        frameData.renderType = RenderTypeNormal;
+        frameData.useViewMatrix = false;
+        frameDataChanged = true;
     } else {
         buffer = nil;
         encoder = nil;
@@ -205,20 +211,20 @@ public:
     }
     virtual void FlushRange(uint32_t start, uint32_t len) override {
         if (buffer && (!finalized || mayChange)) {
-            uint32_t s = start * sizeof(simd_float4);
-            uint32_t l = len * sizeof(simd_float4);
+            uint32_t s = start * sizeof(simd_float3);
+            uint32_t l = len * sizeof(simd_float3);
             [buffer didModifyRange:NSMakeRange(s, l)];
         }
     }
 
 
     void SetBufferBytes(id<MTLDevice> device, id<MTLRenderCommandEncoder> encoder, int index) {
-        int sz = count * sizeof(simd_float4);
+        int sz = count * sizeof(simd_float3);
         if (finalized) {
             if (!buffer) {
                 buffer = [device newBufferWithBytes:&vertices[0] length:(sizeof(simd_float3) * count) options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [buffer setLabel:n];
                 if (mayChange) {
                     bufferVertices = (simd_float3 *)buffer.contents;
@@ -230,7 +236,7 @@ public:
             if (!buffer) {
                 buffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [buffer setLabel:n];
                 bufferVertices = (simd_float3 *)buffer.contents;
                 bufferCount = count;
@@ -371,7 +377,7 @@ public:
             if (!vbuffer) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
                 if (mayChangeVertices) {
                     bufferVertices = (simd_float3 *)vbuffer.contents;
@@ -382,7 +388,7 @@ public:
             if (vbuffer == nil) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
                 bufferVertices = (simd_float3 *)vbuffer.contents;
                 bufferCount = count;
@@ -397,7 +403,7 @@ public:
             if (!cbuffer) {
                 cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Colors";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [cbuffer setLabel:n];
                 if (mayChangeColors) {
                     bufferColors = (simd_uchar4 *)cbuffer.contents;
@@ -408,7 +414,7 @@ public:
             if (cbuffer == nil) {
                 cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Colors";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [cbuffer setLabel:n];
                 bufferColors = (simd_uchar4 *)cbuffer.contents;
                 bufferCount = count;
@@ -587,7 +593,7 @@ public:
             if (!vbuffer) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
                 if (mayChangeVertices) {
                     bufferVertices = (IndexedColorVertex *)vbuffer.contents;
@@ -599,7 +605,7 @@ public:
             if (vbuffer == nil) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
                 bufferVertices = (IndexedColorVertex *)vbuffer.contents;
                 vbufferCount = count;
@@ -615,11 +621,11 @@ public:
                 //cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeManaged];
                 cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeShared];
                 std::string n2 = name + " Colors";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [cbuffer setLabel:n];
                 if (mayChangeColors) {
                     bufferColors = (simd_uchar4 *)cbuffer.contents;
-                    cbufferCount = count;
+                    cbufferCount = colors.size();
                 }
             }
             [encoder setVertexBuffer:cbuffer offset:0 atIndex:indexC];
@@ -627,10 +633,10 @@ public:
             if (cbuffer == nil) {
                 cbuffer = [device newBufferWithBytes:&colors[0] length:sz options:MTLResourceStorageModeShared];
                 std::string n2 = name + " Colors";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [cbuffer setLabel:n];
                 bufferColors = (simd_uchar4 *)cbuffer.contents;
-                cbufferCount = count;
+                cbufferCount = colors.size();
             }
             [encoder setVertexBuffer:cbuffer offset:0 atIndex:indexC];
         } else {
@@ -754,7 +760,7 @@ public:
             if (!vbuffer) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
                 if (mayChangeVertices) {
                     bufferVertices = (simd_float3 *)vbuffer.contents;
@@ -765,7 +771,7 @@ public:
             if (vbuffer == nil) {
                 vbuffer = [device newBufferWithBytes:&vertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [vbuffer setLabel:n];
                 bufferVertices = (simd_float3 *)vbuffer.contents;
                 bufferCount = count;
@@ -780,7 +786,7 @@ public:
             if (!tbuffer) {
                 tbuffer = [device newBufferWithBytes:&tvertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Texture Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [tbuffer setLabel:n];
                 if (mayChangeTextures) {
                     bufferTexture = (simd_float2 *)tbuffer.contents;
@@ -791,7 +797,7 @@ public:
             if (tbuffer == nil) {
                 tbuffer = [device newBufferWithBytes:&tvertices[0] length:sz options:MTLResourceStorageModeManaged];
                 std::string n2 = name + " Texture Vertices";
-                NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+                NSString *n = [NSString stringWithUTF8String:n2.c_str()];
                 [tbuffer setLabel:n];
                 bufferTexture = (simd_float2 *)tbuffer.contents;
                 bufferCount = count;
@@ -886,7 +892,7 @@ public:
             texture = srcTexture;
             
             std::string n2 = name + " Texture";
-            NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+            NSString *n = [NSString stringWithUTF8String:n2.c_str()];
             [texture setLabel:n];
 
             textureSize = MTLSizeMake(w, h, 1);
@@ -958,7 +964,7 @@ public:
             description.storageMode = MTLStorageModePrivate;
             id <MTLTexture> privateTexture = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
             std::string n2 = name + " Texture";
-            NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+            NSString *n = [NSString stringWithUTF8String:n2.c_str()];
             [privateTexture setLabel:n];
 
             // Encode a blit pass to copy data from the source texture to the private texture.
@@ -1272,7 +1278,7 @@ public:
         }
 
         std::string n2 = name + " Vertices";
-        NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+        NSString *n = [NSString stringWithUTF8String:n2.c_str()];
         [vbuffer setLabel:n];
         sz = indexes.size() * sizeof(uint32_t);
         if (sz == 0) {
@@ -1281,7 +1287,7 @@ public:
             ibuffer = [wxMetalCanvas::getMTLDevice() newBufferWithBytes:&indexes[0] length:sz options:MTLResourceStorageModeManaged];
         }
         n2 = name + " Indexes";
-        n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+        n = [NSString stringWithUTF8String:n2.c_str()];
         [ibuffer setLabel:n];
     }
 
@@ -1312,14 +1318,16 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
 
 
     std::string n2 = xlm->GetName() + " Solids";
-    NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+    NSString *n = [NSString stringWithUTF8String:n2.c_str()];
     [encoder pushDebugGroup:n];
 
     [encoder setVertexBuffer:xlm->vbuffer offset:0 atIndex:BufferIndexMeshPositions];
     
+    frameData.renderType = RenderTypeNormal;
     frameData.brightness = brightness;
     frameData.brightness /= 100.0;
     frameData.useViewMatrix = useViewMatrix;
+    frameDataChanged = false;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
     
     [encoder setDepthStencilState:canvas->getDepthStencilStateL()];
@@ -1363,7 +1371,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brig
         }
     }
     if (!lastIsSolid) {
-        lastIsSolid = true;
+        //lastIsSolid = true;
         [encoder setRenderPipelineState:solidPS];
     }
     if (xlm->linesCount) {
@@ -1390,19 +1398,19 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshTransparents(xlMesh *mesh, in
     if (xlm->vbuffer == nil) {
         xlm->LoadBuffers();
     }
-    frameData.brightness = brightness;
-    frameData.brightness /= 100.0;
 
     setPipelineState("meshSolidProgram", "meshVertexShader", "meshSolidFragmentShader");
     id<MTLRenderPipelineState> texturePS = canvas->getPipelineState("meshTextureProgram", "meshVertexShader", "meshTextureFragmentShader", blending);
     id<MTLRenderPipelineState> solidPS = canvas->getPipelineState("meshSolidProgram", "meshVertexShader", "meshSolidFragmentShader", blending);
 
     std::string n2 = xlm->GetName() + " Transparents";
-    NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+    NSString *n = [NSString stringWithUTF8String:n2.c_str()];
     [encoder pushDebugGroup:n];
     [encoder setVertexBuffer:xlm->vbuffer offset:0 atIndex:BufferIndexMeshPositions];
+    frameData.renderType = RenderTypeNormal;
     frameData.brightness = brightness;
     frameData.brightness /= 100.0;
+    frameDataChanged = false;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
     [encoder setDepthStencilState:canvas->getDepthStencilStateL()];
 
@@ -1432,7 +1440,6 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshTransparents(xlMesh *mesh, in
                 }
                 if (!simd_equal(color, frameData.fragmentColor)) {
                     frameData.fragmentColor = color;
-                    [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
                 }
                 [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
             }
@@ -1458,7 +1465,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshWireframe(xlMesh *mesh, int b
     }
     setPipelineState("meshWireframeProgram", "meshWireframeVertexShader", "meshSolidFragmentShader");
     std::string n2 = m->GetName() + " Wireframe";
-    NSString *n = [NSString stringWithCString:n2.c_str() encoding:[NSString defaultCStringEncoding]];
+    NSString *n = [NSString stringWithUTF8String:n2.c_str()];
     [encoder pushDebugGroup:n];
 
     [encoder setVertexBuffer:m->vbuffer offset:0 atIndex:BufferIndexMeshPositions];
@@ -1466,6 +1473,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshWireframe(xlMesh *mesh, int b
     frameData.brightness = brightness;
     frameData.brightness /= 100.0;
     frameData.fragmentColor = {0.0, 1.0, 0.0, 1.0};
+    frameDataChanged = false;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
     // Draw the Wireframe.
     [encoder drawIndexedPrimitives:MTLPrimitiveTypeLine
@@ -1479,23 +1487,37 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshWireframe(xlMesh *mesh, int b
 
 //drawing methods
 xlGraphicsContext* xlMetalGraphicsContext::drawLines(xlVertexAccumulator *vac, const xlColor &c, int start, int count) {
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
+        frameDataChanged = true;
+    }
     return drawPrimitive(MTLPrimitiveTypeLine, vac, c, start, count);
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawLineStrip(xlVertexAccumulator *vac, const xlColor &c, int start, int count) {
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
+        frameDataChanged = true;
+    }
     return drawPrimitive(MTLPrimitiveTypeLineStrip, vac, c, start, count);
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawTriangles(xlVertexAccumulator *vac, const xlColor &c, int start, int count) {
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
+        frameDataChanged = true;
+    }
     return drawPrimitive(MTLPrimitiveTypeTriangle, vac, c, start, count);
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawTriangleStrip(xlVertexAccumulator *vac, const xlColor &c, int start, int count) {
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
+        frameDataChanged = true;
+    }
     return drawPrimitive(MTLPrimitiveTypeTriangleStrip, vac, c, start, count);
 }
 
 xlGraphicsContext* xlMetalGraphicsContext::drawPoints(xlVertexAccumulator *vac, const xlColor &c, float pointSize, bool smoothPoints, int start, int count) {
     setPointSize(pointSize, smoothPoints);
     drawPrimitive(MTLPrimitiveTypePoint, vac, c, start, count);
-    frameData.renderType = RenderTypeNormal;
-    frameDataChanged = true;
     return this;
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, xlVertexAccumulator *vac, const xlColor &c, int start, int count) {
@@ -1508,7 +1530,10 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, 
         setPipelineState("singleColorProgram", "singleColorVertexShader", "colorFragmentShader");
     }
     xlMetalVertexAccumulator *mva = (xlMetalVertexAccumulator*)vac;
-    mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions);
+    if (vac != lastAccumulator || !mva->finalized) {
+        lastAccumulator = vac;
+        mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions);
+    }
 
     frameData.fragmentColor.r = c.red;
     frameData.fragmentColor.g = c.green;
@@ -1529,22 +1554,36 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, 
     return this;
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawLines(xlVertexColorAccumulator *vac, int start, int count) {
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
+        frameDataChanged = true;
+    }
     return drawPrimitive(MTLPrimitiveTypeLine, vac, start, count);
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawLineStrip(xlVertexColorAccumulator *vac, int start, int count) {
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
+        frameDataChanged = true;
+    }
     return drawPrimitive(MTLPrimitiveTypeLineStrip, vac, start, count);
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawTriangles(xlVertexColorAccumulator *vac, int start, int count) {
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
+        frameDataChanged = true;
+    }
     return drawPrimitive(MTLPrimitiveTypeTriangle, vac, start, count);
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawTriangleStrip(xlVertexColorAccumulator *vac, int start, int count) {
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
+        frameDataChanged = true;
+    }
     return drawPrimitive(MTLPrimitiveTypeTriangleStrip, vac, start, count);
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawPoints(xlVertexColorAccumulator *vac, float pointSize, bool smoothPoints, int start, int count) {
     setPointSize(pointSize, smoothPoints);
     drawPrimitive(MTLPrimitiveTypePoint, vac, start, count);
-    frameData.renderType = RenderTypeNormal;
-    frameDataChanged = true;
     return this;
 }
 
@@ -1558,7 +1597,10 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, 
         setPipelineState("multiColorProgram", "multiColorVertexShader", "colorFragmentShader");
     }
     xlMetalVertexColorAccumulator *mva = (xlMetalVertexColorAccumulator*)vac;
-    mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexMeshColors);
+    if (vac != lastAccumulator || !mva->finalized) {
+        lastAccumulator = vac;
+        mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexMeshColors);
+    }
 
     if (frameDataChanged) {
         [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
@@ -1576,22 +1618,36 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, 
 }
 
 xlGraphicsContext* xlMetalGraphicsContext::drawLines(xlVertexIndexedColorAccumulator *vac, int start, int count) {
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
+        frameDataChanged = true;
+    }
     return drawPrimitive(MTLPrimitiveTypeLine, vac, start, count);
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawLineStrip(xlVertexIndexedColorAccumulator *vac, int start, int count) {
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
+        frameDataChanged = true;
+    }
     return drawPrimitive(MTLPrimitiveTypeLineStrip, vac, start, count);
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawTriangles(xlVertexIndexedColorAccumulator *vac, int start, int count) {
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
+        frameDataChanged = true;
+    }
     return drawPrimitive(MTLPrimitiveTypeTriangle, vac, start, count);
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawTriangleStrip(xlVertexIndexedColorAccumulator *vac, int start, int count) {
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
+        frameDataChanged = true;
+    }
     return drawPrimitive(MTLPrimitiveTypeTriangleStrip, vac, start, count);
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawPoints(xlVertexIndexedColorAccumulator *vac, float pointSize, bool smoothPoints, int start, int count) {
     setPointSize(pointSize, smoothPoints);
     drawPrimitive(MTLPrimitiveTypePoint, vac, start, count);
-    frameData.renderType = RenderTypeNormal;
-    frameDataChanged = true;
     return this;
 }
 
@@ -1606,7 +1662,10 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, 
         setPipelineState("indexedColorProgram", "indexedColorVertexShader", "colorFragmentShader");
     }
     xlMetalVertexIndexedColorAccumulator *mva = (xlMetalVertexIndexedColorAccumulator*)vac;
-    mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexMeshColors);
+    if (vac != lastAccumulator || !mva->finalized) {
+        lastAccumulator = vac;
+        mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexMeshColors);
+    }
 
     if (frameDataChanged) {
         [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
@@ -1640,6 +1699,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlTexture *texture,
     std::string name = linearScale ? "textureProgramNearest" : "textureProgram";
     setPipelineState(name, "textureVertexShader", linearScale ? "textureFragmentShader" : "textureNearestFragmentShader");
     va.SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions);
+    lastAccumulator = nullptr;
 
     float texturePoints[] {
         tx, ty,
@@ -1661,6 +1721,10 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlTexture *texture,
         frameData.fragmentColor = fc;
         frameDataChanged = true;
     }
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
+        frameDataChanged = true;
+    }
     if (frameDataChanged) {
         [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
         frameDataChanged = false;
@@ -1676,9 +1740,12 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulato
     if (vac->getCount() == 0) {
         return this;
     }
-    setPipelineState("textureProgram", "textureVertexShader", "textureFragmentShader");
     xlMetalVertexTextureAccumulator *mva = (xlMetalVertexTextureAccumulator*)vac;
-    mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
+    setPipelineState("textureProgram", "textureVertexShader", "textureFragmentShader");
+    if (vac != lastAccumulator || !mva->finalized) {
+        lastAccumulator = vac;
+        mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
+    }
 
     float b = brightness;
     b /= 100.0;
@@ -1687,6 +1754,10 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulato
     simd::float4 fc = {b, b, b, a};
     if (!simd_equal(fc, frameData.fragmentColor)) {
         frameData.fragmentColor = fc;
+        frameDataChanged = true;
+    }
+    if (frameData.renderType != RenderTypeNormal) {
+        frameData.renderType = RenderTypeNormal;
         frameDataChanged = true;
     }
     if (frameDataChanged) {
@@ -1704,7 +1775,10 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulato
     }
     xlMetalVertexTextureAccumulator *mva = (xlMetalVertexTextureAccumulator*)vac;
     setPipelineState("textureColorProgram", "textureVertexShader", "textureColorFragmentShader");
-    mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
+    if (vac != lastAccumulator || !mva->finalized) {
+        lastAccumulator = vac;
+        mva->SetBufferBytes(canvas->getMTLDevice(), encoder, BufferIndexMeshPositions, BufferIndexTexturePositions);
+    }
 
     frameData.fragmentColor.r = c.red;
     frameData.fragmentColor.g = c.green;
@@ -1712,6 +1786,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulato
     frameData.fragmentColor.a = c.alpha;
     frameData.fragmentColor /= 255.0f;
     [encoder setVertexBytes:&frameData  length:sizeof(frameData) atIndex:BufferIndexFrameData];
+    frameDataChanged = false;
     xlMetalTexture *txt = (xlMetalTexture*)texture;
     [encoder setFragmentTexture:txt->texture atIndex:TextureIndexBase];
     [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:vac->getCount()];
@@ -1763,13 +1838,21 @@ xlGraphicsContext* xlMetalGraphicsContext::PushMatrix() {
 }
 xlGraphicsContext* xlMetalGraphicsContext::PopMatrix() {
     if (!matrixStack.empty()) {
-        frameData.modelMatrix = matrixStack.top();
+        if (frameData.modelMatrix != matrixStack.top()) {
+            frameData.modelMatrix = matrixStack.top();
+            frameDataChanged = true;
+        }
         matrixStack.pop();
-        frameData.viewMatrix = matrixStack.top();
+        if (frameData.viewMatrix != matrixStack.top()) {
+            frameData.viewMatrix = matrixStack.top();
+            frameDataChanged = true;
+        }
         matrixStack.pop();
-        frameData.MVP = matrixStack.top();
+        if (frameData.MVP != matrixStack.top()) {
+            frameData.MVP = matrixStack.top();
+            frameDataChanged = true;
+        }
         matrixStack.pop();
-        frameDataChanged = true;
     }
     return this;
 }
@@ -1844,8 +1927,10 @@ xlGraphicsContext* xlMetalGraphicsContext::Scale(float w, float h, float z) {
 
 void xlMetalGraphicsContext::setPointSize(float ps, bool smoothPoints) {
     ps += 1.0;
-    if (frameData.renderType != RenderTypePoints) {
-        frameData.renderType = smoothPoints ? RenderTypePointsSmooth : RenderTypePoints;
+    
+    RenderType nrt = smoothPoints ? RenderTypePointsSmooth : RenderTypePoints;
+    if (frameData.renderType != nrt) {
+        frameData.renderType = nrt;
         frameDataChanged = true;
     }
     if (frameData.pointSize != ps) {
@@ -1868,6 +1953,7 @@ bool xlMetalGraphicsContext::setPipelineState(const std::string &name, const cha
         [encoder setRenderPipelineState:canvas->getPipelineState(name, vShader, fShader, blending)];
         lastPipeline = name;
         lastPipelineBlend = blending;
+        lastAccumulator = nullptr;
         return true;
     }
     return false;
@@ -1875,7 +1961,7 @@ bool xlMetalGraphicsContext::setPipelineState(const std::string &name, const cha
 
 
 xlGraphicsContext* xlMetalGraphicsContext::pushDebugContext(const std::string &label) {
-    NSString *n = [NSString stringWithCString:label.c_str() encoding:[NSString defaultCStringEncoding]];
+    NSString *n = [NSString stringWithUTF8String:label.c_str()];
     [encoder pushDebugGroup:n];
     return this;
 }

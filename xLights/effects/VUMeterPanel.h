@@ -15,6 +15,7 @@
 class wxBitmapButton;
 class wxCheckBox;
 class wxChoice;
+class wxFilePickerCtrl;
 class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
@@ -38,6 +39,7 @@ class VUMeterPanel: public xlEffectPanel
 		BulkEditChoice* Choice_VUMeter_Shape;
 		BulkEditChoice* Choice_VUMeter_TimingTrack;
 		BulkEditChoice* Choice_VUMeter_Type;
+		BulkEditFilePickerCtrl* FilePickerCtrl_SVGFile;
 		BulkEditSlider* Slider_VUMeter_Bars;
 		BulkEditSlider* Slider_VUMeter_EndNote;
 		BulkEditSlider* Slider_VUMeter_Gain;
@@ -54,12 +56,15 @@ class VUMeterPanel: public xlEffectPanel
 		BulkEditTextCtrl* TextCtrl_VUMeter_YOffset;
 		BulkEditValueCurveButton* BitmapButton_VUMeter_Gain;
 		BulkEditValueCurveButton* BitmapButton_VUMeter_YOffsetVC;
+		wxCheckBox* CheckBox_Regex;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
 		wxStaticText* StaticText13;
 		wxStaticText* StaticText14;
 		wxStaticText* StaticText15;
+		wxStaticText* StaticText16;
+		wxStaticText* StaticText17;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -69,6 +74,7 @@ class VUMeterPanel: public xlEffectPanel
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
 		wxStaticText* StaticText9;
+		wxTextCtrl* TextCtrl_Filter;
 		xlLockButton* BitmapButton_VUMeter_Bars;
 		xlLockButton* BitmapButton_VUMeter_EndNote;
 		xlLockButton* BitmapButton_VUMeter_Sensitivity;
@@ -96,6 +102,9 @@ class VUMeterPanel: public xlEffectPanel
 		static const long ID_CHOICE_VUMeter_TimingTrack;
 		static const long ID_STATICTEXT4;
 		static const long ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack;
+		static const long ID_STATICTEXT2;
+		static const long ID_TEXTCTRL_Filter;
+		static const long ID_CHECKBOX_Regex;
 		static const long ID_STATICTEXT_VUMeter_Sensitivity;
 		static const long ID_SLIDER_VUMeter_Sensitivity;
 		static const long IDD_TEXTCTRL_VUMeter_Sensitivity;
@@ -108,6 +117,8 @@ class VUMeterPanel: public xlEffectPanel
 		static const long ID_CHOICE_VUMeter_Shape;
 		static const long ID_STATICTEXT8;
 		static const long ID_BITMAPBUTTON_CHOICE_VUMeter_Shape;
+		static const long ID_STATICTEXT3;
+		static const long ID_FILEPICKERCTRL_SVGFile;
 		static const long ID_STATICTEXT9;
 		static const long ID_CHECKBOX_VUMeter_SlowDownFalls;
 		static const long ID_STATICTEXT10;

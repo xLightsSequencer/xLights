@@ -48,5 +48,9 @@ class DmxColorAbility
     protected:
         DmxColorAbility() = default;
 
+        [[nodiscard]] virtual bool CheckChannel(uint32_t chan, size_t vecSize) const
+        {
+            return chan > 0 && vecSize >= chan;
+        };
     private:
 };

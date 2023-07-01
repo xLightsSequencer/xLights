@@ -20,6 +20,7 @@
 #include <wx/file.h>
 #include <wx/msgdlg.h>
 #include <wx/stdpaths.h>
+#include <wx/textdlg.h>
 
 #include "ValueCurveDialog.h"
 #include "xLightsMain.h"
@@ -39,6 +40,7 @@ BEGIN_EVENT_TABLE(ValueCurvePanel, wxWindow)
     EVT_LEFT_UP(ValueCurvePanel::mouseLeftUp)
     EVT_ENTER_WINDOW(ValueCurvePanel::mouseEnter)
     EVT_LEAVE_WINDOW(ValueCurvePanel::mouseLeave)
+    EVT_LEFT_DCLICK(ValueCurvePanel::mouseLeftDClick)
     EVT_PAINT(ValueCurvePanel::Paint)
     EVT_MOUSE_CAPTURE_LOST(ValueCurvePanel::mouseCaptureLost)
 END_EVENT_TABLE()
@@ -53,6 +55,7 @@ ValueCurvePanel::ValueCurvePanel(wxWindow* parent, Element* timingElement, int s
     Connect(wxEVT_MOTION, (wxObjectEventFunction)&ValueCurvePanel::mouseMoved, 0, this);
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&ValueCurvePanel::Paint, 0, this);
     Connect(wxEVT_MOUSE_CAPTURE_LOST, (wxObjectEventFunction)&ValueCurvePanel::mouseCaptureLost, 0, this);
+    Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&ValueCurvePanel::mouseLeftDClick, 0, this);
     // ReSharper disable CppVirtualFunctionCallInsideCtor
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     // ReSharper restore CppVirtualFunctionCallInsideCtor
@@ -693,6 +696,38 @@ void ValueCurvePanel::SaveUndoSelected()
     }
 }
 
+float ValueCurvePanel::ToReal(float y)
+{
+    return _vc->GetMin() + y * (_vc->GetMax() - _vc->GetMin());
+}
+
+float ValueCurvePanel::ToNormalised(float y)
+{
+    return (y - _vc->GetMin()) / (_vc->GetMax() - _vc->GetMin());
+}
+
+void ValueCurvePanel::mouseLeftDClick(wxMouseEvent& event)
+{
+    if (_type == "Custom" && _timeOffset == 0) {
+        float x, y;
+        Convert(x, y, event);
+
+        if (_vc->NearCustomPoint(x, y)) {
+            auto point = vcSortablePoint::Normalise(x);
+            wxTextEntryDialog dlg(GetParent(), "Enter value:", "Manual entry", std::to_string(ToReal(_vc->GetPointAt(point))));
+            if (dlg.ShowModal() == wxID_OK) {
+                float v = wxAtof(dlg.GetValue());
+                if (v < _vc->GetMin())
+                    v = _vc->GetMin();
+                if (v > _vc->GetMax())
+                    v = _vc->GetMax();
+                SaveUndoSelected();
+                _vc->SetValueAt(x, ToNormalised(v));
+                Refresh();
+            }
+        }
+    }
+}
 void ValueCurvePanel::mouseLeftDown(wxMouseEvent& event)
 {
     if (_type == "Custom" && _timeOffset == 0)
@@ -830,7 +865,11 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
             time = std::string(FORMATTIME((int)(_start + (_end - _start) * x))) + ", ";
         }
 
-        SetToolTip(wxString::Format(wxT("%s%.2f,%.1f"), time, x, _vc->GetScaledValue(y)));
+        if (_vc->IsSetPoint(vcSortablePoint::Normalise(x))) {
+            SetToolTip(wxString::Format(wxT("%s%.2f,%.1f -> %.1f"), time, x, _vc->GetScaledValue(y), ToReal(_vc->GetPointAt(vcSortablePoint::Normalise(x)))));
+        } else {
+            SetToolTip(wxString::Format(wxT("%s%.2f,%.1f"), time, x, _vc->GetScaledValue(y)));
+        }
     }
     else
     {

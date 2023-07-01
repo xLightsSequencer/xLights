@@ -33,7 +33,7 @@ public:
 
     virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
     virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
-    virtual void AddTypeProperties(wxPropertyGridInterface *grid) = 0;
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) = 0;
     virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) = 0;
     virtual void AddDimensionProperties(wxPropertyGridInterface* grid) = 0;
@@ -95,7 +95,7 @@ public:
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
 
-    virtual void IncrementChangeCount() { ++changeCount; uiObjectsInvalid = true; };
+    virtual void IncrementChangeCount() { ++changeCount; uiObjectsInvalid = true; }
 
 	void AddOffset(double deltax, double deltay, double deltaz);
     void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);

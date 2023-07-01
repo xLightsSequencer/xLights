@@ -45,9 +45,22 @@ PolyLineModel::~PolyLineModel()
     //dtor
 }
 
+static const char* POLY_CORNER_VALUES[] = {
+    "Leading Segment",
+    "Trailing Segment",
+    "Neither"
+};
+static wxPGChoices POLY_CORNERS(wxArrayString(3, POLY_CORNER_VALUES));
+
 std::vector<std::string> PolyLineModel::POLYLINE_BUFFER_STYLES;
 
 const std::vector<std::string> &PolyLineModel::GetBufferStyles() const {
+
+    if (!hasIndivSeg)
+    {
+        return Model::DEFAULT_BUFFER_STYLES;
+    }
+
     struct Initializer {
         Initializer() {
             POLYLINE_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
@@ -65,7 +78,7 @@ bool PolyLineModel::IsNodeFirst(int n) const
 
 void PolyLineModel::InitRenderBufferNodes(const std::string& type, const std::string& camera,
     const std::string& transform,
-    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, bool deep) const
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
 {
     if (type == "Line Segments" && hasIndivSeg) {
         BufferHi = num_segments;
@@ -101,7 +114,7 @@ void PolyLineModel::InitRenderBufferNodes(const std::string& type, const std::st
         ApplyTransform(transform, newNodes, BufferWi, BufferHi);
     }
     else {
-        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, stagger);
     }
 }
 
@@ -220,8 +233,6 @@ void PolyLineModel::SetSegsCollapsed(bool collapsed)
 
 void PolyLineModel::InitModel()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
     wxString dropPattern = GetModelXml()->GetAttribute("DropPattern", "1");
     wxArrayString pat = wxSplit(dropPattern, ',');
@@ -234,7 +245,11 @@ void PolyLineModel::InitModel()
     std::vector<int> dropSizes;
     unsigned int maxH = 0;
     for (int x = 0; x < pat.size(); x++) {
-        dropSizes.push_back(wxAtoi(pat[x]));
+        int pat_size = wxAtoi(pat[x]);
+        if( pat_size == 0 ) {
+            pat_size = 1;
+        }
+        dropSizes.push_back(pat_size);
         maxH = std::max(maxH, (unsigned int)std::abs(dropSizes[x]));
     }
     if (dropSizes.size() == 0) {
@@ -253,11 +268,15 @@ void PolyLineModel::InitModel()
     num_segments = num_points - 1;
     hasIndivSeg = ModelXml->GetAttribute("IndivSegs", "0") == "1";
     numDropPoints = 0;
+    size_t lights_per_node = GetCoordCount(0);
 
     // setup number of lights per line segment
     unsigned int drop_index = 0;
     polyLineSizes.resize(num_segments);
     polyLineSegDropSizes.resize(num_segments);
+    polyLeadOffset.resize(num_segments);
+    polyTrailOffset.resize(num_segments);
+    polyGapSize.resize(num_segments);
     if (hasIndivSeg) {
         parm1 = SingleNode ? 1 : num_segments;
         for (int x = 0; x < num_segments; x++) {
@@ -281,6 +300,21 @@ void PolyLineModel::InitModel()
         parm2 = numLights;
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%ld", parm2));
+        for (int x = 0; x <= num_segments; x++) {
+            wxString val = ModelXml->GetAttribute(CornerAttrName(x));
+            if( x == 0 ) {
+                polyLeadOffset[x] = (val == "Leading Segment" ? 1.0 : val == "Trailing Segment" ? 0.0 : 0.5);
+            } else if( x == num_segments ) {
+                polyTrailOffset[x-1] = (val == "Leading Segment" ? 0.0 : val == "Trailing Segment" ? 1.0 : 0.5);
+            } else {
+                polyTrailOffset[x-1] = (val == "Leading Segment" ? 0.0 : val == "Trailing Segment" ? 1.0 : 0.5);
+                polyLeadOffset[x] = (val == "Leading Segment" ? 1.0 : val == "Trailing Segment" ? 0.0 : 0.5);
+            }
+        }
+        for (int x = 0; x < num_segments; x++) {
+            float num_gaps = polyLeadOffset[x] + polyTrailOffset[x] + (float(polyLineSizes[x]) * (float)lights_per_node) - 1.0f;
+            polyGapSize[x] = float(polyLineSizes[x]) / num_gaps;
+        }
     }
     else {
         parm1 = 1;
@@ -303,7 +337,13 @@ void PolyLineModel::InitModel()
     Nodes.clear();
     SetNodeCount(1, numLights, rgbOrder);
 
-    //if (num_points == 1) return;  // TODO:  Should we even allow this creation
+    if (!SingleNode) {
+        if (parm3 > 1) {
+            for (size_t x = 0; x < Nodes.size(); x++) {
+                Nodes[x]->Coords.resize(parm3);
+            }
+        }
+    }
 
     // process our own start channels
     drop_index = 0;
@@ -499,7 +539,7 @@ void PolyLineModel::InitModel()
     int chan = 0;
     int LastStringNum = -1;
     int ChanIncr = GetNodeChannelCount(StringType);
-    int lights = numLights;
+    int lights = numLights * (SingleNode ? 1 : parm3);
     int y = 0;
     drop_index = 0;
     int width = 0;
@@ -512,6 +552,9 @@ void PolyLineModel::InitModel()
         if (curCoord >= Nodes[curNode]->Coords.size()) {
             curNode++;
             curCoord = 0;
+            if (!SingleNode) {
+                chan += ChanIncr;
+            }
         }
         while (y >= std::abs(dropSizes[drop_index])) {
             width++;
@@ -521,7 +564,7 @@ void PolyLineModel::InitModel()
                 drop_index = 0;
             }
             nodesInDrop = std::abs(dropSizes[drop_index]);
-            if (!IsLtoR && !SingleNode) {
+            if (!IsLtoR && !SingleNode && curCoord == 0) {
                 chan -= ((nodesInDropLast + nodesInDrop) * GetNodeChannelCount(StringType));
             }
             nodesInDropLast = nodesInDrop;
@@ -530,7 +573,7 @@ void PolyLineModel::InitModel()
         if (Nodes[curNode]->StringNum != LastStringNum) {
             LastStringNum = Nodes[curNode]->StringNum;
             chan = stringStartChan[LastStringNum];
-            if (!IsLtoR && !SingleNode) {
+            if (!IsLtoR && !SingleNode && curCoord == 0) {
                 chan += (NodesPerString(LastStringNum) - nodesInDrop) * GetNodeChannelCount(StringType);
             }
         }
@@ -568,13 +611,13 @@ void PolyLineModel::InitModel()
                 Nodes[curNode]->Coords[curCoord].screenY = maxH - y - 1;
             }
         }
+
         Nodes[curNode]->Coords[curCoord].screenX = width;
-        if (!SingleNode) {
-            chan += ChanIncr;
-        }
-        y++;
         lights--;
         curCoord++;
+        if( SingleNode || curCoord == parm3 ) {
+            y++;
+        }
     }
 
     SetBufferSize(maxH, SingleNode ? 1 : width + 1);
@@ -589,257 +632,13 @@ void PolyLineModel::InitModel()
 
     // place the nodes/coords along each line segment
     drop_index = 0;
-    idx = 0;
-    float loc_x;
     if (hasIndivSeg) {
         // distribute the lights as defined by the polysize string
-        if (SingleNode) {
-            int segment = 0;
-            int seg_idx = 0;
-            int count = 0;
-            int num = Nodes[0].get()->Coords.size();
-            float offset = 0.5f;
-            if (num > 1) {
-                offset -= 1.0f / (float)num;
-            }
-            size_t CoordCount = GetCoordCount(0);
-            for (size_t c = 0; c < CoordCount;) {
-                if (segment < polyLineSizes.size()) // this can be greater if coord count > segments * segment sizes
-                {
-                    if (num > 1) {
-                        loc_x = seg_idx + offset + ((float)count / (float)num);
-                        count++;
-                    }
-                    else {
-                        loc_x = seg_idx + offset;
-                    }
-
-                    glm::vec3 v = glm::vec3(*pPos[segment].matrix * glm::vec4(loc_x / (float)polyLineSizes[segment], 0, 0, 1));
-
-                    bool up = dropSizes[drop_index] < 0;
-                    unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
-                    for (size_t z = 0; z < drops_this_node && c < CoordCount; z++) {
-                        Nodes[idx]->Coords[c].screenX = v.x;
-                        if (up) {
-                            Nodes[idx]->Coords[c].screenY = v.y + z * mheight;
-                        }
-                        else {
-                            Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
-                        }
-                        Nodes[idx]->Coords[c].screenZ = v.z;
-                        c++;
-                        if (!SingleNode) {
-                            idx++;
-                        }
-                    }
-                    drop_index %= dropSizes.size();
-                    seg_idx++;
-                    if (seg_idx >= polyLineSizes[segment]) {
-                        segment++;
-                        seg_idx = 0;
-                        count = 0;
-                        for (int x = segment; x < polyLineSizes.size(); ++x) {
-                            if (polyLineSizes[x] == 0) {
-                                segment++;
-                            }
-                            else {
-                                break;
-                            }
-                        }
-                    }
-                    if (pPos[segment].has_curve) {
-                        int xx = 0;
-                        DistributeLightsAcrossCurveSegment(polyLineSizes[segment], segment, c, pPos, dropSizes, drop_index, mheight, xx, maxH);
-                        c += std::abs(dropSizes[drop_index]);
-                        segment++;
-                        for (int x = segment; x < polyLineSizes.size(); ++x) {
-                            if (polyLineSizes[x] == 0) {
-                                segment++;
-                            }
-                            else {
-                                break;
-                            }
-                        }
-                    }
-                }
-                else {
-                    logger_base.warn("Polyine segents * segment sizes < number of coordinates.");
-                    break;
-                }
-            }
-        }
-        else {
-            int xx = 0;
-            for (size_t m = 0; m < num_segments; m++) {
-                if (pPos[m].has_curve) {
-                    DistributeLightsAcrossCurveSegment(polyLineSizes[m], m, idx, pPos, dropSizes, drop_index, mheight, xx, maxH);
-                }
-                else {
-                    int seg_idx = 0;
-                    for (size_t n = 0; n < polyLineSizes[m]; n++) {
-                        int count = 0;
-                        int num = Nodes[idx].get()->Coords.size();
-                        float offset = 0.5f;
-                        if (num > 1) {
-                            offset -= 1.0f / (float)num;
-                        }
-                        size_t CoordCount = GetCoordCount(idx);
-                        int x_pos = seg_idx;
-                        bool up = dropSizes[drop_index] < 0;
-                        unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
-                        for (size_t c = 0; c < CoordCount; c++) {
-                            if (num > 1) {
-                                loc_x = x_pos + offset + ((float)count / (float)num);
-                                count++;
-                            }
-                            else {
-                                loc_x = x_pos + offset;
-                            }
-
-                            glm::vec3 v = glm::vec3(*pPos[m].matrix * glm::vec4(loc_x / (float)polyLineSizes[m], 0, 0, 1));
-
-                            for (size_t z = 0; z < drops_this_node; z++) {
-                                if (SingleNode) {
-                                    Nodes[idx]->Coords[c].screenX = v.x;
-                                    if (up) {
-                                        Nodes[idx]->Coords[c].screenY = v.y + z * mheight;
-                                    }
-                                    else {
-                                        Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
-                                    }
-                                    Nodes[idx]->Coords[c].screenZ = v.z;
-                                }
-                                else {
-                                    auto node = FindNodeAtXY(xx, maxH - z - 1);
-                                    if (node == -1) {
-                                        logger_base.error("Polyline buffer x,y %d, %d not found.", xx, maxH - z - 1);
-                                    }
-                                    else {
-                                        Nodes[node]->Coords[c].screenX = v.x;
-                                        if (up) {
-                                            Nodes[node]->Coords[c].screenY = v.y + z * mheight;
-                                        }
-                                        else {
-                                            Nodes[node]->Coords[c].screenY = v.y - z * mheight;
-                                        }
-                                        Nodes[node]->Coords[c].screenZ = v.z;
-                                    }
-                                }
-                                if (!SingleNode) {
-                                    idx++;
-                                }
-                            }
-                            drop_index %= dropSizes.size();
-                        }
-                        seg_idx++;
-                        xx++;
-                    }
-                }
-            }
-        }
+        DistributeLightsAcrossIndivSegments( pPos, dropSizes, mheight, maxH );
     }
     else {
         // distribute the lights evenly across the line segments
-        int coords_per_node = Nodes[0].get()->Coords.size();
-        int lights_to_distribute = SingleNode ? numDropPoints : numDropPoints * coords_per_node;
-        float offset = total_length / (float)lights_to_distribute;
-        float current_pos = offset / 2.0f;
-        idx = 0;
-        size_t c = 0;
-        int segment = 0;
-        int sub_segment = 0;
-        int last_seg_light_num = 0;
-        float seg_start = current_pos;
-        float segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
-        float seg_end = seg_start + segment_length;
-        int xx = 0;
-        for (int x = 0; x < polyLineSizes.size(); x++) {
-            polyLineSizes[x] = 0;
-            polyLineSegDropSizes[x] = 0;
-        }
-        for (size_t m = 0; m < lights_to_distribute; m++) {
-            while (current_pos > seg_end) {
-                sub_segment++;
-                if (pPos[segment].has_curve && (sub_segment < pPos[segment].curve->GetNumSegments())) {
-                    seg_start = seg_end;
-                    segment_length = pPos[segment].curve->GetSegLength(sub_segment);
-                    seg_end = seg_start + segment_length;
-                }
-                else {
-                    if (segment == polyLineSizes.size() - 1) {
-                        // cant increase segment ... so just fudge the segment end
-                        seg_end += 0.0001f;
-                    }
-                    else {
-                        sub_segment = 0;
-                        polyLineSizes[segment] = m - last_seg_light_num;
-                        last_seg_light_num = m;
-                        segment++;
-                        seg_start = seg_end;
-                        segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
-                        seg_end = seg_start + segment_length;
-                    }
-                }
-            }
-            glm::vec3 v;
-            float pos = (current_pos - seg_start) / segment_length;
-            if (pPos[segment].has_curve) {
-                v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4(pos, 0, 0, 1));
-            }
-            else {
-                v = glm::vec3(*pPos[segment].matrix * glm::vec4(pos, 0, 0, 1));
-            }
-            bool up = dropSizes[drop_index] < 0;
-            unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
-            for (size_t z = 0; z < drops_this_node; z++) {
-                if (SingleNode) {
-                    Nodes[idx]->Coords[c].screenX = v.x;
-                    if (up) {
-                        Nodes[idx]->Coords[c].screenY = v.y + z * mheight;
-                    }
-                    else {
-                        Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
-                    }
-                    Nodes[idx]->Coords[c].screenZ = v.z;
-                }
-                else {
-                    int node = -1;
-                    if (up) {
-                        node = FindNodeAtXY(xx, z);
-                    }
-                    else {
-                        node = FindNodeAtXY(xx, maxH - z - 1);
-                    }
-                    if (node == -1) {
-                        logger_base.error("Polyline buffer x,y %d, %d not found.", xx, maxH - z - 1);
-                    }
-                    else {
-                        Nodes[node]->Coords[c].screenX = v.x;
-                        if (up) {
-                            Nodes[node]->Coords[c].screenY = v.y + z * mheight;
-                        }
-                        else {
-                            Nodes[node]->Coords[c].screenY = v.y - z * mheight;
-                        }
-                        Nodes[node]->Coords[c].screenZ = v.z;
-                    }
-                }
-                if (c < coords_per_node - 1) {
-                    c++;
-                }
-                else {
-                    c = 0;
-                    if (!SingleNode) {
-                        idx++;
-                    }
-                }
-            }
-            polyLineSegDropSizes[segment] += drops_this_node;
-            drop_index %= dropSizes.size();
-            current_pos += offset;
-            xx++;
-        }
-        polyLineSizes[segment] = lights_to_distribute - last_seg_light_num;
+        DistributeLightsEvenly( pPos, dropSizes, mheight, maxH, numLights );
     }
 
     // cleanup curves and matrices
@@ -854,83 +653,258 @@ void PolyLineModel::InitModel()
     }
 }
 
-void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, size_t& idx, std::vector<xlPolyPoint>& pPos,
-    std::vector<int>& dropSizes, unsigned int& drop_index, float& mheight, int& xx, int maxH)
+void PolyLineModel::DistributeLightsEvenly( const std::vector<xlPolyPoint>& pPos,
+                                            const std::vector<int>&         dropSizes,
+                                            const float&                    mheight,
+                                            const int                       maxH,
+                                            const int                       numLights )
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool using_icicles = maxH > 1;
+    unsigned int drop_index = 0;
+    size_t idx = 0;
+    size_t seg_count = 0;
+    int coords_per_node = Nodes[0].get()->Coords.size();
+    float coord_offset = using_icicles ? 1.0f / (float)coords_per_node : 0.0f;
+    int lights_to_distribute = SingleNode ? numLights : numLights * coords_per_node;
+    float offset;
+    if (!SingleNode) {
+        offset = total_length / ((float)numDropPoints * (using_icicles ? 1.0f : (float)coords_per_node));
+    } else {
+        offset = total_length / (float)numDropPoints;
+    }
+    float current_pos = offset / 2.0f;
+    size_t c = 0;
+    int segment = 0;
+    int sub_segment = 0;
+    int last_seg_count = 0;
+    float seg_start = current_pos;
+    float segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
+    float seg_end = seg_start + segment_length;
+    int xpos = 0;  // the horizontal position in the buffer
+    for (int x = 0; x < polyLineSizes.size(); x++) {
+        polyLineSizes[x] = 0;
+        polyLineSegDropSizes[x] = 0;
+    }
+    for (size_t m = 0; m < lights_to_distribute;) {
+        while (current_pos > seg_end) {
+            sub_segment++;
+            if (pPos[segment].has_curve && (sub_segment < pPos[segment].curve->GetNumSegments())) {
+                seg_start = seg_end;
+                segment_length = pPos[segment].curve->GetSegLength(sub_segment);
+                seg_end = seg_start + segment_length;
+            }
+            else {
+                if (segment == polyLineSizes.size() - 1) {
+                    // cant increase segment ... so just fudge the segment end
+                    seg_end += 0.0001f;
+                }
+                else {
+                    sub_segment = 0;
+                    polyLineSizes[segment] = seg_count - last_seg_count;
+                    last_seg_count = seg_count;
+                    segment++;
+                    seg_start = seg_end;
+                    segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
+                    seg_end = seg_start + segment_length;
+                }
+            }
+        }
+        glm::vec3 v;
+        float pos = (current_pos - seg_start) / segment_length;
+        if (pPos[segment].has_curve) {
+            v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4(pos, 0, 0, 1));
+        }
+        else {
+            v = glm::vec3(*pPos[segment].matrix * glm::vec4(pos, 0, 0, 1));
+        }
+        bool up = dropSizes[drop_index] < 0;
+        unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
+        for (size_t z = 0; z < drops_this_node; z++) {
+            if (SingleNode) {
+                Nodes[0]->Coords[c].screenX = v.x;
+                if (up) {
+                    Nodes[0]->Coords[c].screenY = v.y + (z + ((float)c * coord_offset)) * mheight;
+                }
+                else {
+                    Nodes[0]->Coords[c].screenY = v.y - (z + ((float)c * coord_offset)) * mheight;
+                }
+                Nodes[0]->Coords[c].screenZ = v.z;
+                m++;
+                c++;
+            }
+            else {
+                int node = -1;
+                if (up) {
+                    node = FindNodeAtXY(xpos, z);
+                }
+                else {
+                    node = FindNodeAtXY(xpos, maxH - z - 1);
+                }
+                if (node == -1) {
+                    logger_base.error("Polyline buffer x,y %d, %d not found.", xpos, maxH - z - 1);
+                }
+                else {
+                    size_t current_coord = c;
+                    for ( using_icicles ? c = 0 : c; using_icicles ? c < coords_per_node : c == current_coord; ++c) {
+                        Nodes[node]->Coords[c].screenX = v.x;
+                        if (up) {
+                            Nodes[node]->Coords[c].screenY = v.y + (z + ((float)c * coord_offset)) * mheight;
+                        }
+                        else {
+                            Nodes[node]->Coords[c].screenY = v.y - (z + ((float)c * coord_offset)) * mheight;
+                        }
+                        Nodes[node]->Coords[c].screenZ = v.z;
+                        m++;
+                    }
+                }
+            }
+            
+            if (SingleNode) {
+                seg_count++;
+            } else {
+                if (c == coords_per_node ) {
+                    c = 0;
+                    idx++;
+                    seg_count++;
+                }
+            }
+        }
+        polyLineSegDropSizes[segment] += drops_this_node;
+        drop_index %= dropSizes.size();
+        current_pos += offset;
+        if( c == 0 ) {
+            xpos++;
+        }
+    }
+    polyLineSizes[segment] = seg_count - last_seg_count;
+}
+
+void PolyLineModel::DistributeLightsAcrossIndivSegments( const std::vector<xlPolyPoint>& pPos,
+                                                         const std::vector<int>&         dropSizes,
+                                                         const float&                    mheight,
+                                                         const int                       maxH )
+{
+    unsigned int drop_index = 0;
+    size_t idx = 0;
+    int xpos = 0;  // the horizontal position in the buffer
+    for (size_t m = 0; m < num_segments; m++) {
+        DistributeLightsAcrossSegment(m, idx, pPos, dropSizes, drop_index, mheight, xpos, maxH, pPos[m].has_curve);
+    }
+}
+
+void PolyLineModel::DistributeLightsAcrossSegment( const int                       segment,
+                                                         size_t&                   idx,
+                                                   const std::vector<xlPolyPoint>& pPos,
+                                                   const std::vector<int>&         dropSizes,
+                                                         unsigned int&             drop_index,
+                                                   const float&                    mheight,
+                                                         int&                      xpos,
+                                                   const int                       maxH,
+                                                   const bool                      isCurve )
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // distribute the lights evenly across the line segments
+    bool using_icicles = maxH > 1;
     int coords_per_node = Nodes[0].get()->Coords.size();
+    float coord_offset = using_icicles ? 1.0f / (float)coords_per_node : 0.0f;
+    int lights = 0;
+    
+    // get the total number of nodes including icicle drops for this segment
+    unsigned int idrop = drop_index;
+    for (size_t i = 0; i < polyLineSizes[segment]; ++i) {
+        unsigned int drops_this_node = std::abs(dropSizes[idrop]);
+        lights += drops_this_node;
+        idrop++;
+        idrop %= dropSizes.size();
+    }
+    
     int lights_to_distribute = SingleNode ? lights : lights * coords_per_node;
-    float total_length = pPos[segment].curve->GetLength();
-    float offset = total_length / (float)lights_to_distribute;
-    float current_pos = offset / 2.0f;
+    float total_length = isCurve ? pPos[segment].curve->GetLength() : polyLineSizes[segment];
+    
+    float num_gaps;
+    if (using_icicles) {
+        num_gaps = polyLeadOffset[segment] + polyTrailOffset[segment] + polyLineSizes[segment] - 1.0f;
+    } else {
+        num_gaps = polyLeadOffset[segment] + polyTrailOffset[segment] + float(lights_to_distribute) - 1.0f;
+    }
+    float offset = total_length / num_gaps;
+    float current_pos = polyLeadOffset[segment] * offset;
     size_t c = 0;
     int sub_segment = 0;
-    float seg_start = current_pos;
-    float segment_length = pPos[segment].curve->GetSegLength(sub_segment);
+    float seg_start = 0;
+    float segment_length = isCurve ? pPos[segment].curve->GetSegLength(sub_segment) : polyLineSizes[segment];
     float seg_end = seg_start + segment_length;
-    for (size_t m = 0; m < lights_to_distribute; m++) {
+    for (size_t m = 0; m < lights_to_distribute;) {
         bool up = dropSizes[drop_index] < 0;
         unsigned int drops_this_node = std::abs(dropSizes[drop_index]);
         while (current_pos > seg_end) {
             sub_segment++;
             seg_start = seg_end;
-            segment_length = pPos[segment].curve->GetSegLength(sub_segment);
+            segment_length = isCurve ? pPos[segment].curve->GetSegLength(sub_segment) : 1.0f;
             seg_end = seg_start + segment_length;
         }
-        glm::vec3 v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4((current_pos - seg_start) / segment_length, 0, 0, 1));
+        glm::vec3 v;
+        if (isCurve) {
+            v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4((current_pos - seg_start) / segment_length, 0, 0, 1));
+        } else {
+            v = glm::vec3(*pPos[segment].matrix * glm::vec4(current_pos / polyLineSizes[segment], 0, 0, 1));
+        }
         if (SingleNode) {
             for (size_t z = 0; z < drops_this_node; z++) {
                 Nodes[0]->Coords[idx].screenX = v.x;
                 if (up) {
-                    Nodes[0]->Coords[idx].screenY = v.y + z * mheight;
+                    Nodes[0]->Coords[idx].screenY = v.y + (z + ((float)c * coord_offset)) * mheight;
                 }
                 else {
-                    Nodes[0]->Coords[idx].screenY = v.y - z * mheight;
+                    Nodes[0]->Coords[idx].screenY = v.y - (z + ((float)c * coord_offset)) * mheight;
                 }
                 Nodes[0]->Coords[idx].screenZ = v.z;
                 idx++;
+                m++;
             }
             drop_index++;
             drop_index %= dropSizes.size();
         }
         else {
             for (size_t z = 0; z < drops_this_node; z++) {
-                auto node = FindNodeAtXY(xx, maxH - z - 1);
+                auto node = FindNodeAtXY(xpos, maxH - z - 1);
                 if (node == -1) {
-                    logger_base.error("Polyline buffer x,y %d, %d not found.", xx, maxH - z - 1);
+                    logger_base.error("Polyline buffer x,y %d, %d not found.", xpos, maxH - z - 1);
                 }
                 else {
-                    Nodes[node]->Coords[c].screenX = v.x;
-                    if (up) {
-                        Nodes[node]->Coords[c].screenY = v.y + z * mheight;
+                    size_t current_coord = c;
+                    for ( using_icicles ? c = 0 : c; using_icicles ? c < coords_per_node : c == current_coord; ++c) {
+                        Nodes[node]->Coords[c].screenX = v.x;
+                        if (up) {
+                            Nodes[node]->Coords[c].screenY = v.y + (z + ((float)c * coord_offset)) * mheight;
+                        }
+                        else {
+                            Nodes[node]->Coords[c].screenY = v.y - (z + ((float)c * coord_offset)) * mheight;
+                        }
+                        Nodes[node]->Coords[c].screenZ = v.z;
+                        m++;
                     }
-                    else {
-                        Nodes[node]->Coords[c].screenY = v.y - z * mheight;
-                    }
-                    Nodes[node]->Coords[c].screenZ = v.z;
                 }
-                idx++;
-            }
-            if (c < coords_per_node - 1) {
-                c++;
-            }
-            else {
-                c = 0;
+                if (c == coords_per_node ) {
+                    c = 0;
+                }
             }
             drop_index++;
             drop_index %= dropSizes.size();
         }
         current_pos += offset;
-        xx++;
+        if ( c == 0 ) {
+            xpos++;
+        }
     }
 }
 
 static const char* LEFT_RIGHT_VALUES[] = { "Green Square", "Blue Square" };
 static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES)); 
 
-void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid)
+void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
     wxPGProperty* p;
     if (SingleNode) {
@@ -1029,14 +1003,29 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid)
         if (segs_collapsed) {
             grid->Collapse(p);
         }
+        
+        p = grid->Append(new wxStringProperty("Corner Settings", "PolyCornerProperties", ""));
+        for (int x = 0; x < num_segments + 1; x++) {
+            std::string val = ModelXml->GetAttribute(CornerAttrName(x)).ToStdString();
+            if (val == "") {
+                val = "Neither";
+                ModelXml->DeleteAttribute(CornerAttrName(x));
+                ModelXml->AddAttribute(CornerAttrName(x), val);
+            }
+            wxString nm = wxString::Format("Corner %d", x + 1);
+            grid->AppendIn(p, new wxEnumProperty(nm, CornerAttrName(x), POLY_CORNERS, val == "Leading Segment" ? 0 : val == "Trailing Segment" ? 1 : 2 ));
+       }
     }
     else {
         for (int x = 0; x < 100; x++) {
             ModelXml->DeleteAttribute(SegAttrName(x));
+            ModelXml->DeleteAttribute(CornerAttrName(x));
         }
         // If we dont have individual segments ... then we dont have individual start channels
         ModelXml->DeleteAttribute("Advanced");
     }
+
+
 }
 
 int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
@@ -1049,6 +1038,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
             sp = grid->GetPropertyByLabel("# Lights");
         }
         sp->SetValueFromInt((int)event.GetPropertyValue().GetLong());
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
@@ -1061,6 +1051,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
     else if ("PolyLineLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::PolyLineLights");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::PolyLineLights");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::PolyLineLights");
@@ -1072,6 +1063,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
     else if ("PolyLineStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::PolyLineStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::PolyLineStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::PolyLineStart");
@@ -1099,6 +1091,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
                 ModelXml->DeleteAttribute(SegAttrName(x));
             }
         }
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments");
@@ -1113,6 +1106,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         str = str.SubString(str.Find(".") + 1, str.length());
         ModelXml->DeleteAttribute(str);
         ModelXml->AddAttribute(str, event.GetValue().GetString());
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments2");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments2");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments2");
@@ -1120,6 +1114,21 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments2");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments2");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments2");
+        return 0;
+    }
+    else if (event.GetPropertyName().StartsWith("PolyCornerProperties.")) {
+        wxString str = event.GetPropertyName();
+        str = str.SubString(str.Find(".") + 1, str.length());
+        ModelXml->DeleteAttribute(str);
+        ModelXml->AddAttribute(str, POLY_CORNER_VALUES[event.GetPropertyValue().GetLong()]);
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
         return 0;
     }
     else if ("PolyLineStrings" == event.GetPropertyName()) {
@@ -1142,6 +1151,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         }
         ModelXml->DeleteAttribute("PolyStrings");
         ModelXml->AddAttribute("PolyStrings", wxString::Format("%d", _strings));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::PolyLineStrings");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::PolyLineStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::PolyLineStrings");
@@ -1161,6 +1171,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
                 ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
             }
         }
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartNodes");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartNodes");
@@ -1184,6 +1195,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         ModelXml->DeleteAttribute(nm);
         ModelXml->AddAttribute(nm, wxString::Format("%d", value));
 
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartNodes2");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartNodes2");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartNodes2");
@@ -1209,6 +1221,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
                 ModelXml->DeleteAttribute(StartChanAttrName(x));
             }
         }
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartChannels");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartChannels");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartChannels");
@@ -1220,6 +1233,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
     else if ("IciclesDrops" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DropPattern");
         ModelXml->AddAttribute("DropPattern", event.GetPropertyValue().GetString());
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
@@ -1230,6 +1244,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
     else if ("AlternateNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("AlternateNodes");
         ModelXml->AddAttribute("AlternateNodes", event.GetPropertyValue().GetBool() ? "true" : "false");
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::AlternateNodes");
@@ -1248,6 +1263,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         }
         ModelXml->DeleteAttribute("ModelHeight");
         ModelXml->AddAttribute("ModelHeight", event.GetPropertyValue().GetString());
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::ModelHeight");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::ModelHeight");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::ModelHeight");
@@ -1354,6 +1370,13 @@ int PolyLineModel::OnPropertyGridSelection(wxPropertyGridInterface* grid, wxProp
         int segment = wxAtoi(str) - 1;
         return segment;
     }
+    else if (event.GetPropertyName().StartsWith("PolyCornerProperties.")) {
+        wxString str = event.GetPropertyName();
+        str = str.SubString(str.Find(".") + 1, str.length());
+        str = str.SubString(6, str.length());
+        int segment = wxAtoi(str) - 1;
+        return segment;
+    }
     return -1;
 }
 
@@ -1380,8 +1403,8 @@ void PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         wxString p3 = root->GetAttribute("parm3");
         wxString st = root->GetAttribute("StringType");
         wxString ps = root->GetAttribute("PixelSize");
-        wxString t = root->GetAttribute("Transparency");
-        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString t = root->GetAttribute("Transparency", "0");
+        wxString mb = root->GetAttribute("ModelBrightness", "0");
         wxString a = root->GetAttribute("Antialias");
         wxString ss = root->GetAttribute("StartSide");
         wxString dir = root->GetAttribute("Dir");
@@ -1418,7 +1441,7 @@ void PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         int num_points = wxAtoi(pts);
         ModelXml->DeleteAttribute("NumPoints");
@@ -1435,6 +1458,11 @@ void PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
                 // TODO this needs to be fixed like the individual start channel code in model
                 int seg_length = wxAtoi(seg);
                 ModelXml->AddAttribute(SegAttrName(x), wxString::Format("%d", seg_length));
+            }
+            for (int x = 0; x < num_segments-1; x++) {
+                ModelXml->DeleteAttribute(CornerAttrName(x));
+                wxString corner = root->GetAttribute(CornerAttrName(x), "Neither");
+                SetProperty(CornerAttrName(x), corner);
             }
         }
 
@@ -1469,8 +1497,8 @@ void PolyLineModel::ExportXlightsModel()
     wxString p3 = ModelXml->GetAttribute("parm3");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ss = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
@@ -1503,6 +1531,10 @@ void PolyLineModel::ExportXlightsModel()
         wxString seg = ModelXml->GetAttribute(SegAttrName(x), "");
         f.Write(wxString::Format("%s=\"%s\" ", SegAttrName(x), seg));
     }
+    for (int x = 0; x < count-1; x++) {
+        wxString corner = ModelXml->GetAttribute(CornerAttrName(x), "Neither");
+        f.Write(wxString::Format("%s=\"%s\" ", CornerAttrName(x), corner));
+    }
     f.Write(wxString::Format("PointData=\"%s\" ", point_data));
     f.Write(wxString::Format("cPointData=\"%s\" ", cpoint_data));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
@@ -1520,6 +1552,7 @@ void PolyLineModel::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</polylinemodel>");
     f.Close();
 }

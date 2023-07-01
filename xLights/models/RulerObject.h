@@ -30,7 +30,7 @@ public:
 
     virtual void InitModel() override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid) override;
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
 
     int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
@@ -52,6 +52,7 @@ public:
 	static std::string MeasureWidthDescription(glm::vec3 p1, glm::vec3 p2);
 	static std::string MeasureHeightDescription(glm::vec3 p1, glm::vec3 p2);
 	static std::string MeasureDepthDescription(glm::vec3 p1, glm::vec3 p2);
+    float ConvertDimension(const std::string& units, float measure);
 
 protected:
 

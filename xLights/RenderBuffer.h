@@ -79,6 +79,8 @@ public:
     static void CleanUp();
 
     void ResetSize(int BufferWi, int BufferHt);
+    size_t GetWidth() const;
+    size_t GetHeight() const;
     virtual void Clear();
     virtual wxImage *FlushAndGetImage();
     virtual bool AllowAlphaChannel() { return true;};
@@ -101,11 +103,41 @@ public:
     virtual void Clear() override;
 
     void SetPen(wxPen& pen);
+    void SetBrush(wxBrush& brush);
+    void SetBrush(wxGraphicsBrush& brush);
+    wxGraphicsBrush CreateLinearGradientBrush(wxDouble x1, wxDouble y1, wxDouble x2, wxDouble y2, const wxGraphicsGradientStops& stops) const
+    {
+        if (gc != nullptr)
+            return gc->CreateLinearGradientBrush(x1, y1, x2, y2, stops);
+
+        return wxGraphicsBrush();
+    }
+    wxGraphicsBrush CreateLinearGradientBrush(wxDouble x1, wxDouble y1, wxDouble x2, wxDouble y2, const wxColour& c1, const wxColour& c2) const
+    {
+        if (gc != nullptr)
+            return gc->CreateLinearGradientBrush(x1, y1, x2, y2, c1, c2);
+
+        return wxGraphicsBrush();
+    }
 
     wxGraphicsPath CreatePath();
     void StrokePath(wxGraphicsPath& path);
+    void FillPath(wxGraphicsPath& path, wxPolygonFillMode fillStyle);
+
 private:
 };
+
+constexpr char WIN_NATIVE_EMOJI_FONT[] = "Segoe UI Emoji";
+constexpr char OSX_NATIVE_EMOJI_FONT[] = "Apple Color Emoji";
+constexpr char LINUX_NATIVE_EMOJI_FONT[] = "Noto Color Emoji";
+
+#ifdef __WXMSW__
+constexpr char NATIVE_EMOJI_FONT[] = "Segoe UI Emoji";
+#elif defined(__WXOSX__)
+constexpr char NATIVE_EMOJI_FONT[] = "Apple Color Emoji";
+#else
+constexpr char NATIVE_EMOJI_FONT[] = "Noto Color Emoji";
+#endif
 
 class TextDrawingContext : public DrawingContext {
 public:
@@ -115,12 +147,15 @@ public:
     static TextDrawingContext* GetContext();
     static void ReleaseContext(TextDrawingContext* pdc);
 
+    static const wxFontInfo& GetTextFont(const std::string& fnt);
+    static const wxFontInfo& GetShapeFont(const std::string& fnt);
+
     virtual void Clear() override;
     virtual bool AllowAlphaChannel() override;
 
     void SetPen(wxPen& pen);
 
-    void SetFont(wxFontInfo &font, const xlColor &color);
+    void SetFont(const wxFontInfo &font, const xlColor &color);
     void DrawText(const wxString &msg, int x, int y, double rotation);
     void DrawText(const wxString &msg, int x, int y);
     void GetTextExtent(const wxString &msg, double *width, double *height);
@@ -175,6 +210,11 @@ public:
     size_t Size() const
     {
         return std::max(1, (int)color.size());
+    }
+
+    size_t ExplicitSize() const
+    {
+        return color.size();
     }
 
     const ColorCurve& GetColorCurve(size_t idx) const
@@ -410,7 +450,7 @@ public:
     Model* GetModel() const;
     Model* GetPermissiveModel() const; // gets the model even if it is a submodel/strand
     std::string GetModelName() const;
-    wxString GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const;
+    const wxString &GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const;
 
     void AlphaBlend(const RenderBuffer& src);
     bool IsNodeBuffer() const { return _nodeBuffer; }
@@ -435,7 +475,7 @@ public:
 
     int GetNodeCount() const { return Nodes.size();}
     void SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore = false);
-    void CopyNodeColorsToPixels(std::vector<bool> &done);
+    void CopyNodeColorsToPixels(std::vector<uint8_t> &done);
 
     void CopyPixel(int srcx, int srcy, int destx, int desty);
     void ProcessPixel(int x, int y, const xlColor &color, bool wrap_x = false, bool wrap_y = false);
@@ -456,6 +496,8 @@ public:
     void DrawLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool useAlpha = false);
     void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, int thickness, bool useAlpha = false);
     void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction);
+
+    void FillConvexPoly(const std::vector<std::pair<int, int>>& poly, const xlColor& color);
 
     //approximation of sin/cos, but much faster
     static float sin(float rad);
@@ -508,6 +550,7 @@ public:
     xlColor *GetTempBuf() { return tempbuf; }
     void CopyTempBufToPixels();
     void CopyPixelsToTempBuf();
+    wxPoint GetMaxBuffer(const SettingsMap& SettingsMap) const;
 
     PaletteClass palette;
     bool _nodeBuffer = false;

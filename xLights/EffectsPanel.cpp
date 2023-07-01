@@ -75,6 +75,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager, wxTimer *ti
         fgs->Add(panel, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 2);
 
         sw->SetSizer(fgs);
+	sw->SetScrollRate(5, 5);
         fgs->Fit(sw);
         fgs->SetSizeHints(sw);
 

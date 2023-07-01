@@ -337,7 +337,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
     if (_codecContext != nullptr) {
         CleanupVideoToolbox(_codecContext, hwDecoderCache);
         hwDecoderCache = nullptr;
-        avcodec_close(_codecContext);
+        avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
     }
 
@@ -592,7 +592,7 @@ VideoReader::~VideoReader()
         //logger_base.debug("Releasing codecContext.");
         CleanupVideoToolbox(_codecContext, hwDecoderCache);
         hwDecoderCache = nullptr;
-        avcodec_close(_codecContext);
+        avcodec_free_context(&_codecContext);
 		_codecContext = nullptr;
 	}
 	if (_formatContext != nullptr) {
@@ -679,6 +679,7 @@ bool VideoReader::readFrame(int timestampMS) {
         {
             _curPos = DTStoMS(_srcFrame->pts, _dtspersec);
         }
+        // This code is problematic if you dont read the first frame in the video ... it assumes the first frame read is the first frame which is may not be.
         if (_firstFramePos == -1) {
             _firstFramePos = _curPos;
         }
@@ -845,11 +846,11 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
         return _dstFrame2;
     }
 
-    // If the caller is after an old frame we have to seek first
-    if (currenttime > timestampMS + gracetime)
+    // If the caller is after an old frame we have to seek first. We also seek if the frame we want is more than a second away from where we are
+    if (currenttime > timestampMS + gracetime || timestampMS - currenttime > 1000)
     {
 #ifdef VIDEO_EXTRALOGGING
-        logger_base.debug("    Video %s seeking back from %d to %d.", (const char *)_filename.c_str(), currenttime, timestampMS);
+        logger_base.debug("    Video %s seeking from %d to %d.", (const char *)_filename.c_str(), currenttime, timestampMS);
 #endif
         Seek(timestampMS, false);
         currenttime = GetPos();

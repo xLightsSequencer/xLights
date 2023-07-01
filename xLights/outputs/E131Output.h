@@ -46,7 +46,7 @@ class E131Output : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    E131Output(wxXmlNode* node);
+    E131Output(wxXmlNode* node, bool isActive);
     E131Output();
     E131Output(E131Output* output);
     virtual ~E131Output() override;

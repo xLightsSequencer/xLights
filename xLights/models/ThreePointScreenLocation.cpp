@@ -125,6 +125,17 @@ std::string ThreePointScreenLocation::GetDimension(float factor) const
         RulerObject::PrescaledMeasureDescription((width * height) / 2.0 * factor)).ToStdString();
 }
 
+float ThreePointScreenLocation::GetRealWidth() const
+{
+    return RulerObject::Measure(origin, point2);
+}
+
+float ThreePointScreenLocation::GetRealHeight() const
+{
+    float width = RulerObject::Measure(origin, point2);
+    return RulerObject::Measure((width * height) / 2.0 * 1.0 * 100.0);
+}
+
 void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
     TwoPointScreenLocation::AddSizeLocationProperties(propertyEditor);
     wxPGProperty *prop = propertyEditor->Append(new wxFloatProperty("Height", "ModelHeight", height));
@@ -220,7 +231,16 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
         //point2.z = 0.0f;
     }
 
-    glm::vec3 a = point2 - origin;
+    glm::vec3 point2_calc = point2;
+    glm::vec3 origin_calc = origin;
+    bool swapped = false;
+    if( x2 < 0.0f ) { // green square right of blue square
+        point2_calc = origin;
+        origin_calc = point2;
+        swapped = true;
+    }
+    
+    glm::vec3 a = point2_calc - origin_calc;
     scalex = scaley = scalez = glm::length(a) / RenderWi;
     glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
 
@@ -234,18 +254,18 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     if (supportsShear) {
         shearMatrix = glm::mat4(glm::shearY(glm::mat3(1.0f), GetYShear()));
     }
-    glm::mat4 RotateX1 = glm::rotate(Identity, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 RotateY = glm::rotate(Identity, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 RotateX = glm::rotate(Identity, glm::radians((float)rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
     TranslateMatrix = translate(Identity, glm::vec3(worldPos_x, worldPos_y, localZ));
-    if (x2 < 0.0f && y2 != 0.0f) {
-        rotationMatrix = rotationMatrix * RotateX1;
+    if (swapped) {
+        rotationMatrix = rotationMatrix * RotateY;
     }
     matrix = TranslateMatrix * rotationMatrix * RotateX * shearMatrix * scalingMatrix;
 
     if (allow_selected) {
         // save processing time by skipping items not needed for view only preview
         center = glm::vec3(RenderWi / 2.0f, 0.0f, 0.0f);
-        ModelMatrix = TranslateMatrix * rotationMatrix;
+        ModelMatrix = TranslateMatrix * rotationMatrix * RotateX;
         glm::vec4 ctr = matrix * glm::vec4(center, 1.0f);
         center = glm::vec3(ctr);
     }

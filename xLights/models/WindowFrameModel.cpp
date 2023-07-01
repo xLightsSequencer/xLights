@@ -416,7 +416,8 @@ static const char* CLOCKWISE_ANTI_VALUES[] = {
 };
 static wxPGChoices CLOCKWISE_ANTI(wxArrayString(2, CLOCKWISE_ANTI_VALUES));
 
-void WindowFrameModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+void WindowFrameModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Lights Top", "WFTopCount", parm1));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 1000);
@@ -441,6 +442,7 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
     if ("WFTopCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
@@ -450,6 +452,7 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
     } else if ("WFLeftRightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
@@ -459,6 +462,7 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
     } else if ("WFBottomCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
@@ -470,6 +474,7 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", (event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2) ? "L" : "R");
         ModelXml->AddAttribute("StartSide", (event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1) ? "T" : "B");
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
@@ -478,6 +483,7 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
     } else if ("WFDirection" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Rotation");
         ModelXml->AddAttribute("Rotation", event.GetValue().GetLong() == 0 ? "Clockwise" : "Counter Clockwise");
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFDirection");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFDirection");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFDirection");

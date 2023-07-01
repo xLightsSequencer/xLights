@@ -23,6 +23,7 @@
 #include "DmxModel.h"
 #include "DmxColorAbility.h"
 #include "DmxColorAbilityRGB.h"
+#include "DmxColorAbilityCMY.h"
 #include "DmxColorAbilityWheel.h"
 #include "DmxPresetAbility.h"
 #include "../ModelScreenLocation.h"
@@ -42,14 +43,14 @@ DmxModel::~DmxModel()
     //dtor
 }
 
-void DmxModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi) const
+void DmxModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
 {
     BufferHi = 1;
     BufferWi = GetNodeCount();
 }
 
 void DmxModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform,
-    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, bool deep) const
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
 {
     BufferHi = 1;
     BufferWi = GetNodeCount();
@@ -63,7 +64,7 @@ void DmxModel::InitRenderBufferNodes(const std::string& type, const std::string&
     }
 }
 
-void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
     wxPGProperty* p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", parm1));
     p->SetAttribute("Min", 1);
@@ -119,12 +120,15 @@ void DmxModel::UpdateChannelCount(int num_channels, bool do_work)
 
 int DmxModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
+    IncrementChangeCount();
     if ("DmxChannelCount" == event.GetPropertyName()) {
+        IncrementChangeCount();
         UpdateChannelCount((int)event.GetPropertyValue().GetLong(), true);
         return 0;
     }
 
     if (nullptr != preset_ability && preset_ability->OnPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        IncrementChangeCount();
         return 0;
     }
 
@@ -289,8 +293,8 @@ void DmxModel::ExportBaseParameters(wxFile& f)
     wxString p3 = ModelXml->GetAttribute("parm3");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ss = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
@@ -327,8 +331,8 @@ void DmxModel::ImportBaseParameters(wxXmlNode* root)
     wxString p3 = root->GetAttribute("parm3");
     wxString st = root->GetAttribute("StringType");
     wxString ps = root->GetAttribute("PixelSize");
-    wxString t = root->GetAttribute("Transparency");
-    wxString mb = root->GetAttribute("ModelBrightness");
+    wxString t = root->GetAttribute("Transparency", "0");
+    wxString mb = root->GetAttribute("ModelBrightness", "0");
     wxString a = root->GetAttribute("Antialias");
     wxString ss = root->GetAttribute("StartSide");
     wxString dir = root->GetAttribute("Dir");

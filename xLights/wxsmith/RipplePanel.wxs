@@ -6,8 +6,60 @@
 			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT_Ripple_Draw_Style" variable="StaticText5" member="yes">
+					<label>Draw Style</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE_Ripple_Draw_Style" subclass="BulkEditChoice" variable="Choice_Ripple_Draw_Style" member="yes">
+					<content>
+						<item>Old</item>
+						<item>Lines Inward</item>
+						<item>Lines Outward</item>
+						<item>Lines Both</item>
+						<item>Lines Inward Ripple</item>
+						<item>Lines Outward Ripple</item>
+						<item>Lines Both Ripple</item>
+						<item>Solid Inward</item>
+						<item>Solid Outward</item>
+						<item>Solid Both</item>
+						<item>Solid Inward Ripple</item>
+						<item>Solid Outward Ripple</item>
+						<item>Solid Both Ripple</item>
+						<item>Highlight Inward</item>
+						<item>Highlight Outward</item>
+						<item>Highlight Both</item>
+						<item>Highlight Inward Ripple</item>
+						<item>Highlight Outward Ripple</item>
+						<item>Highlight Both Ripple</item>
+					</content>
+					<selection>0</selection>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Ripple_Draw_Style" subclass="xlLockButton" variable="BitmapButton_Ripple_Draw_Style" member="yes">
+					<size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT_Ripple_Object_To_Draw" variable="StaticText69" member="yes">
-					<label>Object to Draw</label>
+					<label>Object</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -27,6 +79,7 @@
 						<item>Snow Flake</item>
 						<item>Crucifix</item>
 						<item>Present</item>
+						<item>SVG</item>
 					</content>
 					<selection>0</selection>
 					<handler function="OnChoice_Ripple_Object_To_DrawSelect" entry="EVT_CHOICE" />
@@ -45,9 +98,35 @@
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText_SVG" member="no">
+					<label>SVG</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_Ripple_SVG" subclass="BulkEditFilePickerCtrl" variable="FilePickerCtrl_Ripple_SVG" member="yes">
+					<message>Choose a SIMPLE svg file</message>
+					<wildcard>*.svg</wildcard>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -64,6 +143,7 @@
 					<content>
 						<item>Explode</item>
 						<item>Implode</item>
+						<item>None</item>
 					</content>
 					<selection>0</selection>
 				</object>
@@ -88,8 +168,115 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText7" member="yes">
+					<label>Scale</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Ripple_Scale" subclass="BulkEditSlider" variable="Slider_Ripple_Scale" member="yes">
+							<value>100</value>
+							<max>500</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Scale" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_ScaleVC" member="yes">
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Scale" subclass="BulkEditTextCtrl" variable="TextCtrl_Ripple_Scale" member="yes">
+					<value>100</value>
+					<maxlength>3</maxlength>
+					<size>20,-1d</size>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Ripple_Scale" subclass="xlLockButton" variable="BitmapButton_Ripple_Scale" member="yes">
+					<size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText_Outline" member="no">
+					<label>Outline</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_Ripple_Outline" subclass="BulkEditSliderF1" variable="Slider_Ripple_Outline" member="yes">
+							<value>10</value>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Outline" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_OutlineVC" member="yes">
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Ripple_Outline" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Ripple_Outline" member="yes">
+					<value>1.0</value>
+					<maxlength>4</maxlength>
+					<size>20,-1d</size>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Ripple_Outline" subclass="xlLockButton" variable="BitmapButton_Ripple_Outline" member="yes">
+					<size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT_Ripple_Thickness" variable="StaticText72" member="yes">
-					<label>Thickness</label>
+					<label>Ripples</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -112,7 +299,6 @@
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Thickness" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_ThicknessVC" member="yes">
 							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -120,7 +306,6 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -138,7 +323,61 @@
 					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+					<label>Spacing</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_Ripple_Spacing" subclass="BulkEditSliderF1" variable="Slider_Ripple_Spacing" member="yes">
+							<value>10</value>
+							<min>1</min>
+							<max>400</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Spacing" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_SpacingVC" member="yes">
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Ripple_Spacing" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Ripple_Spacing" member="yes">
+					<value>1.0</value>
+					<maxlength>4</maxlength>
+					<size>20,-1d</size>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Ripple_Spacing" subclass="xlLockButton" variable="BitmapButton_Ripple_Spacing" member="yes">
+					<size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>1</border>
@@ -146,7 +385,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT_Ripple_Cycles" variable="StaticText176" member="yes">
-					<label>Cycle Count</label>
+					<label>Cycle Cnt</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -177,7 +416,6 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -220,7 +458,7 @@
 					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -231,7 +469,7 @@
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>1</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -248,6 +486,7 @@
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_Ripple_Rotation" subclass="BulkEditSlider" variable="Slider_Ripple_Rotation" member="yes">
+							<min>-360</min>
 							<max>360</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -288,6 +527,60 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText6" member="yes">
+					<label>Twist</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_Ripple_Twist" subclass="BulkEditSliderF1" variable="Slider_Ripple_Twist" member="yes">
+							<min>-450</min>
+							<max>450</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Twist" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_TwistVC" member="yes">
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Ripple_Twist" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Ripple_Twist" member="yes">
+					<value>0.0</value>
+					<maxlength>4</maxlength>
+					<size>20,-1d</size>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Ripple_Twist" subclass="xlLockButton" variable="BitmapButton_Ripple_Twist" member="yes">
+					<size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
 					<label>X Center</label>
 				</object>
@@ -298,6 +591,7 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 					<cols>2</cols>
+					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_Ripple_XC" subclass="BulkEditSlider" variable="Slider_Ripple_XC" member="yes">
 							<min>-100</min>
@@ -345,6 +639,7 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
 					<cols>2</cols>
+					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_Ripple_YC" subclass="BulkEditSlider" variable="Slider_Ripple_YC" member="yes">
 							<min>-100</min>
@@ -381,6 +676,113 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText8" member="yes">
+					<label>Velocity</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_Ripple_Velocity" subclass="BulkEditSliderF1" variable="Slider_Ripple_Velocity" member="yes">
+							<max>300</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Velocity" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_VelocityVC" member="yes">
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Ripple_Velocity" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Ripple_Velocity" member="yes">
+					<value>0.0</value>
+					<maxlength>4</maxlength>
+					<size>20,-1d</size>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Ripple_Velocity" subclass="xlLockButton" variable="BitmapButton_Ripple_Velocity" member="yes">
+					<size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText9" member="yes">
+					<label>Direction</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Ripple_Direction" subclass="BulkEditSlider" variable="Slider_Ripple_Direction" member="yes">
+							<min>-360</min>
+							<max>360</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Direction" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_DirectionVC" member="yes">
+							<bitmap code="GetValueCurveNotSelectedBitmap()" />
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Direction" subclass="BulkEditTextCtrl" variable="TextCtrl_Ripple_Direction" member="yes">
+					<value>0</value>
+					<maxlength>3</maxlength>
+					<size>20,-1d</size>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Ripple_Direction" subclass="xlLockButton" variable="BitmapButton_Ripple_Direction" member="yes">
+					<size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
+				<option>1</option>
+			</object>
 			<object class="spacer">
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -402,7 +804,6 @@
 							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>1</border>

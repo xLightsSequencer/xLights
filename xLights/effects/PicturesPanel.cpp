@@ -9,11 +9,13 @@
  **************************************************************/
 
 //(*InternalHeaders(PicturesPanel)
+#include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/filepicker.h>
 #include <wx/gbsizer.h>
+#include <wx/image.h>
 #include <wx/intl.h>
 #include <wx/notebook.h>
 #include <wx/settings.h>
@@ -25,6 +27,7 @@
 //*)
 
 #include "PicturesPanel.h"
+#include "PicturesEffect.h"
 #include "EffectPanelUtils.h"
 #include "GIFImage.h"
 #include "../ExternalHooks.h"
@@ -54,8 +57,10 @@ const long PicturesPanel::ID_STATICTEXT_PicturesXC = wxNewId();
 const long PicturesPanel::ID_SLIDER_PicturesXC = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_WrapX = wxNewId();
 const long PicturesPanel::IDD_TEXTCTRL_PicturesXC = wxNewId();
+const long PicturesPanel::ID_VALUECURVE_PicturesXC = wxNewId();
 const long PicturesPanel::ID_STATICTEXT_PicturesYC = wxNewId();
 const long PicturesPanel::IDD_TEXTCTRL_PicturesYC = wxNewId();
+const long PicturesPanel::ID_VALUECURVE_PicturesYC = wxNewId();
 const long PicturesPanel::ID_SLIDER_PicturesYC = wxNewId();
 const long PicturesPanel::ID_PANEL43 = wxNewId();
 const long PicturesPanel::ID_STATICTEXT_PicturesEndXC = wxNewId();
@@ -103,6 +108,8 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	wxFlexGridSizer* FlexGridSizer31;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer42;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxGridBagSizer* GridBagSizer2;
 	wxGridBagSizer* GridBagSizer3;
@@ -219,20 +226,30 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Pictures_WrapX = new BulkEditCheckBox(PictureStartPositionPanel, ID_CHECKBOX_Pictures_WrapX, _("Wrap X"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pictures_WrapX"));
 	CheckBox_Pictures_WrapX->SetValue(false);
 	FlexGridSizer106->Add(CheckBox_Pictures_WrapX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
 	TextCtrl_PicturesXC = new BulkEditTextCtrl(PictureStartPositionPanel, IDD_TEXTCTRL_PicturesXC, _("0"), wxDefaultPosition, wxDLG_UNIT(PictureStartPositionPanel,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PicturesXC"));
 	TextCtrl_PicturesXC->SetMaxLength(4);
-	FlexGridSizer106->Add(TextCtrl_PicturesXC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(TextCtrl_PicturesXC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_PicturesXC = new BulkEditValueCurveButton(PictureStartPositionPanel, ID_VALUECURVE_PicturesXC, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_PicturesXC"));
+	FlexGridSizer4->Add(BitmapButton_PicturesXC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer106->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer112->Add(FlexGridSizer106, 1, wxALL|wxEXPAND, 5);
 	GridBagSizer2 = new wxGridBagSizer(0, 0);
 	StaticText_Pictures_YC = new wxStaticText(PictureStartPositionPanel, ID_STATICTEXT_PicturesYC, _("Y-axis Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PicturesYC"));
 	GridBagSizer2->Add(StaticText_Pictures_YC, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
 	TextCtrl_PicturesYC = new BulkEditTextCtrl(PictureStartPositionPanel, IDD_TEXTCTRL_PicturesYC, _("0"), wxDefaultPosition, wxDLG_UNIT(PictureStartPositionPanel,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PicturesYC"));
 	TextCtrl_PicturesYC->SetMaxLength(4);
-	GridBagSizer2->Add(TextCtrl_PicturesYC, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(TextCtrl_PicturesYC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_PicturesYC = new BulkEditValueCurveButton(PictureStartPositionPanel, ID_VALUECURVE_PicturesYC, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_PicturesYC"));
+	FlexGridSizer5->Add(BitmapButton_PicturesYC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer2->Add(FlexGridSizer5, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
 	Slider_PicturesYC = new BulkEditSlider(PictureStartPositionPanel, ID_SLIDER_PicturesYC, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_PicturesYC"));
 	GridBagSizer2->Add(Slider_PicturesYC, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer112->Add(GridBagSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PictureStartPositionPanel->SetSizer(FlexGridSizer112);
+	FlexGridSizer112->Fit(PictureStartPositionPanel);
+	FlexGridSizer112->SetSizeHints(PictureStartPositionPanel);
 	PictureEndPositionPanel = new wxPanel(Notebook4, ID_PANEL45, wxPoint(104,13), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL45"));
 	FlexGridSizer111 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer111->AddGrowableCol(0);
@@ -257,6 +274,8 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	GridBagSizer3->Add(Slider_PicturesEndYC, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer111->Add(GridBagSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PictureEndPositionPanel->SetSizer(FlexGridSizer111);
+	FlexGridSizer111->Fit(PictureEndPositionPanel);
+	FlexGridSizer111->SetSizeHints(PictureEndPositionPanel);
 	Panel1 = new wxPanel(Notebook4, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
@@ -268,6 +287,8 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl_Pictures_StartScale->SetMaxLength(4);
 	FlexGridSizer2->Add(TextCtrl_Pictures_StartScale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel1->SetSizer(FlexGridSizer2);
+	FlexGridSizer2->Fit(Panel1);
+	FlexGridSizer2->SetSizeHints(Panel1);
 	Panel2 = new wxPanel(Notebook4, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer3->AddGrowableCol(1);
@@ -279,6 +300,8 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl_Pictures_EndScale->SetMaxLength(4);
 	FlexGridSizer3->Add(TextCtrl_Pictures_EndScale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel2->SetSizer(FlexGridSizer3);
+	FlexGridSizer3->Fit(Panel2);
+	FlexGridSizer3->SetSizeHints(Panel2);
 	Notebook4->AddPage(PictureStartPositionPanel, _("Start Position"), false);
 	Notebook4->AddPage(PictureEndPositionPanel, _("End Position"), false);
 	Notebook4->AddPage(Panel1, _("Start Scale"), false);
@@ -286,6 +309,8 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer102->Add(Notebook4, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer42->Add(FlexGridSizer102, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer42);
+	FlexGridSizer42->Fit(this);
+	FlexGridSizer42->SetSizeHints(this);
 
 	Connect(ID_FILEPICKER_Pictures_Filename,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&PicturesPanel::OnFilePickerCtrl1FileChanged);
 	Connect(ID_CHOICE_Pictures_Direction,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PicturesPanel::OnChoicePicturesDirectionSelect);
@@ -294,8 +319,14 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
 	//*)
 
+	Connect(ID_VALUECURVE_PicturesXC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PicturesPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_PicturesYC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PicturesPanel::OnVCButtonClick);
+
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&PicturesPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&PicturesPanel::OnValidateWindow, 0, this);
+
+	BitmapButton_PicturesXC->GetValue()->SetLimits(PICTURES_XC_MIN, PICTURES_XC_MAX);
+    BitmapButton_PicturesYC->GetValue()->SetLimits(PICTURES_YC_MIN, PICTURES_YC_MAX);
 
     SetName("ID_PANEL_PICTURES");
 	
@@ -332,6 +363,20 @@ void PicturesPanel::ValidateWindow()
     EnableControl(Choice_Pictures_Direction->GetParent(), ID_SLIDER_PicturesEndXC, enable);
     EnableControl(Choice_Pictures_Direction->GetParent(), ID_SLIDER_PicturesEndYC, enable);
     PictureEndPositionPanel->Enable(enable);
+
+	// I cant disable the value curve because it disables the slider but i dont want it active
+	if ("vector" == Choice_Pictures_Direction->GetStringSelection())
+	{
+        BitmapButton_PicturesXC->SetActive(false);
+        BitmapButton_PicturesYC->SetActive(false);
+        BitmapButton_PicturesXC->SetToolTip("Value curve cannot be used on vector movement.");
+        BitmapButton_PicturesYC->SetToolTip("Value curve cannot be used on vector movement.");
+	}
+	else
+	{
+        BitmapButton_PicturesXC->UnsetToolTip();
+        BitmapButton_PicturesYC->UnsetToolTip();
+	}
 
     enable = GIFImage::IsGIF(FilePickerCtrl1->GetFileName().GetFullPath().ToStdString());
     CheckBox_LoopGIF->Enable(enable);

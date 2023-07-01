@@ -9,6 +9,8 @@
  **************************************************************/
 
 #include "SubModel.h"
+#include "ModelManager.h"
+#include "ModelGroup.h"
 
 #include <wx/xml/xml.h>
 #include <wx/tokenzr.h>
@@ -76,7 +78,8 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
             int idx = a.Index('-');
             return std::make_pair(wxAtoi(a.Left(idx)), wxAtoi(a.Right(a.size() - idx - 1)));
         }
-        return std::make_pair(wxAtoi(a), wxAtoi(a));
+        int i = wxAtoi(a);
+        return std::make_pair(i, i);
     };
 
     unsigned int startChannel = UINT32_MAX;
@@ -269,8 +272,8 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
         x2 /= 100.0;
         y1 /= 100.0;
         y2 /= 100.0;
-        x1 = std::ceil(x1);
-        y1 = std::ceil(y1);
+        x1 = std::round(x1);
+        y1 = std::round(y1);
 
         float minx = 10000;
         float maxx = -1;
@@ -341,4 +344,22 @@ void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outpu
     p = grid->Append(new wxStringProperty("SubModel", "SMN", _properyGridDisplay));
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     p->ChangeFlag(wxPG_PROP_READONLY, true);
+
+    auto modelGroups = parent->GetModelManager().GetGroupsContainingModel(this);
+    if (modelGroups.size() > 0) {
+        std::string mgs;
+        std::string mgscr;
+        for (const auto& it : modelGroups) {
+            if (mgs != "") {
+                mgs += ", ";
+                mgscr += "\n";
+            }
+            mgs += it;
+            mgscr += it;
+        }
+        p = grid->Append(new wxStringProperty("In Model Groups", "MGS", mgs));
+        p->SetHelpString(mgscr);
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPG_PROP_READONLY, true);
+    }
 }

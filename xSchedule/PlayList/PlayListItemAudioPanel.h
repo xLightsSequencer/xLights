@@ -11,15 +11,16 @@
  **************************************************************/
 
  //(*Headers(PlayListItemAudioPanel)
-#include <wx/checkbox.h>
-#include <wx/filepicker.h>
-#include <wx/panel.h>
-#include <wx/sizer.h>
-#include <wx/slider.h>
-#include <wx/spinctrl.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-//*)
+ #include <wx/checkbox.h>
+ #include <wx/choice.h>
+ #include <wx/filepicker.h>
+ #include <wx/panel.h>
+ #include <wx/sizer.h>
+ #include <wx/slider.h>
+ #include <wx/spinctrl.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 class PlayListItemAudio;
 class AudioFilePickerCtrl;
@@ -38,8 +39,10 @@ class PlayListItemAudioPanel: public wxPanel
 		AudioFilePickerCtrl* FilePickerCtrl_AudioFile;
 		wxCheckBox* CheckBox_FastStartAudio;
 		wxCheckBox* CheckBox_OverrideVolume;
+		wxChoice* Choice_AudioDevice;
 		wxSlider* Slider1;
 		wxSpinCtrl* SpinCtrl_Priority;
+		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
@@ -54,6 +57,8 @@ class PlayListItemAudioPanel: public wxPanel
 		static const long ID_CHECKBOX2;
 		static const long ID_SLIDER1;
 		static const long ID_CHECKBOX1;
+		static const long ID_STATICTEXT1;
+		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT3;

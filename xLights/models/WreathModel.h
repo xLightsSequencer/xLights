@@ -18,7 +18,7 @@ class WreathModel : public ModelWithScreenLocation<BoxedScreenLocation>
         WreathModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~WreathModel();
 
-        virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
+        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsExportAsCustom() const override { return true; } 
         virtual bool SupportsWiringView() const override { return true; }

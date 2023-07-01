@@ -15,6 +15,7 @@
 class wxBitmapButton;
 class wxCheckBox;
 class wxChoice;
+class wxFilePickerCtrl;
 class wxFlexGridSizer;
 class wxFontPickerCtrl;
 class wxSlider;
@@ -56,6 +57,7 @@ class ShapePanel: public xlEffectPanel
 		BulkEditCheckBox* CheckBox_Shapes_RandomMovement;
 		BulkEditChoice* Choice_Shape_ObjectToDraw;
 		BulkEditChoice* Choice_Shape_TimingTrack;
+		BulkEditFilePickerCtrl* FilePickerCtrl_SVG;
 		BulkEditFontPicker* FontPickerCtrl_Font;
 		BulkEditSlider* Slider_Shape_CentreX;
 		BulkEditSlider* Slider_Shape_CentreY;
@@ -90,6 +92,7 @@ class ShapePanel: public xlEffectPanel
 		BulkEditValueCurveButton* BitmapButton_Shapes_Velocity;
 		ClickableStaticText* EmojiDisplay;
 		wxChoice* SkinToneChoice;
+		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
 		wxStaticText* StaticText13;
@@ -115,6 +118,8 @@ class ShapePanel: public xlEffectPanel
 		static const long ID_SPINCTRL_Shape_Char;
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE_Shape_SkinTone;
+		static const long ID_STATICTEXT1;
+		static const long ID_FILEPICKERCTRL_SVG;
 		static const long ID_STATICTEXT_Shape_Thickness;
 		static const long ID_SLIDER_Shape_Thickness;
 		static const long ID_VALUECURVE_Shape_Thickness;

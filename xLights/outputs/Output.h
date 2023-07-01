@@ -46,6 +46,7 @@ class Controller;
 #define OUTPUT_OPC "OPC"
 #define OUTPUT_GENERICSERIAL "Generic Serial"
 #define OUTPUT_TWINKLY "Twinkly"
+#define OUTPUT_PLAYER_ONLY "Player Only"
 #pragma endregion
 
 class Output
@@ -123,7 +124,7 @@ public:
     }
 
     std::string GetIP() const { return _ip; }
-    virtual void SetIP(const std::string& ip);
+    virtual void SetIP(const std::string& ip, bool isActive);
 
     std::string GetResolvedIP() const { return _resolvedIp; }
     void SetResolvedIP(const std::string& resolvedIP) { if (resolvedIP != _resolvedIp) { _resolvedIp = resolvedIP; _dirty = true; } }
@@ -222,7 +223,14 @@ public:
     #ifndef EXCLUDENETWORKUI
     virtual void AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {}
     virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) { return false; }
-    virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded) {}
+    virtual void AddMultiProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
+    {}
+    virtual bool HandleMultiPropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
+    {
+        return false;
+    }
+    virtual void HandleExpanded(wxPropertyGridEvent& event, bool expanded)
+    {}
     #endif
     #pragma endregion UI
 };

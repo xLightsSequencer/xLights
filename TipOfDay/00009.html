@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00009.html" title="What is a Universe" category="Controller" level="Beginner" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>What is a universe</h1>
+        <p>When you use protocols like E1.31 or ArtNet or even DMX you may hear people talk of universes. So what exactly are they.</p>
+        <p>A universe is defined as between 1 and 512 channels although most typically it is set to 510 or 512 channels. Each channel represents control over something. In the case of pixels that control is over the brightness of an R, G or B LED ... so 3 channels are required to control a pixel. As 3 does not divide evenly into 512, 510 is commonly used as a universe size as this is 170*3.</p>
+        <p>Universes are how the data is packaged and sent from your PC to your controller. The number of universes you will need is essentially the number of channels you are trying to control divided by 510 (or 512).</p>
+        <p>While it varies significantly between controllers there is generally no fixed association between a universe and a port on a controller. Any port can take data from any of the universes being sent to the controller. So even though your controller manual may say something like it supports 6 univerese per port ... that is really 6 * 510 channels but it could be from any universe.</p>
+        <p>If a port is using data from multiple universes you commonly only define the first universe/channel that is going to the port and the controller assumes once it has used all the channels in that universe it should just start using the next universe.</p>
+        <p>With the advent of the Visualiser as a method to configure controllers we have seen a move away from worrying about universes as xLights for most people works that all out for you and configures your controller to boot. The visualiser actively compresses your data into as few universes as the controller allows for so it is quite common to see the same universe (but different channels in it) being used across multiple ports.</p>
+        <p>Protocols such as DDP have totally done away with the concept of universes ... instead just sending a large block of channels to the controller and hiding from you the details about how it is broken up for transmission. This makes it much more efficient and for many less confusing.</p>
+    </body>
+</html>

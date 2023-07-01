@@ -22,12 +22,11 @@ public:
     Job() {}
     virtual ~Job() {};
     virtual void Process() = 0;
-    virtual std::string GetStatus() { return EMPTY_STRING; }
     virtual bool DeleteWhenComplete() { return false; }
     virtual bool SetThreadName() { return true; }
-    virtual const std::string GetName() const { return EMPTY_STRING; }
-    
-    const static std::string EMPTY_STRING;
+
+    virtual std::string GetStatus();
+    virtual const std::string GetName() const;
 };
 
 
@@ -42,11 +41,13 @@ class JobPool
     std::deque<Job*> queue;
     std::atomic_int numThreads;
     std::atomic_int idleThreads;
-    std::atomic_int inFlight;
     std::string threadNameBase;
 
+protected:
+    std::atomic_int inFlight;
     int maxNumThreads;
     int minNumThreads;
+    
 public:
     JobPool(const std::string &threadNameBase);
     virtual ~JobPool();

@@ -15,6 +15,7 @@
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 #include "ControllerEthernet.h"
+#include "../utils/ip_utils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -36,7 +37,7 @@ void KinetOutput::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("Error initialising Kinet datagram for %s %d. %s", (const char*)_ip.c_str(), GetUniverse(), (const char*)localaddr.IPAddress().c_str());
         _ok = false;
@@ -118,7 +119,7 @@ void KinetOutput::PopulateHeader()
 #pragma endregion
 
 #pragma region Constructors and Destructors
-KinetOutput::KinetOutput(wxXmlNode* node) : IPOutput(node) {
+KinetOutput::KinetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > 512) SetChannels(512);
     _sequenceNum = 0;
@@ -182,7 +183,7 @@ std::string KinetOutput::GetExport() const {
 #pragma region Start and Stop
 bool KinetOutput::Open() {
     if (!_enabled) return true;
-    if (!IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
 
     _ok = IPOutput::Open();
 

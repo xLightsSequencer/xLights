@@ -186,7 +186,7 @@ void MultiPointModel::InitLine() {
         idx++;
     }
 }
-void MultiPointModel::AddTypeProperties(wxPropertyGridInterface* grid)
+void MultiPointModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
     wxPGProperty* p;
     if (SingleNode) {
@@ -266,6 +266,7 @@ int MultiPointModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPrope
             sp = grid->GetPropertyByLabel("# Lights");
         }
         sp->SetValueFromInt((int)event.GetPropertyValue().GetLong());
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::OnPropertyGridChange::MultiPointNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::OnPropertyGridChange::MultiPointNodes");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MultiPointModel::OnPropertyGridChange::MultiPointNodes");
@@ -295,6 +296,7 @@ int MultiPointModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPrope
         }
         ModelXml->DeleteAttribute("MultiStrings");
         ModelXml->AddAttribute("MultiStrings", wxString::Format("%d", _strings));
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
@@ -314,6 +316,7 @@ int MultiPointModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPrope
         }
         ModelXml->DeleteAttribute("ModelHeight");
         ModelXml->AddAttribute("ModelHeight", event.GetPropertyValue().GetString());
+        IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::OnPropertyGridChange::ModelHeight");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::OnPropertyGridChange::ModelHeight");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MultiPointModel::OnPropertyGridChange::ModelHeight");
@@ -452,8 +455,8 @@ void MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights,
         wxString p3 = root->GetAttribute("parm3");
         wxString st = root->GetAttribute("StringType");
         wxString ps = root->GetAttribute("PixelSize");
-        wxString t = root->GetAttribute("Transparency");
-        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString t = root->GetAttribute("Transparency", "0");
+        wxString mb = root->GetAttribute("ModelBrightness", "0");
         wxString a = root->GetAttribute("Antialias");
         wxString ss = root->GetAttribute("StartSide");
         wxString dir = root->GetAttribute("Dir");
@@ -488,7 +491,7 @@ void MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights,
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         ModelXml->DeleteAttribute("NumPoints");
         ModelXml->AddAttribute("NumPoints", pts);
@@ -521,8 +524,8 @@ void MultiPointModel::ExportXlightsModel()
     wxString p3 = ModelXml->GetAttribute("parm3");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ss = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
@@ -563,6 +566,7 @@ void MultiPointModel::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</multipointmodel>");
     f.Close();
 }

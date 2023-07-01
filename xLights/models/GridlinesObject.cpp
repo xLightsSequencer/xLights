@@ -45,7 +45,8 @@ void GridlinesObject::InitModel() {
     hasAxis = ModelXml->GetAttribute("GridAxis", "0") == "1";
 }
 
-void GridlinesObject::AddTypeProperties(wxPropertyGridInterface *grid) {
+void GridlinesObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
 
     wxPGProperty *p = grid->Append(new wxUIntProperty("Line Spacing", "GridLineSpacing", line_spacing));
     p->SetAttribute("Min", 1);

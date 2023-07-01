@@ -97,13 +97,16 @@ class EffectTreeDialog : public wxDialog
 		void OnETButton1Click(wxCommandEvent& event);
 		void OnTextCtrl1TextEnter(wxCommandEvent& event);
 		void OnTimerGifTrigger(wxTimerEvent& event);
+		void OnTreeCtrl1KeyDown(wxTreeEvent& event);
 		//*)
+
+        void DeleteSelectedItem();
 
 		std::unique_ptr<wxBitmap> _blankGIFImage;
         std::unique_ptr<GIFImage> gifImage;
-        int frameCount;
-        xLightsFrame* xLightParent;
-		wxXmlNode *XrgbEffectsNode;
+        int frameCount = 0;
+        xLightsFrame* xLightParent = nullptr;
+		wxXmlNode *XrgbEffectsNode = nullptr;
         wxTreeItemId m_draggedItem;
         std::mutex preset_mutex;
         bool _effectsFixed = false;

@@ -25,7 +25,14 @@
 #include <memory>
 #include <string>
 
+#if __has_include("Python.h") && __has_include(<pybind11/pybind11.h>)
+#define PYTHON_RUNNER
+#endif
+
 class LuaRunner;
+#if defined(PYTHON_RUNNER)
+class PythonRunner;
+#endif
 class xLightsFrame;
 
 class ScriptsDialog : public wxDialog
@@ -33,6 +40,9 @@ class ScriptsDialog : public wxDialog
 	xLightsFrame* _frame = nullptr;
     wxArrayString _scripts;
     std::unique_ptr<LuaRunner> _runner;
+	#if defined(PYTHON_RUNNER)
+    std::unique_ptr<PythonRunner> _pyrunner;
+	#endif
 
 public:
 
@@ -62,6 +72,7 @@ public:
 	//*)
 
 	static const long ID_MCU_VIEWSCRIPT;
+	static const long ID_MCU_VIEWSCRIPTFOLDER;
 
 private:
 
@@ -78,7 +89,8 @@ private:
 	void Run_Selected_Script();
 	void LoadScriptDir();
     void ProcessScriptDir(wxString const& dir);
-    void Run_Lua_Script(wxString const& filepath)const;
+    void Run_Lua_Script(wxString const& filepath) const;
+	void Run_Python_Script(wxString const& filepath) const;
 
 
 	DECLARE_EVENT_TABLE()

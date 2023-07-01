@@ -69,7 +69,8 @@ void MeshObject::InitModel() {
     screenLocation.SetRenderSize(width, height, depth);
 }
 
-void MeshObject::AddTypeProperties(wxPropertyGridInterface *grid) {
+void MeshObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+{
 	wxPGProperty *p = grid->Append(new wxFileProperty("ObjFile",
                                              "ObjFile",
                                              _objFile));

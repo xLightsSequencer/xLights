@@ -76,6 +76,7 @@ void BarsEffect::SetDefaultParameters() {
 
     bp->BitmapButton_Bars_BarCount->SetActive(false);
     bp->BitmapButton_Bars_Cycles->SetActive(false);
+    bp->BitmapButton_Bars_Center->SetActive(false);
 
     SetSliderValue(bp->Slider_Bars_BarCount, 1);
     SetSliderValue(bp->Slider_Bars_Cycles, 10);
@@ -111,7 +112,7 @@ void BarsEffect::GetSpatialColor(xlColor& color, size_t colorIndex, float x, flo
     }
 }
 
-void BarsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float offset = buffer.GetEffectTimeIntervalPosition();
     int PaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset, BARCOUNT_MIN, BARCOUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

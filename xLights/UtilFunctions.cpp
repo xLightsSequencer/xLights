@@ -18,6 +18,7 @@
 #include <wx/display.h>
 #include <wx/protocol/http.h>
 #include <wx/sstream.h>
+#include <wx/stdpaths.h>
 
 #include <random>
 #include <time.h>
@@ -27,12 +28,16 @@
 #include "xLightsVersion.h"
 #include "ExternalHooks.h"
 
+
 #include "../xSchedule/wxJSON/json_defs.h"
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonval.h"
-#include "../xSchedule/xSMSDaemon/Curl.h"
+
+#include "utils/Curl.h"
+#include "utils/string_utils.h"
 
 #include <mutex>
+#include <string_view>
 
 #ifdef __WXMSW__
 #include <psapi.h>
@@ -59,7 +64,6 @@
 #define thread_local __thread
 #endif
 
-static std::map<std::string, std::string> __resolvedIPMap;
 
 void DisplayError(const std::string& err, wxWindow* win)
 {
@@ -336,7 +340,9 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
     } else {
         sd = ShowDir;
     }
-
+    // done with __nonExistentFiles and __fileMap for right now, we'll unlock
+    // so other threads can access them, but we'll need to relock when we add entries later
+    lock.unlock();
     logger_base.debug("File not found ... attempting to fix location (" + sd + ") : " + file);
 
     // I dont know what this is trying to fix but it blows up on windows
@@ -353,12 +359,14 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
     wxString newPath;
     if (doesFileExist(sd, nameWin, nameUnix, newPath)) {
         // file exists in the new show dir
+        lock.lock();
         __fileMap[file] = newPath;
         return newPath;
     }
     for (auto &fd : SearchDirectories) {
         if (doesFileExist(fd, nameWin, nameUnix, newPath)) {
             // file exists in one of the resource directories
+            lock.lock();
             __fileMap[file] = newPath;
             return newPath;
         }
@@ -374,6 +382,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
             if (foldername.Lower() != "backup") { // dont look in backup folder
                 auto const folder = sd + wxFileName::GetPathSeparator() + foldername;
                 if (doesFileExist(folder, nameWin, nameUnix, newPath)) {
+                    lock.lock();
                     __fileMap[file] = newPath;
                     return newPath;
                 }
@@ -394,6 +403,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
     }
     if (fname == "") {
         // no subdirectory
+        lock.lock();
         __nonExistentFiles.push_back(file.ToStdString());
         return file;
     }
@@ -425,6 +435,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
     }
     if (doesFileExist(sd, appendWin, appendUnx, nameWin, nameUnix, newPath)) {
         // file exists
+        lock.lock();
         __fileMap[file] = newPath;
         return newPath;
     }
@@ -434,6 +445,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
         wxString relative = file.SubString(offset, file.Length());
         wxFileName sdFn =  wxFileName::DirName(sd);
         if (FileExists(relative, false)) {
+            lock.lock();
             __fileMap[file] = relative;
             return relative;
         }
@@ -445,6 +457,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
         appendWin = wxFileName::GetPathSeparator() + fnWin.GetDirs()[x] + appendWin;
         if (doesFileExist(sd, appendWin, nameWin, nameUnix, newPath)) {
             // file exists
+            lock.lock();
             __fileMap[file] = newPath;
             return newPath;
         }
@@ -454,6 +467,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
         appendUnx = wxFileName::GetPathSeparator() + fnUnix.GetDirs()[x] + appendUnx;
         if (doesFileExist(sd, appendUnx, nameWin, nameUnix, newPath)) {
             // file exists
+            lock.lock();
             __fileMap[file] = newPath;
             return newPath;
         }
@@ -467,6 +481,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file)
     }
     logger_base.debug("   could not find a fixed file location for : " + file);
     logger_base.debug("   We will not look for this file again until a new sequence is loaded.");
+    lock.lock();
     __nonExistentFiles.push_back(file.ToStdString());
     return file;
 }
@@ -496,23 +511,23 @@ wxString FixEffectFileParameter(const wxString& paramname, const wxString& param
     return rc;
 }
 
-std::string UnXmlSafe(const wxString &res)
+std::string UnXmlSafe(const std::string &res)
 {
-    if (res.Contains('&')) {
-        wxString r2(res);
-        for (int i = 0; i< 32; ++i)
-        {
-            wxString ss = wxString::Format("&#%d;", i);
-            r2.Replace(ss, wxString::Format("%c", i));
+    if (Contains(res, "&")) {
+        std::string r2(res);
+        for (int i = 0; i< 32; ++i) {
+            std::string ss = "&#" + std::to_string(i);
+            char buf[2] = {(char)i, 0};
+            Replace(r2, ss, buf);
         }
-        r2.Replace("&lt;", "<");
-        r2.Replace("&gt;", ">");
-        r2.Replace("&apos;", "'");
-        r2.Replace("&quot;", "\"");
-        r2.Replace("&amp;", "&");
-        return r2.ToStdString();
+        Replace(r2, "&lt;", "<");
+        Replace(r2, "&gt;", ">");
+        Replace(r2, "&apos;", "'");
+        Replace(r2, "&quot;", "\"");
+        Replace(r2, "&amp;", "&");
+        return r2;
     }
-    return res.ToStdString();
+    return res;
 }
 
 std::string XmlSafe(const std::string& s)
@@ -592,6 +607,20 @@ std::string EscapeCSV(const std::string& s)
     }
 
     return res;
+}
+
+std::string EscapeRegex(const std::string& s)
+{
+    // \,*,+,?,|,{,[, (,),^,$,.,#,
+    constexpr std::string_view BADREX {R"(\*+?|{[()^$,#)"};
+    std::string safe;
+    for (auto& c : s) {
+        if (BADREX.find(c) != std::string::npos) {
+            safe += "\\";
+        }
+        safe += c;
+    }
+    return safe;
 }
 
 wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& def)
@@ -803,9 +832,9 @@ bool IsVersionOlder(const std::string &compare, const std::string &version)
     {
         if (version_parts.Count() > 2)
         {
-            return true;
+            return false; // remote version has 2 components but local has three so local must be newer
         }
-        return false;
+        return true;
     }
     else
     {
@@ -949,54 +978,6 @@ int NumberAwareStringCompare(const std::string &a, const std::string &b)
     }
 }
 
-double GetSystemContentScaleFactor() {
-#ifdef __WXOSX__
-    return xlOSGetMainScreenContentScaleFactor();
-#else
-    return double(wxScreenDC().GetPPI().y) / 96.0;
-#endif
-}
-
-double ScaleWithSystemDPI(double val)
-{
-#ifdef __WXOSX__
-    //OSX handles all the scaling itself
-    return val;
-#else
-    return ScaleWithSystemDPI(GetSystemContentScaleFactor(), val);
-#endif
-}
-
-double UnScaleWithSystemDPI(double val)
-{
-#ifdef __WXOSX__
-    //OSX handles all the scaling itself
-    return val;
-#else
-    return UnScaleWithSystemDPI(GetSystemContentScaleFactor(), val);
-#endif
-}
-
-double ScaleWithSystemDPI(double scalingFactor, double val)
-{
-#ifdef __WXOSX__
-    //OSX handles all the scaling itself
-    return val;
-#else
-    return val * scalingFactor;
-#endif
-}
-
-double UnScaleWithSystemDPI(double scalingFactor, double val)
-{
-#ifdef __WXOSX__
-    //OSX handles all the scaling itself
-    return val;
-#else
-    return val / scalingFactor;
-#endif
-}
-
 bool IsExcessiveMemoryUsage(double physicalMultiplier)
 {
 #if defined(__WXMSW__) && defined(__WIN64__)
@@ -1010,6 +991,11 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier)
             }
         }
     }
+    return false;
+#elif defined(__WXOSX__)
+    // max of 24G of swap used
+    constexpr size_t MAX = 24l * 1024 * 1024 * 1024;
+    return wxDir::GetTotalSize("/System/Volumes/VM") > MAX;
 #else
     // test memory availability by allocating 200MB ... if it fails then treat this as a low memory problem
     //void* test = malloc(200 * 1024 * 1024);
@@ -1018,8 +1004,8 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier)
     //    return true;
     //}
     //free(test);
-#endif
     return false;
+#endif
 }
 
 std::list<std::string> GetLocalIPs()
@@ -1096,6 +1082,11 @@ bool IsValidLocalIP(const std::string& ip)
     return false;
 }
 
+bool IsValidLocalIP(const wxIPV4address& ip)
+{
+    return IsValidLocalIP(ip.IPAddress().ToStdString());
+}
+
 bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::string& mask)
 {
     wxIPV4address i1;
@@ -1169,7 +1160,7 @@ std::string Ordinal(int i)
 {
     wxString ii = wxString::Format("%d", i);
 
-    if (ii.EndsWith("11") || ii.EndsWith("12") || ii.EndsWith("12")) {
+    if (ii.EndsWith("11") || ii.EndsWith("12") || ii.EndsWith("13")) {
         return (ii + "th").ToStdString();
     }
     else if (ii.EndsWith("1")) {
@@ -1200,111 +1191,6 @@ bool IsEmailValid(const std::string& email)
         }
     }
     return false;
-}
-
-bool IsIPValid(const std::string& ip)
-{
-    wxString ips = wxString(ip).Trim(false).Trim(true);
-    if (ips == "") {
-        return false;
-    }
-    else {
-        static wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
-
-        if (regxIPAddr.Matches(ips)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool IsIPValidOrHostname(const std::string& ip, bool iponly)
-{
-    if (IsIPValid(ip)) {
-        return true;
-    }
-
-    if (ip == "") return false;
-
-    bool hasChar = false;
-    bool hasDot = false;
-    //hostnames need at least one char in it if fully qualified
-    //if not fully qualified (no .), then the hostname only COULD be just numeric
-    for (size_t y = 0; y < ip.length(); y++) {
-        char x = ip[y];
-        if ((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || x == '-') {
-            hasChar = true;
-        }
-        if (x == '.') {
-            hasDot = true;
-        }
-    }
-    if (hasChar || (!hasDot && !hasChar)) {
-        if (iponly) return true;
-        wxIPV4address addr;
-        addr.Hostname(ip);
-        wxString ipAddr = addr.IPAddress();
-        if (ipAddr != "0.0.0.0") {
-            return true;
-        }
-    }
-    return false;
-}
-
-std::string CleanupIP(const std::string& ip)
-{
-    bool hasChar = false;
-    bool hasDot = false;
-    //hostnames need at least one char in it if fully qualified
-    //if not fully qualified (no .), then the hostname only COULD be just numeric
-    for (size_t y = 0; y < ip.length(); y++) {
-        char x = ip[y];
-        if ((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || x == '-') {
-            hasChar = true;
-        }
-        if (x == '.') {
-            hasDot = true;
-        }
-    }
-    if (hasChar || !hasDot) {
-        //hostname, not ip, don't mangle it
-        return ip;
-    }
-    wxString IpAddr(ip.c_str());
-    static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
-    if (leadingzero1.Matches(IpAddr)) {
-        wxString s0 = leadingzero1.GetMatch(IpAddr, 0);
-        wxString s1 = leadingzero1.GetMatch(IpAddr, 1);
-        leadingzero1.ReplaceFirst(&IpAddr, "" + s0.Right(s0.size() - s1.size()));
-    }
-    static wxRegEx leadingzero2("(\\.0+)(?:[1-9]|0\\.|0$)", wxRE_ADVANCED);
-    while (leadingzero2.Matches(IpAddr)) { // need to do it several times because the results overlap
-        wxString s0 = leadingzero2.GetMatch(IpAddr, 0);
-        wxString s1 = leadingzero2.GetMatch(IpAddr, 1);
-        leadingzero2.ReplaceFirst(&IpAddr, "." + s0.Right(s0.size() - s1.size()));
-    }
-    return IpAddr.ToStdString();
-}
-
-std::string ResolveIP(const std::string& ip)
-{
-    // Dont resolve partially entered ip addresses as these resolve into unexpected addresses
-    if (IsIPValid(ip) || (ip == "MULTICAST") || ip == "" || StartsWith(ip, ".") || (ip[0] >= '0' && ip[0] <= '9')) {
-        return ip;
-    }
-    const std::string& resolvedIp = __resolvedIPMap[ip];
-    if (resolvedIp == "") {
-        wxIPV4address add;
-        add.Hostname(ip);
-        std::string r = add.IPAddress();
-        if (r == "0.0.0.0") {
-            r = ip;
-        }
-        __resolvedIPMap[ip] = r;
-        return __resolvedIPMap[ip];
-    }
-    return resolvedIp;
 }
 
 int GetxFadePort(int xfp)
@@ -1484,7 +1370,7 @@ void DumpBinary(uint8_t* buffer, size_t sz)
         }
         out += "    ";
         for (size_t j = i * 16; j < std::min(sz, (i + 1) * 16); j++) {
-            if (buffer[j] < 32 || buffer[j] > 127) {
+            if (buffer[j] < 32 || buffer[j] > 126) {
                 out += '.';
             }
             else {
@@ -1495,6 +1381,24 @@ void DumpBinary(uint8_t* buffer, size_t sz)
     }
 }
 
+wxColor CyanOrBlue()
+{
+    if (IsDarkMode()) {
+        // In Dark Mode blue is hard to read
+        return *wxCYAN;
+    } else {
+        return *wxBLUE;
+    }
+}
+wxColor LightOrMediumGrey()
+{
+    if (IsDarkMode()) {
+        static const wxColor medGray(128, 128, 128);
+        return medGray;
+    } else {
+        return *wxLIGHT_GREY;
+    }
+}
 void CleanupIpAddress(wxString& IpAddr)
 {
     static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
@@ -1525,8 +1429,26 @@ wxString CompressNodes(const wxString& nodes)
     int last = -1;
     auto as = wxSplit(s, ',');
 
+    // There is no difference between empty row and row with one blank pixel (shrug)
+    // We will take removal of the last comma approach
+
     for (const auto& i : as)
     {
+        if (i.empty() || i == "0") {
+            // Flush out start/last if any
+            if (start != -1) {
+                if (last != start) {
+                    res += wxString::Format("%d-%d,", start, last);
+                } else {
+                    res += wxString::Format("%d,", start);
+                }
+            }
+            // Add empty and separator
+            res += i+",";
+            start = last = -1;
+            dir = 0;
+            continue;
+        }
         if (start == -1)
         {
             start = wxAtoi(i);
@@ -1548,8 +1470,7 @@ wxString CompressNodes(const wxString& nodes)
                 }
                 else
                 {
-                    if (res != "") res += ",";
-                    res += wxString::Format("%d", start);
+                    res += wxString::Format("%d,", start);
                     start = j;
                     dir = 0;
                 }
@@ -1562,8 +1483,7 @@ wxString CompressNodes(const wxString& nodes)
                 }
                 else
                 {
-                    if (res != "") res += ",";
-                    res += wxString::Format("%d-%d", start, last);
+                    res += wxString::Format("%d-%d,", start, last);
                     start = j;
                     dir = 0;
                 }
@@ -1576,16 +1496,17 @@ wxString CompressNodes(const wxString& nodes)
     {
         // nothing to do
     }
-    if (start == last)
+    else if (start == last)
     {
-        if (res != "") res += ",";
-        res += wxString::Format("%d", start);
+        res += wxString::Format("%d,", start);
     }
     else
     {
-        if (res != "") res += ",";
-        res += wxString::Format("%d-%d", start, last);
+        res += wxString::Format("%d-%d,", start, last);
     }
+
+    if (!res.empty())
+        res = res.substr(0, res.length() - 1); // Chop last comma
 
     return res;
 }
@@ -1596,6 +1517,7 @@ wxString ExpandNodes(const wxString& nodes)
 
     auto as = wxSplit(nodes, ',');
 
+    bool first = true;
     for (const auto& i : as)
     {
         if (i.Contains("-"))
@@ -1609,20 +1531,20 @@ wxString ExpandNodes(const wxString& nodes)
                 {
                     for (int j = start; j <= end; j++)
                     {
-                        if (res != "") res += ",";
+                        if (!first || res != "") res += ",";
                         res += wxString::Format("%d", j);
                     }
                 }
                 else if (start == end)
                 {
-                    if (res != "") res += ",";
+                    if (!first || res != "") res += ",";
                     res += wxString::Format("%d", start);
                 }
                 else
                 {
                     for (int j = start; j >= end; j--)
                     {
-                        if (res != "") res += ",";
+                        if (!first || res != "") res += ",";
                         res += wxString::Format("%d", j);
                     }
                 }
@@ -1630,9 +1552,10 @@ wxString ExpandNodes(const wxString& nodes)
         }
         else
         {
-            if (res != "") res += ",";
+            if (!first || res != "") res += ",";
             res += i;
         }
+        first = false;
     }
     return res;
 }
@@ -1693,4 +1616,51 @@ void ReverseNodes(std::map<std::string, std::string> & nodes, int max)
         if(newNodeArray.size() > 0)
             line.second = CompressNodes(wxJoin(newNodeArray, ','));
     }
+}
+
+// returns true if the string contains what looks like a floating point number
+bool IsFloat(const std::string& number)
+{
+    // it cant be blank
+    if (number == "")
+        return false;
+    // if it contains a - it must be the first character and there must only be one of them
+    if (CountChar(number, '-') > 1 || (Contains(number, "-") && number[0] != '-'))
+        return false;
+    // it must contain zero or 1 '.'
+    if (CountChar(number, '.') > 1)
+        return false;
+    // all other characters must be 0-9
+    for (const auto it : number)
+    {
+        if (it != '.' && it != '-' && (it < '0' || it > '9'))
+            return false;
+    }
+    return true;
+}
+
+#ifdef __WXMSW__
+bool IsSuppressDarkMode()
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    return config->ReadBool("SuppressDarkMode", false);
+}
+
+void SetSuppressDarkMode(bool suppress)
+{
+    if (IsSuppressDarkMode() != suppress) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write("SuppressDarkMode", suppress);
+        wxMessageBox("Restart " + wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetName() + " to enable/disable dark mode properly.");
+    }
+}
+#endif
+
+bool IsDarkMode()
+{
+    return wxSystemSettings::GetAppearance().IsDark() 
+#ifdef __WXMSW__
+        && !IsSuppressDarkMode()
+#endif
+        ;
 }

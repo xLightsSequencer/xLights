@@ -37,30 +37,75 @@ class xlColor;
 
 class PinwheelEffect : public RenderableEffect
 {
-    public:
-        PinwheelEffect(int id);
-        virtual ~PinwheelEffect();
-        virtual void SetDefaultParameters() override;
-        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) const override { return true; }
-        virtual bool needToAdjustSettings(const std::string &version) override;
-        virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
-        virtual bool CanRenderPartialTimeInterval() const override { return true; }
-        virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
+public:
+    PinwheelEffect(int id);
+    virtual ~PinwheelEffect();
+    virtual void SetDefaultParameters() override;
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const override
+    {
+        return true;
+    }
+    virtual bool needToAdjustSettings(const std::string& version) override;
+    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
+    virtual bool CanRenderPartialTimeInterval() const override
+    {
+        return true;
+    }
+    virtual bool SupportsRenderCache(const SettingsMap& settings) const override
+    {
+        return true;
+    }
 
-    protected:
-        enum Pinwheel3DType {
-            PW_3D_NONE,
-            PW_3D,
-            PW_3D_Inverted,
-            PW_SWEEP
-        };
+    virtual double GetSettingVCMin(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_PinwheelXC")
+            return PINWHEEL_X_MIN;
+        if (name == "E_VALUECURVE_PinwheelYC")
+            return PINWHEEL_Y_MIN;
+        if (name == "E_VALUECURVE_Pinwheel_ArmSize")
+            return PINWHEEL_ARMSIZE_MIN;
+        if (name == "E_VALUECURVE_Pinwheel_Speed")
+            return PINWHEEL_SPEED_MIN;
+        if (name == "E_VALUECURVE_Pinwheel_Thickness")
+            return PINWHEEL_THICKNESS_MIN;
+        if (name == "E_VALUECURVE_Pinwheel_Twist")
+            return PINWHEEL_TWIST_MIN;
+        if (name == "E_VALUECURVE_Pinwheel_Offset")
+            return PINWHEEL_OFFSET_MIN;
+        return RenderableEffect::GetSettingVCMin(name);
+    }
 
-    
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
-        virtual void Draw_arm(RenderBuffer &buffer, int base_degrees,int max_radius,int pinwheel_twist, int xc_adj, int yc_adj, int colorIdx, Pinwheel3DType pinwheel_3d, float round);
-    
-        Pinwheel3DType to3dType(const std::string &pinwheel_3d);
-        void adjustColor(Pinwheel3DType pw3dType, xlColor &color, HSVValue &hsv, bool allowAlpha, float round);
+    virtual double GetSettingVCMax(const std::string& name) const override
+    {
+        if (name == "E_VALUECURVE_PinwheelXC")
+            return PINWHEEL_X_MAX;
+        if (name == "E_VALUECURVE_PinwheelYC")
+            return PINWHEEL_Y_MAX;
+        if (name == "E_VALUECURVE_Pinwheel_ArmSize")
+            return PINWHEEL_ARMSIZE_MAX;
+        if (name == "E_VALUECURVE_Pinwheel_Speed")
+            return PINWHEEL_SPEED_MAX;
+        if (name == "E_VALUECURVE_Pinwheel_Thickness")
+            return PINWHEEL_THICKNESS_MAX;
+        if (name == "E_VALUECURVE_Pinwheel_Twist")
+            return PINWHEEL_TWIST_MAX;
+        if (name == "E_VALUECURVE_Pinwheel_Offset")
+            return PINWHEEL_OFFSET_MAX;
+        return RenderableEffect::GetSettingVCMax(name);
+    }
 
+protected:
+    enum Pinwheel3DType {
+        PW_3D_NONE,
+        PW_3D,
+        PW_3D_Inverted,
+        PW_SWEEP
+    };
+
+    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
+    virtual void Draw_arm(RenderBuffer& buffer, int base_degrees, int max_radius, int pinwheel_twist, int xc_adj, int yc_adj, int colorIdx, Pinwheel3DType pinwheel_3d, float round);
+
+    Pinwheel3DType to3dType(const std::string& pinwheel_3d);
+    void adjustColor(Pinwheel3DType pw3dType, xlColor& color, HSVValue& hsv, bool allowAlpha, float round);
 };

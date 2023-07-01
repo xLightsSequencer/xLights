@@ -25,6 +25,7 @@
 #include "ControllerEthernet.h"
 #include "../OutputModelManager.h"
 #include "../ExternalHooks.h"
+#include "../utils/ip_utils.h"
 
 #ifndef EXCLUDENETWORKUI
 #include "../controllers/Falcon.h"
@@ -100,7 +101,7 @@ std::string ZCPPOutput::SerialiseProtocols() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-ZCPPOutput::ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir) : IPOutput(node) {
+ZCPPOutput::ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir) : IPOutput(node, c->IsActive()) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -314,7 +315,7 @@ void ZCPPOutput::SendSync(const std::string& localIP) {
             delete syncdatagram;
         }
 
-        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
         if (syncdatagram == nullptr) {
             logger_base.error("Error initialising ZCPP sync datagram.");
@@ -324,7 +325,7 @@ void ZCPPOutput::SendSync(const std::string& localIP) {
             delete syncdatagram;
             syncdatagram = nullptr;
         }
-        else if (syncdatagram->Error() != wxSOCKET_NOERROR) {
+        else if (syncdatagram->Error()) {
             logger_base.error("Error creating ZCPP sync datagram => %d : %s.", syncdatagram->LastError(), (const char*)DecodeIPError(syncdatagram->LastError()).c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
@@ -761,7 +762,7 @@ bool ZCPPOutput::Open() {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_enabled) return true;
-    if (!IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
 
     _lastSecond = -1;
 
@@ -783,7 +784,7 @@ bool ZCPPOutput::Open() {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("ZCPPOutput: Error opening datagram.");
     }
@@ -792,7 +793,7 @@ bool ZCPPOutput::Open() {
         delete _datagram;
         _datagram = nullptr;
     }
-    else if (_datagram->Error() != wxSOCKET_NOERROR) {
+    else if (_datagram->Error()) {
         logger_base.error("Error creating ZCPP datagram => %d : %s.", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
@@ -980,22 +981,22 @@ bool ZCPPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
 
     if (name == "SupportsVirtualStrings") {
         SetSupportsVirtualStrings(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::SupportsVirtualStrings");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::SupportsVirtualStrings");
         return true;
     }
     else if (name == "SupportsSmartRemotes") {
         SetSupportsSmartRemotes(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::SupportsSmartRemotes");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::SupportsSmartRemotes");
         return true;
     }
     else if (name == "SendDataMulticast") {
         SetMulticast(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::SendDataMulticast");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::SendDataMulticast");
         return true;
     }
     else if (name == "DontSendConfig") {
         SetDontConfigure(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::DontSendConfig");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::DontSendConfig");
         return true;
     }
 

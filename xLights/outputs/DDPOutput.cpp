@@ -20,6 +20,7 @@
 #include "../UtilFunctions.h"
 #include "../OutputModelManager.h"
 #include "ControllerEthernet.h"
+#include "../utils/ip_utils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -46,7 +47,7 @@ void DDPOutput::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIP());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK);  // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("Error initialising DDP datagram for %s. %s", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
         _ok = false;
@@ -57,7 +58,7 @@ void DDPOutput::OpenDatagram() {
         _datagram = nullptr;
         _ok = false;
     }
-    else if (_datagram->Error() != wxSOCKET_NOERROR) {
+    else if (_datagram->Error()) {
         logger_base.error("Error creating DDP datagram => %d : %s. %s", _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
@@ -67,7 +68,7 @@ void DDPOutput::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-DDPOutput::DDPOutput(wxXmlNode* node) : IPOutput(node) {
+DDPOutput::DDPOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     _fulldata = nullptr;
     _channelsPerPacket = wxAtoi(node->GetAttribute("ChannelsPerPacket"));
@@ -136,7 +137,7 @@ void DDPOutput::SendSync(const std::string& localIP) {
             delete syncdatagram;
         }
 
-        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
         if (syncdatagram == nullptr) {
             logger_base.error("Error initialising DDP sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
             return;
@@ -146,7 +147,7 @@ void DDPOutput::SendSync(const std::string& localIP) {
             syncdatagram = nullptr;
             return;
         }
-        else if (syncdatagram->Error() != wxSOCKET_NOERROR) {
+        else if (syncdatagram->Error()) {
             logger_base.error("Error creating DDP sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
@@ -189,7 +190,7 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::str
     }
 
     logger_base.debug(" DDP query using %s", (const char*)localaddr.IPAddress().c_str());
-    wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
     if (datagram == nullptr) {
         logger_base.error("Error initialising DDP query datagram.");
@@ -199,7 +200,7 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::str
         delete datagram;
         datagram = nullptr;
     }
-    else if (datagram->Error() != wxSOCKET_NOERROR) {
+    else if (datagram->Error()) {
         logger_base.error("Error creating DDP query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         delete datagram;
         datagram = nullptr;
@@ -216,7 +217,7 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::str
     if (datagram != nullptr) {
         logger_base.info("DDP sending query packet.");
         datagram->SendTo(remoteaddr, &packet, DDP_DISCOVERPACKET_LEN);
-        if (datagram->Error() != wxSOCKET_NOERROR) {
+        if (datagram->Error()) {
             logger_base.error("Error sending DDP query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         }
         else {
@@ -289,33 +290,42 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             }
             ControllerEthernet* controller = dd->controller;
 
-            wxJSONReader reader;
-            wxJSONValue val;
-            reader.Parse(wxString(&response[10]), &val);
-            if (val.HasMember("status")) {
-                std::string name = "";
-                if (val["status"].HasMember("man")) {
-                    name = val["status"]["man"].AsString().ToStdString();
-                    dd->SetVendor(name);
-                }
-                if (val["status"].HasMember("mod")) {
-                    if (name != "") {
-                        name += "-";
-                    }
-                    name += val["status"]["mod"].AsString().ToStdString();
-                    dd->SetModel(val["status"]["mod"].AsString().ToStdString());
-                }
-                if (val["status"].HasMember("ver")) {
-                    if (name != "") {
-                        name += "-";
-                    }
-                    name += val["status"]["ver"].AsString().ToStdString();
-                    dd->version = val["status"]["ver"].AsString().ToStdString();
-                }
-                dd->description = name;
-                controller->SetDescription(name);
+            if (controller == nullptr){
+                logger_base.warn("Unsupported DDP controller");
             }
-
+            else {
+                wxJSONReader reader;
+                wxJSONValue val;
+                reader.Parse(wxString(&response[10]), &val);
+                if (val.HasMember("status")) {
+                    std::string name = "";
+                    if (val["status"].HasMember("man")) {
+                        name =
+                                val["status"]["man"].AsString().ToStdString();
+                        dd->SetVendor(name);
+                    }
+                    if (val["status"].HasMember("mod")) {
+                        if (name != "") {
+                            name += "-";
+                        }
+                        name +=
+                                val["status"]["mod"].AsString().ToStdString();
+                        dd->SetModel(
+                                val["status"]["mod"].AsString().ToStdString());
+                    }
+                    if (val["status"].HasMember("ver")) {
+                        if (name != "") {
+                            name += "-";
+                        }
+                        name +=
+                                val["status"]["ver"].AsString().ToStdString();
+                        dd->version =
+                                val["status"]["ver"].AsString().ToStdString();
+                    }
+                    dd->description = name;
+                    controller->SetDescription(name);
+                }
+            }
             uint8_t packet[DDP_DISCOVERPACKET_LEN];
             memset(&packet, 0x00, sizeof(packet));
             packet[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_QUERY;
@@ -343,21 +353,33 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             }
             ControllerEthernet* controller = dd->controller;
 
-            wxJSONReader reader;
-            wxJSONValue val;
-            reader.Parse(wxString(&response[10]), &val);
+            if (controller == nullptr){
+                logger_base.warn("Unsupported DDP controller");
+            }
+            else {
+                wxJSONReader reader;
+                wxJSONValue val;
+                reader.Parse(wxString(&response[10]), &val);
 
-            if (val.HasMember("config") && val["config"].HasMember("ports")) {
-                int channels = 0;
-                auto ports = val["config"]["ports"].AsArray();
-                for (int i = 0; i < ports->Count(); i++) {
-                    auto ts = wxAtoi(val["config"]["ports"][i]["ts"].AsString()) + 1;
-                    auto l = wxAtoi(val["config"]["ports"][i]["l"].AsString());
-                    channels += ts * l * 3;
+                if (val.HasMember("config")
+                        && val["config"].HasMember("ports")) {
+                    int channels = 0;
+                    auto ports = val["config"]["ports"].AsArray();
+                    for (int i = 0; i < ports->Count(); i++) {
+                        auto ts =
+                                wxAtoi(
+                                        val["config"]["ports"][i]["ts"].AsString())
+                                        + 1;
+                        auto l =
+                                wxAtoi(
+                                        val["config"]["ports"][i]["l"].AsString());
+                        channels += ts * l * 3;
+                    }
+                    controller->GetOutputs().front()->SetChannels(
+                            channels);
+                } else {
+                    controller->GetOutputs().front()->SetChannels(512);
                 }
-                controller->GetOutputs().front()->SetChannels(channels);
-            } else {
-                controller->GetOutputs().front()->SetChannels(512);
             }
         } else {
             // non discovery response packet
@@ -396,7 +418,7 @@ bool DDPOutput::Open() {
 
     if (!_enabled) return true;
     if (_ip == "") return false;
-    if (!IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
 
     if (_fulldata != nullptr) delete _fulldata;
     _fulldata = (uint8_t*)malloc(_channels);
@@ -415,7 +437,7 @@ bool DDPOutput::Open() {
 
     memset(_data, 0x00, sizeof(_data));
 
-    _data[2] = 1;
+    _data[2] = 0;
     _data[3] = DDP_ID_DISPLAY;
     _sequenceNum = 1;
 

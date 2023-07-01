@@ -61,8 +61,24 @@
 									<selection>0</selection>
 									<handler function="OnChoiceModelLayoutTypeSelect" entry="EVT_CHOICE" />
 								</object>
-								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText12" member="yes">
+									<label>Default Camera:</label>
+								</object>
+								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxChoice" name="ID_CHOICE2" variable="Choice_DefaultCamera" member="yes">
+									<handler function="OnChoice_DefaultCameraSelect" entry="EVT_CHOICE" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">

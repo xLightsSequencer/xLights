@@ -36,6 +36,7 @@
 				<Protocol>e131</Protocol>
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
+            <ConfigDriver>PixLite16</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="Pixie 2">

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00048.html" title="Overlapping channels" category="Layout" level="Intermediate" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Overlapping channels</h1>
+        <p>Overlapping channels occur when more than one model in your layout are mapped to the same channels on your controllers. You will often notice this when playing a sequence and seeing unexpected lights on models lighting up.</p>
+        <p>Here Check Sequence on the tools menu can help as it will scan through all your models looking for where this might be occuring.</p>
+        <p>You can also use the "Overlap Checks Enabled" checkbox on the layout tab. When you click on a model it will highlight in red any pixels on other models which are using the same channels as the currently selected model.</p>
+        <p>While it is not super common there are some situations where overlapping channels is intended. We call these situations "shadow models" where a second model is deliberately designed to overlap with another model. The most common reason for this is to work around limitations with the visualiser being able to do things like map a single model across multiple controllers or where you want to use an inbuilt model and multiple strings but the string pattern desired is not supported by the model. You can in these situations set the "Shadow Model For" property to hide the warnings in check sequence.</p>
+        <p>To fix overlapping channels you would generally use the visualiser or carefully set up all your controller mappings. If you just want a quick fix you can right click in the model list on the layout tab and select the "Make All Start Channels Not Overlapping" option. This wont make them correct but it will force them all to not overlap.</p>
+    </body>
+</html>

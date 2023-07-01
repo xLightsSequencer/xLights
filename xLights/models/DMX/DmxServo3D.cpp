@@ -191,9 +191,9 @@ protected:
 
 static wxPGChoices MOTION_LINKS;
 
-void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid)
+void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    DmxModel::AddTypeProperties(grid);
+    DmxModel::AddTypeProperties(grid, outputManager);
 
     wxPGProperty* p = grid->Append(new ServoPopupDialogProperty(this, "Servo Config", "ServoConfig", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
@@ -594,7 +594,14 @@ void DmxServo3d::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* 
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(Nodes);
-
+    if (boundingBox) {
+        boundingBox[0] = -0.5;
+        boundingBox[1] = -0.5;
+        boundingBox[2] = -0.5;
+        boundingBox[3] = 0.5;
+        boundingBox[4] = 0.5;
+        boundingBox[5] = 0.5;
+    }
     sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
@@ -861,6 +868,7 @@ void DmxServo3d::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    //ExportDimensions(f);
     f.Write("</dmxservo3d>");
     f.Close();
 }
@@ -984,7 +992,7 @@ void DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
             (*it)->Serialise(root, ModelXml, show_dir);
         }
 
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3d::ImportXlightsModel");

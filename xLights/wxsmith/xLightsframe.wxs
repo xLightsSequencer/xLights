@@ -733,6 +733,8 @@
 												<object class="sizeritem">
 													<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindowControllers" member="yes">
 														<sashpos>1000</sashpos>
+														<sashgravity>0.800000</sashgravity>
+														<minpanesize>20</minpanesize>
 														<orientation>vertical</orientation>
 														<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
 															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllers" member="yes">
@@ -742,6 +744,8 @@
 															</object>
 														</object>
 														<object class="wxPanel" name="ID_PANEL6" variable="Panel5" member="yes">
+															<minsize>20,-1</minsize>
+															<style>wxTAB_TRAVERSAL|wxALWAYS_SHOW_SB</style>
 															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupRight" member="yes">
 																<cols>1</cols>
 																<growablecols>0</growablecols>
@@ -1028,6 +1032,10 @@
 					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_HARDDISK&quot;)' />
 					<handler function="OnMenuItemBackupSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_FILE_RESTOREBACKUP" variable="MenuItemRestoreBackup" member="yes">
+					<label>Restore Backup</label>
+					<handler function="OnMenuItemRestoreBackupSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_FILE_ALTBACKUP" variable="mAltBackupMenuItem" member="yes">
 					<label>Alternate Backup</label>
 					<accel>F11</accel>
@@ -1172,6 +1180,10 @@
 				<object class="wxMenuItem" name="ID_MENUITEM_GenerateCustomModel" variable="Menu_GenerateCustomModel" member="yes">
 					<label>&amp;Generate Custom Model</label>
 					<handler function="OnMenu_GenerateCustomModelSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_REMAPCUSTOM" variable="MenuItem_RemapCustom" member="yes">
+					<label>Remap Custom Model</label>
+					<handler function="OnMenuItem_RemapCustomSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_GENERATELYRICS" variable="MenuItem_GenerateLyrics" member="yes">
 					<label>Generate &amp;Lyrics From Data</label>
@@ -1336,6 +1348,19 @@
 						<checkable>1</checkable>
 					</object>
 					<object class="separator" />
+					<object class="wxMenu" name="ID_MENUITEM3" variable="MenuItem1" member="yes">
+						<label>Suppress Dock</label>
+						<object class="wxMenuItem" name="ID_MNU_SUPPRESSDOCK_HP" variable="MenuItem_SD_HP" member="yes">
+							<label>House Preview</label>
+							<handler function="OnMenuItem_SuppressDock" entry="EVT_MENU" />
+							<checkable>1</checkable>
+						</object>
+						<object class="wxMenuItem" name="ID_MNU_SUPPRESSDOCK_MP" variable="MenuItem_SD_MP" member="yes">
+							<label>Model Preview</label>
+							<handler function="OnMenuItem_SuppressDock" entry="EVT_MENU" />
+							<checkable>1</checkable>
+						</object>
+					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_WINDOWS_PERSPECTIVE" variable="MenuItem26" member="no">
 						<label>Perspectives</label>
 						<handler function="ShowHidePerspectivesWindow" entry="EVT_MENU" />
@@ -1413,6 +1438,11 @@
 					<handler function="OnMenuItem_VQuietVolSelected" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_SILENT" variable="MenuItem_SilentVol" member="yes">
+					<label>Silent</label>
+					<handler function="OnMenuItem_SilentVolSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu2" member="no">
 				<label>&amp;Import</label>
@@ -1423,6 +1453,10 @@
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
 				<label>&amp;Help</label>
+				<object class="wxMenuItem" name="ID_MNU_TOD" variable="MenuItem_TOD" member="yes">
+					<label>Tip of the Day</label>
+					<handler function="OnMenuItem_TODSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_MANUAL" variable="MenuItem_UserManual" member="yes">
 					<label>User Manual</label>
 					<handler function="OnMenuItem_UserManualSelected" entry="EVT_MENU" />

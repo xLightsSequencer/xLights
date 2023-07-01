@@ -72,6 +72,7 @@ public:
 	wxCheckBox* CheckBox_ShowSubmodels;
 	wxChoice* ChoiceModelLayoutType;
 	wxChoice* ChoicePreviews;
+	wxChoice* Choice_DefaultCamera;
 	wxColourPickerCtrl* ColourPickerCtrl_ModelGroupTagColour;
 	wxFlexGridSizer* Panel_Sizer;
 	wxListCtrl* ListBoxAddToModelGroup;
@@ -83,6 +84,7 @@ public:
 	wxStaticText* LabelModelGroupName;
 	wxStaticText* StaticText10;
 	wxStaticText* StaticText11;
+	wxStaticText* StaticText12;
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText2;
 	wxStaticText* StaticText3;
@@ -99,6 +101,8 @@ protected:
 	static const long ID_STATICTEXT5;
 	static const long ID_STATICTEXT6;
 	static const long ID_CHOICE1;
+	static const long ID_STATICTEXT12;
+	static const long ID_CHOICE2;
 	static const long ID_STATICTEXT4;
 	static const long ID_SPINCTRL1;
 	static const long ID_CHOICE_PREVIEWS;
@@ -164,6 +168,7 @@ private:
 	void OnCheckBox_ShowInactiveModelsClick(wxCommandEvent& event);
 	void OnCheckBox_ShowOnlyModelsInCurrentViewClick(wxCommandEvent& event);
 	void OnColourPickerCtrl_ModelGroupTagColourColourChanged(wxColourPickerEvent& event);
+	void OnChoice_DefaultCameraSelect(wxCommandEvent& event);
 	//*)
 
 	DECLARE_EVENT_TABLE()

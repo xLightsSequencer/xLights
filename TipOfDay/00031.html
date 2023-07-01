@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00031.html" title="Troubleshooting light control" category="General" level="Beginner" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Troubleshooting light control</h1>
+        <p>So what do you do when your lights don't work right. This is clearly a complex question and depending on symptoms you can jump to certain problem areas quickly but let me give some general advice.</p>
+        <ol>
+            <li>Always start as close as possible to the lights that are not working correctly. If you have them on a smart receiver use the test button there then move to the controller test function. If they are connected to a controller start with the controller test mode. If you can't get your lights working using your controllers test mode then there is no way it is going to work in xlights/xschedule/fpp. Use the rgbw option if it is available. On white you should not be getting flicker. If you are you have brightness/power/signalling issues you need to work out.</li>
+            <li>Now move to xlights test mode selecting universes or controllers. Start with something simple like background and turn it up to 50%. Is your controller seeing network packets (assuming it tells you). If no then you have a networking issue to solve. If it is then you have a port configuration issue to solve. Networking issues may be wrong ip addresses or data going out the wrong adapter. If your controller can show network data received check that it is seeing data arrive.</li>
+            <li>Now move to models in test mode. Are the right models lighting up. If not then you have port config issues or model start channel issues.</li>
+            <li>Now move to a-b-c mode. Are you seeing the right colours? If not then you need to play with the colour order in xlights or the controller.</li>
+            <li>Now try playing a sequence in xlights. Does it work. By now it should.</li>
+            <li>Now you can move to your player (FPP or xSchedule). Start with test mode and if that works try running a sequence.</li>
+        </ol>
+        <p>Some tools for troubleshooting:</p>
+        <ul>
+            <li>Ping is great for checking controllers are reachable</li>
+            <li>Don't forget check sequence and check schedule. They can highlight some issues</li>
+            <li>xScanner can be useful detecting devices.</li>
+            <li><a href="https://www.da-share.com/software/da_e131/">da-E131</a> can be useful as an independent tool for sending data to some controllers.</li>
+            <li>When all else fails I like wireshark ... not for the faint hearted but I use this to prove the data is leaving your pc correctly.</li>
+            <li>WS2811 testers can be had for less than $20 as a use anywhere test my pixels tool.</li>
+            <li>You cant go past the use of devices like the F-Amp for trying to clean up signalling issues in data runs.</li>
+        </ul>
+    </body>
+</html>

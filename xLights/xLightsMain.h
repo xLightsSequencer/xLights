@@ -83,6 +83,7 @@
 #include "models/Model.h"
 #include "SequencePackage.h"
 #include "ScriptsDialog.h"
+#include "TipOfTheDayDialog.h"
 
 class wxDebugReport;
 
@@ -117,6 +118,7 @@ class ControllerEthernet;
 class HttpServer;
 class HttpConnection;
 class HttpRequest;
+class wxTaskBarIcon;
 
 // max number of most recently used show directories on the File menu
 #define MRUD_LENGTH 4
@@ -187,6 +189,8 @@ wxDECLARE_EVENT(EVT_PLAYJUKEBOXITEM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_COLOUR_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SETEFFECTCHOICE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_TIPOFDAY_READY, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SET_EFFECT_DURATION, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights/FPP Sequences(*.fseq)|*.fseq|xLights Imports(*.iseq)|*.iseq";
@@ -281,8 +285,11 @@ class xLightsFrame: public xlFrame
 {
 public:
 
-    xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1);
+    xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1, bool renderOnlyMode = false);
     virtual ~xLightsFrame();
+
+    static bool IsCheckSequenceOptionDisabled(const std::string& option);
+    static void SetCheckSequenceOptionDisable(const std::string& option, bool value);
 
     enum PlayListIds
     {
@@ -316,6 +323,12 @@ public:
     std::mutex saveLock;
     RenderCache _renderCache;
     std::atomic_bool _exiting;
+    #ifdef __WXMSW__
+    // windows has issues if we create it later
+    TipOfTheDayDialog _tod;
+    #else
+    TipOfTheDayDialog* _tod = nullptr;
+    #endif
 
     PhonemeDictionary dictionary;
 
@@ -397,11 +410,11 @@ public:
     bool ExportVideoPreview(wxString const& path);
 
 	void SetAudioControls();
-    void ImportXLights(const wxFileName &filename);
+    void ImportXLights(const wxFileName &filename, std::string const& mapFile = std::string());
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
         bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
-        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
+        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string());
     void ImportVix(const wxFileName &filename);
     void ImportHLS(const wxFileName &filename);
     void ImportLMS(const wxFileName &filename);
@@ -599,6 +612,11 @@ public:
     void OnMenuItem_ColorReplaceSelected(wxCommandEvent& event);
     void OnMenuItemFindDataSelected(wxCommandEvent& event);
     void OnMenuItemSearchEffectsSelected(wxCommandEvent& event);
+    void OnMenuItem_SilentVolSelected(wxCommandEvent& event);
+    void OnMenuItem_TODSelected(wxCommandEvent& event);
+    void OnMenuItem_RemapCustomSelected(wxCommandEvent& event);
+    void OnMenuItemRestoreBackupSelected(wxCommandEvent& event);
+    void OnMenuItem_SuppressDock(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -612,7 +630,6 @@ private :
 	void ResetAllSequencerWindows();
 	void SetEffectAssistWindowState(bool show);
     void UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect);
-    void MaybePackageAndSendDebugFiles();
     void AddDebugFilesToReport(wxDebugReport &report);
 
 public:
@@ -710,6 +727,7 @@ public:
     static const long ID_MENUITEM8;
     static const long ID_MENUITEM_RECENTFOLDERS;
     static const long ID_FILE_BACKUP;
+    static const long ID_FILE_RESTOREBACKUP;
     static const long ID_FILE_ALTBACKUP;
     static const long ID_SHIFT_EFFECTS;
     static const long ID_MNU_SHIFT_SELECTED_EFFECTS;
@@ -735,6 +753,7 @@ public:
     static const long ID_MNU_DUMPRENDERSTATE;
     static const long ID_MENU_GENERATE2DPATH;
     static const long ID_MENUITEM_GenerateCustomModel;
+    static const long ID_MNU_REMAPCUSTOM;
     static const long ID_MNU_GENERATELYRICS;
     static const long ID_MENUITEM_CONVERT;
     static const long ID_MNU_PREPAREAUDIO;
@@ -766,6 +785,9 @@ public:
     static const long ID_MENUITEM_VIDEOPREVIEW;
     static const long ID_MNU_JUKEBOX;
     static const long ID_MNU_FINDDATA;
+    static const long ID_MNU_SUPPRESSDOCK_HP;
+    static const long ID_MNU_SUPPRESSDOCK_MP;
+    static const long ID_MENUITEM3;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM_WINDOWS_DOCKALL;
     static const long ID_MENUITEM11;
@@ -782,7 +804,9 @@ public:
     static const long ID_MNU_MEDVOLUME;
     static const long ID_MNU_QUIET;
     static const long ID_MNU_SUPERQUIET;
+    static const long ID_MNU_SILENT;
     static const long ID_IMPORT_EFFECTS;
+    static const long ID_MNU_TOD;
     static const long ID_MNU_MANUAL;
     static const long ID_MNU_ZOOM;
     static const long ID_MENUITEM1;
@@ -850,6 +874,7 @@ public:
     wxMenu* Menu3;
     wxMenu* MenuFile;
     wxMenu* MenuItem18;
+    wxMenu* MenuItem1;
     wxMenu* MenuItemPerspectives;
     wxMenu* MenuView;
     wxMenu* RecentSequencesMenu;
@@ -885,6 +910,7 @@ public:
     wxMenuItem* MenuItemLayerSettings;
     wxMenuItem* MenuItemLoadEditPerspective;
     wxMenuItem* MenuItemModelPreview;
+    wxMenuItem* MenuItemRestoreBackup;
     wxMenuItem* MenuItemRunScript;
     wxMenuItem* MenuItemSearchEffects;
     wxMenuItem* MenuItemSelectEffect;
@@ -927,8 +953,13 @@ public:
     wxMenuItem* MenuItem_PurgeRenderCache;
     wxMenuItem* MenuItem_PurgeVendorCache;
     wxMenuItem* MenuItem_QuietVol;
+    wxMenuItem* MenuItem_RemapCustom;
+    wxMenuItem* MenuItem_SD_HP;
+    wxMenuItem* MenuItem_SD_MP;
     wxMenuItem* MenuItem_ShowACRamps;
     wxMenuItem* MenuItem_ShowKeyBindings;
+    wxMenuItem* MenuItem_SilentVol;
+    wxMenuItem* MenuItem_TOD;
     wxMenuItem* MenuItem_Update;
     wxMenuItem* MenuItem_UserManual;
     wxMenuItem* MenuItem_VQuietVol;
@@ -1015,6 +1046,7 @@ public:
     bool _excludePresetsFromPackagedSequences = true;
     bool _excludeAudioFromPackagedSequences = true;
     bool _promptBatchRenderIssues = true;
+    bool _disablePromptBatchRenderIssues = false;
     bool _hwVideoAccleration = false;
     bool _showACLights = false;
     bool _showACRamps = false;
@@ -1038,8 +1070,11 @@ public:
     SequenceElements _presetSequenceElements;
     bool _presetRendering = false;
     wxString _defaultSeqView;
+    wxString _videoExportCodec;
+    int _videoExportBitrate;
 
     std::unique_ptr< wxAppProgressIndicator> _appProgress;
+    std::unique_ptr< wxTaskBarIcon > _taskBarIcon;
 
     HttpServer* _automationServer = nullptr;
     int _xFadePort = 0;
@@ -1145,6 +1180,11 @@ public:
 
     bool GetPromptBatchRenderIssues() const { return _promptBatchRenderIssues; }
     void SetPromptBatchRenderIssues(bool b) { _promptBatchRenderIssues = b; }
+    void DisablePromptBatchRenderIssues()
+    {
+        _disablePromptBatchRenderIssues = true;
+        _promptBatchRenderIssues = false;
+    }
 
     bool GetIgnoreVendorModelRecommendations() const { return _ignoreVendorModelRecommendations; }
     void SetIgnoreVendorModelRecommendations(bool b) { _ignoreVendorModelRecommendations = b; }
@@ -1152,6 +1192,9 @@ public:
 
     bool GetPurgeDownloadCacheOnStart() const { return _purgeDownloadCacheOnStart; }
     void SetPurgeDownloadCacheOnStart(bool b) { _purgeDownloadCacheOnStart = b; }
+
+    bool GetRecycleTips() const;
+    void SetRecycleTips(bool b);
 
     bool ModelBlendDefaultOff() const { return _modelBlendDefaultOff;}
     void SetModelBlendDefaultOff(bool b) { _modelBlendDefaultOff = b;}
@@ -1188,12 +1231,6 @@ public:
     int EffectAssistMode() const { return mEffectAssistMode;}
     void SetEffectAssistMode(int i);
 
-    int OpenGLVersion() const;
-    void SetOpenGLVersion(int i);
-
-    int OpenGLRenderOrder() const;
-    void SetOpenGLRenderOrder(int i);
-
     int GetModelHandleScale() const { return _modelHandleSize; }
     int ModelHandleSize() const { return _modelHandleSize;}
     void SetModelHandleSize(int i);
@@ -1204,6 +1241,15 @@ public:
     const wxString& GetDefaultSeqView() const { return _defaultSeqView; }
     void SetDefaultSeqView(const wxString& view);
     wxArrayString GetSequenceViews();
+
+    const wxString& GetVideoExportCodec() const { return _videoExportCodec; }
+    void SetVideoExportCodec(const wxString& codec);
+
+    std::string GetMinTipLevel() const;
+    void SetMinTipLevel(const wxString& level);
+
+    const int& GetVideoExportBitrate() const { return _videoExportBitrate; }
+    void SetVideoExportBitrate(int bitrate);
 
     bool EnableOutputs(bool ignoreCheck = false);
     bool ToggleOutputs(bool ignoreCheck = false);
@@ -1350,7 +1396,7 @@ public:
     int GetCurrentPlayTime();
     bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
     Model *GetModel(const std::string& name) const;
-    void RenderGridToSeqData(std::function<void()>&& callback);
+    void RenderGridToSeqData(std::function<void(bool)>&& callback);
     bool AbortRender(int maxTimeMs = 60000);
     std::string GetSelectedLayoutPanelPreview() const;
     void UpdateRenderStatus();
@@ -1369,7 +1415,7 @@ public:
                 const std::list<Model *> &restrictToModels,
                 int startFrame, int endFrame,
                 bool progressDialog, bool clear,
-                std::function<void()>&& callback);
+                std::function<void(bool)>&& callback);
     void BuildRenderTree();
 
     void RenderRange(RenderCommandEvent &cmd);
@@ -1378,7 +1424,7 @@ public:
 
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() { return _sequenceElements; }
-    TimingElement* AddTimingElement(const std::string& name);
+    TimingElement* AddTimingElement(const std::string& name, const std::string &subType = "");
     void DeleteTimingElement(const std::string& name);
     void RenameTimingElement(const std::string& old_name, const std::string& new_name);
     void ImportTimingElement();
@@ -1416,14 +1462,16 @@ protected:
     void ResetEffectsXml();
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
     bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
-    void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
+    void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, bool backupSubfolders, std::string& errors);
     void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors);
-    void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
+    static constexpr int RENDER_EXIT_ON_DONE = 1;
+    static constexpr int RENDER_ALREADY_RETRIED = 2;
+    void OpenRenderAndSaveSequencesF(const wxArrayString &filenames, int flags);
+    void OpenRenderAndSaveSequences(const wxArrayString& filenames, bool exitOnDone, bool alreadyRetried = false);
     void OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone);
     std::string OpenAndCheckSequence(const std::string& origFilenames);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
-    void PreviewOutput(int period);
     void TimerOutput(int period);
     void UpdateChannelNames();
     void StopNow();
@@ -1445,11 +1493,11 @@ public:
     wxXmlNode* LayoutGroupsNode = nullptr;
     wxXmlNode* ViewObjectsNode = nullptr;
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
-    void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
+    void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog);
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();
-    void NewSequence(const std::string& media = "", uint32_t durationMS = 0);
+    void NewSequence(const std::string& media = "", uint32_t durationMS = 0, uint32_t frameMS = 0, const std::string& defView = "");
     void SaveAsSequence();
     void SaveAsSequence(const std::string& filename);
     void SetPasteByCell();
@@ -1480,8 +1528,10 @@ private:
     bool mGridIconBackgrounds;
     bool mTimingPlayOnDClick;
     bool mGridNodeValues;
-    int mEffectAssistMode;
+    int mEffectAssistMode = 0;
+    int tempEffectAssistMode = 0;
 	bool mRendering;
+    int abortedRenderJobs = 0;
     bool mSaveFseqOnSave;
     int _modelHandleSize = 1;
 
@@ -1667,9 +1717,15 @@ private:
     void ShowHidePreviewWindow(wxCommandEvent& event);
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
     void SetEffectChoice(wxCommandEvent& event);
+    void TipOfDayReady(wxCommandEvent& event);
+    void SetEffectDuration(wxCommandEvent& event);
 
     bool isRandom_(wxControl* ctl, const char*debug);
     void SetSyncUniverse(int syncUniverse);
+
+    bool IsDockable(const std::string& panel);
+    void LoadDockable();
+    void SaveDockable();
 
     Effect* GetPersistentEffectOnModelStartingAtTime(const std::string& model, uint32_t startms) const;
     void EnableToolbarButton(wxAuiToolBar* toolbar, int id, bool enable);
@@ -1691,8 +1747,8 @@ private:
     std::string CreateNotesLabel(const std::list<float>& notes) const;
     std::string CheckSequence(bool displayInEditor, bool writeToFile);
     void ValidateEffectAssets();
-    void CleanupRGBEffectsFileLocations();
-    void CleanupSequenceFileLocations();
+    bool CleanupRGBEffectsFileLocations();
+    bool CleanupSequenceFileLocations();
     void CheckElement(Element* e, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, std::list<std::string>& allfiles);
     void CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints);
     bool CheckStart(wxFile& f, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);
@@ -1744,6 +1800,8 @@ public:
     int GetPlayStatus() const { return playType; }
     void SetPlayStatus(int status);
     void StartOutputTimer();
+    void StopOutputTimer();
+    
     MainSequencer* GetMainSequencer() const { return mainSequencer; }
     wxString GetSeqXmlFileName();
 

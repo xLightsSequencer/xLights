@@ -10,7 +10,7 @@
 
 #define ZERO 0
 
-#include "Curl.h"
+#include "utils/Curl.h"
 
 //(*InternalHeaders(xSMSDaemonFrame)
 #include <wx/intl.h>
@@ -471,12 +471,6 @@ void xSMSDaemonFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);
     wxString filename = dir + wxFileName::GetPathSeparator() + fileName;
-#endif
-#ifdef __WXOSX__
-    wxFileName home;
-    home.AssignHomeDir();
-    dir = home.GetFullPath();
-    wxString filename = dir + "/Library/Logs/" + fileName;
 #endif
 #ifdef __LINUX__
     wxString filename = "/tmp/" + fileName;

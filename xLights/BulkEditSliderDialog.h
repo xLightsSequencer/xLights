@@ -11,14 +11,14 @@
  **************************************************************/
 
  //(*Headers(BulkEditSliderDialog)
-#include <wx/bmpbuttn.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
-#include <wx/sizer.h>
-#include <wx/slider.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-//*)
+ #include <wx/bmpbuttn.h>
+ #include <wx/button.h>
+ #include <wx/dialog.h>
+ #include <wx/sizer.h>
+ #include <wx/slider.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+ //*)
 
 #include "BulkEditControls.h"
 #include "ValueCurveButton.h"

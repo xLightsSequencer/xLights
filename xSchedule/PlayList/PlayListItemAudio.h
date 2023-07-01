@@ -32,6 +32,7 @@ protected:
     size_t _durationMS = 0;
     bool _controlsTimingCache = false;
     bool _fastStartAudio = false;
+    std::string _audioDevice = "";
     #pragma endregion Member Variables
 
     void LoadFiles();
@@ -51,9 +52,20 @@ public:
     AudioManager* GetAudioManager() const { return _audioManager; }
     virtual size_t GetDurationMS() const override { return _delay + _durationMS; }
     virtual std::string GetNameNoTime() const override;
-    std::string GetAudioFile() const { return _audioFile; }
+    std::string GetAudioFile() const
+    {
+        return _audioFile;
+    }
+    std::string GetAudioDevice() const
+    {
+        return _audioDevice;
+    }
     void SetAudioFile(const std::string& audioFile);
-    virtual bool ControlsTiming() const override { return _controlsTimingCache || _audioManager != nullptr; }
+    void SetAudioDevice(const std::string& audioDevice);
+    virtual bool ControlsTiming() const override
+    {
+        return _controlsTimingCache || _audioManager != nullptr;
+    }
     virtual size_t GetPositionMS() const override;
     virtual bool Done() const override { return GetPositionMS() >= GetDurationMS() - GetFrameMS(); }
     virtual std::string GetSyncItemMedia() override { return GetAudioFile(); }

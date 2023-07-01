@@ -54,8 +54,7 @@ END_EVENT_TABLE()
 #define MIN_PREVIEW_SIZE 64
 #define MAX_PREVIEW_SIZE 256
 
-EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size):
-    frameCount(0)
+EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(EffectTreeDialog)
 	wxBoxSizer* BoxSizer1;
@@ -125,6 +124,7 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_BEGIN_DRAG,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1BeginDrag);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_ACTIVATED,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1ItemActivated);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1SelectionChanged);
+	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_KEY_DOWN,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1KeyDown);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtApplyClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtNewPresetClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtUpdateClick);
@@ -140,7 +140,7 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 
     treeRootID = TreeCtrl1->AddRoot("Effect Presets");
     xLightParent = (xLightsFrame*)parent;
-    
+
     EffectTreeDialogTextDropTarget* effDropTarget = new EffectTreeDialogTextDropTarget(this, TreeCtrl1, "EffectPresetOrGroup");
     TreeCtrl1->SetDropTarget(effDropTarget);
 
@@ -154,7 +154,7 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 
     // Get the optimal preview size based on current dialog size
     int previewSize = GetOptimalPreviewSize();
-    
+
     // Set size for bitmap widget and blank image to optimal size so the dialog
     // doesn't jump around when first preset is loaded
     StaticBitmapGif->SetSize(wxSize(previewSize, previewSize));
@@ -163,7 +163,7 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 
     StaticBitmapGif->SetMinSize(wxSize(previewSize, previewSize));
     StaticBitmapGif->SetMaxSize(wxSize(MAX_PREVIEW_SIZE, MAX_PREVIEW_SIZE));
-    
+
     Layout();
 
     ValidateWindow();
@@ -182,13 +182,13 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
     wxString name;
     wxTreeItemId curGroupID;
     XrgbEffectsNode = EffectsNode;
-    
+
     FixRgbEffects(XrgbEffectsNode);
-    
+
     if (_effectsFixed) {
         wxMessageBox("Preset and Group names have been auto corrected to avoid naming collissions and illegal characters in the group/preset name. You will need to Save on the Layout Tab to persist these changes.", "Presets and Groups Updated", wxICON_INFORMATION);
     }
-    
+
     TreeCtrl1->SetItemData( treeRootID, new MyTreeItemData(EffectsNode, true));
 
     for(wxXmlNode *ele = EffectsNode->GetChildren(); ele!=nullptr; ele=ele->GetNext() )
@@ -216,7 +216,7 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
 
     // Purge preview gifs that are invalid
     PurgeDanglingGifs();
-    
+
     TreeCtrl1->Expand(treeRootID);
 
     ValidateWindow();
@@ -302,7 +302,7 @@ bool EffectTreeDialog::PromptForName(wxWindow* parent, wxString& name, bool isNe
     std::string promptType = isGroup ? "Group" : "Effect Preset";
     std::string promptNew = isNew ? " New " : "";
     wxString prompt = wxString::Format("Enter %s%s Name", promptNew, promptType);
-    
+
     wxTextEntryDialog dialog(/*this*/ parent,prompt,_("Name"));
     int DlgResult;
     bool ok;
@@ -324,10 +324,10 @@ bool EffectTreeDialog::PromptForName(wxWindow* parent, wxString& name, bool isNe
                     break;
                 }
             }
-            
+
             wxTreeItemId selectedItem = TreeCtrl1->GetSelection();
             MyTreeItemData *selectedItemData = (MyTreeItemData *)TreeCtrl1->GetItemData(selectedItem);
-            
+
             bool nameCollission = false;
             if ((selectedItem == treeRootID || selectedItemData->IsGroup()) && isNew) {
                 // adding new group/presest to root or existing group
@@ -336,7 +336,7 @@ bool EffectTreeDialog::PromptForName(wxWindow* parent, wxString& name, bool isNe
                 // renaming existing group/preset OR preset selected and adding new group/preset to current branch
                 nameCollission = NameCollissionInGroup(TreeCtrl1->GetItemParent(selectedItem), name);
             }
-            
+
             if (name.IsEmpty() || hasForbiddenChar || nameCollission) {
                 wxString errorMsg = wxString::Format("%s name may not be empty, must be unique within the current group/root of your 'Effect Presets', and cannot contain any of the following characters '%s'.", promptType, forbiddenChars);
 
@@ -594,7 +594,7 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
         ValidateWindow();
         return;
     }
-    
+
     MyTreeItemData *itemData= (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
 
     wxString newName;
@@ -616,32 +616,31 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void EffectTreeDialog::OnbtDeleteClick(wxCommandEvent& event)
+void EffectTreeDialog::DeleteSelectedItem()
 {
     std::lock_guard<std::mutex> lock(preset_mutex);
 
     wxTreeItemId itemID = TreeCtrl1->GetSelection();
     wxTreeItemId parentID;
 
-    if( !itemID.IsOk() || itemID == treeRootID )
-    {
+    if (!itemID.IsOk() || itemID == treeRootID) {
         DisplayError(_("You cannot delete this item"), this);
         ValidateWindow();
         return;
     }
-    
+
     if (TreeCtrl1->ItemHasChildren(itemID)) {
         DeleteGifsRecursive(itemID);
     } else {
         DeleteGifImage(itemID);
     }
-    
-    parentID = TreeCtrl1->GetItemParent(itemID);
-    MyTreeItemData *parentData=(MyTreeItemData *)TreeCtrl1->GetItemData(parentID);
-    wxXmlNode *pnode=parentData->GetElement();
 
-    MyTreeItemData *selData = (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
-    wxXmlNode *oldXml=selData->GetElement();
+    parentID = TreeCtrl1->GetItemParent(itemID);
+    MyTreeItemData* parentData = (MyTreeItemData*)TreeCtrl1->GetItemData(parentID);
+    wxXmlNode* pnode = parentData->GetElement();
+
+    MyTreeItemData* selData = (MyTreeItemData*)TreeCtrl1->GetItemData(itemID);
+    wxXmlNode* oldXml = selData->GetElement();
 
     pnode->RemoveChild(oldXml);
     delete oldXml;
@@ -649,6 +648,11 @@ void EffectTreeDialog::OnbtDeleteClick(wxCommandEvent& event)
     TreeCtrl1->Delete(itemID);
     EffectsFileDirty();
     ValidateWindow();
+}
+
+void EffectTreeDialog::OnbtDeleteClick(wxCommandEvent& event)
+{
+    DeleteSelectedItem();
 }
 
 void EffectTreeDialog::OnbtAddGroupClick(wxCommandEvent& event)
@@ -704,7 +708,7 @@ void EffectTreeDialog::OnButton_OKClick(wxCommandEvent& event)
 void EffectTreeDialog::OnTreeCtrl1BeginDrag(wxTreeEvent& event)
 {
     wxTreeItemId draggedItem = TreeCtrl1->GetSelection();
-    
+
     if (draggedItem.IsOk() && draggedItem != treeRootID) {
         wxString drag = "EffectPresetOrGroup";
         wxTextDataObject my_data(drag);
@@ -748,7 +752,7 @@ void EffectTreeDialog::AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID)
 {
     MyTreeItemData *parentData = (MyTreeItemData*)TreeCtrl1->GetItemData(curGroupID);
     wxString name = UnXmlSafe(ele->GetAttribute("name"));
-    
+
     if (NameCollissionInGroup(curGroupID, name)) {
         DisplayError(wxString::Format("Group '%s' already exists at '%s'", name, GetFullPathOfGroup(curGroupID)), this);
         return;
@@ -1169,7 +1173,7 @@ void EffectTreeDialog::GenerateGifImage(wxTreeItemId itemID, bool regenerate)
                             .Parent(this)
                             .Text("Generating Effect Preview...")
                             .Icon(wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_EFFECTS")),wxART_OTHER, wxSize(64, 64))));
-            
+
             xLightParent->WriteGIFForPreset(fullName);
         }
         LoadGifImage(filePath);
@@ -1215,12 +1219,21 @@ void EffectTreeDialog::OnTimerGifTrigger(wxTimerEvent& event)
     PlayGifImage();
 }
 
+void EffectTreeDialog::OnTreeCtrl1KeyDown(wxTreeEvent& event)
+{
+    auto ke = event.GetKeyEvent();
+    if (!ke.CmdDown() && !ke.ControlDown() && !ke.ShiftDown() && !ke.AltDown() && event.GetKeyCode() == WXK_DELETE) {
+        DeleteSelectedItem();
+        event.Skip();
+    }
+}
+
 void EffectTreeDialog::StopGifImage()
 {
     // reset blank image to current optimal size so dialog doesn't jump around
     int previewSize = GetOptimalPreviewSize();
     _blankGIFImage.reset(new wxBitmap(previewSize, previewSize, true));
-    
+
     StaticBitmapGif->SetBitmap(*_blankGIFImage.get());
     TimerGif.Stop();
     gifImage = nullptr;
@@ -1241,7 +1254,7 @@ void EffectTreeDialog::DeleteGifImage(wxTreeItemId itemID)
 
 #define PREVIEW_PROPORTION 0.25f
 int EffectTreeDialog::GetOptimalPreviewSize() {
-    
+
     // size based on proportion of current dialog size
     int currDialogWidth = GetSize().GetWidth();
     int size = std::floor(currDialogWidth * PREVIEW_PROPORTION);
@@ -1266,20 +1279,20 @@ bool EffectTreeDialog::FixName(std::string& name) {
     for (const auto& illegalChar : forbiddenChars) {
         wxName.Replace(illegalChar, wxEmptyString);
     }
-    
+
     bool changed = false;
-    
+
     if (wxName != name) {
         changed = true;
     }
-    
+
     name = wxName;
     return changed;
 }
 
 void EffectTreeDialog::FixDuplicatesInGroup(wxTreeItemId parent) {
     std::list<std::pair<std::string, int>> children;
-    
+
     wxTreeItemIdValue cookie;
     for (wxTreeItemId item = TreeCtrl1->GetFirstChild(parent, cookie); item.IsOk(); item = TreeCtrl1->GetNextChild(parent, cookie)) {
         std::string name = TreeCtrl1->GetItemText(item);
@@ -1287,7 +1300,7 @@ void EffectTreeDialog::FixDuplicatesInGroup(wxTreeItemId parent) {
         auto existingItem = std::find_if(children.begin(), children.end(), [value](std::pair<std::string, int> const &b) {
                                     return b.first == value;
                                 });
-        
+
         if (children.end() == existingItem) {
             children.push_back(std::make_pair(existingItem->first, 1));
         } else {
@@ -1311,7 +1324,7 @@ wxTreeItemId EffectTreeDialog::FindGroupItem(wxTreeItemId parent, std::string na
             return item;
         }
     }
-    
+
     return wxTreeItemId();
 }
 
@@ -1320,47 +1333,47 @@ std::string EffectTreeDialog::GetFullPathOfGroup(wxTreeItemId groupId) {
 
     groupNames.push_back(TreeCtrl1->GetItemText(groupId));
     wxTreeItemId parent = TreeCtrl1->GetItemParent(groupId);
-    
+
     while (parent.IsOk() && parent != treeRootID) {
         groupNames.push_back(TreeCtrl1->GetItemText(parent));
         parent = TreeCtrl1->GetItemParent(parent);
     }
-    
+
     std::string path;
-    
+
     for (const auto& p : groupNames) {
         path = path + wxString::Format("%c%s", wxFileName::GetPathSeparator(), p);
     }
-    
+
     path = TreeCtrl1->GetItemText(treeRootID) + path;
-    
+
     return path;
 }
 
 void EffectTreeDialog::FixRgbEffects(wxXmlNode* parent) {
 
     wxString version = xlights_version_string;
-    
+
     if (version >= "2021.07") {
         return;
     }
-    
+
     std::list<std::pair<std::string, int>> children;
 
     for (wxXmlNode* node = parent->GetChildren(); node !=nullptr; node=node->GetNext()) {
         std::string name = UnXmlSafe(node->GetAttribute("name"));
-        
+
         if (FixName(name)) {
             node->DeleteAttribute("name");
             node->AddAttribute("name", XmlSafe(name));
             EffectsFileDirty();
         }
-        
+
         const auto& value = name;
         auto existingItem = std::find_if(children.begin(), children.end(), [value](std::pair<std::string, int> const &b) {
             return b.first == value;
         });
-        
+
         if (children.end() == existingItem) {
             children.push_back(std::make_pair(name, 0));
         } else {
@@ -1370,7 +1383,7 @@ void EffectTreeDialog::FixRgbEffects(wxXmlNode* parent) {
             existingItem->second = childUniqueIdx;
             _effectsFixed = true;
         }
-        
+
         if (node->GetName() == "effectGroup") {
             FixRgbEffects(node);
         }
@@ -1385,7 +1398,7 @@ void EffectTreeDialog::DeleteGifsRecursive(wxTreeItemId parentId) {
         if (TreeCtrl1->ItemHasChildren(child)) {
             DeleteGifsRecursive(child);
         }
-        
+
         DeleteGifImage(child);
         child = TreeCtrl1->GetNextChild(child, cookie);
     }
@@ -1393,10 +1406,10 @@ void EffectTreeDialog::DeleteGifsRecursive(wxTreeItemId parentId) {
 
 std::list<std::string> EffectTreeDialog::GetGifFileNamesRecursive(wxTreeItemId itemId) {
     std::list<std::string> gifNames;
-    
+
     if (!TreeCtrl1->ItemHasChildren(itemId)) {
         std::string gifName = generatePresetName(itemId).ToStdString();
-        
+
         // ignore empty group
         if (gifName != "") {
             wxFileName gifFileName(xLightParent->GetPresetIconFilename(gifName));
@@ -1404,13 +1417,13 @@ std::list<std::string> EffectTreeDialog::GetGifFileNamesRecursive(wxTreeItemId i
             gifNames.push_back(gifName);
         }
     }
-    
+
     wxTreeItemIdValue cookie;
     wxTreeItemId child = TreeCtrl1->GetFirstChild(itemId, cookie);
 
     while (child.IsOk()) {
         std::string gifName = generatePresetName(child).ToStdString();
-        
+
         // ignore empty group
         if (gifName != "") {
             wxFileName gifFileName(xLightParent->GetPresetIconFilename(gifName));
@@ -1423,21 +1436,21 @@ std::list<std::string> EffectTreeDialog::GetGifFileNamesRecursive(wxTreeItemId i
 
         child = TreeCtrl1->GetNextChild(itemId, cookie);
     }
-    
+
     return gifNames;
 }
 
 void EffectTreeDialog::PurgeDanglingGifs() {
     // Delete gifs on disk which don't match to an item in the tree.  This can happen
     // if a user rearranges preset(s) changing the parent but then doesn't save the rgbeffects.
-    
+
     wxArrayString filesOnDisk = wxArrayString();
     std::string presetDir = xLightParent->GetShowDirectory() + "/presets";
     GetAllFilesInDir(presetDir, filesOnDisk, "*.gif");
 
     // Get potential gif names, may or may not be generated yet
     std::list<std::string> filesFromTree = GetGifFileNamesRecursive(treeRootID);
-    
+
     // trim filesOnDisk down to only those that are dangling
     for (const auto& treeFile : filesFromTree) {
         int foundIndex = filesOnDisk.Index(treeFile);
@@ -1445,7 +1458,7 @@ void EffectTreeDialog::PurgeDanglingGifs() {
             filesOnDisk.RemoveAt(foundIndex);
         }
     }
-    
+
     // Delete what remains, they are dangling
     if (filesOnDisk.GetCount() > 0) {
         for (const auto& danglingFile : filesOnDisk) {
@@ -1462,19 +1475,19 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
 
     switch(event.GetInt()) {
         case 0: {
-            
+
             // Effect Dropped
             int flags = wxTREE_HITTEST_ONITEM;
-            
+
             wxTreeItemId dstItemId = TreeCtrl1->HitTest(wxPoint(x, y), flags);
 
             if (dstItemId.IsOk()) {
-                
+
                 bool addingToGroup = false;
                 bool srcIsGroup = false;
                 bool srcIsExpanded = false;
                 bool parentChanged = false;
-                
+
                 TreeCtrl1->SetItemDropHighlight(dstItemId, false);
 
                 // gather drag source item info
@@ -1485,7 +1498,7 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
                     srcIsGroup = true;
                     srcIsExpanded = TreeCtrl1->IsExpanded(srcItemId);
                 }
-                
+
                 wxTreeItemId dstParentId = TreeCtrl1->GetItemParent(dstItemId);
                 MyTreeItemData* srcData = (MyTreeItemData*)TreeCtrl1->GetItemData(srcItemId);
                 wxXmlNode* srcNode = srcData->GetElement();
@@ -1494,18 +1507,18 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
                 // gather drop target info
                 MyTreeItemData* dstData = (MyTreeItemData*)TreeCtrl1->GetItemData(dstItemId);
                 wxXmlNode* dstNode = dstData->GetElement();
-                                
+
                 if (dstData->IsGroup()) {
                     dstParentId = dstItemId;
                     addingToGroup = true;
                 }
-                
+
                 MyTreeItemData* dstParentData = (MyTreeItemData*)TreeCtrl1->GetItemData(dstParentId);
                 wxXmlNode* dstParentNode = dstParentData->GetElement();
-                
+
                 // Now Perform the move / rgbeffects updates
                 std::list<std::string> priorGifFiles;
-                
+
                 if (TreeCtrl1->GetItemParent(srcItemId) != dstParentId) {
                     // Source has a new parent, gather the current preview names so we can rename
                     // them to their new name later. This saves having to regenerate the gif(s)
@@ -1518,7 +1531,7 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
                 TreeCtrl1->Delete(srcItemId);
 
                 wxTreeItemId newId;
-                
+
                 if (addingToGroup) {
                     dstParentNode->AddChild(srcNode);
                     newId = TreeCtrl1->AppendItem(dstParentId, srcName);
@@ -1526,34 +1539,34 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
                     dstParentNode->InsertChildAfter(srcNode, dstNode);
                     newId = TreeCtrl1->InsertItem(dstParentId, dstItemId, srcName);
                 }
-                
+
                 TreeCtrl1->SetItemData(newId, new MyTreeItemData(srcNode));
-                
+
                 if (srcIsGroup) {
                     AddTreeElementsRecursive(srcNode, newId);
                     if (srcIsExpanded) {
                         TreeCtrl1->Expand(newId);
                     }
                 }
-                                
+
                 if (parentChanged) {
                     // get new filenames
                     std::list<std::string> newGifFiles = GetGifFileNamesRecursive(newId);
-                    
+
                     // rename the gifs to new name if they exist
                     while (!priorGifFiles.empty()) {
                         wxFileName priorGifFn(priorGifFiles.front());
-                        
+
                         if (priorGifFn.IsOk() && FileExists(priorGifFn)) {
                             wxFileName newGifFn(newGifFiles.front());
                             wxRenameFile(priorGifFn.GetFullPath(), newGifFiles.front());
                         }
-                        
+
                         priorGifFiles.pop_front();
                         newGifFiles.pop_front();
                     }
                 }
-                                
+
                 TreeCtrl1->SelectItem(newId);
                 TreeCtrl1->EnsureVisible(newId);
                 EffectsFileDirty();
@@ -1571,7 +1584,7 @@ void EffectTreeDialogTextDropTarget::UpdateItemFeedback(wxTreeItemId currItem) {
     if (_lastDragOverItem.IsOk()) {
         _tree->SetItemDropHighlight(_lastDragOverItem, false);
     }
-    
+
     if (currItem.IsOk()) {
         _tree->SetItemDropHighlight(currItem, true);
     }
@@ -1589,21 +1602,21 @@ wxDragResult EffectTreeDialogTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wx
 
         if (targetItem.IsOk() || targetItem == _owner->treeRootID) {
             wxTreeItemId srcItem = _tree->GetSelection();
-            
+
             if (srcItem == targetItem) {
                 return wxDragNone;
             }
-            
+
             MyTreeItemData *srcItemData = (MyTreeItemData *)_tree->GetItemData(srcItem);
-            
+
             wxTreeItemId parent = targetItem;
-            
+
             if (!_tree->ItemHasChildren(targetItem)) {
                 parent = _tree->GetItemParent(targetItem);
             }
-            
+
             wxTreeItemId srcParent = _tree->GetItemParent(srcItem);
-            
+
             // if drag target is a different parent than source check for name collision
             if (srcParent != parent && _owner->NameCollissionInGroup(parent, UnXmlSafe(srcItemData->GetElement()->GetAttribute("name")))) {
                 return wxDragNone;
@@ -1620,17 +1633,17 @@ wxDragResult EffectTreeDialogTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wx
                 // new item reset last hover time
                 lastHoverTime = wxGetUTCTimeMillis();
             }
-                        
+
             // update highlight state
             UpdateItemFeedback(targetItem);
         } else {
             // clear all highlighting
             UpdateItemFeedback(wxTreeItemId());
         }
-        
+
         _lastDragOverItem = targetItem;
     }
-    
+
     return wxDragMove;
 }
 

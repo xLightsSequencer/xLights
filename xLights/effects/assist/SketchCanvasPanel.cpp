@@ -445,7 +445,6 @@ void SketchCanvasPanel::OnSketchEntered(wxMouseEvent& /*event*/)
 
 void SketchCanvasPanel::OnSketchMouseWheel(wxMouseEvent& event)
 {
-    int rotationBefore = m_wheelRotation;
     m_wheelRotation += event.GetWheelRotation();
     m_wheelRotation = std::clamp(m_wheelRotation, 0, MouseWheelLimit);
     if (!m_wheelRotation) {
@@ -602,6 +601,8 @@ void SketchCanvasPanel::UpdateHandlesForPath(long pathIndex)
             m_handles.pop_back();
             m_handles.pop_back();
             m_handles.pop_back();
+            break;
+        case Unknown:
             break;
         }
         m_pathClosed = true;
@@ -768,6 +769,12 @@ bool SketchCanvasPanel::HandleHoveredOrGrabbed() const
         if (handle.state)
             return true;
     return false;
+}
+
+void SketchCanvasPanel::clearBackgroundBitmap()
+{
+    m_bgBitmap = nullptr;
+    Refresh();
 }
 
 void SketchCanvasPanel::setBackgroundBitmap(std::unique_ptr<wxBitmap> bm)

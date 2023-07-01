@@ -34,17 +34,17 @@ class FileCacheItem
 
 public:
     FileCacheItem(wxXmlNode* n);
-    FileCacheItem(wxURI url, CACHEFOR cacheFor, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
+    FileCacheItem(wxURI url, CACHEFOR cacheFor, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100, bool keepProgress = false);
     void Save(wxFile& f);
     virtual ~FileCacheItem() {}
-    void Download(const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
+    void Download(const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100, bool keepProgress = false);
     bool Exists() const;
     void Touch() const { if (Exists()) wxFileName(_fileName).Touch(); }
     void Delete() const;
     std::string GetFileName() const { if (Exists()) return _fileName; else return ""; }
     bool operator==(const wxURI& url) const;
-    static bool DownloadURL(wxURI url, wxFileName filename, wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
-    std::string DownloadURLToTemp(wxURI url, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
+    static bool DownloadURL(wxURI url, wxFileName filename, wxProgressDialog* prog = nullptr, int low = 0, int high = 100, bool keepProgress =  false);
+    std::string DownloadURLToTemp(wxURI url, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100, bool keepProgress = false);
     void PurgeIfAged() const;
     bool ShouldSave() { PurgeIfAged();  return Exists() && (_cacheFor == CACHETIME_DAY || _cacheFor == CACHETIME_LONG); }
 };
@@ -71,7 +71,7 @@ public:
     void ClearCache();
     void Save() { SaveCache(); }
     // retrieve a file from cache … if not present filename will be “”
-    std::string GetFile(wxURI url, CACHEFOR cacheFor, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
+    std::string GetFile(wxURI url, CACHEFOR cacheFor, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100, bool keepProgress = false);
     int size();
     
     

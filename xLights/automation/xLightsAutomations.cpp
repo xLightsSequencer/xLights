@@ -111,10 +111,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         bool prompt = false;
         
         if (params["_METHOD"] == "POST" && !params["_DATA"].empty()) {
-            wxString fname = params["_DATA"];
+            wxString data = params["_DATA"];
             wxJSONValue val;
             wxJSONReader reader;
-            if (reader.Parse(fname, &val) == 0) {
+            if (reader.Parse(data, &val) == 0) {
                 fname = val["seq"].AsString();
                 if (val.HasMember("promptIssues")) {
                     prompt = ReadBool(params["promptIssues"]);
@@ -185,6 +185,17 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
 
         AskCloseSequence();
         return sendResponse("Sequence closed.", "msg", 200, false);
+    } else if (cmd == "saveLayout") {
+        if (!layoutPanel->SaveEffects()) {
+            return sendResponse("Failed to save layout.", "msg", 503, false);
+        }
+
+        if (!SaveNetworksFile()) {
+            return sendResponse("Failed to controller tab.", "msg", 503, false);
+        }
+
+        return sendResponse("Layout and controller tab saved.", "msg", 200, false);
+
     } else if (cmd == "newSequence") {
         if (CurrentSeqXmlFile != nullptr && !ReadBool(params["force"])) {
             return sendResponse("Sequence already open.", "msg", 503, false);
@@ -195,7 +206,13 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             media = "";
         auto duration = wxAtoi(params["durationSecs"]) * 1000;
 
-        NewSequence(media, duration);
+        uint32_t frameMS = wxAtoi(params["frameMS"]); // this will be 0 if "null" so ok
+
+        std::string view = params["view"];
+        if (view == "null")
+            view = "";
+
+        NewSequence(media, duration, frameMS, view);
         EnableSequenceControls(true);
         return sendResponse("Sequence created.", "msg", 200, false);
     } else if (cmd == "saveSequence") {
@@ -344,7 +361,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         if (map == "true") {
-            std::string displayMap = FPP::CreateVirtualDisplayMap(&AllModels, GetDisplay2DCenter0());
+            std::string displayMap = FPP::CreateVirtualDisplayMap(&AllModels);
             fpp->UploadDisplayMap(displayMap);
             fpp->SetRestartFlag();
         }
@@ -678,8 +695,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             }
         }
 
-        wxCloseEvent evt;
+        // Click on the File quit menu item
+        wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_EXIT);
         wxPostEvent(this, evt);
+
         return sendResponse("xLights closed.", "msg", 200, false);
     } else if (cmd == "lightsOn") {
         EnableOutputs(true);
@@ -836,10 +855,21 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         models = "[" + models + "]";
         return sendResponse(models, "models", 200, true);
-    } else if (cmd == "getControllerNames") {
+        
+    } else if (cmd == "getModel") {
+        auto model = params["model"];
+        auto m = AllModels.GetModel(model);
+        if (nullptr == m) {
+            return sendResponse("Unknown model.", "msg", 503, false);
+        }
+        auto json = m->GetAttributesAsJSON();
+        return sendResponse(json, "model", 200, true);
+        
+    } else if (cmd == "getControllers") {
         std::string controllers;
-        for (const auto& it : _outputManager.GetControllerNames()) {
-            controllers += "\"" + JSONSafe(it) + "\",";
+        for (const auto& it : _outputManager.GetControllers()) {
+            std::string json = it->GetJSONData() + ",";
+            controllers += json;
         }
         if (!controllers.empty()) {
             controllers.pop_back();//remove last comma
@@ -858,6 +888,16 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         ipAddresses = "[" + ipAddresses + "]";
         return sendResponse(ipAddresses, "controllers", 200, true);
+    } else if (cmd == "getControllerPortMap") {
+        auto ip = params["ip"];
+        auto controller = _outputManager.GetControllerWithIP(ip);
+        if (controller == nullptr) {
+            return "{\"res\":504,\"msg\":\"Controller not found.\"}";
+        }
+        
+        UDController cud(controller, &_outputManager, &AllModels, false);
+        auto json = cud.ExportAsJSON();
+        return sendResponse(json, "controllerportmap", 200, true);
     } else if (cmd == "getEffectIDs") {
         if (CurrentSeqXmlFile == nullptr) {
             return sendResponse("Sequence not open.", "msg", 503, false);
@@ -878,12 +918,29 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                 ids.pop_back(); // remove last comma
             }
             ids.insert(0, "[");
-            ids.append( "],");
-            layers.append( ids );
+            ids.append("],");
+            layers.append(ids);
         }
         layers.pop_back(); // remove last comma
         layers += "]";
         return sendResponse(layers, "effects", 200, true);
+    } else if (cmd == "cleanupFileLocations") {
+
+        bool res = CleanupRGBEffectsFileLocations();
+
+        if (CurrentSeqXmlFile != nullptr) {
+            res = res && CleanupSequenceFileLocations();
+        }
+
+        if (res) {
+            std::string response = "{\"msg\":\"Cleanup file locations.\",\"worked\":\"true\"}";
+            return sendResponse(response, "", 200, true);
+        }
+        else
+        {
+            return sendResponse("Cleanup file locations failed.", "msg", 503, false);
+        }
+
     } else if (cmd == "getEffectSettings") {
         if (CurrentSeqXmlFile == nullptr) {
             return sendResponse("Sequence not open.", "msg", 503, false);
@@ -964,23 +1021,46 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse(response, "", 200, true);
         }
         return sendResponse("target effect doesn't exists.", "msg", 503, false);
+    } else if (cmd == "importXLightsSequence") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        auto filename = params["filename"];
+        if (filename == "" || filename == "null"|| !wxFile::Exists(filename)) {
+            return sendResponse("Inport File not valid.", "msg", 503, false);
+        }
+        auto mapname = params["mapfile"];
+        if (mapname == "" || mapname == "null" || !wxFile::Exists(mapname)) {
+            return sendResponse("Mapping File no valid.", "msg", 503, false);
+        }
+        ImportXLights(wxFileName(filename), mapname);
+
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(this, eventRowHeaderChanged);
+        mainSequencer->PanelEffectGrid->Refresh();
+        
+        std::string response = "{\"msg\":\"Imported XLights Sequence.\",\"worked\":\"true\"}";
+        return sendResponse(response, "", 200, true);
+    } else if (cmd == "getShowFolder") {
+        return sendResponse(JSONSafe(showDirectory), "folder", 200, false);
     }
 
     return false;
 }
 
 
-bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &request) {
+bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& request)
+{
     wxString uri = request.URI();
     wxString params = "";
-    
+
     if (uri.find('?') != std::string::npos) {
         params = uri.substr(uri.find('?') + 1);
         uri = uri.substr(0, uri.find('?'));
     }
     std::vector<std::string> paths;
     std::map<std::string, std::string> paramMap = ParseParams(params);
-    
+
     if (uri[0] == '/') {
         uri = uri.substr(1);
     }
@@ -996,7 +1076,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &r
         paths.clear();
         params.clear();
         accept = MIME_JSON;
-        
+
         wxJSONValue val;
         wxJSONReader reader;
         if (reader.Parse(request.Data(), &val) == 0) {
@@ -1007,7 +1087,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &r
                 connection.SendResponse(resp);
                 return true;
             } else {
-                for (auto &mn : val.GetMemberNames()) {
+                for (auto& mn : val.GetMemberNames()) {
                     wxJSONValue v = val[mn];
                     if (mn == "cmd") {
                         paths.push_back(v.AsString());
@@ -1036,15 +1116,13 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &r
         }
     } else {
         paramMap["_METHOD"] = request.Method();
-        if (request.Method() == "POST" || request.Method() == "PUT")  {
+        if (request.Method() == "POST" || request.Method() == "PUT") {
             paramMap["_DATA"] = request.Data();
         }
     }
 
-    return ProcessAutomation(paths, paramMap, [&] (const std::string &msg,
-                                                   const std::string &jsonKey,
-                                                   int responseCode,
-                                                   bool isJson) {
+    return ProcessAutomation(paths, paramMap, [&](const std::string& msg, const std::string& jsonKey, int responseCode, bool isJson) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         HttpResponse resp(connection, request, (HttpStatus::HttpStatusCode)responseCode);
         resp.AddHeader("access-control-allow-origin", "*");
 
@@ -1065,11 +1143,18 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection &connection, HttpRequest &r
         } else {
             resp.MakeFromText(msg, MIME_TEXT);
         }
-        connection.SendResponse(resp);
-        return true;
+        // The problem here is the connection may no longer be valid ... but i am not sure how to safely detect this
+        // This means if the client suddenly disconnects then xLights crashes on the SendResponse call as connection and request objects have all been destroyed from under us with no way to know it has happened
+        // adding this check helps but it still has a race condition
+        if (_automationServer->IsConnectionValid(&connection)) {
+            connection.SendResponse(resp);
+            return true;
+        } else {
+            logger_base.warn("Automation did not send result because connection lost.");
+        }
+        return false;
     });
 }
-
 
 void xLightsFrame::StartAutomationListener()
 {
@@ -1087,14 +1172,14 @@ void xLightsFrame::StartAutomationListener()
     HttpServer *server = new HttpServer();
     HttpContext ctx;
     ctx.Port = ::GetxFadePort(_xFadePort);
-    
+
     ctx.RequestHandler = HttpRequestFunction;
     ctx.MessageHandler = nullptr;
 
     // default error pages content
     ctx.ErrorPage400 = HTTP_ERROR_PAGE;
     ctx.ErrorPage404 = HTTP_ERROR_PAGE;
-    
+
     if (!server->Start(ctx)) {
         logger_base.debug("xLights Automation could not listen on %d", ::GetxFadePort(_xFadePort));
         delete server;

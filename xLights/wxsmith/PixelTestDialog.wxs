@@ -80,6 +80,66 @@
 										<label>Models</label>
 									</object>
 									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL5" variable="Panel_Model" member="yes">
+											<pos>210,20</pos>
+											<object class="wxFlexGridSizer" variable="FlexGridSizer15" member="no">
+												<cols>1</cols>
+												<rows>2</rows>
+												<growablecols>0</growablecols>
+												<growablerows>1</growablerows>
+												<object class="sizeritem">
+													<object class="wxFlexGridSizer" variable="FlexGridSizer16" member="no">
+														<cols>2</cols>
+														<growablecols>1</growablecols>
+														<object class="sizeritem">
+															<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText7" member="yes">
+																<label>Model:</label>
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxChoice" name="ID_CHOICE1" variable="Choice_VisualModel" member="yes">
+																<handler function="OnChoice_VisualModelSelect" entry="EVT_CHOICE" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxFlexGridSizer" variable="FlexGridSizer44" member="no">
+														<cols>1</cols>
+														<rows>1</rows>
+														<growablecols>0</growablecols>
+														<growablerows>0</growablerows>
+														<object class="sizeritem">
+															<object class="wxPanel" name="ID_PANEL11" variable="Panel_VisualModel" member="yes">
+																<object class="wxFlexGridSizer" variable="FlexGridSizer_VisualModelSizer" member="yes">
+																	<cols>1</cols>
+																	<growablecols>0</growablecols>
+																	<growablerows>0</growablerows>
+																</object>
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+											</object>
+										</object>
+										<label>Model</label>
+									</object>
+									<object class="notebookpage">
 										<object class="wxPanel" name="ID_PANEL4" variable="Panel_Controllers" member="yes">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer_Controllers" member="yes">
 												<cols>1</cols>
@@ -612,6 +672,16 @@
 																<label>R-G-B-W</label>
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_Tag50th" member="yes">
+																<label>Tag every 50th node white @ 50%</label>
+																<tooltip>This is really only useful if you are testing a single model</tooltip>
+																<handler function="OnCheckBox_Tag50thClick" entry="EVT_CHECKBOX" />
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 															<border>5</border>
 															<option>1</option>
 														</object>

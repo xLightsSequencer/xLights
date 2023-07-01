@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00016.html" title="Working on large sequences" category="Sequencing" level="Advanced" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Working on large sequences</h1>
+        <p>Working on large sequences can be a real PITA. Sequences can end up large because:</p>
+        <ul>
+            <li>You have a huge layout ... especially large Px panels or virtual matrices.</li>
+            <li>You insist on sequencing a 30 minute show as a single song.</li>
+            <li>You have imported sequences from another sequencer and have ended up with thousands of small effects.</li>
+            <li>You are using high definition video or multiple layers of shader effects or layers and layers of canvas mode effects or liquid effects with extreme settings - all of which can render incredibly slowly.</li>
+        </ul>
+        <p>So what can you do to optimise your sequencing experience.</p>
+        <p>In part it depends on exactly which of the above applies but some things you can try:</p>
+        <ul>
+            <li>Try turning off rendering when you dont need it. This can be done globally using the "Suspend Render" checkbox under the list of models on the sequencer tab. You can also do it for a specific model by right clicking on the model row name and from the "Model" menu select "Suspend Render". You can also do it at the effect level by selecting effects and right clicking on them and selecting "Disable Render".</li>
+            <li>Try running check sequence. Some commonly known reasons for slow rendering are picked up there. One common one is trying to render high definition video onto a low resolution model. This is an enormous amount of work that can be avoided by pre-shrinking the video using you favourite video editor to a size similar to the target model.</li>
+            <li>Try turning on render caching in preferences. This trades off memory and disk space for faster rendering ... essentially keeping a copy of some of the more expensive effects to render in a pre-rendered state which can be reused as long as nothing has changed on that effect since the cache entry was created.</li>
+            <li>Some models (specifically matrices and trees) allow you to set a "Low Definition Factor". Set to a value like 10 will reduce the amount of work rendering a matrix 100 fold when sequencing. This will make effects look more blocky but when you go to produce the final render using batch render or by turning off "Low Definition Render" in the preferences or by reseting the "Low Definition Factor" to 100 on the models.</li>
+            <li>On sequences with thousands of effects the time to complete the autosave can become annoying. You can decrease the frequency of autosaves in the preferences although this obviously increases the risk of losing sequencing if xLights was to crash.</li>
+            <li>Turning on hardware video decoding and allowing shaders to run on background threads can also improve throughput but there can be side effects such as instability or rendering differences.</li>
+        </ul>
+    </body>
+</html>

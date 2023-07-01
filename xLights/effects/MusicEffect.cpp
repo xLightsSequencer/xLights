@@ -106,7 +106,7 @@ void MusicEffect::SetDefaultParameters() {
     SetCheckBoxValue(mp->CheckBox_Music_LogarithmicXAxis, false);
 }
 
-void MusicEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void MusicEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
         SettingsMap.GetInt("SLIDER_Music_Bars", 20),
@@ -129,6 +129,7 @@ class MusicEvent
 	public:
 		int _startframe;
 		int _duration; // in frames
+    
 		MusicEvent(int startframe, int duration)
 		{
 			_startframe = startframe;
@@ -167,6 +168,7 @@ public:
 				delete it;
 			}
 			_events[i]->clear();
+            delete _events[i];
 		}
 		_events.clear();
 	}
@@ -175,11 +177,6 @@ public:
 	};
     virtual ~MusicRenderCache() {
         ClearEvents();
-        for (const auto& it : _events)
-        {
-            delete it;
-        }
-        _events.clear();
 	};
 	std::vector<std::list<MusicEvent*>*> _events;
 };
@@ -390,7 +387,7 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
             }
         }
     }
-
+    
     for (int b = 0; b < bars; ++b)
     {
         events.push_back(new std::list<MusicEvent*>());

@@ -1,0 +1,8 @@
+<Vendor Name="Mattos Designs">
+	<Controller Name="Dragon 8">
+		<Variant Name="" Base="Experience Lights:BaseExperienceSettings">
+			<MaxPixelPort>24</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+		</Variant>
+	</Controller>
+</Vendor>

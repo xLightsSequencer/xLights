@@ -64,14 +64,17 @@ void ControllerCaps::LoadControllers() {
     d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/controllers";
 #endif
 
-#ifdef _DEBUG
     // in debug look in the master folder
     if (!wxDir::Exists(d)) {
+#ifdef _DEBUG
 #ifdef __WXMSW__
         d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/../../../controllers";
 #endif
-    }
 #endif
+#ifdef LINUX
+        d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/../controllers";
+#endif
+    }
 
     if (wxDir::Exists(d)) {
         wxDir dir(d);
@@ -200,8 +203,11 @@ std::list<std::string> ControllerCaps::GetModels(const std::string& type, const 
                 if (type == CONTROLLER_ETHERNET && it3->SupportsEthernetInputProtols()) {
                     models.push_back(it.first);
                     break;
+                } else if (type == CONTROLLER_SERIAL && it3->SupportsSerialInputProtols()) {
+                    models.push_back(it.first);
+                    break;
                 }
-                else if (type == CONTROLLER_SERIAL && it3->SupportsSerialInputProtols()) {
+                else if (type == CONTROLLER_ETHERNET && it3->IsPlayerOnly()) {
                     models.push_back(it.first);
                     break;
                 }
@@ -377,6 +383,11 @@ bool ControllerCaps::AllInputUniversesMustBeSameSize() const {
     return DoesXmlNodeExist(_config, "AllInputUniversesMustBeSameSize");
 }
 
+bool ControllerCaps::AllInputUniversesMustBe510() const
+{
+    return DoesXmlNodeExist(_config, "AllInputUniversesMustBe510");
+}
+
 bool ControllerCaps::UniversesMustBeInNumericalOrder() const {
 
     return DoesXmlNodeExist(_config, "UniversesMustBeInNumericalOrder");
@@ -420,9 +431,15 @@ bool ControllerCaps::SupportsPixelPortColourOrder() const {
 bool ControllerCaps::SupportsEthernetInputProtols() const
 {
     for (const auto& it : GetInputProtocols()) {
-        if (it == "e131" || it == "artnet" || it == "kinet" || it == "zcpp" || it == "ddp" || it == "opc" || it == "xxx ethernet") return true;
+        if (it == "e131" || it == "artnet" || it == "kinet" || it == "zcpp" || it == "ddp" || it == "opc" || it == "xxx ethernet" || it == "twinkly")
+            return true;
     }
     return false;
+}
+
+bool ControllerCaps::IsPlayerOnly() const
+{
+    return DoesXmlNodeExist(_config, "PlayerOnly");
 }
 
 bool ControllerCaps::SupportsSerialInputProtols() const
@@ -459,6 +476,11 @@ bool ControllerCaps::SupportsPixelPortDirection() const {
 bool ControllerCaps::SupportsPixelPortGrouping() const {
 
     return SupportsPixelPortCommonSettings() || DoesXmlNodeExist(_config, "SupportsPixelPortGrouping");
+}
+
+bool ControllerCaps::SupportsPixelZigZag() const
+{
+    return DoesXmlNodeExist(_config, "SupportsPixelZigZag");
 }
 
 bool ControllerCaps::SupportsTs() const
@@ -548,6 +570,11 @@ int ControllerCaps::GetMaxGroupPixels() const
     return wxAtoi(GetXmlNodeContent(_config, "MaxGroup", "-1"));
 }
 
+int ControllerCaps::GetMaxZigZagPixels() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "MaxZigZag", "-1"));
+}
+
 int ControllerCaps::GetMinGroupPixels() const
 {
     return wxAtoi(GetXmlNodeContent(_config, "MinGroup", "-1"));
@@ -633,6 +660,12 @@ std::string ControllerCaps::GetPreferredInputProtocol() const
 {
     return GetXmlNodeContent(_config, "PreferredInputProtocol", "");
 }
+
+std::string ControllerCaps::GetConfigDriver() const
+{
+    return GetXmlNodeContent(_config, "ConfigDriver", "");
+}
+
 
 std::vector<std::string> ControllerCaps::GetSmartRemoteTypes() const {
     if (!SupportsSmartRemotes()) {

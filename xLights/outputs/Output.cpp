@@ -33,6 +33,8 @@
 #include "GenericSerialOutput.h"
 #include "../UtilFunctions.h"
 #include "OutputManager.h"
+#include "../utils/ip_utils.h"
+#include "Controller.h"
 
 #include <log4cpp/Category.hh>
 
@@ -110,7 +112,7 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
     if (type.EndsWith(" Ethernet") && type[0] == 'S' && type[1] == 'y') { type = OUTPUT_xxxETHERNET; }
 
     if (type == OUTPUT_E131) {
-        return new E131Output(node);
+        return new E131Output(node, c && c->IsActive());
     }
     else if (type == OUTPUT_ZCPP) {
         return new ZCPPOutput(c, node, showDir);
@@ -119,13 +121,13 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
         return new NullOutput(node);
     }
     else if (type == OUTPUT_ARTNET) {
-        return new ArtNetOutput(node);
+        return new ArtNetOutput(node, c && c->IsActive());
     }
     else if (type == OUTPUT_KINET) {
-        return new KinetOutput(node);
+        return new KinetOutput(node, c && c->IsActive());
     }
     else if (type == OUTPUT_DDP) {
-        return new DDPOutput(node);
+        return new DDPOutput(node, c && c->IsActive());
     }
     else if (type == OUTPUT_DMX) {
         return new DMXOutput(node);
@@ -134,7 +136,7 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
         return new xxxSerialOutput(node);
     }
     else if (type == OUTPUT_OPC) {
-        return new OPCOutput(node);
+        return new OPCOutput(node, c && c->IsActive());
     }
     else if (type == OUTPUT_PIXELNET) {
         return new PixelNetOutput(node);
@@ -161,9 +163,9 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
         return new GenericSerialOutput(node);
     }
     else if (type == OUTPUT_xxxETHERNET) {
-        return new xxxEthernetOutput(node);
+        return new xxxEthernetOutput(node, c && c->IsActive());
     } else if (type == OUTPUT_TWINKLY) {
-        return new TwinklyOutput(node);
+        return new TwinklyOutput(node, c && c->IsActive());
     }
 
     logger_base.warn("Unknown network type %s ignored.", (const char *)type.c_str());
@@ -178,8 +180,8 @@ int Output::GetBaudRate() const {
     return _baudRate;
 }
 
-void Output::SetIP(const std::string& ip) {
-    auto i = CleanupIP(ip);
+void Output::SetIP(const std::string& ip, bool isActive) {
+    auto i = ip_utils::CleanupIP(ip);
     if (i != _ip) {
         _ip = i;
         _resolvedIp = _ip;
@@ -240,7 +242,7 @@ bool Output::Open() {
         if (proxy != "") {
             _fppProxyOutput = new DDPOutput();
             _fppProxyOutput->_ip = proxy;
-            _fppProxyOutput->_resolvedIp = ResolveIP(proxy);
+            _fppProxyOutput->_resolvedIp = ip_utils::ResolveIP(proxy);
             _fppProxyOutput->_startChannel = _startChannel;
             _fppProxyOutput->_channels = GetEndChannel() - _startChannel + 1;
             _fppProxyOutput->Open();

@@ -44,8 +44,9 @@
 #define PAGE_MODELTYPE 0
 #define PAGE_CHOOSEVIDEO 1
 #define PAGE_STARTFRAME 2
-#define PAGE_BULBIDENTIFY 3
-#define PAGE_REVIEWMODEL 4
+#define PAGE_MANUALIDENTIFY 3
+#define PAGE_BULBIDENTIFY 4
+#define PAGE_REVIEWMODEL 5
 
 // making this smaller speeds the start scan but makes it more sensitive to when the user takes a while to start the video
 #define STARTSCANSECS 15
@@ -63,8 +64,10 @@
 #define PIXCOL wxRED
 #define LINECOL wxYELLOW
 
+#define MANUAL_IMAGE_SUBTRACT (0.8f)
 //#define ONLY_SET_RED_CHANNEL_FOR_GREYSCALE_AND_BW_IMAGES
 #define CUSTOM_MODEL_GENERATOR_PARALLEL
+//#define EXTRA_CHECKS
 //#define SHOW_PROCESSED_IMAGE
 #define MODEL_SIZE_MULTIPLER (3 - 1)
 
@@ -116,6 +119,7 @@ public:
         P_IMG_IMAGE_UNKNOWN
     };
 
+    [[nodiscard]]
     bool IsSingleChannel() const
     {
         return _imageType != P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR && _imageType != P_IMG_FRAME_TYPE::P_IMG_IMAGE_UNKNOWN;
@@ -135,7 +139,7 @@ public:
     }
 
     ProcessedImage(const wxImage &image, P_IMG_FRAME_TYPE imageType) :
-        wxImage(image), _imageType(imageType)
+        wxImage(image.Copy()), _imageType(imageType) // we have to use copy or it creates a reference to the data
     {
         SetType(wxBitmapType::wxBITMAP_TYPE_BMP);
     }
@@ -166,18 +170,31 @@ public:
         memcpy(GetData(), image.GetData(), GetPixels() * (HasAlpha() ? 4 : 3));
     }
 
+    [[nodiscard]]
     inline uint8_t GetPixel(uint32_t x, uint32_t y, uint32_t width, uint8_t channels, uint8_t* data)
     {
+#ifdef EXTRA_CHECKS
+        wxASSERT(x >= 0 && x < GetWidth() && width == GetWidth());
+        wxASSERT(y >= 0 && y < GetHeight());
+#endif
         return *(data + (y * width + x) * channels);
     }
 
-    inline uint8_t GetPixelC(uint32_t x, uint32_t y, uint32_t width, uint8_t channels, uint8_t* data, uint8_t ch)
+    [[nodiscard]] inline uint8_t GetPixelC(uint32_t x, uint32_t y, uint32_t width, uint8_t channels, uint8_t* data, uint8_t ch)
     {
+        #ifdef EXTRA_CHECKS
+        wxASSERT(x >= 0 && x < GetWidth() && width == GetWidth());
+        wxASSERT(y >= 0 && y < GetHeight());
+        #endif
         return *(data + (y * width + x) * channels + ch);
     }
 
     inline void SetPixelC(uint32_t x, uint32_t y, uint32_t width, uint8_t channels, uint8_t* data, uint8_t r, uint8_t g, uint8_t b)
     {
+#ifdef EXTRA_CHECKS
+        wxASSERT(x >= 0 && x < GetWidth() && width == GetWidth());
+        wxASSERT(y >= 0 && y < GetHeight());
+#endif
         *(data + (y * width + x) * channels) = r;
         *(data + (y * width + x) * channels + 1) = g;
         *(data + (y * width + x) * channels + 2) = b;
@@ -185,6 +202,10 @@ public:
 
     inline void SetPixel(uint32_t x, uint32_t y, uint32_t width, uint8_t channels, uint8_t* data, uint8_t c)
     {
+#ifdef EXTRA_CHECKS
+        wxASSERT(x >= 0 && x < GetWidth() && width == GetWidth());
+        wxASSERT(y >= 0 && y < GetHeight());
+#endif
         *(data + (y * width + x) * channels) = c;
 #ifndef ONLY_SET_RED_CHANNEL_FOR_GREYSCALE_AND_BW_IMAGES
         *(data + (y * width + x) * channels + 1) = c;
@@ -196,6 +217,10 @@ public:
     // this is used when i need a copy of the image as the modification changes data i later need to refer to
     uint8_t getData(uint8_t* buffer, uint32_t x, uint32_t y)
     {
+#ifdef EXTRA_CHECKS
+        wxASSERT(x >= 0 && x < GetWidth());
+        wxASSERT(y >= 0 && y < GetHeight());
+#endif
         return *(buffer + y * GetWidth() + x);
     }
 
@@ -284,7 +309,7 @@ public:
 #endif
 
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
-        parallel_for(0, GetPixels(), [this, orig, incr](uint32_t i) {
+        parallel_for(0, GetPixels(), [this, orig](uint32_t i) {
 #else
         for (uint32_t i = 0; i < GetPixels(); ++i) {
 #endif
@@ -329,7 +354,7 @@ public:
         // assumes this is a greyscale image
         uint8_t incr = HasAlpha() ? 4 : 3;
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
-        parallel_for(0, GetPixels(), [this, incr, threshold, thresholdTable](int i) {
+        parallel_for(0, GetPixels(), [this, incr, thresholdTable](int i) {
 #else
         for (uint32_t i = 0; i < GetPixels(); ++i) {
 #endif
@@ -410,6 +435,11 @@ public:
         }
     }
 
+    [[nodiscard]] inline bool IsBlack(uint8_t* data, uint8_t incr, uint32_t i)
+    {
+        return *(data + i * incr) == 0 && *(data + i * incr + 1) == 0 && *(data + i * incr + 2) == 0;
+    }
+
     void FillInRGB()
     {
         // now go through the same data and remove any black pixels largely surrounded by another colour
@@ -423,12 +453,13 @@ public:
 #else
         for (uint32_t i = 0; i < GetPixels(); ++i) {
 #endif
-            int32_t y = i / width;
-            int32_t x = i % width;
-            // we only do this for pixels not on the outside
-            if (x > 0 && x < width - 1 && y > 0 && y < GetHeight() - 1) {
-                // if pixel is black
-                if ((*data + i * incr) == 0 && (*data + i * incr + 1) == 0 && (*data + i * incr + 2) == 0) {
+            // if pixel is black
+            if (IsBlack(data, incr, i)) {
+                int32_t y = i / width;
+                int32_t x = i % width;
+
+                // we only do this for pixels not on the outside
+                if (x > 0 && x < width - 1 && y > 0 && y < GetHeight() - 1) {
                     // look at the surrounding pixels
                     uint8_t r = 0;
                     uint8_t g = 0;
@@ -455,75 +486,174 @@ public:
 #endif
     }
 
-    #define MAXIMUM_LOOK_RGB 50
+    #define MAXIMUM_LOOK_RGB 20
     void FillInRGBA()
     {
         // now go through the same data and remove any black pixels largely surrounded by another colour
+        uint8_t* data = GetData();
+
         ProcessedImage temp(this);
+        uint8_t* tempData = temp.GetData();
+
         uint32_t width = GetWidth();
         uint32_t height = GetHeight();
-        uint8_t* data = GetData();
-        uint8_t* tempData = temp.GetData();
+
         uint8_t incr = HasAlpha() ? 4 : 3;
+
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
         parallel_for(0, GetPixels(), [this, incr, data, tempData, width, height](int i) {
 #else
         for (uint32_t i = 0; i < GetPixels(); ++i) {
 #endif
-            if (*(data + i * incr) == 0 && *(data + i * incr + 1) == 0 && *(data + i * incr + 2) == 0) {
-
-                int32_t y = i / width;
-                int32_t x = i % width;
+            if (IsBlack(data, incr, i)) {
+                uint32_t y = i / width;
+                uint32_t x = i % width;
 
                 uint8_t n = 0x00;
+                uint16_t nv = 0x00;
                 uint8_t s = 0x00;
+                uint16_t sv = 0x00;
                 uint8_t e = 0x00;
+                uint16_t ev = 0x00;
                 uint8_t w = 0x00;
+                uint16_t wv = 0x00;
+                uint8_t all = 0x00;
+                uint8_t allor = 0x00;
 
-                for (uint8_t j = 0; j <= MAXIMUM_LOOK_RGB; ++j) {
+                for (uint8_t j = 0; all == 0 && (allor & 0x08) == 0 && j <= MAXIMUM_LOOK_RGB; ++j) {
                     // west x-
-                    if (w == 0x00 && x >= j) {
-                        w |= (GetPixelC(x - j, y, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
-                        w |= (GetPixelC(x - j, y, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
-                        w |= (GetPixelC(x - j, y, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                    if (w == 0x00) {
+                        if (x >= j) {
+                            w |= (GetPixelC(x - j, y, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
+                            w |= (GetPixelC(x - j, y, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
+                            w |= (GetPixelC(x - j, y, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                            if (w == 0x01)
+                                wv = GetPixelC(x - j, y, width, incr, tempData, 0);
+                            else if (w == 0x02)
+                                wv = GetPixelC(x - j, y, width, incr, tempData, 1);
+                            else if (w == 0x02)
+                                wv = GetPixelC(x - j, y, width, incr, tempData, 2);
+                        } else {
+                            w |= 0x08;
+                        }
                     }
 
                     // east x+
-                    if (e == 0x00 && x < width - j - 1) {
-                        e |= (GetPixelC(x + j, y, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
-                        e |= (GetPixelC(x + j, y, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
-                        e |= (GetPixelC(x + j, y, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                    if (e == 0x00) {
+                        if (x < width - j - 1) {
+                            e |= (GetPixelC(x + j, y, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
+                            e |= (GetPixelC(x + j, y, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
+                            e |= (GetPixelC(x + j, y, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                            if (e == 0x01)
+                                ev = GetPixelC(x + j, y, width, incr, tempData, 0);
+                            else if (e == 0x02)
+                                ev = GetPixelC(x + j, y, width, incr, tempData, 1);
+                            else if (e == 0x02)
+                                ev = GetPixelC(x + j, y, width, incr, tempData, 2);
+                        } else {
+                            e |= 0x08;
+                        }
                     }
 
                     // south y-
-                    if (s == 0x00 && y >= j) {
-                        s |= (GetPixelC(x, y - j, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
-                        s |= (GetPixelC(x, y - j, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
-                        s |= (GetPixelC(x, y - j, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                    if (s == 0x00) {
+                        if (y >= j) {
+                            s |= (GetPixelC(x, y - j, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
+                            s |= (GetPixelC(x, y - j, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
+                            s |= (GetPixelC(x, y - j, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                            if (s == 0x01)
+                                sv = GetPixelC(x, y - j, width, incr, tempData, 0);
+                            else if (s == 0x02)
+                                sv = GetPixelC(x, y - j, width, incr, tempData, 1);
+                            else if (s == 0x02)
+                                sv = GetPixelC(x, y - j, width, incr, tempData, 2);
+                        } else {
+                            s |= 0x08;
+                        }
                     }
 
                     // north y+
-                    if (n == 0x00 && y < height - j - 1) {
-                        n |= (GetPixelC(x, y + j, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
-                        n |= (GetPixelC(x, y + j, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
-                        n |= (GetPixelC(x, y + j, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                    if (n == 0x00) {
+                        if (y < height - j - 1) {
+                            n |= (GetPixelC(x, y + j, width, incr, tempData, 0)) != 0 ? 0x01 : 0x00;
+                            n |= (GetPixelC(x, y + j, width, incr, tempData, 1)) != 0 ? 0x02 : 0x00;
+                            n |= (GetPixelC(x, y + j, width, incr, tempData, 2)) != 0 ? 0x04 : 0x00;
+                            if (n == 0x01)
+                                nv = GetPixelC(x, y + j, width, incr, tempData, 0);
+                            else if (n == 0x02)
+                                nv = GetPixelC(x, y + j, width, incr, tempData, 1);
+                            else if (n == 0x02)
+                                nv = GetPixelC(x, y + j, width, incr, tempData, 2);
+                        } else {
+                            n |= 0x08;
+                        }
                     }
 
-                    uint8_t all = (n & s & e & w);
+                    allor = (n | s | e | w);
+                    all = (n & s & e & w);
+                }
 
-                    if (all != 0 && all != 0x01 && all != 0x02 && all != 0x04)
-                        break; // different colours so dont set
+                // done and pixel colour should be set
+                uint8_t val = (ev + wv + sv + nv) / 4;
+                if (all == 0x01) {
+                    SetPixelC(x, y, width, incr, data, val, 0, 0);
+                } else if (all == 0x02) {
+                    SetPixelC(x, y, width, incr, data, 0, val, 0);
+                } else if (all == 0x04) {
+                    SetPixelC(x, y, width, incr, data, 0, 0, val);
+                }
+            }
+        }
+#ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
+        );
+#endif
 
-                    // done and pixel colour should be set
-                    if (all == 0x01) {
+        // need to copy the current image again
+        ProcessedImage temp2(this);
+        tempData = temp2.GetData();
+
+        // go back through everything and dilate a pixel if only touches one colour n,s,e,w
+#ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
+        parallel_for(0, GetPixels(), [this, incr, data, tempData, width, height](int i) {
+#else
+        for (uint32_t i = 0; i < GetPixels(); ++i) {
+#endif
+            if (IsBlack(data, incr, i)) {
+                uint32_t y = i / width;
+                uint32_t x = i % width;
+
+                if (x > 1 && y > 1 && x < width - 1 && y < height - 1) {
+                    uint8_t c = (GetPixelC(x - 1, y, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x + 1, y, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x, y - 1, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x, y + 1, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x - 1, y - 1, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x - 1, y + 1, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x + 1, y - 1, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x + 1, y + 1, width, incr, tempData, 0) != 0 ? 0x01 : 0x00) |
+                                (GetPixelC(x - 1, y, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x + 1, y, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x, y - 1, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x, y + 1, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x - 1, y - 1, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x - 1, y + 1, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x + 1, y - 1, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x + 1, y + 1, width, incr, tempData, 1) != 0 ? 0x02 : 0x00) |
+                                (GetPixelC(x - 1, y, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x + 1, y, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x, y - 1, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x, y + 1, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x - 1, y - 1, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x - 1, y + 1, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x + 1, y - 1, width, incr, tempData, 2) != 0 ? 0x04 : 0x00) |
+                                (GetPixelC(x + 1, y + 1, width, incr, tempData, 2) != 0 ? 0x04 : 0x00);
+
+                    if (c == 0x01) {
                         SetPixelC(x, y, width, incr, data, 255, 0, 0);
-                        break;
-                    } else if (all == 0x02) {
+                    } else if (c == 0x02) {
                         SetPixelC(x, y, width, incr, data, 0, 255, 0);
-                        break;
-                    } else if (all == 0x04) {
+                    } else if (c == 0x04) {
                         SetPixelC(x, y, width, incr, data, 0, 0, 255);
-                        break;
                     }
                 }
             }
@@ -619,28 +749,33 @@ public:
     }
 
     // used with any image to subtract a background
-    void Subtract(ProcessedImage* image)
+    void Subtract(ProcessedImage* image, float howMuch = 1.0)
     {
+        if (image == nullptr || howMuch == 0)
+            return;
+
+        wxASSERT(howMuch <= 1.0 && howMuch > 0.0);
+
         uint8_t incr = HasAlpha() ? 4 : 3;
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
-        parallel_for(0, GetPixels(), [this, image, incr](int i) {
+        parallel_for(0, GetPixels(), [this, image, howMuch, incr](int i) {
 #else
         for (uint32_t i = 0; i < GetPixels(); ++i) {
 #endif
             uint8_t* data = GetData() + i * incr;
             uint8_t* imagedata = image->GetData() + i * incr;
-            if (*(imagedata) <= *(data)) {
-                *(data) = *(data) - *(imagedata);
+            if (*(imagedata) * howMuch <= *(data)) {
+                *(data) = *(data) - (*(imagedata) * howMuch);
             } else {
                 *(data) = 0;
             }
-            if (*(imagedata + 1) <= *(data + 1)) {
-                *(data + 1) = *(data + 1) - *(imagedata + 1);
+            if (*(imagedata + 1) *howMuch <= *(data + 1)) {
+                *(data + 1) = *(data + 1) - (*(imagedata + 1) * howMuch);
             } else {
                 *(data + 1) = 0;
             }
-            if (*(imagedata + 2) <= *(data + 2)) {
-                *(data + 2) = *(data + 2) - *(imagedata + 2);
+            if (*(imagedata + 2) * howMuch <= *(data + 2)) {
+                *(data + 2) = *(data + 2) - (*(imagedata + 2) * howMuch);
             } else {
                 *(data + 2) = 0;
             }
@@ -747,7 +882,7 @@ public:
         uint8_t incr = HasAlpha() ? 4 : 3;
 
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
-        parallel_for(0, GetPixels(), [this, factor, incr, contrastTable](int i) {
+        parallel_for(0, GetPixels(), [this, incr, contrastTable](int i) {
 #else
         for (uint32_t i = 0; i < GetPixels(); ++i) {
 #endif
@@ -763,13 +898,13 @@ public:
 #endif
     }
 
-    uint32_t GetPixels()
+        [[nodiscard]] uint32_t GetPixels()
     {
         return GetWidth() * GetHeight();
     }
 
     // finding the largest difference quantum can determine when a big change happened -ve numbers means dimmer and +ve numbers means brighter
-    int32_t DifferenceQuantum(ProcessedImage* image)
+    [[nodiscard]] int32_t DifferenceQuantum(ProcessedImage* image)
     {
         wxASSERT(IsSingleChannel());
 
@@ -784,7 +919,7 @@ public:
     }
 
     // provides a single value representing how bright the image is
-    float CalcBrightness()
+    [[nodiscard]] float CalcBrightness()
     {
         wxASSERT(IsSingleChannel());
 
@@ -801,7 +936,7 @@ public:
 
     // creates a new image with reduce size with the unwanted pixels removed
     // left right top bottom is how many rows/columns of pixels to remove from that edge
-    ProcessedImage* Clip(uint32_t left, uint32_t right, uint32_t top, uint32_t bottom)
+    [[nodiscard]] ProcessedImage* Clip(uint32_t left, uint32_t right, uint32_t top, uint32_t bottom)
     {
         long width = (long)right - (long)left;
         long height = (long)top - (long)bottom;
@@ -811,10 +946,9 @@ public:
             return new ProcessedImage(this);
 
         ProcessedImage* clipped = new ProcessedImage(width, height, _imageType);
-        uint8_t incr = HasAlpha() ? 4 : 3;
 
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL
-        parallel_for(0, width * height, [this, incr, clipped, left, adjY, width](int i) {
+        parallel_for(0, width * height, [this, clipped, left, adjY, width](int i) {
             #else
         for (uint32_t i = 0; i < (uint32_t)(width * height); ++i) {
 #endif
@@ -830,7 +964,7 @@ public:
     }
 
     // useful on a black and white image to count the number of white pixels
-    uint32_t CountWhite(uint32_t stopAfter)
+    [[nodiscard]] uint32_t CountWhite(uint32_t stopAfter)
     {
         wxASSERT(_imageType == P_IMG_FRAME_TYPE::P_IMG_IMAGE_MONO);
 
@@ -850,7 +984,7 @@ public:
         return res;
     }
 
-    void ProcessB(uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessB(uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
 //#ifdef SHOW_PROCESSED_IMAGE
 //        if (displayCallback != nullptr) {
@@ -881,7 +1015,7 @@ public:
         }
     }
 
-    void ProcessA(int contrast, uint8_t blur, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessA(int contrast, uint8_t blur, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         if (blur > 1) {
             UpdateFrom(Blur(blur));
@@ -905,13 +1039,13 @@ public:
     // ConvertToGreyscale is built into wxImage
     // ChangeBrightness is built into wxImage
 
-    P_IMG_FRAME_TYPE GetImageType() const
+        [[nodiscard]] P_IMG_FRAME_TYPE GetImageType() const
     {
         return _imageType;
     }
 
-        // returns false if too many pixels are identified
-    bool WalkPixels(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint8_t* data, uint32_t& totalX, uint32_t& totalY, uint32_t& pixelCount)
+    // returns false if too many pixels are identified
+    [[nodiscard]] bool WalkPixels(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint8_t* data, uint32_t& totalX, uint32_t& totalY, uint32_t& pixelCount)
     {
         bool res = true;
 
@@ -963,13 +1097,13 @@ public:
         return res;
     }
 
-    static uint32_t PixelDistance(const wxPoint& pt1, const wxPoint& pt2)
+    [[nodiscard]] static uint32_t PixelDistance(const wxPoint& pt1, const wxPoint& pt2)
     {
        return sqrt((pt1.x - pt2.x) * (pt1.x - pt2.x) + (pt1.y - pt2.y) * (pt1.y - pt2.y));
     }
 
     // finds all possible pixels in frame
-    std::list<std::pair<wxPoint, uint32_t>> FindPixels(uint32_t pixel, uint32_t minSeparation, std::function<void(float)> progressCallback = nullptr)
+    [[nodiscard]] std::list<std::pair<wxPoint, uint32_t>> FindPixels(uint32_t pixel, uint32_t minSeparation, std::function<void(float)> progressCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
 
@@ -1018,7 +1152,7 @@ public:
 
     // returns -1, -1 if nothing is found
     // Finds the centre of the largest white patch in the image
-    wxPoint FindPixel()
+    [[nodiscard]] wxPoint FindPixel()
     {
         wxPoint res = wxPoint(-1, -1);
         uint32_t maxSize = 0;
@@ -1048,10 +1182,9 @@ public:
     }
 
     // Finds the centre of all white patches
-    wxPoint FindPixelA()
+    [[nodiscard]] wxPoint FindPixelA()
     {
         wxPoint res = wxPoint(-1, -1);
-        uint32_t maxSize = 0;
         uint32_t width = GetWidth();
         uint8_t incr = HasAlpha() ? 4 : 3;
 
@@ -1099,7 +1232,7 @@ public:
         VFT_IMAGE_TEMP
     };
 
-    void PrepareImages(bool processRGB, float gamma, uint8_t saturate, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void PrepareImages(bool processRGB, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         if (gamma != 1.0) {
             _rawFrame->Gamma(gamma);
@@ -1109,14 +1242,13 @@ public:
         }
 
         if (processRGB) {
-            
-//            if (displayCallback != nullptr) {
-//                displayCallback(_rawFrame);
-//            }
+            //            if (displayCallback != nullptr) {
+            //                displayCallback(_rawFrame);
+            //            }
             _rawFrame->ForceToRGorB();
-//            if (displayCallback != nullptr) {
-//                displayCallback(_rawFrame);
-//            }
+            //            if (displayCallback != nullptr) {
+            //                displayCallback(_rawFrame);
+            //            }
 
             _redFrame = new ProcessedImage(_rawFrame, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_RED);
             _redFrame->IsolateColour(0);
@@ -1131,7 +1263,7 @@ public:
     }
 
     VideoFrame(ProcessedImage* image, uint32_t timestamp, bool isRGB, VIDEO_FRAME_TYPE frameType = VIDEO_FRAME_TYPE::VFT_IMAGE_TEMP) :
-        _frameType(frameType), _timestamp(timestamp), _isRGB(isRGB)
+        _frameType(frameType), _isRGB(isRGB), _timestamp(timestamp)
     {
         _rawFrame = new ProcessedImage(image);
     }
@@ -1155,73 +1287,73 @@ public:
             delete _blueFrame;
     }
 
-    ProcessedImage* GetColourImage() const
+    [[nodiscard]] ProcessedImage* GetColourImage() const
     {
         return _rawFrame;
     }
 
-    ProcessedImage* GetGreyscaleImage() const
+    [[nodiscard]] ProcessedImage* GetGreyscaleImage() const
     {
         wxASSERT(!_isRGB);
         return _greyscaleFrame;
     }
 
-    ProcessedImage* GetRedImage() const
+    [[nodiscard]] ProcessedImage* GetRedImage() const
     {
         wxASSERT(_isRGB);
         return _redFrame;
     }
 
-    ProcessedImage* GetGreenImage() const
+    [[nodiscard]] ProcessedImage* GetGreenImage() const
     {
         wxASSERT(_isRGB);
         return _greenFrame;
     }
 
-    ProcessedImage* GetBlueImage() const
+    [[nodiscard]] ProcessedImage* GetBlueImage() const
     {
         wxASSERT(_isRGB);
         return _blueFrame;
     }
 
-    void RemoveBackground(VideoFrame* offFrame, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void RemoveBackground(VideoFrame* offFrame, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
-//#ifdef SHOW_PROCESSED_IMAGE
-//        if (displayCallback != nullptr)
-//            displayCallback(offFrame->GetColourImage());
-//#endif
+        //#ifdef SHOW_PROCESSED_IMAGE
+        //        if (displayCallback != nullptr)
+        //            displayCallback(offFrame->GetColourImage());
+        //#endif
 
-//#ifdef SHOW_PROCESSED_IMAGE
-//        if (displayCallback != nullptr)
-//            displayCallback(_rawFrame);
-//#endif
+        //#ifdef SHOW_PROCESSED_IMAGE
+        //        if (displayCallback != nullptr)
+        //            displayCallback(_rawFrame);
+        //#endif
         _rawFrame->Subtract(offFrame->GetColourImage());
-//#ifdef SHOW_PROCESSED_IMAGE
-//        if (displayCallback != nullptr)
-//            displayCallback(_rawFrame);
-//#endif
+        //#ifdef SHOW_PROCESSED_IMAGE
+        //        if (displayCallback != nullptr)
+        //            displayCallback(_rawFrame);
+        //#endif
     }
 
-    bool IsOk() const
+    [[nodiscard]] bool IsOk() const
     {
         return _rawFrame != nullptr && _rawFrame->IsOk();
     }
 
-    uint32_t GetWidth() const
+    [[nodiscard]] uint32_t GetWidth() const
     {
         if (_rawFrame == nullptr)
             return 0;
         return _rawFrame->GetWidth();
     }
 
-    uint32_t GetHeight() const
+    [[nodiscard]] uint32_t GetHeight() const
     {
         if (_rawFrame == nullptr)
             return 0;
         return _rawFrame->GetHeight();
     }
 
-    uint32_t GetTimestamp() const
+    [[nodiscard]] uint32_t GetTimestamp() const
     {
         return _timestamp;
     }
@@ -1232,51 +1364,48 @@ public:
         return _frameDelta;
     }
 
-    int32_t GetFrameDelta() const
+    [[nodiscard]] int32_t GetFrameDelta() const
     {
         return _frameDelta;
     }
 
-    void ProcessImage(ProcessedImage* img, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessImage(ProcessedImage* img, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         img->ProcessA(contrast, blur, displayCallback);
         img->ProcessB(erode_dilate, threshold, displayCallback);
     }
 
-    void ProcessImageA(ProcessedImage* img, int contrast, uint8_t blur, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessImageA(ProcessedImage* img, int contrast, uint8_t blur, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         img->ProcessA(contrast, blur, displayCallback);
     }
 
-    void ProcessImageB(ProcessedImage* img, uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessImageB(ProcessedImage* img, uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         img->ProcessB(erode_dilate, threshold, displayCallback);
     }
 
     // returns a new frame with the processing done
-    VideoFrame* Process(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    [[nodiscard]] VideoFrame* Process(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         auto frame = new VideoFrame(_rawFrame->Clip(cropLeft, cropRight, cropTop, cropBottom), _timestamp, _isRGB, _frameType);
         frame->PrepareImages(_isRGB, gamma, saturate, displayCallback);
 
-        if (_isRGB)
-        {
+        if (_isRGB) {
             ProcessImage(frame->_redFrame, contrast, blur, erode_dilate, threshold, displayCallback);
             ProcessImage(frame->_greenFrame, contrast, blur, erode_dilate, threshold, displayCallback);
             ProcessImage(frame->_blueFrame, contrast, blur, erode_dilate, threshold, displayCallback);
-        }
-        else {
+        } else {
             ProcessImage(frame->_greyscaleFrame, contrast, blur, erode_dilate, threshold, displayCallback);
         }
         return frame;
     }
 
-    VideoFrame* ProcessA(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, float gamma, uint8_t saturate, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    [[nodiscard]] VideoFrame* ProcessA(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         auto frame = new VideoFrame(_rawFrame->Clip(cropLeft, cropRight, cropTop, cropBottom), _timestamp, _isRGB, _frameType);
         frame->PrepareImages(_isRGB, gamma, saturate, displayCallback);
-        if (_isRGB)
-        {
+        if (_isRGB) {
             ProcessImageA(frame->_redFrame, contrast, blur, displayCallback);
             ProcessImageA(frame->_greenFrame, contrast, blur, displayCallback);
             ProcessImageA(frame->_blueFrame, contrast, blur, displayCallback);
@@ -1286,7 +1415,7 @@ public:
         return frame;
     }
 
-    void ProcessB(uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessB(uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         if (_isRGB) {
             ProcessImageB(_redFrame, erode_dilate, threshold, displayCallback);
@@ -1297,7 +1426,7 @@ public:
         }
     }
 
-    protected:
+protected:
     ProcessedImage* _rawFrame = nullptr;
     ProcessedImage* _greyscaleFrame = nullptr;
     ProcessedImage* _redFrame = nullptr;
@@ -1309,49 +1438,49 @@ public:
     int32_t _frameDelta = 0;
 };
 
-bool VideoFrameDeltaCompare(const VideoFrame* v1, const VideoFrame* v2)
+[[nodiscard]] bool VideoFrameDeltaCompare(const VideoFrame* v1, const VideoFrame* v2)
 {
     return std::abs(v1->GetFrameDelta()) > std::abs(v2->GetFrameDelta());
 }
 
-bool VideoFrameTimestampCompare(const VideoFrame* v1, const VideoFrame* v2)
+[[nodiscard]] bool VideoFrameTimestampCompare(const VideoFrame* v1, const VideoFrame* v2)
 {
     return v1->GetTimestamp() < v2->GetTimestamp();
 }
 
-bool LightsCompare(const std::pair<wxPoint, uint32_t>& v1, const std::pair<wxPoint, uint32_t>& v2)
+[[nodiscard]] bool LightsCompare(const std::pair<wxPoint, uint32_t>& v1, const std::pair<wxPoint, uint32_t>& v2)
 {
     return v1.second < v2.second;
 }
 
-class CustomModelGenerator {
+class CustomModelGenerator
+{
 protected:
-
     std::string _filename;
     VideoReader* _vr = nullptr;
-    uint32_t _startMS;                   // this is the timestamp of the _start1 image
-    VideoFrame* _offFrame = nullptr; // used to hold an image of all lights off ... this can be subtracted by future images
-    VideoFrame* _startFrame1 = nullptr;   // these are the two start images
+    uint32_t _startMS = 0;              // this is the timestamp of the _start1 image
+    VideoFrame* _offFrame = nullptr;    // used to hold an image of all lights off ... this can be subtracted by future images
+    VideoFrame* _startFrame1 = nullptr; // these are the two start images
     VideoFrame* _startFrame2 = nullptr;
     VideoFrame* _firstFrame = nullptr;
     std::list<VideoFrame*> _frames; // this is a collection of raw video stills containing the snapshots of the pixels
-                                                         // while this uses some memory to hold it is faster than continually re-reading the
-                                                         // video as the video is often processed many times. The uint32_t is the video
-                                                         // timestamp of the frame
+                                    // while this uses some memory to hold it is faster than continually re-reading the
+                                    // video as the video is often processed many times. The uint32_t is the video
+                                    // timestamp of the frame
     std::vector<VideoFrame*> _processedFrames;
 
     // used during video creation
     wxDateTime _startOutputTime;
     bool _outputting = false;
 
-    public:
-
-    // this is used when yoy just need the generator to run the sequence
+public:
+    // this is used when you just need the generator to run the sequence
     CustomModelGenerator()
     {
     }
 
-    CustomModelGenerator(const std::string& filename) : _filename(filename)
+    CustomModelGenerator(const std::string& filename) :
+        _filename(filename)
     {
         SetVideo(filename);
     }
@@ -1398,8 +1527,7 @@ protected:
         if (_filename != "") {
             _vr = new VideoReader(_filename, 800, 600, true, false, false);
             _firstFrame = ReadFrame(_vr->GetNextFrame(0), 0, false);
-        }
-        else {
+        } else {
             _firstFrame = new VideoFrame(800, 600);
         }
     }
@@ -1420,25 +1548,32 @@ protected:
         Reset();
     }
 
-    VideoFrame* GetFirstFrame() const
+    [[nodiscard]] VideoFrame* GetFirstFrame() const
     {
         return _firstFrame;
     }
 
-    VideoFrame* GetActualStartFrame() const
+    [[nodiscard]] VideoFrame* GetActualStartFrame() const
     {
         return _startFrame1;
     }
 
-    VideoFrame* GetStartFrame() const
+    [[nodiscard]] VideoFrame* GetStartFrame() const
     {
         if (_startFrame1 != nullptr)
             return _startFrame1;
         return _firstFrame;
     }
 
+    [[nodiscard]] uint32_t GetFirstNodeFrameTime() const
+    {
+        if (_startFrame1 == nullptr)
+            return 0;
+        return _startFrame1->GetTimestamp() + FLAGON + FLAGOFF + FLAGON + FLAGOFF; // we dont need to add node/2 as this was done then grabbing start frame
+    }
+
 #pragma region Run Sequence
-    uint32_t GetBits(uint32_t numPixels) const
+    [[nodiscard]] uint32_t GetBits(uint32_t numPixels) const
     {
         uint32_t count = 0;
         uint32_t p = numPixels;
@@ -1449,9 +1584,14 @@ protected:
         return count + 2;
     }
 
-    uint32_t GetSequenceRunTime(uint32_t numPixels) const
+    [[nodiscard]] uint32_t GetSequenceRunTime(uint32_t numPixels) const
     {
         return LEADOFF + FLAGON + FLAGOFF + FLAGON + FLAGOFF + GetBits(numPixels) * NODEON;
+    }
+
+    [[nodiscard]] uint32_t GetManualSequenceRunTime(uint32_t numPixels) const
+    {
+        return LEADOFF + FLAGON + FLAGOFF + FLAGON + FLAGOFF + numPixels * NODEON;
     }
 
     void StartBulbOutput(OutputManager* outputManager, xLightsFrame* frame)
@@ -1473,7 +1613,7 @@ protected:
         }
     }
 
-        // turns on the nominated bulbs
+    // turns on the nominated bulbs
     void SetBulbs(OutputManager* outputManager, bool nodes, int count, int startch, int node, int ms, uint8_t intensity)
     {
         static log4cpp::Category& logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
@@ -1536,21 +1676,21 @@ protected:
         }
     }
 
-    std::string convertToBase3(uint32_t number, uint32_t min_digits)
+    [[nodiscard]] std::string convertToBase3(uint32_t number, uint32_t min_digits)
     {
         std::string res;
         uint32_t total = 0;
         while (number > 0) {
             uint32_t r = number % 3;
-            res = wxString::Format("%u", r) + res;
+            res = std::to_string(r) + res;
             total += r;
             number = number / 3;
         }
 
         uint32_t check = 2 - (total % 3);
-        res = res + wxString::Format("%u", check);
+        res = res + std::to_string(check);
         check = (check + 1) % 3;
-        res = res + wxString::Format("%u", check);
+        res = res + std::to_string(check);
 
         while (res.size() < min_digits) {
             res = "0" + res;
@@ -1562,8 +1702,6 @@ protected:
     // turns on the nominated bulbs using a base ... so when the bulb number has that bit set then the bulb turns on
     void SetBulbsUsingBase3(OutputManager* outputManager, bool nodes, int count, int startch, uint32_t digit, uint32_t bits, int ms, uint8_t intensity)
     {
-        static log4cpp::Category& logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
-
         wxASSERT(digit < bits);
 
         wxTimeSpan ts = wxDateTime::UNow() - _startOutputTime;
@@ -1611,15 +1749,14 @@ protected:
 
     void RunSequence(xLightsFrame* frame, OutputManager* outputManager, bool nodes, uint32_t startChannel, uint32_t numPixels, uint8_t intensity, std::function<void(float)> progressCallback = nullptr)
     {
-        static log4cpp::Category& logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
-
         StartBulbOutput(outputManager, frame);
 
         auto totalTime = GetSequenceRunTime(numPixels);
 
         // 3.0 seconds off 0.5 seconds on ... 0.5 seconds off ... 0.5 second on ... 0.5 seconds off
         SetBulbs(outputManager, nodes, numPixels, startChannel, -1, LEADOFF, 0);
-        if (progressCallback != nullptr) progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
+        if (progressCallback != nullptr)
+            progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
         SetBulbs(outputManager, nodes, numPixels, startChannel, -1, FLAGON, intensity);
         if (progressCallback != nullptr)
             progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
@@ -1647,9 +1784,47 @@ protected:
 
         EndBulbOutput(outputManager, frame);
     }
+
+    void RunManualSequence(xLightsFrame* frame, OutputManager* outputManager, uint32_t startChannel, uint32_t numPixels, uint8_t intensity, std::function<void(float)> progressCallback = nullptr)
+    {
+        StartBulbOutput(outputManager, frame);
+
+        auto totalTime = GetManualSequenceRunTime(numPixels);
+
+        // 3.0 seconds off 0.5 seconds on ... 0.5 seconds off ... 0.5 second on ... 0.5 seconds off
+        SetBulbs(outputManager, true, numPixels, startChannel, -1, LEADOFF, 0);
+        if (progressCallback != nullptr)
+            progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
+        SetBulbs(outputManager, true, numPixels, startChannel, -1, FLAGON, intensity);
+        if (progressCallback != nullptr)
+            progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
+        SetBulbs(outputManager, true, numPixels, startChannel, -1, FLAGOFF, 0);
+        if (progressCallback != nullptr)
+            progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
+        SetBulbs(outputManager, true, numPixels, startChannel, -1, FLAGON, intensity);
+        if (progressCallback != nullptr)
+            progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
+        SetBulbs(outputManager, true, numPixels, startChannel, -1, FLAGOFF, 0);
+        if (progressCallback != nullptr)
+            progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
+
+        // then in turn each node on for 0.5 seconds
+        for (uint32_t i = 0; i < numPixels && !wxGetKeyState(WXK_ESCAPE); ++i) {
+            // logger_pcm.debug("%d of %d", i, count);
+            SetBulbs(outputManager, true, numPixels, startChannel, i, NODEON, intensity);
+            if (progressCallback != nullptr)
+                progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
+        }
+        SetBulbs(outputManager, true, numPixels, startChannel, -1, 0, 0);
+
+        if (progressCallback != nullptr)
+            progressCallback(1.0);
+
+        EndBulbOutput(outputManager, frame);
+    }
 #pragma endregion
 
-    void AddFrame(const wxImage &img, uint32_t timestamp, VideoFrame::VIDEO_FRAME_TYPE type = VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_PIXEL)
+    void AddFrame(const wxImage& img, uint32_t timestamp, VideoFrame::VIDEO_FRAME_TYPE type = VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_PIXEL)
     {
         switch (type) {
         case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_OFF:
@@ -1662,21 +1837,23 @@ protected:
         case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_START2:
             _startFrame2 = new VideoFrame(new ProcessedImage(img, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), timestamp, true, type);
             break;
-
         case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_PIXEL:
             _frames.push_back(new VideoFrame(new ProcessedImage(img, ProcessedImage::P_IMG_FRAME_TYPE::P_IMG_IMAGE_COLOUR), timestamp, true, type));
+            break;
+        case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_MULTI:
+        case VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_TEMP:
             break;
         }
     }
 
-    void RemoveBackgroundFromFrames(std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void RemoveBackgroundFromFrames(std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         for (auto& it : _frames) {
             it->RemoveBackground(_offFrame, displayCallback);
         }
     }
 
-    VideoFrame* ReadFrame(AVFrame* frame, uint32_t timestamp, bool processRGB)
+    [[nodiscard]] VideoFrame* ReadFrame(AVFrame* frame, uint32_t timestamp, bool processRGB)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
 
@@ -1700,7 +1877,7 @@ protected:
     }
 
     // call back used whenever we have an image the UI might want to display
-    bool FindStartFrames(std::function<void(ProcessedImage*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
+    [[nodiscard]] bool FindStartFrames(std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
         bool res = false;
@@ -1713,7 +1890,7 @@ protected:
             img->PrepareImages(false, 1.0, 0); // prepare as greyscale
             startScan.push_back(img);
             if (displayCallback != nullptr)
-                displayCallback(img->GetColourImage());
+                displayCallback(img->GetColourImage(), nullptr);
             if (progressCallback != nullptr)
                 progressCallback(((float)ms * 0.7f) / ((float)STARTSCANSECS * 1000.0f));
             abort |= wxGetKeyState(WXK_ESCAPE);
@@ -1836,25 +2013,49 @@ protected:
         return res;
     }
 
+    [[nodiscard]] VideoFrame* GetBlankFrame() const
+    {
+        return _offFrame;
+    }
+
+    [[nodiscard]] ProcessedImage* ReadVideoFrame(uint32_t timeMS)
+    {
+        auto frame = _vr->GetNextFrame(timeMS);
+        ProcessedImage* img = nullptr;
+        if (frame != nullptr) {
+            img = new ProcessedImage(frame->width, frame->height, (unsigned char*)frame->data[0]);
+        } else {
+            if (_startFrame1 != nullptr && _startFrame1->IsOk()) {
+                img = new ProcessedImage(_startFrame1->GetWidth(), _startFrame1->GetHeight());
+            } else {
+                img = new ProcessedImage(800, 600);
+            }
+        }
+        return img;
+    }
+
     // watch the video from the start recording all the frames that should have pixels ... dont apply any fancy processing
-    bool ReadVideo(uint32_t maxPixels, bool steady, std::function<void(ProcessedImage*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
+    [[nodiscard]] bool ReadVideo(uint32_t maxPixels, bool steady, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
 
-        if (_startFrame1 == nullptr) return false;
+        if (_startFrame1 == nullptr)
+            return false;
 
         uint32_t framesToRead = GetBits(maxPixels);
-        uint32_t currentTime = _startFrame1->GetTimestamp() + FLAGON + FLAGOFF + FLAGON + FLAGOFF; // we dont need to add node/2 as this was done then grabbing start frame
+        uint32_t currentTime = GetFirstNodeFrameTime();
 
         bool abort = false;
 
         while (_frames.size() < framesToRead && currentTime < (uint32_t)_vr->GetLengthMS() && !abort) {
-            if (progressCallback != nullptr) progressCallback((float)(currentTime * 100) / (float)_vr->GetLengthMS());
+            if (progressCallback != nullptr)
+                progressCallback((float)(currentTime * 100) / (float)_vr->GetLengthMS());
 
             logger_gcm.debug("Reading frame %u at %ums", (uint32_t)_frames.size() + 1, currentTime);
             auto img = ReadFrame(_vr->GetNextFrame(currentTime), currentTime, true);
             _frames.push_back(img);
-            if (displayCallback != nullptr) displayCallback(img->GetColourImage());
+            if (displayCallback != nullptr)
+                displayCallback(img->GetColourImage(), nullptr);
             currentTime += NODEON;
             abort |= wxGetKeyState(WXK_ESCAPE);
         }
@@ -1867,7 +2068,7 @@ protected:
         return framesToRead == _frames.size();
     }
 
-    void ProcessFrames(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessFrames(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         wxASSERT(_frames.size() > 0);
 
@@ -1884,7 +2085,7 @@ protected:
         }
     }
 
-    void ProcessFramesA(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, float gamma, uint8_t saturate, std::function<void(ProcessedImage*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
+    void ProcessFramesA(uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, float gamma, uint8_t saturate, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
     {
         wxASSERT(_frames.size() > 0);
 
@@ -1905,7 +2106,7 @@ protected:
         }
     }
 
-    void ProcessFramesB(uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    void ProcessFramesB(uint8_t erode_dilate, uint8_t threshold, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         wxASSERT(_processedFrames.size() > 0);
 
@@ -1917,7 +2118,7 @@ protected:
     }
 
     // lights are 1 based
-    wxPoint FindLight(uint32_t pixel, uint32_t numPixels, std::map<std::string, ProcessedImage*>& cache, ProcessedImage** ppi, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    [[nodiscard]] wxPoint FindLight(uint32_t pixel, uint32_t numPixels, std::map<std::string, ProcessedImage*>& cache, ProcessedImage** ppi, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
         wxASSERT(_processedFrames.size() > 0);
@@ -1972,7 +2173,7 @@ protected:
             }
 
             if (displayCallback != nullptr) {
-                displayCallback(img);
+                displayCallback(img, nullptr);
             }
 
             std::string key = value.substr(0, i);
@@ -1997,7 +2198,7 @@ protected:
     }
 
     // lights are 1 based
-    wxPoint FindLightA(uint32_t pixel, uint32_t numPixels, uint8_t erode_dilate, uint8_t threshold, std::map<std::string, ProcessedImage*>& cache, ProcessedImage** ppi, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    [[nodiscard]] wxPoint FindLightA(uint32_t pixel, uint32_t numPixels, uint8_t erode_dilate, uint8_t threshold, std::map<std::string, ProcessedImage*>& cache, ProcessedImage** ppi, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
         wxASSERT(_processedFrames.size() > 0);
@@ -2051,7 +2252,7 @@ protected:
             }
 
             if (displayCallback != nullptr) {
-                displayCallback(img);
+                displayCallback(img, nullptr);
             }
 
             std::string key = value.substr(0, i + 1);
@@ -2066,7 +2267,7 @@ protected:
             img->ProcessB(erode_dilate, threshold, displayCallback);
 
             if (displayCallback != nullptr) {
-                displayCallback(img);
+                displayCallback(img, nullptr);
             }
 
             // auto res = img->FindPixel(); // find the largest white area
@@ -2082,7 +2283,7 @@ protected:
     }
 
     // turns rgb into b&w images then tries to find them
-    std::list<std::pair<wxPoint, uint32_t>> FindLights(uint32_t maxPixels, uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, ProcessedImage** ppi, std::function<void(ProcessedImage*)> displayCallback = nullptr)
+    [[nodiscard]] std::list<std::pair<wxPoint, uint32_t>> FindLights(uint32_t maxPixels, uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, ProcessedImage** ppi, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
         std::list<std::pair<wxPoint, uint32_t>> res;
@@ -2115,7 +2316,7 @@ protected:
         return res;
     }
 
-    std::list<std::pair<wxPoint, uint32_t>> FindLightsA(uint32_t maxPixels, uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, ProcessedImage** ppi, std::function<void(ProcessedImage*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
+    [[nodiscard]] std::list<std::pair<wxPoint, uint32_t>> FindLightsA(uint32_t maxPixels, uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, ProcessedImage** ppi, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
     {
         static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
         std::list<std::pair<wxPoint, uint32_t>> res;
@@ -2128,7 +2329,7 @@ protected:
 
         if (displayCallback != nullptr) {
             for (const auto& it : _processedFrames) {
-                displayCallback(it->GetColourImage());
+                displayCallback(it->GetColourImage(), nullptr);
             }
         }
 
@@ -2145,6 +2346,8 @@ protected:
             if (progressCallback != nullptr) {
                 progressCallback(0.5 + ((float)(p + 1) * 0.5) / (float)maxPixels);
             }
+            if (displayCallback != nullptr)
+                displayCallback(GetStartFrame()->GetColourImage(), &res);
             abort |= wxGetKeyState(WXK_ESCAPE);
         }
 
@@ -2164,6 +2367,7 @@ const long GenerateCustomModelDialog::ID_STATICBITMAP_Preview = wxNewId();
 
 //(*IdInit(GenerateCustomModelDialog)
 const long GenerateCustomModelDialog::ID_RADIOBUTTON1 = wxNewId();
+const long GenerateCustomModelDialog::ID_RADIOBUTTON4 = wxNewId();
 const long GenerateCustomModelDialog::ID_RADIOBUTTON2 = wxNewId();
 const long GenerateCustomModelDialog::ID_SPINCTRL_NC_Count = wxNewId();
 const long GenerateCustomModelDialog::ID_SPINCTRL_StartChannel = wxNewId();
@@ -2171,6 +2375,7 @@ const long GenerateCustomModelDialog::ID_SLIDER_Intensity = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_PCM_Run = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_Prepare = wxNewId();
 const long GenerateCustomModelDialog::ID_RADIOBUTTON3 = wxNewId();
+const long GenerateCustomModelDialog::ID_RADIOBUTTON6 = wxNewId();
 const long GenerateCustomModelDialog::ID_RADIOBUTTON5 = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_MT_Next = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL1 = wxNewId();
@@ -2191,6 +2396,18 @@ const long GenerateCustomModelDialog::ID_STATICTEXT_StartTime = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_SF_Back = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_SF_Next = wxNewId();
 const long GenerateCustomModelDialog::ID_PANEL_StartFrame = wxNewId();
+const long GenerateCustomModelDialog::ID_STATICTEXT14 = wxNewId();
+const long GenerateCustomModelDialog::ID_STATICTEXT15 = wxNewId();
+const long GenerateCustomModelDialog::ID_TEXTCTRL4 = wxNewId();
+const long GenerateCustomModelDialog::ID_STATICTEXT16 = wxNewId();
+const long GenerateCustomModelDialog::ID_SLIDER4 = wxNewId();
+const long GenerateCustomModelDialog::ID_TEXTCTRL5 = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON5 = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON1 = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON2 = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON3 = wxNewId();
+const long GenerateCustomModelDialog::ID_BUTTON4 = wxNewId();
+const long GenerateCustomModelDialog::ID_PANEL2 = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT5 = wxNewId();
 const long GenerateCustomModelDialog::ID_CHECKBOX2 = wxNewId();
 const long GenerateCustomModelDialog::ID_STATICTEXT1 = wxNewId();
@@ -2250,6 +2467,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	//(*Initialize(GenerateCustomModelDialog)
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer12;
 	wxFlexGridSizer* FlexGridSizer15;
 	wxFlexGridSizer* FlexGridSizer16;
@@ -2266,8 +2484,11 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	wxFlexGridSizer* FlexGridSizer27;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer9;
 	wxStaticText* StaticText14;
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText2;
@@ -2278,13 +2499,11 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	wxStaticText* StaticText7;
 	wxStaticText* StaticText8;
 
-	Create(parent, id, _("Generate Custom Models"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
-	SetClientSize(wxDefaultSize);
-	Move(wxDefaultPosition);
+	Create(parent, wxID_ANY, _("Generate Custom Models"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	AuiNotebook1 = new wxAuiNotebook(this, ID_AUINOTEBOOK1, wxDefaultPosition, wxSize(1200,700), wxTAB_TRAVERSAL);
+	AuiNotebook1 = new wxAuiNotebook(this, ID_AUINOTEBOOK1, wxDefaultPosition, wxSize(1400,700), wxTAB_TRAVERSAL);
 	Panel_Prepare = new wxPanel(AuiNotebook1, ID_PANEL_Prepare, wxPoint(63,54), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Prepare"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
@@ -2305,9 +2524,12 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText14 = new wxStaticText(Panel_Prepare, wxID_ANY, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer6->Add(StaticText14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	NodesRadioButton = new wxRadioButton(Panel_Prepare, ID_RADIOBUTTON1, _("Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
+	NodesRadioButton = new wxRadioButton(Panel_Prepare, ID_RADIOBUTTON1, _("Nodes - Automatic"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
 	NodesRadioButton->SetValue(true);
 	FlexGridSizer6->Add(NodesRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ManualNodesRadioButton = new wxRadioButton(Panel_Prepare, ID_RADIOBUTTON4, _("Nodes - Manual"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON4"));
+	FlexGridSizer6->Add(ManualNodesRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SingleChannelRadioButton = new wxRadioButton(Panel_Prepare, ID_RADIOBUTTON2, _("Single Channel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
 	FlexGridSizer6->Add(SingleChannelRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -2330,6 +2552,8 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	Button_PCM_Run = new wxButton(Panel_Prepare, ID_BUTTON_PCM_Run, _("Run Capture Pattern"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PCM_Run"));
 	FlexGridSizer2->Add(Button_PCM_Run, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_Prepare->SetSizer(FlexGridSizer2);
+	FlexGridSizer2->Fit(Panel_Prepare);
+	FlexGridSizer2->SetSizeHints(Panel_Prepare);
 	Panel_Generate = new wxPanel(AuiNotebook1, ID_PANEL_Generate, wxPoint(59,17), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Generate"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
@@ -2350,9 +2574,11 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	FlexGridSizer24->AddGrowableCol(0);
 	FlexGridSizer24->AddGrowableRow(1);
 	FlexGridSizer25 = new wxFlexGridSizer(0, 1, 0, 0);
-	NodesRadioButtonPg2 = new wxRadioButton(Panel1, ID_RADIOBUTTON3, _("Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
+	NodesRadioButtonPg2 = new wxRadioButton(Panel1, ID_RADIOBUTTON3, _("Nodes - Automatic"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
 	NodesRadioButtonPg2->SetValue(true);
 	FlexGridSizer25->Add(NodesRadioButtonPg2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	NodesManualRadioButtonPg2 = new wxRadioButton(Panel1, ID_RADIOBUTTON6, _("Nodes - Manual"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON6"));
+	FlexGridSizer25->Add(NodesManualRadioButtonPg2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SLRadioButton = new wxRadioButton(Panel1, ID_RADIOBUTTON5, _("Static Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON5"));
 	FlexGridSizer25->Add(SLRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer24->Add(FlexGridSizer25, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -2362,6 +2588,8 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	FlexGridSizer26->Add(Button_MT_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer24->Add(FlexGridSizer26, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel1->SetSizer(FlexGridSizer24);
+	FlexGridSizer24->Fit(Panel1);
+	FlexGridSizer24->SetSizeHints(Panel1);
 	Panel_ChooseVideo = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_ChooseVideo, wxPoint(18,15), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_ChooseVideo"));
 	FlexGridSizer21 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer21->AddGrowableCol(0);
@@ -2402,6 +2630,8 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	FlexGridSizer23->Add(Button_CV_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer21->Add(FlexGridSizer23, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_ChooseVideo->SetSizer(FlexGridSizer21);
+	FlexGridSizer21->Fit(Panel_ChooseVideo);
+	FlexGridSizer21->SetSizeHints(Panel_ChooseVideo);
 	Panel_StartFrame = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_StartFrame, wxPoint(43,126), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_StartFrame"));
 	FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer10->AddGrowableCol(0);
@@ -2422,6 +2652,50 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	FlexGridSizer12->Add(Button_SF_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer10->Add(FlexGridSizer12, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_StartFrame->SetSizer(FlexGridSizer10);
+	FlexGridSizer10->Fit(Panel_StartFrame);
+	FlexGridSizer10->SetSizeHints(Panel_StartFrame);
+	Panel_ManualIdentify = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL2, wxPoint(281,15), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer4->AddGrowableCol(0);
+	FlexGridSizer4->AddGrowableRow(1);
+	StaticText9 = new wxStaticText(Panel_ManualIdentify, ID_STATICTEXT14, _("Click on the image to identify the location of the current bulb.\n\nOnce happy click next bulb to move to the next lit bulb.\nUse bump > and bump < to jump forward back video frames if you think the video has lost its place. This can happen in long videos.\n\nPress next when you are done identifying bulbs."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT14"));
+	FlexGridSizer4->Add(StaticText9, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer8->AddGrowableCol(1);
+	FlexGridSizer8->AddGrowableRow(4);
+	StaticText10 = new wxStaticText(Panel_ManualIdentify, ID_STATICTEXT15, _("Current Bulb:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
+	FlexGridSizer8->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_CurrentBulb = new wxTextCtrl(Panel_ManualIdentify, ID_TEXTCTRL4, _("1"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL4"));
+	FlexGridSizer8->Add(TextCtrl_CurrentBulb, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText12 = new wxStaticText(Panel_ManualIdentify, ID_STATICTEXT16, _("Model Scale"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT16"));
+	FlexGridSizer8->Add(StaticText12, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer11 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer11->AddGrowableCol(0);
+	Slider_MI_ModelScale = new wxSlider(Panel_ManualIdentify, ID_SLIDER4, 1, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER4"));
+	FlexGridSizer11->Add(Slider_MI_ModelScale, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_MI_ModelScale = new wxTextCtrl(Panel_ManualIdentify, ID_TEXTCTRL5, _("1"), wxDefaultPosition, wxSize(40,24), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL5"));
+	FlexGridSizer11->Add(TextCtrl_MI_ModelScale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_MI_Back1Bulb = new wxButton(Panel_ManualIdentify, ID_BUTTON5, _("Back 1 Bulb"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	FlexGridSizer8->Add(Button_MI_Back1Bulb, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_BumpBack = new wxButton(Panel_ManualIdentify, ID_BUTTON1, _("Bump <"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer8->Add(Button_BumpBack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonBumpFwd = new wxButton(Panel_ManualIdentify, ID_BUTTON2, _("Bump >"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	FlexGridSizer8->Add(ButtonBumpFwd, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
+	Button_MI_Back = new wxButton(Panel_ManualIdentify, ID_BUTTON3, _("Back"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	FlexGridSizer9->Add(Button_MI_Back, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_MI_Next = new wxButton(Panel_ManualIdentify, ID_BUTTON4, _("Next"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	FlexGridSizer9->Add(Button_MI_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(FlexGridSizer9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
+	Panel_ManualIdentify->SetSizer(FlexGridSizer4);
+	FlexGridSizer4->Fit(Panel_ManualIdentify);
+	FlexGridSizer4->SetSizeHints(Panel_ManualIdentify);
 	Panel_BulbIdentify = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_BulbIdentify, wxPoint(176,18), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_BulbIdentify"));
 	FlexGridSizer15 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer15->AddGrowableCol(0);
@@ -2502,6 +2776,8 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	FlexGridSizer17->Add(Button_BI_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer15->Add(FlexGridSizer17, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_BulbIdentify->SetSizer(FlexGridSizer15);
+	FlexGridSizer15->Fit(Panel_BulbIdentify);
+	FlexGridSizer15->SetSizeHints(Panel_BulbIdentify);
 	Panel_CustomModel = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_CustomModel, wxPoint(259,19), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_CustomModel"));
 	FlexGridSizer18 = new wxFlexGridSizer(4, 1, 0, 0);
 	FlexGridSizer18->AddGrowableCol(0);
@@ -2527,20 +2803,26 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	FlexGridSizer20->Add(Button_CM_Save, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer18->Add(FlexGridSizer20, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_CustomModel->SetSizer(FlexGridSizer18);
+	FlexGridSizer18->Fit(Panel_CustomModel);
+	FlexGridSizer18->SetSizeHints(Panel_CustomModel);
 	AuiNotebook_ProcessSettings->AddPage(Panel1, _("Model Type"));
 	AuiNotebook_ProcessSettings->AddPage(Panel_ChooseVideo, _("Choose Media"));
 	AuiNotebook_ProcessSettings->AddPage(Panel_StartFrame, _("Start Frame"));
+	AuiNotebook_ProcessSettings->AddPage(Panel_ManualIdentify, _("Manual Identify"));
 	AuiNotebook_ProcessSettings->AddPage(Panel_BulbIdentify, _("Bulb Identify"));
 	AuiNotebook_ProcessSettings->AddPage(Panel_CustomModel, _("Custom Model"));
 	FlexGridSizer7->Add(AuiNotebook_ProcessSettings, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer5->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
 	Panel_Generate->SetSizer(FlexGridSizer3);
+	FlexGridSizer3->Fit(Panel_Generate);
+	FlexGridSizer3->SetSizeHints(Panel_Generate);
 	AuiNotebook1->AddPage(Panel_Prepare, _("Prepare"), true);
 	AuiNotebook1->AddPage(Panel_Generate, _("Process"));
 	FlexGridSizer1->Add(AuiNotebook1, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 2);
 	SetSizer(FlexGridSizer1);
 	FileDialog1 = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_CHANGE_DIR, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
+	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BUTTON_PCM_Run,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_PCM_RunClick);
@@ -2552,6 +2834,13 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(xLightsFrame* parent, Outpu
 	Connect(ID_BUTTON_CV_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_CV_NextClick);
 	Connect(ID_BUTTON_SF_Back,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_SF_BackClick);
 	Connect(ID_BUTTON_SF_Next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_SF_NextClick);
+	Connect(ID_SLIDER4,wxEVT_SCROLL_THUMBRELEASE,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_MI_ModelScaleCmdScrollThumbRelease);
+	Connect(ID_SLIDER4,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_MI_ModelScaleCmdSliderUpdated);
+	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MI_Back1BulbClick);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_BumpBackClick);
+	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButtonBumpFwdClick);
+	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MI_BackClick);
+	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnButton_MI_NextClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnCheckBox_AdvancedClick);
 	Connect(ID_SLIDER_AdjustBlur,wxEVT_SCROLL_THUMBRELEASE,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScrollChanged);
 	Connect(ID_SLIDER_AdjustBlur,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScroll);
@@ -2620,6 +2909,8 @@ GenerateCustomModelDialog::~GenerateCustomModelDialog()
 	FileDialog1->Destroy();
 	//*)
 
+    ClearLights();
+
     if (_generator != nullptr)
     {
         delete _generator;
@@ -2665,6 +2956,14 @@ void GenerateCustomModelDialog::ValidateWindow()
     }
     else if (_state == VideoProcessingStates::IDENTIFYING_BULBS)
     {
+    } else if (_state == VideoProcessingStates::IDENTIFYING_MANUAL) {
+        if (_lights.size() > 0) {
+            Button_MI_Back1Bulb->Enable();
+            Button_MI_Next->Enable();
+        } else {
+            Button_MI_Back1Bulb->Disable();
+            Button_MI_Next->Disable();
+        }
     }
     else if (_state == VideoProcessingStates::REVIEW_CUSTOM_MODEL)
     {
@@ -2686,7 +2985,7 @@ void GenerateCustomModelDialog::ShowImage(const ProcessedImage* image)
     wxYield();
 }
 
-void GenerateCustomModelDialog::CreateDetectedImage(ProcessedImage* pi, bool drawLines)
+void GenerateCustomModelDialog::CreateDetectedImage(ProcessedImage* pi, bool drawLines, std::list<std::pair<wxPoint, uint32_t>>* points)
 {
     if (_generator == nullptr)
         return;
@@ -2737,32 +3036,37 @@ void GenerateCustomModelDialog::CreateDetectedImage(ProcessedImage* pi, bool dra
 
     TextCtrl_BI_Status->SetValue(GenerateStats());
 
-    if (_lights.size() > 0) {
+    std::list<std::pair<wxPoint, uint32_t>>* lights = &_lights;
+    if (points != nullptr)
+        lights = points;
 
-        if (drawLines) {
-            wxPen p(*LINECOL, 1);
-            dc.SetPen(p);
-            auto it1 = _lights.begin();
-            auto it2 = it1;
-            ++it2;
-            while (it2 != _lights.end()) {
-                wxPoint pt1 = wxPoint(_clip.GetLeft() + it1->first.x, it1->first.y + (_clip.GetTop()));
-                wxPoint pt2 = wxPoint(_clip.GetLeft() + it2->first.x, it2->first.y + (_clip.GetTop()));
-                dc.DrawLine(pt1, pt2);
-                ++it1;
+    if (lights != nullptr) {
+        if (lights->size() > 0) {
+            if (drawLines) {
+                wxPen p(*LINECOL, 1);
+                dc.SetPen(p);
+                auto it1 = lights->begin();
+                auto it2 = it1;
                 ++it2;
+                while (it2 != lights->end()) {
+                    wxPoint pt1 = wxPoint(_clip.GetLeft() + it1->first.x, it1->first.y + (_clip.GetTop()));
+                    wxPoint pt2 = wxPoint(_clip.GetLeft() + it2->first.x, it2->first.y + (_clip.GetTop()));
+                    dc.DrawLine(pt1, pt2);
+                    ++it1;
+                    ++it2;
+                }
             }
-        }
 
-        {
-            int diameter = 2 * factor;
-            wxBrush b(*PIXCOL, wxBrushStyle::wxBRUSHSTYLE_SOLID);
-            dc.SetBrush(b);
-            wxPen p = wxPen(*PIXCOL, 1);
-            dc.SetPen(p);
-            for (const auto& c : _lights) {
-                wxPoint pt = wxPoint(_clip.GetLeft() + c.first.x, c.first.y + (_clip.GetTop()));
-                dc.DrawCircle(pt, diameter);
+            {
+                int diameter = 2 * factor;
+                wxBrush b(*PIXCOL, wxBrushStyle::wxBRUSHSTYLE_SOLID);
+                dc.SetBrush(b);
+                wxPen p = wxPen(*PIXCOL, 1);
+                dc.SetPen(p);
+                for (const auto& c : *lights) {
+                    wxPoint pt = wxPoint(_clip.GetLeft() + c.first.x, c.first.y + (_clip.GetTop()));
+                    dc.DrawCircle(pt, diameter);
+                }
             }
         }
     }
@@ -2810,13 +3114,19 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     int startch = SpinCtrl_StartChannel->GetValue();
     int intensity = Slider_Intensity->GetValue();
     bool nodes = NodesRadioButton->GetValue();
+    bool manual = ManualNodesRadioButton->GetValue();
 
     logger_pcm.info("   Count: %d.", count);
     logger_pcm.info("   Start Channel: %d.", startch);
     logger_pcm.info("   Intensity: %d.", intensity);
-    if (nodes)
+    if (nodes || manual)
     {
+        if (nodes) {
         logger_pcm.info("   Nodes.");
+        }
+        else {
+            logger_pcm.info("   Manual Nodes.");
+        }
         logger_pcm.info("   Channels that will be affected %ld-%ld of %ld channels", startch, startch + (count * 3) - 1, _outputManager->GetTotalChannels());
     }
     else
@@ -2825,7 +3135,11 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
         logger_pcm.info("   Channels that will be affected %ld-%ld of %ld channels", startch, startch + count - 1, _outputManager->GetTotalChannels());
     }
 
-    _generator->RunSequence(_parent, _outputManager, nodes, startch, count, intensity, std::bind(&GenerateCustomModelDialog::UpdateProgressCallback, this, std::placeholders::_1));
+    if (manual) {
+        _generator->RunManualSequence(_parent, _outputManager, startch, count, intensity, std::bind(&GenerateCustomModelDialog::UpdateProgressCallback, this, std::placeholders::_1));
+    } else {
+        _generator->RunSequence(_parent, _outputManager, nodes, startch, count, intensity, std::bind(&GenerateCustomModelDialog::UpdateProgressCallback, this, std::placeholders::_1));
+    }
 
     delete _pd;
     _pd = nullptr;
@@ -2917,7 +3231,7 @@ void GenerateCustomModelDialog::OnButton_MT_NextClick(wxCommandEvent& event)
 
 void GenerateCustomModelDialog::CVTabEntry()
 {
-    _lights.clear();
+    ClearLights();
     Button_CV_Next->Enable();
     Button_CV_Back->Enable();
     Button_GCM_SelectFile->Enable();
@@ -2931,6 +3245,10 @@ void GenerateCustomModelDialog::CVTabEntry()
         StaticText_CM_Request->SetLabel("Select a picture of your static lights model.");
         CheckBox_BI_IsSteady->Hide();
         CheckBox_AdvancedStartScan->Hide();
+        SpinCtrl_ProcessNodeCount->Hide();
+        StaticText19->Hide();
+    }
+    else if (NodesManualRadioButtonPg2->GetValue()) {
         SpinCtrl_ProcessNodeCount->Hide();
         StaticText19->Hide();
     }
@@ -2958,6 +3276,7 @@ void GenerateCustomModelDialog::CVTabEntry()
         }
         _clip = wxRect(0, 0, _generator->GetFirstFrame()->GetWidth() - 1, _generator->GetFirstFrame()->GetHeight() - 1);
     }
+    Panel_ChooseVideo->Layout();
 }
 
 void GenerateCustomModelDialog::OnButton_GCM_SelectFileClick(wxCommandEvent& event)
@@ -2984,16 +3303,25 @@ void GenerateCustomModelDialog::OnTextCtrl_GCM_FilenameText(wxCommandEvent& even
     ValidateWindow();
 }
 
-void GenerateCustomModelDialog::DisplayImageCallbackCMG(ProcessedImage* image)
+void GenerateCustomModelDialog::DisplayImageCallbackCMG(ProcessedImage* image, std::list<std::pair<wxPoint, uint32_t>>* points)
 {
-    ShowImage(image);
+    if (points != nullptr) {
+        if (_cachedPoints != nullptr) {
+            delete _cachedPoints;
+            _cachedPoints = nullptr;
+        }
+        _cachedPoints = new std::list<std::pair<wxPoint, uint32_t>>(*points);
+    }
+
+    // add the current points
+    CreateDetectedImage(image, true, _cachedPoints);
+
+    //ShowImage(image);
 }
 
-std::function<void(ProcessedImage*)> GenerateCustomModelDialog::DisplayImage(bool show)
+std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> GenerateCustomModelDialog::DisplayImage(bool show)
 {
-    return show ?
-        std::bind(&GenerateCustomModelDialog::DisplayImageCallbackCMG, this, std::placeholders::_1) :
-        (std::function<void(ProcessedImage*)>) nullptr;
+    return show ? std::bind(&GenerateCustomModelDialog::DisplayImageCallbackCMG, this, std::placeholders::_1, std::placeholders::_2) : (std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)>)nullptr;
 }
 
 std::function<void(float)> GenerateCustomModelDialog::Progress()
@@ -3010,24 +3338,23 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
     SpinCtrl_ProcessNodeCount->Disable();
     CheckBox_BI_IsSteady->Disable();
     CheckBox_AdvancedStartScan->Disable();
+    ClearLights();
 
-    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-    logger_gcm.info("File: %s.", (const char *)TextCtrl_GCM_Filename->GetValue().c_str());
+    static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+    logger_gcm.info("File: %s.", (const char*)TextCtrl_GCM_Filename->GetValue().c_str());
 
-    if (SLRadioButton->GetValue())
-    {
+    if (SLRadioButton->GetValue()) {
         // static
         StaticText_MinSeparation->Show();
         Slider_BI_MinSeparation->Show();
         TextCtrl_BI_MinSeparation->Show();
 
         CheckBox_GuessSingle->Hide();
+
         BITabEntry(true);
         SwapPage(PAGE_CHOOSEVIDEO, PAGE_BULBIDENTIFY);
         DoBulbIdentify();
-    }
-    else
-    {
+    } else {
         CheckBox_GuessSingle->Show();
 
         StaticText_MinSeparation->Hide();
@@ -3037,12 +3364,12 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
         ShowProgress(true);
 
         SetCursor(wxCURSOR_WAIT);
-        _generator->FindStartFrames(DisplayImage(CheckBox_AdvancedStartScan->IsChecked()), Progress());
-        if (_generator->GetActualStartFrame() != nullptr) {
-
+        if (_generator->FindStartFrames(DisplayImage(CheckBox_AdvancedStartScan->IsChecked()), Progress())) {
             ShowImage(_generator->GetStartFrame()->GetColourImage());
 
-            _generator->ReadVideo(SpinCtrl_ProcessNodeCount->GetValue(), CheckBox_BI_IsSteady->IsChecked(), DisplayImage(true), nullptr);
+            if (!_generator->ReadVideo(SpinCtrl_ProcessNodeCount->GetValue(), CheckBox_BI_IsSteady->IsChecked(), DisplayImage(true), nullptr)) {
+                logger_gcm.warn("Video reading generated an error ... but lets keep going.");
+            }
 
             ShowImage(_generator->GetStartFrame()->GetColourImage());
 
@@ -3077,7 +3404,7 @@ void GenerateCustomModelDialog::OnButton_CV_BackClick(wxCommandEvent& event)
 void GenerateCustomModelDialog::SFTabEntry()
 {
     _state = VideoProcessingStates::FINDING_START_FRAME;
-    _lights.clear();
+    ClearLights();
     ShowImage(_generator->GetStartFrame()->GetColourImage());
     Button_SF_Next->Enable();
     Button_SF_Back->Enable();
@@ -3089,9 +3416,14 @@ void GenerateCustomModelDialog::OnButton_SF_NextClick(wxCommandEvent& event)
     Button_SF_Next->Disable();
     Button_SF_Back->Disable();
 
-    BITabEntry(true);
-    SwapPage(PAGE_STARTFRAME, PAGE_BULBIDENTIFY);
-    DoBulbIdentify();
+    if (NodesManualRadioButtonPg2->GetValue()) {
+        MITabEntry(true);
+        SwapPage(PAGE_STARTFRAME, PAGE_MANUALIDENTIFY);
+    } else {
+        BITabEntry(true);
+        SwapPage(PAGE_STARTFRAME, PAGE_BULBIDENTIFY);
+        DoBulbIdentify();
+    }
     ValidateWindow();
 }
 
@@ -3137,6 +3469,15 @@ void GenerateCustomModelDialog::ShowProgress(bool show)
     Panel_ChooseVideo->Layout();
 }
 
+void GenerateCustomModelDialog::ClearLights()
+{
+    _lights.clear();
+    if (_cachedPoints != nullptr) {
+        delete _cachedPoints;
+        _cachedPoints = nullptr;
+    }
+}
+
 void GenerateCustomModelDialog::DoBulbIdentify()
 {
     static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
@@ -3144,6 +3485,8 @@ void GenerateCustomModelDialog::DoBulbIdentify()
     if (!_busy) {
         _busy = true;
 
+        CheckBox_GuessSingle->Disable();
+        CheckBox_Advanced->Disable();
         Slider_AdjustBlur->Disable();
         Slider_BI_Sensitivity->Disable();
         Slider_BI_MinSeparation->Disable();
@@ -3161,6 +3504,9 @@ void GenerateCustomModelDialog::DoBulbIdentify()
 
         ShowProgress(true);
 
+        ClearLights();
+        CreateDetectedImage(nullptr, false, &_lights);
+
         wxYield(); // let them update
 
         logger_gcm.info("Executing bulb identify.");
@@ -3175,7 +3521,6 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         logger_gcm.info("   Minimum Scale: %d.", Slider_BI_MinScale->GetValue());
         logger_gcm.info("   Clip Rectangle: (%d,%d)-(%d,%d).", _clip.GetLeft(), _clip.GetTop(), _clip.GetRight(), _clip.GetBottom());
 
-        _lights.clear();
         if (SLRadioButton->GetValue()) {
             VideoFrame* vf = new VideoFrame(_generator->GetFirstFrame()->GetColourImage(), 0, false, VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_MULTI);
             auto nvf = vf->Process(_clip.GetLeft(), _clip.GetRight(), vf->GetHeight() - _clip.GetTop(), vf->GetHeight() - _clip.GetBottom(), Slider_BI_Contrast->GetValue(), Slider_AdjustBlur->GetValue(), Slider_Despeckle->GetValue(), Slider_BI_Sensitivity->GetValue(), SliderToGamma(Slider_Gamma->GetValue()), Slider_Saturation->GetValue());
@@ -3211,6 +3556,8 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                 delete pi;
         }
         StaticBitmap_Preview->SetEraseBackground(true);
+        CheckBox_Advanced->Enable();
+        CheckBox_GuessSingle->Enable();
         Slider_AdjustBlur->Enable();
         Slider_BI_Sensitivity->Enable();
         Slider_BI_MinSeparation->Enable();
@@ -3251,12 +3598,14 @@ void GenerateCustomModelDialog::BITabEntry(bool setdefault)
     _state = VideoProcessingStates::IDENTIFYING_BULBS;
     if (setdefault)
     {
-        _lights.clear();
+        ClearLights();
         TextCtrl_BI_Status->SetValue("");
         SetBIDefault();
     }
     CreateDetectedImage(nullptr, ShowPixelLines());
     StaticText_BI->SetLabel("The red circles on the image show the bulbs we have identified. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.\n\nClick next when you are happy that all bulbs have been detected.");
+    CheckBox_Advanced->Enable();
+    CheckBox_GuessSingle->Enable();
     Slider_BI_Sensitivity->Enable();
     Slider_BI_MinSeparation->Enable();
     Slider_BI_MinScale->Enable();
@@ -3348,7 +3697,7 @@ wxString GenerateCustomModelDialog::GetMissingNodes()
                 if (res != "") {
                     res += ", ";
                 }
-                res += wxString::Format(wxT("%i"), i);
+                res += std::to_string(i);
             }
         }
         upTo = it;
@@ -3391,44 +3740,41 @@ wxString GenerateCustomModelDialog::GenerateStats()
     wxString res;
 
     int n = GetMaxNum();
-    if (n < 1)
-    {
-        res += wxString::Format("Bulbs: %d\n", GetBulbCount());
-    }
-    else
-    {
-        res += wxString::Format("Nodes: %d\n", n);
+    if (n < 1) {
+        res += "Bulbs: " + std::to_string(GetBulbCount()) + "\n";
+    } else {
+        res += "Nodes: " + std::to_string(n) + "\n";
     }
 
-    //wxString mn = GetMissingNodes();
-    //if (mn == "")
+    // wxString mn = GetMissingNodes();
+    // if (mn == "")
     //{
-    //    res += "Missing Nodes: N/A\n";
-    //}
-    //else
+    //     res += "Missing Nodes: N/A\n";
+    // }
+    // else
     //{
-    //    res += wxString::Format("Missing Nodes: %s\n", mn);
-    //}
+    //     res += wxString::Format("Missing Nodes: %s\n", mn);
+    // }
 
     wxSize p = CalcSize();
-    res += wxString::Format("Model size: %dx%d\n", p.x, p.y);
+    res += "Model size: " + std::to_string(p.x) + "x" + std::to_string(p.y) + "\n";
 
     return res;
 }
 
 void GenerateCustomModelDialog::OnSlider_BI_SensitivityCmdSliderUpdated(wxScrollEvent& event)
 {
-    TextCtrl_BI_Sensitivity->SetValue(wxString::Format(wxT("%i"), Slider_BI_Sensitivity->GetValue()));
+    TextCtrl_BI_Sensitivity->SetValue(std::to_string(Slider_BI_Sensitivity->GetValue()));
 }
 
 void GenerateCustomModelDialog::OnSlider_AdjustBlurCmdScroll(wxScrollEvent& event)
 {
-    TextCtrl_BC_Blur->SetValue(wxString::Format(wxT("%i"), Slider_AdjustBlur->GetValue()));
+    TextCtrl_BC_Blur->SetValue(std::to_string(Slider_AdjustBlur->GetValue()));
 }
 
 void GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdSliderUpdated(wxScrollEvent& event)
 {
-    TextCtrl_BI_MinSeparation->SetValue(wxString::Format(wxT("%i"), Slider_BI_MinSeparation->GetValue()));
+    TextCtrl_BI_MinSeparation->SetValue(std::to_string(Slider_BI_MinSeparation->GetValue()));
 }
 
 void GenerateCustomModelDialog::SetBIDefault()
@@ -3492,7 +3838,7 @@ void GenerateCustomModelDialog::OnCheckBox_BI_IsSteadyClick(wxCommandEvent& even
 
 void GenerateCustomModelDialog::OnSlider_BI_ContrastCmdSliderUpdated(wxScrollEvent& event)
 {
-    TextCtrl_BI_Contrast->SetValue(wxString::Format(wxT("%i"), Slider_BI_Contrast->GetValue()));
+    TextCtrl_BI_Contrast->SetValue(std::to_string(Slider_BI_Contrast->GetValue()));
 }
 
 void GenerateCustomModelDialog::OnButton_BI_NextClick(wxCommandEvent& event)
@@ -3612,8 +3958,8 @@ void GenerateCustomModelDialog::DoGenerateCustomModel()
 
     for (const auto& it : _lights) {
         wxPoint p = wxPoint((it.first.x - offset.x) * multiplier, (it.first.y - offset.y) * multiplier);
-        Grid_CM_Result->SetCellValue(p.y, p.x, wxString::Format(wxT("%i"), it.second));
-        if (wxSystemSettings::GetAppearance().IsDark()) {
+        Grid_CM_Result->SetCellValue(p.y, p.x, std::to_string(it.second));
+        if (IsDarkMode()) {
             Grid_CM_Result->SetCellBackgroundColour(p.y, p.x, wxColor(0, 128, 0));
         } else {
             Grid_CM_Result->SetCellBackgroundColour(p.y, p.x, *wxGREEN);
@@ -3649,8 +3995,13 @@ void GenerateCustomModelDialog::SetGridSizeForFont(const wxFont& font)
 
 void GenerateCustomModelDialog::OnButton_CM_BackClick(wxCommandEvent& event)
 {
-    BITabEntry(false);
-    SwapPage(PAGE_REVIEWMODEL, PAGE_BULBIDENTIFY);
+    if (NodesManualRadioButtonPg2->GetValue()) {
+        MITabEntry(false);
+        SwapPage(PAGE_REVIEWMODEL, PAGE_MANUALIDENTIFY);
+    } else {
+        BITabEntry(false);
+        SwapPage(PAGE_REVIEWMODEL, PAGE_BULBIDENTIFY);
+    }
 }
 
 wxString GenerateCustomModelDialog::CreateCustomModelData()
@@ -3687,13 +4038,13 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     logger_gcm.info("Saving to xmodel file %s.", (const char *)filename.c_str());
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        DisplayError("Unable to create file "+filename+". Error "+std::to_string(f.GetLastError())+"\n");
         return;
     }
     wxString name = wxFileName(filename).GetName();
     wxString cm = CreateCustomModelData();
-    wxString p1 = wxString::Format(wxT("%i"),Grid_CM_Result->GetNumberCols());
-    wxString p2 = wxString::Format(wxT("%i"), Grid_CM_Result->GetNumberRows());
+    wxString p1 = std::to_string(Grid_CM_Result->GetNumberCols());
+    wxString p2 = std::to_string(Grid_CM_Result->GetNumberRows());
     wxString st;
     if (SLRadioButton->GetValue())
     {
@@ -3705,7 +4056,7 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     }
     wxString ps = "2";
     wxString t = "0";
-    wxString mb = "";
+    wxString mb = "0";
     wxString a = "1";
     wxString sn = "";
     wxString nn = "";
@@ -3808,6 +4159,27 @@ int GenerateCustomModelDialog::GetEdge(int x, int y)
     return edge;
 }
 
+wxPoint GenerateCustomModelDialog::NormalisePoint(const wxPoint& pt) const
+{
+    wxSize displaysize = StaticBitmap_Preview->GetSize();
+    int w = _generator->GetFirstFrame()->GetWidth();
+    int h = _generator->GetFirstFrame()->GetHeight();
+    int xf = (float)w / (float)displaysize.GetWidth() * (float)pt.x;
+    if (xf < 0) {
+        xf = 0;
+    } else if (xf > w - 1) {
+        xf = w - 1;
+    }
+    int yf = (float)h / (float)displaysize.GetHeight() * (float)pt.y;
+    if (yf < 0) {
+        yf = 0;
+    } else if (yf > h - 1) {
+        yf = h - 1;
+    }
+
+    return { xf, yf };
+}
+
 void GenerateCustomModelDialog::ResizeClip(int x, int y)
 {
     if (_draggingedge == -1)
@@ -3816,46 +4188,25 @@ void GenerateCustomModelDialog::ResizeClip(int x, int y)
     }
     else
     {
-        wxSize displaysize = StaticBitmap_Preview->GetSize();
-        int w = _generator->GetFirstFrame()->GetWidth();
-        int h = _generator->GetFirstFrame()->GetHeight();
-        float xf = (float)w / (float)displaysize.GetWidth() * (float)x;
-        if (xf < 0)
-        {
-            xf = 0;
-        }
-        else if (xf > w-1)
-        {
-            xf = w-1;
-        }
-        float yf = (float)h / (float)displaysize.GetHeight() * (float)y;
-        if (yf < 0)
-        {
-            yf = 0;
-        }
-        else if (yf > h - 1)
-        {
-            yf = h - 1;
-        }
-
+        wxPoint pt = NormalisePoint({ x, y });
         if (_draggingedge == 0)
         {
             int b = _clip.GetBottom();
-            _clip.SetTop(yf);
+            _clip.SetTop(pt.y);
             _clip.SetBottom(b);
         }
         else if (_draggingedge == 1)
         {
-            _clip.SetRight(xf);
+            _clip.SetRight(pt.x);
         }
         else if (_draggingedge == 2)
         {
-            _clip.SetBottom(yf);
+            _clip.SetBottom(pt.y);
         }
         else if (_draggingedge == 3)
         {
             int r = _clip.GetRight();
-            _clip.SetLeft(xf);
+            _clip.SetLeft(pt.x);
             _clip.SetRight(r);
         }
     }
@@ -3882,14 +4233,38 @@ void GenerateCustomModelDialog::OnStaticBitmapLeftDown(wxMouseEvent& event)
                 SetCursor(wxCURSOR_SIZEWE);
             }
         }
+    } else if (_state == VideoProcessingStates::IDENTIFYING_MANUAL) {
+        _lights.push_back({ NormalisePoint({ event.GetX(), event.GetY() }), (uint32_t)_lights.size() + 1 });
+        _MIVideoTime += NODEON;
+        ProcessedImage* pi = _generator->ReadVideoFrame(_MIVideoTime);
+        pi->Subtract(_generator->GetBlankFrame()->GetColourImage(), MANUAL_IMAGE_SUBTRACT);
+        CreateDetectedImage(pi, true);
+        delete pi;
+        TextCtrl_CurrentBulb->SetValue(std::to_string(_lights.size() + 1));
+        if (_lights.size() > 0) {
+            _minimumSeparation = 99999999;
+            auto it1 = _lights.begin();
+            auto it2 = it1;
+            ++it2;
+            while (it2 != _lights.end()) {
+                uint32_t separation = ProcessedImage::PixelDistance(it1->first, it2->first);
+                if (separation < _minimumSeparation)
+                    _minimumSeparation = separation;
+                ++it1;
+                ++it2;
+            }
+        }
+        ValidateWindow();
     }
 }
 
 void GenerateCustomModelDialog::OnStaticBitmapLeftDClick(wxMouseEvent& event)
 {
-    _clip = wxRect(0, 0, _generator->GetFirstFrame()->GetWidth() - 1, _generator->GetFirstFrame()->GetHeight() - 1);
-    DoBulbIdentify();
-    CreateDetectedImage(nullptr, ShowPixelLines());
+    if (_state == VideoProcessingStates::IDENTIFYING_BULBS) {
+        _clip = wxRect(0, 0, _generator->GetFirstFrame()->GetWidth() - 1, _generator->GetFirstFrame()->GetHeight() - 1);
+        DoBulbIdentify();
+        CreateDetectedImage(nullptr, ShowPixelLines());
+    }
 }
 
 void GenerateCustomModelDialog::OnStaticBitmapLeftUp(wxMouseEvent& event)
@@ -3962,7 +4337,7 @@ void GenerateCustomModelDialog::OnSlider_BI_MinScaleCmdScrollChanged(wxScrollEve
 
 void GenerateCustomModelDialog::OnSlider_BI_MinScaleCmdSliderUpdated(wxScrollEvent& event)
 {
-    TextCtrl_BI_MinScale->SetValue(wxString::Format(wxT("%i"), Slider_BI_MinScale->GetValue()));
+    TextCtrl_BI_MinScale->SetValue(std::to_string(Slider_BI_MinScale->GetValue()));
 }
 
 void GenerateCustomModelDialog::OnSlider_DespeckleCmdScrollChanged(wxScrollEvent& event)
@@ -3972,7 +4347,7 @@ void GenerateCustomModelDialog::OnSlider_DespeckleCmdScrollChanged(wxScrollEvent
 
 void GenerateCustomModelDialog::OnSlider_DespeckleCmdSliderUpdated(wxScrollEvent& event)
 {
-    TextCtrl_Despeckle->SetValue(wxString::Format(wxT("%i"), Slider_Despeckle->GetValue()));
+    TextCtrl_Despeckle->SetValue(std::to_string(Slider_Despeckle->GetValue()));
 }
 
 void GenerateCustomModelDialog::OnCheckBox_GuessSingleClick(wxCommandEvent& event)
@@ -3997,7 +4372,7 @@ void GenerateCustomModelDialog::OnSlider_SaturationCmdScrollChanged(wxScrollEven
 
 void GenerateCustomModelDialog::OnSlider_SaturationCmdSliderUpdated(wxScrollEvent& event)
 {
-    TextCtrl_Saturation->SetValue(wxString::Format(wxT("%i"), Slider_Saturation->GetValue()));
+    TextCtrl_Saturation->SetValue(std::to_string(Slider_Saturation->GetValue()));
 }
 
 void GenerateCustomModelDialog::OnCheckBox_AdvancedClick(wxCommandEvent& event)
@@ -4007,4 +4382,102 @@ void GenerateCustomModelDialog::OnCheckBox_AdvancedClick(wxCommandEvent& event)
     if (!CheckBox_Advanced->GetValue()) {
         DoBulbIdentify();
     }
+}
+
+void GenerateCustomModelDialog::OnButton_MI_NextClick(wxCommandEvent& event)
+{
+    DoGenerateCustomModel();
+    CMTabEntry();
+    SwapPage(PAGE_MANUALIDENTIFY, PAGE_REVIEWMODEL);
+}
+
+void GenerateCustomModelDialog::OnButton_MI_BackClick(wxCommandEvent& event)
+{
+    SFTabEntry();
+    SwapPage(PAGE_MANUALIDENTIFY, PAGE_STARTFRAME);
+}
+
+void GenerateCustomModelDialog::OnButtonBumpFwdClick(wxCommandEvent& event)
+{
+    _MIVideoTime += 50;
+    ProcessedImage* pi = _generator->ReadVideoFrame(_MIVideoTime);
+    pi->Subtract(_generator->GetBlankFrame()->GetColourImage(), MANUAL_IMAGE_SUBTRACT);
+    CreateDetectedImage(pi, true);
+    delete pi;
+}
+
+void GenerateCustomModelDialog::OnButton_BumpBackClick(wxCommandEvent& event)
+{
+    if (_MIVideoTime > 50) {
+        _MIVideoTime -= 50;
+    }
+    else {
+        _MIVideoTime = 0;
+    }
+    ProcessedImage* pi = _generator->ReadVideoFrame(_MIVideoTime);
+    pi->Subtract(_generator->GetBlankFrame()->GetColourImage(), MANUAL_IMAGE_SUBTRACT);
+    CreateDetectedImage(pi, true);
+    delete pi;
+}
+
+void GenerateCustomModelDialog::OnButton_MI_Back1BulbClick(wxCommandEvent& event)
+{
+    wxASSERT(_lights.size() > 0);
+    _lights.pop_back();
+    TextCtrl_CurrentBulb->SetValue(std::to_string(_lights.size() + 1));
+
+    _MIVideoTime -= NODEON;
+
+    ProcessedImage* pi = _generator->ReadVideoFrame(_MIVideoTime);
+    pi->Subtract(_generator->GetBlankFrame()->GetColourImage(), MANUAL_IMAGE_SUBTRACT);
+    CreateDetectedImage(pi, true);
+    delete pi;
+
+    if (_lights.size() > 0) {
+        _minimumSeparation = 99999999;
+        auto it1 = _lights.begin();
+        auto it2 = it1;
+        ++it2;
+        while (it2 != _lights.end()) {
+            uint32_t separation = ProcessedImage::PixelDistance(it1->first, it2->first);
+            if (separation < _minimumSeparation)
+                _minimumSeparation = separation;
+            ++it1;
+            ++it2;
+        }
+    }
+
+    ValidateWindow();
+}
+
+void GenerateCustomModelDialog::MITabEntry(bool setdefault)
+{
+    _state = VideoProcessingStates::IDENTIFYING_MANUAL;
+    if (setdefault) {
+        ClearLights();
+        _MIVideoTime = _generator->GetFirstNodeFrameTime();
+        Slider_BI_MinScale->SetValue(100);
+        Slider_MI_ModelScale->SetValue(100);
+        TextCtrl_MI_ModelScale->SetValue("100");
+    }
+    ProcessedImage* pi = _generator->ReadVideoFrame(_MIVideoTime);
+    pi->Subtract(_generator->GetBlankFrame()->GetColourImage(), MANUAL_IMAGE_SUBTRACT);
+    CreateDetectedImage(pi, true);
+    delete pi;
+    Button_MI_Next->Enable();
+    Button_MI_Back->Enable();
+    ValidateWindow();
+}
+
+void GenerateCustomModelDialog::OnSlider_MI_ModelScaleCmdScrollThumbRelease(wxScrollEvent& event)
+{
+    // copy value to the BI equivalent as the model generation routine looks at that value
+    Slider_BI_MinScale->SetValue(Slider_MI_ModelScale->GetValue());
+}
+
+void GenerateCustomModelDialog::OnSlider_MI_ModelScaleCmdSliderUpdated(wxScrollEvent& event)
+{
+    // copy value to the BI equivalent as the model generation routine looks at that value
+    Slider_BI_MinScale->SetValue(Slider_MI_ModelScale->GetValue());
+    TextCtrl_MI_ModelScale->SetValue(std::to_string(Slider_MI_ModelScale->GetValue()));
 }

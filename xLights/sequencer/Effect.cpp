@@ -86,8 +86,6 @@ private:
     std::unordered_map<std::string, std::string> data;
 } Remaps;
 
-const std::string MapStringString::EMPTY_STRING;
-
 void SettingsMap::RemapChangedSettingKey(std::string &n,  std::string &value)
 {
     Remaps.map(n);
@@ -172,7 +170,7 @@ void Effect::ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColor
 
 #pragma region Constructors and Destructors
 
-Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette,
+Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette,
                int startTimeMS, int endTimeMS, int Selected, bool Protected)
     : mParentLayer(parent), mID(id), mEffectIndex(-1), mName(nullptr),
       mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected), mCache(nullptr)
@@ -181,7 +179,7 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
 
     mColorMask = xlColor::NilColor();
     mEffectIndex = (parent->GetParentElement() == nullptr) ? -1 : parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
-    mSettings.Parse(settings);
+    mSettings.Parse(effectManager, settings, name);
 
     Element* parentElement = parent->GetParentElement();
     if (parentElement != nullptr)
@@ -229,7 +227,7 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
         mName = new std::string(name);
     }
 
-    mPaletteMap.Parse(palette);
+    mPaletteMap.Parse(effectManager, palette, name);
     ParseColorMap(mPaletteMap, mColors, mCC);
 }
 
@@ -497,7 +495,7 @@ void Effect::SetSettings(const std::string& settings, bool keepxsettings, bool j
             }
         }
     }
-    json ? mSettings.ParseJson(settings) : mSettings.Parse(settings);
+    json ? mSettings.ParseJson(nullptr, settings, "") : mSettings.Parse(nullptr, settings, "");
     if (keepxsettings) {
         for (const auto& it : x) {
             mSettings[it.first] = it.second;
@@ -513,7 +511,7 @@ void Effect::SetSettings(const std::string& settings, bool keepxsettings, bool j
 bool Effect::SettingsChanged(const std::string& settings)
 {
     SettingsMap x;
-    x.Parse(settings);
+    x.Parse(nullptr, settings, "");
 
     if (mSettings.size() != x.size())
         return true;
@@ -731,7 +729,7 @@ void Effect::SetPalette(const std::string& i)
 
     auto old = GetPaletteAsString();
 
-    mPaletteMap.Parse(i);
+    mPaletteMap.Parse(nullptr, i, "");
     mColors.clear();
     mCC.clear();
     if (!mPaletteMap.empty()) {
@@ -751,7 +749,7 @@ void Effect::SetColourOnlyPalette(const std::string& i, bool json)
     auto oldPalette = mPaletteMap;
 
     // parse in the new one
-    json ? mPaletteMap.ParseJson(i) : mPaletteMap.Parse(i);
+    json ? mPaletteMap.ParseJson(nullptr, i, "") : mPaletteMap.Parse(nullptr, i, "");
 
     // copy over all the non colour entries
     for (auto it = oldPalette.begin(); it != oldPalette.end(); ++it)

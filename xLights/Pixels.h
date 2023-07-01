@@ -25,3 +25,4 @@ bool IsSerialProtocol(const std::string& p);
 bool IsMatrixProtocol(const std::string& p1);
 bool IsLEDPanelMatrixProtocol(const std::string& p1);
 bool IsVirtualMatrixProtocol(const std::string& p1);
+int GetChannelsPerPixel(const std::string& p);

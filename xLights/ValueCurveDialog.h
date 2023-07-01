@@ -45,6 +45,8 @@ public:
     void ClearUndo() { _undo.clear(); }
     bool IsDirty() const { return _undo.size() > 0; }
     bool HasSelected() const { return _grabbedPoint != -1; }
+    float ToReal(float y);
+    float ToNormalised(float y);
 
 protected:
     DECLARE_EVENT_TABLE()
@@ -56,7 +58,9 @@ protected:
     void mouseMoved(wxMouseEvent& event);
     void Paint(wxPaintEvent& event);
     void mouseCaptureLost(wxMouseCaptureLostEvent& event);
-private:
+    void mouseLeftDClick(wxMouseEvent& event);
+
+private :
     void Convert(float &x, float &y, wxMouseEvent& event);
     void DrawTiming(wxAutoBufferedPaintDC& pdc);
     void DrawTiming(wxAutoBufferedPaintDC& pdc, long timeMS);

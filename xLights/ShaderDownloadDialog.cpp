@@ -31,7 +31,7 @@
 #include "ExternalHooks.h"
 #include <log4cpp/Category.hh>
 
-#include "../xSchedule/xSMSDaemon/Curl.h"
+#include "utils/Curl.h"
 #undef min
 #undef max
 
@@ -336,9 +336,7 @@ ShaderDownloadDialog::ShaderDownloadDialog(wxWindow* parent, wxWindowID id, cons
     ListView_Sites->InsertItem(0, "glslsandbox.com/");
     ListView_Sites->SetColumnWidth(0, wxLIST_AUTOSIZE);
 
-    if (wxSystemSettings::GetAppearance().IsDark()) {
-        HyperlinkCtrl_Website->SetNormalColour(*wxCYAN);
-    }
+    HyperlinkCtrl_Website->SetNormalColour(CyanOrBlue());
     PopulateShaderPanel((MShader*)nullptr);
 
     ValidateWindow();

@@ -15,6 +15,9 @@
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 #include "ControllerEthernet.h"
+#include "../OutputModelManager.h"
+#include "../SpecialOptions.h"
+#include "../utils/ip_utils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -42,7 +45,12 @@ void ArtNetOutput::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    wxSocketFlags flags = wxSOCKET_BLOCK; // dont use NOWAIT as it can result in dropped packets
+    if (_forceSourcePort) {
+        flags |= wxSOCKET_REUSEADDR;
+        localaddr.Service(ARTNET_PORT);
+    }
+    _datagram = new wxDatagramSocket(localaddr, flags);
     if (_datagram == nullptr) {
         logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. %s", (const char*)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char*)localaddr.IPAddress().c_str());
         _ok = false;
@@ -63,13 +71,16 @@ void ArtNetOutput::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-ArtNetOutput::ArtNetOutput(wxXmlNode* node) : IPOutput(node) {
+ArtNetOutput::ArtNetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > 512) SetChannels(512);
     if (_autoSize_CONVERT) _autoSize_CONVERT = false;
     _sequenceNum = 0;
     _datagram = nullptr;
+    _forceSourcePort = false;
     memset(_data, 0, sizeof(_data));
+
+    _forceSourcePort = node->GetAttribute("ForceSourcePort", "FALSE") == "TRUE";
 }
 
 ArtNetOutput::ArtNetOutput() : IPOutput() {
@@ -77,6 +88,7 @@ ArtNetOutput::ArtNetOutput() : IPOutput() {
     _channels = 510;
     _sequenceNum = 0;
     _datagram = nullptr;
+    _forceSourcePort = false;
     memset(_data, 0, sizeof(_data));
 }
 
@@ -120,7 +132,14 @@ void ArtNetOutput::SendSync(const std::string& localIP) {
             delete syncdatagram;
         }
 
-        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+        // using the forced source port for sync packets is buried in a special options as its use is very very rare. Few devices implement this restriction and few users use artnet sync
+        wxSocketFlags flags = wxSOCKET_BLOCK; // dont use NOWAIT as it can result in dropped packets
+        if (SpecialOptions::GetOption("ForceArtNetSourcePort", "false") == "true") {
+            flags |= wxSOCKET_REUSEADDR;
+            localaddr.Service(ARTNET_PORT);
+        }
+
+        syncdatagram = new wxDatagramSocket(localaddr, flags);
         if (syncdatagram == nullptr) {
             logger_base.error("Error initialising Artnet sync datagram. %s", (const char*)localaddr.IPAddress().c_str());
             return;
@@ -171,7 +190,7 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (buffer[0] == 'A' && buffer[1] == 'r' && buffer[2] == 't' && buffer[3] == '-' && buffer[9] == 0x21) {
             logger_base.debug(" ArtNET Valid response.");
-            uint32_t channels = 512;
+            uint32_t channels = 510;
 
             auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
             logger_base.debug("     From %s.", (const char *)ip.c_str());
@@ -275,7 +294,7 @@ bool ArtNetOutput::Open() {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!_enabled) return true;
-    if (!IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
 
     _ok = IPOutput::Open();
 
@@ -414,3 +433,47 @@ void ArtNetOutput::AllOff() {
     _changed = true;
 }
 #pragma endregion
+
+#pragma region UI
+#ifndef EXCLUDENETWORKUI
+void ArtNetOutput::AddMultiProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
+{
+    auto p = propertyGrid->Append(new wxBoolProperty("Force source port", "ForceSourcePort", _forceSourcePort));
+    p->SetEditor("CheckBox");
+    p->SetHelpString("You should only set this option if your ArtNet device is not seeing the ArtNet packets because it strictly requires that packets come from port 0x1936.");
+}
+
+void ArtNetOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
+{
+    AddMultiProperties(propertyGrid, allSameSize, expandProperties);
+}
+
+bool ArtNetOutput::HandleMultiPropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
+{
+    wxString const name = event.GetPropertyName();
+
+    if (name == "ForceSourcePort") {
+        _forceSourcePort = event.GetValue().GetBool();
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ArtNetOutput::HandlePropertyEvent::ForceSourcePort");
+        return true;
+    }
+
+    return false;
+}
+
+bool ArtNetOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
+{
+    return HandleMultiPropertyEvent(event, outputModelManager);
+}
+
+#endif
+#pragma endregion
+
+wxXmlNode* ArtNetOutput::Save()
+{
+    auto node = IPOutput::Save();
+    if (_forceSourcePort) {
+        node->AddAttribute("ForceSourcePort", "TRUE");
+    }
+    return node;
+}

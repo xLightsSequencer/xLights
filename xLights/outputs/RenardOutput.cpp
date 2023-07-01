@@ -28,13 +28,12 @@ bool RenardOutput::Open()
 {
     if (!_enabled) return true;
 
+    _serialConfig[2] = '2'; // use 2 stop bits so padding chars are not required
     _ok = SerialOutput::Open();
 
     _datalen = _channels + 2;
     _data[0] = 0x7E;               // start of message
     _data[1] = 0x80;               // start address
-    _serialConfig[2] = '2'; // use 2 stop bits so padding chars are not required
-
     return _ok;
 }
 #pragma endregion Start and Stop

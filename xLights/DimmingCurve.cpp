@@ -302,10 +302,19 @@ DimmingCurve *DimmingCurve::createFromXML(wxXmlNode *node) {
             }
             return createCurve(dc);
         } else if ("red" == dc->GetName()) {
+            if (red != nullptr) {
+                delete red;
+            }
             red = createCurve(dc, 0);
         } else if ("green" == dc->GetName()) {
+            if (green) {
+                delete green;
+            }
             green = createCurve(dc, 1);
         } else if ("blue" == dc->GetName()) {
+            if (blue) {
+                delete blue;
+            }
             blue = createCurve(dc, 2);
         }
         dc = dc->GetNext();

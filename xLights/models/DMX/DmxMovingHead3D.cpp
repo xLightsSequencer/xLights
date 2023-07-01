@@ -152,8 +152,7 @@ std::list<std::string> DmxMovingHead3D::CheckModelSettings()
 }
 
 void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor* c) {
-    static wxStopWatch sw;
-    float pan_angle, pan_angle_raw, tilt_angle, beam_length_displayed; //, angle1, angle2
+    float pan_angle_raw, beam_length_displayed; //, angle1, angle2
     //int x1, x2, y1, y2;
     size_t NodeCount = Nodes.size();
 
@@ -196,15 +195,16 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
     // retrieve the model state
     float old_pan_angle = 0.0f;
     float old_tilt_angle = 0.0f;
-    long old_ms = 0;
+    uint32_t old_ms = 0;
 
-    std::vector<std::string> old_state = GetModelState();
-    if (old_state.size() > 0 && active) {
-        old_ms = std::atol(old_state[0].c_str());
-        old_pan_angle = std::atof(old_state[1].c_str());
-        old_tilt_angle = std::atof(old_state[2].c_str());
+    PanTiltState &st = panTiltStates[preview->GetName().ToStdString()];
+    if (active) {
+        old_ms = st.ms;
+        old_pan_angle = st.pan_angle;
+        old_tilt_angle = st.tilt_angle;
     }
 
+    float pan_angle = 0;
     if (pan_channel > 0 && active) {
         Nodes[pan_channel - 1]->GetColor(color_angle);
         pan_angle = (color_angle.red / 255.0f) * pan_deg_of_rot + pan_orient;
@@ -213,10 +213,28 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
         pan_angle = pan_orient;
     }
 
-    long ms = sw.Time();
-    long time_delta = ms - old_ms;
+    float tilt_angle = 0;
+    if (tilt_channel > 0 && active) {
+        Nodes[tilt_channel - 1]->GetColor(color_angle);
+        tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
+    } else {
+        tilt_angle = tilt_orient;
+    }
 
-    if (time_delta != 0 && old_state.size() > 0 && active) {
+    uint32_t ms = preview->getCurrentFrameTime();
+    uint32_t time_delta = 0;
+    if (ms > old_ms) {
+        time_delta = ms - old_ms;
+    } else if (ms == old_ms && active) {
+        pan_angle = old_pan_angle;
+        tilt_angle = old_tilt_angle;
+    }
+    if (time_delta > 500) {
+        // more than 1/2 second off, assume a jump of some sort
+        time_delta = 0;
+    }
+
+    if (time_delta != 0 && active) {
         // pan slew limiting
         if (pan_slew_limit > 0.0f) {
             float slew_limit = pan_slew_limit * (float)time_delta / 1000.0f;
@@ -231,14 +249,8 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
     }
 
     pan_angle_raw = pan_angle;
-    if (tilt_channel > 0 && active) {
-        Nodes[tilt_channel - 1]->GetColor(color_angle);
-        tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
-    } else {
-        tilt_angle = tilt_orient;
-    }
 
-    if (time_delta != 0 && old_state.size() > 0 && active) {
+    if (time_delta != 0 && active) {
         // tilt slew limiting
         if (tilt_slew_limit > 0.0f) {
             float slew_limit = tilt_slew_limit * (float)time_delta / 1000.0f;
@@ -263,11 +275,9 @@ void DmxMovingHead3D::DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, x
     }
 
     // save the model state
-    std::vector<std::string> state;
-    state.push_back(std::to_string(ms));
-    state.push_back(std::to_string(pan_angle_raw));
-    state.push_back(std::to_string(tilt_angle));
-    SaveModelState(state);
+    st.ms = ms;
+    st.pan_angle = pan_angle_raw;
+    st.tilt_angle = tilt_angle;
 
     beam_length_displayed = beam_length;
     

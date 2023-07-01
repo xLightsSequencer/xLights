@@ -181,6 +181,8 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_Galaxy_Start_Angle->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	GridBagSizerGalaxyStart->Add(BitmapButton_Galaxy_Start_Angle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel6->SetSizer(GridBagSizerGalaxyStart);
+	GridBagSizerGalaxyStart->Fit(Panel6);
+	GridBagSizerGalaxyStart->SetSizeHints(Panel6);
 	Panel7 = new wxPanel(Notebook_Galaxy, ID_PANEL31, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL31"));
 	GridBagSizerGalaxyEnd = new wxFlexGridSizer(0, 5, 0, 0);
 	GridBagSizerGalaxyEnd->AddGrowableCol(1);
@@ -221,6 +223,8 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_Galaxy_Revolutions->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	GridBagSizerGalaxyEnd->Add(BitmapButton_Galaxy_Revolutions, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel7->SetSizer(GridBagSizerGalaxyEnd);
+	GridBagSizerGalaxyEnd->Fit(Panel7);
+	GridBagSizerGalaxyEnd->SetSizeHints(Panel7);
 	Panel8 = new wxPanel(Notebook_Galaxy, ID_PANEL32, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL32"));
 	GridBagSizerGalaxyOptions = new wxFlexGridSizer(0, 5, 0, 0);
 	GridBagSizerGalaxyOptions->AddGrowableCol(1);
@@ -266,11 +270,15 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Galaxy_Inward->SetValue(false);
 	GridBagSizerGalaxyOptions->Add(CheckBox_Galaxy_Inward, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Panel8->SetSizer(GridBagSizerGalaxyOptions);
+	GridBagSizerGalaxyOptions->Fit(Panel8);
+	GridBagSizerGalaxyOptions->SetSizeHints(Panel8);
 	Notebook_Galaxy->AddPage(Panel6, _("Start"), false);
 	Notebook_Galaxy->AddPage(Panel7, _("End"), false);
 	Notebook_Galaxy->AddPage(Panel8, _("Options"), false);
 	FlexGridSizer108->Add(Notebook_Galaxy, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer108);
+	FlexGridSizer108->Fit(this);
+	FlexGridSizer108->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_Galaxy_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GalaxyPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GalaxyPanel::OnLockButtonClick);

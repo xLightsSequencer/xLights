@@ -43,7 +43,7 @@ class KinetOutput : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    KinetOutput(wxXmlNode* node);
+    KinetOutput(wxXmlNode* node, bool isActive);
     KinetOutput();
     KinetOutput(KinetOutput* output);
     virtual ~KinetOutput() override;

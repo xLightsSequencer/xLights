@@ -39,8 +39,6 @@ xlEffectPanel *ButterflyEffect::CreatePanel(wxWindow *parent) {
     return new ButterflyPanel(parent);
 }
 
-
-
 /*
  01) x*y^3-y*x^3
  (02) (x^2+3*y^2)*e^(-x^2-y^2)
@@ -78,7 +76,7 @@ void ButterflyEffect::SetDefaultParameters() {
     SetSliderValue(bp->Slider_Butterfly_Speed, 10);
 }
 
-void ButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer)
+void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
     const int Chunks = GetValueCurveInt("Butterfly_Chunks", 1, SettingsMap, oset, BUTTERFLY_CHUNKS_MIN, BUTTERFLY_CHUNKS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

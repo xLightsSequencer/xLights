@@ -25,6 +25,7 @@ PlayListItemAudio::PlayListItemAudio(wxXmlNode* node) : PlayListItem(node)
     _audioFile = "";
     _durationMS = 0;
     _audioManager = nullptr;
+    _audioDevice = "";
     PlayListItemAudio::Load(node);
 }
 
@@ -34,6 +35,7 @@ void PlayListItemAudio::Load(wxXmlNode* node)
     _fastStartAudio = (node->GetAttribute("FastStartAudio", "FALSE") == "TRUE");
     _audioFile = node->GetAttribute("AudioFile", "");
     _audioFile = FixFile("", _audioFile);
+    _audioDevice = node->GetAttribute("AudioDevice", "");
 
     //if (_fastStartAudio)
     //{
@@ -96,7 +98,7 @@ void PlayListItemAudio::LoadFiles()
     }
     else if (wxFile::Exists(_audioFile))
     {
-        _audioManager = new AudioManager(_audioFile);
+        _audioManager = new AudioManager(_audioFile, -1, _audioDevice);
 
         if (_audioManager == nullptr || !_audioManager->IsOk())
         {
@@ -133,6 +135,7 @@ PlayListItemAudio::PlayListItemAudio() : PlayListItem()
     _fastStartAudio = false;
     _controlsTimingCache = false;
     _audioFile = "";
+    _audioDevice = "";
     _durationMS = 0;
     _audioManager = nullptr;
 }
@@ -156,6 +159,7 @@ PlayListItem* PlayListItemAudio::Copy(const bool isClone) const
     res->_durationMS = _durationMS;
     res->_controlsTimingCache = _controlsTimingCache;
     res->SetAudioFile(_audioFile); // we set this way to trigger file loading
+    res->SetAudioDevice(_audioDevice);
 
     if (_fastStartAudio)
     {
@@ -170,6 +174,7 @@ wxXmlNode* PlayListItemAudio::Save()
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("AudioFile", _audioFile);
+    node->AddAttribute("AudioDevice", _audioDevice);
     if (_fastStartAudio)
     {
         node->AddAttribute("FastStartAudio", "TRUE");
@@ -224,6 +229,14 @@ void PlayListItemAudio::SetAudioFile(const std::string& audioFile)
         {
             FastSetDuration();
         }
+        _changeCount++;
+    }
+}
+
+void PlayListItemAudio::SetAudioDevice(const std::string& audioDevice)
+{
+    if (_audioDevice != audioDevice) {
+        _audioDevice = audioDevice;
         _changeCount++;
     }
 }

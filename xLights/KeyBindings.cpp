@@ -28,6 +28,7 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "TIMING_SPLIT", KBSCOPE::Sequence },
     { "ZOOM_IN", KBSCOPE::Sequence },
     { "ZOOM_OUT", KBSCOPE::Sequence },
+    { "ZOOM_SEL", KBSCOPE::Sequence },
     { "RANDOM", KBSCOPE::Sequence },
     { "RENDER_ALL", KBSCOPE::All },
     { "SAVE_CURRENT_TAB", KBSCOPE::All },
@@ -96,6 +97,9 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "MODEL_ALIGN_RIGHT", KBSCOPE::Layout },
     { "MODEL_ALIGN_CENTER_VERT", KBSCOPE::Layout },
     { "MODEL_ALIGN_CENTER_HORIZ", KBSCOPE::Layout },
+    { "MODEL_ALIGN_BACKS", KBSCOPE::Layout },
+    { "MODEL_ALIGN_FRONTS", KBSCOPE::Layout },
+    { "MODEL_ALIGN_GROUND", KBSCOPE::Layout },
     { "MODEL_DISTRIBUTE_HORIZ", KBSCOPE::Layout },
     { "MODEL_DISTRIBUTE_VERT", KBSCOPE::Layout },
     { "MODEL_FLIP_HORIZ", KBSCOPE::Layout },
@@ -127,8 +131,9 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
     { "TIMING_ADD", "Add a timing mark." },
     { "TIMING_SPLIT", "Split a timing mark." },
     { "ZOOM_IN", "Zoom into the effects grid." },
-    { "ZOOM_OUT", "Zoom out of the effects grid" },
-    { "RANDOM", "Insert random effects" },
+    { "ZOOM_OUT", "Zoom out of the effects grid." },
+    { "ZOOM_SEL", "Zoom so selected timeline fills the screen." },
+    { "RANDOM", "Insert random effects." },
     { "RENDER_ALL", "Render all." },
     { "SAVE_CURRENT_TAB", "Save the currently selected tab." },
     { "LIGHTS_TOGGLE", "Toggle output to lights on/off." },
@@ -196,6 +201,9 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
     { "MODEL_ALIGN_RIGHT", "Align the selected models to the right edge." },
     { "MODEL_ALIGN_CENTER_VERT", "Align the selected models to be vertically centered." },
     { "MODEL_ALIGN_CENTER_HORIZ", "Align the selected models to be horizontally centered." },
+    { "MODEL_ALIGN_FRONTS", "Align the selected models to the front edge." },
+    { "MODEL_ALIGN_BACKS", "Align the selected models to the back edge." },
+    { "MODEL_ALIGN_GROUND", "Align the selected models to the ground." },
     { "MODEL_DISTRIBUTE_HORIZ", "Distribute the selected model horizontally." },
     { "MODEL_DISTRIBUTE_VERT", "Distribute the selected models vertically." },
     { "MODEL_FLIP_HORIZ", "Flip the selected models horizontally." },
@@ -263,6 +271,7 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("s", false, "TIMING_SPLIT"),
     KeyBinding("+", false, "ZOOM_IN"),
     KeyBinding("-", false, "ZOOM_OUT"),
+    KeyBinding("", false, "ZOOM_SEL"),
     KeyBinding(std::string("R"), false, "RANDOM", false, false, true),
     KeyBinding("F1", false, "EFFECT_SETTINGS_TOGGLE", true),
     KeyBinding("F8", false, "EFFECT_ASSIST_TOGGLE", true),
@@ -313,6 +322,9 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("", true, "MODEL_ALIGN_RIGHT", true, false, true),
     KeyBinding("", true, "MODEL_ALIGN_CENTER_VERT", true, false, true),
     KeyBinding("", true, "MODEL_ALIGN_CENTER_HORIZ", true, false, true),
+    KeyBinding("", true, "MODEL_ALIGN_BACKS", true, false, true),
+    KeyBinding("", true, "MODEL_ALIGN_FRONTS", true, false, true),
+    KeyBinding("", true, "MODEL_ALIGN_GROUND", true, false, true),
     KeyBinding("", true, "MODEL_DISTRIBUTE_HORIZ", true, false, true),
     KeyBinding("", true, "MODEL_DISTRIBUTE_VERT", true, false, true),
     KeyBinding("", true, "MODEL_FLIP_HORIZ", true, false, true),
@@ -1019,6 +1031,9 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
             }
         }
         logger_base.debug("Keybindings loaded.");
+    } else {
+        logger_base.debug("Keybinding file not found, Creating Default File.");
+        Save();
     }
 
     std::string invalid = "";

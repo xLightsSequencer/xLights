@@ -58,6 +58,8 @@ END_EVENT_TABLE()
 
 long SketchAssistPanel::ID_MENU_Delete = wxNewId();
 long SketchAssistPanel::ID_MENU_Reverse = wxNewId();
+long SketchAssistPanel::ID_MENU_MoveUp = wxNewId();
+long SketchAssistPanel::ID_MENU_MoveDown = wxNewId();
 
 SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*/, const wxPoint& pos /*wxDefaultPosition*/, const wxSize& size /*wxDefaultSize*/) :
     wxPanel(parent, id, pos, size)
@@ -202,6 +204,8 @@ SketchEffectSketch& SketchAssistPanel::GetSketch()
 
 int SketchAssistPanel::GetSelectedPathIndex()
 {
+    if (m_pathsListBox == nullptr)
+        return 0;
     return m_pathsListBox->GetSelection();
 }
 
@@ -258,6 +262,12 @@ void SketchAssistPanel::SelectLastPath()
 
 void SketchAssistPanel::UpdateSketchBackground(const wxString& imagePath, int opacity)
 {
+    if (!wxFileExists(imagePath)) {
+        m_sketchCanvasPanel->clearBackgroundBitmap();
+        m_bgImagePath = "";
+        return;
+    }
+
     if (imagePath == m_bgImagePath && opacity == m_bitmapAlpha)
         return;
 
@@ -384,9 +394,9 @@ void SketchAssistPanel::OnButton_ImportSVG(wxCommandEvent& event)
                     wxPoint2DDouble cp1(p[2] / w, 1 - (p[3] / h));
                     wxPoint2DDouble cp2(p[4] / w, 1 - (p[5] / h));
                     wxPoint2DDouble end(p[6] / w, 1 - (p[7] / h));
-                    if (areCollinear(start,cp1,end, 0.001) && areCollinear(start,cp2,end, 0.001)) {//check if its a straight line
+                    if (areCollinear(start,cp1,end, 0.001f) && areCollinear(start,cp2,end, 0.001f)) {//check if its a straight line
                         skpath->appendSegment(std::make_shared<SketchLine>(start, end));
-                    } else if (areSame(end.m_x, cp2.m_x, 0.001) && areSame(end.m_y, cp2.m_y, 0.001)) { // check if control points2 is the end
+                    } else if (areSame(end.m_x, cp2.m_x, 0.001f) && areSame(end.m_y, cp2.m_y, 0.001f)) { // check if control points2 is the end
                         skpath->appendSegment(std::make_shared<SketchQuadraticBezier>(start, cp1, end));
                     } else {
                         skpath->appendSegment(std::make_shared<SketchCubicBezier>(start, cp1, cp2, end));
@@ -426,6 +436,15 @@ void SketchAssistPanel::OnListBox_ContextMenu(wxContextMenuEvent& event)
     mnu.Append(ID_MENU_Reverse, str);
     str.sprintf("Delete Path %d", 1 + m_pathIndexToDelete);
     mnu.Append(ID_MENU_Delete, str);
+    if (m_pathIndexToDelete != 0) {
+        str.sprintf("Move Path %d Up", 1 + m_pathIndexToDelete);
+        mnu.Append(ID_MENU_MoveUp, str);
+    }
+    if (m_pathIndexToDelete != m_pathsListBox->GetCount() - 1) {
+        str.sprintf("Move Path %d Down", 1 + m_pathIndexToDelete);
+        mnu.Append(ID_MENU_MoveDown, str);
+
+    }
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SketchAssistPanel::OnPopupCommand, nullptr, this);
     PopupMenu(&mnu);
 }
@@ -442,6 +461,12 @@ void SketchAssistPanel::OnPopupCommand(wxCommandEvent& event)
     } else if (event.GetId() == ID_MENU_Reverse) {
         m_sketch.reversePath(m_pathIndexToDelete);
         update = true;
+    } else if (event.GetId() == ID_MENU_MoveUp) {
+        m_sketch.swapPaths(m_pathIndexToDelete, m_pathIndexToDelete - 1);
+        update = true;
+    } else if (event.GetId() == ID_MENU_MoveDown) {
+        m_sketch.swapPaths(m_pathIndexToDelete, m_pathIndexToDelete + 1);
+        update = true;
     }
 
     if (update) {
@@ -454,8 +479,10 @@ void SketchAssistPanel::OnPopupCommand(wxCommandEvent& event)
 
 void SketchAssistPanel::updateBgImage()
 {
-    if (!m_bgImage.IsOk())
+    if (!m_bgImage.IsOk()) {
+        m_sketchCanvasPanel->clearBackgroundBitmap();
         return;
+    }
 
     int w = m_bgImage.GetWidth();
     int h = m_bgImage.GetHeight();

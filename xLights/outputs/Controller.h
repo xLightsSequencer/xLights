@@ -19,7 +19,7 @@
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
-
+#include "../UtilFunctions.h"
 #include "Output.h"
 
 class wxXmlNode;
@@ -119,7 +119,10 @@ public:
     const std::string &GetDescription() const { return _description; }
     void SetDescription(const std::string& description) { if (_description != description) { _description = description; _dirty = true; } }
 
-    bool IsAutoSize() const { return IsAutoLayout() && _autoSize; }
+    bool IsAutoSize() const
+    {
+        return IsAutoLayout() && _autoSize && GetProtocol() != OUTPUT_PLAYER_ONLY;
+    }
 
     void SetFullxLightsControl(bool fullxLightsControl) { if (_fullxLightsControl != fullxLightsControl) { _fullxLightsControl = fullxLightsControl; _dirty = true; } }
     bool IsFullxLightsControl() const { return _fullxLightsControl; }
@@ -142,6 +145,8 @@ public:
     Controller::ACTIVESTATE GetActive() const { return _active; }
     virtual bool IsActive() const;
     void SetActive(const std::string& active);
+    virtual void PostSetActive()
+    {}
 
     virtual bool CanVisualise() const;
 
@@ -255,6 +260,25 @@ public:
 
     virtual std::string GetSortName() const { return GetName(); }
     virtual std::string GetExport() const = 0;
+    
+    virtual std::string GetJSONData() const
+    {
+        std::string json = "{\"name\":\"" + JSONSafe(GetName()) + "\"" +
+                ",\"desc\":\"" + JSONSafe(GetDescription()) + "\"" +
+                ",\"type\":\"" + JSONSafe(GetType()) + "\"" +
+                ",\"vendor\":\"" + JSONSafe(GetVendor()) + "\"" +
+                ",\"model\":\"" + JSONSafe(GetModel()) + "\"" +
+                ",\"variant\":\"" + JSONSafe(GetVariant()) + "\"" +
+                ",\"protocol\":\"" + GetProtocol() + "\"" +
+                ",\"id\":" + std::to_string(GetId()) +
+                ",\"startchannel\":" + std::to_string(GetStartChannel()) +
+                ",\"channels\":" + std::to_string(GetChannels()) +
+                ",\"managed\":" + toStr(IsManaged()) +
+                ",\"active\":" + toStr(IsActive())+
+                ",\"ip\":\"" + JSONSafe(GetIP()) + "\"}";
+        
+        return json;
+    }
 
     #pragma endregion
 
@@ -264,6 +288,10 @@ public:
 
     #pragma region UI
     #ifndef EXCLUDENETWORKUI
+        void AddModels(wxPGProperty* property, wxPGProperty* vp);
+        void AddVariants(wxPGProperty* property);
+
+    
         virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties);
 	    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager);
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const;

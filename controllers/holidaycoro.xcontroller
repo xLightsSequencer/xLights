@@ -28,6 +28,7 @@
 				<Protocol>e131</Protocol>
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
+            <ConfigDriver>AlphaPix</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="AlphaPix 16">
@@ -59,6 +60,7 @@
 				<Protocol>e131</Protocol>
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
+            <ConfigDriver>AlphaPix</ConfigDriver>
 		</Variant>
 	</Controller>
 	<Controller Name="AlphaPix Flex">
@@ -88,6 +90,7 @@
 				<Protocol>e131</Protocol>
 				<Protocol>artnet</Protocol>
 			</InputProtocols>
+            <ConfigDriver>AlphaPix</ConfigDriver>
 		</Variant>	
 	</Controller>
 </Vendor>

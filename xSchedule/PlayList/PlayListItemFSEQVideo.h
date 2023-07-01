@@ -60,6 +60,7 @@ protected:
 	wxSize _size;
 	PlayerWindow* _window = nullptr;
     PlayerFrame* _frame = nullptr;
+    std::string _audioDevice = "";
     #pragma endregion
 
     void LoadFiles(bool doCache);
@@ -93,12 +94,20 @@ public:
     virtual std::string GetNameNoTime() const override;
     std::string GetFSEQFileName() const { return _fseqFileName; }
     std::string GetAudioFile() const { return _audioFile; }
-    bool GetOverrideAudio() const { return _overrideAudio; }
+    std::string GetAudioDevice() const
+    {
+        return _audioDevice;
+    }
+    bool GetOverrideAudio() const
+    {
+        return _overrideAudio;
+    }
     bool GetFastStartAudio() const { return _fastStartAudio; }
     bool GetCacheVideo() const { return _cacheVideo; }
     bool GetLoopVideo() const { return _loopVideo; }
     void SetFSEQFileName(const std::string& fseqFileName);
     void SetAudioFile(const std::string& audioFile);
+    void SetAudioDevice(const std::string& audioDevice);
     void SetOverrideAudio(bool overrideAudio);
     void SetFastStartAudio(bool fastStartAudio);
     virtual bool ControlsTiming() const override { return _controlsTimingCache || _audioManager != nullptr; }

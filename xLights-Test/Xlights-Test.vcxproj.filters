@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\xLights-Test\tests\ip_host_test.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights-Test\tests\pch.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights-Test\tests\string_test.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\xLights-Test\tests\pch.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="wxfixture.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="tests">
+      <UniqueIdentifier>{c12a0767-dcce-4c02-86e7-7388000ee9ab}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

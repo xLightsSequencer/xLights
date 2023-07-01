@@ -129,6 +129,8 @@ PianoPanel::PianoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer42->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
+	FlexGridSizer42->Fit(this);
+	FlexGridSizer42->SetSizeHints(this);
 
 	Connect(ID_SPINCTRL_Piano_StartMIDI,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PianoPanel::OnSpinCtrl_Piano_StartMIDIChange);
 	Connect(ID_SPINCTRL_Piano_EndMIDI,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PianoPanel::OnSpinCtrl_Piano_EndMIDIChange);

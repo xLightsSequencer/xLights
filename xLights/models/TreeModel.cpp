@@ -35,8 +35,15 @@ TreeModel::~TreeModel()
 {
 }
 
+static const char* TREE_DIRECTION_VALUES[] = {
+    "Horizontal",
+    "Vertical"
+};
+static wxPGChoices TREE_DIRECTIONS(wxArrayString(2, TREE_DIRECTION_VALUES));
+
 void TreeModel::InitModel() {
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
+    bool isHMatrix = (ModelXml->GetAttribute("StrandDir", TREE_DIRECTION_VALUES[1]) == TREE_DIRECTION_VALUES[0]);
     wxStringTokenizer tkz(DisplayAs, " ");
     wxString token = tkz.GetNextToken();
 
@@ -47,7 +54,11 @@ void TreeModel::InitModel() {
     if (firstStrand < 0) {
         firstStrand = 0;
     }
-    InitVMatrix(firstStrand);
+    if (isHMatrix) {
+        InitHMatrix();
+    } else {
+        InitVMatrix(firstStrand);
+    }
     token = tkz.GetNextToken();
     token.ToLong(&degrees);
     treeType = 0;
@@ -315,6 +326,14 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreePerspective");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreePerspective");
         return 0;
+    } else if ("StrandDir" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("StrandDir");
+        ModelXml->AddAttribute("StrandDir", event.GetPropertyValue().GetLong() ? TREE_DIRECTION_VALUES[1] : TREE_DIRECTION_VALUES[0]);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::StrandDir");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::StrandDir");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::StrandDir");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::StrandDir");
+        return 0;
     }
     return MatrixModel::OnPropertyGridChange(grid, event);
 }
@@ -368,6 +387,8 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
     p->SetEditor("CheckBox");
+
+    grid->Append(new wxEnumProperty("Strand Direction", "StrandDir", TREE_DIRECTIONS, vMatrix ? 1 : 0));
 }
 
 void TreeModel::ExportXlightsModel()
@@ -384,8 +405,8 @@ void TreeModel::ExportXlightsModel()
     wxString p3 = ModelXml->GetAttribute("parm3");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ss = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
@@ -397,10 +418,12 @@ void TreeModel::ExportXlightsModel()
     wxString tr = ModelXml->GetAttribute("TreeRotation", "3");
     wxString tsr = ModelXml->GetAttribute("TreeSpiralRotations", "0.0");
     wxString an = ModelXml->GetAttribute("AlternateNodes", "false");
+    wxString sdr = ModelXml->GetAttribute("StrandDir", TREE_DIRECTION_VALUES[1]);
     wxString v = xlights_version_string;
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<treemodel \n");
     f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
+    f.Write(wxString::Format("StrandDir=\"%s\" ", sdr));
     f.Write(wxString::Format("name=\"%s\" ", name));
     f.Write(wxString::Format("parm1=\"%s\" ", p1));
     f.Write(wxString::Format("parm2=\"%s\" ", p2));
@@ -441,6 +464,7 @@ void TreeModel::ExportXlightsModel()
     if (groups != "") {
         f.Write(groups);
     }
+    ExportDimensions(f);
     f.Write("</treemodel>");
     f.Close();
 }
@@ -454,8 +478,8 @@ void TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         wxString p3 = root->GetAttribute("parm3");
         wxString st = root->GetAttribute("StringType");
         wxString ps = root->GetAttribute("PixelSize");
-        wxString t = root->GetAttribute("Transparency");
-        wxString mb = root->GetAttribute("ModelBrightness");
+        wxString t = root->GetAttribute("Transparency", "0");
+        wxString mb = root->GetAttribute("ModelBrightness", "0");
         wxString a = root->GetAttribute("Antialias");
         wxString ss = root->GetAttribute("StartSide");
         wxString dir = root->GetAttribute("Dir");
@@ -471,9 +495,14 @@ void TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         wxString pt = root->GetAttribute("PixelType");
         wxString psp = root->GetAttribute("PixelSpacing");
         wxString an = root->GetAttribute("AlternateNodes");
+        wxString sdr = root->GetAttribute("StrandDir");
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
+        if (sdr == "")
+        {
+            sdr = TREE_DIRECTION_VALUES[1];
+        }
 
         SetProperty("parm1", p1);
         SetProperty("parm2", p2);
@@ -496,17 +525,162 @@ void TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         SetProperty("PixelType", pt);
         SetProperty("PixelSpacing", psp);
         SetProperty("AlternateNodes", an);
+        SetProperty("StrandDir", sdr);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::ImportXlightsModel");
     } else {
         DisplayError("Failure loading Tree model file.");
     }
+}
+
+#define SCALE_FACTOR_3D (1.1)
+void TreeModel::ExportAsCustomXModel3D() const
+{
+    wxString name = ModelXml->GetAttribute("name");
+    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (filename.IsEmpty())
+        return;
+
+    wxFile f(filename);
+    //    bool isnew = !FileExists(filename);
+    if (!f.Create(filename, true) || !f.IsOpened())
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+
+    float minx = 99999;
+    float miny = 99999;
+    float minz = 99999;
+    float maxx = -99999;
+    float maxy = -99999;
+    float maxz = -99999;
+
+    for (auto& n : Nodes) {
+        minx = std::min(minx, n->Coords[0].screenX);
+        miny = std::min(miny, n->Coords[0].screenY);
+        minz = std::min(minz, n->Coords[0].screenZ);
+        maxx = std::max(maxx, n->Coords[0].screenX);
+        maxy = std::max(maxy, n->Coords[0].screenY);
+        maxz = std::max(maxz, n->Coords[0].screenZ);
+    }
+    float w = maxx - minx;
+    float h = maxy - miny;
+    float d = maxz - minz;
+
+    std::vector<std::vector<std::vector<int>>> data;
+    for (int l = 0; l < SCALE_FACTOR_3D * d + 1; l++) {
+        std::vector<std::vector<int>> layer;
+        for (int r = SCALE_FACTOR_3D * h + 1; r >= 0; r--) {
+            std::vector<int> row;
+            for (int c = 0; c < SCALE_FACTOR_3D * w + 1; c++) {
+                row.push_back(-1);
+            }
+            layer.push_back(row);
+        }
+        data.push_back(layer);
+    }
+
+    uint32_t i = 0;
+    for (auto& n : Nodes) {
+        int xx = SCALE_FACTOR_3D * w * (n->Coords[0].screenX - minx) / w;
+        int yy = (SCALE_FACTOR_3D * h) - (SCALE_FACTOR_3D * h * (n->Coords[0].screenY - miny) / h);
+        int zz = SCALE_FACTOR_3D * d * (n->Coords[0].screenZ - minz) / d;
+        wxASSERT(xx >= 0 && xx < SCALE_FACTOR_3D * w + 1);
+        wxASSERT(yy >= 0 && yy < SCALE_FACTOR_3D * h + 1);
+        wxASSERT(zz >= 0 && zz < SCALE_FACTOR_3D * d + 1);
+        wxASSERT(data[zz][yy][xx] == -1);
+        data[zz][yy][xx] = i++;
+    }
+
+    wxString cm = "";
+    for (auto l : data) {
+        if (cm != "")
+            cm += "|";
+        wxString ll = "";
+
+        for (auto r : l) {
+            if (ll != "")
+                ll += ";";
+            wxString rr = "";
+
+            bool first = true;
+            for (auto c : r) {
+                if (first) {
+                    first = false;
+                } else {
+                    rr += ",";
+                }
+
+                if (c != -1) {
+                    rr += wxString::Format("%d ", c);
+                }
+            }
+            ll += rr;
+        }
+        cm += ll;
+    }
+
+    wxString p1 = wxString::Format("%i", (int)(SCALE_FACTOR_3D * w + 1));
+    wxString p2 = wxString::Format("%i", (int)(SCALE_FACTOR_3D * h + 1));
+    wxString dd = wxString::Format("%i", (int)(SCALE_FACTOR_3D * d + 1));
+    wxString p3 = wxString::Format("%i", parm3);
+    wxString st = ModelXml->GetAttribute("StringType");
+    wxString ps = ModelXml->GetAttribute("PixelSize");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
+    wxString a = ModelXml->GetAttribute("Antialias");
+    wxString sn = ModelXml->GetAttribute("StrandNames");
+    wxString nn = ModelXml->GetAttribute("NodeNames");
+    wxString pc = ModelXml->GetAttribute("PixelCount");
+    wxString pt = ModelXml->GetAttribute("PixelType");
+    wxString psp = ModelXml->GetAttribute("PixelSpacing");
+
+    wxString v = xlights_version_string;
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
+    f.Write(wxString::Format("name=\"%s\" ", name));
+    f.Write(wxString::Format("parm1=\"%s\" ", p1));
+    f.Write(wxString::Format("parm2=\"%s\" ", p2));
+    f.Write(wxString::Format("parm3=\"%s\" ", p3));
+    f.Write(wxString::Format("Depth=\"%s\" ", dd));
+    f.Write(wxString::Format("StringType=\"%s\" ", st));
+    f.Write(wxString::Format("Transparency=\"%s\" ", t));
+    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
+    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
+    f.Write(wxString::Format("Antialias=\"%s\" ", a));
+    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
+    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    if (pc != "")
+        f.Write(wxString::Format("PixelCount=\"%s\" ", pc));
+    if (pt != "")
+        f.Write(wxString::Format("PixelType=\"%s\" ", pt));
+    if (psp != "")
+        f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
+    f.Write("CustomModel=\"");
+    f.Write(cm);
+    f.Write("\" ");
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(ExportSuperStringColors());
+    f.Write(" >\n");
+    wxString face = SerialiseFace();
+    if (face != "") {
+        f.Write(face);
+    }
+    wxString state = SerialiseState();
+    if (state != "") {
+        f.Write(state);
+    }
+    wxString submodel = SerialiseSubmodel();
+    if (submodel != "") {
+        f.Write(submodel);
+    }
+    f.Write("</custommodel>");
+    f.Close();
 }

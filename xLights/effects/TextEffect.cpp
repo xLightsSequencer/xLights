@@ -117,7 +117,16 @@ static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
     c->ProcessWindowEvent(evt);
 }
 
-void TextEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
+bool TextEffect::SupportsRenderCache(const SettingsMap& settings) const
+{
+    // we dont want to use render cache if text is coming from a file as the file might have changed
+    if (ToWXString(settings["TEXTCTRL_Text"]) == "" && FileExists(settings["FILEPICKERCTRL_Text_File"]))
+        return false;
+    return true;
+}
+
+void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
     SettingsMap &settings = effect->GetSettings();
     if (IsVersionOlder("2016.46", version) || RenderableEffect::needToAdjustSettings(version))
     {
@@ -373,45 +382,9 @@ void TextEffect::SetPanelStatus(Model* cls)
 //countdown == any of the "to date" options: put "Sat, 18 Dec 1999 00:48:30 +0100" in the text line
 //countdown = !to date!%fmt: put delimiter + target date + same delimiter + format string with %x markers in it (described down below)
 
-std::mutex FONT_MAP_LOCK;
-std::map<std::string, wxFontInfo> FONT_MAP;
-
 void SetFont(TextDrawingContext *dc, const std::string& FontString, const xlColor &color) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::unique_lock<std::mutex> locker(FONT_MAP_LOCK);
-    if (FONT_MAP.find(FontString) == FONT_MAP.end()) {
-        if (!FontString.empty())
-        {
-            logger_base.debug("Loading font %s.", (const char *)FontString.c_str());
-            wxFont font(FontString);
-            font.SetNativeFontInfoUserDesc(FontString);
-
-            //we want "Arial 8" to be 8 pixels high and not depend on the System DPI
-            wxFontInfo info(wxSize(0, font.GetPointSize()));
-            info.FaceName(font.GetFaceName());
-            if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
-                info.Bold();
-            } else if (font.GetWeight() == wxFONTWEIGHT_LIGHT) {
-                info.Light();
-            }
-            if (font.GetUnderlined()) {
-                info.Underlined();
-            }
-            if (font.GetStrikethrough()) {
-                info.Strikethrough();
-            }
-            info.AntiAliased(false);
-            info.Encoding(font.GetEncoding());
-            FONT_MAP[FontString] = info;
-            logger_base.debug("    Added to font map.");
-        } else {
-            wxFontInfo info(wxSize(0, 12));
-            info.AntiAliased(false);
-            FONT_MAP[FontString] = info;
-        }
-
-    }
-    dc->SetFont(FONT_MAP[FontString], color);
+    const wxFontInfo& fnt = TextDrawingContext::GetTextFont(FontString);
+    dc->SetFont(fnt, color);
 }
 
 enum TextDirection {
@@ -467,7 +440,7 @@ static int TextEffectsIndex(const wxString &st) {
     return 0;
 }
 
-void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     // determine if we are rendering an xLights Font
     wxString xl_font = SettingsMap.Get("CHOICE_Text_Font", "Use OS Fonts");
@@ -478,10 +451,12 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     }
 
     wxString text = ToWXString(SettingsMap["TEXTCTRL_Text"]);
+    text.Replace("\\n", "\n");
+
     wxString filename = SettingsMap["FILEPICKERCTRL_Text_File"];
     wxString lyricTrack = SettingsMap["CHOICE_Text_LyricTrack"];
 
-    if (text == "")
+    if (text.IsEmpty())
     {
         if (FileExists(filename))
         {
@@ -494,9 +469,9 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 text += f.GetNextLine() + "\n";
                 i++;
             }
-            if (text != "")
+            if (!text.IsEmpty())
             {
-                while (text.Last() == '\n')
+                while (!text.IsEmpty() && text.Last() == '\n' )
                 {
                     text = text.BeforeLast('\n');
                 }
@@ -505,7 +480,7 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         }
         else
         {
-            if (lyricTrack != "")
+            if (!lyricTrack.IsEmpty())
             {
                 Element* t = nullptr;
                 for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
@@ -552,7 +527,7 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         text = FlipWord(SettingsMap, text, buffer);
     }
 
-    if (text != "") {
+    if (!text.IsEmpty()) {
 
         int starty = wxAtoi(SettingsMap.Get("SLIDER_Text_YStart", "0"));
         int startx = wxAtoi(SettingsMap.Get("SLIDER_Text_XStart", "0"));
@@ -1386,21 +1361,37 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
     }
 }
 
+#define msgReplace(a, b, c) \
+    do                      \
+    {                    \
+       if (a.Contains(b)) { \
+           a.Replace(b, (c)); \
+       } \
+    } while (0)
 
 void TextEffect::ReplaceVaribles(wxString& msg, RenderBuffer& buffer) const
 {
-    msg.Replace("${TITLE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
-    msg.Replace("${SONG}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
-    msg.Replace("${ARTIST}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ARTIST));
-    msg.Replace("${ALBUM}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ALBUM));
+    msgReplace(msg, "${TITLE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
+    msgReplace(msg, "${SONG}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::SONG));
+    msgReplace(msg, "${ARTIST}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ARTIST));
+    msgReplace(msg, "${ALBUM}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::ALBUM));
     if (buffer.GetMedia() != nullptr) {
-        msg.Replace("${FILENAME}", buffer.GetMedia()->FileName());
+        msgReplace(msg, "${FILENAME}", buffer.GetMedia()->FileName());
     }
-    msg.Replace("${AUTHOR}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR));
-    msg.Replace("${AUTHOREMAIL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR_EMAIL));
-    msg.Replace("${COMMENT}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::COMMENT));
-    msg.Replace("${URL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::URL));
-    msg.Replace("${WEBSITE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::WEBSITE));
+    msgReplace(msg, "${AUTHOR}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR));
+    msgReplace(msg, "${AUTHOREMAIL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::AUTHOR_EMAIL));
+    msgReplace(msg, "${COMMENT}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::COMMENT));
+    msgReplace(msg, "${URL}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::URL));
+    msgReplace(msg, "${WEBSITE}", buffer.GetXmlHeaderInfo(HEADER_INFO_TYPES::WEBSITE));
+
+    if (msg.Contains("${UPPER}")) {
+        msg.Replace("${UPPER}", "");
+        msg = msg.Upper();
+    }
+    if (msg.Contains("${LOWER}")) {
+        msg.Replace("${LOWER}", "");
+        msg = msg.Lower();
+    }
 }
 
 std::vector<std::string> TextEffect::WordSplit(const std::string& text) const
@@ -1482,6 +1473,8 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     int char_height = font->GetHeight();
 
     wxString text = ToWXString(settings["TEXTCTRL_Text"]);
+    text.Replace("\\n", "\n");
+
     wxString filename = settings["FILEPICKERCTRL_Text_File"];
     wxString lyricTrack = settings["CHOICE_Text_LyricTrack"];
 
@@ -1599,58 +1592,62 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         OffsetTop += buffer.BufferHt / 2 - font->GetCapsHeight() / 2;
     }
 
+    auto startOffsetLeft = OffsetLeft;
+
     if (text != "") {
         int space_offset = 0;
         for (int i = 0; i < text.length(); i++) {
-            buffer.palette.GetColor((i - space_offset) % num_colors, c);
-            if (text[i] == ' ') {
-                space_offset++;
-            }
-            char ascii = text[i];
-            int x_start_corner = (ascii % 8) * (char_width + 1) + 1;
-            int y_start_corner = (ascii / 8) * (char_height + 1) + 1;
 
-            int actual_width = font->GetCharWidth(ascii);
-            wxASSERT(actual_width > 0);
-            if (rotate_90 && up) {
-                OffsetTop -= actual_width;
-            }
-            for (int w = 0; w < actual_width; w++) {
-                int x_pos = x_start_corner + w;
-                for (int y_pos = y_start_corner; y_pos < y_start_corner + char_height; y_pos++) {
-                    if (x_pos >= 0 && x_pos < image.GetWidth() && y_pos >= 0 && y_pos < image.GetHeight()) {
-                        int red = image.GetRed(x_pos, y_pos);
-                        int green = image.GetGreen(x_pos, y_pos);
-                        int blue = image.GetBlue(x_pos, y_pos);
-                        if (red == 255 && green == 255 && blue == 255) {
-                            if (rotate_90) {
-                                if (up) {
-                                    buffer.SetPixel(y_pos - y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (actual_width - 1 - x_pos + x_start_corner + OffsetTop), c, false);
+            if (text[i] == '\n')
+            {
+                OffsetLeft = startOffsetLeft;
+                OffsetTop += font->GetHeight() + 1;
+            } else {
+                buffer.palette.GetColor((i - space_offset) % num_colors, c);
+                if (text[i] == ' ') {
+                    space_offset++;
+                }
+                char ascii = text[i];
+                int x_start_corner = (ascii % 8) * (char_width + 1) + 1;
+                int y_start_corner = (ascii / 8) * (char_height + 1) + 1;
+
+                int actual_width = font->GetCharWidth(ascii);
+                wxASSERT(actual_width > 0);
+                if (rotate_90 && up) {
+                    OffsetTop -= actual_width;
+                }
+                for (int w = 0; w < actual_width; w++) {
+                    int x_pos = x_start_corner + w;
+                    for (int y_pos = y_start_corner; y_pos < y_start_corner + char_height; y_pos++) {
+                        if (x_pos >= 0 && x_pos < image.GetWidth() && y_pos >= 0 && y_pos < image.GetHeight()) {
+                            int red = image.GetRed(x_pos, y_pos);
+                            int green = image.GetGreen(x_pos, y_pos);
+                            int blue = image.GetBlue(x_pos, y_pos);
+                            if (red == 255 && green == 255 && blue == 255) {
+                                if (rotate_90) {
+                                    if (up) {
+                                        buffer.SetPixel(y_pos - y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (actual_width - 1 - x_pos + x_start_corner + OffsetTop), c, false);
+                                    } else {
+                                        buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
+                                    }
+                                } else {
+                                    buffer.SetPixel(x_pos - x_start_corner + OffsetLeft, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
                                 }
-                                else {
-                                    buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
-                                }
-                            }
-                            else {
-                                buffer.SetPixel(x_pos - x_start_corner + OffsetLeft, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
                             }
                         }
                     }
                 }
-            }
-            if (vertical) {
-                if (up) {
-                    OffsetTop -= char_height + 1;
+                if (vertical) {
+                    if (up) {
+                        OffsetTop -= char_height + 1;
+                    } else {
+                        OffsetTop += char_height + 1;
+                    }
+                } else if (rotate_90 && !up) {
+                    OffsetTop += actual_width;
+                } else if (!rotate_90) {
+                    OffsetLeft += actual_width;
                 }
-                else {
-                    OffsetTop += char_height + 1;
-                }
-            }
-            else if (rotate_90 && !up) {
-                OffsetTop += actual_width;
-            }
-            else if (!rotate_90) {
-                OffsetLeft += actual_width;
             }
         }
     }
