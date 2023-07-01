@@ -10,12 +10,12 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "DmxModel.h"
+#include "DmxMovingHead.h"
 
 class Mesh;
 class Servo;
 
-class DmxMovingHeadAdv : public DmxModel
+class DmxMovingHeadAdv : public DmxMovingHead
 {
     public:
     DmxMovingHeadAdv(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
@@ -48,6 +48,8 @@ class DmxMovingHeadAdv : public DmxModel
 
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+
+        virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
 
         float brightness = 100.0f;
 

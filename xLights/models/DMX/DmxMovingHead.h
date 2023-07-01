@@ -11,7 +11,6 @@
  **************************************************************/
 
 #include "DmxModel.h"
-#include "DmxColorAbility.h"
 #include "DmxPanTiltAbility.h"
 #include "DmxShutterAbility.h"
 

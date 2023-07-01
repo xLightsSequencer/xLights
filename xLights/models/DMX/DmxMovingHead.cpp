@@ -126,11 +126,14 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
     AddPanTiltTypeProperties(grid);
 
     if (nullptr != color_ability) {
+        grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
         int selected = DMX_COLOR_TYPES.Index(color_ability->GetTypeName());
         grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES, selected));
         color_ability->AddColorTypeProperties(grid);
     }
     AddShutterTypeProperties(grid);
+
+    p = grid->Append(new wxPropertyCategory("Beam Properties", "BeamProperties"));
 
     p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
     p->SetAttribute("Min", 0);
@@ -145,6 +148,8 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
     p->SetAttribute("Precision", 2);
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
+    
+    grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
 
 int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)

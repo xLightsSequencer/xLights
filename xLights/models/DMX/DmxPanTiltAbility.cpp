@@ -26,7 +26,9 @@ DmxPanTiltAbility::~DmxPanTiltAbility()
 
 void DmxPanTiltAbility::AddPanTiltTypeProperties(wxPropertyGridInterface *grid) {
 
-    wxPGProperty* p = grid->Append(new wxUIntProperty("Pan Channel", "DmxPanChannel", pan_channel));
+    auto p = grid->Append(new wxPropertyCategory("Pan/Tilt Properties", "PanTiltProperties"));
+
+    p = grid->Append(new wxUIntProperty("Pan Channel", "DmxPanChannel", pan_channel));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");

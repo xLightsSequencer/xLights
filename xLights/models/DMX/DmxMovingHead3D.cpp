@@ -19,6 +19,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxMovingHead3D.h"
+#include "DmxColorAbility.h"
 #include "DmxPresetAbility.h"
 #include "Mesh.h"
 
@@ -57,6 +58,7 @@ void DmxMovingHead3D::DisableUnusedProperties(wxPropertyGridInterface* grid)
 
     DmxModel::DisableUnusedProperties(grid);
 }
+
 void DmxMovingHead3D::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     base_node = nullptr;
     head_node = nullptr;

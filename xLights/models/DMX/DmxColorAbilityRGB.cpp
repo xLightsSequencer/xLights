@@ -95,7 +95,7 @@ bool DmxColorAbilityRGB::IsValidModelSettings(Model* m) const
 
 void DmxColorAbilityRGB::AddColorTypeProperties(wxPropertyGridInterface *grid) const {
 
-    wxPGProperty* p = grid->Append(new wxUIntProperty("Red Channel", "DmxRedChannel", red_channel));
+    auto p = grid->Append(new wxUIntProperty("Red Channel", "DmxRedChannel", red_channel));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
