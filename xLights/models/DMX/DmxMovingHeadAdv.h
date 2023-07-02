@@ -65,7 +65,7 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
         bool update_bits = false;
         const int num_servos = 2;
         int num_static = 1;
-        int num_motion = 1;
+        int num_motion = 2;
         bool _16bit = true;
         bool show_pivot = false;
         std::vector<Mesh*> static_meshs;

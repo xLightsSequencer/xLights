@@ -95,8 +95,6 @@ void DmxMovingHeadAdv::Clear() {
     static_meshs.clear();
 }
 
-static wxPGChoices MOTION_LINKS;
-
 void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
     DmxModel::AddTypeProperties(grid, outputManager);
@@ -161,31 +159,6 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
     for (const auto& it : motion_meshs) {
         it->AddTypeProperties(grid);
     }
-
-    if (MOTION_LINKS.GetCount() != (unsigned int)num_servos) {
-        MOTION_LINKS.Clear();
-    }
-    if (MOTION_LINKS.GetCount() == 0) {
-        for (int i = 0; i < num_servos; ++i) {
-            MOTION_LINKS.Add("Mesh " + std::to_string(i + 1));
-        }
-    }
-
-    grid->Append(new wxPropertyCategory("Servo Linkage", "ServoMotionProperties"));
-    for (int i = 0; i < num_servos; ++i) {
-        std::string linkage = "Servo " + std::to_string(i + 1) + " Linkage";
-        std::string linkage2 = "Servo" + std::to_string(i + 1) + "Linkage";
-        grid->Append(new wxEnumProperty(linkage, linkage2, MOTION_LINKS, servo_links[i] == -1 ? i : servo_links[i]));
-    }
-    grid->Collapse("ServoMotionProperties");
-
-    grid->Append(new wxPropertyCategory("Mesh Linkage", "MeshMotionProperties"));
-    for (int i = 0; i < num_servos; ++i) {
-        std::string linkage = "Mesh " + std::to_string(i + 1) + " Linkage";
-        std::string linkage2 = "Mesh" + std::to_string(i + 1) + "Linkage";
-        grid->Append(new wxEnumProperty(linkage, linkage2, MOTION_LINKS, mesh_links[i] == -1 ? i : mesh_links[i]));
-    }
-    grid->Collapse("MeshMotionProperties");
 
     grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
@@ -356,8 +329,6 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
 
 void DmxMovingHeadAdv::InitModel()
 {
-    num_static = wxAtoi(ModelXml->GetAttribute("NumStatic", "1"));
-    num_motion = wxAtoi(ModelXml->GetAttribute("NumMotion", "1"));
     _16bit = wxAtoi(ModelXml->GetAttribute("Bits16", "1"));
 
     int min_channels = num_servos * (_16bit ? 2 : 1);
@@ -443,8 +414,6 @@ void DmxMovingHeadAdv::InitModel()
 
     while (n != nullptr) {
         std::string name = n->GetName();
-        int static_idx = name.find("StaticMesh");
-        int motion_idx = name.find("MotionMesh");
 
         if ("PanServo" == name) {
              if (servos[0] == nullptr) {
@@ -454,57 +423,62 @@ void DmxMovingHeadAdv::InitModel()
             if (servos[1] == nullptr) {
                 servos[1] = new Servo(n, name, false);
             }
-        } else if (static_idx != std::string::npos) {
-            std::string num = name.substr(10, name.length());
-            int id = atoi(num.c_str()) - 1;
-            if (id < num_static) {
-                if (static_meshs[id] == nullptr) {
-                    static_meshs[id] = new Mesh(n, name);
-                }
+        } else if ("BaseMesh" == name) {
+            if (static_meshs[0] == nullptr) {
+                static_meshs[0] = new Mesh(n, name);
             }
-        } else if (motion_idx != std::string::npos) {
-            std::string num = name.substr(10, name.length());
-            int id = atoi(num.c_str()) - 1;
-            if (id < num_motion) {
-                if (motion_meshs[id] == nullptr) {
-                    motion_meshs[id] = new Mesh(n, name);
-                }
+        } else if ("YokeMesh" == name) {
+            if (motion_meshs[0] == nullptr) {
+                motion_meshs[0] = new Mesh(n, name);
+            }
+        } else if ("HeadMesh" == name) {
+            if (motion_meshs[1] == nullptr) {
+                motion_meshs[1] = new Mesh(n, name);
             }
         }
         n = n->GetNext();
     }
 
-    // create any missing servos
-    for (int i = 0; i < num_servos; ++i) {
-        if (servos[i] == nullptr) {
-            std::string new_name;
-            if( i == 0 ) new_name = "PanServo";
-            if( i == 1 ) new_name = "TiltServo";
-            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-            ModelXml->AddChild(new_node);
-            servos[i] = new Servo(new_node, new_name, true);
-            servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
-        }
+    // create pan servo
+    if (servos[0] == nullptr) {
+        std::string new_name = "PanServo";
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+        ModelXml->AddChild(new_node);
+        servos[0] = new Servo(new_node, new_name, true);
+        servos[0]->SetChannel(1, this);
     }
 
-    // create any missing static meshes
-    for (int i = 0; i < num_static; ++i) {
-        if (static_meshs[i] == nullptr) {
-            std::string new_name = "StaticMesh" + std::to_string(i + 1);
-            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-            ModelXml->AddChild(new_node);
-            static_meshs[i] = new Mesh(new_node, new_name);
-        }
+    // create tilt servo
+    if (servos[1] == nullptr) {
+        std::string new_name = "TiltServo";
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+        ModelXml->AddChild(new_node);
+        servos[1] = new Servo(new_node, new_name, true);
+        servos[1]->SetChannel(_16bit ? 3 : 2, this);
     }
 
-    // create any missing motion meshes
-    for (int i = 0; i < num_motion; ++i) {
-        if (motion_meshs[i] == nullptr) {
-            std::string new_name = "MotionMesh" + std::to_string(i + 1);
-            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-            ModelXml->AddChild(new_node);
-            motion_meshs[i] = new Mesh(new_node, new_name);
-        }
+    // create base mesh
+    if (static_meshs[0] == nullptr) {
+        std::string new_name = "BaseMesh";
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+        ModelXml->AddChild(new_node);
+        static_meshs[0] = new Mesh(new_node, new_name);
+    }
+
+    // create yoke mesh
+    if (motion_meshs[0] == nullptr) {
+        std::string new_name = "YokeMesh";
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+        ModelXml->AddChild(new_node);
+        motion_meshs[0] = new Mesh(new_node, new_name);
+    }
+
+    // create head mesh
+    if (motion_meshs[1] == nullptr) {
+        std::string new_name = "HeadMesh";
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+        ModelXml->AddChild(new_node);
+        motion_meshs[1] = new Mesh(new_node, new_name);
     }
 
     // set linkages
