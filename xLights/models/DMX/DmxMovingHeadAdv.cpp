@@ -36,9 +36,38 @@ enum MOTION_LINK {
     MOTION_LINK_MESH2
 };
 
+#define ToRadians(x) ((double)x * PI / (double)180.0)
+
+class dmxPoint3 {
+
+public:
+    float x;
+    float y;
+    float z;
+
+    dmxPoint3(float x_, float y_, float z_, float pan_angle_, float tilt_angle_ = 0, float nod_angle_ = 0.0)
+        : x(x_), y(y_), z(z_)
+    {
+        float pan_angle = wxDegToRad(pan_angle_);
+        float tilt_angle = wxDegToRad(tilt_angle_);
+        float nod_angle = wxDegToRad(nod_angle_);
+
+        glm::vec4 position = glm::vec4(glm::vec3(x_, y_, z_), 1.0);
+
+        glm::mat4 rotationMatrixPan = glm::rotate(glm::mat4(1.0f), pan_angle, glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 rotationMatrixTilt = glm::rotate(glm::mat4(1.0f), tilt_angle, glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 rotationMatrixNod = glm::rotate(glm::mat4(1.0f), nod_angle, glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::vec4 model_position = rotationMatrixPan * rotationMatrixTilt * rotationMatrixNod * position;
+        x = model_position.x;
+        y = model_position.y;
+        z = model_position.z;
+    }
+};
+
 DmxMovingHeadAdv::DmxMovingHeadAdv(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxModel(node, manager, zeroBased)
+    : DmxModel(node, manager, zeroBased), beam_length(4)
 {
+    beam_width = GetDefaultBeamWidth();
     SetFromXml(node, zeroBased);
 }
 
@@ -96,6 +125,23 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
     }
     AddShutterTypeProperties(grid);
     grid->Collapse("DmxShutterProperties");
+
+    p = grid->Append(new wxPropertyCategory("Beam Properties", "BeamProperties"));
+
+    p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 100);
+    p->SetAttribute("Precision", 2);
+    p->SetAttribute("Step", 0.1);
+    p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxFloatProperty("Beam Display Width", "DmxBeamWidth", beam_width));
+    p->SetAttribute("Min", 0.01);
+    p->SetAttribute("Max", 150);
+    p->SetAttribute("Precision", 2);
+    p->SetAttribute("Step", 0.1);
+    p->SetEditor("SpinCtrl");
+    grid->Collapse("BeamProperties");
 
     for (const auto& it : static_meshs) {
         it->AddTypeProperties(grid);
@@ -223,7 +269,22 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::Bits16");
         return 0;
     }
-
+    else if ("DmxBeamLength" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxBeamLength");
+        ModelXml->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DMXBeamLength");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DMXBeamLength");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DMXBeamLength");
+        return 0;
+    }
+    else if ("DmxBeamWidth" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxBeamWidth");
+        ModelXml->AddAttribute("DmxBeamWidth", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DMXBeamWidth");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DMXBeamWidth");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DMXBeamWidth");
+        return 0;
+    }
     else if ("DmxColorType" == event.GetPropertyName()) {
         int color_type = event.GetPropertyValue().GetInteger();
 
@@ -282,6 +343,14 @@ void DmxMovingHeadAdv::InitModel()
     DmxModel::InitModel();
     DisplayAs = "DmxMovingHeadAdv";
 
+    pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "0"));
+    pan_slew_limit = wxAtof(ModelXml->GetAttribute("DmxPanSlewLimit", "0"));
+    tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "0"));
+    tilt_slew_limit = wxAtof(ModelXml->GetAttribute("DmxTiltSlewLimit", "0"));
+    shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
+    shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
+    shutter_on_value = wxAtoi(ModelXml->GetAttribute("DmxShutterOnValue", "0"));
+    
     int color_type = wxAtoi(ModelXml->GetAttribute("DmxColorType", "0"));
     if (color_type == 0) {
         color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
@@ -290,6 +359,12 @@ void DmxMovingHeadAdv::InitModel()
     }
     else {
         color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
+    }
+
+    beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "4.0"));
+    beam_width = GetDefaultBeamWidth();
+    if (ModelXml->HasAttribute("DmxBeamWidth")) {
+        beam_width = wxAtof(ModelXml->GetAttribute("DmxBeamWidth"));
     }
 
     // clear links
@@ -484,7 +559,7 @@ void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsCon
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
-    DrawModel(preview, ctx, sprogram, tprogram, !allowSelected);
+    DrawModel(preview, ctx, sprogram, tprogram, !allowSelected, c);
     sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PopMatrix();
     });
@@ -547,7 +622,7 @@ void DmxMovingHeadAdv::DisplayEffectOnWindow(ModelPreview* preview, double point
                                      h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
             ctx->ScaleViewMatrix(scaleX, scaleY, 1.0f);
         });
-        DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), true);
+        DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), true, nullptr);
         preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext* ctx) {
             ctx->PopMatrix();
         });
@@ -582,7 +657,7 @@ std::list<std::string> DmxMovingHeadAdv::CheckModelSettings()
     return res;
 }
 
-void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active)
+void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active, const xlColor* c)
 {
     // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);
@@ -597,16 +672,97 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
         }
     }
     size_t NodeCount = Nodes.size();
-    if (!color_ability->IsValidModelSettings(this) || pan_channel > NodeCount ||
+    if (!color_ability->IsValidModelSettings(this) ||
         !preset_ability->IsValidModelSettings(this) ||
-        tilt_channel > NodeCount ||
         shutter_channel > NodeCount)
     {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
 
-    float servo_pos[SUPPORTED_SERVOS] = { 0.0f };
+    // retrieve the model state
+    float old_pan_angle = 0.0f;
+    float old_tilt_angle = 0.0f;
+    uint32_t old_ms = 0;
+
+    PanTiltState &st = panTiltStates[preview->GetName().ToStdString()];
+    if (active) {
+        old_ms = st.ms;
+        old_pan_angle = st.pan_angle;
+        old_tilt_angle = st.tilt_angle;
+    }
+
+    float pan_angle = 0;
+    if (servos[0]->GetChannel() > 0 && active) {
+        pan_angle = servos[0]->GetPosition(GetChannelValue(servos[0]->GetChannel() - 1, servos[0]->Is16Bit()));
+    }
+    pan_angle += pan_orient;
+
+    float tilt_angle = 0;
+    if (servos[1]->GetChannel() > 0 && active) {
+        tilt_angle = servos[1]->GetPosition(GetChannelValue(servos[1]->GetChannel() - 1, servos[1]->Is16Bit()));
+    }
+    tilt_angle += tilt_orient;
+
+    uint32_t ms = preview->getCurrentFrameTime();
+    uint32_t time_delta = 0;
+    if (ms > old_ms) {
+        time_delta = ms - old_ms;
+    } else if (ms == old_ms && active) {
+        pan_angle = old_pan_angle;
+        tilt_angle = old_tilt_angle;
+    }
+    if (time_delta > 500) {
+        // more than 1/2 second off, assume a jump of some sort
+        time_delta = 0;
+    }
+
+    if (time_delta != 0 && active) {
+        // pan slew limiting
+        if (pan_slew_limit > 0.0f) {
+            float slew_limit = pan_slew_limit * (float)time_delta / 1000.0f;
+            float pan_delta = pan_angle - old_pan_angle;
+            if (std::abs(pan_delta) > slew_limit) {
+                if (pan_delta < 0) {
+                    slew_limit *= -1.0f;
+                }
+                pan_angle = old_pan_angle + slew_limit;
+            }
+        }
+    }
+
+    float pan_angle_raw = pan_angle;
+
+    if (time_delta != 0 && active) {
+        // tilt slew limiting
+        if (tilt_slew_limit > 0.0f) {
+            float slew_limit = tilt_slew_limit * (float)time_delta / 1000.0f;
+            float tilt_delta = tilt_angle - old_tilt_angle;
+            if (std::abs(tilt_delta) > slew_limit) {
+                if (tilt_delta < 0) {
+                    slew_limit *= -1.0f;
+                }
+                tilt_angle = old_tilt_angle + slew_limit;
+            }
+        }
+    }
+
+    // Determine if we need to flip the beam
+    int tilt_pos = (int)(RenderBuffer::cos(ToRadians(tilt_angle)));
+    if (tilt_pos < 0) {
+        if (pan_angle >= 180.0f) {
+            pan_angle -= 180.0f;
+        } else {
+            pan_angle += 180.0f;
+        }
+    }
+
+    // save the model state
+    st.ms = ms;
+    st.pan_angle = pan_angle_raw;
+    st.tilt_angle = tilt_angle;
+
+    float servo_pos[2] = { pan_angle, tilt_angle };
     glm::mat4 Identity = glm::mat4(1.0f);
     glm::mat4 servo_matrix[SUPPORTED_SERVOS];
     glm::mat4 motion_matrix[SUPPORTED_SERVOS];
@@ -619,7 +775,7 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     // Get servo positions and fill motion matrices
     for (int i = 0; i < servos.size(); ++i) {
         if (servos[i]->GetChannel() > 0 && active) {
-            servo_pos[i] = servos[i]->GetPosition(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
+            //servo_pos[i] = servos[i]->GetPosition(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
             if (servos[i]->IsTranslate()) {
                 glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
                 servo_pos[i] /= scale.x;
@@ -672,6 +828,107 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     for (int i = 0; i < num_motion; ++i) {
         motion_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, motion_matrix[i], i < num_static ? !static_meshs[i]->GetExists(this, ctx) : false,
                               servos[i]->GetPivotOffsetX(), servos[i]->GetPivotOffsetY(), servos[i]->GetPivotOffsetZ(), servos[i]->IsRotate() && show_pivot, !active);
+    }
+
+    // Everything below here is for drawing the light beam
+
+    float beam_length_displayed = beam_length;
+    
+    float scw = screenLocation.GetRenderWi() * screenLocation.GetScaleX();
+    float sch = screenLocation.GetRenderHt() * screenLocation.GetScaleY();
+    float scd = screenLocation.GetRenderDp() * screenLocation.GetScaleZ();
+    float sbl = std::max(scw, std::max(sch, scd));
+    beam_length_displayed *= sbl;
+
+    // determine if shutter is open for heads that support it
+    bool shutter_open = true;
+    if (shutter_channel > 0 && shutter_channel <= NodeCount && active) {
+        xlColor proxy;
+        Nodes[shutter_channel - 1]->GetColor(proxy);
+        int shutter_value = proxy.red;
+        if (shutter_value >= 0) {
+            shutter_open = shutter_value >= shutter_threshold;
+        } else {
+            shutter_open = shutter_value <= std::abs(shutter_threshold);
+        }
+    }
+
+    xlColor color;
+    if (c != nullptr) {
+        color = *c;
+    }
+    int trans = color == xlBLACK ? blackTransparency : transparency;
+    xlColor beam_color = color_ability->GetBeamColor(Nodes);
+    if (!active) {
+        beam_color = xlWHITE;
+    }
+    ApplyTransparency(beam_color, trans, trans);
+
+    while (pan_angle_raw > 360.0f)
+        pan_angle_raw -= 360.0f;
+    pan_angle_raw = 360.0f - pan_angle_raw;
+
+    //Draw3DBeam(tvac, beam_color, beam_length_displayed, , tilt_angle, shutter_open);
+    auto vac = tprogram->getAccumulator();
+    int start = vac->getCount();
+    Draw3DBeam(vac, xlRED, beam_length_displayed, 360.0, 0.0, true);
+    int end = vac->getCount();
+    tprogram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->drawTriangles(vac, start, end - start);
+    });
+}
+
+void DmxMovingHeadAdv::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_color, float beam_length_displayed, float pan_angle_raw, float tilt_angle, bool shutter_open)
+{
+    xlColor beam_color_end(beam_color);
+    beam_color_end.alpha = 0;
+
+    bool facing_right = pan_angle_raw <= 90.0f || pan_angle_raw >= 270.0f;
+
+    float combined_angle = tilt_angle;
+    if (beam_color.red != 0 || beam_color.green != 0 || beam_color.blue != 0) {
+        if (shutter_open) {
+            float angle1 = float(beam_width) / 2.0f;
+            if (angle1 < 0.0f) {
+                angle1 += 360.0f;
+            }
+            float x1 = (RenderBuffer::cos(ToRadians(angle1)) * beam_length_displayed);
+            float y1 = (RenderBuffer::sin(ToRadians(angle1)) * beam_length_displayed);
+
+            dmxPoint3 p1(x1, -y1, -y1, pan_angle_raw, combined_angle);
+            dmxPoint3 p2(x1, -y1, y1, pan_angle_raw, combined_angle);
+            dmxPoint3 p3(x1, y1, -y1, pan_angle_raw, combined_angle);
+            dmxPoint3 p4(x1, y1, y1, pan_angle_raw, combined_angle);
+            dmxPoint3 p0(0, 0, 0, pan_angle_raw, combined_angle);
+
+            if (!facing_right) {
+                tvac->AddVertex(p2.x, p2.y, p2.z, beam_color_end);
+                tvac->AddVertex(p4.x, p4.y, p4.z, beam_color_end);
+                tvac->AddVertex(p0.x, p0.y, p0.z, beam_color);
+            } else {
+                tvac->AddVertex(p1.x, p1.y, p1.z, beam_color_end);
+                tvac->AddVertex(p3.x, p3.y, p3.z, beam_color_end);
+                tvac->AddVertex(p0.x, p0.y, p0.z, beam_color);
+            }
+
+            tvac->AddVertex(p1.x, p1.y, p1.z, beam_color_end);
+            tvac->AddVertex(p2.x, p2.y, p2.z, beam_color_end);
+            tvac->AddVertex(p0.x, p0.y, p0.z, beam_color);
+
+            tvac->AddVertex(p3.x, p3.y, p3.z, beam_color_end);
+            tvac->AddVertex(p4.x, p4.y, p4.z, beam_color_end);
+            tvac->AddVertex(p0.x, p0.y, p0.z, beam_color);
+
+            if (facing_right) {
+                tvac->AddVertex(p2.x, p2.y, p2.z, beam_color_end);
+                tvac->AddVertex(p4.x, p4.y, p4.z, beam_color_end);
+                tvac->AddVertex(p0.x, p0.y, p0.z, beam_color);
+            } else {
+                tvac->AddVertex(p1.x, p1.y, p1.z, beam_color_end);
+                tvac->AddVertex(p3.x, p3.y, p3.z, beam_color_end);
+                tvac->AddVertex(p0.x, p0.y, p0.z, beam_color);
+            }
+        }
     }
 }
 
