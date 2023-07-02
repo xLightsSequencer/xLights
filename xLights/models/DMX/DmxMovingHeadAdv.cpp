@@ -65,109 +65,14 @@ void DmxMovingHeadAdv::Clear() {
     static_meshs.clear();
 }
 
-static const std::string CLICK_TO_EDIT("--Click To Edit--");
-class ServoConfigDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    ServoConfigDialogAdapter(DmxMovingHeadAdv* model) :
-        wxPGEditorDialogAdapter(), m_model(model)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property)) override
-    {
-        ServoConfigDialog dlg(propGrid);
-
-        dlg.CheckBox_16bits->SetValue(m_model->Is16Bit());
-        dlg.SpinCtrl_NumStatic->SetValue(m_model->GetNumStatic());
-        dlg.SpinCtrl_NumMotion->SetValue(m_model->GetNumMotion());
-
-        if (dlg.ShowModal() == wxID_OK) {
-            bool changed = false;
-
-            int _num_static = dlg.SpinCtrl_NumStatic->GetValue();
-            if (_num_static != m_model->GetNumStatic()) {
-                m_model->GetModelXml()->DeleteAttribute("NumStatic");
-                m_model->GetModelXml()->AddAttribute("NumStatic", std::to_string(_num_static));
-                changed = true;
-            }
-            int _num_motion = dlg.SpinCtrl_NumMotion->GetValue();
-            if (_num_motion != m_model->GetNumMotion()) {
-                m_model->GetModelXml()->DeleteAttribute("NumMotion");
-                m_model->GetModelXml()->AddAttribute("NumMotion", std::to_string(_num_motion));
-                changed = true;
-            }
-            bool _16bit = dlg.CheckBox_16bits->GetValue();
-            if (_16bit != m_model->Is16Bit()) {
-                m_model->GetModelXml()->DeleteAttribute("Bits16");
-                changed = true;
-                if (_16bit) {
-                    m_model->GetModelXml()->AddAttribute("Bits16", "1");
-                } else {
-                    m_model->GetModelXml()->AddAttribute("Bits16", "0");
-                }
-                m_model->UpdateBits();
-                m_model->UpdateNodeNames();
-            }
-            if (changed) {
-                m_model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::ServoConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHeadAdv::ServoConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::ServoConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHeadAdv::ServoConfigDialogAdapter");
-            }
-
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            return true;
-        }
-        return false;
-    }
-
-protected:
-    DmxMovingHeadAdv* m_model;
-};
-
-class ServoPopupDialogProperty : public wxStringProperty
-{
-public:
-    ServoPopupDialogProperty(DmxMovingHeadAdv* m,
-                             const wxString& label,
-                             const wxString& name,
-                             const wxString& value,
-                             int type) :
-        wxStringProperty(label, name, value), m_model(m), m_tp(type)
-    {
-    }
-    // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const override
-    {
-        return wxPGEditor_TextCtrlAndButton;
-    }
-    // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
-    {
-        switch (m_tp) {
-        case 1:
-            return new ServoConfigDialogAdapter(m_model);
-        default:
-            break;
-        }
-        return nullptr;
-    }
-
-protected:
-    DmxMovingHeadAdv* m_model = nullptr;
-    int m_tp;
-};
-
 static wxPGChoices MOTION_LINKS;
 
 void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
     DmxModel::AddTypeProperties(grid, outputManager);
 
-    wxPGProperty* p = grid->Append(new ServoPopupDialogProperty(this, "Servo Config", "ServoConfig", CLICK_TO_EDIT, 1));
-    grid->LimitPropertyEditing(p);
+    auto p = grid->Append(new wxBoolProperty("16 Bit", "Bits16", _16bit));
+    p->SetAttribute("UseCheckbox", true);
 
     p = grid->Append(new wxBoolProperty("Show Pivot Axes", "PivotAxes", show_pivot));
     p->SetAttribute("UseCheckbox", true);
@@ -277,6 +182,33 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
         return 0;
     }
 
+    if (event.GetPropertyName() == "Bits16") {
+        ModelXml->DeleteAttribute("Bits16");
+        if (event.GetValue().GetBool()) {
+            _16bit = true;
+            ModelXml->AddAttribute("Bits16", "1");
+        } else {
+            _16bit = false;
+            ModelXml->AddAttribute("Bits16", "0");
+        }
+
+        for (int i = 0; i < num_servos; ++i) {
+            if (servos[i] != nullptr) {
+                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
+            }
+        }
+
+        int min_channels = num_servos * (_16bit ? 2 : 1);
+        if (parm1 < min_channels) {
+            UpdateChannelCount(min_channels, true);
+        }
+        update_node_names = true;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::Bits16");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHeadAdv::OnPropertyGridChange::Bits16");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::Bits16");
+        return 0;
+    }
+
     for (const auto& it : servos) {
         if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
             return 0;
@@ -291,53 +223,6 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
 
     for (const auto& it : motion_meshs) {
         if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-            return 0;
-        }
-    }
-
-    for (int i = 0; i < num_servos; ++i) {
-        std::string linkage = "Servo" + std::to_string(i + 1) + "Linkage";
-        if (linkage == name) {
-            ModelXml->DeleteAttribute(linkage);
-            int link_num = event.GetPropertyValue().GetLong();
-            if (link_num >= num_servos) {
-                link_num = i;
-            }
-            if (link_num == i) {
-                servo_links[i] = -1;
-            } else {
-                servo_links[i] = link_num;
-            }
-            ModelXml->AddAttribute(linkage, "Mesh " + std::to_string(link_num + 1));
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::ServoLinkage");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHeadAdv::OnPropertyGridChange::ServoLinkage");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::ServoLinkage");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "DmxMovingHeadAdv::OnPropertyGridChange::ServoLinkage");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::ServoLinkage");
-            AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DmxMovingHeadAdv::OnPropertyGridChange::ServoLinkage");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHeadAdv::OnPropertyGridChange::ServoLinkage");
-            return 0;
-        }
-        linkage = "Mesh" + std::to_string(i + 1) + "Linkage";
-        if (linkage == name) {
-            ModelXml->DeleteAttribute(linkage);
-            int link_num = event.GetPropertyValue().GetLong();
-            if (link_num >= num_servos) {
-                link_num = i;
-            }
-            if (link_num == i) {
-                mesh_links[i] = -1;
-            } else {
-                mesh_links[i] = link_num;
-            }
-            ModelXml->AddAttribute(linkage, "Mesh " + std::to_string(link_num + 1));
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::MeshLinkage");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHeadAdv::OnPropertyGridChange::MeshLinkage");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::MeshLinkage");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "DmxMovingHeadAdv::OnPropertyGridChange::MeshLinkage");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::MeshLinkage");
-            AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DmxMovingHeadAdv::OnPropertyGridChange::MeshLinkage");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHeadAdv::OnPropertyGridChange::MeshLinkage");
             return 0;
         }
     }
@@ -472,45 +357,11 @@ void DmxMovingHeadAdv::InitModel()
         }
     }
 
-    // get servo linkages
-    for (int i = 0; i < num_servos; ++i) {
-        servo_links[i] = -1;
-        std::string num = std::to_string(i + 1);
-        std::string this_link = "Servo" + num + "Linkage";
-        std::string this_default = "Mesh " + num;
-        std::string link = ModelXml->GetAttribute(this_link, this_default);
-        if (link.length() < 5) {
-            link = "Mesh 1";
-        }
-        std::string num2 = link.substr(5, name.length());
-        int link_id = atoi(num2.c_str());
-        if (link_id < 1) {
-            link_id = 1;
-        }
-        if (link_id != i + 1) {
-            servo_links[i] = link_id - 1;
-        }
-    }
-
-    // get mesh linkages
-    for (int i = 0; i < num_servos; ++i) {
-        mesh_links[i] = -1;
-        std::string num = std::to_string(i + 1);
-        std::string this_link = "Mesh" + num + "Linkage";
-        std::string this_default = "Mesh " + num;
-        std::string link = ModelXml->GetAttribute(this_link, this_default);
-        if (link.length() < 5) {
-            link = "Mesh 1";
-        }
-        std::string num2 = link.substr(5, name.length());
-        int link_id = atoi(num2.c_str());
-        if (link_id < 1) {
-            link_id = 1;
-        }
-        if (link_id != i + 1) {
-            mesh_links[i] = link_id - 1;
-        }
-    }
+    // set linkages
+    servo_links[0] = -1;
+    servo_links[1] = -1;
+    mesh_links[0] = -1;
+    mesh_links[1] = 0;
 
     brightness = wxAtoi(ModelXml->GetAttribute("Brightness", "100"));
 
@@ -543,17 +394,10 @@ void DmxMovingHeadAdv::InitModel()
 
     // create node names
     std::string names = "";
-    int index = 1;
-    for (auto it = servos.begin(); it != servos.end(); ++it) {
-        if (!names.empty()) {
-            names += ",";
-        }
-        if (_16bit) {
-            names += "Servo" + std::to_string(index) + ",-Servo" + std::to_string(index);
-        } else {
-            names += "Servo" + std::to_string(index);
-        }
-        index++;
+    if (_16bit) {
+        names = "Pan,-Pan,Tilt,-Tilt";
+    } else {
+        names = "Pan,Tilt";
     }
     SetNodeNames(names, update_node_names);
     update_node_names = false;
