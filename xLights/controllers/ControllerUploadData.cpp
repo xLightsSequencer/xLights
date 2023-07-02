@@ -396,6 +396,17 @@ bool UDControllerPort::ContainsModel(Model* m, int string) const {
     return false;
 }
 
+int UDControllerPort::CountEmptySmartRemotesBefore(int sr) const
+{
+    int count = 0;
+
+    for (int s = 1; s < sr; ++s)
+    {
+        if (GetModelCount(s) == 0) ++count;
+    }
+    return count;
+}
+
 bool UDControllerPort::SetAllModelsToControllerName(const std::string& controllerName)
 {
     bool changed = false;
@@ -557,6 +568,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                     current->_endChannel = it->GetStartChannel() + 2;
                     current->_startChannel = it->GetStartChannel();
                     current->_description = "DUMMY";
+                    current->_isDummy = true;
                     current->_protocol = it->GetProtocol();
                     current->_universe = it->GetUniverse();
                     current->_universeStartChannel = it->GetUniverseStartChannel();
@@ -613,6 +625,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
                         current->_endChannel = it->GetStartChannel() + 2;
                         current->_startChannel = it->GetStartChannel();
                         current->_description = "DUMMY";
+                        current->_isDummy = true;
                         current->_protocol = it->GetProtocol();
                         current->_universe = it->GetUniverse();
                         current->_universeStartChannel = it->GetUniverseStartChannel();
@@ -746,6 +759,17 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
         vs->_index = count++;
         lastremote = vs->_smartRemote;
     }
+}
+
+int UDControllerPort::GetModelCount(int sr) const
+{
+    int count = 0;
+    for (const auto& it : _virtualStrings)
+    {
+        if (it->_smartRemote == sr && !it->_isDummy)
+            ++count;
+    }
+    return count;
 }
 #pragma endregion
 
@@ -1085,6 +1109,16 @@ std::vector<std::string> UDControllerPort::ExportAsCSV(ExportSettings::SETTINGS 
     return columns;
 }
 
+int UDControllerPort::GetSmartRemoteCount() const
+{
+    int count = 0;
+    for (const auto& it : _models)
+    {
+        count = std::max(count, it->GetSmartRemote());
+    }
+    return count;
+}
+
 std::string UDControllerPort::ExportAsJSON() const
 {
     std::string json = "{\"port\":" + std::to_string(_port) + ",\"startchannel\":" + std::to_string(GetStartChannel()) +
@@ -1253,6 +1287,18 @@ UDControllerPort* UDController::GetControllerPixelPort(int port) {
     return _pixelPorts[port];
 }
 
+int UDController::GetSmartRemoteCount(int port)
+{
+    int count = 0;
+    int basePort = ((port - 1) / 4) * 4;
+    for (int p = basePort; p < basePort + 4; ++p)
+    {
+        auto pp = GetControllerPixelPort(p + 1);
+        count = std::max(count, pp->GetSmartRemoteCount());
+    }
+    return count;
+}
+
 UDControllerPort* UDController::GetControllerSerialPort(int port) {
     if (!HasSerialPort(port)) {
         _serialPorts[port] = new UDControllerPort("Serial", port);
@@ -1352,6 +1398,16 @@ int UDController::GetMaxVirtualMatrixPort() const {
     return last;
 }
 
+void UDController::TagSmartRemotePorts()
+{
+    for (const auto& it : _pixelPorts) {
+        if (it.second->AtLeastOneModelIsUsingSmartRemote()) {
+            for (uint32_t i = ((it.first-1) / 4) * 4 + 1; i < ((it.first-1) / 4) * 4 + 5; ++i) {
+                GetControllerPixelPort(i)->TagSmartRemotePort();
+            }
+        }
+    }
+}
 
 bool UDController::HasSerialPort(int port) const {
     for (const auto& it : _serialPorts) {
