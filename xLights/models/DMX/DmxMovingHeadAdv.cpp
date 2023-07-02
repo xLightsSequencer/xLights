@@ -34,7 +34,7 @@ enum MOTION_LINK {
 };
 
 DmxMovingHeadAdv::DmxMovingHeadAdv(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxMovingHead(node, manager, zeroBased)
+    : DmxModel(node, manager, zeroBased)
 {
     SetFromXml(node, zeroBased);
 }
@@ -290,20 +290,33 @@ void DmxMovingHeadAdv::InitModel()
     }
 
     wxXmlNode* n = ModelXml->GetChildren();
+    wxXmlNode* snode = nullptr;
+    wxXmlNode* mnode = nullptr;
 
     while (n != nullptr) {
         std::string name = n->GetName();
+        int servo_idx = name.find("Servo");
         int static_idx = name.find("StaticMesh");
         int motion_idx = name.find("MotionMesh");
 
-        if ("PanServo" == name) {
-            if (servos[0] == nullptr) {
-                servos[0] = new Servo(n, name, false);
+        if ("StaticMesh" == name) { // convert original name that had no number
+            // copy attributes to new name
+            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "StaticMesh1");
+            ModelXml->AddChild(new_node);
+            for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
+                new_node->AddAttribute(a->GetName(), a->GetValue());
             }
-        } else if ("TiltServo" == name) {
-            if (servos[1] == nullptr) {
-                servos[1] = new Servo(n, name, false);
+            snode = n;
+            static_meshs[0] = new Mesh(new_node, "StaticMesh1");
+        } else if ("MotionMesh" == name) { // convert original name that had no number
+            // copy attributes to new name
+            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "MotionMesh1");
+            ModelXml->AddChild(new_node);
+            for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
+                new_node->AddAttribute(a->GetName(), a->GetValue());
             }
+            mnode = n;
+            motion_meshs[0] = new Mesh(new_node, "MotionMesh1");
         } else if (static_idx != std::string::npos) {
             std::string num = name.substr(10, name.length());
             int id = atoi(num.c_str()) - 1;
@@ -320,16 +333,32 @@ void DmxMovingHeadAdv::InitModel()
                     motion_meshs[id] = new Mesh(n, name);
                 }
             }
+        } else if (servo_idx != std::string::npos) {
+            std::string num = name.substr(5, name.length());
+            int id = atoi(num.c_str()) - 1;
+            if (id < num_servos) {
+                if (servos[id] == nullptr) {
+                    servos[id] = new Servo(n, name, false);
+                }
+            }
         }
         n = n->GetNext();
+    }
+
+    // clean up any old nodes from version 2020.3
+    if (snode != nullptr) {
+        ModelXml->RemoveChild(snode);
+        delete snode;
+    }
+    if (mnode != nullptr) {
+        ModelXml->RemoveChild(mnode);
+        delete mnode;
     }
 
     // create any missing servos
     for (int i = 0; i < num_servos; ++i) {
         if (servos[i] == nullptr) {
-            std::string new_name;
-            if( i == 0 ) new_name = "PanServo";
-            if( i == 1 ) new_name = "TiltServo";
+            std::string new_name = "Servo" + std::to_string(i + 1);
             wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
             ModelXml->AddChild(new_node);
             servos[i] = new Servo(new_node, new_name, true);
@@ -550,7 +579,7 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
             return;
         }
     }
-    size_t NodeCount = Nodes.size();
+    /*size_t NodeCount = Nodes.size();
     if (!color_ability->IsValidModelSettings(this) || pan_channel > NodeCount ||
         !preset_ability->IsValidModelSettings(this) ||
         tilt_channel > NodeCount ||
@@ -558,7 +587,7 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
-    }
+    }*/
 
     float servo_pos[SUPPORTED_SERVOS] = { 0.0f };
     glm::mat4 Identity = glm::mat4(1.0f);

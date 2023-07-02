@@ -10,12 +10,14 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "DmxMovingHead.h"
+#include "DmxModel.h"
+#include "DmxPanTiltAbility.h"
+#include "DmxShutterAbility.h"
 
 class Mesh;
 class Servo;
 
-class DmxMovingHeadAdv : public DmxMovingHead
+class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxShutterAbility
 {
     public:
     DmxMovingHeadAdv(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
