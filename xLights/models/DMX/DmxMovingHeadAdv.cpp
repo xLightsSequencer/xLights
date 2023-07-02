@@ -18,6 +18,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxColorAbility.h"
+#include "DmxColorAbilityRGB.h"
+#include "DmxColorAbilityCMY.h"
+#include "DmxColorAbilityWheel.h"
 #include "DmxPresetAbility.h"
 #include "DmxMovingHeadAdv.h"
 #include "Mesh.h"
@@ -156,6 +159,18 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
 {
     std::string name = event.GetPropertyName().ToStdString();
 
+    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        return 0;
+    }
+
+    if (OnPanTiltPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        return 0;
+    }
+
+    if (OnShutterPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        return 0;
+    }
+
     if ("DmxChannelCount" == event.GetPropertyName()) {
         int channels = (int)event.GetPropertyValue().GetLong();
         int min_channels = num_servos * (_16bit ? 2 : 1);
@@ -209,6 +224,27 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
         return 0;
     }
 
+    else if ("DmxColorType" == event.GetPropertyName()) {
+        int color_type = event.GetPropertyValue().GetInteger();
+
+        ModelXml->DeleteAttribute("DmxColorType");
+        ModelXml->AddAttribute("DmxColorType", wxString::Format("%d", color_type));
+
+        if (color_type == 0) {
+            color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+        } else  if (color_type == 1) {
+            color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+        }
+        else {
+            color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
+        }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
+        return 0;
+    }
+
     for (const auto& it : servos) {
         if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
             return 0;
@@ -245,6 +281,16 @@ void DmxMovingHeadAdv::InitModel()
 
     DmxModel::InitModel();
     DisplayAs = "DmxMovingHeadAdv";
+
+    int color_type = wxAtoi(ModelXml->GetAttribute("DmxColorType", "0"));
+    if (color_type == 0) {
+        color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+    }else if (color_type == 1) {
+        color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+    }
+    else {
+        color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
+    }
 
     // clear links
     for (int i = 0; i < SUPPORTED_SERVOS; ++i) {
@@ -293,7 +339,6 @@ void DmxMovingHeadAdv::InitModel()
 
     while (n != nullptr) {
         std::string name = n->GetName();
-        int servo_idx = name.find("Servo");
         int static_idx = name.find("StaticMesh");
         int motion_idx = name.find("MotionMesh");
 
@@ -551,7 +596,7 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
             return;
         }
     }
-    /*size_t NodeCount = Nodes.size();
+    size_t NodeCount = Nodes.size();
     if (!color_ability->IsValidModelSettings(this) || pan_channel > NodeCount ||
         !preset_ability->IsValidModelSettings(this) ||
         tilt_channel > NodeCount ||
@@ -559,7 +604,7 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
-    }*/
+    }
 
     float servo_pos[SUPPORTED_SERVOS] = { 0.0f };
     glm::mat4 Identity = glm::mat4(1.0f);
@@ -710,9 +755,22 @@ void DmxMovingHeadAdv::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights
         wxString name = root->GetAttribute("name");
         wxString v = root->GetAttribute("SourceVersion");
         wxString bits = root->GetAttribute("Bits16", "1");
+        wxString dct = root->GetAttribute("DmxColorType", "0");
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
+        SetProperty("DmxColorType", dct);
+
+        int color_type = wxAtoi(dct);
+        if (color_type == 0) {
+            color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+        } else if (color_type == 1) {
+            color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+        }
+        else {
+            color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
+        }
+        color_ability->ImportParameters(root, this);
 
         wxXmlNode* n = root->GetChildren();
         while (n != nullptr) {
