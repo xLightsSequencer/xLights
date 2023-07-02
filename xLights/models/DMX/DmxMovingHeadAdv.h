@@ -48,7 +48,7 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
 
         void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active, const xlColor *c);
 
-        void Draw3DBeam(xlVertexColorAccumulator *vac, xlColor beam_color, float beam_length_displayed, float pan_angle_raw, float tilt_angle, bool shutter_open);
+        void Draw3DBeam(xlVertexColorAccumulator *vac, xlColor beam_color, float beam_length_displayed, float pan_angle_raw, float tilt_angle, bool shutter_open, float beam_offset);
 
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
@@ -75,5 +75,7 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
         int mesh_links[SUPPORTED_SERVOS];
         float beam_length;
         float beam_width;
+        int beam_orient;
+        float beam_y_offset;
 };
 

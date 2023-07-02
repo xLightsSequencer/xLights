@@ -45,19 +45,17 @@ public:
     float y;
     float z;
 
-    dmxPoint3(float x_, float y_, float z_, float pan_angle_, float tilt_angle_ = 0, float nod_angle_ = 0.0)
+    dmxPoint3(float x_, float y_, float z_, float pan_angle_, float tilt_angle_ = 0)
         : x(x_), y(y_), z(z_)
     {
         float pan_angle = wxDegToRad(pan_angle_);
         float tilt_angle = wxDegToRad(tilt_angle_);
-        float nod_angle = wxDegToRad(nod_angle_);
 
         glm::vec4 position = glm::vec4(glm::vec3(x_, y_, z_), 1.0);
 
         glm::mat4 rotationMatrixPan = glm::rotate(glm::mat4(1.0f), pan_angle, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 rotationMatrixTilt = glm::rotate(glm::mat4(1.0f), tilt_angle, glm::vec3(0.0f, 0.0f, 1.0f));
-        glm::mat4 rotationMatrixNod = glm::rotate(glm::mat4(1.0f), nod_angle, glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::vec4 model_position = rotationMatrixPan * rotationMatrixTilt * rotationMatrixNod * position;
+        glm::vec4 model_position = rotationMatrixPan * rotationMatrixTilt * position;
         x = model_position.x;
         y = model_position.y;
         z = model_position.z;
@@ -141,6 +139,19 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
     p->SetAttribute("Precision", 2);
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxUIntProperty("Beam Orientation", "DmxBeamOrient", beam_orient));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 360);
+    p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxFloatProperty("Beam Y Offset", "DmxBeamYOffset", beam_y_offset));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 50);
+    p->SetAttribute("Precision", 2);
+    p->SetAttribute("Step", 0.1);
+    p->SetEditor("SpinCtrl");
+
     grid->Collapse("BeamProperties");
 
     for (const auto& it : static_meshs) {
@@ -272,17 +283,33 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
     else if ("DmxBeamLength" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxBeamLength");
         ModelXml->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DMXBeamLength");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DMXBeamLength");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DMXBeamLength");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamLength");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamLength");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamLength");
         return 0;
     }
     else if ("DmxBeamWidth" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxBeamWidth");
         ModelXml->AddAttribute("DmxBeamWidth", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DMXBeamWidth");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DMXBeamWidth");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DMXBeamWidth");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamWidth");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamWidth");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamWidth");
+        return 0;
+    }
+    else if ("DmxBeamOrient" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxBeamOrient");
+        ModelXml->AddAttribute("DmxBeamOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamOrient");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamOrient");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamOrient");
+        return 0;
+    }
+    else if ("DmxBeamYOffset" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxBeamYOffset");
+        ModelXml->AddAttribute("DmxBeamYOffset", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamYOffset");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamYOffset");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamYOffset");
         return 0;
     }
     else if ("DmxColorType" == event.GetPropertyName()) {
@@ -366,6 +393,8 @@ void DmxMovingHeadAdv::InitModel()
     if (ModelXml->HasAttribute("DmxBeamWidth")) {
         beam_width = wxAtof(ModelXml->GetAttribute("DmxBeamWidth"));
     }
+    beam_orient = wxAtoi(ModelXml->GetAttribute("DmxBeamOrient", "0"));
+    beam_y_offset = wxAtof(ModelXml->GetAttribute("DmxBeamYOffset", "0"));
 
     // clear links
     for (int i = 0; i < SUPPORTED_SERVOS; ++i) {
@@ -839,6 +868,7 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     float scd = screenLocation.GetRenderDp() * screenLocation.GetScaleZ();
     float sbl = std::max(scw, std::max(sch, scd));
     beam_length_displayed *= sbl;
+    float beam_offset = beam_y_offset * sch;
 
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
@@ -866,19 +896,19 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
 
     while (pan_angle_raw > 360.0f)
         pan_angle_raw -= 360.0f;
-    pan_angle_raw = 360.0f - pan_angle_raw;
+    pan_angle_raw = 360.0f - pan_angle_raw + beam_orient;
 
     //Draw3DBeam(tvac, beam_color, beam_length_displayed, , tilt_angle, shutter_open);
     auto vac = tprogram->getAccumulator();
     int start = vac->getCount();
-    Draw3DBeam(vac, xlRED, beam_length_displayed, 360.0, 0.0, true);
+    Draw3DBeam(vac, beam_color, beam_length_displayed, -pan_angle_raw, -tilt_angle, shutter_open, beam_offset);
     int end = vac->getCount();
     tprogram->addStep([=](xlGraphicsContext *ctx) {
         ctx->drawTriangles(vac, start, end - start);
     });
 }
 
-void DmxMovingHeadAdv::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_color, float beam_length_displayed, float pan_angle_raw, float tilt_angle, bool shutter_open)
+void DmxMovingHeadAdv::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_color, float beam_length_displayed, float pan_angle_raw, float tilt_angle, bool shutter_open, float beam_offset)
 {
     xlColor beam_color_end(beam_color);
     beam_color_end.alpha = 0;
@@ -900,6 +930,11 @@ void DmxMovingHeadAdv::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_c
             dmxPoint3 p3(x1, y1, -y1, pan_angle_raw, combined_angle);
             dmxPoint3 p4(x1, y1, y1, pan_angle_raw, combined_angle);
             dmxPoint3 p0(0, 0, 0, pan_angle_raw, combined_angle);
+            p0.y += beam_offset;
+            p1.y += beam_offset;
+            p2.y += beam_offset;
+            p3.y += beam_offset;
+            p4.y += beam_offset;
 
             if (!facing_right) {
                 tvac->AddVertex(p2.x, p2.y, p2.z, beam_color_end);
