@@ -170,6 +170,7 @@ class UDControllerPort
 
     #pragma region Model Handling
     [[nodiscard]] UDControllerPortModel* GetFirstModel() const;
+    [[nodiscard]] UDControllerPortModel* GetFirstModel(int sr) const;
     [[nodiscard]] UDControllerPortModel* GetLastModel() const;
     [[nodiscard]] Model* GetModelAfter(Model* m) const;
     [[nodiscard]] Model* GetModelBefore(Model* m) const;
@@ -248,6 +249,7 @@ class UDControllerPort
     bool IsPixelProtocol() const;
 
     float GetAmps(int defaultBrightness) const;
+    float GetAmps(int defaultBrightness, int sr) const;
 
     std::string GetPortName() const;
 	int GetPort() const { return _port; }

@@ -417,10 +417,8 @@ public:
                     totaly += (src - 1) * (SRY_GAP + SRYLABEL_SIZE);
                 }
                 int empty = GetUDPort()->CountEmptySmartRemotesBefore(src + 1);
-                if (empty == 4) {
+                if (empty > 0) {
                     totaly += (empty - 1) * (VERTICAL_SIZE + VERTICAL_GAP);
-                } else {
-                    totaly += empty * (VERTICAL_SIZE + VERTICAL_GAP);
                 }
             }
         }
@@ -721,18 +719,91 @@ public:
         }
         _smartRemote = smartRemote;
     }
+
     UDControllerPort* GetPort() const
     {
         return _port;
     }
+
+    std::string GetProtocol() const
+    {
+        if (_port != nullptr)
+            return _port->GetProtocol();
+        return "";
+    }
+
     int GetSmartRemote() const
     {
         return _smartRemote;
     }
+
     std::string GetName() const
     {
         return _name;
     }
+
+    int GetVirtualStringCount() const
+    {
+        int count = 0;
+        if (_port != nullptr) {
+            for (const auto& it : _port->GetVirtualStrings()) {
+                if (!it->_isDummy && it->_smartRemote == _smartRemote)
+                    ++count;
+            }
+        }
+        return count;
+    }
+
+    int Channels() const
+    {
+        int count = 0;
+        if (_port != nullptr) {
+            for (const auto& it : _port->GetVirtualStrings()) {
+                if (it->_smartRemote == _smartRemote)
+                    count += it->Channels();
+            }
+        }
+        return count;
+    }
+
+    float GetAmps(int defaultBrightness) const
+    {
+        if (_port != nullptr) {
+            return _port->GetAmps(defaultBrightness, _smartRemote);
+        }
+        return 0.0f;
+    }
+
+    int StartChannel() const
+    {
+        if (_port != nullptr) {
+            auto m = _port->GetFirstModel(_smartRemote);
+            if (m != nullptr)
+                return m->GetStartChannel();
+        }
+        return 0;
+    }
+
+    int GetUniverse() const
+    {
+        if (_port != nullptr) {
+            auto m = _port->GetFirstModel(_smartRemote);
+            if (m != nullptr)
+                return m->GetUniverse();
+        }
+        return 0;
+    }
+
+    int GetUniverseStartChannel() const
+    {
+        if (_port != nullptr) {
+            auto m = _port->GetFirstModel(_smartRemote);
+            if (m != nullptr)
+                return m->GetUniverseStartChannel();
+        }
+        return 0;
+    }
+
     virtual std::string GetType() const override
     {
         return "SR";
@@ -2933,7 +3004,6 @@ void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
     mouse += GetScrollPosition(PanelController);
 
     if (_dragging != nullptr) {
-
         bool handled = false;
         // handle ports first
         for (const auto& it : _controllers) {
@@ -2945,8 +3015,7 @@ void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
                     wxRect rect = it->GetRect();
                     rect.Offset(-1 * GetScrollPosition(PanelController));
                     PanelController->RefreshRect(rect);
-                }
-                else {
+                } else {
                     ClearOver(PanelController, _controllers);
                 }
             }
@@ -2963,14 +3032,12 @@ void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
                         rect.Offset(-1 * GetScrollPosition(PanelController));
                         PanelController->RefreshRect(rect);
                     }
-            }
-                else {
+                } else {
                     ClearOver(PanelController, _controllers);
                 }
             }
         }
-    }
-    else {
+    } else {
         std::string tt = "";
 
         if (event.GetPosition().x < _controllers.front()->GetRect().GetRight() + 2) {
@@ -2985,11 +3052,11 @@ void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
                     }
                 }
             }
-        }
-        else {
+        } else {
             for (const auto& it : _controllers) {
                 bool ishit = it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE;
                 auto m = dynamic_cast<ModelCMObject*>(it);
+                auto sr = dynamic_cast<SRCMObject*>(it);
                 if (ishit || (m != nullptr && m->IsOutline())) {
                     wxRect rect = it->GetRect();
                     rect.Offset(-1 * GetScrollPosition(PanelController));
@@ -2997,9 +3064,11 @@ void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
                     if (ishit) {
                         if (m != nullptr) {
                             tt = GetModelTooltip(m);
+                        } else if (sr != nullptr) {
+                            tt = GetSRTooltip(sr);
                         }
-                        break;
                     }
+                    break;
                 }
             }
         }
@@ -3093,6 +3162,39 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
     }
 
     return wxString::Format("Port: %d\nType: %s\n%s%s%s%s%s", port->GetPort(), port->GetType(), sa, protocol, sr, vs, sc);
+}
+
+std::string ControllerModelDialog::GetSRTooltip(SRCMObject* sr)
+{
+    std::string protocol;
+    if (sr->GetProtocol() != "") {
+        protocol = wxString::Format("Protocol: %s\n", sr->GetProtocol());
+    }
+
+    std::string vs;
+    std::string sc;
+    std::string srn;
+    std::string sa;
+
+    if (sr->GetVirtualStringCount() > 1) {
+        vs = wxString::Format("Virtual Strings: %d\n", sr->GetVirtualStringCount());
+    }
+
+    if (sr->Channels() > 0) {
+        sa = wxString::Format("Estimated Current Draw: %0.2fA\n", sr->GetAmps(_controller->GetDefaultBrightnessUnderFullControl()));
+    }
+
+    srn = "Smart Remote: " + sr->GetName() + "\n";
+    if (sr->Channels() > 0) {
+        sc = wxString::Format("Start Channel: %d (#%d:%d)\nChannels: %d (Pixels %d)",
+                              sr->StartChannel(),
+                              sr->GetUniverse(),
+                              sr->GetUniverseStartChannel(),
+                              sr->Channels(),
+                              INTROUNDUPDIV(sr->Channels(), GetChannelsPerPixel(sr->GetProtocol())));
+    }
+
+    return wxString::Format("Port: %d\n%s%s%s%s%s", sr->GetPort()->GetPort(), srn, protocol, vs, sa, sc);
 }
 
 std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)

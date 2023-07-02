@@ -280,6 +280,21 @@ UDControllerPortModel* UDControllerPort::GetFirstModel() const
     return first;
 }
 
+UDControllerPortModel* UDControllerPort::GetFirstModel(int sr) const
+{
+    if (_models.size() == 0)
+        return nullptr;
+    UDControllerPortModel* first = nullptr;
+    for (const auto& it : _models) {
+        if (it->GetSmartRemote() == sr) {
+            if (first == nullptr || *it < *first) {
+                first = it;
+            }
+        }
+    }
+    return first;
+}
+
 UDControllerPortModel* UDControllerPort::GetLastModel() const
 {
     if (_models.size() == 0) return nullptr;
@@ -883,6 +898,22 @@ int UDControllerPort::GetUniverseStartChannel() const {
 
 bool UDControllerPort::IsPixelProtocol() const {
     return ::IsPixelProtocol(_protocol);
+}
+
+float UDControllerPort::GetAmps(int defaultBrightness, int sr) const
+{
+    float amps = 0.0f;
+    int currentBrightness = defaultBrightness;
+
+    if (_type == "Pixel") {
+        for (const auto& m : _models) {
+            if (m->GetSmartRemote() == sr) {
+                currentBrightness = m->GetBrightness(currentBrightness);
+                amps += m->GetAmps(currentBrightness);
+            }
+        }
+    }
+    return amps;
 }
 
 float UDControllerPort::GetAmps(int defaultBrightness) const
