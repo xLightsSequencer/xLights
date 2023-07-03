@@ -42,8 +42,13 @@ public:
     int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
     void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram,
-              glm::mat4& base_matrix, glm::mat4& motion_matrix,
-              bool show_empty, float pivot_offset_x = 0, float pivot_offset_y = 0, float pivot_offset_z = 0, bool rotation = false, bool use_pivot = false);
+            glm::mat4& base_matrix, glm::mat4& motion_matrix,
+            bool show_empty, float pivot_offset_x = 0, float pivot_offset_y = 0, float pivot_offset_z = 0,
+            bool rotation = false, bool use_pivot = false);
+
+    void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram,     glm::mat4& base_matrix, glm::mat4& trans_matrix, float xrot, float yrot, float zrot,
+            bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z,
+            bool rotation, bool use_pivot);
 
     void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
     void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;

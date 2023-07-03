@@ -778,7 +778,6 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     // Get servo positions and fill motion matrices
     for (int i = 0; i < servos.size(); ++i) {
         if (servos[i]->GetChannel() > 0 && active) {
-            //servo_pos[i] = servos[i]->GetPosition(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
             if (servos[i]->IsTranslate()) {
                 glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
                 servo_pos[i] /= scale.x;
@@ -827,11 +826,20 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
         }
     }
 
+    motion_meshs[0]->Draw(this, preview, sprogram, tprogram, Identity, Identity,
+                          0, pan_angle_raw, 0, false,
+                          servos[0]->GetPivotOffsetX(), servos[0]->GetPivotOffsetY(), servos[0]->GetPivotOffsetZ(), servos[0]->IsRotate() && show_pivot, !active);
+
+    motion_meshs[1]->Draw(this, preview, sprogram, tprogram, Identity, Identity,
+                          tilt_angle, pan_angle_raw, 0, false,
+                          servos[1]->GetPivotOffsetX(), servos[1]->GetPivotOffsetY(), servos[1]->GetPivotOffsetZ(), servos[1]->IsRotate() && show_pivot, !active);
+
     // Draw Motion Meshs
-    for (int i = 0; i < num_motion; ++i) {
-        motion_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, motion_matrix[i], i < num_static ? !static_meshs[i]->GetExists(this, ctx) : false,
+/*    for (int i = 0; i < num_motion; ++i) {
+        motion_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, motion_matrix[i],
+                              pan_matrix, tilt_matrix, z_matrix, i < num_static ? !static_meshs[i]->GetExists(this, ctx) : false,
                               servos[i]->GetPivotOffsetX(), servos[i]->GetPivotOffsetY(), servos[i]->GetPivotOffsetZ(), servos[i]->IsRotate() && show_pivot, !active);
-    }
+    }*/
 
     // Everything below here is for drawing the light beam
 
