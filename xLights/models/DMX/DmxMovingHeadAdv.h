@@ -15,7 +15,7 @@
 #include "DmxShutterAbility.h"
 
 class Mesh;
-class Servo;
+class DmxMotor;
 
 class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxShutterAbility
 {
@@ -34,10 +34,8 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
         virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
         virtual std::list<std::string> CheckModelSettings() override;
 
-        Servo* GetAxis(int num) { return num < num_servos ? servos[num] : servos[0]; }
-        int GetNumServos() const { return num_servos; }
-        int GetNumStatic() const { return num_static; }
-        int GetNumMotion() const { return num_motion; }
+        int GetNumMotors() const { return NUM_MOTORS; }
+        DmxMotor* GetAxis(int num) { return num == 1 ? tilt_motor : pan_motor; }
         void UpdateNodeNames() { update_node_names = true; }
         void UpdateBits() { update_bits = true; }
         bool Is16Bit() const { return _16bit; }
@@ -59,20 +57,20 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
         float brightness = 100.0f;
 
     private:
-        static const int SUPPORTED_SERVOS = 2;
+        static const int NUM_MOTORS = 2;
 
         bool update_node_names = false;
         bool update_bits = false;
-        const int num_servos = 2;
-        int num_static = 1;
-        int num_motion = 2;
+//        const int num_servos = 2;
+//        int num_static = 1;
+//        int num_motion = 2;
         bool _16bit = true;
         bool show_pivot = false;
-        std::vector<Mesh*> static_meshs;
-        std::vector<Mesh*> motion_meshs;
-        std::vector<Servo*> servos;
-        int servo_links[SUPPORTED_SERVOS];
-        int mesh_links[SUPPORTED_SERVOS];
+        Mesh* base_mesh;
+        Mesh* yoke_mesh;
+        Mesh* head_mesh;
+        DmxMotor* pan_motor;
+        DmxMotor* tilt_motor;
         float beam_length;
         float beam_width;
         int beam_orient;

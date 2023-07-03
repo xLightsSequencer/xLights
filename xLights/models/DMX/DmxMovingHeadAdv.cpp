@@ -24,8 +24,7 @@
 #include "DmxPresetAbility.h"
 #include "DmxMovingHeadAdv.h"
 #include "Mesh.h"
-#include "Servo.h"
-#include "ServoConfigDialog.h"
+#include "DmxMotor.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -55,7 +54,7 @@ public:
 
         glm::mat4 rotationMatrixPan = glm::rotate(glm::mat4(1.0f), pan_angle, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 rotationMatrixTilt = glm::rotate(glm::mat4(1.0f), tilt_angle, glm::vec3(0.0f, 0.0f, 1.0f));
-        glm::vec4 model_position = rotationMatrixPan * rotationMatrixTilt * position;
+        glm::vec4 model_position = position * rotationMatrixTilt * rotationMatrixPan;
         x = model_position.x;
         y = model_position.y;
         z = model_position.z;
@@ -75,24 +74,26 @@ DmxMovingHeadAdv::~DmxMovingHeadAdv()
 }
 
 void DmxMovingHeadAdv::Clear() {
-    for (auto it = servos.begin(); it != servos.end(); ++it) {
-        if (*it != nullptr) {
-            delete* it;
-        }
+    
+    if (pan_motor != nullptr) {
+        delete pan_motor;
     }
-    servos.clear();
-    for (auto it = motion_meshs.begin(); it != motion_meshs.end(); ++it) {
-        if (*it != nullptr) {
-            delete* it;
-        }
+
+    if (tilt_motor != nullptr) {
+        delete tilt_motor;
     }
-    motion_meshs.clear();
-    for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
-        if (*it != nullptr) {
-            delete* it;
-        }
+
+    if (base_mesh != nullptr) {
+        delete base_mesh;
     }
-    static_meshs.clear();
+
+    if (yoke_mesh != nullptr) {
+        delete yoke_mesh;
+    }
+
+    if (head_mesh != nullptr) {
+        delete head_mesh;
+    }
 }
 
 void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
@@ -102,12 +103,8 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
     auto p = grid->Append(new wxBoolProperty("16 Bit", "Bits16", _16bit));
     p->SetAttribute("UseCheckbox", true);
 
-    p = grid->Append(new wxBoolProperty("Show Pivot Axes", "PivotAxes", show_pivot));
-    p->SetAttribute("UseCheckbox", true);
-
-    for (const auto& it : servos) {
-        it->AddTypeProperties(grid);
-    }
+    pan_motor->AddTypeProperties(grid);
+    tilt_motor->AddTypeProperties(grid);
 
     AddPanTiltTypeProperties(grid);
     grid->Collapse("PanTiltProperties");
@@ -152,13 +149,9 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
 
     grid->Collapse("BeamProperties");
 
-    for (const auto& it : static_meshs) {
-        it->AddTypeProperties(grid);
-    }
-
-    for (const auto& it : motion_meshs) {
-        it->AddTypeProperties(grid);
-    }
+    base_mesh->AddTypeProperties(grid);
+    yoke_mesh->AddTypeProperties(grid);
+    head_mesh->AddTypeProperties(grid);
 
     grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
@@ -203,28 +196,16 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
 
     if ("DmxChannelCount" == event.GetPropertyName()) {
         int channels = (int)event.GetPropertyValue().GetLong();
-        int min_channels = num_servos * (_16bit ? 2 : 1);
+        int min_channels = NUM_MOTORS * (_16bit ? 2 : 1);
         if (channels < min_channels) {
             wxPGProperty* p = grid->GetPropertyByName("DmxChannelCount");
             if (p != nullptr) {
                 p->SetValue(min_channels);
             }
-            std::string msg = wxString::Format("You have %d servos at %d bits so you need %d channels minimum.", num_servos, _16bit ? 16 : 8, min_channels);
+            std::string msg = wxString::Format("You have %d motors at %d bits so you need %d channels minimum.", NUM_MOTORS, _16bit ? 16 : 8, min_channels);
             wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
             return 0;
         }
-    }
-
-    if ("PivotAxes" == name) {
-        if (event.GetValue().GetBool()) {
-            show_pivot = true;
-        } else {
-            show_pivot = false;
-        }
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::PivotAxes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHeadAdv::OnPropertyGridChange::PivotAxes");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::PivotAxes");
-        return 0;
     }
 
     if (event.GetPropertyName() == "Bits16") {
@@ -237,13 +218,10 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
             ModelXml->AddAttribute("Bits16", "0");
         }
 
-        for (int i = 0; i < num_servos; ++i) {
-            if (servos[i] != nullptr) {
-                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
-            }
-        }
+        pan_motor->SetChannel(1, this);
+        tilt_motor->SetChannel(_16bit ? 3 : 2, this);
 
-        int min_channels = num_servos * (_16bit ? 2 : 1);
+        int min_channels = NUM_MOTORS * (_16bit ? 2 : 1);
         if (parm1 < min_channels) {
             UpdateChannelCount(min_channels, true);
         }
@@ -306,22 +284,24 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
         return 0;
     }
 
-    for (const auto& it : servos) {
-        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-            return 0;
-        }
+    if (pan_motor->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        return 0;
     }
 
-    for (const auto& it : static_meshs) {
-        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-            return 0;
-        }
+    if (tilt_motor->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        return 0;
     }
 
-    for (const auto& it : motion_meshs) {
-        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-            return 0;
-        }
+    if (base_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        return 0;
+    }
+
+    if (yoke_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        return 0;
+    }
+
+    if (head_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        return 0;
     }
 
     return DmxModel::OnPropertyGridChange(grid, event);
@@ -331,10 +311,10 @@ void DmxMovingHeadAdv::InitModel()
 {
     _16bit = wxAtoi(ModelXml->GetAttribute("Bits16", "1"));
 
-    int min_channels = num_servos * (_16bit ? 2 : 1);
+    int min_channels = NUM_MOTORS * (_16bit ? 2 : 1);
     if (parm1 < min_channels) {
         UpdateChannelCount(min_channels, false);
-        std::string msg = wxString::Format("Channel count increased to %d to accommodate %d servos at %d bits.", min_channels, num_servos, _16bit ? 16 : 8);
+        std::string msg = wxString::Format("Channel count increased to %d to accommodate %d motors at %d bits.", min_channels, NUM_MOTORS, _16bit ? 16 : 8);
         wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
     }
 
@@ -367,151 +347,94 @@ void DmxMovingHeadAdv::InitModel()
     beam_orient = wxAtoi(ModelXml->GetAttribute("DmxBeamOrient", "0"));
     beam_y_offset = wxAtof(ModelXml->GetAttribute("DmxBeamYOffset", "0"));
 
-    // clear links
-    for (int i = 0; i < SUPPORTED_SERVOS; ++i) {
-        servo_links[i] = -1;
-        mesh_links[i] = -1;
-    }
-
-    // clear any extras
-    while (servos.size() > num_servos) {
-        Servo* ptr = servos.back();
-        if (ptr != nullptr) {
-            delete ptr;
-            ptr = nullptr;
-        }
-        servos.pop_back();
-    }
-    while (static_meshs.size() > num_static) {
-        Mesh* ptr = static_meshs.back();
-        if (ptr != nullptr) {
-            delete ptr;
-            ptr = nullptr;
-        }
-        static_meshs.pop_back();
-    }
-    while (motion_meshs.size() > num_motion) {
-        Mesh* ptr = motion_meshs.back();
-        if (ptr != nullptr) {
-            delete ptr;
-            ptr = nullptr;
-        }
-        motion_meshs.pop_back();
-    }
-
-    // resize vector arrays
-    if (static_meshs.size() < num_static) {
-        static_meshs.resize(num_static);
-    }
-    if (motion_meshs.size() < num_motion) {
-        motion_meshs.resize(num_motion);
-    }
-    if (servos.size() < num_servos) {
-        servos.resize(num_servos);
-    }
-
     wxXmlNode* n = ModelXml->GetChildren();
 
     while (n != nullptr) {
         std::string name = n->GetName();
 
-        if ("PanServo" == name) {
-             if (servos[0] == nullptr) {
-                 servos[0] = new Servo(n, name, false);
+        if ("PanMotor" == name) {
+             if (pan_motor == nullptr) {
+                 pan_motor = new DmxMotor(n, name, false);
              }
-        } else if ("TiltServo" == name) {
-            if (servos[1] == nullptr) {
-                servos[1] = new Servo(n, name, false);
+        } else if ("TiltMotor" == name) {
+            if (tilt_motor == nullptr) {
+                tilt_motor = new DmxMotor(n, name, false);
             }
         } else if ("BaseMesh" == name) {
-            if (static_meshs[0] == nullptr) {
-                static_meshs[0] = new Mesh(n, name);
+            if (base_mesh == nullptr) {
+                base_mesh = new Mesh(n, name);
             }
         } else if ("YokeMesh" == name) {
-            if (motion_meshs[0] == nullptr) {
-                motion_meshs[0] = new Mesh(n, name);
+            if (yoke_mesh == nullptr) {
+                yoke_mesh = new Mesh(n, name);
             }
         } else if ("HeadMesh" == name) {
-            if (motion_meshs[1] == nullptr) {
-                motion_meshs[1] = new Mesh(n, name);
+            if (head_mesh == nullptr) {
+                head_mesh = new Mesh(n, name);
             }
         }
         n = n->GetNext();
     }
 
-    // create pan servo
-    if (servos[0] == nullptr) {
-        std::string new_name = "PanServo";
+    // create pan motor
+    if (pan_motor == nullptr) {
+        std::string new_name = "PanMotor";
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
         ModelXml->AddChild(new_node);
-        servos[0] = new Servo(new_node, new_name, true);
-        servos[0]->SetChannel(1, this);
+        pan_motor = new DmxMotor(new_node, new_name, true);
+        pan_motor->SetChannel(1, this);
     }
 
-    // create tilt servo
-    if (servos[1] == nullptr) {
-        std::string new_name = "TiltServo";
+    // create tilt motor
+    if (tilt_motor == nullptr) {
+        std::string new_name = "TiltMotor";
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
         ModelXml->AddChild(new_node);
-        servos[1] = new Servo(new_node, new_name, true);
-        servos[1]->SetChannel(_16bit ? 3 : 2, this);
+        tilt_motor = new DmxMotor(new_node, new_name, true);
+        tilt_motor->SetChannel(_16bit ? 3 : 2, this);
     }
 
     // create base mesh
-    if (static_meshs[0] == nullptr) {
+    if (base_mesh == nullptr) {
         std::string new_name = "BaseMesh";
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
         ModelXml->AddChild(new_node);
-        static_meshs[0] = new Mesh(new_node, new_name);
+        base_mesh = new Mesh(new_node, new_name);
     }
 
     // create yoke mesh
-    if (motion_meshs[0] == nullptr) {
+    if (yoke_mesh == nullptr) {
         std::string new_name = "YokeMesh";
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
         ModelXml->AddChild(new_node);
-        motion_meshs[0] = new Mesh(new_node, new_name);
+        yoke_mesh = new Mesh(new_node, new_name);
     }
 
     // create head mesh
-    if (motion_meshs[1] == nullptr) {
+    if (head_mesh == nullptr) {
         std::string new_name = "HeadMesh";
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
         ModelXml->AddChild(new_node);
-        motion_meshs[1] = new Mesh(new_node, new_name);
+        head_mesh = new Mesh(new_node, new_name);
     }
-
-    // set linkages
-    servo_links[0] = -1;
-    servo_links[1] = -1;
-    mesh_links[0] = -1;
-    mesh_links[1] = 0;
 
     brightness = wxAtoi(ModelXml->GetAttribute("Brightness", "100"));
 
-    for (const auto& it : servos) {
-        it->Init(this);
-        it->Set16Bit(_16bit);
-    }
-
-    bool last_exists = false;
-    for (const auto& it : static_meshs) {
-        it->Init(this, !last_exists);
-        last_exists = it->HasObjFile();
-    }
-
-    last_exists = num_static > 0 ? static_meshs[0]->HasObjFile() : false;
-    for (const auto& it : motion_meshs) {
-        it->Init(this, !last_exists);
-        last_exists = it->HasObjFile();
-    }
+    pan_motor->Init(this);
+    pan_motor->Set16Bit(_16bit);
+    tilt_motor->Init(this);
+    tilt_motor->Set16Bit(_16bit);
+    base_mesh->Init(this, true);
+    yoke_mesh->Init(this, false);
+    base_mesh->Init(this, false);
 
     // renumber servo changed if number of bits changed
     if (update_bits) {
-        for (int i = 0; i < num_servos; ++i) {
-            if (servos[i] != nullptr) {
-                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
-            }
+        if (pan_motor != nullptr) {
+            pan_motor->SetChannel(1, this);
+        }
+        if (tilt_motor != nullptr) {
+            tilt_motor->SetChannel(_16bit ? 3 : 2, this);
         }
         update_bits = false;
     }
@@ -643,17 +566,18 @@ std::list<std::string> DmxMovingHeadAdv::CheckModelSettings()
     std::list<std::string> res;
 
     int nodeCount = Nodes.size();
-    int min_channels = num_servos * (_16bit ? 2 : 1);
+    int min_channels = NUM_MOTORS * (_16bit ? 2 : 1);
 
     if (min_channels > nodeCount) {
         res.push_back(wxString::Format("    ERR: Model %s requires more channels %d than have been allocated to it %d.", GetName(), min_channels, nodeCount));
     }
-    int i = 1;
-    for (const auto& it : servos) {
-        if (it->GetChannel() > nodeCount) {
-            res.push_back(wxString::Format("    ERR: Model %s servo %d is assigned to channel %d but the model only has %d channels.", GetName(), i, it->GetChannel(), nodeCount));
-        }
-        i++;
+    
+    if (pan_motor->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s pan motor is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannel(), nodeCount));
+    }
+
+    if (tilt_motor->GetChannel() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s tilt motor is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannel(), nodeCount));
     }
 
     res.splice(res.end(), Model::CheckModelSettings());
@@ -663,16 +587,18 @@ std::list<std::string> DmxMovingHeadAdv::CheckModelSettings()
 void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active, const xlColor* c)
 {
     // crash protection
-    int min_channels = num_servos * (_16bit ? 2 : 1);
+    int min_channels = NUM_MOTORS * (_16bit ? 2 : 1);
     if (min_channels > Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    for (const auto& it : servos) {
-        if (it->GetChannel() > Nodes.size()) {
-            DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
-            return;
-        }
+    if (pan_motor->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (tilt_motor->GetChannel() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
     }
     size_t NodeCount = Nodes.size();
     if (!color_ability->IsValidModelSettings(this) ||
@@ -696,14 +622,14 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     }
 
     float pan_angle = 0;
-    if (servos[0]->GetChannel() > 0 && active) {
-        pan_angle = servos[0]->GetPosition(GetChannelValue(servos[0]->GetChannel() - 1, servos[0]->Is16Bit()));
+    if (pan_motor->GetChannel() > 0 && active) {
+        pan_angle = pan_motor->GetPosition(GetChannelValue(pan_motor->GetChannel() - 1, pan_motor->Is16Bit()));
     }
     pan_angle += pan_orient;
 
     float tilt_angle = 0;
-    if (servos[1]->GetChannel() > 0 && active) {
-        tilt_angle = servos[1]->GetPosition(GetChannelValue(servos[1]->GetChannel() - 1, servos[1]->Is16Bit()));
+    if (tilt_motor->GetChannel() > 0 && active) {
+        tilt_angle = tilt_motor->GetPosition(GetChannelValue(tilt_motor->GetChannel() - 1, tilt_motor->Is16Bit()));
     }
     tilt_angle += tilt_orient;
 
@@ -765,84 +691,15 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     st.pan_angle = pan_angle_raw;
     st.tilt_angle = tilt_angle;
 
-    float servo_pos[2] = { pan_angle, tilt_angle };
+    float motor_pos[2] = { pan_angle, tilt_angle };
     glm::mat4 Identity = glm::mat4(1.0f);
-    glm::mat4 servo_matrix[SUPPORTED_SERVOS];
-    glm::mat4 motion_matrix[SUPPORTED_SERVOS];
 
-    // Draw Static Meshs
-    for (int i = 0; i < num_static; ++i) {
-        static_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, Identity, i < num_motion ? !motion_meshs[i]->GetExists(this, ctx) : false, 0, 0, 0, false, false);
-    }
-
-    // Get servo positions and fill motion matrices
-    for (int i = 0; i < servos.size(); ++i) {
-        if (servos[i]->GetChannel() > 0 && active) {
-            if (servos[i]->IsTranslate()) {
-                glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
-                servo_pos[i] /= scale.x;
-            }
-        }
-        servo_matrix[i] = Identity;
-        motion_matrix[i] = Identity;
-        servos[i]->FillMotionMatrix(servo_pos[i], servo_matrix[i]);
-    }
-
-    // Determine motion mesh linkages
-    for (int i = 0; i < num_motion; ++i) {
-        int link = mesh_links[i];
-        int nesting = num_motion;
-        std::vector<int> link_list;
-        // if mesh does not link to himself
-        if (link != i) {
-            // iterate through pushing mesh links into a list
-            while ((link != -1) && (nesting > 0)) {
-                link_list.push_back(link);
-                link = mesh_links[link];
-                nesting--; // prevents circular loops from hanging things up
-            }
-            // multiply motion matrix based on list in reverse order
-            while (!link_list.empty()) {
-                link = link_list.back();
-                link_list.pop_back();
-                motion_matrix[i] = motion_matrix[i] * servo_matrix[link];
-            }
-        }
-    }
-
-    // add motion based on servo mapping
-    for (int i = 0; i < servos.size(); ++i) {
-        // see if servo links to his own mesh
-        if (servo_links[i] == -1) {
-            motion_matrix[i] = motion_matrix[i] * servo_matrix[i];
-        }
-        // check if any other servos map to this mesh
-        for (int j = 0; j < servos.size(); ++j) {
-            if (j != i) {
-                if (servo_links[j] == i) {
-                    motion_matrix[i] = motion_matrix[i] * servo_matrix[j];
-                }
-            }
-        }
-    }
-
-    motion_meshs[0]->Draw(this, preview, sprogram, tprogram, Identity, Identity,
-                          0, pan_angle_raw, 0, false,
-                          servos[0]->GetPivotOffsetX(), servos[0]->GetPivotOffsetY(), servos[0]->GetPivotOffsetZ(), servos[0]->IsRotate() && show_pivot, !active);
-
-    motion_meshs[1]->Draw(this, preview, sprogram, tprogram, Identity, Identity,
-                          tilt_angle, pan_angle_raw, 0, false,
-                          servos[1]->GetPivotOffsetX(), servos[1]->GetPivotOffsetY(), servos[1]->GetPivotOffsetZ(), servos[1]->IsRotate() && show_pivot, !active);
-
-    // Draw Motion Meshs
-/*    for (int i = 0; i < num_motion; ++i) {
-        motion_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, motion_matrix[i],
-                              pan_matrix, tilt_matrix, z_matrix, i < num_static ? !static_meshs[i]->GetExists(this, ctx) : false,
-                              servos[i]->GetPivotOffsetX(), servos[i]->GetPivotOffsetY(), servos[i]->GetPivotOffsetZ(), servos[i]->IsRotate() && show_pivot, !active);
-    }*/
+    // Draw Meshs
+    base_mesh->Draw(this, preview, sprogram, tprogram, Identity, Identity, false, 0, 0, 0, false, false);
+    yoke_mesh->Draw(this, preview, sprogram, tprogram, Identity, Identity, 0, pan_angle_raw, 0, false, 0, 0, 0, false, !active);
+    head_mesh->Draw(this, preview, sprogram, tprogram, Identity, Identity, tilt_angle, pan_angle_raw, 0, false, 0, 0, 0, false, !active);
 
     // Everything below here is for drawing the light beam
-
     float beam_length_displayed = beam_length;
     
     float scw = screenLocation.GetRenderWi() * screenLocation.GetScaleX();
@@ -876,14 +733,14 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     }
     ApplyTransparency(beam_color, trans, trans);
 
+    pan_angle_raw += beam_orient;
     while (pan_angle_raw > 360.0f)
         pan_angle_raw -= 360.0f;
-    pan_angle_raw = 360.0f - pan_angle_raw + beam_orient;
+    pan_angle_raw = 360.0f - pan_angle_raw;
 
-    //Draw3DBeam(tvac, beam_color, beam_length_displayed, , tilt_angle, shutter_open);
     auto vac = tprogram->getAccumulator();
     int start = vac->getCount();
-    Draw3DBeam(vac, beam_color, beam_length_displayed, -pan_angle_raw, -tilt_angle, shutter_open, beam_offset);
+    Draw3DBeam(vac, beam_color, beam_length_displayed, pan_angle_raw, tilt_angle, shutter_open, beam_offset);
     int end = vac->getCount();
     tprogram->addStep([=](xlGraphicsContext *ctx) {
         ctx->drawTriangles(vac, start, end - start);
@@ -964,46 +821,16 @@ void DmxMovingHeadAdv::ExportXlightsModel()
 
     ExportBaseParameters(f);
 
-    f.Write(wxString::Format("NumServos=\"%i\" ", num_servos));
-    f.Write(wxString::Format("NumStatic=\"%i\" ", num_static));
-    f.Write(wxString::Format("NumMotion=\"%i\" ", num_motion));
-
     wxString bits = ModelXml->GetAttribute("Bits16");
     f.Write(wxString::Format("Bits16=\"%s\" ", bits));
-
-    // servo linkages
-    for (int i = 0; i < num_servos; ++i) {
-        std::string num = std::to_string(i + 1);
-        std::string this_link = "Servo" + num + "Linkage";
-        if( ModelXml->HasAttribute(this_link)) {
-            std::string link = ModelXml->GetAttribute(this_link, "");
-            f.Write(wxString::Format("%s=\"%s\" ", this_link,link));
-        }
-    }
-
-    // mesh linkages
-    for (int i = 0; i < num_servos; ++i) {
-        std::string num = std::to_string(i + 1);
-        std::string this_link = "Mesh" + num + "Linkage";
-        if( ModelXml->HasAttribute(this_link)) {
-            std::string link = ModelXml->GetAttribute(this_link, "");
-            f.Write(wxString::Format("%s=\"%s\" ", this_link,link));
-        }
-    }
 
     f.Write(" >\n");
 
     wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
 
-    for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
-        (*it)->Serialise(ModelXml, f, show_dir);
-    }
-    for (auto it = motion_meshs.begin(); it != motion_meshs.end(); ++it) {
-        (*it)->Serialise(ModelXml, f, show_dir);
-    }
-    for (auto it = servos.begin(); it != servos.end(); ++it) {
-        (*it)->Serialise(ModelXml, f, show_dir);
-    }
+    base_mesh->Serialise(ModelXml, f, show_dir);
+    yoke_mesh->Serialise(ModelXml, f, show_dir);
+    head_mesh->Serialise(ModelXml, f, show_dir);
 
     wxString submodel = SerialiseSubmodel();
     if (submodel != "") {
@@ -1046,111 +873,16 @@ void DmxMovingHeadAdv::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights
         }
         color_ability->ImportParameters(root, this);
 
-        wxXmlNode* n = root->GetChildren();
-        while (n != nullptr) {
-            std::string name = n->GetName();
-
-            if ("StaticMesh" == name) { // convert original name that had no number
-                // copy attributes to new name
-                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "StaticMesh1");
-                root->AddChild(new_node);
-                for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
-                    new_node->AddAttribute(a->GetName(), a->GetValue());
-                }
-            } else if ("MotionMesh" == name) { // convert original name that had no number
-                // copy attributes to new name
-                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "MotionMesh1");
-                root->AddChild(new_node);
-                for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
-                    new_node->AddAttribute(a->GetName(), a->GetValue());
-                }
-            }
-            n = n->GetNext();
-        }
-
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
         SetProperty("Bits16", bits);
 
-        num_static = wxAtoi(root->GetAttribute("NumStatic", "1"));
-        num_motion = wxAtoi(root->GetAttribute("NumMotion", "1"));
-        SetProperty("NumServos", std::to_string(num_servos));
-        SetProperty("NumStatic", std::to_string(num_static));
-        SetProperty("NumMotion", std::to_string(num_motion));
-
-        // resize vector arrays
-        if (static_meshs.size() < num_static) {
-            static_meshs.resize(num_static);
-        }
-        if (motion_meshs.size() < num_motion) {
-            motion_meshs.resize(num_motion);
-        }
-        if (servos.size() < num_servos) {
-            servos.resize(num_servos);
-        }
-
-        // create any missing servos
-        for (int i = 0; i < num_servos; ++i) {
-            if (servos[i] == nullptr) {
-                std::string new_name = "Servo" + std::to_string(i + 1);
-                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-                ModelXml->AddChild(new_node);
-                servos[i] = new Servo(new_node, new_name, true);
-                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
-            }
-        }
-
-        // create any missing static meshes
-        for (int i = 0; i < num_static; ++i) {
-            if (static_meshs[i] == nullptr) {
-                std::string new_name = "StaticMesh" + std::to_string(i + 1);
-                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-                ModelXml->AddChild(new_node);
-                static_meshs[i] = new Mesh(new_node, new_name);
-            }
-        }
-
-        // create any missing motion meshes
-        for (int i = 0; i < num_motion; ++i) {
-            if (motion_meshs[i] == nullptr) {
-                std::string new_name = "MotionMesh" + std::to_string(i + 1);
-                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-                ModelXml->AddChild(new_node);
-                motion_meshs[i] = new Mesh(new_node, new_name);
-            }
-        }
-
-        // servo linkages
-        for (int i = 0; i < num_servos; ++i) {
-            std::string num = std::to_string(i + 1);
-            std::string this_link = "Servo" + num + "Linkage";
-            if( root->HasAttribute(this_link)) {
-                wxString link = root->GetAttribute(this_link);
-                SetProperty(this_link, link);
-            }
-        }
-
-        // mesh linkages
-        for (int i = 0; i < num_servos; ++i) {
-            std::string num = std::to_string(i + 1);
-            std::string this_link = "Mesh" + num + "Linkage";
-            if( root->HasAttribute(this_link)) {
-                wxString link = root->GetAttribute(this_link);
-                SetProperty(this_link, link);
-            }
-        }
-
         wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
-        for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
-            (*it)->Serialise(root, ModelXml, show_dir);
-        }
-        for (auto it = motion_meshs.begin(); it != motion_meshs.end(); ++it) {
-            (*it)->Serialise(root, ModelXml, show_dir);
-        }
-        for (auto it = servos.begin(); it != servos.end(); ++it) {
-            (*it)->Serialise(root, ModelXml, show_dir);
-        }
+        
+        base_mesh->Serialise(root, ModelXml, show_dir);
+        yoke_mesh->Serialise(root, ModelXml, show_dir);
+        head_mesh->Serialise(root, ModelXml, show_dir);
 
         ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 

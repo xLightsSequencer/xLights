@@ -23,6 +23,7 @@
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
 #include "../models/DMX/DmxModel.h"
+#include "../models/DMX/DmxMotor.h"
 #include "../models/DMX/DmxMovingHeadAdv.h"
 #include "../models/DMX/DmxSkull.h"
 #include "../models/DMX/DmxSkulltronix.h"
@@ -135,12 +136,12 @@ void ServoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                         }
                     }
                     else if (model_info->GetDisplayAs() == "DmxMovingHeadAdv") {
-                        DmxMovingHeadAdv* servo = (DmxMovingHeadAdv*)model_info;
-                        for (int k = 0; k < servo->GetNumServos(); ++k) {
-                            int axis_channel = servo->GetAxis(k)->GetChannel();
+                        DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)model_info;
+                        for (int k = 0; k < mhead->GetNumMotors(); ++k) {
+                            int axis_channel = mhead->GetAxis(k)->GetChannel();
                             if (axis_channel == (i + 1)) {
-                                min_limit = servo->GetAxis(k)->GetMinLimit();
-                                max_limit = servo->GetAxis(k)->GetMaxLimit();
+                                min_limit = mhead->GetAxis(k)->GetMinLimit();
+                                max_limit = mhead->GetAxis(k)->GetMaxLimit();
                                 break;
                             }
                         }
