@@ -354,11 +354,11 @@ void DmxMovingHeadAdv::InitModel()
 
         if ("PanMotor" == name) {
              if (pan_motor == nullptr) {
-                 pan_motor = new DmxMotor(n, name, false);
+                 pan_motor = new DmxMotor(n, name);
              }
         } else if ("TiltMotor" == name) {
             if (tilt_motor == nullptr) {
-                tilt_motor = new DmxMotor(n, name, false);
+                tilt_motor = new DmxMotor(n, name);
             }
         } else if ("BaseMesh" == name) {
             if (base_mesh == nullptr) {
@@ -381,7 +381,7 @@ void DmxMovingHeadAdv::InitModel()
         std::string new_name = "PanMotor";
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
         ModelXml->AddChild(new_node);
-        pan_motor = new DmxMotor(new_node, new_name, true);
+        pan_motor = new DmxMotor(new_node, new_name);
         pan_motor->SetChannel(1, this);
     }
 
@@ -390,7 +390,7 @@ void DmxMovingHeadAdv::InitModel()
         std::string new_name = "TiltMotor";
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
         ModelXml->AddChild(new_node);
-        tilt_motor = new DmxMotor(new_node, new_name, true);
+        tilt_motor = new DmxMotor(new_node, new_name);
         tilt_motor->SetChannel(_16bit ? 3 : 2, this);
     }
 

@@ -20,7 +20,7 @@ class wxXmlNode;
 class DmxMotor
 {
     public:
-        DmxMotor(wxXmlNode* node, wxString _name, bool _is2d);
+        DmxMotor(wxXmlNode* node, wxString _name);
         virtual ~DmxMotor();
 
         void Init(BaseObject* base);
@@ -55,8 +55,6 @@ class DmxMotor
         int max_limit;
         float range_of_motion;
         bool _16bit;
-        float offset_scale;
-        bool is_2d;
         BaseObject* base;
 };
 

@@ -20,11 +20,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-DmxMotor::DmxMotor(wxXmlNode* node, wxString _name, bool _is2d)
+DmxMotor::DmxMotor(wxXmlNode* node, wxString _name)
     : node_xml(node), base_name(_name), channel(0),
     min_limit(0), max_limit(65535), range_of_motion(180.0f),
-    _16bit(true), offset_scale(_is2d ? 100.0f : 1.0f),
-    is_2d(_is2d)
+    _16bit(true)
 {
 }
 
