@@ -217,7 +217,7 @@ static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userp) {
     return dt->readData(ptr, buffer_size);
 }
 
-void FPP::setupCurl(int timeout) {
+void FPP::setupCurl(const std::string &url, bool isGet, int timeout) {
     if (curl == nullptr) {
         curl = curl_easy_init();
     }
@@ -229,15 +229,26 @@ void FPP::setupCurl(int timeout) {
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout);
     curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
     curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-    curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
-    curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1);
+    
+    // seems to be a bug in SOME versions of libcurl where GET requests over
+    // HTTP2 are not handling the spaces (%20) correctly. Most escaped character
+    // are OK, but not all.   Only seems to effect GET, POST/PATCH are fine.
+    // We'll drop to HTTP1 for GET's with URL's that have % in them
+    if (!isGet || url.find("%") == std::string::npos) {
+        //printf("HTTP2: %s\n", url.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+        curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1);
+    } else {
+        //printf("HTTP1: %s\n", url.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+    }
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 }
 
 bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    setupCurl();
     curlInputBuffer.clear();
     char error[1024];
 
@@ -250,8 +261,8 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
     } else {
         fullUrl = "http://" + fullUrl;
     }
+    setupCurl(fullUrl, true);
 
-    curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
     curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     logger_curl.info("URL: %s", fullUrl.c_str());
@@ -321,7 +332,6 @@ int FPP::TransferToURL(const std::string& url, const wxMemoryBuffer &val, const 
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    setupCurl();
     curlInputBuffer.clear();
     char error[1024];
     std::string fullUrl = ipAddress + url;
@@ -334,6 +344,7 @@ int FPP::TransferToURL(const std::string& url, const wxMemoryBuffer &val, const 
         fullUrl = "http://" + fullUrl;
     }
     logger_curl.info("URL: %s", fullUrl.c_str());
+    setupCurl(fullUrl, false);
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
@@ -751,10 +762,6 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     bool deleteFile = false;
     std::string fullFileName = file;
 
-    setupCurl();
-    //if we cannot upload it in 5 minutes, we have serious issues
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
-
     curlInputBuffer.clear();
     char error[1024];
 
@@ -775,8 +782,9 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     } else {
         fullUrl = "http://" + fullUrl;
     }
-
-    curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
+    setupCurl(fullUrl, false);
+    //if we cannot upload it in 5 minutes, we have serious issues
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
     if (username != "") {
         curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
@@ -937,13 +945,12 @@ bool FPP::uploadFileV7(const std::string &filename,
         progress.progress = progressDialog;
         progress.length = filesize;
         while (offset < filesize && !cancelled) {
-            setupCurl();
+            setupCurl(fullUrl, false);
             //if we cannot upload it in 5 minutes, we have serious issues
             curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
             curlInputBuffer.clear();
             char error[1024];
 
-            curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
             curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
             if (username != "") {
                 curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
