@@ -574,7 +574,6 @@ public:
 
     /* Places to store and data that is needed from one frame to another */
     std::map<int, EffectRenderCache*> infoCache;
-    int tempInt = 0;
 
     //place for GPU Renderers to attach extra data/objects it needs
     void *gpuRenderData = nullptr;
