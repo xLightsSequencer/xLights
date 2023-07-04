@@ -426,7 +426,7 @@ void DmxMovingHeadAdv::InitModel()
     tilt_motor->Set16Bit(_16bit);
     base_mesh->Init(this, true);
     yoke_mesh->Init(this, false);
-    base_mesh->Init(this, false);
+    head_mesh->Init(this, false);
 
     // renumber servo changed if number of bits changed
     if (update_bits) {
@@ -691,7 +691,6 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     st.pan_angle = pan_angle_raw;
     st.tilt_angle = tilt_angle;
 
-    float motor_pos[2] = { pan_angle, tilt_angle };
     glm::mat4 Identity = glm::mat4(1.0f);
 
     // Draw Meshs

@@ -939,6 +939,8 @@
 		<Unit filename="effects/MorphEffect.h" />
 		<Unit filename="effects/MorphPanel.cpp" />
 		<Unit filename="effects/MorphPanel.h" />
+		<Unit filename="effects/MovingHeadPanel.cpp" />
+		<Unit filename="effects/MovingHeadPanel.h" />
 		<Unit filename="effects/MusicEffect.cpp" />
 		<Unit filename="effects/MusicEffect.h" />
 		<Unit filename="effects/MusicPanel.cpp" />
@@ -1473,6 +1475,7 @@
 		<Unit filename="wxsmith/ModelRemap.wxs" />
 		<Unit filename="wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
+		<Unit filename="wxsmith/MovingHeadPanel.wxs" />
 		<Unit filename="wxsmith/MultiControllerUploadDialog.wxs" />
 		<Unit filename="wxsmith/MusicPanel.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
@@ -1771,8 +1774,12 @@
 					<wxDialog wxs="wxsmith/RestoreBackupDialog.wxs" src="RestoreBackupDialog.cpp" hdr="RestoreBackupDialog.h" fwddecl="0" i18n="1" name="RestoreBackupDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditComboDialog.wxs" src="BulkEditComboDialog.cpp" hdr="BulkEditComboDialog.h" fwddecl="0" i18n="1" name="BulkEditComboDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/DuplicateDialog.wxs" src="DuplicateDialog.cpp" hdr="DuplicateDialog.h" fwddecl="0" i18n="1" name="DuplicateDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/MovingHeadPanel.wxs" src="effects/MovingHeadPanel.cpp" hdr="effects/MovingHeadPanel.h" fwddecl="0" i18n="1" name="MovingHeadPanel" language="CPP" />
 				</resources>
 			</wxsmith>
+			<code_completion />
+			<envvars />
+			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
