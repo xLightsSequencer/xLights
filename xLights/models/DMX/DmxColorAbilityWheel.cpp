@@ -40,6 +40,14 @@ bool DmxColorAbilityWheel::IsColorChannel(uint32_t channel) const
     return (wheel_channel == channel || dimmer_channel == channel);
 }
 
+int DmxColorAbilityWheel::GetNumChannels() const
+{
+    int num_channels = 0;
+    num_channels += wheel_channel > 0 ? 1 : 0;
+    num_channels += dimmer_channel > 0 ? 1 : 0;
+    return num_channels;
+}
+
 void DmxColorAbilityWheel::SetColorPixels(const xlColor& color, xlColorVector& pixelVector) const
 {
     if (auto const& colordata = GetDMXWheelValue(color); colordata) {

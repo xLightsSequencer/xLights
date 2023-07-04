@@ -33,9 +33,12 @@ class DmxMotor
         void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
 
         int GetChannel() const { return channel; }
-        int GetMinLimit() const { return min_limit; }
-        int GetMaxLimit() const { return max_limit; }
-        int GetRangeOfMotion() const { return range_of_motion; }
+        int GetMinValue() const { return min_value; }
+        int GetMaxValue() const { return max_value; }
+        float GetRangeOfMotion() const { return range_of_motion; }
+        int GetOrientZero() const { return orient_zero; }
+        int GetOrientHome() const { return orient_home; }
+        float GetSlewLimit() const { return slew_limit; }
         float GetPosition(int channel_value);
         bool Is16Bit() { return _16bit; }
 
@@ -51,9 +54,12 @@ class DmxMotor
         wxXmlNode* node_xml;
         wxString base_name;
         int channel;
-        int min_limit;
-        int max_limit;
+        int min_value;
+        int max_value;
         float range_of_motion;
+        int orient_zero;
+        int orient_home;
+        float slew_limit;
         bool _16bit;
         BaseObject* base;
 };

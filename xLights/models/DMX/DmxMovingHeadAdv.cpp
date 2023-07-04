@@ -106,14 +106,8 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
 {
     DmxModel::AddTypeProperties(grid, outputManager);
 
-    auto p = grid->Append(new wxBoolProperty("16 Bit", "Bits16", _16bit));
-    p->SetAttribute("UseCheckbox", true);
-
     pan_motor->AddTypeProperties(grid);
     tilt_motor->AddTypeProperties(grid);
-
-    AddPanTiltTypeProperties(grid);
-    grid->Collapse("PanTiltProperties");
 
     if (nullptr != color_ability) {
         grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
@@ -125,7 +119,7 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
     AddShutterTypeProperties(grid);
     grid->Collapse("DmxShutterProperties");
 
-    p = grid->Append(new wxPropertyCategory("Beam Properties", "BeamProperties"));
+    auto p = grid->Append(new wxPropertyCategory("Beam Properties", "BeamProperties"));
 
     p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
     p->SetAttribute("Min", 0);
@@ -192,15 +186,11 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
         return 0;
     }
 
-    if (OnPanTiltPropertyGridChange(grid, event, ModelXml, this) == 0) {
-        return 0;
-    }
-
     if (OnShutterPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
     }
 
-    if ("DmxChannelCount" == event.GetPropertyName()) {
+    /*if ("DmxChannelCount" == event.GetPropertyName()) {
         int channels = (int)event.GetPropertyValue().GetLong();
         int min_channels = NUM_MOTORS * (_16bit ? 2 : 1);
         if (channels < min_channels) {
@@ -212,32 +202,9 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
             wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
             return 0;
         }
-    }
+    }*/
 
-    if (event.GetPropertyName() == "Bits16") {
-        ModelXml->DeleteAttribute("Bits16");
-        if (event.GetValue().GetBool()) {
-            _16bit = true;
-            ModelXml->AddAttribute("Bits16", "1");
-        } else {
-            _16bit = false;
-            ModelXml->AddAttribute("Bits16", "0");
-        }
-
-        pan_motor->SetChannel(1, this);
-        tilt_motor->SetChannel(_16bit ? 3 : 2, this);
-
-        int min_channels = NUM_MOTORS * (_16bit ? 2 : 1);
-        if (parm1 < min_channels) {
-            UpdateChannelCount(min_channels, true);
-        }
-        update_node_names = true;
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::Bits16");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHeadAdv::OnPropertyGridChange::Bits16");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::Bits16");
-        return 0;
-    }
-    else if ("DmxBeamLength" == event.GetPropertyName()) {
+    if ("DmxBeamLength" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxBeamLength");
         ModelXml->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamLength");
@@ -315,22 +282,16 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
 
 void DmxMovingHeadAdv::InitModel()
 {
-    _16bit = wxAtoi(ModelXml->GetAttribute("Bits16", "1"));
-
-    int min_channels = NUM_MOTORS * (_16bit ? 2 : 1);
+    /*int min_channels = NUM_MOTORS * (_16bit ? 2 : 1);
     if (parm1 < min_channels) {
         UpdateChannelCount(min_channels, false);
         std::string msg = wxString::Format("Channel count increased to %d to accommodate %d motors at %d bits.", min_channels, NUM_MOTORS, _16bit ? 16 : 8);
         wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
-    }
+    }*/
 
     DmxModel::InitModel();
     DisplayAs = "DmxMovingHeadAdv";
 
-    pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "0"));
-    pan_slew_limit = wxAtof(ModelXml->GetAttribute("DmxPanSlewLimit", "0"));
-    tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "0"));
-    tilt_slew_limit = wxAtof(ModelXml->GetAttribute("DmxTiltSlewLimit", "0"));
     shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
     shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
     shutter_on_value = wxAtoi(ModelXml->GetAttribute("DmxShutterOnValue", "0"));
@@ -397,7 +358,7 @@ void DmxMovingHeadAdv::InitModel()
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
         ModelXml->AddChild(new_node);
         tilt_motor = new DmxMotor(new_node, new_name);
-        tilt_motor->SetChannel(_16bit ? 3 : 2, this);
+        tilt_motor->SetChannel(3, this);
     }
 
     // create base mesh
@@ -427,30 +388,22 @@ void DmxMovingHeadAdv::InitModel()
     brightness = wxAtoi(ModelXml->GetAttribute("Brightness", "100"));
 
     pan_motor->Init(this);
-    pan_motor->Set16Bit(_16bit);
     tilt_motor->Init(this);
-    tilt_motor->Set16Bit(_16bit);
     base_mesh->Init(this, true);
     yoke_mesh->Init(this, false);
     head_mesh->Init(this, false);
 
-    // renumber servo changed if number of bits changed
-    if (update_bits) {
-        if (pan_motor != nullptr) {
-            pan_motor->SetChannel(1, this);
-        }
-        if (tilt_motor != nullptr) {
-            tilt_motor->SetChannel(_16bit ? 3 : 2, this);
-        }
-        update_bits = false;
-    }
-
     // create node names
     std::string names = "";
-    if (_16bit) {
-        names = "Pan,-Pan,Tilt,-Tilt";
+    if (pan_motor->Is16Bit()) {
+        names += "Pan,-Pan";
     } else {
-        names = "Pan,Tilt";
+        names = "Pan";
+    }
+    if (tilt_motor->Is16Bit()) {
+        names += ",Tilt,-Tilt";
+    } else {
+        names = ",Tilt";
     }
     SetNodeNames(names, update_node_names);
     update_node_names = false;
@@ -567,13 +520,20 @@ void DmxMovingHeadAdv::DisplayEffectOnWindow(ModelPreview* preview, double point
     }
 }
 
+int DmxMovingHeadAdv::GetMinChannels()
+{
+    int min_channels = (pan_motor->Is16Bit() ? 2 : 1) + (tilt_motor->Is16Bit() ? 2 : 1);
+    min_channels += color_ability->GetNumChannels();
+    min_channels += shutter_channel > 0 ? 1 : 0;
+    return min_channels;
+}
+
 std::list<std::string> DmxMovingHeadAdv::CheckModelSettings()
 {
     std::list<std::string> res;
 
     int nodeCount = Nodes.size();
-    int min_channels = NUM_MOTORS * (_16bit ? 2 : 1);
-
+    int min_channels = GetMinChannels();
     if (min_channels > nodeCount) {
         res.push_back(wxString::Format("    ERR: Model %s requires more channels %d than have been allocated to it %d.", GetName(), min_channels, nodeCount));
     }
@@ -593,7 +553,7 @@ std::list<std::string> DmxMovingHeadAdv::CheckModelSettings()
 void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active, const xlColor* c)
 {
     // crash protection
-    int min_channels = NUM_MOTORS * (_16bit ? 2 : 1);
+    int min_channels = GetMinChannels();
     if (min_channels > Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
@@ -631,13 +591,13 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     if (pan_motor->GetChannel() > 0 && active) {
         pan_angle = pan_motor->GetPosition(GetChannelValue(pan_motor->GetChannel() - 1, pan_motor->Is16Bit()));
     }
-    pan_angle += pan_orient;
+    pan_angle += pan_motor->GetOrientZero() + pan_motor->GetOrientHome();
 
     float tilt_angle = 0;
     if (tilt_motor->GetChannel() > 0 && active) {
         tilt_angle = tilt_motor->GetPosition(GetChannelValue(tilt_motor->GetChannel() - 1, tilt_motor->Is16Bit()));
     }
-    tilt_angle += tilt_orient;
+    tilt_angle += tilt_motor->GetOrientZero() + tilt_motor->GetOrientHome();
 
     uint32_t ms = preview->getCurrentFrameTime();
     uint32_t time_delta = 0;
@@ -654,8 +614,8 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
 
     if (time_delta != 0 && active) {
         // pan slew limiting
-        if (pan_slew_limit > 0.0f) {
-            float slew_limit = pan_slew_limit * (float)time_delta / 1000.0f;
+        if (pan_motor->GetSlewLimit() > 0.0f) {
+            float slew_limit = pan_motor->GetSlewLimit() * (float)time_delta / 1000.0f;
             float pan_delta = pan_angle - old_pan_angle;
             if (std::abs(pan_delta) > slew_limit) {
                 if (pan_delta < 0) {
@@ -670,8 +630,8 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
 
     if (time_delta != 0 && active) {
         // tilt slew limiting
-        if (tilt_slew_limit > 0.0f) {
-            float slew_limit = tilt_slew_limit * (float)time_delta / 1000.0f;
+        if (tilt_motor->GetSlewLimit() > 0.0f) {
+            float slew_limit = tilt_motor->GetSlewLimit() * (float)time_delta / 1000.0f;
             float tilt_delta = tilt_angle - old_tilt_angle;
             if (std::abs(tilt_delta) > slew_limit) {
                 if (tilt_delta < 0) {

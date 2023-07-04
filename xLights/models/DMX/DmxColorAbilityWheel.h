@@ -51,6 +51,7 @@ class DmxColorAbilityWheel : public DmxColorAbility
         void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const override;
         void ImportParameters(wxXmlNode* ImportXml, Model* m) const override;
         void SetNodeNames(std::vector<std::string> & names) const override;
+        int GetNumChannels() const override;
 
     private:
         uint32_t wheel_channel;

@@ -140,8 +140,8 @@ void ServoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                         for (int k = 0; k < mhead->GetNumMotors(); ++k) {
                             int axis_channel = mhead->GetAxis(k)->GetChannel();
                             if (axis_channel == (i + 1)) {
-                                min_limit = mhead->GetAxis(k)->GetMinLimit();
-                                max_limit = mhead->GetAxis(k)->GetMaxLimit();
+                                min_limit = mhead->GetAxis(k)->GetMinValue();
+                                max_limit = mhead->GetAxis(k)->GetMaxValue();
                                 break;
                             }
                         }

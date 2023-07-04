@@ -32,6 +32,16 @@ bool DmxColorAbilityRGB::IsColorChannel(uint32_t channel) const
     return (red_channel == channel || green_channel == channel || blue_channel == channel || white_channel == channel);
 }
 
+int DmxColorAbilityRGB::GetNumChannels() const
+{
+    int num_channels = 0;
+    num_channels += red_channel > 0 ? 1 : 0;
+    num_channels += green_channel > 0 ? 1 : 0;
+    num_channels += blue_channel > 0 ? 1 : 0;
+    num_channels += white_channel > 0 ? 1 : 0;
+    return num_channels;
+}
+
 void DmxColorAbilityRGB::SetColorPixels(const xlColor& color, xlColorVector& pixelVector) const
 {
     xlColor c;

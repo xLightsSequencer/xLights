@@ -11,8 +11,8 @@
  **************************************************************/
 
 #include "DmxModel.h"
-#include "DmxPanTiltAbility.h"
 #include "DmxShutterAbility.h"
+#include "DmxPanTiltAbility.h"
 
 class Mesh;
 class DmxMotor;
@@ -38,7 +38,6 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
         DmxMotor* GetAxis(int num) { return num == 1 ? tilt_motor : pan_motor; }
         void UpdateNodeNames() { update_node_names = true; }
         void UpdateBits() { update_bits = true; }
-        bool Is16Bit() const { return _16bit; }
 
     protected:
         virtual void InitModel() override;
@@ -54,6 +53,8 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
         virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
         virtual float GetDefaultBeamWidth() const { return 1.5f; }
 
+        int GetMinChannels();
+
         float brightness = 100.0f;
 
     private:
@@ -61,10 +62,6 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
 
         bool update_node_names = false;
         bool update_bits = false;
-//        const int num_servos = 2;
-//        int num_static = 1;
-//        int num_motion = 2;
-        bool _16bit = true;
         bool show_pivot = false;
         Mesh* base_mesh;
         Mesh* yoke_mesh;
