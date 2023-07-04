@@ -62,7 +62,13 @@ public:
 };
 
 DmxMovingHeadAdv::DmxMovingHeadAdv(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxModel(node, manager, zeroBased), beam_length(4)
+    : DmxModel(node, manager, zeroBased),
+      base_mesh(nullptr),
+      yoke_mesh(nullptr),
+      head_mesh(nullptr),
+      pan_motor(nullptr),
+      tilt_motor(nullptr),
+      beam_length(4)
 {
     beam_width = GetDefaultBeamWidth();
     SetFromXml(node, zeroBased);

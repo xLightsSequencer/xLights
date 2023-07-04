@@ -25,6 +25,7 @@ DmxMotor::DmxMotor(wxXmlNode* node, wxString _name)
     min_limit(0), max_limit(65535), range_of_motion(180.0f),
     _16bit(true)
 {
+    int x = 6;
 }
 
 DmxMotor::~DmxMotor()
