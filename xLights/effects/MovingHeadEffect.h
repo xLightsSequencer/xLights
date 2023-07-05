@@ -66,4 +66,5 @@ protected:
     {
         return false;
     }
+    void WriteCmdToPixel(int channel, int value, bool is_16bit, RenderBuffer &buffer);
 };

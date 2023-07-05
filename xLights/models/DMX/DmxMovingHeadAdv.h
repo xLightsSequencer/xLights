@@ -36,6 +36,8 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
 
         int GetNumMotors() const { return NUM_MOTORS; }
         DmxMotor* GetAxis(int num) { return num == 1 ? tilt_motor : pan_motor; }
+        DmxMotor* GetPanMotor() { return pan_motor; }
+        DmxMotor* GetTiltMotor() { return tilt_motor; }
         void UpdateNodeNames() { update_node_names = true; }
         void UpdateBits() { update_bits = true; }
 
@@ -62,7 +64,6 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
 
         bool update_node_names = false;
         bool update_bits = false;
-        bool show_pivot = false;
         Mesh* base_mesh;
         Mesh* yoke_mesh;
         Mesh* head_mesh;

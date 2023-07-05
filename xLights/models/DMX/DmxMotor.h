@@ -39,12 +39,11 @@ class DmxMotor
         int GetOrientZero() const { return orient_zero; }
         int GetOrientHome() const { return orient_home; }
         float GetSlewLimit() const { return slew_limit; }
+        int ConvertPostoCmd( float position );
         float GetPosition(int channel_value);
         bool Is16Bit() { return _16bit; }
 
         void SetChannel(int chan, BaseObject* base);
-        void SetMinLimit(int val);
-        void SetMaxLimit(int val);
         void SetRangeOfMotion(float val);
         void Set16Bit(bool value);
 
@@ -60,6 +59,8 @@ class DmxMotor
         int orient_zero;
         int orient_home;
         float slew_limit;
+        bool reverse;
+        int rev;
         bool _16bit;
         BaseObject* base;
 };
