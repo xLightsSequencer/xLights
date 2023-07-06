@@ -387,11 +387,15 @@ void DmxMovingHeadAdv::InitModel()
 
     brightness = wxAtoi(ModelXml->GetAttribute("Brightness", "100"));
 
+    bool base_defined = base_mesh->HasObjFile();
+    bool yoke_defined = yoke_mesh->HasObjFile();
+    bool head_defined = head_mesh->HasObjFile();
+
     pan_motor->Init(this);
     tilt_motor->Init(this);
-    base_mesh->Init(this, true);
-    yoke_mesh->Init(this, false);
-    head_mesh->Init(this, false);
+    base_mesh->Init(this, head_defined ? false : (yoke_defined ? false : true));
+    yoke_mesh->Init(this, head_defined ? false : (base_defined ? (yoke_defined ? true : false) : true));
+    head_mesh->Init(this, head_defined ? true : (yoke_defined ? true : false));
 
     // create node names
     std::string names = "";

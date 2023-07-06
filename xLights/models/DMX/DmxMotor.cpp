@@ -49,8 +49,8 @@ void DmxMotor::Init(BaseObject* base) {
     this->base = base;
     channel_coarse = wxAtoi(node_xml->GetAttribute("ChannelCoarse", "0"));
     channel_fine = wxAtoi(node_xml->GetAttribute("ChannelFine", "0"));
-    min_limit = wxAtoi(node_xml->GetAttribute("MinLimit", "0"));
-    max_limit = wxAtoi(node_xml->GetAttribute("MaxLimit", "65535"));
+    min_limit = wxAtoi(node_xml->GetAttribute("MinLimit", "-180"));
+    max_limit = wxAtoi(node_xml->GetAttribute("MaxLimit", "180"));
     range_of_motion = wxAtof(node_xml->GetAttribute("RangeOfMotion", "180.0f"));
     orient_zero = wxAtoi(node_xml->GetAttribute("OrientZero", "0"));
     orient_home = wxAtoi(node_xml->GetAttribute("OrientHome", "0"));

@@ -6698,11 +6698,12 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                                     nz == z)
                                 {
                                     nx += 40;
-                                    ny -= 40;
+                                    // gjones: removed Y offset...almost always want same height when pasting
+                                    //ny -= 40;
                                     nd->DeleteAttribute("WorldPosX");
-                                    nd->DeleteAttribute("WorldPosY");
+                                    //nd->DeleteAttribute("WorldPosY");
                                     nd->AddAttribute("WorldPosX", wxString::Format("%6.4f", (float)nx));
-                                    nd->AddAttribute("WorldPosY", wxString::Format("%6.4f", (float)ny));
+                                    //nd->AddAttribute("WorldPosY", wxString::Format("%6.4f", (float)ny));
                                     moved = true;
                                     break;
                                 }
