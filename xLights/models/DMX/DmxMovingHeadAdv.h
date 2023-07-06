@@ -40,6 +40,7 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
         DmxMotor* GetTiltMotor() { return tilt_motor; }
         void UpdateNodeNames() { update_node_names = true; }
         void UpdateBits() { update_bits = true; }
+        int GetFixtureVal() const { return fixture_val + 1; }
 
     protected:
         virtual void InitModel() override;
@@ -73,5 +74,7 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
         float beam_width;
         int beam_orient;
         float beam_y_offset;
+        int fixture_val;
+        std::string dmx_fixture;
 };
 

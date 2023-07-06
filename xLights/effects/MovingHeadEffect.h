@@ -69,4 +69,6 @@ protected:
         return false;
     }
     void WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer);
+    std::list<Model*> GetModels(Model* model);
+    void UpdateFixturePositions(Model *cls);
 };

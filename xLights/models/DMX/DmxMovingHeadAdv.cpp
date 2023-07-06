@@ -68,7 +68,9 @@ DmxMovingHeadAdv::DmxMovingHeadAdv(wxXmlNode *node, const ModelManager &manager,
       head_mesh(nullptr),
       pan_motor(nullptr),
       tilt_motor(nullptr),
-      beam_length(4)
+      beam_length(4),
+      fixture_val(0),
+      dmx_fixture("MH1")
 {
     beam_width = GetDefaultBeamWidth();
     SetFromXml(node, zeroBased);
@@ -102,8 +104,34 @@ void DmxMovingHeadAdv::Clear() {
     }
 }
 
+static wxPGChoices DMX_FIXTURES;
+
+enum DMX_FIXTURE {
+    DMX_MOVING_HEAD_1,
+    DMX_MOVING_HEAD_2,
+    DMX_MOVING_HEAD_3,
+    DMX_MOVING_HEAD_4,
+    DMX_MOVING_HEAD_5,
+    DMX_MOVING_HEAD_6,
+    DMX_MOVING_HEAD_7,
+    DMX_MOVING_HEAD_8
+};
+
 void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
+    if (DMX_FIXTURES.GetCount() == 0) {
+        DMX_FIXTURES.Add("MH1");
+        DMX_FIXTURES.Add("MH2");
+        DMX_FIXTURES.Add("MH3");
+        DMX_FIXTURES.Add("MH4");
+        DMX_FIXTURES.Add("MH5");
+        DMX_FIXTURES.Add("MH6");
+        DMX_FIXTURES.Add("MH7");
+        DMX_FIXTURES.Add("MH8");
+    }
+
+    grid->Append(new wxEnumProperty("Fixture", "DmxFixture", DMX_FIXTURES, fixture_val));
+
     DmxModel::AddTypeProperties(grid, outputManager);
 
     pan_motor->AddTypeProperties(grid);
@@ -190,21 +218,31 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
         return 0;
     }
 
-    /*if ("DmxChannelCount" == event.GetPropertyName()) {
-        int channels = (int)event.GetPropertyValue().GetLong();
-        int min_channels = NUM_MOTORS * (_16bit ? 2 : 1);
-        if (channels < min_channels) {
-            wxPGProperty* p = grid->GetPropertyByName("DmxChannelCount");
-            if (p != nullptr) {
-                p->SetValue(min_channels);
-            }
-            std::string msg = wxString::Format("You have %d motors at %d bits so you need %d channels minimum.", NUM_MOTORS, _16bit ? 16 : 8, min_channels);
-            wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
-            return 0;
+    if ("DmxFixture" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxFixture");
+        fixture_val = event.GetPropertyValue().GetLong();
+        if (fixture_val == DMX_MOVING_HEAD_1) {
+            dmx_fixture = "MH1";
+        } else if (fixture_val == DMX_MOVING_HEAD_2) {
+            dmx_fixture = "MH2";
+        } else if (fixture_val == DMX_MOVING_HEAD_3) {
+            dmx_fixture = "MH3";
+        } else if (fixture_val == DMX_MOVING_HEAD_4) {
+            dmx_fixture = "MH4";
+        } else if (fixture_val == DMX_MOVING_HEAD_5) {
+            dmx_fixture = "MH5";
+        } else if (fixture_val == DMX_MOVING_HEAD_6) {
+            dmx_fixture = "MH6";
+        } else if (fixture_val == DMX_MOVING_HEAD_7) {
+            dmx_fixture = "MH7";
+        } else if (fixture_val == DMX_MOVING_HEAD_8) {
+            dmx_fixture = "MH8";
         }
-    }*/
-
-    if ("DmxBeamLength" == event.GetPropertyName()) {
+        ModelXml->AddAttribute("DmxFixture", dmx_fixture);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxFixture");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxFixture");
+        return 0;
+    } else if ("DmxBeamLength" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxBeamLength");
         ModelXml->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamLength");
@@ -282,13 +320,6 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
 
 void DmxMovingHeadAdv::InitModel()
 {
-    /*int min_channels = NUM_MOTORS * (_16bit ? 2 : 1);
-    if (parm1 < min_channels) {
-        UpdateChannelCount(min_channels, false);
-        std::string msg = wxString::Format("Channel count increased to %d to accommodate %d motors at %d bits.", min_channels, NUM_MOTORS, _16bit ? 16 : 8);
-        wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
-    }*/
-
     DmxModel::InitModel();
     DisplayAs = "DmxMovingHeadAdv";
 
@@ -411,6 +442,29 @@ void DmxMovingHeadAdv::InitModel()
     }
     SetNodeNames(names, update_node_names);
     update_node_names = false;
+    
+    dmx_fixture = ModelXml->GetAttribute("DmxFixture", "MH1");
+    fixture_val = DMX_MOVING_HEAD_1;
+    if( dmx_fixture == "MH2" ) {
+        fixture_val = DMX_MOVING_HEAD_2;
+    } else if( dmx_fixture == "MH3" ) {
+        fixture_val = DMX_MOVING_HEAD_3;
+    } else if( dmx_fixture == "MH4" ) {
+        fixture_val = DMX_MOVING_HEAD_4;
+    } else if( dmx_fixture == "MH5" ) {
+        fixture_val = DMX_MOVING_HEAD_5;
+    } else if( dmx_fixture == "MH6" ) {
+        fixture_val = DMX_MOVING_HEAD_6;
+    } else if( dmx_fixture == "MH7" ) {
+        fixture_val = DMX_MOVING_HEAD_7;
+    } else if( dmx_fixture == "MH8" ) {
+        fixture_val = DMX_MOVING_HEAD_8;
+    }
+
+    if (dmx_fixture.empty()) {
+        dmx_fixture = "MH1";
+    }
+
 }
 
 void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,

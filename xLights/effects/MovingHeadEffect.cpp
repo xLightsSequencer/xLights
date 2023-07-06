@@ -57,7 +57,6 @@ void MovingHeadEffect::RenameTimingTrack(std::string oldname, std::string newnam
     }
 }
 
-
 void MovingHeadEffect::SetDefaultParameters() {
     MovingHeadPanel *dp = (MovingHeadPanel*)panel;
     if (dp == nullptr) {
@@ -123,6 +122,31 @@ void MovingHeadEffect::WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer 
     }
 }
 
+std::list<Model*> MovingHeadEffect::GetModels(Model* model)
+{
+    std::list<Model*> model_list;
+    if (model != nullptr) {
+        if (model->GetDisplayAs() == "ModelGroup") {
+            auto mg = dynamic_cast<ModelGroup*>(model);
+            if (mg != nullptr) {
+                for (const auto& it : mg->GetFlatModels(true, false)) {
+                    if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {
+                        model_list.push_back(it);
+                    }
+                }
+            }
+        }
+        else if (model->GetDisplayAs() == "SubModel") {
+            // don't add SubModels
+        }
+        else {
+            model_list.push_back(model);
+        }
+    }
+
+    return model_list;
+}
+
 void MovingHeadEffect::SetPanelStatus(Model *cls) {
     MovingHeadPanel *p = (MovingHeadPanel*)panel;
     if (p == nullptr) {
@@ -132,6 +156,53 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
         return;
     }
 
+    // disable all fixtures
+    for( int i = 1; i <= 8; ++i ) {
+        wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+        wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
+        if( checkbox != nullptr ) {
+            checkbox->Enable(false);
+            checkbox->SetValue(false);
+        }
+    }
+
+    // find fixture numbers to enable
+    auto models = GetModels(cls);
+    bool single_model = models.size() == 1;
+    for (const auto& it : models) {
+        if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
+            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", mhead->GetFixtureVal());
+            wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
+            if( checkbox != nullptr ) {
+                checkbox->Enable(true);
+                if( single_model ) {
+                    checkbox->SetValue(true);
+               }
+            }
+       }
+    }
+
     p->FlexGridSizer_Main->Layout();
     p->Refresh();
+}
+
+void MovingHeadEffect::UpdateFixturePositions(Model *cls)
+{
+    MovingHeadPanel *p = (MovingHeadPanel*)panel;
+    if (p == nullptr) {
+        return;
+    }
+
+    auto models = GetModels(cls);
+    bool single_model = models.size() == 1;
+    for (const auto& it : models) {
+        if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
+            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+            wxString label_ctrl = wxString::Format("ID_STATICTEXT_MH%d", mhead->GetFixtureVal());
+            wxStaticText* label = (wxStaticText*)(p->FindWindowByName(label_ctrl));
+
+       }
+    }
+
 }
