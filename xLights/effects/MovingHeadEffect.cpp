@@ -93,13 +93,13 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
             int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(pan_pos);
             int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(tilt_pos);
             
-            WriteCmdToPixel((int)mhead->GetPanMotor()->GetChannel()-1, pan_cmd, (int)mhead->GetPanMotor()->Is16Bit(), buffer);
-            WriteCmdToPixel((int)mhead->GetTiltMotor()->GetChannel()-1, tilt_cmd, (int)mhead->GetTiltMotor()->Is16Bit(), buffer);
+            WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
+            WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
         }
     }
 }
 
-void MovingHeadEffect::WriteCmdToPixel(int channel, int value, bool is_16bit, RenderBuffer &buffer)
+void MovingHeadEffect::WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer)
 {
     xlColor lsb_c = xlBLACK;
     xlColor msb_c = xlBLACK;
@@ -109,14 +109,17 @@ void MovingHeadEffect::WriteCmdToPixel(int channel, int value, bool is_16bit, Re
     lsb_c.red = lsb;
     lsb_c.green = lsb;
     lsb_c.blue = lsb;
-    if( is_16bit ) {
-        msb_c.red = msb;
-        msb_c.green = msb;
-        msb_c.blue = msb;
-        buffer.SetPixel(channel, 0, msb_c, false, false, true);
-        buffer.SetPixel(channel+1, 0, lsb_c, false, false, true);
-    } else {
-        buffer.SetPixel(channel, 0, lsb_c, false, false, true);
+    msb_c.red = msb;
+    msb_c.green = msb;
+    msb_c.blue = msb;
+    int coarse_channel = motor->GetChannelCoarse() - 1;
+    int fine_channel = motor->GetChannelFine() - 1;
+
+    if( coarse_channel >= 0 ) {
+        buffer.SetPixel(coarse_channel, 0, msb_c, false, false, true);
+        if( fine_channel >= 0 ) {
+            buffer.SetPixel(fine_channel, 0, lsb_c, false, false, true);
+        }
     }
 }
 

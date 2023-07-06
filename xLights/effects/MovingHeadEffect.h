@@ -16,6 +16,8 @@
 #define MOVING_HEAD_MAX  1800
 #define MOVING_HEAD_DIVISOR 10
 
+class DmxMotor;
+
 class MovingHeadEffect : public RenderableEffect
 {
 public:
@@ -66,5 +68,5 @@ protected:
     {
         return false;
     }
-    void WriteCmdToPixel(int channel, int value, bool is_16bit, RenderBuffer &buffer);
+    void WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer);
 };

@@ -21,9 +21,17 @@
 #include <glm/gtc/type_ptr.hpp>
 
 DmxMotor::DmxMotor(wxXmlNode* node, wxString _name)
-    : node_xml(node), base_name(_name), channel(0),
-    min_value(0), max_value(65535), range_of_motion(180.0f),
-    reverse(false), rev(1), _16bit(true)
+    : node_xml(node),
+      base_name(_name),
+      channel_coarse(0),
+      channel_fine(0),
+      min_limit(-180),
+      max_limit(180),
+      min_value(0),
+      max_value(65535),
+      range_of_motion(180.0f),
+      reverse(false),
+      rev(1)
 {
 }
 
@@ -31,28 +39,22 @@ DmxMotor::~DmxMotor()
 {
 }
 
-void DmxMotor::SetChannel(int chan, BaseObject* base) {
-    channel = chan;
-    node_xml->DeleteAttribute("Channel");
-    node_xml->AddAttribute("Channel", wxString::Format("%d", channel));
-}
-
-void DmxMotor::SetRangeOfMotion(float val) {
-    range_of_motion = val;
-    node_xml->DeleteAttribute("RangeOfMotion");
-    node_xml->AddAttribute("RangeOfMotion", std::to_string(range_of_motion));
+void DmxMotor::SetChannelCoarse(int chan, BaseObject* base) {
+    channel_coarse = chan;
+    node_xml->DeleteAttribute("ChannelCoarse");
+    node_xml->AddAttribute("ChannelCoarse", wxString::Format("%d", channel_coarse));
 }
 
 void DmxMotor::Init(BaseObject* base) {
     this->base = base;
-    channel = wxAtoi(node_xml->GetAttribute("Channel", "0"));
-    min_value = wxAtoi(node_xml->GetAttribute("MinValue", "0"));
-    max_value = wxAtoi(node_xml->GetAttribute("MaxValue", "65535"));
+    channel_coarse = wxAtoi(node_xml->GetAttribute("ChannelCoarse", "0"));
+    channel_fine = wxAtoi(node_xml->GetAttribute("ChannelFine", "0"));
+    min_limit = wxAtoi(node_xml->GetAttribute("MinLimit", "0"));
+    max_limit = wxAtoi(node_xml->GetAttribute("MaxLimit", "65535"));
     range_of_motion = wxAtof(node_xml->GetAttribute("RangeOfMotion", "180.0f"));
     orient_zero = wxAtoi(node_xml->GetAttribute("OrientZero", "0"));
     orient_home = wxAtoi(node_xml->GetAttribute("OrientHome", "0"));
     slew_limit = wxAtof(node_xml->GetAttribute("SlewLimit", "0.0f"));
-    _16bit = wxAtoi(node_xml->GetAttribute("Bits16", "1"));
     reverse = wxAtoi(node_xml->GetAttribute("Reverse", "0"));
     if ( reverse ) {
         rev = -1;
@@ -91,19 +93,24 @@ float DmxMotor::GetPosition(int channel_value) {
 void DmxMotor::AddTypeProperties(wxPropertyGridInterface *grid) {
     grid->Append(new wxPropertyCategory(base_name, base_name + "Properties"));
     
-    wxPGProperty* p = grid->Append(new wxUIntProperty("Channel", base_name + "Channel", channel));
+    auto p = grid->Append(new wxUIntProperty("Channel (Coarse)", base_name + "ChannelCoarse", channel_coarse));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Min Value", base_name + "MinValue", min_value));
+    p = grid->Append(new wxUIntProperty("Channel (Fine)", base_name + "ChannelFine", channel_fine));
     p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", _16bit ? 65535 : 255);
+    p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Max Value", base_name + "MaxValue", max_value));
+    p = grid->Append(new wxIntProperty("Min Limit (deg)", base_name + "MinLimit", min_limit));
+    p->SetAttribute("Min", -180);
+    p->SetAttribute("Max", 0);
+    p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxIntProperty("Max Limit (deg)", base_name + "MaxLimit", max_limit));
     p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", _16bit ? 65535 : 255);
+    p->SetAttribute("Max", 180);
     p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxFloatProperty("Range of Motion", base_name + "RangeOfMotion", range_of_motion));
@@ -133,37 +140,42 @@ void DmxMotor::AddTypeProperties(wxPropertyGridInterface *grid) {
     p = grid->Append(new wxBoolProperty("Reverse", base_name + "Reverse", reverse));
     p->SetAttribute("UseCheckbox", true);
 
-    p = grid->Append(new wxBoolProperty("16 Bit", base_name + "Bits16", _16bit));
-    p->SetAttribute("UseCheckbox", true);
-
     grid->Collapse(base_name + "Properties");
 }
 
 int DmxMotor::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked) {
     std::string name = event.GetPropertyName().ToStdString();
 
-    if (base_name + "Channel" == name) {
-        node_xml->DeleteAttribute("Channel");
-        node_xml->AddAttribute("Channel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::Channel");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::Channel");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMotor::OnPropertyGridChange::Channel");
+    if (base_name + "ChannelCoarse" == name) {
+        node_xml->DeleteAttribute("ChannelCoarse");
+        node_xml->AddAttribute("ChannelCoarse", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::ChannelCoarse");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::ChannelCoarse");
+        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMotor::OnPropertyGridChange::ChannelCoarse");
         return 0;
     }
-    else if (base_name + "MinValue" == name) {
-        node_xml->DeleteAttribute("MinValue");
-        node_xml->AddAttribute("MinValue", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::MinValue");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::MinValue");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::MinValue");
+    else if (base_name + "ChannelFine" == name) {
+        node_xml->DeleteAttribute("ChannelFine");
+        node_xml->AddAttribute("ChannelFine", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::ChannelFine");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::ChannelFine");
+        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMotor::OnPropertyGridChange::ChannelFine");
         return 0;
     }
-    else if (base_name + "MaxValue" == name) {
-        node_xml->DeleteAttribute("MaxValue");
-        node_xml->AddAttribute("MaxValue", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::MaxValue");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::MaxValue");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::MaxValue");
+    else if (base_name + "MinLimit" == name) {
+        node_xml->DeleteAttribute("MinLimit");
+        node_xml->AddAttribute("MinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::MinLimit");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::MinLimit");
+        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::MinLimit");
+        return 0;
+    }
+    else if (base_name + "MaxLimit" == name) {
+        node_xml->DeleteAttribute("MaxLimit");
+        node_xml->AddAttribute("MaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::MaxLimit");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::MaxLimit");
+        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::MaxLimit");
         return 0;
     }
     else if (base_name + "RangeOfMotion" == name) {
@@ -212,38 +224,8 @@ int DmxMotor::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::Reverse");
         return 0;
     }
-    else if (base_name + "Bits16" == name) {
-        node_xml->DeleteAttribute("Bits16");
-        if (event.GetValue().GetBool()) {
-            _16bit = true;
-            node_xml->AddAttribute("Bits16", "1");
-        } else {
-            _16bit = false;
-            node_xml->AddAttribute("Bits16", "0");
-        }
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::Bits16");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMotor::OnPropertyGridChange::Bits16");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::Bits16");
-        return 0;
-    }
-    return -1;
-}
 
-void DmxMotor::Set16Bit(bool value)
-{
-    _16bit = value;
-    if (!_16bit) {
-        if (min_value > 255) {
-            min_value = 255;
-            node_xml->DeleteAttribute("MinValue");
-            node_xml->AddAttribute("MinValue", wxString::Format("%d", min_value));
-        }
-        if (max_value > 255) {
-            max_value = 255;
-            node_xml->DeleteAttribute("MaxValue");
-            node_xml->AddAttribute("MaxValue", wxString::Format("%d", max_value));
-        }
-    }
+    return -1;
 }
 
 // Serialise for export

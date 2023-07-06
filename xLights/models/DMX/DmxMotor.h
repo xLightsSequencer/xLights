@@ -32,36 +32,40 @@ class DmxMotor
         void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
         void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
 
-        int GetChannel() const { return channel; }
-        int GetMinValue() const { return min_value; }
-        int GetMaxValue() const { return max_value; }
+        int GetChannelCoarse() const { return channel_coarse; }
+        int GetChannelFine() const { return channel_fine; }
+        int GetMinLimit() const { return min_limit; }
+        int GetMaxLimit() const { return max_limit; }
+        int GetMinValue() const { return 0; }
+        int GetMaxValue() const { return 65535; }
         float GetRangeOfMotion() const { return range_of_motion; }
         int GetOrientZero() const { return orient_zero; }
         int GetOrientHome() const { return orient_home; }
         float GetSlewLimit() const { return slew_limit; }
         int ConvertPostoCmd( float position );
         float GetPosition(int channel_value);
-        bool Is16Bit() { return _16bit; }
+        bool Is16Bit() { return channel_fine > 0; }
 
-        void SetChannel(int chan, BaseObject* base);
-        void SetRangeOfMotion(float val);
-        void Set16Bit(bool value);
+        void SetChannelCoarse(int chan, BaseObject* base);
 
     protected:
 
     private:
         wxXmlNode* node_xml;
         wxString base_name;
-        int channel;
+        int channel_coarse;
+        int channel_fine;
         int min_value;
         int max_value;
+        int min_limit;
+        int max_limit;
         float range_of_motion;
         int orient_zero;
         int orient_home;
         float slew_limit;
         bool reverse;
         int rev;
-        bool _16bit;
-        BaseObject* base;
+
+    BaseObject* base;
 };
 

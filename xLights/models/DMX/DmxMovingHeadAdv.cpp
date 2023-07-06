@@ -349,7 +349,7 @@ void DmxMovingHeadAdv::InitModel()
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
         ModelXml->AddChild(new_node);
         pan_motor = new DmxMotor(new_node, new_name);
-        pan_motor->SetChannel(1, this);
+        pan_motor->SetChannelCoarse(1, this);
     }
 
     // create tilt motor
@@ -358,7 +358,7 @@ void DmxMovingHeadAdv::InitModel()
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
         ModelXml->AddChild(new_node);
         tilt_motor = new DmxMotor(new_node, new_name);
-        tilt_motor->SetChannel(3, this);
+        tilt_motor->SetChannelCoarse(3, this);
     }
 
     // create base mesh
@@ -396,12 +396,12 @@ void DmxMovingHeadAdv::InitModel()
     // create node names
     std::string names = "";
     if (pan_motor->Is16Bit()) {
-        names += "Pan,-Pan";
+        names += "Pan,-Pan Fine";  // the minus sign makes the channel disappear in the servo effect
     } else {
         names = "Pan";
     }
     if (tilt_motor->Is16Bit()) {
-        names += ",Tilt,-Tilt";
+        names += ",Tilt,-Tilt Fine"; // the minus sign makes the channel disappear in the servo effect
     } else {
         names = ",Tilt";
     }
@@ -538,12 +538,20 @@ std::list<std::string> DmxMovingHeadAdv::CheckModelSettings()
         res.push_back(wxString::Format("    ERR: Model %s requires more channels %d than have been allocated to it %d.", GetName(), min_channels, nodeCount));
     }
     
-    if (pan_motor->GetChannel() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s pan motor is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannel(), nodeCount));
+    if (pan_motor->GetChannelCoarse() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s pan motor coarse is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannelCoarse(), nodeCount));
     }
 
-    if (tilt_motor->GetChannel() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s tilt motor is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannel(), nodeCount));
+    if (pan_motor->GetChannelFine() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s pan motor fine is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannelFine(), nodeCount));
+    }
+
+    if (tilt_motor->GetChannelCoarse() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s tilt motor coarse is assigned to channel %d but the model only has %d channels.", GetName(), tilt_motor->GetChannelCoarse(), nodeCount));
+    }
+
+    if (tilt_motor->GetChannelFine() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s tilt motor fine is assigned to channel %d but the model only has %d channels.", GetName(), tilt_motor->GetChannelFine(), nodeCount));
     }
 
     res.splice(res.end(), Model::CheckModelSettings());
@@ -558,11 +566,19 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (pan_motor->GetChannel() > Nodes.size()) {
+    if (pan_motor->GetChannelCoarse() > Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
-    if (tilt_motor->GetChannel() > Nodes.size()) {
+    if (pan_motor->GetChannelFine() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (tilt_motor->GetChannelCoarse() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (tilt_motor->GetChannelFine() > Nodes.size()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
@@ -588,14 +604,14 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     }
 
     float pan_angle = 0;
-    if (pan_motor->GetChannel() > 0 && active) {
-        pan_angle = pan_motor->GetPosition(GetChannelValue(pan_motor->GetChannel() - 1, pan_motor->Is16Bit()));
+    if (pan_motor->GetChannelCoarse() > 0 && active) {
+        pan_angle = pan_motor->GetPosition(GetChannelValue(pan_motor->GetChannelCoarse() - 1, pan_motor->GetChannelFine() - 1));
     }
     pan_angle += pan_motor->GetOrientZero();
 
     float tilt_angle = 0;
-    if (tilt_motor->GetChannel() > 0 && active) {
-        tilt_angle = tilt_motor->GetPosition(GetChannelValue(tilt_motor->GetChannel() - 1, tilt_motor->Is16Bit()));
+    if (tilt_motor->GetChannelCoarse() > 0 && active) {
+        tilt_angle = tilt_motor->GetPosition(GetChannelValue(tilt_motor->GetChannelCoarse() - 1, tilt_motor->GetChannelFine() - 1));
     }
     tilt_angle += tilt_motor->GetOrientZero();
 

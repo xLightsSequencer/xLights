@@ -65,7 +65,8 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void UpdateChannelCount(int num_channels, bool do_work);
 
         virtual int GetChannelValue( int channel, bool bits16);
-        void SetNodeNames(const std::string& default_names, bool force = false);
+        int GetChannelValue(int channel_coarse, int channel_fine);
+       void SetNodeNames(const std::string& default_names, bool force = false);
 
         std::unique_ptr<DmxColorAbility> color_ability;
         std::unique_ptr<DmxPresetAbility> preset_ability;
