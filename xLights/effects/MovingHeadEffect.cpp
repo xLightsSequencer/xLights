@@ -90,7 +90,7 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
         if( model_info->GetDisplayAs() == "DmxMovingHeadAdv" ) {
             DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)model_info;
             
-            int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(pan_pos);
+            int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
             int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(tilt_pos);
             
             WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
