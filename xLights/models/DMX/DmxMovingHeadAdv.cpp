@@ -394,10 +394,20 @@ void DmxMovingHeadAdv::InitModel()
         ModelXml->AddChild(new_node);
         pan_motor = new DmxMotor(new_node, new_name);
         pan_motor->SetChannelCoarse(1, this);
-        
+        new_node->AddAttribute("RangeOfMotion", "540");
+        new_node->AddAttribute("OrientHome", "90");
+        new_node->AddAttribute("SlewLimit", "180");
+
         // if no pan motor must be brand new model so setup default properties here
         ModelXml->DeleteAttribute("DmxBeamYOffset");
         ModelXml->AddAttribute("DmxBeamYOffset", "17");
+        ModelXml->DeleteAttribute("DmxRedChannel");
+        ModelXml->AddAttribute("DmxRedChannel", "5");
+        ModelXml->DeleteAttribute("DmxGreenChannel");
+        ModelXml->AddAttribute("DmxGreenChannel", "6");
+        ModelXml->DeleteAttribute("DmxBlueChannel");
+        ModelXml->AddAttribute("DmxBlueChannel", "7");
+
     }
 
     // create tilt motor
@@ -405,6 +415,8 @@ void DmxMovingHeadAdv::InitModel()
         std::string new_name = "TiltMotor";
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
         ModelXml->AddChild(new_node);
+        new_node->AddAttribute("OrientHome", "90");
+        new_node->AddAttribute("SlewLimit", "180");
         tilt_motor = new DmxMotor(new_node, new_name);
         tilt_motor->SetChannelCoarse(3, this);
     }
