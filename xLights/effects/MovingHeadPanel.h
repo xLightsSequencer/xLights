@@ -123,6 +123,7 @@ private:
 
     std::list<Model*> GetActiveModels();
     void UncheckAllFixtures();
+    void ProcessFirstFixture();
 };
 
 #endif

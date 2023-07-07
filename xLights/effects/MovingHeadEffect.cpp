@@ -81,10 +81,9 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     const std::string& string_type = model_info->GetStringType();
 
     if (StartsWith(string_type, "Single Color")) {
-        
         float pan_pos = 0.0f;
         float tilt_pos = 0.0f;
-        
+
         if( model_info->GetDisplayAs() == "DmxMovingHeadAdv" ) {
             MovingHeadPanel *p = (MovingHeadPanel*)panel;
             if (p == nullptr) {
@@ -104,20 +103,18 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
             }
 
             auto models = GetModels(model_info);
-            
+
             if( head_count == 1 ) {
-                
                 pan_pos = SettingsMap.GetFloat("SLIDER_Pan", 0.0) / 10.0;
                 tilt_pos = SettingsMap.GetFloat("SLIDER_Tilt", 0.0) / 10.0;
-                
+
                 int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
-                int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(tilt_pos);
-                
+                int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);
+
                 WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
                 WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
             } else {
                 for( int i = 1; i <= 8; ++i ) {
-                    
                     wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d", i);
                     std::string mh_settings = SettingsMap[mh_textbox];
                     if( mh_settings != "" ) {
@@ -131,14 +128,14 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                             std::string num = mh_settings.substr(pos+6, mh_settings.length());
                             tilt_pos = atof(num.c_str());
                         }
-                        
+
                         // find models that map to this moving head position
                         for (const auto& it : models) {
                             if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
                                 DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
                                 if( mhead->GetFixtureVal() == i ) {
                                     int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
-                                    int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(tilt_pos);
+                                    int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);
                                     
                                     WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
                                     WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);

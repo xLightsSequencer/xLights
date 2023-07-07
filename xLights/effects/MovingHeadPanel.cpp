@@ -309,6 +309,7 @@ void MovingHeadPanel::OnButton_AllClick(wxCommandEvent& event)
             }
        }
     }
+    ProcessFirstFixture();
 }
 
 void MovingHeadPanel::OnButton_NoneClick(wxCommandEvent& event)
@@ -335,6 +336,7 @@ void MovingHeadPanel::OnButton_EvensClick(wxCommandEvent& event)
             }
        }
     }
+    ProcessFirstFixture();
 }
 
 void MovingHeadPanel::OnButton_OddsClick(wxCommandEvent& event)
@@ -356,6 +358,7 @@ void MovingHeadPanel::OnButton_OddsClick(wxCommandEvent& event)
             }
        }
     }
+    ProcessFirstFixture();
 }
 
 std::list<Model*> MovingHeadPanel::GetActiveModels()
@@ -396,3 +399,42 @@ std::list<Model*> MovingHeadPanel::GetActiveModels()
     return res;
 }
 
+void MovingHeadPanel::ProcessFirstFixture()
+{
+    for( int i = 1; i <= 8; ++i ) {
+        wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+        wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+        if( checkbox != nullptr ) {
+            if( checkbox->IsChecked() ) {
+                wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d", i);
+                wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                if( textbox != nullptr ) {
+                    std::string mh_settings = textbox->GetValue();
+                    if( mh_settings != "" ) {
+                        int pan_pos = mh_settings.find("Pan:");
+                        int tilt_pos = mh_settings.find("Tilt:");
+                        if( pan_pos >= 0 && tilt_pos >= 0 ) {
+                            std::string pan_value = mh_settings.substr(pan_pos+5, mh_settings.length());
+                            std::string tilt_value = mh_settings.substr(tilt_pos+6, mh_settings.length());
+                            wxString pan_ctrl = wxString::Format("IDD_TEXTCTRL_Pan", i);
+                            wxTextCtrl* pan_textbox = (wxTextCtrl*)(this->FindWindowByName(pan_ctrl));
+                            if( pan_textbox != nullptr ) {
+                                float pan_pos = atof(pan_value.c_str());
+                                std::string pan_str = wxString::Format("%f", pan_pos);
+                                pan_textbox->SetValue(pan_str);
+                            }
+                            wxString tilt_ctrl = wxString::Format("IDD_TEXTCTRL_Tilt", i);
+                            wxTextCtrl* tilt_textbox = (wxTextCtrl*)(this->FindWindowByName(tilt_ctrl));
+                            if( tilt_textbox != nullptr ) {
+                                float tilt_pos = atof(tilt_value.c_str());
+                                std::string tilt_str = wxString::Format("%f", tilt_pos);
+                                tilt_textbox->SetValue(tilt_str);
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
+}
