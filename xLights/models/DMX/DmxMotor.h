@@ -40,7 +40,7 @@ class DmxMotor
         int GetMaxValue() const { return 65535; }
         float GetRangeOfMotion() const { return range_of_motion; }
         int GetOrientZero() const { return orient_zero; }
-        int GetOrientUp() const { return orient_up; }
+        int GetOrientHome() const { return orient_home; }
         float GetSlewLimit() const { return slew_limit; }
         int ConvertPostoCmd( float position );
         float GetPosition(int channel_value);
@@ -61,7 +61,7 @@ class DmxMotor
         int max_limit;
         float range_of_motion;
         int orient_zero;
-        int orient_up;
+        int orient_home;
         float slew_limit;
         bool reverse;
         int rev;

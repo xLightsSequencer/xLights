@@ -11,6 +11,7 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
+#include <wx/stdpaths.h>
 
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
@@ -62,16 +63,14 @@ public:
 };
 
 DmxMovingHeadAdv::DmxMovingHeadAdv(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxModel(node, manager, zeroBased),
-      base_mesh(nullptr),
-      yoke_mesh(nullptr),
-      head_mesh(nullptr),
-      pan_motor(nullptr),
-      tilt_motor(nullptr),
-      beam_length(4),
-      fixture_val(0),
-      dmx_fixture("MH1")
+    : DmxModel(node, manager, zeroBased)
 {
+    wxStandardPaths stdp = wxStandardPaths::Get();
+#ifndef __WXMSW__
+    obj_path = wxStandardPaths::Get().GetResourcesDir() + "/meshobjects/SimpleMovingHead/";
+#else
+    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/SimpleMovingHead/";
+#endif
     beam_width = GetDefaultBeamWidth();
     SetFromXml(node, zeroBased);
 }
@@ -170,9 +169,9 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
 
     p = grid->Append(new wxFloatProperty("Beam Y Offset", "DmxBeamYOffset", beam_y_offset));
     p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 50);
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
+    p->SetAttribute("Max", 500);
+    p->SetAttribute("Precision", 1);
+    p->SetAttribute("Step", 1);
     p->SetEditor("SpinCtrl");
 
     grid->Collapse("BeamProperties");
@@ -199,6 +198,21 @@ void DmxMovingHeadAdv::DisableUnusedProperties(wxPropertyGridInterface* grid)
         p->Hide(true);
     }
     p = grid->GetPropertyByName("DmxTiltDegOfRot");
+    if (p != nullptr) {
+        p->Hide(true);
+    }
+    
+    // rotation around the Z axis causes issues when the pan and tilt rotations are applied
+    // users should be able to achieve any desired position with only X and Y rotations
+    p = grid->GetPropertyByName("c");
+    if (p != nullptr) {
+        p->Hide(true);
+    }
+    p = grid->GetPropertyByName("YokeMeshRotateZ");
+    if (p != nullptr) {
+        p->Hide(true);
+    }
+    p = grid->GetPropertyByName("HeadMeshRotateZ");
     if (p != nullptr) {
         p->Hide(true);
     }
@@ -346,7 +360,6 @@ void DmxMovingHeadAdv::InitModel()
     beam_y_offset = wxAtof(ModelXml->GetAttribute("DmxBeamYOffset", "0"));
 
     wxXmlNode* n = ModelXml->GetChildren();
-
     while (n != nullptr) {
         std::string name = n->GetName();
 
@@ -374,6 +387,40 @@ void DmxMovingHeadAdv::InitModel()
         n = n->GetNext();
     }
 
+    if (base_node == nullptr) {
+        wxXmlNode* n = ModelXml->GetChildren();
+        while (n != nullptr) {
+            std::string name = n->GetName();
+            if ("BaseMesh" == name) {
+                base_node = n;
+            }
+            else if ("YokeMesh" == name) {
+                yoke_node = n;
+            }
+            else if ("HeadMesh" == name) {
+                head_node = n;
+            }
+            n = n->GetNext();
+        }
+    }
+
+    // create any missing nodes
+    if (base_node == nullptr) {
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "BaseMesh");
+        ModelXml->AddChild(new_node);
+        base_node = new_node;
+    }
+    if (yoke_node == nullptr) {
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "YokeMesh");
+        ModelXml->AddChild(new_node);
+        yoke_node = new_node;
+    }
+    if (head_node == nullptr) {
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "HeadMesh");
+        ModelXml->AddChild(new_node);
+        head_node = new_node;
+    }
+
     // create pan motor
     if (pan_motor == nullptr) {
         std::string new_name = "PanMotor";
@@ -381,6 +428,10 @@ void DmxMovingHeadAdv::InitModel()
         ModelXml->AddChild(new_node);
         pan_motor = new DmxMotor(new_node, new_name);
         pan_motor->SetChannelCoarse(1, this);
+        
+        // if no pan motor must be brand new model so setup default properties here
+        ModelXml->DeleteAttribute("DmxBeamYOffset");
+        ModelXml->AddAttribute("DmxBeamYOffset", "17");
     }
 
     // create tilt motor
@@ -394,26 +445,40 @@ void DmxMovingHeadAdv::InitModel()
 
     // create base mesh
     if (base_mesh == nullptr) {
-        std::string new_name = "BaseMesh";
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-        ModelXml->AddChild(new_node);
-        base_mesh = new Mesh(new_node, new_name);
+        if (base_node->HasAttribute("ObjFile")) {
+            base_node->DeleteAttribute("ObjFile");
+        }
+        wxString f = obj_path + "MovingHeadBase.obj";
+        base_node->AddAttribute("ObjFile", f);
+        base_mesh = new Mesh(base_node, "BaseMesh");
     }
 
     // create yoke mesh
     if (yoke_mesh == nullptr) {
-        std::string new_name = "YokeMesh";
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-        ModelXml->AddChild(new_node);
-        yoke_mesh = new Mesh(new_node, new_name);
+        if (yoke_node->HasAttribute("ObjFile")) {
+            yoke_node->DeleteAttribute("ObjFile");
+        }
+        wxString f = obj_path + "MovingHeadYoke.obj";
+        yoke_node->AddAttribute("ObjFile", f);
+        //yoke_node->DeleteAttribute("RotateY");
+        yoke_node->AddAttribute("RotateY", "90");
+        yoke_mesh = new Mesh(yoke_node, "YokeMesh");
     }
 
     // create head mesh
     if (head_mesh == nullptr) {
-        std::string new_name = "HeadMesh";
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-        ModelXml->AddChild(new_node);
-        head_mesh = new Mesh(new_node, new_name);
+        if (head_node->HasAttribute("ObjFile")) {
+            head_node->DeleteAttribute("ObjFile");
+        }
+        wxString f = obj_path + "MovingHead.obj";
+        head_node->AddAttribute("ObjFile", f);
+        //head_node->DeleteAttribute("RotateX");
+        head_node->AddAttribute("RotateX", "90");
+        //head_node->DeleteAttribute("RotateY");
+        head_node->AddAttribute("RotateY", "90");
+        //head_node->DeleteAttribute("OffsetY");
+        head_node->AddAttribute("OffsetY", "17");
+        head_mesh = new Mesh(head_node, "HeadMesh");
     }
 
     brightness = wxAtoi(ModelXml->GetAttribute("Brightness", "100"));
@@ -746,7 +811,6 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     float scd = screenLocation.GetRenderDp() * screenLocation.GetScaleZ();
     float sbl = std::max(scw, std::max(sch, scd));
     beam_length_displayed *= sbl;
-    float beam_offset = beam_y_offset * sch;
 
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
@@ -779,7 +843,7 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
 
     auto vac = tprogram->getAccumulator();
     int start = vac->getCount();
-    Draw3DBeam(vac, beam_color, beam_length_displayed, pan_angle_raw, tilt_angle, shutter_open, beam_offset);
+    Draw3DBeam(vac, beam_color, beam_length_displayed, pan_angle_raw, tilt_angle, shutter_open, beam_y_offset);
     int end = vac->getCount();
     tprogram->addStep([=](xlGraphicsContext *ctx) {
         ctx->drawTriangles(vac, start, end - start);

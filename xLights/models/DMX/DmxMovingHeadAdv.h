@@ -65,16 +65,20 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
 
         bool update_node_names = false;
         bool update_bits = false;
-        Mesh* base_mesh;
-        Mesh* yoke_mesh;
-        Mesh* head_mesh;
-        DmxMotor* pan_motor;
-        DmxMotor* tilt_motor;
+        Mesh* base_mesh = nullptr;
+        Mesh* yoke_mesh = nullptr;
+        Mesh* head_mesh = nullptr;
+        wxXmlNode* base_node = nullptr;
+        wxXmlNode* yoke_node = nullptr;
+        wxXmlNode* head_node = nullptr;
+        DmxMotor* pan_motor = nullptr;
+        DmxMotor* tilt_motor = nullptr;
         float beam_length;
-        float beam_width;
+        float beam_width = 4;
         int beam_orient;
         float beam_y_offset;
-        int fixture_val;
-        std::string dmx_fixture;
+        int fixture_val = 0;
+        std::string dmx_fixture = "MH1";
+        wxString obj_path = "";
 };
 
