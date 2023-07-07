@@ -53,7 +53,7 @@ void DmxMotor::Init(BaseObject* base) {
     max_limit = wxAtoi(node_xml->GetAttribute("MaxLimit", "180"));
     range_of_motion = wxAtof(node_xml->GetAttribute("RangeOfMotion", "180.0f"));
     orient_zero = wxAtoi(node_xml->GetAttribute("OrientZero", "0"));
-    orient_home = wxAtoi(node_xml->GetAttribute("OrientHome", "0"));
+    orient_up = wxAtoi(node_xml->GetAttribute("OrientUp", "0"));
     slew_limit = wxAtof(node_xml->GetAttribute("SlewLimit", "0.0f"));
     reverse = wxAtoi(node_xml->GetAttribute("Reverse", "0"));
     if ( reverse ) {
@@ -65,7 +65,7 @@ void DmxMotor::Init(BaseObject* base) {
 
 int DmxMotor::ConvertPostoCmd( float position )
 {
-    float goto_home = (float)max_value * (float)orient_home / range_of_motion;
+    float goto_home = (float)max_value * (float)orient_up / range_of_motion;
     float amount_to_move = (float)max_value * position / range_of_motion * rev;
     float cmd = goto_home + amount_to_move;
     float full_spin = (float)max_value * 360.0 / range_of_motion;
@@ -125,7 +125,11 @@ void DmxMotor::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 360);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxIntProperty("Orient Home", base_name + "OrientHome", orient_home));
+    std::string label = "Orient Up";
+    if( base_name == "PanMotor" ) {
+        label = "Orient Forward";
+    }
+    p = grid->Append(new wxIntProperty(label, base_name + "OrientUp", orient_up));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 360);
     p->SetEditor("SpinCtrl");
@@ -194,12 +198,12 @@ int DmxMotor::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::OrientZero");
         return 0;
     }
-    else if (base_name + "OrientHome" == name) {
-        node_xml->DeleteAttribute("OrientHome");
-        node_xml->AddAttribute("OrientHome", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::OrientHome");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::OrientHome");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::OrientHome");
+    else if (base_name + "OrientUp" == name) {
+        node_xml->DeleteAttribute("OrientUp");
+        node_xml->AddAttribute("OrientUp", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::OrientUp");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::OrientUp");
+        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::OrientUp");
         return 0;
     }
     else if (base_name + "SlewLimit" == name) {

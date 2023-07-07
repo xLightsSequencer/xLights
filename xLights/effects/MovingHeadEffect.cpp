@@ -63,17 +63,12 @@ void MovingHeadEffect::SetDefaultParameters() {
         return;
     }
 
-    dp->ValueCurve_Pan->SetActive(false);
-    dp->ValueCurve_Tilt->SetActive(false);
     SetSliderValue(dp->Slider_Pan, 0);
     SetSliderValue(dp->Slider_Tilt, 0);
 }
 
 void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
-
-    float pan_pos = GetValueCurveDouble("Pan", 0, SettingsMap, eff_pos, MOVING_HEAD_MIN, MOVING_HEAD_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), MOVING_HEAD_DIVISOR);
-    float tilt_pos = GetValueCurveDouble("Tilt", 0, SettingsMap, eff_pos, MOVING_HEAD_MIN, MOVING_HEAD_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), MOVING_HEAD_DIVISOR);
 
     if (buffer.cur_model == "") {
         return;
@@ -86,14 +81,73 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     const std::string& string_type = model_info->GetStringType();
 
     if (StartsWith(string_type, "Single Color")) {
+        
+        float pan_pos = 0.0f;
+        float tilt_pos = 0.0f;
+        
         if( model_info->GetDisplayAs() == "DmxMovingHeadAdv" ) {
+            MovingHeadPanel *p = (MovingHeadPanel*)panel;
+            if (p == nullptr) {
+                return;
+            }
             DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)model_info;
+
+            int head_count = 0;
+            for( int i = 1; i <= 8; ++i ) {
+                wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+                wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
+                if( checkbox != nullptr ) {
+                    if( checkbox->IsEnabled() ) {
+                        head_count++;
+                    }
+                }
+            }
+
+            auto models = GetModels(model_info);
             
-            int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
-            int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(tilt_pos);
-            
-            WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
-            WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
+            if( head_count == 1 ) {
+                
+                pan_pos = SettingsMap.GetFloat("SLIDER_Pan", 0.0) / 10.0;
+                tilt_pos = SettingsMap.GetFloat("SLIDER_Tilt", 0.0) / 10.0;
+                
+                int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
+                int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(tilt_pos);
+                
+                WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
+                WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
+            } else {
+                for( int i = 1; i <= 8; ++i ) {
+                    
+                    wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d", i);
+                    std::string mh_settings = SettingsMap[mh_textbox];
+                    if( mh_settings != "" ) {
+                        int pos = mh_settings.find("Pan:");
+                        if( pos >= 0 ) {
+                            std::string num = mh_settings.substr(pos+5, mh_settings.length());
+                            pan_pos = atof(num.c_str());
+                        }
+                        pos = mh_settings.find("Tilt:");
+                        if( pos >= 0 ) {
+                            std::string num = mh_settings.substr(pos+6, mh_settings.length());
+                            tilt_pos = atof(num.c_str());
+                        }
+                        
+                        // find models that map to this moving head position
+                        for (const auto& it : models) {
+                            if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
+                                DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+                                if( mhead->GetFixtureVal() == i ) {
+                                    int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
+                                    int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(tilt_pos);
+                                    
+                                    WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
+                                    WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

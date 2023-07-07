@@ -12,9 +12,9 @@
 
 #include "RenderableEffect.h"
 
-#define MOVING_HEAD_MIN -1800
-#define MOVING_HEAD_MAX  1800
-#define MOVING_HEAD_DIVISOR 10
+//#define MOVING_HEAD_MIN -1800
+//#define MOVING_HEAD_MAX  1800
+//#define MOVING_HEAD_DIVISOR 10
 
 class DmxMotor;
 
@@ -37,7 +37,7 @@ public:
     }
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 
-    virtual double GetSettingVCMin(const std::string& name) const override
+    /*virtual double GetSettingVCMin(const std::string& name) const override
     {
         if (name == "E_VALUECURVE_Pan")
             return MOVING_HEAD_MIN;
@@ -60,7 +60,7 @@ public:
         if (name == "E_VALUECURVE_Tilt")
             return MOVING_HEAD_DIVISOR;
         return RenderableEffect::GetSettingVCDivisor(name);
-    }
+    }*/
 
 protected:
     virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;

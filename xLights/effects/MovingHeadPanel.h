@@ -2,7 +2,6 @@
 #define MOVINGHEADPANEL_H
 
 //(*Headers(MovingHeadPanel)
-#include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/notebook.h>
@@ -29,9 +28,11 @@ public:
     //(*Declarations(MovingHeadPanel)
     BulkEditSliderF1* Slider_Pan;
     BulkEditSliderF1* Slider_Tilt;
-    BulkEditValueCurveButton* ValueCurve_Pan;
-    BulkEditValueCurveButton* ValueCurve_Tilt;
+    wxButton* Button_All;
     wxButton* Button_Apply;
+    wxButton* Button_Evens;
+    wxButton* Button_None;
+    wxButton* Button_Odds;
     wxCheckBox* CheckBox_MH1;
     wxCheckBox* CheckBox_MH2;
     wxCheckBox* CheckBox_MH3;
@@ -71,14 +72,21 @@ protected:
     static const long IDD_CHECKBOX_MH6;
     static const long IDD_CHECKBOX_MH7;
     static const long IDD_CHECKBOX_MH8;
+    static const long ID_BUTTON_All;
+    static const long ID_BUTTON_None;
+    static const long ID_BUTTON_Evens;
+    static const long ID_BUTTON_Odds;
     static const long ID_STATICTEXT_Pan;
-    static const long IDD_SLIDER_Pan;
-    static const long ID_VALUECURVE_Pan;
-    static const long ID_TEXTCTRL_Pan;
+    static const long ID_SLIDER_Pan;
+    static const long IDD_TEXTCTRL_Pan;
     static const long ID_STATICTEXT_Tilt;
-    static const long IDD_SLIDER_Tilt;
-    static const long ID_VALUECURVE_Tilt;
-    static const long ID_TEXTCTRL_Tilt;
+    static const long ID_SLIDER_Tilt;
+    static const long IDD_TEXTCTRL_Tilt;
+    static const long ID_PANEL_Position;
+    static const long ID_PANEL_Fan;
+    static const long ID_PANEL_Movement;
+    static const long ID_PANEL_Control;
+    static const long ID_NOTEBOOK1;
     static const long ID_BUTTON_Apply;
     static const long ID_STATICTEXT_MH1;
     static const long ID_TEXTCTRL_MH1;
@@ -96,11 +104,6 @@ protected:
     static const long ID_TEXTCTRL_MH7;
     static const long ID_STATICTEXT_MH8;
     static const long ID_TEXTCTRL_MH8;
-    static const long ID_PANEL_Position;
-    static const long ID_PANEL_Fan;
-    static const long ID_PANEL_Movement;
-    static const long ID_PANEL_Control;
-    static const long ID_NOTEBOOK1;
     //*)
     
 private:
@@ -110,10 +113,16 @@ private:
     void OnPaint(wxPaintEvent& event);
     void OnCheckBox_MH2Click(wxCommandEvent& event);
     void OnButton_ApplyClick(wxCommandEvent& event);
+    void OnButton_AllClick(wxCommandEvent& event);
+    void OnButton_NoneClick(wxCommandEvent& event);
+    void OnButton_EvensClick(wxCommandEvent& event);
+    void OnButton_OddsClick(wxCommandEvent& event);
     //*)
     
     DECLARE_EVENT_TABLE()
 
+    std::list<Model*> GetActiveModels();
+    void UncheckAllFixtures();
 };
 
 #endif
