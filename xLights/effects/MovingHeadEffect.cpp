@@ -65,10 +65,15 @@ void MovingHeadEffect::SetDefaultParameters() {
 
     SetSliderValue(dp->Slider_Pan, 0);
     SetSliderValue(dp->Slider_Tilt, 0);
+
+    dp->ValueCurve_Pan->SetActive(false);
+    dp->ValueCurve_Tilt->SetActive(false);
 }
 
 void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
+    float pan_pos = GetValueCurveDouble("Pan", 0, SettingsMap, eff_pos, MOVING_HEAD_MIN, MOVING_HEAD_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), MOVING_HEAD_DIVISOR);
+    float tilt_pos = GetValueCurveDouble("Tilt", 0, SettingsMap, eff_pos, MOVING_HEAD_MIN, MOVING_HEAD_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), MOVING_HEAD_DIVISOR);
 
     if (buffer.cur_model == "") {
         return;
@@ -81,8 +86,8 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     const std::string& string_type = model_info->GetStringType();
 
     if (StartsWith(string_type, "Single Color")) {
-        float pan_pos = 0.0f;
-        float tilt_pos = 0.0f;
+        //float pan_pos = 0.0f;
+        //float tilt_pos = 0.0f;
 
         if( model_info->GetDisplayAs() == "DmxMovingHeadAdv" ) {
             MovingHeadPanel *p = (MovingHeadPanel*)panel;
@@ -105,8 +110,8 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
             auto models = GetModels(model_info);
 
             if( head_count == 1 ) {
-                pan_pos = SettingsMap.GetFloat("SLIDER_Pan", 0.0) / 10.0;
-                tilt_pos = SettingsMap.GetFloat("SLIDER_Tilt", 0.0) / 10.0;
+                //pan_pos = SettingsMap.GetFloat("SLIDER_Pan", 0.0) / 10.0;
+                //tilt_pos = SettingsMap.GetFloat("SLIDER_Tilt", 0.0) / 10.0;
 
                 int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
                 int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);

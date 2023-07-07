@@ -2,6 +2,7 @@
 #define MOVINGHEADPANEL_H
 
 //(*Headers(MovingHeadPanel)
+#include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/notebook.h>
@@ -28,6 +29,8 @@ public:
     //(*Declarations(MovingHeadPanel)
     BulkEditSliderF1* Slider_Pan;
     BulkEditSliderF1* Slider_Tilt;
+    BulkEditValueCurveButton* ValueCurve_Pan;
+    BulkEditValueCurveButton* ValueCurve_Tilt;
     wxButton* Button_All;
     wxButton* Button_Apply;
     wxButton* Button_Evens;
@@ -77,11 +80,13 @@ protected:
     static const long ID_BUTTON_Evens;
     static const long ID_BUTTON_Odds;
     static const long ID_STATICTEXT_Pan;
-    static const long ID_SLIDER_Pan;
-    static const long IDD_TEXTCTRL_Pan;
+    static const long IDD_SLIDER_Pan;
+    static const long ID_VALUECURVE_Pan;
+    static const long ID_TEXTCTRL_Pan;
     static const long ID_STATICTEXT_Tilt;
-    static const long ID_SLIDER_Tilt;
-    static const long IDD_TEXTCTRL_Tilt;
+    static const long IDD_SLIDER_Tilt;
+    static const long ID_VALUECURVE_Tilt;
+    static const long ID_TEXTCTRL_Tilt;
     static const long ID_PANEL_Position;
     static const long ID_PANEL_Fan;
     static const long ID_PANEL_Movement;

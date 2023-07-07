@@ -166,7 +166,7 @@
 								<growablecols>0</growablecols>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizerPosiitonPan" member="no">
-										<cols>3</cols>
+										<cols>4</cols>
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_Pan" variable="Label_Pan" member="yes">
@@ -177,7 +177,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Pan" subclass="BulkEditSliderF1" variable="Slider_Pan" member="yes">
+											<object class="wxSlider" name="IDD_SLIDER_Pan" subclass="BulkEditSliderF1" variable="Slider_Pan" member="yes">
 												<min>-1800</min>
 												<max>1800</max>
 											</object>
@@ -186,7 +186,15 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pan" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Pan" member="no">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Pan" subclass="BulkEditValueCurveButton" variable="ValueCurve_Pan" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Pan" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Pan" member="no">
 												<value>0</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>
@@ -196,13 +204,13 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND</flag>
+									<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizerPositionTilt" member="no">
-										<cols>3</cols>
+										<cols>4</cols>
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_Tilt" variable="Label_Tilt" member="yes">
@@ -213,7 +221,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Tilt" subclass="BulkEditSliderF1" variable="Slider_Tilt" member="yes">
+											<object class="wxSlider" name="IDD_SLIDER_Tilt" subclass="BulkEditSliderF1" variable="Slider_Tilt" member="yes">
 												<min>-1800</min>
 												<max>1800</max>
 											</object>
@@ -222,7 +230,15 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Tilt" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Tilt" member="no">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Tilt" subclass="BulkEditValueCurveButton" variable="ValueCurve_Tilt" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Tilt" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Tilt" member="no">
 												<value>0</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>

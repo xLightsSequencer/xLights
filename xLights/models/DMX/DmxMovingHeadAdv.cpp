@@ -470,12 +470,12 @@ void DmxMovingHeadAdv::InitModel()
     // create node names
     std::string names = "";
     if (pan_motor->Is16Bit()) {
-        names += "Pan,-Pan Fine";  // the minus sign makes the channel disappear in the servo effect
+        names += "Pan,Pan Fine";
     } else {
         names = "Pan";
     }
     if (tilt_motor->Is16Bit()) {
-        names += ",Tilt,-Tilt Fine"; // the minus sign makes the channel disappear in the servo effect
+        names += ",Tilt,Tilt Fine";
     } else {
         names = ",Tilt";
     }
