@@ -387,40 +387,6 @@ void DmxMovingHeadAdv::InitModel()
         n = n->GetNext();
     }
 
-    if (base_node == nullptr) {
-        wxXmlNode* n = ModelXml->GetChildren();
-        while (n != nullptr) {
-            std::string name = n->GetName();
-            if ("BaseMesh" == name) {
-                base_node = n;
-            }
-            else if ("YokeMesh" == name) {
-                yoke_node = n;
-            }
-            else if ("HeadMesh" == name) {
-                head_node = n;
-            }
-            n = n->GetNext();
-        }
-    }
-
-    // create any missing nodes
-    if (base_node == nullptr) {
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "BaseMesh");
-        ModelXml->AddChild(new_node);
-        base_node = new_node;
-    }
-    if (yoke_node == nullptr) {
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "YokeMesh");
-        ModelXml->AddChild(new_node);
-        yoke_node = new_node;
-    }
-    if (head_node == nullptr) {
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "HeadMesh");
-        ModelXml->AddChild(new_node);
-        head_node = new_node;
-    }
-
     // create pan motor
     if (pan_motor == nullptr) {
         std::string new_name = "PanMotor";
@@ -445,40 +411,36 @@ void DmxMovingHeadAdv::InitModel()
 
     // create base mesh
     if (base_mesh == nullptr) {
-        if (base_node->HasAttribute("ObjFile")) {
-            base_node->DeleteAttribute("ObjFile");
-        }
+        std::string new_name = "BaseMesh";
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+        ModelXml->AddChild(new_node);
         wxString f = obj_path + "MovingHeadBase.obj";
-        base_node->AddAttribute("ObjFile", f);
-        base_mesh = new Mesh(base_node, "BaseMesh");
+        new_node->AddAttribute("ObjFile", f);
+        base_mesh = new Mesh(new_node, new_name);
     }
 
     // create yoke mesh
     if (yoke_mesh == nullptr) {
-        if (yoke_node->HasAttribute("ObjFile")) {
-            yoke_node->DeleteAttribute("ObjFile");
-        }
+        std::string new_name = "YokeMesh";
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+        ModelXml->AddChild(new_node);
         wxString f = obj_path + "MovingHeadYoke.obj";
-        yoke_node->AddAttribute("ObjFile", f);
-        //yoke_node->DeleteAttribute("RotateY");
-        yoke_node->AddAttribute("RotateY", "90");
-        yoke_mesh = new Mesh(yoke_node, "YokeMesh");
+        new_node->AddAttribute("ObjFile", f);
+        new_node->AddAttribute("RotateY", "90");
+        yoke_mesh = new Mesh(new_node, new_name);
     }
 
     // create head mesh
     if (head_mesh == nullptr) {
-        if (head_node->HasAttribute("ObjFile")) {
-            head_node->DeleteAttribute("ObjFile");
-        }
+        std::string new_name = "HeadMesh";
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+        ModelXml->AddChild(new_node);
         wxString f = obj_path + "MovingHead.obj";
-        head_node->AddAttribute("ObjFile", f);
-        //head_node->DeleteAttribute("RotateX");
-        head_node->AddAttribute("RotateX", "90");
-        //head_node->DeleteAttribute("RotateY");
-        head_node->AddAttribute("RotateY", "90");
-        //head_node->DeleteAttribute("OffsetY");
-        head_node->AddAttribute("OffsetY", "17");
-        head_mesh = new Mesh(head_node, "HeadMesh");
+        new_node->AddAttribute("ObjFile", f);
+        new_node->AddAttribute("RotateX", "90");
+        new_node->AddAttribute("RotateY", "90");
+        new_node->AddAttribute("OffsetY", "17");
+        head_mesh = new Mesh(new_node, new_name);
     }
 
     brightness = wxAtoi(ModelXml->GetAttribute("Brightness", "100"));
