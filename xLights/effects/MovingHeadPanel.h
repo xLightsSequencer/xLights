@@ -25,14 +25,13 @@ public:
     MovingHeadPanel(wxWindow* parent);
     virtual ~MovingHeadPanel();
     virtual void ValidateWindow() override;
-    
+
     //(*Declarations(MovingHeadPanel)
     BulkEditSliderF1* Slider_Pan;
     BulkEditSliderF1* Slider_Tilt;
     BulkEditValueCurveButton* ValueCurve_Pan;
     BulkEditValueCurveButton* ValueCurve_Tilt;
     wxButton* Button_All;
-    wxButton* Button_Apply;
     wxButton* Button_Evens;
     wxButton* Button_None;
     wxButton* Button_Odds;
@@ -92,7 +91,6 @@ protected:
     static const long ID_PANEL_Movement;
     static const long ID_PANEL_Control;
     static const long ID_NOTEBOOK1;
-    static const long ID_BUTTON_Apply;
     static const long ID_STATICTEXT_MH1;
     static const long ID_TEXTCTRL_MH1;
     static const long ID_STATICTEXT_MH2;
@@ -129,6 +127,12 @@ private:
     std::list<Model*> GetActiveModels();
     void UncheckAllFixtures();
     void ProcessFirstFixture();
+    void UpdateMHSettings();
+    void AddValueCurve(ValueCurve* vc, const std::string& name, std::string& settings);
+    void AddTextbox(const std::string& ctrl_id, const std::string& name, std::string& settings);
+    void OnSliderUpdated(wxCommandEvent& event);
+    void OnTextCtrlUpdated(wxCommandEvent& event);
+    void OnVCChanged(wxCommandEvent& event);
 };
 
 #endif

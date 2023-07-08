@@ -86,8 +86,6 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     const std::string& string_type = model_info->GetStringType();
 
     if (StartsWith(string_type, "Single Color")) {
-        //float pan_pos = 0.0f;
-        //float tilt_pos = 0.0f;
 
         if( model_info->GetDisplayAs() == "DmxMovingHeadAdv" ) {
             MovingHeadPanel *p = (MovingHeadPanel*)panel;
@@ -110,9 +108,6 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
             auto models = GetModels(model_info);
 
             if( head_count == 1 ) {
-                //pan_pos = SettingsMap.GetFloat("SLIDER_Pan", 0.0) / 10.0;
-                //tilt_pos = SettingsMap.GetFloat("SLIDER_Tilt", 0.0) / 10.0;
-
                 int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
                 int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);
 
@@ -123,15 +118,40 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                     wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d", i);
                     std::string mh_settings = SettingsMap[mh_textbox];
                     if( mh_settings != "" ) {
-                        int pos = mh_settings.find("Pan:");
-                        if( pos >= 0 ) {
-                            std::string num = mh_settings.substr(pos+5, mh_settings.length());
-                            pan_pos = atof(num.c_str());
-                        }
-                        pos = mh_settings.find("Tilt:");
-                        if( pos >= 0 ) {
-                            std::string num = mh_settings.substr(pos+6, mh_settings.length());
-                            tilt_pos = atof(num.c_str());
+                        wxArrayString all_cmds = wxSplit(mh_settings, ';');
+                        for (size_t i = 0; i < all_cmds.size(); ++i )
+                        {
+                            std::string cmd = all_cmds[i];
+                            
+                            int pos = cmd.find("Pan:");
+                            if( pos >= 0 ) {
+                                std::string num = cmd.substr(pos+5, cmd.length());
+                                pan_pos = atof(num.c_str());
+                            } else {
+                                pos = cmd.find("Tilt:");
+                                if( pos >= 0 ) {
+                                    std::string num = cmd.substr(pos+6, cmd.length());
+                                    tilt_pos = atof(num.c_str());
+                                } else {
+                                    pos = cmd.find("Pan VC:");
+                                    if( pos >= 0 ) {
+                                        std::string settings = cmd.substr(pos+13, cmd.length());
+                                        ValueCurve vc( settings );
+                                        vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+                                        vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                                        pan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                                    } else {
+                                        pos = cmd.find("Tilt VC:");
+                                        if( pos >= 0 ) {
+                                            std::string settings = cmd.substr(pos+13, cmd.length());
+                                            ValueCurve vc( settings );
+                                            vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+                                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                                            tilt_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                                        }
+                                    }
+                                }
+                            }
                         }
 
                         // find models that map to this moving head position

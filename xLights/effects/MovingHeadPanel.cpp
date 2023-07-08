@@ -44,7 +44,6 @@ const long MovingHeadPanel::ID_PANEL_Fan = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Movement = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Control = wxNewId();
 const long MovingHeadPanel::ID_NOTEBOOK1 = wxNewId();
-const long MovingHeadPanel::ID_BUTTON_Apply = wxNewId();
 const long MovingHeadPanel::ID_STATICTEXT_MH1 = wxNewId();
 const long MovingHeadPanel::ID_TEXTCTRL_MH1 = wxNewId();
 const long MovingHeadPanel::ID_STATICTEXT_MH2 = wxNewId();
@@ -73,7 +72,6 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     //(*Initialize(MovingHeadPanel)
     BulkEditTextCtrlF1* TextCtrl_Pan;
     BulkEditTextCtrlF1* TextCtrl_Tilt;
-    wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizerControl;
     wxFlexGridSizer* FlexGridSizerFan;
@@ -190,10 +188,6 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Notebook1->AddPage(PanelMovement, _("Movement"), false);
     Notebook1->AddPage(PanelControl, _("Control"), false);
     FlexGridSizer_Main->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
-    Button_Apply = new wxButton(this, ID_BUTTON_Apply, _("Apply"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Apply"));
-    FlexGridSizer1->Add(Button_Apply, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer_Main->Add(FlexGridSizer1, 1, wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizer_Positions = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText_MH1 = new wxStaticText(this, ID_STATICTEXT_MH1, _("MH1:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_MH1"));
     FlexGridSizer_Positions->Add(StaticText_MH1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -235,7 +229,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     TextCtrl_MH8 = new wxTextCtrl(this, ID_TEXTCTRL_MH8, wxEmptyString, wxDefaultPosition, wxDLG_UNIT(this,wxSize(140,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_MH8"));
     TextCtrl_MH8->Disable();
     FlexGridSizer_Positions->Add(TextCtrl_MH8, 1, wxALL, 5);
-    FlexGridSizer_Main->Add(FlexGridSizer_Positions, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer_Main->Add(FlexGridSizer_Positions, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     SetSizer(FlexGridSizer_Main);
     FlexGridSizer_Main->Fit(this);
     FlexGridSizer_Main->SetSizeHints(this);
@@ -244,16 +238,23 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_BUTTON_None,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_NoneClick);
     Connect(ID_BUTTON_Evens,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_EvensClick);
     Connect(ID_BUTTON_Odds,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_OddsClick);
-    Connect(ID_BUTTON_Apply,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_ApplyClick);
     //*)
 
     SetName("ID_PANEL_MOVINGHEAD");
 
+    Connect(ID_VALUECURVE_Pan,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_Tilt,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
+
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MovingHeadPanel::OnVCChanged, nullptr, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&MovingHeadPanel::OnValidateWindow, nullptr, this);
 
+    Connect(wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&MovingHeadPanel::OnSliderUpdated);
+    Connect(wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&MovingHeadPanel::OnTextCtrlUpdated);
+
     ValueCurve_Pan->GetValue()->SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
     ValueCurve_Pan->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
+    ValueCurve_Tilt->GetValue()->SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+    ValueCurve_Tilt->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
 
     ValidateWindow();
 }
@@ -268,27 +269,110 @@ void MovingHeadPanel::ValidateWindow()
 {
 }
 
-void MovingHeadPanel::OnButton_ApplyClick(wxCommandEvent& event)
+void MovingHeadPanel::OnVCChanged(wxCommandEvent& event)
+{
+    EffectPanelUtils::OnVCChanged(event);
+    
+    int event_id = event.GetId();
+
+    UpdateMHSettings();
+
+/*    ValueCurveButton* vcb = (ValueCurveButton*)event.GetEventObject();
+    if (vcb != nullptr ) {
+        if( vcb->IsEnabled() ) {
+            if( vcb->GetId() == ID_VALUECURVE_Pan ) {
+                ValueCurve* vc = vcb->GetValue();
+                std::string vc_text = vc->Serialise();
+                wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("ID_TEXTCTRL_MH1"));
+                wxString value = wxString::Format("Value Curve: %s", vc_text);
+                textbox->SetValue(value);
+            }
+        }
+    }*/
+ 
+    FireChangeEvent();
+}
+
+void MovingHeadPanel::OnSliderUpdated(wxCommandEvent& event)
+{
+    UpdateMHSettings();
+}
+
+void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
+{
+    int event_id = event.GetId();
+
+    if (event_id == ID_TEXTCTRL_Pan || event_id == ID_TEXTCTRL_Tilt) {
+        UpdateMHSettings();
+    }
+}
+
+void MovingHeadPanel::UpdateMHSettings()
 {
     for( int i = 1; i <= 8; ++i ) {
         wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
         wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
         if( checkbox != nullptr ) {
             if( checkbox->IsChecked() ) {
+                std::string final_settings = xlEMPTY_STRING;
+                
+                // Add pan settings
+                wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("ID_TEXTCTRL_Pan"));
+                if( textbox != nullptr && !textbox->IsEnabled() ) {
+                    BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_Pan"));
+                    if( vc_button != nullptr ) {
+                        ValueCurve* vc = vc_button->GetValue();
+                        AddValueCurve(vc, "Pan VC", final_settings);
+                    }
+                } else {
+                    AddTextbox("ID_TEXTCTRL_Pan", "Pan", final_settings);
+                }
+
+                // Add tilt settings
+                textbox = (wxTextCtrl*)(this->FindWindowByName("ID_TEXTCTRL_Tilt"));
+                if( textbox != nullptr && !textbox->IsEnabled() ) {
+                    // value curve is active
+                    BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_Tilt"));
+                    if( vc_button != nullptr ) {
+                        ValueCurve* vc = vc_button->GetValue();
+                        AddValueCurve(vc, "Tilt VC", final_settings);
+                    }
+                } else {
+                    AddTextbox("ID_TEXTCTRL_Tilt", "Tilt", final_settings);
+                }
+
+                // update the settings textbox
                 wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d", i);
-                wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
-                if( textbox != nullptr ) {
-                    wxString pan_ctrl = wxString::Format("IDD_TEXTCTRL_Pan", i);
-                    wxTextCtrl* pan_textbox = (wxTextCtrl*)(this->FindWindowByName(pan_ctrl));
-                    wxString tilt_ctrl = wxString::Format("IDD_TEXTCTRL_Tilt", i);
-                    wxTextCtrl* tilt_textbox = (wxTextCtrl*)(this->FindWindowByName(tilt_ctrl));
-                    if( pan_textbox != nullptr && tilt_textbox != nullptr ) {
-                        wxString value = wxString::Format("Pan: %s, Tilt: %s",pan_textbox->GetValue(), tilt_textbox->GetValue());
-                        textbox->SetValue(value);
+                wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                if( mh_textbox != nullptr ) {
+                    if( final_settings != xlEMPTY_STRING ) {
+                        mh_textbox->SetValue(final_settings);
                     }
                 }
             }
         }
+    }
+}
+
+void MovingHeadPanel::AddValueCurve(ValueCurve* vc, const std::string& name, std::string& settings)
+{
+    if( settings != xlEMPTY_STRING ) {
+        settings += "; ";
+    }
+    std::string vc_text = vc->Serialise();
+    wxString value = wxString::Format("%s: %s", name, vc_text);
+    settings += value;
+}
+
+void MovingHeadPanel::AddTextbox(const std::string& ctrl_id, const std::string& name, std::string& settings)
+{
+    wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName(ctrl_id));
+    if( textbox != nullptr ) {
+        if( settings != xlEMPTY_STRING ) {
+            settings += "; ";
+        }
+        wxString value = wxString::Format("%s: %s", name, textbox->GetValue());
+        settings += value;
     }
 }
 
@@ -412,6 +496,7 @@ std::list<Model*> MovingHeadPanel::GetActiveModels()
 
 void MovingHeadPanel::ProcessFirstFixture()
 {
+    return;
     for( int i = 1; i <= 8; ++i ) {
         wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
         wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
