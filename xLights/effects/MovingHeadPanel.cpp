@@ -235,7 +235,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerFan->Add(FlexGridSizer_FanTilt, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizer_PanOffset = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizer_PanOffset->AddGrowableCol(1);
-    StaticText1 = new wxStaticText(PanelFan, ID_STATICTEXT1, _("Pan Offset (deg):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    StaticText1 = new wxStaticText(PanelFan, ID_STATICTEXT1, _("Pan Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer_PanOffset->Add(StaticText1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_MHPanOffset = new BulkEditSliderF1(PanelFan, IDD_SLIDER_MHPanOffset, 0, -1800, 1800, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_MHPanOffset"));
     FlexGridSizer_PanOffset->Add(Slider_MHPanOffset, 1, wxALL|wxEXPAND, 2);
@@ -246,7 +246,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerFan->Add(FlexGridSizer_PanOffset, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizer_TiltOffset = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizer_TiltOffset->AddGrowableCol(1);
-    Label_TiltOffset = new wxStaticText(PanelFan, ID_STATICTEXT_TiltOffset, _("Tilt Offset (deg):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_TiltOffset"));
+    Label_TiltOffset = new wxStaticText(PanelFan, ID_STATICTEXT_TiltOffset, _("Tilt Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_TiltOffset"));
     FlexGridSizer_TiltOffset->Add(Label_TiltOffset, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_MHTiltOffset = new BulkEditSliderF1(PanelFan, IDD_SLIDER_MHTiltOffset, 0, -1800, 1800, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_MHTiltOffset"));
     FlexGridSizer_TiltOffset->Add(Slider_MHTiltOffset, 1, wxALL|wxEXPAND, 2);
@@ -374,6 +374,11 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
 
     Connect(ID_VALUECURVE_MHPan,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_MHTilt,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_MHFanPan,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_MHFanTilt,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_MHPanOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_MHTiltOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_MHGroupings,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MovingHeadPanel::OnVCChanged, nullptr, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&MovingHeadPanel::OnValidateWindow, nullptr, this);
@@ -394,7 +399,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     ValueCurve_MHTiltOffset->GetValue()->SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
     ValueCurve_MHTiltOffset->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
     ValueCurve_MHGroupings->GetValue()->SetLimits(MOVING_HEAD_GROUP_MIN, MOVING_HEAD_GROUP_MAX);
-    ValueCurve_MHTiltOffset->GetValue()->SetDivisor(MOVING_HEAD_GROUP_DIVISOR);
+    ValueCurve_MHGroupings->GetValue()->SetDivisor(MOVING_HEAD_GROUP_DIVISOR);
 
     ValidateWindow();
 }
@@ -440,6 +445,38 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
 
 void MovingHeadPanel::UpdateMHSettings()
 {
+    bool has_fanpan = false;
+    bool has_fantilt = false;
+    std::string headset = xlEMPTY_STRING;
+
+    if( CheckBox_FanPan->IsChecked() ) {
+        has_fanpan = true;
+    }
+    if( CheckBox_FanTilt->IsChecked() ) {
+        has_fantilt = true;
+    }
+
+    // build a string with the selected moving heads
+    if( has_fanpan || has_fantilt ) {
+        bool add_comma = false;
+        headset = "Heads:";
+        for( int i = 1; i <= 8; ++i ) {
+            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+            if( checkbox != nullptr ) {
+                if( checkbox->IsChecked() ) {
+                    if( add_comma ) {
+                        headset += ",";
+                    } else {
+                        headset += " ";
+                    }
+                    headset += wxString::Format("%d", i);
+                    add_comma = true;
+                }
+            }
+        }
+    }
+
     for( int i = 1; i <= 8; ++i ) {
         wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
         wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
@@ -449,19 +486,25 @@ void MovingHeadPanel::UpdateMHSettings()
                 std::string pretty_settings = xlEMPTY_STRING;
 
                 // Add pan settings
-                if( CheckBox_FanPan->IsChecked() ){
+                if( has_fanpan ){
                     AddSetting( "FanPan", ugly_settings, pretty_settings );
-                    AddSetting( "FanPanOffset", ugly_settings, pretty_settings );
+                    AddSetting( "PanOffset", ugly_settings, pretty_settings );
                 } else {
                     AddSetting( "Pan", ugly_settings, pretty_settings );
                 }
 
                 // Add tilt settings
-                if( CheckBox_FanTilt->IsChecked() ){
+                if( has_fantilt ) {
                     AddSetting( "FanTilt", ugly_settings, pretty_settings );
-                    AddSetting( "FanTiltOffset", ugly_settings, pretty_settings );
+                    AddSetting( "TiltOffset", ugly_settings, pretty_settings );
                 } else {
                     AddSetting( "Tilt", ugly_settings, pretty_settings );
+                }
+
+                if( has_fanpan || has_fantilt ) {
+                    AddSetting( "Groupings", ugly_settings, pretty_settings );
+                    ugly_settings += ";";
+                    ugly_settings += headset;
                 }
 
                 // update the settings textbox
@@ -501,10 +544,11 @@ void MovingHeadPanel::AddSetting(const std::string& name, std::string& ugly_sett
 void MovingHeadPanel::AddValueCurve(ValueCurve* vc, const std::string& name, std::string& ugly_settings, std::string& pretty_settings)
 {
     if( ugly_settings != xlEMPTY_STRING ) {
-        ugly_settings += "; ";
+        ugly_settings += ";";
         pretty_settings += "; ";
     }
     std::string vc_text = vc->Serialise();
+    std::replace( vc_text.begin(), vc_text.end(), ';', '@'); // custom value curves were using my delimiter
     wxString value = wxString::Format("%s: %s", name, vc_text);
     ugly_settings += value;
 
@@ -534,7 +578,7 @@ void MovingHeadPanel::AddTextbox(const std::string& ctrl_id, const std::string& 
     wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName(ctrl_id));
     if( textbox != nullptr ) {
         if( ugly_settings != xlEMPTY_STRING ) {
-            ugly_settings += "; ";
+            ugly_settings += ";";
             pretty_settings += "; ";
         }
         wxString value = wxString::Format("%s: %s", name, textbox->GetValue());

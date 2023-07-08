@@ -355,7 +355,7 @@
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-												<label>Pan Offset (deg):</label>
+												<label>Pan Offset:</label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
@@ -399,7 +399,7 @@
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_TiltOffset" variable="Label_TiltOffset" member="yes">
-												<label>Tilt Offset (deg):</label>
+												<label>Tilt Offset:</label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>

@@ -119,38 +119,43 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                     std::string mh_settings = SettingsMap[mh_textbox];
                     if( mh_settings != "" ) {
                         wxArrayString all_cmds = wxSplit(mh_settings, ';');
-                        for (size_t i = 0; i < all_cmds.size(); ++i )
+                        for (size_t j = 0; j < all_cmds.size(); ++j )
                         {
-                            std::string cmd = all_cmds[i];
-                            
-                            int pos = cmd.find("Pan:");
-                            if( pos >= 0 ) {
-                                std::string num = cmd.substr(pos+5, cmd.length());
-                                pan_pos = atof(num.c_str());
-                            } else {
-                                pos = cmd.find("Tilt:");
-                                if( pos >= 0 ) {
-                                    std::string num = cmd.substr(pos+6, cmd.length());
-                                    tilt_pos = atof(num.c_str());
-                                } else {
-                                    pos = cmd.find("Pan VC:");
-                                    if( pos >= 0 ) {
-                                        std::string settings = cmd.substr(pos+13, cmd.length());
-                                        ValueCurve vc( settings );
-                                        vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
-                                        vc.SetDivisor(MOVING_HEAD_DIVISOR);
-                                        pan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                                    } else {
-                                        pos = cmd.find("Tilt VC:");
-                                        if( pos >= 0 ) {
-                                            std::string settings = cmd.substr(pos+13, cmd.length());
-                                            ValueCurve vc( settings );
-                                            vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
-                                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
-                                            tilt_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                                        }
-                                    }
-                                }
+                            std::string cmd = all_cmds[j];
+                            int pos = cmd.find(":");
+                            std::string cmd_type = cmd.substr(0, pos);
+                            std::string settings = cmd.substr(pos+2, cmd.length());
+                            std::replace( settings.begin(), settings.end(), '@', ';');
+
+                            if( cmd_type == "Pan" ) {
+                                pan_pos = atof(settings.c_str());
+                            } else if ( cmd_type == "Tilt" ) {
+                                tilt_pos = atof(settings.c_str());
+                            } else if ( cmd_type == "Pan VC" ) {
+                                ValueCurve vc( settings );
+                                vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+                                vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                                pan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                            } else if ( cmd_type == "Tilt VC" ) {
+                                ValueCurve vc( settings );
+                                vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+                                vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                                tilt_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                            } else if ( cmd_type == "FanPan" ) {
+                                float fan_pos = atof(settings.c_str());
+                                CalculateFanPosition( "Pan", i, pan_pos, fan_pos, all_cmds, models);
+                            } else if ( cmd_type == "FanPan VC" ) {
+                                ValueCurve vc( settings );
+                                vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+                                vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                                float fan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                                CalculateFanPosition( "Pan", i, pan_pos, fan_pos, all_cmds, models);
+                            } else if ( cmd_type == "FanTilt VC" ) {
+                                ValueCurve vc( settings );
+                                vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+                                vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                                float fan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                                CalculateFanPosition( "Tilt", i, tilt_pos, fan_pos, all_cmds, models);
                             }
                         }
 
@@ -172,6 +177,41 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
             }
         }
     }
+}
+
+void MovingHeadEffect::CalculateFanPosition(const std::string& name, int location, float& position, float fan, wxArrayString& all_cmds, std::list<Model*> models)
+{
+    float offset = 0.0f;
+    wxArrayString heads;
+
+    for (size_t i = 0; i < all_cmds.size(); ++i )
+    {
+        std::string cmd = all_cmds[i];
+        int pos = cmd.find(":");
+        std::string cmd_type = cmd.substr(0, pos);
+        std::string settings = cmd.substr(pos+2, cmd.length());
+
+        if( cmd_type == (name + "Offset") ) {
+            offset = atof(settings.c_str());
+        } else if( cmd_type == "Heads" ) {
+            heads = wxSplit(settings, ',');
+        }
+    }
+
+    float center = heads.size() / 2.0f + 0.5;
+    
+    // find fixture number for this location
+    float slot = 0.0;;
+    for (const auto& it : models) {
+        if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
+            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+            if( mhead->GetFixtureVal() == location ) {
+                slot = (float)mhead->GetFixtureVal();
+            }
+        }
+    }
+    
+    position = (slot - center) * fan;
 }
 
 void MovingHeadEffect::WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer)
