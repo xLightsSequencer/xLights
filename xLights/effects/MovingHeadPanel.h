@@ -45,7 +45,7 @@ public:
     wxButton* Button_Evens;
     wxButton* Button_None;
     wxButton* Button_Odds;
-    wxCheckBox* CheckBox1;
+    wxCheckBox* CheckBox_FanPan;
     wxCheckBox* CheckBox_FanTilt;
     wxCheckBox* CheckBox_MH1;
     wxCheckBox* CheckBox_MH2;
@@ -118,7 +118,7 @@ protected:
     static const long ID_TEXTCTRL_MHFanPan;
     static const long ID_STATICTEXT_FanTilt;
     static const long IDD_SLIDER_MHFanTilt;
-    static const long ID_VALUECURVE_FanTilt;
+    static const long ID_VALUECURVE_MHFanTilt;
     static const long ID_TEXTCTRL_MHFanTilt;
     static const long ID_STATICTEXT1;
     static const long IDD_SLIDER_MHPanOffset;
@@ -132,8 +132,8 @@ protected:
     static const long IDD_SLIDER_MHGroupings;
     static const long ID_VALUECURVE_MHGroupings;
     static const long ID_TEXTCTRL_MHGroupings;
-    static const long ID_CHECKBOX1;
-    static const long ID_CHECKBOX_FanTilt;
+    static const long IDD_CHECKBOX_FanPan;
+    static const long IDD_CHECKBOX_FanTilt;
     static const long ID_PANEL_Fan;
     static const long ID_PANEL_Movement;
     static const long ID_PANEL_Control;
@@ -183,6 +183,7 @@ private:
     void UncheckAllFixtures();
     void ProcessFirstFixture();
     void UpdateMHSettings();
+    void AddSetting(const std::string& name, std::string& ugly_settings, std::string& pretty_settings);
     void AddValueCurve(ValueCurve* vc, const std::string& name, std::string& ugly_settings, std::string& pretty_settings);
     void AddTextbox(const std::string& ctrl_id, const std::string& name, std::string& ugly_settings, std::string& pretty_settings);
     void OnSliderUpdated(wxCommandEvent& event);

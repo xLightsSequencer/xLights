@@ -46,7 +46,7 @@ const long MovingHeadPanel::ID_VALUECURVE_MHFanPan = wxNewId();
 const long MovingHeadPanel::ID_TEXTCTRL_MHFanPan = wxNewId();
 const long MovingHeadPanel::ID_STATICTEXT_FanTilt = wxNewId();
 const long MovingHeadPanel::IDD_SLIDER_MHFanTilt = wxNewId();
-const long MovingHeadPanel::ID_VALUECURVE_FanTilt = wxNewId();
+const long MovingHeadPanel::ID_VALUECURVE_MHFanTilt = wxNewId();
 const long MovingHeadPanel::ID_TEXTCTRL_MHFanTilt = wxNewId();
 const long MovingHeadPanel::ID_STATICTEXT1 = wxNewId();
 const long MovingHeadPanel::IDD_SLIDER_MHPanOffset = wxNewId();
@@ -60,8 +60,8 @@ const long MovingHeadPanel::ID_STATICTEXT_Groupings = wxNewId();
 const long MovingHeadPanel::IDD_SLIDER_MHGroupings = wxNewId();
 const long MovingHeadPanel::ID_VALUECURVE_MHGroupings = wxNewId();
 const long MovingHeadPanel::ID_TEXTCTRL_MHGroupings = wxNewId();
-const long MovingHeadPanel::ID_CHECKBOX1 = wxNewId();
-const long MovingHeadPanel::ID_CHECKBOX_FanTilt = wxNewId();
+const long MovingHeadPanel::IDD_CHECKBOX_FanPan = wxNewId();
+const long MovingHeadPanel::IDD_CHECKBOX_FanTilt = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Fan = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Movement = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Control = wxNewId();
@@ -228,7 +228,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer_FanTilt->Add(Label_FanTilt, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_MHFanTilt = new BulkEditSliderF1(PanelFan, IDD_SLIDER_MHFanTilt, 0, -1800, 1800, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_MHFanTilt"));
     FlexGridSizer_FanTilt->Add(Slider_MHFanTilt, 1, wxALL|wxEXPAND, 2);
-    ValueCurve_MHFanTilt = new BulkEditValueCurveButton(PanelFan, ID_VALUECURVE_FanTilt, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_VALUECURVE_FanTilt"));
+    ValueCurve_MHFanTilt = new BulkEditValueCurveButton(PanelFan, ID_VALUECURVE_MHFanTilt, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_VALUECURVE_MHFanTilt"));
     FlexGridSizer_FanTilt->Add(ValueCurve_MHFanTilt, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_MHFanTilt = new BulkEditTextCtrlF1(PanelFan, ID_TEXTCTRL_MHFanTilt, _("0"), wxDefaultPosition, wxDLG_UNIT(PanelFan,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_MHFanTilt"));
     FlexGridSizer_FanTilt->Add(TextCtrl_MHFanTilt, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -267,11 +267,11 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer_Groupings->Add(TextCtrl_MHGroupings, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizerFan->Add(FlexGridSizer_Groupings, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizer_FanActive = new wxFlexGridSizer(0, 3, 0, 0);
-    CheckBox1 = new wxCheckBox(PanelFan, ID_CHECKBOX1, _("Fan - Pan: Active"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
-    CheckBox1->SetValue(false);
-    FlexGridSizer_FanActive->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_FanPan = new wxCheckBox(PanelFan, IDD_CHECKBOX_FanPan, _("Fan - Pan: Active"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_CHECKBOX_FanPan"));
+    CheckBox_FanPan->SetValue(false);
+    FlexGridSizer_FanActive->Add(CheckBox_FanPan, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer_FanActive->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_FanTilt = new wxCheckBox(PanelFan, ID_CHECKBOX_FanTilt, _("Fan - Tilt: Active"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FanTilt"));
+    CheckBox_FanTilt = new wxCheckBox(PanelFan, IDD_CHECKBOX_FanTilt, _("Fan - Tilt: Active"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_CHECKBOX_FanTilt"));
     CheckBox_FanTilt->SetValue(false);
     FlexGridSizer_FanActive->Add(CheckBox_FanTilt, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerFan->Add(FlexGridSizer_FanActive, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
@@ -367,6 +367,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_BUTTON_None,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_NoneClick);
     Connect(ID_BUTTON_Evens,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_EvensClick);
     Connect(ID_BUTTON_Odds,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_OddsClick);
+    Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&MovingHeadPanel::OnNotebook1PageChanged);
     //*)
 
     SetName("ID_PANEL_MOVINGHEAD");
@@ -384,6 +385,16 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     ValueCurve_MHPan->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
     ValueCurve_MHTilt->GetValue()->SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
     ValueCurve_MHTilt->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
+    ValueCurve_MHFanPan->GetValue()->SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+    ValueCurve_MHFanPan->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
+    ValueCurve_MHFanTilt->GetValue()->SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+    ValueCurve_MHFanTilt->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
+    ValueCurve_MHPanOffset->GetValue()->SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+    ValueCurve_MHPanOffset->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
+    ValueCurve_MHTiltOffset->GetValue()->SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+    ValueCurve_MHTiltOffset->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
+    ValueCurve_MHGroupings->GetValue()->SetLimits(MOVING_HEAD_GROUP_MIN, MOVING_HEAD_GROUP_MAX);
+    ValueCurve_MHTiltOffset->GetValue()->SetDivisor(MOVING_HEAD_GROUP_DIVISOR);
 
     ValidateWindow();
 }
@@ -394,6 +405,10 @@ MovingHeadPanel::~MovingHeadPanel()
 	//*)
 }
 
+void MovingHeadPanel::OnNotebook1PageChanged(wxNotebookEvent& event)
+{
+}
+
 void MovingHeadPanel::ValidateWindow()
 {
 }
@@ -401,7 +416,7 @@ void MovingHeadPanel::ValidateWindow()
 void MovingHeadPanel::OnVCChanged(wxCommandEvent& event)
 {
     EffectPanelUtils::OnVCChanged(event);
-    
+
     int event_id = event.GetId();
 
     UpdateMHSettings();
@@ -434,28 +449,19 @@ void MovingHeadPanel::UpdateMHSettings()
                 std::string pretty_settings = xlEMPTY_STRING;
 
                 // Add pan settings
-                wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("ID_TEXTCTRL_MHPan"));
-                if( textbox != nullptr && !textbox->IsEnabled() ) {
-                    BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MHPan"));
-                    if( vc_button != nullptr ) {
-                        ValueCurve* vc = vc_button->GetValue();
-                        AddValueCurve(vc, "Pan VC", ugly_settings, pretty_settings);
-                    }
+                if( CheckBox_FanPan->IsChecked() ){
+                    AddSetting( "FanPan", ugly_settings, pretty_settings );
+                    AddSetting( "FanPanOffset", ugly_settings, pretty_settings );
                 } else {
-                    AddTextbox("ID_TEXTCTRL_MHPan", "Pan", ugly_settings, pretty_settings);
+                    AddSetting( "Pan", ugly_settings, pretty_settings );
                 }
 
                 // Add tilt settings
-                textbox = (wxTextCtrl*)(this->FindWindowByName("ID_TEXTCTRL_MHTilt"));
-                if( textbox != nullptr && !textbox->IsEnabled() ) {
-                    // value curve is active
-                    BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MHTilt"));
-                    if( vc_button != nullptr ) {
-                        ValueCurve* vc = vc_button->GetValue();
-                        AddValueCurve(vc, "Tilt VC", ugly_settings, pretty_settings);
-                    }
+                if( CheckBox_FanTilt->IsChecked() ){
+                    AddSetting( "FanTilt", ugly_settings, pretty_settings );
+                    AddSetting( "FanTiltOffset", ugly_settings, pretty_settings );
                 } else {
-                    AddTextbox("ID_TEXTCTRL_MHTilt", "Tilt", ugly_settings, pretty_settings);
+                    AddSetting( "Tilt", ugly_settings, pretty_settings );
                 }
 
                 // update the settings textbox
@@ -475,6 +481,20 @@ void MovingHeadPanel::UpdateMHSettings()
                 }
             }
         }
+    }
+}
+
+void MovingHeadPanel::AddSetting(const std::string& name, std::string& ugly_settings, std::string& pretty_settings)
+{
+    wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("ID_TEXTCTRL_MH" + name));
+    if( textbox != nullptr && !textbox->IsEnabled() ) {
+        BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MH" + name));
+        if( vc_button != nullptr ) {
+            ValueCurve* vc = vc_button->GetValue();
+            AddValueCurve(vc, name + " VC", ugly_settings, pretty_settings);
+        }
+    } else {
+        AddTextbox("ID_TEXTCTRL_MH" + name, name, ugly_settings, pretty_settings);
     }
 }
 
@@ -551,7 +571,7 @@ void MovingHeadPanel::OnButton_AllClick(wxCommandEvent& event)
             }
        }
     }
-    ProcessFirstFixture();
+    //ProcessFirstFixture();
 }
 
 void MovingHeadPanel::OnButton_NoneClick(wxCommandEvent& event)
@@ -578,7 +598,7 @@ void MovingHeadPanel::OnButton_EvensClick(wxCommandEvent& event)
             }
        }
     }
-    ProcessFirstFixture();
+    //ProcessFirstFixture();
 }
 
 void MovingHeadPanel::OnButton_OddsClick(wxCommandEvent& event)
@@ -600,7 +620,7 @@ void MovingHeadPanel::OnButton_OddsClick(wxCommandEvent& event)
             }
        }
     }
-    ProcessFirstFixture();
+    //ProcessFirstFixture();
 }
 
 std::list<Model*> MovingHeadPanel::GetActiveModels()
@@ -643,7 +663,6 @@ std::list<Model*> MovingHeadPanel::GetActiveModels()
 
 void MovingHeadPanel::ProcessFirstFixture()
 {
-    return;
     for( int i = 1; i <= 8; ++i ) {
         wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
         wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
