@@ -63,11 +63,11 @@ void MovingHeadEffect::SetDefaultParameters() {
         return;
     }
 
-    SetSliderValue(dp->Slider_Pan, 0);
-    SetSliderValue(dp->Slider_Tilt, 0);
+    SetSliderValue(dp->Slider_MHPan, 0);
+    SetSliderValue(dp->Slider_MHTilt, 0);
 
-    dp->ValueCurve_Pan->SetActive(false);
-    dp->ValueCurve_Tilt->SetActive(false);
+    dp->ValueCurve_MHPan->SetActive(false);
+    dp->ValueCurve_MHTilt->SetActive(false);
 }
 
 void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

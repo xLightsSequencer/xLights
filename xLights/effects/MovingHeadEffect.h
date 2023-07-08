@@ -39,25 +39,25 @@ public:
 
     virtual double GetSettingVCMin(const std::string& name) const override
     {
-        if (name == "E_VALUECURVE_Pan")
+        if (name == "E_VALUECURVE_MHPan")
             return MOVING_HEAD_MIN;
-        if (name == "E_VALUECURVE_Tilt")
+        if (name == "E_VALUECURVE_MHTilt")
             return MOVING_HEAD_MIN;
         return RenderableEffect::GetSettingVCMin(name);
     }
     virtual double GetSettingVCMax(const std::string& name) const override
     {
-        if (name == "E_VALUECURVE_Pan")
+        if (name == "E_VALUECURVE_MHPan")
             return MOVING_HEAD_MAX;
-        if (name == "E_VALUECURVE_Tilt")
+        if (name == "E_VALUECURVE_MHTilt")
             return MOVING_HEAD_MAX;
         return RenderableEffect::GetSettingVCMax(name);
     }
     virtual int GetSettingVCDivisor(const std::string& name) const override
     {
-        if (name == "E_VALUECURVE_Pan")
+        if (name == "E_VALUECURVE_MHPan")
             return MOVING_HEAD_DIVISOR;
-        if (name == "E_VALUECURVE_Tilt")
+        if (name == "E_VALUECURVE_MHTilt")
             return MOVING_HEAD_DIVISOR;
         return RenderableEffect::GetSettingVCDivisor(name);
     }
