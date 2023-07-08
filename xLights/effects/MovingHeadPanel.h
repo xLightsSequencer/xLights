@@ -60,6 +60,14 @@ public:
     wxStaticText* StaticText_MH6;
     wxStaticText* StaticText_MH7;
     wxStaticText* StaticText_MH8;
+    wxTextCtrl* TextCtrl_MH1_Settings;
+    wxTextCtrl* TextCtrl_MH2_Settings;
+    wxTextCtrl* TextCtrl_MH3_Settings;
+    wxTextCtrl* TextCtrl_MH4_Settings;
+    wxTextCtrl* TextCtrl_MH5_Settings;
+    wxTextCtrl* TextCtrl_MH6_Settings;
+    wxTextCtrl* TextCtrl_MH7_Settings;
+    wxTextCtrl* TextCtrl_MH8_Settings;
     //*)
     
 protected:
@@ -93,20 +101,28 @@ protected:
     static const long ID_NOTEBOOK1;
     static const long ID_STATICTEXT_MH1;
     static const long ID_TEXTCTRL_MH1;
+    static const long ID_TEXTCTRL_MH1_Settings;
     static const long ID_STATICTEXT_MH2;
     static const long ID_TEXTCTRL_MH2;
+    static const long ID_TEXTCTRL_MH2_Settings;
     static const long ID_STATICTEXT_MH3;
     static const long ID_TEXTCTRL_MH3;
+    static const long ID_TEXTCTRL_MH3_Settings;
     static const long ID_STATICTEXT_MH4;
     static const long ID_TEXTCTRL_MH4;
+    static const long ID_TEXTCTRL_MH4_Settings;
     static const long ID_STATICTEXT_MH5;
     static const long ID_TEXTCTRL_MH5;
+    static const long ID_TEXTCTRL_MH5_Settings;
     static const long ID_STATICTEXT_MH6;
     static const long ID_TEXTCTRL_MH6;
+    static const long ID_TEXTCTRL_MH6_Settings;
     static const long ID_STATICTEXT_MH7;
     static const long ID_TEXTCTRL_MH7;
+    static const long ID_TEXTCTRL_MH7_Settings;
     static const long ID_STATICTEXT_MH8;
     static const long ID_TEXTCTRL_MH8;
+    static const long ID_TEXTCTRL_MH8_Settings;
     //*)
     
 private:
@@ -128,8 +144,8 @@ private:
     void UncheckAllFixtures();
     void ProcessFirstFixture();
     void UpdateMHSettings();
-    void AddValueCurve(ValueCurve* vc, const std::string& name, std::string& settings);
-    void AddTextbox(const std::string& ctrl_id, const std::string& name, std::string& settings);
+    void AddValueCurve(ValueCurve* vc, const std::string& name, std::string& ugly_settings, std::string& pretty_settings);
+    void AddTextbox(const std::string& ctrl_id, const std::string& name, std::string& ugly_settings, std::string& pretty_settings);
     void OnSliderUpdated(wxCommandEvent& event);
     void OnTextCtrlUpdated(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);

@@ -115,7 +115,7 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                 WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
             } else {
                 for( int i = 1; i <= 8; ++i ) {
-                    wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d", i);
+                    wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", i);
                     std::string mh_settings = SettingsMap[mh_textbox];
                     if( mh_settings != "" ) {
                         wxArrayString all_cmds = wxSplit(mh_settings, ';');
