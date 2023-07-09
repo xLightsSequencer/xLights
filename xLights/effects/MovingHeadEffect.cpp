@@ -107,69 +107,61 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
 
             auto models = GetModels(model_info);
 
-            if( head_count == 1 ) {
-                int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
-                int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);
+            for( int i = 1; i <= 8; ++i ) {
+                wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", i);
+                std::string mh_settings = SettingsMap[mh_textbox];
+                if( mh_settings != "" ) {
+                    wxArrayString all_cmds = wxSplit(mh_settings, ';');
+                    for (size_t j = 0; j < all_cmds.size(); ++j )
+                    {
+                        std::string cmd = all_cmds[j];
+                        int pos = cmd.find(":");
+                        std::string cmd_type = cmd.substr(0, pos);
+                        std::string settings = cmd.substr(pos+2, cmd.length());
+                        std::replace( settings.begin(), settings.end(), '@', ';');
 
-                WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
-                WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
-            } else {
-                for( int i = 1; i <= 8; ++i ) {
-                    wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", i);
-                    std::string mh_settings = SettingsMap[mh_textbox];
-                    if( mh_settings != "" ) {
-                        wxArrayString all_cmds = wxSplit(mh_settings, ';');
-                        for (size_t j = 0; j < all_cmds.size(); ++j )
-                        {
-                            std::string cmd = all_cmds[j];
-                            int pos = cmd.find(":");
-                            std::string cmd_type = cmd.substr(0, pos);
-                            std::string settings = cmd.substr(pos+2, cmd.length());
-                            std::replace( settings.begin(), settings.end(), '@', ';');
-
-                            if( cmd_type == "Pan" ) {
-                                pan_pos = atof(settings.c_str());
-                            } else if ( cmd_type == "Tilt" ) {
-                                tilt_pos = atof(settings.c_str());
-                            } else if ( cmd_type == "Pan VC" ) {
-                                ValueCurve vc( settings );
-                                vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
-                                vc.SetDivisor(MOVING_HEAD_DIVISOR);
-                                pan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                            } else if ( cmd_type == "Tilt VC" ) {
-                                ValueCurve vc( settings );
-                                vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
-                                vc.SetDivisor(MOVING_HEAD_DIVISOR);
-                                tilt_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                            } else if ( cmd_type == "FanPan" ) {
-                                float fan_pos = atof(settings.c_str());
-                                CalculateFanPosition( "Pan", i, pan_pos, fan_pos, all_cmds, models, eff_pos, buffer);
-                            } else if ( cmd_type == "FanPan VC" ) {
-                                ValueCurve vc( settings );
-                                vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
-                                vc.SetDivisor(MOVING_HEAD_DIVISOR);
-                                float fan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                                CalculateFanPosition( "Pan", i, pan_pos, fan_pos, all_cmds, models, eff_pos, buffer);
-                            } else if ( cmd_type == "FanTilt VC" ) {
-                                ValueCurve vc( settings );
-                                vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
-                                vc.SetDivisor(MOVING_HEAD_DIVISOR);
-                                float fan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                                CalculateFanPosition( "Tilt", i, tilt_pos, fan_pos, all_cmds, models, eff_pos, buffer);
-                            }
+                        if( cmd_type == "Pan" ) {
+                            pan_pos = atof(settings.c_str());
+                        } else if ( cmd_type == "Tilt" ) {
+                            tilt_pos = atof(settings.c_str());
+                        } else if ( cmd_type == "Pan VC" ) {
+                            ValueCurve vc( settings );
+                            vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                            pan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                        } else if ( cmd_type == "Tilt VC" ) {
+                            ValueCurve vc( settings );
+                            vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                            tilt_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                        } else if ( cmd_type == "FanPan" ) {
+                            float fan_pos = atof(settings.c_str());
+                            CalculateFanPosition( "Pan", i, pan_pos, fan_pos, all_cmds, models, eff_pos, buffer);
+                        } else if ( cmd_type == "FanPan VC" ) {
+                            ValueCurve vc( settings );
+                            vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                            float fan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                            CalculateFanPosition( "Pan", i, pan_pos, fan_pos, all_cmds, models, eff_pos, buffer);
+                        } else if ( cmd_type == "FanTilt VC" ) {
+                            ValueCurve vc( settings );
+                            vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                            float fan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                            CalculateFanPosition( "Tilt", i, tilt_pos, fan_pos, all_cmds, models, eff_pos, buffer);
                         }
+                    }
 
-                        // find models that map to this moving head position
-                        for (const auto& it : models) {
-                            if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
-                                DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
-                                if( mhead->GetFixtureVal() == i ) {
-                                    int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
-                                    int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);
-                                    
-                                    WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
-                                    WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
-                                }
+                    // find models that map to this moving head position
+                    for (const auto& it : models) {
+                        if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
+                            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+                            if( mhead->GetFixtureVal() == i ) {
+                                int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
+                                int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);
+                                
+                                WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
+                                WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
                             }
                         }
                     }

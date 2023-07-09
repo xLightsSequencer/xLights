@@ -65,8 +65,15 @@ void DmxMotor::Init(BaseObject* base) {
 
 int DmxMotor::ConvertPostoCmd( float position )
 {
+    float limited_pos = position;
+    if( limited_pos > max_limit ) {
+        limited_pos = max_limit;
+    } else if( limited_pos < min_limit ) {
+        limited_pos = min_limit;
+    }
+
     float goto_home = (float)max_value * (float)orient_home / range_of_motion;
-    float amount_to_move = (float)max_value * position / range_of_motion * rev;
+    float amount_to_move = (float)max_value * limited_pos / range_of_motion * rev;
     float cmd = goto_home + amount_to_move;
     float full_spin = (float)max_value * 360.0 / range_of_motion;
 
