@@ -60,12 +60,12 @@ const long MovingHeadPanel::ID_STATICTEXT_Groupings = wxNewId();
 const long MovingHeadPanel::ID_SLIDER_MHGroupings = wxNewId();
 const long MovingHeadPanel::ID_VALUECURVE_MHGroupings = wxNewId();
 const long MovingHeadPanel::IDD_TEXTCTRL_MHGroupings = wxNewId();
-const long MovingHeadPanel::ID_CHECKBOX_FanPan = wxNewId();
-const long MovingHeadPanel::ID_CHECKBOX_FanTilt = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Fan = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Movement = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Control = wxNewId();
 const long MovingHeadPanel::ID_NOTEBOOK1 = wxNewId();
+const long MovingHeadPanel::ID_CHECKBOX_FanPan = wxNewId();
+const long MovingHeadPanel::ID_CHECKBOX_FanTilt = wxNewId();
 const long MovingHeadPanel::ID_STATICTEXT_MH1 = wxNewId();
 const long MovingHeadPanel::ID_TEXTCTRL_MH1 = wxNewId();
 const long MovingHeadPanel::ID_TEXTCTRL_MH1_Settings = wxNewId();
@@ -266,15 +266,6 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     TextCtrl_MHGroupings = new BulkEditTextCtrlF1(PanelFan, IDD_TEXTCTRL_MHGroupings, _("1"), wxDefaultPosition, wxDLG_UNIT(PanelFan,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_MHGroupings"));
     FlexGridSizer_Groupings->Add(TextCtrl_MHGroupings, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizerFan->Add(FlexGridSizer_Groupings, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
-    FlexGridSizer_FanActive = new wxFlexGridSizer(0, 3, 0, 0);
-    CheckBox_FanPan = new wxCheckBox(PanelFan, ID_CHECKBOX_FanPan, _("Fan - Pan: Active"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FanPan"));
-    CheckBox_FanPan->SetValue(false);
-    FlexGridSizer_FanActive->Add(CheckBox_FanPan, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer_FanActive->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_FanTilt = new wxCheckBox(PanelFan, ID_CHECKBOX_FanTilt, _("Fan - Tilt: Active"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FanTilt"));
-    CheckBox_FanTilt->SetValue(false);
-    FlexGridSizer_FanActive->Add(CheckBox_FanTilt, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerFan->Add(FlexGridSizer_FanActive, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     PanelFan->SetSizer(FlexGridSizerFan);
     FlexGridSizerFan->Fit(PanelFan);
     FlexGridSizerFan->SetSizeHints(PanelFan);
@@ -293,6 +284,15 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Notebook1->AddPage(PanelMovement, _("Movement"), false);
     Notebook1->AddPage(PanelControl, _("Control"), false);
     FlexGridSizer_Main->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer_FanActive = new wxFlexGridSizer(0, 3, 0, 0);
+    CheckBox_FanPan = new wxCheckBox(this, ID_CHECKBOX_FanPan, _("Using Fan Pan"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FanPan"));
+    CheckBox_FanPan->SetValue(false);
+    FlexGridSizer_FanActive->Add(CheckBox_FanPan, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer_FanActive->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_FanTilt = new wxCheckBox(this, ID_CHECKBOX_FanTilt, _("Using Fan Tilt"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FanTilt"));
+    CheckBox_FanTilt->SetValue(false);
+    FlexGridSizer_FanActive->Add(CheckBox_FanTilt, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer_Main->Add(FlexGridSizer_FanActive, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizer_Positions = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText_MH1 = new wxStaticText(this, ID_STATICTEXT_MH1, _("MH1:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_MH1"));
     FlexGridSizer_Positions->Add(StaticText_MH1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -399,7 +399,6 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     ValueCurve_MHTiltOffset->GetValue()->SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
     ValueCurve_MHTiltOffset->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
     ValueCurve_MHGroupings->GetValue()->SetLimits(MOVING_HEAD_GROUP_MIN, MOVING_HEAD_GROUP_MAX);
-    ValueCurve_MHGroupings->GetValue()->SetDivisor(MOVING_HEAD_GROUP_DIVISOR);
 
     ValidateWindow();
 }

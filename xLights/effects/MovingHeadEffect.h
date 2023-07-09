@@ -17,7 +17,6 @@
 #define MOVING_HEAD_DIVISOR 10
 #define MOVING_HEAD_GROUP_MIN 1
 #define MOVING_HEAD_GROUP_MAX 6
-#define MOVING_HEAD_GROUP_DIVISOR 1
 
 class DmxMotor;
 
@@ -55,7 +54,7 @@ public:
         if (name == "E_VALUECURVE_MHTiltOffset")
             return MOVING_HEAD_MIN;
         if (name == "E_VALUECURVE_MHGroupings")
-            return MOVING_HEAD_MIN;
+            return MOVING_HEAD_GROUP_MIN;
         return RenderableEffect::GetSettingVCMin(name);
     }
     virtual double GetSettingVCMax(const std::string& name) const override
@@ -73,7 +72,7 @@ public:
         if (name == "E_VALUECURVE_MHTiltOffset")
             return MOVING_HEAD_MAX;
         if (name == "E_VALUECURVE_MHGroupings")
-            return MOVING_HEAD_MAX;
+            return MOVING_HEAD_GROUP_MAX;
         return RenderableEffect::GetSettingVCMax(name);
     }
     virtual int GetSettingVCDivisor(const std::string& name) const override
@@ -102,5 +101,5 @@ protected:
     void WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer);
     std::list<Model*> GetModels(Model* model);
     void UpdateFixturePositions(Model *cls);
-    void CalculateFanPosition(const std::string& name, int location, float& position, float fan, wxArrayString& all_cmds, std::list<Model*> models);
+    void CalculateFanPosition(const std::string& name, int location, float& position, float fan, wxArrayString& all_cmds, std::list<Model*> models, double eff_pos, RenderBuffer &buffer);
 };

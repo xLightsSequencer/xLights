@@ -132,12 +132,12 @@ protected:
     static const long ID_SLIDER_MHGroupings;
     static const long ID_VALUECURVE_MHGroupings;
     static const long IDD_TEXTCTRL_MHGroupings;
-    static const long ID_CHECKBOX_FanPan;
-    static const long ID_CHECKBOX_FanTilt;
     static const long ID_PANEL_Fan;
     static const long ID_PANEL_Movement;
     static const long ID_PANEL_Control;
     static const long ID_NOTEBOOK1;
+    static const long ID_CHECKBOX_FanPan;
+    static const long ID_CHECKBOX_FanTilt;
     static const long ID_STATICTEXT_MH1;
     static const long ID_TEXTCTRL_MH1;
     static const long ID_TEXTCTRL_MH1_Settings;
