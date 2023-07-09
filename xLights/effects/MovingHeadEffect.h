@@ -90,8 +90,6 @@ public:
             return MOVING_HEAD_DIVISOR;
         if (name == "E_VALUECURVE_MHTiltOffset")
             return MOVING_HEAD_DIVISOR;
-        if (name == "E_VALUECURVE_MHGroupings")
-            return MOVING_HEAD_DIVISOR;
         return RenderableEffect::GetSettingVCDivisor(name);
     }
 

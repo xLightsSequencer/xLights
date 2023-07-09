@@ -178,7 +178,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="IDD_SLIDER_MHPan" subclass="BulkEditSliderF1" variable="Slider_MHPan" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_MHPan" subclass="BulkEditSliderF1" variable="Slider_MHPan" member="yes">
 												<min>-1800</min>
 												<max>1800</max>
 											</object>
@@ -195,7 +195,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_MHPan" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHPan" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPan" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHPan" member="no">
 												<value>0</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>
@@ -222,7 +222,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="IDD_SLIDER_MHTilt" subclass="BulkEditSliderF1" variable="Slider_MHTilt" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_MHTilt" subclass="BulkEditSliderF1" variable="Slider_MHTilt" member="yes">
 												<min>-1800</min>
 												<max>1800</max>
 											</object>
@@ -239,7 +239,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_MHTilt" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHTilt" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHTilt" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHTilt" member="no">
 												<value>0</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>
@@ -274,7 +274,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="IDD_SLIDER_MHFanPan" subclass="BulkEditSliderF1" variable="Slider_MHFanPan" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_MHFanPan" subclass="BulkEditSliderF1" variable="Slider_MHFanPan" member="yes">
 												<min>-1800</min>
 												<max>1800</max>
 											</object>
@@ -291,7 +291,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_MHFanPan" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHFanPan" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHFanPan" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHFanPan" member="no">
 												<value>0</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>
@@ -318,7 +318,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="IDD_SLIDER_MHFanTilt" subclass="BulkEditSliderF1" variable="Slider_MHFanTilt" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_MHFanTilt" subclass="BulkEditSliderF1" variable="Slider_MHFanTilt" member="yes">
 												<min>-1800</min>
 												<max>1800</max>
 											</object>
@@ -335,7 +335,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_MHFanTilt" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHFanTilt" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHFanTilt" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHFanTilt" member="no">
 												<value>0</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>
@@ -362,7 +362,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="IDD_SLIDER_MHPanOffset" subclass="BulkEditSliderF1" variable="Slider_MHPanOffset" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_MHPanOffset" subclass="BulkEditSliderF1" variable="Slider_MHPanOffset" member="yes">
 												<min>-1800</min>
 												<max>1800</max>
 											</object>
@@ -379,7 +379,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_MHPanOffset" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHPanOffset" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPanOffset" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHPanOffset" member="no">
 												<value>0</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>
@@ -406,7 +406,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="IDD_SLIDER_MHTiltOffset" subclass="BulkEditSliderF1" variable="Slider_MHTiltOffset" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_MHTiltOffset" subclass="BulkEditSliderF1" variable="Slider_MHTiltOffset" member="yes">
 												<min>-1800</min>
 												<max>1800</max>
 											</object>
@@ -423,7 +423,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_MHTiltOffset" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHTiltOffset" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHTiltOffset" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHTiltOffset" member="no">
 												<value>0</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>
@@ -450,7 +450,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="IDD_SLIDER_MHGroupings" subclass="BulkEditSlider" variable="Slider_MHGroupings" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_MHGroupings" subclass="BulkEditSlider" variable="Slider_MHGroupings" member="yes">
 												<value>1</value>
 												<min>1</min>
 												<max>6</max>
@@ -468,8 +468,8 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_MHGroupings" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHGroupings" member="no">
-												<value>0</value>
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHGroupings" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHGroupings" member="no">
+												<value>1</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>
 											</object>

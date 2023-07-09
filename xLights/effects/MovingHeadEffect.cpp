@@ -201,8 +201,6 @@ void MovingHeadEffect::CalculateFanPosition(const std::string& name, int locatio
         }
     }
  
-    float center = heads.size() / groupings / 2.0f + 0.5;
-    
     std::map<int, int> locations;
     for (size_t i = 0; i < heads.size(); ++i )
     {
@@ -210,8 +208,13 @@ void MovingHeadEffect::CalculateFanPosition(const std::string& name, int locatio
         locations[head] = i+1;
     }
 
-    float slot = (float)((locations[location] - 1) % (heads.size() / groupings)) + 1;
-    
+    // calculate the slot number within the group
+    float slot = (float)locations[location];
+    if( groupings > 1 ) {
+        slot = (float)((locations[location]-1) % groupings + 1);
+    }
+    float center = (float)(groupings > 1 ? groupings : heads.size()) / 2.0f + 0.5;
+
     position = (slot - center) * fan + offset;
 }
 
