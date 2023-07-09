@@ -46,6 +46,16 @@ public:
             return MOVING_HEAD_MIN;
         if (name == "E_VALUECURVE_MHTilt")
             return MOVING_HEAD_MIN;
+        if (name == "E_VALUECURVE_MHFanPan")
+            return MOVING_HEAD_MIN;
+        if (name == "E_VALUECURVE_MHFanTilt")
+            return MOVING_HEAD_MIN;
+        if (name == "E_VALUECURVE_MHPanOffset")
+            return MOVING_HEAD_MIN;
+        if (name == "E_VALUECURVE_MHTiltOffset")
+            return MOVING_HEAD_MIN;
+        if (name == "E_VALUECURVE_MHGroupings")
+            return MOVING_HEAD_MIN;
         return RenderableEffect::GetSettingVCMin(name);
     }
     virtual double GetSettingVCMax(const std::string& name) const override
@@ -54,6 +64,16 @@ public:
             return MOVING_HEAD_MAX;
         if (name == "E_VALUECURVE_MHTilt")
             return MOVING_HEAD_MAX;
+        if (name == "E_VALUECURVE_MHFanPan")
+            return MOVING_HEAD_MAX;
+        if (name == "E_VALUECURVE_MHFanTilt")
+            return MOVING_HEAD_MAX;
+        if (name == "E_VALUECURVE_MHPanOffset")
+            return MOVING_HEAD_MAX;
+        if (name == "E_VALUECURVE_MHTiltOffset")
+            return MOVING_HEAD_MAX;
+        if (name == "E_VALUECURVE_MHGroupings")
+            return MOVING_HEAD_MAX;
         return RenderableEffect::GetSettingVCMax(name);
     }
     virtual int GetSettingVCDivisor(const std::string& name) const override
@@ -61,6 +81,16 @@ public:
         if (name == "E_VALUECURVE_MHPan")
             return MOVING_HEAD_DIVISOR;
         if (name == "E_VALUECURVE_MHTilt")
+            return MOVING_HEAD_DIVISOR;
+        if (name == "E_VALUECURVE_MHFanPan")
+            return MOVING_HEAD_DIVISOR;
+        if (name == "E_VALUECURVE_MHFanTilt")
+            return MOVING_HEAD_DIVISOR;
+        if (name == "E_VALUECURVE_MHPanOffset")
+            return MOVING_HEAD_DIVISOR;
+        if (name == "E_VALUECURVE_MHTiltOffset")
+            return MOVING_HEAD_DIVISOR;
+        if (name == "E_VALUECURVE_MHGroupings")
             return MOVING_HEAD_DIVISOR;
         return RenderableEffect::GetSettingVCDivisor(name);
     }

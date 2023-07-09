@@ -182,6 +182,7 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
 void MovingHeadEffect::CalculateFanPosition(const std::string& name, int location, float& position, float fan, wxArrayString& all_cmds, std::list<Model*> models)
 {
     float offset = 0.0f;
+    int groupings = 1;
     wxArrayString heads;
 
     for (size_t i = 0; i < all_cmds.size(); ++i )
@@ -195,23 +196,23 @@ void MovingHeadEffect::CalculateFanPosition(const std::string& name, int locatio
             offset = atof(settings.c_str());
         } else if( cmd_type == "Heads" ) {
             heads = wxSplit(settings, ',');
+        } else if( cmd_type == "Groupings" ) {
+            groupings = atoi(settings.c_str());
         }
+    }
+ 
+    float center = heads.size() / groupings / 2.0f + 0.5;
+    
+    std::map<int, int> locations;
+    for (size_t i = 0; i < heads.size(); ++i )
+    {
+        int head = wxAtoi(heads[i]);
+        locations[head] = i+1;
     }
 
-    float center = heads.size() / 2.0f + 0.5;
+    float slot = (float)((locations[location] - 1) % (heads.size() / groupings)) + 1;
     
-    // find fixture number for this location
-    float slot = 0.0;;
-    for (const auto& it : models) {
-        if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
-            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
-            if( mhead->GetFixtureVal() == location ) {
-                slot = (float)mhead->GetFixtureVal();
-            }
-        }
-    }
-    
-    position = (slot - center) * fan;
+    position = (slot - center) * fan + offset;
 }
 
 void MovingHeadEffect::WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer)

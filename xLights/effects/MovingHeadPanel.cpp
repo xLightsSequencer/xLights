@@ -60,8 +60,8 @@ const long MovingHeadPanel::ID_STATICTEXT_Groupings = wxNewId();
 const long MovingHeadPanel::IDD_SLIDER_MHGroupings = wxNewId();
 const long MovingHeadPanel::ID_VALUECURVE_MHGroupings = wxNewId();
 const long MovingHeadPanel::ID_TEXTCTRL_MHGroupings = wxNewId();
-const long MovingHeadPanel::IDD_CHECKBOX_FanPan = wxNewId();
-const long MovingHeadPanel::IDD_CHECKBOX_FanTilt = wxNewId();
+const long MovingHeadPanel::ID_CHECKBOX_FanPan = wxNewId();
+const long MovingHeadPanel::ID_CHECKBOX_FanTilt = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Fan = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Movement = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Control = wxNewId();
@@ -267,11 +267,11 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer_Groupings->Add(TextCtrl_MHGroupings, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizerFan->Add(FlexGridSizer_Groupings, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizer_FanActive = new wxFlexGridSizer(0, 3, 0, 0);
-    CheckBox_FanPan = new wxCheckBox(PanelFan, IDD_CHECKBOX_FanPan, _("Fan - Pan: Active"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_CHECKBOX_FanPan"));
+    CheckBox_FanPan = new wxCheckBox(PanelFan, ID_CHECKBOX_FanPan, _("Fan - Pan: Active"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FanPan"));
     CheckBox_FanPan->SetValue(false);
     FlexGridSizer_FanActive->Add(CheckBox_FanPan, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer_FanActive->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_FanTilt = new wxCheckBox(PanelFan, IDD_CHECKBOX_FanTilt, _("Fan - Tilt: Active"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_CHECKBOX_FanTilt"));
+    CheckBox_FanTilt = new wxCheckBox(PanelFan, ID_CHECKBOX_FanTilt, _("Fan - Tilt: Active"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FanTilt"));
     CheckBox_FanTilt->SetValue(false);
     FlexGridSizer_FanActive->Add(CheckBox_FanTilt, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerFan->Add(FlexGridSizer_FanActive, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
@@ -470,7 +470,17 @@ void MovingHeadPanel::UpdateMHSettings()
                     } else {
                         headset += " ";
                     }
-                    headset += wxString::Format("%d", i);
+                    int fixture_num = 1;
+                    auto models = GetActiveModels();
+                    for (const auto& it : models) {
+                        if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
+                            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+                            if( mhead->GetFixtureVal() == i ) {
+                                fixture_num = mhead->GetFixtureVal();
+                            }
+                        }
+                    }
+                    headset += wxString::Format("%d", fixture_num);
                     add_comma = true;
                 }
             }
