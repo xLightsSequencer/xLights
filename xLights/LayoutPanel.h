@@ -479,6 +479,7 @@ class LayoutPanel: public wxPanel
         std::string GetSelectedModelName() const;
         bool Is3d() const;
         void Set3d(bool is3d);
+        wxPropertyGrid* GetPropertyEditor() const { return propertyEditor; }
 
     private:
         int Col_Model = 0;
