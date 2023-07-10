@@ -106,7 +106,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-							<cols>4</cols>
+							<cols>6</cols>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON_All" variable="Button_All" member="yes">
 									<label>All</label>
@@ -205,7 +205,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -240,102 +240,6 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHTilt" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHTilt" member="no">
-												<value>0</value>
-												<size>25,-1d</size>
-												<style>wxTE_PROCESS_ENTER</style>
-											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-									</object>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<label>Position</label>
-					</object>
-					<object class="notebookpage">
-						<object class="wxPanel" name="ID_PANEL_Fan" variable="PanelFan" member="yes">
-							<object class="wxFlexGridSizer" variable="FlexGridSizerFan" member="no">
-								<cols>1</cols>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer_FanPan" member="no">
-										<cols>4</cols>
-										<growablecols>1</growablecols>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT_FanPan" variable="Label_FanPan" member="yes">
-												<label>Fan - Pan (deg):</label>
-											</object>
-											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_MHFanPan" subclass="BulkEditSliderF1" variable="Slider_MHFanPan" member="yes">
-												<min>-1800</min>
-												<max>1800</max>
-											</object>
-											<flag>wxALL|wxEXPAND</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_VALUECURVE_MHFanPan" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHFanPan" member="yes">
-												<bitmap code="GetValueCurveNotSelectedBitmap()" />
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHFanPan" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHFanPan" member="no">
-												<value>0</value>
-												<size>25,-1d</size>
-												<style>wxTE_PROCESS_ENTER</style>
-											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-									</object>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer_FanTilt" member="no">
-										<cols>4</cols>
-										<growablecols>1</growablecols>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT_FanTilt" variable="Label_FanTilt" member="yes">
-												<label>Fan - Tilt (deg):</label>
-											</object>
-											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_MHFanTilt" subclass="BulkEditSliderF1" variable="Slider_MHFanTilt" member="yes">
-												<min>-1800</min>
-												<max>1800</max>
-											</object>
-											<flag>wxALL|wxEXPAND</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_VALUECURVE_MHFanTilt" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHFanTilt" member="yes">
-												<bitmap code="GetValueCurveNotSelectedBitmap()" />
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHFanTilt" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHFanTilt" member="no">
 												<value>0</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>
@@ -482,17 +386,80 @@
 									<border>5</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxStaticBoxSizer" variable="StaticBoxSizer_PanMode" member="no">
+												<label>Pan Mode</label>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CHECKBOX_PanPosition" variable="CheckBox_PanPosition" member="yes">
+														<label>Position</label>
+														<checked>1</checked>
+														<handler function="OnCheckBox_PanPositionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CHECKBOX_PanPath" variable="CheckBox_PanPath" member="yes">
+														<label>Path</label>
+														<size>40,13</size>
+														<handler function="OnCheckBox_PanPathClick" entry="EVT_CHECKBOX" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+											</object>
+											<flag>wxTOP|wxBOTTOM|wxRIGHT</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxStaticBoxSizer" variable="StaticBoxSizer_TiltMode" member="no">
+												<label>Tilt Mode</label>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CHECKBOX_TiltPosition" variable="CheckBox_TiltPosition" member="yes">
+														<label>Position</label>
+														<checked>1</checked>
+														<handler function="OnCheckBox_TiltPositionClick" entry="EVT_CHECKBOX" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CHECKBOX_TiltPath" variable="CheckBox_TiltPath" member="yes">
+														<label>Path</label>
+														<handler function="OnCheckBox_TiltPathClick" entry="EVT_CHECKBOX" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+											</object>
+											<flag>wxTOP|wxBOTTOM</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
-						<label>Fan</label>
+						<label>Position</label>
 					</object>
 					<object class="notebookpage">
-						<object class="wxPanel" name="ID_PANEL_Movement" variable="PanelMovement" member="yes">
+						<object class="wxPanel" name="ID_PANEL_Pathing" variable="PanelPathing" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizerMovement" member="no">
 								<cols>3</cols>
 							</object>
 						</object>
-						<label>Movement</label>
+						<label>Pathing</label>
 					</object>
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL_Control" variable="PanelControl" member="yes">
@@ -504,35 +471,6 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer_FanActive" member="no">
-					<cols>3</cols>
-					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_FanPan" variable="CheckBox_FanPan" member="yes">
-							<label>Using Fan Pan</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_FanTilt" variable="CheckBox_FanTilt" member="yes">
-							<label>Using Fan Tilt</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

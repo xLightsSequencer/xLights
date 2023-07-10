@@ -122,33 +122,22 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
 
                         if( cmd_type == "Pan" ) {
                             pan_pos = atof(settings.c_str());
+                            CalculatePosition( "Pan", false, i, pan_pos, all_cmds, models, eff_pos, buffer);
                         } else if ( cmd_type == "Tilt" ) {
                             tilt_pos = atof(settings.c_str());
+                            CalculatePosition( "Tilt", false, i, tilt_pos, all_cmds, models, eff_pos, buffer);
                         } else if ( cmd_type == "Pan VC" ) {
                             ValueCurve vc( settings );
                             vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
                             vc.SetDivisor(MOVING_HEAD_DIVISOR);
                             pan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                            CalculatePosition( "Pan", false, i, pan_pos, all_cmds, models, eff_pos, buffer);
                         } else if ( cmd_type == "Tilt VC" ) {
                             ValueCurve vc( settings );
                             vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
                             vc.SetDivisor(MOVING_HEAD_DIVISOR);
                             tilt_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                        } else if ( cmd_type == "FanPan" ) {
-                            float fan_pos = atof(settings.c_str());
-                            CalculateFanPosition( "Pan", i, pan_pos, fan_pos, all_cmds, models, eff_pos, buffer);
-                        } else if ( cmd_type == "FanPan VC" ) {
-                            ValueCurve vc( settings );
-                            vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
-                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
-                            float fan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                            CalculateFanPosition( "Pan", i, pan_pos, fan_pos, all_cmds, models, eff_pos, buffer);
-                        } else if ( cmd_type == "FanTilt VC" ) {
-                            ValueCurve vc( settings );
-                            vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
-                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
-                            float fan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                            CalculateFanPosition( "Tilt", i, tilt_pos, fan_pos, all_cmds, models, eff_pos, buffer);
+                            CalculatePosition( "Tilt", false, i, tilt_pos, all_cmds, models, eff_pos, buffer);
                         }
                     }
 
@@ -171,7 +160,7 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     }
 }
 
-void MovingHeadEffect::CalculateFanPosition(const std::string& name, int location, float& position, float fan, wxArrayString& all_cmds, std::list<Model*> models, double eff_pos, RenderBuffer &buffer)
+void MovingHeadEffect::CalculatePosition(const std::string& name, bool is_fan, int location, float& position, wxArrayString& all_cmds, std::list<Model*> models, double eff_pos, RenderBuffer &buffer)
 {
     float offset = 0.0f;
     int groupings = 1;
@@ -216,7 +205,7 @@ void MovingHeadEffect::CalculateFanPosition(const std::string& name, int locatio
     }
     float center = (float)(groupings > 1 ? groupings : heads.size()) / 2.0f + 0.5;
 
-    position = (slot - center) * fan + offset;
+    position = (slot - center) * offset + position;
 }
 
 void MovingHeadEffect::WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer)

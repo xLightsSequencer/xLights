@@ -28,14 +28,10 @@ public:
 
     //(*Declarations(MovingHeadPanel)
     BulkEditSlider* Slider_MHGroupings;
-    BulkEditSliderF1* Slider_MHFanPan;
-    BulkEditSliderF1* Slider_MHFanTilt;
     BulkEditSliderF1* Slider_MHPan;
     BulkEditSliderF1* Slider_MHPanOffset;
     BulkEditSliderF1* Slider_MHTilt;
     BulkEditSliderF1* Slider_MHTiltOffset;
-    BulkEditValueCurveButton* ValueCurve_MHFanPan;
-    BulkEditValueCurveButton* ValueCurve_MHFanTilt;
     BulkEditValueCurveButton* ValueCurve_MHGroupings;
     BulkEditValueCurveButton* ValueCurve_MHPan;
     BulkEditValueCurveButton* ValueCurve_MHPanOffset;
@@ -45,8 +41,6 @@ public:
     wxButton* Button_Evens;
     wxButton* Button_None;
     wxButton* Button_Odds;
-    wxCheckBox* CheckBox_FanPan;
-    wxCheckBox* CheckBox_FanTilt;
     wxCheckBox* CheckBox_MH1;
     wxCheckBox* CheckBox_MH2;
     wxCheckBox* CheckBox_MH3;
@@ -55,14 +49,15 @@ public:
     wxCheckBox* CheckBox_MH6;
     wxCheckBox* CheckBox_MH7;
     wxCheckBox* CheckBox_MH8;
+    wxCheckBox* CheckBox_PanPath;
+    wxCheckBox* CheckBox_PanPosition;
+    wxCheckBox* CheckBox_TiltPath;
+    wxCheckBox* CheckBox_TiltPosition;
     wxFlexGridSizer* FlexGridSizer_Main;
     wxNotebook* Notebook1;
     wxPanel* PanelControl;
-    wxPanel* PanelFan;
-    wxPanel* PanelMovement;
+    wxPanel* PanelPathing;
     wxPanel* PanelPosition;
-    wxStaticText* Label_FanPan;
-    wxStaticText* Label_FanTilt;
     wxStaticText* Label_Pan;
     wxStaticText* Label_Tilt;
     wxStaticText* Label_TiltOffset;
@@ -111,15 +106,6 @@ protected:
     static const long ID_SLIDER_MHTilt;
     static const long ID_VALUECURVE_MHTilt;
     static const long IDD_TEXTCTRL_MHTilt;
-    static const long ID_PANEL_Position;
-    static const long ID_STATICTEXT_FanPan;
-    static const long ID_SLIDER_MHFanPan;
-    static const long ID_VALUECURVE_MHFanPan;
-    static const long IDD_TEXTCTRL_MHFanPan;
-    static const long ID_STATICTEXT_FanTilt;
-    static const long ID_SLIDER_MHFanTilt;
-    static const long ID_VALUECURVE_MHFanTilt;
-    static const long IDD_TEXTCTRL_MHFanTilt;
     static const long ID_STATICTEXT1;
     static const long ID_SLIDER_MHPanOffset;
     static const long ID_VALUECURVE_MHPanOffset;
@@ -132,12 +118,14 @@ protected:
     static const long ID_SLIDER_MHGroupings;
     static const long ID_VALUECURVE_MHGroupings;
     static const long IDD_TEXTCTRL_MHGroupings;
-    static const long ID_PANEL_Fan;
-    static const long ID_PANEL_Movement;
+    static const long ID_CHECKBOX_PanPosition;
+    static const long ID_CHECKBOX_PanPath;
+    static const long ID_CHECKBOX_TiltPosition;
+    static const long ID_CHECKBOX_TiltPath;
+    static const long ID_PANEL_Position;
+    static const long ID_PANEL_Pathing;
     static const long ID_PANEL_Control;
     static const long ID_NOTEBOOK1;
-    static const long ID_CHECKBOX_FanPan;
-    static const long ID_CHECKBOX_FanTilt;
     static const long ID_STATICTEXT_MH1;
     static const long ID_TEXTCTRL_MH1;
     static const long ID_TEXTCTRL_MH1_Settings;
@@ -175,15 +163,20 @@ private:
     void OnButton_NoneClick(wxCommandEvent& event);
     void OnButton_EvensClick(wxCommandEvent& event);
     void OnButton_OddsClick(wxCommandEvent& event);
+    void OnButton_MHLeftClick(wxCommandEvent& event);
+    void OnButton_MHRightClick(wxCommandEvent& event);
+    void OnCheckBox_PanPositionClick(wxCommandEvent& event);
+    void OnCheckBox_PanPathClick(wxCommandEvent& event);
+    void OnCheckBox_TiltPositionClick(wxCommandEvent& event);
+    void OnCheckBox_TiltPathClick(wxCommandEvent& event);
     //*)
     
     DECLARE_EVENT_TABLE()
 
     std::list<Model*> GetActiveModels();
     void UncheckAllFixtures();
-    void ProcessFirstFixture();
     void UpdateMHSettings();
-    void AddSetting(const std::string& name, std::string& ugly_settings, std::string& pretty_settings);
+    void AddSetting(const std::string& name, const std::string& ctrl_name, std::string& ugly_settings, std::string& pretty_settings);
     void AddValueCurve(ValueCurve* vc, const std::string& name, std::string& ugly_settings, std::string& pretty_settings);
     void AddTextbox(const std::string& ctrl_id, const std::string& name, std::string& ugly_settings, std::string& pretty_settings);
     void OnSliderUpdated(wxCommandEvent& event);

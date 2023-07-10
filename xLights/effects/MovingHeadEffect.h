@@ -101,5 +101,6 @@ protected:
     void WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer);
     std::list<Model*> GetModels(Model* model);
     void UpdateFixturePositions(Model *cls);
-    void CalculateFanPosition(const std::string& name, int location, float& position, float fan, wxArrayString& all_cmds, std::list<Model*> models, double eff_pos, RenderBuffer &buffer);
+    //void CalculatePosition(const std::string& name, float& position, wxArrayString& all_cmds, double eff_pos, RenderBuffer &buffer);
+    void CalculatePosition(const std::string& name, bool is_fan, int location, float& position, wxArrayString& all_cmds, std::list<Model*> models, double eff_pos, RenderBuffer &buffer);
 };
