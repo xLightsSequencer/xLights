@@ -104,7 +104,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     wxFlexGridSizer* FlexGridSizerFixtures;
     wxFlexGridSizer* FlexGridSizerFixturesLabel;
     wxFlexGridSizer* FlexGridSizerFixturesSelection;
-    wxFlexGridSizer* FlexGridSizerMovement;
+    wxFlexGridSizer* FlexGridSizerPathCanvas;
     wxFlexGridSizer* FlexGridSizerPosition;
     wxFlexGridSizer* FlexGridSizerPositionPan;
     wxFlexGridSizer* FlexGridSizerPositionTilt;
@@ -251,10 +251,12 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerPosition->Fit(PanelPosition);
     FlexGridSizerPosition->SetSizeHints(PanelPosition);
     PanelPathing = new wxPanel(Notebook1, ID_PANEL_Pathing, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Pathing"));
-    FlexGridSizerMovement = new wxFlexGridSizer(0, 3, 0, 0);
-    PanelPathing->SetSizer(FlexGridSizerMovement);
-    FlexGridSizerMovement->Fit(PanelPathing);
-    FlexGridSizerMovement->SetSizeHints(PanelPathing);
+    FlexGridSizerPathCanvas = new wxFlexGridSizer(1, 1, 0, 0);
+    FlexGridSizerPathCanvas->AddGrowableCol(0);
+    FlexGridSizerPathCanvas->AddGrowableRow(0);
+    PanelPathing->SetSizer(FlexGridSizerPathCanvas);
+    FlexGridSizerPathCanvas->Fit(PanelPathing);
+    FlexGridSizerPathCanvas->SetSizeHints(PanelPathing);
     PanelControl = new wxPanel(Notebook1, ID_PANEL_Control, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Control"));
     FlexGridSizerControl = new wxFlexGridSizer(0, 3, 0, 0);
     PanelControl->SetSizer(FlexGridSizerControl);
@@ -346,6 +348,19 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     //*)
 
     SetName("ID_PANEL_MOVINGHEAD");
+
+    m_mhPathInterface = new MovingHeadPathInterface();
+    //SetTextValue(p->TextCtrl_SketchDef, SketchEffectSketch::DefaultSketchString());
+    //m_mhPathInterface->SetSketchDef(SketchEffectSketch::DefaultSketchString());
+
+    // canvas
+    m_sketchCanvasPanel = new SketchCanvasPanel(m_mhPathInterface, PanelPathing, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
+    FlexGridSizerPathCanvas->Add(m_sketchCanvasPanel, 1, wxALL | wxEXPAND);
+    FlexGridSizerPathCanvas->Fit(PanelPathing);
+    FlexGridSizerPathCanvas->SetSizeHints(PanelPathing);
+    m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::DefineStartPoint);
+    Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(MovingHeadPanel::OnCharHook), (wxObject*) nullptr, this);
+
 
     Connect(ID_VALUECURVE_MHPan,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_MHTilt,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
@@ -692,4 +707,95 @@ void MovingHeadPanel::OnCheckBox_TiltPathClick(wxCommandEvent& event)
         CheckBox_TiltPosition->SetValue(false);
         CheckBox_TiltPath->SetValue(true);
     }
+}
+
+void MovingHeadPanel::OnCharHook(wxKeyEvent& event)
+{
+    if (m_sketchCanvasPanel != nullptr)
+        m_sketchCanvasPanel->OnSketchKeyDown(event);
+}
+
+void MovingHeadPathInterface::SetSketchDef(const std::string& sketchDef)
+{
+    if ( sketchDef != m_sketchDef) {
+        m_sketchDef = sketchDef;
+        m_sketch = SketchEffectSketch::SketchFromString(m_sketchDef);
+        //populatePathListBoxFromSketch();
+    }
+}
+
+SketchEffectSketch& MovingHeadPathInterface::GetSketch()
+{
+    return m_sketch;
+}
+
+int MovingHeadPathInterface::GetSelectedPathIndex()
+{
+    //if (m_pathsListBox == nullptr)
+        return selected_path;
+    //return m_pathsListBox->GetSelection();
+}
+
+void MovingHeadPathInterface::NotifySketchUpdated()
+{
+    m_sketchDef = m_sketch.toString();
+    if (m_sketchUpdateCB != nullptr)
+        m_sketchUpdateCB(m_sketchDef, m_bgImagePath, m_bitmapAlpha);
+}
+
+void MovingHeadPathInterface::NotifySketchPathsUpdated()
+{
+    //populatePathListBoxFromSketch();
+}
+
+void MovingHeadPathInterface::NotifyPathStateUpdated(SketchCanvasPathState state)
+{
+  /*  switch (state) {
+    case SketchCanvasPathState::Undefined:
+        m_startPathBtn->Enable();
+        m_endPathBtn->Disable();
+        m_closePathBtn->Disable();
+        m_continuePathBtn->Enable(canContinuePath());
+        m_clearSketchBtn->Enable();
+        break;
+    case SketchCanvasPathState::DefineStartPoint:
+        m_startPathBtn->Disable();
+        m_endPathBtn->Disable();
+        m_closePathBtn->Disable();
+        m_continuePathBtn->Disable();
+        m_clearSketchBtn->Disable();
+        break;
+    case SketchCanvasPathState::LineToNewPoint:
+    case SketchCanvasPathState::QuadraticCurveToNewPoint:
+    case SketchCanvasPathState::CubicCurveToNewPoint:
+        m_startPathBtn->Disable();
+        m_endPathBtn->Enable();
+        m_closePathBtn->Enable();
+        m_continuePathBtn->Disable();
+        m_clearSketchBtn->Disable();
+        break;
+    }*/
+}
+
+void MovingHeadPathInterface::SelectLastPath()
+{
+    selected_path = 0;
+/*    unsigned n;
+
+    if ((n = m_pathsListBox->GetCount()) != 0) {
+        m_pathsListBox->SetSelection(n - 1);
+        //m_continuePathBtn->Enable(canContinuePath());
+    }*/
+}
+
+bool MovingHeadPathInterface::canContinuePath() const
+{
+    int index = m_pathsListBox->GetSelection();
+    if (index < 0)
+        return false;
+
+    if (index >= m_sketch.pathCount())
+        return false;
+    auto paths(m_sketch.paths());
+    return !paths[index]->isClosed();
 }

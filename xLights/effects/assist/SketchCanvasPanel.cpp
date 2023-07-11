@@ -419,11 +419,13 @@ void SketchCanvasPanel::OnSketchMouseMove(wxMouseEvent& event)
             if (pathIndex >= 0) {
                 const SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
                 auto paths = sketch.paths();
-                auto segments(paths[pathIndex]->segments());
-                for (const auto& segment : segments) {
-                    if (segment->HitTest(pt)) {
-                        hovered = true;
-                        break;
+                if( paths.size() > 0 ) {
+                    auto segments(paths[pathIndex]->segments());
+                    for (const auto& segment : segments) {
+                        if (segment->HitTest(pt)) {
+                            hovered = true;
+                            break;
+                        }
                     }
                 }
             }
