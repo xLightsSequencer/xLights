@@ -349,12 +349,10 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
 
     SetName("ID_PANEL_MOVINGHEAD");
 
-    m_mhPathInterface = new MovingHeadPathInterface();
-    //SetTextValue(p->TextCtrl_SketchDef, SketchEffectSketch::DefaultSketchString());
-    //m_mhPathInterface->SetSketchDef(SketchEffectSketch::DefaultSketchString());
+    //m_mhPathInterface = new MovingHeadPathInterface();
 
     // canvas
-    m_sketchCanvasPanel = new SketchCanvasPanel(m_mhPathInterface, PanelPathing, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
+    m_sketchCanvasPanel = new SketchCanvasPanel(this, PanelPathing, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
     FlexGridSizerPathCanvas->Add(m_sketchCanvasPanel, 1, wxALL | wxEXPAND);
     FlexGridSizerPathCanvas->Fit(PanelPathing);
     FlexGridSizerPathCanvas->SetSizeHints(PanelPathing);
@@ -715,7 +713,7 @@ void MovingHeadPanel::OnCharHook(wxKeyEvent& event)
         m_sketchCanvasPanel->OnSketchKeyDown(event);
 }
 
-void MovingHeadPathInterface::SetSketchDef(const std::string& sketchDef)
+void MovingHeadPanel::SetSketchDef(const std::string& sketchDef)
 {
     if ( sketchDef != m_sketchDef) {
         m_sketchDef = sketchDef;
@@ -724,31 +722,31 @@ void MovingHeadPathInterface::SetSketchDef(const std::string& sketchDef)
     }
 }
 
-SketchEffectSketch& MovingHeadPathInterface::GetSketch()
+SketchEffectSketch& MovingHeadPanel::GetSketch()
 {
     return m_sketch;
 }
 
-int MovingHeadPathInterface::GetSelectedPathIndex()
+int MovingHeadPanel::GetSelectedPathIndex()
 {
     //if (m_pathsListBox == nullptr)
         return selected_path;
     //return m_pathsListBox->GetSelection();
 }
 
-void MovingHeadPathInterface::NotifySketchUpdated()
+void MovingHeadPanel::NotifySketchUpdated()
 {
     m_sketchDef = m_sketch.toString();
     if (m_sketchUpdateCB != nullptr)
         m_sketchUpdateCB(m_sketchDef, m_bgImagePath, m_bitmapAlpha);
 }
 
-void MovingHeadPathInterface::NotifySketchPathsUpdated()
+void MovingHeadPanel::NotifySketchPathsUpdated()
 {
     //populatePathListBoxFromSketch();
 }
 
-void MovingHeadPathInterface::NotifyPathStateUpdated(SketchCanvasPathState state)
+void MovingHeadPanel::NotifyPathStateUpdated(SketchCanvasPathState state)
 {
   /*  switch (state) {
     case SketchCanvasPathState::Undefined:
@@ -777,7 +775,7 @@ void MovingHeadPathInterface::NotifyPathStateUpdated(SketchCanvasPathState state
     }*/
 }
 
-void MovingHeadPathInterface::SelectLastPath()
+void MovingHeadPanel::SelectLastPath()
 {
     selected_path = 0;
 /*    unsigned n;
@@ -788,7 +786,7 @@ void MovingHeadPathInterface::SelectLastPath()
     }*/
 }
 
-bool MovingHeadPathInterface::canContinuePath() const
+bool MovingHeadPanel::canContinuePath() const
 {
     int index = m_pathsListBox->GetSelection();
     if (index < 0)

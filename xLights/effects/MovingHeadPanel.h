@@ -20,37 +20,7 @@
 
 class Model;
 
-class MovingHeadPathInterface: public ISketchCanvasParent
-{
-public:
-    typedef std::function<void(const std::string&, const std::string&, unsigned char)> SketchUpdateCallback;
-
-    // ISketchCanvasParent impl
-    SketchEffectSketch& GetSketch() override;
-    int GetSelectedPathIndex() override;
-    void NotifySketchUpdated() override;
-    void NotifySketchPathsUpdated() override;
-    void NotifyPathStateUpdated(SketchCanvasPathState state) override;
-    void SelectLastPath() override;
-    void SetSketchDef(const std::string& sketchDef);
-
-private:
-    bool canContinuePath() const;
-
-    std::string m_sketchDef;
-    SketchEffectSketch m_sketch;
-    SketchUpdateCallback m_sketchUpdateCB;
-    wxListBox* m_pathsListBox = nullptr;
-    int selected_path = -1;
-
-    wxString m_bgImagePath;
-    wxImage m_bgImage;
-    unsigned char m_bitmapAlpha = 0x30;
-    int m_pathIndexToDelete = -1;
-
-};
-
-class MovingHeadPanel: public xlEffectPanel
+class MovingHeadPanel: public xlEffectPanel, public ISketchCanvasParent
 {
 public:
     
@@ -215,11 +185,38 @@ private:
     void OnTextCtrlUpdated(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);
 
-    // Pathing support
+
+//***************************************************
+// Pathing support
+//***************************************************
+
+public:
+    typedef std::function<void(const std::string&, const std::string&, unsigned char)> SketchUpdateCallback;
+
+    // ISketchCanvasParent impl
+    SketchEffectSketch& GetSketch() override;
+    int GetSelectedPathIndex() override;
+    void NotifySketchUpdated() override;
+    void NotifySketchPathsUpdated() override;
+    void NotifyPathStateUpdated(SketchCanvasPathState state) override;
+    void SelectLastPath() override;
+    void SetSketchDef(const std::string& sketchDef);
+
+private:
+    bool canContinuePath() const;
     void OnCharHook(wxKeyEvent& event);
 
     SketchCanvasPanel* m_sketchCanvasPanel = nullptr;
-    MovingHeadPathInterface* m_mhPathInterface = nullptr;
+    std::string m_sketchDef;
+    SketchEffectSketch m_sketch;
+    SketchUpdateCallback m_sketchUpdateCB;
+    wxListBox* m_pathsListBox = nullptr;
+    int selected_path = -1;
+
+    wxString m_bgImagePath;
+    wxImage m_bgImage;
+    unsigned char m_bitmapAlpha = 0x30;
+    int m_pathIndexToDelete = -1;
 
 };
 
