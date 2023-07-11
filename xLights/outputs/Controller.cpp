@@ -517,9 +517,15 @@ std::string Controller::GetCapJSONData() const
             ",\"supportsvirtualmatrix\":" + toStr(caps->SupportsVirtualMatrix()) +
             ",\"smartremotecount\":" + std::to_string(caps->GetSmartRemoteCount()) +
             (caps->GetSmartRemoteCount() ?
-            ",\"smartremotetypes\":[\"" + Join(caps->GetSmartRemoteTypes(), std::string("\",\"")) + "\"]}" :
-             ",\"smartremotetypes\":[]}");
-    
+            ",\"smartremotetypes\":[\"" + Join(caps->GetSmartRemoteTypes(), std::string("\",\"")) + "\"]" :
+             ",\"smartremotetypes\":[]") +
+            (!caps->GetPixelProtocols().empty()?
+            ",\"pixelprotocols\":[\"" + Join(caps->GetPixelProtocols(), std::string("\",\"")) + "\"]" :
+             ",\"pixelprotocols\":[]") +
+            (!caps->GetSerialProtocols().empty()?
+            ",\"serialprotocols\":[\"" + Join(caps->GetSerialProtocols(), std::string("\",\"")) + "\"]}" :
+             ",\"serialprotocols\":[]}");
+
     return json;
 }
 #pragma endregion
