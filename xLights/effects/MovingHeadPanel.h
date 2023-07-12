@@ -41,6 +41,8 @@ public:
     BulkEditValueCurveButton* ValueCurve_MHTiltOffset;
     wxButton* Button_All;
     wxButton* Button_Evens;
+    wxButton* Button_MHPathClear;
+    wxButton* Button_MHPathContinue;
     wxButton* Button_None;
     wxButton* Button_Odds;
     wxCheckBox* CheckBox_MH1;
@@ -125,6 +127,8 @@ protected:
     static const long ID_CHECKBOX_TiltPosition;
     static const long ID_CHECKBOX_TiltPath;
     static const long ID_PANEL_Position;
+    static const long ID_BUTTON_MHPathContinue;
+    static const long ID_BUTTON_MHPathClear;
     static const long ID_PANEL_Pathing;
     static const long ID_PANEL_Control;
     static const long ID_NOTEBOOK1;
@@ -171,6 +175,8 @@ private:
     void OnCheckBox_PanPathClick(wxCommandEvent& event);
     void OnCheckBox_TiltPositionClick(wxCommandEvent& event);
     void OnCheckBox_TiltPathClick(wxCommandEvent& event);
+    void OnButton_MHPathContinueClick(wxCommandEvent& event);
+    void OnButton_MHPathClearClick(wxCommandEvent& event);
     //*)
     
     DECLARE_EVENT_TABLE()

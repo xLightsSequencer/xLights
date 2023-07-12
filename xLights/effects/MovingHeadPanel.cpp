@@ -56,6 +56,8 @@ const long MovingHeadPanel::ID_CHECKBOX_PanPath = wxNewId();
 const long MovingHeadPanel::ID_CHECKBOX_TiltPosition = wxNewId();
 const long MovingHeadPanel::ID_CHECKBOX_TiltPath = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Position = wxNewId();
+const long MovingHeadPanel::ID_BUTTON_MHPathContinue = wxNewId();
+const long MovingHeadPanel::ID_BUTTON_MHPathClear = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Pathing = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Control = wxNewId();
 const long MovingHeadPanel::ID_NOTEBOOK1 = wxNewId();
@@ -105,11 +107,13 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     wxFlexGridSizer* FlexGridSizerFixturesLabel;
     wxFlexGridSizer* FlexGridSizerFixturesSelection;
     wxFlexGridSizer* FlexGridSizerPathCanvas;
+    wxFlexGridSizer* FlexGridSizerPathing;
     wxFlexGridSizer* FlexGridSizerPosition;
     wxFlexGridSizer* FlexGridSizerPositionPan;
     wxFlexGridSizer* FlexGridSizerPositionTilt;
     wxFlexGridSizer* FlexGridSizer_Groupings;
     wxFlexGridSizer* FlexGridSizer_PanOffset;
+    wxFlexGridSizer* FlexGridSizer_PathButtons;
     wxFlexGridSizer* FlexGridSizer_Positions;
     wxFlexGridSizer* FlexGridSizer_TiltOffset;
     wxStaticBoxSizer* StaticBoxSizer_PanMode;
@@ -251,12 +255,21 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerPosition->Fit(PanelPosition);
     FlexGridSizerPosition->SetSizeHints(PanelPosition);
     PanelPathing = new wxPanel(Notebook1, ID_PANEL_Pathing, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Pathing"));
+    FlexGridSizerPathing = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizerPathing->AddGrowableCol(0);
+    FlexGridSizerPathing->AddGrowableRow(0);
     FlexGridSizerPathCanvas = new wxFlexGridSizer(1, 1, 0, 0);
-    FlexGridSizerPathCanvas->AddGrowableCol(0);
-    FlexGridSizerPathCanvas->AddGrowableRow(0);
-    PanelPathing->SetSizer(FlexGridSizerPathCanvas);
-    FlexGridSizerPathCanvas->Fit(PanelPathing);
-    FlexGridSizerPathCanvas->SetSizeHints(PanelPathing);
+    FlexGridSizerPathing->Add(FlexGridSizerPathCanvas, 1, wxALL|wxEXPAND, 0);
+    FlexGridSizer_PathButtons = new wxFlexGridSizer(0, 3, 0, 0);
+    Button_MHPathContinue = new wxButton(PanelPathing, ID_BUTTON_MHPathContinue, _("Continue"), wxDefaultPosition, wxSize(75,23), 0, wxDefaultValidator, _T("ID_BUTTON_MHPathContinue"));
+    FlexGridSizer_PathButtons->Add(Button_MHPathContinue, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer_PathButtons->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_MHPathClear = new wxButton(PanelPathing, ID_BUTTON_MHPathClear, _("Clear"), wxDefaultPosition, wxSize(75,23), 0, wxDefaultValidator, _T("ID_BUTTON_MHPathClear"));
+    FlexGridSizer_PathButtons->Add(Button_MHPathClear, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerPathing->Add(FlexGridSizer_PathButtons, 1, wxALL|wxEXPAND, 0);
+    PanelPathing->SetSizer(FlexGridSizerPathing);
+    FlexGridSizerPathing->Fit(PanelPathing);
+    FlexGridSizerPathing->SetSizeHints(PanelPathing);
     PanelControl = new wxPanel(Notebook1, ID_PANEL_Control, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Control"));
     FlexGridSizerControl = new wxFlexGridSizer(0, 3, 0, 0);
     PanelControl->SetSizer(FlexGridSizerControl);
@@ -344,6 +357,8 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_CHECKBOX_PanPath,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_PanPathClick);
     Connect(ID_CHECKBOX_TiltPosition,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_TiltPositionClick);
     Connect(ID_CHECKBOX_TiltPath,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_TiltPathClick);
+    Connect(ID_BUTTON_MHPathContinue,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_MHPathContinueClick);
+    Connect(ID_BUTTON_MHPathClear,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_MHPathClearClick);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&MovingHeadPanel::OnNotebook1PageChanged);
     //*)
 
@@ -718,7 +733,6 @@ void MovingHeadPanel::SetSketchDef(const std::string& sketchDef)
     if ( sketchDef != m_sketchDef) {
         m_sketchDef = sketchDef;
         m_sketch = SketchEffectSketch::SketchFromString(m_sketchDef);
-        //populatePathListBoxFromSketch();
     }
 }
 
@@ -729,9 +743,7 @@ SketchEffectSketch& MovingHeadPanel::GetSketch()
 
 int MovingHeadPanel::GetSelectedPathIndex()
 {
-    //if (m_pathsListBox == nullptr)
-        return selected_path;
-    //return m_pathsListBox->GetSelection();
+    return selected_path;
 }
 
 void MovingHeadPanel::NotifySketchUpdated()
@@ -743,57 +755,27 @@ void MovingHeadPanel::NotifySketchUpdated()
 
 void MovingHeadPanel::NotifySketchPathsUpdated()
 {
-    //populatePathListBoxFromSketch();
 }
 
 void MovingHeadPanel::NotifyPathStateUpdated(SketchCanvasPathState state)
 {
-  /*  switch (state) {
-    case SketchCanvasPathState::Undefined:
-        m_startPathBtn->Enable();
-        m_endPathBtn->Disable();
-        m_closePathBtn->Disable();
-        m_continuePathBtn->Enable(canContinuePath());
-        m_clearSketchBtn->Enable();
-        break;
-    case SketchCanvasPathState::DefineStartPoint:
-        m_startPathBtn->Disable();
-        m_endPathBtn->Disable();
-        m_closePathBtn->Disable();
-        m_continuePathBtn->Disable();
-        m_clearSketchBtn->Disable();
-        break;
-    case SketchCanvasPathState::LineToNewPoint:
-    case SketchCanvasPathState::QuadraticCurveToNewPoint:
-    case SketchCanvasPathState::CubicCurveToNewPoint:
-        m_startPathBtn->Disable();
-        m_endPathBtn->Enable();
-        m_closePathBtn->Enable();
-        m_continuePathBtn->Disable();
-        m_clearSketchBtn->Disable();
-        break;
-    }*/
 }
 
 void MovingHeadPanel::SelectLastPath()
 {
     selected_path = 0;
-/*    unsigned n;
-
-    if ((n = m_pathsListBox->GetCount()) != 0) {
-        m_pathsListBox->SetSelection(n - 1);
-        //m_continuePathBtn->Enable(canContinuePath());
-    }*/
 }
 
 bool MovingHeadPanel::canContinuePath() const
 {
-    int index = m_pathsListBox->GetSelection();
-    if (index < 0)
-        return false;
+    return true;
+}
 
-    if (index >= m_sketch.pathCount())
-        return false;
-    auto paths(m_sketch.paths());
-    return !paths[index]->isClosed();
+void MovingHeadPanel::OnButton_MHPathContinueClick(wxCommandEvent& event)
+{
+    m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::LineToNewPoint);
+}
+
+void MovingHeadPanel::OnButton_MHPathClearClick(wxCommandEvent& event)
+{
 }
