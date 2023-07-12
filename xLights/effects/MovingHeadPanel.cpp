@@ -259,6 +259,8 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerPathing->AddGrowableCol(0);
     FlexGridSizerPathing->AddGrowableRow(0);
     FlexGridSizerPathCanvas = new wxFlexGridSizer(1, 1, 0, 0);
+    FlexGridSizerPathCanvas->AddGrowableCol(0);
+    FlexGridSizerPathCanvas->AddGrowableRow(0);
     FlexGridSizerPathing->Add(FlexGridSizerPathCanvas, 1, wxALL|wxEXPAND, 0);
     FlexGridSizer_PathButtons = new wxFlexGridSizer(0, 3, 0, 0);
     Button_MHPathContinue = new wxButton(PanelPathing, ID_BUTTON_MHPathContinue, _("Continue"), wxDefaultPosition, wxSize(75,23), 0, wxDefaultValidator, _T("ID_BUTTON_MHPathContinue"));
@@ -778,4 +780,6 @@ void MovingHeadPanel::OnButton_MHPathContinueClick(wxCommandEvent& event)
 
 void MovingHeadPanel::OnButton_MHPathClearClick(wxCommandEvent& event)
 {
+    m_sketchCanvasPanel->ResetHandlesState(SketchCanvasPathState::DefineStartPoint);
+    NotifySketchUpdated();
 }

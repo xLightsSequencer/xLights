@@ -463,6 +463,8 @@
 									<object class="wxFlexGridSizer" variable="FlexGridSizerPathCanvas" member="no">
 										<cols>1</cols>
 										<rows>1</rows>
+										<growablecols>0</growablecols>
+										<growablerows>0</growablerows>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<option>1</option>
