@@ -471,7 +471,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer_PathButtons" member="no">
-										<cols>3</cols>
+										<cols>4</cols>
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_MHPathContinue" variable="Button_MHPathContinue" member="yes">
 												<label>Continue</label>
@@ -492,6 +492,15 @@
 												<label>Clear</label>
 												<size>75,23</size>
 												<handler function="OnButton_MHPathClearClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_MHPathDef" variable="TextCtrl_MHPathDef" member="yes">
+												<size>20,-1</size>
+												<hidden>1</hidden>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>

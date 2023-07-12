@@ -58,6 +58,7 @@ const long MovingHeadPanel::ID_CHECKBOX_TiltPath = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Position = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_MHPathContinue = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_MHPathClear = wxNewId();
+const long MovingHeadPanel::ID_TEXTCTRL_MHPathDef = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Pathing = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Control = wxNewId();
 const long MovingHeadPanel::ID_NOTEBOOK1 = wxNewId();
@@ -262,12 +263,15 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerPathCanvas->AddGrowableCol(0);
     FlexGridSizerPathCanvas->AddGrowableRow(0);
     FlexGridSizerPathing->Add(FlexGridSizerPathCanvas, 1, wxALL|wxEXPAND, 0);
-    FlexGridSizer_PathButtons = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer_PathButtons = new wxFlexGridSizer(0, 4, 0, 0);
     Button_MHPathContinue = new wxButton(PanelPathing, ID_BUTTON_MHPathContinue, _("Continue"), wxDefaultPosition, wxSize(75,23), 0, wxDefaultValidator, _T("ID_BUTTON_MHPathContinue"));
     FlexGridSizer_PathButtons->Add(Button_MHPathContinue, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer_PathButtons->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_MHPathClear = new wxButton(PanelPathing, ID_BUTTON_MHPathClear, _("Clear"), wxDefaultPosition, wxSize(75,23), 0, wxDefaultValidator, _T("ID_BUTTON_MHPathClear"));
     FlexGridSizer_PathButtons->Add(Button_MHPathClear, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_MHPathDef = new wxTextCtrl(PanelPathing, ID_TEXTCTRL_MHPathDef, wxEmptyString, wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("ID_TEXTCTRL_MHPathDef"));
+    TextCtrl_MHPathDef->Hide();
+    FlexGridSizer_PathButtons->Add(TextCtrl_MHPathDef, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerPathing->Add(FlexGridSizer_PathButtons, 1, wxALL|wxEXPAND, 0);
     PanelPathing->SetSizer(FlexGridSizerPathing);
     FlexGridSizerPathing->Fit(PanelPathing);
@@ -440,6 +444,17 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
         event_id == IDD_TEXTCTRL_MHTiltOffset ||
         event_id == IDD_TEXTCTRL_MHGroupings) {
         UpdateMHSettings();
+    } else if (event_id == ID_TEXTCTRL_MHPathDef) {
+        if( m_sketchDef != TextCtrl_MHPathDef->GetValue() ) {
+            m_sketchDef = TextCtrl_MHPathDef->GetValue();
+            m_sketch = SketchEffectSketch::SketchFromString(m_sketchDef);
+            if( m_sketchDef == xlEMPTY_STRING ) {
+                m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::DefineStartPoint);
+            } else {
+                selected_path = 0;
+                m_sketchCanvasPanel->UpdateHandlesForPath(0);
+            }
+        }
     }
 }
 
@@ -751,6 +766,7 @@ int MovingHeadPanel::GetSelectedPathIndex()
 void MovingHeadPanel::NotifySketchUpdated()
 {
     m_sketchDef = m_sketch.toString();
+    TextCtrl_MHPathDef->SetValue(m_sketchDef);
     if (m_sketchUpdateCB != nullptr)
         m_sketchUpdateCB(m_sketchDef, m_bgImagePath, m_bitmapAlpha);
 }

@@ -84,6 +84,7 @@ public:
     wxTextCtrl* TextCtrl_MH6_Settings;
     wxTextCtrl* TextCtrl_MH7_Settings;
     wxTextCtrl* TextCtrl_MH8_Settings;
+    wxTextCtrl* TextCtrl_MHPathDef;
     //*)
     
 protected:
@@ -129,6 +130,7 @@ protected:
     static const long ID_PANEL_Position;
     static const long ID_BUTTON_MHPathContinue;
     static const long ID_BUTTON_MHPathClear;
+    static const long ID_TEXTCTRL_MHPathDef;
     static const long ID_PANEL_Pathing;
     static const long ID_PANEL_Control;
     static const long ID_NOTEBOOK1;
