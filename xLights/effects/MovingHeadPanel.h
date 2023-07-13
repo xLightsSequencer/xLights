@@ -63,9 +63,9 @@ public:
     wxPanel* PanelPathing;
     wxPanel* PanelPosition;
     wxStaticText* Label_Pan;
+    wxStaticText* Label_PanOffset;
     wxStaticText* Label_Tilt;
     wxStaticText* Label_TiltOffset;
-    wxStaticText* StaticText1;
     wxStaticText* StaticTextFixtures;
     wxStaticText* StaticText_Groupings;
     wxStaticText* StaticText_MH1;
@@ -111,7 +111,7 @@ protected:
     static const long ID_SLIDER_MHTilt;
     static const long ID_VALUECURVE_MHTilt;
     static const long IDD_TEXTCTRL_MHTilt;
-    static const long ID_STATICTEXT1;
+    static const long ID_STATICTEXT_PanOffset;
     static const long ID_SLIDER_MHPanOffset;
     static const long ID_VALUECURVE_MHPanOffset;
     static const long IDD_TEXTCTRL_MHPanOffset;
@@ -192,6 +192,7 @@ private:
     void OnSliderUpdated(wxCommandEvent& event);
     void OnTextCtrlUpdated(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);
+    void UpdateLabels( bool pan_position, bool tilt_position );
 
 
 //***************************************************

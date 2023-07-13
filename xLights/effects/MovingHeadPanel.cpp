@@ -39,7 +39,7 @@ const long MovingHeadPanel::ID_STATICTEXT_Tilt = wxNewId();
 const long MovingHeadPanel::ID_SLIDER_MHTilt = wxNewId();
 const long MovingHeadPanel::ID_VALUECURVE_MHTilt = wxNewId();
 const long MovingHeadPanel::IDD_TEXTCTRL_MHTilt = wxNewId();
-const long MovingHeadPanel::ID_STATICTEXT1 = wxNewId();
+const long MovingHeadPanel::ID_STATICTEXT_PanOffset = wxNewId();
 const long MovingHeadPanel::ID_SLIDER_MHPanOffset = wxNewId();
 const long MovingHeadPanel::ID_VALUECURVE_MHPanOffset = wxNewId();
 const long MovingHeadPanel::IDD_TEXTCTRL_MHPanOffset = wxNewId();
@@ -203,8 +203,8 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerPosition->Add(FlexGridSizerPositionTilt, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizer_PanOffset = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizer_PanOffset->AddGrowableCol(1);
-    StaticText1 = new wxStaticText(PanelPosition, ID_STATICTEXT1, _("Pan Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer_PanOffset->Add(StaticText1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+    Label_PanOffset = new wxStaticText(PanelPosition, ID_STATICTEXT_PanOffset, _("Fan Pan:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PanOffset"));
+    FlexGridSizer_PanOffset->Add(Label_PanOffset, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_MHPanOffset = new BulkEditSliderF1(PanelPosition, ID_SLIDER_MHPanOffset, 0, -1800, 1800, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MHPanOffset"));
     FlexGridSizer_PanOffset->Add(Slider_MHPanOffset, 1, wxALL|wxEXPAND, 2);
     ValueCurve_MHPanOffset = new BulkEditValueCurveButton(PanelPosition, ID_VALUECURVE_MHPanOffset, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_VALUECURVE_MHPanOffset"));
@@ -214,7 +214,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerPosition->Add(FlexGridSizer_PanOffset, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizer_TiltOffset = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizer_TiltOffset->AddGrowableCol(1);
-    Label_TiltOffset = new wxStaticText(PanelPosition, ID_STATICTEXT_TiltOffset, _("Tilt Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_TiltOffset"));
+    Label_TiltOffset = new wxStaticText(PanelPosition, ID_STATICTEXT_TiltOffset, _("Tilt Fan:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_TiltOffset"));
     FlexGridSizer_TiltOffset->Add(Label_TiltOffset, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_MHTiltOffset = new BulkEditSliderF1(PanelPosition, ID_SLIDER_MHTiltOffset, 0, -1800, 1800, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MHTiltOffset"));
     FlexGridSizer_TiltOffset->Add(Slider_MHTiltOffset, 1, wxALL|wxEXPAND, 2);
@@ -709,40 +709,54 @@ std::list<Model*> MovingHeadPanel::GetActiveModels()
 
 void MovingHeadPanel::OnCheckBox_PanPositionClick(wxCommandEvent& event)
 {
-    if( event.GetInt() ) {
-        CheckBox_PanPosition->SetValue(true);
-        CheckBox_PanPath->SetValue(false);
-    }
+    CheckBox_PanPosition->SetValue(event.GetInt());
+    CheckBox_PanPath->SetValue(!event.GetInt());
+    UpdateLabels( event.GetInt(), CheckBox_TiltPosition->IsChecked() );
 }
 
 void MovingHeadPanel::OnCheckBox_PanPathClick(wxCommandEvent& event)
 {
-    if( event.GetInt() ) {
-        CheckBox_PanPosition->SetValue(false);
-        CheckBox_PanPath->SetValue(true);
-    }
+    CheckBox_PanPosition->SetValue(!event.GetInt());
+    CheckBox_PanPath->SetValue(event.GetInt());
+    UpdateLabels( !event.GetInt(), CheckBox_TiltPosition->IsChecked() );
 }
 
 void MovingHeadPanel::OnCheckBox_TiltPositionClick(wxCommandEvent& event)
 {
-    if( event.GetInt() ) {
-        CheckBox_TiltPosition->SetValue(true);
-        CheckBox_TiltPath->SetValue(false);
-    }
+    CheckBox_TiltPosition->SetValue(event.GetInt());
+    CheckBox_TiltPath->SetValue(!event.GetInt());
+    UpdateLabels( CheckBox_PanPosition->IsChecked(), event.GetInt() );
 }
 
 void MovingHeadPanel::OnCheckBox_TiltPathClick(wxCommandEvent& event)
 {
-    if( event.GetInt() ) {
-        CheckBox_TiltPosition->SetValue(false);
-        CheckBox_TiltPath->SetValue(true);
-    }
+    CheckBox_TiltPosition->SetValue(!event.GetInt());
+    CheckBox_TiltPath->SetValue(event.GetInt());
+    UpdateLabels( CheckBox_PanPosition->IsChecked(), !event.GetInt() );
 }
 
 void MovingHeadPanel::OnCharHook(wxKeyEvent& event)
 {
-    if (m_sketchCanvasPanel != nullptr)
-        m_sketchCanvasPanel->OnSketchKeyDown(event);
+    if( Notebook1->GetPageText(Notebook1->GetSelection()) == "Pathing" ) {
+        if (m_sketchCanvasPanel != nullptr)
+            m_sketchCanvasPanel->OnSketchKeyDown(event);
+    } else {
+        event.Skip();
+    }
+}
+
+void MovingHeadPanel::UpdateLabels( bool pan_position, bool tilt_position )
+{
+    if( pan_position ) {
+        Label_PanOffset->SetLabel("Pan Fan:");
+    } else {
+        Label_PanOffset->SetLabel("Pan Scale:");
+    }
+    if( tilt_position ) {
+        Label_TiltOffset->SetLabel("Tilt Fan:");
+    } else {
+        Label_TiltOffset->SetLabel("Tilt Scale:");
+    }
 }
 
 void MovingHeadPanel::SetSketchDef(const std::string& sketchDef)
