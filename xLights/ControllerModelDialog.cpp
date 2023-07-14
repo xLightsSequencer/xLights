@@ -705,12 +705,14 @@ class SRCMObject : public BaseCMObject
     int _smartRemote = 0;
     std::string _name;
     UDControllerPort* _port = nullptr;
+    UDController* _controller = nullptr;
 
 public:
     SRCMObject(UDControllerPort* pp, int smartRemote, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, double scale, bool useNumbersAsName) :
         BaseCMObject(cud, caps, location, size, style, scale)
     {
         _port = pp;
+        _controller = cud;
 
         if (useNumbersAsName) {
             _name = wxString::Format("%d", smartRemote + 1);
@@ -718,6 +720,41 @@ public:
             _name = wxString::Format("%c", 64 + smartRemote);
         }
         _smartRemote = smartRemote;
+    }
+
+    void SetAllModelsToReceiver(UDControllerPort* port, int from, int to)
+    {
+        int por = ((_port->GetPort() - 1) / 4) * 4 + 1;
+        for (uint8_t p = por; p < por + 4; ++p) {
+            auto pp = _controller->GetControllerPixelPort(p);
+            if (pp != nullptr) {
+                if (pp->GetModelCount(to) == 0) {
+                    // the easy case ... no models on that sr
+                    for (auto& it : pp->GetModels()) {
+                        if (it->GetSmartRemote() == from)
+                            it->GetModel()->SetSmartRemote(to);
+                    }
+                } else {
+                    // the not so easy case ... find the last model on the port
+                    std::string lastName;
+                    for (auto& it : pp->GetModels()) {
+                        if (it->GetSmartRemote() == to)
+                        {
+                            lastName = it->GetName();
+                        }
+                    }
+                    for (auto& it : pp->GetModels()) {
+                        if (it->GetSmartRemote() == from) {
+                            if (lastName != "") {
+                                it->GetModel()->SetModelChain(lastName);
+                                lastName = "";
+                            }
+                            it->GetModel()->SetSmartRemote(to);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     UDControllerPort* GetPort() const
@@ -891,11 +928,36 @@ public:
 
     virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd) override
     {
+        if (_caps != nullptr &&_caps->SupportsSmartRemotes()) {
+                wxMenu* srMenu = new wxMenu();
+
+                int srcount = _caps->GetSmartRemoteCount();
+
+                auto mi = srMenu->AppendRadioItem(wxNewId(), "None");
+                if (_smartRemote == 0)
+                    mi->Check();
+                for (int i = 0; i < srcount; i++) {
+                    mi = srMenu->AppendRadioItem(wxNewId(), wxString(char(65 + i)));
+                    if (_smartRemote == i + 1)
+                        mi->Check();
+                }
+
+                srMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
+                mnu.AppendSubMenu(srMenu, "Smart Remote");
+            }
     }
 
     virtual bool HandlePopup(wxWindow* parent, wxCommandEvent& event, int id) override
     {
-        return false;
+            wxString label = ((wxMenu*)event.GetEventObject())->GetLabelText(id);
+            if (label == "None") {
+                SetAllModelsToReceiver(_port, _smartRemote, 0);
+                return true;
+            } else if (label >= "A" && label <= "Z") {
+                SetAllModelsToReceiver(_port, _smartRemote, int(label[0]) - 64);
+                return true;
+            }
+            return false;
     }
 };
 
