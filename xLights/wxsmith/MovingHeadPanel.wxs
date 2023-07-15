@@ -303,7 +303,7 @@
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_TiltOffset" variable="Label_TiltOffset" member="yes">
-												<label>Tilt Fan:</label>
+												<label>Fan Tilt:</label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
@@ -393,7 +393,7 @@
 											<object class="wxStaticBoxSizer" variable="StaticBoxSizer_PanMode" member="no">
 												<label>Pan Mode</label>
 												<object class="sizeritem">
-													<object class="wxCheckBox" name="ID_CHECKBOX_PanPosition" variable="CheckBox_PanPosition" member="yes">
+													<object class="wxCheckBox" name="ID_CHECKBOX_PanPosition" subclass="BulkEditCheckBox" variable="CheckBox_PanPosition" member="yes">
 														<label>Position</label>
 														<checked>1</checked>
 														<handler function="OnCheckBox_PanPositionClick" entry="EVT_CHECKBOX" />
@@ -403,7 +403,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxCheckBox" name="ID_CHECKBOX_PanPath" variable="CheckBox_PanPath" member="yes">
+													<object class="wxCheckBox" name="ID_CHECKBOX_PanPath" subclass="BulkEditCheckBox" variable="CheckBox_PanPath" member="yes">
 														<label>Path</label>
 														<size>40,13</size>
 														<handler function="OnCheckBox_PanPathClick" entry="EVT_CHECKBOX" />
@@ -421,7 +421,7 @@
 											<object class="wxStaticBoxSizer" variable="StaticBoxSizer_TiltMode" member="no">
 												<label>Tilt Mode</label>
 												<object class="sizeritem">
-													<object class="wxCheckBox" name="ID_CHECKBOX_TiltPosition" variable="CheckBox_TiltPosition" member="yes">
+													<object class="wxCheckBox" name="ID_CHECKBOX_TiltPosition" subclass="BulkEditCheckBox" variable="CheckBox_TiltPosition" member="yes">
 														<label>Position</label>
 														<checked>1</checked>
 														<handler function="OnCheckBox_TiltPositionClick" entry="EVT_CHECKBOX" />
@@ -431,7 +431,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxCheckBox" name="ID_CHECKBOX_TiltPath" variable="CheckBox_TiltPath" member="yes">
+													<object class="wxCheckBox" name="ID_CHECKBOX_TiltPath" subclass="BulkEditCheckBox" variable="CheckBox_TiltPath" member="yes">
 														<label>Path</label>
 														<handler function="OnCheckBox_TiltPathClick" entry="EVT_CHECKBOX" />
 													</object>
@@ -455,12 +455,12 @@
 					</object>
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL_Pathing" variable="PanelPathing" member="yes">
-							<object class="wxFlexGridSizer" variable="FlexGridSizerPathing" member="no">
+							<object class="wxFlexGridSizer" variable="FlexGridSizerPathing" member="yes">
 								<cols>1</cols>
 								<growablecols>0</growablecols>
 								<growablerows>0</growablerows>
 								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizerPathCanvas" member="no">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerPathCanvas" member="yes">
 										<cols>1</cols>
 										<rows>1</rows>
 										<growablecols>0</growablecols>
@@ -508,6 +508,94 @@
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_PathScale" variable="Label_PathScale" member="yes">
+												<label>Scale:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPathScale" subclass="BulkEditSliderF1" variable="Slider_MHPathScale" member="yes">
+												<min>-1000</min>
+												<max>1000</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MHPathScale" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHPathScale" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPathScale" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHPathScale" member="no">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PathControls" member="no">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_TimeOffset" variable="Label_TimeOffset" member="yes">
+												<label>Time Offset:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHTimeOffset" subclass="BulkEditSliderF1" variable="Slider_MHTimeOffset" member="yes">
+												<min>-1000</min>
+												<max>1000</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MHTimeOffset" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHTimeOffset" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHTimeOffset" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHTimeOffset" member="no">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 							</object>

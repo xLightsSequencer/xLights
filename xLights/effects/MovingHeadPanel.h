@@ -29,16 +29,24 @@ public:
     virtual void ValidateWindow() override;
 
     //(*Declarations(MovingHeadPanel)
+    BulkEditCheckBox* CheckBox_PanPath;
+    BulkEditCheckBox* CheckBox_PanPosition;
+    BulkEditCheckBox* CheckBox_TiltPath;
+    BulkEditCheckBox* CheckBox_TiltPosition;
     BulkEditSlider* Slider_MHGroupings;
     BulkEditSliderF1* Slider_MHPan;
     BulkEditSliderF1* Slider_MHPanOffset;
+    BulkEditSliderF1* Slider_MHPathScale;
     BulkEditSliderF1* Slider_MHTilt;
     BulkEditSliderF1* Slider_MHTiltOffset;
+    BulkEditSliderF1* Slider_MHTimeOffset;
     BulkEditValueCurveButton* ValueCurve_MHGroupings;
     BulkEditValueCurveButton* ValueCurve_MHPan;
     BulkEditValueCurveButton* ValueCurve_MHPanOffset;
+    BulkEditValueCurveButton* ValueCurve_MHPathScale;
     BulkEditValueCurveButton* ValueCurve_MHTilt;
     BulkEditValueCurveButton* ValueCurve_MHTiltOffset;
+    BulkEditValueCurveButton* ValueCurve_MHTimeOffset;
     wxButton* Button_All;
     wxButton* Button_Evens;
     wxButton* Button_MHPathClear;
@@ -53,10 +61,8 @@ public:
     wxCheckBox* CheckBox_MH6;
     wxCheckBox* CheckBox_MH7;
     wxCheckBox* CheckBox_MH8;
-    wxCheckBox* CheckBox_PanPath;
-    wxCheckBox* CheckBox_PanPosition;
-    wxCheckBox* CheckBox_TiltPath;
-    wxCheckBox* CheckBox_TiltPosition;
+    wxFlexGridSizer* FlexGridSizerPathCanvas;
+    wxFlexGridSizer* FlexGridSizerPathing;
     wxFlexGridSizer* FlexGridSizer_Main;
     wxNotebook* Notebook1;
     wxPanel* PanelControl;
@@ -64,8 +70,10 @@ public:
     wxPanel* PanelPosition;
     wxStaticText* Label_Pan;
     wxStaticText* Label_PanOffset;
+    wxStaticText* Label_PathScale;
     wxStaticText* Label_Tilt;
     wxStaticText* Label_TiltOffset;
+    wxStaticText* Label_TimeOffset;
     wxStaticText* StaticTextFixtures;
     wxStaticText* StaticText_Groupings;
     wxStaticText* StaticText_MH1;
@@ -131,6 +139,14 @@ protected:
     static const long ID_BUTTON_MHPathContinue;
     static const long ID_BUTTON_MHPathClear;
     static const long ID_TEXTCTRL_MHPathDef;
+    static const long ID_STATICTEXT_PathScale;
+    static const long ID_SLIDER_MHPathScale;
+    static const long ID_VALUECURVE_MHPathScale;
+    static const long IDD_TEXTCTRL_MHPathScale;
+    static const long ID_STATICTEXT_TimeOffset;
+    static const long ID_SLIDER_MHTimeOffset;
+    static const long ID_VALUECURVE_MHTimeOffset;
+    static const long IDD_TEXTCTRL_MHTimeOffset;
     static const long ID_PANEL_Pathing;
     static const long ID_PANEL_Control;
     static const long ID_NOTEBOOK1;
@@ -212,6 +228,7 @@ public:
 private:
     bool canContinuePath() const;
     void OnCharHook(wxKeyEvent& event);
+    void OnResize(wxSizeEvent& event);
 
     SketchCanvasPanel* m_sketchCanvasPanel = nullptr;
     std::string m_sketchDef;
