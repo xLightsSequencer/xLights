@@ -93,9 +93,10 @@ namespace
             wxPoint2DDouble pt(bezierPoint(t, startPt, ctrlPt, endPt));
             double length = pt.GetDistance(previousPt);
             if( length >= curLength ) {
-                double percent = length / curLength;
+                double percent = curLength / length;
                 x = previousPt.m_x + percent * (pt.m_x - previousPt.m_x);
                 y = previousPt.m_y + percent * (pt.m_y - previousPt.m_y);
+                return;
             } else {
                 curLength -= length;
             }
@@ -118,9 +119,10 @@ namespace
             wxPoint2DDouble pt(bezierPoint(t, startPt, ctrlPt1, ctrlPt2, endPt));
             double length = pt.GetDistance(previousPt);
             if( length >= curLength ) {
-                double percent = length / curLength;
+                double percent = curLength / length;
                 x = previousPt.m_x + percent * (pt.m_x - previousPt.m_x);
                 y = previousPt.m_y + percent * (pt.m_y - previousPt.m_y);
+                return;
             } else {
                 curLength -= length;
             }

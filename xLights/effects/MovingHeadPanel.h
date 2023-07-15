@@ -192,8 +192,6 @@ private:
     void OnSliderUpdated(wxCommandEvent& event);
     void OnTextCtrlUpdated(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);
-    void UpdateLabels( bool pan_position, bool tilt_position );
-
 
 //***************************************************
 // Pathing support

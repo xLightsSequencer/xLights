@@ -738,28 +738,24 @@ void MovingHeadPanel::OnCheckBox_PanPositionClick(wxCommandEvent& event)
 {
     CheckBox_PanPosition->SetValue(event.GetInt());
     CheckBox_PanPath->SetValue(!event.GetInt());
-    UpdateLabels( event.GetInt(), CheckBox_TiltPosition->IsChecked() );
 }
 
 void MovingHeadPanel::OnCheckBox_PanPathClick(wxCommandEvent& event)
 {
     CheckBox_PanPosition->SetValue(!event.GetInt());
     CheckBox_PanPath->SetValue(event.GetInt());
-    UpdateLabels( !event.GetInt(), CheckBox_TiltPosition->IsChecked() );
 }
 
 void MovingHeadPanel::OnCheckBox_TiltPositionClick(wxCommandEvent& event)
 {
     CheckBox_TiltPosition->SetValue(event.GetInt());
     CheckBox_TiltPath->SetValue(!event.GetInt());
-    UpdateLabels( CheckBox_PanPosition->IsChecked(), event.GetInt() );
 }
 
 void MovingHeadPanel::OnCheckBox_TiltPathClick(wxCommandEvent& event)
 {
     CheckBox_TiltPosition->SetValue(!event.GetInt());
     CheckBox_TiltPath->SetValue(event.GetInt());
-    UpdateLabels( CheckBox_PanPosition->IsChecked(), !event.GetInt() );
 }
 
 void MovingHeadPanel::OnCharHook(wxKeyEvent& event)
@@ -769,20 +765,6 @@ void MovingHeadPanel::OnCharHook(wxKeyEvent& event)
             m_sketchCanvasPanel->OnSketchKeyDown(event);
     } else {
         event.Skip();
-    }
-}
-
-void MovingHeadPanel::UpdateLabels( bool pan_position, bool tilt_position )
-{
-    if( pan_position ) {
-        Label_PanOffset->SetLabel("Pan Fan:");
-    } else {
-        Label_PanOffset->SetLabel("Pan Scale:");
-    }
-    if( tilt_position ) {
-        Label_TiltOffset->SetLabel("Tilt Fan:");
-    } else {
-        Label_TiltOffset->SetLabel("Tilt Scale:");
     }
 }
 
