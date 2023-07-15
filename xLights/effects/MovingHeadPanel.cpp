@@ -58,6 +58,7 @@ const long MovingHeadPanel::ID_CHECKBOX_TiltPath = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Position = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_MHPathContinue = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_MHPathClear = wxNewId();
+const long MovingHeadPanel::ID_BUTTON_MHPathClose = wxNewId();
 const long MovingHeadPanel::ID_TEXTCTRL_MHPathDef = wxNewId();
 const long MovingHeadPanel::ID_STATICTEXT_PathScale = wxNewId();
 const long MovingHeadPanel::ID_SLIDER_MHPathScale = wxNewId();
@@ -276,9 +277,10 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer_PathButtons = new wxFlexGridSizer(0, 4, 0, 0);
     Button_MHPathContinue = new wxButton(PanelPathing, ID_BUTTON_MHPathContinue, _("Continue"), wxDefaultPosition, wxSize(75,23), 0, wxDefaultValidator, _T("ID_BUTTON_MHPathContinue"));
     FlexGridSizer_PathButtons->Add(Button_MHPathContinue, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer_PathButtons->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_MHPathClear = new wxButton(PanelPathing, ID_BUTTON_MHPathClear, _("Clear"), wxDefaultPosition, wxSize(75,23), 0, wxDefaultValidator, _T("ID_BUTTON_MHPathClear"));
     FlexGridSizer_PathButtons->Add(Button_MHPathClear, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_MHPathClose = new wxButton(PanelPathing, ID_BUTTON_MHPathClose, _("Close"), wxDefaultPosition, wxSize(75,23), 0, wxDefaultValidator, _T("ID_BUTTON_MHPathClose"));
+    FlexGridSizer_PathButtons->Add(Button_MHPathClose, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_MHPathDef = new wxTextCtrl(PanelPathing, ID_TEXTCTRL_MHPathDef, wxEmptyString, wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("ID_TEXTCTRL_MHPathDef"));
     TextCtrl_MHPathDef->Hide();
     FlexGridSizer_PathButtons->Add(TextCtrl_MHPathDef, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -397,6 +399,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_CHECKBOX_TiltPath,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_TiltPathClick);
     Connect(ID_BUTTON_MHPathContinue,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_MHPathContinueClick);
     Connect(ID_BUTTON_MHPathClear,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_MHPathClearClick);
+    Connect(ID_BUTTON_MHPathClose,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_MHPathCloseClick);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&MovingHeadPanel::OnNotebook1PageChanged);
     //*)
 
@@ -453,7 +456,7 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
         m_sketchCanvasPanel->SetMinSize(wxSize(-1, -1));
         Layout();
     }
-    
+
 
     // set height to match width
     wxSize sz = m_sketchCanvasPanel->GetSize();
@@ -611,7 +614,7 @@ void MovingHeadPanel::AddSetting(const std::string& name, const std::string& ctr
             pretty_settings += value;
         }
     }
-    
+
     wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("IDD_TEXTCTRL_MH" + ctrl_name));
     if( textbox != nullptr && !textbox->IsEnabled() ) {
         BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MH" + ctrl_name));
@@ -875,5 +878,11 @@ void MovingHeadPanel::OnButton_MHPathContinueClick(wxCommandEvent& event)
 void MovingHeadPanel::OnButton_MHPathClearClick(wxCommandEvent& event)
 {
     m_sketchCanvasPanel->ResetHandlesState(SketchCanvasPathState::DefineStartPoint);
+    NotifySketchUpdated();
+}
+
+void MovingHeadPanel::OnButton_MHPathCloseClick(wxCommandEvent& event)
+{
+    m_sketchCanvasPanel->ClosePath();
     NotifySketchUpdated();
 }

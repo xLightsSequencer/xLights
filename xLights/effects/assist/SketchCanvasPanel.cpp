@@ -136,11 +136,17 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
                 path.AddLineToPoint(pt);
             else if (m_handles[i].handlePointType == QuadraticControlPt) {
                 auto endPt = NormalizedToUI(m_handles[i + 1].pt);
+                if( m_pathClosed && i == n - 1 ) {
+                    endPt = NormalizedToUI(m_handles[0].pt);
+                }
                 path.AddQuadCurveToPoint(pt.m_x, pt.m_y, endPt.m_x, endPt.m_y);
                 i += 1;
             } else if (m_handles[i].handlePointType == CubicControlPt1) {
                 auto cp2 = NormalizedToUI(m_handles[i + 1].pt);
                 auto endPt = NormalizedToUI(m_handles[i + 2].pt);
+                if( m_pathClosed && i == n - 2 ) {
+                    endPt = NormalizedToUI(m_handles[0].pt);
+                }
                 path.AddCurveToPoint(pt, cp2, endPt);
                 i += 2;
             }
@@ -253,10 +259,12 @@ void SketchCanvasPanel::OnSketchKeyDown(wxKeyEvent& event)
 
         Refresh();
     } else if (keycode == WXK_ESCAPE) {
+        m_ClosedState = m_pathState;
         UpdatePathState(Undefined);
         m_sketchCanvasParent->NotifySketchUpdated();
     } else if (keycode == WXK_SPACE) {
-        m_pathClosed = true;
+        m_ClosedState = m_pathState;
+        ClosePath();
         UpdatePathState(Undefined);
         m_sketchCanvasParent->NotifySketchUpdated();
     } else if (keycode == WXK_SHIFT) {
@@ -594,17 +602,18 @@ void SketchCanvasPanel::UpdateHandlesForPath(long pathIndex)
         switch (finalSegmentType) {
         case Line:
             m_handles.pop_back();
+            m_ClosedState = LineToNewPoint;
             break;
         case Quadratic:
             m_handles.pop_back();
-            m_handles.pop_back();
+            m_ClosedState = QuadraticCurveToNewPoint;
             break;
         case Cubic:
             m_handles.pop_back();
-            m_handles.pop_back();
-            m_handles.pop_back();
+            m_ClosedState = CubicCurveToNewPoint;
             break;
         case Unknown:
+            m_ClosedState = Undefined;
             break;
         }
         m_pathClosed = true;
@@ -740,17 +749,29 @@ std::shared_ptr<SketchEffectPath> SketchCanvasPanel::CreatePathFromHandles() con
             ++index;
             break;
         case QuadraticControlPt:
-            segment = std::make_shared<SketchQuadraticBezier>(m_handles[index].pt,
-                                                              m_handles[index + 1].pt,
-                                                              m_handles[index + 2].pt);
-            index += 2;
+            {
+                int final_handle = index + 2;
+                if( m_pathClosed && (index == m_handles.size() - 2) ) {
+                    final_handle = 0;
+                }
+                segment = std::make_shared<SketchQuadraticBezier>(m_handles[index].pt,
+                                                                  m_handles[index + 1].pt,
+                                                                  m_handles[final_handle].pt);
+                index += 2;
+            }
             break;
         case CubicControlPt1:
-            segment = std::make_shared<SketchCubicBezier>(m_handles[index].pt,
-                                                          m_handles[index + 1].pt,
-                                                          m_handles[index + 2].pt,
-                                                          m_handles[index + 3].pt);
-            index += 3;
+            {
+                int final_handle = index + 3;
+                if( m_pathClosed && (index == m_handles.size() - 3) ) {
+                    final_handle = 0;
+                }
+                segment = std::make_shared<SketchCubicBezier>(m_handles[index].pt,
+                                                              m_handles[index + 1].pt,
+                                                              m_handles[index + 2].pt,
+                                                              m_handles[final_handle].pt);
+                index += 3;
+            }
             break;
         default:
             break;
@@ -760,7 +781,7 @@ std::shared_ptr<SketchEffectPath> SketchCanvasPanel::CreatePathFromHandles() con
             path->appendSegment(segment);
     }
     if (m_pathClosed)
-        path->closePath();
+        path->closePath(false, m_ClosedState);
 
     return path;
 }
@@ -783,4 +804,39 @@ void SketchCanvasPanel::setBackgroundBitmap(std::unique_ptr<wxBitmap> bm)
 {
     m_bgBitmap = std::move(bm);
     Refresh();
+}
+
+void SketchCanvasPanel::ClosePath()
+{
+    if( !m_pathClosed ) {
+        m_pathClosed = true;
+        //m_ClosedState = m_pathState;
+        std::shared_ptr<SketchPathSegment> segment;
+        wxPoint2DDouble startPt = m_handles.back().pt;
+        wxPoint2DDouble endPt = m_handles.front().pt;
+
+        if (m_ClosedState == LineToNewPoint) {
+            segment = std::make_shared<SketchLine>(startPt, endPt);
+        } else if (m_ClosedState == QuadraticCurveToNewPoint) {
+            wxPoint2DDouble cp = 0.5 * startPt + 0.5 * endPt;
+            m_handles.push_back(HandlePoint(cp, QuadraticControlPt));
+            segment = std::make_shared<SketchQuadraticBezier>(startPt, cp, endPt);
+        } else if (m_ClosedState == CubicCurveToNewPoint) {
+            wxPoint2DDouble cp1 = 0.75 * startPt + 0.25 * endPt;
+            wxPoint2DDouble cp2 = 0.25 * startPt + 0.75 * endPt;
+            m_handles.push_back(HandlePoint(cp1, CubicControlPt1));
+            m_handles.push_back(HandlePoint(cp2, CubicControlPt2));
+            segment = std::make_shared<SketchCubicBezier>(startPt, cp1, cp2, endPt);
+        }
+
+        if (segment != nullptr) {
+            SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
+            auto pathIndex = m_sketchCanvasParent->GetSelectedPathIndex();
+            if (pathIndex < 0 || pathIndex >= sketch.pathCount())
+                return;
+            auto paths(sketch.paths());
+            paths[pathIndex]->appendSegment(segment);
+            paths[pathIndex]->closePath(true, m_ClosedState);
+        }
+    }
 }

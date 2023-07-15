@@ -421,13 +421,27 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
     gc->StrokePath(path);
 }
 
-void SketchEffectPath::closePath()
+void SketchEffectPath::closePath(bool updateSegments, SketchCanvasPathState state)
 {
     if (!m_isClosed && m_segments.size() >= 1) {
-        wxPoint2DDouble startPt( m_segments.back()->EndPoint() );
-        wxPoint2DDouble endPt( m_segments.front()->StartPoint() );
-        m_segments.push_back(std::make_shared <SketchLine>(startPt, endPt));
+        if( updateSegments ) {
+            wxPoint2DDouble startPt( m_segments.back()->EndPoint() );
+            wxPoint2DDouble endPt( m_segments.front()->StartPoint() );
+
+            if( state == LineToNewPoint ) {
+                m_segments.push_back(std::make_shared <SketchLine>(startPt, endPt));
+            } else if( state == QuadraticCurveToNewPoint ) {
+                wxPoint2DDouble cp = 0.5 * startPt + 0.5 * endPt;
+                m_segments.push_back(std::make_shared <SketchQuadraticBezier>(startPt, cp, endPt));
+            } else if( state == CubicCurveToNewPoint ) {
+                wxPoint2DDouble cp1 = 0.75 * startPt + 0.25 * endPt;
+                wxPoint2DDouble cp2 = 0.25 * startPt + 0.75 * endPt;
+                m_segments.push_back(std::make_shared <SketchCubicBezier>(startPt, cp1, cp2, endPt));
+            }
+        }
+
         m_isClosed = true;
+        m_closedState = (int)state;
     }
 }
 
@@ -526,7 +540,12 @@ SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketc
                         prevPt = toPt;
                     }
                 } else if (pathComponents_str.at(0) == 'c') {
-                    path->closePath();
+                    if( pathComponents_str.size() == 2) {
+                        int type = wxAtoi(pathComponents_str.at(1));
+                        path->closePath(true, SketchCanvasPathState(type));
+                    } else {
+                        path->closePath(false, LineToNewPoint);
+                    }
                 }
             }
         } catch (...) {
@@ -577,7 +596,7 @@ std::string SketchEffectSketch::toString() const
             }
         }
         if (path->isClosed())
-            stream << 'c';
+            stream << 'c' << path->GetClosedState();
         if (i != m_paths.size() - 1)
             stream << '|';
     }

@@ -50,6 +50,7 @@ public:
     wxButton* Button_All;
     wxButton* Button_Evens;
     wxButton* Button_MHPathClear;
+    wxButton* Button_MHPathClose;
     wxButton* Button_MHPathContinue;
     wxButton* Button_None;
     wxButton* Button_Odds;
@@ -138,6 +139,7 @@ protected:
     static const long ID_PANEL_Position;
     static const long ID_BUTTON_MHPathContinue;
     static const long ID_BUTTON_MHPathClear;
+    static const long ID_BUTTON_MHPathClose;
     static const long ID_TEXTCTRL_MHPathDef;
     static const long ID_STATICTEXT_PathScale;
     static const long ID_SLIDER_MHPathScale;
@@ -195,6 +197,7 @@ private:
     void OnCheckBox_TiltPathClick(wxCommandEvent& event);
     void OnButton_MHPathContinueClick(wxCommandEvent& event);
     void OnButton_MHPathClearClick(wxCommandEvent& event);
+    void OnButton_MHPathCloseClick(wxCommandEvent& event);
     //*)
     
     DECLARE_EVENT_TABLE()

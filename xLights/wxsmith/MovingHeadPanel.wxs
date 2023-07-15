@@ -482,16 +482,21 @@
 											<border>5</border>
 											<option>1</option>
 										</object>
-										<object class="spacer">
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_MHPathClear" variable="Button_MHPathClear" member="yes">
 												<label>Clear</label>
 												<size>75,23</size>
 												<handler function="OnButton_MHPathClearClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_MHPathClose" variable="Button_MHPathClose" member="yes">
+												<label>Close</label>
+												<size>75,23</size>
+												<handler function="OnButton_MHPathCloseClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>

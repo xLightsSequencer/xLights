@@ -53,10 +53,9 @@ public:
     void UpdatePathState(SketchCanvasPathState state);
     void ResetHandlesState(SketchCanvasPathState pathState = Undefined);
     void UpdateHandlesForPath(long pathIndex);
-    void ClosePath()
-    {
-        m_pathClosed = true;
-    }
+    SketchCanvasPathState GetPathState() { return m_pathState; }
+
+    void ClosePath();
 
     void OnSketchKeyDown(wxKeyEvent& event); // for SketchAssistPanel access
 
@@ -104,7 +103,7 @@ private:
     wxPoint2DDouble m_pathGrabbedPos;
     SketchCanvasPathState m_pathState = Undefined;
     bool m_pathClosed = false;
-
+    SketchCanvasPathState m_ClosedState = LineToNewPoint;
     ISketchCanvasParent* const m_sketchCanvasParent = nullptr;
     std::unique_ptr<wxBitmap> m_bgBitmap;
     int m_wheelRotation = 0;

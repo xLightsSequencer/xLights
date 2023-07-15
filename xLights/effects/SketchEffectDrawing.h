@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "SketchCanvasPanel.h"
+
 class wxGraphicsContext;
 class wxGraphicsPath;
 
@@ -44,7 +46,7 @@ public:
     double Length() const;
 
     void appendSegment(std::shared_ptr<SketchPathSegment> cmd);
-    void closePath();
+    void closePath(bool updateSegments, SketchCanvasPathState state);
     void drawEntirePath(wxGraphicsContext* gc, const wxSize& sz) const;
     void drawPartialPath(wxGraphicsContext* gc, const wxSize& sz,
                          std::optional<double> startPercentage,
@@ -58,14 +60,13 @@ public:
         return m_segments;
     }
 
-    bool isClosed() const
-    {
-        return m_isClosed;
-    }
+    bool isClosed() const { return m_isClosed; }
+    int GetClosedState() const { return m_closedState; }
 
 protected:
     std::vector<std::shared_ptr<SketchPathSegment>> m_segments;
     bool m_isClosed = false;
+    int m_closedState = 0;
 };
 
 // A sketch is a collection of paths... just a thin std::vector wrapper currently
