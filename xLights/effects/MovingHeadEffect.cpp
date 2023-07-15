@@ -72,8 +72,8 @@ void MovingHeadEffect::SetDefaultParameters() {
 
 void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
-    float pan_pos = GetValueCurveDouble("Pan", 0, SettingsMap, eff_pos, MOVING_HEAD_MIN, MOVING_HEAD_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), MOVING_HEAD_DIVISOR);
-    float tilt_pos = GetValueCurveDouble("Tilt", 0, SettingsMap, eff_pos, MOVING_HEAD_MIN, MOVING_HEAD_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), MOVING_HEAD_DIVISOR);
+    //float pan_pos = GetValueCurveDouble("Pan", 0, SettingsMap, eff_pos, MOVING_HEAD_MIN, MOVING_HEAD_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), MOVING_HEAD_DIVISOR);
+    //float tilt_pos = GetValueCurveDouble("Tilt", 0, SettingsMap, eff_pos, MOVING_HEAD_MIN, MOVING_HEAD_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), MOVING_HEAD_DIVISOR);
 
     if (buffer.cur_model == "") {
         return;
@@ -92,7 +92,6 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
             if (p == nullptr) {
                 return;
             }
-            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)model_info;
 
             int head_count = 0;
             for( int i = 1; i <= 8; ++i ) {
@@ -111,6 +110,18 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                 wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", i);
                 std::string mh_settings = SettingsMap[mh_textbox];
                 if( mh_settings != "" ) {
+
+                    // parse all the commands
+                    float pan_pos = 0.0f;
+                    float tilt_pos = 0.0f;
+                    float pan_offset = 0.0f;
+                    float tilt_offset = 0.0f;
+                    wxPoint2DDouble path_pt;
+                    bool path_parsed = false;
+                    bool pan_path_active = false;
+                    bool tilt_path_active = false;
+                    wxArrayString heads;
+                    int groupings = 1;
                     wxArrayString all_cmds = wxSplit(mh_settings, ';');
                     for (size_t j = 0; j < all_cmds.size(); ++j )
                     {
@@ -122,25 +133,52 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
 
                         if( cmd_type == "Pan" ) {
                             pan_pos = atof(settings.c_str());
-                            CalculatePosition( "Pan", false, i, pan_pos, all_cmds, models, eff_pos, buffer);
                         } else if ( cmd_type == "Tilt" ) {
                             tilt_pos = atof(settings.c_str());
-                            CalculatePosition( "Tilt", false, i, tilt_pos, all_cmds, models, eff_pos, buffer);
                         } else if ( cmd_type == "Pan VC" ) {
-                            ValueCurve vc( settings );
-                            vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
-                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
-                            pan_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                            CalculatePosition( "Pan", false, i, pan_pos, all_cmds, models, eff_pos, buffer);
+                            GetValueCurvePosition(pan_pos, settings, eff_pos, buffer);
                         } else if ( cmd_type == "Tilt VC" ) {
+                            GetValueCurvePosition(tilt_pos, settings, eff_pos, buffer);
+                        } else if( cmd_type == "PanOffset" ) {
+                            pan_offset = atof(settings.c_str());
+                        } else if( cmd_type == "TiltOffset" ) {
+                            tilt_offset = atof(settings.c_str());
+                        } else if( cmd_type == ("PanOffset VC") ) {
+                            GetValueCurvePosition(pan_offset, settings, eff_pos, buffer);
+                        } else if( cmd_type == ("TiltOffset VC") ) {
+                            GetValueCurvePosition(tilt_offset, settings, eff_pos, buffer);
+                        } else if ( cmd_type == "Pan Path" ) {
+                            pan_path_active = true;
+                            if( !path_parsed ) {
+                                GetPathPosition(path_pt, eff_pos, SettingsMap);
+                                path_parsed = true;
+                            }
+                        } else if ( cmd_type == "Tilt Path" ) {
+                            tilt_path_active = true;
+                            if( !path_parsed ) {
+                                GetPathPosition(path_pt, eff_pos, SettingsMap);
+                                path_parsed = true;
+                            }
+                        } else if( cmd_type == "Heads" ) {
+                            heads = wxSplit(settings, ',');
+                        } else if( cmd_type == "Groupings" ) {
+                            groupings = atoi(settings.c_str());
+                        } else if( cmd_type == "Groupings VC" ) {
                             ValueCurve vc( settings );
-                            vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
-                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
-                            tilt_pos = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                            CalculatePosition( "Tilt", false, i, tilt_pos, all_cmds, models, eff_pos, buffer);
+                            vc.SetLimits(MOVING_HEAD_GROUP_MIN, MOVING_HEAD_GROUP_MAX);
+                            groupings = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
                         }
                     }
 
+                    if( !pan_path_active ) {
+                        CalculatePosition( i, pan_pos, heads, groupings, pan_offset);
+                    }
+                    if( !tilt_path_active ) {
+                        CalculatePosition( i, tilt_pos, heads, groupings, tilt_offset);
+                    }
+                    if( path_parsed ) {
+                        CalculatePathPositions( pan_path_active, tilt_path_active, pan_pos, tilt_pos, eff_pos, SettingsMap);
+                    }
                     // find models that map to this moving head position
                     for (const auto& it : models) {
                         if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
@@ -160,37 +198,26 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     }
 }
 
-void MovingHeadEffect::CalculatePosition(const std::string& name, bool is_fan, int location, float& position, wxArrayString& all_cmds, std::list<Model*> models, double eff_pos, RenderBuffer &buffer)
+
+void MovingHeadEffect::GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer)
 {
-    float offset = 0.0f;
-    int groupings = 1;
-    wxArrayString heads;
+    ValueCurve vc( settings );
+    vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
+    vc.SetDivisor(MOVING_HEAD_DIVISOR);
+    position = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+}
 
-    for (size_t i = 0; i < all_cmds.size(); ++i )
-    {
-        std::string cmd = all_cmds[i];
-        int pos = cmd.find(":");
-        std::string cmd_type = cmd.substr(0, pos);
-        std::string settings = cmd.substr(pos+2, cmd.length());
-
-        if( cmd_type == (name + "Offset") ) {
-            offset = atof(settings.c_str());
-        } else if( cmd_type == "Heads" ) {
-            heads = wxSplit(settings, ',');
-        } else if( cmd_type == "Groupings" ) {
-            groupings = atoi(settings.c_str());
-        } else if( cmd_type == (name + "Offset VC") ) {
-            ValueCurve vc( settings );
-            vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
-            vc.SetDivisor(MOVING_HEAD_DIVISOR);
-            offset = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-        } else if( cmd_type == "Groupings VC" ) {
-            ValueCurve vc( settings );
-            vc.SetLimits(MOVING_HEAD_GROUP_MIN, MOVING_HEAD_GROUP_MAX);
-            groupings = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-        }
+void MovingHeadEffect::GetPathPosition(wxPoint2DDouble& pt, double eff_pos, const SettingsMap &SettingsMap)
+{
+    std::string path_def = SettingsMap["TEXTCTRL_MHPathDef"];
+    if( path_def != xlEMPTY_STRING ) {
+        SketchEffectSketch sketch(SketchEffectSketch::SketchFromString(path_def));
+        sketch.GetProgressPosition(eff_pos, pt.m_x, pt.m_y);
     }
- 
+}
+
+void MovingHeadEffect::CalculatePosition(int location, float& position, wxArrayString& heads, int groupings, float offset )
+{
     std::map<int, int> locations;
     for (size_t i = 0; i < heads.size(); ++i )
     {
@@ -206,6 +233,68 @@ void MovingHeadEffect::CalculatePosition(const std::string& name, bool is_fan, i
     float center = (float)(groupings > 1 ? groupings : heads.size()) / 2.0f + 0.5;
 
     position = (slot - center) * offset + position;
+}
+
+void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, double eff_pos, const SettingsMap &SettingsMap)
+{
+    std::string path_def = SettingsMap["TEXTCTRL_MHPathDef"];
+    if( path_def != xlEMPTY_STRING ) {
+        SketchEffectSketch sketch(SketchEffectSketch::SketchFromString(path_def));
+        wxPoint2DDouble pt;
+        sketch.GetProgressPosition(eff_pos, pt.m_x, pt.m_y);
+        glm::vec3 point;
+        float scale = 180.0f;
+        point.x = (pt.m_x - 0.5f) * scale;
+        point.y = scale / 2.0f;
+        point.z = (0.5f - pt.m_y) * scale;
+        
+        glm::vec4 position = glm::vec4(point, 1.0);
+        glm::mat4 rotationMatrixPan = glm::rotate(glm::mat4(1.0f), glm::radians(pan_pos), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 rotationMatrixTilt = glm::rotate(glm::mat4(1.0f), glm::radians(tilt_pos), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::vec4 path_position = rotationMatrixPan * rotationMatrixTilt * position;
+        
+        // find angle from coordinates
+        float new_pan = 0.0f;
+        float new_tilt = 0.0f;
+        
+        if( abs(path_position.z) < 0.0001f ) {
+            if( path_position.x > 0.0001f ) {
+                new_pan = 90.0f;
+            } else if( path_position.x < -0.0001f ) {
+                new_pan = -90.0f;
+            }
+        } else if( abs(path_position.x) > 0.0001f ) {
+            new_pan = atan2(path_position.x, path_position.z) * 180.0f / PI;
+        }
+
+        float hyp = sqrt(path_position.x * path_position.x + path_position.z * path_position.z);
+        if( abs(path_position.y) < 0.0001f ) {
+            if( path_position.z > 0.0001f ) {
+                new_tilt = 90.0f;
+            } else if( path_position.z < -0.0001f ) {
+                new_tilt = -90.0f;
+            }
+        } else if( abs(path_position.x) > 0.0001f ) {
+            new_tilt = atan2(hyp, path_position.y) * 180.0f / PI;
+        }
+
+        if( new_pan < -90.0f ) {
+            new_pan = 180.0f + new_pan;
+            new_tilt = -new_tilt;
+        }
+        if( new_pan > 90.0f ) {
+            new_pan = new_pan - 180.0f;
+            new_tilt = -new_tilt;
+        }
+        
+        if( pan_path_active ) {
+            pan_pos = new_pan;
+        }
+        if( tilt_path_active ) {
+            tilt_pos = new_tilt;
+        }
+    }
+
 }
 
 void MovingHeadEffect::WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer)
@@ -297,22 +386,3 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
     p->Refresh();
 }
 
-void MovingHeadEffect::UpdateFixturePositions(Model *cls)
-{
-    MovingHeadPanel *p = (MovingHeadPanel*)panel;
-    if (p == nullptr) {
-        return;
-    }
-
-    auto models = GetModels(cls);
-    bool single_model = models.size() == 1;
-    for (const auto& it : models) {
-        if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
-            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
-            wxString label_ctrl = wxString::Format("ID_STATICTEXT_MH%d", mhead->GetFixtureVal());
-            wxStaticText* label = (wxStaticText*)(p->FindWindowByName(label_ctrl));
-
-       }
-    }
-
-}

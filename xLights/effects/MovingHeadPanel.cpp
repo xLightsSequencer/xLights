@@ -498,17 +498,31 @@ void MovingHeadPanel::UpdateMHSettings()
             if( checkbox->IsChecked() ) {
                 std::string ugly_settings = xlEMPTY_STRING;
                 std::string pretty_settings = xlEMPTY_STRING;
+                bool is_path = false;
 
                 // Add pan settings
-                AddSetting( "Pan", "Pan", ugly_settings, pretty_settings );
+                checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_PanPath"));
+                if( checkbox != nullptr ) {
+                    if( checkbox->IsChecked() ) {
+                        is_path = true;
+                    }
+                }
+                AddSetting( "Pan", "Pan", ugly_settings, pretty_settings, is_path );
 
                 // Add tilt settings
-                AddSetting( "Tilt", "Tilt", ugly_settings, pretty_settings );
+                is_path = false;
+                checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_TiltPath"));
+                if( checkbox != nullptr ) {
+                    if( checkbox->IsChecked() ) {
+                        is_path = true;
+                    }
+                }
+                AddSetting( "Tilt", "Tilt", ugly_settings, pretty_settings, is_path );
 
                 // add common settings
-                AddSetting( "PanOffset", "PanOffset", ugly_settings, pretty_settings );
-                AddSetting( "TiltOffset", "TiltOffset", ugly_settings, pretty_settings );
-                AddSetting( "Groupings", "Groupings", ugly_settings, pretty_settings );
+                AddSetting( "PanOffset", "PanOffset", ugly_settings, pretty_settings, false );
+                AddSetting( "TiltOffset", "TiltOffset", ugly_settings, pretty_settings, false );
+                AddSetting( "Groupings", "Groupings", ugly_settings, pretty_settings, false );
                 ugly_settings += ";";
                 ugly_settings += headset;
 
@@ -532,8 +546,21 @@ void MovingHeadPanel::UpdateMHSettings()
     }
 }
 
-void MovingHeadPanel::AddSetting(const std::string& name, const std::string& ctrl_name, std::string& ugly_settings, std::string& pretty_settings)
+void MovingHeadPanel::AddSetting(const std::string& name, const std::string& ctrl_name, std::string& ugly_settings, std::string& pretty_settings, bool is_path)
 {
+    if( is_path ) {
+        wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("ID_TEXTCTRL_MHPathDef"));
+        if( textbox != nullptr ) {
+            if( ugly_settings != xlEMPTY_STRING ) {
+                ugly_settings += ";";
+                pretty_settings += "; ";
+            }
+            wxString value = wxString::Format("%s Path: <data>", name);
+            ugly_settings += value;
+            pretty_settings += value;
+        }
+    }
+    
     wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("IDD_TEXTCTRL_MH" + ctrl_name));
     if( textbox != nullptr && !textbox->IsEnabled() ) {
         BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MH" + ctrl_name));
