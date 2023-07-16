@@ -40,6 +40,8 @@ public:
     BulkEditSliderF1* Slider_MHTilt;
     BulkEditSliderF1* Slider_MHTiltOffset;
     BulkEditSliderF1* Slider_MHTimeOffset;
+    BulkEditTextCtrlF1* TextCtrl_MHPathScale;
+    BulkEditTextCtrlF1* TextCtrl_MHTimeOffset;
     BulkEditValueCurveButton* ValueCurve_MHGroupings;
     BulkEditValueCurveButton* ValueCurve_MHPan;
     BulkEditValueCurveButton* ValueCurve_MHPanOffset;
@@ -77,14 +79,6 @@ public:
     wxStaticText* Label_TimeOffset;
     wxStaticText* StaticTextFixtures;
     wxStaticText* StaticText_Groupings;
-    wxStaticText* StaticText_MH1;
-    wxStaticText* StaticText_MH2;
-    wxStaticText* StaticText_MH3;
-    wxStaticText* StaticText_MH4;
-    wxStaticText* StaticText_MH5;
-    wxStaticText* StaticText_MH6;
-    wxStaticText* StaticText_MH7;
-    wxStaticText* StaticText_MH8;
     wxTextCtrl* TextCtrl_MH1_Settings;
     wxTextCtrl* TextCtrl_MH2_Settings;
     wxTextCtrl* TextCtrl_MH3_Settings;
@@ -152,29 +146,13 @@ protected:
     static const long ID_PANEL_Pathing;
     static const long ID_PANEL_Control;
     static const long ID_NOTEBOOK1;
-    static const long ID_STATICTEXT_MH1;
-    static const long ID_TEXTCTRL_MH1;
     static const long ID_TEXTCTRL_MH1_Settings;
-    static const long ID_STATICTEXT_MH2;
-    static const long ID_TEXTCTRL_MH2;
     static const long ID_TEXTCTRL_MH2_Settings;
-    static const long ID_STATICTEXT_MH3;
-    static const long ID_TEXTCTRL_MH3;
     static const long ID_TEXTCTRL_MH3_Settings;
-    static const long ID_STATICTEXT_MH4;
-    static const long ID_TEXTCTRL_MH4;
     static const long ID_TEXTCTRL_MH4_Settings;
-    static const long ID_STATICTEXT_MH5;
-    static const long ID_TEXTCTRL_MH5;
     static const long ID_TEXTCTRL_MH5_Settings;
-    static const long ID_STATICTEXT_MH6;
-    static const long ID_TEXTCTRL_MH6;
     static const long ID_TEXTCTRL_MH6_Settings;
-    static const long ID_STATICTEXT_MH7;
-    static const long ID_TEXTCTRL_MH7;
     static const long ID_TEXTCTRL_MH7_Settings;
-    static const long ID_STATICTEXT_MH8;
-    static const long ID_TEXTCTRL_MH8;
     static const long ID_TEXTCTRL_MH8_Settings;
     //*)
     
@@ -205,9 +183,9 @@ private:
     std::list<Model*> GetActiveModels();
     void UncheckAllFixtures();
     void UpdateMHSettings();
-    void AddSetting(const std::string& name, const std::string& ctrl_name, std::string& ugly_settings, std::string& pretty_settings, bool is_path);
-    void AddValueCurve(ValueCurve* vc, const std::string& name, std::string& ugly_settings, std::string& pretty_settings);
-    void AddTextbox(const std::string& ctrl_id, const std::string& name, std::string& ugly_settings, std::string& pretty_settings);
+    void AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings, bool is_path);
+    void AddValueCurve(ValueCurve* vc, const std::string& name, std::string& mh_settings);
+    void AddTextbox(const std::string& ctrl_id, const std::string& name, std::string& mh_settings);
     void OnSliderUpdated(wxCommandEvent& event);
     void OnTextCtrlUpdated(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);

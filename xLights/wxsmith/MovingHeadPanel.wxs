@@ -372,7 +372,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHGroupings" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHGroupings" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHGroupings" subclass="BulkEditTextCtrl" variable="TextCtrl_MHGroupings" member="no">
 												<value>1</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>
@@ -544,7 +544,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPathScale" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHPathScale" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPathScale" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHPathScale" member="yes">
 												<value>0</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>
@@ -588,7 +588,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHTimeOffset" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHTimeOffset" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHTimeOffset" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHTimeOffset" member="yes">
 												<value>0</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>
@@ -621,49 +621,13 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer_Positions" member="no">
-					<cols>3</cols>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT_MH1" variable="StaticText_MH1" member="yes">
-							<label>MH1:</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH1" variable="TextCtrl_MH1" member="no">
-							<size>140,-1d</size>
-							<enabled>0</enabled>
-							<style>wxTE_PROCESS_ENTER</style>
-						</object>
-						<flag>wxALL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
+					<cols>8</cols>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH1_Settings" variable="TextCtrl_MH1_Settings" member="yes">
 							<size>20,-1</size>
 							<hidden>1</hidden>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT_MH2" variable="StaticText_MH2" member="yes">
-							<label>MH2:</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH2" variable="TextCtrl_MH2" member="no">
-							<size>140,-1d</size>
-							<enabled>0</enabled>
-							<style>wxTE_PROCESS_ENTER</style>
-						</object>
-						<flag>wxALL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -677,47 +641,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT_MH3" variable="StaticText_MH3" member="yes">
-							<label>MH3:</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH3" variable="TextCtrl_MH3" member="no">
-							<size>140,-1d</size>
-							<enabled>0</enabled>
-							<style>wxTE_PROCESS_ENTER</style>
-						</object>
-						<flag>wxALL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH3_Settings" variable="TextCtrl_MH3_Settings" member="yes">
 							<size>20,-1</size>
 							<hidden>1</hidden>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT_MH4" variable="StaticText_MH4" member="yes">
-							<label>MH4:</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH4" variable="TextCtrl_MH4" member="no">
-							<size>140,-1d</size>
-							<enabled>0</enabled>
-							<style>wxTE_PROCESS_ENTER</style>
-						</object>
-						<flag>wxALL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -731,47 +659,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT_MH5" variable="StaticText_MH5" member="yes">
-							<label>MH5:</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH5" variable="TextCtrl_MH5" member="no">
-							<size>140,-1d</size>
-							<enabled>0</enabled>
-							<style>wxTE_PROCESS_ENTER</style>
-						</object>
-						<flag>wxALL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH5_Settings" variable="TextCtrl_MH5_Settings" member="yes">
 							<size>20,-1</size>
 							<hidden>1</hidden>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT_MH6" variable="StaticText_MH6" member="yes">
-							<label>MH6:</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH6" variable="TextCtrl_MH6" member="no">
-							<size>140,-1d</size>
-							<enabled>0</enabled>
-							<style>wxTE_PROCESS_ENTER</style>
-						</object>
-						<flag>wxALL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -785,47 +677,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT_MH7" variable="StaticText_MH7" member="yes">
-							<label>MH7:</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH7" variable="TextCtrl_MH7" member="no">
-							<size>140,-1d</size>
-							<enabled>0</enabled>
-							<style>wxTE_PROCESS_ENTER</style>
-						</object>
-						<flag>wxALL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH7_Settings" variable="TextCtrl_MH7_Settings" member="yes">
 							<size>20,-1</size>
 							<hidden>1</hidden>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT_MH8" variable="StaticText_MH8" member="yes">
-							<label>MH8:</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH8" variable="TextCtrl_MH8" member="no">
-							<size>140,-1d</size>
-							<enabled>0</enabled>
-							<style>wxTE_PROCESS_ENTER</style>
-						</object>
-						<flag>wxALL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
