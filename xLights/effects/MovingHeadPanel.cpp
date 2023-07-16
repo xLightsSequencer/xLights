@@ -289,7 +289,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer4->AddGrowableCol(1);
     Label_PathScale = new wxStaticText(PanelPathing, ID_STATICTEXT_PathScale, _("Scale:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PathScale"));
     FlexGridSizer4->Add(Label_PathScale, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_MHPathScale = new BulkEditSliderF1(PanelPathing, ID_SLIDER_MHPathScale, 0, -1000, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MHPathScale"));
+    Slider_MHPathScale = new BulkEditSliderF1(PanelPathing, ID_SLIDER_MHPathScale, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MHPathScale"));
     FlexGridSizer4->Add(Slider_MHPathScale, 1, wxALL|wxEXPAND, 2);
     ValueCurve_MHPathScale = new BulkEditValueCurveButton(PanelPathing, ID_VALUECURVE_MHPathScale, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_VALUECURVE_MHPathScale"));
     FlexGridSizer4->Add(ValueCurve_MHPathScale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -422,6 +422,8 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_VALUECURVE_MHPanOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_MHTiltOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_MHGroupings,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_MHTimeOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_MHPathScale,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MovingHeadPanel::OnVCChanged, nullptr, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&MovingHeadPanel::OnValidateWindow, nullptr, this);
@@ -438,6 +440,11 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     ValueCurve_MHTiltOffset->GetValue()->SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
     ValueCurve_MHTiltOffset->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
     ValueCurve_MHGroupings->GetValue()->SetLimits(MOVING_HEAD_GROUP_MIN, MOVING_HEAD_GROUP_MAX);
+    ValueCurve_MHTimeOffset->GetValue()->SetLimits(MOVING_HEAD_TIME_MIN, MOVING_HEAD_TIME_MAX);
+    ValueCurve_MHTimeOffset->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
+    ValueCurve_MHTimeOffset->GetValue()->SetLimits(MOVING_HEAD_SCALE_MIN, MOVING_HEAD_SCALE_MAX);
+    ValueCurve_MHTimeOffset->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
+
 
     ValidateWindow();
 }
@@ -496,7 +503,9 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
         event_id == IDD_TEXTCTRL_MHTilt ||
         event_id == IDD_TEXTCTRL_MHPanOffset ||
         event_id == IDD_TEXTCTRL_MHTiltOffset ||
-        event_id == IDD_TEXTCTRL_MHGroupings) {
+        event_id == IDD_TEXTCTRL_MHGroupings ||
+        event_id == IDD_TEXTCTRL_MHTimeOffset ||
+        event_id == IDD_TEXTCTRL_MHPathScale) {
         UpdateMHSettings();
     } else if (event_id == ID_TEXTCTRL_MHPathDef) {
         if( m_sketchDef != TextCtrl_MHPathDef->GetValue() ) {
@@ -579,6 +588,12 @@ void MovingHeadPanel::UpdateMHSettings()
                 AddSetting( "Groupings", "Groupings", ugly_settings, pretty_settings, false );
                 ugly_settings += ";";
                 ugly_settings += headset;
+
+                // add path only settings
+                if( is_path ) {
+                    AddSetting( "TimeOffset", "TimeOffset", ugly_settings, pretty_settings, false );
+                    AddSetting( "PathScale", "PathScale", ugly_settings, pretty_settings, false );
+                }
 
                 // update the settings textbox
                 wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);

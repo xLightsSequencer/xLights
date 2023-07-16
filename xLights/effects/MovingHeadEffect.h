@@ -17,6 +17,10 @@
 #define MOVING_HEAD_DIVISOR 10
 #define MOVING_HEAD_GROUP_MIN 1
 #define MOVING_HEAD_GROUP_MAX 6
+#define MOVING_HEAD_TIME_MIN -1000
+#define MOVING_HEAD_TIME_MAX 1000
+#define MOVING_HEAD_SCALE_MIN -100
+#define MOVING_HEAD_SCALE_MAX 100
 
 class DmxMotor;
 
@@ -55,6 +59,10 @@ public:
             return MOVING_HEAD_MIN;
         if (name == "E_VALUECURVE_MHGroupings")
             return MOVING_HEAD_GROUP_MIN;
+        if (name == "E_VALUECURVE_MHTimeOffset")
+            return MOVING_HEAD_TIME_MIN;
+        if (name == "E_VALUECURVE_MHPathScale")
+            return MOVING_HEAD_SCALE_MIN;
         return RenderableEffect::GetSettingVCMin(name);
     }
     virtual double GetSettingVCMax(const std::string& name) const override
@@ -73,6 +81,10 @@ public:
             return MOVING_HEAD_MAX;
         if (name == "E_VALUECURVE_MHGroupings")
             return MOVING_HEAD_GROUP_MAX;
+        if (name == "E_VALUECURVE_MHTimeOffset")
+            return MOVING_HEAD_TIME_MAX;
+        if (name == "E_VALUECURVE_MHPathScale")
+            return MOVING_HEAD_SCALE_MAX;
         return RenderableEffect::GetSettingVCMax(name);
     }
     virtual int GetSettingVCDivisor(const std::string& name) const override
@@ -89,6 +101,10 @@ public:
             return MOVING_HEAD_DIVISOR;
         if (name == "E_VALUECURVE_MHTiltOffset")
             return MOVING_HEAD_DIVISOR;
+        if (name == "E_VALUECURVE_MHTimeOffset")
+            return MOVING_HEAD_DIVISOR;
+        if (name == "E_VALUECURVE_MHPathScale")
+            return MOVING_HEAD_DIVISOR;
         return RenderableEffect::GetSettingVCDivisor(name);
     }
 
@@ -103,6 +119,6 @@ protected:
     void UpdateFixturePositions(Model *cls);
     void GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer);
     void GetPathPosition(wxPoint2DDouble& pt, double eff_pos, const SettingsMap &SettingsMap);
-    void CalculatePosition(int location, float& position, wxArrayString& heads, int groupings, float offset );
-    void CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, double eff_pos, const SettingsMap &SettingsMap);
+    void CalculatePosition(int location, float& position, wxArrayString& heads, int groupings, float offset, float& delta );
+    void CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const SettingsMap &SettingsMap);
 };

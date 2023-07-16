@@ -529,8 +529,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxSlider" name="ID_SLIDER_MHPathScale" subclass="BulkEditSliderF1" variable="Slider_MHPathScale" member="yes">
-												<min>-1000</min>
-												<max>1000</max>
+												<min>-100</min>
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>

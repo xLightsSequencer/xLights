@@ -116,6 +116,9 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                     float tilt_pos = 0.0f;
                     float pan_offset = 0.0f;
                     float tilt_offset = 0.0f;
+                    float time_offset = 0.0f;
+                    float path_scale = 0.0f;
+                    float delta = 0.0f;
                     wxPoint2DDouble path_pt;
                     bool path_parsed = false;
                     bool pan_path_active = false;
@@ -167,18 +170,30 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                             ValueCurve vc( settings );
                             vc.SetLimits(MOVING_HEAD_GROUP_MIN, MOVING_HEAD_GROUP_MAX);
                             groupings = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                        } else if( cmd_type == "TimeOffset" ) {
+                            time_offset = atof(settings.c_str());
+                        } else if( cmd_type == "PathScale" ) {
+                            path_scale = atof(settings.c_str());
+                        } else if( cmd_type == "TimeOffset VC" ) {
+                            ValueCurve vc( settings );
+                            vc.SetLimits(MOVING_HEAD_TIME_MIN, MOVING_HEAD_TIME_MAX);
+                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                            time_offset = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                        } else if( cmd_type == "PathScale VC" ) {
+                            ValueCurve vc( settings );
+                            vc.SetLimits(MOVING_HEAD_SCALE_MIN, MOVING_HEAD_SCALE_MAX);
+                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                            path_scale = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
                         }
                     }
 
-                    if( !pan_path_active ) {
-                        CalculatePosition( i, pan_pos, heads, groupings, pan_offset);
-                    }
-                    if( !tilt_path_active ) {
-                        CalculatePosition( i, tilt_pos, heads, groupings, tilt_offset);
-                    }
+                    CalculatePosition( i, pan_pos, heads, groupings, pan_offset, delta);
+                    CalculatePosition( i, tilt_pos, heads, groupings, tilt_offset, delta);
+
                     if( path_parsed ) {
-                        CalculatePathPositions( pan_path_active, tilt_path_active, pan_pos, tilt_pos, eff_pos, SettingsMap);
+                        CalculatePathPositions( pan_path_active, tilt_path_active, pan_pos, tilt_pos, time_offset, path_scale, delta, eff_pos, SettingsMap);
                     }
+
                     // find models that map to this moving head position
                     for (const auto& it : models) {
                         if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
@@ -216,7 +231,7 @@ void MovingHeadEffect::GetPathPosition(wxPoint2DDouble& pt, double eff_pos, cons
     }
 }
 
-void MovingHeadEffect::CalculatePosition(int location, float& position, wxArrayString& heads, int groupings, float offset )
+void MovingHeadEffect::CalculatePosition(int location, float& position, wxArrayString& heads, int groupings, float offset, float& delta )
 {
     std::map<int, int> locations;
     for (size_t i = 0; i < heads.size(); ++i )
@@ -231,22 +246,34 @@ void MovingHeadEffect::CalculatePosition(int location, float& position, wxArrayS
         slot = (float)((locations[location]-1) % groupings + 1);
     }
     float center = (float)(groupings > 1 ? groupings : heads.size()) / 2.0f + 0.5;
-
-    position = (slot - center) * offset + position;
+    delta = slot - center;
+    position = delta * offset + position;
 }
 
-void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, double eff_pos, const SettingsMap &SettingsMap)
+void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const SettingsMap &SettingsMap)
 {
     std::string path_def = SettingsMap["TEXTCTRL_MHPathDef"];
     if( path_def != xlEMPTY_STRING ) {
         SketchEffectSketch sketch(SketchEffectSketch::SketchFromString(path_def));
         wxPoint2DDouble pt;
-        sketch.GetProgressPosition(eff_pos, pt.m_x, pt.m_y);
+        double progress_pos = eff_pos + ((delta * time_offset) / 100.0f);
+        if( progress_pos > 1.0f ) {
+            int prog1 = (int)(progress_pos * 100.0f);
+            prog1 = prog1 % 100;
+            progress_pos = (double)(prog1 / 100.0f);
+        }
+        sketch.GetProgressPosition(progress_pos, pt.m_x, pt.m_y);
         glm::vec3 point;
         float scale = 180.0f;
-        point.x = (pt.m_x - 0.5f) * scale;
+        float new_scale = path_scale;
+        if( new_scale >= 0.0f ) {
+            new_scale += 1.0f;
+        } else {
+            new_scale = 1.0f / new_scale;
+        }
+        point.x = (pt.m_x - 0.5f) * scale * new_scale;
         point.y = scale / 2.0f;
-        point.z = (0.5f - pt.m_y) * scale;
+        point.z = (0.5f - pt.m_y) * scale * new_scale;
         
         glm::vec4 position = glm::vec4(point, 1.0);
         glm::mat4 rotationMatrixPan = glm::rotate(glm::mat4(1.0f), glm::radians(pan_pos), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -277,7 +304,8 @@ void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_pa
         } else if( abs(path_position.x) > 0.0001f ) {
             new_tilt = atan2(hyp, path_position.y) * 180.0f / PI;
         }
-
+        
+        // adjust pan if pointed backwards
         if( new_pan < -90.0f ) {
             new_pan = 180.0f + new_pan;
             new_tilt = -new_tilt;
