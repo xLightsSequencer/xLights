@@ -344,6 +344,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerPathCanvas->Add(m_sketchCanvasPanel, 0, wxALL | wxEXPAND);
 
     m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::DefineStartPoint);
+    m_sketchCanvasPanel->DrawGrid(true);
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(MovingHeadPanel::OnCharHook), (wxObject*) nullptr, this);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&MovingHeadPanel::OnResize);

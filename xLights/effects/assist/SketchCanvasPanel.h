@@ -56,6 +56,7 @@ public:
     SketchCanvasPathState GetPathState() { return m_pathState; }
 
     void ClosePath();
+    void DrawGrid(bool val) { m_drawGrid = val; }
 
     void OnSketchKeyDown(wxKeyEvent& event); // for SketchAssistPanel access
 
@@ -89,6 +90,7 @@ private:
 
     wxPoint2DDouble UItoNormalized(const wxPoint2DDouble& pt) const;
     wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt) const;
+    wxPoint NormalizedToUI2(const wxPoint2DDouble& pt) const;
     static bool IsControlPoint(const HandlePoint& handlePt);
     void UpdatePathFromHandles(long handleIndex);
     void UpdatePathFromHandles();
@@ -103,6 +105,7 @@ private:
     wxPoint2DDouble m_pathGrabbedPos;
     SketchCanvasPathState m_pathState = Undefined;
     bool m_pathClosed = false;
+    bool m_drawGrid = false;
     SketchCanvasPathState m_ClosedState = LineToNewPoint;
     ISketchCanvasParent* const m_sketchCanvasParent = nullptr;
     std::unique_ptr<wxBitmap> m_bgBitmap;

@@ -64,6 +64,23 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
 
     pdc.SetPen(*wxLIGHT_GREY_PEN);
     pdc.DrawRectangle(borderRect);
+    
+    if( m_drawGrid ) {
+        for( int i = 0; i < 9; ++i ) {
+            wxPoint2DDouble start_x(0.1 * (float)i + 0.1, 0);
+            wxPoint2DDouble end_x(0.1 * (float)i + 0.1, 1);
+            wxPoint2DDouble start_y(0, 0.1 * (float)i + 0.1);
+            wxPoint2DDouble end_y(1, 0.1 * (float)i + 0.1);
+            if( i == 4 ) {
+                pdc.SetPen(*wxGREY_PEN);
+            } else {
+                pdc.SetPen(*wxLIGHT_GREY_PEN);
+            }
+            
+            pdc.DrawLine(NormalizedToUI2(start_x), NormalizedToUI2(end_x));
+            pdc.DrawLine(NormalizedToUI2(start_y), NormalizedToUI2(end_y));
+        }
+    }
 
     {
         std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(pdc));
@@ -503,6 +520,12 @@ wxPoint2DDouble SketchCanvasPanel::NormalizedToUI(const wxPoint2DDouble& pt) con
     double x = pt.m_x * sz.GetWidth();
     double y = pt.m_y * sz.GetHeight();
     return wxPoint2DDouble(o.x + x, o.y + (sz.GetHeight() - y));
+}
+
+wxPoint SketchCanvasPanel::NormalizedToUI2(const wxPoint2DDouble& pt) const
+{
+    wxPoint2DDouble pt1 = NormalizedToUI(pt);
+    return wxPoint((int)pt1.m_x, (int)pt1.m_y);
 }
 
 bool SketchCanvasPanel::IsControlPoint(const HandlePoint& handlePt)
