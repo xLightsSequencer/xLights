@@ -1021,6 +1021,7 @@
     <ClCompile Include="graphics\opengl\xlOGL3GraphicsContext.cpp">
       <Filter>graphics\opengl</Filter>
     </ClCompile>
+    <ClCompile Include="MetronomeLabelDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2055,6 +2056,7 @@
     <ClInclude Include="graphics\opengl\GL\glext.h">
       <Filter>graphics\opengl\GL</Filter>
     </ClInclude>
+    <ClInclude Include="MetronomeLabelDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

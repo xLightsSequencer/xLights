@@ -35,6 +35,7 @@
 #include "CustomTimingDialog.h"
 #include "VendorMusicDialog.h"
 #include "xLightsMain.h"
+#include "MetronomeLabelDialog.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
@@ -1006,6 +1007,27 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
                         if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent))
                         {
                             xml_file->AddFixedTimingSection(ttn.ToStdString(), xLightsParent);
+                            AddTimingCell(ttn);
+                        }
+                    }
+                }
+                else if (selected_timing == "Metronome w/ Tags")
+                {
+                    int base_timing = xml_file->GetFrameMS();
+                    MetronomeLabelDialog dlg(base_timing, this);
+                    if (dlg.ShowModal() == wxID_OK)
+                    {
+                        int ms = (dlg.GetTiming() + base_timing / 2) / base_timing * base_timing;
+
+                        if (ms != dlg.GetTiming())
+                        {
+                            wxString msg = wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetTiming(), ms);
+                            wxMessageBox(msg);
+                        }
+                        wxString ttn = wxString::Format("%dms Metronome %d Tag", ms, dlg.GetTagCount());
+                        if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent))
+                        {
+                            xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, dlg.GetTagCount(), xLightsParent);
                             AddTimingCell(ttn);
                         }
                     }
