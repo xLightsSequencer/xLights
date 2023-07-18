@@ -71,7 +71,7 @@ class ControllerModelDialog: public wxDialog
 	ControllerCaps* _caps = nullptr;
 	std::list<BaseCMObject*> _models;
 	std::list<BaseCMObject*> _controllers;
-	ModelCMObject* _dragging = nullptr;
+	BaseCMObject* _dragging = nullptr;
 	wxPoint _dragStartLocation = { -99999, -99999 };
 	BaseCMObject* _popup = nullptr;
 	bool _autoLayout = false;
@@ -137,10 +137,14 @@ class ControllerModelDialog: public wxDialog
 		wxBitmap RenderPicture(int startY, int startX, int width, int height, wxString const& pageName);
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);
 		void DropFromController(const wxPoint& location, const std::string& name, wxPanel* target);
-		bool IsDragging(ModelCMObject* dragging) const { return _dragging == dragging; }
+		bool IsDragging(BaseCMObject* dragging) const { return _dragging == dragging; }
 		bool Scroll(wxPanel* panel, int scrollByX, int scrollByY);
 		wxPoint GetScrollPosition(wxPanel* panel) const;
 		void OnPopupCommand(wxCommandEvent& event);
+        BaseCMObject* GetDragging() const
+        {
+        return _dragging;
+        }
 
 	protected:
 

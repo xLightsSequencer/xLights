@@ -233,7 +233,7 @@ public:
     const static int STYLE_CHANNELS = 4;
     enum class HITLOCATION { NONE,
                              LEFT,
-                             RIGHT };
+                             RIGHT, ALL };
 
 protected:
     bool _selectable = false;
@@ -310,16 +310,22 @@ public:
         return (mouse.y < _location.y);
     }
     virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped) = 0;
+    virtual void DrawIcon(wxDC & dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale) {
+    }
+
     void UpdateCUD(UDController* cud)
     {
         _cud = cud;
     }
+
     virtual void AddRightClickMenu(wxMenu& mnu, ControllerModelDialog* cmd)
     {}
+
     virtual bool HandlePopup(wxWindow* parent, wxCommandEvent& event, int id)
     {
         return false;
     }
+
     virtual std::string GetType() const = 0;
     wxRect GetRect() const
     {
@@ -370,6 +376,12 @@ public:
         }
         return nullptr;
     }
+
+    int GetBasePort() const
+    {
+        return ((_port - 1) / 4) * 4 + 1;
+    }
+
     int GetMaxPortChannels() const
     {
         if (_caps == nullptr)
@@ -387,7 +399,7 @@ public:
     {
         int count = 0;
         if (_type == PORTTYPE::PIXEL) {
-            int basePort = ((_port - 1) / 4) * 4;
+            int basePort = ((_port - 1) / 4) * 4 + 1;
             for (int i = 0; i < 4; ++i) {
                 count = std::max(count, _cud->GetControllerPixelPort(basePort + i)->GetSmartRemoteCount());
             }
@@ -397,31 +409,35 @@ public:
 
     virtual bool HitYTest(wxPoint mouse) override
     {
-        int totaly = VERTICAL_SIZE;
+        int totaly = 0;
 
         bool mergeConsecutiveStrings = !_caps || _caps->MergeConsecutiveVirtualStrings();
-
-        if (mergeConsecutiveStrings) {
-            int vsc = GetUDPort()->GetRealVirtualStringCount();
-            if (vsc > 1) {
-                totaly += (vsc - 1) * (VERTICAL_SIZE + VERTICAL_GAP);
-            }
-        }
+        int vsc = GetUDPort()->GetRealVirtualStringCount();
 
         if (GetUDPort()->IsSmartRemotePort())
         {
             int src = GetSmartRemoteCount();
-            totaly += SRY_GAP + SRYLABEL_SIZE;
+            int empty = GetUDPort()->CountEmptySmartRemotesBefore(src+1);
             if (mergeConsecutiveStrings) {
-                if (src > 0) {
-                    totaly += (src - 1) * (SRY_GAP + SRYLABEL_SIZE);
-                }
-                int empty = GetUDPort()->CountEmptySmartRemotesBefore(src + 1);
-                if (empty > 0) {
-                    totaly += (empty - 1) * (VERTICAL_SIZE + VERTICAL_GAP);
+                totaly = src * (VERTICAL_SIZE + SRY_GAP + SRYLABEL_SIZE);
+
+                totaly += (vsc - (src - empty)) * (VERTICAL_SIZE + VERTICAL_GAP);
+
+            } else {
+                totaly = VERTICAL_SIZE + SRY_GAP + SRYLABEL_SIZE;
+            }
+        } else {
+            totaly = VERTICAL_SIZE;
+
+            if (mergeConsecutiveStrings) {
+                if (vsc > 1) {
+                    totaly += (vsc - 1) * (VERTICAL_SIZE + VERTICAL_GAP);
                 }
             }
         }
+
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug("HITY port %d %d-%d %s", _port, _location.y, _location.y + totaly, (mouse.y >= _location.y && mouse.y <= _location.y + totaly) ? "HIT" : "");
 
         return (mouse.y >= _location.y &&
                 mouse.y <= _location.y + totaly);
@@ -440,6 +456,10 @@ public:
         return vs;
     }
 
+    int GetModelCount(int sr) const
+    {
+        return GetUDPort()->GetModelCount(sr);
+    }
     int GetModelCount() const
     {
         return GetUDPort()->GetModels().size();
@@ -722,6 +742,60 @@ public:
         _smartRemote = smartRemote;
     }
 
+    int GetBasePort() const
+    {
+        return ((_port->GetPort() - 1) / 4) * 4 + 1;
+    }
+
+    bool IsSameRemote(BaseCMObject* other) const
+    {
+        bool same = false;
+        SRCMObject* sr = dynamic_cast<SRCMObject*>(other);
+        
+        if (sr != nullptr) {
+            if (GetBasePort() == sr->GetBasePort() && GetSmartRemote() == sr->GetSmartRemote()) {
+                same = true;
+            }
+        }
+
+        return same;
+    }
+
+    void SetAllModelsToReceiver(int fromPort, int toPort, int fromSR, int toSR)
+    {
+        auto fromPP = _controller->GetControllerPixelPort(fromPort);
+        auto toPP = _controller->GetControllerPixelPort(toPort);
+        if (fromPP != nullptr && toPP != nullptr) {
+            if (toPP->GetModelCount(toSR) == 0) {
+                // the easy case ... no models on that sr
+                for (auto& it : fromPP->GetModels()) {
+                    if (it->GetSmartRemote() == fromSR && it->IsFirstModelString()) {
+                        it->GetModel()->SetControllerPort(toPort);
+                        it->GetModel()->SetSmartRemote(toSR);
+                    }
+                }
+            } else {
+                // the not so easy case ... find the last model on the port
+                std::string lastName;
+                for (auto& it : toPP->GetModels()) {
+                    if (it->GetSmartRemote() == toSR) {
+                        lastName = it->GetName();
+                    }
+                }
+                for (auto& it : fromPP->GetModels()) {
+                    if (it->GetSmartRemote() == fromSR && it->IsFirstModelString()) {
+                        it->GetModel()->SetControllerPort(toPort);
+                        if (lastName != "") {
+                            it->GetModel()->SetModelChain(lastName);
+                            lastName = "";
+                        }
+                        it->GetModel()->SetSmartRemote(toSR);
+                    }
+                }
+            }
+        }
+    }
+
     void SetAllModelsToReceiver(UDControllerPort* port, int from, int to)
     {
         int por = ((_port->GetPort() - 1) / 4) * 4 + 1;
@@ -909,17 +983,101 @@ public:
 
         auto location = _location * scale;
 
-        if (_over != HITLOCATION::NONE && !printing) {
+        if (_over == HITLOCATION::ALL && !printing) {
             dc.SetBrush(__dropTargetBrush);
-        }
+        } 
 
         wxSize sz = _size;
         sz = sz.Scale(scale, scale);
         dc.DrawRectangle(location + offset, sz);
 
+        if (_over != HITLOCATION::NONE && _over != HITLOCATION::ALL && !printing)
+        {
+            // need to draw partial drop over
+            if (_over == HITLOCATION::LEFT) {
+                dc.SetPen(__dropTargetPen);
+                dc.SetBrush(__dropTargetBrush);
+                wxSize ssz = wxSize((sz.x - 2) / 2, sz.y - 2);
+                dc.DrawRectangle(location + offset + wxSize(1, 1), ssz);
+            } else if (_over == HITLOCATION::RIGHT) {
+                dc.SetPen(__dropTargetPen);
+                dc.SetBrush(__dropTargetBrush);
+                wxSize ssz = wxSize((sz.x - 2) / 2, sz.y - 2);
+                dc.DrawRectangle(location + offset + wxSize((sz.x / 2), 1), ssz);
+            }
+        }
+
         wxPoint pt = location + wxSize(2, (_size.y - 2 - 3 * SRY_GAP)  * scale) + offset;
         DrawTextLimited(dc, _name, pt, sz - wxSize(4, 4));
         //pt += wxSize(0, ((VERTICAL_SIZE + SRY_GAP + SRYLABEL_SIZE) * scale) / 2);
+
+        dc.SetBrush(origBrush);
+        dc.SetPen(origPen);
+        dc.SetTextForeground(origText);
+    }
+
+    virtual void DrawIcon(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale) override
+    {
+        auto origBrush = dc.GetBrush();
+        auto origPen = dc.GetPen();
+        auto origText = dc.GetTextForeground();
+        dc.SetTextForeground(__textForeground);
+
+        dc.SetPen(*wxTRANSPARENT_PEN);
+
+        switch (_smartRemote) {
+        case 0:
+            dc.SetBrush(__modelSRNoneBrush);
+            break;
+        case 1:
+        case 7:
+        case 13:
+            dc.SetBrush(__modelSRABrush);
+            dc.SetTextForeground(__modelSRAText);
+            break;
+        case 2:
+        case 8:
+        case 14:
+            dc.SetBrush(__modelSRBBrush);
+            dc.SetTextForeground(__modelSRBText);
+            break;
+        case 3:
+        case 9:
+        case 15:
+            dc.SetBrush(__modelSRCBrush);
+            dc.SetTextForeground(__modelSRCText);
+            break;
+        case 4:
+        case 10:
+        case 16:
+            dc.SetBrush(__modelSRDBrush);
+            dc.SetTextForeground(__modelSRDText);
+            break;
+        case 5:
+        case 11:
+        case 17:
+            dc.SetBrush(__modelSREBrush);
+            dc.SetTextForeground(__modelSREText);
+            break;
+        case 6:
+        case 12:
+        case 18:
+            dc.SetBrush(__modelSRFBrush);
+            dc.SetTextForeground(__modelSRFText);
+            break;
+        default:
+            dc.SetBrush(__invalidBrush);
+            break;
+        }
+
+        auto location = _location * scale;
+
+        wxSize sz = wxSize(32,32);
+        dc.DrawRectangle(location + offset, sz);
+
+        wxPoint pt = location + wxSize(2, (sz.y - 2 - 3 * SRY_GAP) * scale) + offset;
+        DrawTextLimited(dc, _name, pt, sz - wxSize(4, 4));
+        // pt += wxSize(0, ((VERTICAL_SIZE + SRY_GAP + SRYLABEL_SIZE) * scale) / 2);
 
         dc.SetBrush(origBrush);
         dc.SetPen(origPen);
@@ -1317,12 +1475,13 @@ public:
 class CMDTextDropTarget : public wxTextDropTarget
 {
 public:
-    CMDTextDropTarget(std::list<BaseCMObject*>* objects, ControllerModelDialog* owner, wxPanel* target, bool anywhere, double& scale)
-        : _owner(owner),
+    CMDTextDropTarget(std::list<BaseCMObject*>* objects, ControllerModelDialog* owner, wxPanel* target, bool anywhere, double& scale, ControllerCaps* caps) :
+        _owner(owner),
         _scale(scale),
         _objects(objects),
         _target(target),
-        _anywhere(anywhere)
+        _anywhere(anywhere),
+            _caps(caps)
     { };
 
     virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override {
@@ -1372,31 +1531,41 @@ public:
 
         for (const auto& it : *_objects) {
             it->SetOver(BaseCMObject::HITLOCATION::NONE);
+        }
+
+        for (const auto& it : *_objects) {
             auto m = dynamic_cast<ModelCMObject*>(it);
+            auto sro = dynamic_cast<SRCMObject*>(it);
             // we can only be over a model if we are to the right of the port labels
             if (it->GetType() == "MODEL" && x > portMargin && it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE && !_owner->IsDragging(m) && (m == nullptr || m->IsMain())) {
                 it->SetOver(it->HitTest(mouse));
                 res  = wxDragMove;
+                if (port != nullptr)
+                    port->SetOver(BaseCMObject::HITLOCATION::NONE);
+                if (sr != nullptr)
+                    sr->SetOver(BaseCMObject::HITLOCATION::NONE);
                 port = nullptr;
                 sr = nullptr;
-            } else if (it->GetType() == "SR" && x > portMargin && it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE && !_owner->IsDragging(m)) {
+                break;
+            } else if (it->GetType() == "SR" && x > portMargin && it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE && !sro->IsSameRemote(_owner->GetDragging())) {
+                // if we are dragging model then it should be all ... but if it is a SR then it should be the hit test result
+                it->SetOver(BaseCMObject::HITLOCATION::ALL);
+                if (port != nullptr)
+                    port->SetOver(BaseCMObject::HITLOCATION::NONE);
                 sr = it;
                 port = nullptr;
+                res = wxDragMove;
             }
             else if (it->GetType() == "PORT" && it->HitYTest(wxPoint(x, y + _owner->GetScrollPosition(_target).y))) {
-                port = it;
-                sr = nullptr;
+                if (sr == nullptr) {
+                    it->SetOver(BaseCMObject::HITLOCATION::ALL);
+                    port = it;
+                    if (sr != nullptr)
+                        sr->SetOver(BaseCMObject::HITLOCATION::NONE);
+                    sr = nullptr;
+                    res = wxDragMove;
+                }
             }
-        }
-
-        if (res == wxDragNone && port != nullptr) {
-            port->SetOver(BaseCMObject::HITLOCATION::RIGHT);
-            res = wxDragMove;
-        }
-        else if (res == wxDragNone && sr != nullptr)
-        {
-            sr->SetOver(BaseCMObject::HITLOCATION::RIGHT);
-            res = wxDragMove;
         }
 
         _target->Refresh();
@@ -1409,6 +1578,7 @@ public:
     wxPanel* _target = nullptr;
     bool _anywhere = false;
     double& _scale;
+    ControllerCaps* _caps = nullptr;
 };
 #pragma endregion
 
@@ -1676,10 +1846,10 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 
     _caps = ControllerCaps::GetControllerConfig(_controller);
 
-    CMDTextDropTarget* cmdt = new CMDTextDropTarget(&_controllers, this, PanelController, false, _scale);
+    CMDTextDropTarget* cmdt = new CMDTextDropTarget(&_controllers, this, PanelController, false, _scale, _caps);
     PanelController->SetDropTarget(cmdt);
 
-    cmdt = new CMDTextDropTarget(&_models, this, PanelModels, true, _scale);
+    cmdt = new CMDTextDropTarget(&_models, this, PanelModels, true, _scale, _caps);
     PanelModels->SetDropTarget(cmdt);
 
     bool changed = false;
@@ -2646,12 +2816,81 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    if (name._Starts_with("SR:"))
+    {
+        // this is a SR being dropped
+
+        if (target == PanelModels) {
+            // we dont do anything
+            _lastDropped = nullptr;
+        } else {
+            // dragging a SR somewhere
+
+            auto port = GetControllerPortAtLocation(location);
+            auto sr = GetControllerSRAtLocation();
+            auto dr = dynamic_cast<SRCMObject*>(GetDragging());
+            int basePortFrom = dr->GetBasePort();
+            int srFrom = dr->GetSmartRemote();
+            int basePortTo = -1;
+            int srTo = -1;
+
+            if (sr != nullptr && !sr->IsSameRemote(GetDragging())) {
+                // dropped on another SR
+
+                // move all these models to these ports and remotes
+                basePortTo = sr->GetBasePort();
+                srTo = sr->GetSmartRemote();
+
+            } else if (port != nullptr && port->GetBasePort() != dr->GetBasePort()) {
+                // dropped on a port
+                basePortTo = port->GetBasePort();
+
+                // if port has no SR with this name or it is empty then just put all these models on these ports
+                if (port->GetModelCount(srFrom) == 0)
+                {
+                    srTo = dr->GetSmartRemote();
+                }
+                // else add this remote after the last remote on this port
+                else {
+                    if (_caps != nullptr && port->GetSmartRemoteCount() + 1 <= _caps->GetSmartRemoteCount())
+                    {
+                        srTo = port->GetSmartRemoteCount() + 1;
+                    }
+                }
+            }
+
+            if (basePortTo != -1 && srTo != -1) {
+
+                // move the models
+                for (uint8_t i = 0; i < 4; ++i) {
+                    dr->SetAllModelsToReceiver(basePortFrom + i, basePortTo + i, srFrom, srTo);
+                }
+            }
+
+            if (sr != nullptr)
+                sr->SetOver(BaseCMObject::HITLOCATION::NONE);
+            if (port != nullptr)
+                port->SetOver(BaseCMObject::HITLOCATION::NONE);
+
+            while (!_xLights->DoAllWork()) {
+                // dont get into a redraw loop from here
+                _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+            }
+            ReloadModels();
+        }
+
+        _dragStartLocation = wxPoint(-99999, -99999);
+
+        return;
+    }
+
     logger_base.debug("Model %s dropped from controllers pane.", (const char*)name.c_str());
 
     // model dragged from controllers
     auto m = _mm->GetModel(name);
     if (m == nullptr) {
         _lastDropped = nullptr;
+        _dragStartLocation = wxPoint(-99999, -99999);
         return;
     }
 
@@ -2898,7 +3137,8 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
 
     wxPoint mouse = event.GetPosition();
 
-    if (mouse.x < portMargin) return;
+    if (mouse.x < portMargin)
+        return;
 
     mouse += GetScrollPosition(PanelController);
 
@@ -2906,10 +3146,8 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
         if (it->GetType() == "MODEL" && it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE) {
             auto m = dynamic_cast<ModelCMObject*>(it);
             if (m->IsMain()) {
-
                 // when a model is clicked on then it becomes the last dropped
                 if (_lastDropped != m->GetModel()) {
-
                     // redraw the model that used to be last dropped
                     if (_lastDropped != nullptr) {
                         auto mm = GetModelsCMObject(_lastDropped);
@@ -2935,7 +3173,7 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
                 wxBitmap bmp(32, 32);
                 wxMemoryDC dc;
                 dc.SelectObject(bmp);
-                it->Draw(dc, portMargin, wxPoint(-4,-4), wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false, _lastDropped);
+                it->Draw(dc, portMargin, wxPoint(-4, -4), wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false, _lastDropped);
 
 #ifdef __linux__
                 wxIcon dragCursor;
@@ -2953,13 +3191,48 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
                     PanelModels->SetToolTip("");
                 }
 
-                _dragging = dynamic_cast<ModelCMObject*>(it);
+                _dragging = m;
 
                 dragSource.SetData(dragData);
                 dragSource.DoDragDrop(wxDragMove);
 
                 _dragging = nullptr;
             }
+            break;
+        } else if (it->GetType() == "SR" && it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE) {
+            auto sr = dynamic_cast<SRCMObject*>(it);
+
+            _dragStartLocation = mouse;
+
+            wxTextDataObject dragData("Controller:SR:" + sr->GetName());
+
+            wxBitmap bmp(32, 32);
+            wxMemoryDC dc;
+            dc.SelectObject(bmp);
+            sr->DrawIcon(dc, portMargin, wxPoint(-4, -4), wxPoint(-4, -4), wxSize(-1 * sr->GetRect().GetLeft(), -1 * sr->GetRect().GetTop()), 1);
+
+#ifdef __linux__
+            wxIcon dragCursor;
+            dragCursor.CopyFromBitmap(bmp.ConvertToImage());
+#else
+            wxCursor dragCursor(bmp.ConvertToImage());
+#endif
+
+            wxDropSource dragSource(this, dragCursor, dragCursor, dragCursor);
+
+            if (PanelController->GetToolTipText() != "") {
+                PanelController->SetToolTip("");
+            }
+            if (PanelModels->GetToolTipText() != "") {
+                PanelModels->SetToolTip("");
+            }
+
+            _dragging = sr;
+
+            dragSource.SetData(dragData);
+            dragSource.DoDragDrop(wxDragMove);
+
+            _dragging = nullptr;
             break;
         }
     }
@@ -3066,36 +3339,91 @@ void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
     mouse += GetScrollPosition(PanelController);
 
     if (_dragging != nullptr) {
-        bool handled = false;
-        // handle ports first
-        for (const auto& it : _controllers) {
-            if (it->GetType() == "PORT") {
-                auto hit = it->HitTest(mouse);
-                if (hit != BaseCMObject::HITLOCATION::NONE) {
-                    handled = true;
-                    it->SetOver(BaseCMObject::HITLOCATION::RIGHT);
-                    wxRect rect = it->GetRect();
-                    rect.Offset(-1 * GetScrollPosition(PanelController));
-                    PanelController->RefreshRect(rect);
-                } else {
-                    ClearOver(PanelController, _controllers);
-                }
-            }
-        }
-
-        // now models if not handled
-        for (const auto& it : _controllers) {
-            if (it->GetType() != "PORT") {
-                auto hit = it->HitTest(mouse);
-                if (!handled && hit != BaseCMObject::HITLOCATION::NONE) {
-                    if (it->GetOver() != hit) {
-                        it->SetOver(hit);
+        auto m = dynamic_cast<ModelCMObject*>(_dragging);
+        if (m != nullptr) {
+            bool handled = false;
+            // handle ports first
+            for (const auto& it : _controllers) {
+                if (it->GetType() == "PORT") {
+                    auto hit = it->HitTest(mouse);
+                    if (hit != BaseCMObject::HITLOCATION::NONE) {
+                        handled = true;
+                        it->SetOver(BaseCMObject::HITLOCATION::RIGHT);
                         wxRect rect = it->GetRect();
                         rect.Offset(-1 * GetScrollPosition(PanelController));
                         PanelController->RefreshRect(rect);
+                    } else {
+                        ClearOver(PanelController, _controllers);
                     }
-                } else {
-                    ClearOver(PanelController, _controllers);
+                }
+            }
+
+            // now models if not handled
+            for (const auto& it : _controllers) {
+                if (it->GetType() != "PORT") {
+                    auto hit = it->HitTest(mouse);
+                    if (!handled && hit != BaseCMObject::HITLOCATION::NONE) {
+                        if (it->GetOver() != hit) {
+                            if (it->GetType() == "SR") {
+                                // when over an SR we highlight it all
+                                it->SetOver(BaseCMObject::HITLOCATION::ALL);
+                            } else {
+                                // when over a model we just highlight the side
+                                it->SetOver(hit);
+                            }
+                            wxRect rect = it->GetRect();
+                            rect.Offset(-1 * GetScrollPosition(PanelController));
+                            PanelController->RefreshRect(rect);
+                        }
+                    } else {
+                        ClearOver(PanelController, _controllers);
+                    }
+                }
+            }
+        } else {
+            auto sr = dynamic_cast<SRCMObject*>(_dragging);
+            if (sr != nullptr) {
+                bool handled = false;
+                // handle ports first
+                for (const auto& it : _controllers) {
+                    if (it->GetType() == "PORT") {
+                        auto hit = it->HitTest(mouse);
+                        if (hit != BaseCMObject::HITLOCATION::NONE) {
+                            handled = true;
+                            it->SetOver(BaseCMObject::HITLOCATION::RIGHT);
+                            wxRect rect = it->GetRect();
+                            rect.Offset(-1 * GetScrollPosition(PanelController));
+                            PanelController->RefreshRect(rect);
+                        } else {
+                            ClearOver(PanelController, _controllers);
+                        }
+                    }
+                }
+
+                // now SRs if not handled
+                for (const auto& it : _controllers) {
+                    if (it->GetType() == "SR") {
+                        auto hit = it->HitTest(mouse);
+                        if (!handled && hit != BaseCMObject::HITLOCATION::NONE) {
+                            auto sr = static_cast<SRCMObject*>(it);
+                            // If over A or over the max SR then dont highlight an option which is not possible
+                            if (sr->GetSmartRemote() == 1 && hit == BaseCMObject::HITLOCATION::LEFT)
+                            {
+                                hit = BaseCMObject::HITLOCATION::ALL;
+                            } else if (_caps != nullptr && sr->GetSmartRemote() == _caps->GetSmartRemoteCount() && hit == BaseCMObject::HITLOCATION::RIGHT)
+                            {
+                                hit = BaseCMObject::HITLOCATION::ALL;
+                            }
+                            if (it->GetOver() != hit) {
+                                it->SetOver(hit);
+                                wxRect rect = it->GetRect();
+                                rect.Offset(-1 * GetScrollPosition(PanelController));
+                                PanelController->RefreshRect(rect);
+                            }
+                        } else {
+                            ClearOver(PanelController, _controllers);
+                        }
+                    }
                 }
             }
         }
@@ -3709,8 +4037,9 @@ void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event) {
     mouse += GetScrollPosition(PanelModels);
 
     for (const auto& it : _models) {
+        auto m = static_cast<ModelCMObject*>(it);
         if (it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE) {
-            wxTextDataObject dragData("Model:" + ((ModelCMObject*)it)->GetName());
+            wxTextDataObject dragData("Model:" + m->GetName());
 
             wxBitmap bmp(32,32);
             wxMemoryDC dc;
@@ -3726,7 +4055,7 @@ void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event) {
 
             wxDropSource dragSource(this, dragCursor, dragCursor, dragCursor);
 
-            _dragging = dynamic_cast<ModelCMObject*>(it);
+            _dragging = m;
 
             if (PanelController->GetToolTipText() != "") {
                 PanelController->SetToolTip("");
