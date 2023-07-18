@@ -221,10 +221,14 @@ wxXmlDocument* VendorMusicDialog::GetXMLFromURL(wxURI url, std::string& filename
 bool VendorMusicDialog::LoadTree(std::string hash)
 {
     const std::string vendorlink = "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
+    const std::string vendorlinkbackup = "https://github.com/smeighan/xLights/raw/master/download/xlights_vendors.xml";
     //const std::string vendorlink = "http://127.0.0.1:3000/xlights_vendors.xml";
 
     std::string filename;
     wxXmlDocument* vd = GetXMLFromURL(wxURI(vendorlink), filename);
+    if (vd == nullptr || !vd->IsOk()) {
+        vd = GetXMLFromURL(wxURI(vendorlinkbackup), filename);
+    }
     if (vd != nullptr && vd->IsOk()) {
         wxXmlNode* root = vd->GetRoot();
 
