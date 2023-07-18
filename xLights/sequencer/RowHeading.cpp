@@ -28,7 +28,7 @@
 #include "VAMPPluginDialog.h"
 #include "UtilFunctions.h"
 #include "graphics/opengl/xlGLCanvas.h"
-#include "MetronomeLabelDialog.h"
+#include "../MetronomeLabelDialog.h"
 
 #include <log4cpp/Category.hh>
 
