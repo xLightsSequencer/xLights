@@ -611,6 +611,8 @@
 		<Unit filename="MatrixFaceDownloadDialog.h" />
 		<Unit filename="MediaImportOptionsDialog.cpp" />
 		<Unit filename="MediaImportOptionsDialog.h" />
+		<Unit filename="MetronomeLabelDialog.cpp" />
+		<Unit filename="MetronomeLabelDialog.h" />
 		<Unit filename="ModelChainDialog.cpp" />
 		<Unit filename="ModelChainDialog.h" />
 		<Unit filename="ModelDimmingCurveDialog.cpp" />
@@ -1465,6 +1467,7 @@
 		<Unit filename="wxsmith/MatrixFaceDownloadDialog.wxs" />
 		<Unit filename="wxsmith/MediaImportOptionsDialog.wxs" />
 		<Unit filename="wxsmith/MeteorsPanel.wxs" />
+		<Unit filename="wxsmith/MetronomeLabelDialog.wxs" />
 		<Unit filename="wxsmith/ModelChainDialog.wxs" />
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
