@@ -51,10 +51,10 @@ const long MovingHeadPanel::ID_STATICTEXT_Groupings = wxNewId();
 const long MovingHeadPanel::ID_SLIDER_MHGroupings = wxNewId();
 const long MovingHeadPanel::ID_VALUECURVE_MHGroupings = wxNewId();
 const long MovingHeadPanel::IDD_TEXTCTRL_MHGroupings = wxNewId();
-const long MovingHeadPanel::ID_CHECKBOX_PanPosition = wxNewId();
-const long MovingHeadPanel::ID_CHECKBOX_PanPath = wxNewId();
-const long MovingHeadPanel::ID_CHECKBOX_TiltPosition = wxNewId();
-const long MovingHeadPanel::ID_CHECKBOX_TiltPath = wxNewId();
+const long MovingHeadPanel::ID_STATICTEXT_MHCycles = wxNewId();
+const long MovingHeadPanel::IDD_SLIDER_MHCycles = wxNewId();
+const long MovingHeadPanel::ID_VALUECURVE_MHCycles = wxNewId();
+const long MovingHeadPanel::ID_TEXTCTRL_MHCycles = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Position = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_MHPathContinue = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_MHPathClear = wxNewId();
@@ -68,6 +68,8 @@ const long MovingHeadPanel::ID_STATICTEXT_TimeOffset = wxNewId();
 const long MovingHeadPanel::ID_SLIDER_MHTimeOffset = wxNewId();
 const long MovingHeadPanel::ID_VALUECURVE_MHTimeOffset = wxNewId();
 const long MovingHeadPanel::IDD_TEXTCTRL_MHTimeOffset = wxNewId();
+const long MovingHeadPanel::ID_CHECKBOX_MHIgnorePan = wxNewId();
+const long MovingHeadPanel::ID_CHECKBOX_MHIgnoreTilt = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Pathing = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Control = wxNewId();
 const long MovingHeadPanel::ID_NOTEBOOK1 = wxNewId();
@@ -94,13 +96,14 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     BulkEditTextCtrlF1* TextCtrl_MHPanOffset;
     BulkEditTextCtrlF1* TextCtrl_MHTilt;
     BulkEditTextCtrlF1* TextCtrl_MHTiltOffset;
-    wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizerControl;
+    wxFlexGridSizer* FlexGridSizerCycles;
     wxFlexGridSizer* FlexGridSizerFixtures;
     wxFlexGridSizer* FlexGridSizerFixturesLabel;
     wxFlexGridSizer* FlexGridSizerFixturesSelection;
+    wxFlexGridSizer* FlexGridSizerIgnoreBoxes;
     wxFlexGridSizer* FlexGridSizerPosition;
     wxFlexGridSizer* FlexGridSizerPositionPan;
     wxFlexGridSizer* FlexGridSizerPositionTilt;
@@ -110,8 +113,6 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     wxFlexGridSizer* FlexGridSizer_PathControls;
     wxFlexGridSizer* FlexGridSizer_Positions;
     wxFlexGridSizer* FlexGridSizer_TiltOffset;
-    wxStaticBoxSizer* StaticBoxSizer_PanMode;
-    wxStaticBoxSizer* StaticBoxSizer_TiltMode;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
     FlexGridSizer_Main = new wxFlexGridSizer(0, 1, 0, 0);
@@ -164,6 +165,9 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     PanelPosition = new wxPanel(Notebook1, ID_PANEL_Position, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Position"));
     FlexGridSizerPosition = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerPosition->AddGrowableCol(0);
+    FlexGridSizerPositionCanvas = new wxFlexGridSizer(1, 1, 0, 0);
+    FlexGridSizerPositionCanvas->AddGrowableCol(0);
+    FlexGridSizerPosition->Add(FlexGridSizerPositionCanvas, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizerPositionPan = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizerPositionPan->AddGrowableCol(1);
     Label_Pan = new wxStaticText(PanelPosition, ID_STATICTEXT_Pan, _("Pan (deg):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Pan"));
@@ -219,34 +223,25 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     TextCtrl_MHGroupings = new BulkEditTextCtrl(PanelPosition, IDD_TEXTCTRL_MHGroupings, _("1"), wxDefaultPosition, wxDLG_UNIT(PanelPosition,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_MHGroupings"));
     FlexGridSizer_Groupings->Add(TextCtrl_MHGroupings, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizerPosition->Add(FlexGridSizer_Groupings, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
-    FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
-    StaticBoxSizer_PanMode = new wxStaticBoxSizer(wxHORIZONTAL, PanelPosition, _("Pan Mode"));
-    CheckBox_PanPosition = new BulkEditCheckBox(PanelPosition, ID_CHECKBOX_PanPosition, _("Position"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_PanPosition"));
-    CheckBox_PanPosition->SetValue(true);
-    StaticBoxSizer_PanMode->Add(CheckBox_PanPosition, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_PanPath = new BulkEditCheckBox(PanelPosition, ID_CHECKBOX_PanPath, _("Path"), wxDefaultPosition, wxSize(40,13), 0, wxDefaultValidator, _T("ID_CHECKBOX_PanPath"));
-    CheckBox_PanPath->SetValue(false);
-    StaticBoxSizer_PanMode->Add(CheckBox_PanPath, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(StaticBoxSizer_PanMode, 1, wxTOP|wxBOTTOM|wxRIGHT, 5);
-    StaticBoxSizer_TiltMode = new wxStaticBoxSizer(wxHORIZONTAL, PanelPosition, _("Tilt Mode"));
-    CheckBox_TiltPosition = new BulkEditCheckBox(PanelPosition, ID_CHECKBOX_TiltPosition, _("Position"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_TiltPosition"));
-    CheckBox_TiltPosition->SetValue(true);
-    StaticBoxSizer_TiltMode->Add(CheckBox_TiltPosition, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_TiltPath = new BulkEditCheckBox(PanelPosition, ID_CHECKBOX_TiltPath, _("Path"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_TiltPath"));
-    CheckBox_TiltPath->SetValue(false);
-    StaticBoxSizer_TiltMode->Add(CheckBox_TiltPath, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(StaticBoxSizer_TiltMode, 1, wxTOP|wxBOTTOM, 5);
-    FlexGridSizerPosition->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizerCycles = new wxFlexGridSizer(0, 4, 0, 0);
+    FlexGridSizerCycles->AddGrowableCol(1);
+    StaticText_MHCycles = new wxStaticText(PanelPosition, ID_STATICTEXT_MHCycles, _("Cycles:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_MHCycles"));
+    FlexGridSizerCycles->Add(StaticText_MHCycles, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+    Slider_MHCycles = new BulkEditSliderF1(PanelPosition, IDD_SLIDER_MHCycles, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_MHCycles"));
+    FlexGridSizerCycles->Add(Slider_MHCycles, 1, wxALL|wxEXPAND, 2);
+    ValueCurve_MHCycles = new BulkEditValueCurveButton(PanelPosition, ID_VALUECURVE_MHCycles, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_VALUECURVE_MHCycles"));
+    FlexGridSizerCycles->Add(ValueCurve_MHCycles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_MHCycles = new BulkEditTextCtrlF1(PanelPosition, ID_TEXTCTRL_MHCycles, _("0"), wxDefaultPosition, wxDLG_UNIT(PanelPosition,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_MHCycles"));
+    FlexGridSizerCycles->Add(TextCtrl_MHCycles, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizerPosition->Add(FlexGridSizerCycles, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     PanelPosition->SetSizer(FlexGridSizerPosition);
     FlexGridSizerPosition->Fit(PanelPosition);
     FlexGridSizerPosition->SetSizeHints(PanelPosition);
     PanelPathing = new wxPanel(Notebook1, ID_PANEL_Pathing, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Pathing"));
     FlexGridSizerPathing = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerPathing->AddGrowableCol(0);
-    FlexGridSizerPathing->AddGrowableRow(0);
     FlexGridSizerPathCanvas = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerPathCanvas->AddGrowableCol(0);
-    FlexGridSizerPathCanvas->AddGrowableRow(0);
     FlexGridSizerPathing->Add(FlexGridSizerPathCanvas, 1, wxALL|wxEXPAND, 0);
     FlexGridSizer_PathButtons = new wxFlexGridSizer(0, 4, 0, 0);
     Button_MHPathContinue = new wxButton(PanelPathing, ID_BUTTON_MHPathContinue, _("Continue"), wxDefaultPosition, wxSize(75,23), 0, wxDefaultValidator, _T("ID_BUTTON_MHPathContinue"));
@@ -281,6 +276,14 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     TextCtrl_MHTimeOffset = new BulkEditTextCtrlF1(PanelPathing, IDD_TEXTCTRL_MHTimeOffset, _("0"), wxDefaultPosition, wxDLG_UNIT(PanelPathing,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_MHTimeOffset"));
     FlexGridSizer_PathControls->Add(TextCtrl_MHTimeOffset, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizerPathing->Add(FlexGridSizer_PathControls, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizerIgnoreBoxes = new wxFlexGridSizer(0, 3, 0, 0);
+    CheckBox_MHIgnorePan = new BulkEditCheckBox(PanelPathing, ID_CHECKBOX_MHIgnorePan, _("Ignore Pan"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_MHIgnorePan"));
+    CheckBox_MHIgnorePan->SetValue(false);
+    FlexGridSizerIgnoreBoxes->Add(CheckBox_MHIgnorePan, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_MHIgnoreTilt = new BulkEditCheckBox(PanelPathing, ID_CHECKBOX_MHIgnoreTilt, _("Ignore Tilt"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_MHIgnoreTilt"));
+    CheckBox_MHIgnoreTilt->SetValue(false);
+    FlexGridSizerIgnoreBoxes->Add(CheckBox_MHIgnoreTilt, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerPathing->Add(FlexGridSizerIgnoreBoxes, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     PanelPathing->SetSizer(FlexGridSizerPathing);
     FlexGridSizerPathing->Fit(PanelPathing);
     FlexGridSizerPathing->SetSizeHints(PanelPathing);
@@ -327,19 +330,19 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_BUTTON_None,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_NoneClick);
     Connect(ID_BUTTON_Evens,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_EvensClick);
     Connect(ID_BUTTON_Odds,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_OddsClick);
-    Connect(ID_CHECKBOX_PanPosition,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_PanPositionClick);
-    Connect(ID_CHECKBOX_PanPath,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_PanPathClick);
-    Connect(ID_CHECKBOX_TiltPosition,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_TiltPositionClick);
-    Connect(ID_CHECKBOX_TiltPath,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_TiltPathClick);
     Connect(ID_BUTTON_MHPathContinue,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_MHPathContinueClick);
     Connect(ID_BUTTON_MHPathClear,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_MHPathClearClick);
     Connect(ID_BUTTON_MHPathClose,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_MHPathCloseClick);
+    Connect(ID_CHECKBOX_MHIgnorePan,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHIgnorePanClick);
+    Connect(ID_CHECKBOX_MHIgnoreTilt,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHIgnoreTiltClick);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&MovingHeadPanel::OnNotebook1PageChanged);
     //*)
 
     SetName("ID_PANEL_MOVINGHEAD");
 
     // canvas
+    m_movingHeadCanvasPanel = new MovingHeadCanvasPanel(this, PanelPosition, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
+    FlexGridSizerPositionCanvas->Add(m_movingHeadCanvasPanel, 0, wxALL | wxEXPAND);
     m_sketchCanvasPanel = new SketchCanvasPanel(this, PanelPathing, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
     FlexGridSizerPathCanvas->Add(m_sketchCanvasPanel, 0, wxALL | wxEXPAND);
 
@@ -356,6 +359,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_VALUECURVE_MHGroupings,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_MHTimeOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_MHPathScale,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_MHCycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MovingHeadPanel::OnVCChanged, nullptr, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&MovingHeadPanel::OnValidateWindow, nullptr, this);
@@ -376,6 +380,8 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     ValueCurve_MHTimeOffset->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
     ValueCurve_MHTimeOffset->GetValue()->SetLimits(MOVING_HEAD_SCALE_MIN, MOVING_HEAD_SCALE_MAX);
     ValueCurve_MHTimeOffset->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
+    ValueCurve_MHCycles->GetValue()->SetLimits(MOVING_HEAD_CYCLES_MIN, MOVING_HEAD_CYCLES_MAX);
+    ValueCurve_MHCycles->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
 
 
     ValidateWindow();
@@ -389,18 +395,36 @@ MovingHeadPanel::~MovingHeadPanel()
 
 void MovingHeadPanel::OnResize(wxSizeEvent& event)
 {
-    wxSize old_sz = m_sketchCanvasPanel->GetSize();
+    bool update_sizes = false;
 
-    if( old_sz.GetWidth() > 270 ) {
+    if( Notebook1->GetSelection() == 1 ) {
+        wxSize old_sz = m_sketchCanvasPanel->GetSize();
+        if( old_sz.GetWidth() > 270 ) {
+            update_sizes = true;
+        }
+    } else {
+        wxSize old_sz = m_movingHeadCanvasPanel->GetSize();
+        if( old_sz.GetWidth() > 270 ) {
+            update_sizes = true;
+        }
+    }
+
+    if( update_sizes ) {
         m_sketchCanvasPanel->SetMinSize(wxSize(-1, -1));
+        m_movingHeadCanvasPanel->SetMinSize(wxSize(-1, -1));
         Layout();
     }
 
-
     // set height to match width
-    wxSize sz = m_sketchCanvasPanel->GetSize();
-    sz.SetHeight(sz.GetWidth());
-    m_sketchCanvasPanel->SetMinSize(sz);
+    wxSize new_size;
+    if( Notebook1->GetSelection() == 1 ) {
+        new_size = m_sketchCanvasPanel->GetSize();
+    } else {
+        new_size = m_movingHeadCanvasPanel->GetSize();
+    }
+    new_size.SetHeight(new_size.GetWidth());
+    m_movingHeadCanvasPanel->SetMinSize(new_size);
+    m_sketchCanvasPanel->SetMinSize(new_size);
     Layout();
     Refresh();
 }
@@ -424,7 +448,17 @@ void MovingHeadPanel::OnVCChanged(wxCommandEvent& event)
 
 void MovingHeadPanel::OnSliderUpdated(wxCommandEvent& event)
 {
+    int event_id = event.GetId();
     UpdateMHSettings();
+    if (event_id == ID_SLIDER_MHPan ||
+        event_id == ID_SLIDER_MHTilt )
+    {
+        float pan = 0.0f;
+        float tilt = 0.0f;
+        GetPosition("Pan", pan);
+        GetPosition("Tilt", tilt);
+        UpdatePositionCanvas(pan, tilt);
+    }
 }
 
 void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
@@ -449,6 +483,21 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
                 selected_path = 0;
                 m_sketchCanvasPanel->UpdateHandlesForPath(0);
             }
+        }
+    }
+    if( event_id == IDD_TEXTCTRL_MHPan ) {
+        float pan = 0.0f;
+        float tilt = 0.0f;
+        if( GetPosition("Pan", pan) ) {
+            GetPosition("Tilt", tilt);
+            UpdatePositionCanvas(pan, tilt);
+        }
+    } else if( event_id == IDD_TEXTCTRL_MHTilt ) {
+        float pan = 0.0f;
+        float tilt = 0.0f;
+        if( GetPosition("Tilt", tilt) ) {
+            GetPosition("Pan", pan);
+            UpdatePositionCanvas(pan, tilt);
         }
     }
 }
@@ -492,26 +541,35 @@ void MovingHeadPanel::UpdateMHSettings()
         if( checkbox != nullptr ) {
             if( checkbox->IsChecked() ) {
                 std::string mh_settings = xlEMPTY_STRING;
-                bool is_path = false;
+                bool is_pan_path = false;
+                bool is_tilt_path = false;
 
-                // Add pan settings
-                checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_PanPath"));
+                // See if pan path is ignored
+                checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_MHIgnorePan"));
                 if( checkbox != nullptr ) {
-                    if( checkbox->IsChecked() ) {
-                        is_path = true;
+                    if( !checkbox->IsChecked() ) {
+                        is_pan_path = true;
                     }
                 }
-                AddSetting( "Pan", "Pan", mh_settings, is_path );
 
-                // Add tilt settings
-                is_path = false;
-                checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_TiltPath"));
+                // See if tilt path is ignored
+                checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_MHIgnoreTilt"));
                 if( checkbox != nullptr ) {
-                    if( checkbox->IsChecked() ) {
-                        is_path = true;
+                    if( !checkbox->IsChecked() ) {
+                        is_tilt_path = true;
                     }
                 }
-                AddSetting( "Tilt", "Tilt", mh_settings, is_path );
+
+                // See if there are any path segments if either axis is active
+                if( is_pan_path || is_tilt_path ) {
+                    if( m_sketch.getLength() <= 0.0 ) {
+                        is_pan_path = false;
+                        is_tilt_path = false;
+                    }
+                }
+
+                AddSetting( "Pan", "Pan", mh_settings, is_pan_path );
+                AddSetting( "Tilt", "Tilt", mh_settings, is_tilt_path );
 
                 // add common settings
                 AddSetting( "PanOffset", "PanOffset", mh_settings, false );
@@ -521,7 +579,7 @@ void MovingHeadPanel::UpdateMHSettings()
                 mh_settings += headset;
 
                 // add path only settings
-                if( is_path ) {
+                if( is_pan_path || is_tilt_path ) {
                     AddSetting( "TimeOffset", "TimeOffset", mh_settings, false );
                     AddSetting( "PathScale", "PathScale", mh_settings, false );
                 }
@@ -702,31 +760,15 @@ std::list<Model*> MovingHeadPanel::GetActiveModels()
     return res;
 }
 
-void MovingHeadPanel::OnCheckBox_PanPositionClick(wxCommandEvent& event)
+void MovingHeadPanel::OnCheckBox_MHIgnorePanClick(wxCommandEvent& event)
 {
-    CheckBox_PanPosition->SetValue(event.GetInt());
-    CheckBox_PanPath->SetValue(!event.GetInt());
+    CheckBox_MHIgnorePan->SetValue(event.GetInt());
     UpdateMHSettings();
 }
 
-void MovingHeadPanel::OnCheckBox_PanPathClick(wxCommandEvent& event)
+void MovingHeadPanel::OnCheckBox_MHIgnoreTiltClick(wxCommandEvent& event)
 {
-    CheckBox_PanPosition->SetValue(!event.GetInt());
-    CheckBox_PanPath->SetValue(event.GetInt());
-    UpdateMHSettings();
-}
-
-void MovingHeadPanel::OnCheckBox_TiltPositionClick(wxCommandEvent& event)
-{
-    CheckBox_TiltPosition->SetValue(event.GetInt());
-    CheckBox_TiltPath->SetValue(!event.GetInt());
-    UpdateMHSettings();
-}
-
-void MovingHeadPanel::OnCheckBox_TiltPathClick(wxCommandEvent& event)
-{
-    CheckBox_TiltPosition->SetValue(!event.GetInt());
-    CheckBox_TiltPath->SetValue(event.GetInt());
+    CheckBox_MHIgnoreTilt->SetValue(event.GetInt());
     UpdateMHSettings();
 }
 
@@ -797,10 +839,63 @@ void MovingHeadPanel::OnButton_MHPathClearClick(wxCommandEvent& event)
 {
     m_sketchCanvasPanel->ResetHandlesState(SketchCanvasPathState::DefineStartPoint);
     NotifySketchUpdated();
+    m_sketchCanvasPanel->Changed();
 }
 
 void MovingHeadPanel::OnButton_MHPathCloseClick(wxCommandEvent& event)
 {
     m_sketchCanvasPanel->ClosePath();
     NotifySketchUpdated();
+    m_sketchCanvasPanel->Changed();
+}
+
+void MovingHeadPanel::NotifyPositionUpdated()
+{
+    wxPoint2DDouble pt = m_movingHeadCanvasPanel->GetPosition();
+    float pos_x = pt.m_x * 360.0f - 180.0f;
+    float pos_y = -pt.m_y * 360.0f + 180.0f;
+    UpdateTextbox("Pan", pos_x);
+    UpdateTextbox("Tilt", pos_y);
+}
+
+void MovingHeadPanel::UpdatePositionCanvas(float pan, float tilt)
+{
+    wxPoint2DDouble new_pos;
+    new_pos.m_x = (pan + 180.0f) / 360.0f;
+    new_pos.m_y = (180.0f - tilt) / 360.0f;
+    m_movingHeadCanvasPanel->SetPosition(new_pos);
+}
+
+void MovingHeadPanel::UpdateTextbox(const std::string& ctrl_name, float pos)
+{
+    wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("IDD_TEXTCTRL_MH" + ctrl_name));
+    if( textbox != nullptr ) {
+        if( !textbox->IsEnabled() ) {
+            textbox->Enable();
+            BulkEditSliderF1* slider = (BulkEditSliderF1*)(this->FindWindowByName("ID_SLIDER_MH" + ctrl_name));
+            if( slider != nullptr ) {
+                slider->Enable();
+            }
+            BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MH" + ctrl_name));
+            if( vc_button != nullptr ) {
+                vc_button->Disable();
+            }
+        }
+        wxString new_pos = wxString::Format("%3.1f", pos);
+        textbox->SetValue(new_pos);
+    }
+}
+
+bool MovingHeadPanel::GetPosition(const std::string& ctrl_name, float& pos)
+{
+    bool ret_val = false;
+    wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("IDD_TEXTCTRL_MH" + ctrl_name));
+    BulkEditSliderF1* slider = (BulkEditSliderF1*)(this->FindWindowByName("ID_SLIDER_MH" + ctrl_name));
+    if( slider != nullptr && textbox != nullptr ) {
+        if( slider->HasFocus() || textbox->HasFocus() ) {
+            ret_val = true;
+        }
+        pos = wxAtof(textbox->GetValue());
+    }
+    return ret_val;
 }

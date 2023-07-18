@@ -65,15 +65,16 @@ void MovingHeadEffect::SetDefaultParameters() {
 
     SetSliderValue(dp->Slider_MHPan, 0);
     SetSliderValue(dp->Slider_MHTilt, 0);
+    SetSliderValue(dp->Slider_MHCycles, 10);
 
     dp->ValueCurve_MHPan->SetActive(false);
     dp->ValueCurve_MHTilt->SetActive(false);
+    dp->ValueCurve_MHCycles->SetActive(false);
 }
 
 void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    double eff_pos = buffer.GetEffectTimeIntervalPosition();
-    //float pan_pos = GetValueCurveDouble("Pan", 0, SettingsMap, eff_pos, MOVING_HEAD_MIN, MOVING_HEAD_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), MOVING_HEAD_DIVISOR);
-    //float tilt_pos = GetValueCurveDouble("Tilt", 0, SettingsMap, eff_pos, MOVING_HEAD_MIN, MOVING_HEAD_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), MOVING_HEAD_DIVISOR);
+    double cycles = GetValueCurveDouble("MHCycles", 1.0, SettingsMap, 0.0f, MOVING_HEAD_CYCLES_MIN, MOVING_HEAD_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), MOVING_HEAD_DIVISOR);
+    double eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
 
     if (buffer.cur_model == "") {
         return;
@@ -227,7 +228,7 @@ void MovingHeadEffect::GetPathPosition(wxPoint2DDouble& pt, double eff_pos, cons
     std::string path_def = SettingsMap["TEXTCTRL_MHPathDef"];
     if( path_def != xlEMPTY_STRING ) {
         SketchEffectSketch sketch(SketchEffectSketch::SketchFromString(path_def));
-        sketch.GetProgressPosition(eff_pos, pt.m_x, pt.m_y);
+        sketch.getProgressPosition(eff_pos, pt.m_x, pt.m_y);
     }
 }
 
@@ -242,12 +243,13 @@ void MovingHeadEffect::CalculatePosition(int location, float& position, wxArrayS
 
     // calculate the slot number within the group
     float slot = (float)locations[location];
+    float center = (float)(groupings > 1 ? groupings : heads.size()) / 2.0f + 0.5;
     if( groupings > 1 ) {
         slot = (float)((locations[location]-1) % groupings + 1);
     }
-    float center = (float)(groupings > 1 ? groupings : heads.size()) / 2.0f + 0.5;
     delta = slot - center;
     position = delta * offset + position;
+    delta = slot - 1; // normalize to 0 to pass along for time_offset
 }
 
 void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const SettingsMap &SettingsMap)
@@ -257,24 +259,24 @@ void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_pa
         SketchEffectSketch sketch(SketchEffectSketch::SketchFromString(path_def));
         wxPoint2DDouble pt;
         double progress_pos = eff_pos + ((delta * time_offset) / 100.0f);
-        if( progress_pos > 1.0f ) {
-            int prog1 = (int)(progress_pos * 100.0f);
+        if( abs(progress_pos) > 1.0f ) {
+            int prog1 = (int)(abs(progress_pos) * 100.0f);
             prog1 = prog1 % 100;
             progress_pos = (double)(prog1 / 100.0f);
         }
-        sketch.GetProgressPosition(progress_pos, pt.m_x, pt.m_y);
+        sketch.getProgressPosition(progress_pos, pt.m_x, pt.m_y);
         glm::vec3 point;
         float scale = 180.0f;
         float new_scale = path_scale;
         if( new_scale >= 0.0f ) {
             new_scale += 1.0f;
         } else {
-            new_scale = 1.0f / new_scale;
+            new_scale = 1.0f / abs(new_scale);
         }
         point.x = (pt.m_x - 0.5f) * scale * new_scale;
         point.y = scale / 2.0f;
         point.z = (0.5f - pt.m_y) * scale * new_scale;
-        
+
         glm::vec4 position = glm::vec4(point, 1.0);
         glm::mat4 rotationMatrixPan = glm::rotate(glm::mat4(1.0f), glm::radians(pan_pos), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 rotationMatrixTilt = glm::rotate(glm::mat4(1.0f), glm::radians(tilt_pos), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -301,7 +303,7 @@ void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_pa
             } else if( path_position.z < -0.0001f ) {
                 new_tilt = -90.0f;
             }
-        } else if( abs(path_position.x) > 0.0001f ) {
+        } else if( abs(hyp) > 0.0001f ) {
             new_tilt = atan2(hyp, path_position.y) * 180.0f / PI;
         }
         
@@ -413,4 +415,3 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
     p->FlexGridSizer_Main->Layout();
     p->Refresh();
 }
-

@@ -21,6 +21,8 @@
 #define MOVING_HEAD_TIME_MAX 1000
 #define MOVING_HEAD_SCALE_MIN -100
 #define MOVING_HEAD_SCALE_MAX 100
+#define MOVING_HEAD_CYCLES_MIN 0
+#define MOVING_HEAD_CYCLES_MAX 100
 
 class DmxMotor;
 
@@ -63,6 +65,8 @@ public:
             return MOVING_HEAD_TIME_MIN;
         if (name == "E_VALUECURVE_MHPathScale")
             return MOVING_HEAD_SCALE_MIN;
+        if (name == "E_VALUECURVE_MHCycles")
+            return MOVING_HEAD_CYCLES_MIN;
         return RenderableEffect::GetSettingVCMin(name);
     }
     virtual double GetSettingVCMax(const std::string& name) const override
@@ -85,6 +89,8 @@ public:
             return MOVING_HEAD_TIME_MAX;
         if (name == "E_VALUECURVE_MHPathScale")
             return MOVING_HEAD_SCALE_MAX;
+        if (name == "E_VALUECURVE_MHCycles")
+            return MOVING_HEAD_CYCLES_MAX;
         return RenderableEffect::GetSettingVCMax(name);
     }
     virtual int GetSettingVCDivisor(const std::string& name) const override
@@ -104,6 +110,8 @@ public:
         if (name == "E_VALUECURVE_MHTimeOffset")
             return MOVING_HEAD_DIVISOR;
         if (name == "E_VALUECURVE_MHPathScale")
+            return MOVING_HEAD_DIVISOR;
+        if (name == "E_VALUECURVE_MHCycles")
             return MOVING_HEAD_DIVISOR;
         return RenderableEffect::GetSettingVCDivisor(name);
     }

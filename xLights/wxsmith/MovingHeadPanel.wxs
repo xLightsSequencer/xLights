@@ -166,6 +166,16 @@
 								<cols>1</cols>
 								<growablecols>0</growablecols>
 								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerPositionCanvas" member="yes">
+										<cols>1</cols>
+										<rows>1</rows>
+										<growablecols>0</growablecols>
+									</object>
+									<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizerPositionPan" member="no">
 										<cols>4</cols>
 										<growablecols>1</growablecols>
@@ -387,65 +397,45 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-										<cols>3</cols>
+									<object class="wxFlexGridSizer" variable="FlexGridSizerCycles" member="no">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
 										<object class="sizeritem">
-											<object class="wxStaticBoxSizer" variable="StaticBoxSizer_PanMode" member="no">
-												<label>Pan Mode</label>
-												<object class="sizeritem">
-													<object class="wxCheckBox" name="ID_CHECKBOX_PanPosition" subclass="BulkEditCheckBox" variable="CheckBox_PanPosition" member="yes">
-														<label>Position</label>
-														<checked>1</checked>
-														<handler function="OnCheckBox_PanPositionClick" entry="EVT_CHECKBOX" />
-													</object>
-													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
-												<object class="sizeritem">
-													<object class="wxCheckBox" name="ID_CHECKBOX_PanPath" subclass="BulkEditCheckBox" variable="CheckBox_PanPath" member="yes">
-														<label>Path</label>
-														<size>40,13</size>
-														<handler function="OnCheckBox_PanPathClick" entry="EVT_CHECKBOX" />
-													</object>
-													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
+											<object class="wxStaticText" name="ID_STATICTEXT_MHCycles" variable="StaticText_MHCycles" member="yes">
+												<label>Cycles:</label>
 											</object>
-											<flag>wxTOP|wxBOTTOM|wxRIGHT</flag>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="IDD_SLIDER_MHCycles" subclass="BulkEditSliderF1" variable="Slider_MHCycles" member="yes">
+												<value>10</value>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MHCycles" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHCycles" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxStaticBoxSizer" variable="StaticBoxSizer_TiltMode" member="no">
-												<label>Tilt Mode</label>
-												<object class="sizeritem">
-													<object class="wxCheckBox" name="ID_CHECKBOX_TiltPosition" subclass="BulkEditCheckBox" variable="CheckBox_TiltPosition" member="yes">
-														<label>Position</label>
-														<checked>1</checked>
-														<handler function="OnCheckBox_TiltPositionClick" entry="EVT_CHECKBOX" />
-													</object>
-													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
-												<object class="sizeritem">
-													<object class="wxCheckBox" name="ID_CHECKBOX_TiltPath" subclass="BulkEditCheckBox" variable="CheckBox_TiltPath" member="yes">
-														<label>Path</label>
-														<handler function="OnCheckBox_TiltPathClick" entry="EVT_CHECKBOX" />
-													</object>
-													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_MHCycles" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHCycles" member="yes">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
 											</object>
-											<flag>wxTOP|wxBOTTOM</flag>
-											<border>5</border>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxEXPAND</flag>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -458,13 +448,11 @@
 							<object class="wxFlexGridSizer" variable="FlexGridSizerPathing" member="yes">
 								<cols>1</cols>
 								<growablecols>0</growablecols>
-								<growablerows>0</growablerows>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizerPathCanvas" member="yes">
 										<cols>1</cols>
 										<rows>1</rows>
 										<growablecols>0</growablecols>
-										<growablerows>0</growablerows>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<option>1</option>
@@ -599,6 +587,32 @@
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerIgnoreBoxes" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_MHIgnorePan" subclass="BulkEditCheckBox" variable="CheckBox_MHIgnorePan" member="yes">
+												<label>Ignore Pan</label>
+												<handler function="OnCheckBox_MHIgnorePanClick" entry="EVT_CHECKBOX" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_MHIgnoreTilt" subclass="BulkEditCheckBox" variable="CheckBox_MHIgnoreTilt" member="yes">
+												<label>Ignore Tilt</label>
+												<handler function="OnCheckBox_MHIgnoreTiltClick" entry="EVT_CHECKBOX" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>

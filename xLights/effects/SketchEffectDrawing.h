@@ -33,7 +33,7 @@ public:
                                     double endPercentage) const = 0;
     virtual bool HitTest(const wxPoint2DDouble& pt) const = 0;
     virtual void ReverseSegment() = 0;
-    virtual void GetProgressPosition( double partialLength, double& x, double& y ) = 0;
+    virtual void getProgressPosition( double partialLength, double& x, double& y ) = 0;
 };
 
 // A path is simply a collection of segments. If there are at least two segments,
@@ -53,7 +53,7 @@ public:
                          double endPercentage) const;
     void reversePath();
 
-    void GetProgressPosition( double progress, double& x, double& y );
+    void getProgressPosition( double progress, double& x, double& y );
 
     const std::vector<std::shared_ptr<SketchPathSegment>>& segments() const
     {
@@ -104,7 +104,8 @@ public:
     void deletePath(int pathIndex);
     void swapPaths(int pathIndex0, int pathIndex1);
     
-    void GetProgressPosition( double progress, double& x, double& y );
+    void getProgressPosition( double progress, double& x, double& y );
+    double getLength();
 
 protected:
     std::vector<std::shared_ptr<SketchEffectPath>> m_paths;
@@ -143,7 +144,7 @@ public:
                             double endPercentage) const override;
     bool HitTest(const wxPoint2DDouble& pt) const override;
     void ReverseSegment() override;
-    void GetProgressPosition( double partialLength, double& x, double& y ) override;
+    void getProgressPosition( double partialLength, double& x, double& y ) override;
 
 protected:
     wxPoint2DDouble m_fromPt;
@@ -184,7 +185,7 @@ public:
                             double endPercentage) const override;
     bool HitTest(const wxPoint2DDouble& pt) const override;
     void ReverseSegment() override;
-    void GetProgressPosition( double partialLength, double& x, double& y ) override;
+    void getProgressPosition( double partialLength, double& x, double& y ) override;
 
     wxPoint2DDouble ControlPoint() const
     {
@@ -237,7 +238,7 @@ public:
                             double endPercentage) const override;
     bool HitTest(const wxPoint2DDouble& pt) const override;
     void ReverseSegment() override;
-    void GetProgressPosition( double partialLength, double& x, double& y ) override;
+    void getProgressPosition( double partialLength, double& x, double& y ) override;
 
     wxPoint2DDouble ControlPoint1() const
     {

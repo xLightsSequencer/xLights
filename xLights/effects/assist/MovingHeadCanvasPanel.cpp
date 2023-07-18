@@ -6,11 +6,17 @@
 namespace
 {
     const int BorderWidth = 5;
+    const float box_size = 0.02f;
+    const float snap_zone = 0.015f;
+    const float gap_degrees = 45.0f;
+    const float line_gap = gap_degrees / 360.0f;
+    const float num_lines = 1.0f / line_gap - 1;
 }
 
 BEGIN_EVENT_TABLE(MovingHeadCanvasPanel, wxPanel)
     EVT_PAINT(MovingHeadCanvasPanel::OnMovingHeadPaint)
     EVT_LEFT_DOWN(MovingHeadCanvasPanel::OnMovingHeadLeftDown)
+    EVT_LEFT_UP(MovingHeadCanvasPanel::OnMovingHeadLeftUp)
     EVT_MOTION(MovingHeadCanvasPanel::OnMovingHeadMouseMove)
     EVT_ENTER_WINDOW(MovingHeadCanvasPanel::OnMovingHeadEntered)
 END_EVENT_TABLE()
@@ -37,12 +43,12 @@ void MovingHeadCanvasPanel::OnMovingHeadPaint(wxPaintEvent& /*event*/)
     pdc.SetPen(*wxLIGHT_GREY_PEN);
     pdc.DrawRectangle(borderRect);
     
-    for( int i = 0; i < 9; ++i ) {
-        wxPoint2DDouble start_x(0.1 * (float)i + 0.1, 0);
-        wxPoint2DDouble end_x(0.1 * (float)i + 0.1, 1);
-        wxPoint2DDouble start_y(0, 0.1 * (float)i + 0.1);
-        wxPoint2DDouble end_y(1, 0.1 * (float)i + 0.1);
-        if( i == 4 ) {
+    for( int i = 0; i < num_lines; ++i ) {
+        wxPoint2DDouble start_x(line_gap * ((float)i + 1.0f), 0);
+        wxPoint2DDouble end_x(line_gap * ((float)i + 1.0f), 1);
+        wxPoint2DDouble start_y(0, line_gap * ((float)i + 1.0f));
+        wxPoint2DDouble end_y(1, line_gap * ((float)i + 1.0f));
+        if( i == (num_lines-1) / 2 ) {
             pdc.SetPen(*wxGREY_PEN);
         } else {
             pdc.SetPen(*wxLIGHT_GREY_PEN);
@@ -53,21 +59,21 @@ void MovingHeadCanvasPanel::OnMovingHeadPaint(wxPaintEvent& /*event*/)
     
     pdc.SetPen(*wxRED_PEN);
     wxPoint2DDouble lstart_x(0, m_mousePos.m_y);
-    wxPoint2DDouble lend_x(m_mousePos.m_x-2.0f, m_mousePos.m_y);
-    wxPoint2DDouble rstart_x(m_mousePos.m_x+2.0f, m_mousePos.m_y);
+    wxPoint2DDouble lend_x(m_mousePos.m_x-box_size, m_mousePos.m_y);
+    wxPoint2DDouble rstart_x(m_mousePos.m_x+box_size, m_mousePos.m_y);
     wxPoint2DDouble rend_x(1.0f, m_mousePos.m_y);
     pdc.DrawLine(NormalizedToUI2(lstart_x), NormalizedToUI2(lend_x));
     pdc.DrawLine(NormalizedToUI2(rstart_x), NormalizedToUI2(rend_x));
     wxPoint2DDouble tstart_y(m_mousePos.m_x, 0);
-    wxPoint2DDouble tend_y(m_mousePos.m_x, m_mousePos.m_y-2.0f);
-    wxPoint2DDouble bstart_y(m_mousePos.m_x, m_mousePos.m_y+2.0f);
+    wxPoint2DDouble tend_y(m_mousePos.m_x, m_mousePos.m_y-box_size);
+    wxPoint2DDouble bstart_y(m_mousePos.m_x, m_mousePos.m_y+box_size);
     wxPoint2DDouble bend_y(m_mousePos.m_x, 1.0f);
     pdc.DrawLine(NormalizedToUI2(tstart_y), NormalizedToUI2(tend_y));
     pdc.DrawLine(NormalizedToUI2(bstart_y), NormalizedToUI2(bend_y));
-    wxPoint2DDouble top_left_corner(m_mousePos.m_x-2.0f, m_mousePos.m_y-2.0f);
-    wxPoint2DDouble top_right_corner(m_mousePos.m_x+2.0f, m_mousePos.m_y-2.0f);
-    wxPoint2DDouble bot_left_corner(m_mousePos.m_x-2.0f, m_mousePos.m_y+2.0f);
-    wxPoint2DDouble bot_right_corner(m_mousePos.m_x+2.0f, m_mousePos.m_y+2.0f);
+    wxPoint2DDouble top_left_corner(m_mousePos.m_x-box_size, m_mousePos.m_y-box_size);
+    wxPoint2DDouble top_right_corner(m_mousePos.m_x+box_size, m_mousePos.m_y-box_size);
+    wxPoint2DDouble bot_left_corner(m_mousePos.m_x-box_size, m_mousePos.m_y+box_size);
+    wxPoint2DDouble bot_right_corner(m_mousePos.m_x+box_size, m_mousePos.m_y+box_size);
     pdc.DrawLine(NormalizedToUI2(top_left_corner), NormalizedToUI2(top_right_corner));
     pdc.DrawLine(NormalizedToUI2(top_right_corner), NormalizedToUI2(bot_right_corner));
     pdc.DrawLine(NormalizedToUI2(bot_right_corner), NormalizedToUI2(bot_left_corner));
@@ -76,7 +82,20 @@ void MovingHeadCanvasPanel::OnMovingHeadPaint(wxPaintEvent& /*event*/)
 
 void MovingHeadCanvasPanel::SetPosition(wxPoint2DDouble pos)
 {
+    m_mousePos = pos;
+    Refresh();
+}
 
+void MovingHeadCanvasPanel::SnapToLines(wxPoint2DDouble& pos)
+{
+    float snap_x = round(pos.m_x / line_gap) * line_gap;
+    float snap_y = round(pos.m_y / line_gap) * line_gap;
+    if( abs(pos.m_x - snap_x) < snap_zone ) {
+        pos.m_x = snap_x;
+    }
+    if( abs(pos.m_y - snap_y) < snap_zone ) {
+        pos.m_y = snap_y;
+    }
 }
 
 void MovingHeadCanvasPanel::OnMovingHeadLeftDown(wxMouseEvent& event)
@@ -84,16 +103,27 @@ void MovingHeadCanvasPanel::OnMovingHeadLeftDown(wxMouseEvent& event)
     wxAffineMatrix2D m;
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
     m_mousePos = UItoNormalized(ptUI);
+    SnapToLines(m_mousePos);
     m_movingHeadCanvasParent->NotifyPositionUpdated();
+    Refresh();
+    m_mouseDown = true;
+}
+
+void MovingHeadCanvasPanel::OnMovingHeadLeftUp(wxMouseEvent& event)
+{
+    m_mouseDown = false;
 }
 
 void MovingHeadCanvasPanel::OnMovingHeadMouseMove(wxMouseEvent& event)
 {
     wxAffineMatrix2D m;
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
-    m_mousePos = UItoNormalized(ptUI);
-    m_movingHeadCanvasParent->NotifyPositionUpdated();
-    Refresh();
+    if( m_mouseDown ) {
+        m_mousePos = UItoNormalized(ptUI);
+        SnapToLines(m_mousePos);
+        m_movingHeadCanvasParent->NotifyPositionUpdated();
+        Refresh();
+    }
 }
 
 void MovingHeadCanvasPanel::OnMovingHeadEntered(wxMouseEvent& /*event*/)

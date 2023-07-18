@@ -637,7 +637,15 @@ void SketchEffectSketch::swapPaths(int pathIndex0, int pathIndex1)
     std::swap(m_paths[pathIndex0], m_paths[pathIndex1]);
 }
 
-void SketchEffectSketch::GetProgressPosition( double progress, double& x, double& y )
+double SketchEffectSketch::getLength()
+{
+    double totalLength = 0.;
+    for (const auto& path : m_paths)
+        totalLength += path->Length();
+    return totalLength;
+}
+
+void SketchEffectSketch::getProgressPosition( double progress, double& x, double& y )
 {
     double totalLength = 0.;
     for (const auto& path : m_paths)
@@ -651,7 +659,7 @@ void SketchEffectSketch::GetProgressPosition( double progress, double& x, double
             // find the segment target falls inside
             for(const auto& segment : path->segments() ) {
                 if( segment->Length() >= targetLength ) {
-                    segment->GetProgressPosition( targetLength, x, y );
+                    segment->getProgressPosition( targetLength, x, y );
                     return;
                 } else {
                     targetLength -= segment->Length();
@@ -663,19 +671,19 @@ void SketchEffectSketch::GetProgressPosition( double progress, double& x, double
     }
 }
 
-void SketchLine::GetProgressPosition( double partialLength, double& x, double& y )
+void SketchLine::getProgressPosition( double partialLength, double& x, double& y )
 {
     double percent = partialLength / Length();
     x = m_fromPt.m_x + percent * (m_toPt.m_x - m_fromPt.m_x);
     y = m_fromPt.m_y + percent * (m_toPt.m_y - m_fromPt.m_y);
 }
 
-void SketchQuadraticBezier::GetProgressPosition( double partialLength, double& x, double& y )
+void SketchQuadraticBezier::getProgressPosition( double partialLength, double& x, double& y )
 {
     bezierProgressPosition(m_fromPt, m_cp, m_toPt,partialLength, x, y);
 }
 
-void SketchCubicBezier::GetProgressPosition( double partialLength, double& x, double& y )
+void SketchCubicBezier::getProgressPosition( double partialLength, double& x, double& y )
 {
     bezierProgressPosition(m_fromPt, m_cp1, m_cp2, m_toPt, partialLength, x, y);
 }

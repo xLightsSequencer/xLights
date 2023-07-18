@@ -15,12 +15,13 @@
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
+#include "MovingHeadCanvasPanel.h"
 #include "SketchCanvasPanel.h"
 #include "SketchEffectDrawing.h"
 
 class Model;
 
-class MovingHeadPanel: public xlEffectPanel, public ISketchCanvasParent
+class MovingHeadPanel: public xlEffectPanel, public IMovingHeadCanvasParent, public ISketchCanvasParent
 {
 public:
     
@@ -29,19 +30,20 @@ public:
     virtual void ValidateWindow() override;
 
     //(*Declarations(MovingHeadPanel)
-    BulkEditCheckBox* CheckBox_PanPath;
-    BulkEditCheckBox* CheckBox_PanPosition;
-    BulkEditCheckBox* CheckBox_TiltPath;
-    BulkEditCheckBox* CheckBox_TiltPosition;
+    BulkEditCheckBox* CheckBox_MHIgnorePan;
+    BulkEditCheckBox* CheckBox_MHIgnoreTilt;
     BulkEditSlider* Slider_MHGroupings;
+    BulkEditSliderF1* Slider_MHCycles;
     BulkEditSliderF1* Slider_MHPan;
     BulkEditSliderF1* Slider_MHPanOffset;
     BulkEditSliderF1* Slider_MHPathScale;
     BulkEditSliderF1* Slider_MHTilt;
     BulkEditSliderF1* Slider_MHTiltOffset;
     BulkEditSliderF1* Slider_MHTimeOffset;
+    BulkEditTextCtrlF1* TextCtrl_MHCycles;
     BulkEditTextCtrlF1* TextCtrl_MHPathScale;
     BulkEditTextCtrlF1* TextCtrl_MHTimeOffset;
+    BulkEditValueCurveButton* ValueCurve_MHCycles;
     BulkEditValueCurveButton* ValueCurve_MHGroupings;
     BulkEditValueCurveButton* ValueCurve_MHPan;
     BulkEditValueCurveButton* ValueCurve_MHPanOffset;
@@ -66,6 +68,7 @@ public:
     wxCheckBox* CheckBox_MH8;
     wxFlexGridSizer* FlexGridSizerPathCanvas;
     wxFlexGridSizer* FlexGridSizerPathing;
+    wxFlexGridSizer* FlexGridSizerPositionCanvas;
     wxFlexGridSizer* FlexGridSizer_Main;
     wxNotebook* Notebook1;
     wxPanel* PanelControl;
@@ -79,6 +82,7 @@ public:
     wxStaticText* Label_TimeOffset;
     wxStaticText* StaticTextFixtures;
     wxStaticText* StaticText_Groupings;
+    wxStaticText* StaticText_MHCycles;
     wxTextCtrl* TextCtrl_MH1_Settings;
     wxTextCtrl* TextCtrl_MH2_Settings;
     wxTextCtrl* TextCtrl_MH3_Settings;
@@ -126,10 +130,10 @@ protected:
     static const long ID_SLIDER_MHGroupings;
     static const long ID_VALUECURVE_MHGroupings;
     static const long IDD_TEXTCTRL_MHGroupings;
-    static const long ID_CHECKBOX_PanPosition;
-    static const long ID_CHECKBOX_PanPath;
-    static const long ID_CHECKBOX_TiltPosition;
-    static const long ID_CHECKBOX_TiltPath;
+    static const long ID_STATICTEXT_MHCycles;
+    static const long IDD_SLIDER_MHCycles;
+    static const long ID_VALUECURVE_MHCycles;
+    static const long ID_TEXTCTRL_MHCycles;
     static const long ID_PANEL_Position;
     static const long ID_BUTTON_MHPathContinue;
     static const long ID_BUTTON_MHPathClear;
@@ -143,6 +147,8 @@ protected:
     static const long ID_SLIDER_MHTimeOffset;
     static const long ID_VALUECURVE_MHTimeOffset;
     static const long IDD_TEXTCTRL_MHTimeOffset;
+    static const long ID_CHECKBOX_MHIgnorePan;
+    static const long ID_CHECKBOX_MHIgnoreTilt;
     static const long ID_PANEL_Pathing;
     static const long ID_PANEL_Control;
     static const long ID_NOTEBOOK1;
@@ -169,13 +175,11 @@ private:
     void OnButton_OddsClick(wxCommandEvent& event);
     void OnButton_MHLeftClick(wxCommandEvent& event);
     void OnButton_MHRightClick(wxCommandEvent& event);
-    void OnCheckBox_PanPositionClick(wxCommandEvent& event);
-    void OnCheckBox_PanPathClick(wxCommandEvent& event);
-    void OnCheckBox_TiltPositionClick(wxCommandEvent& event);
-    void OnCheckBox_TiltPathClick(wxCommandEvent& event);
     void OnButton_MHPathContinueClick(wxCommandEvent& event);
     void OnButton_MHPathClearClick(wxCommandEvent& event);
     void OnButton_MHPathCloseClick(wxCommandEvent& event);
+    void OnCheckBox_MHIgnorePanClick(wxCommandEvent& event);
+    void OnCheckBox_MHIgnoreTiltClick(wxCommandEvent& event);
     //*)
     
     DECLARE_EVENT_TABLE()
@@ -189,6 +193,9 @@ private:
     void OnSliderUpdated(wxCommandEvent& event);
     void OnTextCtrlUpdated(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);
+    void UpdateTextbox(const std::string& ctrl_name, float pos);
+    bool GetPosition(const std::string& ctrl_name, float& pos);
+    void UpdatePositionCanvas(float pan, float tilt);
 
 //***************************************************
 // Pathing support
@@ -205,12 +212,15 @@ public:
     void NotifyPathStateUpdated(SketchCanvasPathState state) override;
     void SelectLastPath() override;
     void SetSketchDef(const std::string& sketchDef);
+    
+    void NotifyPositionUpdated() override;
 
 private:
     bool canContinuePath() const;
     void OnCharHook(wxKeyEvent& event);
     void OnResize(wxSizeEvent& event);
 
+    MovingHeadCanvasPanel* m_movingHeadCanvasPanel = nullptr;
     SketchCanvasPanel* m_sketchCanvasPanel = nullptr;
     std::string m_sketchDef;
     SketchEffectSketch m_sketch;
@@ -222,7 +232,6 @@ private:
     wxImage m_bgImage;
     unsigned char m_bitmapAlpha = 0x30;
     int m_pathIndexToDelete = -1;
-
 };
 
 #endif

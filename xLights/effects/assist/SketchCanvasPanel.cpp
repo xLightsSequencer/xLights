@@ -863,3 +863,18 @@ void SketchCanvasPanel::ClosePath()
         }
     }
 }
+
+bool SketchCanvasPanel::hasPath()
+{
+    SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
+    auto pathIndex = m_sketchCanvasParent->GetSelectedPathIndex();
+    if (pathIndex < 0 || pathIndex >= sketch.pathCount())
+        return false;
+    auto paths(sketch.paths());
+    return paths[pathIndex]->segments().size() > 0;
+}
+
+void SketchCanvasPanel::Changed()
+{
+    Refresh();
+}
