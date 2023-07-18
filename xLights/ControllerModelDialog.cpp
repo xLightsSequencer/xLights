@@ -2816,7 +2816,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (name._Starts_with("SR:"))
+    if (StartsWith(name, "SR:"))
     {
         // this is a SR being dropped
 
