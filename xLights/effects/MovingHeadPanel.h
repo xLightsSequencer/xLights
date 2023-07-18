@@ -43,7 +43,6 @@ public:
     BulkEditTextCtrlF1* TextCtrl_MHCycles;
     BulkEditTextCtrlF1* TextCtrl_MHPathScale;
     BulkEditTextCtrlF1* TextCtrl_MHTimeOffset;
-    BulkEditValueCurveButton* ValueCurve_MHCycles;
     BulkEditValueCurveButton* ValueCurve_MHGroupings;
     BulkEditValueCurveButton* ValueCurve_MHPan;
     BulkEditValueCurveButton* ValueCurve_MHPanOffset;
@@ -132,7 +131,6 @@ protected:
     static const long IDD_TEXTCTRL_MHGroupings;
     static const long ID_STATICTEXT_MHCycles;
     static const long IDD_SLIDER_MHCycles;
-    static const long ID_VALUECURVE_MHCycles;
     static const long ID_TEXTCTRL_MHCycles;
     static const long ID_PANEL_Position;
     static const long ID_BUTTON_MHPathContinue;

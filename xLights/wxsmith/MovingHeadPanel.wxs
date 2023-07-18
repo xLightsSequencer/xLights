@@ -416,10 +416,7 @@
 											<border>2</border>
 											<option>1</option>
 										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_VALUECURVE_MHCycles" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHCycles" member="yes">
-												<bitmap code="GetValueCurveNotSelectedBitmap()" />
-											</object>
+										<object class="spacer">
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>

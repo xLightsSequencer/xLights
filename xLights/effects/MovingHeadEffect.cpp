@@ -69,11 +69,10 @@ void MovingHeadEffect::SetDefaultParameters() {
 
     dp->ValueCurve_MHPan->SetActive(false);
     dp->ValueCurve_MHTilt->SetActive(false);
-    dp->ValueCurve_MHCycles->SetActive(false);
 }
 
 void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    double cycles = GetValueCurveDouble("MHCycles", 1.0, SettingsMap, 0.0f, MOVING_HEAD_CYCLES_MIN, MOVING_HEAD_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), MOVING_HEAD_DIVISOR);
+    double cycles = SettingsMap.GetDouble("TEXTCTRL_MHCycles", 1.0);
     double eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
 
     if (buffer.cur_model == "") {

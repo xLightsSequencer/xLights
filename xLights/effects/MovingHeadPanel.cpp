@@ -53,7 +53,6 @@ const long MovingHeadPanel::ID_VALUECURVE_MHGroupings = wxNewId();
 const long MovingHeadPanel::IDD_TEXTCTRL_MHGroupings = wxNewId();
 const long MovingHeadPanel::ID_STATICTEXT_MHCycles = wxNewId();
 const long MovingHeadPanel::IDD_SLIDER_MHCycles = wxNewId();
-const long MovingHeadPanel::ID_VALUECURVE_MHCycles = wxNewId();
 const long MovingHeadPanel::ID_TEXTCTRL_MHCycles = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Position = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_MHPathContinue = wxNewId();
@@ -229,8 +228,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerCycles->Add(StaticText_MHCycles, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_MHCycles = new BulkEditSliderF1(PanelPosition, IDD_SLIDER_MHCycles, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_MHCycles"));
     FlexGridSizerCycles->Add(Slider_MHCycles, 1, wxALL|wxEXPAND, 2);
-    ValueCurve_MHCycles = new BulkEditValueCurveButton(PanelPosition, ID_VALUECURVE_MHCycles, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_VALUECURVE_MHCycles"));
-    FlexGridSizerCycles->Add(ValueCurve_MHCycles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerCycles->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_MHCycles = new BulkEditTextCtrlF1(PanelPosition, ID_TEXTCTRL_MHCycles, _("0"), wxDefaultPosition, wxDLG_UNIT(PanelPosition,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_MHCycles"));
     FlexGridSizerCycles->Add(TextCtrl_MHCycles, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizerPosition->Add(FlexGridSizerCycles, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
@@ -359,7 +357,6 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_VALUECURVE_MHGroupings,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_MHTimeOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_MHPathScale,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
-    Connect(ID_VALUECURVE_MHCycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MovingHeadPanel::OnVCChanged, nullptr, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&MovingHeadPanel::OnValidateWindow, nullptr, this);
@@ -380,9 +377,6 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     ValueCurve_MHTimeOffset->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
     ValueCurve_MHTimeOffset->GetValue()->SetLimits(MOVING_HEAD_SCALE_MIN, MOVING_HEAD_SCALE_MAX);
     ValueCurve_MHTimeOffset->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
-    ValueCurve_MHCycles->GetValue()->SetLimits(MOVING_HEAD_CYCLES_MIN, MOVING_HEAD_CYCLES_MAX);
-    ValueCurve_MHCycles->GetValue()->SetDivisor(MOVING_HEAD_DIVISOR);
-
 
     ValidateWindow();
 }
