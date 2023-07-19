@@ -63,10 +63,10 @@ MetronomeLabelDialog::MetronomeLabelDialog(int base_timing, wxWindow* parent,wxW
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
-	SpinCtrlTiming->SetMin(base_timing);
+	SpinCtrlTiming->SetRange(base_timing, SpinCtrlTiming->GetMax());
 	SpinCtrlTiming->SetValue( 10 * base_timing);
 
-    SetEscapeId(wxID_CANCEL);
+	SetEscapeId(wxID_CANCEL);
 }
 
 MetronomeLabelDialog::~MetronomeLabelDialog()
