@@ -474,8 +474,12 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
             if( m_sketchDef == xlEMPTY_STRING ) {
                 m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::DefineStartPoint);
             } else {
-                selected_path = 0;
-                m_sketchCanvasPanel->UpdateHandlesForPath(0);
+                if( m_sketch.paths().size() > 0 ) {
+                    selected_path = 0;
+                    m_sketchCanvasPanel->UpdateHandlesForPath(0);
+                } else {
+                    selected_path = -1;
+                }
             }
         }
     }
@@ -802,12 +806,18 @@ void MovingHeadPanel::NotifySketchUpdated()
 {
     m_sketchDef = m_sketch.toString();
     TextCtrl_MHPathDef->SetValue(m_sketchDef);
+    UpdateMHSettings();
     if (m_sketchUpdateCB != nullptr)
         m_sketchUpdateCB(m_sketchDef, m_bgImagePath, m_bitmapAlpha);
 }
 
 void MovingHeadPanel::NotifySketchPathsUpdated()
 {
+    if( m_sketch.paths().size() > 0 ) {
+        selected_path = 0;
+    } else {
+        selected_path = -1;
+    }
 }
 
 void MovingHeadPanel::NotifyPathStateUpdated(SketchCanvasPathState state)
@@ -832,7 +842,9 @@ void MovingHeadPanel::OnButton_MHPathContinueClick(wxCommandEvent& event)
 void MovingHeadPanel::OnButton_MHPathClearClick(wxCommandEvent& event)
 {
     m_sketchCanvasPanel->ResetHandlesState(SketchCanvasPathState::DefineStartPoint);
+    SetSketchDef(xlEMPTY_STRING);
     NotifySketchUpdated();
+    NotifySketchPathsUpdated();
     m_sketchCanvasPanel->Changed();
 }
 
@@ -872,7 +884,7 @@ void MovingHeadPanel::UpdateTextbox(const std::string& ctrl_name, float pos)
             }
             BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MH" + ctrl_name));
             if( vc_button != nullptr ) {
-                vc_button->Disable();
+                vc_button->ToggleActive();
             }
         }
         wxString new_pos = wxString::Format("%3.1f", pos);

@@ -10,7 +10,7 @@ namespace
     const float snap_zone = 0.015f;
     const float gap_degrees = 45.0f;
     const float line_gap = gap_degrees / 360.0f;
-    const float num_lines = 1.0f / line_gap - 1;
+    const float num_lines = 1.0f / line_gap;
 }
 
 BEGIN_EVENT_TABLE(MovingHeadCanvasPanel, wxPanel)
@@ -31,32 +31,31 @@ MovingHeadCanvasPanel::MovingHeadCanvasPanel(IMovingHeadCanvasParent* movingHead
 
 void MovingHeadCanvasPanel::OnMovingHeadPaint(wxPaintEvent& /*event*/)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxAutoBufferedPaintDC pdc(this);
     wxSize sz(GetSize());
-    wxRect borderRect(BorderWidth, BorderWidth, sz.GetWidth() - 2 * BorderWidth - 2, sz.GetHeight() - 2 * BorderWidth - 2);
-    wxRect bgRect(wxRect(borderRect).Deflate(1, 1));
 
     pdc.SetPen(*wxWHITE_PEN);
     pdc.SetBrush(*wxWHITE_BRUSH);
     pdc.DrawRectangle(wxPoint(0, 0), sz);
-
-    pdc.SetPen(*wxLIGHT_GREY_PEN);
-    pdc.DrawRectangle(borderRect);
     
-    for( int i = 0; i < num_lines; ++i ) {
-        wxPoint2DDouble start_x(line_gap * ((float)i + 1.0f), 0);
-        wxPoint2DDouble end_x(line_gap * ((float)i + 1.0f), 1);
-        wxPoint2DDouble start_y(0, line_gap * ((float)i + 1.0f));
-        wxPoint2DDouble end_y(1, line_gap * ((float)i + 1.0f));
-        if( i == (num_lines-1) / 2 ) {
+    for( int i = 0; i <= num_lines; ++i ) {
+        wxPoint2DDouble start_x(line_gap * (float)i, 0);
+        wxPoint2DDouble end_x(line_gap * (float)i, 1);
+        wxPoint2DDouble start_y(0, line_gap * (float)i);
+        wxPoint2DDouble end_y(1, line_gap * (float)i);
+        if( i == (num_lines) / 2 ) {
             pdc.SetPen(*wxGREY_PEN);
         } else {
             pdc.SetPen(*wxLIGHT_GREY_PEN);
         }
+        wxPoint xyz1 = NormalizedToUI2(start_y);
+        wxPoint xyz2 = NormalizedToUI2(end_y);
+        logger_base.debug("x1: %d  x2: %d\n", xyz1.x, xyz2.y);
         pdc.DrawLine(NormalizedToUI2(start_x), NormalizedToUI2(end_x));
         pdc.DrawLine(NormalizedToUI2(start_y), NormalizedToUI2(end_y));
     }
-    
+
     pdc.SetPen(*wxRED_PEN);
     wxPoint2DDouble lstart_x(0, m_mousePos.m_y);
     wxPoint2DDouble lend_x(m_mousePos.m_x-box_size, m_mousePos.m_y);
@@ -136,7 +135,7 @@ void MovingHeadCanvasPanel::OnMovingHeadEntered(wxMouseEvent& /*event*/)
 wxPoint2DDouble MovingHeadCanvasPanel::UItoNormalized(const wxPoint2DDouble& pt) const
 {
     wxPoint o(BorderWidth + 1, BorderWidth + 1);
-    wxSize sz(GetSize() - wxSize(2 * BorderWidth - 2, 2 * BorderWidth - 2));
+    wxSize sz(GetSize() - wxSize(2 * BorderWidth + 2, 2 * BorderWidth + 2));
 
     double x = double(pt.m_x - o.x) / sz.GetWidth();
     double y = double(pt.m_y - o.y) / sz.GetHeight();
@@ -147,7 +146,7 @@ wxPoint2DDouble MovingHeadCanvasPanel::UItoNormalized(const wxPoint2DDouble& pt)
 wxPoint2DDouble MovingHeadCanvasPanel::NormalizedToUI(const wxPoint2DDouble& pt) const
 {
     wxPoint o(BorderWidth + 1, BorderWidth + 1);
-    wxSize sz(GetSize() - wxSize(2 * BorderWidth - 2, 2 * BorderWidth - 2));
+    wxSize sz(GetSize() - wxSize(2 * BorderWidth + 2, 2 * BorderWidth + 2));
 
     double x = pt.m_x * sz.GetWidth();
     double y = pt.m_y * sz.GetHeight();

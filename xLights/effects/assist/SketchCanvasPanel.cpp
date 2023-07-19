@@ -731,6 +731,7 @@ void SketchCanvasPanel::UpdatePathFromHandles()
 
     auto path = std::make_shared<SketchEffectPath>();
     auto startPt = m_handles.front().pt;
+    int final_handle = 0;
     for (size_t i = 1; i < m_handles.size();) {
         std::shared_ptr<SketchPathSegment> segment;
         switch (m_handles[i].handlePointType) {
@@ -739,11 +740,15 @@ void SketchCanvasPanel::UpdatePathFromHandles()
             ++i;
             break;
         case QuadraticControlPt:
-            segment = std::make_shared<SketchQuadraticBezier>(startPt, m_handles[i].pt, m_handles[i + 1].pt);
+            if( !m_pathClosed || (i < m_handles.size() - 1) ) {
+                segment = std::make_shared<SketchQuadraticBezier>(startPt, m_handles[i].pt, m_handles[i + 1].pt);
+            }
             i += 2;
             break;
         case CubicControlPt1:
-            segment = std::make_shared<SketchCubicBezier>(startPt, m_handles[i].pt, m_handles[i + 1].pt, m_handles[i + 2].pt);
+            if( !m_pathClosed || (i < m_handles.size() - 1) ) {
+                segment = std::make_shared<SketchCubicBezier>(startPt, m_handles[i].pt, m_handles[i + 1].pt, m_handles[i + 2].pt);
+            }
             i += 3;
             break;
         default:
@@ -752,6 +757,8 @@ void SketchCanvasPanel::UpdatePathFromHandles()
         path->appendSegment(segment);
         startPt = segment->EndPoint();
     }
+    if (m_pathClosed)
+        path->closePath(true, m_ClosedState);
 
     sketch.updatePath(pathIndex, path);
     m_sketchCanvasParent->NotifySketchUpdated();
@@ -762,39 +769,40 @@ std::shared_ptr<SketchEffectPath> SketchCanvasPanel::CreatePathFromHandles() con
     if (m_handles.size() < 2)
         return nullptr;
 
+    int final_handle = 0;
     auto path = std::make_shared<SketchEffectPath>();
     for (size_t index = 0; index < m_handles.size() - 1;) {
         std::shared_ptr<SketchPathSegment> segment;
 
         switch (m_handles[index + 1].handlePointType) {
         case Point:
-            segment = std::make_shared<SketchLine>(m_handles[index].pt, m_handles[index + 1].pt);
+            final_handle = index + 1;
+            if( m_pathClosed && (index == m_handles.size() - 1) ) {
+                final_handle = 0;
+            }
+            segment = std::make_shared<SketchLine>(m_handles[index].pt, m_handles[final_handle].pt);
             ++index;
             break;
         case QuadraticControlPt:
-            {
-                int final_handle = index + 2;
-                if( m_pathClosed && (index == m_handles.size() - 2) ) {
-                    final_handle = 0;
-                }
-                segment = std::make_shared<SketchQuadraticBezier>(m_handles[index].pt,
-                                                                  m_handles[index + 1].pt,
-                                                                  m_handles[final_handle].pt);
-                index += 2;
+            final_handle = index + 2;
+            if( m_pathClosed && (index == m_handles.size() - 2) ) {
+                final_handle = 0;
             }
+            segment = std::make_shared<SketchQuadraticBezier>(m_handles[index].pt,
+                                                              m_handles[index + 1].pt,
+                                                              m_handles[final_handle].pt);
+            index += 2;
             break;
         case CubicControlPt1:
-            {
-                int final_handle = index + 3;
-                if( m_pathClosed && (index == m_handles.size() - 3) ) {
-                    final_handle = 0;
-                }
-                segment = std::make_shared<SketchCubicBezier>(m_handles[index].pt,
-                                                              m_handles[index + 1].pt,
-                                                              m_handles[index + 2].pt,
-                                                              m_handles[final_handle].pt);
-                index += 3;
+            final_handle = index + 3;
+            if( m_pathClosed && (index == m_handles.size() - 3) ) {
+                final_handle = 0;
             }
+            segment = std::make_shared<SketchCubicBezier>(m_handles[index].pt,
+                                                          m_handles[index + 1].pt,
+                                                          m_handles[index + 2].pt,
+                                                          m_handles[final_handle].pt);
+            index += 3;
             break;
         default:
             break;
@@ -862,16 +870,6 @@ void SketchCanvasPanel::ClosePath()
             paths[pathIndex]->closePath(true, m_ClosedState);
         }
     }
-}
-
-bool SketchCanvasPanel::hasPath()
-{
-    SketchEffectSketch& sketch(m_sketchCanvasParent->GetSketch());
-    auto pathIndex = m_sketchCanvasParent->GetSelectedPathIndex();
-    if (pathIndex < 0 || pathIndex >= sketch.pathCount())
-        return false;
-    auto paths(sketch.paths());
-    return paths[pathIndex]->segments().size() > 0;
 }
 
 void SketchCanvasPanel::Changed()

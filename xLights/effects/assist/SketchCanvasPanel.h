@@ -48,7 +48,6 @@ public:
         return true;
     }
 
-    bool hasPath();
     void Changed();
     void clearBackgroundBitmap();
     void setBackgroundBitmap(std::unique_ptr<wxBitmap> bm);
