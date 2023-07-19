@@ -38,7 +38,6 @@ void xlDo_Output(const std::string& script, const std::string& resp, bool verbos
         wxFile f(script, wxFile::write);
 
         if (f.IsOpened()) {
-
             if (isJson) {
                 wxJSONValue val;
                 wxJSONReader reader;
@@ -48,7 +47,7 @@ void xlDo_Output(const std::string& script, const std::string& resp, bool verbos
                         #ifndef __WXMSW__
                             set = "EXPORT";
                         #endif
-                        std::string c;
+                        wxString c;
                         if (val[it].IsString()) {
                             c = wxString::Format("%s %s=%s\n", set, it, val[it].AsString());
                         } else if (val[it].IsLong()) {
@@ -146,7 +145,7 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
                     return 1;
                 }
 #elif defined(__WXOSX__)
-                std::string p = wxStandardPaths::Get().GetExecutablePath();
+                std::string p = ToUTF8(wxStandardPaths::Get().GetExecutablePath());
                 int idx = p.find_last_of('/');
                 p = p.substr(0, idx);
                 idx = p.find_last_of('/');
@@ -199,7 +198,7 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
         mime = "application/json";
         isJsonResp = true;
     } else {
-        url += command;
+        url += ToUTF8(command);
         command = "";
     }
     //30 minute timeout?  Some of the automations like batchRender may take a LONG time

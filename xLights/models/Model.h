@@ -621,7 +621,7 @@ public:
         std::string res;
         for (const auto it : layerSizes) {
             if (res != "") res += ",";
-            res += wxString::Format("%d", it);
+            res += std::to_string(it);
         }
         return res;
     }
