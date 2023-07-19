@@ -926,7 +926,7 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     if (IsFPPProxyable()) {
         p = propertyGrid->Append(new wxStringProperty("FPP Proxy IP/Hostname", "FPPProxy", GetControllerFPPProxy()));
         p->SetHelpString("This is typically the WIFI IP of a FPP instance that bridges two networks.");
-        if (GetControllerFPPProxy() == _ip) {
+        if (!GetControllerFPPProxy().empty() && (GetControllerFPPProxy() == _ip || !ip_utils::IsIPValidOrHostname(GetControllerFPPProxy()))) {
             p->SetBackgroundColour(*wxRED);
         }
         else {
@@ -1388,6 +1388,15 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
                     p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
                 }
             }
+        }
+    }
+
+    if (IsFPPProxyable()) {
+        p = propGrid->GetPropertyByName("FPPProxy");
+        if (!GetControllerFPPProxy().empty() && (GetControllerFPPProxy() == _ip || !ip_utils::IsIPValidOrHostname(GetControllerFPPProxy()))) {
+            p->SetBackgroundColour(*wxRED);
+        } else {
+            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
 }
