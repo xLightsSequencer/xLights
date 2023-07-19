@@ -1,4 +1,7 @@
-models_str = RunCommand('getModels', {})
+properties2 = {}
+properties2['groups'] = "false"
+
+models_str = RunCommand('getModels', properties2)
 models = models_str['models']
 
 sel_model = PromptSelection(models,'Select Model')

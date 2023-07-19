@@ -612,7 +612,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
 
             // if fpp dir and show dir match then start with the fseq in the current dir ... only if that does not exist take the one from the show dir
             // this is consistent with the code in SaveSequence
-            std::string fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
+            wxString fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
             if (frame->GetFseqDirectory() != frame->GetShowDirectory() || !FileExists(fseqName)) {
                 fseqName = frame->GetFseqDirectory() + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
             }
@@ -626,19 +626,19 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                 if (!FileExists(mediaName)) {
                     wxFileName fn(mediaName);
                     for (auto &md : frame->GetMediaFolders()) {
-                        std::string tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
+                        wxString tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
                         if (FileExists(tmn)) {
-                            mediaName = tmn;
+                            mediaName = ToUTF8(tmn);
                             break;
                         }
                     }
                     if (!FileExists(mediaName)) {
-                        const std::string fixedMN = FixFile(frame->CurrentDir, mediaName);
+                        const wxString fixedMN = FixFile(frame->CurrentDir, mediaName);
                         if (!FileExists(fixedMN)) {
                             logger_base.info("Could not find media: %s ", mediaName.c_str());
                             mediaName = "";
                         } else {
-                            mediaName = fixedMN;
+                            mediaName = ToUTF8(fixedMN);
                         }
                     }
                 }
@@ -713,7 +713,7 @@ void FPPConnectDialog::LoadSequences()
         if (!found && FileExists(v)) {
             wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), v);
             DisplayDateModified(v, item);
-            FSEQFile *file = FSEQFile::openFSEQFile(v);
+            FSEQFile *file = FSEQFile::openFSEQFile(v.ToStdString());
             if (file != nullptr) {
                 for (auto& header : file->getVariableHeaders()) {
                     if (header.code[0] == 'm' && header.code[1] == 'f') {
@@ -854,19 +854,20 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     row = 0;
     for (const auto& inst : instances) {
         if (!cancelled && doUpload[row]) {
-            std::string rowStr = std::to_string(row);
             // update the channel ranges now that the config has been uploaded an fppd restarted
             inst->UpdateChannelRanges();
         }
+        row++;
     }
+    row = 0;
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED) {
+            wxString fseqRaw = CheckListBox_Sequences->GetItemText(item);
+            std::string fseq = ToUTF8(fseqRaw);
+            std::string media = ToUTF8(CheckListBox_Sequences->GetItemText(item, 2));
 
-            std::string fseq = CheckListBox_Sequences->GetItemText(item);
-            std::string media = CheckListBox_Sequences->GetItemText(item, 2);
-
-            FSEQFile *seq = FSEQFile::openFSEQFile(fseq);
+            FSEQFile *seq = FSEQFile::openFSEQFile(fseqRaw.ToStdString());
             if (seq) {
                 row = 0;
                 int uploadCount = 0;
@@ -902,7 +903,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                 }
                 if (!cancelled && uploadCount) {
                     prgs.SetTitle("Generating FSEQ Files");
-                    cancelled |= !prgs.Update(0, "Generating " + wxFileName(fseq).GetFullName());
+                    cancelled |= !prgs.Update(0, "Generating " + wxFileName(ToWXString(fseq)).GetFullName());
                     prgs.Show();
                     int lastDone = 0;
                     static const int FRAMES_TO_BUFFER = 50;
@@ -915,7 +916,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         int donePct = frame * 1000 / seq->getNumFrames();
                         if (donePct != lastDone) {
                             lastDone = donePct;
-                            cancelled |= !prgs.Update(donePct, "Generating " + wxFileName(fseq).GetFullName());
+                            cancelled |= !prgs.Update(donePct, "Generating " + wxFileName(ToWXString(fseq)).GetFullName());
                             wxYield();
                         }
 
@@ -1079,7 +1080,7 @@ void FPPConnectDialog::CreateDriveList()
     for (const auto& a : drives) {
         FPP *inst = new FPP();
         inst->hostName = "FPP";
-        inst->ipAddress = a;
+        inst->ipAddress = ToUTF8(a);
         inst->minorVersion = 0;
         inst->majorVersion = 2;
         inst->fullVersion = "Unknown";
@@ -1090,13 +1091,13 @@ void FPPConnectDialog::CreateDriveList()
             wxJSONReader reader;
             wxString str;
             wxString drive = a;
-            if (!ObtainAccessToURL(drive)) {
+            if (!ObtainAccessToURL(ToUTF8(drive))) {
                 wxDirDialog dlg(this, "Select FPP Directory", drive,
                                 wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
                 if (dlg.ShowModal() == wxID_OK) {
                     drive = dlg.GetPath();
                 }
-                if (!ObtainAccessToURL(drive)) {
+                if (!ObtainAccessToURL(ToUTF8(drive))) {
                     continue;
                 }
             }
@@ -1110,16 +1111,16 @@ void FPPConnectDialog::CreateDriveList()
             reader.Parse(str, &system);
 
             if (!system["hostname"].IsNull()) {
-                inst->hostName = system["hostname"].AsString();
+                inst->hostName = ToUTF8(system["hostname"].AsString());
             }
             if (!system["type"].IsNull()) {
-                inst->platform = system["type"].AsString();
+                inst->platform = ToUTF8(system["type"].AsString());
             }
             if (!system["model"].IsNull()) {
-                inst->model = system["model"].AsString();
+                inst->model = ToUTF8(system["model"].AsString());
             }
             if (!system["version"].IsNull()) {
-                inst->fullVersion = system["version"].AsString();
+                inst->fullVersion = ToUTF8(system["version"].AsString());
             }
             if (system["minorVersion"].IsInt()) {
                 inst->minorVersion = system["minorVersion"].AsInt();
@@ -1128,13 +1129,13 @@ void FPPConnectDialog::CreateDriveList()
                 inst->majorVersion = system["majorVersion"].AsInt();
             }
             if (!system["channelRanges"].IsNull()) {
-                inst->ranges = system["channelRanges"].AsString();
+                inst->ranges = ToUTF8(system["channelRanges"].AsString());
             }
             if (!system["HostDescription"].IsNull()) {
-                inst->description = system["HostDescription"].AsString();
+                inst->description = ToUTF8(system["HostDescription"].AsString());
             }
             if (!system["fppModeString"].IsNull()) {
-                inst->mode = system["fppModeString"].AsString();
+                inst->mode = ToUTF8(system["fppModeString"].AsString());
             }
         }
         instances.push_back(inst);
@@ -1167,32 +1168,32 @@ std::string FPPConnectDialog::GetChoiceValue(const std::string &col) {
     if (w) {
         wxComboBox *comboBox = dynamic_cast<wxComboBox*>(w);
         if (comboBox) {
-            return comboBox->GetValue();
+            return ToStdString(comboBox->GetValue());
         }
 
         wxItemContainer *cb = dynamic_cast<wxItemContainer*>(w);
         if (cb) {
-            return cb->GetStringSelection();
+            return ToStdString(cb->GetStringSelection());
         }
     }
     return "";
 }
 
 void FPPConnectDialog::SetChoiceValueIndex(const std::string &col, int i) {
-    wxWindow *w = FPPInstanceList->FindWindow(col);
+    wxWindow *w = FPPInstanceList->FindWindow(ToWXString(col));
     if (w) {
         wxItemContainer *cb = dynamic_cast<wxItemContainer*>(w);
         if (cb) {
-            return cb->SetSelection(i);
+            cb->SetSelection(i);
         }
     }
 }
 void FPPConnectDialog::SetCheckValue(const std::string &col, bool b) {
-    wxWindow *w = FPPInstanceList->FindWindow(col);
+    wxWindow *w = FPPInstanceList->FindWindow(ToWXString(col));
     if (w) {
         wxCheckBox *cb = dynamic_cast<wxCheckBox*>(w);
         if (cb) {
-            return cb->SetValue(b);
+            cb->SetValue(b);
         }
     }
 
@@ -1309,7 +1310,7 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
 {
     wxTextEntryDialog dlg(this, "Find FPP Instance", "Enter IP address or hostname for FPP Instance");
     if (dlg.ShowModal() == wxID_OK && ip_utils::IsIPValidOrHostname(dlg.GetValue().ToStdString())) {
-        std::string ipAd = dlg.GetValue().ToStdString();
+        std::string ipAd = ToStdString(dlg.GetValue());
         int curSize = instances.size();
 
         wxProgressDialog prgs("Gathering configuration for " + ipAd,
@@ -1395,7 +1396,7 @@ void FPPConnectDialog::GetFolderList(const wxString& folder)
     }
 }
 
-void FPPConnectDialog::DisplayDateModified(std::string const& filePath, wxTreeListItem &item) const
+void FPPConnectDialog::DisplayDateModified(const wxString& filePath, wxTreeListItem &item) const
 {
     if (FileExists(filePath)) {
         wxDateTime last_modified_time(wxFileModificationTime(filePath));

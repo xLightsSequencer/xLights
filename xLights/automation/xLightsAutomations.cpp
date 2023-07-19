@@ -847,7 +847,19 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         return sendResponse(response, "", 200, true);
     } else if (cmd == "getModels") {
         std::string models;
+        bool includeModels {true};
+        bool includeGroups {true};
+        auto sModels = params["models"];
+        auto sGroups = params["groups"];
+        includeModels = sModels != "false";
+        includeGroups = sGroups != "false";
         for (auto m = (&AllModels)->begin(); m != (&AllModels)->end(); ++m) {
+            if (m->second->GetDisplayAs() == "ModelGroup" && !includeGroups) {
+                continue;
+            }
+            if (m->second->GetDisplayAs() != "ModelGroup" && !includeModels) {
+                continue;
+            }
             models += "\"" + JSONSafe(m->first) + "\",";
         }
         if (!models.empty()) {
@@ -890,11 +902,17 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         return sendResponse(ipAddresses, "controllers", 200, true);
     } else if (cmd == "getControllerPortMap") {
         auto ip = params["ip"];
-        auto controller = _outputManager.GetControllerWithIP(ip);
+        auto name = params["name"];
+        Controller* controller {nullptr};
+        if (!name.empty()) {
+            controller = _outputManager.GetController(name);
+        }
+        if (!ip.empty()) {
+            controller = _outputManager.GetControllerWithIP(ip);
+        }
         if (controller == nullptr) {
             return "{\"res\":504,\"msg\":\"Controller not found.\"}";
         }
-        
         UDController cud(controller, &_outputManager, &AllModels, false);
         auto json = cud.ExportAsJSON();
         return sendResponse(json, "controllerportmap", 200, true);
