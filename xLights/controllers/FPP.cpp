@@ -237,12 +237,13 @@ void FPP::setupCurl(const std::string &url, bool isGet, int timeout) {
     // We'll drop to HTTP1 for GET's with URL's that have % in them
     if (!isGet || url.find("%") == std::string::npos) {
         //printf("HTTP2: %s\n", url.c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
-        curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1);
+        //curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+        //curl_easy_setopt(curl, CURLOPT_PIPEWAIT, 1);
     } else {
         //printf("HTTP1: %s\n", url.c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+        //curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
     }
+    curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 }
@@ -1175,14 +1176,14 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         tempFileName = "";
     }
 
-    wxFileName fn(ToWXString(seq));
-    std::string baseName = ToStdString(fn.GetFullName());
+    wxFileName fn(FromUTF8(seq));
+    std::string baseName = ToUTF8(fn.GetFullName());
     std::string mediaBaseName = "";
     bool cancelled = false;
     if (media != "" && fppType == FPP_TYPE::FPP) {
-        wxFileName mfn(ToWXString(media));
+        wxFileName mfn(FromUTF8(media));
         std::string mediaFile = media;
-        mediaBaseName = ToStdString(mfn.GetFullName());
+        mediaBaseName = ToUTF8(mfn.GetFullName());
 
         if (majorVersion >= 6) {
             FindHostSpecificMedia(hostName, mediaBaseName, mediaFile, mfn);

@@ -713,7 +713,7 @@ void FPPConnectDialog::LoadSequences()
         if (!found && FileExists(v)) {
             wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), v);
             DisplayDateModified(v, item);
-            FSEQFile *file = FSEQFile::openFSEQFile(ToUTF8(v));
+            FSEQFile *file = FSEQFile::openFSEQFile(v.ToStdString());
             if (file != nullptr) {
                 for (auto& header : file->getVariableHeaders()) {
                     if (header.code[0] == 'm' && header.code[1] == 'f') {
@@ -863,11 +863,11 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED) {
+            wxString fseqRaw = CheckListBox_Sequences->GetItemText(item);
+            std::string fseq = ToUTF8(fseqRaw);
+            std::string media = ToUTF8(CheckListBox_Sequences->GetItemText(item, 2));
 
-            std::string fseq = ToStdString(CheckListBox_Sequences->GetItemText(item));
-            std::string media = ToStdString(CheckListBox_Sequences->GetItemText(item, 2));
-
-            FSEQFile *seq = FSEQFile::openFSEQFile(fseq);
+            FSEQFile *seq = FSEQFile::openFSEQFile(fseqRaw.ToStdString());
             if (seq) {
                 row = 0;
                 int uploadCount = 0;
