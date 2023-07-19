@@ -428,12 +428,12 @@ void SketchEffectPath::closePath(bool updateSegments, SketchCanvasPathState stat
             wxPoint2DDouble startPt( m_segments.back()->EndPoint() );
             wxPoint2DDouble endPt( m_segments.front()->StartPoint() );
 
-            if( state == LineToNewPoint ) {
+            if( state == SketchCanvasPathState::LineToNewPoint ) {
                 m_segments.push_back(std::make_shared <SketchLine>(startPt, endPt));
-            } else if( state == QuadraticCurveToNewPoint ) {
+            } else if( state == SketchCanvasPathState::QuadraticCurveToNewPoint ) {
                 wxPoint2DDouble cp = 0.5 * startPt + 0.5 * endPt;
                 m_segments.push_back(std::make_shared <SketchQuadraticBezier>(startPt, cp, endPt));
-            } else if( state == CubicCurveToNewPoint ) {
+            } else if( state == SketchCanvasPathState::CubicCurveToNewPoint ) {
                 wxPoint2DDouble cp1 = 0.75 * startPt + 0.25 * endPt;
                 wxPoint2DDouble cp2 = 0.25 * startPt + 0.75 * endPt;
                 m_segments.push_back(std::make_shared <SketchCubicBezier>(startPt, cp1, cp2, endPt));
@@ -441,7 +441,7 @@ void SketchEffectPath::closePath(bool updateSegments, SketchCanvasPathState stat
         }
 
         m_isClosed = true;
-        m_closedState = (int)state;
+        m_closedState = state;
     }
 }
 
@@ -544,7 +544,7 @@ SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketc
                         int type = wxAtoi(pathComponents_str.at(1));
                         path->closePath(true, SketchCanvasPathState(type));
                     } else {
-                        path->closePath(false, LineToNewPoint);
+                        path->closePath(false, SketchCanvasPathState::LineToNewPoint);
                     }
                 }
             }
@@ -596,7 +596,7 @@ std::string SketchEffectSketch::toString() const
             }
         }
         if (path->isClosed())
-            stream << 'c' << path->GetClosedState();
+            stream << 'c' << static_cast<int>(path->GetClosedState());
         if (i != m_paths.size() - 1)
             stream << '|';
     }
