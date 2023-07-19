@@ -12,6 +12,7 @@
 
 #include <wx/wx.h>
 #include <wx/socket.h>
+#include <wx/filename.h>
 #include <wx/xml/xml.h>
 #include "../xSchedule/wxJSON/json_defs.h"
 #include "../xSchedule/wxJSON/jsonval.h"
