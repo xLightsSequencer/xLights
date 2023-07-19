@@ -31,7 +31,6 @@ MovingHeadCanvasPanel::MovingHeadCanvasPanel(IMovingHeadCanvasParent* movingHead
 
 void MovingHeadCanvasPanel::OnMovingHeadPaint(wxPaintEvent& /*event*/)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxAutoBufferedPaintDC pdc(this);
     wxSize sz(GetSize());
 
@@ -49,9 +48,6 @@ void MovingHeadCanvasPanel::OnMovingHeadPaint(wxPaintEvent& /*event*/)
         } else {
             pdc.SetPen(*wxLIGHT_GREY_PEN);
         }
-        wxPoint xyz1 = NormalizedToUI2(start_y);
-        wxPoint xyz2 = NormalizedToUI2(end_y);
-        logger_base.debug("x1: %d  x2: %d\n", xyz1.x, xyz2.y);
         pdc.DrawLine(NormalizedToUI2(start_x), NormalizedToUI2(end_x));
         pdc.DrawLine(NormalizedToUI2(start_y), NormalizedToUI2(end_y));
     }

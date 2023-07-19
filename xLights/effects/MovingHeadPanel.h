@@ -200,8 +200,6 @@ private:
 //***************************************************
 
 public:
-    typedef std::function<void(const std::string&, const std::string&, unsigned char)> SketchUpdateCallback;
-
     // ISketchCanvasParent impl
     SketchEffectSketch& GetSketch() override;
     int GetSelectedPathIndex() override;
@@ -222,7 +220,6 @@ private:
     SketchCanvasPanel* m_sketchCanvasPanel = nullptr;
     std::string m_sketchDef;
     SketchEffectSketch m_sketch;
-    SketchUpdateCallback m_sketchUpdateCB;
     wxListBox* m_pathsListBox = nullptr;
     int selected_path = -1;
 

@@ -807,8 +807,6 @@ void MovingHeadPanel::NotifySketchUpdated()
     m_sketchDef = m_sketch.toString();
     TextCtrl_MHPathDef->SetValue(m_sketchDef);
     UpdateMHSettings();
-    if (m_sketchUpdateCB != nullptr)
-        m_sketchUpdateCB(m_sketchDef, m_bgImagePath, m_bitmapAlpha);
 }
 
 void MovingHeadPanel::NotifySketchPathsUpdated()

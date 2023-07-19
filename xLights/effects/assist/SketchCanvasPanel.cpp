@@ -55,7 +55,7 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
 {
     wxAutoBufferedPaintDC pdc(this);
     wxSize sz(GetSize());
-    wxRect borderRect(BorderWidth, BorderWidth, sz.GetWidth() - 2 * BorderWidth - 2, sz.GetHeight() - 2 * BorderWidth - 2);
+    wxRect borderRect(BorderWidth, BorderWidth, sz.GetWidth() - 2 * BorderWidth, sz.GetHeight() - 2 * BorderWidth);
     wxRect bgRect(wxRect(borderRect).Deflate(1, 1));
 
     pdc.SetPen(*wxWHITE_PEN);
@@ -504,7 +504,7 @@ void SketchCanvasPanel::OnSketchMidDown(wxMouseEvent& event)
 wxPoint2DDouble SketchCanvasPanel::UItoNormalized(const wxPoint2DDouble& pt) const
 {
     wxPoint o(BorderWidth + 1, BorderWidth + 1);
-    wxSize sz(GetSize() - wxSize(2 * BorderWidth - 2, 2 * BorderWidth - 2));
+    wxSize sz(GetSize() - wxSize(2 * BorderWidth + 2, 2 * BorderWidth + 2));
 
     double x = double(pt.m_x - o.x) / sz.GetWidth();
     double y = double(pt.m_y - o.y) / sz.GetHeight();
@@ -515,7 +515,7 @@ wxPoint2DDouble SketchCanvasPanel::UItoNormalized(const wxPoint2DDouble& pt) con
 wxPoint2DDouble SketchCanvasPanel::NormalizedToUI(const wxPoint2DDouble& pt) const
 {
     wxPoint o(BorderWidth + 1, BorderWidth + 1);
-    wxSize sz(GetSize() - wxSize(2 * BorderWidth - 2, 2 * BorderWidth - 2));
+    wxSize sz(GetSize() - wxSize(2 * BorderWidth + 2, 2 * BorderWidth + 2));
 
     double x = pt.m_x * sz.GetWidth();
     double y = pt.m_y * sz.GetHeight();
@@ -731,7 +731,6 @@ void SketchCanvasPanel::UpdatePathFromHandles()
 
     auto path = std::make_shared<SketchEffectPath>();
     auto startPt = m_handles.front().pt;
-    int final_handle = 0;
     for (size_t i = 1; i < m_handles.size();) {
         std::shared_ptr<SketchPathSegment> segment;
         switch (m_handles[i].handlePointType) {
