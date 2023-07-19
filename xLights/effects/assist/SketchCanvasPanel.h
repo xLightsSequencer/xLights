@@ -48,7 +48,6 @@ public:
         return true;
     }
 
-    void Changed();
     void clearBackgroundBitmap();
     void setBackgroundBitmap(std::unique_ptr<wxBitmap> bm);
     void UpdatePathState(SketchCanvasPathState state);
@@ -56,6 +55,7 @@ public:
     void UpdateHandlesForPath(long pathIndex);
     SketchCanvasPathState GetPathState() { return m_pathState; }
 
+    void Changed();
     void ClosePath();
     void DrawGrid(bool val) { m_drawGrid = val; }
 

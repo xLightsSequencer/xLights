@@ -332,6 +332,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
+    <ClCompile Include="MetronomeLabelDialog.cpp" />
     <ClCompile Include="models\DMX\DmxColorAbilityCMY.cpp" />
     <ClCompile Include="utils\ip_utils.cpp" />
     <ClCompile Include="utils\Curl.cpp" />
@@ -814,6 +815,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="graphics\xlMesh.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
+    <ClInclude Include="MetronomeLabelDialog.h" />
     <ClInclude Include="models\DMX\DmxColorAbilityCMY.h" />
     <ClInclude Include="utils\ip_utils.h" />
     <ClInclude Include="utils\Curl.h" />

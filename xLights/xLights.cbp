@@ -611,6 +611,8 @@
 		<Unit filename="MatrixFaceDownloadDialog.h" />
 		<Unit filename="MediaImportOptionsDialog.cpp" />
 		<Unit filename="MediaImportOptionsDialog.h" />
+		<Unit filename="MetronomeLabelDialog.cpp" />
+		<Unit filename="MetronomeLabelDialog.h" />
 		<Unit filename="ModelChainDialog.cpp" />
 		<Unit filename="ModelChainDialog.h" />
 		<Unit filename="ModelDimmingCurveDialog.cpp" />
@@ -1467,6 +1469,7 @@
 		<Unit filename="wxsmith/MatrixFaceDownloadDialog.wxs" />
 		<Unit filename="wxsmith/MediaImportOptionsDialog.wxs" />
 		<Unit filename="wxsmith/MeteorsPanel.wxs" />
+		<Unit filename="wxsmith/MetronomeLabelDialog.wxs" />
 		<Unit filename="wxsmith/ModelChainDialog.wxs" />
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
@@ -1775,6 +1778,7 @@
 					<wxDialog wxs="wxsmith/BulkEditComboDialog.wxs" src="BulkEditComboDialog.cpp" hdr="BulkEditComboDialog.h" fwddecl="0" i18n="1" name="BulkEditComboDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/DuplicateDialog.wxs" src="DuplicateDialog.cpp" hdr="DuplicateDialog.h" fwddecl="0" i18n="1" name="DuplicateDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/MovingHeadPanel.wxs" src="effects/MovingHeadPanel.cpp" hdr="effects/MovingHeadPanel.h" fwddecl="0" i18n="1" name="MovingHeadPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/MetronomeLabelDialog.wxs" src="MetronomeLabelDialog.cpp" hdr="MetronomeLabelDialog.h" fwddecl="0" i18n="1" name="MetronomeLabelDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<code_completion />

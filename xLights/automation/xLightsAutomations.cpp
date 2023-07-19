@@ -1043,8 +1043,31 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         return sendResponse(response, "", 200, true);
     } else if (cmd == "getShowFolder") {
         return sendResponse(JSONSafe(showDirectory), "folder", 200, false);
+    } else if (cmd == "setModelProperty") {
+        auto model = params["model"];
+        auto m = AllModels.GetModel(model);
+        if (nullptr == m) {
+            return sendResponse("Unknown model.", "msg", 503, false);
+        }
+        auto propKey = params["key"];
+        auto propData = params["data"];
+        if (propKey.empty() || propData.empty()) {
+            return sendResponse("Key or Data was empty.", "msg", 503, false);
+        }
+        layoutPanel->SelectModel(model);
+        wxPropertyGridEvent event2;
+        event2.SetPropertyGrid(layoutPanel->GetPropertyEditor());
+        wxStringProperty wsp("Model", propKey, propData);
+        event2.SetProperty(&wsp);
+        wxVariant value(propData);
+        event2.SetPropertyValue(value);
+        layoutPanel->OnPropertyGridChange(event2);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Automation:setModelProperty");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation:setModelProperty");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Automation:setModelProperty");
+        std::string response = wxString::Format("{\"msg\":\"Set Model Property.\",\"worked\":\"%s\"}", JSONSafe(toStr(m != nullptr)));
+        return sendResponse(response, "", 200, true);
     }
-
     return false;
 }
 

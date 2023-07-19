@@ -20,7 +20,7 @@
         <!--NoWebUI/-->
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
-        <MergeConsecutiveVirtualStrings/>
+        <!--MergeConsecutiveVirtualStrings/-->
 		<SupportsRemotes/>
         <SupportsDefaultBrightness/>
 
@@ -167,7 +167,7 @@
         <SupportsMultipleSimultaneousInputProtocols/>
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
-        <MergeConsecutiveVirtualStrings/>
+        <!--MergeConsecutiveVirtualStrings/-->
         <SupportsPixelPortEndNullPixels/>
         <MaxStartNulls>20</MaxStartNulls>
         <MaxEndNulls>20</MaxEndNulls>

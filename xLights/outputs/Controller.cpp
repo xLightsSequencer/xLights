@@ -481,6 +481,53 @@ void Controller::Convert(wxXmlNode* node, std::string showDir) {
         }
     }
 }
+
+std::string Controller::GetJSONData() const
+{
+    std::string json = "{\"name\":\"" + JSONSafe(GetName()) + "\"" +
+            ",\"desc\":\"" + JSONSafe(GetDescription()) + "\"" +
+            ",\"type\":\"" + JSONSafe(GetType()) + "\"" +
+            ",\"vendor\":\"" + JSONSafe(GetVendor()) + "\"" +
+            ",\"model\":\"" + JSONSafe(GetModel()) + "\"" +
+            ",\"variant\":\"" + JSONSafe(GetVariant()) + "\"" +
+            ",\"protocol\":\"" + GetProtocol() + "\"" +
+            ",\"id\":" + std::to_string(GetId()) +
+            ",\"startchannel\":" + std::to_string(GetStartChannel()) +
+            ",\"channels\":" + std::to_string(GetChannels()) +
+            ",\"managed\":" + toStr(IsManaged()) +
+            ",\"autolayout\":" + toStr(IsAutoLayout()) +
+            ",\"canvisualise\":" + toStr(CanVisualise()) +
+            ",\"active\":" + toStr(IsActive()) +
+            ",\"ip\":\"" + JSONSafe(GetIP()) + "\"" +
+            ",\"controllercap\":" + GetCapJSONData() + "}";
+    
+    return json;
+}
+
+std::string Controller::GetCapJSONData() const
+{
+    
+    auto caps = GetControllerCaps();
+    if (caps == nullptr) {
+        return "{}";
+    }
+    std::string json = "{\"pixelports\":" + std::to_string(caps->GetMaxPixelPort()) +
+            ",\"serialports\":" + std::to_string(caps->GetMaxSerialPort()) +
+            ",\"supportspanels\":" + toStr(caps->SupportsLEDPanelMatrix()) +
+            ",\"supportsvirtualmatrix\":" + toStr(caps->SupportsVirtualMatrix()) +
+            ",\"smartremotecount\":" + std::to_string(caps->GetSmartRemoteCount()) +
+            (caps->GetSmartRemoteCount() ?
+            ",\"smartremotetypes\":[\"" + Join(caps->GetSmartRemoteTypes(), std::string("\",\"")) + "\"]" :
+             ",\"smartremotetypes\":[]") +
+            (!caps->GetPixelProtocols().empty()?
+            ",\"pixelprotocols\":[\"" + Join(caps->GetPixelProtocols(), std::string("\",\"")) + "\"]" :
+             ",\"pixelprotocols\":[]") +
+            (!caps->GetSerialProtocols().empty()?
+            ",\"serialprotocols\":[\"" + Join(caps->GetSerialProtocols(), std::string("\",\"")) + "\"]}" :
+             ",\"serialprotocols\":[]}");
+
+    return json;
+}
 #pragma endregion
 
 #pragma region UI
