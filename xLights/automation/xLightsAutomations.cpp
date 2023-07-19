@@ -903,7 +903,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
     } else if (cmd == "getControllerPortMap") {
         auto ip = params["ip"];
         auto name = params["name"];
-        Controller* controller;
+        Controller* controller {nullptr};
         if (!name.empty()) {
             controller = _outputManager.GetController(name);
         }
