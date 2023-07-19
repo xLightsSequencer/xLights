@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "SketchCanvasPanel.h"
+
 class wxGraphicsContext;
 class wxGraphicsPath;
 
@@ -31,6 +33,7 @@ public:
                                     double endPercentage) const = 0;
     virtual bool HitTest(const wxPoint2DDouble& pt) const = 0;
     virtual void ReverseSegment() = 0;
+    virtual void getProgressPosition( double partialLength, double& x, double& y ) = 0;
 };
 
 // A path is simply a collection of segments. If there are at least two segments,
@@ -43,26 +46,27 @@ public:
     double Length() const;
 
     void appendSegment(std::shared_ptr<SketchPathSegment> cmd);
-    void closePath();
+    void closePath(bool updateSegments, SketchCanvasPathState state);
     void drawEntirePath(wxGraphicsContext* gc, const wxSize& sz) const;
     void drawPartialPath(wxGraphicsContext* gc, const wxSize& sz,
                          std::optional<double> startPercentage,
                          double endPercentage) const;
     void reversePath();
 
+    void getProgressPosition( double progress, double& x, double& y );
+
     const std::vector<std::shared_ptr<SketchPathSegment>>& segments() const
     {
         return m_segments;
     }
 
-    bool isClosed() const
-    {
-        return m_isClosed;
-    }
+    bool isClosed() const { return m_isClosed; }
+    int GetClosedState() const { return m_closedState; }
 
 protected:
     std::vector<std::shared_ptr<SketchPathSegment>> m_segments;
     bool m_isClosed = false;
+    int m_closedState = 0;
 };
 
 // A sketch is a collection of paths... just a thin std::vector wrapper currently
@@ -99,6 +103,9 @@ public:
     void reversePath(int pathIndex);
     void deletePath(int pathIndex);
     void swapPaths(int pathIndex0, int pathIndex1);
+
+    void getProgressPosition( double progress, double& x, double& y );
+    double getLength();
 
 protected:
     std::vector<std::shared_ptr<SketchEffectPath>> m_paths;
@@ -137,6 +144,7 @@ public:
                             double endPercentage) const override;
     bool HitTest(const wxPoint2DDouble& pt) const override;
     void ReverseSegment() override;
+    void getProgressPosition( double partialLength, double& x, double& y ) override;
 
 protected:
     wxPoint2DDouble m_fromPt;
@@ -177,6 +185,7 @@ public:
                             double endPercentage) const override;
     bool HitTest(const wxPoint2DDouble& pt) const override;
     void ReverseSegment() override;
+    void getProgressPosition( double partialLength, double& x, double& y ) override;
 
     wxPoint2DDouble ControlPoint() const
     {
@@ -229,6 +238,7 @@ public:
                             double endPercentage) const override;
     bool HitTest(const wxPoint2DDouble& pt) const override;
     void ReverseSegment() override;
+    void getProgressPosition( double partialLength, double& x, double& y ) override;
 
     wxPoint2DDouble ControlPoint1() const
     {

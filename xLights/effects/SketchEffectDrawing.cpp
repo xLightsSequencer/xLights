@@ -78,6 +78,57 @@ namespace
         }
         return length;
     }
+    void bezierProgressPosition(const wxPoint2DDouble& startPt,
+                                const wxPoint2DDouble& ctrlPt,
+                                const wxPoint2DDouble& endPt,
+                                const double targetLength,
+                                double& x,
+                                double& y)
+    {
+        wxPoint2DDouble previousPt(startPt);
+        double curLength = targetLength;
+
+        for (int i = 1; i <= NUM_STEPS; ++i) {
+            double t = double(i) / NUM_STEPS;
+            wxPoint2DDouble pt(bezierPoint(t, startPt, ctrlPt, endPt));
+            double length = pt.GetDistance(previousPt);
+            if( length >= curLength ) {
+                double percent = curLength / length;
+                x = previousPt.m_x + percent * (pt.m_x - previousPt.m_x);
+                y = previousPt.m_y + percent * (pt.m_y - previousPt.m_y);
+                return;
+            } else {
+                curLength -= length;
+            }
+            previousPt = pt;
+        }
+    }
+    void bezierProgressPosition(const wxPoint2DDouble& startPt,
+                                const wxPoint2DDouble& ctrlPt1,
+                                const wxPoint2DDouble& ctrlPt2,
+                                const wxPoint2DDouble& endPt,
+                                const double targetLength,
+                                double& x,
+                                double& y)
+    {
+        wxPoint2DDouble previousPt(startPt);
+        double curLength = targetLength;
+
+        for (int i = 1; i <= NUM_STEPS; ++i) {
+            double t = double(i) / NUM_STEPS;
+            wxPoint2DDouble pt(bezierPoint(t, startPt, ctrlPt1, ctrlPt2, endPt));
+            double length = pt.GetDistance(previousPt);
+            if( length >= curLength ) {
+                double percent = curLength / length;
+                x = previousPt.m_x + percent * (pt.m_x - previousPt.m_x);
+                y = previousPt.m_y + percent * (pt.m_y - previousPt.m_y);
+                return;
+            } else {
+                curLength -= length;
+            }
+            previousPt = pt;
+        }
+    }
 
     std::vector<wxPoint2DDouble> piecewiseLinearApproximation(const wxPoint2DDouble& startPt,
                                                               const wxPoint2DDouble& ctrlPt1,
@@ -370,13 +421,27 @@ void SketchEffectPath::drawPartialPath(wxGraphicsContext* gc, const wxSize& sz, 
     gc->StrokePath(path);
 }
 
-void SketchEffectPath::closePath()
+void SketchEffectPath::closePath(bool updateSegments, SketchCanvasPathState state)
 {
     if (!m_isClosed && m_segments.size() >= 1) {
-        wxPoint2DDouble startPt( m_segments.back()->EndPoint() );
-        wxPoint2DDouble endPt( m_segments.front()->StartPoint() );
-        m_segments.push_back(std::make_shared <SketchLine>(startPt, endPt));
+        if( updateSegments ) {
+            wxPoint2DDouble startPt( m_segments.back()->EndPoint() );
+            wxPoint2DDouble endPt( m_segments.front()->StartPoint() );
+
+            if( state == LineToNewPoint ) {
+                m_segments.push_back(std::make_shared <SketchLine>(startPt, endPt));
+            } else if( state == QuadraticCurveToNewPoint ) {
+                wxPoint2DDouble cp = 0.5 * startPt + 0.5 * endPt;
+                m_segments.push_back(std::make_shared <SketchQuadraticBezier>(startPt, cp, endPt));
+            } else if( state == CubicCurveToNewPoint ) {
+                wxPoint2DDouble cp1 = 0.75 * startPt + 0.25 * endPt;
+                wxPoint2DDouble cp2 = 0.25 * startPt + 0.75 * endPt;
+                m_segments.push_back(std::make_shared <SketchCubicBezier>(startPt, cp1, cp2, endPt));
+            }
+        }
+
         m_isClosed = true;
+        m_closedState = (int)state;
     }
 }
 
@@ -475,7 +540,12 @@ SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketc
                         prevPt = toPt;
                     }
                 } else if (pathComponents_str.at(0) == 'c') {
-                    path->closePath();
+                    if( pathComponents_str.size() == 2) {
+                        int type = wxAtoi(pathComponents_str.at(1));
+                        path->closePath(true, SketchCanvasPathState(type));
+                    } else {
+                        path->closePath(false, LineToNewPoint);
+                    }
                 }
             }
         } catch (...) {
@@ -526,7 +596,7 @@ std::string SketchEffectSketch::toString() const
             }
         }
         if (path->isClosed())
-            stream << 'c';
+            stream << 'c' << path->GetClosedState();
         if (i != m_paths.size() - 1)
             stream << '|';
     }
@@ -565,4 +635,55 @@ void SketchEffectSketch::swapPaths(int pathIndex0, int pathIndex1)
         return;
 
     std::swap(m_paths[pathIndex0], m_paths[pathIndex1]);
+}
+
+double SketchEffectSketch::getLength()
+{
+    double totalLength = 0.;
+    for (const auto& path : m_paths)
+        totalLength += path->Length();
+    return totalLength;
+}
+
+void SketchEffectSketch::getProgressPosition( double progress, double& x, double& y )
+{
+    double totalLength = 0.;
+    for (const auto& path : m_paths)
+        totalLength += path->Length();
+    double targetLength = progress * totalLength;
+
+    for (const auto& path : m_paths)
+    {
+        // find the path target falls inside
+        if( path->Length() >= targetLength ) {
+            // find the segment target falls inside
+            for(const auto& segment : path->segments() ) {
+                if( segment->Length() >= targetLength ) {
+                    segment->getProgressPosition( targetLength, x, y );
+                    return;
+                } else {
+                    targetLength -= segment->Length();
+                }
+            }
+        } else {
+            targetLength -= path->Length();
+        }
+    }
+}
+
+void SketchLine::getProgressPosition( double partialLength, double& x, double& y )
+{
+    double percent = partialLength / Length();
+    x = m_fromPt.m_x + percent * (m_toPt.m_x - m_fromPt.m_x);
+    y = m_fromPt.m_y + percent * (m_toPt.m_y - m_fromPt.m_y);
+}
+
+void SketchQuadraticBezier::getProgressPosition( double partialLength, double& x, double& y )
+{
+    bezierProgressPosition(m_fromPt, m_cp, m_toPt,partialLength, x, y);
+}
+
+void SketchCubicBezier::getProgressPosition( double partialLength, double& x, double& y )
+{
+    bezierProgressPosition(m_fromPt, m_cp1, m_cp2, m_toPt, partialLength, x, y);
 }
