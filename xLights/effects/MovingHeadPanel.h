@@ -185,7 +185,8 @@ private:
     std::list<Model*> GetActiveModels();
     void UncheckAllFixtures();
     void UpdateMHSettings();
-    void AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings, bool is_path);
+    void AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings);
+    void AddPath(std::string& mh_settings);
     void AddValueCurve(ValueCurve* vc, const std::string& name, std::string& mh_settings);
     void AddTextbox(const std::string& ctrl_id, const std::string& name, std::string& mh_settings);
     void OnSliderUpdated(wxCommandEvent& event);

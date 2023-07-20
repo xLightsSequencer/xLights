@@ -539,14 +539,27 @@ void MovingHeadPanel::UpdateMHSettings()
         if( checkbox != nullptr ) {
             if( checkbox->IsChecked() ) {
                 std::string mh_settings = xlEMPTY_STRING;
-                bool is_pan_path = false;
-                bool is_tilt_path = false;
+                bool is_path = false;
 
+                AddSetting( "Pan", "Pan", mh_settings );
+                AddSetting( "Tilt", "Tilt", mh_settings );
+
+                // add common settings
+                AddSetting( "PanOffset", "PanOffset", mh_settings );
+                AddSetting( "TiltOffset", "TiltOffset", mh_settings );
+                AddSetting( "Groupings", "Groupings", mh_settings );
+                mh_settings += ";";
+                mh_settings += headset;
+
+                // add path only settings
+                
                 // See if pan path is ignored
                 checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_MHIgnorePan"));
                 if( checkbox != nullptr ) {
                     if( !checkbox->IsChecked() ) {
-                        is_pan_path = true;
+                        is_path = true;
+                    } else {
+                        mh_settings += ";IgnorePan: ";
                     }
                 }
 
@@ -554,32 +567,21 @@ void MovingHeadPanel::UpdateMHSettings()
                 checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_MHIgnoreTilt"));
                 if( checkbox != nullptr ) {
                     if( !checkbox->IsChecked() ) {
-                        is_tilt_path = true;
+                        is_path = true;
+                    } else {
+                        mh_settings += ";IgnoreTilt: ";
                     }
                 }
 
-                // See if there are any path segments if either axis is active
-                if( is_pan_path || is_tilt_path ) {
-                    if( m_sketch.getLength() <= 0.0 ) {
-                        is_pan_path = false;
-                        is_tilt_path = false;
-                    }
+                // See if there are any path segments
+                if( m_sketch.getLength() <= 0.0 ) {
+                    is_path = false;
                 }
 
-                AddSetting( "Pan", "Pan", mh_settings, is_pan_path );
-                AddSetting( "Tilt", "Tilt", mh_settings, is_tilt_path );
-
-                // add common settings
-                AddSetting( "PanOffset", "PanOffset", mh_settings, false );
-                AddSetting( "TiltOffset", "TiltOffset", mh_settings, false );
-                AddSetting( "Groupings", "Groupings", mh_settings, false );
-                mh_settings += ";";
-                mh_settings += headset;
-
-                // add path only settings
-                if( is_pan_path || is_tilt_path ) {
-                    AddSetting( "TimeOffset", "TimeOffset", mh_settings, false );
-                    AddSetting( "PathScale", "PathScale", mh_settings, false );
+                if( is_path ) {
+                    AddPath( mh_settings );
+                    AddSetting( "PathScale", "PathScale", mh_settings );
+                    AddSetting( "PathScale", "PathScale", mh_settings );
                 }
 
                 // update the settings textbox
@@ -595,19 +597,8 @@ void MovingHeadPanel::UpdateMHSettings()
     }
 }
 
-void MovingHeadPanel::AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings, bool is_path)
+void MovingHeadPanel::AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings)
 {
-    if( is_path ) {
-        wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("ID_TEXTCTRL_MHPathDef"));
-        if( textbox != nullptr ) {
-            if( mh_settings != xlEMPTY_STRING ) {
-                mh_settings += ";";
-            }
-            wxString value = wxString::Format("%s Path: <data>", name);
-            mh_settings += value;
-        }
-    }
-
     wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("IDD_TEXTCTRL_MH" + ctrl_name));
     if( textbox != nullptr && !textbox->IsEnabled() ) {
         BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MH" + ctrl_name));
@@ -617,6 +608,20 @@ void MovingHeadPanel::AddSetting(const std::string& name, const std::string& ctr
         }
     } else {
         AddTextbox("IDD_TEXTCTRL_MH" + ctrl_name, name, mh_settings);
+    }
+}
+
+void MovingHeadPanel::AddPath(std::string& mh_settings)
+{
+    wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("ID_TEXTCTRL_MHPathDef"));
+    if( textbox != nullptr ) {
+        if( mh_settings != xlEMPTY_STRING ) {
+            mh_settings += ";";
+        }
+        wxString value = wxString::Format("Path: ");
+        std::string path_text = textbox->GetValue();
+        std::replace( path_text.begin(), path_text.end(), ';', '@'); // custom value curves were using my delimiter
+        mh_settings += value + path_text;
     }
 }
 

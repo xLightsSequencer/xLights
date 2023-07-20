@@ -121,8 +121,9 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                     float delta = 0.0f;
                     wxPoint2DDouble path_pt;
                     bool path_parsed = false;
-                    bool pan_path_active = false;
-                    bool tilt_path_active = false;
+                    bool pan_path_active = true;
+                    bool tilt_path_active = true;
+                    std::string path_setting = "";
                     wxArrayString heads;
                     int groupings = 1;
                     wxArrayString all_cmds = wxSplit(mh_settings, ';');
@@ -150,18 +151,13 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                             GetValueCurvePosition(pan_offset, settings, eff_pos, buffer);
                         } else if( cmd_type == ("TiltOffset VC") ) {
                             GetValueCurvePosition(tilt_offset, settings, eff_pos, buffer);
-                        } else if ( cmd_type == "Pan Path" ) {
-                            pan_path_active = true;
-                            if( !path_parsed ) {
-                                GetPathPosition(path_pt, eff_pos, SettingsMap);
-                                path_parsed = true;
-                            }
-                        } else if ( cmd_type == "Tilt Path" ) {
-                            tilt_path_active = true;
-                            if( !path_parsed ) {
-                                GetPathPosition(path_pt, eff_pos, SettingsMap);
-                                path_parsed = true;
-                            }
+                        } else if ( cmd_type == "IgnorePan" ) {
+                            pan_path_active = false;
+                        } else if ( cmd_type == "IgnoreTilt" ) {
+                            tilt_path_active = false;
+                        } else if ( cmd_type == "Path" ) {
+                            path_setting = settings;
+                            path_parsed = true;
                         } else if( cmd_type == "Heads" ) {
                             heads = wxSplit(settings, ',');
                         } else if( cmd_type == "Groupings" ) {
@@ -191,7 +187,7 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                     CalculatePosition( i, tilt_pos, heads, groupings, tilt_offset, delta);
 
                     if( path_parsed ) {
-                        CalculatePathPositions( pan_path_active, tilt_path_active, pan_pos, tilt_pos, time_offset, path_scale, delta, eff_pos, SettingsMap);
+                        CalculatePathPositions( pan_path_active, tilt_path_active, pan_pos, tilt_pos, time_offset, path_scale, delta, eff_pos, path_setting);
                     }
 
                     // find models that map to this moving head position
@@ -222,15 +218,6 @@ void MovingHeadEffect::GetValueCurvePosition(float& position, const std::string&
     position = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 }
 
-void MovingHeadEffect::GetPathPosition(wxPoint2DDouble& pt, double eff_pos, const SettingsMap &SettingsMap)
-{
-    std::string path_def = SettingsMap["TEXTCTRL_MHPathDef"];
-    if( path_def != xlEMPTY_STRING ) {
-        SketchEffectSketch sketch(SketchEffectSketch::SketchFromString(path_def));
-        sketch.getProgressPosition(eff_pos, pt.m_x, pt.m_y);
-    }
-}
-
 void MovingHeadEffect::CalculatePosition(int location, float& position, wxArrayString& heads, int groupings, float offset, float& delta )
 {
     std::map<int, int> locations;
@@ -251,9 +238,8 @@ void MovingHeadEffect::CalculatePosition(int location, float& position, wxArrayS
     delta = slot - 1; // normalize to 0 to pass along for time_offset
 }
 
-void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const SettingsMap &SettingsMap)
+void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const std::string& path_def)
 {
-    std::string path_def = SettingsMap["TEXTCTRL_MHPathDef"];
     if( path_def != xlEMPTY_STRING ) {
         SketchEffectSketch sketch(SketchEffectSketch::SketchFromString(path_def));
         wxPoint2DDouble pt;

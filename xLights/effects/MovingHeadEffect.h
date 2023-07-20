@@ -118,7 +118,6 @@ protected:
     std::list<Model*> GetModels(Model* model);
     void UpdateFixturePositions(Model *cls);
     void GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer);
-    void GetPathPosition(wxPoint2DDouble& pt, double eff_pos, const SettingsMap &SettingsMap);
     void CalculatePosition(int location, float& position, wxArrayString& heads, int groupings, float offset, float& delta );
-    void CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const SettingsMap &SettingsMap);
+    void CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const std::string& path_def);
 };
