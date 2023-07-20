@@ -19,7 +19,7 @@
 #include "../../xSchedule/wxJSON/jsonreader.h"
 #include "../utils/Curl.h"
 #include <wx/sckaddr.h>
-
+#include "../UtilFunctions.h"
 
 #ifdef xlDO
 static int GetxFadePort(int xfp)
@@ -28,8 +28,6 @@ static int GetxFadePort(int xfp)
         return 0;
     return xfp + 49912;
 }
-#else
-#include "../UtilFunctions.h"
 #endif
 
 void xlDo_Output(const std::string& script, const std::string& resp, bool verbose, bool isJson)
