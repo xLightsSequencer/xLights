@@ -303,3 +303,54 @@ void OPCOutput::AllOff() {
     //}
 }
 #pragma endregion
+
+
+
+#pragma region UI
+#ifndef EXCLUDENETWORKUI
+#include "ControllerEthernet.h"
+void OPCOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
+    IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
+    ControllerEthernet *ce = dynamic_cast<ControllerEthernet*>(c);
+
+    auto p = propertyGrid->GetProperty("Channels");
+    if (p) {
+        p->SetValue(GetChannels());
+        if (ce->IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
+        } else {
+            p->SetEditor("SpinCtrl");
+            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            p->SetHelpString("");
+        }
+    }
+}
+
+void OPCOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before , Controller *c, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
+{
+    IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
+    auto p = propertyGrid->Insert(before, new wxUIntProperty("OPC Channel", "Universe", GetUniverse()));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 255);
+    p->SetEditor("SpinCtrl");
+    
+    p = propertyGrid->Insert(before, new wxUIntProperty("Message Data Size", "Channels", GetChannels()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", GetMaxChannels());    
+}
+
+bool OPCOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller *c)
+{
+    if (IPOutput::HandlePropertyEvent(event, outputModelManager, c)) return true;
+    return false;
+}
+void OPCOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
+    IPOutput::RemoveProperties(propertyGrid);    
+    propertyGrid->DeleteProperty("Universe");
+    propertyGrid->DeleteProperty("Channels");
+}
+#endif
+#pragma endregion

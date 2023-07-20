@@ -1263,6 +1263,7 @@ public:
 
     // setup
     wxListCtrl* List_Controllers = nullptr;
+    bool inInitialize = false;
     wxPropertyGrid* Controllers_PropertyEditor = nullptr;
     wxLed* LedPing = nullptr;
 
@@ -1279,8 +1280,8 @@ public:
 
     void SelectController(const std::string& controllerName);
     void UnselectAllControllers();
-    void InitialiseControllersTab();
-    void SetControllersProperties();
+    void InitialiseControllersTab(bool rebuildPropGrid = true);
+    void SetControllersProperties(bool rebuildPropGrid = true);
     void DeleteSelectedControllers();
     void ActivateSelectedControllers(const std::string& active);
     void SelectAllControllers();
