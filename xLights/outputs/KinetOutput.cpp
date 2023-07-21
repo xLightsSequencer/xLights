@@ -286,7 +286,7 @@ void KinetOutput::AllOff() {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-#include "ModelManager.h"
+#include "../models/ModelManager.h"
 void KinetOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
     IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
     ControllerEthernet *ce = dynamic_cast<ControllerEthernet*>(c);

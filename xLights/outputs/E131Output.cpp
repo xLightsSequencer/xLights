@@ -15,7 +15,7 @@
 #include "../utils/ip_utils.h"
 #include "ControllerEthernet.h"
 #ifndef EXCLUDENETWORKUI
-#include "ModelManager.h"
+#include "../models/ModelManager.h"
 #endif
 
 #include <wx/xml/xml.h>

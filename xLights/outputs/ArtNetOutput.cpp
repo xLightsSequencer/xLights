@@ -19,7 +19,7 @@
 #include "../SpecialOptions.h"
 #include "../utils/ip_utils.h"
 #ifndef EXCLUDENETWORKUI
-#include "ModelManager.h"
+#include "../models/ModelManager.h"
 #endif
 #include <log4cpp/Category.hh>
 

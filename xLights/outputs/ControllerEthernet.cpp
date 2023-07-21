@@ -612,6 +612,7 @@ void ControllerEthernet::VMVChanged(wxPropertyGrid *grid)
         auto const& prefer = c->GetPreferredInputProtocol();
         bool autoLayout = IsAutoLayout();
         if (!prefer.empty() && autoLayout) {
+            #ifndef EXCLUDENETWORKUI
             if (grid && GetProtocol() != prefer) {
                 if (_outputs.size() > 0) {
                     _outputs.front()->RemoveProperties(grid);
@@ -622,7 +623,9 @@ void ControllerEthernet::VMVChanged(wxPropertyGrid *grid)
                     auto before = grid->GetProperty("Managed");
                     _outputs.front()->AddProperties(grid, before, this, AllSameSize(), expandProperties);
                 }
-            } else {
+            } else 
+            #endif
+            {
                 SetProtocol(prefer);
             }
         }

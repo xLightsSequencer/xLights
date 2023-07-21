@@ -291,7 +291,7 @@ void xxxEthernetOutput::AllOff() {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-#include "ModelManager.h"
+#include "../models/ModelManager.h"
 #include "ControllerEthernet.h"
 
 void xxxEthernetOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
