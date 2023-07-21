@@ -586,7 +586,7 @@ void TwinklyOutput::PrepareDiscovery(Discovery& discovery)
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
 
-#include "OutputManager.h"
+#include "OutputModelManager.h"
 void TwinklyOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller *c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
     IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
     auto p = propertyGrid->GetProperty("HTTPPort");
