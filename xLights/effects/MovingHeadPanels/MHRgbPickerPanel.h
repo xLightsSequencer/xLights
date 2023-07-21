@@ -20,7 +20,7 @@ class MHRgbPickerPanel : public wxPanel
 public:
     MHRgbPickerPanel(IMHRgbPickerPanelParent* rgbPickerParent, wxWindow* parent, wxWindowID id = wxID_ANY,
                       const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
-    virtual ~MHRgbPickerPanel() = default;
+    virtual ~MHRgbPickerPanel();
 
     void SetPosition(wxPoint2DDouble pos);
     wxPoint2DDouble GetPosition() { return m_mousePos; }
@@ -42,4 +42,9 @@ private:
     IMHRgbPickerPanelParent* const m_rgbPickerParent = nullptr;
     wxPoint2DDouble m_mousePos;
     bool m_mouseDown = false;
+    
+    void CreateHsvBitmap(const wxSize& newSize);
+    void CreateHsvBitmapMask();
+    wxBitmap* m_hsvBitmap;
+    wxMask* m_hsvMask;
 };

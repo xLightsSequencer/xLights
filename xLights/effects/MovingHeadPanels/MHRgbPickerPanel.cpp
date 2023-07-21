@@ -3,6 +3,7 @@
 
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
+#include <wx/rawbmp.h>
 
 namespace
 {
@@ -22,40 +23,38 @@ BEGIN_EVENT_TABLE(MHRgbPickerPanel, wxPanel)
     EVT_ENTER_WINDOW(MHRgbPickerPanel::OnEntered)
 END_EVENT_TABLE()
 
+
 MHRgbPickerPanel::MHRgbPickerPanel(IMHRgbPickerPanelParent* rgbPickerParent, wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*=wxDefaultSize*/) :
     wxPanel(parent, id, pos, size, wxNO_BORDER | wxWANTS_CHARS),
     m_rgbPickerParent(rgbPickerParent)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
+    CreateHsvBitmap(wxSize(256, 256));
+    CreateHsvBitmapMask();
+}
+
+MHRgbPickerPanel::~MHRgbPickerPanel()
+{
+    if( m_hsvBitmap != nullptr ) {
+        delete m_hsvBitmap;
+    }
 }
 
 void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/)
 {
     wxAutoBufferedPaintDC pdc(this);
-    wxSize sz(GetSize());
 
-    xlColor c;
-    HSVValue v;
-    v.value = 1.0f;
-    float center = (sz.y - 4.0f) / 2.0f;
-    float radius = center - 2.0f;
-    for( int y = 0; y < sz.y; ++y ) {
-        for( int x = 0; x < sz.x; ++x ) {
-            float xleg = (float)x - center;
-            float yleg = (float)y - center;
-            float hyp = sqrt(xleg * xleg + yleg * yleg);
-            if( hyp <= center ) {  // inside circle
-                float phi = atan2(xleg, yleg) * 180.0f / PI + 630.0f;
-                phi = fmod(phi, 360.0f);
-                v.saturation = hyp / radius;
-                v.hue = phi / 360.0f;
-                c.fromHSV(v);
-                wxColor cc(c);
-                pdc.SetPen(wxPen(cc));
-                pdc.DrawPoint(x,y);
-            }
-        }
+    if ( !m_hsvBitmap->IsOk() )
+     return;
+
+    wxSize dcSize = pdc.GetSize();
+
+    if ( m_hsvBitmap->GetSize() != dcSize ) {
+        CreateHsvBitmap(dcSize);
+        CreateHsvBitmapMask();
     }
+
+    pdc.DrawBitmap(*m_hsvBitmap, 0, 0, true);
 }
 
 void MHRgbPickerPanel::SetPosition(wxPoint2DDouble pos)
@@ -122,4 +121,60 @@ wxPoint MHRgbPickerPanel::NormalizedToUI2(const wxPoint2DDouble& pt) const
 {
     wxPoint2DDouble pt1 = NormalizedToUI(pt);
     return wxPoint((int)pt1.m_x, (int)pt1.m_y);
+}
+
+void MHRgbPickerPanel::CreateHsvBitmap(const wxSize& newSize)
+{
+    xlColor c;
+    HSVValue v;
+    v.value = 1.0f;
+    float center = (float)newSize.GetWidth() / 2.0f;
+    float radius = center - 10.0f;
+
+    if( m_hsvBitmap != nullptr ) {
+        delete m_hsvBitmap;
+    }
+
+    m_hsvBitmap = new wxBitmap( newSize.GetWidth(), newSize.GetHeight() );
+
+    wxNativePixelData data(*m_hsvBitmap);
+    if ( !data )
+    {
+        // ... raw access to bitmap data unavailable
+        return;
+    }
+    wxNativePixelData::Iterator p(data);
+    for ( int y = 0; y < newSize.GetHeight(); ++y )
+    {
+        wxNativePixelData::Iterator rowStart = p;
+        for ( int x = 0; x < newSize.GetWidth(); ++x, ++p )
+        {
+            float xleg = (float)x - center;
+            float yleg = (float)y - center;
+            float hyp = sqrt(xleg * xleg + yleg * yleg);
+            if( hyp <= radius ) {  // inside circle
+                float phi = atan2(xleg, yleg) * 180.0f / PI + 630.0f;
+                phi = fmod(phi, 360.0f);
+                v.saturation = hyp / center;
+                v.hue = phi / 360.0f;
+                c.fromHSV(v);
+                p.Red() = c.red;
+                p.Green() = c.green;
+                p.Blue() = c.blue;
+            } else {
+                p.Red() = 0;
+                p.Green() = 0;
+                p.Blue() = 0;
+            }
+        }
+        p = rowStart;
+        p.OffsetY(data, 1);
+    }
+}
+
+void MHRgbPickerPanel::CreateHsvBitmapMask()
+{
+    wxColour color(0,0,0);
+    m_hsvMask = new wxMask(*m_hsvBitmap, color);
+    m_hsvBitmap->SetMask(m_hsvMask);
 }
