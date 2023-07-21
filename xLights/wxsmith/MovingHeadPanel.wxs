@@ -620,7 +620,27 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL_Control" variable="PanelControl" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizerControl" member="no">
-								<cols>3</cols>
+								<cols>1</cols>
+								<rows>1</rows>
+								<growablecols>0</growablecols>
+								<growablerows>0</growablerows>
+								<object class="sizeritem">
+									<object class="wxNotebook" name="ID_NOTEBOOK2" variable="Notebook2" member="yes">
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL_Color" variable="PanelColor" member="yes">
+												<object class="wxFlexGridSizer" variable="FlexGridSizerColor" member="no">
+													<cols>1</cols>
+													<rows>1</rows>
+													<growablecols>0</growablecols>
+												</object>
+											</object>
+											<label>Color</label>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Control</label>

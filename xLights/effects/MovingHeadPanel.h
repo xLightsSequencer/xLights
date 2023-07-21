@@ -16,12 +16,14 @@
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
 #include "MovingHeadCanvasPanel.h"
+#include "MHRgbPickerPanel.h"
 #include "SketchCanvasPanel.h"
 #include "SketchEffectDrawing.h"
 
 class Model;
 
 class MovingHeadPanel: public xlEffectPanel, public IMovingHeadCanvasParent, public ISketchCanvasParent
+    , public IMHRgbPickerPanelParent
 {
 public:
     
@@ -70,6 +72,8 @@ public:
     wxFlexGridSizer* FlexGridSizerPositionCanvas;
     wxFlexGridSizer* FlexGridSizer_Main;
     wxNotebook* Notebook1;
+    wxNotebook* Notebook2;
+    wxPanel* PanelColor;
     wxPanel* PanelControl;
     wxPanel* PanelPathing;
     wxPanel* PanelPosition;
@@ -148,6 +152,8 @@ protected:
     static const long ID_CHECKBOX_MHIgnorePan;
     static const long ID_CHECKBOX_MHIgnoreTilt;
     static const long ID_PANEL_Pathing;
+    static const long ID_PANEL_Color;
+    static const long ID_NOTEBOOK2;
     static const long ID_PANEL_Control;
     static const long ID_NOTEBOOK1;
     static const long ID_TEXTCTRL_MH1_Settings;
@@ -211,6 +217,7 @@ public:
     void SetSketchDef(const std::string& sketchDef);
     
     void NotifyPositionUpdated() override;
+    void NotifyColorUpdated() override;
 
 private:
     bool canContinuePath() const;
@@ -219,6 +226,8 @@ private:
 
     MovingHeadCanvasPanel* m_movingHeadCanvasPanel = nullptr;
     SketchCanvasPanel* m_sketchCanvasPanel = nullptr;
+    MHRgbPickerPanel* m_rgbColorPanel = nullptr;
+
     std::string m_sketchDef;
     SketchEffectSketch m_sketch;
     wxListBox* m_pathsListBox = nullptr;
