@@ -498,7 +498,9 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
             m_sketchDef = TextCtrl_MHPathDef->GetValue();
             m_sketch = SketchEffectSketch::SketchFromString(m_sketchDef);
             if( m_sketchDef == xlEMPTY_STRING ) {
+                m_sketchCanvasPanel->ResetHandlesState();
                 m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::DefineStartPoint);
+                selected_path = -1;
             } else {
                 if( m_sketch.paths().size() > 0 ) {
                     selected_path = 0;

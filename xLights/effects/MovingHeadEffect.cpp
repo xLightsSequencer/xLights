@@ -397,6 +397,61 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
        }
     }
 
+    if( single_model ) {
+        // Hide all the stuff not applicable to a single moving head
+        wxButton* button = (wxButton*)(p->FindWindowByName("ID_BUTTON_All"));
+        if( button != nullptr ) { button->Hide(); }
+        button = (wxButton*)(p->FindWindowByName("ID_BUTTON_None"));
+        if( button != nullptr ) { button->Hide(); }
+        button = (wxButton*)(p->FindWindowByName("ID_BUTTON_Evens"));
+        if( button != nullptr ) { button->Hide(); }
+        button = (wxButton*)(p->FindWindowByName("ID_BUTTON_Odds"));
+        if( button != nullptr ) { button->Hide(); }
+        wxStaticText* text = (wxStaticText*)(p->FindWindowByName("ID_STATICTEXT_Fixtures"));
+        if( text != nullptr ) { text->Hide(); }
+        for( int i = 1; i <= 8; ++i ) {
+            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+            wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
+            if( checkbox != nullptr ) {
+                checkbox->Hide();
+            }
+        }
+        wxTextCtrl* groupings = (wxTextCtrl*)(p->FindWindowByName("IDD_TEXTCTRL_MHGroupings"));
+        if( groupings != nullptr ) { groupings->Enable(); groupings->SetValue("1"); groupings->Hide(); }
+        wxSlider* slider = (wxSlider*)(p->FindWindowByName("ID_SLIDER_MHGroupings"));
+        if( slider != nullptr ) { slider->Enable(); slider->Hide(); }
+        BulkEditValueCurveButton* curve = (BulkEditValueCurveButton*)(p->FindWindowByName("ID_VALUECURVE_MHGroupings"));
+        if( curve != nullptr ) { curve->Hide(); }
+        text = (wxStaticText*)(p->FindWindowByName("ID_STATICTEXT_Groupings"));
+        if( text != nullptr ) { text->Hide(); }
+    } else {
+        wxButton* button = (wxButton*)(p->FindWindowByName("ID_BUTTON_All"));
+        if( button != nullptr ) { button->Show(); }
+        button = (wxButton*)(p->FindWindowByName("ID_BUTTON_None"));
+        if( button != nullptr ) { button->Show(); }
+        button = (wxButton*)(p->FindWindowByName("ID_BUTTON_Evens"));
+        if( button != nullptr ) { button->Show(); }
+        button = (wxButton*)(p->FindWindowByName("ID_BUTTON_Odds"));
+        if( button != nullptr ) { button->Show(); }
+        wxStaticText* text = (wxStaticText*)(p->FindWindowByName("ID_STATICTEXT_Fixtures"));
+        if( text != nullptr ) { text->Show(); }
+        for( int i = 1; i <= 8; ++i ) {
+            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+            wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
+            if( checkbox != nullptr ) {
+                checkbox->Show();
+            }
+        }
+        wxTextCtrl* groupings = (wxTextCtrl*)(p->FindWindowByName("IDD_TEXTCTRL_MHGroupings"));
+        if( groupings != nullptr ) { groupings->Show(); }
+        wxSlider* slider = (wxSlider*)(p->FindWindowByName("ID_SLIDER_MHGroupings"));
+        if( slider != nullptr ) { slider->Show(); }
+        BulkEditValueCurveButton* curve = (BulkEditValueCurveButton*)(p->FindWindowByName("ID_VALUECURVE_MHGroupings"));
+        if( curve != nullptr ) { curve->Show(); }
+        text = (wxStaticText*)(p->FindWindowByName("ID_STATICTEXT_Groupings"));
+        if( text != nullptr ) { text->Show(); }
+   }
+    p->FlexGridSizerPosition->Layout();
     p->FlexGridSizer_Main->Layout();
     p->Refresh();
 }

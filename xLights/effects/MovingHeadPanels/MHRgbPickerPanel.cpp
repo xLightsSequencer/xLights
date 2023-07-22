@@ -178,3 +178,9 @@ void MHRgbPickerPanel::CreateHsvBitmapMask()
     m_hsvMask = new wxMask(*m_hsvBitmap, color);
     m_hsvBitmap->SetMask(m_hsvMask);
 }
+
+wxColour MHRgbPickerPanel::GetColour()
+{
+    wxColour color;
+    return color;
+}

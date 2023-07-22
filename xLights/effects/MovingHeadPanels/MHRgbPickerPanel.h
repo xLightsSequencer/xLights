@@ -23,6 +23,7 @@ public:
     virtual ~MHRgbPickerPanel();
 
     void SetPosition(wxPoint2DDouble pos);
+    wxColour GetColour();
     wxPoint2DDouble GetPosition() { return m_mousePos; }
 
 private:
