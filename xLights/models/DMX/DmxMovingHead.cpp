@@ -1076,8 +1076,10 @@ void DmxMovingHead::ExportXlightsModel()
     wxString tdr = ModelXml->GetAttribute("DmxTiltDegOfRot", "180");
     wxString pc = ModelXml->GetAttribute("DmxPanChannel", "0");
     wxString po = ModelXml->GetAttribute("DmxPanOrient", "0");
+    wxString psl = ModelXml->GetAttribute("DmxPanSlewLimit", "0");
     wxString tc = ModelXml->GetAttribute("DmxTiltChannel", "0");
     wxString to = ModelXml->GetAttribute("DmxTiltOrient", "0");
+    wxString tsl = ModelXml->GetAttribute("DmxTiltSlewLimit", "0");
 
     wxString sc = ModelXml->GetAttribute("DmxShutterChannel", "0");
     wxString so = ModelXml->GetAttribute("DmxShutterOpen", "1");
@@ -1096,8 +1098,10 @@ void DmxMovingHead::ExportXlightsModel()
     f.Write(wxString::Format("DmxTiltDegOfRot=\"%s\" ", tdr));
     f.Write(wxString::Format("DmxPanChannel=\"%s\" ", pc));
     f.Write(wxString::Format("DmxPanOrient=\"%s\" ", po));
+    f.Write(wxString::Format("DmxPanSlewLimit=\"%s\" ", psl));
     f.Write(wxString::Format("DmxTiltChannel=\"%s\" ", tc));
     f.Write(wxString::Format("DmxTiltOrient=\"%s\" ", to));
+    f.Write(wxString::Format("DmxTiltSlewLimit=\"%s\" ", tsl));
 
     f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
     f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
