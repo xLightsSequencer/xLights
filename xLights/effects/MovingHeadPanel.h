@@ -69,6 +69,7 @@ public:
     wxCheckBox* CheckBox_MH8;
     wxFlexGridSizer* FlexGridSizerPathCanvas;
     wxFlexGridSizer* FlexGridSizerPathing;
+    wxFlexGridSizer* FlexGridSizerPosition;
     wxFlexGridSizer* FlexGridSizerPositionCanvas;
     wxFlexGridSizer* FlexGridSizer_Main;
     wxNotebook* Notebook1;

@@ -106,7 +106,6 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     wxFlexGridSizer* FlexGridSizerFixturesLabel;
     wxFlexGridSizer* FlexGridSizerFixturesSelection;
     wxFlexGridSizer* FlexGridSizerIgnoreBoxes;
-    wxFlexGridSizer* FlexGridSizerPosition;
     wxFlexGridSizer* FlexGridSizerPositionPan;
     wxFlexGridSizer* FlexGridSizerPositionTilt;
     wxFlexGridSizer* FlexGridSizer_Groupings;
@@ -609,7 +608,7 @@ void MovingHeadPanel::UpdateMHSettings()
                 if( is_path ) {
                     AddPath( mh_settings );
                     AddSetting( "PathScale", "PathScale", mh_settings );
-                    AddSetting( "PathScale", "PathScale", mh_settings );
+                    AddSetting( "TimeOffset", "TimeOffset", mh_settings );
                 }
 
                 // update the settings textbox

@@ -162,7 +162,7 @@
 					<handler function="OnNotebook1PageChanged" entry="EVT_NOTEBOOK_PAGE_CHANGED" />
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL_Position" variable="PanelPosition" member="yes">
-							<object class="wxFlexGridSizer" variable="FlexGridSizerPosition" member="no">
+							<object class="wxFlexGridSizer" variable="FlexGridSizerPosition" member="yes">
 								<cols>1</cols>
 								<growablecols>0</growablecols>
 								<object class="sizeritem">
