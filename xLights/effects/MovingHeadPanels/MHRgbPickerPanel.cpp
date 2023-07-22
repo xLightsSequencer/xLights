@@ -13,10 +13,12 @@ namespace
     const float gap_degrees = 45.0f;
     const float line_gap = gap_degrees / 360.0f;
     const float num_lines = 1.0f / line_gap;
+    const int handleRadius = 10;
 }
 
 BEGIN_EVENT_TABLE(MHRgbPickerPanel, wxPanel)
     EVT_PAINT(MHRgbPickerPanel::OnPaint)
+    EVT_KEY_DOWN(MHRgbPickerPanel::OnKeyDown)
     EVT_LEFT_DOWN(MHRgbPickerPanel::OnLeftDown)
     EVT_LEFT_UP(MHRgbPickerPanel::OnLeftUp)
     EVT_MOTION(MHRgbPickerPanel::OnMouseMove)
@@ -55,27 +57,61 @@ void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/)
     }
 
     pdc.DrawBitmap(*m_hsvBitmap, 0, 0, true);
+
+    // draw color handles
+    for (auto it = m_handles.begin(); it != m_handles.end(); ++it) {
+        wxPoint ptUI {NormalizedToUI2((*it).pt)};
+        xlColor c {(*it).color};
+        wxBrush b {wxColour(c)};
+        pdc.SetBrush(b);
+        pdc.SetPen(*wxBLACK_PEN);
+        pdc.DrawCircle(ptUI, handleRadius-1);
+        pdc.DrawCircle(ptUI, handleRadius);
+        pdc.DrawCircle(ptUI, handleRadius+1);
+    }
 }
 
-void MHRgbPickerPanel::SetPosition(wxPoint2DDouble pos)
+void MHRgbPickerPanel::OnKeyDown(wxKeyEvent& event)
 {
-    m_mousePos = pos;
-    Refresh();
+    int keycode = event.GetKeyCode();
+    if (keycode == WXK_DELETE) {
+        if( active_handle >= 0 ) {
+            m_handles.erase(m_handles.begin()+active_handle);
+            selected_point = -1;
+            active_handle = -1;
+            m_rgbPickerParent->NotifyColorUpdated();
+            Refresh();
+        }
+    }
 }
-
 void MHRgbPickerPanel::OnLeftDown(wxMouseEvent& event)
 {
     wxAffineMatrix2D m;
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
     m_mousePos = UItoNormalized(ptUI);
+    m_mouseDown = true;
+    if( m_handles.size() == 0 ) {
+        if( insideColors(ptUI.m_x, ptUI.m_y) ) {
+            wxColour color{GetPointColor(ptUI.m_x, ptUI.m_y)};
+            m_handles.push_back(HandlePoint(m_mousePos, color));
+            selected_point = 0;
+            active_handle = 0;
+        }
+    } else if( insideColors(ptUI.m_x, ptUI.m_y) ) {
+        m_handles[active_handle].pt.m_x = m_mousePos.m_x;
+        m_handles[active_handle].pt.m_y = m_mousePos.m_y;
+        xlColor c {GetPointColor(ptUI.m_x, ptUI.m_y)};
+        m_handles[active_handle].color = wxColour(c);
+        selected_point = active_handle;
+    }
     m_rgbPickerParent->NotifyColorUpdated();
     Refresh();
-    m_mouseDown = true;
 }
 
 void MHRgbPickerPanel::OnLeftUp(wxMouseEvent& event)
 {
     m_mouseDown = false;
+    selected_point = -1;
 }
 
 void MHRgbPickerPanel::OnMouseMove(wxMouseEvent& event)
@@ -84,6 +120,14 @@ void MHRgbPickerPanel::OnMouseMove(wxMouseEvent& event)
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
     if( m_mouseDown ) {
         m_mousePos = UItoNormalized(ptUI);
+        if( selected_point != -1 ) {
+            if( insideColors(ptUI.m_x, ptUI.m_y) ) {
+                m_handles[selected_point].pt.m_x = m_mousePos.m_x;
+                m_handles[selected_point].pt.m_y = m_mousePos.m_y;
+                xlColor c {GetPointColor(ptUI.m_x, ptUI.m_y)};
+                m_handles[selected_point].color = wxColour(c);
+            }
+        }
         m_rgbPickerParent->NotifyColorUpdated();
         Refresh();
     }
@@ -92,6 +136,20 @@ void MHRgbPickerPanel::OnMouseMove(wxMouseEvent& event)
 void MHRgbPickerPanel::OnEntered(wxMouseEvent& /*event*/)
 {
     SetFocus();
+}
+
+int MHRgbPickerPanel::HitTest( wxPoint2DDouble& ptUI )
+{
+    for (int i = 0; i < m_handles.size(); ++i ) {
+        wxPoint2DDouble pt{NormalizedToUI(m_handles[i].pt)};
+        if( (ptUI.m_x > pt.m_x - handleRadius) &&
+        (ptUI.m_x < pt.m_x + handleRadius) &&
+        (ptUI.m_y > pt.m_y - handleRadius) &&
+        (ptUI.m_y < pt.m_y + handleRadius) ) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 // Usable area rect: BorderWidth+1, BorderWidth+1, sz.GetWidth()-2*BorderWidth-2, sz.GetHeight()-2*BorderWidth-2;
@@ -125,11 +183,8 @@ wxPoint MHRgbPickerPanel::NormalizedToUI2(const wxPoint2DDouble& pt) const
 
 void MHRgbPickerPanel::CreateHsvBitmap(const wxSize& newSize)
 {
-    xlColor c;
-    HSVValue v;
-    v.value = 1.0f;
-    float center = (float)newSize.GetWidth() / 2.0f;
-    float radius = center - 10.0f;
+    center = (float)newSize.GetWidth() / 2.0f;
+    radius = center - 10.0f;
 
     if( m_hsvBitmap != nullptr ) {
         delete m_hsvBitmap;
@@ -149,27 +204,48 @@ void MHRgbPickerPanel::CreateHsvBitmap(const wxSize& newSize)
         wxNativePixelData::Iterator rowStart = p;
         for ( int x = 0; x < newSize.GetWidth(); ++x, ++p )
         {
-            float xleg = (float)x - center;
-            float yleg = (float)y - center;
-            float hyp = sqrt(xleg * xleg + yleg * yleg);
-            if( hyp <= radius ) {  // inside circle
-                float phi = atan2(xleg, yleg) * 180.0f / PI + 630.0f;
-                phi = fmod(phi, 360.0f);
-                v.saturation = hyp / center;
-                v.hue = phi / 360.0f;
-                c.fromHSV(v);
-                p.Red() = c.red;
-                p.Green() = c.green;
-                p.Blue() = c.blue;
-            } else {
-                p.Red() = 0;
-                p.Green() = 0;
-                p.Blue() = 0;
-            }
+            xlColor c {GetPointColor(x, y)};
+            p.Red() = c.red;
+            p.Green() = c.green;
+            p.Blue() = c.blue;
         }
         p = rowStart;
         p.OffsetY(data, 1);
     }
+}
+
+bool MHRgbPickerPanel::insideColors(int x, int y)
+{
+    float xleg = (float)x - center;
+    float yleg = (float)y - center;
+    float hyp = sqrt(xleg * xleg + yleg * yleg);
+    if( hyp <= radius ) {  // inside circle
+        return true;
+    } else {
+        return false;
+    }
+}
+
+xlColor MHRgbPickerPanel::GetPointColor(int x, int y)
+{
+    HSVValue v;
+    v.value = 1.0f;
+    xlColor c;
+    float xleg = (float)x - center;
+    float yleg = (float)y - center;
+    float hyp = sqrt(xleg * xleg + yleg * yleg);
+    if( hyp <= radius ) {  // inside circle
+        float phi = atan2(xleg, yleg) * 180.0f / PI + 630.0f;
+        phi = fmod(phi, 360.0f);
+        v.saturation = hyp / center;
+        v.hue = phi / 360.0f;
+        c.fromHSV(v);
+    } else {
+        c.red = 0;
+        c.green = 0;
+        c.blue = 0;
+    }
+    return c;
 }
 
 void MHRgbPickerPanel::CreateHsvBitmapMask()
@@ -181,6 +257,9 @@ void MHRgbPickerPanel::CreateHsvBitmapMask()
 
 wxColour MHRgbPickerPanel::GetColour()
 {
-    wxColour color;
-    return color;
+    if( active_handle >= 0 ) {
+        return m_handles[active_handle].color;
+    } else {
+        return wxColour(0,0,0);
+    }
 }

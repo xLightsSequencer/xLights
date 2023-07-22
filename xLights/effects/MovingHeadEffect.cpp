@@ -86,120 +86,139 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     const std::string& string_type = model_info->GetStringType();
 
     if (StartsWith(string_type, "Single Color")) {
-
         if( model_info->GetDisplayAs() == "DmxMovingHeadAdv" ) {
             MovingHeadPanel *p = (MovingHeadPanel*)panel;
             if (p == nullptr) {
                 return;
             }
+            RenderPositions(p, model_info, eff_pos, SettingsMap, buffer);
+        }
+    }
+}
 
-            int head_count = 0;
-            for( int i = 1; i <= 8; ++i ) {
-                wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
-                wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
-                if( checkbox != nullptr ) {
-                    if( checkbox->IsEnabled() ) {
-                        head_count++;
-                    }
+void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, double eff_pos, const SettingsMap &SettingsMap, RenderBuffer &buffer)
+{
+    int head_count = 0;
+    for( int i = 1; i <= 8; ++i ) {
+        wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+        wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
+        if( checkbox != nullptr ) {
+            if( checkbox->IsEnabled() ) {
+                head_count++;
+            }
+        }
+    }
+
+    auto models = GetModels(model_info);
+
+    for( int i = 1; i <= 8; ++i ) {
+        wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", i);
+        std::string mh_settings = SettingsMap[mh_textbox];
+        if( mh_settings != "" ) {
+
+            // parse all the commands
+            float pan_pos = 0.0f;
+            float tilt_pos = 0.0f;
+            float pan_offset = 0.0f;
+            float tilt_offset = 0.0f;
+            float time_offset = 0.0f;
+            float path_scale = 0.0f;
+            float delta = 0.0f;
+            wxPoint2DDouble path_pt;
+            bool path_parsed = false;
+            bool pan_path_active = true;
+            bool tilt_path_active = true;
+            std::string path_setting = "";
+            wxArrayString heads;
+            wxArrayString colors;
+            int groupings = 1;
+            wxArrayString all_cmds = wxSplit(mh_settings, ';');
+            for (size_t j = 0; j < all_cmds.size(); ++j )
+            {
+                std::string cmd = all_cmds[j];
+                int pos = cmd.find(":");
+                std::string cmd_type = cmd.substr(0, pos);
+                std::string settings = cmd.substr(pos+2, cmd.length());
+                std::replace( settings.begin(), settings.end(), '@', ';');
+
+                if( cmd_type == "Pan" ) {
+                    pan_pos = atof(settings.c_str());
+                } else if ( cmd_type == "Tilt" ) {
+                    tilt_pos = atof(settings.c_str());
+                } else if ( cmd_type == "Pan VC" ) {
+                    GetValueCurvePosition(pan_pos, settings, eff_pos, buffer);
+                } else if ( cmd_type == "Tilt VC" ) {
+                    GetValueCurvePosition(tilt_pos, settings, eff_pos, buffer);
+                } else if( cmd_type == "PanOffset" ) {
+                    pan_offset = atof(settings.c_str());
+                } else if( cmd_type == "TiltOffset" ) {
+                    tilt_offset = atof(settings.c_str());
+                } else if( cmd_type == ("PanOffset VC") ) {
+                    GetValueCurvePosition(pan_offset, settings, eff_pos, buffer);
+                } else if( cmd_type == ("TiltOffset VC") ) {
+                    GetValueCurvePosition(tilt_offset, settings, eff_pos, buffer);
+                } else if ( cmd_type == "IgnorePan" ) {
+                    pan_path_active = false;
+                } else if ( cmd_type == "IgnoreTilt" ) {
+                    tilt_path_active = false;
+                } else if ( cmd_type == "Path" ) {
+                    path_setting = settings;
+                    path_parsed = true;
+                } else if( cmd_type == "Heads" ) {
+                    heads = wxSplit(settings, ',');
+                } else if( cmd_type == "Groupings" ) {
+                    groupings = atoi(settings.c_str());
+                } else if( cmd_type == "Groupings VC" ) {
+                    ValueCurve vc( settings );
+                    vc.SetLimits(MOVING_HEAD_GROUP_MIN, MOVING_HEAD_GROUP_MAX);
+                    groupings = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                } else if( cmd_type == "TimeOffset" ) {
+                    time_offset = atof(settings.c_str());
+                } else if( cmd_type == "PathScale" ) {
+                    path_scale = atof(settings.c_str());
+                } else if( cmd_type == "TimeOffset VC" ) {
+                    ValueCurve vc( settings );
+                    vc.SetLimits(MOVING_HEAD_TIME_MIN, MOVING_HEAD_TIME_MAX);
+                    vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                    time_offset = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                } else if( cmd_type == "PathScale VC" ) {
+                    ValueCurve vc( settings );
+                    vc.SetLimits(MOVING_HEAD_SCALE_MIN, MOVING_HEAD_SCALE_MAX);
+                    vc.SetDivisor(MOVING_HEAD_DIVISOR);
+                    path_scale = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+                } else if( cmd_type == "Color" ) {
+                    colors = wxSplit(settings, ',');
                 }
             }
 
-            auto models = GetModels(model_info);
+            CalculatePosition( i, pan_pos, heads, groupings, pan_offset, delta);
+            CalculatePosition( i, tilt_pos, heads, groupings, tilt_offset, delta);
 
-            for( int i = 1; i <= 8; ++i ) {
-                wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", i);
-                std::string mh_settings = SettingsMap[mh_textbox];
-                if( mh_settings != "" ) {
+            if( path_parsed ) {
+                CalculatePathPositions( pan_path_active, tilt_path_active, pan_pos, tilt_pos, time_offset, path_scale, delta, eff_pos, path_setting);
+            }
 
-                    // parse all the commands
-                    float pan_pos = 0.0f;
-                    float tilt_pos = 0.0f;
-                    float pan_offset = 0.0f;
-                    float tilt_offset = 0.0f;
-                    float time_offset = 0.0f;
-                    float path_scale = 0.0f;
-                    float delta = 0.0f;
-                    wxPoint2DDouble path_pt;
-                    bool path_parsed = false;
-                    bool pan_path_active = true;
-                    bool tilt_path_active = true;
-                    std::string path_setting = "";
-                    wxArrayString heads;
-                    int groupings = 1;
-                    wxArrayString all_cmds = wxSplit(mh_settings, ';');
-                    for (size_t j = 0; j < all_cmds.size(); ++j )
-                    {
-                        std::string cmd = all_cmds[j];
-                        int pos = cmd.find(":");
-                        std::string cmd_type = cmd.substr(0, pos);
-                        std::string settings = cmd.substr(pos+2, cmd.length());
-                        std::replace( settings.begin(), settings.end(), '@', ';');
-
-                        if( cmd_type == "Pan" ) {
-                            pan_pos = atof(settings.c_str());
-                        } else if ( cmd_type == "Tilt" ) {
-                            tilt_pos = atof(settings.c_str());
-                        } else if ( cmd_type == "Pan VC" ) {
-                            GetValueCurvePosition(pan_pos, settings, eff_pos, buffer);
-                        } else if ( cmd_type == "Tilt VC" ) {
-                            GetValueCurvePosition(tilt_pos, settings, eff_pos, buffer);
-                        } else if( cmd_type == "PanOffset" ) {
-                            pan_offset = atof(settings.c_str());
-                        } else if( cmd_type == "TiltOffset" ) {
-                            tilt_offset = atof(settings.c_str());
-                        } else if( cmd_type == ("PanOffset VC") ) {
-                            GetValueCurvePosition(pan_offset, settings, eff_pos, buffer);
-                        } else if( cmd_type == ("TiltOffset VC") ) {
-                            GetValueCurvePosition(tilt_offset, settings, eff_pos, buffer);
-                        } else if ( cmd_type == "IgnorePan" ) {
-                            pan_path_active = false;
-                        } else if ( cmd_type == "IgnoreTilt" ) {
-                            tilt_path_active = false;
-                        } else if ( cmd_type == "Path" ) {
-                            path_setting = settings;
-                            path_parsed = true;
-                        } else if( cmd_type == "Heads" ) {
-                            heads = wxSplit(settings, ',');
-                        } else if( cmd_type == "Groupings" ) {
-                            groupings = atoi(settings.c_str());
-                        } else if( cmd_type == "Groupings VC" ) {
-                            ValueCurve vc( settings );
-                            vc.SetLimits(MOVING_HEAD_GROUP_MIN, MOVING_HEAD_GROUP_MAX);
-                            groupings = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                        } else if( cmd_type == "TimeOffset" ) {
-                            time_offset = atof(settings.c_str());
-                        } else if( cmd_type == "PathScale" ) {
-                            path_scale = atof(settings.c_str());
-                        } else if( cmd_type == "TimeOffset VC" ) {
-                            ValueCurve vc( settings );
-                            vc.SetLimits(MOVING_HEAD_TIME_MIN, MOVING_HEAD_TIME_MAX);
-                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
-                            time_offset = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                        } else if( cmd_type == "PathScale VC" ) {
-                            ValueCurve vc( settings );
-                            vc.SetLimits(MOVING_HEAD_SCALE_MIN, MOVING_HEAD_SCALE_MAX);
-                            vc.SetDivisor(MOVING_HEAD_DIVISOR);
-                            path_scale = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-                        }
-                    }
-
-                    CalculatePosition( i, pan_pos, heads, groupings, pan_offset, delta);
-                    CalculatePosition( i, tilt_pos, heads, groupings, tilt_offset, delta);
-
-                    if( path_parsed ) {
-                        CalculatePathPositions( pan_path_active, tilt_path_active, pan_pos, tilt_pos, time_offset, path_scale, delta, eff_pos, path_setting);
-                    }
-
-                    // find models that map to this moving head position
-                    for (const auto& it : models) {
-                        if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
-                            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
-                            if( mhead->GetFixtureVal() == i ) {
-                                int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
-                                int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);
-                                
-                                WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
-                                WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
+            // find models that map to this moving head position
+            for (const auto& it : models) {
+                if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
+                    DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+                    if( mhead->GetFixtureVal() == i ) {
+                        int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
+                        int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);
+                        
+                        WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
+                        WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
+                        
+                        if( mhead->HasColorAbility() ) {
+                            DmxColorAbility* mh_color = mhead->GetColorAbility();
+                            if (mh_color != nullptr) {
+                                if( colors.size() > 0 ) {
+                                    uint8_t r = wxAtoi(colors[0]);
+                                    uint8_t g = wxAtoi(colors[1]);
+                                    uint8_t b = wxAtoi(colors[2]);
+                                    xlColor c{r,g,b};
+                                    buffer.SetPixel(0, 0, c);
+                                }
                             }
                         }
                     }
@@ -209,7 +228,9 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     }
 }
 
-
+void MovingHeadEffect::RenderColors(MovingHeadPanel *p, Model* model_info, double eff_pos, const SettingsMap &SettingsMap, RenderBuffer &buffer)
+{
+}
 void MovingHeadEffect::GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer)
 {
     ValueCurve vc( settings );

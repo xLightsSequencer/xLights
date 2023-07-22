@@ -611,6 +611,13 @@ void MovingHeadPanel::UpdateMHSettings()
                     AddSetting( "TimeOffset", "TimeOffset", mh_settings );
                 }
 
+                // Add color
+                if( m_rgbColorPanel->HasColour() ) {
+                    wxColour color{m_rgbColorPanel->GetColour()};
+                    wxString color_text = wxString::Format(";Color: %d, %d, %d", color.Red(), color.Green(), color.Blue());
+                    mh_settings += color_text;
+                }
+
                 // update the settings textbox
                 wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
                 wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
@@ -672,6 +679,59 @@ void MovingHeadPanel::AddTextbox(const std::string& ctrl_id, const std::string& 
         }
         wxString value = wxString::Format("%s: %s", name, textbox->GetValue());
         mh_settings += value;
+    }
+}
+
+void MovingHeadPanel::UpdateMHColorSettings()
+{
+    std::string headset = xlEMPTY_STRING;
+
+    for( int i = 1; i <= 8; ++i ) {
+        wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+        wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+        if( checkbox != nullptr ) {
+            if( checkbox->IsChecked() ) {
+                wxString color_text;
+                bool found_color {false};
+                if( m_rgbColorPanel->HasColour() ) {
+                    wxColour color{m_rgbColorPanel->GetColour()};
+                    color_text = wxString::Format("Color: %d, %d, %d", color.Red(), color.Green(), color.Blue());
+                }
+                    
+                wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+                wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                if( mh_textbox != nullptr ) {
+                    std::string mh_settings = mh_textbox->GetValue();
+                    if( mh_settings != xlEMPTY_STRING ) {
+                        wxArrayString all_cmds = wxSplit(mh_settings, ';');
+                        for (size_t j = 0; j < all_cmds.size(); ++j )
+                        {
+                            std::string cmd = all_cmds[j];
+                            int pos = cmd.find(":");
+                            std::string cmd_type = cmd.substr(0, pos);
+                            std::string settings = cmd.substr(pos+2, cmd.length());
+
+                            if( cmd_type == "Color" ) {
+                                all_cmds[j] = color_text;
+                                found_color = true;
+                            }
+                        }
+
+                        if( !found_color ) {
+                            mh_settings += ";";
+                            mh_settings += color_text;
+                        } else {
+                            mh_settings = wxJoin(all_cmds, ';');
+                        }
+                        
+                        // update the settings textbox
+                        if( mh_settings != xlEMPTY_STRING ) {
+                            mh_textbox->SetValue(mh_settings);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -938,5 +998,7 @@ bool MovingHeadPanel::GetPosition(const std::string& ctrl_name, float& pos)
 
 void MovingHeadPanel::NotifyColorUpdated()
 {
+    UpdateMHColorSettings();
+    FireChangeEvent();
 }
 

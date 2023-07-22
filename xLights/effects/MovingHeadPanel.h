@@ -192,6 +192,7 @@ private:
     std::list<Model*> GetActiveModels();
     void UncheckAllFixtures();
     void UpdateMHSettings();
+    void UpdateMHColorSettings();
     void AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings);
     void AddPath(std::string& mh_settings);
     void AddValueCurve(ValueCurve* vc, const std::string& name, std::string& mh_settings);
