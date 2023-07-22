@@ -20,6 +20,7 @@ BEGIN_EVENT_TABLE(MHRgbPickerPanel, wxPanel)
     EVT_PAINT(MHRgbPickerPanel::OnPaint)
     EVT_KEY_DOWN(MHRgbPickerPanel::OnKeyDown)
     EVT_LEFT_DOWN(MHRgbPickerPanel::OnLeftDown)
+    EVT_LEFT_DCLICK(MHRgbPickerPanel::OnLeftDClick)
     EVT_LEFT_UP(MHRgbPickerPanel::OnLeftUp)
     EVT_MOTION(MHRgbPickerPanel::OnMouseMove)
     EVT_ENTER_WINDOW(MHRgbPickerPanel::OnEntered)
@@ -86,6 +87,9 @@ void MHRgbPickerPanel::OnKeyDown(wxKeyEvent& event)
 }
 void MHRgbPickerPanel::OnLeftDown(wxMouseEvent& event)
 {
+    if( event.ButtonDClick() ) {
+        return;
+    }
     wxAffineMatrix2D m;
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
     m_mousePos = UItoNormalized(ptUI);
@@ -98,10 +102,39 @@ void MHRgbPickerPanel::OnLeftDown(wxMouseEvent& event)
             active_handle = 0;
         }
     } else if( insideColors(ptUI.m_x, ptUI.m_y) ) {
-        m_handles[active_handle].pt.m_x = m_mousePos.m_x;
-        m_handles[active_handle].pt.m_y = m_mousePos.m_y;
-        xlColor c {GetPointColor(ptUI.m_x, ptUI.m_y)};
-        m_handles[active_handle].color = wxColour(c);
+        selected_point = HitTest(ptUI);
+        if( selected_point >= 0 ) {
+            active_handle = selected_point;
+        } else {
+            m_handles[active_handle].pt.m_x = m_mousePos.m_x;
+            m_handles[active_handle].pt.m_y = m_mousePos.m_y;
+            xlColor c {GetPointColor(ptUI.m_x, ptUI.m_y)};
+            m_handles[active_handle].color = wxColour(c);
+            selected_point = active_handle;
+        }
+    }
+    m_rgbPickerParent->NotifyColorUpdated();
+    Refresh();
+}
+
+void MHRgbPickerPanel::OnLeftDClick(wxMouseEvent& event)
+{
+    m_mouseDClick = true;
+    wxAffineMatrix2D m;
+    wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
+    m_mousePos = UItoNormalized(ptUI);
+    m_mouseDown = true;
+    if( m_handles.size() == 0 ) {
+        if( insideColors(ptUI.m_x, ptUI.m_y) ) {
+            wxColour color{GetPointColor(ptUI.m_x, ptUI.m_y)};
+            m_handles.push_back(HandlePoint(m_mousePos, color));
+            selected_point = 0;
+            active_handle = 0;
+        }
+    } else if( insideColors(ptUI.m_x, ptUI.m_y) ) {
+        active_handle = m_handles.size();
+        wxColour color{GetPointColor(ptUI.m_x, ptUI.m_y)};
+        m_handles.push_back(HandlePoint(m_mousePos, color));
         selected_point = active_handle;
     }
     m_rgbPickerParent->NotifyColorUpdated();
@@ -111,6 +144,7 @@ void MHRgbPickerPanel::OnLeftDown(wxMouseEvent& event)
 void MHRgbPickerPanel::OnLeftUp(wxMouseEvent& event)
 {
     m_mouseDown = false;
+    m_mouseDClick = false;
     selected_point = -1;
 }
 
@@ -119,17 +153,17 @@ void MHRgbPickerPanel::OnMouseMove(wxMouseEvent& event)
     wxAffineMatrix2D m;
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
     if( m_mouseDown ) {
-        m_mousePos = UItoNormalized(ptUI);
         if( selected_point != -1 ) {
             if( insideColors(ptUI.m_x, ptUI.m_y) ) {
+                m_mousePos = UItoNormalized(ptUI);
                 m_handles[selected_point].pt.m_x = m_mousePos.m_x;
                 m_handles[selected_point].pt.m_y = m_mousePos.m_y;
                 xlColor c {GetPointColor(ptUI.m_x, ptUI.m_y)};
                 m_handles[selected_point].color = wxColour(c);
+                m_rgbPickerParent->NotifyColorUpdated();
+                Refresh();
             }
         }
-        m_rgbPickerParent->NotifyColorUpdated();
-        Refresh();
     }
 }
 

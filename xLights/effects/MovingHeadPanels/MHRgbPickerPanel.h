@@ -41,6 +41,7 @@ private:
     void OnPaint(wxPaintEvent& event);
     void OnLeftDown(wxMouseEvent& event);
     void OnLeftUp(wxMouseEvent& event);
+    void OnLeftDClick(wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent& event);
     void OnEntered(wxMouseEvent& event);
     void OnKeyDown(wxKeyEvent& event);
@@ -52,6 +53,7 @@ private:
     IMHRgbPickerPanelParent* const m_rgbPickerParent {nullptr};
     wxPoint2DDouble m_mousePos;
     bool m_mouseDown {false};
+    bool m_mouseDClick {false};
     
     int HitTest( wxPoint2DDouble& ptUI );
     bool insideColors(int x, int y);

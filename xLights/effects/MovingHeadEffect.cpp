@@ -136,6 +136,7 @@ void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, do
             for (size_t j = 0; j < all_cmds.size(); ++j )
             {
                 std::string cmd = all_cmds[j];
+                if( cmd == xlEMPTY_STRING ) continue;
                 int pos = cmd.find(":");
                 std::string cmd_type = cmd.substr(0, pos);
                 std::string settings = cmd.substr(pos+2, cmd.length());
