@@ -6940,11 +6940,12 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
     }
 }
 
-void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data) {
-
+void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &model, const std::string &key, const std::string &data) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::CreateUndoPoint");
     size_t idx = undoBuffer.size();
+    
+    std::string type = tp;
 
     //printf("%s   %s   %s  %s\n", type.c_str(), model.c_str(), key.c_str(), data.c_str());
     if (idx > 0 ) {
@@ -6959,6 +6960,18 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
             return;
         }
     }
+    
+    // if we are doing a move/resize/etc... with multiple models selected, we
+    // need to save everything so we can undo the entire operation
+    int selectedModelCnt = ModelsSelectedCount();
+    int selectedViewObjectCnt = ViewObjectsSelectedCount();
+    if (type == "SingleModel" && selectedModelCnt > 1) {
+        type = "All";
+    }
+    if (type == "SingleObject" && selectedViewObjectCnt > 1) {
+        type = "All";
+    }
+
     if (idx >= 100) {  //100 steps is more than enough IMO
         for (size_t x = 1; x < idx; x++) {
             undoBuffer[x-1] = undoBuffer[x];
