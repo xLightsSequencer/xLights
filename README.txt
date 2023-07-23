@@ -11,6 +11,24 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.11 July 23, 2023
+   -- enh (keith)   Make Smart Recievers a more visual component of the visualizer
+   -- enh (keith)   Add smart remote tooltip to visualiser
+   -- enh (keith)   Fast change smart remote number (and all models on it) by right clicking on the remote in visualiser
+   -- enh (keith)   Add smart remote drag/drop in visualiser
+   -- enh (scott)   Add Controller Cap and Serial protocol information to automation API JSON
+   -- enh (scott)   Add ability to set Model Properties through automation API
+   -- enh (scott)   Added Metronome w/ Tags for use with state effect
+   -- enh (scott)   Added name support to getControllerPortMap command, added group and models filters to getModels
+   -- bug (scott)   Added FPP Proxy IP checks
+   -- bug (dkulp)   Attempt to workaround issues on Windows when filenames and FPP Connecte are not in UTF-8 encoding
+   -- bug (keith)   Fix incorrect month in log files
+   -- bug (keith)   Workaround for Minleon Smart T's with RGB+ pixels
+   -- bug (dkulp)   Fix crash on save if sequence references models that don't exist
+   -- bug (dkulp)   Another attempt to get the controller properies to not rebuild the entire list all the time, prevents crashes
+   -- bug (Pierre Beukes) Fix Moving Head Export: Include slew limits
+   -- bug (dkulp)   Fix problems with displaying models with circle/blended circle after changing it on layout page
+   -- bug (dkulp)   If resizing/moving/rotating multiple models, make sure the Undo records everything instead of the single selected model
 2023.10 June 30, 2023
    -- enh (dkulp)   Add node number under mouse cursor to lower right corner of SubModelDialog
    -- enh (scott)   Add zero layer size for circle model (for center pixel)
