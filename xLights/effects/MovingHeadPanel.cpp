@@ -691,11 +691,10 @@ void MovingHeadPanel::UpdateMHColorSettings()
         wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
         if( checkbox != nullptr ) {
             if( checkbox->IsChecked() ) {
-                wxString color_text;
+                std::string color_text;
                 bool found_color {false};
                 if( m_rgbColorPanel->HasColour() ) {
-                    wxColour color{m_rgbColorPanel->GetColour()};
-                    color_text = wxString::Format("Color: %d, %d, %d", color.Red(), color.Green(), color.Blue());
+                    color_text = "Color: " + m_rgbColorPanel->GetColour();
                 }
                     
                 wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
@@ -707,6 +706,7 @@ void MovingHeadPanel::UpdateMHColorSettings()
                         for (size_t j = 0; j < all_cmds.size(); ++j )
                         {
                             std::string cmd = all_cmds[j];
+                            if( cmd == xlEMPTY_STRING ) continue;
                             int pos = cmd.find(":");
                             std::string cmd_type = cmd.substr(0, pos);
                             std::string settings = cmd.substr(pos+2, cmd.length());

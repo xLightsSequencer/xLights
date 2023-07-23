@@ -119,7 +119,7 @@ protected:
     std::list<Model*> GetModels(Model* model);
     void UpdateFixturePositions(Model *cls);
     void RenderPositions(MovingHeadPanel *p, Model* model_info, double eff_pos, const SettingsMap &SettingsMap, RenderBuffer &buffer);
-    void RenderColors(MovingHeadPanel *p, Model* model_info, double eff_pos, const SettingsMap &SettingsMap, RenderBuffer &buffer);
+    xlColor GetMultiColorBlend(double eff_pos, const wxArrayString& colors, RenderBuffer &buffer);
     void GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer);
     void CalculatePosition(int location, float& position, wxArrayString& heads, int groupings, float offset, float& delta );
     void CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const std::string& path_def);

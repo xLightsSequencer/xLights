@@ -214,10 +214,7 @@ void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, do
                             DmxColorAbility* mh_color = mhead->GetColorAbility();
                             if (mh_color != nullptr) {
                                 if( colors.size() > 0 ) {
-                                    uint8_t r = wxAtoi(colors[0]);
-                                    uint8_t g = wxAtoi(colors[1]);
-                                    uint8_t b = wxAtoi(colors[2]);
-                                    xlColor c{r,g,b};
+                                    xlColor c {GetMultiColorBlend(eff_pos, colors, buffer)};
                                     buffer.SetPixel(0, 0, c);
                                 }
                             }
@@ -229,9 +226,39 @@ void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, do
     }
 }
 
-void MovingHeadEffect::RenderColors(MovingHeadPanel *p, Model* model_info, double eff_pos, const SettingsMap &SettingsMap, RenderBuffer &buffer)
+xlColor MovingHeadEffect::GetMultiColorBlend(double eff_pos, const wxArrayString& colors, RenderBuffer &buffer)
 {
+    size_t colorcnt = colors.size() / 3;
+    if (colorcnt <= 1)
+    {
+        uint8_t r = wxAtoi(colors[0]);
+        uint8_t g = wxAtoi(colors[1]);
+        uint8_t b = wxAtoi(colors[2]);
+        xlColor c{r,g,b};
+        return c;
+    }
+    if (eff_pos >= 1.0) eff_pos = 0.99999f;
+    if (eff_pos < 0.0) eff_pos = 0.0f;
+    float realidx = eff_pos * (colorcnt - 1);
+    int coloridx1 = floor(realidx);
+    int coloridx2 = (coloridx1 + 1) % colorcnt;
+    float ratio = realidx - float(coloridx1);
+    coloridx1 *= 3;
+    coloridx2 *= 3;
+    uint8_t r1 = wxAtoi(colors[coloridx1]);
+    uint8_t g1 = wxAtoi(colors[coloridx1+1]);
+    uint8_t b1 = wxAtoi(colors[coloridx1+2]);
+    uint8_t r2 = wxAtoi(colors[coloridx2]);
+    uint8_t g2 = wxAtoi(colors[coloridx2+1]);
+    uint8_t b2 = wxAtoi(colors[coloridx2+2]);
+
+    xlColor color;
+    color.red = buffer.ChannelBlend(r1, r2, ratio);
+    color.green = buffer.ChannelBlend(g1, g2, ratio);
+    color.blue = buffer.ChannelBlend(b1, b2, ratio);
+    return color;
 }
+
 void MovingHeadEffect::GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer)
 {
     ValueCurve vc( settings );

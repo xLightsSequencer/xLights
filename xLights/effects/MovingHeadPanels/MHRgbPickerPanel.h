@@ -22,7 +22,7 @@ public:
                       const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~MHRgbPickerPanel();
 
-    wxColour GetColour();
+    std::string GetColour();
     bool HasColour() { return m_handles.size() > 0; }
 
 private:
@@ -41,10 +41,10 @@ private:
     void OnPaint(wxPaintEvent& event);
     void OnLeftDown(wxMouseEvent& event);
     void OnLeftUp(wxMouseEvent& event);
-    void OnLeftDClick(wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent& event);
     void OnEntered(wxMouseEvent& event);
     void OnKeyDown(wxKeyEvent& event);
+    void OnKeyUp(wxKeyEvent& event);
 
     wxPoint2DDouble UItoNormalized(const wxPoint2DDouble& pt) const;
     wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt) const;
@@ -54,7 +54,8 @@ private:
     wxPoint2DDouble m_mousePos;
     bool m_mouseDown {false};
     bool m_mouseDClick {false};
-    
+    bool m_shiftdown {false};
+
     int HitTest( wxPoint2DDouble& ptUI );
     bool insideColors(int x, int y);
     xlColor GetPointColor(int x, int y);
