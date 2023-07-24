@@ -172,7 +172,7 @@ private:
     //(*Handlers(MovingHeadPanel)
     void OnNotebook1PageChanged(wxNotebookEvent& event);
     void OnPaint(wxPaintEvent& event);
-    void OnCheckBox_MH2Click(wxCommandEvent& event);
+    void OnCheckBox_MHClick(wxCommandEvent& event);
     void OnButton_ApplyClick(wxCommandEvent& event);
     void OnButton_AllClick(wxCommandEvent& event);
     void OnButton_NoneClick(wxCommandEvent& event);
@@ -192,7 +192,6 @@ private:
     std::list<Model*> GetActiveModels();
     void UncheckAllFixtures();
     void UpdateMHSettings();
-    void UpdateMHColorSettings();
     void AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings);
     void AddPath(std::string& mh_settings);
     void AddValueCurve(ValueCurve* vc, const std::string& name, std::string& mh_settings);
@@ -201,8 +200,13 @@ private:
     void OnTextCtrlUpdated(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);
     void UpdateTextbox(const std::string& ctrl_name, float pos);
+    void UpdateValueCurve(const std::string& ctrl_name, const std::string& curve_settings);
+    void UpdateCheckbox(const std::string& ctrl_name, bool value);
     bool GetPosition(const std::string& ctrl_name, float& pos);
     void UpdatePositionCanvas(float pan, float tilt);
+    void RecallSettings(const std::string mh_settings);
+    
+    bool recall {false};
 
 //***************************************************
 // Pathing support

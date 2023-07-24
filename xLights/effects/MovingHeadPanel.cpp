@@ -337,6 +337,14 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer_Main->Fit(this);
     FlexGridSizer_Main->SetSizeHints(this);
 
+    Connect(IDD_CHECKBOX_MH1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHClick);
+    Connect(IDD_CHECKBOX_MH2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHClick);
+    Connect(IDD_CHECKBOX_MH3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHClick);
+    Connect(IDD_CHECKBOX_MH4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHClick);
+    Connect(IDD_CHECKBOX_MH5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHClick);
+    Connect(IDD_CHECKBOX_MH6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHClick);
+    Connect(IDD_CHECKBOX_MH7,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHClick);
+    Connect(IDD_CHECKBOX_MH8,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHClick);
     Connect(ID_BUTTON_All,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_AllClick);
     Connect(ID_BUTTON_None,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_NoneClick);
     Connect(ID_BUTTON_Evens,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_EvensClick);
@@ -529,6 +537,8 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
 
 void MovingHeadPanel::UpdateMHSettings()
 {
+    if( recall ) return;
+
     std::string headset = xlEMPTY_STRING;
 
     // build a string with the selected moving heads
@@ -579,7 +589,7 @@ void MovingHeadPanel::UpdateMHSettings()
                 mh_settings += headset;
 
                 // add path only settings
-                
+
                 // See if pan path is ignored
                 checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_MHIgnorePan"));
                 if( checkbox != nullptr ) {
@@ -613,9 +623,11 @@ void MovingHeadPanel::UpdateMHSettings()
 
                 // Add color
                 if( m_rgbColorPanel->HasColour() ) {
-                    wxColour color{m_rgbColorPanel->GetColour()};
-                    wxString color_text = wxString::Format(";Color: %d, %d, %d", color.Red(), color.Green(), color.Blue());
-                    mh_settings += color_text;
+                    std::string color_text{m_rgbColorPanel->GetColour()};
+                    if( color_text != xlEMPTY_STRING ) {
+                        mh_settings += ";";
+                        mh_settings += color_text;
+                    }
                 }
 
                 // update the settings textbox
@@ -682,59 +694,6 @@ void MovingHeadPanel::AddTextbox(const std::string& ctrl_id, const std::string& 
     }
 }
 
-void MovingHeadPanel::UpdateMHColorSettings()
-{
-    std::string headset = xlEMPTY_STRING;
-
-    for( int i = 1; i <= 8; ++i ) {
-        wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
-        wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
-        if( checkbox != nullptr ) {
-            if( checkbox->IsChecked() ) {
-                std::string color_text;
-                bool found_color {false};
-                if( m_rgbColorPanel->HasColour() ) {
-                    color_text = "Color: " + m_rgbColorPanel->GetColour();
-                }
-                    
-                wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
-                wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
-                if( mh_textbox != nullptr ) {
-                    std::string mh_settings = mh_textbox->GetValue();
-                    if( mh_settings != xlEMPTY_STRING ) {
-                        wxArrayString all_cmds = wxSplit(mh_settings, ';');
-                        for (size_t j = 0; j < all_cmds.size(); ++j )
-                        {
-                            std::string cmd = all_cmds[j];
-                            if( cmd == xlEMPTY_STRING ) continue;
-                            int pos = cmd.find(":");
-                            std::string cmd_type = cmd.substr(0, pos);
-                            std::string settings = cmd.substr(pos+2, cmd.length());
-
-                            if( cmd_type == "Color" ) {
-                                all_cmds[j] = color_text;
-                                found_color = true;
-                            }
-                        }
-
-                        if( !found_color ) {
-                            mh_settings += ";";
-                            mh_settings += color_text;
-                        } else {
-                            mh_settings = wxJoin(all_cmds, ';');
-                        }
-                        
-                        // update the settings textbox
-                        if( mh_settings != xlEMPTY_STRING ) {
-                            mh_textbox->SetValue(mh_settings);
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 void MovingHeadPanel::UncheckAllFixtures()
 {
     for( int i = 1; i <= 8; ++i ) {
@@ -763,6 +722,8 @@ void MovingHeadPanel::OnButton_AllClick(wxCommandEvent& event)
             }
        }
     }
+    wxCommandEvent _event;
+    OnCheckBox_MHClick(_event);
 }
 
 void MovingHeadPanel::OnButton_NoneClick(wxCommandEvent& event)
@@ -789,6 +750,8 @@ void MovingHeadPanel::OnButton_EvensClick(wxCommandEvent& event)
             }
        }
     }
+    wxCommandEvent _event;
+    OnCheckBox_MHClick(_event);
 }
 
 void MovingHeadPanel::OnButton_OddsClick(wxCommandEvent& event)
@@ -810,6 +773,8 @@ void MovingHeadPanel::OnButton_OddsClick(wxCommandEvent& event)
             }
        }
     }
+    wxCommandEvent _event;
+    OnCheckBox_MHClick(_event);
 }
 
 std::list<Model*> MovingHeadPanel::GetActiveModels()
@@ -952,6 +917,8 @@ void MovingHeadPanel::NotifyPositionUpdated()
     float pos_y = -pt.m_y * 360.0f + 180.0f;
     UpdateTextbox("Pan", pos_x);
     UpdateTextbox("Tilt", pos_y);
+    UpdateMHSettings();
+    FireChangeEvent();
 }
 
 void MovingHeadPanel::UpdatePositionCanvas(float pan, float tilt)
@@ -982,6 +949,36 @@ void MovingHeadPanel::UpdateTextbox(const std::string& ctrl_name, float pos)
     }
 }
 
+void MovingHeadPanel::UpdateValueCurve(const std::string& ctrl_name, const std::string& curve_settings)
+{
+    BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MH" + ctrl_name));
+    wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("IDD_TEXTCTRL_MH" + ctrl_name));
+    if( textbox != nullptr ) {
+        if( textbox->IsEnabled() ) {
+            textbox->Disable();
+            BulkEditSliderF1* slider = (BulkEditSliderF1*)(this->FindWindowByName("ID_SLIDER_MH" + ctrl_name));
+            if( slider != nullptr ) {
+                slider->Disable();
+            }
+            if( vc_button != nullptr ) {
+                vc_button->ToggleActive();
+            }
+        }
+    }
+    if( vc_button != nullptr ) {
+        vc_button->SetValue(curve_settings);
+    }
+}
+
+void MovingHeadPanel::UpdateCheckbox(const std::string& ctrl_name, bool value)
+{
+    wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_" + ctrl_name));
+    if( checkbox != nullptr ) {
+        checkbox->SetValue(value);
+    }
+}
+
+
 bool MovingHeadPanel::GetPosition(const std::string& ctrl_name, float& pos)
 {
     bool ret_val = false;
@@ -998,7 +995,111 @@ bool MovingHeadPanel::GetPosition(const std::string& ctrl_name, float& pos)
 
 void MovingHeadPanel::NotifyColorUpdated()
 {
-    UpdateMHColorSettings();
+    UpdateMHSettings();
     FireChangeEvent();
 }
 
+void MovingHeadPanel::OnCheckBox_MHClick(wxCommandEvent& event)
+{
+    bool all_same {true};
+    std::string last_mh {xlEMPTY_STRING};
+    for( int i = 1; i <= 8; ++i ) {
+        wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+        wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+        if( checkbox != nullptr ) {
+            if( checkbox->IsChecked() ) {
+                wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+                wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                if( last_mh == xlEMPTY_STRING ) {
+                    last_mh = mh_textbox->GetValue();
+                } else {
+                    if( last_mh != mh_textbox->GetValue() ) {
+                        all_same = false;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    if( all_same && last_mh != xlEMPTY_STRING ) {
+        RecallSettings(last_mh);
+    }
+}
+
+void MovingHeadPanel::RecallSettings(const std::string mh_settings)
+{
+    recall = true;
+
+    UpdateCheckbox("MHIgnorePan", false);
+    UpdateCheckbox("MHIgnoreTilt", false);
+
+    wxArrayString all_cmds = wxSplit(mh_settings, ';');
+    for (size_t j = 0; j < all_cmds.size(); ++j )
+    {
+        std::string cmd = all_cmds[j];
+        if( cmd == xlEMPTY_STRING ) continue;
+        int pos = cmd.find(":");
+        std::string cmd_type = cmd.substr(0, pos);
+        std::string settings = cmd.substr(pos+2, cmd.length());
+        std::replace( settings.begin(), settings.end(), '@', ';');
+
+        if( cmd_type == "Pan" ) {
+            UpdateTextbox("Pan", wxAtof(settings.c_str()));
+        } else if ( cmd_type == "Tilt" ) {
+            UpdateTextbox("Tilt", wxAtof(settings.c_str()));
+        } else if ( cmd_type == "Pan VC" ) {
+            UpdateValueCurve("Pan", settings.c_str());
+        } else if ( cmd_type == "Tilt VC" ) {
+            UpdateValueCurve("Tilt", settings.c_str());
+        } else if( cmd_type == "PanOffset" ) {
+            UpdateTextbox("PanOffset", wxAtof(settings.c_str()));
+        } else if( cmd_type == "TiltOffset" ) {
+            UpdateTextbox("TiltOffset", wxAtof(settings.c_str()));
+        } else if( cmd_type == ("PanOffset VC") ) {
+            UpdateValueCurve("PanOffset", settings.c_str());
+        } else if( cmd_type == ("TiltOffset VC") ) {
+            UpdateValueCurve("TiltOffset", settings.c_str());
+        } else if ( cmd_type == "IgnorePan" ) {
+            UpdateCheckbox("MHIgnorePan", true);
+        } else if ( cmd_type == "IgnoreTilt" ) {
+            UpdateCheckbox("MHIgnoreTilt", true);
+        } else if ( cmd_type == "Path" ) {
+            m_sketchDef = settings;
+            m_sketch = SketchEffectSketch::SketchFromString(m_sketchDef);
+            if( m_sketchDef == xlEMPTY_STRING ) {
+                m_sketchCanvasPanel->ResetHandlesState();
+                m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::DefineStartPoint);
+                selected_path = -1;
+            } else {
+                if( m_sketch.paths().size() > 0 ) {
+                    selected_path = 0;
+                    m_sketchCanvasPanel->UpdateHandlesForPath(0);
+                } else {
+                    selected_path = -1;
+                }
+            }
+        } else if( cmd_type == "Groupings" ) {
+            UpdateTextbox("Groupings", wxAtof(settings.c_str()));
+        } else if( cmd_type == "Groupings VC" ) {
+            UpdateValueCurve("Groupings", settings.c_str());
+        } else if( cmd_type == "TimeOffset" ) {
+            UpdateTextbox("TimeOffset", wxAtof(settings.c_str()));
+        } else if( cmd_type == "PathScale" ) {
+            UpdateTextbox("PathScale", wxAtof(settings.c_str()));
+        } else if( cmd_type == "TimeOffset VC" ) {
+            UpdateValueCurve("TimeOffset", settings.c_str());
+        } else if( cmd_type == "PathScale VC" ) {
+            UpdateValueCurve("PathScale", settings.c_str());
+        } else if( cmd_type == "Color" ) {
+            m_rgbColorPanel->SetColours(settings);
+        }
+    }
+    float pan = 0.0f;
+    float tilt = 0.0f;
+    GetPosition("Pan", pan);
+    GetPosition("Tilt", tilt);
+    UpdatePositionCanvas(pan, tilt);
+
+    recall = false;
+}

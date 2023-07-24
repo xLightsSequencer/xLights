@@ -38,6 +38,7 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="IDD_CHECKBOX_MH1" variable="CheckBox_MH1" member="yes">
 									<label>1</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -46,6 +47,7 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="IDD_CHECKBOX_MH2" variable="CheckBox_MH2" member="yes">
 									<label>2</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -54,6 +56,7 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="IDD_CHECKBOX_MH3" variable="CheckBox_MH3" member="yes">
 									<label>3</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -62,6 +65,7 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="IDD_CHECKBOX_MH4" variable="CheckBox_MH4" member="yes">
 									<label>4</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -70,6 +74,7 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="IDD_CHECKBOX_MH5" variable="CheckBox_MH5" member="yes">
 									<label>5</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -78,6 +83,7 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="IDD_CHECKBOX_MH6" variable="CheckBox_MH6" member="yes">
 									<label>6</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -86,6 +92,7 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="IDD_CHECKBOX_MH7" variable="CheckBox_MH7" member="yes">
 									<label>7</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -94,6 +101,7 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="IDD_CHECKBOX_MH8" variable="CheckBox_MH8" member="yes">
 									<label>8</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>

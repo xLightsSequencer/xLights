@@ -24,6 +24,7 @@ public:
 
     std::string GetColour();
     bool HasColour() { return m_handles.size() > 0; }
+    void SetColours( const std::string& _colors );
 
 private:
 

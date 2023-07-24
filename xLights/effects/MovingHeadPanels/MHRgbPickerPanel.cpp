@@ -291,8 +291,8 @@ void MHRgbPickerPanel::CreateHsvBitmapMask()
 
 std::string MHRgbPickerPanel::GetColour()
 {
-    if( active_handle >= 0 ) {
-        std::string text;
+    if( m_handles.size() >= 0 ) {
+        std::string text{"Color: "};
         bool add_comma = false;
         for (auto it = m_handles.begin(); it != m_handles.end(); ++it) {
             wxString color = wxString::Format("%d,%d,%d", (*it).color.Red(), (*it).color.Green(), (*it).color.Blue());
@@ -304,6 +304,34 @@ std::string MHRgbPickerPanel::GetColour()
         }
         return text;
     } else {
-        return "0,0,0";
+        return "Color: 0,0,0";
     }
+}
+
+void MHRgbPickerPanel::SetColours( const std::string& _colors )
+{
+    m_handles.clear();
+    selected_point = -1;
+    active_handle = -1;
+    wxArrayString colors = wxSplit(_colors, ',');
+    unsigned long num_colors {colors.size() / 3};
+    for( int i = 0; i < num_colors; ++i ) {
+        int r { wxAtoi(colors[i*3]) };
+        int g { wxAtoi(colors[i*3+1]) };
+        int b { wxAtoi(colors[i*3+2]) };
+        xlColor color(r,g,b);
+        HSVValue v = color.asHSV();
+        double hyp {v.saturation * center};
+        double phi {v.hue * 360.0f * PI / 180.0f};
+        float x = cos(phi) * hyp + center;
+        float y = sin(phi) * hyp + center;
+        wxPoint2DDouble pt((int)x, (int)y);
+        wxPoint2DDouble pt2(UItoNormalized(pt));
+        pt2.m_y = 1.0 - pt2.m_y;
+        m_handles.push_back(HandlePoint(pt2, wxColour(color)));
+    }
+    if( num_colors > 0 ) {
+        active_handle = 0;
+    }
+    Refresh();
 }
