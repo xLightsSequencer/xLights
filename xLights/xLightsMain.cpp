@@ -9221,7 +9221,7 @@ void xLightsFrame::DoBackupPurge()
                     wxDateTime bd(day, (wxDateTime::Month)(month - 1), year);
                     count++;
 
-                    if (bd < purgeDate)
+                    if (bd < purgeDate && count != 1)//skip one to prevent user from deleted all their backups
                     {
                         logger_base.debug("    Backup purge PURGING %s!", (const char *)filename.c_str());
                         if (!DeleteDirectory((backupDir + wxFileName::GetPathSeparator() + filename).ToStdString()))
