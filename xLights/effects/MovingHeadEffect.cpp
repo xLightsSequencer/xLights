@@ -231,11 +231,11 @@ xlColor MovingHeadEffect::GetMultiColorBlend(double eff_pos, const wxArrayString
     size_t colorcnt = colors.size() / 3;
     if (colorcnt <= 1)
     {
-        uint8_t r = wxAtoi(colors[0]);
-        uint8_t g = wxAtoi(colors[1]);
-        uint8_t b = wxAtoi(colors[2]);
-        xlColor c{r,g,b};
-        return c;
+        double hue {wxAtof(colors[0])};
+        double sat {wxAtof(colors[1])};
+        double val {wxAtof(colors[2])};
+        HSVValue v{hue,sat,val};
+        return xlColor(v);
     }
     if (eff_pos >= 1.0) eff_pos = 0.99999f;
     if (eff_pos < 0.0) eff_pos = 0.0f;
@@ -245,17 +245,21 @@ xlColor MovingHeadEffect::GetMultiColorBlend(double eff_pos, const wxArrayString
     float ratio = realidx - float(coloridx1);
     coloridx1 *= 3;
     coloridx2 *= 3;
-    uint8_t r1 = wxAtoi(colors[coloridx1]);
-    uint8_t g1 = wxAtoi(colors[coloridx1+1]);
-    uint8_t b1 = wxAtoi(colors[coloridx1+2]);
-    uint8_t r2 = wxAtoi(colors[coloridx2]);
-    uint8_t g2 = wxAtoi(colors[coloridx2+1]);
-    uint8_t b2 = wxAtoi(colors[coloridx2+2]);
+    double h1 {wxAtof(colors[coloridx1])};
+    double s1 {wxAtof(colors[coloridx1+1])};
+    double v1 {wxAtof(colors[coloridx1+2])};
+    double h2 {wxAtof(colors[coloridx2])};
+    double s2 {wxAtof(colors[coloridx2+1])};
+    double v2 {wxAtof(colors[coloridx2+2])};
 
     xlColor color;
-    color.red = buffer.ChannelBlend(r1, r2, ratio);
-    color.green = buffer.ChannelBlend(g1, g2, ratio);
-    color.blue = buffer.ChannelBlend(b1, b2, ratio);
+    HSVValue hsv1(h1,s1,v1);
+    HSVValue hsv2(h2,s2,v2);
+    xlColor c1(hsv1);
+    xlColor c2(hsv2);
+    color.red = buffer.ChannelBlend(c1.red, c2.red, ratio);
+    color.green = buffer.ChannelBlend(c1.green, c2.green, ratio);
+    color.blue = buffer.ChannelBlend(c1.blue, c2.blue, ratio);
     return color;
 }
 

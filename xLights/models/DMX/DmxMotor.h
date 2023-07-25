@@ -64,6 +64,7 @@ class DmxMotor
         int orient_home;
         float slew_limit;
         bool reverse;
+        bool upside_down;
         int rev;
 
     BaseObject* base;

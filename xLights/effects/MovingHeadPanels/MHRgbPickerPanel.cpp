@@ -82,11 +82,10 @@ void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/)
     // draw color value bar
     if( active_handle >= 0 ) {
         wxRect rect(v_left, v_top, v_width, v_height);
-        xlColor color {m_handles[active_handle].color};
-        HSVValue hsv {color.asHSV()};
+        HSVValue hsv {m_handles[active_handle].color};
         double value {hsv.value};
         hsv.value = 1.0f;
-        color.fromHSV(hsv);
+        xlColor color{hsv};
         wxColour dest_color {(wxColour)color};
         hsv.value = 0.0f;
         color.fromHSV(hsv);
@@ -138,7 +137,7 @@ void MHRgbPickerPanel::OnLeftDown(wxMouseEvent& event)
     m_mouseDown = true;
     if( m_handles.size() == 0 ) {
         if( insideColors(ptUI.m_x, ptUI.m_y) ) {
-            wxColour color{GetPointColor(ptUI.m_x, ptUI.m_y)};
+            xlColor color{GetPointColor(ptUI.m_x, ptUI.m_y)};
             m_handles.push_back(HandlePoint(m_mousePos, color));
             selected_point = 0;
             active_handle = 0;
@@ -149,7 +148,7 @@ void MHRgbPickerPanel::OnLeftDown(wxMouseEvent& event)
         if( m_shiftdown ) {
             if( m_handles.size() < 8 ) {
                 active_handle = m_handles.size();
-                wxColour color{GetPointColor(ptUI.m_x, ptUI.m_y)};
+                xlColor color{GetPointColor(ptUI.m_x, ptUI.m_y)};
                 m_handles.push_back(HandlePoint(m_mousePos, color));
                 selected_point = active_handle;
                 m_rgbPickerParent->NotifyColorUpdated();
@@ -217,13 +216,11 @@ bool MHRgbPickerPanel::HitTestV( wxPoint2DDouble& ptUI )
     if( active_handle >= 0 ) {
         if( ptUI.m_x >= v_left && ptUI.m_x <= v_left + v_width &&
            ptUI.m_y >= v_top && ptUI.m_y <= v_top + v_height ) {
-            xlColor color {m_handles[active_handle].color};
-            HSVValue hsv {color.asHSV()};
+            HSVValue hsv {m_handles[active_handle].color};
             double value {(ptUI.m_x - v_left) / v_width};
-            if( value < 0.01 ) { value = 0.01; } // if value hits zero the bar turns white
-            hsv.value = value;
-            color.fromHSV(hsv);
-            m_handles[active_handle].color = wxColour(color);
+           // if( value < 0.01 ) { value = 0.01; } // if value hits zero the bar turns white
+            hsv.value = {(ptUI.m_x - v_left) / v_width};;
+            m_handles[active_handle].color = hsv;
             m_rgbPickerParent->NotifyColorUpdated();
             Refresh();
             return true;
@@ -359,7 +356,7 @@ std::string MHRgbPickerPanel::GetColour()
         std::string text{"Color: "};
         bool add_comma = false;
         for (auto it = m_handles.begin(); it != m_handles.end(); ++it) {
-            wxString color = wxString::Format("%d,%d,%d", (*it).color.Red(), (*it).color.Green(), (*it).color.Blue());
+            wxString color = wxString::Format("%f,%f,%f", (*it).color.hue, (*it).color.saturation, (*it).color.value);
             if( add_comma ) {
                 text += ",";
             }
@@ -380,11 +377,10 @@ void MHRgbPickerPanel::SetColours( const std::string& _colors )
     wxArrayString colors = wxSplit(_colors, ',');
     unsigned long num_colors {colors.size() / 3};
     for( int i = 0; i < num_colors; ++i ) {
-        int r { wxAtoi(colors[i*3]) };
-        int g { wxAtoi(colors[i*3+1]) };
-        int b { wxAtoi(colors[i*3+2]) };
-        xlColor color(r,g,b);
-        HSVValue v = color.asHSV();
+        double hue { wxAtof(colors[i*3]) };
+        double sat { wxAtof(colors[i*3+1]) };
+        double val { wxAtof(colors[i*3+2]) };
+        HSVValue v(hue, sat, val);
         double hyp {v.saturation * center};
         double phi {v.hue * 360.0f * PI / 180.0f};
         float x = cos(phi) * hyp + center;
@@ -392,7 +388,7 @@ void MHRgbPickerPanel::SetColours( const std::string& _colors )
         wxPoint2DDouble pt((int)x, (int)y);
         wxPoint2DDouble pt2(UItoNormalized(pt));
         pt2.m_y = 1.0 - pt2.m_y;
-        m_handles.push_back(HandlePoint(pt2, wxColour(color)));
+        m_handles.push_back(HandlePoint(pt2, v));
     }
     if( num_colors > 0 ) {
         active_handle = 0;

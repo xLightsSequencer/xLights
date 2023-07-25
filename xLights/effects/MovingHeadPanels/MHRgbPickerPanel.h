@@ -29,12 +29,12 @@ public:
 private:
 
     struct HandlePoint {
-        HandlePoint(wxPoint2DDouble _pt, wxColour _color ) :
+        HandlePoint(wxPoint2DDouble _pt, HSVValue _color ) :
             pt(_pt),
             color(_color)
         {}
         wxPoint2DDouble pt;
-        wxColour color;
+        HSVValue color;
     };
 
     DECLARE_EVENT_TABLE()

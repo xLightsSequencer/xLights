@@ -31,6 +31,7 @@ DmxMotor::DmxMotor(wxXmlNode* node, wxString _name)
       max_value(65535),
       range_of_motion(180.0f),
       reverse(false),
+      upside_down(false),
       rev(1)
 {
 }
@@ -56,6 +57,7 @@ void DmxMotor::Init(BaseObject* base) {
     orient_home = wxAtoi(node_xml->GetAttribute("OrientHome", "0"));
     slew_limit = wxAtof(node_xml->GetAttribute("SlewLimit", "0.0f"));
     reverse = wxAtoi(node_xml->GetAttribute("Reverse", "0"));
+    upside_down = wxAtoi(node_xml->GetAttribute("UpsideDown", "0"));
     if ( reverse ) {
         rev = -1;
     } else {
@@ -70,6 +72,10 @@ int DmxMotor::ConvertPostoCmd( float position )
         limited_pos = max_limit;
     } else if( limited_pos < min_limit ) {
         limited_pos = min_limit;
+    }
+
+    if( upside_down ) {
+        limited_pos = -1.0f * limited_pos;
     }
 
     float goto_home = (float)max_value * (float)orient_home / range_of_motion;
@@ -149,6 +155,9 @@ void DmxMotor::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxBoolProperty("Reverse", base_name + "Reverse", reverse));
+    p->SetAttribute("UseCheckbox", true);
+
+    p = grid->Append(new wxBoolProperty("Upside Down", base_name + "UpsideDown", upside_down));
     p->SetAttribute("UseCheckbox", true);
 
     grid->Collapse(base_name + "Properties");
@@ -233,6 +242,20 @@ int DmxMotor::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::Reverse");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMotor::OnPropertyGridChange::Reverse");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::Reverse");
+        return 0;
+    }
+    else if (base_name + "UpsideDown" == name) {
+        node_xml->DeleteAttribute("UpsideDown");
+        if (event.GetValue().GetBool()) {
+            upside_down = true;
+            node_xml->AddAttribute("UpsideDown", "1");
+        } else {
+            upside_down = false;
+            node_xml->AddAttribute("UpsideDown", "0");
+        }
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::UpsideDown");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMotor::OnPropertyGridChange::UpsideDown");
+        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::UpsideDown");
         return 0;
     }
 
