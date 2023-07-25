@@ -100,6 +100,8 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizerColor;
+    wxFlexGridSizer* FlexGridSizerColorMain;
+    wxFlexGridSizer* FlexGridSizerColorSliders;
     wxFlexGridSizer* FlexGridSizerControl;
     wxFlexGridSizer* FlexGridSizerCycles;
     wxFlexGridSizer* FlexGridSizerFixtures;
@@ -293,11 +295,17 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerControl->AddGrowableRow(0);
     Notebook2 = new wxNotebook(PanelControl, ID_NOTEBOOK2, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK2"));
     PanelColor = new wxPanel(Notebook2, ID_PANEL_Color, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Color"));
+    FlexGridSizerColorMain = new wxFlexGridSizer(2, 1, 0, 0);
+    FlexGridSizerColorMain->AddGrowableCol(0);
     FlexGridSizerColor = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerColor->AddGrowableCol(0);
-    PanelColor->SetSizer(FlexGridSizerColor);
-    FlexGridSizerColor->Fit(PanelColor);
-    FlexGridSizerColor->SetSizeHints(PanelColor);
+    FlexGridSizerColorMain->Add(FlexGridSizerColor, 1, wxALL|wxEXPAND, 0);
+    FlexGridSizerColorSliders = new wxFlexGridSizer(1, 1, 0, 0);
+    FlexGridSizerColorSliders->AddGrowableCol(0);
+    FlexGridSizerColorMain->Add(FlexGridSizerColorSliders, 1, wxALL|wxEXPAND, 0);
+    PanelColor->SetSizer(FlexGridSizerColorMain);
+    FlexGridSizerColorMain->Fit(PanelColor);
+    FlexGridSizerColorMain->SetSizeHints(PanelColor);
     Notebook2->AddPage(PanelColor, _("Color"), false);
     FlexGridSizerControl->Add(Notebook2, 1, wxALL|wxEXPAND, 5);
     PanelControl->SetSizer(FlexGridSizerControl);
@@ -451,6 +459,7 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
     new_size.SetHeight(new_size.GetWidth());
     m_movingHeadCanvasPanel->SetMinSize(new_size);
     m_sketchCanvasPanel->SetMinSize(new_size);
+    new_size.SetHeight(new_size.GetHeight() + 30);
     m_rgbColorPanel->SetMinSize(new_size);
     Layout();
     Refresh();
@@ -1030,6 +1039,7 @@ void MovingHeadPanel::OnCheckBox_MHClick(wxCommandEvent& event)
 void MovingHeadPanel::RecallSettings(const std::string mh_settings)
 {
     recall = true;
+    bool handled_path {false};
 
     UpdateCheckbox("MHIgnorePan", false);
     UpdateCheckbox("MHIgnoreTilt", false);
@@ -1065,6 +1075,7 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
         } else if ( cmd_type == "IgnoreTilt" ) {
             UpdateCheckbox("MHIgnoreTilt", true);
         } else if ( cmd_type == "Path" ) {
+            handled_path = true;
             m_sketchDef = settings;
             m_sketch = SketchEffectSketch::SketchFromString(m_sketchDef);
             if( m_sketchDef == xlEMPTY_STRING ) {
@@ -1100,6 +1111,14 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
     GetPosition("Pan", pan);
     GetPosition("Tilt", tilt);
     UpdatePositionCanvas(pan, tilt);
+    
+    if( !handled_path ) {
+        m_sketchDef = xlEMPTY_STRING;
+        m_sketch = SketchEffectSketch::SketchFromString(m_sketchDef);
+        m_sketchCanvasPanel->ResetHandlesState();
+        m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::DefineStartPoint);
+        selected_path = -1;
+    }
 
     recall = false;
 }

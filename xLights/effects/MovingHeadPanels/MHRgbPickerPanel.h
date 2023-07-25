@@ -54,17 +54,23 @@ private:
     IMHRgbPickerPanelParent* const m_rgbPickerParent {nullptr};
     wxPoint2DDouble m_mousePos;
     bool m_mouseDown {false};
+    bool m_mouseDownV {false};
     bool m_mouseDClick {false};
     bool m_shiftdown {false};
 
     int HitTest( wxPoint2DDouble& ptUI );
+    bool HitTestV( wxPoint2DDouble& ptUI );
     bool insideColors(int x, int y);
     xlColor GetPointColor(int x, int y);
     std::vector<HandlePoint> m_handles;
     int selected_point {-1};
     int active_handle {-1};
-    float center {0};
-    float radius {0};
+    double center {0};
+    double radius {0};
+    double v_left {0};
+    double v_top {0};
+    double v_width {0};
+    double v_height {20.0};
 
     void CreateHsvBitmap(const wxSize& newSize);
     void CreateHsvBitmapMask();
