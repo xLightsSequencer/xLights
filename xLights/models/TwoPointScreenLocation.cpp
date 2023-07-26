@@ -139,22 +139,13 @@ void TwoPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) cons
     }
 
     point2 = glm::vec3(x + worldPos_x, y2 + worldPos_y, z2 + worldPos_z);
-    float localScalez = scalez;
-    float localWorldZ = worldPos_z;
-    if (!is_3d) {
-        // allows 2D selection to work
-        origin.z = 0.0f;
-        point2.z = 0.0f;
-        scalez = 1.0;
-        localWorldZ = 0;
-    }
 
     glm::vec3 a = point2 - origin;
     glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector2(origin, point2);
     length = glm::length(a);
     scalex = scaley = scalez = length / RenderWi;
-    glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, localScalez));
-    TranslateMatrix = translate(Identity, glm::vec3(worldPos_x, worldPos_y, localWorldZ));
+    glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
+    TranslateMatrix = translate(Identity, glm::vec3(worldPos_x, worldPos_y, worldPos_z));
     matrix = TranslateMatrix * rotationMatrix * scalingMatrix;
 
     if (allow_selected) {

@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil).    Fix arches not rendering correctly when rotated
 2023.11 July 23, 2023
    -- enh (keith)   Make Smart Recievers a more visual component of the visualizer
    -- enh (keith)   Add smart remote tooltip to visualiser
