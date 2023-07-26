@@ -282,7 +282,7 @@ bool BoxedScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_directio
         ray_origin,
         aabb_min,
         aabb_max,
-        ModelMatrix)
+        TranslateMatrix)
         ) {
         return_value = true;
     }
