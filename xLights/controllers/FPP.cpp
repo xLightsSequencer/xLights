@@ -618,14 +618,15 @@ bool FPP::IsDrive() {
 }
 
 bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch) const{
-    static bool hasWarned = false;
-    if (majorVersion < 6 && !hasWarned) {
-        hasWarned = true;
-        wxMessageBox("Uploading configuration and/or sequences to FPP instances less than FPP 6.x will soon be removed.  Please update FPP to the latest version.",
-                     "FPP Version Deprecated",
-                     wxICON_INFORMATION | wxCENTER | wxOK);
+    if (fppType == FPP_TYPE::FPP) {
+        static bool hasWarned = false;
+        if (majorVersion < 6 && !hasWarned) {
+            hasWarned = true;
+            wxMessageBox("Uploading configuration and/or sequences to FPP instances less than FPP 6.x will soon be removed.  Please update FPP to the latest version.",
+                         "FPP Version Deprecated",
+                         wxICON_INFORMATION | wxCENTER | wxOK);
+        }
     }
-    
     if (majorVersion < maj) {
         return false;
     }
@@ -1346,7 +1347,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     }
     outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype, clevel);
     outputFile->initializeFromFSEQ(file);
-    if (IsVersionAtLeast(7, 0)) {
+    if (fppType == FPP_TYPE::FPP && IsVersionAtLeast(7, 0)) {
         outputFile->enableMinorVersionFeatures(2);
     }
     if (type >= 2 && !newRanges.empty()) {
