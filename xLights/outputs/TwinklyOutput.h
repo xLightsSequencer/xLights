@@ -100,4 +100,14 @@ private:
     wxDatagramSocket* _datagram = nullptr;
 
     void OpenDatagram();
+    
+    
+    #pragma region UI
+    #ifndef EXCLUDENETWORKUI
+    virtual void UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
+    virtual void AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
+    virtual void RemoveProperties(wxPropertyGrid* propertyGrid) override;
+    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) override;
+    #endif
+    #pragma endregion UI
 };

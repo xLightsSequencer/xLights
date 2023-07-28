@@ -1459,9 +1459,11 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename, bool allowSparse)
             if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 std::string modelName = element->GetModelName();
                 Model* m = this->GetModel(modelName);
-                if (m == nullptr)
+                if (m == nullptr) {
                     logger_base.crit("Model %s returns as null.", (const char*)modelName.c_str());
-                addRanges(m, ranges);
+                } else {
+                    addRanges(m, ranges);
+                }
             }
         }
 

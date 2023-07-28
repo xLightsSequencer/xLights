@@ -597,6 +597,73 @@ void Controller::AddVariants(wxPGProperty* p) {
 }
 
 
+void Controller::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
+    
+    wxPGProperty* p = propertyGrid->GetProperty("ControllerName");
+    if (p) p->SetValue(GetName());
+
+    p = propertyGrid->GetProperty("ControllerDescription");
+    if (p) p->SetValue(GetDescription());
+    
+    p = propertyGrid->GetProperty("ControllerId");
+    if (p) {
+        p->Hide(!IsNeedsId());
+        p->SetValue(GetId());
+    }
+    
+    p  = propertyGrid->GetProperty("AutoLayout");
+    if (p) {
+        p->SetValue(IsAutoLayout());
+        p->Hide(!SupportsAutoLayout());
+    }
+    
+    p  = propertyGrid->GetProperty("AutoUpload");
+    if (p) {
+        p->SetValue(IsAutoUpload());
+        p->Hide(!SupportsAutoUpload());
+    }
+    
+    p  = propertyGrid->GetProperty("AutoSize");
+    if (p) {
+        p->SetValue(IsAutoSize());
+        p->Hide(!SupportsAutoSize());
+    }
+    
+    p  = propertyGrid->GetProperty("SuppressDuplicates");
+    if (p) {
+        p->SetValue(IsSuppressDuplicateFrames());
+        p->Hide(!SupportsSuppressDuplicateFrames());
+    }
+    
+    p  = propertyGrid->GetProperty("FullxLightsControl");
+    if (p) {
+        p->SetValue(IsFullxLightsControl());
+        p->Hide(!SupportsFullxLightsControl());
+    }
+    if (SupportsFullxLightsControl() && IsFullxLightsControl()) {
+        p  = propertyGrid->GetProperty("DefaultBrightnessUnderFullxLightsControl");
+        if (p) {
+            p->SetValue(GetDefaultBrightnessUnderFullControl());
+            p->Hide(!SupportsDefaultBrightness());
+        }
+
+        p  = propertyGrid->GetProperty("DefaultGammaUnderFullxLightsControl");
+        if (p) {
+            p->SetValue(GetDefaultGammaUnderFullControl());
+            p->Hide(!SupportsDefaultGamma());
+        }
+    } else {
+        p  = propertyGrid->GetProperty("DefaultBrightnessUnderFullxLightsControl");
+        if (p) p->Hide(true);
+
+        p  = propertyGrid->GetProperty("DefaultGammaUnderFullxLightsControl");
+        if (p) p->Hide(true);
+    }
+    p  = propertyGrid->GetProperty("Active");
+    if (p) {
+        p->SetChoiceSelection((int)_active);
+    }
+}
 
 void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
 
@@ -622,52 +689,39 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
         AddModels(mp, vp);
     }
 
-    if (IsNeedsId()) {
-        p = propertyGrid->Append(new wxUIntProperty("Id", "ControllerId", GetId()));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 65335);
-        p->SetEditor("SpinCtrl");
-        p->SetHelpString("For controllers that don't support universes the Id can be used with some start channel addressing modes.");
-    }
+    p = propertyGrid->Append(new wxUIntProperty("Id", "ControllerId", GetId()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 65335);
+    p->SetEditor("SpinCtrl");
+    p->SetHelpString("For controllers that don't support universes the Id can be used with some start channel addressing modes.");
 
-    if (SupportsAutoLayout()) {
-        p = propertyGrid->Append(new wxBoolProperty("Auto Layout Models", "AutoLayout", IsAutoLayout()));
-        p->SetEditor("CheckBox");
-        p->SetHelpString("Auto layout models causes xLights to move models around in the controllers channel range to optimise them. It also needs to be set to allow you to move modes in the visualiser between controllers.");
-    }
-    if (SupportsAutoUpload()) {
-        p = propertyGrid->Append(new wxBoolProperty("Auto Upload Configuration", "AutoUpload", IsAutoUpload()));
-        p->SetEditor("CheckBox");
-        p->SetHelpString("This option will send your controller configuration to the controller when you turn on output to lights. This is known to cause delays in turning on output to lights when controllers are not reachable.");
-    }
-    if (SupportsAutoSize()) {
-        p = propertyGrid->Append(new wxBoolProperty("Auto Size", "AutoSize", IsAutoSize()));
-        p->SetEditor("CheckBox");
-        p->SetHelpString("This option will cause xLights to dynamically resize the number of channels on the controller to ensure there are exactly enough for the models on the controller.");
-    }
-    if (SupportsFullxLightsControl()) {
-        p = propertyGrid->Append(new wxBoolProperty("Full xLights Control", "FullxLightsControl", IsFullxLightsControl()));
-        p->SetEditor("CheckBox");
-        p->SetHelpString("This option will when uploading erase the configuration of all unused ports on the controller per the configuration in xLights.");
+    p = propertyGrid->Append(new wxBoolProperty("Auto Layout Models", "AutoLayout", IsAutoLayout()));
+    p->SetEditor("CheckBox");
+    p->SetHelpString("Auto layout models causes xLights to move models around in the controllers channel range to optimise them. It also needs to be set to allow you to move modes in the visualiser between controllers.");
+    
+    p = propertyGrid->Append(new wxBoolProperty("Auto Upload Configuration", "AutoUpload", IsAutoUpload()));
+    p->SetEditor("CheckBox");
+    p->SetHelpString("This option will send your controller configuration to the controller when you turn on output to lights. This is known to cause delays in turning on output to lights when controllers are not reachable.");
+    
+    p = propertyGrid->Append(new wxBoolProperty("Auto Size", "AutoSize", IsAutoSize()));
+    p->SetEditor("CheckBox");
+    p->SetHelpString("This option will cause xLights to dynamically resize the number of channels on the controller to ensure there are exactly enough for the models on the controller.");
+    
+    p = propertyGrid->Append(new wxBoolProperty("Full xLights Control", "FullxLightsControl", IsFullxLightsControl()));
+    p->SetEditor("CheckBox");
+    p->SetHelpString("This option will when uploading erase the configuration of all unused ports on the controller per the configuration in xLights.");
 
-        if (IsFullxLightsControl()) {
-            if (SupportsDefaultBrightness()) {
-                p = propertyGrid->Append(new wxUIntProperty("Default Port Brightness", "DefaultBrightnessUnderFullxLightsControl", GetDefaultBrightnessUnderFullControl()));
-                p->SetAttribute("Min", 5);
-                p->SetAttribute("Max", 100);
-                p->SetEditor("SpinCtrl");
-                p->SetHelpString("This option will set the brightness of all ports to this value unless specifically overriden by a model.");
-            }
+    p = propertyGrid->Append(new wxUIntProperty("Default Port Brightness", "DefaultBrightnessUnderFullxLightsControl", GetDefaultBrightnessUnderFullControl()));
+    p->SetAttribute("Min", 5);
+    p->SetAttribute("Max", 100);
+    p->SetEditor("SpinCtrl");
+    p->SetHelpString("This option will set the brightness of all ports to this value unless specifically overriden by a model.");
 
-            if (SupportsDefaultGamma()) {
-                p = propertyGrid->Append(new wxFloatProperty("Default Port Gamma", "DefaultGammaUnderFullxLightsControl", GetDefaultGammaUnderFullControl()));
-                p->SetAttribute("Min", 0.1F);
-                p->SetAttribute("Max", 5.0F);
-                p->SetEditor("SpinCtrlDouble");
-                p->SetHelpString("This option will set the Gamma of all ports to this value unless specifically overriden by a model.");
-            }
-        }
-    }
+    p = propertyGrid->Append(new wxFloatProperty("Default Port Gamma", "DefaultGammaUnderFullxLightsControl", GetDefaultGammaUnderFullControl()));
+    p->SetAttribute("Min", 0.1F);
+    p->SetAttribute("Max", 5.0F);
+    p->SetEditor("SpinCtrlDouble");
+    p->SetHelpString("This option will set the Gamma of all ports to this value unless specifically overriden by a model.");
 
     if (ACTIVETYPENAMES.IsEmpty()) {
         ACTIVETYPENAMES.push_back("Active");
@@ -677,17 +731,15 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
     p = propertyGrid->Append(new wxEnumProperty("Active", "Active", ACTIVETYPENAMES, wxArrayInt(), (int)_active));
     p->SetHelpString("When inactive no data is output and any upload to FPP or xSchedule will also not output to the lights. When xLights only it will output when played in xLights but again FPP and xSchedule will not output to the lights.");
 
-
-    if (SupportsSuppressDuplicateFrames()) {
-        p = propertyGrid->Append(new wxBoolProperty("Suppress Duplicate Frames", "SuppressDuplicates", IsSuppressDuplicateFrames()));
-        p->SetEditor("CheckBox");
-        p->SetHelpString("When selected if a data packet is the same in a subsequent frame then xLights will not send the duplicate frame trusting that the controller will just reuse the previously sent data. This can reduce unnecessary network traffic.");
-    }
+    p = propertyGrid->Append(new wxBoolProperty("Suppress Duplicate Frames", "SuppressDuplicates", IsSuppressDuplicateFrames()));
+    p->SetEditor("CheckBox");
+    p->SetHelpString("When selected if a data packet is the same in a subsequent frame then xLights will not send the duplicate frame trusting that the controller will just reuse the previously sent data. This can reduce unnecessary network traffic.");
 }
 
 bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
 {
     wxString const name = event.GetPropertyName();
+    wxPropertyGrid *propertyGrid  = (wxPropertyGrid*)event.GetEventObject();
 
     if (name == "ControllerName") {
         auto cn = event.GetValue().GetString().Trim(true).Trim(false);
@@ -703,132 +755,118 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
             outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Controller::HandlePropertyEvent::ControllerName");
             return true;
         }
-    }
-    else if (name == "ControllerDescription") {
+    } else if (name == "ControllerDescription") {
         SetDescription(event.GetValue().GetString().Trim(true).Trim(false));
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Controllerdescription");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName");
         return true;
-    }
-    else if (name == "ControllerId") {
+    } else if (name == "ControllerId") {
         SetId(event.GetValue().GetLong());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::ControllerId");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName");
         return true;
-    }
-    else if (name == "Active") {
+    } else if (name == "Active") {
         SetActive(ACTIVETYPENAMES[event.GetValue().GetLong()]);
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Active");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Active");
         return true;
-    }
-    else if (name == "AutoLayout") {
+    } else if (name == "AutoLayout") {
         SetAutoLayout(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::AutoLayout");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoLayout");
         return true;
-    }
-    else if (name == "AutoUpload") {
+    } else if (name == "AutoUpload") {
         SetAutoUpload(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::AutoUpload");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoUpload");
         return true;
-    }
-    else if (name == "SuppressDuplicates") {
+    } else if (name == "SuppressDuplicates") {
         SetSuppressDuplicateFrames(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::SuppressDuplicates");
         return true;
-    }
-    else if (name == "AutoSize") {
+    } else if (name == "AutoSize") {
         SetAutoSize(event.GetValue().GetBool(), outputModelManager);
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::AutoSize");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "Controller::HandlePropertyEvent::AutoSize");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize");
         outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Controller::HandlePropertyEvent::AutoSize");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::AutoSize");
         return true;
-    }
-    else if (name == "FullxLightsControl") {
+    } else if (name == "FullxLightsControl") {
         SetFullxLightsControl(event.GetValue().GetBool());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::FullxLightsControl");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::FullxLightsControl");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::FullxLightsControl");
         return true;
-    }
-    else if (name == "DefaultBrightnessUnderFullxLightsControl") {
+    } else if (name == "DefaultBrightnessUnderFullxLightsControl") {
         SetDefaultBrightnessUnderFullControl(event.GetValue().GetLong());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::DefaultBrightnessUnderFullxLightsControl");
         return true;
-    }
-    else if (name == "DefaultGammaUnderFullxLightsControl") {
+    } else if (name == "DefaultGammaUnderFullxLightsControl") {
         SetDefaultGammaUnderFullControl(event.GetValue().GetDouble());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::DefaultGammaUnderFullxLightsControl");
         return true;
-    }
-    else if (name == "Vendor") {
+    } else if (name == "Vendor") {
         int idx = event.GetValue().GetLong();
         auto const vendors = ControllerCaps::GetVendors(GetType());
         auto it = begin(vendors);
         std::advance(it, idx);
         if (event.GetValue().GetLong() >= 0 && it != end(vendors)) {
-            SetVendor(*it);
+            SetVendor(*it, propertyGrid);
 
             auto models = ControllerCaps::GetModels(GetType(), *it);
             if (models.size() == 2) {
                 SetModel(models.back());
                 auto variants = ControllerCaps::GetVariants(GetType(), *it, models.front());
                 if (variants.size() == 2) {
-                    SetVariant(variants.back());
+                    SetVariant(variants.back(), propertyGrid);
                 } else {
-                    SetVariant("");
+                    SetVariant("", propertyGrid);
                 }
             } else {
-                SetModel("");
-                SetVariant("");
+                SetModel("", propertyGrid);
+                SetVariant("", propertyGrid);
             }
         } else {
-            SetVendor("");
-            SetModel("");
-            SetVariant("");
+            SetVendor("", propertyGrid);
+            SetModel("", propertyGrid);
+            SetVariant("", propertyGrid);
         }
         
-        wxPropertyGrid *propertyGrid  = (wxPropertyGrid*)event.GetEventObject();
         wxPGProperty *mp = propertyGrid->GetProperty("Model");
         wxPGProperty *vp = propertyGrid->GetProperty("Variant");
         AddVariants(vp);
         AddModels(mp, vp);
-        
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Vendor");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Vendor");
         return true;
-    }
-    else if (name == "Model") {
+    } else if (name == "Model") {
         auto const models = ControllerCaps::GetModels(GetType(), _vendor);
         auto it = begin(models);
         std::advance(it, event.GetValue().GetLong());
-        SetModel(*it);
+        SetModel(*it, propertyGrid);
 
         std::list<std::string> variants = ControllerCaps::GetVariants(GetType(), _vendor, *it);
-        SetVariant(variants.front());
+        SetVariant(variants.front(), propertyGrid);
         
-        wxPropertyGrid *propertyGrid  = (wxPropertyGrid*)event.GetEventObject();
         wxPGProperty *mp = propertyGrid->GetProperty("Model");
         wxPGProperty *vp = propertyGrid->GetProperty("Variant");
         AddVariants(vp);
         AddModels(mp, vp);
 
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Model");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Model");
         return true;
-    }
-    else if (name == "Variant") {
+    } else if (name == "Variant") {
         auto const versions = ControllerCaps::GetVariants(GetType(), _vendor, _model);
         auto it = begin(versions);
         std::advance(it, event.GetValue().GetLong());
-        SetVariant(*it);
+        SetVariant(*it, propertyGrid);
         
-        wxPropertyGrid *propertyGrid  = (wxPropertyGrid*)event.GetEventObject();
         wxPGProperty *mp = propertyGrid->GetProperty("Model");
         wxPGProperty *vp = propertyGrid->GetProperty("Variant");
         AddVariants(vp);
         AddModels(mp, vp);
 
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Variant");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Variant");
         return true;
     }
@@ -847,8 +885,7 @@ void Controller::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid)
             if (it->GetName() != name && it->GetId() == id && it->GetId() != -1) {
                 p->SetBackgroundColour(*wxRED);
                 break;
-            }
-            else {
+            } else {
                 p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
             }
         }

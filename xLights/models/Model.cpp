@@ -130,6 +130,8 @@ static void clearUnusedProtocolProperties(wxXmlNode* node)
 static const std::string EFFECT_PREVIEW_CACHE("ModelPreviewEffectCache");
 static const std::string MODEL_PREVIEW_CACHE_2D("ModelPreviewCache3D");
 static const std::string MODEL_PREVIEW_CACHE_3D("ModelPreviewCache2D");
+static const std::string LAYOUT_PREVIEW_CACHE_2D("LayoutPreviewCache3D");
+static const std::string LAYOUT_PREVIEW_CACHE_3D("LayoutPreviewCache2D");
 
 
 Model::Model(const ModelManager& manager) : modelManager(manager)
@@ -5065,7 +5067,9 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
     ModelScreenLocation& screenLocation = GetModelScreenLocation();
     screenLocation.PrepareToDraw(is_3d, allowSelected);
 
-    const std::string &cacheKey = is_3d ? MODEL_PREVIEW_CACHE_3D : MODEL_PREVIEW_CACHE_2D;
+    const std::string &cacheKey = allowSelected
+        ? (is_3d ? LAYOUT_PREVIEW_CACHE_3D : LAYOUT_PREVIEW_CACHE_2D)
+        : (is_3d ? MODEL_PREVIEW_CACHE_3D : MODEL_PREVIEW_CACHE_2D);
     if (uiObjectsInvalid) {
         deleteUIObjects();
     }

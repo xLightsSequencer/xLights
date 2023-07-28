@@ -956,26 +956,49 @@ void ZCPPOutput::AllOff() {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void ZCPPOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {
-
-    auto p = propertyGrid->Append(new wxStringProperty("Multicast Address", "MulticastAddressDisplay", ZCPP_GetDataMulticastAddress(_ip)));
+void ZCPPOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
+    IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
+    auto p = propertyGrid->GetProperty("Channels");
+    if (p) {
+        p->SetValue(GetChannels());
+        if (c->IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
+        } else {
+            p->SetEditor("SpinCtrl");
+            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            p->SetHelpString("");
+        }
+    }
+}
+void ZCPPOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller *c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {
+    IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
+    
+    auto p = propertyGrid->Insert(before, new wxStringProperty("Multicast Address", "MulticastAddressDisplay", ZCPP_GetDataMulticastAddress(_ip)));
     p->ChangeFlag(wxPG_PROP_READONLY, true);
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
-    p = propertyGrid->Append(new wxBoolProperty("Supports Virtual Strings", "SupportsVirtualStrings", IsSupportsVirtualStrings()));
+    p = propertyGrid->Insert(before, new wxBoolProperty("Supports Virtual Strings", "SupportsVirtualStrings", IsSupportsVirtualStrings()));
     p->SetEditor("CheckBox");
 
-    p = propertyGrid->Append(new wxBoolProperty("Supports Smart Remotes", "SupportsSmartRemotes", IsSupportsSmartRemotes()));
+    p = propertyGrid->Insert(before, new wxBoolProperty("Supports Smart Remotes", "SupportsSmartRemotes", IsSupportsSmartRemotes()));
     p->SetEditor("CheckBox");
 
-    p = propertyGrid->Append(new wxBoolProperty("Send Data Multicast", "SendDataMulticast", IsMulticast()));
+    p = propertyGrid->Insert(before, new wxBoolProperty("Send Data Multicast", "SendDataMulticast", IsMulticast()));
     p->SetEditor("CheckBox");
 
-    p = propertyGrid->Append(new wxBoolProperty("Suppress Sending Configuration", "DontSendConfig", IsDontConfigure()));
+    p = propertyGrid->Insert(before, new wxBoolProperty("Suppress Sending Configuration", "DontSendConfig", IsDontConfigure()));
     p->SetEditor("CheckBox");
+
+    p = propertyGrid->Insert(before, new wxUIntProperty("Channels", "Channels", GetChannels()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", GetMaxChannels());
 }
 
-bool ZCPPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
+bool ZCPPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller *c) {
+    if (IPOutput::HandlePropertyEvent(event, outputModelManager, c)) return true;
 
     wxString const name = event.GetPropertyName();
 
@@ -983,25 +1006,37 @@ bool ZCPPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         SetSupportsVirtualStrings(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::SupportsVirtualStrings");
         return true;
-    }
-    else if (name == "SupportsSmartRemotes") {
+    } else if (name == "SupportsSmartRemotes") {
         SetSupportsSmartRemotes(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::SupportsSmartRemotes");
         return true;
-    }
-    else if (name == "SendDataMulticast") {
+    } else if (name == "SendDataMulticast") {
         SetMulticast(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::SendDataMulticast");
         return true;
-    }
-    else if (name == "DontSendConfig") {
+    } else if (name == "DontSendConfig") {
         SetDontConfigure(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::DontSendConfig");
         return true;
+    } else if (name == "Channels") {
+        SetChannels(event.GetValue().GetLong());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ZCPPOutput::HandlePropertyEvent::Channels");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ZCPPOutput::HandlePropertyEvent::Channels", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ZCPPOutput::HandlePropertyEvent::Channels", nullptr);
+        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ZCPPOutput::HandlePropertyEvent::Channels", nullptr);
+        return true;
     }
-
     return false;
 }
+void ZCPPOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
+    IPOutput::RemoveProperties(propertyGrid);
+    propertyGrid->DeleteProperty("DontSendConfig");
+    propertyGrid->DeleteProperty("SendDataMulticast");
+    propertyGrid->DeleteProperty("SupportsSmartRemotes");
+    propertyGrid->DeleteProperty("SupportsVirtualStrings");
+    propertyGrid->DeleteProperty("Channels");
+}
+
 #endif
 #pragma endregion
 

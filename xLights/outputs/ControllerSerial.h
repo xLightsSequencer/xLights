@@ -82,7 +82,7 @@ public:
 #pragma region Virtual Functions
     virtual void SetId(int id) override;
 
-    virtual void VMVChanged() override;
+    virtual void VMVChanged(wxPropertyGrid *grid = nullptr) override;
 
     virtual bool IsManaged() const override { return false; }
 

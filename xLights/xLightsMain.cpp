@@ -9170,8 +9170,7 @@ void xLightsFrame::DoBackupPurge()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (BackupPurgeDays <= 0)
-    {
+    if (BackupPurgeDays <= 0) {
         logger_base.debug("Backup purging skipped as it is disabled.");
         return;
     }
@@ -9193,62 +9192,66 @@ void xLightsFrame::DoBackupPurge()
     wxString backupDir = _backupDirectory + wxFileName::GetPathSeparator() + "Backup";
 
     int count = 0;
-    int purged = 0;
+    int purged = 0;  
 
-    if (wxDir::Exists(backupDir))
-    {
+    if (wxDir::Exists(backupDir)) {
         wxDir dir(backupDir);
         wxString filename;
-
-        // We dont follow symbolic links
-        bool cont = dir.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
-        while (cont) {
+        enum class BackUpStatus
+        {
+            Invalid, New, Old
+        };
+        auto OldEnoughtToDelete = [&purgeDate](wxString const& filename) {
             auto fdc = wxSplit(filename, '-');
-
-            if (fdc.size() > 3)
-            {
+            if (fdc.size() > 3) {
                 int day = wxAtoi(fdc[2]);
                 int month = wxAtoi(fdc[1]);
                 int year = wxAtoi(fdc[0]);
 
-                if (year < 2010 || month < 1 || month > 12 || day < 1 || day > 31)
-                {
+                if (year < 2010 || month < 1 || month > 12 || day < 1 || day > 31) {
                     // date does not look valid
                     logger_base.debug("    Backup purge ignoring %s.", (const char *)filename.c_str());
-                }
-                else
-                {
+                    return BackUpStatus::Invalid;
+                } else {
                     wxDateTime bd(day, (wxDateTime::Month)(month - 1), year);
-                    count++;
-
-                    if (bd < purgeDate)
-                    {
-                        logger_base.debug("    Backup purge PURGING %s!", (const char *)filename.c_str());
-                        if (!DeleteDirectory((backupDir + wxFileName::GetPathSeparator() + filename).ToStdString()))
-                        {
-                            logger_base.debug("        FAILED!");
-                        }
-                        else
-                        {
-                            purged++;
-                        }
-                    }
-                    else
-                    {
-                        //logger_base.debug("    Backup purge keeping %s.", (const char *)filename.c_str());
-                    }
+                    return (bd < purgeDate ) ? BackUpStatus::Old : BackUpStatus::New;
                 }
             }
-            else
-            {
-                logger_base.debug("Backup purge deleted %d of %d backups.", purged, count);
+            return BackUpStatus::Invalid;
+        };
+
+        // We dont follow symbolic links
+        bool cont = dir.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
+        while (cont) {
+            wxString nextfilename;
+            bool nextcont = dir.GetNext(&nextfilename);
+
+            auto current = OldEnoughtToDelete(filename);
+            auto next = OldEnoughtToDelete(nextfilename);
+            
+            if (current == BackUpStatus::Invalid) {
+                // date does not look valid
+                logger_base.debug("    Backup purge ignoring %s.", (const char *)filename.c_str());
+            } else {
+                count++;
+
+                if (current == BackUpStatus::Old && next == BackUpStatus::Old) {
+                    logger_base.debug("    Backup purge PURGING %s!", (const char *)filename.c_str());
+                    if (!DeleteDirectory((backupDir + wxFileName::GetPathSeparator() + filename).ToStdString())) {
+                        logger_base.debug("        FAILED!");
+                    } else {
+                        purged++;
+                    }
+                } else {
+                    //logger_base.debug("    Backup purge keeping %s.", (const char *)filename.c_str());
+                }
             }
-            cont = dir.GetNext(&filename);
+
+            filename = nextfilename;
+            cont = nextcont;
         }
-        logger_base.debug("    Backup purge ignoring %s.", (const char *)filename.c_str());
-    }
-    else
-    {
+        logger_base.debug("Backup purge deleted %d of %d backups.", purged, count);
+    } else {
         logger_base.debug("Backup purging skipped as %s does not exist.", (const char *)backupDir.c_str());
     }
 }
