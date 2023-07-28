@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)     Improve model creation in 3D mode.  Models used to not place well depending on how you had the view rotated.
+                    Now xLights will detect the view angle and make a decision on the best place to start the model so you shouldn't
+                    run into models being created way in front or behind the view camera.
+                    You can now rotate to a side view and draw the models rotated 90 degrees.
+                    If you run into model placement issues let me know.
    -- bug (gil)     Fix model selection in 2D for models based on BoxedScreenLocation (Matrix, Trees, etc.). Fixes #3887
    -- bug (gil)     Fix arches not rendering correctly when rotated
 2023.11 July 23, 2023

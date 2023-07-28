@@ -3432,6 +3432,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     if (is_3d && m_mouse_down) {
         if (selectedBaseObject != nullptr) {
             selectedBaseObject->GetBaseObjectScreenLocation().SetActiveAxis(ModelScreenLocation::MSLAXIS::NO_AXIS);
+            selectedBaseObject->GetBaseObjectScreenLocation().SetActivePlane(ModelScreenLocation::MSLPLANE::NO_PLANE);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewLeftDown");
         }
         modelPreview->SetCameraView(0, 0, true);

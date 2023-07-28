@@ -43,19 +43,8 @@ ThreePointScreenLocation::~ThreePointScreenLocation() {
 
 wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
     if (preview != nullptr) {
-        saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-        active_axis = MSLAXIS::X_AXIS;
-        DragHandle(preview, x, y, true);
-        worldPos_x = saved_intersect.x;
-        worldPos_y = saved_intersect.y;
-        worldPos_z = 0;
-        if (mSelectableHandles > 3 && supportsAngle && preview->Is3D()) {
-            point2 = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-        }
-        if (preview->Is3D()) {
-            // what we do here is define a position at origin so that the DragHandle function will calculate the intersection
-            // of the mouse click with the ground plane
-            saved_point = glm::vec3(0.0f);
+        FindPlaneIntersection( x, y, preview );
+        if( preview->Is3D() ) {
             active_handle = END_HANDLE;
         }
     }

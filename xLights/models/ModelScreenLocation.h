@@ -62,7 +62,16 @@ protected:
     float GetAxisHeadLength(float zoom, int scale) const;
     float GetAxisRadius(float zoom, int scale) const;
     float GetRectHandleWidth(float zoom, int scale) const;
+
     public:
+
+    enum class MSLPLANE {
+        XY_PLANE,
+        XZ_PLANE,
+        YZ_PLANE,
+        NO_PLANE,
+        GROUND = XZ_PLANE
+    };
 
     enum class MSLAXIS {
         X_AXIS,
@@ -245,6 +254,10 @@ protected:
     void SetSupportsZScaling(bool b) {
         supportsZScaling = b;
     }
+    MSLPLANE GetPreferredSelectionPlane() { return preferred_selection_plane; }
+    void SetPreferredSelectionPlane( MSLPLANE plane ) { preferred_selection_plane = plane; }
+    void SetActivePlane( MSLPLANE plane ) { active_plane = plane; }
+    void FindPlaneIntersection( int x, int y, ModelPreview* preview );
     void CreateWithDepth(bool b) {
         createWithDepth = b;
     }
@@ -269,6 +282,7 @@ protected:
     ModelScreenLocation(int points);
     virtual ~ModelScreenLocation() {};
     virtual wxCursor CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const;
+    MSLPLANE GetBestIntersection( MSLPLANE prefer, bool& rotate, ModelPreview* preview );
 
     mutable float worldPos_x = 0.0f;
     mutable float worldPos_y = 0.0f;
@@ -312,4 +326,6 @@ protected:
     bool _startOnXAxis = false;
     bool rotation_init = true;
     bool mouse_down = false;
+    MSLPLANE preferred_selection_plane = MSLPLANE::XY_PLANE;
+    MSLPLANE active_plane = MSLPLANE::NO_PLANE;
 };
