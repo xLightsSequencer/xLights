@@ -2850,9 +2850,9 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
     PopTraceContext();
 
     //perspectives may have been saved without the maximize button flag, we'll
-    //make sure it's turned on
-    m_mgr->GetPane("ModelPreview").MaximizeButton(true);
-    m_mgr->GetPane("HousePreview").MaximizeButton(true);
+    //make sure it's turned on.  Make sure Dockable state matches menu options/configuration
+    m_mgr->GetPane("ModelPreview").MaximizeButton(true).Dockable(IsDockable("MP"));
+    m_mgr->GetPane("HousePreview").MaximizeButton(true).Dockable(IsDockable("HP"));
     m_mgr->GetPane("DisplayElements").MaximizeButton(true);
 
     ShowHideAllSequencerWindows(true);
