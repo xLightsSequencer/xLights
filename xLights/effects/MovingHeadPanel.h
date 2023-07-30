@@ -19,6 +19,7 @@
 #include "MHRgbPickerPanel.h"
 #include "SketchCanvasPanel.h"
 #include "SketchEffectDrawing.h"
+#include "MHPresetBitmapButton.h"
 
 class Model;
 
@@ -52,6 +53,7 @@ public:
     BulkEditValueCurveButton* ValueCurve_MHTilt;
     BulkEditValueCurveButton* ValueCurve_MHTiltOffset;
     BulkEditValueCurveButton* ValueCurve_MHTimeOffset;
+    wxButton* ButtonSavePreset;
     wxButton* Button_All;
     wxButton* Button_Evens;
     wxButton* Button_MHPathClear;
@@ -71,9 +73,14 @@ public:
     wxFlexGridSizer* FlexGridSizerPathing;
     wxFlexGridSizer* FlexGridSizerPosition;
     wxFlexGridSizer* FlexGridSizerPositionCanvas;
+    wxFlexGridSizer* FlexGridSizerPresets;
     wxFlexGridSizer* FlexGridSizer_Main;
     wxNotebook* Notebook1;
     wxNotebook* Notebook2;
+    wxPanel* Panel1;
+    wxPanel* Panel2;
+    wxPanel* Panel3;
+    wxPanel* Panel4;
     wxPanel* PanelColor;
     wxPanel* PanelControl;
     wxPanel* PanelPathing;
@@ -137,6 +144,7 @@ protected:
     static const long ID_STATICTEXT_MHCycles;
     static const long IDD_SLIDER_MHCycles;
     static const long ID_TEXTCTRL_MHCycles;
+    static const long ID_BUTTON_SavePreset;
     static const long ID_PANEL_Position;
     static const long ID_BUTTON_MHPathContinue;
     static const long ID_BUTTON_MHPathClear;
@@ -154,6 +162,10 @@ protected:
     static const long ID_CHECKBOX_MHIgnoreTilt;
     static const long ID_PANEL_Pathing;
     static const long ID_PANEL_Color;
+    static const long ID_PANEL1;
+    static const long ID_PANEL2;
+    static const long ID_PANEL3;
+    static const long ID_PANEL4;
     static const long ID_NOTEBOOK2;
     static const long ID_PANEL_Control;
     static const long ID_NOTEBOOK1;
@@ -185,6 +197,7 @@ private:
     void OnButton_MHPathCloseClick(wxCommandEvent& event);
     void OnCheckBox_MHIgnorePanClick(wxCommandEvent& event);
     void OnCheckBox_MHIgnoreTiltClick(wxCommandEvent& event);
+    void OnButtonSavePresetClick(wxCommandEvent& event);
     //*)
     
     DECLARE_EVENT_TABLE()
@@ -206,7 +219,19 @@ private:
     void UpdatePositionCanvas(float pan, float tilt);
     void RecallSettings(const std::string mh_settings);
     
+    // Presest Functions
+    void PopulatePresets();
+    void ProcessPresetDir(wxDir& directory, bool subdirs);
+    std::string GetMHPresetFolder(const std::string& showFolder);
+    void OnButtonPresetClick(wxCommandEvent& event);
+    void SavePreset(const wxArrayString& preset);
+    void LoadMHPreset(const wxFileName& fn);
+    void LoadMHPreset(const std::string& fn);
+
+    // private variables
     bool recall {false};
+    bool presets_loaded {false};
+    std::vector<MHPresetBitmapButton*> presets;
 
 //***************************************************
 // Pathing support

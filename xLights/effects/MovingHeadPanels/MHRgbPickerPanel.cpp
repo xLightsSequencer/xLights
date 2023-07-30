@@ -8,11 +8,6 @@
 namespace
 {
     const int BorderWidth = 5;
-    const float box_size = 0.02f;
-    const float snap_zone = 0.015f;
-    const float gap_degrees = 45.0f;
-    const float line_gap = gap_degrees / 360.0f;
-    const float num_lines = 1.0f / line_gap;
     const int handleRadius = 10;
     const double v_size = 20;
 }
@@ -217,8 +212,6 @@ bool MHRgbPickerPanel::HitTestV( wxPoint2DDouble& ptUI )
         if( ptUI.m_x >= v_left && ptUI.m_x <= v_left + v_width &&
            ptUI.m_y >= v_top && ptUI.m_y <= v_top + v_height ) {
             HSVValue hsv {m_handles[active_handle].color};
-            double value {(ptUI.m_x - v_left) / v_width};
-           // if( value < 0.01 ) { value = 0.01; } // if value hits zero the bar turns white
             hsv.value = {(ptUI.m_x - v_left) / v_width};;
             m_handles[active_handle].color = hsv;
             m_rgbPickerParent->NotifyColorUpdated();

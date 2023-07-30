@@ -444,6 +444,24 @@
 									<border>5</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerPresets" member="yes">
+										<cols>3</cols>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxButton" name="ID_BUTTON_SavePreset" variable="ButtonSavePreset" member="yes">
+										<label>Save Preset</label>
+										<size>100,23</size>
+										<handler function="OnButtonSavePresetClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Position</label>
@@ -661,6 +679,22 @@
 												</object>
 											</object>
 											<label>Color</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes" />
+											<label>Shutter</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes" />
+											<label>Dimmer</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes" />
+											<label>Gobo</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL4" variable="Panel4" member="yes" />
+											<label>Prism</label>
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>

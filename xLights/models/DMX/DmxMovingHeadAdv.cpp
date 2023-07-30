@@ -831,7 +831,6 @@ void DmxMovingHeadAdv::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_c
 
     bool facing_right = pan_angle_raw <= 90.0f || pan_angle_raw >= 270.0f;
 
-    float combined_angle = tilt_angle;
     if (beam_color.red != 0 || beam_color.green != 0 || beam_color.blue != 0) {
         if (shutter_open) {
             float angle1 = float(beam_width) / 2.0f;
@@ -841,11 +840,11 @@ void DmxMovingHeadAdv::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_c
             float x1 = (RenderBuffer::cos(ToRadians(angle1)) * beam_length_displayed);
             float y1 = (RenderBuffer::sin(ToRadians(angle1)) * beam_length_displayed);
 
-            dmxPoint3 p1(x1, -y1, -y1, pan_angle_raw, combined_angle);
-            dmxPoint3 p2(x1, -y1, y1, pan_angle_raw, combined_angle);
-            dmxPoint3 p3(x1, y1, -y1, pan_angle_raw, combined_angle);
-            dmxPoint3 p4(x1, y1, y1, pan_angle_raw, combined_angle);
-            dmxPoint3 p0(0, 0, 0, pan_angle_raw, combined_angle);
+            dmxPoint3 p1(x1, -y1, -y1, pan_angle_raw, tilt_angle);
+            dmxPoint3 p2(x1, -y1, y1, pan_angle_raw, tilt_angle);
+            dmxPoint3 p3(x1, y1, -y1, pan_angle_raw, tilt_angle);
+            dmxPoint3 p4(x1, y1, y1, pan_angle_raw, tilt_angle);
+            dmxPoint3 p0(0, 0, 0, pan_angle_raw, tilt_angle);
             p0.y += beam_offset;
             p1.y += beam_offset;
             p2.y += beam_offset;
