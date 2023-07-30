@@ -104,7 +104,7 @@ wxBitmap MHPresetBitmapButton::CreateImage( int w, int h, double scaleFactor ) {
                     colors = wxSplit(settings, ',');
                 }
             }
-            
+
             const float headGap = width * 0.7f / 8.0f;
             const float headHeight = height * 0.3f;
             const float headCenter = width / 2.0f;
@@ -123,26 +123,44 @@ wxBitmap MHPresetBitmapButton::CreateImage( int w, int h, double scaleFactor ) {
             } else {
                 dc.SetPen(*wxWHITE_PEN);
             }
-            
+
             float pan_latched {pan_pos};
             float tilt_latched {tilt_pos};
-            
+
             pan_pos = pan_latched;
             tilt_pos = tilt_latched;
             CalculatePosition( i, pan_pos, heads, groupings, pan_offset );
             CalculatePosition( i, tilt_pos, heads, groupings, tilt_offset);
-            
+
             float pan_angle = wxDegToRad(pan_pos);
             float tilt_angle = wxDegToRad(tilt_pos);
-            
+
             float head_x = headCenter + (headGap * headPos);
-            
+
             glm::vec4 beam_point = glm::vec4(glm::vec3(0.0f, 100.0f, 0.0f), 1.0f);
             glm::mat4 rotationMatrixPan = glm::rotate(glm::mat4(1.0f), pan_angle, glm::vec3(0.0f, 1.0f, 0.0f));
             glm::mat4 rotationMatrixTilt = glm::rotate(glm::mat4(1.0f), tilt_angle, glm::vec3(1.0f, 0.0f, 0.0f));
             glm::vec4 beam = beam_point * rotationMatrixTilt * rotationMatrixPan;
-            
-            dc.DrawLine( wxPoint(head_x, height - headHeight), wxPoint(head_x + beam.x, headHeight-beam.y));
+
+            float x1 {head_x};
+            float y1 {height - headHeight};
+            float x2 {head_x + beam.x};
+            float y2 {headHeight - beam.y};
+
+            float xleg = x2 - x1;
+            float yleg = y2 - y1;
+            float hyp = sqrt(xleg * xleg + yleg * yleg);
+            float phi = atan2(yleg, xleg) * 180.0f / PI;
+
+            for( int i = -4; i <= 4; ++i ) {
+                float angle = phi + (float)i;
+                angle = fmod(angle, 360.0f);
+                angle = angle * PI / 180.0f;
+                x2 = cos(angle) * hyp + x1;
+                y2 = sin(angle) * hyp + y1;
+                dc.DrawLine( wxPoint(x1, y1), wxPoint(x2, y2));
+            }
+
         }
     }
 
