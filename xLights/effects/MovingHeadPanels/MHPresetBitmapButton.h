@@ -22,7 +22,6 @@ public:
         int maxW, int maxH,
         int incW, int incH);
     virtual ~MHPresetBitmapButton();
-    //void OnMouseLeftDown(wxMouseEvent& event);
     void SetBitmap(const wxBitmapBundle& bmp);
     void SetPreset(const wxArrayString& _settings);
     wxArrayString& GetPreset() { return mSettings; }

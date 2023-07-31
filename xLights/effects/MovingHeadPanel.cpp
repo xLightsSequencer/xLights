@@ -654,6 +654,11 @@ void MovingHeadPanel::SavePreset(const wxArrayString& preset)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Saving to xcc file %s.", (const char *)filename.c_str());
 
+    bool replace_existing {false};
+    if( f.Exists(filename) ) {
+        replace_existing = true;
+    }
+
     if (!f.Create(filename, true) || !f.IsOpened())
     {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
@@ -670,7 +675,17 @@ void MovingHeadPanel::SavePreset(const wxArrayString& preset)
     f.Write("</mhpreset>");
     f.Close();
 
-    PopulatePresets();
+    if( replace_existing ) {
+        wxFileName fn(filename);
+        for (auto preset_ : presets) {
+            if( fn.GetFullPath()  == preset_->GetLabel() ) {
+                preset_->SetPreset( preset );
+            }
+        }
+    }
+    else {
+        PopulatePresets();
+    }
 }
 
 void MovingHeadPanel::OnButtonPresetClick(wxCommandEvent& event)
@@ -872,6 +887,51 @@ void MovingHeadPanel::UpdateMHSettings()
                 if( mh_textbox != nullptr ) {
                     if( mh_settings != xlEMPTY_STRING ) {
                         mh_textbox->SetValue(mh_settings);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void MovingHeadPanel::UpdateColorSettings()
+{
+    if( recall ) return;
+
+    if( m_rgbColorPanel->HasColour() ) {
+        std::string color_text{m_rgbColorPanel->GetColour()};
+        if( color_text != xlEMPTY_STRING ) {
+            for( int i = 1; i <= 8; ++i ) {
+                wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+                wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+                if( checkbox != nullptr ) {
+                    if( checkbox->IsChecked() ) {
+                        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+                        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                        if( mh_textbox != nullptr ) {
+                            std::string mh_settings = mh_textbox->GetValue();
+                            if( mh_settings != xlEMPTY_STRING ) {
+                                bool found_color {false};
+                                wxArrayString all_cmds = wxSplit(mh_settings, ';');
+                                for (size_t j = 0; j < all_cmds.size(); ++j )
+                                {
+                                    std::string cmd = all_cmds[j];
+                                    if( cmd == xlEMPTY_STRING ) continue;
+                                    int pos = cmd.find(":");
+                                    std::string cmd_type = cmd.substr(0, pos);
+                                    if( cmd_type == "Color" ) {
+                                        all_cmds[j] = color_text;
+                                        found_color = true;
+                                        break;
+                                    }
+                                }
+                                if( !found_color ) {
+                                    all_cmds.Add(color_text);
+                                }
+                                mh_settings = wxJoin( all_cmds, ';');
+                                mh_textbox->SetValue(mh_settings);
+                            }
+                        }
                     }
                 }
             }
@@ -1231,7 +1291,7 @@ bool MovingHeadPanel::GetPosition(const std::string& ctrl_name, float& pos)
 
 void MovingHeadPanel::NotifyColorUpdated()
 {
-    UpdateMHSettings();
+    UpdateColorSettings();
     FireChangeEvent();
 }
 
