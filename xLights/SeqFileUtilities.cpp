@@ -55,6 +55,9 @@
 #include "Vixen3.h"
 #include "SequencePackage.h"
 
+#include "xLightsMain.h"
+#include "xLightsApp.h"
+
 #include <log4cpp/Category.hh>
 
 void xLightsFrame::AddAllModelsToSequence()
@@ -1126,7 +1129,8 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
             // remove lock if it is there
             Replace(settings, ",X_Effect_Locked=True", "");
 
-            // if we are mapping the effect onto a group and it is a per preview render buffer then use the goups default camera
+            // if we are mapping the effect onto a group and it is a per preview render buffer then use the group's default camera
+            //   unless there is a non-default 3D camera assigned to the effect, and it exists in the target layout
             if (!target->IsTimingLayer()) {
                 Model* m = target->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->GetModel(target->GetParentElement()->GetModelName());
                 if (m != nullptr) {
@@ -1136,8 +1140,17 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
                         auto rb = ef->GetSettings()["B_CHOICE_BufferStyle"];
                         if (BufferPanel::CanRenderBufferUseCamera(rb)) {
                             if (Contains(settings, "B_CHOICE_PerPreviewCamera")) {
-                                Replace(settings, ",B_CHOICE_PerPreviewCamera=" + ef->GetSettings()["B_CHOICE_PerPreviewCamera"],
-                                        ",B_CHOICE_PerPreviewCamera=" + mg->GetDefaultCamera());
+                                // MoC - There isn't a way to just indicate "use group's default", so instead we grab it as
+                                //   a setting for the effect.
+                                // That way if the group default changes, there is no effect on old / mapped effects
+                                auto newCamera = mg->GetDefaultCamera();
+                                auto effCamera = ef->GetSettings()["B_CHOICE_PerPreviewCamera"];
+                                xLightsFrame* frame = xLightsApp::GetFrame();
+                                if (effCamera != "2D" && effCamera != "Default" && frame->viewpoint_mgr.GetNamedCamera3D(effCamera)) {
+                                    newCamera = effCamera;
+                                }
+                                Replace(settings, ",B_CHOICE_PerPreviewCamera=" + effCamera,
+                                        ",B_CHOICE_PerPreviewCamera=" + newCamera);
                             }
                             else {
                                 settings += ",B_CHOICE_PerPreviewCamera=" + mg->GetDefaultCamera();
