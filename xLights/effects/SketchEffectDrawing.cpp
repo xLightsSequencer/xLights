@@ -542,7 +542,7 @@ SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketc
                 } else if (pathComponents_str.at(0) == 'c') {
                     if( pathComponents_str.size() == 2) {
                         int type = wxAtoi(pathComponents_str.at(1));
-                        path->closePath(true, SketchCanvasPathState(type));
+                        path->closePath(false, SketchCanvasPathState(type));
                     } else {
                         path->closePath(false, SketchCanvasPathState::LineToNewPoint);
                     }

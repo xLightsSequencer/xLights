@@ -19,9 +19,10 @@
 #include "MHRgbPickerPanel.h"
 #include "SketchCanvasPanel.h"
 #include "SketchEffectDrawing.h"
-#include "MHPresetBitmapButton.h"
 
 class Model;
+class MHPresetBitmapButton;
+class MHPathPresetBitmapButton;
 
 class MovingHeadPanel: public xlEffectPanel, public IMovingHeadCanvasParent, public ISketchCanvasParent
     , public IMHRgbPickerPanelParent
@@ -53,6 +54,7 @@ public:
     BulkEditValueCurveButton* ValueCurve_MHTilt;
     BulkEditValueCurveButton* ValueCurve_MHTiltOffset;
     BulkEditValueCurveButton* ValueCurve_MHTimeOffset;
+    wxButton* ButtonSavePathPreset;
     wxButton* ButtonSavePreset;
     wxButton* Button_All;
     wxButton* Button_Evens;
@@ -70,6 +72,7 @@ public:
     wxCheckBox* CheckBox_MH7;
     wxCheckBox* CheckBox_MH8;
     wxFlexGridSizer* FlexGridSizerPathCanvas;
+    wxFlexGridSizer* FlexGridSizerPathPresets;
     wxFlexGridSizer* FlexGridSizerPathing;
     wxFlexGridSizer* FlexGridSizerPosition;
     wxFlexGridSizer* FlexGridSizerPositionCanvas;
@@ -160,6 +163,7 @@ protected:
     static const long IDD_TEXTCTRL_MHTimeOffset;
     static const long ID_CHECKBOX_MHIgnorePan;
     static const long ID_CHECKBOX_MHIgnoreTilt;
+    static const long ID_BUTTON_SavePathPreset;
     static const long ID_PANEL_Pathing;
     static const long ID_PANEL_Color;
     static const long ID_PANEL1;
@@ -198,6 +202,7 @@ private:
     void OnCheckBox_MHIgnorePanClick(wxCommandEvent& event);
     void OnCheckBox_MHIgnoreTiltClick(wxCommandEvent& event);
     void OnButtonSavePresetClick(wxCommandEvent& event);
+    void OnButtonSavePathPresetClick(wxCommandEvent& event);
     //*)
     
     DECLARE_EVENT_TABLE()
@@ -225,7 +230,8 @@ private:
     void ProcessPresetDir(wxDir& directory, bool subdirs);
     std::string GetMHPresetFolder(const std::string& showFolder);
     void OnButtonPresetClick(wxCommandEvent& event);
-    void SavePreset(const wxArrayString& preset);
+    void OnButtonPathPresetClick(wxCommandEvent& event);
+    void SavePreset(const wxArrayString& preset, bool is_path = false);
     void LoadMHPreset(const wxFileName& fn);
     void LoadMHPreset(const std::string& fn);
 
@@ -233,6 +239,7 @@ private:
     bool recall {false};
     bool presets_loaded {false};
     std::vector<MHPresetBitmapButton*> presets;
+    std::vector<MHPathPresetBitmapButton*> path_presets;
 
 //***************************************************
 // Pathing support

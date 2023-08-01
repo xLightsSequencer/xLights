@@ -9,9 +9,6 @@
  **************************************************************/
 
 #include "MHPresetBitmapButton.h"
-//#include <wx/dnd.h>
-//#include "xLightsMain.h"
-//#include "UtilFunctions.h"
 
 namespace
 {

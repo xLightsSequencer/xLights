@@ -1,5 +1,7 @@
 #include "MovingHeadPanel.h"
 #include "MovingHeadEffect.h"
+#include "MHPresetBitmapButton.h"
+#include "MHPathPresetBitmapButton.h"
 #include "Model.h"
 #include "DmxMovingHeadAdv.h"
 #include "../xLightsMain.h"
@@ -72,6 +74,7 @@ const long MovingHeadPanel::ID_VALUECURVE_MHTimeOffset = wxNewId();
 const long MovingHeadPanel::IDD_TEXTCTRL_MHTimeOffset = wxNewId();
 const long MovingHeadPanel::ID_CHECKBOX_MHIgnorePan = wxNewId();
 const long MovingHeadPanel::ID_CHECKBOX_MHIgnoreTilt = wxNewId();
+const long MovingHeadPanel::ID_BUTTON_SavePathPreset = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Pathing = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Color = wxNewId();
 const long MovingHeadPanel::ID_PANEL1 = wxNewId();
@@ -297,6 +300,10 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     CheckBox_MHIgnoreTilt->SetValue(false);
     FlexGridSizerIgnoreBoxes->Add(CheckBox_MHIgnoreTilt, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerPathing->Add(FlexGridSizerIgnoreBoxes, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
+    FlexGridSizerPathPresets = new wxFlexGridSizer(0, 4, 0, 0);
+    FlexGridSizerPathing->Add(FlexGridSizerPathPresets, 1, wxALL|wxEXPAND, 5);
+    ButtonSavePathPreset = new wxButton(PanelPathing, ID_BUTTON_SavePathPreset, _("Save Preset"), wxDefaultPosition, wxSize(100,23), 0, wxDefaultValidator, _T("ID_BUTTON_SavePathPreset"));
+    FlexGridSizerPathing->Add(ButtonSavePathPreset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     PanelPathing->SetSizer(FlexGridSizerPathing);
     FlexGridSizerPathing->Fit(PanelPathing);
     FlexGridSizerPathing->SetSizeHints(PanelPathing);
@@ -382,6 +389,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_BUTTON_MHPathClose,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_MHPathCloseClick);
     Connect(ID_CHECKBOX_MHIgnorePan,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHIgnorePanClick);
     Connect(ID_CHECKBOX_MHIgnoreTilt,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHIgnoreTiltClick);
+    Connect(ID_BUTTON_SavePathPreset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButtonSavePathPresetClick);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&MovingHeadPanel::OnNotebook1PageChanged);
     //*)
 
@@ -558,7 +566,21 @@ void MovingHeadPanel::LoadMHPreset(const std::string& fn)
             FlexGridSizerPresets->Add(presetBtn, 1, wxALL, 5);
             Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonPresetClick);
         }
-        else
+        else if (root->GetName() == "mhpathpreset")
+        {
+            wxArrayString path_def;
+            std::string data = root->GetAttribute("data");
+            wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)FlexGridSizerPresets->GetItemCount());
+            long id = wxNewId();
+            MHPathPresetBitmapButton* presetBtn = new MHPathPresetBitmapButton(PanelPathing, id, wxNullBitmap, wxDefaultPosition, wxSize(48, 48), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
+            presetBtn->SetLabel(fn);
+            presetBtn->SetToolTip(fn);
+            path_presets.push_back( presetBtn );
+            presetBtn->SetPreset(data);
+            FlexGridSizerPathPresets->Add(presetBtn, 1, wxALL, 5);
+            Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonPathPresetClick);
+        }
+       else
         {
             DisplayError("Failure loading MH preset file " + fn + ".");
         }
@@ -642,7 +664,16 @@ void MovingHeadPanel::OnButtonSavePresetClick(wxCommandEvent& event)
     Refresh();
 }
 
-void MovingHeadPanel::SavePreset(const wxArrayString& preset)
+void MovingHeadPanel::OnButtonSavePathPresetClick(wxCommandEvent& event)
+{
+    wxArrayString path_def;
+    path_def.Add(m_sketchDef);
+    SavePreset( path_def, true );
+    Layout();
+    Refresh();
+}
+
+void MovingHeadPanel::SavePreset(const wxArrayString& preset, bool is_path)
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     std::string mhf = GetMHPresetFolder(xLightsFrame::CurrentDir.ToStdString());
@@ -664,22 +695,41 @@ void MovingHeadPanel::SavePreset(const wxArrayString& preset)
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
         return;
     }
-
+    
     wxString v = xlights_version_string;
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<mhpreset \n");
-    for( int i = 1; i <= 8; ++i ) {
-        f.Write(wxString::Format("data%i=\"%s\" ", i, (const char *)preset[i-1].c_str()));
+    if( is_path ) {
+        f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<mhpathpreset \n");
+        f.Write(wxString::Format("data=\"%s\" ", (const char *)preset[0].c_str()));
+        f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+        f.Write(" >\n");
+        f.Write("</mhpathpreset>");
+        f.Close();
+    } else {
+        f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<mhpreset \n");
+        for( int i = 1; i <= 8; ++i ) {
+            f.Write(wxString::Format("data%i=\"%s\" ", i, (const char *)preset[i-1].c_str()));
+        }
+        f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+        f.Write(" >\n");
+        f.Write("</mhpreset>");
+        f.Close();
     }
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(" >\n");
-    f.Write("</mhpreset>");
-    f.Close();
 
     if( replace_existing ) {
         wxFileName fn(filename);
-        for (auto preset_ : presets) {
-            if( fn.GetFullPath()  == preset_->GetLabel() ) {
-                preset_->SetPreset( preset );
+        if( is_path ) {
+            for (auto preset_ : path_presets) {
+                if( fn.GetFullPath() == preset_->GetLabel() ) {
+                    preset_->SetPreset( preset[0] );
+                    break;
+                }
+            }
+        } else {
+            for (auto preset_ : presets) {
+                if( fn.GetFullPath() == preset_->GetLabel() ) {
+                    preset_->SetPreset( preset );
+                    break;
+                }
             }
         }
     }
@@ -697,6 +747,24 @@ void MovingHeadPanel::OnButtonPresetClick(wxCommandEvent& event)
         wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
         wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
         mh_textbox->SetValue(settings[i-1]);
+    }
+    recall = false;
+    FireChangeEvent();
+}
+
+void MovingHeadPanel::OnButtonPathPresetClick(wxCommandEvent& event)
+{
+    recall = true;
+    MHPathPresetBitmapButton* btn = (MHPathPresetBitmapButton*)event.GetEventObject();
+    m_sketchDef = btn->GetPreset();
+    m_sketch = SketchEffectSketch::SketchFromString(m_sketchDef);
+    TextCtrl_MHPathDef->SetValue(m_sketchDef);
+    m_sketchCanvasPanel->ResetHandlesState();
+    if( m_sketch.paths().size() > 0 ) {
+        selected_path = 0;
+        m_sketchCanvasPanel->UpdateHandlesForPath(0);
+    } else {
+        selected_path = -1;
     }
     recall = false;
     FireChangeEvent();
@@ -789,7 +857,7 @@ void MovingHeadPanel::UpdateMHSettings()
         PopulatePresets();
         presets_loaded = true;
     }
-    
+
     std::string headset = xlEMPTY_STRING;
 
     // build a string with the selected moving heads

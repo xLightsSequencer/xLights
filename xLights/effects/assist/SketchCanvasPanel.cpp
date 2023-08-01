@@ -82,22 +82,6 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
         }
     }
 
-    if( m_drawGrid ) {
-        for( int i = 0; i < 9; ++i ) {
-            wxPoint2DDouble start_x(0.1 * (float)i + 0.1, 0);
-            wxPoint2DDouble end_x(0.1 * (float)i + 0.1, 1);
-            wxPoint2DDouble start_y(0, 0.1 * (float)i + 0.1);
-            wxPoint2DDouble end_y(1, 0.1 * (float)i + 0.1);
-            if( i == 4 ) {
-                pdc.SetPen(*wxGREY_PEN);
-            } else {
-                pdc.SetPen(*wxLIGHT_GREY_PEN);
-            }
-            pdc.DrawLine(NormalizedToUI2(start_x), NormalizedToUI2(end_x));
-            pdc.DrawLine(NormalizedToUI2(start_y), NormalizedToUI2(end_y));
-        }
-    }
-
     {
         std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(pdc));
         double zoomLevel {1.0};
@@ -640,7 +624,6 @@ void SketchCanvasPanel::UpdateHandlesForPath(long pathIndex)
     if ((*iter)->isClosed() && m_handles.size() >= 3) {
         switch (finalSegmentType) {
         case SegmentType::Line:
-            m_handles.pop_back();
             m_ClosedState = SketchCanvasPathState::LineToNewPoint;
             break;
         case SegmentType::Quadratic:

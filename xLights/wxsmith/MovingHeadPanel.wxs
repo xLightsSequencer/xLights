@@ -639,6 +639,24 @@
 									<border>5</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerPathPresets" member="yes">
+										<cols>4</cols>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxButton" name="ID_BUTTON_SavePathPreset" variable="ButtonSavePathPreset" member="yes">
+										<label>Save Preset</label>
+										<size>100,23</size>
+										<handler function="OnButtonSavePathPresetClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Pathing</label>
