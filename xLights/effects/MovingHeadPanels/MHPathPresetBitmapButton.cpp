@@ -65,9 +65,9 @@ wxBitmap MHPathPresetBitmapButton::CreateImage( int w, int h, double scaleFactor
     dc.SetPen(*wxWHITE_PEN);
     dc.DrawRectangle(0, 0, width, height);
 
-    dc.SetPen(*wxLIGHT_GREY_PEN);
-    dc.DrawLine(0, height/2, width, height/2);
-    dc.DrawLine(width/2, 0, width/2, height);
+    //dc.SetPen(*wxLIGHT_GREY_PEN);
+    //dc.DrawLine(0, height/2, width, height/2);
+    //dc.DrawLine(width/2, 0, width/2, height);
 
     {
         std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));

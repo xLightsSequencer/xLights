@@ -499,6 +499,7 @@ void MovingHeadPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
     logger_base.info("MovingHeadPanel Scanning directory for *.xmh files: %s.", (const char *)directory.GetNameWithSep().c_str());
 
     auto existing = FlexGridSizerPresets->GetChildren();
+    auto existing_path = FlexGridSizerPathPresets->GetChildren();
 
     wxArrayString files;
     GetAllFilesInDir(directory.GetNameWithSep(), files, "*.xmh");
@@ -515,7 +516,16 @@ void MovingHeadPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
             }
         }
         if (!found) {
-            LoadMHPreset(fn);
+            for (const auto& it : existing_path) {
+                if (it->GetWindow()->GetLabel() == fn.GetFullPath()) {
+                    // already there
+                    found = true;
+                    break;
+                }
+            }
+            if(!found) {
+                LoadMHPreset(fn);
+            }
         }
     }
     logger_base.info("    Found %d.", count);
