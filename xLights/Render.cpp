@@ -90,8 +90,7 @@ public:
 class NextRenderer {
 public:
 
-    NextRenderer() : nextLock(), nextSignal() {
-        previousFrameDone = -1;
+    NextRenderer() : nextLock(), nextSignal(), previousFrameDone(-1) {
     }
 
     virtual ~NextRenderer() {}
@@ -104,8 +103,7 @@ public:
         return true;
     }
 
-    bool HasNext() const
-    {
+    bool HasNext() const {
         return !next.empty();
     }
 
@@ -116,33 +114,32 @@ public:
     }
 
     virtual void setPreviousFrameDone(int i) {
-        std::unique_lock<std::mutex> lock(nextLock);
         previousFrameDone = i;
         nextSignal.notify_all();
     }
 
     int waitForFrame(int frame) {
-        std::unique_lock<std::mutex> lock(nextLock);
-        while (frame > previousFrameDone) {
-            nextSignal.wait_for(lock, std::chrono::milliseconds(10));
+        if (frame > previousFrameDone) {
+            std::unique_lock<std::mutex> lock(nextLock);
+            while (frame > previousFrameDone) {
+                nextSignal.wait_for(lock, std::chrono::milliseconds(10));
+            }
         }
         return previousFrameDone;
     }
 
     bool checkIfDone(int frame, int timeout = 5) {
-        std::unique_lock<std::mutex> lock(nextLock);
         return previousFrameDone >= frame;
     }
 
-    int GetPreviousFrameDone() const
-    {
+    int GetPreviousFrameDone() const {
         return previousFrameDone;
     }
 
 protected:
     std::mutex nextLock;
     std::condition_variable nextSignal;
-    volatile long previousFrameDone;
+    std::atomic_int previousFrameDone;
 private:
     std::vector<NextRenderer *> next;
 };
@@ -150,8 +147,7 @@ private:
 class AggregatorRenderer: public NextRenderer {
 public:
 
-    AggregatorRenderer(int numFrames) : NextRenderer(), finalFrame(numFrames + 19) {
-        data = new int[numFrames + 20];
+    AggregatorRenderer(int numFrames) : NextRenderer(), finalFrame(numFrames + 19), data(numFrames + 20) {
         for (int x = 0; x < (numFrames + 20); ++x) {
             data[x] = 0;
         }
@@ -159,7 +155,6 @@ public:
     }
 
     virtual ~AggregatorRenderer() {
-        delete [] data;
     }
 
     void incNumAggregated() {
@@ -173,6 +168,7 @@ public:
 
     virtual void setPreviousFrameDone(int frame) {
         if (max <= 1) {
+            previousFrameDone = frame;
             FrameDone(frame);
             return;
         }
@@ -180,20 +176,15 @@ public:
         if (idx == END_OF_RENDER_FRAME) {
             idx = finalFrame;
         }
-        if (idx % 10 == 0 || idx == finalFrame) {
-            //only record every 10th frame and the final frame to
-            //avoid a lot of lock contention
-            std::unique_lock<std::mutex> lock(nextLock);
-            ++data[idx];
-            if (data[idx] == max) {
-                previousFrameDone = frame;
-                FrameDone(previousFrameDone);
-            }
+        int i = data[idx].fetch_add(1);
+        if (i == (max - 1)) {
+            previousFrameDone = frame;
+            FrameDone(previousFrameDone);
         }
     }
 
 private:
-    int *data;
+    std::vector<std::atomic_int> data;
     int max;
     const int finalFrame;
 };
@@ -603,6 +594,8 @@ public:
             if (!freeze) {
                 // Mix canvas pre-loads the buffer with data from underlying layers
                 if (buffer->IsCanvasMix(layer) && layer < numLayers - 1) {
+                    maybeWaitForFrame(frame);
+
                     auto vl = info.validLayers;
                     if (info.settingsMaps[layer].Get("LayersSelected", "") != "") {
                         // remove from valid layers any layers we dont need to include
@@ -659,6 +652,7 @@ public:
         }
 
         if (effectsToUpdate) {
+            maybeWaitForFrame(frame);
             SetCalOutputStatus(frame, info.submodel, strand, -1);
             if (blend) {
                 buffer->SetColors(numLayers, &((*seqData)[frame][0]));
@@ -668,8 +662,7 @@ public:
             buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
         }
 
-        if (sw.Time() > 500)
-        {
+        if (sw.Time() > 500) {
             RenderBuffer& b = buffer->BufferForLayer(0, -1);
             renderLog.info("*** Frame #%d at %dms render on model %s (%dx%d) took more than 1/2s => %dms.", frame, frame * b.frameTimeInMs, (const char *)el->GetName().c_str(), b.BufferWi, b.BufferHt, sw.Time());
         }
@@ -677,13 +670,21 @@ public:
         return effectsToUpdate;
     }
 
+    std::atomic_int maxFrameBeforeCheck = -1;
+    void maybeWaitForFrame(int frame) {
+        //make sure we can do this frame
+        if (frame >= maxFrameBeforeCheck) {
+            SetWaitingStatus(frame);
+            maxFrameBeforeCheck = waitForFrame(frame);
+            SetGenericStatus("%s: Processing frame %d ", frame, true, true);
+        }
+    }
     virtual void Process() override {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         static log4cpp::Category& logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
         logger_jobpool.debug("Render job thread id 0x%x or %d", wxThread::GetCurrentId(), wxThread::GetCurrentId());
 
         SetGenericStatus("Initializing rendering thread for %s", 0);
-        int maxFrameBeforeCheck = -1;
         int origChangeCount;
         int ss, es;
 
@@ -752,22 +753,14 @@ public:
                     rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
                     break;
                 }
-                //make sure we can do this frame
-                if (frame >= maxFrameBeforeCheck) {
-                    wxStopWatch sw;
-                    SetWaitingStatus(frame);
-                    maxFrameBeforeCheck = waitForFrame(frame);
-                    if (abort) {
-                        rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
-                        break;
-                    }
-                    if (sw.Time() > 500) {
-                        renderLog.info("Model %s rendering frame %d waited %dms waiting for other models to finish.", (const char *)(mainModelInfo.element != nullptr) ? mainModelInfo.element->GetName().c_str() : "", frame, sw.Time());
-                    }
-                    SetGenericStatus("%s: Processing frame %d ", frame, true, true);
+                if (abort) {
+                    rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
+                    break;
                 }
+
                 bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
                 if (!subModelInfos.empty()) {
+                    maybeWaitForFrame(frame);
                     for (const auto& a : subModelInfos) {
                         if (abort) {
                             rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
@@ -779,6 +772,7 @@ public:
                 }
 
                 if (!nodeBuffers.empty()) {
+                    maybeWaitForFrame(frame);
                     for (const auto& it : nodeBuffers) {
                         if (abort) {
                             rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
