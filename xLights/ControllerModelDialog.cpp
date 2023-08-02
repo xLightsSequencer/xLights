@@ -735,7 +735,7 @@ public:
         _controller = cud;
 
         if (useNumbersAsName) {
-            _name = wxString::Format("%d", smartRemote);
+            _name = wxString::Format("%d", smartRemote - 1);
         } else {
             _name = wxString::Format("%c", 64 + smartRemote);
         }

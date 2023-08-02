@@ -733,7 +733,6 @@ RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
     frameTimeInMs = 50;
     _textDrawingContext = nullptr;
     _pathDrawingContext = nullptr;
-    tempInt = tempInt2 = 0;
     isTransformed = false;
 }
 
@@ -1720,8 +1719,6 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     fadeinsteps = buffer.fadeinsteps;
     fadeoutsteps = buffer.fadeoutsteps;
     needToInit = buffer.needToInit;
-    tempInt = buffer.tempInt;
-    tempInt2 = buffer.tempInt2;
     allowAlpha = buffer.allowAlpha;
     dmx_buffer = buffer.dmx_buffer;
     _nodeBuffer = buffer._nodeBuffer;

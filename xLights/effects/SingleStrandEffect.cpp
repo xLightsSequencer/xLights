@@ -372,14 +372,12 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
         MaxNodes = buffer.BufferWi;
     }
 
-    int &ChaseDirection = buffer.tempInt;
+    int ChaseDirection = (chaseType == 0 || chaseType == 2 || chaseType == 6 ||
+                          chaseType == 9 || chaseType == 13 || chaseType == 14);
 
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
-        // initialize it once at the beginning of this sequence.
-        ChaseDirection = (chaseType == 0 || chaseType == 2 || chaseType == 6 ||
-            chaseType == 9 || chaseType == 13 || chaseType == 14);
     }
 
     bool Mirror = false;
