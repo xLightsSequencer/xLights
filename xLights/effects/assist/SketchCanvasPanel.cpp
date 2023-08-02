@@ -623,7 +623,6 @@ void SketchCanvasPanel::UpdateHandlesForPath(long pathIndex)
     if ((*iter)->isClosed() && m_handles.size() >= 3) {
         switch (finalSegmentType) {
         case SegmentType::Line:
-            m_handles.pop_back();
             m_ClosedState = SketchCanvasPathState::LineToNewPoint;
             break;
         case SegmentType::Quadratic:
