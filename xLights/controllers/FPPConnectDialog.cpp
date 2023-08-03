@@ -323,11 +323,6 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
 
         auto mode = inst->mode;
-        if (inst->fppType == FPP_TYPE::FPP && inst->IsVersionAtLeast(5, 0)) {
-            if (inst->IsMultiSyncEnabled()) {
-                mode += " w/multisync";
-            }
-        }
         label = new wxStaticText(FPPInstanceList, wxID_ANY, mode, wxDefaultPosition, wxDefaultSize, 0, _T("ID_MODE_" + rowStr));
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
 
@@ -404,10 +399,8 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             //playlist combo box
             if (inst->IsVersionAtLeast(2, 6) && !inst->IsDrive()) {
                 wxComboBox *ComboBox1 = new wxComboBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER, wxDefaultValidator, PLAYLIST_COL + rowStr);
-                std::list<std::string> playlists;
-                inst->LoadPlaylists(playlists);
                 ComboBox1->Append(_(""));
-                for (const auto& pl : playlists) {
+                for (const auto& pl : inst->playlists) {
                     ComboBox1->Append(pl);
                 }
                 wxFont font = ComboBox1->GetFont();

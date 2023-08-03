@@ -12,7 +12,6 @@
 
 class wxJSONValue;
 class FSEQFile;
-class wxMemoryBuffer;
 typedef void CURL;
 class wxWindow;
 class wxProgressDialog;
@@ -31,8 +30,6 @@ class FPP : public BaseController
     FPP(const std::string &address);
     FPP(const FPP &c);
     virtual ~FPP();
-
-    void setIPAddress(const std::string &ip);
     
     std::string hostName;
     std::string description;
@@ -48,6 +45,7 @@ class FPP : public BaseController
     std::string pixelControllerType;
     std::string panelSize;
     std::string uuid = "";
+    std::list<std::string> playlists;
 
     std::string proxy;
     std::set<std::string> proxies;
@@ -67,7 +65,6 @@ class FPP : public BaseController
 
     std::map<int, int> GetExpansionPorts(ControllerCaps* caps) const;
     bool AuthenticateAndUpdateVersions();
-    void LoadPlaylists(std::list<std::string> &playlists);
     void probePixelControllerType();
     
     void UpdateChannelRanges();
@@ -142,7 +139,7 @@ class FPP : public BaseController
     virtual bool ResetAfterOutput(OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
 
-    virtual bool UsesHTTP() const override { return false; } // returning false here because i dont think you can uypload through a FPP proxy to another FPP
+    virtual bool UsesHTTP() const override { return true; }
 #pragma endregion
 
 private:
@@ -156,10 +153,10 @@ private:
     int PostJSONToURL(const std::string& url, const wxJSONValue& val);
     int PostJSONToURLAsFormData(const std::string& url, const std::string &extra, const wxJSONValue& val);
     int PostToURL(const std::string& url, const std::string &val, const std::string &contentType = "application/octet-stream");
-    int PostToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType = "application/octet-stream");
+    int PostToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType = "application/octet-stream");
     int PutToURL(const std::string& url, const std::string &val, const std::string &contentType = "application/octet-stream");
-    int PutToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType = "application/octet-stream");
-    int TransferToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType, bool isPost);
+    int PutToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType = "application/octet-stream");
+    int TransferToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType, bool isPost);
 
     bool uploadOrCopyFile(const std::string &filename,
                           const std::string &file,

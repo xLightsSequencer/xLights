@@ -28,6 +28,7 @@
 #include "controllers/Falcon.h"
 #endif
 
+#include "utils/CurlManager.h"
 
 #if __has_include(<dns_sd.h>)
 // if the dns_sd include header is available, we can do the bonjour discovery
@@ -139,43 +140,6 @@ DiscoveredData::~DiscoveredData() {
     }
 }
 
-static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
-    if (data == nullptr) return 0;
-    data->append((char*)ptr, size * nmemb);
-    return size * nmemb;
-}
-
-Discovery::CurlData::CurlData(const std::string &h, const std::string &u, std::function<bool(int rc, const std::string &buffer, const std::string &errorBuffer)> & cb) : host(h), url(u), callback(cb) {
-    errorBuffer = new char[CURL_ERROR_SIZE];
-    curl = nullptr;
-}
-
-Discovery::CurlData::~CurlData() {
-    curl_easy_cleanup(curl);
-}
-
-void Discovery::CurlData::SetupCurl() {
-    if (curl != nullptr) {
-        curl_easy_cleanup(curl);
-    }
-    std::string furl = "http://" + host + url;
-    curl = curl_easy_init();
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
-    curl_easy_setopt(curl, CURLOPT_URL, furl.c_str());
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 2000);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 30000);
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer);
-    curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
-    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-    curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
-    if (username != "") {
-        curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
-        curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
-    }
-}
-
 Discovery::DatagramData::DatagramData(int p, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)> & cb) : port(p) {
     callbacks.push_back(cb);
     Init("", p);
@@ -232,7 +196,6 @@ Discovery::DatagramData::~DatagramData() {
         delete socket;
     }
 }
-
 
 
 class BonjourData {
@@ -335,21 +298,12 @@ void BonjourData::invokeCallbacks(const std::string &ip) {
 
 
 Discovery::Discovery(wxWindow* frame, OutputManager* outputManager) : _frame(frame), _outputManager(outputManager) {
-    curlMulti = curl_multi_init();
-    curl_multi_setopt(curlMulti, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
 }
 
 Discovery::~Discovery() {
-    for (size_t x = 0; x < curls.size(); ++x) {
-        if (curls[x]) {
-            curl_multi_remove_handle(curlMulti, curls[x]);
-            delete curls[x];
-            curls[x] = nullptr;
-            --numCurls;
-        }
+    while (CurlManager::INSTANCE.processCurls()) {
+        wxYieldIfNeeded();
     }
-    curl_multi_cleanup(curlMulti);
-    
     for (size_t x = 0; x < results.size(); ++x) {
         delete results[x];
     }
@@ -359,22 +313,87 @@ Discovery::~Discovery() {
     for (auto &bj : bonjours) {
         delete bj;
     }
+    for (auto &h : https ) {
+        delete h.second;
+    }
+}
+
+Discovery::CurlData::~CurlData() {
 }
 
 void Discovery::AddCurl(const std::string &host, const std::string &url, std::function<bool(int rc, const std::string &buffer, const std::string &errorBuffer)>&& callback) {
-    CurlData *curl = new CurlData(host, url, callback);
-    //check if we've logged into the host before and reuse credentials
-    for (auto c : curls) {
-        if (c && c->host == curl->host && c->username != "") {
-            curl->username = c->username;
-            curl->password = c->password;
-            curl->authStatus = c->authStatus;
-        }
+    std::string furl = "http://" + host + url;
+    Discovery::CurlData *data = https[host];
+    if (data == nullptr) {
+        https[host] = new Discovery::CurlData();
+        data = https[host];
     }
-    curl->SetupCurl();
-    curls.push_back(curl);
-    curl_multi_add_handle(curlMulti, curl->curl);
-    numCurls++;
+    if (data->urls.find(furl) != data->urls.end()) {
+        //already querying this URL, we don't need to do it again
+        return;
+    }
+    data->urls.insert(furl);
+    CURL *curl = CurlManager::INSTANCE.createCurl(furl);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 3000L);
+
+    CurlManager::INSTANCE.addCURL(furl, curl, [this, data, url, furl, host, callback](CURL* c) {
+        if (finished) {
+            return;
+        }
+        CurlManager::CurlPrivateData* cpd = nullptr;
+        long rc = 0;
+        curl_easy_getinfo(c, CURLINFO_PRIVATE, &cpd);
+        curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &rc);
+
+        if (rc == 401) {
+            if (HandleAuth(host, c)) {
+                AddCurl(host, url, [callback](int rc, const std::string &buffer, const std::string &errorBuffer) {
+                    return callback(rc, buffer, errorBuffer);
+                });
+            }
+        } else {
+            std::string resp(reinterpret_cast<char*>(cpd->resp.data()), cpd->resp.size());
+            callback(rc, resp, cpd->errorResp);
+        }
+    });
+}
+
+bool Discovery::HandleAuth(const std::string &host, CURL* curl) {
+    // we need to authenticate and redo
+    Discovery::CurlData *data = https[host];
+
+    if (data->authStatus != 1) {
+        bool handled = false;
+        std::string ip = host;
+        if (data->authStatus != 2) {
+            std::string username;
+            std::string password;
+            if (xlPasswordEntryDialog::GetStoredPasswordForService(host, username, password)) {
+                if (password != "") {
+                    data->authStatus = 2;
+                    CurlManager::INSTANCE.setHostUsernamePassword(host, username, password);
+                    //redo
+                    handled = true;
+                }
+            }
+        }
+        if (!handled) {
+            xlPasswordEntryDialog dlg(nullptr, "Password needed to connect to " + ip, "Password Required");
+            int rc = dlg.ShowModal();
+            if (rc != wxID_CANCEL) {
+                std::string username = "admin";
+                std::string password = dlg.GetValue().ToStdString();
+                if (dlg.shouldSavePassword()) {
+                    xlPasswordEntryDialog::StorePasswordForService(ip, username, password);
+                }
+                CurlManager::INSTANCE.setHostUsernamePassword(host, username, password);
+                handled = true;
+            }
+        }
+        return handled;
+    }
+    return false;
 }
 
 void Discovery::AddMulticast(const std::string &mcAddr, int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)>&& callback) {
@@ -460,6 +479,7 @@ DiscoveredData *Discovery::AddController(ControllerEthernet *c) {
 
 DiscoveredData *Discovery::FindByIp(const std::string &ip, const std::string &hn, bool create) {
     std::string host = ((hn == "") ? ip : hn);
+    
     //first check direct IP address match
     for (auto a : results) {
         if (a->ip == ip || a->hostname == ip) {
@@ -482,11 +502,13 @@ DiscoveredData *Discovery::FindByIp(const std::string &ip, const std::string &hn
     return nullptr;
 }
 
-DiscoveredData *Discovery::FindByUUID(const std::string &uuid) {
+DiscoveredData *Discovery::FindByUUID(const std::string &uuid, const std::string &ip) {
     if (uuid != "") {
         for (auto a : results) {
             if (a->uuid == uuid) {
-                return a;
+                if (ip == "" || ip == a->ip) {
+                    return a;
+                }
             }
         }
     }
@@ -589,49 +611,13 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
     return nullptr;
 }
 
-void Discovery::HandleAuth(int curlIdx) {
-    // we need to authenticate and redo
-    if (curls[curlIdx]->authStatus != 1) {
-        bool handled = false;
-        std::string ip = curls[curlIdx]->host;
-        if (curls[curlIdx]->authStatus != 2) {
-            if (xlPasswordEntryDialog::GetStoredPasswordForService(curls[curlIdx]->host, curls[curlIdx]->username, curls[curlIdx]->password)) {
-                if (curls[curlIdx]->password != "") {
-                    curl_multi_remove_handle(curlMulti, curls[curlIdx]->curl);
-                    curls[curlIdx]->SetupCurl();
-                    curl_multi_add_handle(curlMulti, curls[curlIdx]->curl);
-                    curls[curlIdx]->authStatus = 2;
-                    handled = true;
-                }
-            }
-        }
-        if (!handled) {
-            xlPasswordEntryDialog dlg(nullptr, "Password needed to connect to " + ip, "Password Required");
-            int rc = dlg.ShowModal();
-            if (rc != wxID_CANCEL) {
-                std::string username = "admin";
-                std::string password = dlg.GetValue().ToStdString();
-                if (dlg.shouldSavePassword()) {
-                    xlPasswordEntryDialog::StorePasswordForService(ip, username, password);
-                }
-                curls[curlIdx]->username = username;
-                curls[curlIdx]->password = password;
-                curl_multi_remove_handle(curlMulti, curls[curlIdx]->curl);
-                curls[curlIdx]->SetupCurl();
-                curl_multi_add_handle(curlMulti, curls[curlIdx]->curl);
-            }
-        }
-    }
-}
 
 void Discovery::Discover() {
-
-    if (curlMulti == nullptr) return;
-
     auto endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1200l;
     auto maxTime = wxGetLocalTimeMillis().GetValue() + 10000L; // 10 seconds max
-    int running = numCurls;
+    bool running = CurlManager::INSTANCE.processCurls();
     uint8_t buffer[1500];
+    finished = false;
     
     while ((running || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime))
            && (wxGetLocalTimeMillis().GetValue() < maxTime)){
@@ -655,33 +641,10 @@ void Discovery::Discover() {
         for (auto &bj : bonjours) {
             bj->handleEvents();
         }
-        
+
         //now check the http/curls
-        int start = running;
-        curl_multi_perform(curlMulti, &running);
-        if (start != running) {
-            struct CURLMsg *m;
-            int msgq = 0;
-            while ((m = curl_multi_info_read(curlMulti, &msgq))) {
-                if (m->msg == CURLMSG_DONE) {
-                    CURL *e = m->easy_handle;
-                    long response_code = 0;
-                    curl_easy_getinfo(e, CURLINFO_HTTP_CODE, &response_code);
-                    
-                    for (size_t x = 0; x < curls.size(); x++) {
-                        if (curls[x] && curls[x]->curl == e) {
-                            if (response_code == 401) {
-                                HandleAuth(x);
-                            } else if (curls[x]->callback(response_code, curls[x]->buffer, curls[x]->errorBuffer)) {
-                                curl_multi_remove_handle(curlMulti, curls[x]->curl);
-                                delete curls[x];
-                                curls[x] = nullptr;
-                                --numCurls;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        running = CurlManager::INSTANCE.processCurls();
+        wxYieldIfNeeded();
     }
+    finished = true;
 }

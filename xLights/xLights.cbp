@@ -1347,6 +1347,8 @@
 		<Unit filename="tmGridCell.h" />
 		<Unit filename="utils/Curl.cpp" />
 		<Unit filename="utils/Curl.h" />
+		<Unit filename="utils/CurlManager.cpp" />
+		<Unit filename="utils/CurlManager.h" />
 		<Unit filename="utils/ip_utils.cpp" />
 		<Unit filename="utils/ip_utils.h" />
 		<Unit filename="utils/string_utils.cpp" />

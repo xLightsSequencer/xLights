@@ -60,6 +60,7 @@
 #include "ControllerUploadData.h"
 #include "../FSEQFile.h"
 #include "../Discovery.h"
+#include "../utils/CurlManager.h"
 
 #include "Falcon.h"
 #include "Minleon.h"
@@ -131,11 +132,6 @@ FPP::~FPP() {
         curl = nullptr;
     }
 }
-
-void FPP::setIPAddress(const std::string &ip) {
-    ipAddress = ip;
-}
-
 
 struct FPPWriteData {
     FPPWriteData() : file(nullptr), progress(nullptr), data(nullptr), dataSize(0), curPos(0),
@@ -230,7 +226,7 @@ void FPP::setupCurl(const std::string &url, bool isGet, int timeout) {
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout);
     curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
     curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-    
+
     // seems to be a bug in SOME versions of libcurl where GET requests over
     // HTTP2 are not handling the spaces (%20) correctly. Most escaped character
     // are OK, but not all.   Only seems to effect GET, POST/PATCH are fine.
@@ -251,157 +247,86 @@ void FPP::setupCurl(const std::string &url, bool isGet, int timeout) {
 bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    curlInputBuffer.clear();
-    char error[1024];
 
     std::string fullUrl = ipAddress + url;
+    std::string ipAddForGet = ipAddress;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
         fullUrl = ipAddress + "/fpp?path=" +  url;
     }
     if (!_fppProxy.empty()) {
         fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+        ipAddForGet = _fppProxy;
     } else {
         fullUrl = "http://" + fullUrl;
     }
-    setupCurl(fullUrl, true);
-
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
-    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-    logger_curl.info("URL: %s", fullUrl.c_str());
-
+    
     if (username != "") {
-        curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
-        curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
+        CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
     }
+    int response_code = 0;
+    val = CurlManager::INSTANCE.doGet(fullUrl, response_code);
 
-    bool retValue = false;
-    int i = curl_easy_perform(curl);
-    if (i != CURLE_OK) {
-        //simple retry
-        i = curl_easy_perform(curl);
-    }
-    long response_code = 0;
-    if (i == CURLE_OK) {
-        val = curlInputBuffer;
-        logger_curl.debug("RESPONSE START ---------");
-        logger_curl.debug(val.c_str());
-        logger_curl.debug("RESPONSE END ---------");
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-        if (response_code == 401) {
-            curlInputBuffer.clear();
-            if (password == "" && xlPasswordEntryDialog::GetStoredPasswordForService(ipAddress, username, password)) {
-                if (password != "") {
-                    return GetURLAsString(url, val);
-                }
+    logger_curl.debug("RESPONSE START --------- RC: %d ----", response_code);
+    logger_curl.debug(val.c_str());
+    logger_curl.debug("RESPONSE END ---------");
+    if (response_code == 401) {
+        if (password == "" && xlPasswordEntryDialog::GetStoredPasswordForService(ipAddress, username, password)) {
+            if (password != "") {
+                return GetURLAsString(url, val);
             }
-            xlPasswordEntryDialog dlg(nullptr, "Password needed to connect to " + ipAddress, "Password Required");
-            int rc = dlg.ShowModal();
-            if (rc == wxID_CANCEL) {
-                return false;
-            }
-            username = "admin";
-            password = dlg.GetValue().ToStdString();
-            if (dlg.shouldSavePassword()) {
-                xlPasswordEntryDialog::StorePasswordForService(ipAddress, username, password);
-            }
-            return GetURLAsString(url, val);
         }
-        retValue = (response_code == 200);
+        xlPasswordEntryDialog dlg(nullptr, "Password needed to connect to " + ipAddress, "Password Required");
+        int rc = dlg.ShowModal();
+        if (rc == wxID_CANCEL) {
+            return false;
+        }
+        username = "admin";
+        password = dlg.GetValue().ToStdString();
+        if (dlg.shouldSavePassword()) {
+            xlPasswordEntryDialog::StorePasswordForService(ipAddress, username, password);
+        }
+        return GetURLAsString(url, val);
     }
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, nullptr);
     if (response_code != 200) {
         if (recordError) {
-            if (i == CURLE_OK) {
-                messages.push_back("ERROR - Error on GET \"" + fullUrl + "\"    Response Code: " + std::to_string(response_code));
-            } else {
-                messages.push_back("ERROR - Error on GET \"" + fullUrl + "\"    CURL Response: " + std::to_string(i));
-            }
+            messages.push_back("ERROR - Error on GET \"" + fullUrl + "\"    Response Code: " + std::to_string(response_code));
         }
-        logger_base.info("FPPConnect GET %s  - Return: %d - RC: %d  - %s", fullUrl.c_str(), i, response_code, val.c_str());
+        logger_base.info("FPPConnect GET %s  - Return: RC: %d  - %s", fullUrl.c_str(), response_code, val.c_str());
     } else {
-        logger_base.info("FPPConnect GET %s  - Return: %d - RC: %d", fullUrl.c_str(), i, response_code);
+        logger_base.info("FPPConnect GET %s  - Return: RC: %d", fullUrl.c_str(), response_code);
     }
-    return retValue;
+    return response_code == 200;
 }
-int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType) {
+int FPP::PostToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType) {
     return TransferToURL(url, val, contentType, true);
 }
-int FPP::PutToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType) {
+int FPP::PutToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType) {
     return TransferToURL(url, val, contentType, false);
 }
-int FPP::TransferToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType, bool isPost) {
+int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType, bool isPost) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    curlInputBuffer.clear();
-    char error[1024];
     std::string fullUrl = ipAddress + url;
+    std::string ipAddForGet = ipAddress;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
         fullUrl = ipAddress + "/fpp?path=" +  url;
     }
     if (!_fppProxy.empty()) {
         fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+        ipAddForGet = _fppProxy;
     } else {
         fullUrl = "http://" + fullUrl;
     }
-    logger_curl.info("URL: %s", fullUrl.c_str());
-    setupCurl(fullUrl, false);
-    curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
-    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
+    
     if (username != "") {
-        curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
-        curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
+        CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
     }
-
-    FPPWriteData data;
-    data.data = (uint8_t*)val.GetData();
-    data.dataSize = val.GetDataLen();
-
-    logger_curl.info("CONTENTTYPE: %s", contentType.c_str());
-    struct curl_slist *chunk = nullptr;
-    std::string ct = "Content-Type: " + contentType;
-    chunk = curl_slist_append(chunk, ct.c_str());
-    std::string cl = "Content-Length: " + std::to_string(data.dataSize);
-    chunk = curl_slist_append(chunk, cl.c_str());
-
-    if (logger_curl.isInfoEnabled()) {
-        char temp[8192];
-        strncpy(temp, (char*)data.data, std::min(data.dataSize, sizeof(temp) - 1));
-        logger_curl.info("BODY START -----------");
-        logger_curl.info(temp);
-        logger_curl.info("BODY END -----------");
-    }
-
+    int response_code = 0;
     if (isPost) {
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        CurlManager::INSTANCE.doPost(fullUrl, contentType, val, response_code);
     } else {
-        curl_easy_setopt(curl, CURLOPT_PUT, 1L);
+        CurlManager::INSTANCE.doPut(fullUrl, contentType, val, response_code);
     }
-    curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
-    curl_easy_setopt(curl, CURLOPT_READDATA, &data);
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)val.GetDataLen());
-    int i = curl_easy_perform(curl);
-    if (i != CURLE_OK) {
-        //simple retry
-        data.curPos = 0;
-        i = curl_easy_perform(curl);
-    }
-    curl_slist_free_all(chunk);
-    long response_code = 0;
-    if (i == CURLE_OK) {
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-        if (response_code != 200) {
-            messages.push_back("ERROR - Error on POST \"" + fullUrl + "\"    Response Code: " + std::to_string(response_code));
-        }
-        return response_code;
-    }
-    messages.push_back("ERROR - Error on POST \"" + fullUrl + "\"    CURL Response: " + std::to_string(i));
-    logger_base.info("FPPConnect Post %s  - RC: %d - Return %d", fullUrl.c_str(), response_code, i);
-    return 500;
+    return response_code;
 }
 
 bool FPP::GetURLAsJSON(const std::string& url, wxJSONValue& val, bool recordError) {
@@ -458,6 +383,9 @@ bool FPP::parseSysInfo(wxJSONValue& val) {
     hostName = ToStdString(val["HostName"].AsString());
     description = ToStdString(val["HostDescription"].AsString());
     mode = ToStdString(val["Mode"].AsString());
+    if (mode == "player" && val.HasMember("multisync") && val["multisync"].AsBool()) {
+        mode += " w/multisync";
+    }
 
     if (fullVersion != "") {
         majorVersion = wxAtoi(fullVersion);
@@ -483,34 +411,6 @@ bool FPP::parseSysInfo(wxJSONValue& val) {
         majorVersion = val["majorVersion"].AsInt();
     }
     return true;
-}
-
-
-void FPP::LoadPlaylists(std::list<std::string> &playlists) {
-    if (!IsDrive()) {
-        //ip address, load playlists
-        wxJSONValue val;
-        if (GetURLAsJSON("/api/playlists", val)) {
-            for (int x = 0; x < val.Size(); x++) {
-                if (val[x].IsString()) {
-                    playlists.push_back(ToUTF8(val[x].AsString()));
-                }
-            }
-        }
-    }
-}
-
-bool FPP::IsMultiSyncEnabled(){
-    if (!IsDrive() && mode == "player") {
-        wxJSONValue val;
-        if (GetURLAsJSON("/api/settings/MultiSyncEnabled", val)) {
-            if (val.HasMember("value")) {
-                auto enabled = val.ItemAt("value").AsString();
-                return wxAtoi(enabled);
-            }
-        }
-    }
-    return false;
 }
 
 bool FPP::IsDDPInputEnabled() {
@@ -677,7 +577,21 @@ static std::string URLEncode(const std::string &value) {
     return ToStdString(URLEncode(ToWXString(value)));
 }
 
-
+static inline void addString(std::vector<uint8_t> &buffer, const char *str) {
+    size_t sz = strlen(str);
+    size_t pos = buffer.size();
+    buffer.resize(pos + sz);
+    memcpy(&buffer[pos], str, sz);
+}
+static inline void addString(std::vector<uint8_t> &buffer, const std::string &str) {
+    size_t sz = str.length();
+    size_t pos = buffer.size();
+    buffer.resize(pos + sz);
+    memcpy(&buffer[pos], str.c_str(), sz);
+}
+static inline void addString(std::vector<uint8_t> &buffer, const wxString &str) {
+    addString(buffer, ToUTF8(str));
+}
 static inline void addString(wxMemoryBuffer &buffer, const char *str) {
     buffer.AppendData(str, strlen(str));
 }
@@ -715,12 +629,12 @@ int FPP::PostJSONToURL(const std::string& url, const wxJSONValue& val) {
     wxString str;
     wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
     writer.Write(val, str);
-    wxMemoryBuffer memBuffPost;
+    std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, str);
     return PostToURL(url, memBuffPost, "application/json");
 }
 int FPP::PostJSONToURLAsFormData(const std::string& url, const std::string &extra, const wxJSONValue& val) {
-    wxMemoryBuffer memBuffPost;
+    std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, extra);
     addString(memBuffPost, "&data={");
     wxString str;
@@ -741,12 +655,12 @@ void FPP::DumpJSON(const wxJSONValue& json)
 }
 
 int FPP::PostToURL(const std::string& url, const std::string &val, const std::string &contentType) {
-    wxMemoryBuffer memBuffPost;
+    std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, val);
     return PostToURL(url, memBuffPost, contentType);
 }
 int FPP::PutToURL(const std::string& url, const std::string &val, const std::string &contentType) {
-    wxMemoryBuffer memBuffPost;
+    std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, val);
     return PutToURL(url, memBuffPost, contentType);
 }
@@ -3104,7 +3018,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
             //ignore for some reason, FPP is occasionally returning an IPV6 address
             continue;
         }
-        DiscoveredData *found = discovery.FindByUUID(uuid);
+        DiscoveredData *found = discovery.FindByUUID(uuid, address);
         if (found == nullptr) {
             found = discovery.FindByIp(address, hostName);
         }
@@ -3142,6 +3056,9 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         }
         if (!system[ModeStringKey].IsNull()) {
             inst.mode = ToUTF8(system[ModeStringKey].AsString());
+            if (inst.mode == "player" && system.HasMember("multisync") && system["multisync"].AsBool()) {
+                inst.mode += " w/multisync";
+            }
         }
         if (inst.typeId == 0xC2 || inst.typeId == 0xC3) {
             inst.pixelControllerType = inst.platformModel;
@@ -3201,7 +3118,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
             std::string ipAddr = inst.ip;
             CreateController(discovery, found);
             if (found->typeId > 0 && found->typeId < 0x80) {
-                discovery.AddCurl(ipAddr, "/api/fppd/multiSyncSystems", [&discovery, found] (int rc, const std::string &buffer, const std::string &err) {
+                discovery.AddCurl(ipAddr, "/api/fppd/multiSyncSystems", [&discovery, found, ipAddr] (int rc, const std::string &buffer, const std::string &err) {
                     if (rc == 200) {
                         found->extraData["httpConnected"] = true;
                         ProcessFPPSystems(discovery, buffer);
@@ -3321,7 +3238,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
     bool parsed = reader.Parse(sysInfo, &val) == 0;
     if (!parsed) {
         DiscoveredData *inst = discovery.FindByIp(ip, "", true);
-        inst->extraData["httpConnected"] = true;
+        inst->extraData["httpConnected"] = false;
         if (proxy != "") {
             inst->SetProxy(proxy);
         }
@@ -3329,7 +3246,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
     if (parsed) {
         std::string uuid = ToUTF8(val.HasMember("uuid") ? val["uuid"].AsString() : (val.HasMember("UUID") ? val["UUID"].AsString() : ""));
 
-        DiscoveredData *inst = discovery.FindByUUID(uuid);
+        DiscoveredData *inst = discovery.FindByUUID(uuid, ip);
         if (inst == nullptr) {
             inst = discovery.FindByIp(ip, "", true);
         }
@@ -3344,6 +3261,9 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
         inst->hostname =ToUTF8( val["HostName"].AsString());
         inst->description = ToUTF8(val["HostDescription"].AsString());
         inst->mode = ToUTF8(val["Mode"].AsString());
+        if (inst->mode == "player" && val.HasMember("multisync") && val["multisync"].AsBool()) {
+            inst->mode += " w/multisync";
+        }
         inst->uuid = uuid;
         if (inst->typeId == 0 && val["typeId"].IsInt()) {
             inst->typeId = val["typeId"].AsInt();
@@ -3402,6 +3322,17 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
                           [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
             if (rc == 200) {
                 ProcessFPPChannelOutput(discovery, host, buffer);
+            }
+            return true;
+        });
+        discovery.AddCurl(baseIp, baseUrl + "/api/playlists",
+                          [&discovery, host, inst] (int rc, const std::string &buffer, const std::string &err) {
+            if (rc == 200) {
+                wxJSONValue val;
+                wxJSONReader reader;
+                if (reader.Parse(buffer, &val) == 0) {
+                    inst->extraData["playlists"] = val;
+                }
             }
             return true;
         });
@@ -3682,7 +3613,11 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 fpp->controllerModel = res->model;
                 fpp->controllerVariant = res->variant;
                 TypeIDtoControllerType(res->typeId, fpp);
-
+                if (res->extraData.HasMember("playlists")) {
+                    for (int x = 0; x < res->extraData["playlists"].Size(); x++) {
+                        fpp->playlists.push_back(res->extraData["playlists"][x].AsString());
+                    }
+                }
                 instances.push_back(fpp);
             } else {
                 setIfEmpty(fpp->hostName, res->hostname);
@@ -3704,6 +3639,11 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 setIfEmpty(fpp->patchVersion, res->patchVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
                 TypeIDtoControllerType(res->typeId, fpp);
+                if (fpp->playlists.empty() && res->extraData.HasMember("playlists")) {
+                    for (int x = 0; x < res->extraData["playlists"].Size(); x++) {
+                        fpp->playlists.push_back(res->extraData["playlists"][x].AsString());
+                    }
+                }
             }
         } else {
             logger_base.info("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());

@@ -136,30 +136,10 @@ public:
     DiscoveredData *DetectControllerType(const std::string &ip, const std::string &proxy, const std::string &htmlBuffer);
     
     DiscoveredData *FindByIp(const std::string &ip, const std::string &hostname = "", bool create = false);
-    DiscoveredData *FindByUUID(const std::string &uuid);
+    DiscoveredData *FindByUUID(const std::string &uuid, const std::string &ip);
 private:
-    void HandleAuth(int curlIdx);
-    
-    class CurlData {
-    public:
-        CurlData(const std::string &host, const std::string &url,
-                 std::function<bool(int rc, const std::string &buffer, const std::string &errorBuffer)> & cb);
-        ~CurlData();
-        
-        void SetupCurl();
-        
-        std::string host;
-        std::string url;
-        CURL *curl;
-        std::function<bool(int rc, const std::string &buffer, const std::string &errorBuffer)> callback;
-        
-        std::string buffer;
-        char *errorBuffer = nullptr;
-        
-        std::string username;
-        std::string password;
-        int authStatus = 0;
-    };
+    bool HandleAuth(const std::string &host, CURL* curl);
+
     class DatagramData {
     public:
         DatagramData(int port, std::function<void(wxDatagramSocket* socket, uint8_t *buffer, int len)> & cb);
@@ -173,16 +153,21 @@ private:
     private:
         void Init(const std::string &mc, int port);
     };
+    class CurlData {
+    public:
+        CurlData() {}
+        ~CurlData();
+        int authStatus = 0;
+        std::set<std::string> urls;
+    };
     
     OutputManager *_outputManager;
     wxWindow *_frame;
     
-    CURLM * curlMulti = nullptr;
-    std::vector<CurlData *> curls;
-    int numCurls = 0;
+    
+    std::map<std::string, CurlData*> https;
     std::list<DatagramData *> datagrams;
     std::list<BonjourData *> bonjours;
-
     std::vector<DiscoveredData*> results;
-    
+    bool finished = false;
 };

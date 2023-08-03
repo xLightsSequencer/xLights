@@ -36,6 +36,7 @@
 #include "TraceLog.h"
 #include "ExternalHooks.h"
 #include "BitmapCache.h"
+#include "utils/CurlManager.h"
 
 #ifndef __WXMSW__
 #include "automation/automation.h"
@@ -678,6 +679,7 @@ bool xLightsApp::ProcessIdle() {
         _nextIdleTime = now + 100;
         return wxApp::ProcessIdle();
     }
+    CurlManager::INSTANCE.processCurls();
     return false;
 }
 
