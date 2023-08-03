@@ -59,6 +59,7 @@
 #include <algorithm>
 
 #define MOST_STRINGS_WE_EXPECT 480
+#define MOST_CONTROLLER_PORTS_WE_EXPECT 128
 
 const long Model::ID_LAYERSIZE_INSERT = wxNewId();
 const long Model::ID_LAYERSIZE_DELETE = wxNewId();
@@ -982,9 +983,8 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
     wxPGProperty* sp = grid->AppendIn(p, new wxUIntProperty("Port", "ModelControllerConnectionPort", GetControllerPort(1)));
     sp->SetAttribute("Min", 0);
     if (caps == nullptr || protocol == "") {
-        sp->SetAttribute("Max", 48);
-    }
-    else {
+        sp->SetAttribute("Max", MOST_CONTROLLER_PORTS_WE_EXPECT);
+    } else {
         if (IsSerialProtocol()) {
             sp->SetAttribute("Max", caps->GetMaxSerialPort());
         } else if (IsPixelProtocol()) {
@@ -994,7 +994,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
         } else if (IsVirtualMatrixProtocol()) {
             sp->SetAttribute("Max", caps->GetMaxVirtualMatrixPort());
         } else {
-            sp->SetAttribute("Max", 48);
+            sp->SetAttribute("Max", MOST_CONTROLLER_PORTS_WE_EXPECT);
         }
     }
     sp->SetEditor("SpinCtrl");
