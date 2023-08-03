@@ -344,6 +344,8 @@
 		<Unit filename="../xLights/outputs/xxxSerialOutput.h" />
         <Unit filename="../xLights/utils/Curl.cpp" />
         <Unit filename="../xLights/utils/Curl.h" />
+		<Unit filename="../xLights/utils/CurlManager.cpp" />
+		<Unit filename="../xLights/utils/CurlManager.h" />
 		<Unit filename="../xLights/utils/ip_utils.cpp" />
 		<Unit filename="../xLights/utils/ip_utils.h" />
 		<Unit filename="../xLights/utils/string_utils.cpp" />
