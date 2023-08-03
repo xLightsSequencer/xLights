@@ -10,6 +10,9 @@
 #include "../xLightsVersion.h"
 #include "string_utils.h"
 
+#include <wx/string.h>
+#include <wx/app.h>
+
 CurlManager CurlManager::INSTANCE;
 
 CurlManager::CurlManager() {
