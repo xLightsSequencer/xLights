@@ -6,12 +6,12 @@
 #include <string>
 #include <vector>
 
+#include <wx/string.h>
+#include <wx/app.h>
+
 #include "CurlManager.h"
 #include "../xLightsVersion.h"
 #include "string_utils.h"
-
-#include <wx/string.h>
-#include <wx/app.h>
 
 CurlManager CurlManager::INSTANCE;
 
