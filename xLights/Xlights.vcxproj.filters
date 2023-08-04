@@ -1022,6 +1022,9 @@
       <Filter>graphics\opengl</Filter>
     </ClCompile>
     <ClCompile Include="MetronomeLabelDialog.cpp" />
+    <ClCompile Include="utils\CurlManager.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2057,6 +2060,9 @@
       <Filter>graphics\opengl\GL</Filter>
     </ClInclude>
     <ClInclude Include="MetronomeLabelDialog.h" />
+    <ClInclude Include="utils\CurlManager.h">
+      <Filter>utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

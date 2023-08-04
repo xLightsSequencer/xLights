@@ -577,6 +577,9 @@
     <ClCompile Include="..\xLights\utils\Curl.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="..\xLights\utils\CurlManager.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\xlBaseApp.h" />
@@ -1145,6 +1148,9 @@
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\xLights\utils\Curl.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xLights\utils\CurlManager.h">
       <Filter>utils</Filter>
     </ClInclude>
   </ItemGroup>

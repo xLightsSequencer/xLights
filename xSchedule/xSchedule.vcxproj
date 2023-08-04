@@ -246,6 +246,7 @@
     <ClCompile Include="..\xLights\TraceLog.cpp" />
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\utils\Curl.cpp" />
+    <ClCompile Include="..\xLights\utils\CurlManager.cpp" />
     <ClCompile Include="..\xLights\utils\ip_utils.cpp" />
     <ClCompile Include="..\xLights\utils\string_utils.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\Files.cpp" />
@@ -498,6 +499,7 @@
     <ClInclude Include="..\xLights\TraceLog.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
     <ClInclude Include="..\xLights\utils\Curl.h" />
+    <ClInclude Include="..\xLights\utils\CurlManager.h" />
     <ClInclude Include="..\xLights\utils\ip_utils.h" />
     <ClInclude Include="..\xLights\utils\string_utils.h" />
     <ClInclude Include="..\xLights\VideoReader.h" />
