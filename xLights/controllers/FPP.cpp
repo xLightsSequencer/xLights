@@ -2117,13 +2117,42 @@ static bool mergeSerialInto(wxJSONValue &otherDmxData, wxJSONValue &otherOrigRoo
 }
 #endif
 
-static bool IsCompatible(wxWindow *parent, const std::string ipAdd, const ControllerCaps *rules,
-                         std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId) {
+bool FPP::IsCompatible(const ControllerCaps *rules,
+                       std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,
+                       std::string &driver) {
     if (origMod == "") {
         Controller::ConvertOldTypeToVendorModel(origId, origVend, origMod, origVar);
     }
+    if (IsVersionAtLeast(7, 0)) {
+        // we can verify that the ID actually can load a pinout
+        bool found = false;
+        wxJSONValue val;
+        if (GetURLAsJSON("/api/cape/strings", val)) {
+            for (int x = 0; x < val.Size(); x++) {
+                if (val[x].AsString() == rules->GetID()) {
+                    found = true;
+                }
+            }
+        }
+        if (found) {
+            wxJSONValue val;
+            if (GetURLAsJSON("/api/cape/strings/" + rules->GetID(), val)) {
+                if (val.HasMember("driver")) {
+                    driver = val["driver"].AsString();
+                }
+            } else {
+                found = false;
+            }
+        }
+        if (!found) {
+            wxString msg = "Could not detect a pinout for " + rules->GetID() + " for controller type " + rules->GetModel() + ".  Configuration will not work.  Verify controller type/model/variant.  Continue?";
+            if (wxMessageBox(msg, "Confirm", wxYES_NO, parent) != wxYES) {
+                return false;
+            }
+        }
+    }
     if (origMod != "" && rules->GetModel() != origMod) {
-        wxString msg = "Configured controller type " + rules->GetModel() + " for " + ipAdd + " is not compatible with type already configured: "
+        wxString msg = "Configured controller type " + rules->GetModel() + " for " + ipAddress + " is not compatible with type already configured: "
             + origMod + ".   Continue?";
         if (wxMessageBox(msg, "Confirm", wxYES_NO, parent) != wxYES) {
             return false;
@@ -2497,7 +2526,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     wxString pinout = "1.x";
     std::map<wxString, wxJSONValue> origStrings;
-    std::string origType = "";
+    std::string origSubType = "";
     if (origJson["channelOutputs"].IsArray()) {
         for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
             wxJSONValue &f = origJson["channelOutputs"][x];
@@ -2508,7 +2537,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 pinout = "1.x";
             }
             if (f.HasMember("subType")) {
-                origType = ToUTF8(f["subType"].AsString());
+                origSubType = ToUTF8(f["subType"].AsString());
             }
             if (!fullcontrol) {
                 for (int o = 0; o < f["outputs"].Size(); o++) {
@@ -2535,13 +2564,13 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     std::string fppDriver = rules->GetCustomPropertyByPath("fppStringDriverType");
     if (fppFileName == "co-bbbStrings") {
+        if (!IsCompatible(rules, controllerVendor, controllerModel, controllerVariant, origSubType, fppDriver)) {
+            return true;
+        }
         if (fppDriver.empty()) {
             fppDriver = "BBB48String";
         }
         stringData["type"] = fppDriver;
-        if (!IsCompatible(parent, ipAddress, rules, controllerVendor, controllerModel, controllerVariant, origType)) {
-            return true;
-        }
         stringData["subType"] = rules->GetID();
         stringData["pinoutVersion"] = pinout;
     } else {
@@ -3127,6 +3156,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 });
                 discovery.AddCurl(ipAddr, "/api/system/info", [&discovery, ipAddr, found] (int rc, const std::string &buffer, const std::string &err) {
                     if (rc == 200) {
+                        found->extraData["httpConnected"] = true;
                         ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
                     }
                     return true;
@@ -3332,6 +3362,17 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
                 wxJSONReader reader;
                 if (reader.Parse(buffer, &val) == 0) {
                     inst->extraData["playlists"] = val;
+                }
+            }
+            return true;
+        });
+        discovery.AddCurl(baseIp, baseUrl + "/api/cape",
+                          [&discovery, host, inst, baseUrl, baseIp] (int rc, const std::string &buffer, const std::string &err) {
+            if (rc == 200) {
+                wxJSONValue val;
+                wxJSONReader reader;
+                if (reader.Parse(buffer, &val) == 0) {
+                    inst->extraData["cape"] = val;
                 }
             }
             return true;

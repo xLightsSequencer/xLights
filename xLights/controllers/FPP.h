@@ -176,7 +176,10 @@ private:
     void parseConfig(const std::string& v);
     void parseProxies(wxJSONValue& v);
 
-
+    bool IsCompatible(const ControllerCaps *rules,
+                      std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,
+                      std::string &driver);
+    
     class PlaylistEntry {
     public:
         std::string sequence;

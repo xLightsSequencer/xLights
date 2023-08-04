@@ -330,7 +330,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 
         //FSEQ Type listbox
-        if (inst->fppType == FPP_TYPE::FPP && inst->IsVersionAtLeast(2, 6)) {
+        if (inst->fppType == FPP_TYPE::FPP) {
             wxChoice *Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, FSEQ_COL + rowStr);
             wxFont font = Choice1->GetFont();
             font.SetPointSize(font.GetPointSize() - 2);
@@ -368,36 +368,30 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MEDIA_COL + rowStr);
             CheckBox1->SetValue(inst->mode != "remote");
             FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-            if (inst->IsVersionAtLeast(2, 6)) {
-                wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, MODELS_COL + rowStr);
-                wxFont font = Choice1->GetFont();
-                font.SetPointSize(font.GetPointSize() - 2);
-                Choice1->SetFont(font);
+            wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, MODELS_COL + rowStr);
+            wxFont font = Choice1->GetFont();
+            font.SetPointSize(font.GetPointSize() - 2);
+            Choice1->SetFont(font);
 
-                Choice1->Append(_("None"));
-                Choice1->Append(_("All"));
-                Choice1->Append(_("Local"));
-                Choice1->SetSelection(0);
-                FPPInstanceSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
-            } else {
-                FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-            }
-            if (inst->IsVersionAtLeast(2, 0)) {
-                wxChoice *Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, UDP_COL + rowStr);
-                wxFont font = Choice1->GetFont();
-                font.SetPointSize(font.GetPointSize() - 2);
-                Choice1->SetFont(font);
+            Choice1->Append(_("None"));
+            Choice1->Append(_("All"));
+            Choice1->Append(_("Local"));
+            Choice1->SetSelection(0);
+            FPPInstanceSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+            
+            Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, UDP_COL + rowStr);
+            font = Choice1->GetFont();
+            font.SetPointSize(font.GetPointSize() - 2);
+            Choice1->SetFont(font);
 
-                Choice1->Append(_("None"));
-                Choice1->Append(_("All"));
-                Choice1->Append(_("Proxied"));
-                Choice1->SetSelection(0);
-                FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-            } else {
-                FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-            }
+            Choice1->Append(_("None"));
+            Choice1->Append(_("All"));
+            Choice1->Append(_("Proxied"));
+            Choice1->SetSelection(0);
+            FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+            
             //playlist combo box
-            if (inst->IsVersionAtLeast(2, 6) && !inst->IsDrive()) {
+            if (!inst->IsDrive()) {
                 wxComboBox *ComboBox1 = new wxComboBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER, wxDefaultValidator, PLAYLIST_COL + rowStr);
                 ComboBox1->Append(_(""));
                 for (const auto& pl : inst->playlists) {
@@ -407,8 +401,6 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
                 font.SetPointSize(font.GetPointSize() - 2);
                 ComboBox1->SetFont(font);
                 FPPInstanceSizer->Add(ComboBox1, 1, wxALL|wxEXPAND, 0);
-            } else {
-                FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             }
         } else if (inst->fppType == FPP_TYPE::FALCONV4) {
             // this probably needs to be moved as this is not really a zlib thing but only the falcons end up here today so I am going to put it here for now
