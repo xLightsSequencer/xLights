@@ -16,6 +16,7 @@
 
 class Mesh;
 class DmxMotor;
+class MhFeature;
 
 class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxShutterAbility
 {
@@ -77,5 +78,6 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
         int fixture_val = 0;
         std::string dmx_fixture = "MH1";
         wxString obj_path = "";
+        std::vector<std::unique_ptr<MhFeature>> features;
 };
 

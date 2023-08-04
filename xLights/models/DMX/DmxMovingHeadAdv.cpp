@@ -25,6 +25,8 @@
 #include "DmxPresetAbility.h"
 #include "DmxMovingHeadAdv.h"
 #include "Mesh.h"
+#include "MhFeature.h"
+#include "MhFeatureDialog.h"
 #include "DmxMotor.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
@@ -116,8 +118,85 @@ enum DMX_FIXTURE {
     DMX_MOVING_HEAD_8
 };
 
+static const std::string CLICK_TO_EDIT("--Click To Edit--");
+class MhConfigDialogAdapter : public wxPGEditorDialogAdapter
+{
+public:
+    MhConfigDialogAdapter(DmxMovingHeadAdv* model, std::vector<std::unique_ptr<MhFeature>>& _features, wxXmlNode* _node_xml) :
+        wxPGEditorDialogAdapter(), m_model(model), features(_features), node_xml(_node_xml)
+    {
+    }
+    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
+                              wxPGProperty* WXUNUSED(property)) override
+    {
+        MhFeatureDialog dlg(features, node_xml, propGrid);
+
+        if (dlg.ShowModal() == wxID_OK) {
+            bool changed = true;
+
+            if (changed) {
+                m_model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::MhConfigDialogAdapter");
+                m_model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHeadAdv::MhConfigDialogAdapter");
+                m_model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::MhConfigDialogAdapter");
+                m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHeadAdv::MhConfigDialogAdapter");
+            }
+
+            wxVariant v(CLICK_TO_EDIT);
+            SetValue(v);
+            return true;
+        }
+        return false;
+    }
+
+protected:
+    DmxMovingHeadAdv* m_model;
+    std::vector<std::unique_ptr<MhFeature>>& features;
+    wxXmlNode* node_xml;
+};
+
+class MhPopupDialogProperty : public wxStringProperty
+{
+public:
+    MhPopupDialogProperty(DmxMovingHeadAdv* m,
+                          std::vector<std::unique_ptr<MhFeature>>& _features,
+                          wxXmlNode* _node_xml,
+                          const wxString& label,
+                          const wxString& name,
+                          const wxString& value,
+                          int type) :
+        wxStringProperty(label, name, value), m_model(m), features(_features), node_xml(_node_xml), m_tp(type)
+    {
+    }
+    // Set editor to have button
+    virtual const wxPGEditor* DoGetEditorClass() const override
+    {
+        return wxPGEditor_TextCtrlAndButton;
+    }
+    // Set what happens on button click
+    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
+    {
+        switch (m_tp) {
+        case 1:
+            return new MhConfigDialogAdapter(m_model, features, node_xml);
+        default:
+            break;
+        }
+        return nullptr;
+    }
+
+protected:
+    DmxMovingHeadAdv* m_model = nullptr;
+    std::vector<std::unique_ptr<MhFeature>>& features;
+    wxXmlNode* node_xml;
+    int m_tp;
+};
+
+
 void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
+    auto p = grid->Append(new MhPopupDialogProperty(this, features, ModelXml, "Moving Head Config", "MHConfig", CLICK_TO_EDIT, 1));
+    grid->LimitPropertyEditing(p);
+
     if (DMX_FIXTURES.GetCount() == 0) {
         DMX_FIXTURES.Add("MH1");
         DMX_FIXTURES.Add("MH2");
@@ -146,7 +225,7 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
     AddShutterTypeProperties(grid);
     grid->Collapse("DmxShutterProperties");
 
-    auto p = grid->Append(new wxPropertyCategory("Beam Properties", "BeamProperties"));
+    p = grid->Append(new wxPropertyCategory("Beam Properties", "BeamProperties"));
 
     p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
     p->SetAttribute("Min", 0);
@@ -179,6 +258,11 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
     base_mesh->AddTypeProperties(grid);
     yoke_mesh->AddTypeProperties(grid);
     head_mesh->AddTypeProperties(grid);
+
+    // Add Feature properties
+    for (auto it = features.begin(); it != features.end(); ++it) {
+        (*it)->AddTypeProperties(grid);
+    }
 
     grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
@@ -327,6 +411,13 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
 
     if (head_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
         return 0;
+    }
+
+    // Add Feature properties
+    for (auto it = features.begin(); it != features.end(); ++it) {
+        if ((*it)->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+            return 0;
+        }
     }
 
     return DmxModel::OnPropertyGridChange(grid, event);
@@ -502,6 +593,29 @@ void DmxMovingHeadAdv::InitModel()
 
     if (dmx_fixture.empty()) {
         dmx_fixture = "MH1";
+    }
+
+    // process features
+    n = ModelXml->GetChildren();
+    while (n != nullptr) {
+        std::string node_name = n->GetName();
+        int feature_idx = node_name.find("MhFeature_");
+        if( feature_idx >= 0 ) {
+            bool feature_found {false};
+            for (auto it = features.begin(); it != features.end(); ++it) {
+                if( (*it)->GetXmlName() == node_name ) {
+                    feature_found = true;
+                    break;
+                }
+            }
+            if( !feature_found ) {
+                std::string feature_name = node_name.substr(10, node_name.length());
+                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
+                std::unique_ptr<MhFeature> newFeature(new MhFeature(new_node, feature_name));
+                features.push_back(std::move(newFeature));
+            }
+        }
+        n = n->GetNext();
     }
 
 }

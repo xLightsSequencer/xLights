@@ -160,6 +160,10 @@ wxBitmap MHPresetBitmapButton::CreateImage( int w, int h, double scaleFactor ) {
 
         }
     }
+    
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.SetPen(*wxWHITE_PEN);
+    dc.DrawRectangle(0, 0, width, height);
 
     if (scaleFactor > 1.0f) {
         wxImage img = bmp.ConvertToImage();
