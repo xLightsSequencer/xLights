@@ -45,6 +45,7 @@ class SearchPanel: public wxPanel
 		wxListCtrl* ListCtrl_Results;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText_Count;
 		wxTextCtrl* TextCtrlSearch;
 		//*)
 
@@ -59,6 +60,7 @@ class SearchPanel: public wxPanel
 		static const long ID_BUTTON_SEARCH_FIND;
 		static const long ID_LISTCTRL_Results;
 		static const long ID_BUTTON_SELECT_ALL;
+		static const long ID_STATICTEXT_COUNT;
 		//*)
 
 	private:
