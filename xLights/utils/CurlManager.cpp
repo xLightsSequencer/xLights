@@ -68,7 +68,7 @@ static size_t urlReadData(void* ptr, size_t size, size_t nmemb, void* userp) {
     return numb;
 }
 CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd, bool upload) {
-    static std::string USERAGENT = std::string("FPP/") + getFPPVersionTriplet();
+    static std::string USERAGENT = wxAppConsole::GetInstance()->GetAppName().ToStdString() + "-" + xlights_version_string;
 
     const std::string host = getHost(fullUrl);
     HostData* hd = getHostData(host);
