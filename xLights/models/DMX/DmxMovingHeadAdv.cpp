@@ -259,11 +259,6 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
     yoke_mesh->AddTypeProperties(grid);
     head_mesh->AddTypeProperties(grid);
 
-    // Add Feature properties
-    for (auto it = features.begin(); it != features.end(); ++it) {
-        (*it)->AddTypeProperties(grid);
-    }
-
     grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
 
@@ -411,13 +406,6 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
 
     if (head_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
         return 0;
-    }
-
-    // Add Feature properties
-    for (auto it = features.begin(); it != features.end(); ++it) {
-        if ((*it)->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-            return 0;
-        }
     }
 
     return DmxModel::OnPropertyGridChange(grid, event);
