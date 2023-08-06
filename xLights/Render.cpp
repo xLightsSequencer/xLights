@@ -1466,7 +1466,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                 renderProgressDialog->scrolledWindowSizer->Add(label,1, wxALL |wxEXPAND,3);
                 wxGauge *g = new wxGauge(renderProgressDialog->scrolledWindow, wxID_ANY, 100);
                 g->SetValue(0);
-                g->SetMinSize(wxSize(100, -1));
+                g->SetMinSize(wxSize(200, -1));
                 renderProgressDialog->scrolledWindowSizer->Add(g, 1, wxALL |wxEXPAND,3);
                 jobs[row]->SetGauge(g);
             }
@@ -1485,7 +1485,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
 
     if (count) {
         if (progressDialog) {
-            renderProgressDialog->SetSize(250, 400);
+            renderProgressDialog->SetSize(450, 400);
             renderProgressDialog->scrolledWindow->SetSizer(renderProgressDialog->scrolledWindowSizer);
             renderProgressDialog->scrolledWindow->FitInside();
             renderProgressDialog->scrolledWindow->SetScrollRate(5, 5);
