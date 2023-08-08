@@ -784,6 +784,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         if (doUpload[row]) {
             std::string l = inst->hostName + " - " + inst->ipAddress;
             inst->setProgress(&prgs, prgs.addGauge(l));
+        } else {
+            inst->setProgress(nullptr, nullptr);
         }
         row++;
     }

@@ -139,6 +139,10 @@ struct FPPWriteData {
     FPPWriteData() : file(nullptr), instance(nullptr), data(nullptr), dataSize(0), curPos(0),
         postData(nullptr), postDataSize(0), totalWritten(0), cancelled(false), lastDone(0) {}
 
+    wxFile realFile;
+    wxMemoryBuffer memBuffPost;
+    wxMemoryBuffer memBuffPre;
+
     uint8_t *data;
     size_t dataSize;
     size_t curPos;
@@ -181,6 +185,9 @@ struct FPPWriteData {
         }
         if (file != nullptr) {
             size_t t = file->Read(ptr, buffer_size);
+            if (t == wxInvalidOffset) {
+                return 0;
+            }
             totalWritten += t;
 
             if (instance) {
@@ -189,7 +196,7 @@ struct FPPWriteData {
                 donePct /= file->Length();
                 if (donePct != lastDone) {
                     lastDone = donePct;
-                    cancelled = instance->updateProgress(donePct, true);
+                    cancelled = instance->updateProgress(donePct, false);
                 }
             }
             if (file->Eof()) {
@@ -695,7 +702,7 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
         }
     }
 
-    bool cancelled = updateProgress(0, true);
+    updateProgress(0, true);
     int lastDone = 0;
 
     std::string ct = "Content-Type: application/octet-stream";
@@ -744,56 +751,51 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
-    wxMemoryBuffer memBuffPost;
-    wxMemoryBuffer memBuffPre;
+    FPPWriteData *data = new FPPWriteData();
     if (usingJqUpload) {
-        addString(memBuffPost, "\r\n--");
-        addString(memBuffPost, bound);
-        addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
-        addString(memBuffPost, bound);
-        addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
-        addString(memBuffPost, bound);
-        addString(memBuffPost, "--\r\n");
+        addString(data->memBuffPost, "\r\n--");
+        addString(data->memBuffPost, bound);
+        addString(data->memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
+        addString(data->memBuffPost, bound);
+        addString(data->memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
+        addString(data->memBuffPost, bound);
+        addString(data->memBuffPost, "--\r\n");
 
         std::string cd = "Content-Disposition: form-data; name=\"myfile\"; filename=\"";
         cd += fn.ToStdString();
         cd += "\"\r\n";
-        addString(memBuffPre, "--");
-        addString(memBuffPre, bound);
-        addString(memBuffPre, "\r\n");
-        addString(memBuffPre, cd);
-        addString(memBuffPre, ct);
-        addString(memBuffPre, "\r\n\r\n");
+        addString(data->memBuffPre, "--");
+        addString(data->memBuffPre, bound);
+        addString(data->memBuffPre, "\r\n");
+        addString(data->memBuffPre, cd);
+        addString(data->memBuffPre, ct);
+        addString(data->memBuffPre, "\r\n\r\n");
     }
 
-    FPPWriteData data;
-    wxFile fileobj(fullFileName);
+    data->realFile.Open(fullFileName);
     if (!usingJqUpload) {
-        std::string cl = "Content-Length: " + std::to_string(fileobj.Length());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, fileobj.Length());
+        std::string cl = "Content-Length: " + std::to_string(data->realFile.Length());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data->realFile.Length());
         chunk = curl_slist_append(chunk, cl.c_str());
     }
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
-    fileobj.Seek(0);
-    data.data = (uint8_t*)memBuffPre.GetData();
-    data.dataSize = memBuffPre.GetDataLen();
-    data.instance = this;
-    data.file = &fileobj;
-    data.postData =  (uint8_t*)memBuffPost.GetData();
-    data.postDataSize = memBuffPost.GetDataLen();
+    data->realFile.Seek(0);
+    data->data = (uint8_t*)data->memBuffPre.GetData();
+    data->dataSize = data->memBuffPre.GetDataLen();
+    data->instance = this;
+    data->file = &data->realFile;
+    data->postData =  (uint8_t*)data->memBuffPost.GetData();
+    data->postDataSize = data->memBuffPost.GetDataLen();
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
-    curl_easy_setopt(curl, CURLOPT_READDATA, &data);
-    data.lastDone = lastDone;
+    curl_easy_setopt(curl, CURLOPT_READDATA, data);
+    data->lastDone = lastDone;
 
-    int i = curl_easy_perform(curl);
-    curl_slist_free_all(chunk);
-    if (deleteFile) {
-        wxRemoveFile(fullFileName);
-    }
-    long response_code = 0;
-    if (i == CURLE_OK) {
+    
+    CurlManager::INSTANCE.addCURL(fullUrl, curl, [this, chunk, deleteFile, fullFileName, usingMove, filename, ext, utfFilename, data] (CURL *) {
+        long response_code = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        
         if (response_code == 200) {
             if (usingMove) {
                 if (!callMoveFile(ToUTF8(filename + ext))) {
@@ -803,18 +805,19 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
                 }
             }
         } else {
-            messages.push_back("ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code) + " - " + error);
+            messages.push_back("ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code));
             logger_base.warn("Did not get 200 response code:  %d", response_code);
         }
-    } else {
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-        logger_base.warn("Curl did not upload file:  %d   %s", response_code, error);
-        messages.push_back("ERROR Uploading file: " + utfFilename + "     CURL response: " + std::to_string(i) + " - " + error);
-    }
-    cancelled |= updateProgress(1000, true);
-    logger_base.info("FPPConnect Upload file %s  - Return: %d - RC: %d - File: %s", fullUrl.c_str(), i, response_code, (const char *)filename.c_str());
+        
+        delete data;
+        curl_slist_free_all(chunk);
+        if (deleteFile) {
+            wxRemoveFile(fullFileName);
+        }
+        updateProgress(1000, false);
+    }, false);
 
-    return data.cancelled | cancelled;
+    return false;
 }
 
 bool FPP::callMoveFile(const std::string &filename) {
