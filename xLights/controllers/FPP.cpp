@@ -33,6 +33,7 @@
 #include <wx/config.h>
 #include <wx/secretstore.h>
 #include <wx/progdlg.h>
+#include <wx/gauge.h>
 #include <zstd.h>
 
 #include "../xSchedule/wxJSON/jsonreader.h"
@@ -58,6 +59,7 @@
 
 #include <log4cpp/Category.hh>
 #include "ControllerUploadData.h"
+#include "FPPUploadProgressDialog.h"
 #include "../FSEQFile.h"
 #include "../Discovery.h"
 #include "../utils/CurlManager.h"
@@ -119,7 +121,7 @@ FPP::FPP(const FPP &c)
 }
 
 FPP::~FPP() {
-    if (outputFile) {
+    if (outputFile && !outputFileIsOriginal) {
         delete outputFile;
         outputFile = nullptr;
     }
@@ -134,7 +136,7 @@ FPP::~FPP() {
 }
 
 struct FPPWriteData {
-    FPPWriteData() : file(nullptr), progress(nullptr), data(nullptr), dataSize(0), curPos(0),
+    FPPWriteData() : file(nullptr), instance(nullptr), data(nullptr), dataSize(0), curPos(0),
         postData(nullptr), postDataSize(0), totalWritten(0), cancelled(false), lastDone(0) {}
 
     uint8_t *data;
@@ -146,8 +148,7 @@ struct FPPWriteData {
     uint8_t *postData;
     size_t postDataSize;
 
-    wxProgressDialog *progress;
-    std::string progressString;
+    FPP *instance;
     size_t totalWritten;
     size_t lastDone;
     bool cancelled;
@@ -182,14 +183,13 @@ struct FPPWriteData {
             size_t t = file->Read(ptr, buffer_size);
             totalWritten += t;
 
-            if (progress) {
+            if (instance) {
                 size_t donePct = totalWritten;
                 donePct *= 1000;
                 donePct /= file->Length();
                 if (donePct != lastDone) {
                     lastDone = donePct;
-                    cancelled = !progress->Update(donePct, progressString);
-                    wxYield();
+                    cancelled = instance->updateProgress(donePct, true);
                 }
             }
             if (file->Eof()) {
@@ -664,6 +664,21 @@ int FPP::PutToURL(const std::string& url, const std::string &val, const std::str
     addString(memBuffPost, val);
     return PutToURL(url, memBuffPost, contentType);
 }
+
+bool FPP::updateProgress(int val, bool yield) {
+    if (progress != nullptr) {
+        progress->SetValue(val);
+        if (yield) {
+            wxYield();
+        }
+    }
+    if (progressDialog) {
+        return progressDialog->isCancelled();
+    }
+    return false;
+}
+
+
 bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -680,11 +695,7 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
         }
     }
 
-    bool cancelled = false;
-    if (progressDialog != nullptr) progressDialog->SetTitle("FPP Upload");
-    logger_base.debug("FPP upload via http of %s.", (const char*)filename.c_str());
-    if (progressDialog != nullptr)
-        cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
+    bool cancelled = updateProgress(0, true);
     int lastDone = 0;
 
     std::string ct = "Content-Type: application/octet-stream";
@@ -767,15 +778,12 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     fileobj.Seek(0);
     data.data = (uint8_t*)memBuffPre.GetData();
     data.dataSize = memBuffPre.GetDataLen();
-    data.progress = progressDialog;
+    data.instance = this;
     data.file = &fileobj;
     data.postData =  (uint8_t*)memBuffPost.GetData();
     data.postDataSize = memBuffPost.GetDataLen();
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(curl, CURLOPT_READDATA, &data);
-
-    data.progress = progressDialog;
-    data.progressString = ToUTF8("Transferring " + filename + " to " + ipAddress);
     data.lastDone = lastDone;
 
     int i = curl_easy_perform(curl);
@@ -803,7 +811,7 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
         logger_base.warn("Curl did not upload file:  %d   %s", response_code, error);
         messages.push_back("ERROR Uploading file: " + utfFilename + "     CURL response: " + std::to_string(i) + " - " + error);
     }
-    if (progressDialog != nullptr) cancelled |= !progressDialog->Update(1000);
+    cancelled |= updateProgress(1000, true);
     logger_base.info("FPPConnect Upload file %s  - Return: %d - RC: %d - File: %s", fullUrl.c_str(), i, response_code, (const char *)filename.c_str());
 
     return data.cancelled | cancelled;
@@ -819,11 +827,17 @@ bool FPP::callMoveFile(const std::string &filename) {
 }
 
 struct V7ProgressStruct {
-    wxProgressDialog *progress;
+    wxFile in;
+    FPP *instance;
     size_t length;
 
     size_t offset = 0;
     int lastPct = 0;
+    
+    std::string fullUrl;
+    std::string fileSizeHeader;
+    std::string fileNameHeader;
+    std::string filename;
 };
 int progress_callback(void *clientp,
                       curl_off_t dltotal,
@@ -831,110 +845,102 @@ int progress_callback(void *clientp,
                       curl_off_t ultotal,
                       curl_off_t ulnow) {
     V7ProgressStruct *p = (V7ProgressStruct*)clientp;
-    if (p->progress) {
+    if (p->instance) {
         size_t start = p->offset;
         start += ulnow;
         start *= 1000;
         start /= p->length;
         if (p->lastPct != start) {
-            p->progress->Update(p->lastPct);
+            p->instance->updateProgress(p->lastPct, false);
             p->lastPct = start;
         }
     }
     return 0;
 }
 
+
+void prepareCurlForMulti(V7ProgressStruct *ps) {
+    constexpr uint64_t BLOCK_SIZE = 64*1024*1024;
+    CurlManager::CurlPrivateData *cpd = nullptr;
+    CURL *curl = CurlManager::INSTANCE.createCurl(ps->fullUrl, &cpd, true);
+
+    //if we cannot upload it in 5 minutes, we have serious issues
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
+
+    struct curl_slist *headers = nullptr;
+    headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
+    headers = curl_slist_append(headers, "X-Requested-With: FPPConnect");
+
+    std::string offsetHeader = "Upload-Offset: " + std::to_string(ps->offset);
+    headers = curl_slist_append(headers, offsetHeader.c_str());
+    headers = curl_slist_append(headers, ps->fileSizeHeader.c_str());
+    headers = curl_slist_append(headers, ps->fileNameHeader.c_str());
+    headers = curl_slist_append(headers, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
+
+    uint64_t remaining = ps->length - ps->offset;
+    if (remaining > BLOCK_SIZE) {
+        remaining = BLOCK_SIZE;
+    }
+    cpd->req->resize(remaining);
+    uint64_t read = ps->in.Read(cpd->req->data(), remaining);
+    if (read != remaining) {
+        ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
+    }
+    std::string contentSizeHeader = "Content-Length: " + std::to_string(remaining);
+    headers = curl_slist_append(headers, contentSizeHeader.c_str());
+    
+    curl_easy_setopt(curl, CURLOPT_UPLOAD, (long)1);
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
+    curl_easy_setopt(curl, CURLOPT_XFERINFODATA, ps);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, (long)0);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)remaining);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, cpd->req->data());
+    
+    CurlManager::INSTANCE.addCURL(ps->fullUrl, curl, [headers, remaining, ps] (CURL *c) {
+        curl_slist_free_all(headers);
+        long response_code = 0;
+        curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &response_code);
+        ps->offset += remaining;
+        uint64_t pct = (ps->offset * 1000) / ps->length;
+        bool cancelled = ps->instance->updateProgress(pct, false);
+        if (cancelled || ps->offset >= ps->length) {
+            delete ps;
+        } else {
+            prepareCurlForMulti(ps);
+        }
+    });
+}
+
+
 bool FPP::uploadFileV7(const std::string &filename,
                        const std::string &file,
                        const std::string &dir) {
     bool cancelled = false;
 
-    wxFile in;
-    in.Open(ToWXString(file));
-    if (in.IsOpened()) {
-        constexpr uint64_t BLOCK_SIZE = 64*1024*1024;
-        uint64_t filesize = in.Length();
-        std::vector<uint8_t> data(BLOCK_SIZE);
+    V7ProgressStruct *ps = new V7ProgressStruct();
+    ps->in.Open(ToWXString(file));
+    if (ps->in.IsOpened()) {
+        ps->filename = filename;
         
-        uint64_t offset = 0;
-        std::string fullUrl = ipAddress + "/api/file/" + dir;
+        ps->length = ps->in.Length();
+        ps->offset = 0;
+        ps->fullUrl = ipAddress + "/api/file/" + dir;
         if (!_fppProxy.empty()) {
-            fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+            ps->fullUrl = "http://" + _fppProxy + "/proxy/" + ps->fullUrl;
         } else {
-            fullUrl = "http://" + fullUrl;
+            ps->fullUrl = "http://" + ps->fullUrl;
         }
-        std::string fileSizeHeader = "Upload-Length: " + std::to_string(filesize);
-        std::string fileNameHeader = "Upload-Name: " + filename;
-        std::string progressTitle = "Transferring " + ToUTF8(wxFileName(FromUTF8(filename)).GetFullName()) + " to " + ipAddress;
+        ps->fileSizeHeader = "Upload-Length: " + std::to_string(ps->length);
+        ps->fileNameHeader = "Upload-Name: " + filename;
+        ps->instance = this;
         if (progressDialog != nullptr) {
-            progressDialog->SetTitle("FPP Upload");
-            cancelled |= !progressDialog->Update(0, progressTitle);
+            cancelled |= updateProgress(0, true);
         }
-        V7ProgressStruct progress;
-        progress.progress = progressDialog;
-        progress.length = filesize;
-        while (offset < filesize && !cancelled) {
-            setupCurl(fullUrl, false);
-            //if we cannot upload it in 5 minutes, we have serious issues
-            curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
-            curlInputBuffer.clear();
-            char error[1024];
-
-            curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
-            if (username != "") {
-                curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
-                curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
-                curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
-            }
-            struct curl_slist *headers = nullptr;
-            headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
-            headers = curl_slist_append(headers, "X-Requested-With: FPPConnect");
-
-            std::string offsetHeader = "Upload-Offset: " + std::to_string(offset);
-            headers = curl_slist_append(headers, offsetHeader.c_str());
-            headers = curl_slist_append(headers, fileSizeHeader.c_str());
-            headers = curl_slist_append(headers, fileNameHeader.c_str());
-            headers = curl_slist_append(headers, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
-
-            uint64_t remaining = filesize - offset;
-            if (remaining > BLOCK_SIZE) {
-                remaining = BLOCK_SIZE;
-            }
-            progress.offset = offset;
-            
-            uint64_t read = in.Read(&data[0], remaining);
-            if (read != remaining) {
-                messages.push_back("ERROR Uploading file: " + filename + "     Could not read source file.");
-            }
-            std::string contentSizeHeader = "Content-Length: " + std::to_string(remaining);
-            headers = curl_slist_append(headers, contentSizeHeader.c_str());
-            curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)remaining);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, &data[0]);
-            curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
-            curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &progress);
-            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, (long)0);
-            
-            int i = curl_easy_perform(curl);
-            long response_code = 0;
-            if (i == CURLE_OK) {
-                curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-            }
-            if (response_code != 200) {
-                messages.push_back("ERROR Uploading file: " + filename + "     Could not upload file.");
-                offset = filesize - remaining;
-            }
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(headers);
-            curl = nullptr;
-
-            offset += remaining;
-            if (progressDialog) {
-                uint64_t pct = (offset * 1000) / filesize;
-                cancelled |= !progressDialog->Update(pct, progressTitle);
-            }
-        }
+        prepareCurlForMulti(ps);
+    } else {
+        delete ps;
     }
     return cancelled;
 }
@@ -944,13 +950,7 @@ bool FPP::copyFile(const std::string &filename,
                    const std::string &dir) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
-
-    if (progressDialog != nullptr) {
-        progressDialog->SetTitle("FPP Upload");
-        logger_base.debug("FPP upload via file copy of %s.", (const char*)filename.c_str());
-        cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
-        progressDialog->Show();
-    }
+    cancelled |= updateProgress(0, true);
 
     wxFile in;
     in.Open(ToWXString(file));
@@ -974,24 +974,17 @@ bool FPP::copyFile(const std::string &filename,
                 done += read;
 
                 int prgs = done * 1000 / length;
-                if (progressDialog != nullptr) {
-                    cancelled |= !progressDialog->Update(prgs);
-                    if (!cancelled) {
-                        cancelled = progressDialog->WasCancelled();
-                    }
-                }
+                cancelled |= updateProgress(prgs, true);
             }
-            if (progressDialog != nullptr) cancelled |= !progressDialog->Update(1000);
+            cancelled |= updateProgress(1000, true);
             in.Close();
             out.Close();
         } else {
-            if (progressDialog != nullptr)
-                cancelled |= !progressDialog->Update(1000);
+            cancelled |= updateProgress(1000, true);
             logger_base.warn("   Copy of file %s failed ... target file %s could not be opened.", (const char *)file.c_str(), (const char *)target.c_str());
         }
     } else {
-        if (progressDialog != nullptr)
-            cancelled |= !progressDialog->Update(1000);
+        cancelled |= updateProgress(1000, true);
         logger_base.warn("   Copy of file %s failed ... file could not be opened.", (const char *)file.c_str());
     }
     return cancelled;
@@ -1078,19 +1071,20 @@ static void FindHostSpecificMedia(const std::string &hostName, std::string &medi
     }
 }
 
-bool FPP::PrepareUploadSequence(const FSEQFile &file,
+bool FPP::PrepareUploadSequence(FSEQFile *file,
                                 const std::string &seq,
                                 const std::string &media,
                                 int type) {
-    if (outputFile) {
+    if (outputFile && !outputFileIsOriginal) {
         delete outputFile;
-        outputFile = nullptr;
     }
+    outputFile = nullptr;
     if (tempFileName != "") {
         ::wxRemoveFile(tempFileName);
         tempFileName = "";
     }
 
+    updateProgress(0, true);
     wxFileName fn(FromUTF8(seq));
     std::string baseName = ToUTF8(fn.GetFullName());
     std::string mediaBaseName = "";
@@ -1127,7 +1121,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     }
     sequences[baseName].sequence = baseName;
     sequences[baseName].media = mediaBaseName;
-    sequences[baseName].duration = ((float)(file.getStepTime() * file.getNumFrames())) / 1000.0f;
+    sequences[baseName].duration = ((float)(file->getStepTime() * file->getNumFrames())) / 1000.0f;
 
     std::string fileName;
     if (IsDrive()) {
@@ -1154,7 +1148,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         if (GetURLAsJSON("/api/sequence/" + URLEncode(baseName) + "/meta", currentMeta, false)) {
             doSeqUpload = false;
             char buf[24];
-            sprintf(buf, "%" PRIu64, file.getUniqueId());
+            sprintf(buf, "%" PRIu64, file->getUniqueId());
             wxString version = currentMeta["Version"].AsString();
             if (type == 0 && version[0] != '1') doSeqUpload = true;
             if (type != 0 && version[0] == '1') doSeqUpload = true;
@@ -1172,8 +1166,8 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
                 doSeqUpload = true;
             }
             if (currentMeta["ID"].AsString() != buf) doSeqUpload = true;
-            if (currentMeta["NumFrames"].AsLong() != file.getNumFrames()) doSeqUpload = true;
-            if (currentMeta["StepTime"].AsLong() != file.getStepTime()) doSeqUpload = true;
+            if (currentMeta["NumFrames"].AsLong() != file->getNumFrames()) doSeqUpload = true;
+            if (currentMeta["StepTime"].AsLong() != file->getStepTime()) doSeqUpload = true;
 
             currentMaxChannel = currentMeta["MaxChannel"].AsLong();
             currentChannelCount = currentMeta["ChannelCount"].AsLong();
@@ -1190,11 +1184,17 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     int channelCount = 0;
     if (type <= 1 || type == 4 || type == 5) {
         //full file, non sparse
-        if (currentMaxChannel != file.getMaxChannel()) doSeqUpload = true;
-        if (currentChannelCount != file.getMaxChannel()) doSeqUpload = true;
-        if (!currentRanges.empty()) doSeqUpload = true;
-        channelCount = file.getMaxChannel();
-
+        if (currentMaxChannel != file->getMaxChannel()) doSeqUpload = true;
+        if (currentChannelCount != file->getChannelCount()) doSeqUpload = true;
+        if (!currentRanges.empty()) {
+            V2FSEQFile *v2File = dynamic_cast<V2FSEQFile*>(file);
+            if (v2File == nullptr) {
+                doSeqUpload = true;
+            } else if (v2File->m_sparseRanges != currentRanges) {
+                doSeqUpload = true;
+            }
+        }
+        channelCount = file->getMaxChannel();
         // at this point, if we are uploading a full file, we know if something has changed or not
         // and can bail quickly if not
     } else if (ranges != "") {
@@ -1220,17 +1220,23 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         return false;
     }
 
+    baseSeqName = baseName;
     if (fppType == FPP_TYPE::FPP) {
-        if ((type == 0 && file.getVersionMajor() == 1) || fn.GetExt() == "eseq") {
+        if ((type == 0 && file->getVersionMajor() == 1) || fn.GetExt() == "eseq") {
             //these just get uploaded directly
-            return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
+            outputFile = file;
+            outputFileIsOriginal = true;
+            tempFileName = file->getFilename();
+            return false;
         }
-        if (type == 1 && file.getVersionMajor() == 2) {
+        if (type == 1 && file->getVersionMajor() == 2) {
             // Full v2 file, upload directly
-            return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
+            outputFile = file;
+            outputFileIsOriginal = true;
+            tempFileName = file->getFilename();
+            return false;
         }
     }
-    baseSeqName = baseName;
 
     int clevel = 2;
     int fastLevel = ZSTD_versionNumber() > 10305 ? -5 : 1;
@@ -1260,7 +1266,8 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         }
     }
     outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype, clevel);
-    outputFile->initializeFromFSEQ(file);
+    outputFileIsOriginal = false;
+    outputFile->initializeFromFSEQ(*file);
     if (fppType == FPP_TYPE::FPP && IsVersionAtLeast(7, 0)) {
         outputFile->enableMinorVersionFeatures(2);
     }
@@ -1276,9 +1283,11 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
 bool FPP::WillUploadSequence() const {
     return outputFile != nullptr;
 }
-
+bool FPP::NeedCustomSequence() const {
+    return outputFile != nullptr && !outputFileIsOriginal;
+}
 bool FPP::AddFrameToUpload(uint32_t frame, uint8_t *data) {
-    if (outputFile) {
+    if (outputFile && !outputFileIsOriginal) {
         outputFile->addFrame(frame, data);
     }
     return false;
@@ -1287,15 +1296,21 @@ bool FPP::AddFrameToUpload(uint32_t frame, uint8_t *data) {
 bool FPP::FinalizeUploadSequence() {
     bool cancelled = false;
     if (outputFile) {
-        outputFile->finalize();
-
-        delete outputFile;
+        if (!outputFileIsOriginal) {
+            outputFile->finalize();
+            delete outputFile;
+        }
         outputFile = nullptr;
         if (tempFileName != "" && (fppType == FPP_TYPE::FPP || fppType == FPP_TYPE::ESPIXELSTICK)) {
             cancelled = uploadOrCopyFile(baseSeqName, tempFileName, "sequences");
-            ::wxRemoveFile(tempFileName);
+            if (!outputFileIsOriginal) {
+                ::wxRemoveFile(tempFileName);
+            }
             tempFileName = "";
+            outputFileIsOriginal = false;
         }
+    } else {
+        updateProgress(1000, false);
     }
     return cancelled;
 }
@@ -3576,7 +3591,7 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
         return false;
     }
     if (res->typeId < 0x80) {
-        if (res->extraData.HasMember("httpConnected") && res->extraData["httpConnected"].AsBool() == true ) {
+        if (res->extraData.HasMember("httpConnected") && res->extraData["httpConnected"].AsBool() == true && res->majorVersion >= 6) {
             // genuine FPP instance and able to connect via http
             return true;
         } else {

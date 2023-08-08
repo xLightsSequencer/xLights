@@ -22,7 +22,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStdDialogButtonSizer" variable="StdDialogButtonSizer1" member="no">
+				<object class="wxStdDialogButtonSizer" variable="ButtonSizer" member="yes">
 					<object class="button">
 						<object class="wxButton" name="wxID_OK">
 							<label></label>

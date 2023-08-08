@@ -14,7 +14,8 @@ class wxJSONValue;
 class FSEQFile;
 typedef void CURL;
 class wxWindow;
-class wxProgressDialog;
+class wxGauge;
+class FPPUploadProgressDialog;
 class Discovery;
 
 enum class FPP_TYPE { FPP,
@@ -59,7 +60,10 @@ class FPP : public BaseController
     std::string controllerVariant;
 
     wxWindow *parent = nullptr;
-    wxProgressDialog *progressDialog = nullptr;
+    void setProgress(FPPUploadProgressDialog*d, wxGauge *g) { progressDialog = d; progress = g; }
+    bool updateProgress(int val, bool yield);
+
+    
     std::list<std::string> messages;
     int defaultConnectTimeout = 2000;
 
@@ -77,11 +81,12 @@ class FPP : public BaseController
     bool IsDrive();
 
 #ifndef DISCOVERYONLY
-    bool PrepareUploadSequence(const FSEQFile &file,
+    bool PrepareUploadSequence(FSEQFile *file,
                                const std::string &seq,
                                const std::string &media,
                                int type);
     bool WillUploadSequence() const;
+    bool NeedCustomSequence() const;
     bool AddFrameToUpload(uint32_t frame, uint8_t *data);
     bool FinalizeUploadSequence();
     std::string GetTempFile() const { return tempFileName; }
@@ -143,6 +148,10 @@ class FPP : public BaseController
 #pragma endregion
 
 private:
+    FPPUploadProgressDialog *progressDialog = nullptr;
+    wxGauge *progress = nullptr;
+
+    
     void DumpJSON(const wxJSONValue& json);
 
     bool GetPathAsJSON(const std::string &path, wxJSONValue &val);
@@ -158,6 +167,7 @@ private:
     int PutToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType = "application/octet-stream");
     int TransferToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType, bool isPost);
 
+    
     bool uploadOrCopyFile(const std::string &filename,
                           const std::string &file,
                           const std::string &dir);
@@ -190,6 +200,7 @@ private:
     std::string tempFileName;
     std::string baseSeqName;
     FSEQFile *outputFile = nullptr;
+    bool outputFileIsOriginal = false;
 
     void setupCurl(const std::string &url, bool isGet = true, int timeout = 30000);
     CURL *curl = nullptr;
