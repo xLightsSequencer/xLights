@@ -1,5 +1,7 @@
 #include "FPPUploadProgressDialog.h"
 
+#include <wx/gauge.h>
+
 //(*InternalHeaders(FPPUploadProgressDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
