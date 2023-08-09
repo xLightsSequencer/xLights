@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.12 Aug 9, 2023
    -- enh (gil)     Improve model creation in 3D mode.  Models used to not place well depending on how you had the view rotated.
                     Now xLights will detect the view angle and make a decision on the best place to start the model so you shouldn't
                     run into models being created way in front or behind the view camera.
