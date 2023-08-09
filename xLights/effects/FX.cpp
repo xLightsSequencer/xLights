@@ -34,6 +34,7 @@
 #include <math.h>
 #endif
 
+#include <mutex>
 #include "FX.h"
 
 #ifdef XLIGHTS_FX
@@ -471,13 +472,19 @@ uint8_t DecodeMode(const std::string& mode)
 {
     static std::vector<std::string> effects;
 
-    if (effects.size() == 0) {
-        std::string names(JSON_mode_names);
-        Replace(names,"\n", "");
-        Replace(names,"\"", "");
-        Replace(names,"[", "");
-        Replace(names,"]", "");
-        effects = Split(names, ',');
+    static std::mutex mtx;
+
+    {
+        std::unique_lock lk(mtx);
+
+        if (effects.size() == 0) {
+            std::string names(JSON_mode_names);
+            Replace(names, "\n", "");
+            Replace(names, "\"", "");
+            Replace(names, "[", "");
+            Replace(names, "]", "");
+            effects = Split(names, ',');
+        }
     }
 
     uint8_t i = 0;
