@@ -16,8 +16,19 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                     run into models being created way in front or behind the view camera.
                     You can now rotate to a side view and draw the models rotated 90 degrees.
                     If you run into model placement issues let me know.
+   -- enh (dkulp)   FPPConnect - use parallel uploads of FSEQ files to multiple controllers
+   -- enh (scott)   Allow picture type singing faces on groups
+   -- enh (scott)   Add effect count to SearchPanel
+   -- enh (dkulp)   Use FPP7 Cape API's to verify cape pinout is usable prior to upload
+   -- enh (dkulp)   Minor render speedup by allowing models to render non-dependent layers while waiting for dependent models/groups to finish the frame
+   -- enh (merryoncherry)  Adjust group default camera mapping on import
+   -- enh (scott)   Purge Backup needs to leave one folder so there is at least one backup
+   -- bug (dkulp)   Fix hange in SingleStrand effect if the effect is a single period long
+   -- bug (scott)   Fix HinksPix 80 only updating 48 portsf, faster upload to HinksPix
+   -- bug (scott)   Fix RGB2Go and E1-Wifi auto layout
    -- bug (gil)     Fix model selection in 2D for models based on BoxedScreenLocation (Matrix, Trees, etc.). Fixes #3887
    -- bug (gil)     Fix arches not rendering correctly when rotated
+   -- bug (gil)     Fix some bugs with SketchEffect with closed paths
 2023.11 July 23, 2023
    -- enh (keith)   Make Smart Recievers a more visual component of the visualizer
    -- enh (keith)   Add smart remote tooltip to visualiser

@@ -613,7 +613,7 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
 
 
 void Discovery::Discover() {
-    auto endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1200l;
+    auto endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1500l;
     auto maxTime = wxGetLocalTimeMillis().GetValue() + 10000L; // 10 seconds max
     bool running = CurlManager::INSTANCE.processCurls();
     uint8_t buffer[1500];
