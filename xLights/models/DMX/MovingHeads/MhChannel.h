@@ -23,12 +23,20 @@ class MhChannel
         class MhRange
         {
         public:
-            explicit MhRange(wxString _name);
+            MhRange(wxXmlNode* node, wxString _name);
             virtual ~MhRange() = default;
-            
+
+            void SetRangeMin(std::string& val);
+            void SetRangeMax(std::string& val);
+
             std::string GetName() { return name; }
+            void SetName(std::string& val) { name = val; }
+
         private:
+            wxXmlNode* node_xml;
             wxString name;
+            unsigned int min = 0;
+            unsigned int max = 255;
         };
 
         MhChannel(wxXmlNode* node, wxString _name);
@@ -44,6 +52,11 @@ class MhChannel
         int GetChannelCoarse() const { return channel_coarse; }
         int GetChannelFine() const { return channel_fine; }
 
+        void SetChannelCoarse(std::string& val);
+        void SetChannelFine(std::string& val);
+
+        void AddRange(std::string& name);
+    
         bool Is16Bit() { return channel_fine > 0; }
 
     protected:

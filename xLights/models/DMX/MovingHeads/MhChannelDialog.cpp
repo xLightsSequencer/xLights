@@ -206,9 +206,7 @@ void MhChannelDialog::OnButton_FeatureClick(wxCommandEvent& event)
                         Grid_Channels->SetCellAlignment(row, CHANNEL_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
                         Grid_Channels->SetCellAlignment(row, FINE_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
                         this->Fit();
-                        std::unique_ptr<MhChannel::MhRange> newRange(new MhChannel::MhRange(new_range));
-                        ranges.push_back(std::move(newRange));
-                        // find where to insert range in map
+                        (*it)->AddRange(new_range);
                         channel_map.insert(channel_map.begin()+new_row, std::make_pair(selected_channel, new_range));
                     }
                 }
@@ -220,22 +218,55 @@ void MhChannelDialog::OnButton_FeatureClick(wxCommandEvent& event)
 
 void MhChannelDialog::OnButton_RenameFeatureClick(wxCommandEvent& event)
 {
-    if( Grid_Channels->GetGridCursorCol() == 0 )
-    {
-        int row = Grid_Channels->GetGridCursorRow();
-
-        std::string selected_feature = Grid_Channels->GetCellValue(row, 0);
-     /*   Grid_Channels->DeleteRows(row);
-        for (auto it = features.begin(); it != features.end(); ++it) {
-            std::string feature_name = "MhFeature_" + selected_feature;
-            if( (*it)->GetBaseName() == feature_name ) {
-                wxXmlNode* node = (*it)->GetXmlNode();
-                if( node != nullptr ) {
-                    node->SetName(feature_name);
-                }
-                break;
+    int row = Grid_Channels->GetGridCursorRow();
+    
+    auto info = channel_map[row];
+    bool is_range = info.second != "";
+    std::string selected_channel = info.first;
+    std::vector<std::unique_ptr<MhChannel>>& channels = feature->GetChannels();
+    for (auto it = channels.begin(); it != channels.end(); ++it) {
+        if( (*it)->GetBaseName() == selected_channel ) {
+            std::vector<std::unique_ptr<MhChannel::MhRange>>& ranges = (*it)->GetRanges();
+            int col = Grid_Channels->GetGridCursorCol();
+            std::string cell_value = Grid_Channels->GetCellValue(row, col);
+            switch( col ) {
+                case NAME_COLUMN:
+                    (*it)->GetXmlNode()->SetName(cell_value);
+                    break;
+                case CHANNEL_COLUMN:
+                    (*it)->SetChannelCoarse(cell_value);
+                    break;
+                case FINE_COLUMN:
+                    (*it)->SetChannelFine(cell_value);
+                    break;
+                case MIN_COLUMN:
+                    for (auto it2 = ranges.begin(); it2 != ranges.end(); ++it2) {
+                        if( (*it2)->GetName() == info.second ) {
+                            (*it2)->SetRangeMin(cell_value);
+                            break;
+                        }
+                    }
+                    break;
+                case MAX_COLUMN:
+                    for (auto it2 = ranges.begin(); it2 != ranges.end(); ++it2) {
+                        if( (*it2)->GetName() == info.second ) {
+                            (*it2)->SetRangeMax(cell_value);
+                            break;
+                        }
+                    }
+                    break;
+                case RANGE_COLUMN:
+                    for (auto it2 = ranges.begin(); it2 != ranges.end(); ++it2) {
+                        if( (*it2)->GetName() == info.second ) {
+                            (*it2)->SetName(cell_value);
+                            break;
+                        }
+                    }
+                    break;
+                default:
+                    break;
             }
-        }*/
+        }
     }
 }
 
