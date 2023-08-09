@@ -3046,7 +3046,6 @@ void xLightsXmlFile::AddMetronomeLabelTimingSection(const std::string& interval_
     if (sequence_loaded)
     {
         TimingElement* element = xLightsParent->AddTimingElement(interval_name);
-        element->SetFixedTiming(interval);
         EffectLayer* effectLayer = element->GetEffectLayer(0);
         int time {0};
         int id {0};
