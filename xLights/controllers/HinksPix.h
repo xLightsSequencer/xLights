@@ -19,6 +19,8 @@
 #include "ControllerUploadData.h"
 #include "../UtilClasses.h"
 
+#include <curl/curl.h>
+
 class HinksPix;
 class wxJSONValue;
 
@@ -141,7 +143,7 @@ class HinksPix : public BaseController
 #pragma region Member Variables
     EXPType _EXP_Outputs[EXP_PORTS];
     std::string _controllerType;
-    int _numberOfOutputs;
+    CURL* _curl { nullptr };
     int _numberOfUniverses;
     int _MCPU_Version;
 
@@ -191,8 +193,6 @@ class HinksPix : public BaseController
     static const std::string GetJSONModeURL() { return "/Xlights_Data_Mode.cgi"; };
     static const std::string GetE131URL() { return"/GetE131Data.cgi"; };
     static const std::string GetInfoURL() { return"/GetInfo.cgi"; };
-    const int GetNumberOfOutputs() { return _numberOfOutputs; }
-    const int GetNumberOfSerial() { return 1; }
 
 #pragma endregion
 
