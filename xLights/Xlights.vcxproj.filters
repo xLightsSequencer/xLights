@@ -1025,6 +1025,9 @@
     <ClCompile Include="utils\CurlManager.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="controllers\FPPUploadProgressDialog.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2062,6 +2065,9 @@
     <ClInclude Include="MetronomeLabelDialog.h" />
     <ClInclude Include="utils\CurlManager.h">
       <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\FPPUploadProgressDialog.h">
+      <Filter>Controllers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

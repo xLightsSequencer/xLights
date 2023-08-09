@@ -275,6 +275,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="controllers\Falcon.cpp" />
     <ClCompile Include="controllers\FPP.cpp" />
     <ClCompile Include="controllers\FPPConnectDialog.cpp" />
+    <ClCompile Include="controllers\FPPUploadProgressDialog.cpp" />
     <ClCompile Include="controllers\HinksPix.cpp" />
     <ClCompile Include="controllers\HinksPixExportDialog.cpp" />
     <ClCompile Include="controllers\J1Sys.cpp" />
@@ -759,6 +760,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="controllers\Falcon.h" />
     <ClInclude Include="controllers\FPP.h" />
     <ClInclude Include="controllers\FPPConnectDialog.h" />
+    <ClInclude Include="controllers\FPPUploadProgressDialog.h" />
     <ClInclude Include="controllers\HinksPix.h" />
     <ClInclude Include="controllers\HinksPixExportDialog.h" />
     <ClInclude Include="controllers\J1Sys.h" />
