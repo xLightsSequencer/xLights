@@ -3050,7 +3050,7 @@ void xLightsXmlFile::AddMetronomeLabelTimingSection(const std::string& interval_
         int time {0};
         int id {0};
         int end_time = GetSequenceDurationMS();
-        while (time <= end_time)
+        while (time < end_time)
         {
             int next_time = (time + interval <= end_time) ? time + interval : end_time;
             int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
