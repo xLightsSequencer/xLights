@@ -24,7 +24,7 @@ FPPUploadProgressDialog::FPPUploadProgressDialog(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
 
-    Create(parent, id, _("Upload Progress"), wxDefaultPosition, wxDefaultSize, wxSTAY_ON_TOP|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("id"));
+    Create(parent, id, _("Upload Progress"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("id"));
     SetMinSize(wxSize(400,-1));
     FlexGridSizer1 = new wxFlexGridSizer(3, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
