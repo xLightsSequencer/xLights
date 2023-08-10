@@ -29,7 +29,7 @@
 #pragma region HinksPixOutput
 void HinksPixOutput::Dump() const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("    Output %d Uni %d StartChan %d Pixels %d Dir %d Protocol %d Nulls %d ColorOrder %d Brightness %d Gamma %d ControlerStartChannel %d ControlerEndChannel %d",
+    logger_base.debug("    Output %d Uni %d StartChan %d Pixels %d Dir %d Protocol %d Nulls %d ColorOrder %d Brightness %d Gamma %d ControlerStartChannel %d ControlerEndChannel %d Used %s",
                       output,
                       universe,
                       startChannel,
@@ -41,7 +41,8 @@ void HinksPixOutput::Dump() const {
                       brightness,
                       gamma,
                       controllerStartChannel,
-                      controllerEndChannel);
+                      controllerEndChannel,
+                      toStr(used));
 }
 
 void HinksPixOutput::SetConfig(wxString const& data) {
@@ -564,7 +565,7 @@ void HinksPix::UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, 
     pd.universe = stringData->GetUniverse();
     pd.startChannel = stringData->GetUniverseStartChannel();
     pd.pixels = stringData->Pixels();
-
+    pd.used = true;
     pd.setControllerChannels(hinkstartChan);
 }
 
@@ -1086,12 +1087,12 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     bool worked = true;
 
     logger_base.info("Initializing Pixel Output Information.");
-    progress.Update(10, "Initializing Pixel Output Information.");
+    progress.Update(5, "Initializing Pixel Output Information.");
 
     InitControllerOutputData();
 
     logger_base.info("Calculating Universe Start Channel Mappings.");
-    progress.Update(20, "Calculating Universe Start Channel Mappings.");
+    progress.Update(10, "Calculating Universe Start Channel Mappings.");
     std::vector<HinksPixInputUniverse> inputUniverses;
 
     for (auto const& it : outputs) {
@@ -1115,7 +1116,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     logger_base.info("Figuring Out Pixel Output Information.");
-    progress.Update(30, "Figuring Out Pixel Output Information.");
+    progress.Update(15, "Figuring Out Pixel Output Information.");
     int32_t hinkstartChan = 1;
     int univIdx = 1;
     //loop to setup string outputs
@@ -1131,8 +1132,22 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         }
     }
 
+    logger_base.info("Checking Pixel Output and SmartReceivers Information.");
+    progress.Update(20, "Checking Pixel Output and SmartReceivers Information.");
+
+    if (!CheckPixelOutputs(check)) {
+        DisplayError("HinksPix Upload Error:\n" + check, parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
+    if (!CheckSmartReceivers(check)) {
+        DisplayError("HinksPix Upload Error:\n" + check, parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
+
     logger_base.info("Figuring Out DMX Output Information.");
-    progress.Update(40, "Figuring Out DMX Output Information.");
+    progress.Update(25, "Figuring Out DMX Output Information.");
 
     if (cud.HasSerialPort(1)) {
         UDControllerPort* portData = cud.GetControllerSerialPort(1);
@@ -1140,7 +1155,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     logger_base.info("Uploading Input Universes Information.");
-    progress.Update(50, "Uploading Input Universes Information.");
+    progress.Update(30, "Uploading Input Universes Information.");
     worked &= UploadInputUniverses(controller, inputUniverses);
 
     logger_base.info("Uploading SmartReceivers Information.");
@@ -1276,4 +1291,36 @@ std::map<wxString, wxString> HinksPix::StringToMap(wxString const& text) const
         }
     }
     return map;
+}
+
+bool HinksPix::CheckPixelOutputs(std::string& message)
+{
+    for (auto const& it : _pixelOutputs) {
+        if (it.used) {
+            int exp_idx = (it.output - 1) / OUT_SIZE;
+            if (_EXP_Outputs[exp_idx] == EXPType::Not_Present) {
+                message = "Pixel Output " + std::to_string(it.output) + " is being used on Expansion Port " + std::to_string(exp_idx + 1) + " and no Output Board is Connected!";
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool HinksPix::CheckSmartReceivers(std::string& message)
+{
+    wxASSERT(std::size(_EXP_Outputs) == std::size(_smartOutputs));
+
+    for (int exp = 0; exp < EXP_PORTS; ++exp) {
+        if (_EXP_Outputs[exp] != EXPType::Long_Range) {
+            for (int bnk = 0; bnk < std::size(_smartOutputs[exp]); ++bnk) {
+                if (_smartOutputs[exp][bnk].size() != 0) {
+                    message = "Expansion Port " + std::to_string(exp + 1) + " has Smart Receivers but it is not a Long Range Differential Board!";
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }

@@ -37,7 +37,8 @@ struct HinksPixOutput {
         brightness(100),
         gamma(1),
         controllerStartChannel(1),
-        controllerEndChannel(150){};
+        controllerEndChannel(150),
+        used(false){};
     const int output;
     int universe;
     int startChannel;
@@ -48,6 +49,7 @@ struct HinksPixOutput {
     int colorOrder;
     int brightness;
     int gamma;
+    bool used;
 
     int getControllerStartChannel() const { return controllerStartChannel; }
     int getControllerEndChannel() const { return controllerEndChannel; }
@@ -187,6 +189,9 @@ class HinksPix : public BaseController
     std::string GetJSONControllerData(std::string const& url, std::string const& data) const;
     bool GetControllerDataJSON(const std::string& url, wxJSONValue& val, std::string const& data) const;
     void PostToControllerNoResponse(std::string const& url, std::string const& data) const;
+    bool CheckPixelOutputs(std::string & message);
+    bool CheckSmartReceivers(std::string & message);
+
     static const std::string GetJSONPostURL() { return "/Xlights_PostData.cgi"; };
     static const std::string GetJSONInfoURL() { return "/XLights_BoardInfo.cgi"; };
     static const std::string GetJSONPortURL() { return "/Xlights_Board_Port_Config.cgi"; };
