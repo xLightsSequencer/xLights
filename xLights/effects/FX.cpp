@@ -472,9 +472,8 @@ uint8_t DecodeMode(const std::string& mode)
 {
     static std::vector<std::string> effects;
 
-    static std::mutex mtx;
-
     {
+        static std::mutex mtx;
         std::unique_lock lk(mtx);
 
         if (effects.size() == 0) {
@@ -502,13 +501,18 @@ uint8_t DecodePalette(const std::string& palette)
 {
     static wxArrayString palettes;
 
-    if (palettes.size() == 0) {
-        wxString names = JSON_palette_names;
-        names.Replace("\n", "");
-        names.Replace("\"", "");
-        names.Replace("[", "");
-        names.Replace("]", "");
-        palettes = wxSplit(names, ',');
+    {
+        static std::mutex mtx;
+        std::unique_lock lk(mtx);
+
+        if (palettes.size() == 0) {
+            wxString names = JSON_palette_names;
+            names.Replace("\n", "");
+            names.Replace("\"", "");
+            names.Replace("[", "");
+            names.Replace("]", "");
+            palettes = wxSplit(names, ',');
+        }
     }
 
     uint8_t i = 0;
