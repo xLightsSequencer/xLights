@@ -3,7 +3,7 @@
 	<object class="wxDialog" name="FPPUploadProgressDialog">
 		<title>Upload Progress</title>
 		<minsize>400,-1</minsize>
-		<style>wxSTAY_ON_TOP|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<rows>3</rows>
