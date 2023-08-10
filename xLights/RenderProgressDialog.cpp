@@ -32,7 +32,7 @@ RenderProgressDialog::RenderProgressDialog(wxWindow* parent)
 	//(*Initialize(RenderProgressDialog)
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, wxID_ANY, _("Rendering Progress"), wxDefaultPosition, wxDefaultSize, wxSTAY_ON_TOP|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, _("Rendering Progress"), wxDefaultPosition, wxDefaultSize, wxTOPLEVEL_EX_DIALOG|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
