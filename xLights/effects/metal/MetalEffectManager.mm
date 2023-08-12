@@ -74,7 +74,9 @@ public:
         }
         return false;
     }
-
+    virtual void setPrioritizeGraphics(bool p) override {
+        MetalComputeUtilities::INSTANCE.prioritizeGraphics(p);
+    }
 
     bool isEnabled = true;
 };

@@ -203,6 +203,8 @@ MusicPanel::MusicPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer31->Add(BitmapButton_Music_LogarithmicXAxis, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
+	FlexGridSizer42->Fit(this);
+	FlexGridSizer42->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_SLIDER_Music_Bars,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
 	Connect(ID_CHOICE_Music_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&MusicPanel::OnChoice_Music_TypeSelect);

@@ -68,6 +68,9 @@ const long VideoPanel::ID_TEXTCTRL_Video_CropBottom = wxNewId();
 const long VideoPanel::ID_CHECKBOX_Video_TransparentBlack = wxNewId();
 const long VideoPanel::IDD_SLIDER_Video_TransparentBlack = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Video_TransparentBlack = wxNewId();
+const long VideoPanel::ID_STATICTEXT3 = wxNewId();
+const long VideoPanel::IDD_SLIDER_SampleSpacing = wxNewId();
+const long VideoPanel::ID_TEXTCTRL_SampleSpacing = wxNewId();
 //*)
 
 wxDEFINE_EVENT(EVT_VIDEODETAILS, wxCommandEvent);
@@ -210,6 +213,15 @@ VideoPanel::VideoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer7->Add(Slider1, 1, wxALL|wxEXPAND, 5);
 	TextCtrl1 = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_TransparentBlack, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_TransparentBlack"));
 	FlexGridSizer7->Add(TextCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText9 = new wxStaticText(this, ID_STATICTEXT3, _("Sample spacing"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer7->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_SampleSpacing = new BulkEditSlider(this, IDD_SLIDER_SampleSpacing, 0, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_SampleSpacing"));
+	Slider_SampleSpacing->SetToolTip(_("Use 0 to scale image. >0 to sample image."));
+	FlexGridSizer7->Add(Slider_SampleSpacing, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_SampleSpacing = new BulkEditTextCtrl(this, ID_TEXTCTRL_SampleSpacing, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_SampleSpacing"));
+	TextCtrl_SampleSpacing->SetMaxLength(3);
+	TextCtrl_SampleSpacing->SetToolTip(_("Use 0 to scale image. >0 to sample image."));
+	FlexGridSizer7->Add(TextCtrl_SampleSpacing, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer4->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxEXPAND, 2);
 	FlexGridSizer42->Add(FlexGridSizer3, 1, wxEXPAND, 2);

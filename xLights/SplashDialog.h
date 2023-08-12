@@ -14,7 +14,7 @@
 #include <wx/dialog.h>
 //*)
 
-#include <wx/bitmap.h>
+#include <wx/bmpbndl.h>
 
 class SplashDialog: public wxDialog
 {
@@ -39,5 +39,5 @@ class SplashDialog: public wxDialog
 
 		DECLARE_EVENT_TABLE()
 
-        wxBitmap _image;
+        wxBitmapBundle _image;
 };

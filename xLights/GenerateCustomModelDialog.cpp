@@ -3959,7 +3959,7 @@ void GenerateCustomModelDialog::DoGenerateCustomModel()
     for (const auto& it : _lights) {
         wxPoint p = wxPoint((it.first.x - offset.x) * multiplier, (it.first.y - offset.y) * multiplier);
         Grid_CM_Result->SetCellValue(p.y, p.x, std::to_string(it.second));
-        if (wxSystemSettings::GetAppearance().IsDark()) {
+        if (IsDarkMode()) {
             Grid_CM_Result->SetCellBackgroundColour(p.y, p.x, wxColor(0, 128, 0));
         } else {
             Grid_CM_Result->SetCellBackgroundColour(p.y, p.x, *wxGREEN);

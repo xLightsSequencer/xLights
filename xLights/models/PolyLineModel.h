@@ -28,7 +28,7 @@ public:
     virtual bool SupportsWiringView() const override { return false; }
     virtual int GetNumStrands() const override;
     virtual const std::vector<std::string>& GetBufferStyles() const override;
-    virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep = false) const override;
+    virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep = false) const override;
     virtual int NodesPerString() const override;
     virtual int GetNumPhysicalStrings() const override;
 

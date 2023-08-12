@@ -416,7 +416,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
             if (mModels[it] != nullptr) {
                 if (mModels[it]->GetDisplayAs() == "ModelGroup") {
                     ListBoxModelsInGroup->SetItemTextColour(item,
-                                                            wxSystemSettings::GetAppearance().IsDark()
+                                                            IsDarkMode()
                                                                 ? BLUE_ON_DARK : *wxBLUE);
                 }
                 else if (Contains(it, "/")) {
@@ -443,7 +443,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                             long item = ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it.first);
                             if (it.second->GetDisplayAs() == "ModelGroup") {
                                 ListBoxAddToModelGroup->SetItemTextColour(item,
-                                                                          wxSystemSettings::GetAppearance().IsDark()
+                                                                          IsDarkMode()
                                                                               ? BLUE_ON_DARK
                                                                               : *wxBLUE);
                             }

@@ -107,6 +107,7 @@
 #include "ModelRemap.h"
 #include "RestoreBackupDialog.h"
 #include "utils/ip_utils.h"
+#include "CachedFileDownloader.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -456,7 +457,7 @@ END_EVENT_TABLE()
 
 void AddEffectToolbarButtons(EffectManager& manager, xlAuiToolBar* EffectsToolBar)
 {
-    int size = ScaleWithSystemDPI(16);
+    int size = EffectsToolBar->FromDIP(16);
     for (size_t x = 0; x < manager.size(); ++x) {
         DragEffectBitmapButton* bitmapButton = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(size, size),
                                                                             wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, wxString::Format("DragTBButton%02llu", x));
@@ -518,12 +519,50 @@ wxBEGIN_EVENT_TABLE(xlMacDockIcon, wxTaskBarIcon)
 wxEND_EVENT_TABLE()
 #endif
 
-xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
+struct SplashScreenShow
+{
+    SplashScreenShow(bool suppress)
+    {
+        if (!suppress) {
+            splash = new SplashDialog(nullptr);
+        }
+    }
+
+    ~SplashScreenShow()
+    {
+        if (splash) {
+            delete splash;
+            splash = nullptr;
+        }
+    }
+
+    void Show() {
+        if (splash)
+            splash->Show();
+    }
+
+    void Hide()
+    {
+        if (splash)
+            splash->Hide();
+    }
+
+    void Update()
+    {
+        if (splash)
+            splash->Update();
+    }
+
+    SplashDialog* splash = nullptr;
+};
+
+xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderOnlyMode) :
     _sequenceElements(this),
     jobPool("RenderPool"),
     AllModels(&_outputManager, this),
     AllObjects(this),
-    _presetSequenceElements(this), color_mgr(this)
+    _presetSequenceElements(this), color_mgr(this),
+    _renderMode(renderOnlyMode)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
@@ -533,7 +572,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     ValueCurve::SetSequenceElements(&_sequenceElements);
 
     _exiting = false;
-    SplashDialog splash(nullptr);
+    SplashScreenShow splash(renderOnlyMode);
     splash.Show();
     splash.Update();
     wxYield();
@@ -541,7 +580,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     _fps = -1;
     mCurrentPerpective = nullptr;
     MenuItemPreviews = nullptr;
-    _renderMode = false;
+    _renderMode = renderOnlyMode;
     _checkSequenceMode = false;
     _suspendAutoSave = false;
 	_sequenceViewManager.SetModelManager(&AllModels);
@@ -1687,21 +1726,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     config->Read("BackupPurgeDays", &BackupPurgeDays, 0);
     logger_base.debug("Backup purge age: %d days.", BackupPurgeDays);
 
-    int glVer = 99;
-    config->Read("ForceOpenGLVer", &glVer, 99);
-    if (glVer != 99) {
-        int lastGlVer;
-        config->Read("LastOpenGLVer", &lastGlVer, 0);
-        if (lastGlVer == 0) {
-            config->Write("ForceOpenGLVer", 99);
-            glVer = 99;
-        } else if (glVer != lastGlVer) {
-            CallAfter(&xLightsFrame::MaybePackageAndSendDebugFiles);
-        }
-    }
-    logger_base.debug("Force OpenGL version: %d.", glVer);
-    config->Write("LastOpenGLVer", glVer);
-
     config->Read("xLightsGridSpacing", &mGridSpacing, 16);
     SetGridSpacing(mGridSpacing);
     logger_base.debug("Grid spacing: %d.", mGridSpacing);
@@ -1722,6 +1746,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     if (mEffectAssistMode < 0 || mEffectAssistMode > EFFECT_ASSIST_TOGGLE_MODE) {
         mEffectAssistMode = EFFECT_ASSIST_TOGGLE_MODE;
     }
+    tempEffectAssistMode = mEffectAssistMode;
     logger_base.debug("Effect Assist Mode: %d.", mEffectAssistMode);
     if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
         SetEffectAssistWindowState(true);
@@ -1779,7 +1804,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
 #ifndef NDEBUG
     logger_base.debug("xLights Crash Menu item not removed.");
 #ifdef _MSC_VER
-    if (wxSystemSettings::GetAppearance().IsDark()) {
+    if (IsDarkMode()) {
         Notebook1->SetBackgroundColour(wxColour(0x006000));
     } else {
         Notebook1->SetBackgroundColour(*wxGREEN);
@@ -1882,8 +1907,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     Connect(newInstId, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_NewXLightsInstance);
 
 
-    bool gpuRendering = false;
-    config->Read(_("xLightsGPURendering"), &gpuRendering, false);
+    bool gpuRendering = true;
+    config->Read(_("xLightsGPURendering"), &gpuRendering, true);
     GPURenderUtils::SetEnabled(gpuRendering);
     
     _taskBarIcon = std::make_unique<xlMacDockIcon>(this);
@@ -1891,15 +1916,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
 #endif
-
 #ifdef __WXMSW__
     //make sure Direct2DRenderer is created on the main thread before the other threads need it
     wxGraphicsRenderer::GetDirect2DRenderer();
-#endif
 
     bool bgShaders = false;
     config->Read(_("xLightsShadersOnBackgroundThreads"), &bgShaders, false);
     ShaderEffect::SetBackgroundRender(bgShaders);
+#endif
 
     DrawingContext::Initialize(this);
 
@@ -1938,6 +1962,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     // remove the forum for now until/if Sean restores the forum
     MenuItem_Help_Forum->GetMenu()->Remove(MenuItem_Help_Forum);
     MenuItem_Help_Forum = nullptr;
+
+    if (renderOnlyMode) {
+        DisablePromptBatchRenderIssues();
+    }
 
     logger_base.debug("xLightsFrame construction complete.");
 }
@@ -2248,7 +2276,7 @@ void xLightsFrame::OnOutputTimerTrigger(wxTimerEvent& event)
     AddTraceMessage("Output frame complete");
     if (!needTimer) {
         //printf("Stopping timer\n");
-        OutputTimer.Stop();
+        StopOutputTimer();
     }
 
     PopTraceContext();
@@ -2356,7 +2384,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     }
 
     // Handle the effect Assist
-    if (mEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE) {
+    if (tempEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE) {
         if (sEffectAssist->GetPanel() != sEffectAssist->GetDefaultAssistPanel() && sEffectAssist->GetPanel() != nullptr) {
             SetEffectAssistWindowState(true);
         }
@@ -2364,7 +2392,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
             SetEffectAssistWindowState(false);
         }
     }
-    else if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
+    else if (tempEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
         SetEffectAssistWindowState(true);
     }
     else {
@@ -2472,7 +2500,7 @@ bool xLightsFrame::ForceEnableOutputs(bool startTimer) {
         DisableSleepModes();
         outputting = _outputManager.StartOutput();
         if (startTimer) {
-            OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+            StartOutputTimer();
         }
         if (outputting) {
             for (auto &controller : _outputManager.GetControllers()) {
@@ -3341,7 +3369,7 @@ void xLightsFrame::ResetToolbarLocations(wxCommandEvent& event)
 void xLightsFrame::SetToolIconSize(int size)
 {
     mIconSize = size;
-    size = ScaleWithSystemDPI(size);
+    size = FromDIP(size);
     for (size_t x = 0; x < EffectsToolBar->GetToolCount(); x++)
     {
         EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetSizeHints(size, size, size, size);
@@ -3478,6 +3506,7 @@ void xLightsFrame::SetSaveFseqOnSave(bool b)
 void xLightsFrame::SetEffectAssistMode(int i)
 {
     mEffectAssistMode = i;
+    tempEffectAssistMode = i;
     if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
         SetEffectAssistWindowState(true);
     } else if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF) {
@@ -3511,7 +3540,7 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect, RenderableEffect* re
 
     bool effect_is_supported = ren_effect->HasAssistPanel();
 
-    if( mEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE )
+    if( tempEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE )
     {
         if( effect_is_supported )
         {
@@ -3771,27 +3800,6 @@ void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
     UpdateViewMenu();
 }
 
-void xLightsFrame::MaybePackageAndSendDebugFiles() {
-    wxString message = "You forced the OpenGL setting to a non-default value.  Is it OK to send the debug logs to the developers for analysis?";
-    wxMessageDialog dlg(this, message, "Send Debug Files",wxYES_NO|wxCENTRE);
-    if (dlg.ShowModal() == wxID_YES) {
-        wxTextEntryDialog ted(this, "Can you briefly describe what wasn't working?\n"
-                              "Also include who you are (email, forum username, etc..)", "Additional Information", "",
-                              wxTE_MULTILINE|wxOK|wxCENTER);
-        ted.SetSize(400, 400);
-        ted.ShowModal();
-
-        wxDebugReportCompress report;
-        report.SetCompressedFileBaseName("xlights_debug");
-        report.SetCompressedFileDirectory(wxFileName::GetTempDir());
-        report.AddText("description", ted.GetValue(), "description");
-        AddDebugFilesToReport(report);
-        report.Process();
-        xlCrashHandler::SendReport("xLights", "oglUpload", report);
-        wxRemoveFile(report.GetCompressedFileName());
-    }
-}
-
 void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4039,46 +4047,6 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
         }
     }
     //report.AddAll(wxDebugReport::Context_Current);
-}
-
-int xLightsFrame::OpenGLVersion() const {
-    int orig;
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Read("ForceOpenGLVer", &orig, 99);
-    return orig;
-}
-void xLightsFrame::SetOpenGLVersion(int i) {
-    if (i == 0) {
-        //auto detect
-        i = 99;
-    }
-    if (i == 2) {
-        //opengl 2 is now handled by opengl 1.x
-        i = 1;
-    }
-    int orig;
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Read("ForceOpenGLVer", &orig, 99);
-
-    config->Write("ForceOpenGLVer", i);
-    if (i != orig) {
-        DisplayInfo("OpenGL changes require a restart", this);
-    }
-}
-
-int xLightsFrame::OpenGLRenderOrder() const {
-    wxConfigBase* config = wxConfigBase::Get();
-    int orig;
-    config->Read("OGLRenderOrder", &orig, 0);
-    return orig;
-}
-
-void xLightsFrame::SetOpenGLRenderOrder(int order) {
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Write("OGLRenderOrder", order);
-    _housePreviewPanel->GetModelPreview()->SetRenderOrder(order);
-    _modelPreviewPanel->SetRenderOrder(order);
-    modelPreview->SetRenderOrder(order);
 }
 
 void xLightsFrame::SaveWorkingLayout()
@@ -4535,7 +4503,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
             }
 
             int w, h;
-            model->GetBufferSize("Default", "2D", "None", w, h);
+            model->GetBufferSize("Default", "2D", "None", w, h, 0);
             write_worksheet_string(modelsheet, row, 0, model->name, format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 1, model->GetShadowModelFor(), format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 2, model->description, format, _model_col_widths);
@@ -4612,7 +4580,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
                 }
             }
             int w, h;
-            model->GetBufferSize("Default", "2D", "None", w, h);
+            model->GetBufferSize("Default", "2D", "None", w, h, 0);
 
             write_worksheet_string(groupsheet, row, 0, model->name, format, _group_col_widths);
             write_worksheet_string(groupsheet, row, 1, models, format, _group_col_widths);
@@ -4933,7 +4901,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isn't your controllers may not receive output data.");
     LogAndWrite(f, "If you are experiencing this problem you may need to set the local IP address to use.");
 
-    if (testSocket == nullptr || !testSocket->IsOk() || testSocket->Error() != wxSOCKET_NOERROR) {
+    if (testSocket == nullptr || !testSocket->IsOk() || testSocket->Error()) {
         wxString msg("    ERR: Cannot create socket on IP address '");
         msg += addr.IPAddress();
         msg += "'. Is the network connected?    ";
@@ -5892,7 +5860,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                     std::vector<NodeBaseClassPtr> nodes;
                     int bufwi;
                     int bufhi;
-                    m->InitRenderBufferNodes("Default", "2D", "None", nodes, bufwi, bufhi);
+                    m->InitRenderBufferNodes("Default", "2D", "None", nodes, bufwi, bufhi, 0);
                     for (const auto& n : nodes) {
                         auto e = usedch.find(n->ActChan);
                         if (e != end(usedch)) {
@@ -6323,8 +6291,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
 #ifndef __WXOSX__
         if (usesShader) {
-            if (mainSequencer->PanelEffectGrid->GetCreatedVersion() < 3) {
-                wxString msg = wxString::Format("    ERR: Sequence has one or more shader effects but open GL version is lower than version 3 (%d). These effects will not render.", mainSequencer->PanelEffectGrid->GetCreatedVersion());
+            if (!mainSequencer->PanelEffectGrid->IsCoreProfile()) {
+                wxString msg = wxString::Format("    ERR: Sequence has one or more shader effects but open GL version is lower than version 3. These effects may not render.");
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }
@@ -6492,7 +6460,7 @@ void xLightsFrame::ValidateEffectAssets()
         }
     }
 
-    if (missing != "") {
+    if (missing != "" && (_promptBatchRenderIssues || (!_renderMode && !_checkSequenceMode))) {
         wxMessageBox("Sequence references files which cannot be found:\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
     }
 }
@@ -6752,6 +6720,13 @@ void xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event)
 {
 #ifdef __WXOSX__
     std::string loc = "https://raw.githubusercontent.com/smeighan/xLights/" + xlights_version_string + "/README.txt";
+    std::string file = CachedFileDownloader::GetDefaultCache().GetFile(wxURI(loc), CACHETIME_SESSION);
+    if (file == "" || !FileExists(file)) {
+        //a patch version may not have release notes so strip it off
+        std::string vs = xlights_version_string;
+        vs = vs.substr(0, vs.find_last_of("."));
+        loc = "https://raw.githubusercontent.com/smeighan/xLights/" + vs + "/README.txt";
+    }
     ::wxLaunchDefaultBrowser(loc);
 #else
     wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
@@ -7241,9 +7216,15 @@ void xLightsFrame::ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds
 }
 
 // returns the lost files path if required
-std::string AddFileToZipFile(const std::string& baseDirectory, const std::string& file, wxZipOutputStream& zip, const std::string& actualfile = "")
+std::string AddFileToZipFile(const std::string& baseDirectory, const std::string& file, wxZipOutputStream& zip, std::list<std::string>& zippedFiles, const std::string& actualfile = "")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    bool dozip = std::find(begin(zippedFiles), end(zippedFiles), file) == end(zippedFiles);
+
+    if (dozip) {
+        zippedFiles.push_back(file);
+    }
 
     std::string filetoactuallyzip = actualfile;
     if (actualfile == "") filetoactuallyzip = file;
@@ -7263,29 +7244,24 @@ std::string AddFileToZipFile(const std::string& baseDirectory, const std::string
         if (f.StartsWith(baseDirectory))
 #endif
         {
-            // this is in our folder
-            std::string tgt = file.substr(baseDirectory.length());
-            if (tgt != "" && (tgt[0] == '\\' || tgt[0] == '/'))
-            {
-                tgt = tgt.substr(1);
-            }
-            tgt = showdir + "/" + tgt;
-            if (zip.PutNextEntry(tgt))
-            {
-                wxFileInputStream fis(filetoactuallyzip);
-                if (fis.IsOk())
-                {
-                    zip.Write(fis);
+            if (dozip) {
+                // this is in our folder
+                std::string tgt = file.substr(baseDirectory.length());
+                if (tgt != "" && (tgt[0] == '\\' || tgt[0] == '/')) {
+                    tgt = tgt.substr(1);
                 }
-                else
-                {
-                    logger_base.warn("Error adding %s to %s due to failure to create input stream.", (const char*)file.c_str(), (const char *)tgt.c_str());
+                tgt = showdir + "/" + tgt;
+                if (zip.PutNextEntry(tgt)) {
+                    wxFileInputStream fis(filetoactuallyzip);
+                    if (fis.IsOk()) {
+                        zip.Write(fis);
+                    } else {
+                        logger_base.warn("Error adding %s to %s due to failure to create input stream.", (const char*)file.c_str(), (const char*)tgt.c_str());
+                    }
+                    zip.CloseEntry();
+                } else {
+                    logger_base.warn("    Error zipping %s to %s.", (const char*)file.c_str(), (const char*)tgt.c_str());
                 }
-                zip.CloseEntry();
-            }
-            else
-            {
-                logger_base.warn("    Error zipping %s to %s.", (const char*)file.c_str(), (const char *)tgt.c_str());
             }
         }
         else
@@ -7294,15 +7270,14 @@ std::string AddFileToZipFile(const std::string& baseDirectory, const std::string
             std::string tgt = "_lost/" + fn.GetName().ToStdString() + "." + fn.GetExt().ToStdString();
             tgt = showdir + "/" + tgt;
             lost = tgt;
-            if (zip.PutNextEntry(tgt))
-            {
-                wxFileInputStream fis(filetoactuallyzip);
-                zip.Write(fis);
-                zip.CloseEntry();
-            }
-            else
-            {
-                logger_base.warn("    Error zipping %s to %s.", (const char*)file.c_str(), (const char *)tgt.c_str());
+            if (dozip) {
+                if (zip.PutNextEntry(tgt)) {
+                    wxFileInputStream fis(filetoactuallyzip);
+                    zip.Write(fis);
+                    zip.CloseEntry();
+                } else {
+                    logger_base.warn("    Error zipping %s to %s.", (const char*)file.c_str(), (const char*)tgt.c_str());
+                }
             }
         }
     }
@@ -7448,15 +7423,16 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     prog.Show();
 
     std::map<std::string, std::string> lostfiles;
+    std::list<std::string> zippedfiles;
 
     wxFileName fnNetworks(CurrentDir, OutputManager::GetNetworksFileName());
     prog.Update(1, fnNetworks.GetFullName());
-    AddFileToZipFile(CurrentDir.ToStdString(), fnNetworks.GetFullPath().ToStdString(), zip);
+    AddFileToZipFile(CurrentDir.ToStdString(), fnNetworks.GetFullPath().ToStdString(), zip, zippedfiles);
 
     // Add house image
     wxFileName fnHouse(mBackgroundImage);
     prog.Update(5, fnHouse.GetFullName());
-    auto lost = AddFileToZipFile(CurrentDir.ToStdString(), fnHouse.GetFullPath().ToStdString(), zip);
+    auto lost = AddFileToZipFile(CurrentDir.ToStdString(), fnHouse.GetFullPath().ToStdString(), zip, zippedfiles);
     if (lost != "") {
         lostfiles[fnHouse.GetFullPath().ToStdString()] = lost;
     }
@@ -7500,7 +7476,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         wxFileName fnf(f);
         if (FileExists(fnf)) {
             prog.Update(10 + (int)(10.0 * i / (float)modelfiles.size()), fnf.GetFullName());
-            lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
+            lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip, zippedfiles);
             if (lost != "") {
                 lostfiles[fnf.GetFullPath().ToStdString()] = lost;
             }
@@ -7523,7 +7499,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     }
 
     prog.Update(25, fnRGBEffects.GetFullName());
-    AddFileToZipFile(CurrentDir.ToStdString(), fnRGBEffects.GetFullPath().ToStdString(), zip, fixfile);
+    AddFileToZipFile(CurrentDir.ToStdString(), fnRGBEffects.GetFullPath().ToStdString(), zip, zippedfiles, fixfile);
     if (fixfile != "") {
         wxRemoveFile(fixfile);
     }
@@ -7534,7 +7510,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         // Add the media file
         wxFileName fnMedia(CurrentSeqXmlFile->GetMediaFile());
         prog.Update(30, fnMedia.GetFullName());
-        lost = AddFileToZipFile(CurrentDir.ToStdString(), fnMedia.GetFullPath().ToStdString(), zip);
+        lost = AddFileToZipFile(CurrentDir.ToStdString(), fnMedia.GetFullPath().ToStdString(), zip, zippedfiles);
         if (lost != "") {
             lostfiles[fnMedia.GetFullPath().ToStdString()] = lost;
         }
@@ -7551,7 +7527,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         if (dl->GetName() != "Nutcracker") {
             wxFileName fndl(dl->GetDataSource());
 
-            lost = AddFileToZipFile(CurrentDir.ToStdString(), fndl.GetFullPath().ToStdString(), zip);
+            lost = AddFileToZipFile(CurrentDir.ToStdString(), fndl.GetFullPath().ToStdString(), zip, zippedfiles);
             if (lost != "") {
                 lostfiles[fndl.GetFullPath().ToStdString()] = lost;
             }
@@ -7585,7 +7561,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         wxFileName fnf(f);
         if (FileExists(fnf)) {
             prog.Update(35 + (int)(59.0 * i / (float)effectfiles.size()), fnf.GetFullName());
-            lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
+            lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip, zippedfiles);
             if (lost != "") {
                 lostfiles[fnf.GetFullPath().ToStdString()] = lost;
             }
@@ -7597,7 +7573,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     fixfile =  FixFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath().ToStdString(), lostfiles);
 
     prog.Update(95, CurrentSeqXmlFile->GetFullName());
-    AddFileToZipFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath().ToStdString(), zip, fixfile);
+    AddFileToZipFile(CurrentDir.ToStdString(), CurrentSeqXmlFile->GetFullPath().ToStdString(), zip, zippedfiles, fixfile);
     if (fixfile != "") {
         wxRemoveFile(fixfile);
     }
@@ -7710,11 +7686,11 @@ std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::s
     return target.ToStdString();
 }
 
-void xLightsFrame::CleanupSequenceFileLocations()
+bool xLightsFrame::CleanupSequenceFileLocations()
 {
     if (GetShowDirectory() == "") {
         wxMessageBox("Show directory invalid. Cleanup aborted.");
-        return;
+        return false;
     }
 
     wxString media = CurrentSeqXmlFile->GetMediaFile();
@@ -7747,9 +7723,11 @@ void xLightsFrame::CleanupSequenceFileLocations()
     {
         _sequenceElements.IncrementChangeCount(nullptr);
     }
+
+    return true;
 }
 
-void xLightsFrame::CleanupRGBEffectsFileLocations()
+bool xLightsFrame::CleanupRGBEffectsFileLocations()
 {
     if (FileExists(mBackgroundImage) && !IsInShowFolder(mBackgroundImage))
     {
@@ -7773,6 +7751,8 @@ void xLightsFrame::CleanupRGBEffectsFileLocations()
             GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CleanupRGBEffectsFileLocations");
         }
     }
+
+    return true;
 }
 
 void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event)
@@ -9190,8 +9170,7 @@ void xLightsFrame::DoBackupPurge()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (BackupPurgeDays <= 0)
-    {
+    if (BackupPurgeDays <= 0) {
         logger_base.debug("Backup purging skipped as it is disabled.");
         return;
     }
@@ -9213,62 +9192,66 @@ void xLightsFrame::DoBackupPurge()
     wxString backupDir = _backupDirectory + wxFileName::GetPathSeparator() + "Backup";
 
     int count = 0;
-    int purged = 0;
+    int purged = 0;  
 
-    if (wxDir::Exists(backupDir))
-    {
+    if (wxDir::Exists(backupDir)) {
         wxDir dir(backupDir);
         wxString filename;
-
-        // We dont follow symbolic links
-        bool cont = dir.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
-        while (cont) {
+        enum class BackUpStatus
+        {
+            Invalid, New, Old
+        };
+        auto OldEnoughtToDelete = [&purgeDate](wxString const& filename) {
             auto fdc = wxSplit(filename, '-');
-
-            if (fdc.size() > 3)
-            {
+            if (fdc.size() > 3) {
                 int day = wxAtoi(fdc[2]);
                 int month = wxAtoi(fdc[1]);
                 int year = wxAtoi(fdc[0]);
 
-                if (year < 2010 || month < 1 || month > 12 || day < 1 || day > 31)
-                {
+                if (year < 2010 || month < 1 || month > 12 || day < 1 || day > 31) {
                     // date does not look valid
                     logger_base.debug("    Backup purge ignoring %s.", (const char *)filename.c_str());
-                }
-                else
-                {
+                    return BackUpStatus::Invalid;
+                } else {
                     wxDateTime bd(day, (wxDateTime::Month)(month - 1), year);
-                    count++;
-
-                    if (bd < purgeDate)
-                    {
-                        logger_base.debug("    Backup purge PURGING %s!", (const char *)filename.c_str());
-                        if (!DeleteDirectory((backupDir + wxFileName::GetPathSeparator() + filename).ToStdString()))
-                        {
-                            logger_base.debug("        FAILED!");
-                        }
-                        else
-                        {
-                            purged++;
-                        }
-                    }
-                    else
-                    {
-                        //logger_base.debug("    Backup purge keeping %s.", (const char *)filename.c_str());
-                    }
+                    return (bd < purgeDate ) ? BackUpStatus::Old : BackUpStatus::New;
                 }
             }
-            else
-            {
-                logger_base.debug("Backup purge deleted %d of %d backups.", purged, count);
+            return BackUpStatus::Invalid;
+        };
+
+        // We dont follow symbolic links
+        bool cont = dir.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
+        while (cont) {
+            wxString nextfilename;
+            bool nextcont = dir.GetNext(&nextfilename);
+
+            auto current = OldEnoughtToDelete(filename);
+            auto next = OldEnoughtToDelete(nextfilename);
+            
+            if (current == BackUpStatus::Invalid) {
+                // date does not look valid
+                logger_base.debug("    Backup purge ignoring %s.", (const char *)filename.c_str());
+            } else {
+                count++;
+
+                if (current == BackUpStatus::Old && next == BackUpStatus::Old) {
+                    logger_base.debug("    Backup purge PURGING %s!", (const char *)filename.c_str());
+                    if (!DeleteDirectory((backupDir + wxFileName::GetPathSeparator() + filename).ToStdString())) {
+                        logger_base.debug("        FAILED!");
+                    } else {
+                        purged++;
+                    }
+                } else {
+                    //logger_base.debug("    Backup purge keeping %s.", (const char *)filename.c_str());
+                }
             }
-            cont = dir.GetNext(&filename);
+
+            filename = nextfilename;
+            cont = nextcont;
         }
-        logger_base.debug("    Backup purge ignoring %s.", (const char *)filename.c_str());
-    }
-    else
-    {
+        logger_base.debug("Backup purge deleted %d of %d backups.", purged, count);
+    } else {
         logger_base.debug("Backup purging skipped as %s does not exist.", (const char *)backupDir.c_str());
     }
 }

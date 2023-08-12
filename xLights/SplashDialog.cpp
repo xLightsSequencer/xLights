@@ -47,11 +47,12 @@ SplashDialog::SplashDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 
     logger_base.debug("Loading splash image.");
     _image = wxArtProvider::GetBitmap("xlART_xLights_SlashImage", wxART_OTHER);
-    logger_base.debug("Splash loaded. IsOk %s, %dx%d", _image.IsOk() ? "TRUE" : "FALSE", _image.GetWidth(), _image.GetHeight());
+    wxSize sz = _image.GetPreferredBitmapSizeFor(this);
 
-    wxSize sz = _image.GetScaledSize();
-    int w = sz.GetWidth();
-    int h = sz.GetHeight();
+    logger_base.debug("Splash loaded. IsOk %s, %dx%d", _image.IsOk() ? "TRUE" : "FALSE", sz.GetWidth(), sz.GetHeight());
+
+    int w = FromPhys(sz.GetWidth());
+    int h = FromPhys(sz.GetHeight());
     SetSize(w, h);
     Center();
 }
@@ -69,23 +70,20 @@ void SplashDialog::OnPaint(wxPaintEvent& event)
 
     wxPaintDC dc(this);
     dc.SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
-
-    dc.DrawBitmap(_image, 0, 0);
-
+    wxBitmap bmp = _image.GetBitmapFor(this);
+    dc.DrawBitmap(bmp, 0, 0);
+    
     wxSize size = GetSize();
     
-    int scl = 1;
-#ifndef __WXOSX__
-    if (GetSystemContentScaleFactor() > 1.5) {
-        scl = 2;
-    }
-#endif
     wxString ver = GetDisplayVersionString();
     int w, h, descent;
     
     dc.GetTextExtent(ver, &w, &h, &descent);
-    dc.DrawText(ver, wxPoint(size.GetWidth() - w - 10*scl, h - descent));
-    dc.DrawText("www.xlights.org", wxPoint(10*scl, size.GetHeight() - 10 - h ));
-    dc.DrawText("videos.xlights.org", wxPoint(170*scl, size.GetHeight() - 10 - h));
-    dc.DrawText("www.xlights.org/facebook", wxPoint(450*scl, size.GetHeight() - 10 - h));
+    dc.DrawText(ver, wxPoint(size.GetWidth() - w - FromDIP(10), h - descent));
+    dc.DrawText("www.xlights.org", wxPoint(FromDIP(10), size.GetHeight() - 10 - h));
+    dc.DrawText("videos.xlights.org", wxPoint(FromDIP(170), size.GetHeight() - 10 - h));
+
+    wxString fb = "www.xlights.org/facebook"; 
+    dc.GetTextExtent(fb, &w, &h, &descent);
+    dc.DrawText(fb, wxPoint(size.GetWidth() - w - FromDIP(10), size.GetHeight() - 10 - h));
 }

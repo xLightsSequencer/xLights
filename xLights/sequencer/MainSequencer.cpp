@@ -533,6 +533,9 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             else if (type == "ZOOM_OUT") {
                 PanelTimeLine->ZoomOut();
             }
+            else if (type == "ZOOM_SEL") {
+                PanelTimeLine->ZoomSelection();
+            }
             else if (type == "RANDOM") {
                 Effect* ef = PanelEffectGrid->Paste("Random\t\t\n", xlights_version_string);
                 SelectEffect(ef);

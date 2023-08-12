@@ -56,10 +56,10 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
         __remoteAddr.Hostname("224.0.0.0");
         __remoteAddr.Service(xxx_PORT);
 
-        __datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+        __datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
         if (__datagram != nullptr) {
-            if (!__datagram->IsOk() || __datagram->Error() != wxSOCKET_NOERROR) {
+            if (!__datagram->IsOk() || __datagram->Error()) {
                 logger_base.error("xxxEthernetOutput: %s Error creating xxxEthernet heartbeat datagram => %d : %s.",
                     (const char*)localaddr.IPAddress().c_str(),
                     __datagram->LastError(),
@@ -96,7 +96,7 @@ void xxxEthernetOutput::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("xxxEthernetOutput: %s Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
     }
@@ -105,7 +105,7 @@ void xxxEthernetOutput::OpenDatagram() {
         delete _datagram;
         _datagram = nullptr;
     }
-    else if (_datagram->Error() != wxSOCKET_NOERROR) {
+    else if (_datagram->Error()) {
         logger_base.error("xxxEthernetOutput: %s Error creating xxxEthernet datagram => %d : %s.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
@@ -114,7 +114,7 @@ void xxxEthernetOutput::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-xxxEthernetOutput::xxxEthernetOutput(wxXmlNode* node) : IPOutput(node) {
+xxxEthernetOutput::xxxEthernetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     SetId(wxAtoi(node->GetAttribute("Id", "0")));
     if (wxAtoi(node->GetAttribute("Port", "-1")) != -1)
@@ -286,3 +286,146 @@ void xxxEthernetOutput::AllOff() {
     _changed = true;
 }
 #pragma endregion 
+
+
+
+#pragma region UI
+#ifndef EXCLUDENETWORKUI
+#include "../models/ModelManager.h"
+#include "ControllerEthernet.h"
+
+void xxxEthernetOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
+    IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
+    ControllerEthernet *ce = dynamic_cast<ControllerEthernet*>(c);
+
+    auto p = propertyGrid->GetProperty("Universes");
+    if (p) {
+        p->SetValue((int)c->GetOutputs().size());
+        if (c->IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Port Count cannot be changed when an output is set to Auto Size.");
+        } else {
+            p->SetEditor("SpinCtrl");
+            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            p->SetHelpString("");
+        }
+    }
+    p = propertyGrid->GetProperty("UniversesDisplay");
+    if (p) {
+        if (ce->GetOutputs().size() > 1) {
+            p->SetValue(ce->GetOutputs().front()->GetUniverseString() + " - " + ce->GetOutputs().back()->GetUniverseString());
+            p->Hide(false);
+        } else {
+            p->Hide(true);
+        }
+    }
+    p = propertyGrid->GetProperty("IndivSizes");
+    if (p) {
+        if (ce->IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Individual Sizes cannot be changed when an output is set to Auto Size.");
+        } else {
+            bool v = !ce->AllSameSize() || ce->IsForcingSizes() || ce->IsUniversePerString();
+            p->SetValue(v);
+            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            p->SetHelpString("");
+        }
+    }
+    if (!ce->AllSameSize() || ce->IsForcingSizes()) {
+        p = propertyGrid->GetProperty("Channels");
+        if (p) {
+            p->Hide(true);
+        }
+        auto p2 = propertyGrid->GetProperty("Sizes");
+        if (p2) {
+            p2->Hide(false);
+            if (ce->IsExpanded()) {
+                expandProperties.push_back(p2);
+            }
+            while (propertyGrid->GetFirstChild(p2)) {
+                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
+            }
+            for (const auto& it : ce->GetOutputs()) {
+                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
+                p->SetAttribute("Min", 1);
+                p->SetAttribute("Max", it->GetMaxChannels());
+                p->SetEditor("SpinCtrl");
+                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
+                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
+                if (modelsOnUniverse != "") {
+                    if (IsDarkMode()) {
+                        p->SetBackgroundColour(wxColour(104, 128, 79));
+                    } else {
+                        p->SetBackgroundColour(wxColour(208, 255, 158));
+                    }
+                }
+            }
+        }
+    } else {
+        p = propertyGrid->GetProperty("Channels");
+        if (p) {
+            p->Hide(false);
+            p->SetValue(GetChannels());
+            if (ce->IsAutoSize()) {
+                p->ChangeFlag(wxPG_PROP_READONLY, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
+            } else {
+                p->SetEditor("SpinCtrl");
+                p->ChangeFlag(wxPG_PROP_READONLY, false);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+                p->SetHelpString("");
+            }
+        }
+        auto p2 = propertyGrid->GetProperty("Sizes");
+        if (p2) {
+            p2->Hide(true);
+        }
+    }
+}
+
+void xxxEthernetOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before , Controller *c, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
+{
+    IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
+    
+    auto p = propertyGrid->Insert(before, new wxUIntProperty("Start Port", "Universe", GetUniverse()));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 64000);
+    p->SetEditor("SpinCtrl");
+    
+    p = propertyGrid->Insert(before, new wxUIntProperty("Port Count", "Universes", c->GetOutputs().size()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 1000);
+
+    p = propertyGrid->Insert(before, new wxStringProperty("Ports", "UniversesDisplay", ""));
+    p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+
+
+    p = propertyGrid->Insert(before, new wxBoolProperty("Individual Sizes", "IndivSizes", false));
+    p->SetEditor("CheckBox");
+    
+    p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Port", "Channels", GetChannels()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", GetMaxChannels());
+    
+    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
+}
+
+void xxxEthernetOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
+    IPOutput::RemoveProperties(propertyGrid);
+    propertyGrid->DeleteProperty("ForceSourcePort");
+    propertyGrid->DeleteProperty("Universe");
+    propertyGrid->DeleteProperty("Universes");
+    propertyGrid->DeleteProperty("UniversesDisplay");
+    propertyGrid->DeleteProperty("IndivSizes");
+    propertyGrid->DeleteProperty("Channels");
+    propertyGrid->DeleteProperty("Sizes");
+}
+
+#endif
+#pragma endregion

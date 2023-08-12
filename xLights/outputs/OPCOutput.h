@@ -37,7 +37,7 @@ class OPCOutput : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    OPCOutput(wxXmlNode* node);
+    OPCOutput(wxXmlNode* node, bool isActive);
     OPCOutput();
     OPCOutput(OPCOutput* output);
     virtual ~OPCOutput() override;
@@ -73,5 +73,16 @@ public:
     virtual void SetOneChannel(int32_t channel, unsigned char data) override;
     virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;
-    #pragma endregion 
+    #pragma endregion
+    
+    
+#pragma region UI
+#ifndef EXCLUDENETWORKUI
+    virtual void UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
+    virtual void AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
+    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) override;
+    virtual void RemoveProperties(wxPropertyGrid* propertyGrid) override;
+#endif
+#pragma endregion
+
 };

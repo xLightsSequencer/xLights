@@ -54,7 +54,7 @@ void OPCOutput::OpenSocket() {
             delete _socket;
             _socket = nullptr;
         }
-        else if (_socket->Error() != wxSOCKET_NOERROR) {
+        else if (_socket->Error()) {
             logger_base.error("OPCOutput: %s Error connecting OPC socket => %d : %s.", (const char*)_remoteAddr.IPAddress().c_str(), _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
             delete _socket;
             _socket = nullptr;
@@ -76,7 +76,7 @@ void OPCOutput::OpenSocket() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-OPCOutput::OPCOutput(wxXmlNode* node) : IPOutput(node) {
+OPCOutput::OPCOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > GetMaxChannels()) SetChannels(GetMaxChannels());
     _socket = nullptr;
@@ -302,4 +302,55 @@ void OPCOutput::AllOff() {
         _changed = true;
     //}
 }
+#pragma endregion
+
+
+
+#pragma region UI
+#ifndef EXCLUDENETWORKUI
+#include "ControllerEthernet.h"
+void OPCOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
+    IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
+    ControllerEthernet *ce = dynamic_cast<ControllerEthernet*>(c);
+
+    auto p = propertyGrid->GetProperty("Channels");
+    if (p) {
+        p->SetValue(GetChannels());
+        if (ce->IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
+        } else {
+            p->SetEditor("SpinCtrl");
+            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            p->SetHelpString("");
+        }
+    }
+}
+
+void OPCOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before , Controller *c, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
+{
+    IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
+    auto p = propertyGrid->Insert(before, new wxUIntProperty("OPC Channel", "Universe", GetUniverse()));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 255);
+    p->SetEditor("SpinCtrl");
+    
+    p = propertyGrid->Insert(before, new wxUIntProperty("Message Data Size", "Channels", GetChannels()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", GetMaxChannels());    
+}
+
+bool OPCOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller *c)
+{
+    if (IPOutput::HandlePropertyEvent(event, outputModelManager, c)) return true;
+    return false;
+}
+void OPCOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
+    IPOutput::RemoveProperties(propertyGrid);    
+    propertyGrid->DeleteProperty("Universe");
+    propertyGrid->DeleteProperty("Channels");
+}
+#endif
 #pragma endregion

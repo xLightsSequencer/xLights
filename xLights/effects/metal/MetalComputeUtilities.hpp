@@ -71,11 +71,19 @@ public:
     bool computeEnabled() {
         return enabled;
     }
+    bool prioritizeGraphics() {
+        return pg;
+    }
+    void prioritizeGraphics(bool p) {
+        pg = p;
+    }
 
     id<MTLComputePipelineState> FindComputeFunction(const char *name);
 
 
     bool enabled = true;
+    std::atomic<bool> pg = false;    
+    
     id<MTLDevice> device;
     id<MTLLibrary> library;
     id<MTLCommandQueue> commandQueue;

@@ -47,7 +47,7 @@ void DDPOutput::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIP());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK);  // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("Error initialising DDP datagram for %s. %s", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
         _ok = false;
@@ -58,7 +58,7 @@ void DDPOutput::OpenDatagram() {
         _datagram = nullptr;
         _ok = false;
     }
-    else if (_datagram->Error() != wxSOCKET_NOERROR) {
+    else if (_datagram->Error()) {
         logger_base.error("Error creating DDP datagram => %d : %s. %s", _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
@@ -68,7 +68,7 @@ void DDPOutput::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-DDPOutput::DDPOutput(wxXmlNode* node) : IPOutput(node) {
+DDPOutput::DDPOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     _fulldata = nullptr;
     _channelsPerPacket = wxAtoi(node->GetAttribute("ChannelsPerPacket"));
@@ -137,7 +137,7 @@ void DDPOutput::SendSync(const std::string& localIP) {
             delete syncdatagram;
         }
 
-        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+        syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
         if (syncdatagram == nullptr) {
             logger_base.error("Error initialising DDP sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
             return;
@@ -147,7 +147,7 @@ void DDPOutput::SendSync(const std::string& localIP) {
             syncdatagram = nullptr;
             return;
         }
-        else if (syncdatagram->Error() != wxSOCKET_NOERROR) {
+        else if (syncdatagram->Error()) {
             logger_base.error("Error creating DDP sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
@@ -190,7 +190,7 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::str
     }
 
     logger_base.debug(" DDP query using %s", (const char*)localaddr.IPAddress().c_str());
-    wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
     if (datagram == nullptr) {
         logger_base.error("Error initialising DDP query datagram.");
@@ -200,7 +200,7 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::str
         delete datagram;
         datagram = nullptr;
     }
-    else if (datagram->Error() != wxSOCKET_NOERROR) {
+    else if (datagram->Error()) {
         logger_base.error("Error creating DDP query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         delete datagram;
         datagram = nullptr;
@@ -217,7 +217,7 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::str
     if (datagram != nullptr) {
         logger_base.info("DDP sending query packet.");
         datagram->SendTo(remoteaddr, &packet, DDP_DISCOVERPACKET_LEN);
-        if (datagram->Error() != wxSOCKET_NOERROR) {
+        if (datagram->Error()) {
             logger_base.error("Error sending DDP query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         }
         else {
@@ -590,21 +590,43 @@ void DDPOutput::AllOff() {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void DDPOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
+void DDPOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
+    IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
+    auto p = propertyGrid->GetProperty("Channels");
+    if (p) {
+        p->SetValue(GetChannels());
+        if (c->IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
+        } else {
+            p->SetEditor("SpinCtrl");
+            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            p->SetHelpString("");
+        }
+    }
+}
+void DDPOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
 {
-    auto p = propertyGrid->Append(new wxUIntProperty("Channels Per Packet", "ChannelsPerPacket", GetChannelsPerPacket()));
+    IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
+    auto p = propertyGrid->Insert(before, new wxUIntProperty("Channels Per Packet", "ChannelsPerPacket", GetChannelsPerPacket()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 1440);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("It would be very rare that you would ever want to change this from the default.");
 
-    p = propertyGrid->Append(new wxBoolProperty("Keep Channel Numbers", "KeepChannelNumbers", IsKeepChannelNumbers()));
+    p = propertyGrid->Insert(before, new wxBoolProperty("Keep Channel Numbers", "KeepChannelNumbers", IsKeepChannelNumbers()));
     p->SetEditor("CheckBox");
     p->SetHelpString("When not selected DDP data arrives at each controller looking like it starts at channel 1. When selected it arrives with the xLights channel number.");
+    
+    p = propertyGrid->Insert(before, new wxUIntProperty("Channels", "Channels", GetChannels()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", GetMaxChannels());
 }
 
-bool DDPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
-
+bool DDPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) {
+    if (IPOutput::HandlePropertyEvent(event, outputModelManager, c)) return true;
     wxString const name = event.GetPropertyName();
 
     if (name == "ChannelsPerPacket") {
@@ -615,9 +637,23 @@ bool DDPOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManag
         SetKeepChannelNumber(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DDPOutput::HandlePropertyEvent::KeepChannelNumbers");
         return true;
+    } else if (name == "Channels") {
+        SetChannels(event.GetValue().GetLong());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DDPOutput::HandlePropertyEvent::Channels");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DDPOutput::HandlePropertyEvent::Channels", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "DDPOutput::HandlePropertyEvent::Channels", nullptr);
+        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DDPOutput::HandlePropertyEvent::Channels", nullptr);
+        return true;
     }
 
     return false;
 }
+void DDPOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
+    IPOutput::RemoveProperties(propertyGrid);
+    propertyGrid->DeleteProperty("ChannelsPerPacket");
+    propertyGrid->DeleteProperty("KeepChannelNumbers");
+    propertyGrid->DeleteProperty("Channels");
+}
+
 #endif
 #pragma endregion UI

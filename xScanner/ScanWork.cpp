@@ -662,7 +662,7 @@ void FalconWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			int version;
 			Falcon::DecodeModelVersion(p, model, version);
 
-			if (p == 128) {
+			if (p == 128 || p == 129) {
 				Falcon falcon(_ip, _proxy);
 				if (falcon.IsConnected()) {
 					wxJSONValue status = falcon.V4_GetStatus();

@@ -58,11 +58,4 @@ public:
     virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override {};
     virtual void AllOff() override {}
     #pragma endregion 
-
-    #pragma region UI
-    #ifndef EXCLUDENETWORKUI
-    virtual void AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
-    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) override;
-    #endif
-    #pragma endregion 
 };

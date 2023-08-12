@@ -24,22 +24,35 @@
             <ConfigDriver>ESPixelStick</ConfigDriver>
 		</Variant>
 	</Controller>
+    <AbstractVariant Name="BaseESPixelStickV4Settings">
+        <SupportsMultipleSimultaneousOutputProtocols/>
+        <!--SupportsPixelPortCommonSettings/-->
+        <SupportsPixelZigZag/>
+        <MaxZigZag>256</MaxZigZag>
+
+        <SupportsUpload/>
+        <SupportsInputOnlyUpload/>
+        <SupportsAutoUpload/>
+        <AllInputUniversesMustBeSameSize/>
+        <UniversesMustBeSequential/>
+        <SupportsAutoLayout/>
+        <SupportsPixelPortEndNullPixels/>
+        <NeedsDDPInputUpload/>
+        <InputProtocols>
+            <Protocol>e131</Protocol>
+            <Protocol>ddp</Protocol>
+            <Protocol>artnet</Protocol>
+        </InputProtocols>
+        <PreferredInputProtocol>DDP</PreferredInputProtocol>
+        <ConfigDriver>ESPixelStick</ConfigDriver>
+    </AbstractVariant>
     <Controller Name="ESPixelStick-4.x">
-        <Variant Name="ESP8266" ID="ESP8266">
-            <SupportsPixelPortCommonSettings/>
-            <SupportsUpload/>
-            <SupportsInputOnlyUpload/>
-            <SupportsAutoUpload/>
+        <Variant Name="ESP8266" ID="ESP8266" Base="ESPixelStick:BaseESPixelStickV4Settings">
             <MaxInputUniverses>6</MaxInputUniverses>
             <MaxPixelPort>1</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
             <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>3072</MaxPixelPortChannels>
-            <AllInputUniversesMustBeSameSize/>
-            <UniversesMustBeSequential/>
-            <SupportsAutoLayout/>
-            <SupportsPixelPortEndNullPixels/>
-            <NeedsDDPInputUpload/>
             <PixelProtocols>
                 <Protocol>ws2811</Protocol>
                 <Protocol>gece</Protocol>
@@ -48,29 +61,15 @@
             <SerialProtocols>
                 <Protocol>dmx</Protocol>
                 <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
             </SerialProtocols>
-            <InputProtocols>
-                <Protocol>e131</Protocol>
-                <Protocol>ddp</Protocol>
-                <Protocol>artnet</Protocol>
-            </InputProtocols>
-            <ConfigDriver>ESPixelStick</ConfigDriver>
         </Variant>
-        <Variant Name="ESP32" ID="ESP32">
-            <SupportsPixelPortCommonSettings/>
-            <SupportsUpload/>
-            <SupportsInputOnlyUpload/>
-            <SupportsAutoUpload/>
+        <Variant Name="ESP32" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
             <MaxInputUniverses>12</MaxInputUniverses>
-            <MaxPixelPort>6</MaxPixelPort>
+            <MaxPixelPort>8</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
             <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>3072</MaxPixelPortChannels>
-            <AllInputUniversesMustBeSameSize/>
-            <UniversesMustBeSequential/>
-            <SupportsAutoLayout/>
-            <SupportsPixelPortEndNullPixels/>
-            <NeedsDDPInputUpload/>
             <PixelProtocols>
                 <Protocol>ws2811</Protocol>
                 <Protocol>gece</Protocol>
@@ -79,13 +78,336 @@
             <SerialProtocols>
                 <Protocol>dmx</Protocol>
                 <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
             </SerialProtocols>
-            <InputProtocols>
-                <Protocol>e131</Protocol>
-                <Protocol>ddp</Protocol>
-                <Protocol>artnet</Protocol>
-            </InputProtocols>
-            <ConfigDriver>ESPixelStick</ConfigDriver>
+        </Variant>
+        <Variant Name="ESP32_CAM" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>4</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
+        </Variant>
+        <Variant Name="ESP32_D1_MINI" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>5</MaxPixelPort>
+            <MaxSerialPort>5</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <Protocol>apa102</Protocol>
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <Protocol>ws2801</Protocol>
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
+        </Variant>
+        <Variant Name="ESP32_DEVKITC" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>6</MaxPixelPort>
+            <MaxSerialPort>6</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <Protocol>apa102</Protocol>
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <Protocol>ws2801</Protocol>
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
+        </Variant>
+        <Variant Name="ESP32_DEUXQUATRO_DMX" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>6</MaxPixelPort>
+            <MaxSerialPort>6</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <Protocol>apa102</Protocol>
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <Protocol>ws2801</Protocol>
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
+        </Variant>
+        <Variant Name="ESP32_M3STACK_ATOM" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>6</MaxPixelPort>
+            <MaxSerialPort>6</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <!--Protocol>apa102</Protocol-->
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <!--Protocol>ws2801</Protocol-->
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
+        </Variant>
+        <Variant Name="ESP32_MH_ET_LIVE" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>8</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <Protocol>apa102</Protocol>
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <Protocol>ws2801</Protocol>
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
+        </Variant>
+        <Variant Name="ESP32_OLIMEX_GATEWAY" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>5</MaxPixelPort>
+            <MaxSerialPort>5</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <!--Protocol>apa102</Protocol-->
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <!--Protocol>ws2801</Protocol-->
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
+        </Variant>
+        <Variant Name="ESP32_QUINLED_DIG_OCTA" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <!--Protocol>apa102</Protocol-->
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <!--Protocol>gece</Protocol-->
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <!--Protocol>ws2801</Protocol-->
+            </PixelProtocols>
+            <!--SerialProtocols-->
+                <!--Protocol>dmx</Protocol-->
+                <!--Protocol>renard</Protocol-->
+                <!--Protocol>GenericSerial</Protocol-->
+            <!--/SerialProtocols-->
+        </Variant>
+        <Variant Name="ESP32_QUINLED_QUAD" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>4</MaxPixelPort>
+            <MaxSerialPort>4</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <!--Protocol>apa102</Protocol-->
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <!--Protocol>ws2801</Protocol-->
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
+        </Variant>
+        <Variant Name="ESP32_QUINLED_QUAD_AE_PLUS_8" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>8</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <!--Protocol>apa102</Protocol-->
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <!--Protocol>tm1814</Protocol-->
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <!--Protocol>ws2801</Protocol-->
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
+        </Variant>
+        <Variant Name="ESP32_QUINLED_UNO" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <!--Protocol>apa102</Protocol-->
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <!--Protocol>ws2801</Protocol-->
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
+        </Variant>
+        <Variant Name="ESP32_QUINLED_UNO_AE_PLUS" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>5</MaxPixelPort>
+            <MaxSerialPort>5</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <!--Protocol>apa102</Protocol-->
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <!--Protocol>ws2801</Protocol-->
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
+        </Variant>
+        <Variant Name="ESP32_QUINLED_UNO_ESPV3" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <!--Protocol>apa102</Protocol-->
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <!--Protocol>ws2801</Protocol-->
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
+        </Variant>
+        <Variant Name="ESP32_TTGO_T8" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>6</MaxPixelPort>
+            <MaxSerialPort>6</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <!--Protocol>apa102</Protocol-->
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <!--Protocol>ws2801</Protocol-->
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
+        </Variant>
+        <Variant Name="ESP32_TWILIGHT_LORD" ID="ESP32" Base="ESPixelStick:BaseESPixelStickV4Settings">
+            <MaxInputUniverses>12</MaxInputUniverses>
+            <MaxPixelPort>7</MaxPixelPort>
+            <MaxSerialPort>7</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <PixelProtocols>
+                <!--Protocol>apa102</Protocol-->
+                <Protocol>ws2811</Protocol>
+                <Protocol>gs8208</Protocol>
+                <Protocol>gece</Protocol>
+                <Protocol>tm1814</Protocol>
+                <Protocol>ucs1903</Protocol>
+                <Protocol>ucs8903</Protocol>
+                <!--Protocol>ws2801</Protocol-->
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>dmx</Protocol>
+                <Protocol>renard</Protocol>
+                <Protocol>GenericSerial</Protocol>
+            </SerialProtocols>
         </Variant>
     </Controller>
 </Vendor>

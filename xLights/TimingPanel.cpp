@@ -211,6 +211,8 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     FlexGridSizer7->Add(CheckBox_In_Reverse, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 1);
     Panel1->SetSizer(FlexGridSizer6);
+    FlexGridSizer6->Fit(Panel1);
+    FlexGridSizer6->SetSizeHints(Panel1);
     Panel2 = new wxPanel(Notebook1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
     FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer8->AddGrowableCol(0);
@@ -267,14 +269,22 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     FlexGridSizer13->Add(CheckBox_Out_Reverse, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer8->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 1);
     Panel2->SetSizer(FlexGridSizer8);
+    FlexGridSizer8->Fit(Panel2);
+    FlexGridSizer8->SetSizeHints(Panel2);
     Notebook1->AddPage(Panel1, _("In Transition"), false);
     Notebook1->AddPage(Panel2, _("Out Transition"), false);
     FlexGridSizer5->Add(Notebook1, 1, wxALL|wxEXPAND, 0);
     ScrolledWindowTiming->SetSizer(FlexGridSizer5);
+    FlexGridSizer5->Fit(ScrolledWindowTiming);
+    FlexGridSizer5->SetSizeHints(ScrolledWindowTiming);
     FlexGridSizer4->Add(ScrolledWindowTiming, 0, wxALIGN_LEFT, 0);
     Panel_Sizer->SetSizer(FlexGridSizer4);
+    FlexGridSizer4->Fit(Panel_Sizer);
+    FlexGridSizer4->SetSizeHints(Panel_Sizer);
     FlexGridSizer3->Add(Panel_Sizer, 0, wxALIGN_LEFT, 0);
     SetSizer(FlexGridSizer3);
+    FlexGridSizer3->Fit(this);
+    FlexGridSizer3->SetSizeHints(this);
 
     Connect(ID_CHECKBOX_ResetTimingPanel,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TimingPanel::OnCheckBox_ResetTimingPanelClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_LayerMorph,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);

@@ -12,6 +12,7 @@
 
 #include <wx/wx.h>
 #include <wx/socket.h>
+#include <wx/filename.h>
 #include <wx/xml/xml.h>
 #include "../xSchedule/wxJSON/json_defs.h"
 #include "../xSchedule/wxJSON/jsonval.h"
@@ -45,7 +46,7 @@ bool DeleteDirectory(std::string directory);
 bool IsEmailValid(const std::string& email);
 bool IsVersionOlder(const std::string &compare, const std::string &version);
 std::string JSONSafe(const std::string& s);
-std::string UnXmlSafe(const wxString &s);
+std::string UnXmlSafe(const std::string &s);
 std::string XmlSafe(const std::string& s);
 std::string RemoveUnsafeXmlChars(const std::string& s);
 std::string EscapeCSV(const std::string& s);
@@ -108,13 +109,7 @@ inline int NumberAwareStringCompareRev(const std::string &a, const std::string &
 inline int wxStringNumberAwareStringCompare(const wxString& a, const wxString& b) { return NumberAwareStringCompare(a.ToStdString(), b.ToStdString()); }
 inline bool stdlistNumberAwareStringCompare(const std::string& a, const std::string& b) { return NumberAwareStringCompare(a, b) == -1; }
 
-double GetSystemContentScaleFactor();
-double ScaleWithSystemDPI(double val);
-double ScaleWithSystemDPI(double scalingFactor, double val);
-double UnScaleWithSystemDPI(double val);
-double UnScaleWithSystemDPI(double scalingFactor, double val);
 void EnsureWindowHeaderIsOnScreen(wxWindow* win);
-
 
 static inline double toRadians(float degrees)
 {
@@ -139,6 +134,9 @@ inline std::string ToStdString(const wxString& wxstr)
     return wxstr.utf8_str().data();
 #endif
 }
+inline std::string ToUTF8(const wxString& wxstr) {
+    return ToStdString(wxstr);
+}
 inline wxString ToWXString(const std::string& stdstr)
 {
 #if defined(__WXOSX__)
@@ -146,6 +144,13 @@ inline wxString ToWXString(const std::string& stdstr)
 #else
     return wxString::FromUTF8(stdstr);
 #endif
+}
+inline wxString FromUTF8(const std::string& str) {
+    return ToWXString(str);
+}
+inline const std::string &GetPathSeparator() {
+    static std::string PATHSEP = ToUTF8(wxFileName::GetPathSeparator());
+    return PATHSEP;
 }
 
 bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);
@@ -165,3 +170,6 @@ void DumpBinary(uint8_t* buffer, size_t read);
 wxColor CyanOrBlue();
 wxColor LightOrMediumGrey();
 bool IsFloat(const std::string& number);
+bool IsDarkMode();
+void SetSuppressDarkMode(bool suppress);
+bool IsSuppressDarkMode();

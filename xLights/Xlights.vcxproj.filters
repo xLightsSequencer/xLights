@@ -898,22 +898,12 @@
     <ClCompile Include="graphics\opengl\DrawGLUtils.cpp">
       <Filter>graphics\opengl</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\opengl\DrawGLUtils31.cpp">
-      <Filter>graphics\opengl</Filter>
-    </ClCompile>
     <ClCompile Include="graphics\opengl\xlGLCanvas.cpp">
       <Filter>graphics\opengl</Filter>
     </ClCompile>
     <ClCompile Include="graphics\xlGraphicsAccumulators.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\opengl\Image.cpp">
-      <Filter>graphics\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="graphics\opengl\Image_Loader.cpp">
-      <Filter>graphics\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="graphics\opengl\XlightsDrawable.cpp" />
     <ClCompile Include="graphics\xlFontInfo.cpp" />
     <ClCompile Include="ScriptsDialog.cpp" />
     <ClCompile Include="..\xSchedule\wxHTTPServer\connection.cpp" />
@@ -1019,6 +1009,25 @@
       <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="DuplicateDialog.cpp" />
+    <ClCompile Include="models\DMX\DmxColorAbilityCMY.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\GuitarEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\GuitarPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\opengl\xlOGL3GraphicsContext.cpp">
+      <Filter>graphics\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="MetronomeLabelDialog.cpp" />
+    <ClCompile Include="utils\CurlManager.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\FPPUploadProgressDialog.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1937,12 +1946,6 @@
     <ClInclude Include="graphics\xlGraphicsAccumulators.h">
       <Filter>graphics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\opengl\Image.h">
-      <Filter>graphics\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="graphics\opengl\Image_Loader.h">
-      <Filter>graphics\opengl</Filter>
-    </ClInclude>
     <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
     <ClInclude Include="graphics\xlFontInfo.h" />
     <ClInclude Include="ScriptsDialog.h" />
@@ -2044,6 +2047,28 @@
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="DuplicateDialog.h" />
+    <ClInclude Include="models\DMX\DmxColorAbilityCMY.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\GuitarEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\GuitarPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\opengl\xlOGL3GraphicsContext.h">
+      <Filter>graphics\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\opengl\GL\glext.h">
+      <Filter>graphics\opengl\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="MetronomeLabelDialog.h" />
+    <ClInclude Include="utils\CurlManager.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\FPPUploadProgressDialog.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2085,8 +2110,16 @@
     <Filter Include="utils">
       <UniqueIdentifier>{c1416434-1c5e-4d35-9335-0e5286dca853}</UniqueIdentifier>
     </Filter>
+    <Filter Include="graphics\opengl\GL">
+      <UniqueIdentifier>{6ee588bc-dc96-462e-b373-e36fbb8a27e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\documentation\xlDo Commands.txt">
+      <Filter>automation</Filter>
+    </Text>
   </ItemGroup>
 </Project>

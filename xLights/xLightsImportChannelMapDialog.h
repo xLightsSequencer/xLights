@@ -67,7 +67,7 @@ class xLightsImportModelNode : wxDataViewTreeStoreNode
 public:
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model, const wxString &strand, const wxString &node,
-        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE) : 
+        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE) :
         wxDataViewTreeStoreNode(parent, "XXX"),
         m_parent(parent),
         _model(model),
@@ -314,12 +314,17 @@ struct ImportChannel
 {
     std::string name;
     std::string type;
-    ImportChannel(std::string name_, std::string type_):
-        name(std::move(name_)), type(std::move(type_))
-    { }
-    ImportChannel(std::string name_) :
-        name(std::move(name_))
-    { }
+    int effectCount{0};
+    //ImportChannel(std::string name_, std::string type_):
+    //    name(std::move(name_)), type(std::move(type_))
+    //{ }
+    //ImportChannel(std::string name_) :
+    //    name(std::move(name_))
+    //{ }
+
+    ImportChannel(std::string name_, int count) :
+        name(std::move(name_)), effectCount(count)
+    {}
 
     inline bool operator==(const ImportChannel& rhs)
     {
@@ -374,7 +379,7 @@ class xLightsImportChannelMapDialog: public wxDialog
         [[nodiscard]] std::vector<std::string> const GetChannelNames() const;
         [[nodiscard]] ImportChannel* GetImportChannel(std::string const& name) const;
         void SortChannels();
-        void AddChannel(std::string const& name);
+        void AddChannel(std::string const& name, int effectCount = 0);
         void LoadMappingFile(wxString const& filepath, bool hideWarnings = false);
 
         xLightsImportTreeModel *_dataModel;
@@ -486,20 +491,20 @@ protected:
         void generateMapHintsFile(wxString const& filename);
 
         static wxString AggressiveAutomap(const wxString& name);
-        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> aggressive = 
-            [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) 
+        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> aggressive =
+            [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2)
         {
             return AggressiveAutomap(wxString(s).Trim(true).Trim(false).Lower()) == c;
         };
 
         std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> norm =
-            [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2) 
-        { 
-            return wxString(s).Trim(true).Trim(false).Lower() == c; 
+            [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2)
+        {
+            return wxString(s).Trim(true).Trim(false).Lower() == c;
         };
 
         std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> regex =
-            [](const std::string& s, const std::string& c, const std::string& pattern, const std::string& replacement) 
+            [](const std::string& s, const std::string& c, const std::string& pattern, const std::string& replacement)
         {
             static wxRegEx r;
             static std::string lastRegex;

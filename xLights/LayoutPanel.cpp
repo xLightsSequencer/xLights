@@ -2338,7 +2338,7 @@ void LayoutPanel::showBackgroundProperties()
             background = new wxImage(backgroundFile);
         }
     }
-    wxPGProperty* p = propertyEditor->Append(new xlImageProperty("Background Image",
+    wxPGProperty* prop = propertyEditor->Append(new xlImageProperty("Background Image",
         "BkgImage",
         previewBackgroundFile,
         background));
@@ -2354,7 +2354,7 @@ void LayoutPanel::showBackgroundProperties()
         prop->SetAttribute("Max", 16384);
         prop->SetEditor("SpinCtrl");
     }
-    wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Brightness", "BkgBrightness", previewBackgroundBrightness));
+    prop = propertyEditor->Append(new wxUIntProperty("Brightness", "BkgBrightness", previewBackgroundBrightness));
     prop->SetAttribute("Min", 0);
     prop->SetAttribute("Max", 100);
     prop->SetEditor("SpinCtrl");
@@ -2705,7 +2705,7 @@ void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
     }
 }
 
-void LayoutPanel::SaveEffects()
+bool LayoutPanel::SaveEffects()
 {
     // update xml with offsets and scale
     for (const auto& it : modelPreview->GetModels()) {
@@ -2721,6 +2721,8 @@ void LayoutPanel::SaveEffects()
     xlights->SaveEffectsFile();
     xlights->SetStatusText(_("Preview layout saved"));
     SetDirtyHiLight(false);
+
+    return true;
 }
 
 void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
@@ -3430,6 +3432,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     if (is_3d && m_mouse_down) {
         if (selectedBaseObject != nullptr) {
             selectedBaseObject->GetBaseObjectScreenLocation().SetActiveAxis(ModelScreenLocation::MSLAXIS::NO_AXIS);
+            selectedBaseObject->GetBaseObjectScreenLocation().SetActivePlane(ModelScreenLocation::MSLPLANE::NO_PLANE);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewLeftDown");
         }
         modelPreview->SetCameraView(0, 0, true);
@@ -3506,6 +3509,7 @@ void LayoutPanel::FinalizeModel()
             {
                 prog = new wxProgressDialog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
                 prog->Show();
+                prog->CenterOnParent();
             }
             auto oldNewModel = _newModel;
             auto oldam = modelPreview->GetAdditionalModel();
@@ -6937,11 +6941,12 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
     }
 }
 
-void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data) {
-
+void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &model, const std::string &key, const std::string &data) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::CreateUndoPoint");
     size_t idx = undoBuffer.size();
+    
+    std::string type = tp;
 
     //printf("%s   %s   %s  %s\n", type.c_str(), model.c_str(), key.c_str(), data.c_str());
     if (idx > 0 ) {
@@ -6956,6 +6961,18 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
             return;
         }
     }
+    
+    // if we are doing a move/resize/etc... with multiple models selected, we
+    // need to save everything so we can undo the entire operation
+    int selectedModelCnt = ModelsSelectedCount();
+    int selectedViewObjectCnt = ViewObjectsSelectedCount();
+    if (type == "SingleModel" && selectedModelCnt > 1) {
+        type = "All";
+    }
+    if (type == "SingleObject" && selectedViewObjectCnt > 1) {
+        type = "All";
+    }
+
     if (idx >= 100) {  //100 steps is more than enough IMO
         for (size_t x = 1; x < idx; x++) {
             undoBuffer[x-1] = undoBuffer[x];

@@ -178,8 +178,8 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
 #ifdef __WXOSX__
     //repurpose ShaderCheckbox for GPU rendering
     if (isMetalComputeSupported()) {
-        ShaderCheckbox->SetLabel("Experimental GPU Rendering");
-        ShaderCheckbox->SetToolTip("Some effects (Butterfly, Plasma, Warp, RotoZoom, and Blur) can be rendered on the GPU if this is enabled. This is HIGHLY experimental at this point.");
+        ShaderCheckbox->SetLabel("GPU Rendering");
+        ShaderCheckbox->SetToolTip("Some effects (Butterfly, Plasma, Warp, RotoZoom, and Blur) can be rendered on the GPU if this is enabled.");
     } else {
         ShaderCheckbox->Hide();
     }

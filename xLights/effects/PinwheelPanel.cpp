@@ -10,6 +10,7 @@
 
 #include "PinwheelPanel.h"
 #include "EffectPanelUtils.h"
+#include "PinwheelEffect.h"
 
 //(*InternalHeaders(PinwheelPanel)
 #include <wx/bitmap.h>
@@ -289,13 +290,13 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&PinwheelPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&PinwheelPanel::OnValidateWindow, 0, this);
 
-    BitmapButton_PinwheelXCVC->GetValue()->SetLimits(-100, 100);
-    BitmapButton_PinwheelYCVC->GetValue()->SetLimits(-100, 100);
-    BitmapButton_Pinwheel_ArmSizeVC->GetValue()->SetLimits(0, 400);
-    BitmapButton_Pinwheel_SpeedVC->GetValue()->SetLimits(0, 50);
-    BitmapButton_Pinwheel_ThicknessVC->GetValue()->SetLimits(0, 100);
-    BitmapButton_Pinwheel_TwistVC->GetValue()->SetLimits(-360, 360);
-	BitmapButton_Pinwheel_OffsetVC->GetValue()->SetLimits(0, 360);
+    BitmapButton_PinwheelXCVC->GetValue()->SetLimits(PINWHEEL_X_MIN, PINWHEEL_X_MAX);
+    BitmapButton_PinwheelYCVC->GetValue()->SetLimits(PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
+    BitmapButton_Pinwheel_ArmSizeVC->GetValue()->SetLimits(PINWHEEL_ARMSIZE_MIN, PINWHEEL_ARMSIZE_MAX);
+    BitmapButton_Pinwheel_SpeedVC->GetValue()->SetLimits(PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX);
+    BitmapButton_Pinwheel_ThicknessVC->GetValue()->SetLimits(PINWHEEL_THICKNESS_MIN, PINWHEEL_THICKNESS_MAX);
+    BitmapButton_Pinwheel_TwistVC->GetValue()->SetLimits(PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX);
+    BitmapButton_Pinwheel_OffsetVC->GetValue()->SetLimits(PINWHEEL_OFFSET_MIN, PINWHEEL_OFFSET_MAX);
 
     ValidateWindow();
 }

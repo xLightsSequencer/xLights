@@ -37,11 +37,6 @@ const std::string NodeBaseClass::BRGW("BRGW");
 const std::string NodeBaseClass::BGRW("BGRW");
 
 
-
-
-const std::string NodeBaseClass::EMPTY_STR("");
-
-
 const std::string &NodeBaseClass::GetNodeType() const {
     switch (offsets[0]) {
         case 0:
@@ -240,6 +235,7 @@ void NodeClassSuperString::GetForChannels(unsigned char* buf) const
     bool y = c[0] > 0 && c[0] == c[1] && c[2] == 0;
     bool cy = c[1] > 0 && c[1] == c[2] && c[0] == 0;
     bool m = c[0] > 0 && c[0] == c[2] && c[1] == 0;
+    uint8_t common = std::min(c[0], std::min(c[1], c[2]));
 
     bool primary = r || g || b || y || w || cy || m;
     int singleColour = -1;
@@ -258,23 +254,124 @@ void NodeClassSuperString::GetForChannels(unsigned char* buf) const
         }
     }
 
-    if (singleColour == -1) {
+    switch (rgbwHandling) {
+    case RGB_HANDLING_RGB:
+        // only update rgb
         for (int i = 0; i < _superStringColours.size(); i++) {
-            // this needs work
-            xlColor cc = _superStringColours[i];
-            float r = cc.red == 0 ? 1 : (float)c[0] / cc.red;
-            float g = cc.green == 0 ? 1 : (float)c[1] / cc.green;
-            float b = cc.blue == 0 ? 1 : (float)c[2] / cc.blue;
-            float in = std::min(r, std::min(g, std::min(1.0f, b)));
-            buf[i] = in * 255;
-        }
-    } else {
-        for (int i = 0; i < _superStringColours.size(); i++) {
-            if (i == singleColour) {
-                buf[i] = std::max(c[0], std::max(c[1], c[2]));
-            } else {
-                buf[i] = 0;
+            // if this is a white super string
+            if (_superStringColours[i].red != _superStringColours[i].green || _superStringColours[i].red != _superStringColours[i].blue) {
+                    // this needs work
+                    xlColor cc = _superStringColours[i];
+                    float r = cc.red == 0 ? 1 : (float)c[0] / cc.red;
+                    float g = cc.green == 0 ? 1 : (float)c[1] / cc.green;
+                    float b = cc.blue == 0 ? 1 : (float)c[2] / cc.blue;
+                    float in = std::min(r, std::min(g, std::min(1.0f, b)));
+                    buf[i] = in * 255;
             }
         }
+        break;
+
+    case RGB_HANDLING_WHITE:
+        // only populate the white channel
+
+        for (int i = 0; i < _superStringColours.size(); i++) {
+            if (_superStringColours[i].red == _superStringColours[i].green && _superStringColours[i].red == _superStringColours[i].blue) {
+                buf[i] = common;
+            }
+        }
+        break;
+
+    case RGB_HANDLING_ALL:
+        // this is how it used to work
+        if (singleColour == -1) {
+            for (int i = 0; i < _superStringColours.size(); i++) {
+                // this needs work
+                xlColor cc = _superStringColours[i];
+                float r = cc.red == 0 ? 1 : (float)c[0] / cc.red;
+                float g = cc.green == 0 ? 1 : (float)c[1] / cc.green;
+                float b = cc.blue == 0 ? 1 : (float)c[2] / cc.blue;
+                float in = std::min(r, std::min(g, std::min(1.0f, b)));
+                buf[i] = in * 255;
+            }
+        } else {
+            for (int i = 0; i < _superStringColours.size(); i++) {
+                if (i == singleColour) {
+                    buf[i] = std::max(c[0], std::max(c[1], c[2]));
+                } else {
+                    buf[i] = 0;
+                }
+            }
+        }
+        break;
+    case RGB_HANDLING_ADVANCED: 
+        // set white the common amount
+
+        for (int i = 0; i < _superStringColours.size(); i++) {
+            // if this is a white super string
+            if (_superStringColours[i].red != _superStringColours[i].green || _superStringColours[i].red != _superStringColours[i].blue) {
+                if (singleColour == -1) {
+                    // this needs work
+                    xlColor cc = _superStringColours[i];
+                    float r = cc.red == 0 ? 1 : (float)(c[0] - common) / cc.red;
+                    float g = cc.green == 0 ? 1 : (float)(c[1] - common) / cc.green;
+                    float b = cc.blue == 0 ? 1 : (float)(c[2] - common) / cc.blue;
+                    float in = std::min(r, std::min(g, std::min(1.0f, b)));
+                    buf[i] = in * 255;
+                } else {
+                    if (i == singleColour) {
+                        buf[i] = std::max(c[0], std::max(c[1], c[2]));
+                    } else {
+                        buf[i] = 0;
+                    }
+                }
+            }
+            else
+            {
+                buf[i] = common;
+            }
+        }
+
+        break;
+
+    default: // RGB_HANDLING_NORMAL
+
+        // when r==g==b only light up white
+        if (w)
+        {
+            for (int i = 0; i < _superStringColours.size(); i++) {
+                // if this is a white super string
+                if (_superStringColours[i].red == _superStringColours[i].green && _superStringColours[i].red == _superStringColours[i].blue)
+                {
+                    xlColor cc = _superStringColours[i];
+                    float r = cc.red == 0 ? 1 : (float)c[0] / cc.red;
+                    float g = cc.green == 0 ? 1 : (float)c[1] / cc.green;
+                    float b = cc.blue == 0 ? 1 : (float)c[2] / cc.blue;
+                    float in = std::min(r, std::min(g, std::min(1.0f, b)));
+                    buf[i] = in * 255;
+                }
+            }
+        } else {
+            for (int i = 0; i < _superStringColours.size(); i++) {
+                // if this is a white super string
+                if (_superStringColours[i].red != _superStringColours[i].green || _superStringColours[i].red != _superStringColours[i].blue) {
+                    if (singleColour == -1) {
+                        // this needs work
+                        xlColor cc = _superStringColours[i];
+                        float r = cc.red == 0 ? 1 : (float)c[0] / cc.red;
+                        float g = cc.green == 0 ? 1 : (float)c[1] / cc.green;
+                        float b = cc.blue == 0 ? 1 : (float)c[2] / cc.blue;
+                        float in = std::min(r, std::min(g, std::min(1.0f, b)));
+                        buf[i] = in * 255;
+                    } else {
+                        if (i == singleColour) {
+                            buf[i] = std::max(c[0], std::max(c[1], c[2]));
+                        } else {
+                            buf[i] = 0;
+                        }
+                    }
+                }
+            }
+        }
+        break;
     }
 }

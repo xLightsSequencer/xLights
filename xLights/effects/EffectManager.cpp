@@ -26,6 +26,7 @@
 #include "GalaxyEffect.h"
 #include "GarlandsEffect.h"
 #include "GlediatorEffect.h"
+#include "GuitarEffect.h"
 #include "KaleidoscopeEffect.h"
 #include "LifeEffect.h"
 #include "LightningEffect.h"
@@ -94,6 +95,7 @@ EffectManager::EffectManager()
     add(createEffect(eff_GALAXY));
     add(createEffect(eff_GARLANDS));
     add(createEffect(eff_GLEDIATOR));
+    add(createEffect(eff_GUITAR));
     add(createEffect(eff_KALEIDOSCOPE));
     add(createEffect(eff_LIFE));
     add(createEffect(eff_LIGHTNING));
@@ -164,6 +166,7 @@ RenderableEffect *EffectManager::createEffect(RGB_EFFECTS_e eff) {
         case eff_GALAXY: return new GalaxyEffect(eff_GALAXY);
         case eff_GARLANDS: return new GarlandsEffect(eff_GARLANDS);
         case eff_GLEDIATOR: return new GlediatorEffect(eff_GLEDIATOR);
+        case eff_GUITAR: return new GuitarEffect(eff_GUITAR);
         case eff_KALEIDOSCOPE: return new KaleidoscopeEffect(eff_KALEIDOSCOPE);
         case eff_LIFE: return new LifeEffect(eff_LIFE);
         case eff_LIGHTNING: return new LightningEffect(eff_LIGHTNING);

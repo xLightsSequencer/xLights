@@ -76,6 +76,7 @@ void BarsEffect::SetDefaultParameters() {
 
     bp->BitmapButton_Bars_BarCount->SetActive(false);
     bp->BitmapButton_Bars_Cycles->SetActive(false);
+    bp->BitmapButton_Bars_Center->SetActive(false);
 
     SetSliderValue(bp->Slider_Bars_BarCount, 1);
     SetSliderValue(bp->Slider_Bars_Cycles, 10);

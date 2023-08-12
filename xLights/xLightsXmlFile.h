@@ -17,6 +17,8 @@
 #include "AudioManager.h"
 #include "Vixen3.h"
 
+#include <array>
+
 class SequenceElements;  // forward declaration needed due to circular dependency
 class xLightsFrame;
 
@@ -40,17 +42,6 @@ public:
     // xLightsXmlFile();
     xLightsXmlFile(const wxFileName& filename, uint32_t frameMS = 0);
     virtual ~xLightsXmlFile();
-
-    const wxString HEADER_STRINGS[static_cast<int>(HEADER_INFO_TYPES::NUM_TYPES)] = {
-        "author",
-        "author-email",
-        "author-website",
-        "song",
-        "artist",
-        "album",
-        "MusicURL",
-        "comment"
-    };
 
     static const wxString ERASE_MODE;
     static const wxString CANVAS_MODE;
@@ -113,7 +104,7 @@ public:
     void SetMediaFile(const wxString& ShowDir, const wxString& filename, bool overwrite_tags);
     void ClearMediaFile();
 
-    wxString GetHeaderInfo(HEADER_INFO_TYPES node_type) const;
+    const wxString& GetHeaderInfo(HEADER_INFO_TYPES node_type) const;
     void SetHeaderInfo(HEADER_INFO_TYPES node_type, const wxString& node_value);
 
     wxString GetImageDir(wxWindow* parent);
@@ -132,6 +123,7 @@ public:
     void AddNewTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent, std::vector<int>& starts,
                              std::vector<int>& ends, std::vector<std::string>& labels);
     void AddFixedTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent);
+    void AddMetronomeLabelTimingSection(const std::string& interval_name, int interval, int count,  xLightsFrame* xLightsParent);
     void DeleteTimingSection(const std::string& section);
     void SetTimingSectionName(const std::string& section, const std::string& name);
     bool TimingAlreadyExists(const std::string& section, xLightsFrame* xLightsParent);
@@ -206,7 +198,7 @@ public:
 private:
     wxXmlDocument seqDocument;
     wxArrayString models;
-    wxArrayString header_info;
+    std::array<wxString, (int)HEADER_INFO_TYPES::NUM_TYPES> header_info;
     wxArrayString timing_list;
     wxString version_string;
     double seq_duration = 0;

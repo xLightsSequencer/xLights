@@ -42,4 +42,5 @@ TEST_F(IP_Host_Tests, Host_Invalid) {
     EXPECT_FALSE(ip_utils::IsIPValidOrHostname("fpp.local-"));
     EXPECT_FALSE(ip_utils::IsIPValidOrHostname("fpptest.l"));
     EXPECT_FALSE(ip_utils::IsIPValidOrHostname(".local"));
+    EXPECT_FALSE(ip_utils::IsIPValidOrHostname("192.168.1.10/proxy/192.168.2.10"));
 }

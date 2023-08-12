@@ -113,6 +113,8 @@ GarlandsPanel::GarlandsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Garlands_Direction->Append(_("Right then Left"));
 	FlexGridSizer39->Add(Choice_Garlands_Direction, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer39);
+	FlexGridSizer39->Fit(this);
+	FlexGridSizer39->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_SLIDER_Garlands_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GarlandsPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Garlands_Spacing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GarlandsPanel::OnVCButtonClick);

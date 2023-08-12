@@ -801,7 +801,7 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
     float min, max;
     GetRangeParm(1, _type, min, max);
     if (min == MINVOID) {
-        _parameter1 = (_parameter1 * newrange / oldrange + mindiff); // / divisor;
+        _parameter1 = (_parameter1 * newrange / oldrange + mindiff); // / divisor; //MoC - this is only right if _min was 0
     }
 
     GetRangeParm(2, _type, min, max);

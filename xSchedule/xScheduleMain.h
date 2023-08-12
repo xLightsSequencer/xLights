@@ -119,6 +119,8 @@ class xScheduleFrame : public xlFrame
     wxBitmap _notrandom;
     wxBitmap _volumeup;
     wxBitmap _volumedown;
+    wxBitmap _brightnessup;
+    wxBitmap _brightnessdown;
     wxBitmap _falconremote;
 
     void SendStatus();
@@ -207,6 +209,8 @@ public:
         void OnClose(wxCloseEvent& event);
         void OnMenuItem_SMPTESelected(wxCommandEvent& event);
         void OnMenuItem_ResetWindowLocationsSelected(wxCommandEvent& event);
+        void OnBitmapButton_BrightnessDownClick(wxCommandEvent& event);
+        void OnBitmapButton_BrightnessUpClick(wxCommandEvent& event);
         //*)
 
         void OnCustom_BrightnessLeftDown(wxMouseEvent& event);
@@ -238,7 +242,9 @@ public:
         static const long ID_BITMAPBUTTON4;
         static const long ID_BITMAPBUTTON5;
         static const long ID_BITMAPBUTTON7;
+        static const long ID_BITMAPBUTTON10;
         static const long ID_CUSTOM1;
+        static const long ID_BITMAPBUTTON11;
         static const long ID_BITMAPBUTTON8;
         static const long ID_CUSTOM2;
         static const long ID_BITMAPBUTTON9;
@@ -325,6 +331,8 @@ public:
         //(*Declarations(xScheduleFrame)
         BrightnessControl* Brightness;
         VolumeDisplay* Custom_Volume;
+        wxBitmapButton* BitmapButton_BrightnessDown;
+        wxBitmapButton* BitmapButton_BrightnessUp;
         wxBitmapButton* BitmapButton_IsScheduled;
         wxBitmapButton* BitmapButton_OutputToLights;
         wxBitmapButton* BitmapButton_PLLoop;

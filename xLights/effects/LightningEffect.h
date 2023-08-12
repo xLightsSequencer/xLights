@@ -68,9 +68,10 @@ public:
         return RenderableEffect::GetSettingVCMax(name);
     }
 
+    virtual bool needToAdjustSettings(const std::string& version) override;
+
+    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
+
 protected:
     virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
-
-private:
-    void LightningDrawBolt(RenderBuffer& buffer, const int x0_, const int y0_, const int x1_, const int y1_, xlColor& color, int curState);
 };

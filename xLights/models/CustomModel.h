@@ -21,9 +21,9 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void UpdateModel(int width, int height, int depth, const std::string& modelData);
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;
-        virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;
+        virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, bool deep = false) const override;
+            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
 
         virtual int GetStrandLength(int strand) const override;
         virtual int MapToNodeIndex(int strand, int node) const override;

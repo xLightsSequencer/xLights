@@ -456,7 +456,7 @@ const std::vector<std::string>& CustomModel::GetBufferStyles() const
     return CUSTOM_BUFFERSTYLES;
 }
 
-void CustomModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi) const
+void CustomModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
 {
     int width = parm1;
     int height = parm2;
@@ -469,7 +469,7 @@ void CustomModel::GetBufferSize(const std::string& type, const std::string& came
     }
     else if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel" ||
         type == "Horizontal Per Strand" || type == "Vertical Per Strand") {
-        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
     }
     else if (type == "Stacked X Horizontally") {
         BufferHi = height;
@@ -526,7 +526,7 @@ void CustomModel::GetBufferSize(const std::string& type, const std::string& came
     AdjustForTransform(transform, BufferWi, BufferHi);
 }
 
-void CustomModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep) const
+void CustomModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
 {
     int width = parm1;
     int height = parm2;
@@ -535,7 +535,7 @@ void CustomModel::InitRenderBufferNodes(const std::string& type, const std::stri
     wxASSERT(width > 0 && height > 0 && depth > 0);
 
     int startNodeSize = Nodes.size();
-    Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi);
+    Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi, stagger);
 
     if ((SingleChannel || SingleNode) && IsMultiCoordsPerNode()) {
         // I am not 100% about this change but it makes sense to me
@@ -564,7 +564,7 @@ void CustomModel::InitRenderBufferNodes(const std::string& type, const std::stri
         return;
     }
 
-    GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+    GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
     if (type == "Stacked X Horizontally") {
         for (auto n = 0; n < Nodes.size(); n++) {
             auto loc = FindNode(n, locations);
@@ -1056,12 +1056,27 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
                 for (int c = 0; c < parm1; c++) {
                     wxString value = _data[l][r][c];
                     if (!value.IsEmpty() && value != "0") {
-                        wxString bgcolor = "#ADD8E6"; //"#90EE90"
                         if (_strings == 1) {
-                            html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%s</td>", value);
+                            html += wxString::Format("<td bgcolor='#ADD8E6'>n%s</td>", value);
                         }
                         else {
                             int string = GetCustomNodeStringNumber(wxAtoi(value));
+                            wxString bgcolor;
+                            switch (string % 4)
+                            {
+                            case 0:
+                                bgcolor = "#eed1a4"; // yellow
+                                break;
+                            case 1:
+                                bgcolor = "#8aa2bb"; // blue
+                                break;
+                            case 2:
+                                bgcolor = "#ec9396"; // red
+                                break;
+                            case 3:
+                                bgcolor = "#86d0c3"; // green
+                                break;
+                            }
                             html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ss%d</td>", value, string);
                         }
                     }

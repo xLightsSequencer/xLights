@@ -185,6 +185,17 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
 
         AskCloseSequence();
         return sendResponse("Sequence closed.", "msg", 200, false);
+    } else if (cmd == "saveLayout") {
+        if (!layoutPanel->SaveEffects()) {
+            return sendResponse("Failed to save layout.", "msg", 503, false);
+        }
+
+        if (!SaveNetworksFile()) {
+            return sendResponse("Failed to controller tab.", "msg", 503, false);
+        }
+
+        return sendResponse("Layout and controller tab saved.", "msg", 200, false);
+
     } else if (cmd == "newSequence") {
         if (CurrentSeqXmlFile != nullptr && !ReadBool(params["force"])) {
             return sendResponse("Sequence already open.", "msg", 503, false);
@@ -415,7 +426,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
 
         FSEQFile* seq = FSEQFile::openFSEQFile(fseq);
         if (seq) {
-            fpp->PrepareUploadSequence(*seq, fseq, m2, fseqType);
+            fpp->PrepareUploadSequence(seq, fseq, m2, fseqType);
             static const int FRAMES_TO_BUFFER = 50;
             std::vector<std::vector<uint8_t>> frames(FRAMES_TO_BUFFER);
             for (size_t x = 0; x < frames.size(); x++) {
@@ -836,7 +847,19 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         return sendResponse(response, "", 200, true);
     } else if (cmd == "getModels") {
         std::string models;
+        bool includeModels {true};
+        bool includeGroups {true};
+        auto sModels = params["models"];
+        auto sGroups = params["groups"];
+        includeModels = sModels != "false";
+        includeGroups = sGroups != "false";
         for (auto m = (&AllModels)->begin(); m != (&AllModels)->end(); ++m) {
+            if (m->second->GetDisplayAs() == "ModelGroup" && !includeGroups) {
+                continue;
+            }
+            if (m->second->GetDisplayAs() != "ModelGroup" && !includeModels) {
+                continue;
+            }
             models += "\"" + JSONSafe(m->first) + "\",";
         }
         if (!models.empty()) {
@@ -844,10 +867,21 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         models = "[" + models + "]";
         return sendResponse(models, "models", 200, true);
-    } else if (cmd == "getControllerNames") {
+        
+    } else if (cmd == "getModel") {
+        auto model = params["model"];
+        auto m = AllModels.GetModel(model);
+        if (nullptr == m) {
+            return sendResponse("Unknown model.", "msg", 503, false);
+        }
+        auto json = m->GetAttributesAsJSON();
+        return sendResponse(json, "model", 200, true);
+        
+    } else if (cmd == "getControllers") {
         std::string controllers;
-        for (const auto& it : _outputManager.GetControllerNames()) {
-            controllers += "\"" + JSONSafe(it) + "\",";
+        for (const auto& it : _outputManager.GetControllers()) {
+            std::string json = it->GetJSONData() + ",";
+            controllers += json;
         }
         if (!controllers.empty()) {
             controllers.pop_back();//remove last comma
@@ -866,6 +900,22 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         ipAddresses = "[" + ipAddresses + "]";
         return sendResponse(ipAddresses, "controllers", 200, true);
+    } else if (cmd == "getControllerPortMap") {
+        auto ip = params["ip"];
+        auto name = params["name"];
+        Controller* controller {nullptr};
+        if (!name.empty()) {
+            controller = _outputManager.GetController(name);
+        }
+        if (!ip.empty()) {
+            controller = _outputManager.GetControllerWithIP(ip);
+        }
+        if (controller == nullptr) {
+            return "{\"res\":504,\"msg\":\"Controller not found.\"}";
+        }
+        UDController cud(controller, &_outputManager, &AllModels, false);
+        auto json = cud.ExportAsJSON();
+        return sendResponse(json, "controllerportmap", 200, true);
     } else if (cmd == "getEffectIDs") {
         if (CurrentSeqXmlFile == nullptr) {
             return sendResponse("Sequence not open.", "msg", 503, false);
@@ -886,12 +936,29 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                 ids.pop_back(); // remove last comma
             }
             ids.insert(0, "[");
-            ids.append( "],");
-            layers.append( ids );
+            ids.append("],");
+            layers.append(ids);
         }
         layers.pop_back(); // remove last comma
         layers += "]";
         return sendResponse(layers, "effects", 200, true);
+    } else if (cmd == "cleanupFileLocations") {
+
+        bool res = CleanupRGBEffectsFileLocations();
+
+        if (CurrentSeqXmlFile != nullptr) {
+            res = res && CleanupSequenceFileLocations();
+        }
+
+        if (res) {
+            std::string response = "{\"msg\":\"Cleanup file locations.\",\"worked\":\"true\"}";
+            return sendResponse(response, "", 200, true);
+        }
+        else
+        {
+            return sendResponse("Cleanup file locations failed.", "msg", 503, false);
+        }
+
     } else if (cmd == "getEffectSettings") {
         if (CurrentSeqXmlFile == nullptr) {
             return sendResponse("Sequence not open.", "msg", 503, false);
@@ -992,9 +1059,33 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         
         std::string response = "{\"msg\":\"Imported XLights Sequence.\",\"worked\":\"true\"}";
         return sendResponse(response, "", 200, true);
-       
+    } else if (cmd == "getShowFolder") {
+        return sendResponse(JSONSafe(showDirectory), "folder", 200, false);
+    } else if (cmd == "setModelProperty") {
+        auto model = params["model"];
+        auto m = AllModels.GetModel(model);
+        if (nullptr == m) {
+            return sendResponse("Unknown model.", "msg", 503, false);
+        }
+        auto propKey = params["key"];
+        auto propData = params["data"];
+        if (propKey.empty() || propData.empty()) {
+            return sendResponse("Key or Data was empty.", "msg", 503, false);
+        }
+        layoutPanel->SelectModel(model);
+        wxPropertyGridEvent event2;
+        event2.SetPropertyGrid(layoutPanel->GetPropertyEditor());
+        wxStringProperty wsp("Model", propKey, propData);
+        event2.SetProperty(&wsp);
+        wxVariant value(propData);
+        event2.SetPropertyValue(value);
+        layoutPanel->OnPropertyGridChange(event2);
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Automation:setModelProperty");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation:setModelProperty");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Automation:setModelProperty");
+        std::string response = wxString::Format("{\"msg\":\"Set Model Property.\",\"worked\":\"%s\"}", JSONSafe(toStr(m != nullptr)));
+        return sendResponse(response, "", 200, true);
     }
-
     return false;
 }
 

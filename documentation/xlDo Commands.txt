@@ -10,6 +10,8 @@ Currently xLights provides the following REST endpoints:
 
 GET /getVersion - Get xLights Version
 
+GET /getShowFolder - Returns the current Show Folder
+
 GET /openSequence - returns the currently open sequence
 
 GET /openSequence/My%20Sequence.xsq - opens the "My Sequence.xsq" sequence
@@ -40,7 +42,13 @@ GET /saveSequence
     
 GET /batchRender
     seq_#=  # starts at 0 and increases, each sequence to render
-    
+   
+GET /cleanupFileLocations
+    cleans up file locations in layout and any open sequence. You must save both the sequence and the layout to ensure it isnt lost.
+
+GET /saveLayout
+    saves the layout and controller settings
+
 GET /uploadController
 GET /uploadFPPConfig
 GET /uploadSequence
@@ -250,14 +258,87 @@ Response
     {"res":200, "msg":"Added Effects.","worked":"true"}
 
 Get List of all the Models and Model Groups
-    {"cmd":"getModels"}
+    {"cmd":"getModels", "models":"true", "groups":"true"}
 Response
     {"res":200, "models": ["All House","MegaTree","Arch1","Arch2","Outline","WindowFrame1"]}
 
-Get List of all the Controllers by Name
-    {"cmd":"getControllerNames"}
+Get List of all the Controllers
+    {"cmd":"getControllers"}
 Response
-    {"res":200, "controllers": ["House_Falcon","Yard_K16"]}
+    {"res":200, "controllers": [{
+        "name": "Yard",
+        "desc": "",
+        "type": "Ethernet",
+        "vendor": "ScottNation",
+        "model": "PB16",
+        "variant": "Expansion",
+        "protocol": "DDP",
+        "id": 64007,
+        "startchannel": 159976,
+        "channels": 4953,
+        "managed": true,
+        "autolayout": true,
+        "canvisualise": true,
+        "active": true,
+        "ip": "192.168.1.209",
+        "controllercap": {
+            "pixelports": 32,
+            "serialports": 2,
+            "supportspanels": false,
+            "supportsvirtualmatrix": false,
+            "smartremotecount": 6,
+            "smartremotetypes": [
+                "falcon_v1",
+                "fpp_v2"
+            ],
+            "pixelprotocols": [
+                "ws2811"
+            ],
+            "serialprotocols": [
+                "dmx",
+                "pixelnet"
+            ]
+        }
+    }]}
+
+Get List of all the Models on a Controller by IP or Name
+    {"cmd":"getControllerPortMap", "ip":"192.168.1.209" or "name":"Yard"}
+Response
+    {
+    "pixelports": [
+        {
+            "port": 1,
+            "startchannel": 159976,
+            "universe": 64007,
+            "universestartchannel": 1,
+            "channels": 150,
+            "pixels": 50,
+            "models": [
+                {
+                    "name": "Arch2",
+                    "description": "",
+                    "startchannel": 159976,
+                    "universe": 64007,
+                    "universestartchannel": 1,
+                    "channels": 75,
+                    "pixels": 25
+                },
+                {
+                    "name": "Arch1",
+                    "description": "",
+                    "startchannel": 160051,
+                    "universe": 64007,
+                    "universestartchannel": 76,
+                    "channels": 75,
+                    "pixels": 25
+                }
+            ]
+        }
+    ],
+    "serialports": [],
+    "virtualmatrixports": [],
+    "ledpanelmatrixports": []
+}
 
 Get List of all the Controllers by IP Address, if they are a Ethernet based controller
 Command
@@ -289,3 +370,9 @@ Command
 Response
     {"res":200, "msg":"Imported XLights Sequence.","worked":"true"}
 
+Set Model Settings for a Model.
+Command
+	{"cmd":"setModelProperty","model":"model name","key":"Controller","data":"Yard"}
+    {"cmd":"setModelProperty","model":"model name","key":"ModelControllerConnectionPort","data":"5"}
+Response
+    {"res":200, "msg":"Set Model Property.","worked":"true"}

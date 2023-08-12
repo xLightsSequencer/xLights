@@ -103,7 +103,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
     wxString transform = settings.Get("B_CHOICE_BufferTransform", "None");
     wxString camera = settings.Get("B_CHOICE_PerPreviewCamera", "2D");
     int w, h;
-    model->GetBufferSize(bufferstyle.ToStdString(), camera.ToStdString(), transform.ToStdString(), w, h);
+    model->GetBufferSize(bufferstyle.ToStdString(), camera.ToStdString(), transform.ToStdString(), w, h, settings.GetInt("B_SPINCTRL_BufferStagger", 0));
 
     if (w < 2 || h < 2)
     {
@@ -175,6 +175,9 @@ void VideoEffect::SetDefaultParameters()
     vp->BitmapButton_Video_Speed->SetActive(false);
     SetCheckBoxValue(vp->CheckBox_Video_AspectRatio, false);
     SetChoiceValue(vp->Choice_Video_DurationTreatment, "Normal");
+
+    SetCheckBoxValue(vp->CheckBox_TransparentBlack, false);
+    SetSliderValue(vp->Slider1, 0);
 }
 
 std::list<std::string> VideoEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
@@ -202,7 +205,8 @@ bool VideoEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Setting
     return rc;
 }
 
-void VideoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void VideoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
     float offset = buffer.GetEffectTimeIntervalPosition();
 
     int cl = GetValueCurveInt("Video_CropLeft", 0, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -211,19 +215,19 @@ void VideoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     int cb = GetValueCurveInt("Video_CropBottom", 0, SettingsMap, offset, VIDEO_CROP_MIN, VIDEO_CROP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     Render(buffer,
-		   SettingsMap["FILEPICKERCTRL_Video_Filename"],
-		SettingsMap.GetDouble("TEXTCTRL_Video_Starttime", 0.0),
-		std::min(cl, cr),
-        std::max(cl, cr),
-        std::max(ct, cb),
-        std::min(ct, cb),
-        SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", false),
-		SettingsMap.Get("CHOICE_Video_DurationTreatment", "Normal"),
-        SettingsMap.GetBool("CHECKBOX_SynchroniseWithAudio", false),
-        SettingsMap.GetBool("CHECKBOX_Video_TransparentBlack", false),
-        SettingsMap.GetInt("TEXTCTRL_Video_TransparentBlack", 0),
-        GetValueCurveDouble("Video_Speed", 1.0, SettingsMap, offset, VIDEO_SPEED_MIN, VIDEO_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), VIDEO_SPEED_DIVISOR)
-		);
+           SettingsMap["FILEPICKERCTRL_Video_Filename"],
+           SettingsMap.GetDouble("TEXTCTRL_Video_Starttime", 0.0),
+           std::min(cl, cr),
+           std::max(cl, cr),
+           std::max(ct, cb),
+           std::min(ct, cb),
+           SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", false),
+           SettingsMap.Get("CHOICE_Video_DurationTreatment", "Normal"),
+           SettingsMap.GetBool("CHECKBOX_SynchroniseWithAudio", false),
+           SettingsMap.GetBool("CHECKBOX_Video_TransparentBlack", false),
+           SettingsMap.GetInt("TEXTCTRL_Video_TransparentBlack", 0),
+           GetValueCurveDouble("Video_Speed", 1.0, SettingsMap, offset, VIDEO_SPEED_MIN, VIDEO_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), VIDEO_SPEED_DIVISOR),
+           SettingsMap.GetInt("TEXTCTRL_SampleSpacing", 0));
 }
 
 class VideoRenderCache : public EffectRenderCache {
@@ -252,7 +256,7 @@ public:
 };
 
 void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
-    double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool aspectratio, std::string durationTreatment, bool synchroniseAudio, bool transparentBlack, int transparentBlackLevel, double speed)
+    double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool aspectratio, std::string durationTreatment, bool synchroniseAudio, bool transparentBlack, int transparentBlackLevel, double speed, uint32_t sampleSpacing)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -334,7 +338,10 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
             // have to open the file
             int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
             int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
-            _videoreader = new VideoReader(filename, width, height, aspectratio, false, true);
+
+            bool useNativeResolution = (sampleSpacing > 0);
+
+            _videoreader = new VideoReader(filename, width, height, aspectratio, useNativeResolution, true);
 
             if (_videoreader == nullptr)
             {
@@ -390,7 +397,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         }
     }
 
-    if (_videoreader != nullptr) {
+    if (_videoreader != nullptr && sampleSpacing == 0) {
         int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
         int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
         bool vwidthEq = width == _videoreader->GetWidth();
@@ -456,72 +463,99 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
             image = _videoreader->GetNextFrame(frame);
         }
 
-        int xoffset = cropLeft * _videoreader->GetWidth() / 100;
-        int yoffset = cropBottom * _videoreader->GetHeight() / 100;
-        int xtail = (100 - cropRight) * _videoreader->GetWidth() / 100;
-        int ytail = (100 - cropTop) * _videoreader->GetHeight() / 100;
-        int startx = (buffer.BufferWi - _videoreader->GetWidth() * (cropRight - cropLeft) / 100) / 2;
-        int starty = (buffer.BufferHt - _videoreader->GetHeight() * (cropTop - cropBottom) / 100) / 2;
-
-        //wxASSERT(xoffset + xtail + buffer.BufferWi == _videoreader->GetWidth());
-        //wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
-
-        // check it looks valid
-        if (image != nullptr && frame >= 0)
-        {
             int ch = _videoreader->GetPixelChannels();
-            // draw the image
-            xlColor c;
-            for (int y = 0; y < _videoreader->GetHeight() - yoffset - ytail; y++)
-            {
-                uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - y - yoffset) * _videoreader->GetWidth() * ch + xoffset * ch;
 
-                for (int x = 0; x < _videoreader->GetWidth() - xoffset - xtail; x++)
-                {
-                    try
-                    {
-                        c.Set(*(ptr),
-                            *(ptr + 1),
-                            *(ptr + 2), ch == 3 ? 255 : *(ptr+3));
-                    }
-                    catch (...)
-                    {
-                        // this shouldnt happen so make it stand out
-                        c = xlRED;
-                    }
+            // check it looks valid
+            if (image != nullptr && frame >= 0) {
 
-                    if (transparentBlack)
-                    {
-                        int level = c.Red() + c.Green() + c.Blue();
-                        if (level > transparentBlackLevel)
-                        {
-                            buffer.SetPixel(x + startx, y + starty, c);
+                // This handles normal scaling of videos
+                if (sampleSpacing == 0) {
+                    int xoffset = cropLeft * _videoreader->GetWidth() / 100;
+                    int yoffset = cropBottom * _videoreader->GetHeight() / 100;
+                    int xtail = (100 - cropRight) * _videoreader->GetWidth() / 100;
+                    int ytail = (100 - cropTop) * _videoreader->GetHeight() / 100;
+                    int startx = (buffer.BufferWi - _videoreader->GetWidth() * (cropRight - cropLeft) / 100) / 2;
+                    int starty = (buffer.BufferHt - _videoreader->GetHeight() * (cropTop - cropBottom) / 100) / 2;
+
+                    // wxASSERT(xoffset + xtail + buffer.BufferWi == _videoreader->GetWidth());
+                    // wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
+
+                    // draw the image
+                    xlColor c;
+                    for (int y = 0; y < _videoreader->GetHeight() - yoffset - ytail; y++) {
+                        uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - y - yoffset) * _videoreader->GetWidth() * ch + xoffset * ch;
+
+                        for (int x = 0; x < _videoreader->GetWidth() - xoffset - xtail; x++) {
+                            try {
+                                c.Set(*(ptr),
+                                      *(ptr + 1),
+                                      *(ptr + 2), ch == 3 ? 255 : *(ptr + 3));
+                            } catch (...) {
+                                // this shouldnt happen so make it stand out
+                                c = xlRED;
+                            }
+
+                            if (transparentBlack) {
+                                int level = c.Red() + c.Green() + c.Blue();
+                                if (level > transparentBlackLevel) {
+                                    buffer.SetPixel(x + startx, y + starty, c);
+                                }
+                            } else {
+                                buffer.SetPixel(x + startx, y + starty, c);
+                            }
+
+                            ptr += ch;
                         }
                     }
-                    else
-                    {
-                        buffer.SetPixel(x + startx, y + starty, c);
-                    }
-
-                    ptr += ch;
+                    // logger_base.debug("Video render %s frame %d timestamp %ldms took %ldms.", (const char *)filename.c_str(), buffer.curPeriod, frame, sw.Time());
                 }
-            }
-            //logger_base.debug("Video render %s frame %d timestamp %ldms took %ldms.", (const char *)filename.c_str(), buffer.curPeriod, frame, sw.Time());
-        }
-        else
-        {
-            if (durationTreatment == "Normal")
-            {
-                // display a blue background to show we have gone past end of video
-                for (int y = 0; y < buffer.BufferHt; y++)
+                else
                 {
-                    for (int x = 0; x < buffer.BufferWi; x++)
+                    // this handles video sampling where we sample pixels from the image rather than scaling it and thus washing out the colours
+                    int xneeded = buffer.BufferWi * sampleSpacing;
+                    int yneeded = buffer.BufferHt * sampleSpacing;
+                    int imageWidthAfterCropping = ((100 - cropLeft + cropRight) * image->width) / 200;
+                    int imageHeightAferCropping = ((cropTop + 100 - cropBottom) * image->width) / 200;
+                    int startx = imageWidthAfterCropping / 2 - xneeded / 2 + (cropLeft * image->width) / 100;
+                    int starty = imageHeightAferCropping / 2 - yneeded / 2 + ((100 - cropTop) * image->height) / 100;
+
+                    int cury = starty;
+                    xlColor c;
+                    for (int y = 0; y < buffer.BufferHt; ++y)
                     {
-                        buffer.SetPixel(x, y, xlBLUE);
+                        if (cury >= 0 && cury < image->height)
+                        {
+                            int curx = startx;
+                            for (int x = 0; x < buffer.BufferWi; ++x) {
+                                if (curx >= 0 && curx < image->width) {
+                                    uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - cury) * _videoreader->GetWidth() * ch + curx * ch;
+                                    try {
+                                        c.Set(*(ptr),
+                                              *(ptr + 1),
+                                              *(ptr + 2), ch == 3 ? 255 : *(ptr + 3));
+                                    } catch (...) {
+                                        // this shouldnt happen so make it stand out
+                                        c = xlRED;
+                                    }
+
+                                    buffer.SetPixel(x, y, c);
+                                }
+                                curx += sampleSpacing;
+                            }
+                        }
+                        cury += sampleSpacing;
+                    }
+                }
+            } else {
+                if (durationTreatment == "Normal") {
+                    // display a blue background to show we have gone past end of video
+                    for (int y = 0; y < buffer.BufferHt; y++) {
+                        for (int x = 0; x < buffer.BufferWi; x++) {
+                            buffer.SetPixel(x, y, xlBLUE);
+                        }
                     }
                 }
             }
-        }
     }
     else
     {

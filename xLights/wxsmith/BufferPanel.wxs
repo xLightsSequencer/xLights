@@ -69,6 +69,28 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText17" member="yes">
+															<label>Buffer Stagger</label>
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSpinCtrl" name="ID_SPINCTRL_BufferStagger" variable="SpinCtrl_BufferStagger" member="yes">
+															<value>0</value>
+															<min>-100</min>
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
+														<flag>wxALL|wxEXPAND</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText16" member="yes">
 															<label>Camera</label>
 														</object>
@@ -88,7 +110,7 @@
 														<option>1</option>
 													</object>
 													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -109,6 +131,8 @@
 																<item>Rotate 180</item>
 																<item>Flip Vertical</item>
 																<item>Flip Horizontal</item>
+																<item>Rotate CC 90 Flip Horizontal</item>
+																<item>Rotate CW 90 Flip Horizontal</item>
 															</content>
 															<selection>0</selection>
 															<handler function="OnBufferTransformSelect" entry="EVT_CHOICE" />
@@ -193,7 +217,7 @@
 														<option>1</option>
 													</object>
 													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>

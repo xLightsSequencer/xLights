@@ -55,6 +55,9 @@
 #include "Vixen3.h"
 #include "SequencePackage.h"
 
+#include "xLightsMain.h"
+#include "xLightsApp.h"
+
 #include <log4cpp/Category.hh>
 
 void xLightsFrame::AddAllModelsToSequence()
@@ -178,7 +181,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
         RenderAll();
     }
 
-    OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+    StartOutputTimer();
     displayElementsPanel->Initialize();
     std::string view = setting_dlg.GetView();
     if (defView != "" && (defView == "All Models" || defView == "Empty" || displayElementsPanel->HasView(defView))) {
@@ -217,7 +220,6 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
 void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     ClearNonExistentFiles();
 
     bool loaded_fseq = false;
@@ -228,6 +230,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
     } else {
         filename = passed_filename;
     }
+    logger_base.debug("Opening File: %s", (const char *)filename.ToStdString().c_str());
     if (!filename.empty()) {
         if (filename.Contains(XLIGHTS_RGBEFFECTS_FILE) || filename.Contains(XLIGHTS_NETWORK_FILE) || filename.Contains(XLIGHTS_KEYBINDING_FILE)) {
             wxMessageBox("the 'xlights_rgbeffects.xml', 'xlights_networks.xml' or 'xlights_keybindings.xml' files are not valid sequence files", "Error");
@@ -256,7 +259,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
                 wxFileName asfn(asfile);
                 wxDateTime xbkptime = asfn.GetModificationTime();
 
-                if (xbkptime > xmltime) {
+                if (xbkptime.IsValid() && xmltime.IsValid() && (xbkptime > xmltime)) {
                     // autosave file is newer
                     if (wxMessageBox("Autosaved file found which seems to be newer than your sequence file ... would you like to open that instead and replace your xml file?", "Newer file found", wxYES_NO) == wxYES) {
                         // run a backup ... equivalent of a F10
@@ -378,7 +381,9 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
             ObtainAccessToURL(media_file.GetFullPath().ToStdString());
         }
 
-        if (media_file != "") {
+        if (media_file.GetName() != "") {
+            logger_base.debug("Media file from sequence: '%s'", (const char*)media_file.GetFullPath().c_str());
+
             // double-check file existence
             if (!FileExists(media_file) || !wxFileName(media_file).IsFileReadable()) {
                 wxFileName detect_media(media_file);
@@ -400,6 +405,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
                         }
                     }
                 }
+                logger_base.debug("    Did not exist, attepting to map to: '%s'", (const char*)media_file.GetFullPath().c_str());
             }
 
             // search for missing media file in media directory and show directory
@@ -424,6 +430,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
                         }
                     }
                 }
+                logger_base.debug("    Still did not exist, attepting to map to: '%s'", (const char*)media_file.GetFullPath().c_str());
             }
 
             // search for missing media file in the show directory one folder deep
@@ -445,6 +452,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
                     }
                     fcont = audDirectory.GetNext(&audFile);
                 }
+                logger_base.debug("    Still did not exist, attepting to map to: '%s'", (const char*)media_file.GetFullPath().c_str());
             }
         }
 
@@ -459,6 +467,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
         }
 
         if (CurrentSeqXmlFile->WasConverted()) {
+            logger_base.debug("Loaded Sequence was Converted, need to check settings");
             // abort any in progress render ... as it may be using any already open media
             bool aborted = false;
             if (CurrentSeqXmlFile->GetMedia() != nullptr) {
@@ -481,6 +490,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
 
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = atoi(mss.c_str());
+        logger_base.debug("Sequence Timing: %d", ms);
         bool loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
 
         unsigned int numChan = GetMaxNumChannels();
@@ -491,6 +501,9 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
         if (memRequired > (GetPhysicalMemorySizeMB() - 1024) && (_promptBatchRenderIssues || (!_renderMode && !_checkSequenceMode))) {
             DisplayWarning(wxString::Format("The setup requires a large amount of memory (%lu MB) which could result in performance issues.", (unsigned long)memRequired), this);
         }
+
+        logger_base.debug("Sequence Num Channels: %d or %d", numChan, _seqData.NumChannels());
+        logger_base.debug("Sequence Num Frames: %d", (int)(CurrentSeqXmlFile->GetSequenceDurationMS() / ms));
 
         if ((numChan > _seqData.NumChannels()) ||
             (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames()) {
@@ -510,6 +523,7 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
             _seqData.init(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
 
+        logger_base.debug("Initializeing Display Elements");
         displayElementsPanel->Initialize();
 
         // if we loaded the fseq but not the xml then we need to populate views
@@ -521,7 +535,8 @@ void xLightsFrame::OpenSequence(const wxString &passed_filename, ConvertLogDialo
             displayElementsPanel->SelectView("Master View");
         }
 
-        OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
+        logger_base.debug("Starting timers");
+        StartOutputTimer();
         if (loaded_fseq) {
             GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleLayoutKey::OpenSequence");
         } else if (!loaded_xml) {
@@ -1110,11 +1125,12 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
             } else {
                 settings = ef->GetSettingsAsString();
             }
-            
+
             // remove lock if it is there
             Replace(settings, ",X_Effect_Locked=True", "");
 
-            // if we are mapping the effect onto a group and it is a per preview render buffer then use the goups default camera
+            // if we are mapping the effect onto a group and it is a per preview render buffer then use the group's default camera
+            //   unless there is a non-default 3D camera assigned to the effect, and it exists in the target layout
             if (!target->IsTimingLayer()) {
                 Model* m = target->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->GetModel(target->GetParentElement()->GetModelName());
                 if (m != nullptr) {
@@ -1124,8 +1140,17 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
                         auto rb = ef->GetSettings()["B_CHOICE_BufferStyle"];
                         if (BufferPanel::CanRenderBufferUseCamera(rb)) {
                             if (Contains(settings, "B_CHOICE_PerPreviewCamera")) {
-                                Replace(settings, ",B_CHOICE_PerPreviewCamera=" + ef->GetSettings()["B_CHOICE_PerPreviewCamera"],
-                                        ",B_CHOICE_PerPreviewCamera=" + mg->GetDefaultCamera());
+                                // MoC - There isn't a way to just indicate "use group's default", so instead we grab it as
+                                //   a setting for the effect.
+                                // That way if the group default changes, there is no effect on old / mapped effects
+                                auto newCamera = mg->GetDefaultCamera();
+                                auto effCamera = ef->GetSettings()["B_CHOICE_PerPreviewCamera"];
+                                xLightsFrame* frame = xLightsApp::GetFrame();
+                                if (effCamera != "2D" && effCamera != "Default" && frame->viewpoint_mgr.GetNamedCamera3D(effCamera)) {
+                                    newCamera = effCamera;
+                                }
+                                Replace(settings, ",B_CHOICE_PerPreviewCamera=" + effCamera,
+                                        ",B_CHOICE_PerPreviewCamera=" + newCamera);
                             }
                             else {
                                 settings += ",B_CHOICE_PerPreviewCamera=" + mg->GetDefaultCamera();
@@ -1218,13 +1243,13 @@ void xLightsFrame::ImportXLights(const wxFileName &filename, std::string const& 
     wxStopWatch sw; // start a stopwatch timer
 
     SequencePackage xsqPkg(filename, this);
-    
+
     if (xsqPkg.IsPkg()) {
         xsqPkg.Extract();
     } else {
         xsqPkg.FindRGBEffectsFile();
     }
-    
+
     if (!xsqPkg.IsValid() && xsqPkg.IsPkg()) {
         wxMessageBox("The file you are attempting to import doesn't appear to be a valid xLights Sequence Package.", "Invalid Sequence Package", wxICON_ERROR | wxOK);
         return;
@@ -1293,12 +1318,13 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
         Element* e = it;
         if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             ModelElement* el = dynamic_cast<ModelElement*>(e);
-            bool hasEffects = false;
+            bool hasEffects {false};
+
             for (size_t l = 0; l < el->GetEffectLayerCount(); ++l) {
-                hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
+                hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;               
             }
             if (hasEffects) {
-                dlg.AddChannel(el->GetName());
+                dlg.AddChannel(el->GetName(), el->GetEffectCount());
             }
             elementMap[el->GetName()] = el;
             int s = 0;
@@ -1315,7 +1341,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 }
                 if (sme->HasEffects()) {
                     elementMap[el->GetName() + "/" + smName] = sme;
-                    dlg.AddChannel(el->GetName() + "/" + smName);
+                    dlg.AddChannel(el->GetName() + "/" + smName, sme->GetEffectCount());
                 }
                 if (ste != nullptr) {
                     for (size_t n = 0; n < ste->GetNodeLayerCount(); ++n) {
@@ -1325,7 +1351,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                             if (nodeName == "") {
                                 nodeName = wxString::Format("Node %d", (int)(n + 1));
                             }
-                            dlg.AddChannel(el->GetName() + "/" + smName + "/" + nodeName);
+                            dlg.AddChannel(el->GetName() + "/" + smName + "/" + nodeName, nl->GetEffectCount());
                             layerMap[el->GetName() + "/" + smName + "/" + nodeName] = nl;
                         }
                     }
@@ -1334,7 +1360,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
         }
         else if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             TimingElement* tel = dynamic_cast<TimingElement*>(e);
-            bool hasEffects = false;
+            bool hasEffects {false};
             for (size_t n = 0; n < tel->GetEffectLayerCount(); ++n) {
                 hasEffects |= tel->GetEffectLayer(n)->GetEffectCount() > 0;
             }
@@ -1345,7 +1371,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 // we want to know which timing tracks exist so we can preselect the ones which are not already present
                 // a timing track is only considered to exist if it has at least one timing mark
                 timingTrackAlreadyExists[tel->GetName()] = (_sequenceElements.GetTimingElement(tel->GetName()) != nullptr && _sequenceElements.GetTimingElement(tel->GetName())->HasEffects());
-            }            
+            }
         }
     }
 
@@ -1486,22 +1512,22 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
             it->RemoveAllEffects(nullptr);
         }
     }
-    
+
     if (xsqPkg.IsPkg()) {
         if (xsqPkg.HasMissingMedia()) {
-            
+
             wxString missingAssets;
             for (const auto& missingAsset : xsqPkg.GetMissingMedia()) {
                 missingAssets = missingAssets + wxString::Format("%s- %s\n", "    ", missingAsset);
             }
-            
+
             wxString msgP1 = "The following assets were missing from the Sequence Package and could not be imported.";
             wxString msgP2 = "Once you source them, place them in your show folder and use 'Import Effects' again making sure to select 'Erase existing effects on imported models'";
             wxString msgP3 = "or update the effects individually.";
-            
+
             wxMessageBox(wxString::Format("%s %s %s\n\n%s", msgP1, msgP2, msgP3, missingAssets), "Missing Assets", wxICON_WARNING | wxOK, this);
         }
-        
+
         if (xsqPkg.ModelsChanged()) {
             GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "xLightsFrame::ImportXLights");
         }
@@ -2374,7 +2400,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
         wxString blend = dlg.Choice_LayerBlend->GetStringSelection();
         Model *cls = GetModel(model->GetFullName());
         int bw, bh;
-        cls->GetBufferSize("Default", "2D", "None", bw, bh);
+        cls->GetBufferSize("Default", "2D", "None", bw, bh, 0);
         wxSize modelSize(bw, bh);
         ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, dlg.ImageResizeChoice->GetSelection(), modelSize, blend);
     }
@@ -4294,7 +4320,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, EffectLayer* layer,
                 }
             }
         }
-    }    
+    }
 }
 
 void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, int nodes, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
@@ -4810,7 +4836,7 @@ void MapVixen3(Element* model, const Vixen3& vixen, const wxString& modelName, l
     {
         long s = Vixen3::ConvertTiming(it.start + offset, frameMS);
         long e = Vixen3::ConvertTiming(it.end + offset, frameMS);
-            
+
         // Vixen can have multiple effects in one time slot so add layers as needed
         EffectLayer* layer = nullptr;
         for (const auto& it : model->GetEffectLayers()) {
@@ -4875,17 +4901,17 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
     dlg.xlights = this;
 
     auto models = vixen.GetModelsWithEffects();
-    for (auto it: models)
+    for (auto [model, numEff]: models)
     {
-        auto effects = vixen.GetEffects(it);
+        auto effects = vixen.GetEffects(model);
 
         if (effects.front().type == "Data")
         {
-            dlg.timingTracks.push_back(it);
+            dlg.timingTracks.push_back(model);
         }
         else
         {
-            dlg.AddChannel(it);
+            dlg.AddChannel(model, numEff);
         }
     }
     dlg.SortChannels();

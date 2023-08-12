@@ -171,6 +171,7 @@ public:
     wxPanel* SubBufferPanelHolder;
     wxSearchCtrl* SearchCtrl1;
     wxSplitterWindow* SplitterWindow1;
+    wxStaticText* NodeNumberText;
     wxStaticText* StaticText1;
     wxStaticText* StaticText2;
     wxStaticText* StaticTextName;
@@ -212,12 +213,14 @@ protected:
     static const long ID_PANEL5;
     static const long ID_PANEL1;
     static const long ID_SPLITTERWINDOW1;
+    static const long ID_STATICTEXT3;
     //*)
     static const long ID_TIMER1;
 
     static const long SUBMODEL_DIALOG_IMPORT_MODEL;
     static const long SUBMODEL_DIALOG_IMPORT_FILE;
     static const long SUBMODEL_DIALOG_IMPORT_CUSTOM;
+    static const long SUBMODEL_DIALOG_IMPORT_CSV;
     static const long SUBMODEL_DIALOG_EXPORT_CSV;
     static const long SUBMODEL_DIALOG_EXPORT_XMODEL;
     static const long SUBMODEL_DIALOG_EXPORT_TOOTHERS;
@@ -227,8 +230,25 @@ protected:
     static const long SUBMODEL_DIALOG_FLIP_VER;
     static const long SUBMODEL_DIALOG_REVERSE;
     static const long SUBMODEL_DIALOG_JOIN;
+    static const long SUBMODEL_DIALOG_JOIN_SS;
+    static const long SUBMODEL_DIALOG_SPLIT;
     static const long SUBMODEL_DIALOG_SORT_BY_NAME;
     static const long SUBMODEL_DIALOG_REMOVE_DUPLICATE;
+    static const long SUBMODEL_DIALOG_SUPPRESS_DUPLICATE;
+    static const long SUBMODEL_DIALOG_SORT_POINTS;
+    static const long SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR;
+    static const long SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB;
+    static const long SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR;
+    static const long SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB;
+    static const long SUBMODEL_DIALOG_EVEN_ROWS;
+    static const long SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS;
+    static const long SUBMODEL_DIALOG_SYMMETRIZE;
+    static const long SUBMODEL_DIALOG_SORT_POINTS_ALL;
+    static const long SUBMODEL_DIALOG_COMBINE_STRANDS;
+    static const long SUBMODEL_DIALOG_EXPAND_STRANDS_ALL;
+    static const long SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL;
+    static const long SUBMODEL_DIALOG_BLANKS_AS_ZERO;
+    static const long SUBMODEL_DIALOG_BLANKS_AS_EMPTY;
 
     void SaveXML(Model* m);
     wxString GetSelectedName() const;
@@ -258,7 +278,12 @@ protected:
     void FlipHorizontal();
     void FlipVertical();
     void Reverse();
-    void RemoveDuplicates();
+    void RemoveDuplicates(bool suppress);
+    void RemoveAllDuplicates(bool leftright, bool suppress);
+    void MakeRowsUniform();
+    void PivotRowsColumns();
+    void CombineStrands();
+    void OrderPoints(bool wholemodel);
 
     void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
     void DisplayRange(const wxString &range);
@@ -270,13 +295,18 @@ protected:
     void ImportSubModel(std::string filename);
     void ReadSubModelXML(wxXmlNode* xmlData);
     void ImportSubModelXML(wxXmlNode* xmlData);
+    void ImportCSVSubModel(wxString const& filename);
     wxArrayString getModelList(ModelManager* modelManager);
     void ExportSubModels(wxString const& filename);
     void ExportSubModelAsxModel(wxString const& filename, const std::string& name);
     void ExportSubmodelToOtherModels();
 
-    void JoinSelectedModels();
+    void JoinSelectedModels(bool singlestrand);
+    void SplitSelectedSubmodel();
     void SortSubModelsByName();
+    void Symmetrize();
+
+    void processAllStrands(wxString (*func)(wxString));
 
 private:
 
@@ -318,6 +348,7 @@ private:
     void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
     //*)
 
+    void OnCancel(wxCloseEvent& event);
     void OnPreviewLeftUp(wxMouseEvent& event);
     void OnPreviewMouseLeave(wxMouseEvent& event);
     void OnPreviewLeftDown(wxMouseEvent& event);
@@ -333,8 +364,8 @@ private:
 
     void RenderModel();
     void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
-    void SelectAllInBoundingRect(bool shiftdwn);
-    void RemoveNodes();
+    void SelectAllInBoundingRect(bool shiftdwn, bool cdwn);
+    void RemoveNodes(bool suppress);
 
     void OnTextCtrl_NameText_KillFocus(wxFocusEvent& event);
     void OnSubbufferSize(wxSizeEvent& event);

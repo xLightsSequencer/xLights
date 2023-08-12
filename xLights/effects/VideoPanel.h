@@ -68,6 +68,7 @@ class VideoPanel: public xlEffectPanel
         BulkEditCheckBox* CheckBox_Video_AspectRatio;
         BulkEditChoice* Choice_Video_DurationTreatment;
         BulkEditSlider* Slider1;
+        BulkEditSlider* Slider_SampleSpacing;
         BulkEditSlider* Slider_Video_CropBottom;
         BulkEditSlider* Slider_Video_CropLeft;
         BulkEditSlider* Slider_Video_CropRight;
@@ -75,6 +76,7 @@ class VideoPanel: public xlEffectPanel
         BulkEditSliderF2* Slider_Video_Speed;
         BulkEditSliderF2* Slider_Video_Starttime;
         BulkEditTextCtrl* TextCtrl1;
+        BulkEditTextCtrl* TextCtrl_SampleSpacing;
         BulkEditTextCtrl* TextCtrl_Video_CropBottom;
         BulkEditTextCtrl* TextCtrl_Video_CropLeft;
         BulkEditTextCtrl* TextCtrl_Video_CropRight;
@@ -95,6 +97,7 @@ class VideoPanel: public xlEffectPanel
         wxStaticText* StaticText6;
         wxStaticText* StaticText7;
         wxStaticText* StaticText8;
+        wxStaticText* StaticText9;
         wxTextCtrl* TextCtrl2;
         xlVideoFilePickerCtrl* FilePicker_Video_Filename;
         //*)
@@ -139,6 +142,9 @@ protected:
 		static const long ID_CHECKBOX_Video_TransparentBlack;
 		static const long IDD_SLIDER_Video_TransparentBlack;
 		static const long ID_TEXTCTRL_Video_TransparentBlack;
+		static const long ID_STATICTEXT3;
+		static const long IDD_SLIDER_SampleSpacing;
+		static const long ID_TEXTCTRL_SampleSpacing;
 		//*)
 
 	public:

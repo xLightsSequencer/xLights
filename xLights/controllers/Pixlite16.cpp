@@ -958,7 +958,7 @@ bool Pixlite16::GetConfig()
     localAddr.AnyAddress();
     localAddr.Service(PIXLITE_PORT);
 
-    auto discovery = new wxDatagramSocket(localAddr, wxSOCKET_BROADCAST | wxSOCKET_NOWAIT);
+    auto discovery = new wxDatagramSocket(localAddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
     if (discovery == nullptr) {
         logger_base.error("Error initialising PixLite/PixCon datagram.");
@@ -1509,7 +1509,7 @@ bool Pixlite16::SendConfig(bool logresult) const
     localAddr.AnyAddress();
     localAddr.Service(PIXLITE_PORT);
 
-    auto config = new wxDatagramSocket(localAddr, wxSOCKET_NOWAIT);
+    auto config = new wxDatagramSocket(localAddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
     if (config == nullptr) {
         logger_base.error("Error initialising PixLite/PixCon config datagram.");

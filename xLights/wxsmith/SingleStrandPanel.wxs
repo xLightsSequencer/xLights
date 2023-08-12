@@ -88,7 +88,7 @@
 									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Number_Chases" subclass="BulkEditTextCtrl" variable="TextCtrl44" member="no">
 										<value>1</value>
 										<maxlength>3</maxlength>
-										<size>20,-1d</size>
+										<size>30,-1d</size>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -143,7 +143,7 @@
 									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_Mix1" subclass="BulkEditTextCtrl" variable="TextCtrl45" member="no">
 										<value>10</value>
 										<maxlength>4</maxlength>
-										<size>20,-1d</size>
+										<size>30,-1d</size>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -186,7 +186,6 @@
 											<object class="wxBitmapButton" name="ID_VALUECURVE_Chase_Rotations" subclass="BulkEditValueCurveButton" variable="BitmapButton_Chase_Rotations" member="yes">
 												<bitmap code="GetValueCurveNotSelectedBitmap()" />
 												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<option>1</option>
@@ -199,7 +198,7 @@
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Chase_Rotations" subclass="BulkEditTextCtrlF1" variable="TextCtrl43" member="no">
 										<value>1.0</value>
 										<maxlength>4</maxlength>
-										<size>20,-1d</size>
+										<size>30,-1d</size>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -210,9 +209,61 @@
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>1</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
+										<label>Offset</label>
+									</object>
+									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="IDD_SLIDER_Chase_Offset" subclass="BulkEditSliderF1" variable="Slider_Chase_Offset" member="yes">
+												<min>-5000</min>
+												<max>5000</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Chase_Offset" subclass="BulkEditValueCurveButton" variable="BitmapButton_Chase_OffsetVC" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+											</object>
+											<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_Chase_Offset" subclass="BulkEditTextCtrlF1" variable="TextCtrl_ChaseOffset" member="yes">
+										<value>0.0</value>
+										<maxlength>6</maxlength>
+										<size>30,-1d</size>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Chase_Offset" subclass="xlLockButton" variable="BitmapButton_Chase_Offset" member="yes">
+										<size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+									</object>
+									<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
@@ -236,6 +287,12 @@
 											<item>To Middle</item>
 											<item>Bounce to Middle</item>
 											<item>Bounce from Middle</item>
+											<item>Static Left-Right</item>
+											<item>Static Right-Left</item>
+											<item>Static Dual</item>
+											<item>Static From Middle</item>
+											<item>Static To Middle</item>
+											<item>Static Double-Ended</item>
 										</content>
 										<selection>0</selection>
 									</object>

@@ -146,6 +146,17 @@
       <AdditionalManifestFiles>xLightsApp64.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
+
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -203,6 +214,16 @@
     <ManifestResourceCompile>
       <ResourceOutputFileName>$(IntDir)$(TargetName)$(TargetExt).embed.manifest.res</ResourceOutputFileName>
     </ManifestResourceCompile>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\xlBaseApp.cpp" />
@@ -254,6 +275,7 @@
     <ClCompile Include="controllers\Falcon.cpp" />
     <ClCompile Include="controllers\FPP.cpp" />
     <ClCompile Include="controllers\FPPConnectDialog.cpp" />
+    <ClCompile Include="controllers\FPPUploadProgressDialog.cpp" />
     <ClCompile Include="controllers\HinksPix.cpp" />
     <ClCompile Include="controllers\HinksPixExportDialog.cpp" />
     <ClCompile Include="controllers\J1Sys.cpp" />
@@ -271,6 +293,8 @@
     <ClCompile Include="DuplicateDialog.cpp" />
     <ClCompile Include="effects\assist\SketchAssistPanel.cpp" />
     <ClCompile Include="effects\FX.cpp" />
+    <ClCompile Include="effects\GuitarEffect.cpp" />
+    <ClCompile Include="effects\GuitarPanel.cpp" />
     <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
     <ClCompile Include="effects\KaleidoscopePanel.cpp" />
     <ClCompile Include="effects\LinesEffect.cpp" />
@@ -301,17 +325,17 @@
     <ClCompile Include="GenerateLyricsDialog.cpp" />
     <ClCompile Include="GPURenderUtils.cpp" />
     <ClCompile Include="graphics\opengl\DrawGLUtils.cpp" />
-    <ClCompile Include="graphics\opengl\DrawGLUtils31.cpp" />
-    <ClCompile Include="graphics\opengl\Image.cpp" />
-    <ClCompile Include="graphics\opengl\Image_Loader.cpp" />
     <ClCompile Include="graphics\opengl\xlGLCanvas.cpp" />
-    <ClCompile Include="graphics\opengl\XlightsDrawable.cpp" />
+    <ClCompile Include="graphics\opengl\xlOGL3GraphicsContext.cpp" />
     <ClCompile Include="graphics\xlFontInfo.cpp" />
     <ClCompile Include="graphics\xlGraphicsAccumulators.cpp" />
     <ClCompile Include="graphics\xlMesh.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
+    <ClCompile Include="MetronomeLabelDialog.cpp" />
+    <ClCompile Include="models\DMX\DmxColorAbilityCMY.cpp" />
+    <ClCompile Include="utils\CurlManager.cpp" />
     <ClCompile Include="utils\ip_utils.cpp" />
     <ClCompile Include="utils\Curl.cpp" />
     <ClCompile Include="JukeboxPanel.cpp" />
@@ -736,6 +760,7 @@
     <ClInclude Include="controllers\Falcon.h" />
     <ClInclude Include="controllers\FPP.h" />
     <ClInclude Include="controllers\FPPConnectDialog.h" />
+    <ClInclude Include="controllers\FPPUploadProgressDialog.h" />
     <ClInclude Include="controllers\HinksPix.h" />
     <ClInclude Include="controllers\HinksPixExportDialog.h" />
     <ClInclude Include="controllers\J1Sys.h" />
@@ -757,6 +782,8 @@
     <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
     <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
     <ClInclude Include="effects\FX.h" />
+    <ClInclude Include="effects\GuitarEffect.h" />
+    <ClInclude Include="effects\GuitarPanel.h" />
     <ClInclude Include="effects\KaleidoscopeEffect.h" />
     <ClInclude Include="effects\KaleidoscopePanel.h" />
     <ClInclude Include="effects\LinesEffect.h" />
@@ -779,10 +806,10 @@
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="graphics\opengl\DrawGLUtils.h" />
-    <ClInclude Include="graphics\opengl\Image.h" />
-    <ClInclude Include="graphics\opengl\Image_Loader.h" />
+    <ClInclude Include="graphics\opengl\GL\glext.h" />
     <ClInclude Include="graphics\opengl\xlGLCanvas.h" />
     <ClInclude Include="graphics\opengl\XlightsDrawable.h" />
+    <ClInclude Include="graphics\opengl\xlOGL3GraphicsContext.h" />
     <ClInclude Include="graphics\tiny_obj_loader.h" />
     <ClInclude Include="graphics\xlFontInfo.h" />
     <ClInclude Include="graphics\xlGraphicsAccumulators.h" />
@@ -791,6 +818,9 @@
     <ClInclude Include="graphics\xlMesh.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
+    <ClInclude Include="MetronomeLabelDialog.h" />
+    <ClInclude Include="models\DMX\DmxColorAbilityCMY.h" />
+    <ClInclude Include="utils\CurlManager.h" />
     <ClInclude Include="utils\ip_utils.h" />
     <ClInclude Include="utils\Curl.h" />
     <ClInclude Include="LayoutUtils.h" />
@@ -1181,6 +1211,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\documentation\xlDo Commands.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -20,9 +20,10 @@ class wxFile;
 static const char* DMX_COLOR_TYPES_VALUES[] = {
     "RGBW",
     "ColorWheel",
+    "CMYW"
 };
-//static wxArrayString DMX_COLOR_TYPES(2, DMX_COLOR_TYPES_VALUES);
-static wxPGChoices DMX_COLOR_TYPES(wxArrayString(2, DMX_COLOR_TYPES_VALUES));
+//static wxArrayString DMX_COLOR_TYPES(3, DMX_COLOR_TYPES_VALUES);
+static wxPGChoices DMX_COLOR_TYPES(wxArrayString(3, DMX_COLOR_TYPES_VALUES));
 
 class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
@@ -33,9 +34,9 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         static void DrawInvalid(xlGraphicsProgram* pg, ModelScreenLocation* msl, bool is_3d, bool applyTransform);
 
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
-                                   int &BufferWi, int &BufferHi) const override;
+                                   int &BufferWi, int &BufferHi, int stagger) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, bool deep = false) const override;
+                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
 
         virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override {}
         virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;

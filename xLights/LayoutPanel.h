@@ -285,7 +285,7 @@ class LayoutPanel: public wxPanel
     public:
         bool IsNewModel(Model* m) const;
         void ClearUndo() { undoBuffer.clear(); }
-        void SaveEffects();
+        bool SaveEffects();
         void UpdatePreview();
         void SelectBaseObject(const std::string & name, bool highlight_tree = true);
         void SelectBaseObject(BaseObject *base_object, bool highlight_tree = true);
@@ -479,6 +479,7 @@ class LayoutPanel: public wxPanel
         std::string GetSelectedModelName() const;
         bool Is3d() const;
         void Set3d(bool is3d);
+        wxPropertyGrid* GetPropertyEditor() const { return propertyEditor; }
 
     private:
         int Col_Model = 0;

@@ -261,7 +261,7 @@
 					<label>Speed</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -308,10 +308,39 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText3" member="yes">
+					<label>Warm up frames</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxSlider" name="ID_SLIDER_Meteors_WamupFrames" subclass="BulkEditSlider" variable="Slider_WarmupFrames" member="yes" />
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Meteors_WamupFrames" subclass="BulkEditTextCtrl" variable="TextCtrl_WarmupFrames" member="no">
+					<value>0</value>
+					<maxlength>3</maxlength>
+					<size>20,-1d</size>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT_Meteors_XOffset" variable="StaticText1" member="yes">
 					<label>Horizontal Offset</label>
 				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>

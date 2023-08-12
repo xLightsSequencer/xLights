@@ -74,6 +74,8 @@ class PicturesPanel: public xlEffectPanel
 		BulkEditSliderF1* Slider_Pictures_FR;
 		BulkEditSliderF1* Slider_Pictures_Speed;
 		BulkEditTextCtrl* TextCtrl3;
+		BulkEditValueCurveButton* BitmapButton_PicturesXC;
+		BulkEditValueCurveButton* BitmapButton_PicturesYC;
 		wxPanel* PictureEndPositionPanel;
 		wxStaticText* StaticText160;
 		wxStaticText* StaticText161;
@@ -117,8 +119,10 @@ class PicturesPanel: public xlEffectPanel
 		static const long ID_SLIDER_PicturesXC;
 		static const long ID_CHECKBOX_Pictures_WrapX;
 		static const long IDD_TEXTCTRL_PicturesXC;
+		static const long ID_VALUECURVE_PicturesXC;
 		static const long ID_STATICTEXT_PicturesYC;
 		static const long IDD_TEXTCTRL_PicturesYC;
+		static const long ID_VALUECURVE_PicturesYC;
 		static const long ID_SLIDER_PicturesYC;
 		static const long ID_PANEL43;
 		static const long ID_STATICTEXT_PicturesEndXC;

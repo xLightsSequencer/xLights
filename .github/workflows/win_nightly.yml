@@ -11,10 +11,8 @@ jobs:
     runs-on: windows-2022
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@master
-      with:
-          submodules: 'true'
+    - name: Checkout xLights
+      run: git clone https://github.com/smeighan/xLights.git C:/xLights/ --depth 1  --depth=1 --shallow-submodules --recurse-submodules
 
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v1
@@ -26,28 +24,40 @@ jobs:
       run: pip install in_place  
       
     - name: generate nightly version number
-      working-directory: build_scripts\msw
+      working-directory: C:/xLights/build_scripts/msw
       run: python WriteNightlyVersionFiles.py  
      
     - name: Download wxWidgets
       run: 
-        git clone --depth=1 --shallow-submodules  --recurse-submodules -b master https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b master https://github.com/xLightsSequencer/wxWidgets C:/wxWidgets/
 
     - name: Build wxWidgets
-      working-directory: ..\wxWidgets\
+      working-directory: C:/wxWidgets/
       run: msbuild /m .\build\msw\wx_vc16.sln /p:Configuration="Release" /p:Platform="x64"
       
     - name: Build All
       shell: cmd
-      working-directory: build_scripts\msw
+      working-directory: C:/xLights/build_scripts/msw
       run: call build_VS_x64_skip_libltc.cmd
       
     - name: Build Installer
-      working-directory: build_scripts\msw
+      working-directory: C:/xLights/build_scripts/msw
       run: ISCC.exe xLights_4_64bit_VS.iss
 
     - name: Upload Installer
       uses: actions/upload-artifact@v2
       with:
         name: xLights_x64_Installer
-        path: 'build_scripts\msw\output\**'
+        path: 'C:\xLights\build_scripts\msw\output\**'
+        
+    - name: Create prerelease
+      if: github.ref == 'refs/heads/master'
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: true
+        automatic_release_tag: "nightly"
+        title: "${{ steps.version.outputs.version }}"
+        files: |        
+          C:/xLights/build_scripts/msw/output/*.exe
+

@@ -1051,15 +1051,15 @@ std::vector<VixenColor> Vixen3::ProcessColorData(wxXmlNode* n)
     return (vColor);
 }
 
-std::list<std::string> Vixen3::GetModelsWithEffects() const
+std::list<std::pair<std::string, int>> Vixen3::GetModelsWithEffects() const
 {
-    std::list<std::string> res;
+    std::list<std::pair<std::string, int>> res;
 
     for (auto it: _effectData)
     {
         if (it.second.size() > 0)
         {
-            res.push_back(it.first);
+            res.emplace_back(it.first, it.second.size());
         }
     }
 
