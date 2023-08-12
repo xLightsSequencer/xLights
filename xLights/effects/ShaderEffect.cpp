@@ -1153,6 +1153,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         wxDateTime dt = wxDateTime::Now();
         si->SetUniform4f("DATE", dt.GetYear(), dt.GetMonth() + 1, dt.GetDay(), dt.GetHour() * 3600 + dt.GetMinute() * 60 + dt.GetSecond());
     }
+    si->SetUniformInt("NUMCOLORS", buffer.GetColorCount());
     si->SetUniformInt("PASSINDEX", 0);
     si->SetUniformInt("FRAMEINDEX", _timeMS / buffer.frameTimeInMs);
     si->SetUniform1f("clearBuffer", SettingsMap.GetBool("CHECKBOX_OverlayBkg", false) ? 1.0 : 0.0);
@@ -1598,6 +1599,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     "uniform vec2 RENDERSIZE;\n"
     "uniform bool clearBuffer;\n"
     "uniform bool resetNow;\n"
+    "uniform int NUMCOLORS;\n"
     "uniform int PASSINDEX;\n"
     "uniform int FRAMEINDEX;\n"
     "uniform vec2 XL_OFFSET;\n"
