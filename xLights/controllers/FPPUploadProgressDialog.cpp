@@ -46,6 +46,7 @@ FPPUploadProgressDialog::FPPUploadProgressDialog(wxWindow* parent,wxWindowID id)
 
     Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&FPPUploadProgressDialog::OnCancelButtonClick);
     //*)
+    SetEscapeId(ID_BUTTON1);
     
     FlexGridSizer1->SetSizeHints(this);
 }
@@ -59,6 +60,8 @@ FPPUploadProgressDialog::~FPPUploadProgressDialog()
 
 void FPPUploadProgressDialog::OnCancelButtonClick(wxCommandEvent& event)
 {
+    CancelButton->SetLabelText("Canceling...");
+    CancelButton->Enable(false);
     cancelled = true;
 }
 
