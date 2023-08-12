@@ -754,6 +754,9 @@ void FPPConnectDialog::LoadSequences()
 
 void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 {
+    Button_Upload->Enable(false);
+    AddFPPButton->Enable(false);
+
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
@@ -1015,7 +1018,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     while (CurlManager::INSTANCE.processCurls()) {
                         wxYield();
                     }
-                    cancelled = prgs.isCancelled();
+                    cancelled |= prgs.isCancelled();
                 }
             }
             delete seq;
@@ -1063,6 +1066,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         EndDialog(wxID_CLOSE);
 #endif
     }
+    Button_Upload->Enable(true);
+    AddFPPButton->Enable(true);
 }
 
 void FPPConnectDialog::CreateDriveList()
