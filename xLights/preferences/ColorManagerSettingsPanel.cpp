@@ -21,10 +21,10 @@
 #include <wx/preferences.h>
 #include "../xLightsMain.h"
 #include "../sequencer/MainSequencer.h"
-
-
+#include "../UtilFunctions.h"
 
 //(*IdInit(ColorManagerSettingsPanel)
+const long ColorManagerSettingsPanel::ID_CHECKBOX1 = wxNewId();
 const long ColorManagerSettingsPanel::ID_BUTTON_IMPORT = wxNewId();
 const long ColorManagerSettingsPanel::ID_BUTTON_EXPORT = wxNewId();
 const long ColorManagerSettingsPanel::ID_BUTTON_RESET = wxNewId();
@@ -39,6 +39,7 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 {
 	//(*Initialize(ColorManagerSettingsPanel)
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxStaticBoxSizer* StaticBoxSizer1;
@@ -66,6 +67,11 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 	StaticBoxSizer3->Add(Sizer_Layout_Tab, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(StaticBoxSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+	CheckBox_SuppressDarkMode = new wxCheckBox(this, ID_CHECKBOX1, _("Suppress Dark Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_SuppressDarkMode->SetValue(false);
+	FlexGridSizer2->Add(CheckBox_SuppressDarkMode, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 5, 0, 0);
 	ButtonImport = new wxButton(this, ID_BUTTON_IMPORT, _("Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
 	FlexGridSizer7->Add(ButtonImport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -83,10 +89,14 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 	Connect(ID_BUTTON_RESET,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerSettingsPanel::OnButton_ResetClick);
 	//*)
 
+    #ifndef __WXMSW__
+    FlexGridSizer2->Show(false);
+    #endif
+
     #ifdef _MSC_VER
     MSWDisableComposited();
     #endif
-    
+
     AddButtonsToDialog();
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -101,12 +111,18 @@ ColorManagerSettingsPanel::~ColorManagerSettingsPanel()
 }
 
 bool ColorManagerSettingsPanel::TransferDataToWindow() {
-    return true;
-}
-bool ColorManagerSettingsPanel::TransferDataFromWindow() {
+#ifdef __WXMSW__
+    CheckBox_SuppressDarkMode->SetValue(IsSuppressDarkMode());
+#endif
     return true;
 }
 
+bool ColorManagerSettingsPanel::TransferDataFromWindow() {
+#ifdef __WXMSW__
+    SetSuppressDarkMode(CheckBox_SuppressDarkMode->IsChecked());
+#endif
+    return true;
+}
 
 void ColorManagerSettingsPanel::UpdateButtonColors()
 {
@@ -172,7 +188,6 @@ void ColorManagerSettingsPanel::SetButtonColor(wxBitmapButton* btn, const xlColo
     SetButtonColor(btn, c);
 }
 
-
 void ColorManagerSettingsPanel::RefreshColors()
 {
     frame->color_mgr.RefreshColors();
@@ -235,4 +250,11 @@ void ColorManagerSettingsPanel::ColorButtonSelected(wxCommandEvent& event) {
         frame->color_mgr.SetDirty();
     }
 
+}
+
+void ColorManagerSettingsPanel::OnCheckBox_SuppressDarkModeClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
 }

@@ -16,6 +16,8 @@
 #include "../xLightsMain.h"
 #include <log4cpp/Category.hh>
 
+const long TimeLine::ID_ZOOMSEL = wxNewId();
+
 wxDEFINE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_CHANGED, wxCommandEvent);
 
@@ -48,6 +50,9 @@ void TimeLine::mouseRightDown(wxMouseEvent& event)
     if (_rightClickPosition > GetTimeLength()) return;
 
     wxMenu mnuLayer;
+    if (mSelectedPlayMarkerEndMS != mSelectedPlayMarkerStartMS) {
+        mnuLayer.Append(ID_ZOOMSEL, "Zoom to Selection");
+    }
     for (int i = 0; i < 10; ++i)
     {
         auto mnu = mnuLayer.Append(i+1, wxString::Format("%i", i));
@@ -88,7 +93,10 @@ void TimeLine::OnPopup(wxCommandEvent& event)
 {
     int id = event.GetId() - 1;
 
-    if (id == 199)
+    if (id + 1 == ID_ZOOMSEL) {
+        ZoomSelection();
+    }
+    else if (id == 199)
     {
         ClearTags();
         RaiseSequenceChange();
@@ -317,7 +325,7 @@ void TimeLine::RaiseChangeTimeline()
 {
     Refresh();
     Update();
-    TimelineChangeArguments *tla = new TimelineChangeArguments(mZoomLevel,mStartPixelOffset,mCurrentPlayMarker);
+    TimelineChangeArguments* tla = new TimelineChangeArguments(mZoomLevel, mStartPixelOffset, mCurrentPlayMarkerMS);
     wxCommandEvent eventTimeLineChanged(EVT_TIME_LINE_CHANGED);
     eventTimeLineChanged.SetClientData((void*)tla);
     eventTimeLineChanged.SetInt(0);
@@ -386,6 +394,12 @@ void TimeLine::SetSelectedPositionStart(int pos, bool reset_end)
     }
     mZoomMarkerMS = mSelectedPlayMarkerStartMS;
     Refresh(false);
+
+    mCurrentPlayMarker = mSelectedPlayMarkerStart;
+    mCurrentPlayMarkerMS = mSelectedPlayMarkerStartMS;
+
+    // This draws the new start time
+    RaiseChangeTimeline();
 }
 
 void TimeLine::SetSelectedPositionStartMS(int time)
@@ -684,6 +698,30 @@ void TimeLine::ZoomIn()
     }
 }
 
+void TimeLine::ZoomSelection()
+{
+    // how much time is selected
+    int sel = mSelectedPlayMarkerEndMS - mSelectedPlayMarkerStartMS;
+
+    // set the zoom level so it all shows
+    int zoom = 1;
+    for (int z = 0; z < mMaxZoomLevel; ++z) {
+        if (GetTotalViewableTimeMS(z) > sel) {
+            zoom = z;
+            break;
+        }
+    }
+
+    SetZoomLevel(zoom);
+
+    // set start time to the start of the selection but centre it
+    int offset = (GetTotalViewableTimeMS(zoom) - sel) / 2;
+    SetStartTimeMS(std::max(0, mSelectedPlayMarkerStartMS - offset));
+
+
+    RaiseChangeTimeline();
+}
+
 int TimeLine::GetPixelOffsetFromStartTime()
 {
     float nMajorHashs = (float)mStartTimeMS / (float)TimePerMajorTickInMS();
@@ -795,6 +833,13 @@ int TimeLine::GetTotalViewableTimeMS()
     float width = (float)GetSize().x;
     float majorTicks = width / (float)PIXELS_PER_MAJOR_HASH;
     return (int)((majorTicks * (float)TimePerMajorTickInMS()));
+}
+
+int TimeLine::GetTotalViewableTimeMS(int zoom)
+{
+    float width = (float)GetSize().x;
+    float majorTicks = width / (float)PIXELS_PER_MAJOR_HASH;
+    return (int)((majorTicks * (float)TimePerMajorTickInMS(zoom)));
 }
 
 int TimeLine::GetZoomLevelValue() const
@@ -1045,6 +1090,11 @@ void TimeLine::DrawRectangle(wxDC& dc, int x1, int y1, int x2, int y2)
 int TimeLine::TimePerMajorTickInMS()
 {
     return (int)((double)ZoomLevelValues[mZoomLevel] * ((double)1000.0/(double)mFrequency));
+}
+
+int TimeLine::TimePerMajorTickInMS(int zoom)
+{
+    return (int)((double)ZoomLevelValues[std::min(GetMaxZoomLevel(), zoom)] * ((double)1000.0 / (double)mFrequency));
 }
 
 void TimeLine::GetViewableTimeRange(int &StartTime, int &EndTime)

@@ -924,10 +924,10 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
         if (x == (numLayers-1)) {
             // for the model "blend" layer, use the "Single Line" style so none of the nodes will overlap with others
             // in the renderbuff which can occur if the group defaults to per-preview or similar
-            model->InitRenderBufferNodes("Single Line", "2D", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
+            model->InitRenderBufferNodes("Single Line", "2D", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt, layers[x]->stagger);
             layers[x]->bufferType = "Single Line";
         } else {
-            model->InitRenderBufferNodes("Default", "2D", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
+            model->InitRenderBufferNodes("Default", "2D", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt, layers[x]->stagger);
             layers[x]->bufferType = "Default";
         }
         layers[x]->camera = "2D";
@@ -958,6 +958,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
         layers[x]->ypivotValueCurve = "";
         layers[x]->BufferOffsetX = 0;
         layers[x]->BufferOffsetY = 0;
+        layers[x]->stagger = 0;
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->bufferTransform, isNode);
         GPURenderUtils::setupRenderBuffer(this, &layers[x]->buffer);
     }
@@ -970,7 +971,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
         wxASSERT(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame);
         buf->SetFrameTimeInMs(timing);
-        m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
+        m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
         GPURenderUtils::setupRenderBuffer(this, buf);
         layers[layer]->shallowModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
@@ -984,7 +985,7 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
         wxASSERT(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame);
         buf->SetFrameTimeInMs(timing);
-        m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
+        m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
         GPURenderUtils::setupRenderBuffer(this, buf);
         layers[layer]->deepModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
@@ -2034,6 +2035,7 @@ static const std::string SLIDER_YPivot("SLIDER_YPivot");
 
 static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
+static const std::string SPINCTRL_BufferStagger("SPINCTRL_BufferStagger");
 static const std::string CHOICE_PerPreviewCamera("CHOICE_PerPreviewCamera");
 static const std::string CHOICE_BufferTransform("CHOICE_BufferTransform");
 static const std::string CUSTOM_SubBuffer("CUSTOM_SubBuffer");
@@ -2287,8 +2289,10 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
     inf->camera = settingsMap.Get(CHOICE_PerPreviewCamera, "2D");
     inf->transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
+    inf->stagger = settingsMap.GetInt(SPINCTRL_BufferStagger, 0);
 
     std::string type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
+    int stagger = settingsMap.GetInt(SPINCTRL_BufferStagger, 0);
     const std::string &camera = settingsMap.Get(CHOICE_PerPreviewCamera, "2D");
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
     const std::string &subBuffer = settingsMap.Get(CUSTOM_SubBuffer, STR_EMPTY);
@@ -2312,6 +2316,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->camera != camera ||
         inf->bufferTransform != transform ||
         inf->subBuffer != subBuffer ||
+        inf->stagger != stagger ||
         inf->blurValueCurve != blurValueCurve ||
         inf->sparklesValueCurve != sparklesValueCurve ||
         inf->zoomValueCurve != zoomValueCurve ||
@@ -2362,10 +2367,10 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
         inf->BufferOffsetX = 0;
         inf->BufferOffsetY = 0;
-        model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, go_deep);
+        model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->stagger, go_deep);
         if (origNodeCount != 0 && origNodeCount != inf->buffer.Nodes.size()) {
             inf->buffer.Nodes.clear();
-            model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, go_deep);
+            model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->stagger, go_deep);
         }
 
         ComputeSubBuffer(subBuffer, inf->buffer.Nodes,
@@ -2407,6 +2412,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->pivotpointyValueCurve = pivotpointyValueCurve;
         inf->xpivotValueCurve = xpivotValueCurve;
         inf->ypivotValueCurve = ypivotValueCurve;
+        inf->stagger = stagger;
 
         // we create the buffer oversized to prevent issues
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->bufferTransform);
@@ -2423,7 +2429,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                         std::string ntype = "Default"; // type.substr(10, type.length() - 10);
                         int bw, bh;
                         it->Nodes.clear();
-                        (*it_m)->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
+                        (*it_m)->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh, 0);
                         if (bw == 0)
                             bw = 1; // zero sized buffers are a problem
                         if (bh == 0)
@@ -2443,7 +2449,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                         std::string ntype = type.substr(10, type.length() - 10);
                         int bw, bh;
                         it->Nodes.clear();
-                        gp->ActiveModels()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh);
+                        gp->ActiveModels()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh, 0);
                         if (bw == 0)
                             bw = 1; // zero sized buffers are a problem
                         if (bh == 0)
@@ -2834,9 +2840,10 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
     if (layer->XRotationValueCurve.IsActive()) {
         settings.xrotation = layer->XRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
+    settings.xpivot = layer->xpivot;
+    settings.ypivot = layer->ypivot;
     if (settings.xrotation != 0 && settings.xrotation != 360) {
         GPURenderUtils::waitForRenderCompletion(&layer->buffer);
-        settings.xpivot = layer->xpivot;
         if (layer->XPivotValueCurve.IsActive()) {
             settings.xpivot = layer->XPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
@@ -2846,7 +2853,6 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
         settings.yrotation = layer->YRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
     if (settings.yrotation != 0 && settings.yrotation != 360) {
-        settings.ypivot = layer->ypivot;
         if (layer->YPivotValueCurve.IsActive()) {
             settings.ypivot = layer->YPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
@@ -2885,22 +2891,27 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
     if (layer->PivotPointYValueCurve.IsActive()) {
         settings.pivotpointy = layer->PivotPointYValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
+    bool willDoRZ = (settings.xrotation != 0 && settings.xrotation != 360);
+    willDoRZ |= (settings.yrotation != 0 && settings.yrotation != 360);
+    willDoRZ |= (settings.zrotation != 0.0 || settings.zoom != 1.0);
     
-    if (!GPURenderUtils::RotoZoom(&layer->buffer, settings)) {
-        for (auto &c : layer->rotationorder) {
-            switch(c) {
-            case 'X':
-                RotateX(layer->buffer, settings);
-                break;
-            case 'Y':
-                RotateY(layer->buffer, settings);
-                break;
-            case 'Z':
-                RotateZAndZoom(layer->buffer, settings);
-                break;
+    if (willDoRZ) {
+        if (!GPURenderUtils::RotoZoom(&layer->buffer, settings)) {
+            for (auto &c : layer->rotationorder) {
+                switch(c) {
+                case 'X':
+                    RotateX(layer->buffer, settings);
+                    break;
+                case 'Y':
+                    RotateY(layer->buffer, settings);
+                    break;
+                case 'Z':
+                    RotateZAndZoom(layer->buffer, settings);
+                    break;
+                }
             }
         }
-    }
+    }    
 }
 
 bool PixelBufferClass::IsVariableSubBuffer(int layer) const
@@ -2938,7 +2949,7 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
     layers[layer]->buffer.Nodes.clear();
     layers[layer]->BufferOffsetX = 0;
     layers[layer]->BufferOffsetY = 0;
-    model->InitRenderBufferNodes(type, camera, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
+    model->InitRenderBufferNodes(type, camera, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, layers[layer]->stagger);
     ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt,
                      layers[layer]->BufferOffsetX, layers[layer]->BufferOffsetY,
                      offset, layers[layer]->buffer.GetStartTimeMS(), layers[layer]->buffer.GetEndTimeMS());

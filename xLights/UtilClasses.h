@@ -15,8 +15,10 @@
 #include <algorithm>
 
 #include <wx/filepicker.h>
+#include "UtilFunctions.h"
 
 class EffectManager;
+
 
 class MapStringString: public std::map<std::string,std::string> {
 public:
@@ -25,7 +27,7 @@ public:
     virtual ~MapStringString() {}
 
     const std::string &operator[](const std::string &key) const {
-        return Get(key, EMPTY_STRING);
+        return Get(key, xlEMPTY_STRING);
     }
     std::string &operator[](const std::string &key) {
         return std::map<std::string, std::string>::operator[](key);
@@ -104,7 +106,7 @@ public:
 
     const std::string& operator[](const char* key) const
     {
-        return Get(key, EMPTY_STRING);
+        return Get(key, xlEMPTY_STRING);
     }
     std::string& operator[](const char* ckey)
     {
@@ -205,8 +207,6 @@ private:
         s.erase(s.begin(), std::find_if_not(s.begin(), s.end(), [](char c) { return std::isspace(c); }));
         s.erase(std::find_if_not(s.rbegin(), s.rend(), [](char c) { return std::isspace(c); }).base(), s.end());
     }
-
-    static const std::string EMPTY_STRING;
 };
 
 class SettingsMap: public MapStringString {

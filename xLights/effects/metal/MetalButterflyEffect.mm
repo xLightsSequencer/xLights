@@ -127,8 +127,8 @@ void MetalButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap
         rdata.colors[x] = buffer.palette.GetColor(x).asChar4();
     }
 
-
-    if (!data->Render(Style, rdata, buffer)) {
-        ButterflyEffect::Render(effect, SettingsMap, buffer);
+    if (data->Render(Style, rdata, buffer)) {
+        return;
     }
+    ButterflyEffect::Render(effect, SettingsMap, buffer);
 }

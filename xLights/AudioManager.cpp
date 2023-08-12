@@ -1512,9 +1512,10 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
             logger_base.warn("DoPolyphonicTranscription: Polyphonic Transcription threw an error getting the remaining features.");
         }
 
-        //done with VAMP Polyphonic Transcriber
-        delete pt;
+        // done with VAMP Polyphonic Transcriber ... but dont delete it as the VAMP code manages its lifetime
+        // delete pt;
     }
+
     _polyphonicTranscriptionDone = true;
     logger_base.info("DoPolyphonicTranscription: Polyphonic transcription completed in %ld.", sw.Time());
 }
@@ -3141,7 +3142,13 @@ xLightsVamp::xLightsVamp()
 	_loader = Vamp::HostExt::PluginLoader::getInstance();
 }
 
-xLightsVamp::~xLightsVamp() {}
+xLightsVamp::~xLightsVamp()
+{
+    while (_loadedPlugins.size() > 0) {
+        delete _loadedPlugins.back();
+        _loadedPlugins.pop_back();
+    }
+}
 
 std::string AudioManager::Hash()
 {

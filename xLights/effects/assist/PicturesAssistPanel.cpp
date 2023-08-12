@@ -248,7 +248,7 @@ void PicturesAssistPanel::OnImageSize(wxCommandEvent& event)
     mGridCanvas->GetModel()->GetBufferSize(mGridCanvas->GetEffect()->GetSettings().Get("T_CHOICE_BufferStyle", "Default"),
                                            mGridCanvas->GetEffect()->GetSettings().Get("T_CHOICE_PerPreviewCamera", "2D"),
                                            mGridCanvas->GetEffect()->GetSettings().Get("T_CHOICE_BufferTransform", "None"),
-                                           bw, bh);
+                                           bw, bh, mGridCanvas->GetEffect()->GetSettings().GetInt("B_SPINCTRL_BufferStagger", 0));
     StaticText_ModelSize->SetLabelText(wxString::Format("Model Size: %d x %d", bw, bh));
 }
 

@@ -33,6 +33,7 @@ const long SearchPanel::ID_TEXTCTRL_SEARCH = wxNewId();
 const long SearchPanel::ID_BUTTON_SEARCH_FIND = wxNewId();
 const long SearchPanel::ID_LISTCTRL_Results = wxNewId();
 const long SearchPanel::ID_BUTTON_SELECT_ALL = wxNewId();
+const long SearchPanel::ID_STATICTEXT_COUNT = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SearchPanel,wxPanel)
@@ -45,7 +46,7 @@ SearchPanel::SearchPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	//(*Initialize(SearchPanel)
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(600,600), wxTAB_TRAVERSAL, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(574,376), wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	SetMinSize(wxSize(-1,-1));
 	Hide();
 	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -69,6 +70,9 @@ SearchPanel::SearchPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	FlexGridSizer1->Add(ListCtrl_Results, 1, wxALL|wxEXPAND, 5);
 	ButtonSelectAll = new wxButton(this, ID_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL"));
 	FlexGridSizer1->Add(ButtonSelectAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Count = new wxStaticText(this, ID_STATICTEXT_COUNT, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_COUNT"));
+	FlexGridSizer1->Add(StaticText_Count, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	SetSizer(FlexGridSizer1);
 	Layout();
@@ -207,8 +211,8 @@ void SearchPanel::FindSettings()
             auto effs = elay->GetEffects();
             for (auto* eff : effs) {
                 if (ContainsSetting(eff, search, regex, value)) {
-                    ListCtrl_Results->InsertItem(ListCtrl_Results->GetItemCount(), wxString::Format("%s [%s,%s] %s %s", value, FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname));
-                    ListCtrl_Results->SetItemPtrData(ListCtrl_Results->GetItemCount() - 1, (wxUIntPtr)eff);
+                    auto id = ListCtrl_Results->InsertItem(ListCtrl_Results->GetItemCount(), wxString::Format("%s [%s,%s] %s %s", value, FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname));
+                    ListCtrl_Results->SetItemPtrData(id, (wxUIntPtr)eff);
                 }
             }
         }
@@ -224,8 +228,8 @@ void SearchPanel::FindSettings()
                             auto effs = elay->GetEffects();
                             for (auto* eff : effs) {
                                 if (ContainsSetting(eff, search, regex, value)) {
-                                    ListCtrl_Results->InsertItem(ListCtrl_Results->GetItemCount() , wxString::Format("%s [%s,%s] %s %s", value, FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname));
-                                    ListCtrl_Results->SetItemPtrData(ListCtrl_Results->GetItemCount() - 1, (wxUIntPtr)eff);
+                                    auto id = ListCtrl_Results->InsertItem(ListCtrl_Results->GetItemCount() , wxString::Format("%s [%s,%s] %s %s", value, FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), eff->GetEffectName(), tmpname));
+                                    ListCtrl_Results->SetItemPtrData(id, (wxUIntPtr)eff);
                                 }
                             }
                         }
@@ -234,7 +238,7 @@ void SearchPanel::FindSettings()
             }
         }
     }
-
+    StaticText_Count->SetLabel(wxString::Format("%d Effects Found", ListCtrl_Results->GetItemCount()));
     if (ListCtrl_Results->GetItemCount() == 1) {
         ListCtrl_Results->SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
         SelectEffects();

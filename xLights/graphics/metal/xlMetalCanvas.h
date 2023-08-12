@@ -64,6 +64,7 @@ protected:
     size_t mWindowHeight;
     int mWindowResized;
     bool mIsInitialized = false;
+    bool firstDraw = true;
     wxString mName;
     
     MSAATextureInfo *msaaTextures[3] = {nullptr, nullptr, nullptr};

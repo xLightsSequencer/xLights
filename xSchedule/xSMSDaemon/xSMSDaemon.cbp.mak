@@ -19,23 +19,23 @@ LIB =
 LDFLAGS = 
 
 INC_LINUX_DEBUG = $(INC) -Iinclude -I../xSchedule/xSMSDaemon -I../include -I../../xLights
-CFLAGS_LINUX_DEBUG =  -Wall -g -fPIC `wx-config --version=3.1 --cflags` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags log4cpp` `curl-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DEXCLUDE_COMMAND_VALIDATION -D__WXDEBUG__ -D__cdecl=""
+CFLAGS_LINUX_DEBUG =  -Wall -g -fPIC -std=gnu++17 `wx-config --version=3.3 --cflags` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags log4cpp` `curl-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DEXCLUDE_COMMAND_VALIDATION -D__WXDEBUG__ -D__cdecl=""
 RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
 LIBDIR_LINUX_DEBUG = $(LIBDIR)
 LIB_LINUX_DEBUG = $(LIB)
-LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lX11 -lz -lzstd `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl2-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` `curl-config --libs` -lexpat -lporttime -lportmidi -rdynamic $(LDFLAGS)
+LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lX11 -lz -lzstd `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl2-config --libs` `wx-config --version=3.3 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` `curl-config --libs` -lexpat -lporttime -lportmidi -rdynamic $(LDFLAGS)
 OBJDIR_LINUX_DEBUG = .objs_debug
 DEP_LINUX_DEBUG = 
 OUT_LINUX_DEBUG = ../../bin/xSMSDaemon.so
 
 INC_LINUX_RELEASE = $(INC) -Iinclude -I../xSchedule/xSMSDaemon -I../include -I../../xLights
-CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -Wall -fPIC `wx-config --version=3.1 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags log4cpp` `curl-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -DEXCLUDE_COMMAND_VALIDATION -D__cdecl='' -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
+CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -Wall -fPIC -std=gnu++17 `wx-config --version=3.3 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags log4cpp` `curl-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -DEXCLUDE_COMMAND_VALIDATION -D__cdecl='' -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 LIBDIR_LINUX_RELEASE = $(LIBDIR)
 LIB_LINUX_RELEASE = $(LIB)
-LDFLAGS_LINUX_RELEASE =  -lGL -lGLU -lglut -ldl -lX11 -lz -lzstd `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl2-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` `curl-config --libs` -lexpat -lporttime -lportmidi -rdynamic $(LDFLAGS)
+LDFLAGS_LINUX_RELEASE =  -lGL -lGLU -lglut -ldl -lX11 -lz -lzstd `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl2-config --libs` `wx-config --version=3.3 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` `curl-config --libs` -lexpat -lporttime -lportmidi -rdynamic $(LDFLAGS)
 OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../../bin/xSMSDaemon.so
@@ -174,7 +174,7 @@ clean_linux_release:
 
 MagicWord.cpp: MagicWord.h SMSMessage.h xSMSDaemonApp.h
 
-SMSMessage.h: Curl.h ../../xLights/UtilFunctions.h
+SMSMessage.h: ../../xLights/UtilFunctions.h
 
 MagicWordDialog.cpp: MagicWordDialog.h MagicWord.h
 
@@ -188,15 +188,15 @@ xSMSDaemonMain.h: SMSService.h ../../xLights/xLightsTimer.h SMSDaemonOptions.h x
 
 SMSService.h: SMSMessage.h SMSDaemonOptions.h MagicWord.h
 
-xSMSDaemonMain.cpp: Curl.h ../../xLights/xLightsVersion.h xSMSDaemonMain.h SMSSettingsDialog.h SMSDaemonOptions.h SMSService.h TestMessagesDialog.h Bandwidth.h voip_ms.h Twilio.h
+xSMSDaemonMain.cpp: ../../xLights/xLightsVersion.h xSMSDaemonMain.h SMSSettingsDialog.h SMSDaemonOptions.h SMSService.h TestMessagesDialog.h Bandwidth.h voip_ms.h Twilio.h
 
-Bandwidth.h: Curl.h ../../xLights/UtilFunctions.h SMSMessage.h SMSService.h
+Bandwidth.h: ../../xLights/UtilFunctions.h SMSMessage.h SMSService.h
 
-voip_ms.h: Curl.h ../../xLights/UtilFunctions.h SMSMessage.h SMSService.h
+voip_ms.h: ../../xLights/UtilFunctions.h SMSMessage.h SMSService.h
 
-Twilio.h: Curl.h ../../xLights/UtilFunctions.h SMSMessage.h SMSService.h
+Twilio.h: ../../xLights/UtilFunctions.h SMSMessage.h SMSService.h
 
-../../xLights/UtilFunctions.cpp: ../../xLights/UtilFunctions.h ../../xLights/xLightsVersion.h ../../xLights/ExternalHooks.h Curl.h
+../../xLights/UtilFunctions.cpp: ../../xLights/UtilFunctions.h ../../xLights/xLightsVersion.h ../../xLights/ExternalHooks.h
 
 ../../xLights/ExternalHooks.h: ../../xLights/Color.h
 

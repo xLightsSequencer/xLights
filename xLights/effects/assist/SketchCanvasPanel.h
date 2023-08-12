@@ -11,7 +11,7 @@ class SketchEffectSketch;
 
 class wxBitmap;
 
-enum SketchCanvasPathState {
+enum class SketchCanvasPathState : int {
     Undefined,
     DefineStartPoint,
     LineToNewPoint,
@@ -28,8 +28,8 @@ class ISketchCanvasParent
 public:
     virtual ~ISketchCanvasParent() {}
     
-    virtual SketchEffectSketch& GetSketch() = 0;
-    virtual int GetSelectedPathIndex() = 0;
+    [[nodiscard]] virtual SketchEffectSketch& GetSketch() = 0;
+    [[nodiscard]] virtual int GetSelectedPathIndex() = 0;
     virtual void NotifySketchUpdated() = 0;
     virtual void NotifySketchPathsUpdated() = 0;
     virtual void NotifyPathStateUpdated(SketchCanvasPathState state) = 0;
@@ -43,7 +43,7 @@ public:
                       const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~SketchCanvasPanel() = default;
 
-    bool AcceptsFocus() const override
+    [[nodiscard]] bool AcceptsFocus() const override
     {
         return true;
     }
@@ -51,17 +51,18 @@ public:
     void clearBackgroundBitmap();
     void setBackgroundBitmap(std::unique_ptr<wxBitmap> bm);
     void UpdatePathState(SketchCanvasPathState state);
-    void ResetHandlesState(SketchCanvasPathState pathState = Undefined);
+    void ResetHandlesState(SketchCanvasPathState pathState = SketchCanvasPathState::Undefined);
     void UpdateHandlesForPath(long pathIndex);
-    void ClosePath()
-    {
-        m_pathClosed = true;
-    }
+    [[nodiscard]] SketchCanvasPathState GetPathState() { return m_pathState; }
+
+    void Changed();
+    void ClosePath();
+    void DrawGrid(bool val) { m_drawGrid = val; }
 
     void OnSketchKeyDown(wxKeyEvent& event); // for SketchAssistPanel access
 
 private:
-    enum HandlePointType { Point,
+    enum class HandlePointType : int{ Point,
                            QuadraticControlPt,
                            QuadraticCurveEnd,
                            CubicControlPt1,
@@ -69,13 +70,13 @@ private:
                            CubicCurveEnd };
 
     struct HandlePoint {
-        HandlePoint(wxPoint2DDouble _pt, HandlePointType _handlePointType = Point) :
+        HandlePoint(wxPoint2DDouble _pt, HandlePointType _handlePointType = HandlePointType::Point) :
             pt(_pt),
             handlePointType(_handlePointType)
         {}
         wxPoint2DDouble pt;
-        bool state = false;
-        HandlePointType handlePointType = Point;
+        bool state {false};
+        HandlePointType handlePointType {HandlePointType::Point};
     };
 
     DECLARE_EVENT_TABLE()
@@ -88,28 +89,30 @@ private:
     void OnSketchMouseWheel(wxMouseEvent& event);
     void OnSketchMidDown(wxMouseEvent& event);
 
-    wxPoint2DDouble UItoNormalized(const wxPoint2DDouble& pt) const;
-    wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt) const;
-    static bool IsControlPoint(const HandlePoint& handlePt);
+    [[nodiscard]] wxPoint2DDouble UItoNormalized(const wxPoint2DDouble& pt) const;
+    [[nodiscard]] wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt) const;
+    [[nodiscard]] wxPoint NormalizedToUI2(const wxPoint2DDouble& pt) const;
+    [[nodiscard]] static bool IsControlPoint(const HandlePoint& handlePt);
     void UpdatePathFromHandles(long handleIndex);
     void UpdatePathFromHandles();
-    std::shared_ptr<SketchEffectPath> CreatePathFromHandles() const;
-    bool HandleHoveredOrGrabbed() const;
+    [[nodiscard]] std::shared_ptr<SketchEffectPath> CreatePathFromHandles() const;
+    [[nodiscard]] bool HandleHoveredOrGrabbed() const;
 
     // Handles and PathState are for the currently active path
     std::vector<HandlePoint> m_handles;
-    size_t m_grabbedHandleIndex = -1;
-    bool m_pathHoveredOrGrabbbed = false;
-    bool m_pathGrabbed = false;
+    size_t m_grabbedHandleIndex = -1; //unsigned type so wrap-around
+    bool m_pathHoveredOrGrabbed {false};
+    bool m_pathGrabbed {false};
     wxPoint2DDouble m_pathGrabbedPos;
-    SketchCanvasPathState m_pathState = Undefined;
-    bool m_pathClosed = false;
-
+    SketchCanvasPathState m_pathState {SketchCanvasPathState::Undefined};
+    bool m_pathClosed {false};
+    bool m_drawGrid {false};
+    SketchCanvasPathState m_ClosedState {SketchCanvasPathState::LineToNewPoint};
     ISketchCanvasParent* const m_sketchCanvasParent = nullptr;
     std::unique_ptr<wxBitmap> m_bgBitmap;
-    int m_wheelRotation = 0;
+    int m_wheelRotation {0};
     wxPoint2DDouble m_zoomPoint;
     wxPoint2DDouble m_canvasTranslation;
-    double m_matrixComponents[6];
+    double m_matrixComponents[6] {0.0,0.0,0.0,0.0,0.0,0.0};
     wxPoint2DDouble m_mousePos;
 };

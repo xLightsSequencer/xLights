@@ -50,6 +50,11 @@ const long SingleStrandPanel::IDD_SLIDER_Chase_Rotations = wxNewId();
 const long SingleStrandPanel::ID_VALUECURVE_Chase_Rotations = wxNewId();
 const long SingleStrandPanel::ID_TEXTCTRL_Chase_Rotations = wxNewId();
 const long SingleStrandPanel::ID_BITMAPBUTTON_SLIDER_Chase_Rotations = wxNewId();
+const long SingleStrandPanel::ID_STATICTEXT5 = wxNewId();
+const long SingleStrandPanel::IDD_SLIDER_Chase_Offset = wxNewId();
+const long SingleStrandPanel::ID_VALUECURVE_Chase_Offset = wxNewId();
+const long SingleStrandPanel::ID_TEXTCTRL_Chase_Offset = wxNewId();
+const long SingleStrandPanel::ID_BITMAPBUTTON_SLIDER_Chase_Offset = wxNewId();
 const long SingleStrandPanel::ID_STATICTEXT_Chase_Type1 = wxNewId();
 const long SingleStrandPanel::ID_CHOICE_Chase_Type1 = wxNewId();
 const long SingleStrandPanel::ID_BITMAPBUTTON_CHOICE_Chase_Type1 = wxNewId();
@@ -120,6 +125,7 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer79;
+	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer81;
 	wxFlexGridSizer* FlexGridSizer82;
 	wxFlexGridSizer* FlexGridSizer83;
@@ -153,7 +159,7 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_Number_ChasesVC = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Number_Chases, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Number_Chases"));
 	FlexGridSizer1->Add(BitmapButton_Number_ChasesVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer24->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
-	TextCtrl44 = new BulkEditTextCtrl(Panel1, IDD_TEXTCTRL_Number_Chases, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Number_Chases"));
+	TextCtrl44 = new BulkEditTextCtrl(Panel1, IDD_TEXTCTRL_Number_Chases, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(30,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Number_Chases"));
 	TextCtrl44->SetMaxLength(3);
 	FlexGridSizer24->Add(TextCtrl44, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Number_Chases = new xlLockButton(Panel1, ID_BITMAPBUTTON_SLIDER_Number_Chases, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Number_Chases"));
@@ -168,7 +174,7 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_Color_Mix1VC = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Color_Mix1, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Color_Mix1"));
 	FlexGridSizer2->Add(BitmapButton_Color_Mix1VC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer24->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
-	TextCtrl45 = new BulkEditTextCtrl(Panel1, IDD_TEXTCTRL_Color_Mix1, _("10"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Color_Mix1"));
+	TextCtrl45 = new BulkEditTextCtrl(Panel1, IDD_TEXTCTRL_Color_Mix1, _("10"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(30,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Color_Mix1"));
 	TextCtrl45->SetMaxLength(4);
 	FlexGridSizer24->Add(TextCtrl45, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Color_Mix1 = new xlLockButton(Panel1, ID_BITMAPBUTTON_SLIDER_Color_Mix1, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Color_Mix1"));
@@ -183,12 +189,27 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_Chase_Rotations = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Chase_Rotations, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Chase_Rotations"));
 	FlexGridSizer3->Add(BitmapButton_Chase_Rotations, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer24->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
-	TextCtrl43 = new BulkEditTextCtrlF1(Panel1, ID_TEXTCTRL_Chase_Rotations, _("1.0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Chase_Rotations"));
+	TextCtrl43 = new BulkEditTextCtrlF1(Panel1, ID_TEXTCTRL_Chase_Rotations, _("1.0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Chase_Rotations"));
 	TextCtrl43->SetMaxLength(4);
 	FlexGridSizer24->Add(TextCtrl43, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_ChaseRotations = new xlLockButton(Panel1, ID_BITMAPBUTTON_SLIDER_Chase_Rotations, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Chase_Rotations"));
 	BitmapButton_ChaseRotations->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer24->Add(BitmapButton_ChaseRotations, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	StaticText5 = new wxStaticText(Panel1, ID_STATICTEXT5, _("Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	FlexGridSizer24->Add(StaticText5, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer7->AddGrowableCol(0);
+	Slider_Chase_Offset = new BulkEditSliderF1(Panel1, IDD_SLIDER_Chase_Offset, 0, -5000, 5000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Chase_Offset"));
+	FlexGridSizer7->Add(Slider_Chase_Offset, 1, wxALL|wxEXPAND, 2);
+    BitmapButton_Chase_OffsetVC = new BulkEditValueCurveButton(Panel1, ID_VALUECURVE_Chase_Offset, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Chase_Offset"));
+	FlexGridSizer7->Add(BitmapButton_Chase_OffsetVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer24->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 0);
+	TextCtrl_ChaseOffset = new BulkEditTextCtrlF1(Panel1, ID_TEXTCTRL_Chase_Offset, _("0.0"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Chase_Offset"));
+	TextCtrl_ChaseOffset->SetMaxLength(6);
+	FlexGridSizer24->Add(TextCtrl_ChaseOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_Chase_Offset = new xlLockButton(Panel1, ID_BITMAPBUTTON_SLIDER_Chase_Offset, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Chase_Offset"));
+	BitmapButton_Chase_Offset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+	FlexGridSizer24->Add(BitmapButton_Chase_Offset, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText11 = new wxStaticText(Panel1, ID_STATICTEXT_Chase_Type1, _("Chase Types"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Chase_Type1"));
 	FlexGridSizer24->Add(StaticText11, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Chase_Type1 = new BulkEditChoice(Panel1, ID_CHOICE_Chase_Type1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Chase_Type1"));
@@ -201,6 +222,12 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Chase_Type1->Append(_("To Middle"));
 	Choice_Chase_Type1->Append(_("Bounce to Middle"));
 	Choice_Chase_Type1->Append(_("Bounce from Middle"));
+	Choice_Chase_Type1->Append(_("Static Left-Right"));
+	Choice_Chase_Type1->Append(_("Static Right-Left"));
+	Choice_Chase_Type1->Append(_("Static Dual"));
+	Choice_Chase_Type1->Append(_("Static From Middle"));
+	Choice_Chase_Type1->Append(_("Static To Middle"));
+	Choice_Chase_Type1->Append(_("Static Double-Ended"));
 	FlexGridSizer24->Add(Choice_Chase_Type1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer24->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Chase_Type1 = new xlLockButton(Panel1, ID_BITMAPBUTTON_CHOICE_Chase_Type1, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Chase_Type1"));
@@ -223,6 +250,8 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_Chase_Group_All->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer24->Add(BitmapButton_Chase_Group_All, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Panel1->SetSizer(FlexGridSizer24);
+	FlexGridSizer24->Fit(Panel1);
+	FlexGridSizer24->SetSizeHints(Panel1);
 	Panel2 = new wxPanel(SingleStrandEffectType, ID_PANEL21, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL21"));
 	FlexGridSizer79 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer79->AddGrowableCol(0);
@@ -292,6 +321,8 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer84->Add(BitmapButton_Skips_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer79->Add(FlexGridSizer84, 1, wxALL|wxEXPAND, 2);
 	Panel2->SetSizer(FlexGridSizer79);
+	FlexGridSizer79->Fit(Panel2);
+	FlexGridSizer79->SetSizeHints(Panel2);
 	Panel_FX = new wxPanel(SingleStrandEffectType, ID_PANEL1, wxPoint(104,13), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer4->AddGrowableCol(1);
@@ -332,18 +363,20 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 	TextCtrl_FX_Speed->SetMaxLength(3);
 	FlexGridSizer4->Add(TextCtrl_FX_Speed, 1, wxALL|wxEXPAND, 5);
 	Panel_FX->SetSizer(FlexGridSizer4);
+	FlexGridSizer4->Fit(Panel_FX);
+	FlexGridSizer4->SetSizeHints(Panel_FX);
 	SingleStrandEffectType->AddPage(Panel1, _("Chase"), false);
 	SingleStrandEffectType->AddPage(Panel2, _("Skips"), false);
 	SingleStrandEffectType->AddPage(Panel_FX, _("FX"), false);
 	FlexGridSizer89->Add(SingleStrandEffectType, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer89);
+	FlexGridSizer89->Fit(this);
+	FlexGridSizer89->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_CHOICE_SingleStrand_Colors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Number_Chases,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Color_Mix1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Color_Mix1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
-	Connect(ID_VALUECURVE_Chase_Rotations,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON_SLIDER_Chase_Rotations,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_Chase_Type1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Chase_Group_All,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
@@ -356,9 +389,15 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
 
     Connect(ID_VALUECURVE_Chase_Rotations, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Number_Chases, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_Chase_Offset, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Color_Mix1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_FX_Intensity, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_FX_Speed, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SingleStrandPanel::OnVCButtonClick);
+
+	Connect(ID_BITMAPBUTTON_SLIDER_Chase_Rotations, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Chase_Offset, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SingleStrandPanel::OnLockButtonClick);
+
+    Connect(ID_CHOICE_Chase_Type1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&SingleStrandPanel::OnChoice_Chase_Type_Select);
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SingleStrandPanel::OnVCChanged, 0, this);
     Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&SingleStrandPanel::OnValidateWindow, 0, this);
@@ -372,7 +411,9 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
     Slider_FX_Speed->SetMax(SINGLESTRAND_FXSPEED_MAX);
 
     BitmapButton_Chase_Rotations->GetValue()->SetLimits(SINGLESTRAND_ROTATIONS_MIN, SINGLESTRAND_ROTATIONS_MAX);
-    BitmapButton_Chase_Rotations->GetValue()->SetDivisor(10);
+    BitmapButton_Chase_Rotations->GetValue()->SetDivisor(SINGLESTRAND_ROTATIONS_DIVISOR);
+    BitmapButton_Chase_OffsetVC->GetValue()->SetLimits(SINGLESTRAND_OFFSET_MIN, SINGLESTRAND_OFFSET_MAX);
+    BitmapButton_Chase_OffsetVC->GetValue()->SetDivisor(SINGLESTRAND_OFFSET_DIVISOR);
     BitmapButton_Number_ChasesVC->GetValue()->SetLimits(SINGLESTRAND_CHASES_MIN, SINGLESTRAND_CHASES_MAX);
     BitmapButton_Color_Mix1VC->GetValue()->SetLimits(SINGLESTRAND_COLOURMIX_MIN, SINGLESTRAND_COLOURMIX_MAX);
     BitmapButton_FX_IntensityVC->GetValue()->SetLimits(SINGLESTRAND_FXINTENSITY_MIN, SINGLESTRAND_FXINTENSITY_MAX);
@@ -414,4 +455,16 @@ SingleStrandPanel::~SingleStrandPanel()
 
 void SingleStrandPanel::ValidateWindow()
 {
+    if (Choice_Chase_Type1->GetStringSelection().StartsWith("Static")) {
+        Slider_Chase_Rotations->Disable();
+        BitmapButton_Chase_Rotations->Disable();
+    } else {
+        Slider_Chase_Rotations->Enable();
+        BitmapButton_Chase_Rotations->Enable();
+    }
+}
+
+void SingleStrandPanel::OnChoice_Chase_Type_Select(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

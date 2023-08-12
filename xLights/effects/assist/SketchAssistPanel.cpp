@@ -58,6 +58,8 @@ END_EVENT_TABLE()
 
 long SketchAssistPanel::ID_MENU_Delete = wxNewId();
 long SketchAssistPanel::ID_MENU_Reverse = wxNewId();
+long SketchAssistPanel::ID_MENU_MoveUp = wxNewId();
+long SketchAssistPanel::ID_MENU_MoveDown = wxNewId();
 
 SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*/, const wxPoint& pos /*wxDefaultPosition*/, const wxSize& size /*wxDefaultSize*/) :
     wxPanel(parent, id, pos, size)
@@ -434,6 +436,15 @@ void SketchAssistPanel::OnListBox_ContextMenu(wxContextMenuEvent& event)
     mnu.Append(ID_MENU_Reverse, str);
     str.sprintf("Delete Path %d", 1 + m_pathIndexToDelete);
     mnu.Append(ID_MENU_Delete, str);
+    if (m_pathIndexToDelete != 0) {
+        str.sprintf("Move Path %d Up", 1 + m_pathIndexToDelete);
+        mnu.Append(ID_MENU_MoveUp, str);
+    }
+    if (m_pathIndexToDelete != m_pathsListBox->GetCount() - 1) {
+        str.sprintf("Move Path %d Down", 1 + m_pathIndexToDelete);
+        mnu.Append(ID_MENU_MoveDown, str);
+
+    }
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SketchAssistPanel::OnPopupCommand, nullptr, this);
     PopupMenu(&mnu);
 }
@@ -449,6 +460,12 @@ void SketchAssistPanel::OnPopupCommand(wxCommandEvent& event)
         update = true;
     } else if (event.GetId() == ID_MENU_Reverse) {
         m_sketch.reversePath(m_pathIndexToDelete);
+        update = true;
+    } else if (event.GetId() == ID_MENU_MoveUp) {
+        m_sketch.swapPaths(m_pathIndexToDelete, m_pathIndexToDelete - 1);
+        update = true;
+    } else if (event.GetId() == ID_MENU_MoveDown) {
+        m_sketch.swapPaths(m_pathIndexToDelete, m_pathIndexToDelete + 1);
         update = true;
     }
 

@@ -59,6 +59,7 @@ public:
     void SetVisible(bool visible) {mVisible = visible;}
 
     virtual bool HasEffects() const;
+    [[nodiscard]] virtual int GetEffectCount() const;
  
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
     EffectLayer* GetEffectLayer(int index) const;
@@ -221,6 +222,7 @@ public:
     int GetStrand() const { return mStrand; }
     
     virtual bool HasEffects() const override;
+    [[nodiscard]] int GetEffectCount() const override;
     bool ShowNodes() const { return mShowNodes;}
     void ShowNodes(bool b) { mShowNodes = b;}
     NodeLayer *GetNodeLayer(int n, bool create);
@@ -258,6 +260,7 @@ class ModelElement : public Element
         virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
 
         virtual bool HasEffects() const override;
+        [[nodiscard]] int GetEffectCount() const override;
         int GetSubModelAndStrandCount() const;
         int GetSubModelCount() const;
         SubModelElement *GetSubModel(int i) const;

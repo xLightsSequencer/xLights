@@ -58,7 +58,7 @@ namespace ip_utils
             return true;
         }
 
-        //IP address should fall throught to this false if not valid host too
+        //IP address should fall through to this false if not valid host too
         return false;
     }
 

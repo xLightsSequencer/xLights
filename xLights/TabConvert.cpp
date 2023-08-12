@@ -792,6 +792,12 @@ void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr, 
     }
 }
 
+std::string DecodeAVError(int err)
+{
+    char buffer[AV_ERROR_MAX_STRING_SIZE];
+    return std::string(av_make_error_string(buffer, sizeof(buffer), err));
+}
+
 void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans, unsigned int startFrame, unsigned int endFrame,
                                        SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, bool compressed)
 {
@@ -800,7 +806,7 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
 
     int origwidth;
     int origheight;
-    model->GetBufferSize("Default", "2D", "None", origwidth, origheight);
+    model->GetBufferSize("Default", "2D", "None", origwidth, origheight, 0);
 
     int width = origwidth;
     int height = origheight;
@@ -810,6 +816,19 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         width++;
     if (height % 2 > 0)
         height++;
+
+    const char* filename = filenames.c_str();
+    if (!EndsWith(filename, ".avi")) {
+        // minimin width/height is 16 otherwise the encoder failes ... so scale it if necessary
+        if (width < 16 || height < 16) {
+            float scale = std::max(16.0 / width, 16.0 / height);
+            if (scale > 1.0) {
+                width *= scale;
+                height *= scale;
+            }
+        }
+    }
+
     logger_base.debug("   Video dimensions %dx%d => %dx%d.", origwidth, origheight, width, height);
     logger_base.debug("   Video frames %ld.", endFrame - startFrame);
 
@@ -826,7 +845,6 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
 #if LIBAVFORMAT_VERSION_MAJOR < 58
     av_register_all();
 #endif
-    const char* filename = filenames.c_str();
 
     // AVCodecID vc = !EndsWith(filename, ".avi") ? (compressed ? AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_HEVC) : AVCodecID::AV_CODEC_ID_RAWVIDEO;
     AVCodecID vc = !EndsWith(filename, ".avi") ? AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_RAWVIDEO;
@@ -843,9 +861,9 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         av_dict_set(&av_opts, "brand", "mp42", 0);
         av_dict_set(&av_opts, "movflags", "+disable_chpl+write_colr", 0);
     }
-    avformat_alloc_output_context2(&oc, nullptr, EndsWith(filename, ".avi") ? "avi" : "mp4", filename);
-    if (oc == nullptr) {
-        logger_base.warn("   Could not create output context.");
+    int ret = avformat_alloc_output_context2(&oc, nullptr, EndsWith(filename, ".avi") ? "avi" : "mp4", filename);
+    if (ret < 0 || oc == nullptr) {
+        logger_base.warn("   Could not create output context. %d", AVERROR(ret));
         return;
     }
 
@@ -922,7 +940,7 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         codecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
     }
 
-    int ret = avcodec_open2(codecContext, nullptr, nullptr);
+    ret = avcodec_open2(codecContext, nullptr, nullptr);
     if (ret < 0) {
         logger_base.error("   Cannot open codec context %d.", ret);
         return;
@@ -1025,7 +1043,7 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         AVPacket* pkt = av_packet_alloc();
         ret = ::avcodec_send_frame(codecContext, frame);
         if (ret < 0) {
-            logger_base.error("   Error encoding frame %d.", ret);
+            logger_base.error("   Error encoding frame : %d %s.", ret, (const char*)DecodeAVError(ret).c_str());
             return;
         }
 
@@ -1200,7 +1218,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                        { _presetModel },
                        { _presetModel },
                        0, frames - 1,
-                       false, true, []() {});
+                       false, true, [](bool) {});
 
                 // wait for all rendering to complete
                 while (!renderProgressInfo.empty()) {
@@ -1221,7 +1239,7 @@ void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, un
 
     int width;
     int height;
-    model->GetBufferSize("Default", "2D", "None", width, height);
+    model->GetBufferSize("Default", "2D", "None", width, height, 0);
 
     // must be a multiple of 2
     logger_base.debug("   GIF dimensions %dx%d.", width, height);
@@ -1289,7 +1307,7 @@ void xLightsFrame::WriteMinleonNECModelFile(const wxString& filename, long numCh
 
     int width;
     int height;
-    model->GetBufferSize("Default", "2D", "None", width, height);
+    model->GetBufferSize("Default", "2D", "None", width, height, 0);
 
     wxFile f;
     if (!f.Create(filename, true)) {
@@ -1418,6 +1436,8 @@ static void addRanges(Model* m, std::map<uint32_t, uint32_t>& ranges)
 
 void xLightsFrame::WriteFalconPiFile(const wxString& filename, bool allowSparse)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     ConvertParameters write_params(filename,                               // filename
                                    _seqData,                               // sequence data object
                                    &_outputManager,                        // global network info
@@ -1434,10 +1454,16 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename, bool allowSparse)
         int numElements = _sequenceElements.GetElementCount();
         for (int i = 0; i < numElements; ++i) {
             Element* element = _sequenceElements.GetElement(i);
+            if (element == nullptr)
+                logger_base.crit("Element %d returns as null.", i);
             if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 std::string modelName = element->GetModelName();
                 Model* m = this->GetModel(modelName);
-                addRanges(m, ranges);
+                if (m == nullptr) {
+                    logger_base.crit("Model %s returns as null.", (const char*)modelName.c_str());
+                } else {
+                    addRanges(m, ranges);
+                }
             }
         }
 

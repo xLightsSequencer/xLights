@@ -61,9 +61,9 @@ public:
     virtual ~TwinkleRenderCache() {};
     
     std::vector<StrobeClass> strobe;
-    int num_lights;
-    int curNumStrobe;
-    std::atomic_int lights_to_renew;
+    int num_lights = 0;
+    int curNumStrobe = 0;
+    std::atomic_int lights_to_renew = 0;
 };
 
 void TwinkleEffect::SetDefaultParameters()

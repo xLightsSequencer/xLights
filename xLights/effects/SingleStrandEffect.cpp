@@ -82,6 +82,7 @@ void SingleStrandEffect::SetDefaultParameters()
     sp->BitmapButton_Color_Mix1VC->SetActive(false);
     sp->BitmapButton_Number_ChasesVC->SetActive(false);
     sp->BitmapButton_Chase_Rotations->SetActive(false);
+    sp->BitmapButton_Chase_OffsetVC->SetActive(false);
     sp->BitmapButton_FX_IntensityVC->SetActive(false);
     sp->BitmapButton_FX_SpeedVC->SetActive(false);
 
@@ -94,6 +95,7 @@ void SingleStrandEffect::SetDefaultParameters()
     SetSliderValue(sp->Slider_Number_Chases, 1);
     SetSliderValue(sp->Slider_Color_Mix1, 10);
     SetSliderValue(sp->Slider_Chase_Rotations, 10);
+    SetSliderValue(sp->Slider_Chase_Offset, 0);
     SetSliderValue(sp->Slider_Skips_BandSize, 1);
     SetSliderValue(sp->Slider_Skips_SkipSize, 1);
     SetSliderValue(sp->Slider_Skips_StartPos, 1);
@@ -161,7 +163,8 @@ void SingleStrandEffect::Render(Effect* effect, const SettingsMap& SettingsMap, 
                                 SettingsMap.Get("CHOICE_Chase_Type1", "Left-Right"),
                                 SettingsMap.GetBool("CHECKBOX_Chase_3dFade1", false),
                                 SettingsMap.GetBool("CHECKBOX_Chase_Group_All", false),
-                                GetValueCurveDouble("Chase_Rotations", 1.0, SettingsMap, eff_pos, SINGLESTRAND_ROTATIONS_MIN, SINGLESTRAND_ROTATIONS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10));
+                                GetValueCurveDouble("Chase_Rotations", 1.0, SettingsMap, eff_pos, SINGLESTRAND_ROTATIONS_MIN, SINGLESTRAND_ROTATIONS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SINGLESTRAND_ROTATIONS_DIVISOR),
+                                GetValueCurveDouble("Chase_Offset", 0.0, SettingsMap, eff_pos, SINGLESTRAND_OFFSET_MIN, SINGLESTRAND_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SINGLESTRAND_OFFSET_DIVISOR));
     }
 }
 
@@ -336,6 +339,12 @@ int mapChaseType(const std::string &Chase_Type) {
     if ("To Middle" == Chase_Type) return 6;
     if ("Bounce to Middle" == Chase_Type) return 7;
     if ("Bounce from Middle" == Chase_Type) return 8;
+    if ("Static Left-Right" == Chase_Type) return 9;
+    if ("Static Right-Left" == Chase_Type) return 10;
+    if ("Static Dual" == Chase_Type) return 11;
+    if ("Static From Middle" == Chase_Type) return 12;
+    if ("Static To Middle" == Chase_Type) return 13;
+    if ("Static Double-Ended" == Chase_Type) return 14;
 
     return 0;
 }
@@ -344,7 +353,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
     const std::string & ColorSchemeName, int Number_Chases, int chaseSize,
     const std::string &Chase_Type1,
     bool Chase_Fade3d1, bool Chase_Group_All,
-    float chaseSpeed)
+    float chaseSpeed, float offset)
 {
     int ColorScheme = "Palette" == ColorSchemeName;
 
@@ -363,26 +372,32 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
         MaxNodes = buffer.BufferWi;
     }
 
-    int &ChaseDirection = buffer.tempInt;
+    int ChaseDirection = (chaseType == 0 || chaseType == 2 || chaseType == 6 ||
+                          chaseType == 9 || chaseType == 13 || chaseType == 14);
 
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
-        ChaseDirection = (chaseType == 0 || chaseType == 2 || chaseType == 6); // initialize it once at the beginning of this sequence.
     }
 
     bool Mirror = false;
     bool AutoReverse = false;
     bool Dual_Chases = false;
+    bool Static = (chaseType >= 9 && chaseType <= 14);
+    bool DoubleEnd = (chaseType == 14);
     switch (chaseType)
     {
     case 6:
+    case 13:
         Mirror = true;
     case 0: // "Normal. L-R"
+    case 9:
         break;
     case 5:
+    case 12:
         Mirror = true;
     case 1: // "Normal. R-L"
+    case 10:
         break;
     case 2: // "Auto reverse l-r"
         AutoReverse = true;
@@ -391,12 +406,16 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
         AutoReverse = true;
         break;
     case 4: // "Dual Chase"
+    case 11:
         Dual_Chases = true;
         break;
     case 7: // "Bounce to Middle"
     case 8: // "Bounce from Middle"
         Dual_Chases = true;
         AutoReverse = true;
+        break;
+    case 14:
+        Dual_Chases = true;
         break;
     default:
         break;
@@ -428,7 +447,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
     }
 
     // This is a 0.0-1.0 value that determine how far along the current chase cycle we are
-    double rtval = (double)(buffer.curPeriod - buffer.curEffStartPer) / (double)(buffer.curEffEndPer - buffer.curEffStartPer);
+    double rtval = Static ? 0 : buffer.GetEffectTimeIntervalPosition();
     if (chaseType == 8) {
         // need to start in the middle for Bounce from Middle
         rtval += 0.25 / chaseSpeed;
@@ -437,8 +456,12 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
         }
     }
     rtval *= chaseSpeed;
+    rtval += (offset / 100);
     while (rtval > 1.0) {
         rtval -= 1.0;
+    }
+    while (rtval < 0.0) {
+        rtval += 1.0;
     }
     if (AutoReverse) {
         rtval *= 2.0;
@@ -449,16 +472,16 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
     float dx = double(width) / double(Number_Chases);
     if (dx < 1.0) dx = 1.0;
 
-    // All of this math needs to happen with integars because we can only deal with integar number of pixels when we render, so it doesn't do us any good to deal with floats
+    // All of this math needs to happen with integers because we can only deal with integer number of pixels when we render, so it doesn't do us any good to deal with floats
     int startState;
     // If we are wrapping, cap the width the buffer width
     if (Number_Chases > 1) {
-        // The +1 assure that the chases start at index 0 (rather than index -1 or index [width] - 1 in the case of wrapping)
         startState = width * rtval + 1;
-    }
-    // If we aren't wrapping, add the chaseWidth to the total so the chase fully completes
-    else
+    } else if (DoubleEnd) {
+        startState = (width + scaledChaseWidth * 2 - 1) * rtval + 1; // -2) + 1
+    } else
     {
+        // If we aren't wrapping, add the chaseWidth to the total so the chase fully completes
         // The -1 assures divides the time appropriately so an equal amount of time is spent at each index
         // Imagine a 10 pixel wide buffer, and a 2 pixel wide chase. We want to start the chase with 1 pixel visible, and end with 1 pixel visible, so that means there are actually 11 time slots ( [width] + [scaledChaseWidth] - 1 )
         // The only problem is when we hit 1.0 exactly for the time, we'll roll over to the 12th slot, so the if statement fudges the math so the last slot actually gets 1 extra frame
@@ -482,10 +505,10 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
             x = chase * dx + startState - scaledChaseWidth; // L-R
         }
 
-        draw_chase(buffer, x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Chase_Fade3d1, ChaseDirection, Mirror); // Turn pixel on
+        draw_chase(buffer, DoubleEnd ? width - x - 1 * scaledChaseWidth : x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Chase_Fade3d1, bool(ChaseDirection) != DoubleEnd, Mirror); // Turn pixel on
         if (Dual_Chases)
         {
-            draw_chase(buffer, x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Chase_Fade3d1, !ChaseDirection, Mirror);
+            draw_chase(buffer, DoubleEnd ? x - 1 * scaledChaseWidth : x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Chase_Fade3d1, bool(ChaseDirection) == DoubleEnd, Mirror);
         }
     }
 }

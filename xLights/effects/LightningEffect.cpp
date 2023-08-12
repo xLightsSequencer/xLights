@@ -21,6 +21,66 @@
 #include "../../include/lightning-48.xpm"
 #include "../../include/lightning-64.xpm"
 
+#include <algorithm>
+
+namespace
+{
+    constexpr int DOWN = 0;
+    constexpr int UP = 1;
+    constexpr int RIGHT = 2;
+    constexpr int LEFT = 3;
+
+    inline int GetLightningDirection(const std::string& dir)
+    {
+        if (dir == "Down") {
+            return DOWN;
+        } else if (dir == "Up") {
+            return UP;
+        } else if (dir == "Left") {
+            return LEFT;
+        } else if (dir == "Right") {
+            return RIGHT;
+        } else {
+            return UP;
+        }
+    }
+    void DrawLightningBolt(RenderBuffer& buffer, int x0, int y0, int x1, int y1, xlColor& color, int width)
+    {
+        xlColor color2;
+        HSVValue hsv = color.asHSV();
+        HSVValue hsv2 = color2.asHSV();
+        //   if(x0<0 || x1<0 || y1<0 || y0<0) return;
+
+        int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+        int dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+        int err = (dx > dy ? dx : -dy) / 2, e2;
+        color2 = color;
+        // color2.red=color2.green=color2.blue=200;
+        //   int frame_startfade = 2*20; // 2 seconds full brightness
+        //   int frame_fadedone = 5*20; // 3 seconds to fade o
+
+        color = hsv;
+
+        hsv2.value = hsv.value * 0.90;
+        color2 = hsv2;
+        color2 = hsv;
+        for (;;) {
+            buffer.DrawHLine(y0, x0 - width, x0 + width, color);
+            if (x0 == x1 && y0 == y1)
+                break;
+            e2 = err;
+            if (e2 > -dx) {
+                err -= dy;
+                x0 += sx;
+            }
+            if (e2 < dy) {
+                err += dx;
+                y0 += sy;
+            }
+        }
+    }
+}
+
 LightningEffect::LightningEffect(int id) : RenderableEffect(id, "Lightning", lightning_16, lightning_24, lightning_32, lightning_48, lightning_64)
 {
     //ctor
@@ -34,11 +94,6 @@ LightningEffect::~LightningEffect()
 xlEffectPanel *LightningEffect::CreatePanel(wxWindow *parent) {
     return new LightningPanel(parent);
 }
-
-#define DOWN 0
-#define UP 1
-#define RIGHT 2
-#define LEFT 3
 
 void LightningEffect::SetDefaultParameters() {
     LightningPanel *lp = (LightningPanel*)panel;
@@ -56,25 +111,11 @@ void LightningEffect::SetDefaultParameters() {
     SetSliderValue(lp->Slider_Lightning_TopX, 0);
     SetSliderValue(lp->Slider_Lightning_TopY, 0);
     SetSliderValue(lp->Slider_Lightning_BOTX, 0);
-    SetSliderValue(lp->Slider_Lightning_BOTY, 0);
+    SetSliderValue(lp->Slider_Lightning_WIDTH, 1);
 
     SetChoiceValue(lp->CHOICE_Lightning_Direction, "Up");
 
     SetCheckBoxValue(lp->CheckBox_ForkedLightning, false);
-}
-
-static inline int GetLightningEffect(const std::string &dir) {
-    if (dir == "Down") {
-        return DOWN;
-    } else if (dir == "Up") {
-        return UP;
-    } else if (dir == "Left") {
-        return LEFT;
-    } else if (dir == "Right") {
-        return RIGHT;
-    } else {
-        return UP;
-    }
 }
 
 void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -85,16 +126,12 @@ void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     int topX = GetValueCurveInt("Lightning_TopX", 0, SettingsMap, oset, LIGHTNING_TOPX_MIN, LIGHTNING_TOPX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int topY = GetValueCurveInt("Lightning_TopY", 0, SettingsMap, oset, LIGHTNING_TOPY_MIN, LIGHTNING_TOPY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int botX = SettingsMap.GetInt("SLIDER_Lightning_BOTX", 0);
-    //int botY = SettingsMap.GetInt("SLIDER_Lightning_BOTY", 0);
-    int DIRECTION = GetLightningEffect(SettingsMap["CHOICE_Lightning_Direction"]);
+    int width = SettingsMap.GetInt("SLIDER_Lightning_WIDTH", 1);
+    int DIRECTION = GetLightningDirection(SettingsMap["CHOICE_Lightning_Direction"]);
 
-    if (Number_Bolts == 0) {
-        Number_Bolts = 1;
-    }
-    
-    if (Number_Segments == 0) {
-        Number_Segments = 1;
-    }
+    Number_Bolts = std::clamp(Number_Bolts, LIGHTNING_BOLTS_MIN, LIGHTNING_BOLTS_MAX);
+    Number_Segments = std::clamp(Number_Segments, LIGHTNING_SEGMENTS_MIN, LIGHTNING_SEGMENTS_MAX);
+    width = std::clamp(width, 1, 7);
 
     int curState = (buffer.curPeriod - buffer.curEffStartPer);
     int xc = buffer.BufferWi / 2;
@@ -142,7 +179,7 @@ void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
 
         }
 
-        LightningDrawBolt(buffer, x1 + xoffset, y1, x2 + xoffset, y2, color, curState);
+        DrawLightningBolt(buffer, x1 + xoffset, y1, x2 + xoffset, y2, color, width);
 
         if (ForkedLightning) {
             if (i > (segment / 2)) {
@@ -157,7 +194,7 @@ void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                     else
                         x3 = xc + topX - (3 * (j % Number_Segments));
                 }
-                LightningDrawBolt(buffer, x1 + xoffset, y1, x3 + xoffset, y2, color, curState);
+                DrawLightningBolt(buffer, x1 + xoffset, y1, x3 + xoffset, y2, color, width);
             }
         }
         x1 = x2;
@@ -165,42 +202,13 @@ void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     }
 }
 
-void LightningEffect::LightningDrawBolt(RenderBuffer &buffer, const int x0_, const int y0_, const int x1_, const int y1_,  xlColor& color ,int curState) {
-    int x0 = x0_;
-    int x1 = x1_;
-    int y0 = y0_;
-    int y1 = y1_;
-    xlColor color2;
-    HSVValue hsv = color.asHSV();
-    HSVValue hsv2 = color2.asHSV();
-    //   if(x0<0 || x1<0 || y1<0 || y0<0) return;
+bool LightningEffect::needToAdjustSettings(const std::string& version)
+{
+    return IsVersionOlder("2023.07", version);
+}
 
-    int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
-    int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
-    int err = (dx>dy ? dx : -dy)/2, e2;
-    color2=color;
-    // color2.red=color2.green=color2.blue=200;
-    //   int frame_startfade = 2*20; // 2 seconds full brightness
-    //   int frame_fadedone = 5*20; // 3 seconds to fade o
-
-    color = hsv;
-
-    hsv2.value = hsv.value * 0.90;
-    color2 = hsv2;
-    color2 = hsv;
-    for(;;) {
-        buffer.SetPixel(x0,y0, color);
-        buffer.SetPixel(x0-1,y0, color2);
-        buffer.SetPixel(x0+1,y0, color2);
-        if (x0==x1 && y0==y1) break;
-        e2 = err;
-        if (e2 >-dx) {
-            err -= dy;
-            x0 += sx;
-        }
-        if (e2 < dy) {
-            err += dx;
-            y0 += sy;
-        }
-    }
+void LightningEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults /*true*/)
+{
+    SettingsMap& settings = effect->GetSettings();
+    settings.erase("E_SLIDER_Lightning_BOTY");
 }

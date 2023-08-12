@@ -92,6 +92,7 @@ protected:
     static const long ID_TIMER1;
 
     static const long STATE_DIALOG_IMPORT_SUB;
+    static const long STATE_DIALOG_COPY_STATES;
     static const long STATE_DIALOG_IMPORT_MODEL;
     static const long STATE_DIALOG_IMPORT_FILE;
     static const long STATE_DIALOG_COPY;
@@ -166,6 +167,8 @@ private:
     void ImportStatesFromModel();
     void AddStates(std::map<std::string, std::map<std::string, std::string>> states);
     wxArrayString getModelList(ModelManager* modelManager);
+
+    void CopyStates(wxGridEvent& event);
 
     void CopyStateData();
     void RenameState();

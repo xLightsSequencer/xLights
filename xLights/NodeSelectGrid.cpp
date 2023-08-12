@@ -211,7 +211,7 @@ NodeSelectGrid::NodeSelectGrid(bool multiline, const wxString& title, Model* m, 
     unselectColor = wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT);
     unselectBackColor = wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX);
 
-    if (wxSystemSettings::GetAppearance().IsDark()) {
+    if (IsDarkMode()) {
         selectColor = *wxBLACK;
         selectBackColor = *wxLIGHT_GREY;
     } else {

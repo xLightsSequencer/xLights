@@ -21,8 +21,9 @@ class TwinklyOutput : public IPOutput
 {
 public:
 #pragma region Constructors and Destructors
-    TwinklyOutput(wxXmlNode* node);
+    TwinklyOutput(wxXmlNode* node, bool isActive);
     TwinklyOutput();
+    TwinklyOutput(TwinklyOutput* output);
     virtual ~TwinklyOutput() override;
     virtual wxXmlNode* Save() override;
 #pragma endregion
@@ -66,8 +67,17 @@ public:
 #pragma endregion
 
     bool GetLayout(std::vector<std::tuple<float, float, float>>& result);
-    static bool GetLayout(const std::string& ip, std::vector<std::tuple<float, float, float>>& result);
+    static bool GetLayout(const std::string& ip, std::vector<std::tuple<float, float, float>>& result, uint16_t httpPort = 80);
     virtual void SetTransientData(int32_t& startChannel, int nullnumber) override;
+    void SetHttpPort(uint16_t port)
+    {
+        _httpPort = port;
+        _dirty = true;
+    }
+    uint16_t GetHttpPort() const
+    {
+        return _httpPort;
+    }
 
 private:
     // A single twinkly connection may have unlimited channels
@@ -83,10 +93,21 @@ private:
 
     bool ReloadToken();
 
+    uint16_t _httpPort = 80;
     std::string m_token;
     std::array<char, TOKEN_SIZE> m_decodedToken;
     std::vector<unsigned char> m_channelData;
     wxDatagramSocket* _datagram = nullptr;
 
     void OpenDatagram();
+    
+    
+    #pragma region UI
+    #ifndef EXCLUDENETWORKUI
+    virtual void UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
+    virtual void AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
+    virtual void RemoveProperties(wxPropertyGrid* propertyGrid) override;
+    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) override;
+    #endif
+    #pragma endregion UI
 };

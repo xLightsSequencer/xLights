@@ -29,33 +29,31 @@ jobs:
    runs-on: windows-2022
 
    steps:
-    - name: Checkout
-      uses: actions/checkout@master
-      with:
-          submodules: 'true'
+    - name: Checkout xLights
+      run: git clone https://github.com/smeighan/xLights.git C:/xLights/ --depth 1  --depth=1 --shallow-submodules --recurse-submodules
 
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v1
 
     - name: Download wxWidgets
       run: 
-        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2023.02 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2023.11 https://github.com/xLightsSequencer/wxWidgets C:/wxWidgets/
 
     - name: Build wxWidgets
-      working-directory: ..\wxWidgets\
+      working-directory: C:/wxWidgets/
       run: msbuild /m .\build\msw\wx_vc16.sln /p:Configuration="Release" /p:Platform="x64"
 
     - name: Build All
       shell: cmd
-      working-directory: build_scripts\msw
+      working-directory: C:/xLights/build_scripts/msw
       run: call build_VS_x64_skip_libltc.cmd
 
     - name: Build Installer
-      working-directory: build_scripts\msw
+      working-directory: C:/xLights/build_scripts/msw
       run: ISCC.exe xLights_4_64bit_VS.iss
       
     - uses: ncipollo/release-action@v1
       with:
            allowUpdates: true
-           artifacts: 'build_scripts\msw\output\*'
+           artifacts: 'C:\xLights\build_scripts\msw\output\*'
            token: ${{ secrets.GITHUB_TOKEN }}

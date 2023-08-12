@@ -10,8 +10,14 @@
  **************************************************************/
 
 #include <algorithm>
+#include <numeric>
 #include <string>
 #include <vector>
+
+#include <wx/string.h>
+
+extern const std::string xlEMPTY_STRING;
+extern const wxString xlEMPTY_WXSTRING;
 
 //namespace string_utils
 //{
@@ -232,4 +238,18 @@
         Split(frag, splitBy, r, trim);
         return r;
     }
+
+    inline std::string Join(std::vector<std::string> const &strings, std::string delim)
+    {
+        if (strings.empty()) {
+            return std::string();
+        }
+     
+        return std::accumulate(strings.begin() + 1, strings.end(), strings[0],
+            [&delim](std::string x, std::string y) {
+                return x + delim + y;
+            }
+        );
+    }
+
 //};

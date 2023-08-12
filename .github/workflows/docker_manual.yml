@@ -1,0 +1,22 @@
+name: Linux Docker Manual
+on:
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
+      - run: docker pull debenham/xlights
+      - run: docker run --name buildvm debenham/xlights /bin/bash Recipe.appimage
+      - run: 'docker cp buildvm:/xLights/xLights/AppImage/ /tmp/'
+      - run: ls -lh /tmp/AppImage
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: xLights_AppImage
+          path: '/tmp/AppImage/*.AppImage'
+

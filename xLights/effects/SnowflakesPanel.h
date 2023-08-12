@@ -36,14 +36,17 @@ class SnowflakesPanel: public xlEffectPanel
 		BulkEditSlider* Slider_Snowflakes_Count;
 		BulkEditSlider* Slider_Snowflakes_Speed;
 		BulkEditSlider* Slider_Snowflakes_Type;
+		BulkEditSlider* Slider_WarmupFrames;
 		BulkEditTextCtrl* TextCtrl_Snowflakes_Count;
 		BulkEditTextCtrl* TextCtrl_Snowflakes_Speed;
 		BulkEditTextCtrl* TextCtrl_Snowflakes_Type;
+		BulkEditTextCtrl* TextCtrl_WarmupFrames;
 		BulkEditValueCurveButton* BitmapButton_Snowflakes_Count;
 		BulkEditValueCurveButton* BitmapButton_Snowflakes_Speed;
 		wxStaticText* StaticText181;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText79;
 		wxStaticText* StaticText80;
 		xlLockButton* BitmapButton_Falling;
@@ -73,6 +76,9 @@ class SnowflakesPanel: public xlEffectPanel
 		static const long ID_CHOICE_Falling;
 		static const long ID_STATICTEXT2;
 		static const long ID_BITMAPBUTTON_CHOICE_Falling;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_Snowflakes_WarmupFrames;
+		static const long IDD_TEXTCTRL_Snowflakes_WarmupFrames;
 		//*)
 
 	public:

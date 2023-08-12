@@ -1628,8 +1628,8 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
 
     std::vector<wxPoint> coords;
     m->GetNodeCoords(channel, coords);
-    int bufx = 0;
-    int bufy = 0;
+    int bufx = -1;
+    int bufy = -1;
     if (channels != 1) {
         wxASSERT(rows == mh);
         wxASSERT(cols == mw);

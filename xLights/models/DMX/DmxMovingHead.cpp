@@ -19,6 +19,7 @@
 
 #include "DmxMovingHead.h"
 #include "DmxColorAbilityRGB.h"
+#include "DmxColorAbilityCMY.h"
 #include "DmxColorAbilityWheel.h"
 #include "DmxPresetAbility.h"
 #include "../ModelScreenLocation.h"
@@ -219,8 +220,11 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
 
         if (color_type == 0) {
             color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
-        } else {
+        } else  if (color_type == 1) {
             color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+        }
+        else {
+            color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
@@ -250,8 +254,11 @@ void DmxMovingHead::InitModel() {
     int color_type = wxAtoi(ModelXml->GetAttribute("DmxColorType", "0"));
     if (color_type == 0) {
         color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
-    }else {
+    }else if (color_type == 1) {
         color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+    }
+    else {
+        color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
     }
 
     pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "0"));
@@ -1069,8 +1076,10 @@ void DmxMovingHead::ExportXlightsModel()
     wxString tdr = ModelXml->GetAttribute("DmxTiltDegOfRot", "180");
     wxString pc = ModelXml->GetAttribute("DmxPanChannel", "0");
     wxString po = ModelXml->GetAttribute("DmxPanOrient", "0");
+    wxString psl = ModelXml->GetAttribute("DmxPanSlewLimit", "0");
     wxString tc = ModelXml->GetAttribute("DmxTiltChannel", "0");
     wxString to = ModelXml->GetAttribute("DmxTiltOrient", "0");
+    wxString tsl = ModelXml->GetAttribute("DmxTiltSlewLimit", "0");
 
     wxString sc = ModelXml->GetAttribute("DmxShutterChannel", "0");
     wxString so = ModelXml->GetAttribute("DmxShutterOpen", "1");
@@ -1089,8 +1098,10 @@ void DmxMovingHead::ExportXlightsModel()
     f.Write(wxString::Format("DmxTiltDegOfRot=\"%s\" ", tdr));
     f.Write(wxString::Format("DmxPanChannel=\"%s\" ", pc));
     f.Write(wxString::Format("DmxPanOrient=\"%s\" ", po));
+    f.Write(wxString::Format("DmxPanSlewLimit=\"%s\" ", psl));
     f.Write(wxString::Format("DmxTiltChannel=\"%s\" ", tc));
     f.Write(wxString::Format("DmxTiltOrient=\"%s\" ", to));
+    f.Write(wxString::Format("DmxTiltSlewLimit=\"%s\" ", tsl));
 
     f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
     f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
@@ -1170,8 +1181,11 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         int color_type = wxAtoi(dct);
         if (color_type == 0) {
             color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
-        } else {
+        } else if (color_type == 1) {
             color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+        }
+        else {
+            color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
         }
         color_ability->ImportParameters(root, this);
 
@@ -1212,5 +1226,10 @@ std::vector<std::string> DmxMovingHead::GenerateNodeNames() const
     if (0 != tilt_channel && tilt_channel < names.size()) {
         names[tilt_channel - 1] = "Tilt";
     }
+
+    if (nullptr != color_ability) {
+        color_ability->SetNodeNames(names);
+    }
+
     return names;
 }

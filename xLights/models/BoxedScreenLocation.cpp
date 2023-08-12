@@ -282,7 +282,7 @@ bool BoxedScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_directio
         ray_origin,
         aabb_min,
         aabb_max,
-        ModelMatrix)
+        TranslateMatrix)
         ) {
         return_value = true;
     }
@@ -355,39 +355,22 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
 
 wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
     if (preview != nullptr) {
+        FindPlaneIntersection( x, y, preview );
         if (preview->Is3D()) {
             if (supportsZScaling && !_startOnXAxis) {
-                // what we do here is define a position at origin so that the DragHandle function will calculate the intersection
-                // of the mouse click with the ground plane
-                active_axis = MSLAXIS::Z_AXIS;
-                saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-                DragHandle(preview, x, y, true);
-                worldPos_x = saved_intersect.x;
                 worldPos_y = RenderHt / 2.0f;
-                worldPos_z = saved_intersect.z;
-                handle = CENTER_HANDLE;
                 active_axis = MSLAXIS::Y_AXIS;
-            } else {
-                active_axis = MSLAXIS::X_AXIS;
-                saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-                DragHandle(preview, x, y, true);
-                worldPos_x = saved_intersect.x;
-                worldPos_y = saved_intersect.y;
-                worldPos_z = 0.0f;
-                handle = CENTER_HANDLE;
+            } else if (active_axis ==  MSLAXIS::Z_AXIS) {
+                rotatey = 90.0f;
             }
+            handle = CENTER_HANDLE;
         } else {
-            handle = R_BOT_HANDLE;
-            saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
             active_axis = MSLAXIS::Y_AXIS;
-            DragHandle(preview, x, y, true);
-            worldPos_x = saved_intersect.x;
-            worldPos_y = saved_intersect.y;
-            worldPos_z = 0.0f;
             centery = worldPos_y;
             centerx = worldPos_x;
             centerz = worldPos_z;
             scalex = scaley = scalez = 0.0f;
+            handle = R_BOT_HANDLE;
         }
     } else {
         DisplayError("InitializeLocation: called with no preview....investigate!");

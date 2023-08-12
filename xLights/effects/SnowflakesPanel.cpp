@@ -44,6 +44,9 @@ const long SnowflakesPanel::ID_STATICTEXT_Falling = wxNewId();
 const long SnowflakesPanel::ID_CHOICE_Falling = wxNewId();
 const long SnowflakesPanel::ID_STATICTEXT2 = wxNewId();
 const long SnowflakesPanel::ID_BITMAPBUTTON_CHOICE_Falling = wxNewId();
+const long SnowflakesPanel::ID_STATICTEXT1 = wxNewId();
+const long SnowflakesPanel::ID_SLIDER_Snowflakes_WarmupFrames = wxNewId();
+const long SnowflakesPanel::IDD_TEXTCTRL_Snowflakes_WarmupFrames = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SnowflakesPanel,wxPanel)
@@ -109,7 +112,17 @@ SnowflakesPanel::SnowflakesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer43->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Falling = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Falling, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Falling"));
 	FlexGridSizer43->Add(BitmapButton_Falling, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText3 = new wxStaticText(this, ID_STATICTEXT1, _("Warm up frames"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer43->Add(StaticText3, 1, wxALL|wxEXPAND, 2);
+	Slider_WarmupFrames = new BulkEditSlider(this, ID_SLIDER_Snowflakes_WarmupFrames, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Snowflakes_WarmupFrames"));
+	FlexGridSizer43->Add(Slider_WarmupFrames, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_WarmupFrames = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Snowflakes_WarmupFrames, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Snowflakes_WarmupFrames"));
+	TextCtrl_WarmupFrames->SetMaxLength(3);
+	FlexGridSizer43->Add(TextCtrl_WarmupFrames, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer43->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer43);
+	FlexGridSizer43->Fit(this);
+	FlexGridSizer43->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_Snowflakes_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SnowflakesPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Snowflakes_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SnowflakesPanel::OnLockButtonClick);
@@ -143,22 +156,24 @@ void SnowflakesPanel::OnChoice_FallingSelect(wxCommandEvent& event)
 
 void SnowflakesPanel::ValidateWindow()
 {
-    if (Choice_Falling->GetStringSelection() == "Driving")
-    {
-       BitmapButton_Snowflakes_Count->Disable();
-       BitmapButton_Snowflakes_Speed->Disable();
-       BitmapButton_Snowflakes_Count->GetValue()->SetActive(false);
-       BitmapButton_Snowflakes_Speed->GetValue()->SetActive(false);
+    if (Choice_Falling->GetStringSelection() == "Driving") {
+        BitmapButton_Snowflakes_Count->Disable();
+        BitmapButton_Snowflakes_Speed->Disable();
+        BitmapButton_Snowflakes_Count->GetValue()->SetActive(false);
+        BitmapButton_Snowflakes_Speed->GetValue()->SetActive(false);
 
-	   // Because disabling value curve also disables slider and text we need to re-enable them
-	   Slider_Snowflakes_Count->Enable();
-	   Slider_Snowflakes_Speed->Enable();
-	   TextCtrl_Snowflakes_Count->Enable();
-	   TextCtrl_Snowflakes_Speed->Enable();
-	}
-    else
-    {
-       BitmapButton_Snowflakes_Count->Enable();
-       BitmapButton_Snowflakes_Speed->Enable();
+        Slider_WarmupFrames->Enable(false);
+        TextCtrl_WarmupFrames->Enable(false);
+
+        // Because disabling value curve also disables slider and text we need to re-enable them
+        Slider_Snowflakes_Count->Enable();
+        Slider_Snowflakes_Speed->Enable();
+        TextCtrl_Snowflakes_Count->Enable();
+        TextCtrl_Snowflakes_Speed->Enable();
+    } else {
+        BitmapButton_Snowflakes_Count->Enable();
+        BitmapButton_Snowflakes_Speed->Enable();
+        Slider_WarmupFrames->Enable();
+        TextCtrl_WarmupFrames->Enable();
     }
 }

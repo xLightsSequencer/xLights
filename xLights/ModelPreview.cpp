@@ -663,17 +663,28 @@ void ModelPreview::Render()
     const std::vector<Model*>& models = GetModels();
     if (!models.empty()) {
         bool isModelSelected = false;
+        std::map<int32_t, std::list<Model*>> sortedModels;
         for (auto& m : models) {
             if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
                 if (m->Selected || m->GroupSelected) {
                     isModelSelected = true;
-                    break;
                 }
+                auto p = ProjViewMatrix * glm::vec4(m->GetHcenterPos(), m->GetVcenterPos(), m->GetDcenterPos(), 1);
+                int z = std::round(p.z * 100);
+                sortedModels[z].push_back(m);
             } else {
                 wxASSERT(false); // why did we get here
             }
         }
-        RenderModels(models, isModelSelected, _showFirstPixel);
+        std::vector<Model*> smodels;
+        smodels.reserve(models.size());
+        for (auto iter = sortedModels.rbegin(); iter != sortedModels.rend(); ++iter) {
+            //create a new vector sorted order, drawing from back to front
+            for (auto m : iter->second) {
+                smodels.push_back(m);
+            }
+        }
+        RenderModels(smodels, isModelSelected, _showFirstPixel);
     }
 
     // draw all the view objects
@@ -689,13 +700,21 @@ void ModelPreview::Render(uint32_t frameTime, const unsigned char *data, bool sw
     currentFrameTime = frameTime;
     if (StartDrawing(mPointSize)) {
         const std::vector<Model*> &models = GetModels();
+        std::map<int32_t, std::list<Model*>> sortedModels;
         for (auto m : models) {
             int NodeCnt = m->GetNodeCount();
             for (size_t n = 0; n < NodeCnt; ++n) {
                 int start = m->NodeStartChannel(n);
                 m->SetNodeChannelValues(n, &data[start]);
             }
-            m->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d);
+            auto p = ProjViewMatrix * glm::vec4(m->GetHcenterPos(), m->GetVcenterPos(), m->GetDcenterPos(), 1);
+            int z = std::round(p.z * 100);
+            sortedModels[z].push_back(m);
+        }
+        for (auto iter = sortedModels.rbegin(); iter != sortedModels.rend(); ++iter) {
+            for (auto m : iter->second) {
+                m->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d);
+            }
         }
         // draw all the view objects
         if (is3d) {
@@ -823,7 +842,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
     virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
     allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr),
     xlights(xlights_), currentModel("&---none---&"),  currentLayoutGroup("Default"), additionalModel(nullptr), m_mouse_down(false), m_wheel_down(false),
-    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), renderOrder(0), camera2d(nullptr), _showFirstPixel(showFirstPixel)
+    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), _showFirstPixel(showFirstPixel)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -840,12 +859,6 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
         Bind(EVT_MOTION3D, (wxObjectEventFunction)&ModelPreview::OnMotion3DEvent, this);
         Bind(EVT_MOTION3D_BUTTONCLICKED, (wxObjectEventFunction)&ModelPreview::OnMotion3DButtonEvent, this);
     }
-#ifdef XL_DRAWING_WITH_METAL
-    renderOrder = 0;
-#else
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Read("OGLRenderOrder", &renderOrder, 0);
-#endif
     is3d = false;
     
     Mouse3DManager::INSTANCE.enableMotionEvents(this);
@@ -856,7 +869,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
     allowSelected(false), allowPreviewChange(false), mPreviewPane(nullptr),
     xlights(xl), currentModel(""), currentLayoutGroup("Default"), additionalModel(nullptr), m_mouse_down(false), m_wheel_down(false),
-    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), renderOrder(0), camera2d(nullptr)
+    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -872,12 +885,6 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     Bind(EVT_MOTION3D, (wxObjectEventFunction)&ModelPreview::OnMotion3DEvent, this);
     Bind(EVT_MOTION3D_BUTTONCLICKED, (wxObjectEventFunction)&ModelPreview::OnMotion3DButtonEvent, this);
 
-#ifdef XL_DRAWING_WITH_METAL
-    renderOrder = 0;
-#else
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Read("OGLRenderOrder", &renderOrder, 0);
-#endif
     is3d = false;
     Mouse3DManager::INSTANCE.enableMotionEvents(this);
 }
@@ -1212,49 +1219,10 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
     currentContext->popDebugContext();
     currentContext->pushDebugContext(getName() + " - Draw");
     if (is3d) {
-        switch (renderOrder) {
-            // 0 or 1 is preferred depending if you want floods shining ONTO glass windows (0) or through (1)
-            // 3 or 4 draws the pixels first so they may have black bands around them and strong moire, but
-            //      seems to work around some video card drivers that cause extreme banding
-            // 5 is the 2019.03 order, but floods will look awful (black circles)
-            // 2 is the 2019.04 order, floods are OK, no transparent windows
-            case 0:
-                solidViewObjectProgram->runSteps(currentContext);
-                solidProgram->runSteps(currentContext);
-                transparentViewObjectProgram->runSteps(currentContext);
-                transparentProgram->runSteps(currentContext);
-                break;
-            case 1:
-                solidViewObjectProgram->runSteps(currentContext);
-                solidProgram->runSteps(currentContext);
-                transparentProgram->runSteps(currentContext);
-                transparentViewObjectProgram->runSteps(currentContext);
-                break;
-            case 2:
-                solidViewObjectProgram->runSteps(currentContext);
-                transparentViewObjectProgram->runSteps(currentContext);
-                solidProgram->runSteps(currentContext);
-                transparentProgram->runSteps(currentContext);
-                break;
-            case 3:
-                solidProgram->runSteps(currentContext);
-                solidViewObjectProgram->runSteps(currentContext);
-                transparentViewObjectProgram->runSteps(currentContext);
-                transparentProgram->runSteps(currentContext);
-                break;
-            case 4:
-                solidProgram->runSteps(currentContext);
-                solidViewObjectProgram->runSteps(currentContext);
-                transparentProgram->runSteps(currentContext);
-                transparentViewObjectProgram->runSteps(currentContext);
-                break;
-            case 5:
-                solidProgram->runSteps(currentContext);
-                transparentProgram->runSteps(currentContext);
-                solidViewObjectProgram->runSteps(currentContext);
-                transparentViewObjectProgram->runSteps(currentContext);
-                break;
-        }
+        solidViewObjectProgram->runSteps(currentContext);
+        solidProgram->runSteps(currentContext);
+        transparentViewObjectProgram->runSteps(currentContext);
+        transparentProgram->runSteps(currentContext);
     } else {
         solidProgram->runSteps(currentContext);
         transparentProgram->runSteps(currentContext);

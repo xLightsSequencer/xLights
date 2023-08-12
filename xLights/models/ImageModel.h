@@ -21,9 +21,9 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual ~ImageModel();
 
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
-                                   int &BufferWi, int &BufferHi) const override;
+                                   int &BufferWi, int &BufferHi, int stagger) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, bool deep = false) const override;
+                                           std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
     
         virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
                                           xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,

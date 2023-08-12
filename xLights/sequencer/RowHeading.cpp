@@ -28,10 +28,11 @@
 #include "VAMPPluginDialog.h"
 #include "UtilFunctions.h"
 #include "graphics/opengl/xlGLCanvas.h"
+#include "../MetronomeLabelDialog.h"
 
 #include <log4cpp/Category.hh>
 
-#define ICON_SPACE ScaleWithSystemDPI(25)
+#define ICON_SPACE FromDIP(25)
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
@@ -730,6 +731,24 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                                 timing_added = true;
                             }
                         }
+                    }else if (selected_timing == "Metronome w/ Tags") {
+                        int base_timing = xml_file->GetFrameMS();
+                        MetronomeLabelDialog dlg(base_timing, this);
+                        if (dlg.ShowModal() == wxID_OK)
+                        {
+                            int ms = (dlg.GetTiming() + base_timing / 2) / base_timing * base_timing;
+
+                            if (ms != dlg.GetTiming())
+                            {
+                               DisplayWarning(wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetTiming(), ms).ToStdString());
+                            }
+                            wxString ttn = wxString::Format("%dms Metronome %d Tag", ms, dlg.GetTagCount());
+                            if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame()))
+                            {
+                                xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, dlg.GetTagCount(), mSequenceElements->GetXLightsFrame());
+                                timing_added = true;
+                            }
+                        }
                     } else {
                         xml_file->AddFixedTimingSection(selected_timing, mSequenceElements->GetXLightsFrame());
                         timing_added = true;
@@ -1388,7 +1407,7 @@ static float ComputeRHFontSize() {
     }
     return fontSize;
 }
-#ifdef __WXOSX__
+#ifndef __WXMSW__
 static void SetFontPixelSize(wxFont &font, float f) {
     float i = font.GetPixelSize().y;
     float p = font.GetFractionalPointSize();
@@ -1415,7 +1434,7 @@ void RowHeading::render( wxPaintEvent& event )
     dc.GetSize(&w,&h);
     xlColor rowHeaderCol = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER);
     xlColor outlineCol(32, 32, 32);
-    bool isDark = wxSystemSettings::GetAppearance().IsDark();
+    bool isDark = IsDarkMode();
     if (isDark) {
         outlineCol.Set(55, 55, 55);
     }
@@ -1597,7 +1616,7 @@ void RowHeading::render( wxPaintEvent& event )
                         }
                         dc.SetPen(*wxBLACK_PEN);
                         dc.SetBrush(wxBrush(color.asWxColor()));
-                        dc.DrawRectangle(getWidth() - ScaleWithSystemDPI(21), startY + 5, ScaleWithSystemDPI(12), ScaleWithSystemDPI(12));
+                        dc.DrawRectangle(getWidth() - FromDIP(21), startY + 5, FromDIP(12), FromDIP(12));
                         dc.SetPen(penOutline);
                         dc.SetBrush(brush2);
                     }

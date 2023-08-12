@@ -36,6 +36,8 @@ const long BufferPanel::ID_CHECKBOX_ResetBufferPanel = wxNewId();
 const long BufferPanel::ID_STATICTEXT_BufferStyle = wxNewId();
 const long BufferPanel::ID_CHOICE_BufferStyle = wxNewId();
 const long BufferPanel::ID_BITMAPBUTTON_CHOICE_BufferStyle = wxNewId();
+const long BufferPanel::ID_STATICTEXT3 = wxNewId();
+const long BufferPanel::ID_SPINCTRL_BufferStagger = wxNewId();
 const long BufferPanel::ID_STATICTEXT2 = wxNewId();
 const long BufferPanel::ID_CHOICE_PerPreviewCamera = wxNewId();
 const long BufferPanel::ID_STATICTEXT_BufferTransform = wxNewId();
@@ -159,12 +161,18 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	BitmapButtonBufferStyle->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButtonBufferStyle->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	BufferSizer->Add(BitmapButtonBufferStyle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText17 = new wxStaticText(ScrolledWindow1, ID_STATICTEXT3, _("Buffer Stagger"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	BufferSizer->Add(StaticText17, 1, wxALL|wxEXPAND, 2);
+	SpinCtrl_BufferStagger = new wxSpinCtrl(ScrolledWindow1, ID_SPINCTRL_BufferStagger, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 100, 0, _T("ID_SPINCTRL_BufferStagger"));
+	SpinCtrl_BufferStagger->SetValue(_T("0"));
+	BufferSizer->Add(SpinCtrl_BufferStagger, 1, wxALL|wxEXPAND, 2);
+	BufferSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	StaticText16 = new wxStaticText(ScrolledWindow1, ID_STATICTEXT2, _("Camera"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	BufferSizer->Add(StaticText16, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_PerPreviewCamera = new BulkEditChoice(ScrolledWindow1, ID_CHOICE_PerPreviewCamera, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PerPreviewCamera"));
 	Choice_PerPreviewCamera->SetSelection( Choice_PerPreviewCamera->Append(_("2D")) );
 	BufferSizer->Add(Choice_PerPreviewCamera, 1, wxALL|wxEXPAND, 2);
-	BufferSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BufferSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(ScrolledWindow1, ID_STATICTEXT_BufferTransform, _("Transformation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_BufferTransform"));
 	BufferSizer->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	BufferTransform = new BulkEditChoice(ScrolledWindow1, ID_CHOICE_BufferTransform, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_BufferTransform"));
@@ -174,6 +182,8 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	BufferTransform->Append(_("Rotate 180"));
 	BufferTransform->Append(_("Flip Vertical"));
 	BufferTransform->Append(_("Flip Horizontal"));
+	BufferTransform->Append(_("Rotate CC 90 Flip Horizontal"));
+	BufferTransform->Append(_("Rotate CW 90 Flip Horizontal"));
 	BufferSizer->Add(BufferTransform, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_BufferTransform = new xlLockButton(ScrolledWindow1, ID_BITMAPBUTTON_CHOICE_BufferTransform, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferTransform"));
 	BitmapButton_BufferTransform->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
@@ -199,7 +209,7 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	CheckBox_OverlayBkg = new BulkEditCheckBox(ScrolledWindow1, ID_CHECKBOX_OverlayBkg, _("Persistent"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_OverlayBkg"));
 	CheckBox_OverlayBkg->SetValue(false);
 	BufferSizer->Add(CheckBox_OverlayBkg, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	BufferSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BufferSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	BitmapButton_OverlayBkg = new xlLockButton(ScrolledWindow1, ID_BITMAPBUTTON_OverlayBkg, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_OverlayBkg"));
 	BitmapButton_OverlayBkg->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_OverlayBkg->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
@@ -210,12 +220,8 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	SubBufferPanelSizer->AddGrowableRow(0);
 	FullBufferSizer->Add(SubBufferPanelSizer, 1, wxALL|wxEXPAND, 0);
 	ScrolledWindow1->SetSizer(FullBufferSizer);
-	FullBufferSizer->Fit(ScrolledWindow1);
-	FullBufferSizer->SetSizeHints(ScrolledWindow1);
 	FlexGridSizer11->Add(ScrolledWindow1, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 0);
 	Panel3->SetSizer(FlexGridSizer11);
-	FlexGridSizer11->Fit(Panel3);
-	FlexGridSizer11->SetSizeHints(Panel3);
 	Panel4 = new wxPanel(Notebook1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
 	FlexGridSizer15 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer15->AddGrowableCol(0);
@@ -400,18 +406,12 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	RotoZoomSizer->Add(ChoiceRotateOrder, 1, wxALL, 1);
 	RotoZoomSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ScrolledWindow2->SetSizer(RotoZoomSizer);
-	RotoZoomSizer->Fit(ScrolledWindow2);
-	RotoZoomSizer->SetSizeHints(ScrolledWindow2);
 	FlexGridSizer15->Add(ScrolledWindow2, 1, wxALL|wxEXPAND, 2);
 	Panel4->SetSizer(FlexGridSizer15);
-	FlexGridSizer15->Fit(Panel4);
-	FlexGridSizer15->SetSizeHints(Panel4);
 	Notebook1->AddPage(Panel3, _("Buffer"), false);
 	Notebook1->AddPage(Panel4, _("Roto-Zoom"), false);
 	FlexGridSizer1->Add(Notebook1, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHECKBOX_ResetBufferPanel,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&BufferPanel::OnCheckBox_ResetBufferPanelClick);
 	Connect(ID_CHOICE_BufferStyle,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BufferPanel::OnBufferStyleChoiceSelect);
@@ -508,6 +508,10 @@ wxString BufferPanel::GetBufferString() {
         s += "B_CHOICE_BufferTransform=";
         s += BufferTransform->GetStringSelection();
         s += ",";
+    }
+
+    if (SpinCtrl_BufferStagger->GetValue() != 0) {
+        s += wxString::Format("B_SPINCTRL_BufferStagger=%d,", SpinCtrl_BufferStagger->GetValue());
     }
 
     wxString subB = subBufferPanel->GetValue();
@@ -671,6 +675,8 @@ void BufferPanel::UpdateCamera(const Model* model)
             _defaultCamera = mg->GetDefaultCamera();
         }
     }
+
+    _mg = (model->GetDisplayAs() == "ModelGroup");
 }
 
 void BufferPanel::UpdateBufferStyles(const Model* model)
@@ -687,6 +693,8 @@ void BufferPanel::UpdateBufferStyles(const Model* model)
         BufferStyleChoice->Append("Default");
     }
     BufferStyleChoice->SetStringSelection(sel);
+
+    _mg = (model->GetDisplayAs() == "ModelGroup");
 }
 
 void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
@@ -719,6 +727,8 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
         TextCtrl_EffectBlur->SetValue("1");
         BitmapButton_Blur->GetValue()->SetDefault(1.0f, 15.0f);
         BitmapButton_Blur->UpdateState();
+
+        SpinCtrl_BufferStagger->SetValue(0);
 
         BufferStyleChoice->SetSelection(0);
 
@@ -791,6 +801,25 @@ void BufferPanel::ValidateWindow()
     else
     {
         Choice_PerPreviewCamera->Disable();
+    }
+
+    // Only some buffer shapes support stagger
+    if (_mg &&
+        (bs == "Horizontal Stack"
+        || bs == "Vertical Stack"
+        //|| bs == "Horizontal Stack - Scaled"
+        //|| bs == "Vertical Stack - Scaled"
+        //|| bs == "Horizontal Per Model"
+        //|| bs == "Vertical Per Model"
+        //|| bs == "Horizontal Per Model/Strand"
+        //|| bs == "Vertical Per Model/Strand"
+        ))
+    {
+        SpinCtrl_BufferStagger->Enable();
+    }
+    else
+    {
+        SpinCtrl_BufferStagger->Disable();
     }
 
     if (BitmapButton_Blur->GetValue()->IsActive())

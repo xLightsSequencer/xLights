@@ -1140,7 +1140,8 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         logger_base.warn("Unable to bind to XL_ZOOM");
     }
     if (!si->SetUniform1f("XL_DURATION", (GLfloat)((buffer.GetEndTimeMS() - buffer.GetStartTimeMS()) / 1000.0))) {
-            logger_base.warn("Unable to bind to XL_DURATION");
+        // This may just have been optimized out of the shader program.  If it cannot be set, it is not worth logging.
+        //logger_base.warn("Unable to bind to XL_DURATION");
     }
     if (!si->SetUniform1f("TIME", (GLfloat)(_timeMS) / 1000.0)) {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime()) {

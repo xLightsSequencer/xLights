@@ -13,9 +13,14 @@
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 #include "../utils/ip_utils.h"
+#include "ControllerEthernet.h"
+#ifndef EXCLUDENETWORKUI
+#include "../models/ModelManager.h"
+#endif
 
 #include <wx/xml/xml.h>
 #include <wx/process.h>
+#include <wx/propgrid/propgrid.h>
 
 #include <log4cpp/Category.hh>
 
@@ -33,7 +38,7 @@ void E131Output::CreateMultiUniverses_CONVERT(int num) {
 
     for (int i = 0; i < _numUniverses_CONVERT; i++) {
         E131Output* e = new E131Output();
-        e->SetIP(_ip);
+        e->SetIP(_ip, true);
         e->SetUniverse(_universe + i);
         e->SetChannels(_channels);
         e->_description_CONVERT = _description_CONVERT;
@@ -57,7 +62,7 @@ void E131Output::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("E131Output: %s Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
     }
@@ -66,7 +71,7 @@ void E131Output::OpenDatagram() {
         delete _datagram;
         _datagram = nullptr;
     }
-    else if (_datagram->Error() != wxSOCKET_NOERROR) {
+    else if (_datagram->Error()) {
         logger_base.error("E131Output: %s Error creating E131 datagram => %d : %s.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
@@ -75,7 +80,7 @@ void E131Output::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-E131Output::E131Output(wxXmlNode* node) : IPOutput(node) {
+E131Output::E131Output(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > 512) SetChannels(512);
     if (_autoSize_CONVERT) _autoSize_CONVERT = false;
@@ -203,7 +208,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
                 delete syncdatagram;
             }
 
-            syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+            syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
             if (syncdatagram == nullptr) {
                 logger_base.error("Error initialising E131 sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
@@ -213,7 +218,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
-            else if (syncdatagram->Error() != wxSOCKET_NOERROR) {
+            else if (syncdatagram->Error()) {
                 logger_base.error("Error creating E131 sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
@@ -508,3 +513,156 @@ void E131Output::AllOff() {
     }
 }
 #pragma endregion
+
+
+#pragma region UI
+#ifndef EXCLUDENETWORKUI
+void E131Output::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
+    IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
+    ControllerEthernet *ce = dynamic_cast<ControllerEthernet*>(c);
+
+    auto p = propertyGrid->GetProperty("Universes");
+    if (p) {
+        p->SetValue((int)c->GetOutputs().size());
+        if (c->IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Universes Count cannot be changed when an output is set to Auto Size.");
+        } else {
+            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            p->SetHelpString("");
+            p->SetEditor("SpinCtrl");
+        }
+    }
+    p = propertyGrid->GetProperty("UniversePerString");
+    if (p) {
+        p->SetValue(ce->IsUniversePerString());
+        if (ce->IsAutoSize() && ce->SupportsUniversePerString()) {
+            p->Hide(false);
+        } else {
+            p->Hide(true);
+        }
+    }
+    p = propertyGrid->GetProperty("UniversesDisplay");
+    if (p) {
+        if (ce->GetOutputs().size() > 1) {
+            p->SetValue(ce->GetOutputs().front()->GetUniverseString() + " - " + ce->GetOutputs().back()->GetUniverseString());
+            p->Hide(false);
+        } else {
+            p->Hide(true);
+        }
+    }
+    p = propertyGrid->GetProperty("IndivSizes");
+    if (p) {
+        if (ce->IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Individual Sizes cannot be changed when an output is set to Auto Size.");
+        } else {
+            bool v = !ce->AllSameSize() || ce->IsForcingSizes() || ce->IsUniversePerString();
+            p->SetValue(v);
+            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            p->SetHelpString("");
+        }
+    }
+    if (!ce->AllSameSize() || ce->IsForcingSizes()) {
+        p = propertyGrid->GetProperty("Channels");
+        if (p) {
+            p->Hide(true);
+        }
+        auto p2 = propertyGrid->GetProperty("Sizes");
+        if (p2) {
+            p2->Hide(false);
+            if (ce->IsExpanded()) {
+                expandProperties.push_back(p2);
+            }
+            while (propertyGrid->GetFirstChild(p2)) {
+                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
+            }
+            for (const auto& it : ce->GetOutputs()) {
+                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
+                p->SetAttribute("Min", 1);
+                p->SetAttribute("Max", it->GetMaxChannels());
+                p->SetEditor("SpinCtrl");
+                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
+                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
+                if (modelsOnUniverse != "") {
+                    if (IsDarkMode()) {
+                        p->SetBackgroundColour(wxColour(104, 128, 79));
+                    } else {
+                        p->SetBackgroundColour(wxColour(208, 255, 158));
+                    }
+                }
+            }
+        }
+    } else {
+        p = propertyGrid->GetProperty("Channels");
+        if (p) {
+            p->Hide(false);
+            p->SetValue(GetChannels());
+            if (ce->IsAutoSize()) {
+                p->ChangeFlag(wxPG_PROP_READONLY, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
+            } else {
+                p->SetEditor("SpinCtrl");
+                p->ChangeFlag(wxPG_PROP_READONLY, false);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+                p->SetHelpString("");
+            }
+        }
+        auto p2 = propertyGrid->GetProperty("Sizes");
+        if (p2) {
+            p2->Hide(true);
+        }
+    }
+}
+void E131Output::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {
+    IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
+
+    auto p = propertyGrid->Insert(before, new wxUIntProperty("Start Universe", "Universe", GetUniverse()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 64000);
+    p->SetEditor("SpinCtrl");
+    
+    
+    p = propertyGrid->Insert(before, new wxUIntProperty("Universe Count", "Universes", c->GetOutputs().size()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 1000);
+
+    p = propertyGrid->Insert(before, new wxBoolProperty("Universe Per String", "UniversePerString", false));
+    p->SetEditor("CheckBox");
+
+    p = propertyGrid->Insert(before, new wxStringProperty("Universes", "UniversesDisplay", ""));
+    p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+
+
+    p = propertyGrid->Insert(before, new wxBoolProperty("Individual Sizes", "IndivSizes", false));
+    p->SetEditor("CheckBox");
+    
+    p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Universe", "Channels", GetChannels()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", GetMaxChannels());
+    
+    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
+
+}
+bool E131Output::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) {
+    if (IPOutput::HandlePropertyEvent(event, outputModelManager, c)) return true;
+    return false;
+}
+void E131Output::RemoveProperties(wxPropertyGrid* propertyGrid) {
+    IPOutput::RemoveProperties(propertyGrid);
+    propertyGrid->DeleteProperty("Universe");
+    propertyGrid->DeleteProperty("Universes");
+    propertyGrid->DeleteProperty("UniversePerString");
+    propertyGrid->DeleteProperty("UniversesDisplay");
+    propertyGrid->DeleteProperty("IndivSizes");
+    propertyGrid->DeleteProperty("Channels");
+    propertyGrid->DeleteProperty("Sizes");
+}
+#endif
+#pragma endregion UI

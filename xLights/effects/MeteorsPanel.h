@@ -43,6 +43,7 @@ public:
 	BulkEditSlider* Slider_Meteors_Swirl_Intensity;
 	BulkEditSlider* Slider_Meteors_XOffset;
 	BulkEditSlider* Slider_Meteors_YOffset;
+	BulkEditSlider* Slider_WarmupFrames;
 	BulkEditTextCtrl* TextCtrl_Meteors_XOffset;
 	BulkEditTextCtrl* TextCtrl_Meteors_YOffset;
 	BulkEditValueCurveButton* BitmapButton_Meteors_Count;
@@ -56,6 +57,7 @@ public:
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText2;
 	wxStaticText* StaticText39;
+	wxStaticText* StaticText3;
 	wxStaticText* StaticText41;
 	wxStaticText* StaticText43;
 	wxStaticText* StaticText4;
@@ -98,6 +100,9 @@ protected:
 	static const long ID_SLIDER_Meteors_Speed;
 	static const long ID_VALUECURVE_Meteors_Speed;
 	static const long IDD_TEXTCTRL_Meteors_Speed;
+	static const long ID_STATICTEXT1;
+	static const long ID_SLIDER_Meteors_WamupFrames;
+	static const long IDD_TEXTCTRL_Meteors_WamupFrames;
 	static const long ID_STATICTEXT_Meteors_XOffset;
 	static const long IDD_SLIDER_Meteors_XOffset;
 	static const long ID_VALUECURVE_Meteors_XOffset;

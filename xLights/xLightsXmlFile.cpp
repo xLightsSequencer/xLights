@@ -42,6 +42,18 @@
 const wxString xLightsXmlFile::ERASE_MODE = "<rendered: erase-mode>";
 const wxString xLightsXmlFile::CANVAS_MODE = "<rendered: canvas-mode>";
 
+
+const std::array<std::string, (int)HEADER_INFO_TYPES::NUM_TYPES> HEADER_STRINGS = {
+    "author",
+    "author-email",
+    "author-website",
+    "song",
+    "artist",
+    "album",
+    "MusicURL",
+    "comment"
+};
+
 xLightsXmlFile::xLightsXmlFile(const wxFileName& filename, uint32_t frameMS) :
     wxFileName(filename),
     version_string(wxEmptyString),
@@ -59,17 +71,12 @@ xLightsXmlFile::xLightsXmlFile(const wxFileName& filename, uint32_t frameMS) :
     if (frameMS != 0) {
         seq_timing = wxString::Format("%d ms", frameMS);
     }
-
-    for (size_t i = 0; i < static_cast<size_t>(HEADER_INFO_TYPES::NUM_TYPES); ++i) {
-        header_info.push_back("");
-    }
     CreateNew();
 }
 
 xLightsXmlFile::~xLightsXmlFile()
 {
     models.Clear();
-    header_info.Clear();
     timing_list.Clear();
     if (audio != nullptr) {
         ValueCurve::SetAudio(nullptr);
@@ -669,9 +676,9 @@ void xLightsXmlFile::SetNodeContent(wxXmlNode* node, const wxString& content)
     }
 }
 
-wxString xLightsXmlFile::GetHeaderInfo(HEADER_INFO_TYPES node_type) const
+const wxString& xLightsXmlFile::GetHeaderInfo(HEADER_INFO_TYPES node_type) const
 {
-    return UnXmlSafe(header_info[static_cast<int>(node_type)]);
+    return header_info[static_cast<int>(node_type)];
 }
 
 void xLightsXmlFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const wxString& node_value)
@@ -684,7 +691,7 @@ void xLightsXmlFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const wxString& 
             for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
                 if (element->GetName() == HEADER_STRINGS[static_cast<int>(name_name)]) {
                     SetNodeContent(element, clean_node_value);
-                    header_info[static_cast<int>(name_name)] = clean_node_value;
+                    header_info[static_cast<int>(name_name)] = node_value;
                 }
             }
         }
@@ -2875,46 +2882,111 @@ bool xLightsXmlFile::TimingAlreadyExists(const std::string & section, xLightsFra
     return false;
 }
 
-void xLightsXmlFile::AddNewTimingSection(const std::string & filename, xLightsFrame* xLightsParent,
-                                         std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels) {
+void xLightsXmlFile::AddNewTimingSection(const std::string& filename, xLightsFrame* xLightsParent,
+                                         std::vector<int>& starts, std::vector<int>& ends, std::vector<std::string>& labels)
+{
+    // some QM plugins dont return items sorted appropriately
+    typedef struct tm {
+        int start;
+        int end;
+        std::string label;
+        int duration() const
+        {
+            return end - start;
+        }
+        static bool sort_func(const struct tm& a, const struct tm& b)
+        {
+            if (a.start == b.start)
+                return a.duration() < b.duration();
+
+            return a.start < b.start;
+        }
+    } tm;
+
+    std::vector<tm> tms;
+
+    tms.resize(starts.size());
+    for (size_t k = 0; k < starts.size(); k++) {
+        tms[k] = tm({ TimeLine::RoundToMultipleOfPeriod(starts[k], GetFrequency()),
+                   TimeLine::RoundToMultipleOfPeriod(ends[k], GetFrequency()),
+                   labels[k] });
+    }
+
+    std::sort(begin(tms), end(tms), tm::sort_func);
+
     EffectLayer* effectLayer = nullptr;
     wxXmlNode* layer = nullptr;
-    if( sequence_loaded )
-    {
+    if (sequence_loaded) {
         Element* element = xLightsParent->AddTimingElement(filename);
         effectLayer = element->GetEffectLayer(0);
-    }
-    else
-    {
-        AddTimingDisplayElement(filename, "1", "0" );
-        wxXmlNode*  node = AddElement( filename, "timing" );
+    } else {
+        AddTimingDisplayElement(filename, "1", "0");
+        wxXmlNode* node = AddElement(filename, "timing");
         layer = AddChildXmlNode(node, "EffectLayer");
     }
 
     int prev_start = -1;
     int prev_end = -1;
 
-    for (size_t k = 0; k < starts.size(); k++) {
+    for (size_t k = 0; k < tms.size(); k++) {
+        int start = tms[k].start;
+        int end = tms[k].end;
 
-        int start = TimeLine::RoundToMultipleOfPeriod(starts[k], GetFrequency());
-        int end = TimeLine::RoundToMultipleOfPeriod(ends[k], GetFrequency());
-        if (start == prev_start && end == prev_end) {
-            continue;//skip duplicates
+        // if this timing mark overlaps the prior one then force it to start at the end of the prior one
+        if (start < prev_end) {
+            start = prev_end;
+        }
+
+        if (k < tms.size() - 1 && tms[k + 1].start < end) // the next timing starts before this one ends ... in which case this ends = that start
+        {
+            end = tms[k + 1].start;
+        }
+
+        // if this timing mark starts before the prior one ended then start it after the prior one
+        if (start < prev_end)
+        {
+            start = prev_end;
+        }
+
+        // if it now starts after it ends then skip it as it totally overlapped with the last timing mark
+        if (start > end) {
+            continue;
+        }
+
+        if (start > GetSequenceDurationMS()) {
+            continue; // dont add timing marks after the end of the song
+        } else if (start == prev_start && end == prev_end) {
+            continue;            // skip duplicates
+        } else if (start == end) // dont add zero length timing marks
+        {
+            // zero length timing marks are not valid ... but if the following start is greater than the current start then use that as the end
+            if (k == tms.size() - 1) {
+                // special case use the end of the sequence
+                end = TimeLine::RoundToMultipleOfPeriod(GetSequenceDurationMS(), GetFrequency());
+                if (start == end) {
+                    continue;
+                }
+            } else {
+                if (tms[k + 1].start > start) {
+                    end = tms[k + 1].start;
+                } else {
+                    // even using the next start would make it zero length so we have to skip this one
+                    continue;
+                }
+            }
         }
 
         prev_start = start;
         prev_end = end;
 
-        if( sequence_loaded )
-        {
-            effectLayer->AddEffect(0, labels[k], "", "", start, end, EFFECT_NOT_SELECTED, false);
-        }
-        else
-        {
-            AddTimingEffect(layer, labels[k], "0", "0", string_format("%d", start), string_format("%d", end));
+        if (sequence_loaded) {
+            effectLayer->AddEffect(0, tms[k].label, "", "", start, end, EFFECT_NOT_SELECTED, false);
+        } else {
+            AddTimingEffect(layer, tms[k].label, "0", "0", string_format("%d", start), string_format("%d", end));
         }
     }
 }
+
 void xLightsXmlFile::AddNewTimingSection(const std::string & interval_name, xLightsFrame* xLightsParent, const std::string& subType)
 {
     AddTimingDisplayElement( interval_name, "1", "0", subType);
@@ -2962,6 +3034,37 @@ void xLightsXmlFile::AddFixedTimingSection(const std::string& interval_name, xLi
         }
         node = AddFixedTiming(interval_name, string_format("%d", interval));
     }
+
+    AddChildXmlNode(node, "EffectLayer");
+}
+
+void xLightsXmlFile::AddMetronomeLabelTimingSection(const std::string& interval_name, int interval, int count, xLightsFrame* xLightsParent)
+{
+    AddTimingDisplayElement(interval_name, "1", "0");
+    wxXmlNode* node;
+
+    if (sequence_loaded)
+    {
+        TimingElement* element = xLightsParent->AddTimingElement(interval_name);
+        EffectLayer* effectLayer = element->GetEffectLayer(0);
+        int time {0};
+        int id {0};
+        int end_time = GetSequenceDurationMS();
+        while (time < end_time)
+        {
+            int next_time = (time + interval <= end_time) ? time + interval : end_time;
+            int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
+            int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
+            effectLayer->AddEffect(0, std::to_string(id + 1), "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
+            time += interval;
+            id++;
+            if (count != 0) {
+                id %= count;
+            }
+        }
+    }
+    node = AddFixedTiming(interval_name, string_format("%d", interval));
+    
 
     AddChildXmlNode(node, "EffectLayer");
 }

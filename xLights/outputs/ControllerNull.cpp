@@ -122,20 +122,29 @@ void ControllerNull::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* m
     p->ChangeFlag(wxPG_PROP_READONLY, true);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
-    if (_outputs.size() > 0) _outputs.front()->AddProperties(propertyGrid, true, expandProperties);
+    p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", GetChannels()));
+    p->SetEditor("SpinCtrl");
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 100000000);
 }
 
 bool ControllerNull::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
 
     if (Controller::HandlePropertyEvent(event, outputModelManager)) return true;
 
-    //wxString const name = event.GetPropertyName();
+    wxString const name = event.GetPropertyName();
     //wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
 
-    if (_outputs.size() > 0) {
-        if (_outputs.front()->HandlePropertyEvent(event, outputModelManager)) return true;
+    if (name == "Channels") {
+        if (_outputs.size() > 0) {
+            _outputs.front()->SetChannels(event.GetValue().GetLong());
+        }
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "NullOutput::HandlePropertyEvent::Channels");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "NullOutput::HandlePropertyEvent::Channels", nullptr);
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "NullOutput::HandlePropertyEvent::Channels", nullptr);
+        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "NullOutput::HandlePropertyEvent::Channels", nullptr);
+        return true;
     }
-
     return false;
 }
 #endif

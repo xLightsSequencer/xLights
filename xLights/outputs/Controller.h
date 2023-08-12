@@ -19,7 +19,7 @@
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
-
+#include "../UtilFunctions.h"
 #include "Output.h"
 
 class wxXmlNode;
@@ -145,17 +145,19 @@ public:
     Controller::ACTIVESTATE GetActive() const { return _active; }
     virtual bool IsActive() const;
     void SetActive(const std::string& active);
+    virtual void PostSetActive()
+    {}
 
     virtual bool CanVisualise() const;
 
     bool IsOk() const { return _ok; }
 
     const std::string &GetVendor() const { return _vendor; }
-    void SetVendor(const std::string& vendor) { if (_vendor != vendor) { _vendor = vendor; _dirty = true; VMVChanged(); } }
+    void SetVendor(const std::string& vendor, wxPropertyGrid *grid = nullptr) { if (_vendor != vendor) { _vendor = vendor; _dirty = true; VMVChanged(grid); } }
     const std::string &GetModel() const { return _model; }
-    void SetModel(const std::string& model) { if (_model != model) { _model = model; _dirty = true; VMVChanged(); } }
+    void SetModel(const std::string& model, wxPropertyGrid *grid = nullptr) { if (_model != model) { _model = model; _dirty = true; VMVChanged(grid); } }
     const std::string &GetVariant() const { return _variant; }
-    void SetVariant(const std::string& variant) { if (_variant != variant) { _variant = variant; _dirty = true;  VMVChanged(); } }
+    void SetVariant(const std::string& variant, wxPropertyGrid *grid = nullptr) { if (_variant != variant) { _variant = variant; _dirty = true;  VMVChanged(grid); } }
     std::string GetVMV() const;
     ControllerCaps* GetControllerCaps() const;
     void SearchForNewVendor( std::string const& vendor, std::string const& model, std::string const& variant);
@@ -188,7 +190,7 @@ public:
     virtual bool SupportsAutoLayout() const;
     virtual bool IsManaged() const = 0;
     virtual bool CanSendData() const { return true; }
-    virtual void VMVChanged() {}
+    virtual void VMVChanged(wxPropertyGrid *grid = nullptr) {}
 
     virtual bool CanTempDisable() const { return false; }
     void TempDisable(bool disable)
@@ -258,7 +260,10 @@ public:
 
     virtual std::string GetSortName() const { return GetName(); }
     virtual std::string GetExport() const = 0;
-
+    
+    virtual std::string GetJSONData() const;
+    virtual std::string GetCapJSONData() const;
+    
     #pragma endregion
 
     #pragma region Operators
@@ -267,6 +272,10 @@ public:
 
     #pragma region UI
     #ifndef EXCLUDENETWORKUI
+        void AddModels(wxPGProperty* property, wxPGProperty* vp);
+        void AddVariants(wxPGProperty* property);
+
+        virtual void UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties);
         virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties);
 	    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager);
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const;

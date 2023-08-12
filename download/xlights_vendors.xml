@@ -19,11 +19,21 @@
         <maxmodels>28</maxmodels>
     </vendor>
 	<vendor>
+		<name>Build A Light Show</name>
+        <link>https://buildalightshow.com/downloads/vendor.xml</link>
+        <maxmodels>25</maxmodels>
+    </vendor>
+	<vendor>
+		<name>Charlees Props</name>
+		<link>https://cdn.shopify.com/s/files/1/0747/5393/3624/files/CharleesPropsXmodels.xml</link>
+		<maxmodels>65</maxmodels>
+	</vendor>
+	<vendor>
 		<name>DMX Fixture Library</name>
 		<link>https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_fixtures.xml</link>
 	</vendor>
 	<vendor>
-		<name>DMX Models Library</name>
+		<name>DMX Model Library</name>
 		<link>https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_models.xml</link>
 	</vendor>
 	<musicvendor>

@@ -839,10 +839,10 @@ bool VendorModelDialog::FindModelFile(const std::string &vendor, const std::stri
     return false;
 }
 
-wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high) const
+wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const
 {
     filename = "";
-    wxFileName fn = wxFileName(VendorModelDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION, "", prog, low, high));
+    wxFileName fn = wxFileName(VendorModelDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION, "", prog, low, high, keepProgress));
     if (FileExists(fn)) {
         filename = fn.GetFullPath();
         return new wxXmlDocument(filename);
@@ -854,12 +854,21 @@ wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename
 bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
     const std::string vendorlink = "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
+    const std::string vendorlinkbackup = "https://github.com/smeighan/xLights/raw/master/download/xlights_vendors.xml";
     //const std::string vendorlink = "http://localhost/xlights_vendors.xml";
 
     std::string filename;
-    wxXmlDocument* vd = GetXMLFromURL(wxURI(vendorlink), filename, prog, low, high);
-    if (vd != nullptr && vd->IsOk())
-    {
+    if (prog != nullptr)
+        prog->Update(low, "Downloading vendor list");
+    wxXmlDocument* vd = GetXMLFromURL(wxURI(vendorlink), filename, prog, low, high, true);
+    if (prog != nullptr) 
+        prog->Update(high, "Parsing vendor list");
+
+    if (vd == nullptr || !vd->IsOk()) {
+        vd = GetXMLFromURL(wxURI(vendorlinkbackup), filename, prog, low, high, true);
+    }
+
+    if (vd != nullptr && vd->IsOk()) {
         wxXmlNode* root = vd->GetRoot();
 
         for (auto v = root->GetChildren(); v != nullptr; v = v->GetNext())
@@ -896,9 +905,13 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
                     if (url != "")
                     {
                         std::string vfilename;
-                        wxXmlDocument* d = GetXMLFromURL(wxURI(url), vfilename, prog, low, high);
+                        if (prog != nullptr) 
+                            prog->Update(low, "Downloading " + name + " data.");
+                        wxXmlDocument* d = GetXMLFromURL(wxURI(url), vfilename, prog, low, high, true);
                         if (d != nullptr && d->IsOk())
                         {
+                            if (prog != nullptr) 
+                                prog->Update(high, "Parsing " + name + " data.");
                             MVendor* mv = new MVendor(d, maxModels);
                             _vendors.push_back(mv);
                             delete d;
@@ -908,6 +921,7 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
             }
         }
     }
+    if (prog != nullptr) prog->Update(100);
     if (vd != nullptr)
     {
         delete vd;
@@ -1661,7 +1675,7 @@ void VendorModelDialog::SuppressVendor(const std::string& vendor, bool suppress)
 {
     wxConfigBase* config = wxConfigBase::Get();
 
-    auto s = config->Read("xLightsVendorSuppress", "|DMX Fixture Library");
+    auto s = config->Read("xLightsVendorSuppress", "DMX Fixture Library|");
 
     if (suppress && !s.Contains(vendor))
     {

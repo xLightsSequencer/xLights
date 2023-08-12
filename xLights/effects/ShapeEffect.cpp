@@ -10,6 +10,7 @@
 
 #include "ShapeEffect.h"
 #include "ShapePanel.h"
+#include "TextEffect.h" // FontMapLock
 
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
@@ -166,6 +167,8 @@ void ShapeEffect::SetDefaultParameters() {
     sp->BitmapButton_Shape_ThicknessVC->SetActive(false);
     sp->BitmapButton_Shape_CentreXVC->SetActive(false);
     sp->BitmapButton_Shape_CentreYVC->SetActive(false);
+    sp->BitmapButton_Shapes_Velocity->SetActive(false);
+    sp->BitmapButton_Shapes_Direction->SetActive(false);
     sp->BitmapButton_Shape_LifetimeVC->SetActive(false);
     sp->BitmapButton_Shape_GrowthVC->SetActive(false);
     sp->BitmapButton_Shape_CountVC->SetActive(false);
@@ -184,6 +187,8 @@ void ShapeEffect::SetDefaultParameters() {
     SetSliderValue(sp->Slider_Shape_Lifetime, 5);
     SetSliderValue(sp->Slider_Shape_Sensitivity, 50);
     SetSliderValue(sp->Slider_Shape_Rotation, 0);
+    SetSliderValue(sp->Slider_Shapes_Velocity, 0);
+    SetSliderValue(sp->Slider_Shapes_Direction, 90);
 
     SetCheckBoxValue(sp->CheckBox_Shape_RandomLocation, true);
     SetCheckBoxValue(sp->CheckBox_Shape_FadeAway, true);
@@ -283,6 +288,11 @@ public:
 
     void InitialiseSVG(const std::string filename)
     {
+        if (_svgImage != nullptr) {
+            nsvgDelete(_svgImage);
+            _svgImage = nullptr;
+        }
+
         _svgFilename = filename;
         _svgImage = nsvgParseFromFile(_svgFilename.c_str(), "px", 96);
         if (_svgImage != nullptr) {
@@ -452,19 +462,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         _sinceLastTriggered = 0;
 
         if (Object_To_Draw == RENDER_SHAPE_EMOJI) {
-            wxFont ff(font);
-            ff.SetNativeFontInfoUserDesc(font);
-
-            _font = wxFontInfo(wxSize(0, 12));
-            wxString face = ff.GetFaceName();
-            if (face == WIN_NATIVE_EMOJI_FONT || face == OSX_NATIVE_EMOJI_FONT || face == LINUX_NATIVE_EMOJI_FONT) {
-                _font.FaceName(NATIVE_EMOJI_FONT);
-            } else {
-                _font.FaceName(face);
-            }
-            _font.Light();
-            _font.AntiAliased(false);
-            _font.Encoding(ff.GetEncoding());
+            _font = TextDrawingContext::GetShapeFont(font);
         } else if (Object_To_Draw == RENDER_SHAPE_SVG) {
             cache->InitialiseSVG(svgFilename);
         }
@@ -1196,37 +1194,37 @@ void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius,
     context->SetOverlayMode(false);
 }
 
-inline wxPoint2DDouble ScaleMovePoint(const wxPoint2DDouble pt, const wxPoint2DDouble imageCentre, const wxPoint2DDouble centre, float factor, float scaleTo)
+static inline wxPoint2DDouble ScaleMovePoint(const wxPoint2DDouble pt, const wxPoint2DDouble imageCentre, const wxPoint2DDouble centre, float factor, float scaleTo)
 {
     return centre + ((pt - imageCentre) * factor * scaleTo * 10);
 }
 
-inline uint8_t GetSVGRed(uint32_t colour)
+static inline uint8_t GetSVGRed(uint32_t colour)
 {
     return (colour);
 }
 
-inline uint8_t GetSVGGreen(uint32_t colour)
+static inline uint8_t GetSVGGreen(uint32_t colour)
 {
     return (colour >> 8);
 }
 
-inline uint8_t GetSVGBlue(uint32_t colour)
+static inline uint8_t GetSVGBlue(uint32_t colour)
 {
     return (colour >> 16);
 }
 
-inline uint8_t GetSVGAlpha(uint32_t colour)
+static inline uint8_t GetSVGAlpha(uint32_t colour)
 {
     return (colour >> 24);
 }
 
-inline uint32_t GetSVGExAlpha(uint32_t colour)
+static inline uint32_t GetSVGExAlpha(uint32_t colour)
 {
     return (colour & 0xFFFFFF);
 }
 
-inline uint32_t GetSVGColour(xlColor c)
+static inline uint32_t GetSVGColour(xlColor c)
 {
     return (((uint32_t)c.alpha) << 24) +
            (((uint32_t)c.blue) << 16) +

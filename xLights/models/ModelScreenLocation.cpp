@@ -33,6 +33,8 @@
 
 #define BOUNDING_RECT_OFFSET        8
 
+constexpr float dead_zone = 10.0f;  // how many degrees close to a plane should we ignore it
+
 static glm::mat4 Identity(glm::mat4(1.0f));
 
 #pragma clang diagnostic push
@@ -279,6 +281,84 @@ float ModelScreenLocation::GetRectHandleWidth(float zoom, int scale) const
     return std::max(RECT_HANDLE_WIDTH, RECT_HANDLE_WIDTH * zoom * rs);
 }
 
+ModelScreenLocation::MSLPLANE ModelScreenLocation::GetBestIntersection( ModelScreenLocation::MSLPLANE prefer, bool& rotate, ModelPreview* preview )
+{
+    MSLPLANE best_plane {MSLPLANE::XZ_PLANE};
+
+    float angleX {glm::radians(preview->GetCameraRotationX())};
+    float angleY {glm::radians(preview->GetCameraRotationY())};
+
+    bool xz_plane_ok { ((angleX > glm::radians(dead_zone)) && (angleX < glm::radians(180.0f - dead_zone))) ||
+                       ((angleX > glm::radians(180.0f + dead_zone)) && (angleX < glm::radians(360.0f - dead_zone))) };
+
+    bool xy_plane_ok { ((angleX >= glm::radians(0.0f)) && (angleX < glm::radians(90.0f - dead_zone))) ||
+                       ((angleX > glm::radians(90.0f + dead_zone)) && (angleX < glm::radians(270.0f - dead_zone))) ||
+                       (angleX > glm::radians(270.0f + dead_zone)) };
+
+    if( !xz_plane_ok && !xy_plane_ok ) {
+        best_plane = MSLPLANE::YZ_PLANE;
+    } else if( prefer == MSLPLANE::XZ_PLANE ) {
+        if( xz_plane_ok ) {
+            best_plane = MSLPLANE::XZ_PLANE;
+        } else if( xy_plane_ok ) {
+            best_plane = MSLPLANE::XY_PLANE;
+        }
+    } else if( prefer == MSLPLANE::XY_PLANE ) {
+        if( xy_plane_ok ) {
+            best_plane = MSLPLANE::XY_PLANE;
+        } else {
+            best_plane = MSLPLANE::XZ_PLANE;
+        }
+    }
+
+    rotate = false;
+    if( (angleY > glm::radians(45.0f) && angleY < glm::radians(135.0f)) ||
+        (angleY > glm::radians(225.0f) && angleY < glm::radians(315.0f)) ) {
+        if( best_plane == MSLPLANE::XZ_PLANE ) {
+            rotate = true;
+        } else if( best_plane == MSLPLANE::XY_PLANE ) {
+            rotate = true;
+            best_plane = MSLPLANE::YZ_PLANE;
+        }
+    }
+
+    return best_plane;
+}
+
+void ModelScreenLocation::FindPlaneIntersection( int x, int y, ModelPreview* preview )
+{
+    bool rotate {false};
+    active_plane = MSLPLANE::XY_PLANE;  // 2D will always use the X/Y plane
+
+    if( preview->Is3D() ) {
+        active_plane = GetBestIntersection( preferred_selection_plane, rotate, preview );
+    }
+
+    if (active_plane == ModelScreenLocation::MSLPLANE::XY_PLANE) {
+        active_axis = MSLAXIS::X_AXIS;
+        DragHandle(preview, x, y, true);
+        worldPos_x = saved_intersect.x;
+        worldPos_y = saved_intersect.y;
+        worldPos_z = 0.0f;
+    } else if (active_plane == ModelScreenLocation::MSLPLANE::XZ_PLANE) {
+        active_axis = MSLAXIS::Z_AXIS;
+        DragHandle(preview, x, y, true);
+        worldPos_x = saved_intersect.x;
+        worldPos_y = 0.0f;
+        worldPos_z = saved_intersect.z;
+        if( rotate ) {
+            active_axis = MSLAXIS::Z_AXIS;
+        } else {
+            active_axis = MSLAXIS::X_AXIS;
+        }
+    } else {
+        active_axis = MSLAXIS::Z_AXIS;
+        DragHandle(preview, x, y, true);
+        worldPos_x = 0.0f;
+        worldPos_y = saved_intersect.y;
+        worldPos_z = saved_intersect.z;
+    }
+}
 
 void DrawBoundingBoxLines(const xlColor &c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, xlVertexColorAccumulator &va) {
     glm::vec4 c1(min_pt.x, max_pt.y, min_pt.z, 1.0f);
@@ -621,14 +701,32 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
     } else {
         switch (active_axis) {
         case MSLAXIS::Z_AXIS:
-            normal = glm::vec3(0.0f, saved_position.y + GetAxisArrowLength(zoom, scale), 0.0f);
-            point = glm::vec3(0.0f, saved_position.y, 0.0f);
-            break;
-        case MSLAXIS::X_AXIS:
-        case MSLAXIS::Y_AXIS:
-            normal = glm::vec3(0.0f, 0.0f, saved_position.z + GetAxisArrowLength(zoom, scale));
-            point = glm::vec3(0.0f, 0.0f, saved_position.z);
-            break;
+                if( active_plane == MSLPLANE::YZ_PLANE ) {
+                    normal = glm::vec3(saved_position.x + GetAxisArrowLength(zoom, scale), 0.0f, 0.0f);
+                    point = glm::vec3(saved_position.x, 0.0f, 0.0f);
+                } else {
+                    normal = glm::vec3(0.0f, saved_position.y + GetAxisArrowLength(zoom, scale), 0.0f);
+                    point = glm::vec3(0.0f, saved_position.y, 0.0f);
+                }
+           break;
+            case MSLAXIS::X_AXIS:
+                    if( active_plane == MSLPLANE::XZ_PLANE ) {
+                        normal = glm::vec3(0.0f, saved_position.y + GetAxisArrowLength(zoom, scale), 0.0f);
+                        point = glm::vec3(0.0f, saved_position.y, 0.0f);
+                    } else {
+                        normal = glm::vec3(0.0f, 0.0f, saved_position.z + GetAxisArrowLength(zoom, scale));
+                        point = glm::vec3(0.0f, 0.0f, saved_position.z);
+                    }
+                break;
+            case MSLAXIS::Y_AXIS:
+                    if( active_plane == MSLPLANE::YZ_PLANE ) {
+                        normal = glm::vec3(saved_position.x + GetAxisArrowLength(zoom, scale), 0.0f, 0.0f);
+                        point = glm::vec3(saved_position.x, 0.0f, 0.0f);
+                    } else {
+                        normal = glm::vec3(0.0f, 0.0f, saved_position.z + GetAxisArrowLength(zoom, scale));
+                        point = glm::vec3(0.0f, 0.0f, saved_position.z);
+                    }
+                break;
         default:
             wxASSERT(false);
             break;

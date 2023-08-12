@@ -34,6 +34,7 @@
 #include <math.h>
 #endif
 
+#include <mutex>
 #include "FX.h"
 
 #ifdef XLIGHTS_FX
@@ -471,13 +472,18 @@ uint8_t DecodeMode(const std::string& mode)
 {
     static std::vector<std::string> effects;
 
-    if (effects.size() == 0) {
-        std::string names(JSON_mode_names);
-        Replace(names,"\n", "");
-        Replace(names,"\"", "");
-        Replace(names,"[", "");
-        Replace(names,"]", "");
-        effects = Split(names, ',');
+    {
+        static std::mutex mtx;
+        std::unique_lock lk(mtx);
+
+        if (effects.size() == 0) {
+            std::string names(JSON_mode_names);
+            Replace(names, "\n", "");
+            Replace(names, "\"", "");
+            Replace(names, "[", "");
+            Replace(names, "]", "");
+            effects = Split(names, ',');
+        }
     }
 
     uint8_t i = 0;
@@ -495,13 +501,18 @@ uint8_t DecodePalette(const std::string& palette)
 {
     static wxArrayString palettes;
 
-    if (palettes.size() == 0) {
-        wxString names = JSON_palette_names;
-        names.Replace("\n", "");
-        names.Replace("\"", "");
-        names.Replace("[", "");
-        names.Replace("]", "");
-        palettes = wxSplit(names, ',');
+    {
+        static std::mutex mtx;
+        std::unique_lock lk(mtx);
+
+        if (palettes.size() == 0) {
+            wxString names = JSON_palette_names;
+            names.Replace("\n", "");
+            names.Replace("\"", "");
+            names.Replace("[", "");
+            names.Replace("]", "");
+            palettes = wxSplit(names, ',');
+        }
     }
 
     uint8_t i = 0;

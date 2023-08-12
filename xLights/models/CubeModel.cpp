@@ -552,7 +552,7 @@ const std::vector<std::string> &CubeModel::GetBufferStyles() const {
     return CUBE_BUFFERSTYLES;
 }
 
-void CubeModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi) const
+void CubeModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
 {
     int width = parm1;
     int height = parm2;
@@ -565,7 +565,7 @@ void CubeModel::GetBufferSize(const std::string& type, const std::string& camera
     }
     else if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel")
     {
-        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
     }
     else if (type == "Horizontal Per Strand")
     {
@@ -675,7 +675,7 @@ int CubeModel::GetNumPhysicalStrings() const
     }
 }
 
-void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, bool deep) const
+void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
 {
     int width = parm1;
     int height = parm2;
@@ -683,7 +683,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string
 
     int oldNodes = Nodes.size();
 
-    Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi);
+    Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi, stagger);
 
     if (SingleNode || SingleChannel)
     {
@@ -704,7 +704,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string
         return;
     }
 
-    GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+    GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
 
     auto locations = BuildCube();
 

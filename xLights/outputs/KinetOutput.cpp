@@ -37,7 +37,7 @@ void KinetOutput::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
         logger_base.error("Error initialising Kinet datagram for %s %d. %s", (const char*)_ip.c_str(), GetUniverse(), (const char*)localaddr.IPAddress().c_str());
         _ok = false;
@@ -119,7 +119,7 @@ void KinetOutput::PopulateHeader()
 #pragma endregion
 
 #pragma region Constructors and Destructors
-KinetOutput::KinetOutput(wxXmlNode* node) : IPOutput(node) {
+KinetOutput::KinetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > 512) SetChannels(512);
     _sequenceNum = 0;
@@ -280,3 +280,154 @@ void KinetOutput::AllOff() {
     _changed = true;
 }
 #pragma endregion
+
+
+
+
+#pragma region UI
+#ifndef EXCLUDENETWORKUI
+#include "../models/ModelManager.h"
+void KinetOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
+    IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
+    ControllerEthernet *ce = dynamic_cast<ControllerEthernet*>(c);
+    auto p = propertyGrid->GetProperty("Version");
+    if (p) {
+        p->SetValue(GetVersion());
+    }
+    
+    p = propertyGrid->GetProperty("Universes");
+    if (p) {
+        p->SetValue((int)c->GetOutputs().size());
+        if (c->IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Universes Count cannot be changed when an output is set to Auto Size.");
+        } else {
+            p->SetEditor("SpinCtrl");
+            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            p->SetHelpString("");
+        }
+    }
+    p = propertyGrid->GetProperty("UniversesDisplay");
+    if (p) {
+        if (ce->GetOutputs().size() > 1) {
+            p->SetValue(ce->GetOutputs().front()->GetUniverseString() + " - " + ce->GetOutputs().back()->GetUniverseString());
+            p->Hide(false);
+        } else {
+            p->Hide(true);
+        }
+    }
+    p = propertyGrid->GetProperty("IndivSizes");
+    if (p) {
+        if (ce->IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Individual Sizes cannot be changed when an output is set to Auto Size.");
+        } else {
+            bool v = !ce->AllSameSize() || ce->IsForcingSizes() || ce->IsUniversePerString();
+            p->SetValue(v);
+            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            p->SetHelpString("");
+        }
+    }
+    if (!ce->AllSameSize() || ce->IsForcingSizes()) {
+        p = propertyGrid->GetProperty("Channels");
+        if (p) {
+            p->Hide(true);
+        }
+        auto p2 = propertyGrid->GetProperty("Sizes");
+        if (p2) {
+            p2->Hide(false);
+            if (ce->IsExpanded()) {
+                expandProperties.push_back(p2);
+            }
+            while (propertyGrid->GetFirstChild(p2)) {
+                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
+            }
+            for (const auto& it : ce->GetOutputs()) {
+                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
+                p->SetAttribute("Min", 1);
+                p->SetAttribute("Max", it->GetMaxChannels());
+                p->SetEditor("SpinCtrl");
+                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
+                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
+                if (modelsOnUniverse != "") {
+                    if (IsDarkMode()) {
+                        p->SetBackgroundColour(wxColour(104, 128, 79));
+                    } else {
+                        p->SetBackgroundColour(wxColour(208, 255, 158));
+                    }
+                }
+            }
+        }
+    } else {
+        p = propertyGrid->GetProperty("Channels");
+        if (p) {
+            p->Hide(false);
+            p->SetValue(GetChannels());
+            if (ce->IsAutoSize()) {
+                p->ChangeFlag(wxPG_PROP_READONLY, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
+            } else {
+                p->SetEditor("SpinCtrl");
+                p->ChangeFlag(wxPG_PROP_READONLY, false);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+                p->SetHelpString("");
+            }
+        }
+        auto p2 = propertyGrid->GetProperty("Sizes");
+        if (p2) {
+            p2->Hide(true);
+        }
+    }
+
+}
+void KinetOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {
+    IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
+    auto p = propertyGrid->Insert(before, new wxUIntProperty("Version", "Version", 1));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 2);
+    p->SetEditor("SpinCtrl");
+    p->SetHelpString("Kinet protocol version.");
+    
+        
+    p = propertyGrid->Insert(before, new wxUIntProperty("Start Port", "Universe", GetUniverse()));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 255);
+    p->SetEditor("SpinCtrl");
+    
+    
+    p = propertyGrid->Insert(before, new wxUIntProperty("Port Count", "Universes", c->GetOutputs().size()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 1000);
+
+    p = propertyGrid->Insert(before, new wxStringProperty("Ports", "UniversesDisplay", ""));
+    p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+
+
+    p = propertyGrid->Insert(before, new wxBoolProperty("Individual Sizes", "IndivSizes", false));
+    p->SetEditor("CheckBox");
+    
+    p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Port", "Channels", GetChannels()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", GetMaxChannels());
+    
+    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
+}
+void KinetOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
+    IPOutput::RemoveProperties(propertyGrid);
+    propertyGrid->DeleteProperty("Version");
+    propertyGrid->DeleteProperty("Universe");
+    propertyGrid->DeleteProperty("Universes");
+    propertyGrid->DeleteProperty("UniversesDisplay");
+    propertyGrid->DeleteProperty("IndivSizes");
+    propertyGrid->DeleteProperty("Channels");
+    propertyGrid->DeleteProperty("Sizes");
+}
+#endif
+#pragma endregion UI
+

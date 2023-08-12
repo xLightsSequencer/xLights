@@ -192,6 +192,15 @@ static int progressFunction(void* bar,
             if (pos > dlg->GetRange())
                 pos = 0;
         }
+
+        // if the client data has been set to 1 then we must not hit the top range
+        void *cd = dlg->GetClientData();
+        size_t cdi = (size_t)cd;
+        if (cdi == 1 && pos == dlg->GetRange())
+        {
+            pos = dlg->GetRange() - 1;
+        }
+
         dlg->Update(pos);
     }
 
@@ -277,6 +286,7 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
         //#ifdef _DEBUG
         //            curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
@@ -349,6 +359,7 @@ std::string Curl::HTTPSPost(const std::string& url, const std::vector<Var>& vars
         curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
         std::string buffer = "";
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
 
@@ -400,7 +411,7 @@ std::string Curl::HTTPSGet(const std::string& s, const std::string& user, const 
         curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
         curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
-        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip");
+        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
 #ifdef __WXMSW__
         // Temporarily adding this in order to try to catch ongoing curl crashes
@@ -501,12 +512,25 @@ int Curl::CurlDebug(CURL* handle, curl_infotype type, char* data, size_t size, v
     return 0;
 }
 
-bool Curl::HTTPSGetFile(const std::string& s, const std::string& filename, const std::string& user, const std::string& password, int timeout, wxProgressDialog* prog)
+bool Curl::HTTPSGetFile(const std::string& s, const std::string& filename, const std::string& user, const std::string& password, int timeout, wxProgressDialog* prog, bool keepProgress)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 #ifdef _DEBUG
     logger_base.debug("%s", (const char*)s.c_str());
 #endif
+
+    void* ocd = nullptr;
+    
+    if (prog != nullptr) {
+        ocd = prog->GetClientData();
+        if (keepProgress) {
+            prog->SetClientData((wxClientData*)1);
+        }
+        else
+        {
+            prog->SetClientData((wxClientData*)0);
+        }
+    }
 
     bool res = true;
 
@@ -528,7 +552,7 @@ bool Curl::HTTPSGetFile(const std::string& s, const std::string& filename, const
             curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
             curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
-            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "gzip,deflate");
+            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
 #ifdef __WXMSW__
             // Temporarily adding this in order to try to catch ongoing curl crashes
@@ -586,6 +610,11 @@ bool Curl::HTTPSGetFile(const std::string& s, const std::string& filename, const
         logger_base.error("HTTPSGetFile: Failure to create file %s.", (const char*)filename.c_str());
         res = false;
     }
+
+    if (prog != nullptr) {
+        prog->SetClientData((wxClientData*)ocd);
+    }
+
     return res;
 }
 
@@ -710,6 +739,7 @@ bool Curl::HTTPUploadFile(const std::string& url, const std::string& filename, c
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 5000);
         curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
+        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
 #ifdef __WXMSW__
         // Temporarily adding this in order to try to catch ongoing curl crashes

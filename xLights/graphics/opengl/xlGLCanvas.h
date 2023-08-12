@@ -20,10 +20,6 @@ extern "C" {
    struct AVFrame;
 }
 
-namespace DrawGLUtils {
-class xlGLCacheInfo;
-}
-
 class xlGLCanvas
     : public wxGLCanvas
 {
@@ -41,9 +37,6 @@ class xlGLCanvas
         virtual ~xlGLCanvas();
 
         void SetCurrentGLContext();
-        int GetCreatedVersion() const {
-            return _ver;
-        }
 
         const std::string &getName() const { return _name; }
     
@@ -65,6 +58,7 @@ class xlGLCanvas
         virtual void render() {};
     
         int GetZDepth() const { return m_zDepth;}
+        bool IsCoreProfile() const { return isCoreProfile;}
         static wxGLContext *GetSharedContext() { return m_sharedContext; }
 
         virtual xlColor ClearBackgroundColor() const { return xlBLACK; }
@@ -79,6 +73,8 @@ class xlGLCanvas
 
         virtual bool RequiresDepthBuffer() const { return false; }
 
+    
+        bool bindVertexArrayID(GLuint pid);
     protected:
       	DECLARE_EVENT_TABLE()
 
@@ -89,21 +85,17 @@ class xlGLCanvas
 
         virtual void InitializeGLCanvas() { mIsInitialized = true; };
         virtual void InitializeGLContext() {}
-        void prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
-        void prepare3DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void OnEraseBackGround(wxEraseEvent& event) {};
 
         void CreateGLContext();
 
-        DrawGLUtils::xlGLCacheInfo *cache = nullptr;
-
         bool is3d = false;
     private:
-        int _ver = 0;
         std::string _name;
         wxGLContext* m_context = nullptr;
-        bool m_coreProfile = false;
         int  m_zDepth = 0;
+        bool isCoreProfile = false;
+        std::map<GLuint, GLuint> vertexArrayIds;
     
         static wxGLContext *m_sharedContext;
 };

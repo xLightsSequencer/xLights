@@ -31,6 +31,7 @@ class Output;
 class BaseCMObject;
 class xLightsFrame;
 class ModelCMObject;
+class SRCMObject;
 class PortCMObject;
 
 class ControllerModelPrintout : public wxPrintout
@@ -70,7 +71,7 @@ class ControllerModelDialog: public wxDialog
 	ControllerCaps* _caps = nullptr;
 	std::list<BaseCMObject*> _models;
 	std::list<BaseCMObject*> _controllers;
-	ModelCMObject* _dragging = nullptr;
+	BaseCMObject* _dragging = nullptr;
 	wxPoint _dragStartLocation = { -99999, -99999 };
 	BaseCMObject* _popup = nullptr;
 	bool _autoLayout = false;
@@ -86,11 +87,13 @@ class ControllerModelDialog: public wxDialog
 	BaseCMObject* GetControllerToDropOn();
 	BaseCMObject* GetModelsCMObjectAt(wxPoint mouse);
 	PortCMObject* GetControllerPortAtLocation(wxPoint mouse);
-	PortCMObject* GetPixelPort(int port) const;
+    SRCMObject* GetControllerSRAtLocation();
+    PortCMObject* GetPixelPort(int port) const;
 	void ReloadModels();
 	void ClearOver(wxPanel* panel, std::list<BaseCMObject*> list);
 	std::string GetModelTooltip(ModelCMObject* m);
-	std::string GetPortTooltip(UDControllerPort* port, int virtualString);
+    std::string GetSRTooltip(SRCMObject* m);
+    std::string GetPortTooltip(UDControllerPort* port, int virtualString);
 	void FixDMXChannels();
 	PortCMObject* GetPortContainingModel(Model* m);
 	ModelCMObject* GetModelsCMObject(Model* m);
@@ -134,10 +137,14 @@ class ControllerModelDialog: public wxDialog
 		wxBitmap RenderPicture(int startY, int startX, int width, int height, wxString const& pageName);
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);
 		void DropFromController(const wxPoint& location, const std::string& name, wxPanel* target);
-		bool IsDragging(ModelCMObject* dragging) const { return _dragging == dragging; }
+		bool IsDragging(BaseCMObject* dragging) const { return _dragging == dragging; }
 		bool Scroll(wxPanel* panel, int scrollByX, int scrollByY);
 		wxPoint GetScrollPosition(wxPanel* panel) const;
 		void OnPopupCommand(wxCommandEvent& event);
+        BaseCMObject* GetDragging() const
+        {
+        return _dragging;
+        }
 
 	protected:
 

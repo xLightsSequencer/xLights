@@ -18,7 +18,9 @@
 #include "../OutputModelManager.h"
 #include "../SpecialOptions.h"
 #include "../utils/ip_utils.h"
-
+#ifndef EXCLUDENETWORKUI
+#include "../models/ModelManager.h"
+#endif
 #include <log4cpp/Category.hh>
 
 #include "../Discovery.h"
@@ -45,7 +47,7 @@ void ArtNetOutput::OpenDatagram() {
         localaddr.Hostname(GetForceLocalIPToUse());
     }
 
-    wxSocketFlags flags = wxSOCKET_NOWAIT;
+    wxSocketFlags flags = wxSOCKET_BLOCK; // dont use NOWAIT as it can result in dropped packets
     if (_forceSourcePort) {
         flags |= wxSOCKET_REUSEADDR;
         localaddr.Service(ARTNET_PORT);
@@ -71,7 +73,7 @@ void ArtNetOutput::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-ArtNetOutput::ArtNetOutput(wxXmlNode* node) : IPOutput(node) {
+ArtNetOutput::ArtNetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > 512) SetChannels(512);
     if (_autoSize_CONVERT) _autoSize_CONVERT = false;
@@ -133,7 +135,7 @@ void ArtNetOutput::SendSync(const std::string& localIP) {
         }
 
         // using the forced source port for sync packets is buried in a special options as its use is very very rare. Few devices implement this restriction and few users use artnet sync
-        wxSocketFlags flags = wxSOCKET_NOWAIT;
+        wxSocketFlags flags = wxSOCKET_BLOCK; // dont use NOWAIT as it can result in dropped packets
         if (SpecialOptions::GetOption("ForceArtNetSourcePort", "false") == "true") {
             flags |= wxSOCKET_REUSEADDR;
             localaddr.Service(ARTNET_PORT);
@@ -190,7 +192,7 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (buffer[0] == 'A' && buffer[1] == 'r' && buffer[2] == 't' && buffer[3] == '-' && buffer[9] == 0x21) {
             logger_base.debug(" ArtNET Valid response.");
-            uint32_t channels = 512;
+            uint32_t channels = 510;
 
             auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
             logger_base.debug("     From %s.", (const char *)ip.c_str());
@@ -436,22 +438,149 @@ void ArtNetOutput::AllOff() {
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-void ArtNetOutput::AddMultiProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
+void ArtNetOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
+    IPOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
+    ControllerEthernet *ce = dynamic_cast<ControllerEthernet*>(c);
+
+    auto p = propertyGrid->GetProperty("Universes");
+    if (p) {
+        p->SetValue((int)c->GetOutputs().size());
+        if (c->IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Universes Count cannot be changed when an output is set to Auto Size.");
+        } else {
+            p->SetEditor("SpinCtrl");
+            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            p->SetHelpString("");
+        }
+    }
+    p = propertyGrid->GetProperty("UniversePerString");
+    if (p) {
+        p->SetValue(ce->IsUniversePerString());
+        if (ce->IsAutoSize() && ce->SupportsUniversePerString()) {
+            p->Hide(false);
+        } else {
+            p->Hide(true);
+        }
+    }
+    p = propertyGrid->GetProperty("UniversesDisplay");
+    if (p) {
+        if (ce->GetOutputs().size() > 1) {
+            p->SetValue(ce->GetOutputs().front()->GetUniverseString() + " - " + ce->GetOutputs().back()->GetUniverseString());
+            p->Hide(false);
+        } else {
+            p->Hide(true);
+        }
+    }
+    p = propertyGrid->GetProperty("IndivSizes");
+    if (p) {
+        if (ce->IsAutoSize()) {
+            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+            p->SetHelpString("Individual Sizes cannot be changed when an output is set to Auto Size.");
+        } else {
+            bool v = !ce->AllSameSize() || ce->IsForcingSizes() || ce->IsUniversePerString();
+            p->SetValue(v);
+            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            p->SetHelpString("");
+        }
+    }
+    if (!ce->AllSameSize() || ce->IsForcingSizes()) {
+        p = propertyGrid->GetProperty("Channels");
+        if (p) {
+            p->Hide(true);
+        }
+        auto p2 = propertyGrid->GetProperty("Sizes");
+        if (p2) {
+            p2->Hide(false);
+            if (ce->IsExpanded()) {
+                expandProperties.push_back(p2);
+            }
+            while (propertyGrid->GetFirstChild(p2)) {
+                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
+            }
+            for (const auto& it : ce->GetOutputs()) {
+                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
+                p->SetAttribute("Min", 1);
+                p->SetAttribute("Max", it->GetMaxChannels());
+                p->SetEditor("SpinCtrl");
+                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
+                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
+                if (modelsOnUniverse != "") {
+                    if (IsDarkMode()) {
+                        p->SetBackgroundColour(wxColour(104, 128, 79));
+                    } else {
+                        p->SetBackgroundColour(wxColour(208, 255, 158));
+                    }
+                }
+            }
+        }
+    } else {
+        p = propertyGrid->GetProperty("Channels");
+        if (p) {
+            p->Hide(false);
+            p->SetValue(GetChannels());
+            if (ce->IsAutoSize()) {
+                p->ChangeFlag(wxPG_PROP_READONLY, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
+            } else {
+                p->SetEditor("SpinCtrl");
+                p->ChangeFlag(wxPG_PROP_READONLY, false);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+                p->SetHelpString("");
+            }
+        }
+        auto p2 = propertyGrid->GetProperty("Sizes");
+        if (p2) {
+            p2->Hide(true);
+        }
+    }
+}
+
+void ArtNetOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *before , Controller *c, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
 {
-    auto p = propertyGrid->Append(new wxBoolProperty("Force source port", "ForceSourcePort", _forceSourcePort));
+    IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
+    auto p = propertyGrid->Insert(before, new wxBoolProperty("Force source port", "ForceSourcePort", _forceSourcePort));
     p->SetEditor("CheckBox");
     p->SetHelpString("You should only set this option if your ArtNet device is not seeing the ArtNet packets because it strictly requires that packets come from port 0x1936.");
+    
+    p = propertyGrid->Insert(before, new wxUIntProperty("Start Universe", "Universe", GetUniverse()));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 32767);
+    p->SetEditor("SpinCtrl");
+    
+    
+    p = propertyGrid->Insert(before, new wxUIntProperty("Universe Count", "Universes", c->GetOutputs().size()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 1000);
+
+    p = propertyGrid->Insert(before, new wxBoolProperty("Universe Per String", "UniversePerString", false));
+    p->SetEditor("CheckBox");
+
+    p = propertyGrid->Insert(before, new wxStringProperty("Universes", "UniversesDisplay", ""));
+    p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+
+
+    p = propertyGrid->Insert(before, new wxBoolProperty("Individual Sizes", "IndivSizes", false));
+    p->SetEditor("CheckBox");
+    
+    p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Universe", "Channels", GetChannels()));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", GetMaxChannels());
+    
+    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
 }
 
-void ArtNetOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties)
+bool ArtNetOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller *c)
 {
-    AddMultiProperties(propertyGrid, allSameSize, expandProperties);
-}
-
-bool ArtNetOutput::HandleMultiPropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
-{
+    if (IPOutput::HandlePropertyEvent(event, outputModelManager, c)) return true;
+    
     wxString const name = event.GetPropertyName();
-
     if (name == "ForceSourcePort") {
         _forceSourcePort = event.GetValue().GetBool();
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ArtNetOutput::HandlePropertyEvent::ForceSourcePort");
@@ -460,10 +589,16 @@ bool ArtNetOutput::HandleMultiPropertyEvent(wxPropertyGridEvent& event, OutputMo
 
     return false;
 }
-
-bool ArtNetOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
-{
-    return HandleMultiPropertyEvent(event, outputModelManager);
+void ArtNetOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
+    IPOutput::RemoveProperties(propertyGrid);
+    propertyGrid->DeleteProperty("ForceSourcePort");
+    propertyGrid->DeleteProperty("Universe");
+    propertyGrid->DeleteProperty("Universes");
+    propertyGrid->DeleteProperty("UniversePerString");
+    propertyGrid->DeleteProperty("UniversesDisplay");
+    propertyGrid->DeleteProperty("IndivSizes");
+    propertyGrid->DeleteProperty("Channels");
+    propertyGrid->DeleteProperty("Sizes");
 }
 
 #endif

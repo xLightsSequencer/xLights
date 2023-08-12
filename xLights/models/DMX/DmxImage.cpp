@@ -376,12 +376,13 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *
 
             
             xlColor pink = xlColor(255, 0, 255);
-            vac->AddCircleAsTriangles(0, 0, 0, mw, xlBLACK);
-            vac->AddCircleAsTriangles(0, 0, 0, mw2, pink);
-            vac->AddVertex(0.0-mw/2, 0.0-mw/2, 0, xlBLACK);
-            vac->AddVertex(0.0+mw/2, 0.0+mw/2, 0, xlBLACK);
-            vac->AddVertex(0.0-mw/2, 0.0+mw/2, 0, xlBLACK);
-            vac->AddVertex(0.0+mw/2, 0.0-mw/2, 0, xlBLACK);
+            //stack z coordinates
+            vac->AddCircleAsTriangles(0, 0, 0.001f, mw, xlBLACK);
+            vac->AddCircleAsTriangles(0, 0, 0.002f, mw2, pink);
+            vac->AddVertex(0.0-mw/2, 0.0-mw/2, 0.003f, xlBLACK);
+            vac->AddVertex(0.0+mw/2, 0.0+mw/2, 0.003f, xlBLACK);
+            vac->AddVertex(0.0-mw/2, 0.0+mw/2, 0.003f, xlBLACK);
+            vac->AddVertex(0.0+mw/2, 0.0-mw/2, 0.003f, xlBLACK);
         }
 
         int end = vac->getCount();

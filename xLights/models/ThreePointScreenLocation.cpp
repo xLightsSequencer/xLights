@@ -43,28 +43,8 @@ ThreePointScreenLocation::~ThreePointScreenLocation() {
 
 wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
     if (preview != nullptr) {
-        saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-        if (mSelectableHandles > 3 && supportsAngle && preview->Is3D()) {
-            // place Arch models on the ground in 3D mode
-            active_axis = MSLAXIS::Z_AXIS;
-            DragHandle(preview, x, y, true);
-            worldPos_x = saved_intersect.x;
-            worldPos_y = 0.0f;
-            worldPos_z = saved_intersect.z;
-            active_axis = MSLAXIS::X_AXIS;
-            point2 = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-        }
-        else {
-            active_axis = MSLAXIS::X_AXIS;
-            DragHandle(preview, x, y, true);
-            worldPos_x = saved_intersect.x;
-            worldPos_y = saved_intersect.y;
-            worldPos_z = 0.0f;
-        }
-        if (preview->Is3D()) {
-            // what we do here is define a position at origin so that the DragHandle function will calculate the intersection
-            // of the mouse click with the ground plane
-            saved_point = glm::vec3(0.0f);
+        FindPlaneIntersection( x, y, preview );
+        if( preview->Is3D() ) {
             active_handle = END_HANDLE;
         }
     }
@@ -212,9 +192,7 @@ inline float toRadians(int degrees) {
 
 void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     
-    float localZ = is_3d ? worldPos_z : 0;
-    
-    origin = glm::vec3(worldPos_x, worldPos_y, localZ);
+    origin = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
 
     // if both points are exactly equal, then the line is length 0 and the scaling matrix
     // will not be usable.  We'll offset the x coord slightly so the scaling matrix
@@ -224,12 +202,7 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
         x = 0.001f;
     }
 
-    point2 = glm::vec3(x + worldPos_x, y2 + worldPos_y, is_3d ? z2 + worldPos_z : 0.0);
-    if (!is_3d) {
-        // allows 2D selection to work
-        //origin.z = 0.0f;
-        //point2.z = 0.0f;
-    }
+    point2 = glm::vec3(x + worldPos_x, y2 + worldPos_y, z2 + worldPos_z);
 
     glm::vec3 point2_calc = point2;
     glm::vec3 origin_calc = origin;
@@ -246,9 +219,9 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
 
     glm::mat4 scalingMatrix;
     if (modelHandlesHeight) {
-        scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, is_3d ? scalez : 1.0));
+        scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
     } else {
-        scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley * height, is_3d ? scalez : 1.0));
+        scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley * height, scalez));
     }
     shearMatrix = Identity;
     if (supportsShear) {
@@ -256,7 +229,7 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     }
     glm::mat4 RotateY = glm::rotate(Identity, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 RotateX = glm::rotate(Identity, glm::radians((float)rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
-    TranslateMatrix = translate(Identity, glm::vec3(worldPos_x, worldPos_y, localZ));
+    TranslateMatrix = translate(Identity, glm::vec3(worldPos_x, worldPos_y, worldPos_z));
     if (swapped) {
         rotationMatrix = rotationMatrix * RotateY;
     }

@@ -185,7 +185,6 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
 
     mainSizer->Add(settingsSizer, 1, wxALL | wxEXPAND, 2);
 
-
 	SetSizer(mainSizer);
     mainSizer->Fit(this);
     mainSizer->SetSizeHints(this);

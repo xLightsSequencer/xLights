@@ -84,9 +84,15 @@ public:
     int GetMaxZoomLevel();
     void ZoomIn();
     void ZoomOut();
+    void ZoomSelection();
+    int GetTotalViewableTimeMS(int zoom);
 
     int TimePerMajorTickInMS();
-    int PixelsPerMajorTick() const { return PIXELS_PER_MAJOR_HASH; };
+    int TimePerMajorTickInMS(int zoom);
+    int PixelsPerMajorTick() const
+    {
+        return PIXELS_PER_MAJOR_HASH;
+    };
     void GetViewableTimeRange(int &StartTime, int &EndTime);
 
     void GetPositionsFromTimeRange(int startTimeMS, int endTimeMS, EFFECT_SCREEN_MODE &screenMode, int &x1, int &x2, int& x3, int& x4);
@@ -111,7 +117,7 @@ public:
     void PlayStopped();       // signal play stop so timeline can adjust marks
     int GetNewStartTimeMS() const;  // return the time where to begin playing
     int GetNewEndTimeMS() const;    // return the time where to end playing
-    int GetCurrentPlayMarkerMS() const { return mCurrentPlayMarker; };
+    int GetCurrentPlayMarkerMS() const { return mCurrentPlayMarkerMS; };
     void GoToTag(int tag);
     void GoToPriorTag();
     void GoToNextTag();
@@ -125,6 +131,8 @@ public:
     void RaiseChangeTimeline();
     void CheckNeedToScrollToPlayStart(bool paused = false);
     const static int ZoomLevelValues[];
+
+    static const long ID_ZOOMSEL;
 
 private:
     DECLARE_EVENT_TABLE()

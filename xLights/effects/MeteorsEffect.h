@@ -81,9 +81,24 @@ protected:
     virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 
 private:
-    void RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
-    void RenderMeteorsHorizontal(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
-    void RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed, int xoffset, int yoffset, bool fadeWithDistance);
-    void RenderIcicleDrip(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed);
-    void RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed, int xoffset, int yoffset, bool fadeWithDistance);
+    void RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed, int warmupFrames);
+        void VerticalAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count);
+        void VerticalMoveMeteors(RenderBuffer& buffer, int speed);
+        void VerticalRemoveMeteors(RenderBuffer& buffer, int Length);
+    void RenderMeteorsHorizontal(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed, int warmupFrames);
+        void HorizontalAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count);
+        void HorizontalMoveMeteors(RenderBuffer& buffer, int speed);
+        void HorizontalRemoveMeteors(RenderBuffer& buffer, int Length);
+    void RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed, int xoffset, int yoffset, bool fadeWithDistance, int warmupFrames);
+        void ImplodeAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int xoffset, int yoffset);
+        void ImplodeMoveMeteors(RenderBuffer& buffer, int speed, int xoffset, int yoffset, bool fadeWithDistance);
+        void ImplodeRemoveMeteors(RenderBuffer& buffer, int xoffset, int yoffset);
+    void RenderIcicleDrip(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mSpeed, int warmupFrames);
+        void IcicleAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count);
+        void IcicleMoveMeteors(RenderBuffer& buffer, int mSpeed);
+        void IcicleRemoveMeteors(RenderBuffer& buffer);
+    void RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mSpeed, int xoffset, int yoffset, bool fadeWithDistance, int warmupFrames);
+        void ExplodeAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count, int xoffset, int yoffset);
+        void ExplodeMoveMeteors(RenderBuffer& buffer, int speed, int xoffset, int yoffset, bool fadeWithDistance);
+        void ExplodeRemoveMeteors(RenderBuffer& buffer);
 };

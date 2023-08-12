@@ -97,6 +97,7 @@ private:
             fadeInSteps = fadeOutSteps = 0;
             inTransitionAdjust = outTransitionAdjust = 0;
             inTransitionReverse = outTransitionReverse = false;
+            stagger = 0;
         }
         RenderBuffer buffer;
         std::string bufferType;
@@ -178,6 +179,7 @@ private:
         bool outTransitionReverse;
         float inMaskFactor;
         float outMaskFactor;
+        int stagger;
 
         std::vector<std::unique_ptr<RenderBuffer>> *modelBuffers = nullptr;
         std::vector<std::unique_ptr<RenderBuffer>> shallowModelBuffers;

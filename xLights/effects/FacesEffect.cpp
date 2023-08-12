@@ -916,11 +916,16 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
         return;
     }
 
+    bool group = false;
     // if this is a submodel find the parent so we can find the face definition there
     if (model_info->GetDisplayAs() == "SubModel") {
-        model_info = ((SubModel*)model_info)->GetParent();
+        model_info = dynamic_cast<SubModel*>(model_info)->GetParent();
     } else if (model_info->GetDisplayAs() == "ModelGroup") {
-        return;
+        model_info = dynamic_cast<ModelGroup*>(model_info)->GetFirstModel();
+        group = true;
+        if (model_info == nullptr) {
+            return;
+        }
     }
 
     if (cache->nodeNameCache.empty()) {
@@ -987,6 +992,10 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 logger_base.warn("Faces effect starting at %dms until %dms on model %s has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char*)buffer.cur_model.c_str());
             }
         }
+    }
+
+    if (group && type != 3) {//only picture type on a group make sense
+        return;
     }
 
     std::string phoneme = Phoneme;

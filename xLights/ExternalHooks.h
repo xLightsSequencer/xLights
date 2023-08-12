@@ -33,8 +33,6 @@
 #include <wx/button.h>
 #include "Color.h"
 
-#define xlSetRetinaCanvasViewport(w,a,b,c,d)
-#define xlTranslateToRetina(a, x) x
 #define EnableSleepModes()
 #define DisableSleepModes()
 #define AddAudioDeviceChangeListener(a)

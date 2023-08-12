@@ -22,6 +22,7 @@ CandyCaneModel::CandyCaneModel(wxXmlNode *node, const ModelManager &manager, boo
 {
     screenLocation.SetModelHandleHeight(true);
     screenLocation.SetSupportsAngle(true);
+    screenLocation.SetPreferredSelectionPlane(ModelScreenLocation::MSLPLANE::GROUND);
     SetFromXml(node, zeroBased);
 }
 
@@ -228,18 +229,18 @@ void CandyCaneModel::AddDimensionProperties(wxPropertyGridInterface* grid)
     }
 }
 
-void CandyCaneModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const {
+void CandyCaneModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const {
     if (type == "Single Line") {
         BufferHi = 1;
         BufferWi = this->BufferWi * this->BufferHt;
         AdjustForTransform(transform, BufferWi, BufferHi);
     } else {
-        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
     }
 }
 
 void CandyCaneModel::InitRenderBufferNodes(const std::string &type, const std::string &camera,  const std::string &transform,
-                                        std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, bool deep) const {
+                                        std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, int stagger, bool deep) const {
     if (type == "Single Line") {
         BufferHi = 1;
         BufferWi = GetNodeCount();
@@ -260,7 +261,7 @@ void CandyCaneModel::InitRenderBufferNodes(const std::string &type, const std::s
         }
         ApplyTransform(transform, newNodes, BufferWi, BufferHi);
     } else {
-        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, stagger);
     }
 }
 
