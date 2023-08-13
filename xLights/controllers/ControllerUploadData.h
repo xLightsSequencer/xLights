@@ -138,6 +138,7 @@ struct UDVirtualString
     int _zigZag = 0;
     bool _reverseSet = false;
     bool _tsSet = false;
+    bool _isDummy = false;
     int _ts = 0;
     std::string _reverse;
     int _channelsPerPixel = -1;
@@ -157,6 +158,7 @@ class UDControllerPort
     std::string _type;
     bool _separateUniverses = false;
     OutputManager* _om = nullptr;
+    bool _isSmartRemotePort = false;
     #pragma endregion
 
 	public:
@@ -167,26 +169,58 @@ class UDControllerPort
     #pragma endregion
 
     #pragma region Model Handling
-    UDControllerPortModel* GetFirstModel() const;
-    UDControllerPortModel* GetLastModel() const;
-    Model* GetModelAfter(Model* m) const;
-    Model* GetModelBefore(Model* m) const;
-    UDControllerPortModel* GetModel(const std::string& modelName, int str) const;
+    [[nodiscard]] UDControllerPortModel* GetFirstModel() const;
+    [[nodiscard]] UDControllerPortModel* GetFirstModel(int sr) const;
+    [[nodiscard]] UDControllerPortModel* GetLastModel() const;
+    [[nodiscard]] Model* GetModelAfter(Model* m) const;
+    [[nodiscard]] Model* GetModelBefore(Model* m) const;
+    [[nodiscard]] UDControllerPortModel* GetModel(const std::string& modelName, int str) const;
     void AddModel(Model* m, Controller* controller, OutputManager* om, int string = 0, bool eliminateOverlaps = false);
     bool ContainsModel(Model* m, int string) const;
     std::list<UDControllerPortModel*> GetModels() const { return _models; }
+    int CountEmptySmartRemotesBefore(int sr) const;
     bool SetAllModelsToControllerName(const std::string& controllerName);
     bool SetAllModelsToValidProtocols(const std::vector<std::string>& protocols, const std::string& force);
     bool ClearSmartRemoteOnAllModels();
     bool EnsureAllModelsAreChained();
+    void TagSmartRemotePort()
+    {
+        _isSmartRemotePort = true;
+    }
+    [[nodiscard]] bool IsSmartRemotePort() const
+    {
+        return _isSmartRemotePort;
+    }
+    [[nodiscard]] int GetSmartRemoteCount() const;
     #pragma endregion
 
     #pragma region Virtual String Handling
     void CreateVirtualStrings(bool mergeSequential);
-    int GetVirtualStringCount() const { return (int)_virtualStrings.size(); }
-    int GetModelCount() const { return (int)_models.size(); }
-    std::list<UDVirtualString*> GetVirtualStrings() const { return _virtualStrings; }
-    UDVirtualString* GetVirtualString(int index) const {
+    [[nodiscard]] int GetVirtualStringCount() const
+    {
+        return (int)_virtualStrings.size();
+    }
+    [[nodiscard]] int GetRealVirtualStringCount() const
+    {
+        int count = 0;
+        for (const auto& it : _virtualStrings)
+        {
+            if (!it->_isDummy)
+                ++count;
+        }
+        return count;
+    }
+    [[nodiscard]] int GetModelCount() const
+    {
+        return (int)_models.size();
+    }
+    [[nodiscard]] int GetModelCount(int sr) const;
+    [[nodiscard]] std::list<UDVirtualString*> GetVirtualStrings() const
+    {
+        return _virtualStrings;
+    }
+    [[nodiscard]] UDVirtualString* GetVirtualString(int index) const
+    {
 
         int i = 0;
         for (const auto& it : _virtualStrings) {
@@ -215,6 +249,7 @@ class UDControllerPort
     bool IsPixelProtocol() const;
 
     float GetAmps(int defaultBrightness) const;
+    float GetAmps(int defaultBrightness, int sr) const;
 
     std::string GetPortName() const;
 	int GetPort() const { return _port; }
@@ -270,33 +305,35 @@ class UDController
     #pragma endregion
 
     #pragma region Port Handling
-    UDControllerPort* GetControllerPixelPort(int port);
-	UDControllerPort* GetControllerSerialPort(int port);
-    UDControllerPort* GetControllerVirtualMatrixPort(int port);
-    UDControllerPort* GetControllerLEDPanelMatrixPort(int port);
-    UDControllerPort* GetPortContainingModel(Model* model) const;
-    UDControllerPortModel* GetControllerPortModel(const std::string& modelName, int str) const;
+    [[nodiscard]] UDControllerPort* GetControllerPixelPort(int port);
+    [[nodiscard]] UDControllerPort* GetControllerSerialPort(int port);
+    [[nodiscard]] UDControllerPort* GetControllerVirtualMatrixPort(int port);
+    [[nodiscard]] UDControllerPort* GetControllerLEDPanelMatrixPort(int port);
+    [[nodiscard]] UDControllerPort* GetPortContainingModel(Model* model) const;
+    [[nodiscard]] UDControllerPortModel* GetControllerPortModel(const std::string& modelName, int str) const;
     #pragma endregion
 
     #pragma region Getters and Setters
-    int GetMaxSerialPort() const;
-    int GetMaxPixelPort() const;
-    int GetMaxLEDPanelMatrixPort() const;
-    int GetMaxVirtualMatrixPort() const;
-    bool HasPixelPort(int port) const;
-    bool HasSerialPort(int port) const;
-    bool HasLEDPanelMatrixPort(int port) const;
-    bool HasVirtualMatrixPort(int port) const;
-    int GetMaxPixelPortChannels() const;
+    [[nodiscard]] int GetMaxSerialPort() const;
+    [[nodiscard]] int GetMaxPixelPort() const;
+    [[nodiscard]] int GetMaxLEDPanelMatrixPort() const;
+    [[nodiscard]] int GetMaxVirtualMatrixPort() const;
+    [[nodiscard]] bool HasPixelPort(int port) const;
+    [[nodiscard]] bool HasSerialPort(int port) const;
+    [[nodiscard]] bool HasLEDPanelMatrixPort(int port) const;
+    [[nodiscard]] bool HasVirtualMatrixPort(int port) const;
+    [[nodiscard]] int GetMaxPixelPortChannels() const;
+    [[nodiscard]] int GetSmartRemoteCount(int port);
+    void TagSmartRemotePorts();
 
-    Model* GetModelAfter(Model* m) const;
-    bool HasModels() const;
+    [[nodiscard]] Model* GetModelAfter(Model* m) const;
+    [[nodiscard]] bool HasModels() const;
 
     bool SetAllModelsToControllerName(const std::string& controllerName);
     bool SetAllModelsToValidProtocols(const std::vector<std::string>& pixelProtocols, const std::vector<std::string>& serialProtocols, bool allsame);
     bool ClearSmartRemoteOnAllModels();
 
-    bool IsValid() const;
+    [[nodiscard]] bool IsValid() const;
     void Dump() const;
     bool Check(const ControllerCaps* rules, std::string& res);
     [[nodiscard]] std::vector<std::vector<std::string>> ExportAsCSV(ExportSettings::SETTINGS const& settings, float brightness, int& columnSize);

@@ -1021,6 +1021,13 @@
     <ClCompile Include="graphics\opengl\xlOGL3GraphicsContext.cpp">
       <Filter>graphics\opengl</Filter>
     </ClCompile>
+    <ClCompile Include="MetronomeLabelDialog.cpp" />
+    <ClCompile Include="utils\CurlManager.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\FPPUploadProgressDialog.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2054,6 +2061,13 @@
     </ClInclude>
     <ClInclude Include="graphics\opengl\GL\glext.h">
       <Filter>graphics\opengl\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="MetronomeLabelDialog.h" />
+    <ClInclude Include="utils\CurlManager.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\FPPUploadProgressDialog.h">
+      <Filter>Controllers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -519,12 +519,50 @@ wxBEGIN_EVENT_TABLE(xlMacDockIcon, wxTaskBarIcon)
 wxEND_EVENT_TABLE()
 #endif
 
-xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
+struct SplashScreenShow
+{
+    SplashScreenShow(bool suppress)
+    {
+        if (!suppress) {
+            splash = new SplashDialog(nullptr);
+        }
+    }
+
+    ~SplashScreenShow()
+    {
+        if (splash) {
+            delete splash;
+            splash = nullptr;
+        }
+    }
+
+    void Show() {
+        if (splash)
+            splash->Show();
+    }
+
+    void Hide()
+    {
+        if (splash)
+            splash->Hide();
+    }
+
+    void Update()
+    {
+        if (splash)
+            splash->Update();
+    }
+
+    SplashDialog* splash = nullptr;
+};
+
+xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderOnlyMode) :
     _sequenceElements(this),
     jobPool("RenderPool"),
     AllModels(&_outputManager, this),
     AllObjects(this),
-    _presetSequenceElements(this), color_mgr(this)
+    _presetSequenceElements(this), color_mgr(this),
+    _renderMode(renderOnlyMode)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
@@ -534,7 +572,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     ValueCurve::SetSequenceElements(&_sequenceElements);
 
     _exiting = false;
-    SplashDialog splash(nullptr);
+    SplashScreenShow splash(renderOnlyMode);
     splash.Show();
     splash.Update();
     wxYield();
@@ -542,7 +580,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     _fps = -1;
     mCurrentPerpective = nullptr;
     MenuItemPreviews = nullptr;
-    _renderMode = false;
+    _renderMode = renderOnlyMode;
     _checkSequenceMode = false;
     _suspendAutoSave = false;
 	_sequenceViewManager.SetModelManager(&AllModels);
@@ -1924,6 +1962,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
     // remove the forum for now until/if Sean restores the forum
     MenuItem_Help_Forum->GetMenu()->Remove(MenuItem_Help_Forum);
     MenuItem_Help_Forum = nullptr;
+
+    if (renderOnlyMode) {
+        DisablePromptBatchRenderIssues();
+    }
 
     logger_base.debug("xLightsFrame construction complete.");
 }
@@ -6418,7 +6460,7 @@ void xLightsFrame::ValidateEffectAssets()
         }
     }
 
-    if (missing != "") {
+    if (missing != "" && (_promptBatchRenderIssues || (!_renderMode && !_checkSequenceMode))) {
         wxMessageBox("Sequence references files which cannot be found:\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
     }
 }
@@ -9128,8 +9170,7 @@ void xLightsFrame::DoBackupPurge()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (BackupPurgeDays <= 0)
-    {
+    if (BackupPurgeDays <= 0) {
         logger_base.debug("Backup purging skipped as it is disabled.");
         return;
     }
@@ -9151,62 +9192,66 @@ void xLightsFrame::DoBackupPurge()
     wxString backupDir = _backupDirectory + wxFileName::GetPathSeparator() + "Backup";
 
     int count = 0;
-    int purged = 0;
+    int purged = 0;  
 
-    if (wxDir::Exists(backupDir))
-    {
+    if (wxDir::Exists(backupDir)) {
         wxDir dir(backupDir);
         wxString filename;
-
-        // We dont follow symbolic links
-        bool cont = dir.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
-        while (cont) {
+        enum class BackUpStatus
+        {
+            Invalid, New, Old
+        };
+        auto OldEnoughtToDelete = [&purgeDate](wxString const& filename) {
             auto fdc = wxSplit(filename, '-');
-
-            if (fdc.size() > 3)
-            {
+            if (fdc.size() > 3) {
                 int day = wxAtoi(fdc[2]);
                 int month = wxAtoi(fdc[1]);
                 int year = wxAtoi(fdc[0]);
 
-                if (year < 2010 || month < 1 || month > 12 || day < 1 || day > 31)
-                {
+                if (year < 2010 || month < 1 || month > 12 || day < 1 || day > 31) {
                     // date does not look valid
                     logger_base.debug("    Backup purge ignoring %s.", (const char *)filename.c_str());
-                }
-                else
-                {
+                    return BackUpStatus::Invalid;
+                } else {
                     wxDateTime bd(day, (wxDateTime::Month)(month - 1), year);
-                    count++;
-
-                    if (bd < purgeDate)
-                    {
-                        logger_base.debug("    Backup purge PURGING %s!", (const char *)filename.c_str());
-                        if (!DeleteDirectory((backupDir + wxFileName::GetPathSeparator() + filename).ToStdString()))
-                        {
-                            logger_base.debug("        FAILED!");
-                        }
-                        else
-                        {
-                            purged++;
-                        }
-                    }
-                    else
-                    {
-                        //logger_base.debug("    Backup purge keeping %s.", (const char *)filename.c_str());
-                    }
+                    return (bd < purgeDate ) ? BackUpStatus::Old : BackUpStatus::New;
                 }
             }
-            else
-            {
-                logger_base.debug("Backup purge deleted %d of %d backups.", purged, count);
+            return BackUpStatus::Invalid;
+        };
+
+        // We dont follow symbolic links
+        bool cont = dir.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
+        while (cont) {
+            wxString nextfilename;
+            bool nextcont = dir.GetNext(&nextfilename);
+
+            auto current = OldEnoughtToDelete(filename);
+            auto next = OldEnoughtToDelete(nextfilename);
+            
+            if (current == BackUpStatus::Invalid) {
+                // date does not look valid
+                logger_base.debug("    Backup purge ignoring %s.", (const char *)filename.c_str());
+            } else {
+                count++;
+
+                if (current == BackUpStatus::Old && next == BackUpStatus::Old) {
+                    logger_base.debug("    Backup purge PURGING %s!", (const char *)filename.c_str());
+                    if (!DeleteDirectory((backupDir + wxFileName::GetPathSeparator() + filename).ToStdString())) {
+                        logger_base.debug("        FAILED!");
+                    } else {
+                        purged++;
+                    }
+                } else {
+                    //logger_base.debug("    Backup purge keeping %s.", (const char *)filename.c_str());
+                }
             }
-            cont = dir.GetNext(&filename);
+
+            filename = nextfilename;
+            cont = nextcont;
         }
-        logger_base.debug("    Backup purge ignoring %s.", (const char *)filename.c_str());
-    }
-    else
-    {
+        logger_base.debug("Backup purge deleted %d of %d backups.", purged, count);
+    } else {
         logger_base.debug("Backup purging skipped as %s does not exist.", (const char *)backupDir.c_str());
     }
 }

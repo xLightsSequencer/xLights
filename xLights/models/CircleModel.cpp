@@ -124,7 +124,7 @@ void CircleModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
     }
 
     p = grid->Append(new wxUIntProperty("Center %", "CircleCenterPercent", parm3));
-    p->SetAttribute("Min", 1);
+    p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 

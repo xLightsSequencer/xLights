@@ -12,9 +12,9 @@
 
 //(*Headers(RenderProgressDialog)
 #include <wx/dialog.h>
-class wxStdDialogButtonSizer;
-class wxScrolledWindow;
 class wxFlexGridSizer;
+class wxScrolledWindow;
+class wxStdDialogButtonSizer;
 //*)
 
 class RenderProgressDialog: public wxDialog
@@ -27,6 +27,7 @@ class RenderProgressDialog: public wxDialog
 		//(*Declarations(RenderProgressDialog)
 		wxFlexGridSizer* scrolledWindowSizer;
 		wxScrolledWindow* scrolledWindow;
+		wxStdDialogButtonSizer* ButtonSizer;
 		//*)
 
 	protected:

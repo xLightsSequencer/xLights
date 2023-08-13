@@ -870,7 +870,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 #ifndef NDEBUG
     logger_base.debug("xSchedule Crash Menu item not removed.");
 #ifdef _MSC_VER
-    SetBackgroundColour(*wxGREEN);
+    if (IsDarkMode()) {
+        SetBackgroundColour(wxColour(0x006000));
+    } else {
+        SetBackgroundColour(*wxGREEN);
+    }
 #endif
 #else
     // only keep the crash option if the EnableCrash.txt file exists

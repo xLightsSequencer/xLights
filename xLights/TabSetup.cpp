@@ -367,7 +367,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
     logger_base.debug("Start channels done.");
 
-    if (mBackupOnLaunch) {
+    if (mBackupOnLaunch && !_renderMode) {
         logger_base.debug("Backing up show directory before we do anything this session in this folder : %s.", (const char *)CurrentDir.c_str());
         DoBackup(false, true);
         logger_base.debug("Backup completed.");
@@ -973,6 +973,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_NETWORK_CHANNELSCHANGE |
         OutputModelManager::WORK_UPDATE_NETWORK_LIST |
+        OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES |
         OutputModelManager::WORK_RGBEFFECTS_CHANGE |
         OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |
         OutputModelManager::WORK_RELOAD_ALLMODELS |
@@ -994,6 +995,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
     work = _outputModelManager.ClearWork(type, work,
         OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_UPDATE_NETWORK_LIST |
+        OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES |
         OutputModelManager::WORK_RGBEFFECTS_CHANGE |
         OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |
         OutputModelManager::WORK_RELOAD_ALLMODELS |
@@ -1007,11 +1009,11 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_RELOAD_PROPERTYGRID |
         OutputModelManager::WORK_SAVE_NETWORKS
     );
-    if (work & OutputModelManager::WORK_UPDATE_NETWORK_LIST) {
+    if (work & (OutputModelManager::WORK_UPDATE_NETWORK_LIST | OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES)) {
         logger_work.debug("    WORK_UPDATE_NETWORK_LIST.");
         // Updates the list of outputs on the screen
         //UpdateNetworkList();
-        InitialiseControllersTab();
+        InitialiseControllersTab((work & OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES) != 0);
 
         std::string selectedController = _outputModelManager.GetSelectedController();
         if (selectedController != "") {
@@ -1419,8 +1421,8 @@ void xLightsFrame::OnButtonAddControllerNullClick(wxCommandEvent& event) {
 }
 #pragma endregion
 
-void xLightsFrame::InitialiseControllersTab() {
-
+void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
+    inInitialize = true;
     // create the checked tree control
     if (List_Controllers == nullptr) {
         List_Controllers = new wxListCtrl(Panel2, ID_List_Controllers, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_List_Controllers"));
@@ -1543,7 +1545,8 @@ void xLightsFrame::InitialiseControllersTab() {
     Panel5->Layout();
     Layout();
 
-    SetControllersProperties();
+    SetControllersProperties(rebuildPropGrid);
+    inInitialize = false;
 }
 
 ControllerCaps* xLightsFrame::GetControllerCaps(const std::string& name) {
@@ -1554,7 +1557,7 @@ ControllerCaps* xLightsFrame::GetControllerCaps(const std::string& name) {
 }
 
 #pragma region Controller Properties
-void xLightsFrame::SetControllersProperties() {
+void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
 
     std::list<wxPGProperty*> expandProperties;
 
@@ -1581,11 +1584,10 @@ void xLightsFrame::SetControllersProperties() {
         selProp = Controllers_PropertyEditor->GetSelection()->GetName();
     }
 
-    Controllers_PropertyEditor->Clear();
-
     auto selections = GetSelectedControllerNames();
 
     if (selections.size() != 1 || _outputManager.GetController(selections.front()) == nullptr) {
+        Controllers_PropertyEditor->Clear();
         ButtonVisualise->Enable(false);
         ButtonUploadInput->Enable(false);
         ButtonUploadOutput->Enable(false);
@@ -1626,11 +1628,8 @@ void xLightsFrame::SetControllersProperties() {
         }
 
         Controllers_PropertyEditor->Append(new wxEnumProperty("Global Force Local IP", "ForceLocalIP", choices, val));
-
         Controllers_PropertyEditor->Append(new wxStringProperty("Global FPP Proxy", "GlobalFPPProxy", _outputManager.GetGlobalFPPProxy()));
-    }
-    else if (selections.size() == 1) {
-
+    } else if (selections.size() == 1) {
         auto controller = _outputManager.GetController(selections.front());
         if (controller != nullptr) {
             int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
@@ -1690,7 +1689,11 @@ void xLightsFrame::SetControllersProperties() {
             }
 
             // one item selected - display selected controller properties
-            controller->AddProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
+            if (rebuildPropGrid) {
+                Controllers_PropertyEditor->Clear();
+                controller->AddProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
+            }
+            controller->UpdateProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
         }
     }
 
@@ -1889,7 +1892,9 @@ int xLightsFrame::GetSelectedControllerCount() const {
 }
 
 void xLightsFrame::OnListItemSelectedControllers(wxListEvent& event) {
-    SetControllersProperties();
+    if (!inInitialize) {
+        SetControllersProperties();
+    }
 }
 
 void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)

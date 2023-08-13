@@ -1218,7 +1218,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                        { _presetModel },
                        { _presetModel },
                        0, frames - 1,
-                       false, true, []() {});
+                       false, true, [](bool) {});
 
                 // wait for all rendering to complete
                 while (!renderProgressInfo.empty()) {
@@ -1459,9 +1459,11 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename, bool allowSparse)
             if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 std::string modelName = element->GetModelName();
                 Model* m = this->GetModel(modelName);
-                if (m == nullptr)
+                if (m == nullptr) {
                     logger_base.crit("Model %s returns as null.", (const char*)modelName.c_str());
-                addRanges(m, ranges);
+                } else {
+                    addRanges(m, ranges);
+                }
             }
         }
 

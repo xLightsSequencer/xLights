@@ -406,11 +406,6 @@ void DrawingContext::Clear()
         if (AllowAlphaChannel()) {
             image->SetAlpha();
             memset(image->GetAlpha(), wxIMAGE_ALPHA_TRANSPARENT, image->GetWidth() * image->GetHeight());
-            for (wxCoord x = 0; x < image->GetWidth(); x++) {
-                for (wxCoord y = 0; y < image->GetHeight(); y++) {
-                    image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
-                }
-            }
             bitmap = new wxBitmap(*image, 32);
         }
         else {
@@ -733,7 +728,6 @@ RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
     frameTimeInMs = 50;
     _textDrawingContext = nullptr;
     _pathDrawingContext = nullptr;
-    tempInt = tempInt2 = 0;
     isTransformed = false;
 }
 
@@ -1720,8 +1714,6 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     fadeinsteps = buffer.fadeinsteps;
     fadeoutsteps = buffer.fadeoutsteps;
     needToInit = buffer.needToInit;
-    tempInt = buffer.tempInt;
-    tempInt2 = buffer.tempInt2;
     allowAlpha = buffer.allowAlpha;
     dmx_buffer = buffer.dmx_buffer;
     _nodeBuffer = buffer._nodeBuffer;

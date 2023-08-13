@@ -47,34 +47,3 @@ std::string NullOutput::GetSortName() const {
     return wxString::Format("NULL%02d", _nullNumber).ToStdString();
 }
 #pragma endregion
-
-#pragma region UI
-#ifndef EXCLUDENETWORKUI
-void NullOutput::AddProperties(wxPropertyGrid* propertyGrid, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {
-
-    wxPGProperty* p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", GetChannels()));
-    p->SetEditor("SpinCtrl");
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100000000);
-}
-
-bool NullOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
-
-    wxString name = event.GetPropertyName();
-
-    if (name == "Channels")
-    {
-        SetChannels(event.GetValue().GetLong());
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "NullOutput::HandlePropertyEvent::Channels");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "NullOutput::HandlePropertyEvent::Channels", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "NullOutput::HandlePropertyEvent::Channels", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "NullOutput::HandlePropertyEvent::Channels", nullptr);
-        return true;
-    }
-
-    if (Output::HandlePropertyEvent(event, outputModelManager)) return true;
-
-    return false;
-}
-#endif
-#pragma endregion

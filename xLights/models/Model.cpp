@@ -59,6 +59,7 @@
 #include <algorithm>
 
 #define MOST_STRINGS_WE_EXPECT 480
+#define MOST_CONTROLLER_PORTS_WE_EXPECT 128
 
 const long Model::ID_LAYERSIZE_INSERT = wxNewId();
 const long Model::ID_LAYERSIZE_DELETE = wxNewId();
@@ -130,6 +131,8 @@ static void clearUnusedProtocolProperties(wxXmlNode* node)
 static const std::string EFFECT_PREVIEW_CACHE("ModelPreviewEffectCache");
 static const std::string MODEL_PREVIEW_CACHE_2D("ModelPreviewCache3D");
 static const std::string MODEL_PREVIEW_CACHE_3D("ModelPreviewCache2D");
+static const std::string LAYOUT_PREVIEW_CACHE_2D("LayoutPreviewCache3D");
+static const std::string LAYOUT_PREVIEW_CACHE_3D("LayoutPreviewCache2D");
 
 
 Model::Model(const ModelManager& manager) : modelManager(manager)
@@ -980,9 +983,8 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
     wxPGProperty* sp = grid->AppendIn(p, new wxUIntProperty("Port", "ModelControllerConnectionPort", GetControllerPort(1)));
     sp->SetAttribute("Min", 0);
     if (caps == nullptr || protocol == "") {
-        sp->SetAttribute("Max", 48);
-    }
-    else {
+        sp->SetAttribute("Max", MOST_CONTROLLER_PORTS_WE_EXPECT);
+    } else {
         if (IsSerialProtocol()) {
             sp->SetAttribute("Max", caps->GetMaxSerialPort());
         } else if (IsPixelProtocol()) {
@@ -992,7 +994,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
         } else if (IsVirtualMatrixProtocol()) {
             sp->SetAttribute("Max", caps->GetMaxVirtualMatrixPort());
         } else {
-            sp->SetAttribute("Max", 48);
+            sp->SetAttribute("Max", MOST_CONTROLLER_PORTS_WE_EXPECT);
         }
     }
     sp->SetEditor("SpinCtrl");
@@ -5065,7 +5067,9 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
     ModelScreenLocation& screenLocation = GetModelScreenLocation();
     screenLocation.PrepareToDraw(is_3d, allowSelected);
 
-    const std::string &cacheKey = is_3d ? MODEL_PREVIEW_CACHE_3D : MODEL_PREVIEW_CACHE_2D;
+    const std::string &cacheKey = allowSelected
+        ? (is_3d ? LAYOUT_PREVIEW_CACHE_3D : LAYOUT_PREVIEW_CACHE_2D)
+        : (is_3d ? MODEL_PREVIEW_CACHE_3D : MODEL_PREVIEW_CACHE_2D);
     if (uiObjectsInvalid) {
         deleteUIObjects();
     }

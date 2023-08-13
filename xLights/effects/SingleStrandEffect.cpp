@@ -372,14 +372,12 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
         MaxNodes = buffer.BufferWi;
     }
 
-    int &ChaseDirection = buffer.tempInt;
+    int ChaseDirection = (chaseType == 0 || chaseType == 2 || chaseType == 6 ||
+                          chaseType == 9 || chaseType == 13 || chaseType == 14);
 
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
-        // initialize it once at the beginning of this sequence.
-        ChaseDirection = (chaseType == 0 || chaseType == 2 || chaseType == 6 ||
-            chaseType == 9 || chaseType == 13 || chaseType == 14);
     }
 
     bool Mirror = false;
@@ -449,8 +447,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
     }
 
     // This is a 0.0-1.0 value that determine how far along the current chase cycle we are
-    double rtval = Static ? 0 :
-        (double)(buffer.curPeriod - buffer.curEffStartPer) / (double)(buffer.curEffEndPer - buffer.curEffStartPer);
+    double rtval = Static ? 0 : buffer.GetEffectTimeIntervalPosition();
     if (chaseType == 8) {
         // need to start in the middle for Bounce from Middle
         rtval += 0.25 / chaseSpeed;

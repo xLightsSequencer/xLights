@@ -285,7 +285,7 @@ class xLightsFrame: public xlFrame
 {
 public:
 
-    xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1);
+    xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1, bool renderOnlyMode = false);
     virtual ~xLightsFrame();
 
     static bool IsCheckSequenceOptionDisabled(const std::string& option);
@@ -1046,6 +1046,7 @@ public:
     bool _excludePresetsFromPackagedSequences = true;
     bool _excludeAudioFromPackagedSequences = true;
     bool _promptBatchRenderIssues = true;
+    bool _disablePromptBatchRenderIssues = false;
     bool _hwVideoAccleration = false;
     bool _showACLights = false;
     bool _showACRamps = false;
@@ -1179,6 +1180,11 @@ public:
 
     bool GetPromptBatchRenderIssues() const { return _promptBatchRenderIssues; }
     void SetPromptBatchRenderIssues(bool b) { _promptBatchRenderIssues = b; }
+    void DisablePromptBatchRenderIssues()
+    {
+        _disablePromptBatchRenderIssues = true;
+        _promptBatchRenderIssues = false;
+    }
 
     bool GetIgnoreVendorModelRecommendations() const { return _ignoreVendorModelRecommendations; }
     void SetIgnoreVendorModelRecommendations(bool b) { _ignoreVendorModelRecommendations = b; }
@@ -1257,6 +1263,7 @@ public:
 
     // setup
     wxListCtrl* List_Controllers = nullptr;
+    bool inInitialize = false;
     wxPropertyGrid* Controllers_PropertyEditor = nullptr;
     wxLed* LedPing = nullptr;
 
@@ -1273,8 +1280,8 @@ public:
 
     void SelectController(const std::string& controllerName);
     void UnselectAllControllers();
-    void InitialiseControllersTab();
-    void SetControllersProperties();
+    void InitialiseControllersTab(bool rebuildPropGrid = true);
+    void SetControllersProperties(bool rebuildPropGrid = true);
     void DeleteSelectedControllers();
     void ActivateSelectedControllers(const std::string& active);
     void SelectAllControllers();
@@ -1390,7 +1397,7 @@ public:
     int GetCurrentPlayTime();
     bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
     Model *GetModel(const std::string& name) const;
-    void RenderGridToSeqData(std::function<void()>&& callback);
+    void RenderGridToSeqData(std::function<void(bool)>&& callback);
     bool AbortRender(int maxTimeMs = 60000);
     std::string GetSelectedLayoutPanelPreview() const;
     void UpdateRenderStatus();
@@ -1409,7 +1416,7 @@ public:
                 const std::list<Model *> &restrictToModels,
                 int startFrame, int endFrame,
                 bool progressDialog, bool clear,
-                std::function<void()>&& callback);
+                std::function<void(bool)>&& callback);
     void BuildRenderTree();
 
     void RenderRange(RenderCommandEvent &cmd);
@@ -1458,7 +1465,10 @@ protected:
     bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
     void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, bool backupSubfolders, std::string& errors);
     void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors);
-    void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
+    static constexpr int RENDER_EXIT_ON_DONE = 1;
+    static constexpr int RENDER_ALREADY_RETRIED = 2;
+    void OpenRenderAndSaveSequencesF(const wxArrayString &filenames, int flags);
+    void OpenRenderAndSaveSequences(const wxArrayString& filenames, bool exitOnDone, bool alreadyRetried = false);
     void OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone);
     std::string OpenAndCheckSequence(const std::string& origFilenames);
     void AddAllModelsToSequence();
@@ -1522,6 +1532,7 @@ private:
     int mEffectAssistMode = 0;
     int tempEffectAssistMode = 0;
 	bool mRendering;
+    int abortedRenderJobs = 0;
     bool mSaveFseqOnSave;
     int _modelHandleSize = 1;
 

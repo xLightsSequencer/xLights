@@ -3,7 +3,7 @@
 	<object class="wxDialog" name="RenderProgressDialog">
 		<title>Rendering Progress</title>
 		<id_arg>0</id_arg>
-		<style>wxSTAY_ON_TOP|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<rows>2</rows>
@@ -22,7 +22,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStdDialogButtonSizer" variable="StdDialogButtonSizer1" member="no">
+				<object class="wxStdDialogButtonSizer" variable="ButtonSizer" member="yes">
 					<object class="button">
 						<object class="wxButton" name="wxID_OK">
 							<label></label>

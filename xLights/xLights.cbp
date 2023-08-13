@@ -611,6 +611,8 @@
 		<Unit filename="MatrixFaceDownloadDialog.h" />
 		<Unit filename="MediaImportOptionsDialog.cpp" />
 		<Unit filename="MediaImportOptionsDialog.h" />
+		<Unit filename="MetronomeLabelDialog.cpp" />
+		<Unit filename="MetronomeLabelDialog.h" />
 		<Unit filename="ModelChainDialog.cpp" />
 		<Unit filename="ModelChainDialog.h" />
 		<Unit filename="ModelDimmingCurveDialog.cpp" />
@@ -816,6 +818,8 @@
 		<Unit filename="controllers/FPP.h" />
 		<Unit filename="controllers/FPPConnectDialog.cpp" />
 		<Unit filename="controllers/FPPConnectDialog.h" />
+		<Unit filename="controllers/FPPUploadProgressDialog.cpp" />
+		<Unit filename="controllers/FPPUploadProgressDialog.h" />
 		<Unit filename="controllers/Falcon.cpp" />
 		<Unit filename="controllers/Falcon.h" />
 		<Unit filename="controllers/HinksPix.cpp" />
@@ -1345,6 +1349,8 @@
 		<Unit filename="tmGridCell.h" />
 		<Unit filename="utils/Curl.cpp" />
 		<Unit filename="utils/Curl.h" />
+		<Unit filename="utils/CurlManager.cpp" />
+		<Unit filename="utils/CurlManager.h" />
 		<Unit filename="utils/ip_utils.cpp" />
 		<Unit filename="utils/ip_utils.h" />
 		<Unit filename="utils/string_utils.cpp" />
@@ -1430,6 +1436,7 @@
 		<Unit filename="wxsmith/EmailDialog.wxs" />
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
 		<Unit filename="wxsmith/FPPConnectDialog.wxs" />
+		<Unit filename="wxsmith/FPPUploadProgressDialog.wxs" />
 		<Unit filename="wxsmith/FacesPanel.wxs" />
 		<Unit filename="wxsmith/FanPanel.wxs" />
 		<Unit filename="wxsmith/FillPanel.wxs" />
@@ -1465,6 +1472,7 @@
 		<Unit filename="wxsmith/MatrixFaceDownloadDialog.wxs" />
 		<Unit filename="wxsmith/MediaImportOptionsDialog.wxs" />
 		<Unit filename="wxsmith/MeteorsPanel.wxs" />
+		<Unit filename="wxsmith/MetronomeLabelDialog.wxs" />
 		<Unit filename="wxsmith/ModelChainDialog.wxs" />
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
@@ -1771,6 +1779,8 @@
 					<wxDialog wxs="wxsmith/RestoreBackupDialog.wxs" src="RestoreBackupDialog.cpp" hdr="RestoreBackupDialog.h" fwddecl="0" i18n="1" name="RestoreBackupDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditComboDialog.wxs" src="BulkEditComboDialog.cpp" hdr="BulkEditComboDialog.h" fwddecl="0" i18n="1" name="BulkEditComboDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/DuplicateDialog.wxs" src="DuplicateDialog.cpp" hdr="DuplicateDialog.h" fwddecl="0" i18n="1" name="DuplicateDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/MetronomeLabelDialog.wxs" src="MetronomeLabelDialog.cpp" hdr="MetronomeLabelDialog.h" fwddecl="0" i18n="1" name="MetronomeLabelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/FPPUploadProgressDialog.wxs" src="controllers/FPPUploadProgressDialog.cpp" hdr="controllers/FPPUploadProgressDialog.h" fwddecl="0" i18n="1" name="FPPUploadProgressDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

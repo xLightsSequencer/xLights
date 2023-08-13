@@ -149,7 +149,8 @@ const static std::vector<std::vector<std::string>> __equivalentPixels =
     { "ucs8904", "ucs8904 (16)" },
     { "ucs9812" }, // I have not researched these
     { "my9231" },  // I have not researched these ... they may fit into an existing category
-    { "ws2801", "ws2803" }
+    { "ws2801", "ws2803" },
+    { "rgb+" } // not sure if these have a functional equivalent ... if they do these should be moved to artificial
 };
 
 const static std::vector<std::vector<std::string>> __equivalentSerial = {

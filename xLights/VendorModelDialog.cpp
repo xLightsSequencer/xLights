@@ -854,6 +854,7 @@ wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename
 bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
     const std::string vendorlink = "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
+    const std::string vendorlinkbackup = "https://github.com/smeighan/xLights/raw/master/download/xlights_vendors.xml";
     //const std::string vendorlink = "http://localhost/xlights_vendors.xml";
 
     std::string filename;
@@ -862,8 +863,12 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
     wxXmlDocument* vd = GetXMLFromURL(wxURI(vendorlink), filename, prog, low, high, true);
     if (prog != nullptr) 
         prog->Update(high, "Parsing vendor list");
-    if (vd != nullptr && vd->IsOk())
-    {
+
+    if (vd == nullptr || !vd->IsOk()) {
+        vd = GetXMLFromURL(wxURI(vendorlinkbackup), filename, prog, low, high, true);
+    }
+
+    if (vd != nullptr && vd->IsOk()) {
         wxXmlNode* root = vd->GetRoot();
 
         for (auto v = root->GetChildren(); v != nullptr; v = v->GetNext())

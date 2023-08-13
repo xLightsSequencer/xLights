@@ -20,8 +20,6 @@
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonwriter.h"
 
-#include <curl/curl.h>
-
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
 #include <wx/sstream.h>
@@ -31,7 +29,7 @@
 #pragma region HinksPixOutput
 void HinksPixOutput::Dump() const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("    Output %d Uni %d StartChan %d Pixels %d Dir %d Protocol %d Nulls %d ColorOrder %d Brightness %d Gamma %d ControlerStartChannel %d ControlerEndChannel %d",
+    logger_base.debug("    Output %d Uni %d StartChan %d Pixels %d Dir %d Protocol %d Nulls %d ColorOrder %d Brightness %d Gamma %d ControlerStartChannel %d ControlerEndChannel %d Used %s",
                       output,
                       universe,
                       startChannel,
@@ -43,7 +41,8 @@ void HinksPixOutput::Dump() const {
                       brightness,
                       gamma,
                       controllerStartChannel,
-                      controllerEndChannel);
+                      controllerEndChannel,
+                      toStr(used));
 }
 
 void HinksPixOutput::SetConfig(wxString const& data) {
@@ -566,7 +565,7 @@ void HinksPix::UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, 
     pd.universe = stringData->GetUniverse();
     pd.startChannel = stringData->GetUniverseStartChannel();
     pd.pixels = stringData->Pixels();
-
+    pd.used = true;
     pd.setControllerChannels(hinkstartChan);
 }
 
@@ -766,12 +765,12 @@ std::string HinksPix::GetJSONControllerData(std::string const& url, std::string 
 
     logger_base.debug("Making request to HinksPix '%s'.", (const char*)url.c_str());
 
-    CURL* curl = curl_easy_init();
+
     struct curl_slist* list = NULL;
 
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);
+    if (_curl) {
+        curl_easy_setopt(_curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
+        curl_easy_setopt(_curl, CURLOPT_TIMEOUT, 20);
 
         list = curl_slist_append(list, "Content-type: text/plain");
 
@@ -779,29 +778,34 @@ std::string HinksPix::GetJSONControllerData(std::string const& url, std::string 
             list = curl_slist_append(list, std::string(data).c_str());
             logger_base.debug("'%s'.", (const char*)data.c_str());
         }
-
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+        curl_easy_setopt(_curl, CURLOPT_TCP_KEEPALIVE, 1L);
+        curl_easy_setopt(_curl, CURLOPT_MAXAGE_CONN, 120L);
+        curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, list);
 
         std::string response_string;
 
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+        curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, writeFunction);
+        curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &response_string);
 
-        curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1L);
+        curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1L);
+        curl_easy_setopt(_curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(_curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+        //curl_easy_setopt(_curl, CURLOPT_FORBID_REUSE, 1L);
 
         /* Perform the request, res will get the return code */
-        CURLcode r = curl_easy_perform(curl);
+        CURLcode r = curl_easy_perform(_curl);
 
         if (r != CURLE_OK) {
             logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
         } else {
+            logger_base.debug("'%s'.", (const char*)response_string.c_str());
             res = response_string;
         }
 
         /* always cleanup */
-        curl_easy_cleanup(curl);
+        //curl_easy_cleanup(curl);
+    } else {
+        logger_base.error("Curl was null during HinksPix upload.");
     }
     return res;
 }
@@ -814,11 +818,10 @@ void HinksPix::PostToControllerNoResponse(std::string const& url, std::string co
 
     logger_base.debug("Making request to HinksPix '%s'.", (const char*)url.c_str());
 
-    CURL* curl = curl_easy_init();
     struct curl_slist* list = NULL;
 
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
+    if (_curl) {
+        curl_easy_setopt(_curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
 
         list = curl_slist_append(list, "Content-type: text/plain");
 
@@ -827,13 +830,15 @@ void HinksPix::PostToControllerNoResponse(std::string const& url, std::string co
             logger_base.debug("'%s'.", (const char*)data.c_str());
         }
 
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1L); //just time out
+        curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, list);
+        curl_easy_setopt(_curl, CURLOPT_TIMEOUT_MS, 1L); // just time out
 
         /* Perform the request, res will get the return code */
-        curl_easy_perform(curl);
+        curl_easy_perform(_curl);
         /* always cleanup */
-        curl_easy_cleanup(curl);
+       // curl_easy_cleanup(curl);
+    } else {
+        logger_base.error("Curl was null during HinksPix upload.");
     }
 }
 
@@ -949,14 +954,14 @@ HinksPix::EXPType HinksPix::DecodeExpansionType(const std::string& type) const {
 #pragma region Constructors and Destructors
 HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
     BaseController(ip, proxy),
-    _EXP_Outputs{ EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present },
-    _numberOfOutputs(48),
+    _EXP_Outputs{ EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present },
     _numberOfUniverses(0),
     _MCPU_Version(0) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     //Get Controller Info
     wxJSONValue data;
+    _curl = curl_easy_init();
 
     for (int x = 0; x < 3; x++) {
         if (GetControllerDataJSON(GetJSONInfoURL(), data, "")) {
@@ -988,12 +993,12 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
 
         if (_controllerType == "E") {
             _model = "EasyLights Pix16";
-            _numberOfOutputs = 16;
         } else if (_controllerType == "H") {
-            _model = "HinksPix PRO";
-        } else if (_controllerType == "8") {
-            _model = "HinksPix PRO 80";
-            _numberOfOutputs = 80;
+            if (pix_type == "8") {
+                _model = "HinksPix PRO 80";
+            } else {
+                _model = "HinksPix PRO";
+            }
         } else {
             _model = "Unknown";
         }
@@ -1008,6 +1013,10 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
 
 HinksPix::~HinksPix() {
     _pixelOutputs.clear();
+    if (_curl) {
+        /* always cleanup */
+        curl_easy_cleanup(_curl);
+    }
 }
 #pragma endregion
 
@@ -1067,7 +1076,6 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     //first check rules
     auto rules = ControllerCaps::GetControllerConfig(controller);
     const bool success = cud.Check(rules, check);
-
     logger_base.debug(check);
 
     cud.Dump();
@@ -1079,12 +1087,12 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     bool worked = true;
 
     logger_base.info("Initializing Pixel Output Information.");
-    progress.Update(10, "Initializing Pixel Output Information.");
+    progress.Update(5, "Initializing Pixel Output Information.");
 
     InitControllerOutputData();
 
     logger_base.info("Calculating Universe Start Channel Mappings.");
-    progress.Update(20, "Calculating Universe Start Channel Mappings.");
+    progress.Update(10, "Calculating Universe Start Channel Mappings.");
     std::vector<HinksPixInputUniverse> inputUniverses;
 
     for (auto const& it : outputs) {
@@ -1108,11 +1116,11 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     logger_base.info("Figuring Out Pixel Output Information.");
-    progress.Update(30, "Figuring Out Pixel Output Information.");
+    progress.Update(15, "Figuring Out Pixel Output Information.");
     int32_t hinkstartChan = 1;
     int univIdx = 1;
     //loop to setup string outputs
-    for (int port = 1; port <= GetNumberOfOutputs(); port++) {
+    for (int port = 1; port <= rules->GetMaxPixelPort(); port++) {
         if (cud.HasPixelPort(port)) {
             UDControllerPort* portData = cud.GetControllerPixelPort(port);
             auto pixOut = std::find_if(_pixelOutputs.begin(), _pixelOutputs.end(), [port](auto const& po) { return po.output == port; });
@@ -1124,8 +1132,22 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         }
     }
 
+    logger_base.info("Checking Pixel Output and SmartReceivers Information.");
+    progress.Update(20, "Checking Pixel Output and SmartReceivers Information.");
+
+    if (!CheckPixelOutputs(check)) {
+        DisplayError("HinksPix Upload Error:\n" + check, parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
+    if (!CheckSmartReceivers(check)) {
+        DisplayError("HinksPix Upload Error:\n" + check, parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
+
     logger_base.info("Figuring Out DMX Output Information.");
-    progress.Update(40, "Figuring Out DMX Output Information.");
+    progress.Update(25, "Figuring Out DMX Output Information.");
 
     if (cud.HasSerialPort(1)) {
         UDControllerPort* portData = cud.GetControllerSerialPort(1);
@@ -1133,7 +1155,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     logger_base.info("Uploading Input Universes Information.");
-    progress.Update(50, "Uploading Input Universes Information.");
+    progress.Update(30, "Uploading Input Universes Information.");
     worked &= UploadInputUniverses(controller, inputUniverses);
 
     logger_base.info("Uploading SmartReceivers Information.");
@@ -1216,12 +1238,12 @@ wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, st
 
     logger_base.debug("Making request to HinksPix '%s'.", (const char*)url.c_str());
 
-    CURL* curl = curl_easy_init();
+    //CURL* curl = curl_easy_init();
     struct curl_slist* list = NULL;
 
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);
+    if (_curl) {
+        curl_easy_setopt(_curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
+        curl_easy_setopt(_curl, CURLOPT_TIMEOUT, 20);
 
         list = curl_slist_append(list, "Content-type: text/plain");
         logger_base.debug("Row='%d'.", rowIndex);
@@ -1232,19 +1254,19 @@ wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, st
             logger_base.debug("DATA='%s'.", (const char*)data.c_str());
         }
 
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+        curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, list);
 
         std::string response_string;
 
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+        curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, writeFunction);
+        curl_easy_setopt(_curl, CURLOPT_WRITEDATA, &response_string);
 
-        curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1L);
+        curl_easy_setopt(_curl, CURLOPT_HTTPGET, 1L);
+        curl_easy_setopt(_curl, CURLOPT_FOLLOWLOCATION, 1L);
+        //curl_easy_setopt(_curl, CURLOPT_FORBID_REUSE, 1L);
 
         /* Perform the request, res will get the return code */
-        CURLcode r = curl_easy_perform(curl);
+        CURLcode r = curl_easy_perform(_curl);
 
         if (r != CURLE_OK) {
             logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
@@ -1254,7 +1276,7 @@ wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, st
         }
 
         /* always cleanup */
-        curl_easy_cleanup(curl);
+        //curl_easy_cleanup(curl);
     }
     return res;
 }
@@ -1269,4 +1291,36 @@ std::map<wxString, wxString> HinksPix::StringToMap(wxString const& text) const
         }
     }
     return map;
+}
+
+bool HinksPix::CheckPixelOutputs(std::string& message)
+{
+    for (auto const& it : _pixelOutputs) {
+        if (it.used) {
+            int exp_idx = (it.output - 1) / OUT_SIZE;
+            if (_EXP_Outputs[exp_idx] == EXPType::Not_Present) {
+                message = "Pixel Output " + std::to_string(it.output) + " is being used on Expansion Port " + std::to_string(exp_idx + 1) + " and no Output Board is Connected!";
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool HinksPix::CheckSmartReceivers(std::string& message)
+{
+    wxASSERT(std::size(_EXP_Outputs) == std::size(_smartOutputs));
+
+    for (int exp = 0; exp < EXP_PORTS; ++exp) {
+        if (_EXP_Outputs[exp] != EXPType::Long_Range) {
+            for (int bnk = 0; bnk < std::size(_smartOutputs[exp]); ++bnk) {
+                if (_smartOutputs[exp][bnk].size() != 0) {
+                    message = "Expansion Port " + std::to_string(exp + 1) + " has Smart Receivers but it is not a Long Range Differential Board!";
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }

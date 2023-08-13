@@ -11,6 +11,58 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.12 Aug 9, 2023
+   -- enh (gil)     Improve model creation in 3D mode.  Models used to not place well depending on how you had the view rotated.
+                    Now xLights will detect the view angle and make a decision on the best place to start the model so you shouldn't
+                    run into models being created way in front or behind the view camera.
+                    You can now rotate to a side view and draw the models rotated 90 degrees.
+                    If you run into model placement issues let me know.
+   -- enh (dkulp)   FPPConnect - use parallel uploads of FSEQ files to multiple controllers
+   -- enh (scott)   Allow picture type singing faces on groups
+   -- enh (scott)   Add effect count to SearchPanel
+   -- enh (dkulp)   Use FPP7 Cape API's to verify cape pinout is usable prior to upload
+   -- enh (dkulp)   Minor render speedup by allowing models to render non-dependent layers while waiting for dependent models/groups to finish the frame
+   -- enh (merryoncherry)  Adjust group default camera mapping on import
+   -- enh (scott)   Purge Backup needs to leave one folder so there is at least one backup
+   -- bug (dkulp)   Fix hange in SingleStrand effect if the effect is a single period long
+   -- bug (scott)   Fix HinksPix 80 only updating 48 portsf, faster upload to HinksPix
+   -- bug (scott)   Fix RGB2Go and E1-Wifi auto layout
+   -- bug (gil)     Fix model selection in 2D for models based on BoxedScreenLocation (Matrix, Trees, etc.). Fixes #3887
+   -- bug (gil)     Fix arches not rendering correctly when rotated
+   -- bug (gil)     Fix some bugs with SketchEffect with closed paths
+2023.11 July 23, 2023
+   -- enh (keith)   Make Smart Recievers a more visual component of the visualizer
+   -- enh (keith)   Add smart remote tooltip to visualiser
+   -- enh (keith)   Fast change smart remote number (and all models on it) by right clicking on the remote in visualiser
+   -- enh (keith)   Add smart remote drag/drop in visualiser
+   -- enh (scott)   Add Controller Cap and Serial protocol information to automation API JSON
+   -- enh (scott)   Add ability to set Model Properties through automation API
+   -- enh (scott)   Added Metronome w/ Tags for use with state effect
+   -- enh (scott)   Added name support to getControllerPortMap command, added group and models filters to getModels
+   -- bug (scott)   Added FPP Proxy IP checks
+   -- bug (dkulp)   Attempt to workaround issues on Windows when filenames and FPP Connecte are not in UTF-8 encoding
+   -- bug (keith)   Fix incorrect month in log files
+   -- bug (keith)   Workaround for Minleon Smart T's with RGB+ pixels
+   -- bug (dkulp)   Fix crash on save if sequence references models that don't exist
+   -- bug (dkulp)   Another attempt to get the controller properies to not rebuild the entire list all the time, prevents crashes
+   -- bug (Pierre Beukes) Fix Moving Head Export: Include slew limits
+   -- bug (dkulp)   Fix problems with displaying models with circle/blended circle after changing it on layout page
+   -- bug (dkulp)   If resizing/moving/rotating multiple models, make sure the Undo records everything instead of the single selected model
+2023.10 June 30, 2023
+   -- enh (dkulp)   Add node number under mouse cursor to lower right corner of SubModelDialog
+   -- enh (scott)   Add zero layer size for circle model (for center pixel)
+   -- enh (keith)   Enable ESC to close visualizer
+   -- enh (merryoncherry) "Batch Render" enhancements to disable various warnings, modal dialogs, etc...
+   -- enh (keith)   Allow ovverride of Twinkly http port
+   -- enh (MartinMueller) Add full set of ESPv4 variants
+   -- enh (scott)   Add HinksPix Pro 80 support
+   -- enh (dkulp)   Enable HTTP/2 for FPP Connect and Discovery
+   -- bug (merryoncherry) Fix issues with bulk edit of effects
+   -- bug (dkulp)   Fix crashes when selecting Vendor/Model/Variant using keyboard
+   -- bug (dkulp)   Fix FPP Connect if there is a powered on Falcon v4 controller on the network
+   -- bug (dkulp)   Fix square pixel type on Windows
+   -- bug (scott)   Serial port configuration fixes
+   -- bug (dkulp)   Fix animated GIFs not working properly
 2023.09 June 3, 2023
    -- enh (scott)   Add CSV Submodel import
    -- enh (merryoncherry) Single strand chase offset and static modes

@@ -241,7 +241,7 @@ void ControllerSerial::SetFPPProxy(const std::string& proxy) {
         GetFirstOutput()->SetFPPProxyIP(_fppProxy);
     }
 }
-void ControllerSerial::VMVChanged() {
+void ControllerSerial::VMVChanged(wxPropertyGrid *grid) {
     if (_model == "FPP") {
         if (GetFirstOutput()->GetType() != "DDP") {
             if (_serialOutput && GetFirstOutput() != _serialOutput) delete _serialOutput;
@@ -640,7 +640,7 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     p->SetHelpString(modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), 4));
 
-    _serialOutput->AddProperties(propertyGrid, true, expandProperties);
+    _serialOutput->AddProperties(propertyGrid, p, this, true, expandProperties);
 }
 
 bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
@@ -719,7 +719,7 @@ bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputMod
         return true;
     }
 
-    if (_serialOutput->HandlePropertyEvent(event, outputModelManager)) return true;
+    if (_serialOutput->HandlePropertyEvent(event, outputModelManager, this)) return true;
 
     return false;
 }

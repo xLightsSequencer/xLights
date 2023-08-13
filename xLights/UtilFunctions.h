@@ -12,6 +12,7 @@
 
 #include <wx/wx.h>
 #include <wx/socket.h>
+#include <wx/filename.h>
 #include <wx/xml/xml.h>
 #include "../xSchedule/wxJSON/json_defs.h"
 #include "../xSchedule/wxJSON/jsonval.h"
@@ -133,6 +134,9 @@ inline std::string ToStdString(const wxString& wxstr)
     return wxstr.utf8_str().data();
 #endif
 }
+inline std::string ToUTF8(const wxString& wxstr) {
+    return ToStdString(wxstr);
+}
 inline wxString ToWXString(const std::string& stdstr)
 {
 #if defined(__WXOSX__)
@@ -140,6 +144,13 @@ inline wxString ToWXString(const std::string& stdstr)
 #else
     return wxString::FromUTF8(stdstr);
 #endif
+}
+inline wxString FromUTF8(const std::string& str) {
+    return ToWXString(str);
+}
+inline const std::string &GetPathSeparator() {
+    static std::string PATHSEP = ToUTF8(wxFileName::GetPathSeparator());
+    return PATHSEP;
 }
 
 bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);

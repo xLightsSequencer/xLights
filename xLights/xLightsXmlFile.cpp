@@ -3038,6 +3038,37 @@ void xLightsXmlFile::AddFixedTimingSection(const std::string& interval_name, xLi
     AddChildXmlNode(node, "EffectLayer");
 }
 
+void xLightsXmlFile::AddMetronomeLabelTimingSection(const std::string& interval_name, int interval, int count, xLightsFrame* xLightsParent)
+{
+    AddTimingDisplayElement(interval_name, "1", "0");
+    wxXmlNode* node;
+
+    if (sequence_loaded)
+    {
+        TimingElement* element = xLightsParent->AddTimingElement(interval_name);
+        EffectLayer* effectLayer = element->GetEffectLayer(0);
+        int time {0};
+        int id {0};
+        int end_time = GetSequenceDurationMS();
+        while (time < end_time)
+        {
+            int next_time = (time + interval <= end_time) ? time + interval : end_time;
+            int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
+            int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
+            effectLayer->AddEffect(0, std::to_string(id + 1), "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
+            time += interval;
+            id++;
+            if (count != 0) {
+                id %= count;
+            }
+        }
+    }
+    node = AddFixedTiming(interval_name, string_format("%d", interval));
+    
+
+    AddChildXmlNode(node, "EffectLayer");
+}
+
 void xLightsXmlFile::SetMetaMP3Tags()
 {
     if (audio != nullptr)

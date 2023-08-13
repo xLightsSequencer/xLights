@@ -1066,7 +1066,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                 return false;
             }
 
-            pp->CreateVirtualStrings(caps->MergeConsecutiveVirtualStrings());
+            pp->CreateVirtualStrings(true);
             for (int sr = smartRemotes[p] == 0 ? 0 : 1; sr < smartRemotes[p] + 1; sr++) {
                 int gamma = 10;
                 int brightness = defaultBrightness;

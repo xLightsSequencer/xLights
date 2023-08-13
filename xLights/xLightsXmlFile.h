@@ -123,6 +123,7 @@ public:
     void AddNewTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent, std::vector<int>& starts,
                              std::vector<int>& ends, std::vector<std::string>& labels);
     void AddFixedTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent);
+    void AddMetronomeLabelTimingSection(const std::string& interval_name, int interval, int count,  xLightsFrame* xLightsParent);
     void DeleteTimingSection(const std::string& section);
     void SetTimingSectionName(const std::string& section, const std::string& name);
     bool TimingAlreadyExists(const std::string& section, xLightsFrame* xLightsParent);
