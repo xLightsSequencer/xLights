@@ -1,3 +1,5 @@
+-- Script to Export Video Preview, for the selected sequences.
+
 seqs = PromptSequences()
 for i,seq in ipairs(seqs) do 
     properties = {}

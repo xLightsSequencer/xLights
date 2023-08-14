@@ -1,3 +1,5 @@
+-- Script to Export Model MP4 for Selected Model. 
+
 properties2 = {}
 properties2['groups'] = "false"
 

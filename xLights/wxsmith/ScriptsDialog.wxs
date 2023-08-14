@@ -2,9 +2,9 @@
 <wxsmith>
 	<object class="wxDialog" name="ScriptsDialog">
 		<title>Run Scripts</title>
-		<size>600,300</size>
-		<pos_arg>1</pos_arg>
-		<size_arg>1</size_arg>
+		<size>700,600</size>
+		<minsize>300,200</minsize>
+		<id_arg>0</id_arg>
 		<style>wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -19,9 +19,20 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxListBox" name="ID_LISTBOX_SCRIPTS" variable="ListBoxScripts" member="yes">
-					<default>-1</default>
-					<handler function="OnListBoxScriptsDClick" entry="EVT_LISTBOX_DCLICK" />
+				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+					<sashgravity>0.700000</sashgravity>
+					<minpanesize>10</minpanesize>
+					<orientation>vertical</orientation>
+					<object class="wxListBox" name="ID_LISTBOX_SCRIPTS" variable="ListBoxScripts" member="yes">
+						<default>-1</default>
+						<pos>-237,-27</pos>
+						<handler function="OnListBoxScriptsSelect" entry="EVT_LISTBOX" />
+						<handler function="OnListBoxScriptsDClick" entry="EVT_LISTBOX_DCLICK" />
+					</object>
+					<object class="wxTextCtrl" name="ID_TEXTCTRL_ABOUT" variable="TextCtrlAbout" member="yes">
+						<pos>49,15</pos>
+						<style>wxTE_MULTILINE|wxTE_READONLY</style>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -29,7 +40,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-					<cols>3</cols>
+					<cols>4</cols>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_RUN" variable="Button_Run" member="yes">
 							<label>Run</label>
@@ -52,6 +63,15 @@
 						<object class="wxButton" name="ID_BUTTON_CLEAR" variable="Button_Clear" member="yes">
 							<label>Clear</label>
 							<handler function="OnButton_ClearClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_DOWNLOAD" variable="Button_Download" member="yes">
+							<label>Download</label>
+							<handler function="OnButton_DownloadClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
