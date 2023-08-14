@@ -856,7 +856,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     }
                 }
                 //if restart flag is now set, restart and recheck range
-                inst->Restart("", true);
+                inst->Restart(true);
             } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) && controller.size() == 1) {
                 BaseController *bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
                 bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), this);
@@ -1037,7 +1037,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                 if (playlist != "") {
                     cancelled |= inst->UploadPlaylist(playlist);
                 }
-                inst->Restart("", true);
+                inst->Restart(true);
             }
         }
         if (!inst->messages.empty()) {

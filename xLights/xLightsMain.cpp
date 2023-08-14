@@ -2547,21 +2547,21 @@ bool xLightsFrame::DisableOutputs() {
         _outputManager.StopOutput();
         EnableSleepModes();
 
-        for (auto &controller : _outputManager.GetControllers()) {
-            if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
-                auto ip = controller->GetResolvedIP();
-                if (ip == "" || ip == "MULTICAST" || controller->GetProtocol() == OUTPUT_ZCPP) {
-                    continue;
-                }
-                BaseController* bc = BaseController::CreateBaseController(controller);
-                if (bc != nullptr && bc->IsConnected()) {
-                    bc->ResetAfterOutput(&_outputManager, controller, this);
-                }
-                if (bc) {
-                    delete bc;
-                }
-            }
-        }
+        //for (auto &controller : _outputManager.GetControllers()) {
+        //    if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
+        //        auto ip = controller->GetResolvedIP();
+        //        if (ip == "" || ip == "MULTICAST" || controller->GetProtocol() == OUTPUT_ZCPP) {
+        //            continue;
+        //        }
+        //        BaseController* bc = BaseController::CreateBaseController(controller);
+        //        if (bc != nullptr && bc->IsConnected()) {
+        //            bc->ResetAfterOutput(&_outputManager, controller, this);
+        //        }
+        //        if (bc) {
+        //            delete bc;
+        //        }
+        //    }
+        //}
     }
     CheckBoxLightOutput->SetBitmap(GetToolbarBitmapBundle("xlART_OUTPUT_LIGHTS"));
     CheckBoxLightOutput->SetValue(false);

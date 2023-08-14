@@ -72,7 +72,7 @@ public:
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) = 0;
     
     virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) { return false; }
-    virtual bool ResetAfterOutput(OutputManager* outputManager, Controller* controller, wxWindow* parent) { return false; }
+    //virtual bool ResetAfterOutput(OutputManager* outputManager, Controller* controller, wxWindow* parent) { return false; }
 #endif
 
     [[nodiscard]] virtual bool UsesHTTP() const = 0;

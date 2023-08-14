@@ -514,9 +514,7 @@ void FPP::parseConfig(const std::string& v) {
             settings[key] = to;
         }
     }
-    if (curMode == "") {
-        curMode = settings["fppMode"];
-    }
+
     if (settings["Title"].find("Falcon Player") != std::string::npos) {
         fppType = FPP_TYPE::FPP;
     }
@@ -1814,29 +1812,10 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
     UploadSerialOutputs(allmodels, outputManager, controller);
     SetInputUniversesBridge(controller);
     
-    if (majorVersion >= 4 && majorVersion < 6) {
-        controller->SetRuntimeProperty("FPPMode", curMode);
-        if (restartNeeded || curMode != "bridge") {
-            Restart("bridge");
-        }
-    } else if (restartNeeded) {//fpp 5
+    if (restartNeeded) {
         Restart();
     }
     return b;
-}
-
-bool FPP::ResetAfterOutput(OutputManager* outputManager, Controller* controller, wxWindow* parent) {
-
-    if (majorVersion >= 4) {
-        std::string md = controller->GetRuntimeProperty("FPPMode");
-        if (md != "bridge" && md != "") {
-            bool b = AuthenticateAndUpdateVersions();
-            if (!b) return b;
-            Restart(md);
-            controller->SetRuntimeProperty("FPPMode", "");
-        }
-    }
-    return true;
 }
 
 wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool input, std::map<int, int> *rngs) {
@@ -1953,17 +1932,8 @@ bool FPP::SetRestartFlag() {
     return false;
 }
 
-bool FPP::Restart(const std::string &mode, bool ifNeeded) {
+bool FPP::Restart( bool ifNeeded) {
     std::string val;
-    if (mode != "" && mode != curMode) {
-        std::string m = "player"; //bridge;
-        if (mode == "remote") {
-            m = "remote";
-        }
-        PutToURL("/api/settings/fppMode", m);
-        SetRestartFlag();
-        curMode = mode;
-    }
     if (ifNeeded && !restartNeeded) {
         return false;
     }
@@ -2020,10 +1990,8 @@ void FPP::SetDescription(const std::string &st) {
 bool FPP::SetInputUniversesBridge(Controller* controller) {
 
     bool forceUpload = false;
-    if (majorVersion >= 5) {
-        if (!IsDDPInputEnabled()){
-            forceUpload = restartNeeded = true;
-        }
+    if (!IsDDPInputEnabled()){
+        forceUpload = restartNeeded = true;
     }
 
     auto c = dynamic_cast<ControllerEthernet*>(controller);
