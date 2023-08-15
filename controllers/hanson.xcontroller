@@ -131,7 +131,7 @@
             <fppSerialPort1>ttyAMA0</fppSerialPort1>
             <fppStringFileName>co-pixelStrings</fppStringFileName>
 		</Variant>
-		<Variant Name="rPi-28D-DPIPixels" ID="rPi-28D-DPIPixels" Base="FPP:BaseFPPSettings">
+		<Variant Name="rPi-28D-DPIPixels" ID="rPi-28D-DPIPixels" Base="FPP:FPPStringDPIPiHat">
 			<MaxPixelPort>2</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
@@ -156,7 +156,7 @@
             <fppSerialPort1>ttyAMA0</fppSerialPort1>
             <fppStringFileName>co-pixelStrings</fppStringFileName>
 		</Variant>
-		<Variant Name="rPi-28D-DPIPixels-4" ID="rPi-28D-DPIPixels-4" Base="FPP:BaseFPPSettings">
+		<Variant Name="rPi-28D-DPIPixels-4" ID="rPi-28D-DPIPixels-4" Base="FPP:FPPStringDPIPiHat">
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
