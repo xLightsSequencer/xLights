@@ -151,7 +151,7 @@ Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: ignorev
 Source: "../../palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: ignoreversion recursesubdirs
 
 ; Scripts
-Source: "../../scripts/*.*"; DestDir: "{app}/scripts"   ; Flags: ignoreversion recursesubdirs
+;Source: "../../scripts/*.*"; DestDir: "{app}/scripts"   ; Flags: ignoreversion recursesubdirs
 
 ; VC++ Redistributable
 Source: "vcredist/vc_redist.x64.exe"; DestDir: {tmp}; Flags: deleteafterinstall

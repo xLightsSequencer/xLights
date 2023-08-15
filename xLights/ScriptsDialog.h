@@ -15,6 +15,7 @@
 #include <wx/dialog.h>
 #include <wx/listbox.h>
 #include <wx/sizer.h>
+#include <wx/splitter.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
@@ -51,10 +52,13 @@ public:
 
 	//(*Declarations(ScriptsDialog)
 	wxButton* Button_Clear;
+	wxButton* Button_Download;
 	wxButton* Button_Refresh;
 	wxButton* Button_Run;
 	wxListBox* ListBoxScripts;
+	wxSplitterWindow* SplitterWindow1;
 	wxStaticText* StaticText1;
+	wxTextCtrl* TextCtrlAbout;
 	wxTextCtrl* TextCtrl_Log;
 	//*)
 
@@ -65,9 +69,12 @@ public:
 	//(*Identifiers(ScriptsDialog)
 	static const long ID_STATICTEXT1;
 	static const long ID_LISTBOX_SCRIPTS;
+	static const long ID_TEXTCTRL_ABOUT;
+	static const long ID_SPLITTERWINDOW1;
 	static const long ID_BUTTON_RUN;
 	static const long ID_BUTTON_REFRESH;
 	static const long ID_BUTTON_CLEAR;
+	static const long ID_BUTTON_DOWNLOAD;
 	static const long ID_TEXTCTRL_LOG;
 	//*)
 
@@ -81,6 +88,8 @@ private:
 	void OnButton_RunClick(wxCommandEvent& event);
 	void OnButton_ClearClick(wxCommandEvent& event);
 	void OnListBoxScriptsDClick(wxCommandEvent& event);
+	void OnButton_DownloadClick(wxCommandEvent& event);
+	void OnListBoxScriptsSelect(wxCommandEvent& event);
 	//*)
 
 	void OnListRClick(wxContextMenuEvent& event);
@@ -91,7 +100,7 @@ private:
     void ProcessScriptDir(wxString const& dir);
     void Run_Lua_Script(wxString const& filepath) const;
 	void Run_Python_Script(wxString const& filepath) const;
-
+	wxString ReadLuaHeader(wxString const& filepath);
 
 	DECLARE_EVENT_TABLE()
 };
