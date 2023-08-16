@@ -88,42 +88,42 @@ bool ESPixelStick::CheckHTTPconnection()
 bool ESPixelStick::GetAdminInformation(wxJSONValue& Response)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetAdminInformation: Getting ESPv4 HTTP admin info");
+    logger_base.debug("GetAdminInformation: Getting ESPSv4 HTTP admin info");
     return GetHttpConfig("admininfo", "admin", Response);
 }
 
 bool ESPixelStick::GetInputConfig(wxJSONValue& Response)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetInputConfig: Getting ESPv4 HTTP input config");
+    logger_base.debug("GetInputConfig: Getting ESPSv4 HTTP input config");
     return (_UsingHttpConfig) ? GetHttpConfig("input_config", "input_config", Response) : GetWsConfig("input", "input_config", Response);
 }
 
 bool ESPixelStick::SetInputConfig(wxJSONValue& Data)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetInputConfig: Setting ESPv4 HTTP input config");
+    logger_base.debug("SetInputConfig: Setting ESPSv4 HTTP input config");
     return (_UsingHttpConfig) ? SetHttpConfig("input_config", "input_config", Data) : SetWsConfig("input", "input_config", Data);
 }
 
 bool ESPixelStick::GetOutputConfig(wxJSONValue& Response)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetOutputConfig: Getting ESPv4 HTTP output config");
+    logger_base.debug("GetOutputConfig: Getting ESPSv4 HTTP output config");
     return (_UsingHttpConfig) ? GetHttpConfig("output_config", "output_config", Response) : GetWsConfig("output", "output_config", Response);
 }
 
 bool ESPixelStick::SetOutputConfig(wxJSONValue& Data)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetOutputConfig: Setting ESPv4 HTTP output config");
-    return (_UsingHttpConfig) ? SetHttpConfig("output_config", "output_config", Data) : SetWsConfig("output", "output_config", Data);
+    logger_base.debug("SetOutputConfig: Setting ESPSv4 HTTP output config");
+    return ((_UsingHttpConfig) ? SetHttpConfig("output_config", "output_config", Data) : SetWsConfig("output", "output_config", Data));
 }
 
 bool ESPixelStick::GetHttpConfig(std::string FileName, std::string key, wxJSONValue& Response)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetHttpConfig: Getting ESPv4 HTTP config file");
+    logger_base.debug("GetHttpConfig: Getting ESPSv4 HTTP config file");
 
     std::string url = "/conf/" + FileName + ".json";
     std::string RawData = GetURL(url);
@@ -140,7 +140,7 @@ bool ESPixelStick::GetHttpConfig(std::string FileName, std::string key, wxJSONVa
 bool ESPixelStick::SetHttpConfig(std::string filename, std::string key, wxJSONValue& _Data)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetHttpConfig: Setting ESPv4 HTTP config file");
+    logger_base.debug("SetHttpConfig: Setting ESPSv4 HTTP config file");
 
     std::string url = "http://" + _ip + "/conf/" + filename + ".json";
     wxJSONWriter writer;
@@ -153,19 +153,19 @@ bool ESPixelStick::SetHttpConfig(std::string filename, std::string key, wxJSONVa
     std::vector<unsigned char> value(Data.begin(), Data.end());
     CurlManager::INSTANCE.doPost(url, contentType, value, ReturnCode);
 
-    logger_base.debug(std::string("SetHttpConfig: ReturnCode: '") + std::to_string(ReturnCode) + "'");
+    // logger_base.debug(std::string("SetHttpConfig: ReturnCode: '") + std::to_string(ReturnCode) + "'");
     return (200 == ReturnCode);
 }
 
 bool ESPixelStick::GetWsConfig(std::string SectionName, std::string key, wxJSONValue& Response)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetWsConfig: Getting ESPv4 HTTP config file");
+    logger_base.debug("GetWsConfig: Getting ESPSv4 HTTP config file");
 
     wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
     wxString message;
     wxJSONValue newJson;
-    newJson["cmd"]["get"][SectionName];
+    newJson["cmd"]["get"] = SectionName;
     writer.Write(newJson, message);
     message.Replace(" : ", ":");
     // logger_base.debug(std::string("GetWsConfig: cmd: ") + message);
@@ -174,7 +174,7 @@ bool ESPixelStick::GetWsConfig(std::string SectionName, std::string key, wxJSONV
     wxJSONValue ParsedData;
     wxJSONReader reader;
     std::string RawData = GetWSResponse();
-    logger_base.debug(std::string("GetWsConfig: RawData: ") + RawData);
+    // logger_base.debug(std::string("GetWsConfig: RawData: ") + RawData);
     reader.Parse(RawData, &ParsedData);
     Response = ParsedData["get"][key];
     // logger_base.debug(std::string("GetWsConfig: Response: ") + std::to_string(Response.Size()));
@@ -184,7 +184,7 @@ bool ESPixelStick::GetWsConfig(std::string SectionName, std::string key, wxJSONV
 bool ESPixelStick::SetWsConfig(std::string SectionName, std::string key, wxJSONValue& Data)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetWsConfig: Setting ESPv4 HTTP config file");
+    logger_base.debug("SetWsConfig: Setting ESPSv4 HTTP config file");
 
     wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
     wxString message;
@@ -198,11 +198,14 @@ bool ESPixelStick::SetWsConfig(std::string SectionName, std::string key, wxJSONV
     wxJSONValue ParsedData;
     wxJSONReader reader;
     std::string RawData = GetWSResponse();
-    logger_base.debug(std::string("SetWsConfig: RawData: ") + RawData);
+    // logger_base.debug(std::string("SetWsConfig: RawData: ") + RawData);
     reader.Parse(RawData, &ParsedData);
-    wxJSONValue Response = ParsedData["set"][key];
-    // logger_base.debug(std::string("SetWsConfig: Response: ") + std::to_string(Response.Size()));
-    return (0 != Response.Size());
+    wxJSONValue Response = ParsedData["cmd"];
+    std::string returnValue = Response.AsString();
+    // logger_base.debug(std::string("SetWsConfig: returnValue: '") + returnValue + "'");
+    bool result = returnValue == "OK";
+    // logger_base.debug(std::string("SetWsConfig: result: ") + std::to_string(result));
+    return result;
 }
 
 std::string ESPixelStick::GetWSResponse()
