@@ -640,8 +640,18 @@ void ModelPreview::DrawGroupCentre(float x, float y)
 {
     auto acc = solidProgram->getAccumulator();
     int start = acc->getCount();
-    acc->AddRectAsTriangles(x-20.5, y-0.5, x+20.5, y+0.5, xlREDTRANSLUCENT);
-    acc->AddRectAsTriangles(x-0.5, y-20.5, x+0.5, y+20.5, xlREDTRANSLUCENT);
+
+    float factor = 1;
+    if (!Is3D()) {
+        factor = 4 / camera2d->GetZoom();
+        if (factor < 1)
+            factor = 1;
+        if (factor > 10)
+            factor = 10;
+    }
+    acc->AddRectAsTriangles(x - 20.5 * factor, y - 1.5 * factor, x + 20.5 * factor, y + 1.5 * factor, xlREDTRANSLUCENT);
+    acc->AddRectAsTriangles(x - 1.5 * factor, y - 20.5 * factor, x + 1.5 * factor, y + 20.5 * factor, xlREDTRANSLUCENT);
+
     int end = acc->getCount();
     solidProgram->addStep([start, end, this, acc](xlGraphicsContext* ctx) {
         ctx->drawTriangles(acc, start, end - start);
