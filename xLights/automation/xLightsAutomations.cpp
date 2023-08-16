@@ -367,7 +367,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         //if restart flag is now set, restart and recheck range
-        fpp->Restart("", true);
+        fpp->Restart(true);
 
         return sendResponse("Uploaded to FPP '" + ip + "'.", "msg", 200, false);
     } else if (cmd == "uploadSequence") {

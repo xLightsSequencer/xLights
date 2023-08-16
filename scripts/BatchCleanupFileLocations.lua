@@ -1,4 +1,4 @@
--- Script to Package Sequence, for the selected sequences. 
+-- Script to Cleanup File Locations, for the selected sequences.
 
 seqs = PromptSequences()
 for i,seq in ipairs(seqs) do 
@@ -7,9 +7,13 @@ for i,seq in ipairs(seqs) do
 
     result = RunCommand('openSequence', properties)
     Log(result['seq']) 
-    result = RunCommand('packageSequence', {})
+    result = RunCommand('cleanupFileLocations', {})
     Log(result['msg'])
-    Log(result['output'])
+    result = RunCommand('saveSequence', {})
+    Log(result['msg'])
     result = RunCommand('closeSequence', {})
     Log(result['msg'])
 end
+result = RunCommand('saveLayout', {})
+Log(result['msg']) 
+

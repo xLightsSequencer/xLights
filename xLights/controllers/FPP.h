@@ -74,7 +74,6 @@ class FPP : public BaseController
     void UpdateChannelRanges();
     void FillRanges(std::map<int, int> &rngs);
     void SetNewRanges(const std::map<int, int> &rngs);
-    bool IsMultiSyncEnabled();
     bool IsDDPInputEnabled();
 
     bool IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch = 0) const;
@@ -115,8 +114,8 @@ class FPP : public BaseController
     bool SetInputUniversesBridge(Controller* controller);
 
     bool SetRestartFlag();
-    bool Restart(const std::string &mode = "", bool ifNeeded = false);
-    void SetDescription(const std::string &st);    
+    bool Restart(bool ifNeeded = false);
+    void SetDescription(const std::string &st);
     std::vector<std::string> GetProxies();
 
     static void PrepareDiscovery(Discovery &discovery);
@@ -141,9 +140,7 @@ class FPP : public BaseController
     virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) override;
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
     virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
-    virtual bool ResetAfterOutput(OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
-
     virtual bool UsesHTTP() const override { return true; }
 #pragma endregion
 
@@ -207,7 +204,6 @@ private:
     std::string curlInputBuffer;
     
     bool restartNeeded = false;
-    std::string curMode = "";
 
     bool sysInfoLoaded = false;
 };
