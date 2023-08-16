@@ -2980,7 +2980,7 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
         }
         SetControllerType(inst);
     } else if (inst->typeId >= 0xA0 && inst->typeId <= 0xAF) {
-        //Experence Lights
+        //Experience Lights
         if (inst->controller->GetProtocol() != OUTPUT_DDP) {
             inst->controller->SetProtocol(OUTPUT_DDP);
         }
@@ -3560,6 +3560,8 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
             // genuine FPP instance and able to connect via http
             return true;
         } else {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.info("FPP Discovery - Skipping %s no http connection", res->ip);
             return false;
         }
     }
@@ -3688,7 +3690,7 @@ std::vector<std::string> FPP::GetProxies()
 
     std::vector<std::string> res;
 
-    if (IsConnected())         {
+    if (IsConnected()) {
         wxJSONValue val;
         if (GetURLAsJSON("/api/proxies", val)) {
             for (int x = 0; x < val.Size(); x++) {
