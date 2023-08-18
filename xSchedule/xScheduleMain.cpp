@@ -980,7 +980,12 @@ void xScheduleFrame::LoadSchedule()
         StaticText_ShowDir->SetLabel(_showDir);
         if (__schedule->ShowDirectoriesMatch())
         {
-            StaticText_ShowDir->SetForegroundColour(*wxBLACK);
+            if (IsDarkMode()) {
+                StaticText_ShowDir->SetForegroundColour(*wxWHITE);
+            }
+            else {
+                StaticText_ShowDir->SetForegroundColour(*wxBLACK);
+            }
             StaticText_ShowDir->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
                 wxFONTWEIGHT_NORMAL, false, wxEmptyString, wxFONTENCODING_DEFAULT));
             MenuItem_UsexLightsFolder->Enable(false);
