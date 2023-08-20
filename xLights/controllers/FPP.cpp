@@ -3561,7 +3561,7 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
             return true;
         } else {
             static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.info("FPP Discovery - Skipping %s no http connection", res->ip);
+            logger_base.info("FPP Discovery - Skipping %s no http connection", (const char *)res->ip.c_str());
             return false;
         }
     }
