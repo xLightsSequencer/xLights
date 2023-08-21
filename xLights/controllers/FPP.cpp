@@ -2996,6 +2996,8 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
 }
 
 static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsString) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxJSONValue origJson;
     wxJSONReader reader;
     bool parsed = reader.Parse(systemsString, &origJson) == 0;
@@ -3020,6 +3022,9 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         std::string address = ToUTF8(system[IPKey].AsString());
         std::string hostName = system[HostNameKey].IsNull() ? "" : ToUTF8(system[HostNameKey].AsString());
         std::string uuid = system.HasMember("uuid") ? ToUTF8(system["uuid"].AsString()) : (system.HasMember("UUID") ? ToUTF8(system["UUID"].AsString()) : "");
+        
+        logger_base.info("Processing ip: %s   host: %s    uuid: %s", address.c_str(), hostName.c_str(), uuid.c_str());
+        
         if (address == "null" || hostName == "null") {
             continue;
         }
@@ -3154,6 +3159,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
    }
 }
 static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const std::string &proxies) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxJSONValue origJson;
     wxJSONReader reader;
     bool parsed = reader.Parse(proxies, &origJson) == 0;
@@ -3174,11 +3180,11 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
         inst->password = ipinst->password;
         discovery.AddCurl(ip, "/proxy/" + proxy + "/", [&discovery, proxy, ip, inst](int rc, const std::string &buffer, const std::string &err) {
             if (buffer.find("Falcon Player - FPP") != std::string::npos) {
-                //detected another FPP behind the proxy, strange, but valid
                 std::string p = proxy;
                 std::string i = ip;
                 inst->extraData["httpConnected"] = true;
 
+                logger_base.info("Found proxied instance ip: %s     proxyip: %s", proxy.c_str(), ip.c_str());
                 discovery.AddCurl(ip, "/proxy/" + proxy + "/api/system/info", [&discovery, p, i](int rc, const std::string &buffer, const std::string &err) {
                     ProcessFPPSysinfo(discovery, p, i, buffer);
                     return true;
@@ -3607,7 +3613,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (auto res : discovery.GetResults()) {
         if (supportedForFPPConnect(res, outputManager)) {
-            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s : %s", (const char*)res->ip.c_str(), (const char*)res->ranges.c_str());
+            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s (h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
             FPP *fpp = nullptr;
 
             for (auto f : instances) {
@@ -3643,6 +3649,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 }
                 instances.push_back(fpp);
             } else {
+                setIfEmpty(fpp->proxy, res->proxy);
                 setIfEmpty(fpp->hostName, res->hostname);
                 setIfEmpty(fpp->description, res->description);
                 setIfEmpty(fpp->platform, res->platform);
