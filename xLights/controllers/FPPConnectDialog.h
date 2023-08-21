@@ -111,6 +111,8 @@ class FPPConnectDialog: public wxDialog
 
 		void UpdateSeqCount();
         void OnSequenceListToggled(wxDataViewEvent& event);
+    
+        void doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload);
 
 		DECLARE_EVENT_TABLE()
 };
