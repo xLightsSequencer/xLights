@@ -11,6 +11,26 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.13 Aug 22, 2023
+   -- enh (ClutchplateDude) Expose color count to shaders
+   -- enh (scott)   FPP 6+ no longer needs to switch to bridge mode
+   -- enh (dartunder) FPPConnect - enhance "Cancel" button handling
+   -- enh (scott)   Change downloading of Lua Scripts to github
+   -- enh (scott)   Add RGB hex values to color tooltips
+   -- enh (scott/dkulp) FPP Connect - bunch more logging to help diagnose FPPConnect/discovery issues
+   -- enh (MartinMueller) Add support for HTTP based ESP configuration
+   -- enh (dartunder) Increase size of group center mark, implement dynamic scale
+   -- enh (dkulp)   Allow up to 100 layers for Circle and Star models
+   -- enh (scott)   Add Experience Pro controllers
+   -- bug (dkulp)   Bunch of FPP Connect fixes/updates to perform better, handle errors better, etc...
+   -- bug (scott)   Fix label alignment in DMXPanel
+   -- bug (scott)   Controller model property disappears on controllers in e1.31 mode
+   -- bug (mjunek)  Fix issues with DPIPixels uploads for Hanson rPi-28D
+   -- bug (scott)   Fix Force Custom Color in State Dialog
+   -- bug (merryoncherry) Fix some potential thread safety issus in WLED effects
+   -- bug (dartunder) Fix FPPConnect progress dialog always on top
+   -- bug (scott)   Metronome effect with tags doesn't save tags
+   -- bug (scott)   Added hinkspix checks to verify correct output boards are connected
 2023.12 Aug 9, 2023
    -- enh (gil)     Improve model creation in 3D mode.  Models used to not place well depending on how you had the view rotated.
                     Now xLights will detect the view angle and make a decision on the best place to start the model so you shouldn't
