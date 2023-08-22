@@ -133,7 +133,7 @@ bool ESPixelStick::GetHttpConfig(std::string FileName, std::string key, wxJSONVa
     wxJSONValue ParsedData;
     reader.Parse(RawData, &ParsedData);
     Response = ParsedData[key];
-    // logger_base.debug(std::string("GetHttpConfig: Response: ") + std::to_string(Response.Size()));
+    logger_base.debug(std::string("GetHttpConfig: Response: ") + std::to_string(Response.Size()));
     return (0 != Response.Size());
 }
 
@@ -145,7 +145,9 @@ bool ESPixelStick::SetHttpConfig(std::string filename, std::string key, wxJSONVa
     std::string url = "http://" + _ip + "/conf/" + filename + ".json";
     wxJSONWriter writer;
     wxString Data;
-    writer.Write(_Data, Data);
+    wxJSONValue newJson;
+    newJson[key] = _Data;
+    writer.Write(newJson, Data);
     // logger_base.debug(std::string("SetHttpConfig: Data: '") + Data + "'");
 
     std::string contentType = "application/json";
@@ -607,6 +609,8 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 success = false;
                 logger_base.error("ESPixelStick Outputs Upload: Failure!!!");
             }
+        } else {
+            logger_base.debug("ESPixelStick Outputs Upload: No Changes to upload");
         }
     }
     return success;
