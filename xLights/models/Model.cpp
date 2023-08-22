@@ -4295,7 +4295,7 @@ void Model::AddLayerSizeProperty(wxPropertyGridInterface* grid)
 {
     wxPGProperty* psn = grid->Append(new wxUIntProperty("Layers", "Layers", GetLayerSizeCount()));
     psn->SetAttribute("Min", 1);
-    psn->SetAttribute("Max", 50);
+    psn->SetAttribute("Max", 100);
     psn->SetEditor("SpinCtrl");
 
     if (GetLayerSizeCount() > 1) {
