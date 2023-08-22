@@ -104,7 +104,7 @@
 									<object class="wxStaticText" name="ID_STATICTEXT_DMX3" variable="Label_DMX3" member="yes">
 										<label>Channel 3:</label>
 									</object>
-									<flag>wxALL|wxEXPAND</flag>
+									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
