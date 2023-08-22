@@ -3148,7 +3148,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 });
             } else if (found->typeId >= 0xD0) {
                 discovery.AddCurl(ipAddr, "/", [&discovery, ipAddr, found](int rc, const std::string &buffer, const std::string &err) {
-                    if (buffer != "") {
+                    if (rc == 200 && buffer != "") {
                         found->extraData["httpConnected"] = true;
                         discovery.DetectControllerType(ipAddr, "", buffer);
                     }
@@ -3179,14 +3179,16 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
         inst->username = ipinst->username;
         inst->password = ipinst->password;
         discovery.AddCurl(ip, "/proxy/" + proxy + "/", [&discovery, proxy, ip, inst](int rc, const std::string &buffer, const std::string &err) {
-            if (buffer.find("Falcon Player - FPP") != std::string::npos) {
+            if (rc == 200 && buffer.find("Falcon Player - FPP") != std::string::npos) {
                 std::string p = proxy;
                 std::string i = ip;
                 inst->extraData["httpConnected"] = true;
 
                 logger_base.info("Found proxied instance ip: %s     proxyip: %s", proxy.c_str(), ip.c_str());
                 discovery.AddCurl(ip, "/proxy/" + proxy + "/api/system/info", [&discovery, p, i](int rc, const std::string &buffer, const std::string &err) {
-                    ProcessFPPSysinfo(discovery, p, i, buffer);
+                    if (rc == 200) {
+                        ProcessFPPSysinfo(discovery, p, i, buffer);
+                    }
                     return true;
                 });
             } else {
@@ -3253,6 +3255,8 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
     wxJSONReader reader;
     bool parsed = reader.Parse(sysInfo, &val) == 0;
     if (!parsed) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("Could not parse sysinfo for %s(%s)", ip.c_str(), proxy.c_str());
         DiscoveredData *inst = discovery.FindByIp(ip, "", true);
         inst->extraData["httpConnected"] = false;
         if (proxy != "") {
@@ -3517,12 +3521,16 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
             return true;
         });
         discovery.AddCurl(a, "/api/system/info", [&discovery, a](int rc, const std::string &buffer, const std::string &err) {
-            ProcessFPPSysinfo(discovery, a, "", buffer);
+            if (rc == 200) {
+                ProcessFPPSysinfo(discovery, a, "", buffer);
+            }
             return true;
         });
     }
     discovery.AddCurl("localhost", "/api/system/info", [&discovery](int rc, const std::string &buffer, const std::string &err) {
-        ProcessFPPSysinfo(discovery, "localhost", "", buffer);
+        if (rc == 200) {
+            ProcessFPPSysinfo(discovery, "localhost", "", buffer);
+        }
         return true;
     });
     discovery.AddCurl("localhost", "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
@@ -3551,7 +3559,9 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
             return true;
         });
         discovery.AddCurl(ip, "/api/system/info", [&discovery, ip](int rc, const std::string &buffer, const std::string &err) {
-            ProcessFPPSysinfo(discovery, ip, "", buffer);
+            if (rc == 200) {
+                ProcessFPPSysinfo(discovery, ip, "", buffer);
+            }
             return true;
         });
     });
