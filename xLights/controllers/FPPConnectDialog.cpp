@@ -756,10 +756,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 {
     Button_Upload->Enable(false);
     AddFPPButton->Enable(false);
-
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    bool cancelled = false;
-
+    
+    
     std::vector<bool> doUpload(instances.size());
     int row = 0;
     int uploadCount = 0;
@@ -768,13 +766,6 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         doUpload[row] = GetCheckValue(CHECK_COL + rowStr);
         uploadCount++;
     }
-    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
-
-    std::map<int, int> udpRanges;
-    wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
-    
-    
-    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels);
     
     FPPUploadProgressDialog prgs(this);
     row = 0;
@@ -799,10 +790,29 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         prgs.scrolledWindow->SetScrollRate(5, 5);
         prgs.SetSizeHints(350, 400);
         prgs.Fit();
-        prgs.Show();
         prgs.setActionLabel("Preparing Configuration");
+
+        CallAfter(&FPPConnectDialog::doUpload, &prgs, doUpload);
+        int c = prgs.ShowModal();
+
+        if (!c) {
+            SaveSettings();
+    #ifndef _DEBUG
+            EndDialog(wxID_CLOSE);
+    #endif
+        }
+        Button_Upload->Enable(true);
+        AddFPPButton->Enable(true);
     }
-    row = 0;
+}
+void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
+    std::map<int, int> udpRanges;
+    wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
+    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels);
+    bool cancelled = false;
+    int row = 0;
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
         if (!cancelled && doUpload[row]) {
@@ -887,7 +897,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 
             FSEQFile *seq = FSEQFile::openFSEQFile(fseqRaw.ToStdString());
             if (seq) {
-                prgs.setActionLabel("Checking Media and FSEQ file for " + media + "/" + wxFileName(ToWXString(fseq)).GetFullName());
+                prgs->setActionLabel("Checking Media and FSEQ file for " + media + "/" + wxFileName(ToWXString(fseq)).GetFullName());
                 row = 0;
                 int uploadCount = 0;
                 int prepareCount = 0;
@@ -928,7 +938,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                 }
                 if (!cancelled && uploadCount) {
                     if (prepareCount) {
-                        prgs.setActionLabel("Preparing FSEQ File for " + wxFileName(ToWXString(fseq)).GetFullName());
+                        prgs->setActionLabel("Preparing FSEQ File for " + wxFileName(ToWXString(fseq)).GetFullName());
                         for (const auto& inst : instances) {
                             inst->updateProgress(0, false);
                         }
@@ -978,7 +988,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         }
                     }
                     row = 0;
-                    prgs.setActionLabel("Uploading " + wxFileName(ToWXString(fseq)).GetFullName());
+                    prgs->setActionLabel("Uploading " + wxFileName(ToWXString(fseq)).GetFullName());
                     for (const auto& inst : instances) {
                         inst->updateProgress(0, false);
                     }
@@ -1018,7 +1028,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     while (CurlManager::INSTANCE.processCurls()) {
                         wxYield();
                     }
-                    cancelled |= prgs.isCancelled();
+                    cancelled |= prgs->isCancelled();
                 }
             }
             delete seq;
@@ -1058,16 +1068,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     if (messages != "") {
         wxMessageBox(messages, "Problems Uploading", wxOK | wxCENTRE, this);
     }
-    //prgs.Update(1001);
-    prgs.Hide();
-    if (!cancelled) {
-        SaveSettings();
-#ifndef _DEBUG
-        EndDialog(wxID_CLOSE);
-#endif
-    }
-    Button_Upload->Enable(true);
-    AddFPPButton->Enable(true);
+    prgs->EndModal(cancelled ? 1 : 0);
 }
 
 void FPPConnectDialog::CreateDriveList()
