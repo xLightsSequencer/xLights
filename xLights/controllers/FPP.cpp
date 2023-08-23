@@ -100,10 +100,11 @@ FPP::FPP(const std::string& ad) :
 }
 
 
-FPP::FPP(const std::string& ip, const std::string& proxy, const std::string& model) :
-    BaseController(ip, proxy), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), fppType(FPP_TYPE::FPP) {
+FPP::FPP(const std::string& ip, const std::string& proxy_, const std::string& model) :
+    BaseController(ip, proxy), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), 
+    fppType(FPP_TYPE::FPP), proxy(proxy_), pixelControllerType(model)
+{
     ipAddress = ip;
-    pixelControllerType = model;
     wxIPV4address address;
     if (address.Hostname(ipAddress)) {
         hostName = ipAddress;
@@ -116,7 +117,8 @@ FPP::FPP(const std::string& ip, const std::string& proxy, const std::string& mod
 FPP::FPP(const FPP &c)
     : majorVersion(c.majorVersion), minorVersion(c.minorVersion), patchVersion(c.patchVersion), outputFile(nullptr), parent(nullptr), curl(nullptr),
     hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
-    model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password), fppType(c.fppType) {
+    model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password), 
+    fppType(c.fppType), proxy(c.proxy) {
 
 }
 
