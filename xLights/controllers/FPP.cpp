@@ -100,11 +100,11 @@ FPP::FPP(const std::string& ad) :
 }
 
 
-FPP::FPP(const std::string& ip, const std::string& proxy_, const std::string& model) :
-    BaseController(ip, proxy), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), 
-    fppType(FPP_TYPE::FPP), proxy(proxy_), pixelControllerType(model)
+FPP::FPP(const std::string& ip_, const std::string& proxy_, const std::string& model_) :
+    BaseController(ip_, proxy_), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), 
+    fppType(FPP_TYPE::FPP), proxy(proxy_), pixelControllerType(model_)
 {
-    ipAddress = ip;
+    ipAddress = ip_;
     wxIPV4address address;
     if (address.Hostname(ipAddress)) {
         hostName = ipAddress;
