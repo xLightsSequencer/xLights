@@ -3634,7 +3634,6 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
             if (fpp == nullptr) {
                 FPP *fpp = new FPP(res->ip, res->proxy, res->pixelControllerType);
                 fpp->ipAddress = res->ip;
-                fpp->proxy = res->proxy;
                 fpp->hostName = res->hostname;
                 fpp->description = res->description;
                 fpp->platform = res->platform;
