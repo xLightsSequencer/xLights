@@ -870,13 +870,21 @@ bool ControllerEthernet::SupportsUniversePerString() const
     }
     return false;
 }
+
 void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
     Controller::UpdateProperties(propertyGrid, modelManager, expandProperties);
     wxPGProperty *p = propertyGrid->GetProperty("Protocol");
     if (p) {
         wxPGChoices protocols = GetProtocols();
         p->SetChoices(protocols);
-        p->SetChoiceSelection(EncodeChoices(protocols, _type));
+        if (EncodeChoices(protocols, _type) == -1) {
+            p->SetChoiceSelection(0);
+            SetProtocol(Controller::DecodeChoices(protocols, 0));
+        }
+        else
+        {
+            p->SetChoiceSelection(EncodeChoices(protocols, _type));
+        }
     }
     p = propertyGrid->GetProperty("Multicast");
     if (p) {

@@ -10,6 +10,9 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+// https://tsp.esta.org/tsp/documents/docs/E1-31-2016.pdf
+// https://tsp.esta.org/tsp/documents/docs/ANSI_E1-31-2018.pdf
+
 #include "IPOutput.h"
 
 #include <wx/socket.h>

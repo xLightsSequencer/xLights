@@ -97,6 +97,9 @@ void TwinklyOutput::SetTransientData(int32_t& startChannel, int nullnumber)
 #pragma region Start and Stop
 bool TwinklyOutput::Open()
 {
+    if (!_enabled)
+        return true;
+
     if (!IPOutput::Open()) {
         return false;
     }
