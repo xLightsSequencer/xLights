@@ -46,8 +46,6 @@ ESPixelStick::ESPixelStick(const std::string& ip) : BaseController(ip, "") {
 
 bool ESPixelStick::CheckWsConnection()
 {
-    bool Response = false;
-
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _wsClient.Connect(_ip, "/ws");
@@ -58,16 +56,14 @@ bool ESPixelStick::CheckWsConnection()
         _wsClient.Send("G2");
         _version = GetFromJSON("", "version", GetWSResponse());
         logger_base.debug("Connected to ESPixelStick WebSocket - Firmware Version %s", (const char*)_version.c_str());
-        Response = true;
+        return true;
     }
 
-    return Response;
+    return false;
 }
 
 bool ESPixelStick::CheckHTTPconnection()
 {
-    bool Response = false;
-
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("CheckHTTPconnection ", (const char*)_ip.c_str());
 
@@ -79,10 +75,10 @@ bool ESPixelStick::CheckHTTPconnection()
         _connected = true;
         _version = HttpResponse["version"].AsString();
         logger_base.debug("Connected to ESPixelStick HTTP - Firmware Version %s", (const char*)_version.c_str());
-        Response = true;
+        return true;
     }
 
-    return Response;
+    return false;
 }
 
 bool ESPixelStick::GetAdminInformation(wxJSONValue& Response)
@@ -308,10 +304,6 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
         GetInputConfig(inputConfig);
 
         std::list<Output*> outputs = controller->GetOutputs();
-        if (outputs.size() > 12) {
-            DisplayError(wxString::Format("Attempt to upload %d universes to ESPixelStick controller but only 12 are supported.", outputs.size()).ToStdString());
-            return false;
-        }
 
         std::string type = "DDP";
         int startUniverse = 0;

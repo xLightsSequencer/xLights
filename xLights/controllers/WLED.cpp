@@ -365,7 +365,7 @@ int WLED::EncodeStringPortProtocol(const std::string& protocol) const {
     if (p == "lpd6803") return 54;
 
     wxASSERT(false);
-    return -1;
+    return 22;
 }
 
 int WLED::EncodeColorOrder(const std::string& colorOrder) const {
@@ -381,7 +381,7 @@ int WLED::EncodeColorOrder(const std::string& colorOrder) const {
     if (c == "gbr") return 5;
 
     wxASSERT(false);
-    return -1;
+    return 1;
 }
 
 bool WLED::EncodeDirection(const std::string& direction) const {
