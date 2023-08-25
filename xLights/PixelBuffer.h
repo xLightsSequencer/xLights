@@ -47,7 +47,9 @@ enum class MixTypes
     Mix_Subtractive,
     Mix_AsBrightness,
     Mix_Max,
-    Mix_Min
+    Mix_Min,
+    Mix_Highlight,
+    Mix_Highlight_Vibrant
 };
 
 class Effect;
