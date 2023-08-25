@@ -12,6 +12,7 @@
 
 #include "IPOutput.h"
 #include <array>
+#include <wx/wx.h>
 
 class wxJSONValue;
 class wxDatagramSocket;
@@ -19,6 +20,8 @@ class Discovery;
 
 class TwinklyOutput : public IPOutput
 {
+    wxMilliClock_t _lastLEDModeTime = 0;
+
 public:
 #pragma region Constructors and Destructors
     TwinklyOutput(wxXmlNode* node, bool isActive);
@@ -45,6 +48,7 @@ public:
 #pragma endregion
 
 #pragma region Start and Stop
+    bool SetLEDMode(bool rt);
     virtual bool Open() override;
     virtual void Close() override;
 #pragma endregion
