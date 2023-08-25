@@ -43,7 +43,7 @@ If you want to create a fresh build then the container can be removed with:
 These instructions have been tested on the following distributions:
 
   - Ubuntu 22.04
-  - Fedora 35
+  - Fedora 38
 
 Instructions for other Linux distributions will vary. 
 
@@ -71,7 +71,11 @@ Instructions for other Linux distributions will vary.
 
      sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libavutil-dev libportmidi-dev libzstd-dev libcurl4-openssl-dev libltc-dev liblua5.3-dev wget git cbp2make
 
-     Example commands to install packages on Fedora 35
+     Example commands to install packages on Fedora 38
+
+     Fedora 38+ defaults to "ffmpeg-free" library to switch to full ffmpeg run:
+
+        sudo dnf swap ffmpeg-free ffmpeg --allowerasing
      
      Note: with Fedora cbp2make is not avalible in an offical repo, you must build and install it manually:
         
