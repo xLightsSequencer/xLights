@@ -13,10 +13,17 @@
         <SupportsAutoLayout/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
-            <Protocol>tm18xx</Protocol>
+            <Protocol>sk6812rgbw</Protocol>
+            <Protocol>apa109</Protocol>
+            <Protocol>tm1814</Protocol>
+            <Protocol>tm1829</Protocol>
+            <Protocol>ucs8903</Protocol>
+            <Protocol>ucs8904</Protocol>
             <Protocol>ws2801</Protocol>
-            <Protocol>lpd8806</Protocol>
             <Protocol>apa102</Protocol>
+            <Protocol>lpd8806</Protocol>
+            <Protocol>p9813</Protocol>
+            <Protocol>lpd6803</Protocol>
         </PixelProtocols>
         <SerialProtocols/>
         <InputProtocols>
