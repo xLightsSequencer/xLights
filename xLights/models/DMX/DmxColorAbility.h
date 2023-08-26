@@ -45,6 +45,7 @@ class DmxColorAbility
         virtual void ImportParameters(wxXmlNode* ImportXml, Model* m) const = 0;
         virtual void SetNodeNames(std::vector<std::string> & names) const = 0;
         virtual int GetNumChannels() const = 0;
+        [[nodiscard]] virtual xlColorVector GetColors() const { return xlColorVector(); }
 
     protected:
         DmxColorAbility() = default;

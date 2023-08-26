@@ -22,7 +22,7 @@ static const char* DMX_COLOR_TYPES_VALUES[] = {
     "ColorWheel",
     "CMYW"
 };
-//static wxArrayString DMX_COLOR_TYPES(3, DMX_COLOR_TYPES_VALUES);
+
 static wxPGChoices DMX_COLOR_TYPES(wxArrayString(3, DMX_COLOR_TYPES_VALUES));
 
 class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>

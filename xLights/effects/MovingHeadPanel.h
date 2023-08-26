@@ -17,6 +17,7 @@
 #include "EffectPanelUtils.h"
 #include "MovingHeadCanvasPanel.h"
 #include "MHRgbPickerPanel.h"
+#include "MHColorWheelPanel.h"
 #include "SketchCanvasPanel.h"
 #include "SketchEffectDrawing.h"
 
@@ -24,8 +25,8 @@ class Model;
 class MHPresetBitmapButton;
 class MHPathPresetBitmapButton;
 
-class MovingHeadPanel: public xlEffectPanel, public IMovingHeadCanvasParent, public ISketchCanvasParent
-    , public IMHRgbPickerPanelParent
+class MovingHeadPanel: public xlEffectPanel, public IMovingHeadCanvasParent, public ISketchCanvasParent,
+    public IMHRgbPickerPanelParent, public IMHColorWheelPanelParent
 {
 public:
     
@@ -225,7 +226,7 @@ private:
     void UpdatePositionCanvas(float pan, float tilt);
     void RecallSettings(const std::string mh_settings);
     
-    // Presest Functions
+    // Preset Functions
     void PopulatePresets();
     void ProcessPresetDir(wxDir& directory, bool subdirs);
     std::string GetMHPresetFolder(const std::string& showFolder);
@@ -234,12 +235,17 @@ private:
     void SavePreset(const wxArrayString& preset, bool is_path = false);
     void LoadMHPreset(const wxFileName& fn);
     void LoadMHPreset(const std::string& fn);
+    void UpdateColorPanel();
 
     // private variables
     bool recall {false};
     bool presets_loaded {false};
     std::vector<MHPresetBitmapButton*> presets;
     std::vector<MHPathPresetBitmapButton*> path_presets;
+
+    MHRgbPickerPanel* m_rgbColorPanel = nullptr;
+    MHColorWheelPanel* m_wheelColorPanel = nullptr;
+    wxPanel* m_colorPanel = nullptr;
 
 //***************************************************
 // Pathing support
@@ -265,7 +271,6 @@ private:
 
     MovingHeadCanvasPanel* m_movingHeadCanvasPanel = nullptr;
     SketchCanvasPanel* m_sketchCanvasPanel = nullptr;
-    MHRgbPickerPanel* m_rgbColorPanel = nullptr;
 
     std::string m_sketchDef;
     SketchEffectSketch m_sketch;

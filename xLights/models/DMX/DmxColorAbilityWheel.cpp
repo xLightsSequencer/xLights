@@ -397,3 +397,12 @@ std::optional<xlColor> DmxColorAbilityWheel::GetWheelColorFromDMXValue(xlColor c
     }
     return std::nullopt;
 }
+
+xlColorVector DmxColorAbilityWheel::GetColors() const
+{
+    xlColorVector colorset;
+    for (auto const& col : colors) {
+        colorset.push_back( col.color );
+    }
+    return colorset;
+}
