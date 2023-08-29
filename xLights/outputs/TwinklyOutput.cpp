@@ -23,6 +23,10 @@
 #include "../Discovery.h"
 #endif
 
+// this is how often we re-call the web service on the controller to put it in real time mode
+// If the controller loses power this is how long it may take to start to accept xlights data
+#define ENSURELEDMODE_SECS 60
+
 #pragma region Constructors and Destructors
 TwinklyOutput::TwinklyOutput(wxXmlNode* node, bool isActive) :
     IPOutput(node, isActive)
@@ -95,8 +99,30 @@ void TwinklyOutput::SetTransientData(int32_t& startChannel, int nullnumber)
 #pragma endregion
 
 #pragma region Start and Stop
+bool TwinklyOutput::SetLEDMode(bool rt)
+{
+    wxJSONValue result;
+    if (rt) {
+        if (!MakeCall("POST", "/xled/v1/led/mode", result, "{\"mode\": \"rt\"}")) {
+            return false;
+        }
+        _lastLEDModeTime = wxGetLocalTimeMillis();
+    }
+    else
+    {
+        if (!_fppProxyOutput) {
+            // turn off
+            MakeCall("POST", "/xled/v1/led/mode", result, "{\"mode\": \"off\"}");
+        }
+    }
+    return true;
+}
+
 bool TwinklyOutput::Open()
 {
+    if (!_enabled)
+        return true;
+
     if (!IPOutput::Open()) {
         return false;
     }
@@ -113,8 +139,7 @@ bool TwinklyOutput::Open()
     OpenDatagram();
 
     // set real time mode
-    wxJSONValue result;
-    if (!MakeCall("POST", "/xled/v1/led/mode", result, "{\"mode\": \"rt\"}")) {
+    if (!SetLEDMode(true)) {
         return false;
     }
 
@@ -128,11 +153,7 @@ void TwinklyOutput::Close()
         _datagram = nullptr;
     }
 
-    if (!_fppProxyOutput) {
-        // turn off
-        wxJSONValue result;
-        MakeCall("POST", "/xled/v1/led/mode", result, "{\"mode\": \"off\"}");
-    }
+    SetLEDMode(false);
 
     IPOutput::Close();
 }
@@ -214,6 +235,11 @@ void TwinklyOutput::EndFrame(int suppressFrames)
     }
 
     FrameOutput();
+
+    if (wxGetLocalTimeMillis() - _lastLEDModeTime > ENSURELEDMODE_SECS * 1000)
+    {
+        SetLEDMode(true);
+    }
 }
 
 void TwinklyOutput::ResetFrame()

@@ -1260,7 +1260,7 @@ void xLightsFrame::ImportXLights(const wxFileName &filename, std::string const& 
     SequenceElements se(this);
     se.SetFrequency(_sequenceElements.GetFrequency());
     se.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
-    se.LoadSequencerFile(xlf, GetShowDirectory());
+    se.LoadSequencerFile(xlf, GetShowDirectory(), true);
     xlf.AdjustEffectSettingsForVersion(se, this);
 
     bool supportsModelBlending = xlf.supportsModelBlending();

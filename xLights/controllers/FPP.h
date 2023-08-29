@@ -12,10 +12,10 @@
 
 class wxJSONValue;
 class FSEQFile;
-class wxMemoryBuffer;
 typedef void CURL;
 class wxWindow;
-class wxProgressDialog;
+class wxGauge;
+class FPPUploadProgressDialog;
 class Discovery;
 
 enum class FPP_TYPE { FPP,
@@ -27,12 +27,10 @@ class FPP : public BaseController
     public:
     FPP() :
             BaseController("", ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), fppType(FPP_TYPE::FPP) {}
-    FPP(const std::string &ip, const std::string &proxy, const std::string &model);
+    FPP(const std::string& ip_, const std::string& proxy_, const std::string& model_);
     FPP(const std::string &address);
     FPP(const FPP &c);
     virtual ~FPP();
-
-    void setIPAddress(const std::string &ip);
     
     std::string hostName;
     std::string description;
@@ -48,6 +46,7 @@ class FPP : public BaseController
     std::string pixelControllerType;
     std::string panelSize;
     std::string uuid = "";
+    std::list<std::string> playlists;
 
     std::string proxy;
     std::set<std::string> proxies;
@@ -61,30 +60,32 @@ class FPP : public BaseController
     std::string controllerVariant;
 
     wxWindow *parent = nullptr;
-    wxProgressDialog *progressDialog = nullptr;
+    void setProgress(FPPUploadProgressDialog*d, wxGauge *g) { progressDialog = d; progress = g; }
+    bool updateProgress(int val, bool yield);
+
+    
     std::list<std::string> messages;
     int defaultConnectTimeout = 2000;
 
     std::map<int, int> GetExpansionPorts(ControllerCaps* caps) const;
     bool AuthenticateAndUpdateVersions();
-    void LoadPlaylists(std::list<std::string> &playlists);
     void probePixelControllerType();
     
     void UpdateChannelRanges();
     void FillRanges(std::map<int, int> &rngs);
     void SetNewRanges(const std::map<int, int> &rngs);
-    bool IsMultiSyncEnabled();
     bool IsDDPInputEnabled();
 
     bool IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch = 0) const;
     bool IsDrive();
 
 #ifndef DISCOVERYONLY
-    bool PrepareUploadSequence(const FSEQFile &file,
+    bool PrepareUploadSequence(FSEQFile *file,
                                const std::string &seq,
                                const std::string &media,
                                int type);
     bool WillUploadSequence() const;
+    bool NeedCustomSequence() const;
     bool AddFrameToUpload(uint32_t frame, uint8_t *data);
     bool FinalizeUploadSequence();
     std::string GetTempFile() const { return tempFileName; }
@@ -113,8 +114,8 @@ class FPP : public BaseController
     bool SetInputUniversesBridge(Controller* controller);
 
     bool SetRestartFlag();
-    bool Restart(const std::string &mode = "", bool ifNeeded = false);
-    void SetDescription(const std::string &st);    
+    bool Restart(bool ifNeeded = false);
+    void SetDescription(const std::string &st);
     std::vector<std::string> GetProxies();
 
     static void PrepareDiscovery(Discovery &discovery);
@@ -139,13 +140,15 @@ class FPP : public BaseController
     virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) override;
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
     virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
-    virtual bool ResetAfterOutput(OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
-
-    virtual bool UsesHTTP() const override { return false; } // returning false here because i dont think you can uypload through a FPP proxy to another FPP
+    virtual bool UsesHTTP() const override { return true; }
 #pragma endregion
 
 private:
+    FPPUploadProgressDialog *progressDialog = nullptr;
+    wxGauge *progress = nullptr;
+
+    
     void DumpJSON(const wxJSONValue& json);
 
     bool GetPathAsJSON(const std::string &path, wxJSONValue &val);
@@ -156,11 +159,12 @@ private:
     int PostJSONToURL(const std::string& url, const wxJSONValue& val);
     int PostJSONToURLAsFormData(const std::string& url, const std::string &extra, const wxJSONValue& val);
     int PostToURL(const std::string& url, const std::string &val, const std::string &contentType = "application/octet-stream");
-    int PostToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType = "application/octet-stream");
+    int PostToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType = "application/octet-stream");
     int PutToURL(const std::string& url, const std::string &val, const std::string &contentType = "application/octet-stream");
-    int PutToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType = "application/octet-stream");
-    int TransferToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType, bool isPost);
+    int PutToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType = "application/octet-stream");
+    int TransferToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType, bool isPost);
 
+    
     bool uploadOrCopyFile(const std::string &filename,
                           const std::string &file,
                           const std::string &dir);
@@ -179,7 +183,10 @@ private:
     void parseConfig(const std::string& v);
     void parseProxies(wxJSONValue& v);
 
-
+    bool IsCompatible(const ControllerCaps *rules,
+                      std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,
+                      std::string &driver);
+    
     class PlaylistEntry {
     public:
         std::string sequence;
@@ -190,13 +197,13 @@ private:
     std::string tempFileName;
     std::string baseSeqName;
     FSEQFile *outputFile = nullptr;
+    bool outputFileIsOriginal = false;
 
     void setupCurl(const std::string &url, bool isGet = true, int timeout = 30000);
     CURL *curl = nullptr;
     std::string curlInputBuffer;
     
     bool restartNeeded = false;
-    std::string curMode = "";
 
     bool sysInfoLoaded = false;
 };

@@ -190,7 +190,7 @@ void EffectLayer::RemoveAllEffects(UndoManager *undo_mgr)
 }
 
 Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &settings, const std::string &palette,
-                               int startTimeMS, int endTimeMS, int Selected, bool Protected, bool suppress_sort)
+                               int startTimeMS, int endTimeMS, int Selected, bool Protected, bool suppress_sort, bool importing)
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
     std::string name(n);
@@ -232,7 +232,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     // make sure they dont hang over the left side
     if (startTimeMS < 0) startTimeMS = 0;
 
-    Effect* e = new Effect(em, this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
+    Effect* e = new Effect(em, this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected, importing);
     wxASSERT(e != nullptr);
     mEffects.push_back(e);
     if (!suppress_sort)

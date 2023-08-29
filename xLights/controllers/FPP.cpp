@@ -33,6 +33,7 @@
 #include <wx/config.h>
 #include <wx/secretstore.h>
 #include <wx/progdlg.h>
+#include <wx/gauge.h>
 #include <zstd.h>
 
 #include "../xSchedule/wxJSON/jsonreader.h"
@@ -58,8 +59,10 @@
 
 #include <log4cpp/Category.hh>
 #include "ControllerUploadData.h"
+#include "FPPUploadProgressDialog.h"
 #include "../FSEQFile.h"
 #include "../Discovery.h"
+#include "../utils/CurlManager.h"
 
 #include "Falcon.h"
 #include "Minleon.h"
@@ -97,10 +100,11 @@ FPP::FPP(const std::string& ad) :
 }
 
 
-FPP::FPP(const std::string& ip, const std::string& proxy, const std::string& model) :
-    BaseController(ip, proxy), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), fppType(FPP_TYPE::FPP) {
-    ipAddress = ip;
-    pixelControllerType = model;
+FPP::FPP(const std::string& ip_, const std::string& proxy_, const std::string& model_) :
+    BaseController(ip_, proxy_), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), 
+    fppType(FPP_TYPE::FPP), proxy(proxy_), pixelControllerType(model_)
+{
+    ipAddress = ip_;
     wxIPV4address address;
     if (address.Hostname(ipAddress)) {
         hostName = ipAddress;
@@ -113,12 +117,13 @@ FPP::FPP(const std::string& ip, const std::string& proxy, const std::string& mod
 FPP::FPP(const FPP &c)
     : majorVersion(c.majorVersion), minorVersion(c.minorVersion), patchVersion(c.patchVersion), outputFile(nullptr), parent(nullptr), curl(nullptr),
     hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
-    model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password), fppType(c.fppType) {
+    model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password), 
+    fppType(c.fppType), proxy(c.proxy) {
 
 }
 
 FPP::~FPP() {
-    if (outputFile) {
+    if (outputFile && !outputFileIsOriginal) {
         delete outputFile;
         outputFile = nullptr;
     }
@@ -132,14 +137,13 @@ FPP::~FPP() {
     }
 }
 
-void FPP::setIPAddress(const std::string &ip) {
-    ipAddress = ip;
-}
-
-
 struct FPPWriteData {
-    FPPWriteData() : file(nullptr), progress(nullptr), data(nullptr), dataSize(0), curPos(0),
+    FPPWriteData() : file(nullptr), instance(nullptr), data(nullptr), dataSize(0), curPos(0),
         postData(nullptr), postDataSize(0), totalWritten(0), cancelled(false), lastDone(0) {}
+
+    wxFile realFile;
+    wxMemoryBuffer memBuffPost;
+    wxMemoryBuffer memBuffPre;
 
     uint8_t *data;
     size_t dataSize;
@@ -150,8 +154,7 @@ struct FPPWriteData {
     uint8_t *postData;
     size_t postDataSize;
 
-    wxProgressDialog *progress;
-    std::string progressString;
+    FPP *instance;
     size_t totalWritten;
     size_t lastDone;
     bool cancelled;
@@ -184,16 +187,18 @@ struct FPPWriteData {
         }
         if (file != nullptr) {
             size_t t = file->Read(ptr, buffer_size);
+            if (t == wxInvalidOffset) {
+                return 0;
+            }
             totalWritten += t;
 
-            if (progress) {
+            if (instance) {
                 size_t donePct = totalWritten;
                 donePct *= 1000;
                 donePct /= file->Length();
                 if (donePct != lastDone) {
                     lastDone = donePct;
-                    cancelled = !progress->Update(donePct, progressString);
-                    wxYield();
+                    cancelled = instance->updateProgress(donePct, false);
                 }
             }
             if (file->Eof()) {
@@ -230,7 +235,7 @@ void FPP::setupCurl(const std::string &url, bool isGet, int timeout) {
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout);
     curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
     curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-    
+
     // seems to be a bug in SOME versions of libcurl where GET requests over
     // HTTP2 are not handling the spaces (%20) correctly. Most escaped character
     // are OK, but not all.   Only seems to effect GET, POST/PATCH are fine.
@@ -251,157 +256,86 @@ void FPP::setupCurl(const std::string &url, bool isGet, int timeout) {
 bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    curlInputBuffer.clear();
-    char error[1024];
 
     std::string fullUrl = ipAddress + url;
+    std::string ipAddForGet = ipAddress;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
         fullUrl = ipAddress + "/fpp?path=" +  url;
     }
     if (!_fppProxy.empty()) {
         fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+        ipAddForGet = _fppProxy;
     } else {
         fullUrl = "http://" + fullUrl;
     }
-    setupCurl(fullUrl, true);
-
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
-    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-    logger_curl.info("URL: %s", fullUrl.c_str());
-
+    
     if (username != "") {
-        curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
-        curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
+        CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
     }
+    int response_code = 0;
+    val = CurlManager::INSTANCE.doGet(fullUrl, response_code);
 
-    bool retValue = false;
-    int i = curl_easy_perform(curl);
-    if (i != CURLE_OK) {
-        //simple retry
-        i = curl_easy_perform(curl);
-    }
-    long response_code = 0;
-    if (i == CURLE_OK) {
-        val = curlInputBuffer;
-        logger_curl.debug("RESPONSE START ---------");
-        logger_curl.debug(val.c_str());
-        logger_curl.debug("RESPONSE END ---------");
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-        if (response_code == 401) {
-            curlInputBuffer.clear();
-            if (password == "" && xlPasswordEntryDialog::GetStoredPasswordForService(ipAddress, username, password)) {
-                if (password != "") {
-                    return GetURLAsString(url, val);
-                }
+    logger_curl.debug("RESPONSE START --------- RC: %d ----", response_code);
+    logger_curl.debug(val.c_str());
+    logger_curl.debug("RESPONSE END ---------");
+    if (response_code == 401) {
+        if (password == "" && xlPasswordEntryDialog::GetStoredPasswordForService(ipAddress, username, password)) {
+            if (password != "") {
+                return GetURLAsString(url, val);
             }
-            xlPasswordEntryDialog dlg(nullptr, "Password needed to connect to " + ipAddress, "Password Required");
-            int rc = dlg.ShowModal();
-            if (rc == wxID_CANCEL) {
-                return false;
-            }
-            username = "admin";
-            password = dlg.GetValue().ToStdString();
-            if (dlg.shouldSavePassword()) {
-                xlPasswordEntryDialog::StorePasswordForService(ipAddress, username, password);
-            }
-            return GetURLAsString(url, val);
         }
-        retValue = (response_code == 200);
+        xlPasswordEntryDialog dlg(nullptr, "Password needed to connect to " + ipAddress, "Password Required");
+        int rc = dlg.ShowModal();
+        if (rc == wxID_CANCEL) {
+            return false;
+        }
+        username = "admin";
+        password = dlg.GetValue().ToStdString();
+        if (dlg.shouldSavePassword()) {
+            xlPasswordEntryDialog::StorePasswordForService(ipAddress, username, password);
+        }
+        return GetURLAsString(url, val);
     }
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, nullptr);
     if (response_code != 200) {
         if (recordError) {
-            if (i == CURLE_OK) {
-                messages.push_back("ERROR - Error on GET \"" + fullUrl + "\"    Response Code: " + std::to_string(response_code));
-            } else {
-                messages.push_back("ERROR - Error on GET \"" + fullUrl + "\"    CURL Response: " + std::to_string(i));
-            }
+            messages.push_back("ERROR - Error on GET \"" + fullUrl + "\"    Response Code: " + std::to_string(response_code));
         }
-        logger_base.info("FPPConnect GET %s  - Return: %d - RC: %d  - %s", fullUrl.c_str(), i, response_code, val.c_str());
+        logger_base.info("FPPConnect GET %s  - Return: RC: %d  - %s", fullUrl.c_str(), response_code, val.c_str());
     } else {
-        logger_base.info("FPPConnect GET %s  - Return: %d - RC: %d", fullUrl.c_str(), i, response_code);
+        logger_base.info("FPPConnect GET %s  - Return: RC: %d", fullUrl.c_str(), response_code);
     }
-    return retValue;
+    return response_code == 200;
 }
-int FPP::PostToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType) {
+int FPP::PostToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType) {
     return TransferToURL(url, val, contentType, true);
 }
-int FPP::PutToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType) {
+int FPP::PutToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType) {
     return TransferToURL(url, val, contentType, false);
 }
-int FPP::TransferToURL(const std::string& url, const wxMemoryBuffer &val, const std::string &contentType, bool isPost) {
+int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType, bool isPost) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    curlInputBuffer.clear();
-    char error[1024];
     std::string fullUrl = ipAddress + url;
+    std::string ipAddForGet = ipAddress;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
         fullUrl = ipAddress + "/fpp?path=" +  url;
     }
     if (!_fppProxy.empty()) {
         fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+        ipAddForGet = _fppProxy;
     } else {
         fullUrl = "http://" + fullUrl;
     }
-    logger_curl.info("URL: %s", fullUrl.c_str());
-    setupCurl(fullUrl, false);
-    curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
-    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
+    
     if (username != "") {
-        curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
-        curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
+        CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
     }
-
-    FPPWriteData data;
-    data.data = (uint8_t*)val.GetData();
-    data.dataSize = val.GetDataLen();
-
-    logger_curl.info("CONTENTTYPE: %s", contentType.c_str());
-    struct curl_slist *chunk = nullptr;
-    std::string ct = "Content-Type: " + contentType;
-    chunk = curl_slist_append(chunk, ct.c_str());
-    std::string cl = "Content-Length: " + std::to_string(data.dataSize);
-    chunk = curl_slist_append(chunk, cl.c_str());
-
-    if (logger_curl.isInfoEnabled()) {
-        char temp[8192];
-        strncpy(temp, (char*)data.data, std::min(data.dataSize, sizeof(temp) - 1));
-        logger_curl.info("BODY START -----------");
-        logger_curl.info(temp);
-        logger_curl.info("BODY END -----------");
-    }
-
+    int response_code = 0;
     if (isPost) {
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        CurlManager::INSTANCE.doPost(fullUrl, contentType, val, response_code);
     } else {
-        curl_easy_setopt(curl, CURLOPT_PUT, 1L);
+        CurlManager::INSTANCE.doPut(fullUrl, contentType, val, response_code);
     }
-    curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
-    curl_easy_setopt(curl, CURLOPT_READDATA, &data);
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)val.GetDataLen());
-    int i = curl_easy_perform(curl);
-    if (i != CURLE_OK) {
-        //simple retry
-        data.curPos = 0;
-        i = curl_easy_perform(curl);
-    }
-    curl_slist_free_all(chunk);
-    long response_code = 0;
-    if (i == CURLE_OK) {
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-        if (response_code != 200) {
-            messages.push_back("ERROR - Error on POST \"" + fullUrl + "\"    Response Code: " + std::to_string(response_code));
-        }
-        return response_code;
-    }
-    messages.push_back("ERROR - Error on POST \"" + fullUrl + "\"    CURL Response: " + std::to_string(i));
-    logger_base.info("FPPConnect Post %s  - RC: %d - Return %d", fullUrl.c_str(), response_code, i);
-    return 500;
+    return response_code;
 }
 
 bool FPP::GetURLAsJSON(const std::string& url, wxJSONValue& val, bool recordError) {
@@ -445,6 +379,9 @@ bool FPP::AuthenticateAndUpdateVersions() {
             if (GetURLAsJSON("/api/system/info", val)) {
                 sysInfoLoaded = true;
                 return fppType == FPP_TYPE::FPP && parseSysInfo(val);
+            } else if (GetURLAsJSON("/fppjson.php?command=getSysInfo&simple", val)) {
+                sysInfoLoaded = true;
+                return fppType == FPP_TYPE::FPP && parseSysInfo(val);
             }
         }
         return false;
@@ -458,6 +395,9 @@ bool FPP::parseSysInfo(wxJSONValue& val) {
     hostName = ToStdString(val["HostName"].AsString());
     description = ToStdString(val["HostDescription"].AsString());
     mode = ToStdString(val["Mode"].AsString());
+    if (mode == "player" && val.HasMember("multisync") && val["multisync"].AsBool()) {
+        mode += " w/multisync";
+    }
 
     if (fullVersion != "") {
         majorVersion = wxAtoi(fullVersion);
@@ -483,34 +423,6 @@ bool FPP::parseSysInfo(wxJSONValue& val) {
         majorVersion = val["majorVersion"].AsInt();
     }
     return true;
-}
-
-
-void FPP::LoadPlaylists(std::list<std::string> &playlists) {
-    if (!IsDrive()) {
-        //ip address, load playlists
-        wxJSONValue val;
-        if (GetURLAsJSON("/api/playlists", val)) {
-            for (int x = 0; x < val.Size(); x++) {
-                if (val[x].IsString()) {
-                    playlists.push_back(ToUTF8(val[x].AsString()));
-                }
-            }
-        }
-    }
-}
-
-bool FPP::IsMultiSyncEnabled(){
-    if (!IsDrive() && mode == "player") {
-        wxJSONValue val;
-        if (GetURLAsJSON("/api/settings/MultiSyncEnabled", val)) {
-            if (val.HasMember("value")) {
-                auto enabled = val.ItemAt("value").AsString();
-                return wxAtoi(enabled);
-            }
-        }
-    }
-    return false;
 }
 
 bool FPP::IsDDPInputEnabled() {
@@ -604,9 +516,7 @@ void FPP::parseConfig(const std::string& v) {
             settings[key] = to;
         }
     }
-    if (curMode == "") {
-        curMode = settings["fppMode"];
-    }
+
     if (settings["Title"].find("Falcon Player") != std::string::npos) {
         fppType = FPP_TYPE::FPP;
     }
@@ -618,15 +528,6 @@ bool FPP::IsDrive() {
 }
 
 bool FPP::IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch) const{
-    if (fppType == FPP_TYPE::FPP) {
-        static bool hasWarned = false;
-        if (majorVersion < 6 && !hasWarned) {
-            hasWarned = true;
-            wxMessageBox("Uploading configuration and/or sequences to FPP instances less than FPP 6.x will soon be removed.  Please update FPP to the latest version.",
-                         "FPP Version Deprecated",
-                         wxICON_INFORMATION | wxCENTER | wxOK);
-        }
-    }
     if (majorVersion < maj) {
         return false;
     }
@@ -677,7 +578,21 @@ static std::string URLEncode(const std::string &value) {
     return ToStdString(URLEncode(ToWXString(value)));
 }
 
-
+static inline void addString(std::vector<uint8_t> &buffer, const char *str) {
+    size_t sz = strlen(str);
+    size_t pos = buffer.size();
+    buffer.resize(pos + sz);
+    memcpy(&buffer[pos], str, sz);
+}
+static inline void addString(std::vector<uint8_t> &buffer, const std::string &str) {
+    size_t sz = str.length();
+    size_t pos = buffer.size();
+    buffer.resize(pos + sz);
+    memcpy(&buffer[pos], str.c_str(), sz);
+}
+static inline void addString(std::vector<uint8_t> &buffer, const wxString &str) {
+    addString(buffer, ToUTF8(str));
+}
 static inline void addString(wxMemoryBuffer &buffer, const char *str) {
     buffer.AppendData(str, strlen(str));
 }
@@ -715,12 +630,12 @@ int FPP::PostJSONToURL(const std::string& url, const wxJSONValue& val) {
     wxString str;
     wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
     writer.Write(val, str);
-    wxMemoryBuffer memBuffPost;
+    std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, str);
     return PostToURL(url, memBuffPost, "application/json");
 }
 int FPP::PostJSONToURLAsFormData(const std::string& url, const std::string &extra, const wxJSONValue& val) {
-    wxMemoryBuffer memBuffPost;
+    std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, extra);
     addString(memBuffPost, "&data={");
     wxString str;
@@ -741,15 +656,30 @@ void FPP::DumpJSON(const wxJSONValue& json)
 }
 
 int FPP::PostToURL(const std::string& url, const std::string &val, const std::string &contentType) {
-    wxMemoryBuffer memBuffPost;
+    std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, val);
     return PostToURL(url, memBuffPost, contentType);
 }
 int FPP::PutToURL(const std::string& url, const std::string &val, const std::string &contentType) {
-    wxMemoryBuffer memBuffPost;
+    std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, val);
     return PutToURL(url, memBuffPost, contentType);
 }
+
+bool FPP::updateProgress(int val, bool yield) {
+    if (progress != nullptr) {
+        progress->SetValue(val);
+        if (yield) {
+            wxYield();
+        }
+    }
+    if (progressDialog) {
+        return progressDialog->isCancelled();
+    }
+    return false;
+}
+
+
 bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -766,11 +696,7 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
         }
     }
 
-    bool cancelled = false;
-    if (progressDialog != nullptr) progressDialog->SetTitle("FPP Upload");
-    logger_base.debug("FPP upload via http of %s.", (const char*)filename.c_str());
-    if (progressDialog != nullptr)
-        cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
+    updateProgress(0, true);
     int lastDone = 0;
 
     std::string ct = "Content-Type: application/octet-stream";
@@ -819,59 +745,51 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
-    wxMemoryBuffer memBuffPost;
-    wxMemoryBuffer memBuffPre;
+    FPPWriteData *data = new FPPWriteData();
     if (usingJqUpload) {
-        addString(memBuffPost, "\r\n--");
-        addString(memBuffPost, bound);
-        addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
-        addString(memBuffPost, bound);
-        addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
-        addString(memBuffPost, bound);
-        addString(memBuffPost, "--\r\n");
+        addString(data->memBuffPost, "\r\n--");
+        addString(data->memBuffPost, bound);
+        addString(data->memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
+        addString(data->memBuffPost, bound);
+        addString(data->memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
+        addString(data->memBuffPost, bound);
+        addString(data->memBuffPost, "--\r\n");
 
         std::string cd = "Content-Disposition: form-data; name=\"myfile\"; filename=\"";
         cd += fn.ToStdString();
         cd += "\"\r\n";
-        addString(memBuffPre, "--");
-        addString(memBuffPre, bound);
-        addString(memBuffPre, "\r\n");
-        addString(memBuffPre, cd);
-        addString(memBuffPre, ct);
-        addString(memBuffPre, "\r\n\r\n");
+        addString(data->memBuffPre, "--");
+        addString(data->memBuffPre, bound);
+        addString(data->memBuffPre, "\r\n");
+        addString(data->memBuffPre, cd);
+        addString(data->memBuffPre, ct);
+        addString(data->memBuffPre, "\r\n\r\n");
     }
 
-    FPPWriteData data;
-    wxFile fileobj(fullFileName);
+    data->realFile.Open(fullFileName);
     if (!usingJqUpload) {
-        std::string cl = "Content-Length: " + std::to_string(fileobj.Length());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, fileobj.Length());
+        std::string cl = "Content-Length: " + std::to_string(data->realFile.Length());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data->realFile.Length());
         chunk = curl_slist_append(chunk, cl.c_str());
     }
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
-    fileobj.Seek(0);
-    data.data = (uint8_t*)memBuffPre.GetData();
-    data.dataSize = memBuffPre.GetDataLen();
-    data.progress = progressDialog;
-    data.file = &fileobj;
-    data.postData =  (uint8_t*)memBuffPost.GetData();
-    data.postDataSize = memBuffPost.GetDataLen();
+    data->realFile.Seek(0);
+    data->data = (uint8_t*)data->memBuffPre.GetData();
+    data->dataSize = data->memBuffPre.GetDataLen();
+    data->instance = this;
+    data->file = &data->realFile;
+    data->postData =  (uint8_t*)data->memBuffPost.GetData();
+    data->postDataSize = data->memBuffPost.GetDataLen();
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
-    curl_easy_setopt(curl, CURLOPT_READDATA, &data);
+    curl_easy_setopt(curl, CURLOPT_READDATA, data);
+    data->lastDone = lastDone;
 
-    data.progress = progressDialog;
-    data.progressString = ToUTF8("Transferring " + filename + " to " + ipAddress);
-    data.lastDone = lastDone;
-
-    int i = curl_easy_perform(curl);
-    curl_slist_free_all(chunk);
-    if (deleteFile) {
-        wxRemoveFile(fullFileName);
-    }
-    long response_code = 0;
-    if (i == CURLE_OK) {
+    
+    CurlManager::INSTANCE.addCURL(fullUrl, curl, [this, chunk, deleteFile, fullFileName, usingMove, filename, ext, utfFilename, data] (CURL *) {
+        long response_code = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        
         if (response_code == 200) {
             if (usingMove) {
                 if (!callMoveFile(ToUTF8(filename + ext))) {
@@ -881,18 +799,19 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
                 }
             }
         } else {
-            messages.push_back("ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code) + " - " + error);
+            messages.push_back("ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code));
             logger_base.warn("Did not get 200 response code:  %d", response_code);
         }
-    } else {
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-        logger_base.warn("Curl did not upload file:  %d   %s", response_code, error);
-        messages.push_back("ERROR Uploading file: " + utfFilename + "     CURL response: " + std::to_string(i) + " - " + error);
-    }
-    if (progressDialog != nullptr) cancelled |= !progressDialog->Update(1000);
-    logger_base.info("FPPConnect Upload file %s  - Return: %d - RC: %d - File: %s", fullUrl.c_str(), i, response_code, (const char *)filename.c_str());
+        
+        delete data;
+        curl_slist_free_all(chunk);
+        if (deleteFile) {
+            wxRemoveFile(fullFileName);
+        }
+        updateProgress(1000, false);
+    }, false);
 
-    return data.cancelled | cancelled;
+    return false;
 }
 
 bool FPP::callMoveFile(const std::string &filename) {
@@ -905,11 +824,17 @@ bool FPP::callMoveFile(const std::string &filename) {
 }
 
 struct V7ProgressStruct {
-    wxProgressDialog *progress;
+    wxFile in;
+    FPP *instance;
     size_t length;
 
     size_t offset = 0;
     int lastPct = 0;
+    
+    std::string fullUrl;
+    std::string fileSizeHeader;
+    std::string fileNameHeader;
+    std::string filename;
 };
 int progress_callback(void *clientp,
                       curl_off_t dltotal,
@@ -917,110 +842,102 @@ int progress_callback(void *clientp,
                       curl_off_t ultotal,
                       curl_off_t ulnow) {
     V7ProgressStruct *p = (V7ProgressStruct*)clientp;
-    if (p->progress) {
+    if (p->instance) {
         size_t start = p->offset;
         start += ulnow;
         start *= 1000;
         start /= p->length;
         if (p->lastPct != start) {
-            p->progress->Update(p->lastPct);
+            p->instance->updateProgress(p->lastPct, false);
             p->lastPct = start;
         }
     }
     return 0;
 }
 
+
+void prepareCurlForMulti(V7ProgressStruct *ps) {
+    constexpr uint64_t BLOCK_SIZE = 64*1024*1024;
+    CurlManager::CurlPrivateData *cpd = nullptr;
+    CURL *curl = CurlManager::INSTANCE.createCurl(ps->fullUrl, &cpd, true);
+
+    //if we cannot upload it in 5 minutes, we have serious issues
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
+
+    struct curl_slist *headers = nullptr;
+    headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
+    headers = curl_slist_append(headers, "X-Requested-With: FPPConnect");
+
+    std::string offsetHeader = "Upload-Offset: " + std::to_string(ps->offset);
+    headers = curl_slist_append(headers, offsetHeader.c_str());
+    headers = curl_slist_append(headers, ps->fileSizeHeader.c_str());
+    headers = curl_slist_append(headers, ps->fileNameHeader.c_str());
+    headers = curl_slist_append(headers, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
+
+    uint64_t remaining = ps->length - ps->offset;
+    if (remaining > BLOCK_SIZE) {
+        remaining = BLOCK_SIZE;
+    }
+    cpd->req->resize(remaining);
+    uint64_t read = ps->in.Read(cpd->req->data(), remaining);
+    if (read != remaining) {
+        ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
+    }
+    std::string contentSizeHeader = "Content-Length: " + std::to_string(remaining);
+    headers = curl_slist_append(headers, contentSizeHeader.c_str());
+    
+    curl_easy_setopt(curl, CURLOPT_UPLOAD, (long)1);
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
+    curl_easy_setopt(curl, CURLOPT_XFERINFODATA, ps);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, (long)0);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)remaining);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, cpd->req->data());
+    
+    CurlManager::INSTANCE.addCURL(ps->fullUrl, curl, [headers, remaining, ps] (CURL *c) {
+        curl_slist_free_all(headers);
+        long response_code = 0;
+        curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &response_code);
+        ps->offset += remaining;
+        uint64_t pct = (ps->offset * 1000) / ps->length;
+        bool cancelled = ps->instance->updateProgress(pct, false);
+        if (cancelled || ps->offset >= ps->length) {
+            delete ps;
+        } else {
+            prepareCurlForMulti(ps);
+        }
+    });
+}
+
+
 bool FPP::uploadFileV7(const std::string &filename,
                        const std::string &file,
                        const std::string &dir) {
     bool cancelled = false;
 
-    wxFile in;
-    in.Open(ToWXString(file));
-    if (in.IsOpened()) {
-        constexpr uint64_t BLOCK_SIZE = 64*1024*1024;
-        uint64_t filesize = in.Length();
-        std::vector<uint8_t> data(BLOCK_SIZE);
+    V7ProgressStruct *ps = new V7ProgressStruct();
+    ps->in.Open(ToWXString(file));
+    if (ps->in.IsOpened()) {
+        ps->filename = filename;
         
-        uint64_t offset = 0;
-        std::string fullUrl = ipAddress + "/api/file/" + dir;
+        ps->length = ps->in.Length();
+        ps->offset = 0;
+        ps->fullUrl = ipAddress + "/api/file/" + dir;
         if (!_fppProxy.empty()) {
-            fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+            ps->fullUrl = "http://" + _fppProxy + "/proxy/" + ps->fullUrl;
         } else {
-            fullUrl = "http://" + fullUrl;
+            ps->fullUrl = "http://" + ps->fullUrl;
         }
-        std::string fileSizeHeader = "Upload-Length: " + std::to_string(filesize);
-        std::string fileNameHeader = "Upload-Name: " + filename;
-        std::string progressTitle = "Transferring " + ToUTF8(wxFileName(FromUTF8(filename)).GetFullName()) + " to " + ipAddress;
+        ps->fileSizeHeader = "Upload-Length: " + std::to_string(ps->length);
+        ps->fileNameHeader = "Upload-Name: " + filename;
+        ps->instance = this;
         if (progressDialog != nullptr) {
-            progressDialog->SetTitle("FPP Upload");
-            cancelled |= !progressDialog->Update(0, progressTitle);
+            cancelled |= updateProgress(0, true);
         }
-        V7ProgressStruct progress;
-        progress.progress = progressDialog;
-        progress.length = filesize;
-        while (offset < filesize && !cancelled) {
-            setupCurl(fullUrl, false);
-            //if we cannot upload it in 5 minutes, we have serious issues
-            curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
-            curlInputBuffer.clear();
-            char error[1024];
-
-            curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
-            if (username != "") {
-                curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
-                curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
-                curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
-            }
-            struct curl_slist *headers = nullptr;
-            headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
-            headers = curl_slist_append(headers, "X-Requested-With: FPPConnect");
-
-            std::string offsetHeader = "Upload-Offset: " + std::to_string(offset);
-            headers = curl_slist_append(headers, offsetHeader.c_str());
-            headers = curl_slist_append(headers, fileSizeHeader.c_str());
-            headers = curl_slist_append(headers, fileNameHeader.c_str());
-            headers = curl_slist_append(headers, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
-
-            uint64_t remaining = filesize - offset;
-            if (remaining > BLOCK_SIZE) {
-                remaining = BLOCK_SIZE;
-            }
-            progress.offset = offset;
-            
-            uint64_t read = in.Read(&data[0], remaining);
-            if (read != remaining) {
-                messages.push_back("ERROR Uploading file: " + filename + "     Could not read source file.");
-            }
-            std::string contentSizeHeader = "Content-Length: " + std::to_string(remaining);
-            headers = curl_slist_append(headers, contentSizeHeader.c_str());
-            curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)remaining);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, &data[0]);
-            curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
-            curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &progress);
-            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, (long)0);
-            
-            int i = curl_easy_perform(curl);
-            long response_code = 0;
-            if (i == CURLE_OK) {
-                curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-            }
-            if (response_code != 200) {
-                messages.push_back("ERROR Uploading file: " + filename + "     Could not upload file.");
-                offset = filesize - remaining;
-            }
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(headers);
-            curl = nullptr;
-
-            offset += remaining;
-            if (progressDialog) {
-                uint64_t pct = (offset * 1000) / filesize;
-                cancelled |= !progressDialog->Update(pct, progressTitle);
-            }
-        }
+        prepareCurlForMulti(ps);
+    } else {
+        delete ps;
     }
     return cancelled;
 }
@@ -1030,13 +947,7 @@ bool FPP::copyFile(const std::string &filename,
                    const std::string &dir) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
-
-    if (progressDialog != nullptr) {
-        progressDialog->SetTitle("FPP Upload");
-        logger_base.debug("FPP upload via file copy of %s.", (const char*)filename.c_str());
-        cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
-        progressDialog->Show();
-    }
+    cancelled |= updateProgress(0, true);
 
     wxFile in;
     in.Open(ToWXString(file));
@@ -1060,24 +971,17 @@ bool FPP::copyFile(const std::string &filename,
                 done += read;
 
                 int prgs = done * 1000 / length;
-                if (progressDialog != nullptr) {
-                    cancelled |= !progressDialog->Update(prgs);
-                    if (!cancelled) {
-                        cancelled = progressDialog->WasCancelled();
-                    }
-                }
+                cancelled |= updateProgress(prgs, true);
             }
-            if (progressDialog != nullptr) cancelled |= !progressDialog->Update(1000);
+            cancelled |= updateProgress(1000, true);
             in.Close();
             out.Close();
         } else {
-            if (progressDialog != nullptr)
-                cancelled |= !progressDialog->Update(1000);
+            cancelled |= updateProgress(1000, true);
             logger_base.warn("   Copy of file %s failed ... target file %s could not be opened.", (const char *)file.c_str(), (const char *)target.c_str());
         }
     } else {
-        if (progressDialog != nullptr)
-            cancelled |= !progressDialog->Update(1000);
+        cancelled |= updateProgress(1000, true);
         logger_base.warn("   Copy of file %s failed ... file could not be opened.", (const char *)file.c_str());
     }
     return cancelled;
@@ -1164,19 +1068,20 @@ static void FindHostSpecificMedia(const std::string &hostName, std::string &medi
     }
 }
 
-bool FPP::PrepareUploadSequence(const FSEQFile &file,
+bool FPP::PrepareUploadSequence(FSEQFile *file,
                                 const std::string &seq,
                                 const std::string &media,
                                 int type) {
-    if (outputFile) {
+    if (outputFile && !outputFileIsOriginal) {
         delete outputFile;
-        outputFile = nullptr;
     }
+    outputFile = nullptr;
     if (tempFileName != "") {
         ::wxRemoveFile(tempFileName);
         tempFileName = "";
     }
 
+    updateProgress(0, true);
     wxFileName fn(FromUTF8(seq));
     std::string baseName = ToUTF8(fn.GetFullName());
     std::string mediaBaseName = "";
@@ -1213,7 +1118,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     }
     sequences[baseName].sequence = baseName;
     sequences[baseName].media = mediaBaseName;
-    sequences[baseName].duration = ((float)(file.getStepTime() * file.getNumFrames())) / 1000.0f;
+    sequences[baseName].duration = ((float)(file->getStepTime() * file->getNumFrames())) / 1000.0f;
 
     std::string fileName;
     if (IsDrive()) {
@@ -1240,7 +1145,7 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         if (GetURLAsJSON("/api/sequence/" + URLEncode(baseName) + "/meta", currentMeta, false)) {
             doSeqUpload = false;
             char buf[24];
-            sprintf(buf, "%" PRIu64, file.getUniqueId());
+            sprintf(buf, "%" PRIu64, file->getUniqueId());
             wxString version = currentMeta["Version"].AsString();
             if (type == 0 && version[0] != '1') doSeqUpload = true;
             if (type != 0 && version[0] == '1') doSeqUpload = true;
@@ -1258,8 +1163,8 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
                 doSeqUpload = true;
             }
             if (currentMeta["ID"].AsString() != buf) doSeqUpload = true;
-            if (currentMeta["NumFrames"].AsLong() != file.getNumFrames()) doSeqUpload = true;
-            if (currentMeta["StepTime"].AsLong() != file.getStepTime()) doSeqUpload = true;
+            if (currentMeta["NumFrames"].AsLong() != file->getNumFrames()) doSeqUpload = true;
+            if (currentMeta["StepTime"].AsLong() != file->getStepTime()) doSeqUpload = true;
 
             currentMaxChannel = currentMeta["MaxChannel"].AsLong();
             currentChannelCount = currentMeta["ChannelCount"].AsLong();
@@ -1276,11 +1181,17 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
     int channelCount = 0;
     if (type <= 1 || type == 4 || type == 5) {
         //full file, non sparse
-        if (currentMaxChannel != file.getMaxChannel()) doSeqUpload = true;
-        if (currentChannelCount != file.getMaxChannel()) doSeqUpload = true;
-        if (!currentRanges.empty()) doSeqUpload = true;
-        channelCount = file.getMaxChannel();
-
+        if (currentMaxChannel != file->getMaxChannel()) doSeqUpload = true;
+        if (currentChannelCount != file->getChannelCount()) doSeqUpload = true;
+        if (!currentRanges.empty()) {
+            V2FSEQFile *v2File = dynamic_cast<V2FSEQFile*>(file);
+            if (v2File == nullptr) {
+                doSeqUpload = true;
+            } else if (v2File->m_sparseRanges != currentRanges) {
+                doSeqUpload = true;
+            }
+        }
+        channelCount = file->getMaxChannel();
         // at this point, if we are uploading a full file, we know if something has changed or not
         // and can bail quickly if not
     } else if (ranges != "") {
@@ -1306,17 +1217,23 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         return false;
     }
 
+    baseSeqName = baseName;
     if (fppType == FPP_TYPE::FPP) {
-        if ((type == 0 && file.getVersionMajor() == 1) || fn.GetExt() == "eseq") {
+        if ((type == 0 && file->getVersionMajor() == 1) || fn.GetExt() == "eseq") {
             //these just get uploaded directly
-            return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
+            outputFile = file;
+            outputFileIsOriginal = true;
+            tempFileName = file->getFilename();
+            return false;
         }
-        if (type == 1 && file.getVersionMajor() == 2) {
+        if (type == 1 && file->getVersionMajor() == 2) {
             // Full v2 file, upload directly
-            return uploadOrCopyFile(baseName, seq, fn.GetExt() == "eseq" ? "effects" : "sequences");
+            outputFile = file;
+            outputFileIsOriginal = true;
+            tempFileName = file->getFilename();
+            return false;
         }
     }
-    baseSeqName = baseName;
 
     int clevel = 2;
     int fastLevel = ZSTD_versionNumber() > 10305 ? -5 : 1;
@@ -1346,7 +1263,8 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
         }
     }
     outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype, clevel);
-    outputFile->initializeFromFSEQ(file);
+    outputFileIsOriginal = false;
+    outputFile->initializeFromFSEQ(*file);
     if (fppType == FPP_TYPE::FPP && IsVersionAtLeast(7, 0)) {
         outputFile->enableMinorVersionFeatures(2);
     }
@@ -1362,9 +1280,11 @@ bool FPP::PrepareUploadSequence(const FSEQFile &file,
 bool FPP::WillUploadSequence() const {
     return outputFile != nullptr;
 }
-
+bool FPP::NeedCustomSequence() const {
+    return outputFile != nullptr && !outputFileIsOriginal;
+}
 bool FPP::AddFrameToUpload(uint32_t frame, uint8_t *data) {
-    if (outputFile) {
+    if (outputFile && !outputFileIsOriginal) {
         outputFile->addFrame(frame, data);
     }
     return false;
@@ -1373,15 +1293,21 @@ bool FPP::AddFrameToUpload(uint32_t frame, uint8_t *data) {
 bool FPP::FinalizeUploadSequence() {
     bool cancelled = false;
     if (outputFile) {
-        outputFile->finalize();
-
-        delete outputFile;
+        if (!outputFileIsOriginal) {
+            outputFile->finalize();
+            delete outputFile;
+        }
         outputFile = nullptr;
         if (tempFileName != "" && (fppType == FPP_TYPE::FPP || fppType == FPP_TYPE::ESPIXELSTICK)) {
             cancelled = uploadOrCopyFile(baseSeqName, tempFileName, "sequences");
-            ::wxRemoveFile(tempFileName);
+            if (!outputFileIsOriginal) {
+                ::wxRemoveFile(tempFileName);
+            }
             tempFileName = "";
+            outputFileIsOriginal = false;
         }
+    } else {
+        updateProgress(1000, false);
     }
     return cancelled;
 }
@@ -1888,29 +1814,10 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
     UploadSerialOutputs(allmodels, outputManager, controller);
     SetInputUniversesBridge(controller);
     
-    if (majorVersion >= 4 && majorVersion < 6) {
-        controller->SetRuntimeProperty("FPPMode", curMode);
-        if (restartNeeded || curMode != "bridge") {
-            Restart("bridge");
-        }
-    } else if (restartNeeded) {//fpp 5
+    if (restartNeeded) {
         Restart();
     }
     return b;
-}
-
-bool FPP::ResetAfterOutput(OutputManager* outputManager, Controller* controller, wxWindow* parent) {
-
-    if (majorVersion >= 4) {
-        std::string md = controller->GetRuntimeProperty("FPPMode");
-        if (md != "bridge" && md != "") {
-            bool b = AuthenticateAndUpdateVersions();
-            if (!b) return b;
-            Restart(md);
-            controller->SetRuntimeProperty("FPPMode", "");
-        }
-    }
-    return true;
 }
 
 wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool input, std::map<int, int> *rngs) {
@@ -2027,17 +1934,8 @@ bool FPP::SetRestartFlag() {
     return false;
 }
 
-bool FPP::Restart(const std::string &mode, bool ifNeeded) {
+bool FPP::Restart( bool ifNeeded) {
     std::string val;
-    if (mode != "" && mode != curMode) {
-        std::string m = "player"; //bridge;
-        if (mode == "remote") {
-            m = "remote";
-        }
-        PutToURL("/api/settings/fppMode", m);
-        SetRestartFlag();
-        curMode = mode;
-    }
     if (ifNeeded && !restartNeeded) {
         return false;
     }
@@ -2094,10 +1992,8 @@ void FPP::SetDescription(const std::string &st) {
 bool FPP::SetInputUniversesBridge(Controller* controller) {
 
     bool forceUpload = false;
-    if (majorVersion >= 5) {
-        if (!IsDDPInputEnabled()){
-            forceUpload = restartNeeded = true;
-        }
+    if (!IsDDPInputEnabled()){
+        forceUpload = restartNeeded = true;
     }
 
     auto c = dynamic_cast<ControllerEthernet*>(controller);
@@ -2203,13 +2099,42 @@ static bool mergeSerialInto(wxJSONValue &otherDmxData, wxJSONValue &otherOrigRoo
 }
 #endif
 
-static bool IsCompatible(wxWindow *parent, const std::string ipAdd, const ControllerCaps *rules,
-                         std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId) {
+bool FPP::IsCompatible(const ControllerCaps *rules,
+                       std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,
+                       std::string &driver) {
     if (origMod == "") {
         Controller::ConvertOldTypeToVendorModel(origId, origVend, origMod, origVar);
     }
+    if (IsVersionAtLeast(7, 0)) {
+        // we can verify that the ID actually can load a pinout
+        bool found = false;
+        wxJSONValue val;
+        if (GetURLAsJSON("/api/cape/strings", val)) {
+            for (int x = 0; x < val.Size(); x++) {
+                if (val[x].AsString() == rules->GetID()) {
+                    found = true;
+                }
+            }
+        }
+        if (found) {
+            wxJSONValue val;
+            if (GetURLAsJSON("/api/cape/strings/" + rules->GetID(), val)) {
+                if (val.HasMember("driver")) {
+                    driver = val["driver"].AsString();
+                }
+            } else {
+                found = false;
+            }
+        }
+        if (!found) {
+            wxString msg = "Could not detect a pinout for " + rules->GetID() + " for controller type " + rules->GetModel() + ".  Configuration will not work.  Verify controller type/model/variant.  Continue?";
+            if (wxMessageBox(msg, "Confirm", wxYES_NO, parent) != wxYES) {
+                return false;
+            }
+        }
+    }
     if (origMod != "" && rules->GetModel() != origMod) {
-        wxString msg = "Configured controller type " + rules->GetModel() + " for " + ipAdd + " is not compatible with type already configured: "
+        wxString msg = "Configured controller type " + rules->GetModel() + " for " + ipAddress + " is not compatible with type already configured: "
             + origMod + ".   Continue?";
         if (wxMessageBox(msg, "Confirm", wxYES_NO, parent) != wxYES) {
             return false;
@@ -2583,7 +2508,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     wxString pinout = "1.x";
     std::map<wxString, wxJSONValue> origStrings;
-    std::string origType = "";
+    std::string origSubType = "";
     if (origJson["channelOutputs"].IsArray()) {
         for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
             wxJSONValue &f = origJson["channelOutputs"][x];
@@ -2594,7 +2519,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 pinout = "1.x";
             }
             if (f.HasMember("subType")) {
-                origType = ToUTF8(f["subType"].AsString());
+                origSubType = ToUTF8(f["subType"].AsString());
             }
             if (!fullcontrol) {
                 for (int o = 0; o < f["outputs"].Size(); o++) {
@@ -2621,13 +2546,13 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     std::string fppDriver = rules->GetCustomPropertyByPath("fppStringDriverType");
     if (fppFileName == "co-bbbStrings") {
+        if (!IsCompatible(rules, controllerVendor, controllerModel, controllerVariant, origSubType, fppDriver)) {
+            return true;
+        }
         if (fppDriver.empty()) {
             fppDriver = "BBB48String";
         }
         stringData["type"] = fppDriver;
-        if (!IsCompatible(parent, ipAddress, rules, controllerVendor, controllerModel, controllerVariant, origType)) {
-            return true;
-        }
         stringData["subType"] = rules->GetID();
         stringData["pinoutVersion"] = pinout;
     } else {
@@ -3057,7 +2982,7 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
         }
         SetControllerType(inst);
     } else if (inst->typeId >= 0xA0 && inst->typeId <= 0xAF) {
-        //Experence Lights
+        //Experience Lights
         if (inst->controller->GetProtocol() != OUTPUT_DDP) {
             inst->controller->SetProtocol(OUTPUT_DDP);
         }
@@ -3073,6 +2998,8 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
 }
 
 static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsString) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxJSONValue origJson;
     wxJSONReader reader;
     bool parsed = reader.Parse(systemsString, &origJson) == 0;
@@ -3097,6 +3024,9 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         std::string address = ToUTF8(system[IPKey].AsString());
         std::string hostName = system[HostNameKey].IsNull() ? "" : ToUTF8(system[HostNameKey].AsString());
         std::string uuid = system.HasMember("uuid") ? ToUTF8(system["uuid"].AsString()) : (system.HasMember("UUID") ? ToUTF8(system["UUID"].AsString()) : "");
+        
+        logger_base.info("Processing ip: %s   host: %s    uuid: %s", address.c_str(), hostName.c_str(), uuid.c_str());
+        
         if (address == "null" || hostName == "null") {
             continue;
         }
@@ -3104,7 +3034,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
             //ignore for some reason, FPP is occasionally returning an IPV6 address
             continue;
         }
-        DiscoveredData *found = discovery.FindByUUID(uuid);
+        DiscoveredData *found = discovery.FindByUUID(uuid, address);
         if (found == nullptr) {
             found = discovery.FindByIp(address, hostName);
         }
@@ -3142,6 +3072,9 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         }
         if (!system[ModeStringKey].IsNull()) {
             inst.mode = ToUTF8(system[ModeStringKey].AsString());
+            if (inst.mode == "player" && system.HasMember("multisync") && system["multisync"].AsBool()) {
+                inst.mode += " w/multisync";
+            }
         }
         if (inst.typeId == 0xC2 || inst.typeId == 0xC3) {
             inst.pixelControllerType = inst.platformModel;
@@ -3201,7 +3134,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
             std::string ipAddr = inst.ip;
             CreateController(discovery, found);
             if (found->typeId > 0 && found->typeId < 0x80) {
-                discovery.AddCurl(ipAddr, "/api/fppd/multiSyncSystems", [&discovery, found] (int rc, const std::string &buffer, const std::string &err) {
+                discovery.AddCurl(ipAddr, "/api/fppd/multiSyncSystems", [&discovery, found, ipAddr] (int rc, const std::string &buffer, const std::string &err) {
                     if (rc == 200) {
                         found->extraData["httpConnected"] = true;
                         ProcessFPPSystems(discovery, buffer);
@@ -3210,13 +3143,14 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 });
                 discovery.AddCurl(ipAddr, "/api/system/info", [&discovery, ipAddr, found] (int rc, const std::string &buffer, const std::string &err) {
                     if (rc == 200) {
+                        found->extraData["httpConnected"] = true;
                         ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
                     }
                     return true;
                 });
             } else if (found->typeId >= 0xD0) {
                 discovery.AddCurl(ipAddr, "/", [&discovery, ipAddr, found](int rc, const std::string &buffer, const std::string &err) {
-                    if (buffer != "") {
+                    if (rc == 200 && buffer != "") {
                         found->extraData["httpConnected"] = true;
                         discovery.DetectControllerType(ipAddr, "", buffer);
                     }
@@ -3227,6 +3161,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
    }
 }
 static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const std::string &proxies) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxJSONValue origJson;
     wxJSONReader reader;
     bool parsed = reader.Parse(proxies, &origJson) == 0;
@@ -3246,14 +3181,16 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
         inst->username = ipinst->username;
         inst->password = ipinst->password;
         discovery.AddCurl(ip, "/proxy/" + proxy + "/", [&discovery, proxy, ip, inst](int rc, const std::string &buffer, const std::string &err) {
-            if (buffer.find("Falcon Player - FPP") != std::string::npos) {
-                //detected another FPP behind the proxy, strange, but valid
+            if (rc == 200 && buffer.find("Falcon Player - FPP") != std::string::npos) {
                 std::string p = proxy;
                 std::string i = ip;
                 inst->extraData["httpConnected"] = true;
 
+                logger_base.info("Found proxied instance ip: %s     proxyip: %s", proxy.c_str(), ip.c_str());
                 discovery.AddCurl(ip, "/proxy/" + proxy + "/api/system/info", [&discovery, p, i](int rc, const std::string &buffer, const std::string &err) {
-                    ProcessFPPSysinfo(discovery, p, i, buffer);
+                    if (rc == 200) {
+                        ProcessFPPSysinfo(discovery, p, i, buffer);
+                    }
                     return true;
                 });
             } else {
@@ -3320,8 +3257,10 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
     wxJSONReader reader;
     bool parsed = reader.Parse(sysInfo, &val) == 0;
     if (!parsed) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("Could not parse sysinfo for %s(%s)", ip.c_str(), proxy.c_str());
         DiscoveredData *inst = discovery.FindByIp(ip, "", true);
-        inst->extraData["httpConnected"] = true;
+        inst->extraData["httpConnected"] = false;
         if (proxy != "") {
             inst->SetProxy(proxy);
         }
@@ -3329,7 +3268,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
     if (parsed) {
         std::string uuid = ToUTF8(val.HasMember("uuid") ? val["uuid"].AsString() : (val.HasMember("UUID") ? val["UUID"].AsString() : ""));
 
-        DiscoveredData *inst = discovery.FindByUUID(uuid);
+        DiscoveredData *inst = discovery.FindByUUID(uuid, ip);
         if (inst == nullptr) {
             inst = discovery.FindByIp(ip, "", true);
         }
@@ -3344,6 +3283,9 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
         inst->hostname =ToUTF8( val["HostName"].AsString());
         inst->description = ToUTF8(val["HostDescription"].AsString());
         inst->mode = ToUTF8(val["Mode"].AsString());
+        if (inst->mode == "player" && val.HasMember("multisync") && val["multisync"].AsBool()) {
+            inst->mode += " w/multisync";
+        }
         inst->uuid = uuid;
         if (inst->typeId == 0 && val["typeId"].IsInt()) {
             inst->typeId = val["typeId"].AsInt();
@@ -3402,6 +3344,28 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
                           [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
             if (rc == 200) {
                 ProcessFPPChannelOutput(discovery, host, buffer);
+            }
+            return true;
+        });
+        discovery.AddCurl(baseIp, baseUrl + "/api/playlists",
+                          [&discovery, host, inst] (int rc, const std::string &buffer, const std::string &err) {
+            if (rc == 200) {
+                wxJSONValue val;
+                wxJSONReader reader;
+                if (reader.Parse(buffer, &val) == 0) {
+                    inst->extraData["playlists"] = val;
+                }
+            }
+            return true;
+        });
+        discovery.AddCurl(baseIp, baseUrl + "/api/cape",
+                          [&discovery, host, inst, baseUrl, baseIp] (int rc, const std::string &buffer, const std::string &err) {
+            if (rc == 200) {
+                wxJSONValue val;
+                wxJSONReader reader;
+                if (reader.Parse(buffer, &val) == 0) {
+                    inst->extraData["cape"] = val;
+                }
             }
             return true;
         });
@@ -3559,12 +3523,16 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
             return true;
         });
         discovery.AddCurl(a, "/api/system/info", [&discovery, a](int rc, const std::string &buffer, const std::string &err) {
-            ProcessFPPSysinfo(discovery, a, "", buffer);
+            if (rc == 200) {
+                ProcessFPPSysinfo(discovery, a, "", buffer);
+            }
             return true;
         });
     }
     discovery.AddCurl("localhost", "/api/system/info", [&discovery](int rc, const std::string &buffer, const std::string &err) {
-        ProcessFPPSysinfo(discovery, "localhost", "", buffer);
+        if (rc == 200) {
+            ProcessFPPSysinfo(discovery, "localhost", "", buffer);
+        }
         return true;
     });
     discovery.AddCurl("localhost", "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
@@ -3593,7 +3561,9 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
             return true;
         });
         discovery.AddCurl(ip, "/api/system/info", [&discovery, ip](int rc, const std::string &buffer, const std::string &err) {
-            ProcessFPPSysinfo(discovery, ip, "", buffer);
+            if (rc == 200) {
+                ProcessFPPSysinfo(discovery, ip, "", buffer);
+            }
             return true;
         });
     });
@@ -3604,10 +3574,12 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
         return false;
     }
     if (res->typeId < 0x80) {
-        if (res->extraData.HasMember("httpConnected") && res->extraData["httpConnected"].AsBool() == true ) {
+        if (res->extraData.HasMember("httpConnected") && res->extraData["httpConnected"].AsBool() == true && res->majorVersion >= 6) {
             // genuine FPP instance and able to connect via http
             return true;
         } else {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.info("FPP Discovery - Skipping %s no http connection", (const char *)res->ip.c_str());
             return false;
         }
     }
@@ -3653,7 +3625,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (auto res : discovery.GetResults()) {
         if (supportedForFPPConnect(res, outputManager)) {
-            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s : %s", (const char*)res->ip.c_str(), (const char*)res->ranges.c_str());
+            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s (h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
             FPP *fpp = nullptr;
 
             for (auto f : instances) {
@@ -3682,9 +3654,14 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 fpp->controllerModel = res->model;
                 fpp->controllerVariant = res->variant;
                 TypeIDtoControllerType(res->typeId, fpp);
-
+                if (res->extraData.HasMember("playlists")) {
+                    for (int x = 0; x < res->extraData["playlists"].Size(); x++) {
+                        fpp->playlists.push_back(res->extraData["playlists"][x].AsString());
+                    }
+                }
                 instances.push_back(fpp);
             } else {
+                setIfEmpty(fpp->proxy, res->proxy);
                 setIfEmpty(fpp->hostName, res->hostname);
                 setIfEmpty(fpp->description, res->description);
                 setIfEmpty(fpp->platform, res->platform);
@@ -3704,6 +3681,11 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 setIfEmpty(fpp->patchVersion, res->patchVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
                 TypeIDtoControllerType(res->typeId, fpp);
+                if (fpp->playlists.empty() && res->extraData.HasMember("playlists")) {
+                    for (int x = 0; x < res->extraData["playlists"].Size(); x++) {
+                        fpp->playlists.push_back(res->extraData["playlists"][x].AsString());
+                    }
+                }
             }
         } else {
             logger_base.info("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());
@@ -3727,7 +3709,7 @@ std::vector<std::string> FPP::GetProxies()
 
     std::vector<std::string> res;
 
-    if (IsConnected())         {
+    if (IsConnected()) {
         wxJSONValue val;
         if (GetURLAsJSON("/api/proxies", val)) {
             for (int x = 0; x < val.Size(); x++) {

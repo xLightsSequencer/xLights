@@ -447,8 +447,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
     }
 
     // This is a 0.0-1.0 value that determine how far along the current chase cycle we are
-    double rtval = Static ? 0 :
-        (double)(buffer.curPeriod - buffer.curEffStartPer) / (double)(buffer.curEffEndPer - buffer.curEffStartPer);
+    double rtval = Static ? 0 : buffer.GetEffectTimeIntervalPosition();
     if (chaseType == 8) {
         // need to start in the middle for Bounce from Middle
         rtval += 0.25 / chaseSpeed;

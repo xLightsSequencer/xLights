@@ -693,6 +693,7 @@ void ColorCurveButton::UpdateBitmap() {
         }
         wxBitmap bmp(image);
         SetBitmap(bmp);
+        SetToolTip(wxString::Format("%s\n%d,%d,%d", _color, color.Red(), color.Green(), color.Blue()));
     }
     Refresh();
 }

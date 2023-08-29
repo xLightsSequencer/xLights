@@ -2840,9 +2840,10 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
     if (layer->XRotationValueCurve.IsActive()) {
         settings.xrotation = layer->XRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
+    settings.xpivot = layer->xpivot;
+    settings.ypivot = layer->ypivot;
     if (settings.xrotation != 0 && settings.xrotation != 360) {
         GPURenderUtils::waitForRenderCompletion(&layer->buffer);
-        settings.xpivot = layer->xpivot;
         if (layer->XPivotValueCurve.IsActive()) {
             settings.xpivot = layer->XPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
@@ -2852,7 +2853,6 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
         settings.yrotation = layer->YRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
     if (settings.yrotation != 0 && settings.yrotation != 360) {
-        settings.ypivot = layer->ypivot;
         if (layer->YPivotValueCurve.IsActive()) {
             settings.ypivot = layer->YPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
@@ -2891,22 +2891,27 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
     if (layer->PivotPointYValueCurve.IsActive()) {
         settings.pivotpointy = layer->PivotPointYValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
+    bool willDoRZ = (settings.xrotation != 0 && settings.xrotation != 360);
+    willDoRZ |= (settings.yrotation != 0 && settings.yrotation != 360);
+    willDoRZ |= (settings.zrotation != 0.0 || settings.zoom != 1.0);
     
-    if (!GPURenderUtils::RotoZoom(&layer->buffer, settings)) {
-        for (auto &c : layer->rotationorder) {
-            switch(c) {
-            case 'X':
-                RotateX(layer->buffer, settings);
-                break;
-            case 'Y':
-                RotateY(layer->buffer, settings);
-                break;
-            case 'Z':
-                RotateZAndZoom(layer->buffer, settings);
-                break;
+    if (willDoRZ) {
+        if (!GPURenderUtils::RotoZoom(&layer->buffer, settings)) {
+            for (auto &c : layer->rotationorder) {
+                switch(c) {
+                case 'X':
+                    RotateX(layer->buffer, settings);
+                    break;
+                case 'Y':
+                    RotateY(layer->buffer, settings);
+                    break;
+                case 'Z':
+                    RotateZAndZoom(layer->buffer, settings);
+                    break;
+                }
             }
         }
-    }
+    }    
 }
 
 bool PixelBufferClass::IsVariableSubBuffer(int layer) const

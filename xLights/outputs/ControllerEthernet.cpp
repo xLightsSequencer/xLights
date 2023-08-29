@@ -870,13 +870,21 @@ bool ControllerEthernet::SupportsUniversePerString() const
     }
     return false;
 }
+
 void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
     Controller::UpdateProperties(propertyGrid, modelManager, expandProperties);
     wxPGProperty *p = propertyGrid->GetProperty("Protocol");
     if (p) {
         wxPGChoices protocols = GetProtocols();
         p->SetChoices(protocols);
-        p->SetChoiceSelection(EncodeChoices(protocols, _type));
+        if (EncodeChoices(protocols, _type) == -1) {
+            p->SetChoiceSelection(0);
+            SetProtocol(Controller::DecodeChoices(protocols, 0));
+        }
+        else
+        {
+            p->SetChoiceSelection(EncodeChoices(protocols, _type));
+        }
     }
     p = propertyGrid->GetProperty("Multicast");
     if (p) {
@@ -1001,21 +1009,21 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("Some controllers can receive data from more than one source and will ignore one of the sources where this priority is lower.");
-
-    p = propertyGrid->Append(new wxBoolProperty("Managed", "Managed", _managed));
-    p->SetEditor("CheckBox");
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    
+    p = propertyGrid->Append(new wxStringProperty("Models", "Models", ""));
     p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+
+    auto p2 = propertyGrid->Append(new wxBoolProperty("Managed", "Managed", _managed));
+    p2->SetEditor("CheckBox");
+    p2->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    p2->ChangeFlag(wxPG_PROP_READONLY, true);
 
     bool allSameSize = AllSameSize();
     if (_outputs.size() >= 1) {
         //FIXME
-        _outputs.front()->AddProperties(propertyGrid, p, this, allSameSize, expandProperties);
-    }
-
-    p = propertyGrid->Append(new wxStringProperty("Models", "Models", ""));
-    p->ChangeFlag(wxPG_PROP_READONLY, true);
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        _outputs.front()->AddProperties(propertyGrid, p2, this, allSameSize, expandProperties);
+    }   
 }
 
 bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {

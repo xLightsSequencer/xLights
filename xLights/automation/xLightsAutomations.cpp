@@ -367,7 +367,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         //if restart flag is now set, restart and recheck range
-        fpp->Restart("", true);
+        fpp->Restart(true);
 
         return sendResponse("Uploaded to FPP '" + ip + "'.", "msg", 200, false);
     } else if (cmd == "uploadSequence") {
@@ -426,7 +426,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
 
         FSEQFile* seq = FSEQFile::openFSEQFile(fseq);
         if (seq) {
-            fpp->PrepareUploadSequence(*seq, fseq, m2, fseqType);
+            fpp->PrepareUploadSequence(seq, fseq, m2, fseqType);
             static const int FRAMES_TO_BUFFER = 50;
             std::vector<std::vector<uint8_t>> frames(FRAMES_TO_BUFFER);
             for (size_t x = 0; x < frames.size(); x++) {

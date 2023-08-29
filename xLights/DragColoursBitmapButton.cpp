@@ -52,8 +52,9 @@ void DragColoursBitmapButton::SetColour(const std::string& colour)
         SetBitmap(bbmp);
     }
     else {
-        SetBitmap(ColorCurve::GetSolidColourImage(size.GetWidth(), size.GetHeight(), wxColour(colour)));
-        SetToolTip(colour);
+        wxColour color (colour);
+        SetBitmap(ColorCurve::GetSolidColourImage(size.GetWidth(), size.GetHeight(), color));
+        SetToolTip(wxString::Format("%s\n%d,%d,%d", colour, color.Red(), color.Green(), color.Blue()));
     }
 }
 

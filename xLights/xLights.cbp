@@ -818,6 +818,8 @@
 		<Unit filename="controllers/FPP.h" />
 		<Unit filename="controllers/FPPConnectDialog.cpp" />
 		<Unit filename="controllers/FPPConnectDialog.h" />
+		<Unit filename="controllers/FPPUploadProgressDialog.cpp" />
+		<Unit filename="controllers/FPPUploadProgressDialog.h" />
 		<Unit filename="controllers/Falcon.cpp" />
 		<Unit filename="controllers/Falcon.h" />
 		<Unit filename="controllers/HinksPix.cpp" />
@@ -1349,6 +1351,8 @@
 		<Unit filename="tmGridCell.h" />
 		<Unit filename="utils/Curl.cpp" />
 		<Unit filename="utils/Curl.h" />
+		<Unit filename="utils/CurlManager.cpp" />
+		<Unit filename="utils/CurlManager.h" />
 		<Unit filename="utils/ip_utils.cpp" />
 		<Unit filename="utils/ip_utils.h" />
 		<Unit filename="utils/string_utils.cpp" />
@@ -1434,6 +1438,7 @@
 		<Unit filename="wxsmith/EmailDialog.wxs" />
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
 		<Unit filename="wxsmith/FPPConnectDialog.wxs" />
+		<Unit filename="wxsmith/FPPUploadProgressDialog.wxs" />
 		<Unit filename="wxsmith/FacesPanel.wxs" />
 		<Unit filename="wxsmith/FanPanel.wxs" />
 		<Unit filename="wxsmith/FillPanel.wxs" />
@@ -1779,6 +1784,7 @@
 					<wxDialog wxs="wxsmith/DuplicateDialog.wxs" src="DuplicateDialog.cpp" hdr="DuplicateDialog.h" fwddecl="0" i18n="1" name="DuplicateDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/MovingHeadPanel.wxs" src="effects/MovingHeadPanel.cpp" hdr="effects/MovingHeadPanel.h" fwddecl="0" i18n="1" name="MovingHeadPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/MetronomeLabelDialog.wxs" src="MetronomeLabelDialog.cpp" hdr="MetronomeLabelDialog.h" fwddecl="0" i18n="1" name="MetronomeLabelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/FPPUploadProgressDialog.wxs" src="controllers/FPPUploadProgressDialog.cpp" hdr="controllers/FPPUploadProgressDialog.h" fwddecl="0" i18n="1" name="FPPUploadProgressDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<code_completion />

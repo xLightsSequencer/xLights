@@ -170,8 +170,7 @@ void Effect::ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColor
 
 #pragma region Constructors and Destructors
 
-Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette,
-               int startTimeMS, int endTimeMS, int Selected, bool Protected)
+Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected, bool importing)
     : mParentLayer(parent), mID(id), mEffectIndex(-1), mName(nullptr),
       mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected), mCache(nullptr)
 {
@@ -182,7 +181,7 @@ Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const s
     mSettings.Parse(effectManager, settings, name);
 
     Element* parentElement = parent->GetParentElement();
-    if (parentElement != nullptr)
+    if (!importing && parentElement != nullptr)
     {
         Model* model = parentElement->GetSequenceElements()->GetXLightsFrame()->AllModels[parentElement->GetModelName()];
         FixBuffer(model);

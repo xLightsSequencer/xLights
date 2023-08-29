@@ -19,8 +19,10 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 #include "../outputs/ControllerEthernet.h"
+#include "../utils/CurlManager.h"
 #include "ControllerCaps.h"
 #include "utils/ip_utils.h"
+#include "FPPUploadProgressDialog.h"
 
 #include <log4cpp/Category.hh>
 #include "../xSchedule/wxJSON/jsonreader.h"
@@ -316,6 +318,9 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
         std::string l = inst->hostName + " - " + inst->ipAddress;
         std::string lip = "http://" + inst->ipAddress;
+        if (!inst->proxy.empty()) {
+            lip = "http://" + inst->proxy + "/proxy/" + inst->ipAddress;
+        }
         auto link = new wxHyperlinkCtrl(FPPInstanceList, wxID_ANY, l, lip, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE, _T("ID_LOCATION_" + rowStr));
         link->SetNormalColour(CyanOrBlue());
         FPPInstanceSizer->Add(link, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
@@ -323,11 +328,6 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
 
         auto mode = inst->mode;
-        if (inst->fppType == FPP_TYPE::FPP && inst->IsVersionAtLeast(5, 0)) {
-            if (inst->IsMultiSyncEnabled()) {
-                mode += " w/multisync";
-            }
-        }
         label = new wxStaticText(FPPInstanceList, wxID_ANY, mode, wxDefaultPosition, wxDefaultSize, 0, _T("ID_MODE_" + rowStr));
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
 
@@ -335,7 +335,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 
         //FSEQ Type listbox
-        if (inst->fppType == FPP_TYPE::FPP && inst->IsVersionAtLeast(2, 6)) {
+        if (inst->fppType == FPP_TYPE::FPP) {
             wxChoice *Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, FSEQ_COL + rowStr);
             wxFont font = Choice1->GetFont();
             font.SetPointSize(font.GetPointSize() - 2);
@@ -373,49 +373,39 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MEDIA_COL + rowStr);
             CheckBox1->SetValue(inst->mode != "remote");
             FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-            if (inst->IsVersionAtLeast(2, 6)) {
-                wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, MODELS_COL + rowStr);
-                wxFont font = Choice1->GetFont();
-                font.SetPointSize(font.GetPointSize() - 2);
-                Choice1->SetFont(font);
+            wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, MODELS_COL + rowStr);
+            wxFont font = Choice1->GetFont();
+            font.SetPointSize(font.GetPointSize() - 2);
+            Choice1->SetFont(font);
 
-                Choice1->Append(_("None"));
-                Choice1->Append(_("All"));
-                Choice1->Append(_("Local"));
-                Choice1->SetSelection(0);
-                FPPInstanceSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
-            } else {
-                FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-            }
-            if (inst->IsVersionAtLeast(2, 0)) {
-                wxChoice *Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, UDP_COL + rowStr);
-                wxFont font = Choice1->GetFont();
-                font.SetPointSize(font.GetPointSize() - 2);
-                Choice1->SetFont(font);
+            Choice1->Append(_("None"));
+            Choice1->Append(_("All"));
+            Choice1->Append(_("Local"));
+            Choice1->SetSelection(0);
+            FPPInstanceSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+            
+            Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, UDP_COL + rowStr);
+            font = Choice1->GetFont();
+            font.SetPointSize(font.GetPointSize() - 2);
+            Choice1->SetFont(font);
 
-                Choice1->Append(_("None"));
-                Choice1->Append(_("All"));
-                Choice1->Append(_("Proxied"));
-                Choice1->SetSelection(0);
-                FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-            } else {
-                FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-            }
+            Choice1->Append(_("None"));
+            Choice1->Append(_("All"));
+            Choice1->Append(_("Proxied"));
+            Choice1->SetSelection(0);
+            FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+            
             //playlist combo box
-            if (inst->IsVersionAtLeast(2, 6) && !inst->IsDrive()) {
+            if (!inst->IsDrive()) {
                 wxComboBox *ComboBox1 = new wxComboBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER, wxDefaultValidator, PLAYLIST_COL + rowStr);
-                std::list<std::string> playlists;
-                inst->LoadPlaylists(playlists);
                 ComboBox1->Append(_(""));
-                for (const auto& pl : playlists) {
+                for (const auto& pl : inst->playlists) {
                     ComboBox1->Append(pl);
                 }
                 wxFont font = ComboBox1->GetFont();
                 font.SetPointSize(font.GetPointSize() - 2);
                 ComboBox1->SetFont(font);
                 FPPInstanceSizer->Add(ComboBox1, 1, wxALL|wxEXPAND, 0);
-            } else {
-                FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             }
         } else if (inst->fppType == FPP_TYPE::FALCONV4) {
             // this probably needs to be moved as this is not really a zlib thing but only the falcons end up here today so I am going to put it here for now
@@ -767,29 +757,66 @@ void FPPConnectDialog::LoadSequences()
 
 void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    bool cancelled = false;
-
+    Button_Upload->Enable(false);
+    AddFPPButton->Enable(false);
+    
+    
     std::vector<bool> doUpload(instances.size());
     int row = 0;
+    int uploadCount = 0;
     for (row = 0; row < doUpload.size(); ++row) {
         std::string rowStr = std::to_string(row);
         doUpload[row] = GetCheckValue(CHECK_COL + rowStr);
+        uploadCount++;
     }
+    
+    FPPUploadProgressDialog prgs(this);
     row = 0;
-    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
-
-    std::map<int, int> udpRanges;
-    wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
-    wxProgressDialog prgs("", "", 1001, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-
-    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels);
     for (const auto& inst : instances) {
-        inst->progressDialog = &prgs;
         inst->parent = this;
         // not in discovery so we can increase the timeouts to make sure things get transferred
         inst->defaultConnectTimeout = 5000;
         inst->messages.clear();
+        std::string rowStr = std::to_string(row);
+        if (doUpload[row]) {
+            std::string l = inst->hostName + " - " + inst->ipAddress;
+            inst->setProgress(&prgs, prgs.addGauge(l));
+        } else {
+            inst->setProgress(nullptr, nullptr);
+        }
+        row++;
+    }
+    if (uploadCount) {
+        //prgs.SetSize(450, 400);
+        prgs.scrolledWindow->SetSizer(prgs.scrolledWindowSizer);
+        prgs.scrolledWindow->FitInside();
+        prgs.scrolledWindow->SetScrollRate(5, 5);
+        prgs.SetSizeHints(350, 400);
+        prgs.Fit();
+        prgs.setActionLabel("Preparing Configuration");
+
+        CallAfter(&FPPConnectDialog::doUpload, &prgs, doUpload);
+        int c = prgs.ShowModal();
+
+        if (!c) {
+            SaveSettings();
+    #ifndef _DEBUG
+            EndDialog(wxID_CLOSE);
+    #endif
+        }
+        Button_Upload->Enable(true);
+        AddFPPButton->Enable(true);
+    }
+}
+void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
+    std::map<int, int> udpRanges;
+    wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
+    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels);
+    bool cancelled = false;
+    int row = 0;
+    for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
         if (!cancelled && doUpload[row]) {
             auto controller = _outputManager->GetControllers(inst->ipAddress);
@@ -842,7 +869,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                     }
                 }
                 //if restart flag is now set, restart and recheck range
-                inst->Restart("", true);
+                inst->Restart(true);
             } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) && controller.size() == 1) {
                 BaseController *bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
                 bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), this);
@@ -863,14 +890,20 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED) {
+            for (const auto& inst : instances) {
+                inst->updateProgress(0, true);
+            }
+            
             wxString fseqRaw = CheckListBox_Sequences->GetItemText(item);
             std::string fseq = ToUTF8(fseqRaw);
             std::string media = ToUTF8(CheckListBox_Sequences->GetItemText(item, 2));
 
             FSEQFile *seq = FSEQFile::openFSEQFile(fseqRaw.ToStdString());
             if (seq) {
+                prgs->setActionLabel("Checking Media and FSEQ file for " + media + "/" + wxFileName(ToWXString(fseq)).GetFullName());
                 row = 0;
                 int uploadCount = 0;
+                int prepareCount = 0;
                 for (const auto& inst : instances) {
                     std::string rowStr = std::to_string(row);
                     if (!cancelled && doUpload[row]) {
@@ -891,62 +924,79 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         else {
                             fseqType = 3;
                         }
-                        cancelled |= inst->PrepareUploadSequence(*seq,
+                        cancelled |= inst->PrepareUploadSequence(seq,
                                                                 fseq, m2,
                                                                 fseqType);
 
                         if (inst->WillUploadSequence()) {
                             uploadCount++;
+                            if (inst->NeedCustomSequence()) {
+                                prepareCount++;
+                            }
+                        } else {
+                            inst->updateProgress(1000, true);
                         }
                     }
                     row++;
                 }
                 if (!cancelled && uploadCount) {
-                    prgs.SetTitle("Generating FSEQ Files");
-                    cancelled |= !prgs.Update(0, "Generating " + wxFileName(ToWXString(fseq)).GetFullName());
-                    prgs.Show();
-                    int lastDone = 0;
-                    static const int FRAMES_TO_BUFFER = 50;
-                    std::vector<std::vector<uint8_t>> frames(FRAMES_TO_BUFFER);
-                    for (size_t x = 0; x < frames.size(); x++) {
-                        frames[x].resize(seq->getMaxChannel() + 1);
-                    }
-
-                    for (size_t frame = 0; frame < seq->getNumFrames() && !cancelled; frame++) {
-                        int donePct = frame * 1000 / seq->getNumFrames();
-                        if (donePct != lastDone) {
-                            lastDone = donePct;
-                            cancelled |= !prgs.Update(donePct, "Generating " + wxFileName(ToWXString(fseq)).GetFullName());
-                            wxYield();
+                    if (prepareCount) {
+                        prgs->setActionLabel("Preparing FSEQ File for " + wxFileName(ToWXString(fseq)).GetFullName());
+                        for (const auto& inst : instances) {
+                            inst->updateProgress(0, false);
                         }
-
-                        int lastBuffered = 0;
-                        size_t startFrame = frame;
-                        //Read a bunch of frames so each parallel thread has more info to work with before returning out here
-                        while (lastBuffered < FRAMES_TO_BUFFER && frame < seq->getNumFrames()) {
-                            FSEQFile::FrameData *f = seq->getFrame(frame);
-                            if (f != nullptr)
-                            {
-                                if (!f->readFrame(&frames[lastBuffered][0], frames[lastBuffered].size()))
+                        wxYield();
+                        int lastDone = 0;
+                        static const int FRAMES_TO_BUFFER = 50;
+                        std::vector<std::vector<uint8_t>> frames(FRAMES_TO_BUFFER);
+                        for (size_t x = 0; x < frames.size(); x++) {
+                            frames[x].resize(seq->getMaxChannel() + 1);
+                        }
+                        
+                        for (size_t frame = 0; frame < seq->getNumFrames() && !cancelled; frame++) {
+                            int donePct = frame * 1000 / seq->getNumFrames();
+                            if (donePct != lastDone) {
+                                lastDone = donePct;
+                                for (const auto& inst : instances) {
+                                    inst->updateProgress(donePct, false);
+                                }
+                                wxYield();
+                            }
+                            
+                            int lastBuffered = 0;
+                            size_t startFrame = frame;
+                            //Read a bunch of frames so each parallel thread has more info to work with before returning out here
+                            while (lastBuffered < FRAMES_TO_BUFFER && frame < seq->getNumFrames()) {
+                                FSEQFile::FrameData *f = seq->getFrame(frame);
+                                if (f != nullptr)
                                 {
-                                    logger_base.error("FPPConnect FSEQ file corrupt.");
+                                    if (!f->readFrame(&frames[lastBuffered][0], frames[lastBuffered].size()))
+                                    {
+                                        logger_base.error("FPPConnect FSEQ file corrupt.");
+                                    }
+                                    delete f;
                                 }
-                                delete f;
+                                lastBuffered++;
+                                frame++;
                             }
-                            lastBuffered++;
-                            frame++;
+                            frame--;
+                            std::function<void(FPP * &, int)> func = [startFrame, lastBuffered, &frames, &doUpload](FPP* &inst, int row) {
+                                if (doUpload[row]) {
+                                    for (int x = 0; x < lastBuffered; x++) {
+                                        inst->AddFrameToUpload(startFrame + x, &frames[x][0]);
+                                    }
+                                }
+                            };
+                            parallel_for(instances, func);
                         }
-                        frame--;
-                        std::function<void(FPP * &, int)> func = [startFrame, lastBuffered, &frames, &doUpload](FPP* &inst, int row) {
-                            if (doUpload[row]) {
-                                for (int x = 0; x < lastBuffered; x++) {
-                                    inst->AddFrameToUpload(startFrame + x, &frames[x][0]);
-                                }
-                            }
-                        };
-                        parallel_for(instances, func);
                     }
                     row = 0;
+                    prgs->setActionLabel("Uploading " + wxFileName(ToWXString(fseq)).GetFullName());
+                    for (const auto& inst : instances) {
+                        inst->updateProgress(0, false);
+                    }
+                    wxYield();
+
                     for (const auto &inst : instances) {
                         if (!cancelled && doUpload[row]) {
                             cancelled |= inst->FinalizeUploadSequence();
@@ -967,7 +1017,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                                         }
                                         m2 = "";
                                     }
-                                    cancelled |= !falcon.UploadSequence(inst->GetTempFile(), fseq, inst->mode == "remote" ? "" : m2, &prgs);
+                                    //cancelled |= !falcon.UploadSequence(inst->GetTempFile(), fseq, inst->mode == "remote" ? "" : m2, &prgs);
                                 }
                                 else {
                                     logger_base.debug("Upload failed as FxxV4 is not connected.");
@@ -978,6 +1028,10 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                         }
                         row++;
                     }
+                    while (CurlManager::INSTANCE.processCurls()) {
+                        wxYield();
+                    }
+                    cancelled |= prgs->isCancelled();
                 }
             }
             delete seq;
@@ -996,7 +1050,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
                 if (playlist != "") {
                     cancelled |= inst->UploadPlaylist(playlist);
                 }
-                inst->Restart("", true);
+                inst->Restart(true);
             }
         }
         if (!inst->messages.empty()) {
@@ -1017,14 +1071,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     if (messages != "") {
         wxMessageBox(messages, "Problems Uploading", wxOK | wxCENTRE, this);
     }
-    prgs.Update(1001);
-    prgs.Hide();
-    if (!cancelled) {
-        SaveSettings();
-#ifndef _DEBUG
-        EndDialog(wxID_CLOSE);
-#endif
-    }
+    prgs->EndModal(cancelled ? 1 : 0);
 }
 
 void FPPConnectDialog::CreateDriveList()

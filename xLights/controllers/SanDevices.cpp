@@ -1121,7 +1121,7 @@ char SanDevices::EncodeStringPortProtocolV4(const std::string& protocol) const {
     if (p == "dmx") return 'K';
     if (p == "renard") return 'L';
     wxASSERT(false);
-    return -1;
+    return 'D';
 }
 
 char SanDevices::EncodeStringPortProtocolV5(const std::string& protocol) const {
@@ -1139,7 +1139,7 @@ char SanDevices::EncodeStringPortProtocolV5(const std::string& protocol) const {
     if (p == "dmx") return 'K';
     if (p == "renard") return 'N';
     wxASSERT(false);
-    return -1;
+    return 'A';
 }
 
 char SanDevices::EncodeSerialPortProtocolV5(const std::string& protocol) const {
@@ -1150,7 +1150,7 @@ char SanDevices::EncodeSerialPortProtocolV5(const std::string& protocol) const {
     if (p == "dmx") return 'K';
     if (p == "renard") return 'N';
     wxASSERT(false);
-    return -1;
+    return 'K';
 }
 
 char SanDevices::EncodeUniverseSize(int universesize) const {
