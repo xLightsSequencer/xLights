@@ -20,6 +20,7 @@ BEGIN_EVENT_TABLE(MHRgbPickerPanel, wxPanel)
     EVT_LEFT_UP(MHRgbPickerPanel::OnLeftUp)
     EVT_MOTION(MHRgbPickerPanel::OnMouseMove)
     EVT_ENTER_WINDOW(MHRgbPickerPanel::OnEntered)
+    EVT_SIZE(MHRgbPickerPanel::OnSize)
 END_EVENT_TABLE()
 
 
@@ -37,6 +38,20 @@ MHRgbPickerPanel::~MHRgbPickerPanel()
     if( m_hsvBitmap != nullptr ) {
         delete m_hsvBitmap;
     }
+}
+
+void MHRgbPickerPanel::OnSize(wxSizeEvent& event){
+    wxSize old_sz = GetSize();
+    if( old_sz.GetWidth() != old_sz.GetHeight() ) {
+        if( old_sz.GetWidth() > 270 ) {
+            wxSize new_size = old_sz;
+            new_size.SetHeight(new_size.GetWidth() + 30);
+            SetMinSize(new_size);
+        }
+    }
+    Refresh();
+    //skip the event.
+    event.Skip();
 }
 
 void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/)

@@ -26,6 +26,7 @@ public:
     bool HasColour() { return false; }
     void SetColours( const std::string& _colors );
     void DefineColours( xlColorVector& _colors );
+    void OnSize(wxSizeEvent& event);
 
 private:
 

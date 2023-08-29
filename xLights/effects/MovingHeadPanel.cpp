@@ -78,10 +78,6 @@ const long MovingHeadPanel::ID_CHECKBOX_MHIgnoreTilt = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_SavePathPreset = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Pathing = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Color = wxNewId();
-const long MovingHeadPanel::ID_PANEL1 = wxNewId();
-const long MovingHeadPanel::ID_PANEL2 = wxNewId();
-const long MovingHeadPanel::ID_PANEL3 = wxNewId();
-const long MovingHeadPanel::ID_PANEL4 = wxNewId();
 const long MovingHeadPanel::ID_NOTEBOOK2 = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Control = wxNewId();
 const long MovingHeadPanel::ID_NOTEBOOK1 = wxNewId();
@@ -110,7 +106,6 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     BulkEditTextCtrlF1* TextCtrl_MHTiltOffset;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer4;
-    wxFlexGridSizer* FlexGridSizerColor;
     wxFlexGridSizer* FlexGridSizerColorMain;
     wxFlexGridSizer* FlexGridSizerColorSliders;
     wxFlexGridSizer* FlexGridSizerControl;
@@ -181,6 +176,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerPosition->AddGrowableCol(0);
     FlexGridSizerPositionCanvas = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerPositionCanvas->AddGrowableCol(0);
+    FlexGridSizerPositionCanvas->AddGrowableRow(0);
     FlexGridSizerPosition->Add(FlexGridSizerPositionCanvas, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizerPositionPan = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizerPositionPan->AddGrowableCol(1);
@@ -259,6 +255,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerPathing->AddGrowableCol(0);
     FlexGridSizerPathCanvas = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerPathCanvas->AddGrowableCol(0);
+    FlexGridSizerPathCanvas->AddGrowableRow(0);
     FlexGridSizerPathing->Add(FlexGridSizerPathCanvas, 1, wxALL|wxEXPAND, 0);
     FlexGridSizer_PathButtons = new wxFlexGridSizer(0, 4, 0, 0);
     Button_MHPathContinue = new wxButton(PanelPathing, ID_BUTTON_MHPathContinue, _("Continue"), wxDefaultPosition, wxSize(75,23), 0, wxDefaultValidator, _T("ID_BUTTON_MHPathContinue"));
@@ -314,26 +311,20 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerControl->AddGrowableRow(0);
     Notebook2 = new wxNotebook(PanelControl, ID_NOTEBOOK2, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK2"));
     PanelColor = new wxPanel(Notebook2, ID_PANEL_Color, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Color"));
+    PanelColor->Hide();
     FlexGridSizerColorMain = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizerColorMain->AddGrowableCol(0);
     FlexGridSizerColor = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerColor->AddGrowableCol(0);
-    FlexGridSizerColorMain->Add(FlexGridSizerColor, 1, wxALL|wxEXPAND, 0);
+    FlexGridSizerColor->AddGrowableRow(0);
+    FlexGridSizerColorMain->Add(FlexGridSizerColor, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 0);
     FlexGridSizerColorSliders = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerColorSliders->AddGrowableCol(0);
     FlexGridSizerColorMain->Add(FlexGridSizerColorSliders, 1, wxALL|wxEXPAND, 0);
     PanelColor->SetSizer(FlexGridSizerColorMain);
     FlexGridSizerColorMain->Fit(PanelColor);
     FlexGridSizerColorMain->SetSizeHints(PanelColor);
-    Panel1 = new wxPanel(Notebook2, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-    Panel2 = new wxPanel(Notebook2, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-    Panel3 = new wxPanel(Notebook2, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
-    Panel4 = new wxPanel(Notebook2, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
     Notebook2->AddPage(PanelColor, _("Color"), false);
-    Notebook2->AddPage(Panel1, _("Shutter"), false);
-    Notebook2->AddPage(Panel2, _("Dimmer"), false);
-    Notebook2->AddPage(Panel3, _("Gobo"), false);
-    Notebook2->AddPage(Panel4, _("Prism"), false);
     FlexGridSizerControl->Add(Notebook2, 1, wxALL|wxEXPAND, 5);
     PanelControl->SetSizer(FlexGridSizerControl);
     FlexGridSizerControl->Fit(PanelControl);
@@ -402,16 +393,6 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     m_sketchCanvasPanel = new SketchCanvasPanel(this, PanelPathing, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
     FlexGridSizerPathCanvas->Add(m_sketchCanvasPanel, 0, wxALL | wxEXPAND);
 
-    /*xlColorVector colors;
-    colors.push_back(xlRED);
-    colors.push_back(xlGREEN);
-    colors.push_back(xlBLUE);
-    colors.push_back(xlWHITE);
-    m_wheelColorPanel = new MHColorWheelPanel(this, PanelColor, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
-    m_wheelColorPanel->DefineColours(colors);
-    m_colorPanel = m_wheelColorPanel;
-    FlexGridSizerColor->Add(m_wheelColorPanel, 0, wxALL | wxEXPAND);*/
-
     m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::DefineStartPoint);
     m_sketchCanvasPanel->DrawGrid(true);
 
@@ -457,19 +438,19 @@ MovingHeadPanel::~MovingHeadPanel()
 
 void MovingHeadPanel::OnResize(wxSizeEvent& event)
 {
-    bool update_sizes = false;
+    /*bool update_sizes = false;
 
     if( Notebook1->GetSelection() == 1 ) {
-        wxSize old_sz = m_sketchCanvasPanel->GetSize();
-        if( old_sz.GetWidth() > 270 ) {
-            update_sizes = true;
-        }
-    } else if( Notebook1->GetSelection() == 2 ) {
         wxSize old_sz = m_movingHeadCanvasPanel->GetSize();
         if( old_sz.GetWidth() > 270 ) {
             update_sizes = true;
         }
-    } else {
+    } else if( Notebook1->GetSelection() == 2 ) {
+        wxSize old_sz = m_sketchCanvasPanel->GetSize();
+        if( old_sz.GetWidth() > 270 ) {
+            update_sizes = true;
+        }
+    } else if( m_colorPanel != nullptr ) {
         wxSize old_sz = m_colorPanel->GetSize();
         if( old_sz.GetWidth() > 250 ) {
             update_sizes = true;
@@ -479,26 +460,42 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
     if( update_sizes ) {
         m_sketchCanvasPanel->SetMinSize(wxSize(-1, -1));
         m_movingHeadCanvasPanel->SetMinSize(wxSize(-1, -1));
-        m_colorPanel->SetMinSize(wxSize(-1, -1));
+        if( m_colorPanel != nullptr ) {
+            m_colorPanel->SetMinSize(wxSize(-1, -1));
+        }
         Layout();
     }
 
     // set height to match width
     wxSize new_size;
     if( Notebook1->GetSelection() == 1 ) {
-        new_size = m_sketchCanvasPanel->GetSize();
-    } else if( Notebook1->GetSelection() == 2 ) {
         new_size = m_movingHeadCanvasPanel->GetSize();
-    } else {
+    } else if( Notebook1->GetSelection() == 2 ) {
+        new_size = m_sketchCanvasPanel->GetSize();
+    } else if( m_colorPanel != nullptr ) {
         new_size = m_colorPanel->GetSize();
+    } else {
+        new_size = m_movingHeadCanvasPanel->GetSize();
     }
     new_size.SetHeight(new_size.GetWidth());
     m_movingHeadCanvasPanel->SetMinSize(new_size);
     m_sketchCanvasPanel->SetMinSize(new_size);
-    new_size.SetHeight(new_size.GetHeight() + 30);
-    m_colorPanel->SetMinSize(new_size);
+    if( m_colorPanel != nullptr ) {
+        new_size.SetHeight(new_size.GetHeight() + 30);
+        m_colorPanel->SetMinSize(new_size);
+    }*/
+
+    //FlexGridSizerPosition->Fit(PanelPosition);
+    //FlexGridSizerPosition->SetSizeHints(PanelPosition);
+    //FlexGridSizerPathing->Fit(PanelPathing);
+    //FlexGridSizerPathing->SetSizeHints(PanelPathing);
+    //FlexGridSizerColor->Fit(PanelColor);
+    //FlexGridSizerColor->SetSizeHints(PanelColor);
+    FlexGridSizer_Main->Fit(this);
+    FlexGridSizer_Main->SetSizeHints(this);
     Layout();
     Refresh();
+    event.Skip();
 }
 
 void MovingHeadPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
@@ -870,21 +867,52 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
 void MovingHeadPanel::UpdateColorPanel()
 {
     auto models = GetActiveModels();
+    std::string color_types = "None";
     for (const auto& it : models) {
         if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
             DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
             if( mhead->HasColorAbility() ) {
                 DmxColorAbility* ptrColorAbility = mhead->GetColorAbility();
                 std::string color_type = ptrColorAbility->GetTypeName();
-                if( color_type == "RGBW" ) {
-                    if( m_colorPanel != m_rgbColorPanel ) {
-                        delete m_colorPanel;
-                        m_rgbColorPanel = new MHRgbPickerPanel(this, PanelColor, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
-                        FlexGridSizerColor->Add(m_rgbColorPanel, 0, wxALL | wxEXPAND);
-                        m_colorPanel = m_rgbColorPanel;
+                if( color_types == "None" ) {
+                    color_types = color_type;
+                } else {
+                    if( color_type != color_types ) {
+                        color_types = "None";
+                        break;
                     }
                 }
-            }                               
+            }
+        }
+    }
+    
+    // All heads must be the same to show color panel
+    if( color_types == "RGBW" ) {
+        if( m_colorPanel != m_rgbColorPanel || m_colorPanel == nullptr ) {
+            if( m_colorPanel != nullptr ) delete m_colorPanel;
+            m_rgbColorPanel = new MHRgbPickerPanel(this, PanelColor, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
+            FlexGridSizerColor->Add(m_rgbColorPanel, 0, wxALL | wxEXPAND);
+            m_colorPanel = m_rgbColorPanel;
+            PanelColor->Show();
+            //wxSizeEvent dummy;
+            //OnResize( dummy );
+        }
+    }
+    else if( color_types == "ColorWheel" ) {
+        if( m_colorPanel != m_wheelColorPanel || m_colorPanel == nullptr) {
+            if( m_colorPanel != nullptr ) delete m_colorPanel;
+            xlColorVector colors;
+            colors.push_back(xlRED);
+            colors.push_back(xlGREEN);
+            colors.push_back(xlBLUE);
+            colors.push_back(xlWHITE);
+            m_wheelColorPanel = new MHColorWheelPanel(this, PanelColor, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
+            m_wheelColorPanel->DefineColours(colors);
+            m_colorPanel = m_wheelColorPanel;
+            FlexGridSizerColor->Add(m_wheelColorPanel, 0, wxALL | wxEXPAND);
+            PanelColor->Show();
+            //wxSizeEvent dummy;
+            //OnResize( dummy );
         }
     }
 }
@@ -897,6 +925,8 @@ void MovingHeadPanel::UpdateMHSettings()
         PopulatePresets();
         presets_loaded = true;
     }
+
+    UpdateColorPanel();
 
     std::string headset = xlEMPTY_STRING;
 

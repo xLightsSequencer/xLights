@@ -17,6 +17,7 @@ BEGIN_EVENT_TABLE(MHColorWheelPanel, wxPanel)
     EVT_LEFT_UP(MHColorWheelPanel::OnLeftUp)
     EVT_MOTION(MHColorWheelPanel::OnMouseMove)
     EVT_ENTER_WINDOW(MHColorWheelPanel::OnEntered)
+    EVT_SIZE(MHColorWheelPanel::OnSize)
 END_EVENT_TABLE()
 
 
@@ -34,6 +35,20 @@ MHColorWheelPanel::~MHColorWheelPanel()
     if( m_hsvBitmap != nullptr ) {
         delete m_hsvBitmap;
     }
+}
+
+void MHColorWheelPanel::OnSize(wxSizeEvent& event){
+    wxSize old_sz = GetSize();
+    if( old_sz.GetWidth() != old_sz.GetHeight() ) {
+        if( old_sz.GetWidth() > 270 ) {
+            wxSize new_size = old_sz;
+            new_size.SetHeight(new_size.GetWidth());
+            SetMinSize(new_size);
+        }
+    }
+    Refresh();
+    //skip the event.
+    event.Skip();
 }
 
 void MHColorWheelPanel::OnPaint(wxPaintEvent& /*event*/)

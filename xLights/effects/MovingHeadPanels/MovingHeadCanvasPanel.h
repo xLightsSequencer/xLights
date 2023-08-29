@@ -24,6 +24,7 @@ public:
 
     void SetPosition(wxPoint2DDouble pos);
     wxPoint2DDouble GetPosition() { return m_mousePos; }
+    void OnSize(wxSizeEvent& event);
 
 private:
 

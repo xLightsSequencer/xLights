@@ -19,6 +19,7 @@ BEGIN_EVENT_TABLE(MovingHeadCanvasPanel, wxPanel)
     EVT_LEFT_UP(MovingHeadCanvasPanel::OnMovingHeadLeftUp)
     EVT_MOTION(MovingHeadCanvasPanel::OnMovingHeadMouseMove)
     EVT_ENTER_WINDOW(MovingHeadCanvasPanel::OnMovingHeadEntered)
+    EVT_SIZE(MovingHeadCanvasPanel::OnSize)
 END_EVENT_TABLE()
 
 
@@ -27,6 +28,20 @@ MovingHeadCanvasPanel::MovingHeadCanvasPanel(IMovingHeadCanvasParent* movingHead
     m_movingHeadCanvasParent(movingHeadCanvasParent)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
+}
+
+void MovingHeadCanvasPanel::OnSize(wxSizeEvent& event){
+    wxSize old_sz = GetSize();
+    if( old_sz.GetWidth() != old_sz.GetHeight() ) {
+        if( old_sz.GetWidth() > 270 ) {
+            wxSize new_size = old_sz;
+            new_size.SetHeight(new_size.GetWidth());
+            SetMinSize(new_size);
+        }
+    }
+    Refresh();
+    //skip the event.
+    event.Skip();
 }
 
 void MovingHeadCanvasPanel::OnMovingHeadPaint(wxPaintEvent& /*event*/)

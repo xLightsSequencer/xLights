@@ -178,6 +178,7 @@
 										<cols>1</cols>
 										<rows>1</rows>
 										<growablecols>0</growablecols>
+										<growablerows>0</growablerows>
 									</object>
 									<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
 									<border>5</border>
@@ -476,6 +477,7 @@
 										<cols>1</cols>
 										<rows>1</rows>
 										<growablecols>0</growablecols>
+										<growablerows>0</growablerows>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<option>1</option>
@@ -672,15 +674,17 @@
 									<object class="wxNotebook" name="ID_NOTEBOOK2" variable="Notebook2" member="yes">
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL_Color" variable="PanelColor" member="yes">
+												<hidden>1</hidden>
 												<object class="wxFlexGridSizer" variable="FlexGridSizerColorMain" member="no">
 													<cols>1</cols>
 													<rows>2</rows>
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
-														<object class="wxFlexGridSizer" variable="FlexGridSizerColor" member="no">
+														<object class="wxFlexGridSizer" variable="FlexGridSizerColor" member="yes">
 															<cols>1</cols>
 															<rows>1</rows>
 															<growablecols>0</growablecols>
+															<growablerows>0</growablerows>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
 														<option>1</option>
@@ -697,22 +701,6 @@
 												</object>
 											</object>
 											<label>Color</label>
-										</object>
-										<object class="notebookpage">
-											<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes" />
-											<label>Shutter</label>
-										</object>
-										<object class="notebookpage">
-											<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes" />
-											<label>Dimmer</label>
-										</object>
-										<object class="notebookpage">
-											<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes" />
-											<label>Gobo</label>
-										</object>
-										<object class="notebookpage">
-											<object class="wxPanel" name="ID_PANEL4" variable="Panel4" member="yes" />
-											<label>Prism</label>
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>

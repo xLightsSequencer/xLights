@@ -72,6 +72,7 @@ public:
     wxCheckBox* CheckBox_MH6;
     wxCheckBox* CheckBox_MH7;
     wxCheckBox* CheckBox_MH8;
+    wxFlexGridSizer* FlexGridSizerColor;
     wxFlexGridSizer* FlexGridSizerPathCanvas;
     wxFlexGridSizer* FlexGridSizerPathPresets;
     wxFlexGridSizer* FlexGridSizerPathing;
@@ -81,10 +82,6 @@ public:
     wxFlexGridSizer* FlexGridSizer_Main;
     wxNotebook* Notebook1;
     wxNotebook* Notebook2;
-    wxPanel* Panel1;
-    wxPanel* Panel2;
-    wxPanel* Panel3;
-    wxPanel* Panel4;
     wxPanel* PanelColor;
     wxPanel* PanelControl;
     wxPanel* PanelPathing;
@@ -167,10 +164,6 @@ protected:
     static const long ID_BUTTON_SavePathPreset;
     static const long ID_PANEL_Pathing;
     static const long ID_PANEL_Color;
-    static const long ID_PANEL1;
-    static const long ID_PANEL2;
-    static const long ID_PANEL3;
-    static const long ID_PANEL4;
     static const long ID_NOTEBOOK2;
     static const long ID_PANEL_Control;
     static const long ID_NOTEBOOK1;
@@ -236,6 +229,7 @@ private:
     void LoadMHPreset(const wxFileName& fn);
     void LoadMHPreset(const std::string& fn);
     void UpdateColorPanel();
+    void OnResize(wxSizeEvent& event);
 
     // private variables
     bool recall {false};
@@ -243,6 +237,7 @@ private:
     std::vector<MHPresetBitmapButton*> presets;
     std::vector<MHPathPresetBitmapButton*> path_presets;
 
+    MovingHeadCanvasPanel* m_movingHeadCanvasPanel = nullptr;
     MHRgbPickerPanel* m_rgbColorPanel = nullptr;
     MHColorWheelPanel* m_wheelColorPanel = nullptr;
     wxPanel* m_colorPanel = nullptr;
@@ -267,9 +262,7 @@ public:
 private:
     bool canContinuePath() const;
     void OnCharHook(wxKeyEvent& event);
-    void OnResize(wxSizeEvent& event);
 
-    MovingHeadCanvasPanel* m_movingHeadCanvasPanel = nullptr;
     SketchCanvasPanel* m_sketchCanvasPanel = nullptr;
 
     std::string m_sketchDef;

@@ -41,6 +41,7 @@ BEGIN_EVENT_TABLE(SketchCanvasPanel, wxPanel)
     EVT_ENTER_WINDOW(SketchCanvasPanel::OnSketchEntered)
     EVT_MOUSEWHEEL(SketchCanvasPanel::OnSketchMouseWheel)
     EVT_MIDDLE_DOWN(SketchCanvasPanel::OnSketchMidDown)
+    EVT_SIZE(SketchCanvasPanel::OnSize)
 END_EVENT_TABLE()
 
 
@@ -49,6 +50,20 @@ SketchCanvasPanel::SketchCanvasPanel(ISketchCanvasParent* sketchCanvasParent, wx
     m_sketchCanvasParent(sketchCanvasParent)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
+}
+
+void SketchCanvasPanel::OnSize(wxSizeEvent& event){
+    wxSize old_sz = GetSize();
+    if( old_sz.GetWidth() != old_sz.GetHeight() ) {
+        if( old_sz.GetWidth() > 270 ) {
+            wxSize new_size = old_sz;
+            new_size.SetHeight(new_size.GetWidth());
+            SetMinSize(new_size);
+        }
+    }
+    Refresh();
+    //skip the event.
+    event.Skip();
 }
 
 void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
