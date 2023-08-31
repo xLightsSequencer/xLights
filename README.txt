@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gjones)  Fix bug where inactive models could be selected in 2D
    -- bug (gjones)  Fix import bug for models with Per Model render buffers when a single model of same name exists.
 2023.13 Aug 22, 2023
    -- enh (ClutchplateDude) Expose color count to shaders
