@@ -175,11 +175,13 @@ const long LayoutPanel::ID_PREVIEW_ALIGN_LEFT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_RIGHT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_H_CENTER = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_V_CENTER = wxNewId();
+const long LayoutPanel::ID_PREVIEW_ALIGN_D_CENTER = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_FRONT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_BACK = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_H_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_D_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_MNU_REMOVE_MODEL_FROM_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
@@ -4480,11 +4482,17 @@ void LayoutPanel::AddAlignOptionsToMenu(wxMenu* mnuAlign) {
     }
     mnuAlign->Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
     mnuAlign->Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
+    if (is_3d) {
+        mnuAlign->Append(ID_PREVIEW_ALIGN_D_CENTER, "Depth Center");
+    }
 }
 
 void LayoutPanel::AddDistributeOptionsToMenu(wxMenu* mnuDistribute) {
     mnuDistribute->Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
     mnuDistribute->Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
+    if (is_3d) {
+        mnuDistribute->Append(ID_PREVIEW_D_DISTRIBUTE, "Depth");
+    }
 }
 
 void LayoutPanel::AddResizeOptionsToMenu(wxMenu* mnuResize) {
@@ -4697,6 +4705,12 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         } else {
             objects_panel->PreviewObjectAlignVCenter();
         }
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_D_CENTER) {
+        if (editing_models) {
+            PreviewModelAlignDCenter();
+        } else {
+            objects_panel->PreviewObjectAlignDCenter();
+        }
     } else if (event.GetId() == ID_PREVIEW_H_DISTRIBUTE) {
         if (editing_models) {
             PreviewModelHDistribute();
@@ -4708,6 +4722,12 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             PreviewModelVDistribute();
         } else {
             objects_panel->PreviewObjectVDistribute();
+        }
+    } else if (event.GetId() == ID_PREVIEW_D_DISTRIBUTE) {
+        if (editing_models) {
+            PreviewModelDDistribute();
+        } else {
+            objects_panel->PreviewObjectDDistribute();
         }
     } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEWIDTH) {
         if (editing_models) {
@@ -5273,6 +5293,48 @@ void LayoutPanel::PreviewModelAlignHCenter()
     ReselectTreeModels(selectedModelPaths);
 }
 
+void LayoutPanel::PreviewModelAlignVCenter()
+{
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex < 0) return;
+
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
+    float center = modelPreview->GetModels()[selectedindex]->GetVcenterPos();
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+        if (modelPreview->GetModels()[i]->GroupSelected)
+        {
+            modelPreview->GetModels()[i]->SetVcenterPos(center);
+        }
+    }
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVCenter");
+
+    ReselectTreeModels(selectedModelPaths);
+}
+
+void LayoutPanel::PreviewModelAlignDCenter()
+{
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex < 0) return;
+
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
+    float center = modelPreview->GetModels()[selectedindex]->GetDcenterPos();
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+        if (modelPreview->GetModels()[i]->GroupSelected)
+        {
+            modelPreview->GetModels()[i]->SetDcenterPos(center);
+        }
+    }
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelDCenter");
+
+    ReselectTreeModels(selectedModelPaths);
+}
+
 bool SortModelX(const Model* first, const Model* second)
 {
     float firstmodelX = first->GetBaseObjectScreenLocation().GetHcenterPos();
@@ -5289,6 +5351,13 @@ bool SortModelY(const Model* first, const Model* second)
     return firstmodelY < secondmodelY;
 }
 
+bool SortModelZ(const Model* first, const Model* second)
+{
+    float firstmodelZ = first->GetBaseObjectScreenLocation().GetDcenterPos();
+    float secondmodelZ = second->GetBaseObjectScreenLocation().GetDcenterPos();
+
+    return firstmodelZ < secondmodelZ;
+}
 void LayoutPanel::PreviewModelHDistribute()
 {
     int count = 0;
@@ -5399,24 +5468,57 @@ void LayoutPanel::PreviewModelVDistribute()
     ReselectTreeModels(selectedModelPaths);
 }
 
-void LayoutPanel::PreviewModelAlignVCenter()
+void LayoutPanel::PreviewModelDDistribute()
 {
-    int selectedindex = GetSelectedModelIndex();
-    if (selectedindex < 0) return;
+    int count = 0;
+    float minz = 999999; // TODO: use max/min float here
+    float maxz = -999999;
 
-    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+    std::list<Model*> models;
 
-    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
-    float center = modelPreview->GetModels()[selectedindex]->GetVcenterPos();
-    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
-        if(modelPreview->GetModels()[i]->GroupSelected)
+        Model* m = modelPreview->GetModels()[i];
+        if (m->GroupSelected || m->Selected)
         {
-            modelPreview->GetModels()[i]->SetVcenterPos(center);
+            count++;
+            float z = m->GetDcenterPos();
+
+            if (z < minz) minz = z;
+            if (z > maxz) maxz = z;
+            models.push_back(m);
         }
     }
 
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVCenter");
+    if (count <= 2) return;
+
+    models.sort(SortModelZ);
+
+    float space = (maxz - minz) / (count - 1);
+
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+
+    CreateUndoPoint("All", models.front()->name);
+
+    float z = -1;
+    for (const auto& it : models)
+    {
+        if (it == models.front())
+        {
+            z = it->GetDcenterPos() + space;
+        }
+        else if (it == models.back())
+        {
+            // do nothing
+        }
+        else
+        {
+            it->SetDcenterPos(z);
+            z += space;
+        }
+    }
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelDDistribute");
 
     ReselectTreeModels(selectedModelPaths);
 }
@@ -7283,6 +7385,12 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         } else {
             objects_panel->PreviewObjectAlignVCenter();
         }
+    } else if (event.GetId() == ID_PREVIEW_ALIGN_D_CENTER) {
+        if (editing_models) {
+            PreviewModelAlignDCenter();
+        } else {
+            objects_panel->PreviewObjectAlignDCenter();
+        }
     } else if (event.GetId() == ID_PREVIEW_H_DISTRIBUTE) {
         if (editing_models) {
             PreviewModelHDistribute();
@@ -7294,6 +7402,12 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             PreviewModelVDistribute();
         } else {
             objects_panel->PreviewObjectVDistribute();
+        }
+    } else if (event.GetId() == ID_PREVIEW_D_DISTRIBUTE) {
+        if (editing_models) {
+            PreviewModelDDistribute();
+        } else {
+            objects_panel->PreviewObjectDDistribute();
         }
     } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEWIDTH) {
         if (editing_models) {
