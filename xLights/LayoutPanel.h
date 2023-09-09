@@ -183,11 +183,13 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_ALIGN_RIGHT;
         static const long ID_PREVIEW_ALIGN_H_CENTER;
         static const long ID_PREVIEW_ALIGN_V_CENTER;
+        static const long ID_PREVIEW_ALIGN_D_CENTER;
         static const long ID_PREVIEW_ALIGN_FRONT;
         static const long ID_PREVIEW_ALIGN_BACK;
         static const long ID_PREVIEW_DISTRIBUTE;
         static const long ID_PREVIEW_H_DISTRIBUTE;
         static const long ID_PREVIEW_V_DISTRIBUTE;
+        static const long ID_PREVIEW_D_DISTRIBUTE;
         static const long ID_PREVIEW_RESIZE;
         static const long ID_PREVIEW_RESIZE_SAMEWIDTH;
         static const long ID_PREVIEW_RESIZE_SAMEHEIGHT;
@@ -398,8 +400,10 @@ class LayoutPanel: public wxPanel
         void PreviewModelAlignBacks();
         void PreviewModelAlignHCenter();
         void PreviewModelAlignVCenter();
+        void PreviewModelAlignDCenter();
         void PreviewModelHDistribute();
         void PreviewModelVDistribute();
+        void PreviewModelDDistribute();
         void PreviewModelResize(bool sameWidth, bool sameHeight);
         void PreviewModelFlipV();
         void PreviewModelFlipH();

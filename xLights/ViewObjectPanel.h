@@ -47,8 +47,10 @@ public:
     void PreviewObjectAlignRight();
     void PreviewObjectAlignHCenter();
     void PreviewObjectAlignVCenter();
+    void PreviewObjectAlignDCenter();
     void PreviewObjectHDistribute();
     void PreviewObjectVDistribute();
+    void PreviewObjectDDistribute();
     void PreviewObjectFlipV();
     void PreviewObjectFlipH();
 	void DeleteSelectedObject();
