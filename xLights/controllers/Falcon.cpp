@@ -2094,7 +2094,7 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) : BaseController
             node = node->GetNext();
         }
 
-        if (_versionnum == 4) {
+        if (_versionnum == 4 || _versionnum == 5) {
             // this is going to need special handling
             if (V4_GetStatus(_v4status)) {
                 _modelnum = _v4status["BR"].AsInt();
@@ -2166,12 +2166,24 @@ void Falcon::DecodeModelVersion(int p, int& model, int& version) {
         version = 3;
         break;
     case 128:
-        model = 128;
+        model = 16;
         version = 4;
         break;
     case 129:
-        model = 129;
+        model = 48;
         version = 4;
+        break;
+    case 130:
+        model = 16;
+        version = 5;
+        break;
+    case 131:
+        model = 48;
+        version = 5;
+        break;
+    case 132:
+        model = 32;
+        version = 5;
         break;
     default:
         model = 16;
@@ -2195,7 +2207,7 @@ std::string Falcon::DecodeMode(int mode)
 
 #pragma region Getters and Setters
 std::string Falcon::GetMode() {
-    if (_versionnum == 4) {
+    if (_versionnum == 4 || _versionnum == 5) {
         return V4_DecodeMode(_v4status["O"].AsInt());
     }
     return DecodeMode(wxAtoi(_status["m"].AsString()));
@@ -2355,7 +2367,7 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
         return false;
     }
 
-    if (_versionnum == 4) {
+    if (_versionnum == 4 || _versionnum == 5) {
         return V4_SetInputUniverses(controller, parent);
     }
 
@@ -2470,8 +2482,11 @@ bool Falcon::ValidateBoard(Controller* controller)
         // we say it is a V4 but it isnt    
         logger_base.error("Controller model is %s but response from controller says it is a V%d", (const char*)controller->GetModel().c_str(), _versionnum);
         valid = false;
-    }
-    else if ((controller->GetModel() == "F16V2" || controller->GetModel() == "F16V2R" || controller->GetModel() == "F4V2") && _versionnum != 2) {
+    } else if ((controller->GetModel() == "F16V5" || controller->GetModel() == "F48V5" || controller->GetModel() == "F32V5") && _versionnum != 5) {
+        // we say it is a V4 but it isnt
+        logger_base.error("Controller model is %s but response from controller says it is a V%d", (const char*)controller->GetModel().c_str(), _versionnum);
+        valid = false;
+    } else if ((controller->GetModel() == "F16V2" || controller->GetModel() == "F16V2R" || controller->GetModel() == "F4V2") && _versionnum != 2) {
         // we say it is a V4 but it isnt    
         logger_base.error("Controller model is %s but response from controller says it is a V%d", (const char*)controller->GetModel().c_str(), _versionnum);
         valid = false;
@@ -2495,7 +2510,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         return false;
     }
 
-    if (_versionnum == 4) return V4_SetOutputs(allmodels, outputManager, controller, parent, doProgress);
+    if (_versionnum == 4 || _versionnum == 5)
+        return V4_SetOutputs(allmodels, outputManager, controller, parent, doProgress);
 
     std::unique_ptr<wxProgressDialog> progress;
     if (doProgress) {
