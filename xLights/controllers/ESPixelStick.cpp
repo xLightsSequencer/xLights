@@ -15,6 +15,7 @@
 #include "../models/Model.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Output.h"
+#include "../outputs/DDPOutput.h"
 #include "../models/ModelManager.h"
 #include "../UtilFunctions.h"
 #include "ControllerCaps.h"
@@ -32,9 +33,9 @@ ESPixelStick::ESPixelStick(const std::string& ip) : BaseController(ip, "") {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("connecting to ESPixelStick controller on %s.", (const char*)_ip.c_str());
 
-    if (!CheckWsConnection()) 
+    if (!CheckHTTPconnection()) 
     {
-        if (!CheckHTTPconnection()) {
+        if (!CheckWsConnection()) {
             _connected = false;
             logger_base.error("Error connecting to ESPixelStick controller on %s.", (const char*)_ip.c_str());
         }
@@ -350,6 +351,16 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
             //inputConfig["channels"]["0"][origTypeIdx]["channel_start"] = channel_start;
         } else if (type == "DDP") {
             //nothing to do for DDP
+            if (outputs.front()->GetType() == OUTPUT_DDP)
+            {
+                DDPOutput* ddp = dynamic_cast<DDPOutput*>(outputs.front());
+                if (ddp) {
+                    if (ddp->IsKeepChannelNumbers()) {
+                        DisplayError("The DDP 'Keep Channel Numbers' option is not support with ESPixelStick, Please Disable");
+                        return false;
+                    }
+                }
+            }
         }
 
         if (changed) {
