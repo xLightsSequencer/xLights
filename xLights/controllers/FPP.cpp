@@ -3574,7 +3574,7 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
         return false;
     }
     if (res->typeId < 0x80) {
-        if (res->extraData.HasMember("httpConnected") && res->extraData["httpConnected"].AsBool() == true && res->majorVersion >= 6) {
+        if (res->extraData.HasMember("httpConnected") && res->extraData["httpConnected"].AsBool() == true) {
             // genuine FPP instance and able to connect via http
             return true;
         } else {
