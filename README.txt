@@ -11,6 +11,23 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.14 Sep 16, 2023
+   -- enh (keith)   Twinkly reconnect after power cycle
+   -- enh (scott)   Add more WLED pixel types
+   -- enh (scott)   Update SanDevices upload to work with 5.5/5.1 firmware
+   -- enh (keith)   Preliminary Falcon V5 support
+   -- enh (scott)   FPP controllers default to DMX-Open instead of DMX-Pro
+   -- enh (scott)   Add Full xLights Control for HinksPix
+   -- enh (dkulp)   FPP Connect - show discovered but unsupported FPP instances
+   -- enh (lasershane) Implement model layout options for Distribute Depth and Alight Depth Center
+   -- enh (dartunder) Update group center mark to use handle size selection
+   -- enh (MrPierreB) Two new layer blending styles
+   -- bug (dkulp)   Fix parsing of JSON with unicode characters
+   -- bug (scott)   ESPixelStick should not allow "KeepChannelNumbers" setting
+   -- bug (scott)   Allow more than 12 universes for ESPixelStick on controllers that support it
+   -- bug (scott)   AlphaPix/ESPixelStick/SanDevices/WLED - make sure valid controller settings are used for various things
+   -- bug (keith)   Disable Twinkly outputs still try to connect
+   -- bug (dartunder) Fix hyperlink for FPP instances behind proxy in FPP Connect
    -- bug (gjones)  Fix bug where inactive models could be selected in 2D
    -- bug (gjones)  Fix import bug for models with Per Model render buffers when a single model of same name exists.
 2023.13 Aug 22, 2023
