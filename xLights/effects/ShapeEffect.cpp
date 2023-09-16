@@ -1224,14 +1224,6 @@ static inline uint32_t GetSVGExAlpha(uint32_t colour)
     return (colour & 0xFFFFFF);
 }
 
-static inline uint32_t GetSVGColour(xlColor c)
-{
-    return (((uint32_t)c.alpha) << 24) +
-           (((uint32_t)c.blue) << 16) +
-           (((uint32_t)c.green) << 8) +
-           c.red;
-}
-
 void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const
 {
     auto image = cache->GetImage();

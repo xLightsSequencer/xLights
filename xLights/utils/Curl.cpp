@@ -206,6 +206,7 @@ static int progressFunction(void* bar,
 
     return 0;
 }
+#ifdef _DEBUG
 static size_t headerFunction(char* buffer, size_t size, size_t nitems, void* userdata)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -214,7 +215,7 @@ static size_t headerFunction(char* buffer, size_t size, size_t nitems, void* use
     }
     return size * nitems;
 }
-
+#endif
 
 std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode)
 {

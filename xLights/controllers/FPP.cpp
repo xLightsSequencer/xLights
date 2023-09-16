@@ -599,9 +599,7 @@ static inline void addString(wxMemoryBuffer &buffer, const char *str) {
 static inline void addString(wxMemoryBuffer &buffer, const std::string &str) {
     buffer.AppendData(str.c_str(), str.length());
 }
-static inline void addString(wxMemoryBuffer &buffer, const wxString &str) {
-    addString(buffer, ToUTF8(str));
-}
+
 bool FPP::GetPathAsJSON(const std::string &path, wxJSONValue &val) {
     wxFileName fn;
     fn = ToWXString(path);

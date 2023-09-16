@@ -2069,14 +2069,6 @@ static inline uint32_t GetSVGExAlpha(uint32_t colour)
     return (colour & 0xFFFFFF);
 }
 
-static inline uint32_t GetSVGColour(xlColor c)
-{
-    return (((uint32_t)c.alpha) << 24) +
-           (((uint32_t)c.blue) << 16) +
-           (((uint32_t)c.green) << 8) +
-           c.red;
-}
-
 static inline bool areSame(double a, double b, float eps)
 {
     return std::fabs(a - b) < eps;
