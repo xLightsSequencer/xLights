@@ -1630,7 +1630,9 @@ bool EffectsGrid::AreAllSelectedEffectsOnTheSameElement() const
 int EffectsGrid::GetSelectedEffectCount(const std::string& effectName) const
 {
     int count = 0;
-
+    if (mSequenceElements == nullptr) {
+        return 0;
+    }
     for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
         EffectLayer* el = mSequenceElements->GetEffectLayer(row);
         count += el->GetSelectedEffectCount(effectName);
