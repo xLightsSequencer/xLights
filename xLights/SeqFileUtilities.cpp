@@ -662,6 +662,7 @@ bool xLightsFrame::CloseSequence()
     if (mainSequencer != nullptr) {
         if (mainSequencer->PanelEffectGrid != nullptr) mainSequencer->PanelEffectGrid->ClearSelection();
         if (mainSequencer->PanelWaveForm != nullptr) mainSequencer->PanelWaveForm->CloseMedia();
+        if (mainSequencer->ViewChoice != nullptr) mainSequencer->ViewChoice->Clear();
     }
     _seqData.init(0, 0, 50);
     EnableSequenceControls(true);  // let it re-evaluate menu state
