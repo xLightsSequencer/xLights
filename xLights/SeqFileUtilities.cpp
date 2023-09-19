@@ -1111,7 +1111,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     }
 }
 
-void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<EffectLayer *> &mapped, bool eraseExisting, SequencePackage &xsqPkg) {
+void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<EffectLayer *> &mapped, bool eraseExisting, SequencePackage &xsqPkg, bool lock) {
 
     if (eraseExisting) target->DeleteAllEffects();
 
@@ -1166,8 +1166,12 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
                 }
             }
 
-            target->AddEffect(0, ef->GetEffectName(), settings, ef->GetPaletteAsString(),
+            Effect* ne = target->AddEffect(0, ef->GetEffectName(), settings, ef->GetPaletteAsString(),
                 ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
+            if (lock)
+            {
+                ne->SetLocked(true);
+            }
         }
     }
     mapped.push_back(src);
@@ -1177,7 +1181,7 @@ void MapXLightsStrandEffects(EffectLayer *target, const std::string &name,
     std::map<std::string, EffectLayer *> &layerMap,
     SequenceElements &seqEl,
     std::vector<EffectLayer *> &mapped, bool eraseExisting,
-    SequencePackage &xsqPkg) {
+    SequencePackage &xsqPkg, bool lock) {
     EffectLayer *src = layerMap[name];
     if (src == nullptr) {
         Element * srcEl = seqEl.GetElement(name);
@@ -1188,7 +1192,7 @@ void MapXLightsStrandEffects(EffectLayer *target, const std::string &name,
         src = srcEl->GetEffectLayer(0);
     }
     if (src != nullptr) {
-        MapXLightsEffects(target, src, mapped, eraseExisting, xsqPkg);
+        MapXLightsEffects(target, src, mapped, eraseExisting, xsqPkg, lock);
     }
     else {
         printf("Source strand %s doesn't exist\n", name.c_str());
@@ -1201,7 +1205,7 @@ void MapXLightsEffects(Element *target,
     std::map<std::string, Element *> &elementMap,
     std::map<std::string, EffectLayer *> &layerMap,
     std::vector<EffectLayer *> &mapped, bool eraseExisting,
-    SequencePackage &xsqPkg) {
+    SequencePackage &xsqPkg, bool lock) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (target->GetType() == ElementType::ELEMENT_TYPE_STRAND)
@@ -1218,7 +1222,7 @@ void MapXLightsEffects(Element *target,
     Element *el = elementMap[name];
 
     if (src != nullptr) {
-        MapXLightsEffects(target->GetEffectLayer(0), src, mapped, eraseExisting, xsqPkg);
+        MapXLightsEffects(target->GetEffectLayer(0), src, mapped, eraseExisting, xsqPkg, lock);
         return;
     }
 
@@ -1236,7 +1240,7 @@ void MapXLightsEffects(Element *target,
         target->AddEffectLayer();
     }
     for (size_t x = 0; x < el->GetEffectLayerCount(); x++) {
-        MapXLightsEffects(target->GetEffectLayer(x), el->GetEffectLayer(x), mapped, eraseExisting, xsqPkg);
+        MapXLightsEffects(target->GetEffectLayer(x), el->GetEffectLayer(x), mapped, eraseExisting, xsqPkg, lock);
     }
 }
 
@@ -1394,6 +1398,8 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
         GetSequenceElements().SetSupportsModelBlending(modelBlending);
     }
 
+    bool lock = dlg.IsLockEffects();
+
     // if the user is importing at least one timing element and the current sequence only has one timing track called New Timing with no timing marks in it ...
     if (dlg.TimingTrackListBox->GetCount() > 0 && _sequenceElements.GetNumberOfTimingElements() == 1 && _sequenceElements.GetTimingElement("New Timing") != nullptr && !_sequenceElements.GetTimingElement("New Timing")->HasEffects())
     {
@@ -1429,7 +1435,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 }
                 EffectLayer *dst = target->GetEffectLayer(l);
                 std::vector<EffectLayer *> mapped2;
-                MapXLightsEffects(dst, src, mapped2, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg);
+                MapXLightsEffects(dst, src, mapped2, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock);
             }
         }
     }
@@ -1456,7 +1462,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
             }
             else
             {
-                MapXLightsEffects(model, m->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg);
+                MapXLightsEffects(model, m->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock);
             }
         }
 
@@ -1477,7 +1483,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 {
                     SubModelElement *ste = model->GetSubModel(str);
                     if (ste != nullptr) {
-                        MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg);
+                        MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock);
                     }
                 }
             }
@@ -1498,7 +1504,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                         if (stre != nullptr) {
                             NodeLayer *nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
-                                MapXLightsStrandEffects(nl, ns->_mapping.ToStdString(), layerMap, se, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg);
+                                MapXLightsStrandEffects(nl, ns->_mapping.ToStdString(), layerMap, se, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock);
                             }
                         }
                     }

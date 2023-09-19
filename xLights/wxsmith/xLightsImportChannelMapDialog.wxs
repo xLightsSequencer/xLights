@@ -61,11 +61,20 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="yes">
-									<cols>1</cols>
+									<cols>2</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
 										<object class="wxCheckBox" name="ID_CHECKBOX11" variable="CheckBox_EraseExistingEffects" member="yes">
 											<label>Erase existing effects on imported models</label>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_LockEffects" member="yes">
+											<label>Lock effects on import</label>
+											<checked>1</checked>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
