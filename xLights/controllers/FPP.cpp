@@ -2107,16 +2107,35 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
         // we can verify that the ID actually can load a pinout
         bool found = false;
         wxJSONValue val;
+        wxString id = rules->GetID();
         if (GetURLAsJSON("/api/cape/strings", val)) {
             for (int x = 0; x < val.Size(); x++) {
-                if (val[x].AsString() == rules->GetID()) {
+                if (val[x].AsString() == id) {
                     found = true;
+                }
+            }
+            //certain older capes may have versioned pin config files,
+            //we'll need to check them
+            if (!found) {
+                id = rules->GetID() + "_v2";
+                for (int x = 0; x < val.Size(); x++) {
+                    if (val[x].AsString() == id) {
+                        found = true;
+                    }
+                }
+            }
+            if (!found) {
+                id = rules->GetID() + "_v3";
+                for (int x = 0; x < val.Size(); x++) {
+                    if (val[x].AsString() == id) {
+                        found = true;
+                    }
                 }
             }
         }
         if (found) {
             wxJSONValue val;
-            if (GetURLAsJSON("/api/cape/strings/" + rules->GetID(), val)) {
+            if (GetURLAsJSON("/api/cape/strings/" + id, val)) {
                 if (val.HasMember("driver")) {
                     driver = val["driver"].AsString();
                 }
