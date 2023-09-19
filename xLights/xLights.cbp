@@ -464,6 +464,8 @@
 		<Unit filename="AlignmentDialog.h" />
 		<Unit filename="AudioManager.cpp" />
 		<Unit filename="AudioManager.h" />
+		<Unit filename="AutoLabelDialog.cpp" />
+		<Unit filename="AutoLabelDialog.h" />
 		<Unit filename="BatchRenderDialog.cpp" />
 		<Unit filename="BatchRenderDialog.h" />
 		<Unit filename="BitmapCache.cpp" />
@@ -1396,6 +1398,7 @@
 		<Unit filename="wxsmith/AboutDialog.wxs" />
 		<Unit filename="wxsmith/AlignmentDialog.wxs" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />
+		<Unit filename="wxsmith/AutoLabelDialog.wxs" />
 		<Unit filename="wxsmith/BackupSettingsPanel.wxs" />
 		<Unit filename="wxsmith/BarsPanel.wxs" />
 		<Unit filename="wxsmith/BatchRenderDialog.wxs" />
@@ -1781,6 +1784,7 @@
 					<wxDialog wxs="wxsmith/DuplicateDialog.wxs" src="DuplicateDialog.cpp" hdr="DuplicateDialog.h" fwddecl="0" i18n="1" name="DuplicateDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MetronomeLabelDialog.wxs" src="MetronomeLabelDialog.cpp" hdr="MetronomeLabelDialog.h" fwddecl="0" i18n="1" name="MetronomeLabelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/FPPUploadProgressDialog.wxs" src="controllers/FPPUploadProgressDialog.cpp" hdr="controllers/FPPUploadProgressDialog.h" fwddecl="0" i18n="1" name="FPPUploadProgressDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/AutoLabelDialog.wxs" src="AutoLabelDialog.cpp" hdr="AutoLabelDialog.h" fwddecl="0" i18n="1" name="AutoLabelDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

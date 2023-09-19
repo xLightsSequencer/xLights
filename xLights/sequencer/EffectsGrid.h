@@ -356,6 +356,7 @@ private:
     static const long ID_GRID_MNU_REDO;
     static const long ID_GRID_MNU_PRESETS;
     static const long ID_GRID_MNU_BREAKDOWN_PHRASE;
+    static const long ID_GRID_MNU_AUTOLABEL;
     static const long ID_GRID_MNU_HALVETIMINGS;
     static const long ID_GRID_MNU_BREAKDOWN_WORD;
     static const long ID_GRID_MNU_BREAKDOWN_WORDS;
