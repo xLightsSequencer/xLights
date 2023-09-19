@@ -1716,6 +1716,7 @@ bool ModelManager::Delete(const std::string& name) {
             }
         }
     }
+    return false;
 }
 
 std::map<std::string, Model*>::const_iterator ModelManager::begin() const {
