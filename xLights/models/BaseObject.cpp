@@ -91,6 +91,11 @@ void BaseObject::Lock(bool lock)
     IncrementChangeCount();
 }
 
+bool BaseObject::IsLocked() const
+{
+    return GetModelXml()->GetAttribute("Locked", "0") == "1";
+}
+
 void BaseObject::AddASAPWork(uint32_t work, const std::string& from)
 {
     xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(work, from, this, nullptr, GetName());

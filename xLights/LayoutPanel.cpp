@@ -4390,8 +4390,11 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
     }
     if (editing_models && (selectedBaseObject != nullptr))
     {
-        menu.Append(ID_PREVIEW_MODEL_LOCK, "Lock");
-        menu.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock");
+        auto lm = menu.Append(ID_PREVIEW_MODEL_LOCK, "Lock");
+        lm->Enable(!selectedBaseObject->IsLocked());
+        auto um = menu.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock");
+        um->Enable(selectedBaseObject->IsLocked());
+
         Model* model = dynamic_cast<Model*>(selectedBaseObject);
         if (model != nullptr && model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
             menu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
@@ -6550,7 +6553,8 @@ void LayoutPanel::RemoveSelectedModelsFromGroup() {
     }
 
 }
-void LayoutPanel::DeleteSelectedModels() {
+void LayoutPanel::DeleteSelectedModels()
+{
     if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked()) {
         xlights->AddTraceMessage("LayoutPanel::Delete Selected Model");
 
@@ -6565,18 +6569,34 @@ void LayoutPanel::DeleteSelectedModels() {
         }
 
         if (wxMessageBox("Are you sure you want to delete the folowing model(s)?:\n\n" + modelsToConfirm, "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES) {
-
             // we suspend deferred work because if the delete model pops a dialog then the ASAP work gets done prematurely
             xlights->GetOutputModelManager()->SuspendDeferredWork(true);
             xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
-            xlights->AbortRender(); // stop any rendering as deleting models from under the renderer will crash xlights
+            xlights->AbortRender();    // stop any rendering as deleting models from under the renderer will crash xlights
 
             CreateUndoPoint("All", wxJoin(modelsToDelete, ','));
 
-            for (const auto& it: modelsToDelete) {
-                xlights->GetDisplayElementsPanel()->RemoveModelFromLists(it);
-                xlights->AllModels.Delete(it);
-                xlights->AddTraceMessage(wxString::Format("LayoutPanel::Delete Selected Model : %s", it));
+            bool allDeleted = true;
+
+            for (const auto& it : modelsToDelete) {
+                auto model = xlights->AllModels[it];
+                if (model != nullptr) {
+                    if (!model->IsLocked()) {
+                        xlights->GetDisplayElementsPanel()->RemoveModelFromLists(it);
+                        allDeleted = xlights->AllModels.Delete(it) && allDeleted;
+                        xlights->AddTraceMessage(wxString::Format("LayoutPanel::Delete Selected Model : %s", it));
+                    } else {
+                        allDeleted = false;
+                    }
+                }
+                else {
+                    allDeleted = false;
+                }
+            }
+
+            if (!allDeleted) {
+                wxBell();
+                wxMessageBox("One or models unable to be deleted. They may be locked or have effects on them.", "Delete failed", 5L, this);
             }
 
             selectedBaseObject = nullptr;
@@ -6587,6 +6607,8 @@ void LayoutPanel::DeleteSelectedModels() {
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DeleteSelectedModels");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::DeleteSelectedModels");
         }
+    } else {
+        wxBell();
     }
 }
 
@@ -8132,25 +8154,45 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     if (selectedTreeGroups.size() == 0) {
         if (selectedTreeSubModels.size() == 0) {
             if (selectedTreeModels.size() == 1) {
-                mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Model");
+                ModelTreeData* data = (ModelTreeData*)TreeListViewModels->GetItemData(selectedTreeModels[0]);
+                Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
+                auto dm = mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Model");
+                if (model != nullptr) {
+                    dm->Enable(!model->IsLocked());
+                }
                 auto par = TreeListViewModels->GetItemParent(selectedTreeModels[0]);
                 if (par != TreeListViewModels->GetRootItem()) {
                     mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Group");
                 }
                 mnuContext.AppendSeparator();
             }
-
+            else 
             if (selectedTreeModels.size() > 1) {
                 auto parent = TreeListViewModels->GetItemParent(selectedTreeModels[0]);
                 bool allSameParent = true;
+                bool allLocked = true;
+                bool allUnlocked = true;
                 for (auto &i : selectedTreeModels) {
                     if (parent != TreeListViewModels->GetItemParent(i)) {
                         allSameParent = false;
                     }
+
+                    ModelTreeData* data = (ModelTreeData*)TreeListViewModels->GetItemData(i);
+                    Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
+                    if (model != nullptr) {
+                        if (model->IsLocked()) {
+                            allUnlocked = false;
+                        } else {
+                            allLocked = false;
+                        }
+                    }
                 }
-                mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Models");
-                mnuContext.Append(ID_PREVIEW_MODEL_LOCK, "Lock Models");
-                mnuContext.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock Models");
+                auto dm = mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Models");
+                dm->Enable(!allLocked);
+                auto lm = mnuContext.Append(ID_PREVIEW_MODEL_LOCK, "Lock Models");
+                lm->Enable(!allLocked);
+                auto um = mnuContext.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock Models");
+                um->Enable(!allUnlocked);
                 
                 if (allSameParent && parent != TreeListViewModels->GetRootItem()) {
                     mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Group");

@@ -1659,7 +1659,7 @@ std::string ModelManager::GenerateNewStartChannel( const std::string& lastModel 
     return startChannel;
 }
 
-void ModelManager::Delete(const std::string& name) {
+bool ModelManager::Delete(const std::string& name) {
     // some layouts end up with illegal names
     std::string mn = Model::SafeModelName(name);
 
@@ -1677,7 +1677,7 @@ void ModelManager::Delete(const std::string& name) {
 
             if (effects_exist) {
                 if (wxMessageBox("Model '" + name + "' exists in the currently open sequence and has effects on it. Delete all effects and layers on this model?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) != wxYES)
-                    return;
+                    return false;
             }
 
             // Delete the model from the sequencer grid and views
@@ -1712,7 +1712,7 @@ void ModelManager::Delete(const std::string& name) {
 
                 delete model->GetModelXml();
                 delete model;
-                return;
+                return true;
             }
         }
     }
