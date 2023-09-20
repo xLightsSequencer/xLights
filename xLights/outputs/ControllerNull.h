@@ -31,8 +31,12 @@ public:
 #pragma region Constructors and Destructors
     ControllerNull(OutputManager* om, wxXmlNode* node, const std::string& showDir);
     ControllerNull(OutputManager* om);
-    virtual ~ControllerNull() {}
+    ControllerNull(OutputManager* om, const ControllerNull& from);
+    virtual ~ControllerNull()
+    {}
     virtual wxXmlNode* Save() override;
+    virtual bool UpdateFrom(Controller* from) override;
+    virtual Controller* Copy(OutputManager* om) override;
 #pragma endregion Constructors and Destructors
 
 #pragma region Virtual Functions

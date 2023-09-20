@@ -22,6 +22,10 @@ NullOutput::NullOutput(wxXmlNode* node) : Output(node) {
     SetId(wxAtoi(node->GetAttribute("Id", "64001")));
 }
 
+NullOutput::NullOutput(const NullOutput& from) : Output(from)
+{
+}
+
 wxXmlNode* NullOutput::Save() {
 
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");

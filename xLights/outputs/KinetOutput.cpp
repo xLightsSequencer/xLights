@@ -136,6 +136,15 @@ KinetOutput::KinetOutput() : IPOutput() {
     memset(_data, 0, sizeof(_data));
 }
 
+KinetOutput::KinetOutput(const KinetOutput& from) :
+    IPOutput(from)
+{
+    _channels = from._channels;
+    _sequenceNum = 0;
+    _datagram = nullptr;
+    memset(_data, 0, sizeof(_data));
+}
+
 KinetOutput::~KinetOutput() {
     if (_datagram != nullptr) delete _datagram;
 }

@@ -57,7 +57,12 @@ public:
 #pragma region Constructors and Destructors
     ArtNetOutput(wxXmlNode* node, bool isActive);
     ArtNetOutput();
+    ArtNetOutput(const ArtNetOutput& from);
     virtual ~ArtNetOutput() override;
+    virtual Output* Copy() override
+    {
+        return new ArtNetOutput(*this);
+    }
 #pragma endregion
 
 #pragma region Static Functions

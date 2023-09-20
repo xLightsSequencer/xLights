@@ -34,9 +34,13 @@ public:
 
     #pragma region Constructors and Destructors
     DMXOutput(wxXmlNode* node);
-    DMXOutput(SerialOutput* output);
+    DMXOutput(const DMXOutput& from);
     DMXOutput();
     virtual ~DMXOutput() override {};
+    virtual Output* Copy() override
+    {
+        return new DMXOutput(*this);
+    }
     #pragma endregion 
 
     #pragma region Getters and Setters

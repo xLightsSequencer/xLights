@@ -14,8 +14,9 @@
 #include <wx/xml/xml.h>
 
 #pragma region Constructors and Destructors
-LOROutput::LOROutput(SerialOutput* output) : SerialOutput(output) {
-
+LOROutput::LOROutput(const LOROutput& from) :
+    SerialOutput(from)
+{
     memset(_lastSent, 0x00, sizeof(_lastSent));
     memset(_notSentCount, 0x00, sizeof(_notSentCount));
     memset(_data, 0, sizeof(_data));
