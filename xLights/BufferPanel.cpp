@@ -715,6 +715,7 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
 
         Choice_PerPreviewCamera->SetStringSelection("2D");
         if (model != nullptr) {
+            _mg = (model->GetDisplayAs() == "ModelGroup");
             auto mg = dynamic_cast<const ModelGroup*>(model);
             if (mg != nullptr) {
                 Choice_PerPreviewCamera->SetStringSelection(mg->GetDefaultCamera());
