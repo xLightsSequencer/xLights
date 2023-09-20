@@ -1029,6 +1029,12 @@
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="AutoLabelDialog.cpp" />
+    <ClCompile Include="effects\cuda\CudaEffectManager.cpp">
+      <Filter>Effects\cuda</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\cuda\CudaRenderBufferComputeData.cpp">
+      <Filter>Effects\cuda</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2071,6 +2077,21 @@
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="AutoLabelDialog.h" />
+    <ClInclude Include="effects\cuda\CudaComputeUtilities.h">
+      <Filter>Effects\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\cuda\CudaEffectDataTypes.h">
+      <Filter>Effects\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\cuda\CudaRenderBufferComputeData.h">
+      <Filter>Effects\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\cuda\CudaRenderUtils.h">
+      <Filter>Effects\cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\cuda\helper_cuda.h">
+      <Filter>Effects\cuda</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2115,6 +2136,9 @@
     <Filter Include="graphics\opengl\GL">
       <UniqueIdentifier>{6ee588bc-dc96-462e-b373-e36fbb8a27e0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\cuda">
+      <UniqueIdentifier>{e65bd49b-1e76-4474-923e-67e0eb9a769f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -2123,5 +2147,10 @@
     <Text Include="..\documentation\xlDo Commands.txt">
       <Filter>automation</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="effects\cuda\CudaComputeUtilities.cpp">
+      <Filter>Effects\cuda</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>
