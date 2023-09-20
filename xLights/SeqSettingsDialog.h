@@ -49,11 +49,14 @@ class SeqSettingsDialog: public wxDialog
 		wxButton* Button_Cancel;
 		wxButton* Button_Close;
 		wxButton* Button_Download;
+		wxButton* Button_EmailSend;
 		wxButton* Button_Layer_Delete;
 		wxButton* Button_Layer_Import;
 		wxButton* Button_Move_Down;
 		wxButton* Button_Move_Up;
+		wxButton* Button_MusicOpen;
 		wxButton* Button_Reimport;
+		wxButton* Button_WebsiteOpen;
 		wxButton* Button_Xml_Import_Timing;
 		wxButton* Button_Xml_New_Timing;
 		wxCheckBox* BlendingCheckBox;
@@ -152,8 +155,10 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_TEXTCTRL_Xml_Author;
 		static const long ID_STATICTEXT_Xml_Author_Email;
 		static const long ID_TEXTCTRL_Xml_Author_Email;
+		static const long ID_BUTTON4;
 		static const long ID_STATICTEXT_Xml_Website;
 		static const long ID_TEXTCTRL_Xml_Website;
+		static const long ID_BUTTON3;
 		static const long ID_STATICTEXT_Xml_Song;
 		static const long ID_TEXTCTRL_Xml_Song;
 		static const long ID_STATICTEXT_Xml_Artist;
@@ -162,6 +167,7 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_TEXTCTRL_Xml_Album;
 		static const long ID_STATICTEXT_Xml_Music_Url;
 		static const long ID_TEXTCTRL_Xml_Music_Url;
+		static const long ID_BUTTON2;
 		static const long ID_STATICTEXT_Xml_Comment;
 		static const long ID_TEXTCTRL_Xml_Comment;
 		static const long ID_PANEL1;
@@ -244,6 +250,9 @@ class SeqSettingsDialog: public wxDialog
 		void OnBitmapButton_ModifyTimingClick(wxCommandEvent& event);
 		void OnButton_DownloadClick(wxCommandEvent& event);
 		void OnRenderModeChoiceSelect(wxCommandEvent& event);
+		void OnButton_EmailSendClick(wxCommandEvent& event);
+		void OnButton_WebsiteOpenClick(wxCommandEvent& event);
+		void OnButton_MusicOpenClick(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
