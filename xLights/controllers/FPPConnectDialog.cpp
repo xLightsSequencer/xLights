@@ -1024,7 +1024,13 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                                         }
                                         m2 = "";
                                     }
-                                    //cancelled |= !falcon.UploadSequence(inst->GetTempFile(), fseq, inst->mode == "remote" ? "" : m2, &prgs);
+                                    std::function<bool(int, std::string)> updateProg = [&prgs, inst](int val, std::string msg) 
+                                    { 
+                                        prgs->setActionLabel(msg);
+                                        inst->updateProgress(val, true);
+                                        return true;
+                                    };
+                                    cancelled |= !falcon.UploadSequence(inst->GetTempFile(), fseq, inst->mode == "remote" ? "" : m2, updateProg);
                                 }
                                 else {
                                     logger_base.debug("Upload failed as FxxV4 is not connected.");

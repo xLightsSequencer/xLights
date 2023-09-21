@@ -2282,7 +2282,7 @@ bool Falcon::V4_ValidateWAV(const std::string& media)
     return false;
 }
 
-bool Falcon::UploadSequence(const std::string& seq, const std::string& file, const std::string& media, wxProgressDialog* progress)
+bool Falcon::UploadSequence(const std::string& seq, const std::string& file, const std::string& media, std::function<bool(int, std::string)> progress)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool res = true;
@@ -2327,12 +2327,12 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
 
                 if (res) {
                     if (ismp3) {
-                        if (progress != nullptr) progress->Update(0, "Converting to WAV file.");
+                        if (progress != nullptr) progress(0, "Converting to WAV file.");
                         wxSleep(1);
                         int p = 0;
                         while (p != 100) {
                             p = V4_GetConversionProgress();
-                            if (progress != nullptr) progress->Update(p * 10, "Converting to WAV file.");
+                            if (progress != nullptr) progress(p * 10, "Converting to WAV file.");
                             if (p != 100) wxSleep(5);
                         }
                     }
