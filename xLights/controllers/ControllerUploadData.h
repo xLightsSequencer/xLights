@@ -69,6 +69,7 @@ public:
 
     #pragma region Getters and Setters
     int GetChannelsPerPixel() const;
+    int GetLightsPerNode() const;
     int32_t Channels() const { return _endChannel - _startChannel + 1; }
     int32_t GetStartChannel() const { return _startChannel; }
     int32_t GetEndChannel() const { return _endChannel; }
