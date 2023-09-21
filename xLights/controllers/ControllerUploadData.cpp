@@ -102,6 +102,11 @@ int UDControllerPortModel::GetChannelsPerPixel() const
     return _model->GetNodeChannelCount(_model->GetStringType());
 }
 
+int UDControllerPortModel::GetLightsPerNode() const
+{
+    return _model->GetLightsPerNode();
+}
+
 int UDControllerPortModel::GetDMXChannelOffset() const
 {
     wxXmlNode* node = _model->GetControllerConnection();
@@ -139,7 +144,7 @@ char UDControllerPortModel::GetSmartRemoteLetter() const
 
 float UDControllerPortModel::GetAmps(int defaultBrightness) const
 {
-    return ((float)AMPS_PER_PIXEL * (float)INTROUNDUPDIV(Channels() , GetChannelsPerPixel()) * GetBrightness(defaultBrightness)) / 100.0F;
+    return ((float)AMPS_PER_PIXEL * (float)INTROUNDUPDIV(Channels() * GetLightsPerNode(), GetChannelsPerPixel()) * GetBrightness(defaultBrightness)) / 100.0F;
 }
 
 int UDControllerPortModel::GetSmartTs(int currentSmartTs) const
