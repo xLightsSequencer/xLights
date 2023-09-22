@@ -1655,7 +1655,7 @@ bool xLightsFrame::AbortRender(int maxTimeMS)
     }
     logger_base.info("    Aborting renderers ... Done");
     inAbort = false;
-    return renderProgressInfo.empty();
+    return (abortCount != 0) && renderProgressInfo.empty();
 }
 
 void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback) {
