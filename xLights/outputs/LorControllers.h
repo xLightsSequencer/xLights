@@ -28,6 +28,7 @@ public:
     #pragma region Construtors and Destructors
     LorControllers() { _dirty = true; }
     LorControllers(wxXmlNode* node);
+    LorControllers(const LorControllers& from);
     virtual ~LorControllers() {}
     void Save(wxXmlNode* node);
     #pragma endregion

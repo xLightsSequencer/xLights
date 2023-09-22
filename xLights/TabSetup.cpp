@@ -142,10 +142,11 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
 }
 
 
-bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
-
+bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
+{
     wxString nd = newdir;
-    if (nd.EndsWith(wxFileName::GetPathSeparator())) nd = nd.SubString(0, nd.size() - 2);
+    if (nd.EndsWith(wxFileName::GetPathSeparator()))
+        nd = nd.SubString(0, nd.size() - 2);
 
     // don't change show directories with an open sequence because models won't match
     if (!CloseSequence()) {
@@ -177,10 +178,12 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
 
     // update most recently used array
     int idx = mruDirectories.Index(nd);
-    if (idx != wxNOT_FOUND) mruDirectories.RemoveAt(idx);
+    if (idx != wxNOT_FOUND)
+        mruDirectories.RemoveAt(idx);
     if (!CurrentDir.IsEmpty()) {
         idx = mruDirectories.Index(CurrentDir);
-        if (idx != wxNOT_FOUND) mruDirectories.RemoveAt(idx);
+        if (idx != wxNOT_FOUND)
+            mruDirectories.RemoveAt(idx);
         if (mruDirectories.empty()) {
             mruDirectories.push_back(CurrentDir);
         } else {
@@ -204,7 +207,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     wxString value;
     wxConfigBase* config = wxConfigBase::Get();
     if (permanent) {
-        if (DirExists) config->Write(_("LastDir"), nd);
+        if (DirExists)
+            config->Write(_("LastDir"), nd);
         _permanentShowFolder = nd;
     }
     for (size_t i = 0; i < MRUD_LENGTH; i++) {
@@ -225,7 +229,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     int i = RecentShowFoldersMenu->GetMenuItemCount();
     while (i) {
         i--;
-        wxMenuItem *item = RecentShowFoldersMenu->FindItemByPosition(0);
+        wxMenuItem* item = RecentShowFoldersMenu->FindItemByPosition(0);
         RecentShowFoldersMenu->Delete(item);
     }
 
@@ -262,8 +266,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     SpecialOptions::StashShowDir(CurrentDir.ToStdString());
     SpecialOptions::GetOption("", ""); // resets special options
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Show directory set to : %s.", (const char *)showDirectory.c_str());
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Show directory set to : %s.", (const char*)showDirectory.c_str());
 
     if (_logfile != nullptr) {
         wxLog::SetActiveTarget(nullptr);
@@ -288,7 +292,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     if (fseqLinkFlag) {
         fseqDirectory = CurrentDir;
         config->Write(_("FSEQDir"), wxString(fseqDirectory));
-        logger_base.debug("FSEQ Directory set to : %s.", (const char *)fseqDirectory.c_str());
+        logger_base.debug("FSEQ Directory set to : %s.", (const char*)fseqDirectory.c_str());
     }
 
     EnableNetworkChanges();
@@ -310,25 +314,29 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
                 return false;
             }
             DisplayError(wxString::Format("Unable to load network config %s : Time %ldms", networkFile.GetFullPath(), sww.Time()).ToStdString());
-        }
-        else {
+        } else {
             logger_base.debug("Loaded network config %s : Time %ldms", (const char*)networkFile.GetFullPath().c_str(), sww.Time());
             InitialiseControllersTab();
         }
-    }
-    else {
+    } else {
         _outputManager.SetShowDir(CurrentDir.ToStdString());
     }
 
     if (_outputManager.DidConvert()) {
         NetworkChange();
-    }
-    else {
+    } else {
         UnsavedNetworkChanges = false;
         UpdateControllerSave();
     }
 
     ShowDirectoryLabel->SetLabel(showDirectory);
+
+    CheckBox_AutoUpdateBase->SetValue(_outputManager.IsAutoUpdateFromBaseShowDir());
+    if (_outputManager.GetBaseShowDir() == "") {
+        StaticText_BaseShowDir->SetLabel("No Base Show Directory");
+    } else {
+        StaticText_BaseShowDir->SetLabel(_outputManager.GetBaseShowDir());
+    }
 
     if (permanent) {
         ShowDirectoryLabel->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
@@ -361,6 +369,11 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
 
 
     LoadEffectsFile();
+
+    if (_outputManager.IsAutoUpdateFromBaseShowDir() && _outputManager.GetBaseShowDir() != "") {
+        logger_base.debug("Updating from base folder on show folder open.");
+        UpdateFromBaseShowFolder();
+    }
 
     logger_base.debug("Get start channels right.");
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SetDir");

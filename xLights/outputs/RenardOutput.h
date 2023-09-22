@@ -19,11 +19,15 @@ class RenardOutput : public SerialOutput
 public:
 
     #pragma region Constructors and Destructors
-    RenardOutput(SerialOutput* output);
     RenardOutput(wxXmlNode* node);
+    RenardOutput(const RenardOutput& from);
     RenardOutput();
     virtual ~RenardOutput() override {};
-    #pragma endregion Constructors and Destructors
+    virtual Output* Copy() override
+    {
+        return new RenardOutput(*this);
+    }
+#pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_RENARD; }

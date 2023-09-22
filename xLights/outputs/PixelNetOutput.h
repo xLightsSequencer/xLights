@@ -31,10 +31,14 @@ public:
 
     #pragma region Constructors and Destructors
     PixelNetOutput(wxXmlNode* node);
-    PixelNetOutput(SerialOutput* output);
+    PixelNetOutput(const PixelNetOutput& from);
     PixelNetOutput();
     virtual ~PixelNetOutput() override {};
-    #pragma endregion Constructors and Destructors
+    virtual Output* Copy() override
+    {
+        return new PixelNetOutput(*this);
+    }
+#pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_PIXELNET; }

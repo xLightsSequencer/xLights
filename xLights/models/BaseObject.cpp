@@ -238,6 +238,49 @@ void BaseObject::FlipVertical(bool ignoreLock) {
     IncrementChangeCount();
 }
 
+bool BaseObject::IsXmlChanged(wxXmlNode* n) const
+{
+    for (wxXmlAttribute* a = n->GetAttributes(); a != nullptr; a = a->GetNext())
+    {
+        if (!ModelXml->HasAttribute(a->GetName()) || ModelXml->GetAttribute(a->GetName()) != a->GetValue())
+            return true;
+    }
+
+    // This part assumes the nodes under the model only exist once or if they exist twice they have a "Name" attribute that distinguishes them
+    // it also assumes one level of child nodes only
+    for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
+    {
+        bool found = false;
+        for (wxXmlNode* cc = ModelXml->GetChildren(); cc != nullptr; cc = cc->GetNext())
+        {
+            if (cc->GetName() == nn->GetName() && (!nn->HasAttribute("Name") || (cc->GetAttribute("Name") == nn->GetAttribute("Name"))))
+            {
+                found = true;
+                for (wxXmlAttribute* a = cc->GetAttributes(); a != nullptr; a = a->GetNext()) {
+                    if (!cc->HasAttribute(a->GetName()) || nn->GetAttribute(a->GetName()) != a->GetValue())
+                        return true;
+                }
+            }
+        }
+
+        if (!found)
+            return true;
+    }
+
+    return false;
+}
+
+bool BaseObject::IsFromBase() const
+{
+    return ModelXml->GetAttribute("FromBase", "0") == "1";
+}
+
+void BaseObject::SetFromBase(bool fromBase) 
+{
+    if (ModelXml->HasAttribute("FromBase")) ModelXml->DeleteAttribute("FromBase");
+    ModelXml->AddAttribute("FromBase", fromBase ? "1" : "0");
+}
+
 float BaseObject::GetTop() {
     return GetBaseObjectScreenLocation().GetTop();
 }

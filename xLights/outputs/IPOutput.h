@@ -27,7 +27,7 @@ public:
     #pragma region Constructors and Destructors
     IPOutput(wxXmlNode* node, bool isActive);
     IPOutput();
-    IPOutput(IPOutput* output) : Output(output) {};
+    IPOutput(const IPOutput& from);
     virtual ~IPOutput() override {};
     virtual wxXmlNode* Save() override;
     #pragma endregion 

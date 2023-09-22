@@ -13,7 +13,8 @@
 #include <wx/xml/xml.h>
 
 #pragma region Constructors and Destructors
-PixelNetOutput::PixelNetOutput(SerialOutput* output) : SerialOutput(output)
+PixelNetOutput::PixelNetOutput(const PixelNetOutput& from) :
+    SerialOutput(from)
 {
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));

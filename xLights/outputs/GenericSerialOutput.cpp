@@ -6,7 +6,7 @@
 #define MAX_PREFIX_POSTFIX 256
 
 #pragma region Constructors and Destructors
-GenericSerialOutput::GenericSerialOutput(SerialOutput* output) : SerialOutput(output)
+GenericSerialOutput::GenericSerialOutput(const GenericSerialOutput& from) : SerialOutput(from)
 {
     _datalen = 0;
     _data = std::vector<uint8_t>(GENERICSERIAL_MAX_CHANNELS + MAX_PREFIX_POSTFIX);

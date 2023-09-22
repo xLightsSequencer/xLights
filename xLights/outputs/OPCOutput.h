@@ -39,10 +39,14 @@ public:
     #pragma region Constructors and Destructors
     OPCOutput(wxXmlNode* node, bool isActive);
     OPCOutput();
-    OPCOutput(OPCOutput* output);
+    OPCOutput(const OPCOutput& from);
     virtual ~OPCOutput() override;
     virtual wxXmlNode* Save() override;
-    #pragma endregion 
+    virtual Output* Copy() override
+    {
+        return new OPCOutput(*this);
+    }
+#pragma endregion 
 
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_OPC; }

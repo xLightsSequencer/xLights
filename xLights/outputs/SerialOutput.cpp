@@ -60,11 +60,12 @@ SerialOutput::SerialOutput(wxXmlNode* node) : Output(node) {
     SetId(wxAtoi(node->GetAttribute("Id", "0")));
 }
 
-SerialOutput::SerialOutput(SerialOutput* output) : Output(output) {
-
+SerialOutput::SerialOutput(const SerialOutput& from) :
+    Output(from)
+{
     strcpy(_serialConfig, "8N1");
-    _commPort = output->GetCommPort();
-    _baudRate = output->GetBaudRate();
+    _commPort = from.GetCommPort();
+    _baudRate = from.GetBaudRate();
 }
 
 SerialOutput::SerialOutput() : Output() {

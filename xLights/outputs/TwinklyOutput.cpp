@@ -38,10 +38,9 @@ TwinklyOutput::TwinklyOutput()
 {
 }
 
-TwinklyOutput::TwinklyOutput(TwinklyOutput* output) :
-    IPOutput(output)
-{
-    _httpPort = output->_httpPort;
+TwinklyOutput::TwinklyOutput(const TwinklyOutput& from) :
+    IPOutput(from){
+    _httpPort = from._httpPort;
 }
 
 TwinklyOutput::~TwinklyOutput()

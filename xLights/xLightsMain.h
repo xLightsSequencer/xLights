@@ -26,6 +26,7 @@
 #include <wx/aui/aui.h>
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/frame.h>
 #include <wx/gauge.h>
@@ -617,6 +618,10 @@ public:
     void OnMenuItem_RemapCustomSelected(wxCommandEvent& event);
     void OnMenuItemRestoreBackupSelected(wxCommandEvent& event);
     void OnMenuItem_SuppressDock(wxCommandEvent& event);
+    void OnButton_ChangeBaseShowDirClick(wxCommandEvent& event);
+    void OnButton_ClearBaseShowDirClick(wxCommandEvent& event);
+    void OnCheckBox_AutoUpdateBaseClick(wxCommandEvent& event);
+    void OnButton_UpdateBaseClick(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -687,6 +692,12 @@ public:
     static const long ID_BUTTON11;
     static const long ID_BUTTON13;
     static const long ID_STATICTEXT4;
+    static const long ID_STATICTEXT2;
+    static const long ID_BUTTON14;
+    static const long ID_BUTTON15;
+    static const long ID_STATICTEXT3;
+    static const long ID_CHECKBOX1;
+    static const long ID_BUTTON16;
     static const long ID_BUTTON_SAVE_SETUP;
     static const long ID_BUTTON9;
     static const long ID_BUTTON6;
@@ -857,17 +868,24 @@ public:
     wxButton* ButtonUploadInput;
     wxButton* ButtonUploadOutput;
     wxButton* ButtonVisualise;
+    wxButton* Button_ChangeBaseShowDir;
     wxButton* Button_ChangeTemporarilyAgain;
     wxButton* Button_CheckShowFolderTemporarily;
+    wxButton* Button_ClearBaseShowDir;
     wxButton* Button_OpenProxy;
+    wxButton* Button_UpdateBase;
+    wxCheckBox* CheckBox_AutoUpdateBase;
     wxChoice* ChoiceParm1;
     wxChoice* ChoiceParm2;
+    wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizerSetup;
     wxFlexGridSizer* FlexGridSizerSetupControllerButtons;
     wxFlexGridSizer* FlexGridSizerSetupControllers;
     wxFlexGridSizer* FlexGridSizerSetupProperties;
     wxFlexGridSizer* FlexGridSizerSetupRight;
     wxFlexGridSizer* GaugeSizer;
     wxGauge* ProgressBar;
+    wxGridBagSizer* GridBagSizer1;
     wxGridBagSizer* StatusBarSizer;
     wxMenu* AudioMenu;
     wxMenu* Menu1;
@@ -983,9 +1001,12 @@ public:
     wxPanel* PanelSequencer;
     wxPanel* PanelSetup;
     wxSplitterWindow* SplitterWindowControllers;
+    wxStaticBoxSizer* StaticBoxSizer1;
     wxStaticText* FileNameText;
     wxStaticText* ShowDirectoryLabel;
     wxStaticText* StaticTextDummy;
+    wxStaticText* StaticText_BaseShowDir;
+    wxStaticText* StaticText_BaseShowDirLabel;
     wxStaticText* StatusText;
     wxTimer AutoSaveTimer;
     wxTimer EffectSettingsTimer;
@@ -1052,6 +1073,7 @@ public:
     bool _showACRamps = false;
     wxString _enableRenderCache;
     bool _playControlsOnPreview = true;
+    bool _showBaseShowFolder = false;
     bool _autoShowHousePreview = false;
     bool _smallWaveform = false;
     bool _modelBlendDefaultOff = true;
@@ -1225,6 +1247,12 @@ public:
     bool PlayControlsOnPreview() const { return _playControlsOnPreview;}
     void SetPlayControlsOnPreview(bool b);
 
+    bool IsShowBaseShowFolder() const
+    {
+        return _showBaseShowFolder;
+    }
+    void SetShowBaseShowFolder(bool b);
+
     bool AutoShowHousePreview() const { return _autoShowHousePreview;}
     void SetAutoShowHousePreview(bool b);
 
@@ -1306,6 +1334,8 @@ public:
     void OnMenuMRU(wxCommandEvent& event);
     void OnMRUSequence(wxCommandEvent& event);
     bool SetDir(const wxString& dirname, bool permanent);
+    void SetBaseShowDir(const wxString& baseShowDir);
+    void UpdateFromBaseShowFolder();
     void UpdateRecentFilesList(bool reload);
     void AddToMRU(const std::string& filename);
     bool PromptForShowDirectory(bool permanent);

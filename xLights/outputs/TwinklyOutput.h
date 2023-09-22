@@ -29,9 +29,13 @@ public:
 #pragma region Constructors and Destructors
     TwinklyOutput(wxXmlNode* node, bool isActive);
     TwinklyOutput();
-    TwinklyOutput(TwinklyOutput* output);
+    TwinklyOutput(const TwinklyOutput& from);
     virtual ~TwinklyOutput() override;
     virtual wxXmlNode* Save() override;
+    virtual Output* Copy() override
+    {
+        return new TwinklyOutput(*this);
+    }
 #pragma endregion
 
 #pragma region Output overrides

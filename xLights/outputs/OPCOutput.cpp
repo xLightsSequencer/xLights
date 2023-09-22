@@ -93,8 +93,12 @@ OPCOutput::OPCOutput() : IPOutput() {
     memset(_data, 0x00, _channels + OPC_PACKET_HEADERLEN);
 }
 
-OPCOutput::OPCOutput(OPCOutput* output) : IPOutput(output) {
-
+OPCOutput::OPCOutput(const OPCOutput& from) :
+    IPOutput(from)
+{
+    _channels = from._channels;
+    _universe = from._universe;
+    _socket = nullptr;
     _data = (uint8_t*)malloc(_channels + OPC_PACKET_HEADERLEN);
     memset(_data, 0x00, _channels + OPC_PACKET_HEADERLEN);
 }
