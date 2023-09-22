@@ -1205,6 +1205,9 @@ wxJSONReader::ReadString( wxInputStream& is, wxJSONValue& val )
         if ( convLen == wxCONV_FAILED ) {
             AddError( _T( "String value: the UTF-8 stream is invalid"));
             s.append( _T( "<UTF-8 stream not valid>"));
+            std::string s2((const char*) utf8Buff.GetData(), utf8Buff.GetDataLen());
+            printf("%s\n", s2.c_str());
+            
         }
         else    {
 #if defined( wxJSON_USE_UNICODE )
@@ -1571,12 +1574,6 @@ wxJSONReader::AppendUES( wxMemoryBuffer& utf8Buff, const char* uesBuffer )
     wchar_t ch = (wchar_t) l;
     char buffer[16];
     size_t len = wxConvUTF8.FromWChar( buffer, 10, &ch, 1 );
-
-    // seems that the wxMBConv classes always appends a NULL byte to
-    // the converted buffer
-    if ( len > 1 ) {
-        len = len - 1;
-    }
     utf8Buff.AppendData( buffer, len );
 
     // sould never fail

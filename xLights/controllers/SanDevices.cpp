@@ -1277,10 +1277,15 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
                     logger_base.info("                                 version %s.", (const char*)_version.c_str());
                     break;
                 }
-                static wxRegEx version5regex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>", wxRE_ADVANCED | wxRE_NEWLINE);
+                // Firmware Version:</th></td><td>5.038</td>
+                // Firmware Version:</th></td><td> 5.051-W5200</td>
+                static wxRegEx version5regex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>)\\s?([0-9]+\\.[0-9]+)(-W5200)?\\<\\/td\\>", wxRE_ADVANCED | wxRE_NEWLINE);
                 if (version5regex.Matches(wxString(_page))) {
                     _firmware = FirmwareVersion::Five;
                     _version = version5regex.GetMatch(wxString(_page), 2).ToStdString();
+                    if (version5regex.GetMatchCount() > 3) {
+                        _version += version5regex.GetMatch(wxString(_page), 3).ToStdString();
+                    }
                     logger_base.info("                                 firmware %d.", static_cast<int>(_firmware));
                     logger_base.info("                                 version %s.", (const char*)_version.c_str());
                     break;
@@ -1480,8 +1485,9 @@ bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
         SDGetURL(requestUnvSize.ToStdString());
         wxMilliSleep(1000);
     }
-
-    return (SDGetURL(request.ToStdString()) != "");
+    bool passed = (SDGetURL(request.ToStdString()) != "");
+    wxMilliSleep(1000);
+    return passed;
 }
 
 bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {

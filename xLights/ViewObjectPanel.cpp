@@ -857,6 +857,24 @@ void ViewObjectPanel::PreviewObjectAlignVCenter()
     layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignVCenter", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
+void ViewObjectPanel::PreviewObjectAlignDCenter()
+{
+    if (mSelectedObject == nullptr)
+        return;
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+    float center = mSelectedObject->GetDcenterPos();
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject* view_object = it->second;
+        if (view_object->GroupSelected) {
+            view_object->SetDcenterPos(center);
+        }
+    }
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectAlignDCenter");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectAlignDCenter");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignDCenter", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+}
+
 bool SortObjectX(const ViewObject* first, const ViewObject* second)
 {
     float firstmodelX = first->GetBaseObjectScreenLocation().GetHcenterPos();
@@ -871,6 +889,14 @@ bool SortObjectY(const ViewObject* first, const ViewObject* second)
     float secondmodelY = second->GetBaseObjectScreenLocation().GetVcenterPos();
 
     return firstmodelY < secondmodelY;
+}
+
+bool SortObjectZ(const ViewObject* first, const ViewObject* second)
+{
+    float firstmodelZ = first->GetBaseObjectScreenLocation().GetDcenterPos();
+    float secondmodelZ = second->GetBaseObjectScreenLocation().GetDcenterPos();
+
+    return firstmodelZ < secondmodelZ;
 }
 
 void ViewObjectPanel::PreviewObjectHDistribute()
@@ -973,6 +999,52 @@ void ViewObjectPanel::PreviewObjectVDistribute()
     layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectVDistribute");
     layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectVDistribute");
     layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectVDistribute", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+}
+void ViewObjectPanel::PreviewObjectDDistribute()
+{
+    int count = 0;
+    float minz = 999999;
+    float maxz = -999999;
+
+    std::list<ViewObject*> objects;
+
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject* view_object = it->second;
+        if (view_object->GroupSelected || view_object->Selected) {
+            count++;
+            float z = view_object->GetDcenterPos();
+
+            if (z < minz)
+                minz = z;
+            if (z > maxz)
+                maxz = z;
+            objects.push_back(view_object);
+        }
+    }
+
+    if (count <= 2)
+        return;
+
+    objects.sort(SortObjectZ);
+
+    float space = (maxz - minz) / (count - 1);
+
+    layoutPanel->CreateUndoPoint("All", objects.front()->name);
+
+    float z = -1;
+    for (auto it = objects.begin(); it != objects.end(); ++it) {
+        if (it == objects.begin()) {
+            z = (*it)->GetDcenterPos() + space;
+        } else if (*it == objects.back()) {
+            // do nothing
+        } else {
+            (*it)->SetDcenterPos(z);
+            z += space;
+        }
+    }
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectDDistribute");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectDDistribute");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectDDistribute", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectFlipV() {

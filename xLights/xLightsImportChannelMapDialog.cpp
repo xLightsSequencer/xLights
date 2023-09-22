@@ -412,6 +412,7 @@ const long xLightsImportChannelMapDialog::ID_CHOICE = wxNewId();
 const long xLightsImportChannelMapDialog::ID_SPINCTRL1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKBOX1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKBOX11 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_CHECKBOX4 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKBOX2 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_STATICTEXT_BLEND_TYPE = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKBOX3 = wxNewId();
@@ -476,11 +477,14 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     CheckBox_MapCCRStrand->SetValue(false);
     FlexGridSizer1->Add(CheckBox_MapCCRStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer11 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer11->AddGrowableCol(0);
     CheckBox_EraseExistingEffects = new wxCheckBox(Panel1, ID_CHECKBOX11, _("Erase existing effects on imported models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX11"));
     CheckBox_EraseExistingEffects->SetValue(false);
     FlexGridSizer11->Add(CheckBox_EraseExistingEffects, 1, wxALL|wxEXPAND, 5);
+    CheckBox_LockEffects = new wxCheckBox(Panel1, ID_CHECKBOX4, _("Lock effects on import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
+    CheckBox_LockEffects->SetValue(true);
+    FlexGridSizer11->Add(CheckBox_LockEffects, 1, wxALL|wxEXPAND, 5);
     Sizer1->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 1);
     FlexGridSizer_Blend_Mode = new wxFlexGridSizer(0, 2, 0, 0);
     CheckBox_Import_Blend_Mode = new wxCheckBox(Panel1, ID_CHECKBOX2, _("Import Model Blend Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
@@ -738,9 +742,14 @@ void xLightsImportChannelMapDialog::SetModelBlending(bool enabled)
     StaticText_Blend_Type->SetLabelText(text);
 }
 
-bool xLightsImportChannelMapDialog::GetImportModelBlending()
+bool xLightsImportChannelMapDialog::GetImportModelBlending() const
 {
     return CheckBox_Import_Blend_Mode->IsChecked();
+}
+
+bool xLightsImportChannelMapDialog::IsLockEffects() const
+{
+    return CheckBox_LockEffects->IsChecked();
 }
 
 void xLightsImportChannelMapDialog::SetXsqPkg(SequencePackage* xsqPkg) {

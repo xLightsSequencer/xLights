@@ -43,6 +43,7 @@
 #include "../VideoReader.h"
 #include "../FindDataPanel.h"
 #include "../DuplicateDialog.h"
+#include "../AutoLabelDialog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -85,6 +86,7 @@ const long EffectsGrid::ID_GRID_MNU_UNDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_REDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PRESETS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_PHRASE = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_AUTOLABEL = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_HALVETIMINGS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_WORD = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_WORDS = wxNewId();
@@ -484,7 +486,10 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
                     mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORDS, "Breakdown Selected Words");
                 }
             }
-            mnuLayer.Append(ID_GRID_MNU_HALVETIMINGS, "Divide Timings")->Enable(!selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer());
+            if (ri->layerIndex == 0) {
+                mnuLayer.Append(ID_GRID_MNU_HALVETIMINGS, "Divide Timings")->Enable(!selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer());
+                mnuLayer.Append(ID_GRID_MNU_AUTOLABEL, "Auto Label Timings");
+            }
             mSelectedEffect = selectedEffect;
         }
         mnuLayer.AppendSeparator();
@@ -786,6 +791,41 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
         //logger_base.debug("Preset icons created.");
 
         xlights->ShowPresetsPanel();
+    } else if (id == ID_GRID_MNU_AUTOLABEL) {
+
+        AutoLabelDialog dlg(this);
+
+        if (dlg.ShowModal() == wxOK)
+        {
+            int start = dlg.GetStart();
+            int end = dlg.GetEnd();
+            bool overwrite = dlg.IsOverwrite();
+            int current = start;
+            int increment = start <= end ? 1 : -1; 
+
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            auto el = mSelectedEffect->GetParentEffectLayer();
+            for (int i = 0; i < el->GetEffectCount(); i++) {
+                auto eff = el->GetEffect(i);
+                if (eff->GetSelected() || eff->GetID() == mSelectedEffect->GetID()) {
+
+                    if (overwrite || eff->GetEffectName() == "") {
+
+                        mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID(), eff->GetSettingsAsString(), eff->GetPaletteAsString());
+
+                        eff->SetEffectName(wxString::Format("%d", current));
+
+                        current += increment;
+                        if (increment == 1 && current > end)
+                            current = start;
+                        else if (increment == -1 && current < end)
+                            current = start;
+                    }
+                }
+            }
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(mParent, eventRowHeaderChanged);
+        }
     }
     else if (id == ID_GRID_MNU_BREAKDOWN_PHRASE) {
         logger_base.debug("OnGridPopup - ID_GRID_MNU_BREAKDOWN_PHRASE");
@@ -1630,7 +1670,9 @@ bool EffectsGrid::AreAllSelectedEffectsOnTheSameElement() const
 int EffectsGrid::GetSelectedEffectCount(const std::string& effectName) const
 {
     int count = 0;
-
+    if (mSequenceElements == nullptr) {
+        return 0;
+    }
     for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
         EffectLayer* el = mSequenceElements->GetEffectLayer(row);
         count += el->GetSelectedEffectCount(effectName);

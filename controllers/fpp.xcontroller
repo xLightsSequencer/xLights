@@ -81,8 +81,8 @@
             <Protocol>ws2811</Protocol>
         </PixelProtocols>
         <SerialProtocols>
-            <Protocol>DMX-Pro</Protocol>
             <Protocol>DMX-Open</Protocol>
+            <Protocol>DMX-Pro</Protocol>
             <Protocol>GenericSerial</Protocol>
             <Protocol>LOR</Protocol>
             <Protocol>Pixelnet-Lynx</Protocol>
@@ -105,8 +105,8 @@
             <Protocol>ws2811</Protocol>
         </PixelProtocols>
         <SerialProtocols>
-            <Protocol>DMX-Pro</Protocol>
             <Protocol>DMX-Open</Protocol>
+            <Protocol>DMX-Pro</Protocol>
             <Protocol>GenericSerial</Protocol>
             <Protocol>LOR</Protocol>
             <Protocol>Pixelnet-Lynx</Protocol>
@@ -129,8 +129,8 @@
             <Protocol>ws2811</Protocol>
         </PixelProtocols>
         <SerialProtocols>
-            <Protocol>DMX-Pro</Protocol>
             <Protocol>DMX-Open</Protocol>
+            <Protocol>DMX-Pro</Protocol>
             <Protocol>GenericSerial</Protocol>
             <Protocol>LOR</Protocol>
             <Protocol>Pixelnet-Lynx</Protocol>
@@ -155,8 +155,8 @@
             <PixelProtocols>
             </PixelProtocols>
             <SerialProtocols>
-                <Protocol>DMX-Pro</Protocol>
                 <Protocol>DMX-Open</Protocol>
+                <Protocol>DMX-Pro</Protocol>
                 <Protocol>GenericSerial</Protocol>
                 <Protocol>LOR</Protocol>
                 <Protocol>Pixelnet-Lynx</Protocol>
@@ -177,8 +177,8 @@
             <PixelProtocols>
             </PixelProtocols>
             <SerialProtocols>
-                <Protocol>DMX-Pro</Protocol>
                 <Protocol>DMX-Open</Protocol>
+                <Protocol>DMX-Pro</Protocol>
                 <Protocol>GenericSerial</Protocol>
                 <Protocol>LOR</Protocol>
                 <Protocol>Pixelnet-Lynx</Protocol>
@@ -200,8 +200,8 @@
             <PixelProtocols>
             </PixelProtocols>
             <SerialProtocols>
-                <Protocol>DMX-Pro</Protocol>
                 <Protocol>DMX-Open</Protocol>
+                <Protocol>DMX-Pro</Protocol>
                 <Protocol>GenericSerial</Protocol>
                 <Protocol>LOR</Protocol>
                 <Protocol>Pixelnet-Lynx</Protocol>

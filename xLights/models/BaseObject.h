@@ -52,6 +52,7 @@ public:
     virtual glm::vec3 MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov);
     void SelectHandle(int handle);
     void Lock(bool lock);
+    bool IsLocked() const;
     virtual void AddASAPWork(uint32_t work, const std::string& from);
     virtual void ReloadModelXml() = 0;
 

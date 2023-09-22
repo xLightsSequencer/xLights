@@ -374,7 +374,8 @@ class xLightsImportChannelMapDialog: public wxDialog
         wxDataViewItem GetPriorTreeItem(const wxDataViewItem item) const;
         bool InitImport(std::string checkboxText = "");
         void SetModelBlending(bool enabled);
-        bool GetImportModelBlending();
+        [[nodiscard]] bool GetImportModelBlending() const;
+        [[nodiscard]] bool IsLockEffects() const;
         void SetXsqPkg(SequencePackage* xsqPkg);
         [[nodiscard]] std::vector<std::string> const GetChannelNames() const;
         [[nodiscard]] ImportChannel* GetImportChannel(std::string const& name) const;
@@ -392,6 +393,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxCheckBox* CheckBoxImportMedia;
 		wxCheckBox* CheckBox_EraseExistingEffects;
 		wxCheckBox* CheckBox_Import_Blend_Mode;
+		wxCheckBox* CheckBox_LockEffects;
 		wxCheckBox* CheckBox_MapCCRStrand;
 		wxCheckListBox* TimingTrackListBox;
 		wxFlexGridSizer* FlexGridSizer11;
@@ -429,6 +431,7 @@ protected:
 		static const long ID_SPINCTRL1;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX11;
+		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX2;
 		static const long ID_STATICTEXT_BLEND_TYPE;
 		static const long ID_CHECKBOX3;

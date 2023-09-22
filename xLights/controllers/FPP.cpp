@@ -599,9 +599,7 @@ static inline void addString(wxMemoryBuffer &buffer, const char *str) {
 static inline void addString(wxMemoryBuffer &buffer, const std::string &str) {
     buffer.AppendData(str.c_str(), str.length());
 }
-static inline void addString(wxMemoryBuffer &buffer, const wxString &str) {
-    addString(buffer, ToUTF8(str));
-}
+
 bool FPP::GetPathAsJSON(const std::string &path, wxJSONValue &val) {
     wxFileName fn;
     fn = ToWXString(path);
@@ -2109,16 +2107,35 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
         // we can verify that the ID actually can load a pinout
         bool found = false;
         wxJSONValue val;
+        wxString id = rules->GetID();
         if (GetURLAsJSON("/api/cape/strings", val)) {
             for (int x = 0; x < val.Size(); x++) {
-                if (val[x].AsString() == rules->GetID()) {
+                if (val[x].AsString() == id) {
                     found = true;
+                }
+            }
+            //certain older capes may have versioned pin config files,
+            //we'll need to check them
+            if (!found) {
+                id = rules->GetID() + "_v2";
+                for (int x = 0; x < val.Size(); x++) {
+                    if (val[x].AsString() == id) {
+                        found = true;
+                    }
+                }
+            }
+            if (!found) {
+                id = rules->GetID() + "_v3";
+                for (int x = 0; x < val.Size(); x++) {
+                    if (val[x].AsString() == id) {
+                        found = true;
+                    }
                 }
             }
         }
         if (found) {
             wxJSONValue val;
-            if (GetURLAsJSON("/api/cape/strings/" + rules->GetID(), val)) {
+            if (GetURLAsJSON("/api/cape/strings/" + id, val)) {
                 if (val.HasMember("driver")) {
                     driver = val["driver"].AsString();
                 }
@@ -3574,7 +3591,7 @@ bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
         return false;
     }
     if (res->typeId < 0x80) {
-        if (res->extraData.HasMember("httpConnected") && res->extraData["httpConnected"].AsBool() == true && res->majorVersion >= 6) {
+        if (res->extraData.HasMember("httpConnected") && res->extraData["httpConnected"].AsBool() == true) {
             // genuine FPP instance and able to connect via http
             return true;
         } else {
@@ -3635,7 +3652,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
             }
             if (fpp == nullptr) {
                 FPP *fpp = new FPP(res->ip, res->proxy, res->pixelControllerType);
-                fpp->ipAddress = res->ip;
+                fpp->ipAddress = res->ip;//not needed, in constructor
                 fpp->hostName = res->hostname;
                 fpp->description = res->description;
                 fpp->platform = res->platform;
@@ -3646,7 +3663,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 fpp->fullVersion = res->version;
                 fpp->ranges = res->ranges;
                 fpp->mode = res->mode;
-                fpp->pixelControllerType = res->pixelControllerType;
+                fpp->pixelControllerType = res->pixelControllerType;//not needed, in constructor
                 fpp->panelSize = res->panelSize;
                 fpp->username = res->username;
                 fpp->password = res->password;

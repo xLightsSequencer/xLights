@@ -198,7 +198,7 @@ public:
     virtual bool SetInputUniverses(Controller* controller, wxWindow* parent) override;
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
     virtual bool UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
-    bool UploadSequence(const std::string& seq, const std::string& file, const std::string& media, wxProgressDialog* progress);
+    bool UploadSequence(const std::string& seq, const std::string& file, const std::string& media, std::function<bool(int, std::string)> progress);
     #endif
     
     std::string GetName() const { return _name; }

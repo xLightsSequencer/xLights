@@ -42,6 +42,7 @@
 #include "ExternalHooks.h"
 
 #include "xLightsVersion.h"
+#include "TopEffectsPanel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1564,6 +1565,10 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     mainSequencer->CheckBox_SuspendRender->Enable(enableSeq);
     enableAllToolbarControls(ViewToolBar, enable);
     PlayToolBar->EnableTool(ID_CHECKBOX_LIGHT_OUTPUT, enable);
+
+    effectsPnl->ButtonUpdateEffect->Enable(enableSeq);
+    effectsPnl->BitmapButtonRandomize->Enable(enableSeq);
+    effectsPnl->BitmapButtonSelectedEffect->Enable(enableSeq);
 
     enableAllChildControls(EffectsPanel1, enableSeqNotAC);
     if (enableSeqNotAC) EffectsPanel1->ValidateWindow();

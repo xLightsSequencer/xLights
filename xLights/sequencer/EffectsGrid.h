@@ -270,7 +270,7 @@ private:
     uint32_t FindChannel(Element* element, int strandIndex, int nodeIndex, uint8_t& channelsPerNode) const;
     void FindEffectsForData(uint32_t channel, uint8_t chans, uint32_t _findDataMS) const;
 
-    SequenceElements* mSequenceElements;
+    SequenceElements* mSequenceElements = nullptr;
     bool mIsDrawing = false;
     bool mGridIconBackgrounds;
     bool mTimingPlayOnDClick;
@@ -356,6 +356,7 @@ private:
     static const long ID_GRID_MNU_REDO;
     static const long ID_GRID_MNU_PRESETS;
     static const long ID_GRID_MNU_BREAKDOWN_PHRASE;
+    static const long ID_GRID_MNU_AUTOLABEL;
     static const long ID_GRID_MNU_HALVETIMINGS;
     static const long ID_GRID_MNU_BREAKDOWN_WORD;
     static const long ID_GRID_MNU_BREAKDOWN_WORDS;
