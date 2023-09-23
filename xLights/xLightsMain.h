@@ -1428,7 +1428,7 @@ public:
     bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
     Model *GetModel(const std::string& name) const;
     void RenderGridToSeqData(std::function<void(bool)>&& callback);
-    bool AbortRender(int maxTimeMs = 60000);
+    bool AbortRender(int maxTimeMs = 60000, int* numThreadsAborted = nullptr);
     std::string GetSelectedLayoutPanelPreview() const;
     void UpdateRenderStatus();
     void LogRenderStatus();

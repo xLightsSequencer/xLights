@@ -3060,14 +3060,15 @@ void xLightsFrame::ShowSequenceSettings()
         return;
 
     // abort any in progress render ... it may be using media or we may change the sequence length ... and that would be bad
-    bool aborted = AbortRender();
+    int numThreadsAborted = 0;
+    AbortRender(60000, &numThreadsAborted);
 
     // populate dialog
     SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectories, wxEmptyString, wxEmptyString);
     dialog.Fit();
     int ret_code = dialog.ShowModal();
 
-    if (ret_code == NEEDS_RENDER || aborted) {
+    if (ret_code == NEEDS_RENDER || numThreadsAborted > 0) {
         RenderAll();
     }
 
