@@ -88,6 +88,7 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 	Connect(ID_CHOICE5,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnEffectAssistChoiceSelect);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnPlayControlsCheckBoxClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnHousePreviewCheckBoxClick);
+	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_BaseShowFolderClick);
 	//*)
 
     #ifdef _MSC_VER
