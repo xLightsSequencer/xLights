@@ -400,6 +400,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
     }
 
+    ValidateWindow();
+
     return true;
 }
 
