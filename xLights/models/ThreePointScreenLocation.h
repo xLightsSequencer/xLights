@@ -30,9 +30,9 @@ public:
     void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     
-    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const override;
-    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const override;
-    virtual void DrawBoundingBox(xlVertexColorAccumulator *vac) const override;
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const override;
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const override;
+    virtual void DrawBoundingBox(xlVertexColorAccumulator *vac, bool fromBase) const override;
 
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;

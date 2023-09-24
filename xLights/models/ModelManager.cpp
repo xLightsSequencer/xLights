@@ -1622,18 +1622,12 @@ std::string MergeModels(const std::string& ml1, const std::string& ml2)
         if (std::find(begin(models), end(models), cell) == end(models))
             models.push_back(cell);
     }
-    if (ml1 != "")
-        if (std::find(begin(models), end(models), ml1) == end(models))
-            models.push_back(ml1);
 
     lineStream = std::istringstream(ml2);
     while (std::getline(lineStream, cell, ',')) {
         if (std::find(begin(models), end(models), cell) == end(models))
             models.push_back(cell);
     }
-    if (ml2 != "")
-        if (std::find(begin(models), end(models), ml2) == end(models))
-            models.push_back(ml2);
 
     for (const auto& it : models) {
         if (res != "")
@@ -1726,13 +1720,14 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir)
                         std::string mm2 = "";
                         for (const auto& it : models2) {
                             if (mm2 != "")
-                                mm2 = ",";
+                                mm2 += ",";
                             mm2 += it;
                         }
                         m->DeleteAttribute("models");
                         m->AddAttribute("models", MergeModels(models1, mm2));
                         if (curr->IsXmlChanged(m)) {
                             m->AddAttribute("FromBase", "1");
+                            m->AddAttribute("BaseModels", models1); // keep a copy of the models from the base show folder as we may want to prevent these being removed
                             changed = true;
                             Delete(name);
                             createAndAddModel(new wxXmlNode(*m), xlights->modelPreview->getWidth(), xlights->modelPreview->getHeight());

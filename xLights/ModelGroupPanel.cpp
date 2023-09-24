@@ -983,7 +983,8 @@ bool ModelGroupPanel::IsItemSelected(wxListCtrl* ctrl, int item)
 
 void ModelGroupPanel::ValidateWindow()
 {
-    if (ChoiceModelLayoutType->GetStringSelection() == "Minimal Grid")
+    ModelGroup* mg = static_cast<ModelGroup*>(mModels[mGroup]);
+    if (ChoiceModelLayoutType->GetStringSelection() == "Minimal Grid" && mg != nullptr && !mg->IsFromBase())
     {
         SpinCtrl_XCentreOffset->Enable(true);
         SpinCtrl_YCentreOffset->Enable(true);
@@ -992,6 +993,27 @@ void ModelGroupPanel::ValidateWindow()
     {
         SpinCtrl_XCentreOffset->Enable(false);
         SpinCtrl_YCentreOffset->Enable(false);
+    }
+
+    SizeSpinCtrl->Enable(mg != nullptr && !mg->IsFromBase());
+    ColourPickerCtrl_ModelGroupTagColour->Enable(mg != nullptr && !mg->IsFromBase());
+    Choice_DefaultCamera->Enable(mg != nullptr && !mg->IsFromBase());
+    ChoiceModelLayoutType->Enable(mg != nullptr && !mg->IsFromBase());
+    ChoicePreviews->Enable(mg != nullptr && !mg->IsFromBase());
+
+    bool moveable = true;
+
+    // this is incomplete but its a start
+    if (mg != nullptr && mg->IsFromBase() && ListBoxModelsInGroup->GetSelectedItemCount() == 1)
+    {
+        for (int i = 0; i < ListBoxModelsInGroup->GetItemCount(); ++i) {
+            if (IsItemSelected(ListBoxModelsInGroup, i)) {
+                std::string modelName = ListBoxModelsInGroup->GetItemText(i, 0).ToStdString();
+                if (mg->IsModelFromBase(modelName)) {
+                    moveable = false;
+                }
+            }
+        }
     }
 
     if (ListBoxAddToModelGroup->GetSelectedItemCount() == 0)
@@ -1009,13 +1031,13 @@ void ModelGroupPanel::ValidateWindow()
     }
     else
     {
-        ButtonRemoveModel->Enable(true);
+        ButtonRemoveModel->Enable(moveable);
     }
 
     if (GetSelectedModelCount() > 0 && GetSelectedModelCount() < ListBoxModelsInGroup->GetItemCount())
     {
-        ButtonMoveUp->Enable(true);
-        ButtonMoveDown->Enable(true);
+        ButtonMoveUp->Enable(moveable);
+        ButtonMoveDown->Enable(moveable);
     }
     else
     {
@@ -1076,6 +1098,8 @@ void ModelGroupPanel::AddSelectedModels(int index)
 
 void ModelGroupPanel::RemoveSelectedModels()
 {
+    ModelGroup* mg = static_cast<ModelGroup*>(mModels[mGroup]);
+
     ListBoxModelsInGroup->Freeze();
     ListBoxAddToModelGroup->Freeze();
 
@@ -1086,23 +1110,26 @@ void ModelGroupPanel::RemoveSelectedModels()
         {
             std::string modelName = ListBoxModelsInGroup->GetItemText(i, 0).ToStdString();
             Model* model = mModels[modelName];
-            if (model != nullptr) {
-                if ((model->GetDisplayAs() == "ModelGroup" && !CheckBox_ShowModelGroups->GetValue()) ||
-                    (model->GetDisplayAs() == "SubModel" && !CheckBox_ShowSubmodels->GetValue()))
-                {
-                    // these should not be moved
+
+            if (mg != nullptr && mg->IsFromBase() && mg->IsModelFromBase(modelName))
+            {
+                // we wont remove these models as they came from the base show folder
+            } else {
+                if (model != nullptr) {
+                    if ((model->GetDisplayAs() == "ModelGroup" && !CheckBox_ShowModelGroups->GetValue()) ||
+                        (model->GetDisplayAs() == "SubModel" && !CheckBox_ShowSubmodels->GetValue())) {
+                        // these should not be moved
+                    } else {
+                        int idx = ListBoxAddToModelGroup->InsertItem(0, modelName);
+                        ListBoxAddToModelGroup->SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+                    }
+                    model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ModelGroupPanel::RemoveSelectedModels");
+                    model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ModelGroupPanel::RemoveSelectedModels");
+                    model->GroupSelected = false;
                 }
-                else
-                {
-                    int idx = ListBoxAddToModelGroup->InsertItem(0, modelName);
-                    ListBoxAddToModelGroup->SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-                }
-                model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ModelGroupPanel::RemoveSelectedModels");
-                model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ModelGroupPanel::RemoveSelectedModels");
-                model->GroupSelected = false;
+                ListBoxModelsInGroup->DeleteItem(i);
+                i--;
             }
-            ListBoxModelsInGroup->DeleteItem(i);
-            i--;
         }
     }
     SaveGroupChanges();

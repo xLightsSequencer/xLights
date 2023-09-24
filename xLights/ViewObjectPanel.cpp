@@ -578,6 +578,7 @@ void ViewObjectPanel::OnObjectsPopup(wxCommandEvent& event)
 }
 
 void ViewObjectPanel::DeleteSelectedObject() {
+    // dont block deletes of objects from base
     if( mSelectedObject != nullptr && !mSelectedObject->GetObjectScreenLocation().IsLocked()) {
         layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
         // This should delete all selected models

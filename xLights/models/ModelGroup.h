@@ -60,6 +60,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetModelCount() const { return models.size(); }
         std::string SerialiseModelGroup(const std::string& forModel) const;
         bool RemoveDuplicates();
+        bool IsModelFromBase(const std::string& modelName) const;
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const override;

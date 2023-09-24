@@ -136,6 +136,7 @@ const long LayoutPanel::ID_PREVIEW_RESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_LOCK = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_UNLOCK = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_UNLINKFROMBASE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTASCUSTOM = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTASCUSTOM3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_CREATEGROUP = wxNewId();
@@ -2434,6 +2435,8 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
     if (!frozen) propertyEditor->Freeze();
     clearPropGrid();
 
+    //propertyEditor->Enable(true);
+
     if( editing_models ) {
         auto p = propertyEditor->Append(new wxStringProperty("Name", "ModelName", base_object->name));
         if (dynamic_cast<SubModel*>(base_object) != nullptr) {
@@ -2503,6 +2506,19 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
     if (_lastSelProp != "") {
         auto p = propertyEditor->GetPropertyByName(_lastSelProp);
         if (p != nullptr) propertyEditor->EnsureVisible(p);
+    }
+
+    if (base_object->IsFromBase()) {
+        propertyEditor->SetToolTip("This model comes from the base folder and its properties cannot be edited.");
+        auto it = propertyEditor->GetIterator(wxPG_ITERATE_ALL, nullptr);
+        while (!it.AtEnd())
+        {
+            it.GetProperty()->Enable(false);
+            it.Next(true);
+        }
+
+    } else {
+        propertyEditor->UnsetToolTip();
     }
 }
 
@@ -4353,7 +4369,7 @@ bool LayoutPanel::IsAllSelectedModelsArePixelProtocol() const
 void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
     int selectedObjectCnt = editing_models ? ModelsSelectedCount() : ViewObjectsSelectedCount();
 
-    if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked())
+    if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked() && !selectedBaseObject->IsFromBase())
     {
         bool need_sep = false;
         if( editing_models ) {
@@ -4391,9 +4407,11 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
     if (editing_models && (selectedBaseObject != nullptr))
     {
         auto lm = menu.Append(ID_PREVIEW_MODEL_LOCK, "Lock");
-        lm->Enable(!selectedBaseObject->IsLocked());
+        lm->Enable(!selectedBaseObject->IsLocked() && !selectedBaseObject->IsFromBase());
         auto um = menu.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock");
-        um->Enable(selectedBaseObject->IsLocked());
+        um->Enable(selectedBaseObject->IsLocked() && !selectedBaseObject->IsFromBase());
+        auto ul = menu.Append(ID_PREVIEW_MODEL_UNLINKFROMBASE, "Unlink from base show folder");
+        ul->Enable(selectedBaseObject->IsFromBase());
 
         Model* model = dynamic_cast<Model*>(selectedBaseObject);
         if (model != nullptr && model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
@@ -4425,11 +4443,11 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         }
         menu.Append(ID_PREVIEW_MODEL_CREATEGROUP, "Create Group");
         menu.AppendSeparator();
-        menu.Append(ID_PREVIEW_FLIP_HORIZONTAL, "Flip Horizontal");
-        menu.Append(ID_PREVIEW_FLIP_VERTICAL, "Flip Vertical");
+        menu.Append(ID_PREVIEW_FLIP_HORIZONTAL, "Flip Horizontal")->Enable(!selectedBaseObject->IsFromBase());
+        menu.Append(ID_PREVIEW_FLIP_VERTICAL, "Flip Vertical")->Enable(!selectedBaseObject->IsFromBase());
     }
 
-    if (editing_models && (selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1))
+    if (editing_models && (selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1) && !selectedBaseObject->IsFromBase())
     {
         menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace A Model With This Model");
     }
@@ -4760,6 +4778,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         LockSelectedModels(false);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
+    } else if (event.GetId() == ID_PREVIEW_MODEL_UNLINKFROMBASE) {
+        UnlinkSelectedModels();
     } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
@@ -6508,7 +6528,7 @@ ModelGroup* LayoutPanel::GetSelectedModelGroup() const
     return res;
 }
 void LayoutPanel::RemoveSelectedModelsFromGroup() {
-    if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked()) {
+    if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked() && !selectedBaseObject->IsFromBase()) {
         xlights->AddTraceMessage("LayoutPanel::Remove Selected Models From Group");
 
         wxArrayString modelsToRemove;
@@ -6555,6 +6575,7 @@ void LayoutPanel::RemoveSelectedModelsFromGroup() {
 }
 void LayoutPanel::DeleteSelectedModels()
 {
+    // I deliberately allow objects that come from base to be deleted.
     if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked()) {
         xlights->AddTraceMessage("LayoutPanel::Delete Selected Model");
 
@@ -6735,6 +6756,17 @@ void LayoutPanel::ReplaceModel()
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ReplaceModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ReplaceModel");
     }
+}
+
+void LayoutPanel::UnlinkSelectedModels()
+{
+    std::vector<Model*> modelsToLock = GetSelectedModelsForEdit();
+
+    for (const auto& model : modelsToLock) {
+        model->SetFromBase(false);
+    }
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::LockSelectedModels");
 }
 
 void LayoutPanel::LockSelectedModels(bool lock)
@@ -7224,6 +7256,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         LockSelectedModels(false);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
+    } else if (event.GetId() == ID_PREVIEW_MODEL_UNLINKFROMBASE) {
+        UnlinkSelectedModels();
     } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
@@ -8172,6 +8206,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                 bool allSameParent = true;
                 bool allLocked = true;
                 bool allUnlocked = true;
+                bool allFromBase = true;
                 for (auto &i : selectedTreeModels) {
                     if (parent != TreeListViewModels->GetItemParent(i)) {
                         allSameParent = false;
@@ -8185,6 +8220,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                         } else {
                             allLocked = false;
                         }
+                        allFromBase = allFromBase && model->IsFromBase();
                     }
                 }
                 auto dm = mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Models");
@@ -8193,7 +8229,9 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                 lm->Enable(!allLocked);
                 auto um = mnuContext.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock Models");
                 um->Enable(!allUnlocked);
-                
+                auto ul = mnuContext.Append(ID_PREVIEW_MODEL_UNLINKFROMBASE, "Unlink Models from Base Show Folder");
+                ul->Enable(allFromBase);
+
                 if (allSameParent && parent != TreeListViewModels->GetRootItem()) {
                     mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Group");
                 }
@@ -8268,9 +8306,13 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         }
 
         if (selectedTreeGroups.size() == 1) {
+            ModelTreeData* data = (ModelTreeData*)TreeListViewModels->GetItemData(selectedTreeGroups[0]);
+            Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
             mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP, "Delete Group");
-            mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP, "Rename Group");
+            mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP, "Rename Group")->Enable(!model->IsFromBase());
             mnuContext.Append(ID_MNU_CLONE_MODEL_GROUP, "Clone Group");
+            auto ul = mnuContext.Append(ID_PREVIEW_MODEL_UNLINKFROMBASE, "Unlink Group from Base Show Folder");
+            ul->Enable(model->IsFromBase());
         }
     }
 
@@ -8442,6 +8484,10 @@ void LayoutPanel::HandleSelectionChanged() {
             showBackgroundProperties();
             tooltip = wxString::Format("Selected Items:\n -Groups: %d\n -Models: %d\n -SubModels: %d\n", gSize, mSize, smSize);
         } else if (gSize == 1) {
+            Model* model = GetModelFromTreeItem(selectedTreeGroups[0]);
+            if (model->IsFromBase()) {
+                tooltip = "From Base Show Folder";
+            }
             ShowPropGrid(false);
             model_grp_panel->UpdatePanel(TreeListViewModels->GetItemText(selectedTreeGroups[0]));
             model_grp_panel->Show();
@@ -8453,6 +8499,9 @@ void LayoutPanel::HandleSelectionChanged() {
             Model* model = GetModelFromTreeItem(selectedTreeModels[0]);
             if (model != nullptr) {
                 tooltip = xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)) + "Nodes: " + wxString::Format("%d", (int)model->GetNodeCount()).ToStdString();
+                if (model->IsFromBase()) {
+                    tooltip += "\nFrom Base Show Folder";
+                }
             } else {
                 logger_base.crit("LayoutPanel::HandleSelectionChanged Model was selected and now is null, this should not have happened.");
             }
