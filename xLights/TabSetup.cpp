@@ -321,6 +321,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         }
     } else {
         _outputManager.SetShowDir(CurrentDir.ToStdString());
+        _outputManager.SetBaseShowDir("");
+        _outputManager.SetAutoUpdateFromBaseShowDir(false);
     }
 
     if (_outputManager.DidConvert()) {
