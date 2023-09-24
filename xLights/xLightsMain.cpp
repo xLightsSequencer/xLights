@@ -10156,34 +10156,45 @@ void xLightsFrame::OnButton_UpdateBaseClick(wxCommandEvent& event)
 {
     // execute the update now
     SetCursor(wxCURSOR_WAIT);
-    UpdateFromBaseShowFolder();
+    UpdateFromBaseShowFolder(true);
     SetCursor(wxCURSOR_ARROW);
 }
 
-void xLightsFrame::UpdateFromBaseShowFolder()
+void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Updating from base show folder.");
 
     // bring in any controllers overwriting some of their properties ... but not all of them
-    if (_outputManager.MergeFromBase()) {
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "UpdateFromBaseShowFolder");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "UpdateFromBaseShowFolder");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "UpdateFromBaseShowFolder");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "UpdateFromBaseShowFolder");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "UpdateFromBaseShowFolder");
+    if (_outputManager.MergeFromBase(prompt)) {
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "UpdateFromBaseShowFolder-controller");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "UpdateFromBaseShowFolder-controller");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "UpdateFromBaseShowFolder-controller");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "UpdateFromBaseShowFolder-controller");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "UpdateFromBaseShowFolder-controller");
     }
 
     // bring in any models ... overwriting any with the same name
     // bring in any model groups ... again overwriting any ... the models in the group should be a merge and deduplication
-    if (AllModels.MergeFromBase(_outputManager.GetBaseShowDir())) {
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "UpdateFromBaseShowFolder");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "UpdateFromBaseShowFolder");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "UpdateFromBaseShowFolder");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "UpdateFromBaseShowFolder");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "UpdateFromBaseShowFolder");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "UpdateFromBaseShowFolder");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "UpdateFromBaseShowFolder");
+    if (AllModels.MergeFromBase(_outputManager.GetBaseShowDir(), prompt)) {
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "UpdateFromBaseShowFolder-model");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "UpdateFromBaseShowFolder-model");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "UpdateFromBaseShowFolder-model");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "UpdateFromBaseShowFolder-model");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "UpdateFromBaseShowFolder-model");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "UpdateFromBaseShowFolder-model");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "UpdateFromBaseShowFolder-model");
+    }
+
+    if (AllObjects.MergeFromBase(_outputManager.GetBaseShowDir(), prompt))
+    {
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "UpdateFromBaseShowFolder-object");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "UpdateFromBaseShowFolder-object");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "UpdateFromBaseShowFolder-object");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "UpdateFromBaseShowFolder-object");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "UpdateFromBaseShowFolder-object");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "UpdateFromBaseShowFolder-object");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "UpdateFromBaseShowFolder-object");
     }
 
     logger_base.debug("Base show folder update done.");

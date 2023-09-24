@@ -1638,7 +1638,7 @@ std::string MergeModels(const std::string& ml1, const std::string& ml2)
     return res;
 }
 
-bool ModelManager::MergeFromBase(const std::string& baseShowDir)
+bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool changed = false;
@@ -1663,8 +1663,6 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir)
         }
     }
 
-    // TODO Not done but probably should be done is the importing of objects
-
     if (models != nullptr) {
         // compare models and load changes/new models
         for (wxXmlNode* m = models->GetChildren(); m != nullptr; m = m->GetNext()) {
@@ -1680,9 +1678,16 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir)
                 createAndAddModel(new wxXmlNode(*m), xlights->modelPreview->getWidth(), xlights->modelPreview->getHeight());
                 logger_base.debug("Adding model from base show folder: '%s'.", (const char*)name.c_str());
             } else {
-                if (curr->IsFromBase()) {
+
+                bool force = false;
+                if (prompt && !curr->IsFromBase())
+                {
+                    force = wxMessageBox(wxString::Format("Model %s found that clashes with base show directory. Do you want to take the base show directory version?", name), "Model clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES;
+                }
+
+                if (force || curr->IsFromBase()) {
                     // model does exist ... update it
-                    if (curr->IsXmlChanged(m)) {
+                    if (force || curr->IsXmlChanged(m)) {
                         m->AddAttribute("FromBase", "1");
                         changed = true;
                         Delete(name);
@@ -1709,8 +1714,14 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir)
                 createAndAddModel(new wxXmlNode(*m), xlights->modelPreview->getWidth(), xlights->modelPreview->getHeight());
                 logger_base.debug("Adding model group from base show folder: '%s'.", (const char*)name.c_str());
             } else {
+
+                bool force = false;
+                if (prompt && !curr->IsFromBase()) {
+                    force = wxMessageBox(wxString::Format("Model Group %s found that clashes with base show directory. Do you want to take the base show directory version?", name), "Model group clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES;
+                }
+
                 // we only update existing models that came from the base via a previous import
-                if (curr->IsFromBase()) {
+                if (force || curr->IsFromBase()) {
                     auto mg = dynamic_cast<ModelGroup*>(curr);
 
                     if (mg != nullptr) {
@@ -1725,7 +1736,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir)
                         }
                         m->DeleteAttribute("models");
                         m->AddAttribute("models", MergeModels(models1, mm2));
-                        if (curr->IsXmlChanged(m)) {
+                        if (force || curr->IsXmlChanged(m)) {
                             m->AddAttribute("FromBase", "1");
                             m->AddAttribute("BaseModels", models1); // keep a copy of the models from the base show folder as we may want to prevent these being removed
                             changed = true;

@@ -31,6 +31,7 @@ public:
     void AddViewObject(ViewObject *view_object);
     void Delete(const std::string &name);
     bool Rename(const std::string &oldName, const std::string &newName);
+    bool MergeFromBase(const std::string& baseShowDir, bool prompt);
 
     void LoadViewObjects(wxXmlNode *objectNode);
 

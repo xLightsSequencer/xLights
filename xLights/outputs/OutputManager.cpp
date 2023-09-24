@@ -328,7 +328,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
     return true;
 }
 
-bool OutputManager::MergeFromBase()
+bool OutputManager::MergeFromBase(bool prompt)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool changed = false;
@@ -359,8 +359,14 @@ bool OutputManager::MergeFromBase()
                     // this is a match
                     found = true;
 
+                    bool force = false;
+                    if (prompt && !it->IsFromBase()) {
+                        force = wxMessageBox(wxString::Format("Controller %s found that clashes with base show directory. Do you want to take the base show directory version?", it->GetName()), "Controller clash", wxICON_QUESTION | wxYES_NO, nullptr) == wxYES;
+                    }
+
                     // we only update if controller originally came from base
-                    if (it->IsFromBase()) {
+                    if (force || it->IsFromBase()) {
+                        if (force) it->SetFromBase(true);
                         bool thischanged = it->UpdateFrom(baseit);
                         changed = thischanged || changed;
                         if (thischanged) logger_base.debug("Controller '%s' updated from base show folder.", (const char*)it->GetName().c_str());

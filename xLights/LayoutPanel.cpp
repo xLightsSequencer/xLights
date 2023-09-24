@@ -1283,6 +1283,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
                                                          LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Closed),
                                                          LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Opened),
                                                          new ModelTreeData(model, nativeOrder, fullName));
+
     if( model->GetDisplayAs() != "ModelGroup" ) {
         wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
         wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
@@ -4780,6 +4781,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
     } else if (event.GetId() == ID_PREVIEW_MODEL_UNLINKFROMBASE) {
         UnlinkSelectedModels();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLINKFROMBASE");
     } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
@@ -6527,6 +6529,7 @@ ModelGroup* LayoutPanel::GetSelectedModelGroup() const
     xlights->AddTraceMessage("LayoutPanel::GetSelectedModelGroup done");
     return res;
 }
+
 void LayoutPanel::RemoveSelectedModelsFromGroup() {
     if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked() && !selectedBaseObject->IsFromBase()) {
         xlights->AddTraceMessage("LayoutPanel::Remove Selected Models From Group");
@@ -7258,6 +7261,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLOCK");
     } else if (event.GetId() == ID_PREVIEW_MODEL_UNLINKFROMBASE) {
         UnlinkSelectedModels();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLINKFROMBASE");
     } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)

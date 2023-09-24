@@ -1311,6 +1311,7 @@ public:
     void InitialiseControllersTab(bool rebuildPropGrid = true);
     void SetControllersProperties(bool rebuildPropGrid = true);
     void DeleteSelectedControllers();
+    void UnlinkSelectedControllers();
     void ActivateSelectedControllers(const std::string& active);
     void SelectAllControllers();
     ControllerCaps* GetControllerCaps(const std::string& name);
@@ -1335,7 +1336,7 @@ public:
     void OnMRUSequence(wxCommandEvent& event);
     bool SetDir(const wxString& dirname, bool permanent);
     void SetBaseShowDir(const wxString& baseShowDir);
-    void UpdateFromBaseShowFolder();
+    void UpdateFromBaseShowFolder(bool prompt);
     void UpdateRecentFilesList(bool reload);
     void AddToMRU(const std::string& filename);
     bool PromptForShowDirectory(bool permanent);
@@ -1804,6 +1805,7 @@ private:
     static const long ID_NETWORK_ADDETHERNET;
     static const long ID_NETWORK_ACTIVE;
     static const long ID_NETWORK_ACTIVEXLIGHTS;
+    static const long ID_NETWORK_UNLINKFROMBASE;
     static const long ID_NETWORK_INACTIVE;
     static const long ID_NETWORK_DELETE;
 

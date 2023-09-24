@@ -88,7 +88,7 @@ class ModelManager : public ObjectManager
 
         int GetPreviewWidth() const { return previewWidth; }
         int GetPreviewHeight() const { return previewHeight; }
-        bool MergeFromBase(const std::string& baseShowDir);
+        bool MergeFromBase(const std::string& baseShowDir, bool prompt);
 
     private:
 

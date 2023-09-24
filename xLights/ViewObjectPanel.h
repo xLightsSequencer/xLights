@@ -54,7 +54,11 @@ public:
     void PreviewObjectFlipV();
     void PreviewObjectFlipH();
 	void DeleteSelectedObject();
-	bool ObjectListHasFocus() { return TreeListViewObjects->HasFocus() || TreeListViewObjects->GetView()->HasFocus(); };
+    void UnlinkSelectedObject();
+    bool ObjectListHasFocus()
+    {
+        return TreeListViewObjects->HasFocus() || TreeListViewObjects->GetView()->HasFocus();
+    };
 
     //(*Declarations(ViewObjectPanel)
     wxPanel* FirstPanel;
@@ -68,6 +72,7 @@ protected:
 
     static const long ID_TREELISTVIEW_OBJECTS;
     static const long ID_MNU_DELETE_OBJECT;
+    static const long ID_MNU_UNLINKFROMBASE;
 
 private:
 

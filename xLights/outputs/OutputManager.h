@@ -114,7 +114,7 @@ public:
             _dirty = true;
         }
     }
-    bool MergeFromBase();
+    bool MergeFromBase(bool prompt);
     #pragma endregion 
 
     #pragma region Controller Management
