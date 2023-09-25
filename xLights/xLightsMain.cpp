@@ -1529,6 +1529,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     config->Read("xLightsFSEQVersion", &_fseqVersion, 2);
 
+    config->Read("xLightsTimelineZooming", &_timelineZooming, 0);
     config->Read("xLightsPlayVolume", &playVolume, 100);
     MenuItem_LoudVol->Check(playVolume == 100);
     MenuItem_MedVol->Check(playVolume == 66);
@@ -2051,6 +2052,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
     config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
     config->Write("xLightsLowDefinitionRender", _lowDefinitionRender);
+    config->Write("xLightsTimelineZooming", _timelineZooming);
     config->Write("xLightsSnapToTimingMarks", _snapToTimingMarks);
     config->Write("xLightsFSEQVersion", _fseqVersion);
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
