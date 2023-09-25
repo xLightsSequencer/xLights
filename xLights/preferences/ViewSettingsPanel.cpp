@@ -32,7 +32,6 @@ const long ViewSettingsPanel::ID_CHECKBOX1 = wxNewId();
 const long ViewSettingsPanel::ID_CHECKBOX2 = wxNewId();
 const long ViewSettingsPanel::ID_CHECKBOX3 = wxNewId();
 const long ViewSettingsPanel::ID_CHOICE_TIMELINEZOOMING = wxNewId();
-
 //*)
 
 BEGIN_EVENT_TABLE(ViewSettingsPanel,wxPanel)
@@ -47,6 +46,7 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText4;
 	wxStaticText* StaticText5;
+	wxStaticText* StaticText6;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	GridBagSizer1 = new wxGridBagSizer(0, 0);

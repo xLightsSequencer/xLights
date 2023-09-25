@@ -34,7 +34,6 @@ class ViewSettingsPanel: public wxPanel
 		wxChoice* EffectAssistChoice;
 		wxChoice* ModelHandleSizeChoice;
 		wxChoice* ToolIconSizeChoice;
-		wxStaticText* StaticText6;
 		//*)
 
         virtual bool TransferDataFromWindow() override;
