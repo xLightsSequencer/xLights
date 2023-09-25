@@ -504,13 +504,21 @@ void xLightsFrame::CheckForValidModels()
 
     logger_base.debug("CheckForValidModels: Remove models that already exist.");
 
-    size_t missingModelCount = 0;
+//    size_t missingModelCount = 0;
+    std::vector<std::string> missingModelCount;
 
     if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
         for (int x = _sequenceElements.GetElementCount() - 1; x >= 0; x--) {
-            if (ElementType::ELEMENT_TYPE_MODEL == _sequenceElements.GetElement(x)->GetType()) {
-                std::string name = _sequenceElements.GetElement(x)->GetModelName();
-                if (AllModels[name] == nullptr) missingModelCount++;
+            Element* element = _sequenceElements.GetElement(x);
+            if (element && ElementType::ELEMENT_TYPE_MODEL == element->GetType()) {
+                std::string name = element->GetModelName();
+                
+//                if (AllModels[name] == nullptr) missingModelCount++;
+                if (AllModels[name] == nullptr) {
+                    int numfx = element->GetEffectCount(); //useful info for user
+                    std::string desc = name + "(" + std::to_string(numfx) + ")";
+                    missingModelCount.push_back(desc); //show which ones have effects (tells user how important)
+                }
                 //remove the current models from the list so we don't end up with the same model represented twice
                 Remove(AllNames, name);
                 Remove(ModelNames, name);
@@ -519,12 +527,18 @@ void xLightsFrame::CheckForValidModels()
     }
 
     bool mapall = false;
-    if (missingModelCount > 7) {
+    if (missingModelCount.size() > 7) {
         std::string seqName = "No Name";
         if (CurrentSeqXmlFile != nullptr) {
             seqName = CurrentSeqXmlFile->GetFullName();
         }
-        auto msg = wxString::Format("Sequence you are opening '%s' contains %d models which are not in your layout. We suggest you import this sequence instead. Do you want to continue to open it?", seqName, (int)missingModelCount);
+        std::string missings;
+        for (const auto &name: missingModelCount) {
+            missings += name + ", ";
+        }
+        missings.pop_back();
+        missings.pop_back(); //drop last delimiter
+        auto msg = wxString::Format("The sequence you are opening '%s' contains %d models which are not in your layout (%s). We suggest you import this sequence instead. Do you want to continue to open it?", seqName, (int)missingModelCount.size(), missings.c_str());
         if (wxMessageBox(msg, "Many missing models in this sequence", wxYES_NO) == wxNO) {
             mapall = true;
         }
