@@ -47,7 +47,6 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText4;
 	wxStaticText* StaticText5;
-    wxStaticText* StaticText6;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	GridBagSizer1 = new wxGridBagSizer(0, 0);
@@ -82,17 +81,12 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 	CheckBox_BaseShowFolder = new wxCheckBox(this, ID_CHECKBOX3, _("Enable Base Show Folder Settings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	CheckBox_BaseShowFolder->SetValue(false);
 	GridBagSizer1->Add(CheckBox_BaseShowFolder, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-
-	//
-	// Timeline Zooming - set the style of zooming on the time line, Mouse Marker = zoom in on the mouse position, Play Marker = zoom in on the start play marker
-	//
 	StaticText6 = new wxStaticText(this, wxID_ANY, _("Timeline Zooming"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	GridBagSizer1->Add(StaticText6, wxGBPosition(6, 0), wxDefaultSpan, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer1->Add(StaticText6, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_TimelineZooming = new wxChoice(this, ID_CHOICE_TIMELINEZOOMING, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_TIMELINEZOOMING"));
-	Choice_TimelineZooming->SetSelection(Choice_TimelineZooming->Append(_("Play Marker Position")));
+	Choice_TimelineZooming->SetSelection( Choice_TimelineZooming->Append(_("Play Marker Position")) );
 	Choice_TimelineZooming->Append(_("Mouse Marker Position"));
-	GridBagSizer1->Add(Choice_TimelineZooming, wxGBPosition(6, 1), wxDefaultSpan, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-
+	GridBagSizer1->Add(Choice_TimelineZooming, wxGBPosition(6, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridBagSizer1);
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
@@ -103,8 +97,7 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnPlayControlsCheckBoxClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnHousePreviewCheckBoxClick);
 	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_BaseShowFolderClick);
-	Connect(ID_CHOICE_TIMELINEZOOMING, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnChoiceSelect_TimelineZooming);
-
+	Connect(ID_CHOICE_TIMELINEZOOMING,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnChoice_TimelineZoomingSelect);
 	//*)
 
     #ifdef _MSC_VER
@@ -231,7 +224,7 @@ void ViewSettingsPanel::OnCheckBox_BaseShowFolderClick(wxCommandEvent& event)
     }
 }
 
-void ViewSettingsPanel::OnChoiceSelect_TimelineZooming(wxCommandEvent& event)
+void ViewSettingsPanel::OnChoice_TimelineZoomingSelect(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

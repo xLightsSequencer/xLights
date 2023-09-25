@@ -30,10 +30,11 @@ class ViewSettingsPanel: public wxPanel
 		wxCheckBox* CheckBox_BaseShowFolder;
 		wxCheckBox* HousePreviewCheckBox;
 		wxCheckBox* PlayControlsCheckBox;
+		wxChoice* Choice_TimelineZooming;
 		wxChoice* EffectAssistChoice;
 		wxChoice* ModelHandleSizeChoice;
 		wxChoice* ToolIconSizeChoice;
-		wxChoice* Choice_TimelineZooming;
+		wxStaticText* StaticText6;
 		//*)
 
         virtual bool TransferDataFromWindow() override;
@@ -62,8 +63,8 @@ class ViewSettingsPanel: public wxPanel
 		void OnModelHandleSizeChoiceSelect(wxCommandEvent& event);
 		void OnOpenGLRenderOrderChoiceSelect(wxCommandEvent& event);
 		void OnOpenGLVersionChoiceSelect(wxCommandEvent& event);
-		void OnCheckBox_BaseShowFolderClick(wxCommandEvent& event);
-		void OnChoiceSelect_TimelineZooming(wxCommandEvent& event);
+		void OnCheckBox_BaseShowFolderClick(wxCommandEvent& event);		
+		void OnChoice_TimelineZoomingSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
