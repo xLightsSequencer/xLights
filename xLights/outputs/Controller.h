@@ -67,6 +67,7 @@ protected:
     bool _suppressDuplicateFrames = false;   // should we suppress duplicate fromes
     Output::PINGSTATE _lastPingResult = Output::PINGSTATE::PING_UNKNOWN; // last ping result
     bool _tempDisable = false;
+    bool _fromBase = false;
 
     std::map<std::string, std::string> _runtimeProperties;  // place to store various properties/state/etc that may be needed at runtime
 #pragma endregion
@@ -76,8 +77,11 @@ public:
     #pragma region Constructors and Destructors
     Controller(OutputManager* om, wxXmlNode* node, const std::string& showDir);
     Controller(OutputManager* om);
+    Controller(OutputManager* om, const Controller& from);
     virtual ~Controller();
     virtual wxXmlNode* Save();
+    virtual Controller* Copy(OutputManager* om) = 0;
+    virtual bool UpdateFrom(Controller* from);
     #pragma endregion
 
     #pragma region Static Functions
@@ -108,6 +112,19 @@ public:
 
     bool IsDirty() const;
     void ClearDirty();
+
+    void SetFromBase(bool base)
+    {
+        if (_fromBase != base)
+        {
+            _dirty = true;
+            _fromBase = base;
+        }
+    }
+    bool IsFromBase() const
+    {
+        return _fromBase;
+    }
 
     const std::string& GetName() const { return _name; }
     void SetName(const std::string& name) { if (_name != name) { _name = name; _dirty = true; } }

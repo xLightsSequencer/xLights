@@ -19,9 +19,13 @@ public:
 
     #pragma region Constructors and Destructors
     DLightOutput(wxXmlNode* node) : LOROutput(node) {};
-    DLightOutput(SerialOutput* output) : LOROutput(output) {};
+    DLightOutput(const DLightOutput& from) : LOROutput(from) {};
     DLightOutput() : LOROutput() {};
     virtual ~DLightOutput() override {};
+    virtual Output* Copy() override
+    {
+        return new DLightOutput(*this);
+    }
     #pragma endregion 
 
     #pragma region Getters and Setters

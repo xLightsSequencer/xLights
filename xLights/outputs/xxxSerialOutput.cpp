@@ -30,8 +30,8 @@ void xxxSerialOutput::SendHeartbeat() const {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-xxxSerialOutput::xxxSerialOutput(SerialOutput* output) : SerialOutput(output) {
- 
+xxxSerialOutput::xxxSerialOutput(const xxxSerialOutput& from) : SerialOutput(from)
+{
     memset(_lastSent, 0x00, sizeof(_lastSent));
     memset(_notSentCount, 0x00, sizeof(_notSentCount));
     memset(_data, 0, sizeof(_data));

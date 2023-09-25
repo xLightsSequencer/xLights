@@ -489,10 +489,21 @@ bool IsFileInShowDir(const wxString& showDir, const std::string filename)
 {
     wxString fixedFile = FixFile(showDir, filename);
 
-    if (fixedFile.StartsWith(showDir)) {
+#ifdef __WXMSW__
+    fixedFile = fixedFile.Lower();
+#endif
+
+    if (fixedFile.StartsWith(showDir
+#ifdef __WXMSW__
+        .Lower()
+#endif
+    )) {
         return true;
     }
     for (auto &d : SearchDirectories) {
+#ifdef __WXMSW__
+        transform(d.begin(), d.end(), d.begin(), ::tolower);
+#endif
         if (fixedFile.StartsWith(d)) {
             return true;
         }

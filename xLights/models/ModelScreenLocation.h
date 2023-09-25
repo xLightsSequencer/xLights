@@ -27,6 +27,9 @@
 #define END_HANDLE             2
 #define SHEAR_HANDLE           3
 
+#define FROM_BASE_HANDLES_COLOUR xlPURPLETRANSLUCENT
+#define LOCKED_HANDLES_COLOUR xlREDTRANSLUCENT
+
 // Lower 20 bits reserved to store handle positions and these
 // constants are modifiers to indicate special handles
 #define HANDLE_MASK    0x00FFFFF
@@ -114,8 +117,8 @@ protected:
     virtual wxCursor CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const;
 
     //new drawing code
-    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const { return false; };
-    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const { return false; };
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const { return false; };
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const { return false; };
     void DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *program, float zoom, int scale) const;
 
     

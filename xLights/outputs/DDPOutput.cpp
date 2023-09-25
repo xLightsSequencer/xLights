@@ -90,6 +90,17 @@ DDPOutput::DDPOutput() : IPOutput() {
     memset(_data, 0, sizeof(_data));
 }
 
+DDPOutput::DDPOutput(const DDPOutput& from) :
+    IPOutput(from)
+{
+    _fulldata = nullptr;
+    _channelsPerPacket = from._channelsPerPacket;
+    _keepChannelNumbers = from._keepChannelNumbers;
+    _sequenceNum = 0;
+    _datagram = nullptr;
+    memset(_data, 0, sizeof(_data));
+}
+
 DDPOutput::~DDPOutput() {
 
     if (_datagram != nullptr) delete _datagram;

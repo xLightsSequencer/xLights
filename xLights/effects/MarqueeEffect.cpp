@@ -125,8 +125,8 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     int x = (mSpeed * eff_pos) / 5;
     int corner_x1 = 0;
     int corner_y1 = 0;
-    int corner_x2 = (int)((double)buffer.BufferWi * (double)x_scale / 100.0) - 1;
-    int corner_y2 = (int)((double)buffer.BufferHt * (double)y_scale / 100.0) - 1;
+    int corner_x2 = std::round(((double)(buffer.BufferWi * x_scale) / 100.0) - 1.0);
+    int corner_y2 = std::round(((double)(buffer.BufferHt * y_scale) / 100.0) - 1.0);
     int sign = 1;
     if (reverse_dir) {
         sign = -1;

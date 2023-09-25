@@ -1610,7 +1610,7 @@ void xLightsFrame::RenderDirtyModels() {
     Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, false, true, [] (bool) {});
 }
 
-bool xLightsFrame::AbortRender(int maxTimeMS)
+bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static bool inAbort = false;
@@ -1655,6 +1655,9 @@ bool xLightsFrame::AbortRender(int maxTimeMS)
     }
     logger_base.info("    Aborting renderers ... Done");
     inAbort = false;
+    if( numThreadsAborted != nullptr ) {
+        *numThreadsAborted = abortCount;
+    }
     return renderProgressInfo.empty();
 }
 

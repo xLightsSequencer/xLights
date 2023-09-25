@@ -640,8 +640,24 @@ void ModelPreview::DrawGroupCentre(float x, float y)
 {
     auto acc = solidProgram->getAccumulator();
     int start = acc->getCount();
-    acc->AddRectAsTriangles(x-20.5, y-0.5, x+20.5, y+0.5, xlREDTRANSLUCENT);
-    acc->AddRectAsTriangles(x-0.5, y-20.5, x+0.5, y+20.5, xlREDTRANSLUCENT);
+
+    float factor = 1;
+    if (!Is3D()) {
+        // Mimic Handle Scaling behavior
+        float zoom = GetCameraZoomForHandles();
+        int scale = GetHandleScale();
+        static float CENTER_MARK_WIDTH = 0.5f;
+        float rs = scale;
+        rs /= 2.0;
+        rs += 1.0;
+        rs *= 12.0;
+        float center_width = std::max(CENTER_MARK_WIDTH, CENTER_MARK_WIDTH * zoom * rs);
+        factor = center_width * 0.40; // adjust this for ideal size.
+        factor = MIN(MAX(factor, 1), 10); // sanity check
+    }
+    acc->AddRectAsTriangles(x - 20.5 * factor, y - 1.5 * factor, x + 20.5 * factor, y + 1.5 * factor, xlREDTRANSLUCENT);
+    acc->AddRectAsTriangles(x - 1.5 * factor, y - 20.5 * factor, x + 1.5 * factor, y + 20.5 * factor, xlREDTRANSLUCENT);
+
     int end = acc->getCount();
     solidProgram->addStep([start, end, this, acc](xlGraphicsContext* ctx) {
         ctx->drawTriangles(acc, start, end - start);

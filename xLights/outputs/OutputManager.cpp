@@ -13,6 +13,7 @@
 #include <wx/msgdlg.h>
 #include <wx/config.h>
 #include <wx/filename.h>
+#include <wx/dir.h>
 
 #include "OutputManager.h"
 #include "ControllerEthernet.h"
@@ -176,6 +177,9 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
         _globalFPPProxy = doc.GetRoot()->GetAttribute("GlobalFPPProxy");
         _globalForceLocalIP = doc.GetRoot()->GetAttribute("GlobalForceLocalIP");
 
+        _autoUpdateFromBaseShowDir = doc.GetRoot()->GetAttribute("AutoUpdateFromBase", "0") == "1";
+        _baseShowDir = doc.GetRoot()->GetAttribute("BaseShowDir", "");
+
         std::map<std::string, bool> multiip;
         for (auto e = doc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
             if (e->GetName() == "network")
@@ -324,6 +328,70 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
     return true;
 }
 
+bool OutputManager::MergeFromBase(bool prompt)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool changed = false;
+
+    OutputManager baseOM;
+
+    if (baseOM.Load(_baseShowDir)) {
+
+        if (_globalFPPProxy == "" && baseOM.GetGlobalFPPProxy() != "") {
+            SetGlobalFPPProxy(baseOM.GetGlobalFPPProxy());
+            logger_base.debug("Updating global FPP Proxy from base show folder.");
+        }
+
+        if (_globalForceLocalIP == "" && baseOM.GetGlobalForceLocalIP() != "") {
+            SetGlobalForceLocalIP(baseOM.GetGlobalForceLocalIP());
+            logger_base.debug("Updating global Force Local IP from base show folder.");
+        }
+
+        for (const auto& baseit : baseOM.GetControllers())
+        {
+            bool found = false;
+
+            // check if the controller already exists
+            for (const auto& it : GetControllers())
+            {
+                // if ip and id match or the names match then assume it is the same
+                if ((it->GetIP() == baseit->GetIP() && it->GetId() == baseit->GetId()) || it->GetName() == baseit->GetName()) {
+                    // this is a match
+                    found = true;
+
+                    bool force = false;
+                    if (prompt && !it->IsFromBase()) {
+                        force = wxMessageBox(wxString::Format("Controller %s found that clashes with base show directory. Do you want to take the base show directory version?", it->GetName()), "Controller clash", wxICON_QUESTION | wxYES_NO, nullptr) == wxYES;
+                    }
+
+                    // we only update if controller originally came from base
+                    if (force || it->IsFromBase()) {
+                        if (force) it->SetFromBase(true);
+                        bool thischanged = it->UpdateFrom(baseit);
+                        changed = thischanged || changed;
+                        if (thischanged) logger_base.debug("Controller '%s' updated from base show folder.", (const char*)it->GetName().c_str());
+                    } else {
+                        logger_base.debug("Controller '%s' NOT updated from base show folder as it never came from there.", (const char*)it->GetName().c_str());
+                    }
+                }
+            }
+
+            if (!found) {
+                auto c = baseit->Copy(this);
+                c->SetFromBase(true);
+                AddController(c);
+                changed = true;
+                logger_base.debug("Adding controller '%s' from base show folder.", (const char*)c->GetName().c_str());
+            }
+        }
+
+    } else {
+        return false;
+    }
+
+    return changed;
+}
+
 bool OutputManager::Save() {
 
     wxXmlDocument doc;
@@ -332,6 +400,9 @@ bool OutputManager::Save() {
     root->AddAttribute("computer", wxGetHostName());
     root->AddAttribute("GlobalFPPProxy", _globalFPPProxy);
     root->AddAttribute("GlobalForceLocalIP", _globalForceLocalIP);
+
+    root->AddAttribute("AutoUpdateFromBase", _autoUpdateFromBaseShowDir  ? "1" : "0");
+    root->AddAttribute("BaseShowDir", _baseShowDir);
 
     doc.SetRoot(root);
 

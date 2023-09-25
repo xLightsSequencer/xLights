@@ -36,10 +36,14 @@ public:
 
     #pragma region Constructors and Destructors
     xxxSerialOutput(wxXmlNode* node);
-    xxxSerialOutput(SerialOutput* output);
+    xxxSerialOutput(const xxxSerialOutput& from);
     xxxSerialOutput();
     virtual ~xxxSerialOutput() override {};
-    #pragma endregion Constructors and Destructors
+    virtual Output* Copy() override
+    {
+        return new xxxSerialOutput(*this);
+    }
+#pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_xxxSERIAL; }

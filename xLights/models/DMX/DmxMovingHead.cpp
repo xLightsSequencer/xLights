@@ -342,9 +342,9 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
     });
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         if (is_3d) {
-            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted, IsFromBase());
         } else {
-            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), IsFromBase());
         }
     }
 }

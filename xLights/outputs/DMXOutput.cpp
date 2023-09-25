@@ -14,7 +14,7 @@
 #include <wx/xml/xml.h>
 
 #pragma region Constructors and Destructors
-DMXOutput::DMXOutput(SerialOutput* output) : SerialOutput(output) {
+DMXOutput::DMXOutput(const DMXOutput& from) : SerialOutput(from) {
 
     _baudRate = GetDefaultBaudRate();
     _datalen = 0;

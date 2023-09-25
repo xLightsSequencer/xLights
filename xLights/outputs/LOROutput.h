@@ -32,10 +32,14 @@ public:
 
     #pragma region Constructors and Destructors
     LOROutput(wxXmlNode* node);
-    LOROutput(SerialOutput* output);
+    LOROutput(const LOROutput& from);
     LOROutput();
     virtual ~LOROutput() override {};
-    #pragma endregion 
+    virtual Output* Copy() override
+    {
+        return new LOROutput(*this);
+    }
+#pragma endregion 
 
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_LOR; }

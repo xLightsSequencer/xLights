@@ -26,6 +26,12 @@
 std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> ControllerCaps::__controllers;
 
 inline ControllerCaps *FindVariant(std::list<ControllerCaps*> &variants, const std::string &var) {
+
+    if (variants.size() == 1 && var == "")
+    {
+        return variants.front();
+    }
+
     for (auto it : variants) {
         if (it->GetVariantName() == var) {
             return it;

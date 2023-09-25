@@ -27,6 +27,7 @@ class ViewSettingsPanel: public wxPanel
 		virtual ~ViewSettingsPanel();
 
 		//(*Declarations(ViewSettingsPanel)
+		wxCheckBox* CheckBox_BaseShowFolder;
 		wxCheckBox* HousePreviewCheckBox;
 		wxCheckBox* PlayControlsCheckBox;
 		wxChoice* EffectAssistChoice;
@@ -45,6 +46,7 @@ class ViewSettingsPanel: public wxPanel
 		static const long ID_CHOICE5;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
+		static const long ID_CHECKBOX3;
 		//*)
 
 	private:
@@ -58,6 +60,7 @@ class ViewSettingsPanel: public wxPanel
 		void OnModelHandleSizeChoiceSelect(wxCommandEvent& event);
 		void OnOpenGLRenderOrderChoiceSelect(wxCommandEvent& event);
 		void OnOpenGLVersionChoiceSelect(wxCommandEvent& event);
+		void OnCheckBox_BaseShowFolderClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

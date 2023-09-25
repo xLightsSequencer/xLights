@@ -2496,7 +2496,8 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
     if (view != nullptr) {
         auto models = view->GetModels();
 
-        bool hadEffects = false;
+//        bool hadEffects = false;
+        std::vector<std::string> hadEffects;
         for (int i = 0; i < _sequenceElements->GetElementCount(MASTER_VIEW); ++i) {
             std::string name = _sequenceElements->GetElement(i)->GetFullName();
             if (std::find(models.begin(), models.end(), name) == models.end()) {
@@ -2512,14 +2513,25 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
                         --i;
                     }
                     else {
-                        hadEffects = true;
+//                        hadEffects = true;
+                        hadEffects.push_back(name);
                     }
                 }
             }
         }
 
-        if (hadEffects) {
-            DisplayWarning("One or more models had effects on them so they were not removed.");
+//        if (hadEffects) {
+        if (hadEffects.size()) { //show which one(s)
+//            DisplayWarning("One or more models had effects on them so they were not removed.");
+            std::string msg = std::to_string(hadEffects.size()) + " model";
+            if (hadEffects.size() != 1) msg += "s"; //OCD/grammar police :P
+            msg += " had effects, were not removed: ";
+            for (const auto &name: hadEffects) {
+                msg += name + ", ";
+            }
+            msg.pop_back();
+            msg.pop_back(); //drop last delimiter
+            DisplayWarning(msg);
         }
 
         // While all models might already be there they are likely not in the right order

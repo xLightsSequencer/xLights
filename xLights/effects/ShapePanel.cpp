@@ -132,6 +132,9 @@ const long ShapePanel::IDD_TEXTCTRL_Shape_Sensitivity = wxNewId();
 const long ShapePanel::ID_CHECKBOX_Shape_FireTiming = wxNewId();
 const long ShapePanel::ID_STATICTEXT_Shape_FireTimingTrack = wxNewId();
 const long ShapePanel::ID_CHOICE_Shape_FireTimingTrack = wxNewId();
+const long ShapePanel::ID_STATICTEXT5 = wxNewId();
+const long ShapePanel::ID_TEXTCTRL_Shape_FilterLabel = wxNewId();
+const long ShapePanel::ID_CHECKBOX_Shape_FilterReg = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ShapePanel,wxPanel)
@@ -186,7 +189,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     Choice_Shape_ObjectToDraw->Append(_("Emoji"));
     Choice_Shape_ObjectToDraw->Append(_("SVG"));
     FlexGridSizer57->Add(Choice_Shape_ObjectToDraw, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 2);
     StaticText9 = new wxStaticText(this, wxID_ANY, _("Character"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer57->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -213,12 +216,12 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     SkinToneChoice->Append(_("Medium Dark"));
     SkinToneChoice->Append(_("Dark"));
     FlexGridSizer57->Add(SkinToneChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 5);
     StaticText10 = new wxStaticText(this, ID_STATICTEXT1, _("SVG File"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer57->Add(StaticText10, 1, wxALL|wxEXPAND, 5);
-    FilePickerCtrl_SVG = new BulkEditFilePickerCtrl(this, ID_FILEPICKERCTRL_SVG, wxEmptyString, _("Select a file"), _T("*.svg"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_SVG"));
+    FilePickerCtrl_SVG = new BulkEditFilePickerCtrl(this, ID_FILEPICKERCTRL_SVG, wxEmptyString, wxEmptyString, _T("*.svg"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_SVG"));
     FlexGridSizer57->Add(FilePickerCtrl_SVG, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 5);
     StaticText72 = new wxStaticText(this, ID_STATICTEXT_Shape_Thickness, _("Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Thickness"));
     FlexGridSizer57->Add(StaticText72, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -230,7 +233,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer57->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shape_Thickness = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Thickness, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Thickness"));
     TextCtrl_Shape_Thickness->SetMaxLength(3);
-    FlexGridSizer57->Add(TextCtrl_Shape_Thickness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(TextCtrl_Shape_Thickness, 1, wxALL|wxEXPAND, 2);
     StaticText176 = new wxStaticText(this, ID_STATICTEXT_Shape_Count, _("Count"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Count"));
     FlexGridSizer57->Add(StaticText176, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -242,7 +245,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer57->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
     TextCtrl34 = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shape_Count, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Shape_Count"));
     TextCtrl34->SetMaxLength(3);
-    FlexGridSizer57->Add(TextCtrl34, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(TextCtrl34, 1, wxALL|wxEXPAND, 2);
     StaticText6 = new wxStaticText(this, ID_STATICTEXT_Shape_StartSize, _("Start Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_StartSize"));
     FlexGridSizer57->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -254,12 +257,12 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer57->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shape_StartSize = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_StartSize, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_StartSize"));
     TextCtrl_Shape_StartSize->SetMaxLength(3);
-    FlexGridSizer57->Add(TextCtrl_Shape_StartSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer57->Add(TextCtrl_Shape_StartSize, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 5);
     CheckBox_Shape_RandomInitial = new BulkEditCheckBox(this, ID_CHECKBOX_Shape_RandomInitial, _("Random initial shape sizes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shape_RandomInitial"));
     CheckBox_Shape_RandomInitial->SetValue(false);
     FlexGridSizer57->Add(CheckBox_Shape_RandomInitial, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 5);
     StaticText12 = new wxStaticText(this, ID_STATICTEXT3, _("Velocity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer57->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -271,7 +274,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer57->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shapes_Velocity = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shapes_Velocity, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Shapes_Velocity"));
     TextCtrl_Shapes_Velocity->SetMaxLength(3);
-    FlexGridSizer57->Add(TextCtrl_Shapes_Velocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer57->Add(TextCtrl_Shapes_Velocity, 1, wxALL|wxEXPAND, 2);
     StaticText13 = new wxStaticText(this, ID_STATICTEXT4, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     FlexGridSizer57->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer11 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -283,7 +286,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer57->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shapes_Direction = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shapes_Direction, _("90"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Shapes_Direction"));
     TextCtrl_Shapes_Direction->SetMaxLength(3);
-    FlexGridSizer57->Add(TextCtrl_Shapes_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer57->Add(TextCtrl_Shapes_Direction, 1, wxALL|wxEXPAND, 2);
     StaticText2 = new wxStaticText(this, ID_STATICTEXT_Shape_Lifetime, _("Lifetime"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Lifetime"));
     FlexGridSizer57->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -295,7 +298,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer57->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
     TextCtrl1 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Lifetime, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Lifetime"));
     TextCtrl1->SetMaxLength(3);
-    FlexGridSizer57->Add(TextCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer57->Add(TextCtrl1, 1, wxALL|wxEXPAND, 2);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT_Shape_Growth, _("Growth"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Growth"));
     FlexGridSizer57->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -307,7 +310,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer57->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shape_Growth = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Growth, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Growth"));
     TextCtrl_Shape_Growth->SetMaxLength(3);
-    FlexGridSizer57->Add(TextCtrl_Shape_Growth, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer57->Add(TextCtrl_Shape_Growth, 1, wxALL|wxEXPAND, 2);
     StaticText4 = new wxStaticText(this, ID_STATICTEXT_Shape_CentreX, _("X Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_CentreX"));
     FlexGridSizer57->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -319,7 +322,7 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer57->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shape_CentreX = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_CentreX, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_CentreX"));
     TextCtrl_Shape_CentreX->SetMaxLength(4);
-    FlexGridSizer57->Add(TextCtrl_Shape_CentreX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer57->Add(TextCtrl_Shape_CentreX, 1, wxALL|wxEXPAND, 2);
     StaticText5 = new wxStaticText(this, ID_STATICTEXT_Shape_CentreY, _("Y Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_CentreY"));
     FlexGridSizer57->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -331,14 +334,14 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer57->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shape_CentreY = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_CentreY, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_CentreY"));
     TextCtrl_Shape_CentreY->SetMaxLength(4);
-    FlexGridSizer57->Add(TextCtrl_Shape_CentreY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer57->Add(TextCtrl_Shape_CentreY, 1, wxALL|wxEXPAND, 2);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT_Shape_Points, _("Points"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Points"));
     FlexGridSizer57->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Shape_Points = new BulkEditSlider(this, ID_SLIDER_Shape_Points, 5, 2, 9, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_Points"));
     FlexGridSizer57->Add(Slider_Shape_Points, 1, wxALL|wxEXPAND, 2);
     TextCtrl_Shape_Points = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Points, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Points"));
     TextCtrl_Shape_Points->SetMaxLength(1);
-    FlexGridSizer57->Add(TextCtrl_Shape_Points, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer57->Add(TextCtrl_Shape_Points, 1, wxALL|wxEXPAND, 2);
     StaticText11 = new wxStaticText(this, ID_STATICTEXT_Shape_Rotation, _("Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Rotation"));
     FlexGridSizer57->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -350,49 +353,56 @@ ShapePanel::ShapePanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer57->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 0);
     TextCtrl_Shape_Rotation = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Rotation, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Rotation"));
     TextCtrl_Shape_Rotation->SetMaxLength(3);
-    FlexGridSizer57->Add(TextCtrl_Shape_Rotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(TextCtrl_Shape_Rotation, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 2);
     CheckBox_Shape_RandomLocation = new BulkEditCheckBox(this, ID_CHECKBOX_Shape_RandomLocation, _("Random Location"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shape_RandomLocation"));
     CheckBox_Shape_RandomLocation->SetValue(false);
     FlexGridSizer57->Add(CheckBox_Shape_RandomLocation, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 5);
     CheckBox_Shapes_RandomMovement = new BulkEditCheckBox(this, ID_CHECKBOX_Shapes_RandomMovement, _("Random movement"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shapes_RandomMovement"));
     CheckBox_Shapes_RandomMovement->SetValue(false);
     FlexGridSizer57->Add(CheckBox_Shapes_RandomMovement, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 2);
     CheckBox_Shape_FadeAway = new BulkEditCheckBox(this, ID_CHECKBOX_Shape_FadeAway, _("Fade Away"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shape_FadeAway"));
     CheckBox_Shape_FadeAway->SetValue(false);
     FlexGridSizer57->Add(CheckBox_Shape_FadeAway, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 2);
     CheckBox_Shape_HoldColour = new BulkEditCheckBox(this, ID_CHECKBOX_Shape_HoldColour, _("Hold Color"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shape_HoldColour"));
     CheckBox_Shape_HoldColour->SetValue(true);
     FlexGridSizer57->Add(CheckBox_Shape_HoldColour, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 2);
     CheckBox_Shape_UseMusic = new BulkEditCheckBox(this, ID_CHECKBOX_Shape_UseMusic, _("Fire with music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shape_UseMusic"));
     CheckBox_Shape_UseMusic->SetValue(false);
     FlexGridSizer57->Add(CheckBox_Shape_UseMusic, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 2);
     StaticText7 = new wxStaticText(this, ID_STATICTEXT_Shape_Sensitivity, _("Trigger level"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Sensitivity"));
     FlexGridSizer57->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Shape_Sensitivity = new BulkEditSlider(this, ID_SLIDER_Shape_Sensitivity, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_Sensitivity"));
     FlexGridSizer57->Add(Slider_Shape_Sensitivity, 1, wxALL|wxEXPAND, 2);
     TextCtrl_Shape_Sensitivity = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Sensitivity, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Sensitivity"));
     TextCtrl_Shape_Sensitivity->SetMaxLength(3);
-    FlexGridSizer57->Add(TextCtrl_Shape_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(TextCtrl_Shape_Sensitivity, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 2);
     CheckBox_Shape_FireTiming = new BulkEditCheckBox(this, ID_CHECKBOX_Shape_FireTiming, _("Fire with timing track"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shape_FireTiming"));
     CheckBox_Shape_FireTiming->SetValue(false);
     FlexGridSizer57->Add(CheckBox_Shape_FireTiming, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 2);
     StaticText8 = new wxStaticText(this, ID_STATICTEXT_Shape_FireTimingTrack, _("Timing Track"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_FireTimingTrack"));
     FlexGridSizer57->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Shape_TimingTrack = new BulkEditChoice(this, ID_CHOICE_Shape_FireTimingTrack, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Shape_FireTimingTrack"));
     FlexGridSizer57->Add(Choice_Shape_TimingTrack, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(-1,-1,1, wxALL|wxEXPAND, 2);
+    StaticText15 = new wxStaticText(this, ID_STATICTEXT5, _("Filter Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+    FlexGridSizer57->Add(StaticText15, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Shape_FilterLabel = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shape_FilterLabel, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Shape_FilterLabel"));
+    FlexGridSizer57->Add(TextCtrl_Shape_FilterLabel, 1, wxALL|wxEXPAND, 2);
+    CheckBox_FilterLabelReg = new BulkEditCheckBox(this, ID_CHECKBOX_Shape_FilterReg, _("Reg"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shape_FilterReg"));
+    CheckBox_FilterLabelReg->SetValue(false);
+    FlexGridSizer57->Add(CheckBox_FilterLabelReg, 1, wxALL|wxEXPAND, 2);
     SetSizer(FlexGridSizer57);
     FlexGridSizer57->Fit(this);
     FlexGridSizer57->SetSizeHints(this);
@@ -660,8 +670,12 @@ void ShapePanel::ValidateWindow()
 
     if (CheckBox_Shape_FireTiming->IsChecked()) {
         Choice_Shape_TimingTrack->Enable();
+        TextCtrl_Shape_FilterLabel->Enable();
+        CheckBox_FilterLabelReg->Enable();
     } else {
         Choice_Shape_TimingTrack->Disable();
+        TextCtrl_Shape_FilterLabel->Disable();
+        CheckBox_FilterLabelReg->Disable();
     }
 }
 

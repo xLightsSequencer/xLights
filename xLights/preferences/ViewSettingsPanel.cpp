@@ -30,6 +30,7 @@ const long ViewSettingsPanel::ID_CHOICE4 = wxNewId();
 const long ViewSettingsPanel::ID_CHOICE5 = wxNewId();
 const long ViewSettingsPanel::ID_CHECKBOX1 = wxNewId();
 const long ViewSettingsPanel::ID_CHECKBOX2 = wxNewId();
+const long ViewSettingsPanel::ID_CHECKBOX3 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ViewSettingsPanel,wxPanel)
@@ -75,15 +76,21 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 	HousePreviewCheckBox = new wxCheckBox(this, ID_CHECKBOX2, _("Auto Show House Preview"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	HousePreviewCheckBox->SetValue(true);
 	GridBagSizer1->Add(HousePreviewCheckBox, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_BaseShowFolder = new wxCheckBox(this, ID_CHECKBOX3, _("Enable Base Show Folder Settings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+	CheckBox_BaseShowFolder->SetValue(false);
+	GridBagSizer1->Add(CheckBox_BaseShowFolder, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridBagSizer1);
+	GridBagSizer1->Fit(this);
+	GridBagSizer1->SetSizeHints(this);
 
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnToolIconSizeChoiceSelect);
 	Connect(ID_CHOICE4,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnModelHandleSizeChoiceSelect);
 	Connect(ID_CHOICE5,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnEffectAssistChoiceSelect);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnPlayControlsCheckBoxClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnHousePreviewCheckBoxClick);
+	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_BaseShowFolderClick);
 	//*)
-    
+
     #ifdef _MSC_VER
     MSWDisableComposited();
     #endif
@@ -98,6 +105,7 @@ ViewSettingsPanel::~ViewSettingsPanel()
 bool ViewSettingsPanel::TransferDataToWindow() {
     HousePreviewCheckBox->SetValue(frame->AutoShowHousePreview());
     PlayControlsCheckBox->SetValue(frame->PlayControlsOnPreview());
+    CheckBox_BaseShowFolder->SetValue(frame->IsShowBaseShowFolder());
     int i = frame->EffectAssistMode();
     if (i >= 3) {
         i = 0;
@@ -128,6 +136,7 @@ bool ViewSettingsPanel::TransferDataFromWindow() {
     frame->SetEffectAssistMode(EffectAssistChoice->GetSelection());
     frame->SetPlayControlsOnPreview(PlayControlsCheckBox->IsChecked());
     frame->SetAutoShowHousePreview(HousePreviewCheckBox->IsChecked());
+    frame->SetShowBaseShowFolder(CheckBox_BaseShowFolder->IsChecked());
     switch (ToolIconSizeChoice->GetSelection()) {
         case 3:
             frame->SetToolIconSize(48);
@@ -189,6 +198,13 @@ void ViewSettingsPanel::OnOpenGLRenderOrderChoiceSelect(wxCommandEvent& event)
 }
 
 void ViewSettingsPanel::OnOpenGLVersionChoiceSelect(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void ViewSettingsPanel::OnCheckBox_BaseShowFolderClick(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

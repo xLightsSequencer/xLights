@@ -66,7 +66,7 @@ class Effect
 
 public:
     Effect(EffectManager* effectManager, EffectLayer* parent, int id, const std::string & name, const std::string &settings, const std::string &palette,
-        int startTimeMS, int endTimeMS, int Selected, bool Protected);
+        int startTimeMS, int endTimeMS, int Selected, bool Protected, bool importing = false);
     virtual ~Effect();
 
     int GetID() const { return mID; }

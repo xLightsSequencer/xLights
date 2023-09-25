@@ -10,6 +10,8 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+// https://tsp.esta.org/tsp/documents/docs/E1-17_2015(R2020)_secure.zip
+
 #include "IPOutput.h"
 
 #include <wx/sckaddr.h>
@@ -55,7 +57,12 @@ public:
 #pragma region Constructors and Destructors
     ArtNetOutput(wxXmlNode* node, bool isActive);
     ArtNetOutput();
+    ArtNetOutput(const ArtNetOutput& from);
     virtual ~ArtNetOutput() override;
+    virtual Output* Copy() override
+    {
+        return new ArtNetOutput(*this);
+    }
 #pragma endregion
 
 #pragma region Static Functions

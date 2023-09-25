@@ -216,9 +216,12 @@ ZCPPOutput::ZCPPOutput() : IPOutput() {
     memset(&_packet, 0, sizeof(_packet));
 }
 
-ZCPPOutput::ZCPPOutput(ZCPPOutput* output) : IPOutput(output) {
+ZCPPOutput::ZCPPOutput(const ZCPPOutput& from) : IPOutput(from) {
 
-    _usedChannels = output->_usedChannels;
+    _channels = from._channels;
+    _universe = from._universe;
+    _autoSize_CONVERT = from._autoSize_CONVERT;
+    _usedChannels = from._usedChannels;
     if (_channels == 0){
         _data = nullptr;
     }
@@ -227,18 +230,18 @@ ZCPPOutput::ZCPPOutput(ZCPPOutput* output) : IPOutput(output) {
         if (_data != nullptr) memset(_data, 0x00, _channels);
     }
     memset(&_packet, 0, sizeof(_packet));
-    _sequenceNum = output->_sequenceNum;
-    _remoteAddr = output->_remoteAddr;
+    _sequenceNum = from._sequenceNum;
+    _remoteAddr = from._remoteAddr;
     _datagram = nullptr;
     _lastSecond = -1;
-    _vendor = output->_vendor;
-    _model = output->_model;
-    _priority = output->_priority;
-    _supportsVirtualStrings = output->_supportsVirtualStrings;
-    _supportsSmartRemotes = output->_supportsSmartRemotes;
-    _multicast = output->_multicast;
-    _dontConfigure = output->_dontConfigure;
-    _protocols = output->_protocols;
+    _vendor = from._vendor;
+    _model = from._model;
+    _priority = from._priority;
+    _supportsVirtualStrings = from._supportsVirtualStrings;
+    _supportsSmartRemotes = from._supportsSmartRemotes;
+    _multicast = from._multicast;
+    _dontConfigure = from._dontConfigure;
+    _protocols = from._protocols;
 }
 
 ZCPPOutput::~ZCPPOutput() {

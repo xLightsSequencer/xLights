@@ -31,14 +31,17 @@ TerrianScreenLocation::TerrianScreenLocation()
     num_points = num_points_wide * num_points_deep;
 }
 
-bool TerrianScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const {
+bool TerrianScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const {
 
     auto va = program->getAccumulator();
     va->PreAlloc((mSelectableHandles + 5) * 5);
 
     xlColor handleColor = xlBLUETRANSLUCENT;
-    if (_locked) {
-        handleColor = xlREDTRANSLUCENT;
+    if (fromBase) {
+        handleColor = FROM_BASE_HANDLES_COLOUR;
+    }
+    else if (_locked) {
+        handleColor = LOCKED_HANDLES_COLOUR;
     }
 
     float x_offset = (num_points_wide - 1) * spacing / 2;
@@ -121,7 +124,10 @@ bool TerrianScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
     }
 
     xlColor Box3dColor = xlWHITE;
-    if (_locked) Box3dColor = xlREDTRANSLUCENT;
+    if (fromBase)
+        Box3dColor = FROM_BASE_HANDLES_COLOUR;
+    else if (_locked)
+        Box3dColor = LOCKED_HANDLES_COLOUR;
 
     float minX = -x_offset * scalex - BOUNDING_RECT_OFFSET;
     float maxX = x_offset * scalex + BOUNDING_RECT_OFFSET;

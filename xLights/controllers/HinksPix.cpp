@@ -29,7 +29,7 @@
 #pragma region HinksPixOutput
 void HinksPixOutput::Dump() const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("    Output %d Uni %d StartChan %d Pixels %d Dir %d Protocol %d Nulls %d ColorOrder %d Brightness %d Gamma %d ControlerStartChannel %d ControlerEndChannel %d",
+    logger_base.debug("    Output %d Uni %d StartChan %d Pixels %d Dir %d Protocol %d Nulls %d ColorOrder %d Brightness %d Gamma %d ControlerStartChannel %d ControlerEndChannel %d Used %s",
                       output,
                       universe,
                       startChannel,
@@ -41,7 +41,8 @@ void HinksPixOutput::Dump() const {
                       brightness,
                       gamma,
                       controllerStartChannel,
-                      controllerEndChannel);
+                      controllerEndChannel,
+                      toStr(used));
 }
 
 void HinksPixOutput::SetConfig(wxString const& data) {
@@ -194,21 +195,21 @@ wxString HinksPixInputUniverse::BuildCommandEasyLights() const {
 #pragma endregion
 
 #pragma region Private Functions
-bool HinksPix::InitControllerOutputData() {
+bool HinksPix::InitControllerOutputData(bool fullControl, int defaultBrightness) {
     _pixelOutputs.clear();
 
     for (int i = 0; i < OUT_SIZE * EXP_PORTS; i++) {
-        _pixelOutputs.push_back(HinksPixOutput(i + 1));
+        _pixelOutputs.push_back(HinksPixOutput(i + 1, defaultBrightness));
     }
+    if (!fullControl) {
+        for (int i = 0; i < EXP_PORTS; i++) {
+            if (_EXP_Outputs[i] == EXPType::Local_SPI || _EXP_Outputs[i] == EXPType::Long_Range) {
 
-    for (int i = 0; i < EXP_PORTS; i++) {
-        if (_EXP_Outputs[i] == EXPType::Local_SPI || _EXP_Outputs[i] == EXPType::Long_Range) {
-
-            InitExpansionBoardData(i + 1, (i * OUT_SIZE) + 1, OUT_SIZE);
+                InitExpansionBoardData(i + 1, (i * OUT_SIZE) + 1, OUT_SIZE);
+            }
         }
     }
-
-    _serialOutput = InitSerialData();
+    _serialOutput = InitSerialData(fullControl);
     return true;
 }
 
@@ -236,27 +237,30 @@ void HinksPix::InitExpansionBoardData(int expansion, int startport, int length) 
     }
 }
 
-std::unique_ptr<HinksPixSerial> HinksPix::InitSerialData() {
+std::unique_ptr<HinksPixSerial> HinksPix::InitSerialData(bool fullControl) {
     std::unique_ptr<HinksPixSerial> serial = std::make_unique<HinksPixSerial>();
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (_controllerType == "E") {
-        logger_base.warn("Easylight 16 is missing Serial API ATM");
-        return serial;
-    }
-    
-    wxJSONValue data;
-    bool worked = GetControllerDataJSON(GetJSONModeURL(), data, "BLK: 0");
+    if (!fullControl) {
 
-    if (!worked || !data.HasMember("CMD")) {
-        logger_base.error("Invalid Data from controller");
-        return serial;
-    }
-    if (data.Size() != 0) {
-        serial->SetConfig(data);
-    } else {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("Invalid Return data %s", (const char*)data.AsString().c_str());
+        if (_controllerType == "E") {
+            logger_base.warn("Easylight 16 is missing Serial API ATM");
+            return serial;
+        }
+
+        wxJSONValue data;
+        bool worked = GetControllerDataJSON(GetJSONModeURL(), data, "BLK: 0");
+
+        if (!worked || !data.HasMember("CMD")) {
+            logger_base.error("Invalid Data from controller");
+            return serial;
+        }
+        if (data.Size() != 0) {
+            serial->SetConfig(data);
+        } else {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.error("Invalid Return data %s", (const char*)data.AsString().c_str());
+        }
     }
 
     return serial;
@@ -564,7 +568,7 @@ void HinksPix::UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, 
     pd.universe = stringData->GetUniverse();
     pd.startChannel = stringData->GetUniverseStartChannel();
     pd.pixels = stringData->Pixels();
-
+    pd.used = true;
     pd.setControllerChannels(hinkstartChan);
 }
 
@@ -1037,6 +1041,15 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         return false;
     }*/
 
+    if (controller->GetModel() == "PRO" && _model == "HinksPix PRO 80") {// Hinkle added 
+        DisplayError(wxString::Format("Controller Reports as PRO80 BUT You have the Model as PRO - Please Fix"));
+        return false;
+    }
+    else if (controller->GetModel() == "PRO80" && _model == "HinksPix PRO") {// Hinkle added 
+        DisplayError(wxString::Format("Controller Reports as PRO BUT You have the Model as PRO80 - Please Fix"));
+        return false;
+    }
+
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
@@ -1083,15 +1096,19 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         progress.Update(100, "Aborting.");
         return false;
     }
+
+    bool const fullControl = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
+    int const defaultBrightness = controller->GetDefaultBrightnessUnderFullControl();
+
     bool worked = true;
 
     logger_base.info("Initializing Pixel Output Information.");
-    progress.Update(10, "Initializing Pixel Output Information.");
+    progress.Update(5, "Initializing Pixel Output Information.");
 
-    InitControllerOutputData();
+    InitControllerOutputData(fullControl, defaultBrightness);
 
     logger_base.info("Calculating Universe Start Channel Mappings.");
-    progress.Update(20, "Calculating Universe Start Channel Mappings.");
+    progress.Update(10, "Calculating Universe Start Channel Mappings.");
     std::vector<HinksPixInputUniverse> inputUniverses;
 
     for (auto const& it : outputs) {
@@ -1115,7 +1132,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     logger_base.info("Figuring Out Pixel Output Information.");
-    progress.Update(30, "Figuring Out Pixel Output Information.");
+    progress.Update(15, "Figuring Out Pixel Output Information.");
     int32_t hinkstartChan = 1;
     int univIdx = 1;
     //loop to setup string outputs
@@ -1131,8 +1148,22 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         }
     }
 
+    logger_base.info("Checking Pixel Output and SmartReceivers Information.");
+    progress.Update(20, "Checking Pixel Output and SmartReceivers Information.");
+
+    if (!CheckPixelOutputs(check)) {
+        DisplayError("HinksPix Upload Error:\n" + check, parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
+    if (!CheckSmartReceivers(check)) {
+        DisplayError("HinksPix Upload Error:\n" + check, parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
+
     logger_base.info("Figuring Out DMX Output Information.");
-    progress.Update(40, "Figuring Out DMX Output Information.");
+    progress.Update(25, "Figuring Out DMX Output Information.");
 
     if (cud.HasSerialPort(1)) {
         UDControllerPort* portData = cud.GetControllerSerialPort(1);
@@ -1140,7 +1171,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     logger_base.info("Uploading Input Universes Information.");
-    progress.Update(50, "Uploading Input Universes Information.");
+    progress.Update(30, "Uploading Input Universes Information.");
     worked &= UploadInputUniverses(controller, inputUniverses);
 
     logger_base.info("Uploading SmartReceivers Information.");
@@ -1276,4 +1307,36 @@ std::map<wxString, wxString> HinksPix::StringToMap(wxString const& text) const
         }
     }
     return map;
+}
+
+bool HinksPix::CheckPixelOutputs(std::string& message)
+{
+    for (auto const& it : _pixelOutputs) {
+        if (it.used) {
+            int exp_idx = (it.output - 1) / OUT_SIZE;
+            if (_EXP_Outputs[exp_idx] == EXPType::Not_Present) {
+                message = "Pixel Output " + std::to_string(it.output) + " is being used on Expansion Port " + std::to_string(exp_idx + 1) + " and no Output Board is Connected!";
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool HinksPix::CheckSmartReceivers(std::string& message)
+{
+    wxASSERT(std::size(_EXP_Outputs) == std::size(_smartOutputs));
+
+    for (int exp = 0; exp < EXP_PORTS; ++exp) {
+        if (_EXP_Outputs[exp] != EXPType::Long_Range) {
+            for (int bnk = 0; bnk < std::size(_smartOutputs[exp]); ++bnk) {
+                if (_smartOutputs[exp][bnk].size() != 0) {
+                    message = "Expansion Port " + std::to_string(exp + 1) + " has Smart Receivers but it is not a Long Range Differential Board!";
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }

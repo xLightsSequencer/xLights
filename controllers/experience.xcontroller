@@ -33,7 +33,7 @@
 		<SmartRemoteTypes>
 			<Type>falcon_v2</Type>
 		</SmartRemoteTypes>
-        <ConfigDriver>Experience</ConfigDriver>
+		<ConfigDriver>Experience</ConfigDriver>
 	</AbstractVariant>
 	<Controller Name="Genius Pixel 8">
 		<Variant Name="" Base="Experience Lights:BaseExperienceSettings">
@@ -48,6 +48,18 @@
 		</Variant>
 	</Controller>
 	<Controller Name="Genius Long Range">
+		<Variant Name="" Base="Experience Lights:BaseExperienceSettings">
+			<MaxPixelPort>40</MaxPixelPort>
+			<MaxSerialPort>2</MaxSerialPort>
+		</Variant>
+	</Controller>
+	<Controller Name="Genius Pro 16 Port">
+		<Variant Name="" Base="Experience Lights:BaseExperienceSettings">
+			<MaxPixelPort>24</MaxPixelPort>
+			<MaxSerialPort>2</MaxSerialPort>
+		</Variant>
+	</Controller>
+	<Controller Name="Genius Pro 32 Port">
 		<Variant Name="" Base="Experience Lights:BaseExperienceSettings">
 			<MaxPixelPort>40</MaxPixelPort>
 			<MaxSerialPort>2</MaxSerialPort>

@@ -643,7 +643,8 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
     const std::string& type,
     wxXmlNode* effectLayerNode,
     const std::vector<std::string>& effectStrings,
-    const std::vector<std::string>& colorPalettes)
+    const std::vector<std::string>& colorPalettes,
+    bool importing)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -713,7 +714,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                 }
                 if (effectName != "Random") { // we dont load random effects ... they should not be there
                     effectLayer->AddEffect(id, effectName, settings, pal,
-                                           startTime, endTime, EFFECT_NOT_SELECTED, bProtected);
+                                           startTime, endTime, EFFECT_NOT_SELECTED, bProtected, false, importing);
                 } else {
                     logger_base.warn("Random effect not loaded on element %s layer %d (%0.02f-%0.02f)", (const char*)effectLayer->GetParentElement()->GetName().c_str(), effectLayer->GetLayerNumber(), startTime / 1000, endTime / 1000);
                 }
@@ -733,7 +734,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
     return loaded;
 }
 
-bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxString& ShowDir)
+bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxString& ShowDir, bool importing)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -907,7 +908,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                     }
                                 }
                                 if (effectLayer != nullptr) {
-                                    loaded += LoadEffects(effectLayer, elementNode->GetAttribute(STR_TYPE).ToStdString(), effectLayerNode, effectStrings, colorPalettes);
+                                    loaded += LoadEffects(effectLayer, elementNode->GetAttribute(STR_TYPE).ToStdString(), effectLayerNode, effectStrings, colorPalettes, importing);
                                     if (count) {
                                         GetXLightsFrame()->SetStatusText(wxString::Format("Effects Loaded: %i%%.", loaded * 100 / count));
                                     }

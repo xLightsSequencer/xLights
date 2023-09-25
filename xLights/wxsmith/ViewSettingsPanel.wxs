@@ -109,6 +109,17 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_BaseShowFolder" member="yes">
+					<label>Enable Base Show Folder Settings</label>
+					<handler function="OnCheckBox_BaseShowFolderClick" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>5</row>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>

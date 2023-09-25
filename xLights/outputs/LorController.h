@@ -39,8 +39,13 @@ class LorController
     #pragma region Constructors and Destructors
         LorController();
         LorController(wxXmlNode* node);
+        LorController(const LorController& from);
         virtual ~LorController() {}
         void Save(wxXmlNode* node);
+        LorController* Copy() const
+        {
+            return new LorController(*this);
+        }
     #pragma endregion
 
     #pragma region Getters and Setters

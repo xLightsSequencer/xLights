@@ -42,7 +42,7 @@
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -135,7 +135,7 @@
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -149,6 +149,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_SVG" subclass="BulkEditFilePickerCtrl" variable="FilePickerCtrl_SVG" member="yes">
+					<message></message>
 					<wildcard>*.svg</wildcard>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
@@ -156,7 +157,7 @@
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -201,7 +202,7 @@
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -246,7 +247,7 @@
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -290,12 +291,12 @@
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -308,7 +309,7 @@
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -352,8 +353,8 @@
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -397,8 +398,8 @@
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -442,8 +443,8 @@
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -487,8 +488,8 @@
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -531,8 +532,8 @@
 					<maxlength>4</maxlength>
 					<size>20,-1d</size>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -575,8 +576,8 @@
 					<maxlength>4</maxlength>
 					<size>20,-1d</size>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -603,8 +604,8 @@
 					<maxlength>1</maxlength>
 					<size>20,-1d</size>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -647,12 +648,12 @@
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -666,12 +667,12 @@
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -685,12 +686,12 @@
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -703,12 +704,12 @@
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -722,12 +723,12 @@
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -741,7 +742,7 @@
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -767,12 +768,12 @@
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -786,7 +787,7 @@
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -807,7 +808,29 @@
 				<option>1</option>
 			</object>
 			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText15" member="yes">
+					<label>Filter Label</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Shape_FilterLabel" subclass="BulkEditTextCtrl" variable="TextCtrl_Shape_FilterLabel" member="yes" />
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Shape_FilterReg" subclass="BulkEditCheckBox" variable="CheckBox_FilterLabelReg" member="yes">
+					<label>Reg</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>

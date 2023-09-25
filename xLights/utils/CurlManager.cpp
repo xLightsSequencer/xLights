@@ -75,8 +75,8 @@ CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd,
     CURL* c = curl_easy_init();
     curl_easy_setopt(c, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(c, CURLOPT_USERAGENT, USERAGENT.c_str());
-    curl_easy_setopt(c, CURLOPT_CONNECTTIMEOUT_MS, 2000L);
-    curl_easy_setopt(c, CURLOPT_TIMEOUT_MS, 10000L);
+    curl_easy_setopt(c, CURLOPT_CONNECTTIMEOUT_MS, 4000L);
+    curl_easy_setopt(c, CURLOPT_TIMEOUT_MS, 12000L);
     curl_easy_setopt(c, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(c, CURLOPT_NOSIGNAL, 1);
     //curl_easy_setopt(c, CURLOPT_VERBOSE, 2L);
@@ -191,11 +191,13 @@ struct ReadDataInfo {
 static size_t read_callback(void* ptr, size_t size, size_t nmemb, void* userp) {
     size_t buffer_size = size * nmemb;
     struct ReadDataInfo* dt = (struct ReadDataInfo*)userp;
-    int numb = dt->data->size() - dt->curPos;
+    size_t numb = dt->data->size() - dt->curPos;
     if (numb > buffer_size) {
         numb = buffer_size;
     }
-    memcpy(ptr, &(*dt->data)[dt->curPos], numb);
+    if (numb > 0) {
+        memcpy(ptr, &(*dt->data)[dt->curPos], numb);
+    }
     dt->curPos += numb;
     return numb;
 }

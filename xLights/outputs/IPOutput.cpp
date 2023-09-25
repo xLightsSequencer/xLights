@@ -55,6 +55,14 @@ IPOutput::IPOutput() : Output() {
     _resolvedIp = "";
 }
 
+IPOutput::IPOutput(const IPOutput& from) :
+    Output(from)
+{
+    _ip = from._ip;
+    _resolvedIp = from._resolvedIp;
+    _universe = from._universe;
+}
+
 wxXmlNode* IPOutput::Save() {
 
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");

@@ -413,7 +413,7 @@ bool TerrianObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
     GetObjectScreenLocation().UpdateBoundingBox(width, height, depth);
 
     if ((Selected || Highlighted) && allowSelected) {
-        GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
+        GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true, IsFromBase());
     }
     return true;
 }

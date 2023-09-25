@@ -10,6 +10,9 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
+// https://tsp.esta.org/tsp/documents/docs/E1-31-2016.pdf
+// https://tsp.esta.org/tsp/documents/docs/ANSI_E1-31-2018.pdf
+
 #include "IPOutput.h"
 
 #include <wx/socket.h>
@@ -48,9 +51,13 @@ public:
     #pragma region Constructors and Destructors
     E131Output(wxXmlNode* node, bool isActive);
     E131Output();
-    E131Output(E131Output* output);
+    E131Output(const E131Output& from);
     virtual ~E131Output() override;
     virtual wxXmlNode* Save() override;
+    virtual Output* Copy() override
+    {
+        return new E131Output(*this);
+    }
     #pragma endregion
 
     #pragma region Static Functions

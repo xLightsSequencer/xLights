@@ -488,7 +488,7 @@ int AlphaPix::EncodeStringPortProtocol(const std::string& protocol) const {
     if (p == "tm18xx" && _modelnum != 48) return 6;
     if (p == "tm18xx" && _modelnum == 48) return 4;
     wxASSERT(false);
-    return -1;
+    return 0;
 }
 
 int AlphaPix::EncodeColorOrder(const std::string& colorOrder) const {
@@ -503,7 +503,7 @@ int AlphaPix::EncodeColorOrder(const std::string& colorOrder) const {
     if (c == "brg") return 4;
     if (c == "bgr") return 5;
     wxASSERT(false);
-    return -1;
+    return 0;
 }
 
 bool AlphaPix::EncodeDirection(const std::string& direction) const {

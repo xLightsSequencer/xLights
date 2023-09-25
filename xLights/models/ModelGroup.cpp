@@ -791,6 +791,19 @@ bool ModelGroup::RemoveDuplicates()
     return changed;
 }
 
+bool ModelGroup::IsModelFromBase(const std::string& modelName) const
+{
+    auto bm = ModelXml->GetAttribute("BaseModels");
+
+    std::istringstream lineStream(bm);
+    std::string cell;
+    while (std::getline(lineStream, cell, ',')) {
+        if (cell == modelName)
+            return true;
+    }
+    return false;
+}
+
 bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &newName) {
     bool changed = false;
     wxString newVal;

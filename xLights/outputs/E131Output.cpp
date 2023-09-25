@@ -105,14 +105,20 @@ E131Output::E131Output() : IPOutput() {
     memset(_data, 0, sizeof(_data));
 }
 
-E131Output::E131Output(E131Output* output) : IPOutput(output) {
-
-    memset(_data, 0, sizeof(_data));
-    _numUniverses_CONVERT = output->_numUniverses_CONVERT;
+E131Output::E131Output(const E131Output& from) :
+    IPOutput(from)
+{
+    _numUniverses_CONVERT = from._numUniverses_CONVERT;
     if (_numUniverses_CONVERT > 1) {
         CreateMultiUniverses_CONVERT(_numUniverses_CONVERT);
     }
-    _priority = output->_priority;
+    _priority = from._priority;
+    _channels = from._channels;
+    _universe = from._universe;
+    _sequenceNum = 0;
+    _priority = from._priority;
+    _datagram = nullptr;
+    memset(_data, 0, sizeof(_data));
 }
 
 E131Output::~E131Output()

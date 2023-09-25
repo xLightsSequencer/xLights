@@ -44,7 +44,7 @@ public:
 
     static bool HTTPSGetFile(const std::string& s, const std::string& filename, const std::string& user = "", const std::string& password = "", int timeout = 10, wxProgressDialog* prog = nullptr, bool keepProgress = false);
     
-    static bool HTTPUploadFile(const std::string& url, const std::string& filename, const std::string& file, wxProgressDialog* dlg, const std::string& username = "", const std::string& password = "");
+    static bool HTTPUploadFile(const std::string& url, const std::string& filename, const std::string& file, std::function<bool(int, std::string)> dlg, const std::string& username = "", const std::string& password = "");
 
     static int CurlDebug(CURL* handle, curl_infotype type, char* data, size_t size, void* userp);
 };

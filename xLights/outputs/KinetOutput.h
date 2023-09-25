@@ -45,9 +45,13 @@ public:
     #pragma region Constructors and Destructors
     KinetOutput(wxXmlNode* node, bool isActive);
     KinetOutput();
-    KinetOutput(KinetOutput* output);
+    KinetOutput(const KinetOutput& from);
     virtual ~KinetOutput() override;
     virtual wxXmlNode* Save() override;
+    virtual Output* Copy() override
+    {
+        return new KinetOutput(*this);
+    }
     #pragma endregion 
 
     #pragma region Static Functions

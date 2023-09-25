@@ -2130,7 +2130,6 @@ void ControllerModelDialog::ReloadModels()
             } else {
                 // Now add in the smart receivers for the port
                 for (int sr = 1; sr <= smartRemoteCount; ++sr) {
-                    int empty = pp->CountEmptySmartRemotesBefore(sr);
                     wxPoint start(999999, 999999);
                     wxSize size(0, 0);
                     int porty = 0;

@@ -3550,7 +3550,8 @@ unsigned int Model::GetNumChannels() {
 
 void Model::SetPosition(double posx, double posy) {
 
-    if (GetModelScreenLocation().IsLocked()) return;
+    if (GetModelScreenLocation().IsLocked() || IsFromBase())
+        return;
 
     GetModelScreenLocation().SetPosition(posx, posy);
     IncrementChangeCount();
@@ -4295,7 +4296,7 @@ void Model::AddLayerSizeProperty(wxPropertyGridInterface* grid)
 {
     wxPGProperty* psn = grid->Append(new wxUIntProperty("Layers", "Layers", GetLayerSizeCount()));
     psn->SetAttribute("Min", 1);
-    psn->SetAttribute("Max", 50);
+    psn->SetAttribute("Max", 100);
     psn->SetEditor("SpinCtrl");
 
     if (GetLayerSizeCount() > 1) {
@@ -5275,9 +5276,9 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
 
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         if (is_3d) {
-            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted, IsFromBase());
         } else {
-            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), IsFromBase());
         }
     }
 }
@@ -5640,7 +5641,8 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 
 glm::vec3 Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX,int mouseY) {
 
-    if (GetModelScreenLocation().IsLocked()) return GetModelScreenLocation().GetHandlePosition(handle);
+    if (GetModelScreenLocation().IsLocked() || IsFromBase())
+        return GetModelScreenLocation().GetHandlePosition(handle);
 
     int i = GetModelScreenLocation().MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
     GetModelScreenLocation().Write(ModelXml);
@@ -5682,14 +5684,16 @@ void Model::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
 
 void Model::InsertHandle(int after_handle, float zoom, int scale) {
 
-    if (GetModelScreenLocation().IsLocked()) return;
+    if (GetModelScreenLocation().IsLocked() || IsFromBase())
+        return;
 
     GetModelScreenLocation().InsertHandle(after_handle, zoom, scale);
 }
 
 void Model::DeleteHandle(int handle) {
 
-    if (GetModelScreenLocation().IsLocked()) return;
+    if (GetModelScreenLocation().IsLocked() || IsFromBase())
+        return;
 
     GetModelScreenLocation().DeleteHandle(handle);
 }
