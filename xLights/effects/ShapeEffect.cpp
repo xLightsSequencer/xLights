@@ -24,6 +24,8 @@
 
 #include "nanosvg/src/nanosvg.h"
 
+#include <regex>
+
 #include "../../include/shape-16.xpm"
 #include "../../include/shape-24.xpm"
 #include "../../include/shape-32.xpm"
@@ -196,6 +198,9 @@ void ShapeEffect::SetDefaultParameters() {
     SetCheckBoxValue(sp->CheckBox_Shape_FireTiming, false);
     SetCheckBoxValue(sp->CheckBox_Shape_RandomInitial, true);
     SetCheckBoxValue(sp->CheckBox_Shape_HoldColour, true);
+    SetCheckBoxValue(sp->CheckBox_FilterLabelReg, false);
+
+    sp->TextCtrl_Shape_FilterLabel->SetValue("");
 
     sp->FilePickerCtrl_SVG->SetFileName(wxFileName(""));
 }
@@ -285,6 +290,39 @@ public:
     NSVGimage* _svgImage = nullptr;
     std::string _svgFilename;
     float _svgScaleBase = 1.0f;
+    std::string _filterLabel;
+    std::regex _filterRegex;
+    bool _useRegex;
+
+    void SetFilter(const std::string& filterLabel, bool useRegex)
+    {
+        _filterLabel = filterLabel;
+        _useRegex = useRegex;
+        if (useRegex)
+            _filterRegex = std::regex(filterLabel, std::regex_constants::extended);
+    }
+
+    bool IsLabelAMatch(const std::string& label)
+    {
+        if (_filterLabel == "")
+            return true;
+
+        if (_useRegex)
+            return std::regex_search(label, _filterRegex);
+
+        // tokenise the label and then check if any match the filter
+        const std::string tokens = ": ;,";
+        char n[4096] = { 0 };
+        strncpy(n, label.c_str(), sizeof(n) - 1);
+        const char* token = strtok(n, tokens.c_str());
+        while (token != nullptr) {
+            if (_filterLabel == token)
+                return true;
+            token = strtok(nullptr, tokens.c_str());
+        }
+
+        return false;
+    }
 
     void InitialiseSVG(const std::string filename)
     {
@@ -420,6 +458,8 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     int direction = GetValueCurveInt("Shapes_Direction", 90, SettingsMap, oset, SHAPE_DIRECTION_MIN, SHAPE_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int velocity = GetValueCurveInt("Shapes_Velocity", 0, SettingsMap, oset, SHAPE_VELOCITY_MIN, SHAPE_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool randomMovement = SettingsMap.GetBool("CHECKBOX_Shapes_RandomMovement", false);
+    bool useRegex = SettingsMap.GetBool("CHECKBOX_Shape_FilterReg", false);
+    std::string filterLabel = SettingsMap.Get("TEXTCTRL_Shape_FilterLabel", "");
 
     int rotation = GetValueCurveInt("Shape_Rotation", 0, SettingsMap, oset, SHAPE_ROTATION_MIN, SHAPE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
@@ -458,6 +498,8 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 
     if (buffer.needToInit) {
         buffer.needToInit = false;
+
+        cache->SetFilter(filterLabel, useRegex);
 
         _sinceLastTriggered = 0;
 
@@ -527,8 +569,8 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                 EffectLayer* el = t->GetEffectLayer(0);
                 for (int j = 0; j < el->GetEffectCount(); j++)
                 {
-                    if (buffer.curPeriod == el->GetEffect(j)->GetStartTimeMS() / buffer.frameTimeInMs ||
-                        buffer.curPeriod == el->GetEffect(j)->GetEndTimeMS() / buffer.frameTimeInMs)
+                    Effect* ef = el->GetEffect(j);
+                    if (buffer.curPeriod == ef->GetStartTimeMS() / buffer.frameTimeInMs && cache->IsLabelAMatch(ef->GetEffectName()))
                     {
                         wxPoint pt;
                         if (randomLocation)
