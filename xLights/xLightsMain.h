@@ -1084,6 +1084,7 @@ public:
     bool _ignoreVendorModelRecommendations = false;
     bool _purgeDownloadCacheOnStart = false;
     int _fseqVersion;
+    int _timelineZooming;
     bool _wasMaximised = false;
     bool _suspendRender = false;
     wxArrayString _randomEffectsToUse;
@@ -1193,6 +1194,9 @@ public:
 
     int SaveFSEQVersion() const { return _fseqVersion; }
     void SetSaveFSEQVersion(int i) { _fseqVersion = i; }
+
+    int GetTimelineZooming() const { return _timelineZooming; }
+    void SetTimelineZooming(int choice) { _timelineZooming = choice; }
 
     bool ExcludePresetsFromPackagedSequences() const { return _excludePresetsFromPackagedSequences;}
     void SetExcludePresetsFromPackagedSequences(bool b) {_excludePresetsFromPackagedSequences = b;}
