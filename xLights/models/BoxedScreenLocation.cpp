@@ -25,6 +25,8 @@
 
 #include <log4cpp/Category.hh>
 
+#include <cmath>
+
 extern wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation);
 extern glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R);
 
@@ -139,6 +141,16 @@ void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
         worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "200.0"));
         worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
         worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
+
+        if (!std::isfinite(worldPos_x)) {
+            worldPos_x = 0.0F;
+        }
+        if (!std::isfinite(worldPos_y)) {
+            worldPos_y = 0.0F;
+        }
+        if (!std::isfinite(worldPos_z)) {
+            worldPos_z = 0.0F;
+        }
 
         scalex = wxAtof(ModelNode->GetAttribute("ScaleX", "1.0"));
         scaley = wxAtof(ModelNode->GetAttribute("ScaleY", "1.0"));

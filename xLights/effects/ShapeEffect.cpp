@@ -298,8 +298,13 @@ public:
     {
         _filterLabel = filterLabel;
         _useRegex = useRegex;
-        if (useRegex)
-            _filterRegex = std::regex(filterLabel, std::regex_constants::extended);
+        if (useRegex) {
+            try {
+                _filterRegex = std::regex(filterLabel, std::regex_constants::extended);
+            } catch(std::exception&) {
+                _useRegex = false;
+            }
+        }
     }
 
     bool IsLabelAMatch(const std::string& label)

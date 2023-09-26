@@ -892,8 +892,12 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
     } else if (id == ID_ROW_MNU_HIDEALLTIMING) {
         mSequenceElements->HideAllTimingTracks(true);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_SHOWALLTIMING) {
         mSequenceElements->HideAllTimingTracks(false);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES) {
         auto te = dynamic_cast<TimingElement*>(element);
         if (te != nullptr) {

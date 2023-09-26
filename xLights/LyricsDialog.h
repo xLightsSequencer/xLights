@@ -25,7 +25,6 @@ class LyricsDialog: public wxDialog
 		virtual ~LyricsDialog();
 
 		//(*Declarations(LyricsDialog)
-		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
@@ -37,7 +36,6 @@ class LyricsDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(LyricsDialog)
-		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL_Lyrics;
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL_LYRIC_STARTTIME;

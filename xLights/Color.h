@@ -305,3 +305,4 @@ enum ColorDisplayMode
     MODE_BLUE
 };
 
+const std::string& GetColourName(const wxColour& c);
