@@ -4138,6 +4138,104 @@ void EffectsGrid::DisableRenderEffects(bool disable)
     }
 }
 
+void EffectsGrid::EnDisableRenderEffectsWithRefresh(int iOverride)
+{
+    if (EnDisableRenderEffects(iOverride)) {
+        //
+        // refresh the Sequencer Grid
+        //
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    }
+}
+
+bool EffectsGrid::EnDisableRenderEffects(int iOverride)
+{
+    bool bNeedRefresh = false;
+
+    if (mSequenceElements == nullptr)
+        return;
+
+    if (mSelectedEffect != nullptr || AtLeastOneEffectSelected()) {
+        auto efs = GetSelectedEffects();
+        // add in the selected effect if we didnt get it
+        if (mSelectedEffect != nullptr) {
+            bool found = false;
+            for (auto it = efs.begin(); it != efs.end(); ++it) {
+                if ((*it) == mSelectedEffect) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                efs.push_back(mSelectedEffect);
+            }
+        }
+
+        if (efs.size() > 0) {
+
+            wxASSERT(iOverride >= -1 && iOverride <= 1);    
+
+            //
+            // take flipped (disabled) state of first item and apply to every item in the list
+            //
+            bool bEffectRenderDisable = (iOverride == -1 ? !(*efs.begin())->IsEffectRenderDisabled() : iOverride == 1);
+            //bool bEffectRenderDisable = !(*efs.begin())->IsEffectRenderDisabled();
+
+            for (auto it = efs.begin(); it != efs.end(); ++it) {
+                (*it)->SetEffectRenderDisabled(bEffectRenderDisable);
+            }
+            bNeedRefresh = true;
+        }
+    }
+    return bNeedRefresh;
+}
+
+void EffectsGrid::EnDisableSelectedModelWithRefresh(int iOverride)
+{
+    if (EnDisableSelectedModel(iOverride)) {
+        //
+        // refresh the Sequencer Grid
+        //
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    }
+}
+
+bool EffectsGrid::EnDisableSelectedModel(int iOverride)
+{
+    bool bNeedRefresh = false;
+
+    int row = mSelectedRow;
+    if (row == -1 && mRangeStartRow == mRangeEndRow)
+        row = mRangeStartRow;
+    if (row == -1)
+        return;
+
+    EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+    if (el == nullptr)
+        return;
+
+    //
+    // get top level models container
+    //
+    Element* element = el->GetParentElement();
+    if (element == nullptr)
+        return;
+
+    wxASSERT(iOverride >= -1 && iOverride <= 1);    
+
+    bNeedRefresh = true;
+    // element : the model
+    // iOverride : -1 = flip model disabled state, 1 = disable, 0 = enable)
+    // if override = -1 then flip current state of model, otherwise use override value to set the disabled state
+    bool bEffectDisabled = (iOverride == -1 ? !element->IsRenderDisabled() : iOverride == 1);
+    element->SetRenderDisabled(bEffectDisabled);
+
+    return bNeedRefresh;
+}
+
 void EffectsGrid::ResetEffect()
 {
     if (mSequenceElements == nullptr)

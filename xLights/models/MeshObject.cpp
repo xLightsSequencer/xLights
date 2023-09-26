@@ -311,7 +311,7 @@ bool MeshObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsP
     }
 
     GetObjectScreenLocation().UpdateBoundingBox(width, height, depth);  // FIXME: Modify to only call this when position changes
-    if (mesh) {
+    if (mesh && 0 == 1) {
         glm::vec3 scalingMatrix = GetObjectScreenLocation().GetScaleMatrix();
         glm::vec3 rotations = GetObjectScreenLocation().GetRotation();
 

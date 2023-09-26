@@ -158,8 +158,15 @@ public:
     int GetMSFromColumn(int col) const;
     Element* GetActiveTimingElement() const;
     void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true, bool async = false) const;
-    void LockEffects(bool lock);
+    void LockEffects(bool lock);    
     void DisableRenderEffects(bool disable);
+
+    bool EnDisableSelectedModel(int iOverride = -1);
+    void EnDisableSelectedModelWithRefresh(int iOverride = -1);
+
+    bool EnDisableRenderEffects(int iOverride = -1);
+    void EnDisableRenderEffectsWithRefresh(int iOverride = -1);
+
     int GetDropRow() const { 
         if (mDragDropping) return mDropRow; 
         return -1;
