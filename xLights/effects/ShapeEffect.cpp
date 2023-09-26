@@ -301,7 +301,7 @@ public:
         if (useRegex) {
             try {
                 _filterRegex = std::regex(filterLabel, std::regex_constants::extended);
-            }catch(std::exception&) {
+            } catch(std::exception&) {
                 _useRegex = false;
             }
         }
