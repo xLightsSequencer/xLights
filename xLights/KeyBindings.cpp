@@ -124,12 +124,13 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "AUDIO_S_1_4_SPEED", KBSCOPE::Sequence },
     { "PRIOR_TAG", KBSCOPE::Sequence },
     { "NEXT_TAG", KBSCOPE::Sequence },
+    { "MODEL_TOGGLE", KBSCOPE::Sequence },
     { "MODEL_DISABLE", KBSCOPE::Sequence },
     { "MODEL_ENABLE", KBSCOPE::Sequence },
-    { "MODEL_TOGGLE", KBSCOPE::Sequence },
-    { "EFFECT_ENABLE", KBSCOPE::Sequence },
+    { "EFFECT_TOGGLE", KBSCOPE::Sequence },
     { "EFFECT_DISABLE", KBSCOPE::Sequence },
-    { "EFFECT_TOGGLE", KBSCOPE::Sequence }
+    { "EFFECT_ENABLE", KBSCOPE::Sequence },
+    { "MODEL_EFFECT_TOGGLE", KBSCOPE::Sequence }
 
 };
 
@@ -235,12 +236,13 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
     { "MODEL_FACES", "Edit model faces." },
     { "MODEL_STATES", "Edit model states." },
     { "MODEL_MODELDATA", "Edit custom model data." },
-    { "MODEL_DISABLE", "Disable rendering of this model in the sequencer" },
-    { "MODEL_ENABLE", "Enable rendering of this model in the sequencer" },
-    { "MODEL_TOGGLE", "Toggle (Enable/Disable) rendering of this model in the sequencer" },
-    { "EFFECT_ENABLE", "Enable rendering of the selected effects in the sequencer" },
+    { "MODEL_TOGGLE", "Toggle (Enable/Disable) rendering of the selected model in the sequencer" },
+    { "MODEL_DISABLE", "Disable rendering of the selected model in the sequencer" },
+    { "MODEL_ENABLE", "Enable rendering of the selected model in the sequencer" },
+    { "EFFECT_TOGGLE", "Toggle (Enable/Disable) rendering of the selected effects in the sequencer" },
     { "EFFECT_DISABLE", "Disable rendering of the selected effects in the sequencer" },
-    { "EFFECT_TOGGLE", "Toggle (Enable/Disable) rendering of the selected effects in the sequencer" }
+    { "EFFECT_ENABLE", "Enable rendering of the selected effects in the sequencer" },
+    { "MODEL_EFFECT_TOGGLE", "Toggle (Enable/Disable) rendering of the selected model or the effects in the sequencer" }
 };
 
 const std::vector<KeyBinding> DefaultBindings =
@@ -366,9 +368,7 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("O", false, "Off", "", xlights_version_string, false, false, true),
     KeyBinding("F", false, "Fan", "", xlights_version_string, false, false, true),
     KeyBinding(false, std::string("U"), "T_TEXTCTRL_Fadein=1.00", xlights_version_string, false, false, true, false),
-    KeyBinding(false, std::string("D"), "T_TEXTCTRL_Fadeout=1.00", xlights_version_string, false, false, true, false),
-    KeyBinding("m", false, "MODEL_TOGGLE", true), // CTRL+m
-    KeyBinding("e", false, "EFFECT_TOGGLE", true) // CTRL+e
+    KeyBinding(false, std::string("D"), "T_TEXTCTRL_Fadeout=1.00", xlights_version_string, false, false, true, false)
 };
 
 // These are the keys that were hard coded before 2018.28 and thus need to be inserted if they are not present

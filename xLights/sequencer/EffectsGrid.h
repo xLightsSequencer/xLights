@@ -161,11 +161,14 @@ public:
     void LockEffects(bool lock);    
     void DisableRenderEffects(bool disable);
 
-    bool EnDisableSelectedModel(int iOverride = -1);
-    void EnDisableSelectedModelWithRefresh(int iOverride = -1);
+    bool EnDisableSelectedModel(int iOverrideState);
+    void EnDisableSelectedModelWithRefresh(int iOverrideState = -1);
 
-    bool EnDisableRenderEffects(int iOverride = -1);
-    void EnDisableRenderEffectsWithRefresh(int iOverride = -1);
+    bool EnDisableRenderEffects(int iOverrideState);
+    void EnDisableRenderEffectsWithRefresh(int iOverrideState = -1);
+
+    bool EnDisableSelectedModelOrEffects(int iOverrideState);
+    void EnDisableSelectedModelOrEffectsWithRefresh(int iOverrideState = -1);
 
     int GetDropRow() const { 
         if (mDragDropping) return mDropRow; 

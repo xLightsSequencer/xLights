@@ -734,17 +734,25 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                 
                 PanelEffectGrid->EnDisableSelectedModelWithRefresh(0);
 
-            } else if (type == "EFFECT_TOGGLE") {
+            } 
+            else if (type == "EFFECT_TOGGLE") {
 
                 PanelEffectGrid->EnDisableRenderEffectsWithRefresh();                
 
-            } else if (type == "EFFECT_DISABLE") {
+            } 
+            else if (type == "EFFECT_DISABLE") {
 
                 PanelEffectGrid->EnDisableRenderEffectsWithRefresh(1);
 
-            } else if (type == "EFFECT_ENABLE") {
+            } 
+            else if (type == "EFFECT_ENABLE") {
 
                 PanelEffectGrid->EnDisableRenderEffectsWithRefresh(0);
+
+            } 
+            else if (type == "MODEL_EFFECT_TOGGLE") {
+
+                PanelEffectGrid->EnDisableSelectedModelOrEffectsWithRefresh();
 
             }
             else {
