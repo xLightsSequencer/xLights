@@ -95,6 +95,7 @@ public:
     std::list<std::string> GetAllReferencedFiles();
     std::list<std::string> GetAllUsedEffectTypes() const;
     std::list<std::string> GetAllElementNamesWithEffects();
+    std::list<std::string> GetAllElementNamesWithEffectsExtended(); // this also gets submodels and strands
     int GetElementLayerCount(std::string elementName, std::list<int>* layers = nullptr);
     std::list<Effect*> GetElementLayerEffects(std::string elementName, int layer);
     bool IsValidEffect(Effect* e) const;

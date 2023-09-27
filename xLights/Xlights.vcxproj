@@ -293,6 +293,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="DragValueCurveBitmapButton.cpp" />
     <ClCompile Include="DuplicateDialog.cpp" />
     <ClCompile Include="effects\assist\SketchAssistPanel.cpp" />
+    <ClCompile Include="effects\DuplicateEffect.cpp" />
+    <ClCompile Include="effects\DuplicatePanel.cpp" />
     <ClCompile Include="effects\FX.cpp" />
     <ClCompile Include="effects\GuitarEffect.cpp" />
     <ClCompile Include="effects\GuitarPanel.cpp" />
@@ -783,6 +785,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="effects\assist\xlGridCanvasEmpty.h" />
     <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
     <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
+    <ClInclude Include="effects\DuplicateEffect.h" />
+    <ClInclude Include="effects\DuplicatePanel.h" />
     <ClInclude Include="effects\FX.h" />
     <ClInclude Include="effects\GuitarEffect.h" />
     <ClInclude Include="effects\GuitarPanel.h" />
