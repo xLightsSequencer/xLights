@@ -564,14 +564,15 @@ public:
             std::unique_lock<std::recursive_mutex> elayerLock(elayer->GetLock());
             Effect* ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
 
-            if (ef != nullptr && ef->GetEffectName() == "Duplicate") {
+            if (ef != nullptr && ef->GetEffectIndex() == EffectManager::eff_DUPLICATE) {
                 // we are mirroring another model ... so find the right effect on that model/layer
                 Effect* orig = ef;
-                ef = findEffectForFrame(orig->GetSetting("E_CHOICE_Duplicate_Model"), wxAtoi(orig->GetSetting("E_SPINCTRL_Duplicate_Layer")), frame);
+                
+                ef = findEffectForFrame(orig->GetSetting("E_CHOICE_Duplicate_Model"), orig->GetSettings().GetInt("E_SPINCTRL_Duplicate_Layer"), frame);
 
                 if (ef != nullptr) {
 
-                    if (ef->GetEffectName() == "Duplicate") {
+                    if (ef->GetEffectIndex() == EffectManager::eff_DUPLICATE) {
                         // we cant duplicate a duplicate
                         ef = nullptr;
                     } else {
