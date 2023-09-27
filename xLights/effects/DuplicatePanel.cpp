@@ -99,7 +99,7 @@ void DuplicatePanel::OnCheckBox1Click(wxCommandEvent& event)
 
 void DuplicatePanel::OnChoice_ModelSelect(wxCommandEvent& event)
 {
-    SpinCtrl_Layer->SetMax(DuplicateEffect::GetLayersForModel(Choice_Model->GetStringSelection()));
+    // SpinCtrl_Layer->SetMax(DuplicateEffect::GetLayersForModel(Choice_Model->GetStringSelection()));
 
     ValidateWindow();
 }
