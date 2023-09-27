@@ -165,6 +165,32 @@
             <fpp1>21,16</fpp1>
         </Variant>
     </Controller>
+    <Controller Name="K8-Pi4">
+        <Variant Name="No Expansion" ID="K8-Pi4" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>20</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+            <SupportsVirtualMatrix/>
+            <MaxVirtualMatrixPorts>2</MaxVirtualMatrixPorts>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+            <fpp>1</fpp>
+            <fpp1>21,-1</fpp1>
+        </Variant>
+        <Variant Name="w/Expansion" ID="K8-Pi4" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>36</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+            <SupportsVirtualMatrix/>
+            <MaxVirtualMatrixPorts>2</MaxVirtualMatrixPorts>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+            <NumberOfBanks>2</NumberOfBanks>
+            <BankSize>16</BankSize>
+            <fpp>1</fpp>
+            <fpp1>21,16</fpp1>
+        </Variant>
+    </Controller>
     <Controller Name="K8-PB">
         <Variant Name="No Expansion" ID="K8-PB" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>20</MaxPixelPort>
