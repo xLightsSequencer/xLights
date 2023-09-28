@@ -123,7 +123,15 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "AUDIO_S_1_2_SPEED", KBSCOPE::Sequence },
     { "AUDIO_S_1_4_SPEED", KBSCOPE::Sequence },
     { "PRIOR_TAG", KBSCOPE::Sequence },
-    { "NEXT_TAG", KBSCOPE::Sequence }
+    { "NEXT_TAG", KBSCOPE::Sequence },
+    { "MODEL_TOGGLE", KBSCOPE::Sequence },
+    { "MODEL_DISABLE", KBSCOPE::Sequence },
+    { "MODEL_ENABLE", KBSCOPE::Sequence },
+    { "EFFECT_TOGGLE", KBSCOPE::Sequence },
+    { "EFFECT_DISABLE", KBSCOPE::Sequence },
+    { "EFFECT_ENABLE", KBSCOPE::Sequence },
+    { "MODEL_EFFECT_TOGGLE", KBSCOPE::Sequence }
+
 };
 
 static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
@@ -227,7 +235,14 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
     { "MODEL_SUBMODELS", "Edit model submodels." },
     { "MODEL_FACES", "Edit model faces." },
     { "MODEL_STATES", "Edit model states." },
-    { "MODEL_MODELDATA", "Edit custom model data." }
+    { "MODEL_MODELDATA", "Edit custom model data." },
+    { "MODEL_TOGGLE", "Toggle (Enable/Disable) rendering of the selected model in the sequencer" },
+    { "MODEL_DISABLE", "Disable rendering of the selected model in the sequencer" },
+    { "MODEL_ENABLE", "Enable rendering of the selected model in the sequencer" },
+    { "EFFECT_TOGGLE", "Toggle (Enable/Disable) rendering of the selected effects in the sequencer" },
+    { "EFFECT_DISABLE", "Disable rendering of the selected effects in the sequencer" },
+    { "EFFECT_ENABLE", "Enable rendering of the selected effects in the sequencer" },
+    { "MODEL_EFFECT_TOGGLE", "Toggle (Enable/Disable) rendering of the selected model or the effects in the sequencer" }
 };
 
 const std::vector<KeyBinding> DefaultBindings =

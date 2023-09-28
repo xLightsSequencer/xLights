@@ -4138,6 +4138,142 @@ void EffectsGrid::DisableRenderEffects(bool disable)
     }
 }
 
+void EffectsGrid::EnDisableSelectedModelWithRefresh(int iOverrideState)
+{
+    if (EnDisableSelectedModel(iOverrideState)) {
+        //
+        // refresh the Sequencer Grid
+        //
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    }
+}
+
+bool EffectsGrid::EnDisableSelectedModel(int iOverrideState)
+{
+    // iOverrideState : -1 = flip models disabled state, 1 = disable, 0 = enable)
+    // if iOverrideState = -1 then flip current state of model, otherwise use iOverrideState value to set the disabled state
+
+    bool bNeedRefresh = false;
+
+    SetCursor(wxCURSOR_WAIT);
+
+    int row1 = GetStartRow();
+    int row2 = GetEndRow();
+
+    if (row1 == -1)
+        row1 = row2 = mSelectedRow;
+        
+    if (row1 != -1) {
+
+        EffectLayer* el = nullptr;
+        Element* element = nullptr;
+
+        wxASSERT(iOverrideState >= -1 && iOverrideState <= 1);
+
+        if ((el = mSequenceElements->GetEffectLayer(row1)) != nullptr)
+            if ((element = el->GetParentElement()) != nullptr) {
+
+                //
+                // take flipped (disabled) state of first item so it can be applied to every item that is selected
+                //
+                bool bAmIDisabledNow = (iOverrideState == -1 ? !element->IsRenderDisabled() : iOverrideState == 1);
+
+                for (int row = row1; row <= row2; row++) {
+                    if ((el = mSequenceElements->GetEffectLayer(row)) != nullptr)
+                        if ((element = el->GetParentElement()) != nullptr) {
+                            element->SetRenderDisabled(bAmIDisabledNow);
+                            bNeedRefresh = true;
+                        }
+                }
+            }
+    }
+    SetCursor(wxCURSOR_ARROW);
+
+    return bNeedRefresh;
+}
+
+void EffectsGrid::EnDisableRenderEffectsWithRefresh(int iOverrideState)
+{
+    if (EnDisableRenderEffects(iOverrideState)) {
+        //
+        // refresh the Sequencer Grid
+        //
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    }
+}
+
+bool EffectsGrid::EnDisableRenderEffects(int iOverrideState)
+{
+    bool bNeedRefresh = false;
+
+    if (mSequenceElements == nullptr)
+        return bNeedRefresh;
+
+    if (mSelectedEffect != nullptr || AtLeastOneEffectSelected()) {
+        auto efs = GetSelectedEffects();
+        // add in the selected effect if we didnt get it
+        if (mSelectedEffect != nullptr) {
+            bool found = false;
+            for (auto it = efs.begin(); it != efs.end(); ++it) {
+                if ((*it) == mSelectedEffect) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                efs.push_back(mSelectedEffect);
+            }
+        }
+
+        if (efs.size() > 0) {
+            wxASSERT(iOverrideState >= -1 && iOverrideState <= 1);
+
+            //
+            // take flipped (disabled) state of first item and apply to every item in the list
+            //
+            bool bAmIDisabledNow = (iOverrideState == -1 ? !(*efs.begin())->IsEffectRenderDisabled() : iOverrideState == 1);
+
+            for (auto it = efs.begin(); it != efs.end(); ++it) {
+                (*it)->SetEffectRenderDisabled(bAmIDisabledNow);
+            }
+            bNeedRefresh = true;
+        }
+    }
+    return bNeedRefresh;
+}
+
+void EffectsGrid::EnDisableSelectedModelOrEffectsWithRefresh(int iOverrideState)
+{
+    if (EnDisableSelectedModelOrEffects(iOverrideState)) {
+        //
+        // refresh the Sequencer Grid
+        //
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    }
+}
+
+bool EffectsGrid::EnDisableSelectedModelOrEffects(int iOverrideState)
+{
+    bool bNeedRefresh = false;
+    //
+    // process endis effects first 
+    // will return true if effects were enabled or disabled
+    // will return false if no effects were selected
+    //      when false (no effects were selected) call endis model 
+    
+    bNeedRefresh = EnDisableRenderEffects(iOverrideState);
+
+    if ( bNeedRefresh == false ) {
+        bNeedRefresh = EnDisableSelectedModel(iOverrideState);
+    }
+
+    return bNeedRefresh;
+}
+
 void EffectsGrid::ResetEffect()
 {
     if (mSequenceElements == nullptr)
