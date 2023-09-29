@@ -2135,9 +2135,12 @@ void xLightsFrame::OnListControllersItemRClick(wxListEvent& event) {
     if (SpecialOptions::GetOption("xxx") == "true") {
         ethernet += "xxx";
     }
-
-    auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    auto controller = _outputManager.GetController(name);
+    int count = List_Controllers->GetSelectedItemCount();
+    Controller *controller = nullptr;
+    if (count == 1) {
+        auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
+        controller = _outputManager.GetController(name);
+    }
 
     mnu.Append(ID_NETWORK_ADDETHERNET, ethernet)->Enable(ButtonAddControllerSerial->IsEnabled());
     mnu.Append(ID_NETWORK_ADDNULL, "Insert NULL")->Enable(ButtonAddControllerSerial->IsEnabled());
