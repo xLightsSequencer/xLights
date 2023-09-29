@@ -48,7 +48,7 @@
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCape" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
-        <MaxPixelPortChannels>4200</MaxPixelPortChannels>
+        <MaxPixelPortChannels>4800</MaxPixelPortChannels>
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
         <SupportsRemotes/>
@@ -70,7 +70,7 @@
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCapeTTYs" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
-        <MaxPixelPortChannels>4200</MaxPixelPortChannels>
+        <MaxPixelPortChannels>4800</MaxPixelPortChannels>
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
         <SupportsRemotes/>
