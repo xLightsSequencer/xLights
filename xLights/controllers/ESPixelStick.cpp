@@ -71,6 +71,9 @@ bool ESPixelStick::CheckHTTPconnection()
     // open HTTP connection to get admininfo
     wxJSONValue HttpResponse;
     if (GetAdminInformation(HttpResponse)) {
+        if (HttpResponse.GetType() == wxJSONTYPE_NULL) {
+            return false;
+        }
         _UsingHttpConfig = true;
         _model = "ESPixelStick";
         _connected = true;
