@@ -289,6 +289,9 @@ void SelectPanel::SelectEffects()
 
 void SelectPanel::OnButton_Select_RefreshClick(wxCommandEvent& event)
 {
+#ifdef __LINUX__
+    if (!ListCtrl_Select_Effects->GetItemCount()) OnComboBox_Select_EffectDropdown(event); //kludge: compensate for missed evt
+#endif
     populateModelsList(event.GetString().ToStdString());
     populateEffectsList();
 }
