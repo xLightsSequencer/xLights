@@ -94,7 +94,8 @@ const std::string &Element::GetModelName() const {
     return mName;
 }
 
-bool Element::HasEffects() const {
+bool Element::HasEffects() const
+{
     for (size_t x = 0; x < mEffectLayers.size(); x++) {
         if (mEffectLayers[x]->GetEffectCount() > 0) {
             return true;

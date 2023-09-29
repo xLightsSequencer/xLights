@@ -1287,7 +1287,8 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
 bool RowHeading::ModelInView(const std::string& model, int view) const
 {
     for (size_t j = 0; j < mSequenceElements->GetElementCount(view); ++j) {
-        if (model == mSequenceElements->GetElement(j, view)->GetName()) {
+        auto m = mSequenceElements->GetElement(j, view);
+        if (model == m->GetName() && m->GetVisible()) {
             return true;
         }
     }
@@ -1624,6 +1625,33 @@ void RowHeading::render( wxPaintEvent& event )
                         dc.SetPen(penOutline);
                         dc.SetBrush(brush2);
                     }
+                }
+
+                bool hasEffects = rowInfo->element->HasEffects();
+                if (!hasEffects && m->GetDisplayAs() == "ModelGroup")
+                {
+                    // model groups are only marked if model group has direct effects or the model with effects is otherwise hidden in the view
+                    hasEffects = rowInfo->element->HasEffects();
+
+                    int view = mSequenceElements->GetCurrentView();
+                    ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
+                    auto models = mg->ModelNames();
+                    for (auto it = models.begin(); !hasEffects && it != models.end(); ++it) {
+                        ModelElement* mm = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(*it));
+
+                        if (mm != nullptr && !ModelInView(*it, view)) {
+                            hasEffects = mm->HasEffects();
+                        }
+                    }
+                }
+
+                if (hasEffects)
+                {
+                    dc.SetPen(*wxYELLOW_PEN);
+                    dc.SetBrush(wxBrush(*wxYELLOW));
+                    dc.DrawRectangle(getWidth() - FromDIP(4), startY, FromDIP(4), getHeight());
+                    dc.SetPen(penOutline);
+                    dc.SetBrush(brush2);
                 }
             }
         } else if (rowInfo->element->GetType()== ElementType::ELEMENT_TYPE_TIMING) {
