@@ -174,6 +174,7 @@ bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphics
         float a = (100.0 - transparency) * 255.0 / 100.0;
         uint8_t alpha = a;
 
+
         program->addStep([=](xlGraphicsContext *ctx) {
             ctx->drawTexture(va, image, brightness, alpha, 0, va->getCount());
             delete va;
