@@ -52,6 +52,7 @@
             <Protocol>e131</Protocol>
             <Protocol>artnet</Protocol>
         </InputProtocols>
+		<FPS40Pixels>680</FPS40Pixels>
     </AbstractVariant>
     <AbstractVariant Name="BaseFalconV3Settings" Base="Falcon:BaseFalconSettings">
         <SupportsSmartRemotes>3</SupportsSmartRemotes>
@@ -67,6 +68,7 @@
         <SmartRemoteTypes>
             <Type>falcon_v1</Type>
         </SmartRemoteTypes>
+		<FPS40Pixels>680</FPS40Pixels>
     </AbstractVariant>
 	<Controller Name="F4V2">
 		<Variant Name="No Expansion Board" Base="Falcon:BaseFalconV2Settings">
@@ -212,6 +214,7 @@
             <Type>falcon_v2</Type>
         </SmartRemoteTypes>
         <ConfigDriver>Falcon</ConfigDriver>
+		<FPS40Pixels>704</FPS40Pixels>
     </AbstractVariant>
 	<Controller Name="F16V4">
 		<Variant Name="16 Local Ports" Base="Falcon:BaseV4FalconSettings">

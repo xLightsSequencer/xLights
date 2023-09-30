@@ -581,6 +581,21 @@ int ControllerCaps::GetMaxZigZagPixels() const
     return wxAtoi(GetXmlNodeContent(_config, "MaxZigZag", "-1"));
 }
 
+// Maximum pixels on a local port or dumb remotes and achieve 40 FPS
+int ControllerCaps::GetMaxPixelsAt40FPS() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "FPS40Pixels", "-1"));
+}
+
+// Maximum pixels on a port using smart remotes and achieve 40 FPS
+int ControllerCaps::GetMaxPixelsAt40FPS_SR() const
+{
+    int res = wxAtoi(GetXmlNodeContent(_config, "FPS40Pixels_SR", "-1"));
+
+    if (res == -1)
+        return GetMaxPixelsAt40FPS();
+}
+
 int ControllerCaps::GetMinGroupPixels() const
 {
     return wxAtoi(GetXmlNodeContent(_config, "MinGroup", "-1"));

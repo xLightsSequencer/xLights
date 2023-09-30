@@ -111,6 +111,8 @@ public:
     int GetMaxGroupPixels() const;
     int GetMinGroupPixels() const;
     int GetMaxZigZagPixels() const;
+    int GetMaxPixelsAt40FPS() const;
+    int GetMaxPixelsAt40FPS_SR() const;
 
     bool IsValidPixelProtocol(const std::string& protocol) const;
     bool IsValidSerialProtocol(const std::string& protocol) const;
