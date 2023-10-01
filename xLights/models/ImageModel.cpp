@@ -292,7 +292,6 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                 textureColorOverlay->SetName(GetName() + "_color_overlay");
                 textureColorOverlay->Finalize();
             }
-            
         }
         if (texture) {
             float scaleX = float(w) / float(width);
@@ -427,7 +426,6 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
             texture->Finalize();
             _images[preview->GetName().ToStdString()] = texture;
 
-
             // Modify image for color overlay
             if (drawColor) {
                 if (!mAlpha) {
@@ -478,8 +476,6 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
             }
             GetModelScreenLocation().ApplyModelViewMatrices(ctx);
             ctx->drawTexture(va, texture, brightness, alpha, 0, va->getCount());
-            //const xlColor myColor = xlColor(0, 0, brightness, alpha);
-            
             if (drawColor) {
                 xlColor c;
                 Nodes[0]->GetColor(c);
