@@ -6746,6 +6746,15 @@ void LayoutPanel::ReplaceModel()
             }
         }
 
+        if (wxMessageBox("Use original size and position", "Use original and position", wxYES_NO) == wxYES) {
+            modelToReplaceItWith->SetHcenterPos(replaceModel->GetHcenterPos());
+            modelToReplaceItWith->SetVcenterPos(replaceModel->GetVcenterPos());
+            modelToReplaceItWith->SetDcenterPos(replaceModel->GetDcenterPos());       
+            modelToReplaceItWith->SetHeight(replaceModel->GetHeight());       
+            modelToReplaceItWith->SetWidth(replaceModel->GetWidth());    
+            modelToReplaceItWith->SetDepth(replaceModel->GetDepth());    
+        }
+
         auto rmn = replaceModel->GetName();
         auto riw = modelToReplaceItWith->GetName();
         xlights->AllModels.RenameInListOnly(dlg.GetStringSelection().ToStdString(), "Iamgoingtodeletethismodel");
