@@ -636,7 +636,7 @@ int PianoEffect::ConvertNote(const std::string& note)
     return number;
 }
 
-std::tuple<int, int, int>* FindTracker(std::list<std::tuple<int, int, int>>& const tracker, int note)
+std::tuple<int, int, int>* FindTracker(std::list<std::tuple<int, int, int>>& tracker, int note)
 {
     for (auto& it : tracker) {
         if (std::get<0>(it) == note)
