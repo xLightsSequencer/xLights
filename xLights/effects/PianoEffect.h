@@ -68,13 +68,14 @@ protected:
 
 private:
     PianoPanel* _panel;
-    void RenderPiano(RenderBuffer& buffer, SequenceElements* elements, const int startmidi, const int endmidi, const bool sharps, const std::string type, int scale, std::string MIDITrack, int xoffset);
-    void ReduceChannels(std::list<float>* pdata, int start, int end, bool sharps);
-    void DrawTruePiano(RenderBuffer& buffer, std::list<float>* pdata, bool sharps, int start, int end, int scale, int xoffset);
-    void DrawBarsPiano(RenderBuffer& buffer, std::list<float>* pdata, bool sharps, int start, int end, int scale, int xoffset);
+    void RenderPiano(RenderBuffer& buffer, SequenceElements* elements, const int startmidi, const int endmidi, const bool sharps, const std::string type, int scale, std::string MIDITrack, int xoffset, bool fadeNotes);
+    void ReduceChannels(std::list<std::pair<float, float>>* pdata, int start, int end, bool sharps);
+    void DrawTruePiano(RenderBuffer& buffer, std::list<std::pair<float, float>>* pdata, bool sharps, int start, int end, int scale, int xoffset, bool fadeNotes);
+    void DrawBarsPiano(RenderBuffer& buffer, std::list<std::pair<float, float>>* pdata, bool sharps, int start, int end, int scale, int xoffset, bool fadeNotes);
     bool IsSharp(float f);
-    bool KeyDown(std::list<float>* pdata, int ch);
-    std::map<int, std::list<float>> LoadTimingTrack(const std::string& track, int intervalMS);
+    bool KeyDown(std::list<std::pair<float, float>>* pdata, int ch);
+    float GetKeyBrightness(std::list<std::pair<float, float>>* pdata, int ch);
+    std::map<int, std::list<std::pair<float, float>>> LoadTimingTrack(const std::string& track, int intervalMS, bool fadeNotes);
     std::list<std::string> ExtractNotes(const std::string& label);
     int ConvertNote(const std::string& note);
 };

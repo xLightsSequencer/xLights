@@ -39,6 +39,7 @@ class PianoPanel: public xlEffectPanel
 		void SetTimingTracks(wxCommandEvent& event);
 
 		//(*Declarations(PianoPanel)
+		BulkEditCheckBox* CheckBox_FadeNotes;
 		BulkEditCheckBox* CheckBox_Piano_ShowSharps;
 		BulkEditChoice* Choice_Piano_MIDITrack_APPLYLAST;
 		BulkEditChoice* Choice_Piano_Type;
@@ -69,6 +70,7 @@ class PianoPanel: public xlEffectPanel
 		static const long ID_SPINCTRL_Piano_EndMIDI;
 		static const long ID_CHECKBOX_Piano_ShowSharps;
 		static const long ID_BITMAPBUTTON_Piano_ShowSharps;
+		static const long ID_CHECKBOX_Piano_FadeNotes;
 		static const long ID_STATICTEXT_Piano_MIDITrack_APPLYLAST;
 		static const long ID_CHOICE_Piano_MIDITrack_APPLYLAST;
 		static const long ID_STATICTEXT_Piano_Scale;
