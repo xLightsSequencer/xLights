@@ -79,7 +79,9 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
 
     ControllerNameVendorMap("Experience Lights", "Genius Pixel 16 Controller", "Experience Lights", "Genius Pixel 16"),
     ControllerNameVendorMap("Experience Lights", "Genius Pixel 8 Controller", "Experience Lights", "Genius Pixel 8"),
-    ControllerNameVendorMap("Experience Lights", "Genius Long Range Controller", "Experience Lights", "Genius Long Range")
+    ControllerNameVendorMap("Experience Lights", "Genius Long Range Controller", "Experience Lights", "Genius Long Range"),
+    ControllerNameVendorMap("Experience Lights", "Genius PRO: Pixel 16 Controller", "Experience Lights", "Genius Pro 16 Port"),
+    ControllerNameVendorMap("Experience Lights", "Genius PRO: Pixel 32 Controller", "Experience Lights", "Genius Pro 32 Port")
 };
 
 #pragma region Constructors and Destructors
