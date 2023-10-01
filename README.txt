@@ -11,6 +11,31 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.15 Oct 2, 2023
+   -- enh (keith)     Add Twinkly 3D Model import
+   -- enh (keith)     Add auto label of timing tracks
+   -- enh (keith)     Add option to lock effects on import
+   -- enh (keith)     Allow navigation of sequence settings metadata
+   -- enh (keith)     Add support for base show folders with inhereted controllers and models
+   -- enh (keith)     Add filter labels to shape effect
+   -- enh (keith)     In colour tooltips show closest colour name
+   -- enh (keith)     Add duplicate effect
+   -- enh (keith)     Add visual indicator if model/group contains effects on visible or invisible layers/submodels/strings/nodes
+   -- enh (keith)     Add visual hint in visualiser if pixels per port makes 40 FPS impossible
+   -- enh (keith)     Add option to fade piano keys on press
+   -- enh (matte)     Add optional timeline zooming to mouse
+   -- enh (matte)     Add keybindings for various toggling of render
+   -- enh (djulien)   Allow blank effect type to match all effects in select effects
+   -- enh (djulien)   Show models with effects when trying to make it master or when opening a sequence containing missing models
+   -- enh (dkulp)     Increase BBB max pixels to 1600
+   -- enh (scott)     Add genius pro controller
+   -- enh (dartunder) Add option to keep size and location of models being replaced
+   -- bug (keith)     Fix buffer stagger disabled if effect dropped using key bindings
+   -- bug (keith)     Fix sketch effect check sequence not reporting missing images
+   -- bug (dklup)     Fix marque effect in release builds calculating incorrect buffer size
+   -- bug (scott)     Fix falcon v4 upload of sequences
+   -- bug (dartunder) Fix current calcs in visualiser for multi-light nodes
+   -- bug (scott)     Fix ES Pixel Stick 3.2 upload
 2023.14 Sep 16, 2023
    -- enh (keith)   Twinkly reconnect after power cycle
    -- enh (scott)   Add more WLED pixel types
