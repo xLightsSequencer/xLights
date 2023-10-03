@@ -594,6 +594,7 @@ int ControllerCaps::GetMaxPixelsAt40FPS_SR() const
 
     if (res == -1)
         return GetMaxPixelsAt40FPS();
+    return res;
 }
 
 int ControllerCaps::GetMinGroupPixels() const
