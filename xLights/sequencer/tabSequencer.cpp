@@ -554,15 +554,15 @@ void xLightsFrame::CheckForValidModels()
         if (ElementType::ELEMENT_TYPE_MODEL == _sequenceElements.GetElement(x)->GetType()) {
 
             // Find the model/model group for the element
-            ModelElement* me = static_cast<ModelElement*>(_sequenceElements.GetElement(x));
+            Element *el = _sequenceElements.GetElement(x);
+            ModelElement* me = static_cast<ModelElement*>(el);
             if (me != nullptr) {
                 std::string name = me->GetModelName();
-                logger_base.debug("CheckForValidModels:    Missing model: %s.", (const char*)name.c_str());
                 Model* m = AllModels[name];
 
                 // If model is not found we need to remap
                 if (m == nullptr) {
-
+                    logger_base.debug("CheckForValidModels:    Missing model: %s.", (const char*)name.c_str());
                     if (!mapall) {
                         dialog.StaticTextMessage->SetLabel("Model '" + name + "'\ndoes not exist in your list of models");
                         dialog.ChoiceModels->Set(ToArrayString(AllNames));
