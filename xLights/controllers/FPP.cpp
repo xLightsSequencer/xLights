@@ -2132,6 +2132,22 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
                     }
                 }
             }
+            if (!found) {
+                id = rules->GetID() + "-v2";
+                for (int x = 0; x < val.Size(); x++) {
+                    if (val[x].AsString() == id) {
+                        found = true;
+                    }
+                }
+            }
+            if (!found) {
+                id = rules->GetID() + "-v3";
+                for (int x = 0; x < val.Size(); x++) {
+                    if (val[x].AsString() == id) {
+                        found = true;
+                    }
+                }
+            }
         }
         if (found) {
             wxJSONValue val;
