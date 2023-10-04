@@ -37,6 +37,7 @@ END_EVENT_TABLE()
 
 const long ViewObjectPanel::ID_TREELISTVIEW_OBJECTS = wxNewId();
 const long ViewObjectPanel::ID_MNU_DELETE_OBJECT = wxNewId();
+const long ViewObjectPanel::ID_MNU_UNLINKFROMBASE = wxNewId();
 
 ViewObjectPanel::ViewObjectPanel(wxWindow* parent,ViewObjectManager &Objects,LayoutPanel *xl,wxWindowID id,const wxPoint& pos,const wxSize& size)
 :   layoutPanel(xl), mViewObjects(Objects), mSelectedObject(nullptr)
@@ -177,7 +178,6 @@ int ViewObjectPanel::GetObjectTreeIcon(ViewObject* view_object, bool open) {
     }
     return Icon_File;
 }
-
 
 int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName) {
     int width = 0;
@@ -457,27 +457,34 @@ bool ViewObjectPanel::OnSelectionChanged(wxTreeListEvent& event, ViewObject** vi
 
     wxTreeListItem item = event.GetItem();
     if (item.IsOk()) {
-        ObjectTreeData *data = (ObjectTreeData*)TreeListViewObjects->GetItemData(item);
+        ObjectTreeData* data = (ObjectTreeData*)TreeListViewObjects->GetItemData(item);
         *view_object = ((data != nullptr) ? data->GetViewObject() : nullptr);
         if (*view_object != nullptr) {
             if ((*view_object)->GetDisplayAs() == "ObjectGroup") {
                 mSelectedGroup = item;
                 UpdateObjectList(false, currentLayoutGroup);
-                //model_grp_panel->UpdatePanel(view_object->name);
+                // model_grp_panel->UpdatePanel(view_object->name);
             } else {
                 mSelectedGroup = nullptr;
                 mSelectedObject = *view_object;
                 show_prop_grid = true;
             }
+
+            if ((*view_object)->IsFromBase()) {
+                TreeListViewObjects->SetToolTip("From Base Show Folder");
+            } else {
+                TreeListViewObjects->UnsetToolTip();
+            }
         } else {
             mSelectedGroup = nullptr;
             mSelectedObject = nullptr;
             show_prop_grid = true;
-            //UnSelectAllObjects(true);
+            // UnSelectAllObjects(true);
+            TreeListViewObjects->UnsetToolTip();
         }
-        #ifndef LINUX
+#ifndef LINUX
         TreeListViewObjects->SetFocus();
-        #endif
+#endif
     }
     return show_prop_grid;
 }
@@ -512,6 +519,18 @@ void ViewObjectPanel::OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPro
             wxASSERT(i == 0 || i == GRIDCHANGE_SUPPRESS_HOLDSIZE);
         }
     }
+
+    if (mSelectedObject != nullptr && mSelectedObject->IsFromBase()) {
+        propertyEditor->SetToolTip("This object comes from the base folder and its properties cannot be edited.");
+        auto it = propertyEditor->GetIterator(wxPG_ITERATE_ALL, nullptr);
+        while (!it.AtEnd()) {
+            it.GetProperty()->Enable(false);
+            it.Next(true);
+        }
+
+    } else {
+        propertyEditor->UnsetToolTip();
+    }
 }
 
 void ViewObjectPanel::OnItemContextMenu(wxTreeListEvent& event)
@@ -536,14 +555,8 @@ void ViewObjectPanel::OnItemContextMenu(wxTreeListEvent& event)
 
     if (mSelectedObject != nullptr ) {
         mnuContext.Append(ID_MNU_DELETE_OBJECT,"Delete");
-        //mnuContext.AppendSeparator();
+        mnuContext.Append(ID_MNU_UNLINKFROMBASE, "Unlink Models from Base Show Folder")->Enable(mSelectedObject->IsFromBase());
     }
-
-    /*mnuContext.Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
-    if( mSelectedGroup.IsOk() ) {
-        mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
-        mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
-    }*/
 
     mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ViewObjectPanel::OnObjectsPopup, nullptr, this);
     PopupMenu(&mnuContext);
@@ -558,26 +571,26 @@ void ViewObjectPanel::OnObjectsPopup(wxCommandEvent& event)
     {
         logger_base.debug("ViewObjectPanel::OnObjectsPopup DELETE_OBJECT");
         DeleteSelectedObject();
+    } else if (id == ID_MNU_UNLINKFROMBASE) {
+        logger_base.debug("ViewObjectPanel::OnObjectsPopup UNLINKFROMBASE");
+        UnlinkSelectedObject();
     }
-    /*else if(id == ID_MNU_DELETE_MODEL_GROUP)
-    {
-        logger_base.debug("ViewObjectPanel::OnObjectsPopup DELETE_MODEL_GROUP");
-        if( mSelectedGroup.IsOk() ) {
-            wxString name = TreeListViewModels->GetItemText(mSelectedGroup);
-            if (wxMessageBox("Are you sure you want to remove the " + name + " group?", "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
-                xlights->AllModels.Delete(name.ToStdString());
-                selectedModel = nullptr;
-                mSelectedGroup = nullptr;
-                UnSelectAllModels();
-                ShowPropGrid(true);
-                xlights->UpdateModelsList();
-                xlights->MarkEffectsFileDirty(true);
-            }
-        }
-    }*/
 }
 
-void ViewObjectPanel::DeleteSelectedObject() {
+void ViewObjectPanel::UnlinkSelectedObject()
+{
+    if (mSelectedObject != nullptr && mSelectedObject->IsFromBase()) {
+        mSelectedObject->SetFromBase(false);
+    }
+
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ViewObjectPanel::UnlinkSelectedObject");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::UnlinkSelectedObject");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::UnlinkSelectedObject");
+}
+
+void ViewObjectPanel::DeleteSelectedObject()
+{
+    // dont block deletes of objects from base
     if( mSelectedObject != nullptr && !mSelectedObject->GetObjectScreenLocation().IsLocked()) {
         layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
         // This should delete all selected models
@@ -857,6 +870,24 @@ void ViewObjectPanel::PreviewObjectAlignVCenter()
     layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignVCenter", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
+void ViewObjectPanel::PreviewObjectAlignDCenter()
+{
+    if (mSelectedObject == nullptr)
+        return;
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+    float center = mSelectedObject->GetDcenterPos();
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject* view_object = it->second;
+        if (view_object->GroupSelected) {
+            view_object->SetDcenterPos(center);
+        }
+    }
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectAlignDCenter");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectAlignDCenter");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignDCenter", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+}
+
 bool SortObjectX(const ViewObject* first, const ViewObject* second)
 {
     float firstmodelX = first->GetBaseObjectScreenLocation().GetHcenterPos();
@@ -871,6 +902,14 @@ bool SortObjectY(const ViewObject* first, const ViewObject* second)
     float secondmodelY = second->GetBaseObjectScreenLocation().GetVcenterPos();
 
     return firstmodelY < secondmodelY;
+}
+
+bool SortObjectZ(const ViewObject* first, const ViewObject* second)
+{
+    float firstmodelZ = first->GetBaseObjectScreenLocation().GetDcenterPos();
+    float secondmodelZ = second->GetBaseObjectScreenLocation().GetDcenterPos();
+
+    return firstmodelZ < secondmodelZ;
 }
 
 void ViewObjectPanel::PreviewObjectHDistribute()
@@ -973,6 +1012,52 @@ void ViewObjectPanel::PreviewObjectVDistribute()
     layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectVDistribute");
     layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectVDistribute");
     layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectVDistribute", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+}
+void ViewObjectPanel::PreviewObjectDDistribute()
+{
+    int count = 0;
+    float minz = 999999;
+    float maxz = -999999;
+
+    std::list<ViewObject*> objects;
+
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject* view_object = it->second;
+        if (view_object->GroupSelected || view_object->Selected) {
+            count++;
+            float z = view_object->GetDcenterPos();
+
+            if (z < minz)
+                minz = z;
+            if (z > maxz)
+                maxz = z;
+            objects.push_back(view_object);
+        }
+    }
+
+    if (count <= 2)
+        return;
+
+    objects.sort(SortObjectZ);
+
+    float space = (maxz - minz) / (count - 1);
+
+    layoutPanel->CreateUndoPoint("All", objects.front()->name);
+
+    float z = -1;
+    for (auto it = objects.begin(); it != objects.end(); ++it) {
+        if (it == objects.begin()) {
+            z = (*it)->GetDcenterPos() + space;
+        } else if (*it == objects.back()) {
+            // do nothing
+        } else {
+            (*it)->SetDcenterPos(z);
+            z += space;
+        }
+    }
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectDDistribute");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectDDistribute");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectDDistribute", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectFlipV() {

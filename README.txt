@@ -11,6 +11,70 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.15 Oct 2, 2023
+   -- enh (keith)     Add Twinkly 3D Model import
+   -- enh (keith)     Add auto label of timing tracks
+   -- enh (keith)     Add option to lock effects on import
+   -- enh (keith)     Allow navigation of sequence settings metadata
+   -- enh (keith)     Add support for base show folders with inhereted controllers and models
+   -- enh (keith)     Add filter labels to shape effect
+   -- enh (keith)     In colour tooltips show closest colour name
+   -- enh (keith)     Add duplicate effect
+   -- enh (keith)     Add visual indicator if model/group contains effects on visible or invisible layers/submodels/strings/nodes
+   -- enh (keith)     Add visual hint in visualiser if pixels per port makes 40 FPS impossible
+   -- enh (keith)     Add option to fade piano keys on press
+   -- enh (matte)     Add optional timeline zooming to mouse
+   -- enh (matte)     Add keybindings for various toggling of render
+   -- enh (djulien)   Allow blank effect type to match all effects in select effects
+   -- enh (djulien)   Show models with effects when trying to make it master or when opening a sequence containing missing models
+   -- enh (dkulp)     Increase BBB max pixels to 1600
+   -- enh (scott)     Add genius pro controller
+   -- enh (dartunder) Add option to keep size and location of models being replaced
+   -- bug (keith)     Fix buffer stagger disabled if effect dropped using key bindings
+   -- bug (keith)     Fix sketch effect check sequence not reporting missing images
+   -- bug (dklup)     Fix marque effect in release builds calculating incorrect buffer size
+   -- bug (scott)     Fix falcon v4 upload of sequences
+   -- bug (dartunder) Fix current calcs in visualiser for multi-light nodes
+   -- bug (scott)     Fix ES Pixel Stick 3.2 upload
+2023.14 Sep 16, 2023
+   -- enh (keith)   Twinkly reconnect after power cycle
+   -- enh (scott)   Add more WLED pixel types
+   -- enh (scott)   Update SanDevices upload to work with 5.5/5.1 firmware
+   -- enh (keith)   Preliminary Falcon V5 support
+   -- enh (scott)   FPP controllers default to DMX-Open instead of DMX-Pro
+   -- enh (scott)   Add Full xLights Control for HinksPix
+   -- enh (dkulp)   FPP Connect - show discovered but unsupported FPP instances
+   -- enh (lasershane) Implement model layout options for Distribute Depth and Alight Depth Center
+   -- enh (dartunder) Update group center mark to use handle size selection
+   -- enh (MrPierreB) Two new layer blending styles
+   -- bug (dkulp)   Fix parsing of JSON with unicode characters
+   -- bug (scott)   ESPixelStick should not allow "KeepChannelNumbers" setting
+   -- bug (scott)   Allow more than 12 universes for ESPixelStick on controllers that support it
+   -- bug (scott)   AlphaPix/ESPixelStick/SanDevices/WLED - make sure valid controller settings are used for various things
+   -- bug (keith)   Disable Twinkly outputs still try to connect
+   -- bug (dartunder) Fix hyperlink for FPP instances behind proxy in FPP Connect
+   -- bug (gjones)  Fix bug where inactive models could be selected in 2D
+   -- bug (gjones)  Fix import bug for models with Per Model render buffers when a single model of same name exists.
+2023.13 Aug 22, 2023
+   -- enh (ClutchplateDude) Expose color count to shaders
+   -- enh (scott)   FPP 6+ no longer needs to switch to bridge mode
+   -- enh (dartunder) FPPConnect - enhance "Cancel" button handling
+   -- enh (scott)   Change downloading of Lua Scripts to github
+   -- enh (scott)   Add RGB hex values to color tooltips
+   -- enh (scott/dkulp) FPP Connect - bunch more logging to help diagnose FPPConnect/discovery issues
+   -- enh (MartinMueller) Add support for HTTP based ESP configuration
+   -- enh (dartunder) Increase size of group center mark, implement dynamic scale
+   -- enh (dkulp)   Allow up to 100 layers for Circle and Star models
+   -- enh (scott)   Add Experience Pro controllers
+   -- bug (dkulp)   Bunch of FPP Connect fixes/updates to perform better, handle errors better, etc...
+   -- bug (scott)   Fix label alignment in DMXPanel
+   -- bug (scott)   Controller model property disappears on controllers in e1.31 mode
+   -- bug (mjunek)  Fix issues with DPIPixels uploads for Hanson rPi-28D
+   -- bug (scott)   Fix Force Custom Color in State Dialog
+   -- bug (merryoncherry) Fix some potential thread safety issus in WLED effects
+   -- bug (dartunder) Fix FPPConnect progress dialog always on top
+   -- bug (scott)   Metronome effect with tags doesn't save tags
+   -- bug (scott)   Added hinkspix checks to verify correct output boards are connected
 2023.12 Aug 9, 2023
    -- enh (gil)     Improve model creation in 3D mode.  Models used to not place well depending on how you had the view rotated.
                     Now xLights will detect the view angle and make a decision on the best place to start the model so you shouldn't

@@ -643,11 +643,17 @@ void ModelPreview::DrawGroupCentre(float x, float y)
 
     float factor = 1;
     if (!Is3D()) {
-        factor = 4 / camera2d->GetZoom();
-        if (factor < 1)
-            factor = 1;
-        if (factor > 10)
-            factor = 10;
+        // Mimic Handle Scaling behavior
+        float zoom = GetCameraZoomForHandles();
+        int scale = GetHandleScale();
+        static float CENTER_MARK_WIDTH = 0.5f;
+        float rs = scale;
+        rs /= 2.0;
+        rs += 1.0;
+        rs *= 12.0;
+        float center_width = std::max(CENTER_MARK_WIDTH, CENTER_MARK_WIDTH * zoom * rs);
+        factor = center_width * 0.40; // adjust this for ideal size.
+        factor = MIN(MAX(factor, 1), 10); // sanity check
     }
     acc->AddRectAsTriangles(x - 20.5 * factor, y - 1.5 * factor, x + 20.5 * factor, y + 1.5 * factor, xlREDTRANSLUCENT);
     acc->AddRectAsTriangles(x - 1.5 * factor, y - 20.5 * factor, x + 1.5 * factor, y + 20.5 * factor, xlREDTRANSLUCENT);

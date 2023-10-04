@@ -94,6 +94,15 @@ ArtNetOutput::ArtNetOutput() : IPOutput() {
     memset(_data, 0, sizeof(_data));
 }
 
+ArtNetOutput::ArtNetOutput(const ArtNetOutput& from) :
+    IPOutput(from)
+{
+    _sequenceNum = 0;
+    _datagram = nullptr;
+    memset(_data, 0, sizeof(_data));
+    _forceSourcePort = from._forceSourcePort;
+}
+
 ArtNetOutput::~ArtNetOutput() {
     if (_datagram != nullptr) delete _datagram;
 }

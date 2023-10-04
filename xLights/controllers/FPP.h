@@ -27,7 +27,7 @@ class FPP : public BaseController
     public:
     FPP() :
             BaseController("", ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), fppType(FPP_TYPE::FPP) {}
-    FPP(const std::string &ip, const std::string &proxy, const std::string &model);
+    FPP(const std::string& ip_, const std::string& proxy_, const std::string& model_);
     FPP(const std::string &address);
     FPP(const FPP &c);
     virtual ~FPP();

@@ -199,7 +199,9 @@ void LOROptimisedOutput::GenerateCommand(uint8_t d[], size_t& idx, int unit_id, 
 #pragma endregion
 
 #pragma region Constructors and Destructors
-LOROptimisedOutput::LOROptimisedOutput(SerialOutput* output) : LOROutput(output) {
+LOROptimisedOutput::LOROptimisedOutput(const LOROptimisedOutput& from) :
+    LOROutput(from), _controllers(from._controllers)
+{
     InitialiseTypes();
     SetupHistory();
 }

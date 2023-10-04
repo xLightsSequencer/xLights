@@ -30,10 +30,14 @@ public:
 
     #pragma region Constructors and Destructors
     OpenPixelNetOutput(wxXmlNode* node);
-    OpenPixelNetOutput(SerialOutput* output);
+    OpenPixelNetOutput(const OpenPixelNetOutput& from);
     OpenPixelNetOutput();
     virtual ~OpenPixelNetOutput() override {};
-    #pragma endregion 
+    virtual Output* Copy() override
+    {
+        return new OpenPixelNetOutput(*this);
+    }
+#pragma endregion 
 
     #pragma region Getters and Setters
     

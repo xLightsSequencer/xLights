@@ -47,11 +47,15 @@ public:
 
     #pragma region Constructors and Destructors
     xxxEthernetOutput(wxXmlNode* node, bool isActive);
-    xxxEthernetOutput(xxxEthernetOutput* output);
+    xxxEthernetOutput(const xxxEthernetOutput& from);
     xxxEthernetOutput();
     virtual ~xxxEthernetOutput() override;
     virtual wxXmlNode* Save() override;
-    #pragma endregion 
+    virtual Output* Copy() override
+    {
+        return new xxxEthernetOutput(*this);
+    }
+#pragma endregion 
 
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_xxxETHERNET; }

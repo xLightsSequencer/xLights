@@ -57,6 +57,7 @@ class ColorManager
             COLOR_LOCKED_EFFECT,
             COLOR_EFFECT_SELECTED_DISABLED,
             COLOR_REFERENCE_EFFECT_DISABLED,
+            COLOR_WAVEFORM_MOUSE_MARKER,
             NUM_COLORS
         };
 
@@ -147,7 +148,9 @@ class ColorManager
             { ColorManager::ColorNames::COLOR_DISABLED_EFFECT, "DisabledEffect", "Disabled Effects", xlColor(200, 200, 0), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
             { ColorManager::ColorNames::COLOR_LOCKED_EFFECT, "LockedEffect", "Locked Effects", xlColor(200, 0, 0), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
             { ColorManager::ColorNames::COLOR_EFFECT_SELECTED_DISABLED, "EffectSelectedDisabled", "Selected Disabled Effects", xlColor(200, 200, 64), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
-            { ColorManager::ColorNames::COLOR_REFERENCE_EFFECT_DISABLED, "ReferenceEffectDisabled", "Disabled Reference Effect", xlColor(255, 255, 127), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID }
+
+            { ColorManager::ColorNames::COLOR_REFERENCE_EFFECT_DISABLED, "ReferenceEffectDisabled", "Disabled Reference Effect", xlColor(255, 255, 127), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
+            { ColorManager::ColorNames::COLOR_WAVEFORM_MOUSE_MARKER, "WaveformMouseMarker", "Waveform Mouse Marker", xlColor(0, 0, 255), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID }
         };
 
     protected:

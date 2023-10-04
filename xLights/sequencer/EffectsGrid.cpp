@@ -43,6 +43,7 @@
 #include "../VideoReader.h"
 #include "../FindDataPanel.h"
 #include "../DuplicateDialog.h"
+#include "../AutoLabelDialog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -85,6 +86,7 @@ const long EffectsGrid::ID_GRID_MNU_UNDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_REDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PRESETS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_PHRASE = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_AUTOLABEL = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_HALVETIMINGS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_WORD = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_WORDS = wxNewId();
@@ -484,7 +486,10 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
                     mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORDS, "Breakdown Selected Words");
                 }
             }
-            mnuLayer.Append(ID_GRID_MNU_HALVETIMINGS, "Divide Timings")->Enable(!selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer());
+            if (ri->layerIndex == 0) {
+                mnuLayer.Append(ID_GRID_MNU_HALVETIMINGS, "Divide Timings")->Enable(!selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer());
+                mnuLayer.Append(ID_GRID_MNU_AUTOLABEL, "Auto Label Timings");
+            }
             mSelectedEffect = selectedEffect;
         }
         mnuLayer.AppendSeparator();
@@ -786,6 +791,41 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
         //logger_base.debug("Preset icons created.");
 
         xlights->ShowPresetsPanel();
+    } else if (id == ID_GRID_MNU_AUTOLABEL) {
+
+        AutoLabelDialog dlg(this);
+
+        if (dlg.ShowModal() == wxOK)
+        {
+            int start = dlg.GetStart();
+            int end = dlg.GetEnd();
+            bool overwrite = dlg.IsOverwrite();
+            int current = start;
+            int increment = start <= end ? 1 : -1; 
+
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            auto el = mSelectedEffect->GetParentEffectLayer();
+            for (int i = 0; i < el->GetEffectCount(); i++) {
+                auto eff = el->GetEffect(i);
+                if (eff->GetSelected() || eff->GetID() == mSelectedEffect->GetID()) {
+
+                    if (overwrite || eff->GetEffectName() == "") {
+
+                        mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID(), eff->GetSettingsAsString(), eff->GetPaletteAsString());
+
+                        eff->SetEffectName(wxString::Format("%d", current));
+
+                        current += increment;
+                        if (increment == 1 && current > end)
+                            current = start;
+                        else if (increment == -1 && current < end)
+                            current = start;
+                    }
+                }
+            }
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(mParent, eventRowHeaderChanged);
+        }
     }
     else if (id == ID_GRID_MNU_BREAKDOWN_PHRASE) {
         logger_base.debug("OnGridPopup - ID_GRID_MNU_BREAKDOWN_PHRASE");
@@ -1630,7 +1670,9 @@ bool EffectsGrid::AreAllSelectedEffectsOnTheSameElement() const
 int EffectsGrid::GetSelectedEffectCount(const std::string& effectName) const
 {
     int count = 0;
-
+    if (mSequenceElements == nullptr) {
+        return 0;
+    }
     for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
         EffectLayer* el = mSequenceElements->GetEffectLayer(row);
         count += el->GetSelectedEffectCount(effectName);
@@ -4096,6 +4138,142 @@ void EffectsGrid::DisableRenderEffects(bool disable)
     }
 }
 
+void EffectsGrid::EnDisableSelectedModelWithRefresh(int iOverrideState)
+{
+    if (EnDisableSelectedModel(iOverrideState)) {
+        //
+        // refresh the Sequencer Grid
+        //
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    }
+}
+
+bool EffectsGrid::EnDisableSelectedModel(int iOverrideState)
+{
+    // iOverrideState : -1 = flip models disabled state, 1 = disable, 0 = enable)
+    // if iOverrideState = -1 then flip current state of model, otherwise use iOverrideState value to set the disabled state
+
+    bool bNeedRefresh = false;
+
+    SetCursor(wxCURSOR_WAIT);
+
+    int row1 = GetStartRow();
+    int row2 = GetEndRow();
+
+    if (row1 == -1)
+        row1 = row2 = mSelectedRow;
+        
+    if (row1 != -1) {
+
+        EffectLayer* el = nullptr;
+        Element* element = nullptr;
+
+        wxASSERT(iOverrideState >= -1 && iOverrideState <= 1);
+
+        if ((el = mSequenceElements->GetEffectLayer(row1)) != nullptr)
+            if ((element = el->GetParentElement()) != nullptr) {
+
+                //
+                // take flipped (disabled) state of first item so it can be applied to every item that is selected
+                //
+                bool bAmIDisabledNow = (iOverrideState == -1 ? !element->IsRenderDisabled() : iOverrideState == 1);
+
+                for (int row = row1; row <= row2; row++) {
+                    if ((el = mSequenceElements->GetEffectLayer(row)) != nullptr)
+                        if ((element = el->GetParentElement()) != nullptr) {
+                            element->SetRenderDisabled(bAmIDisabledNow);
+                            bNeedRefresh = true;
+                        }
+                }
+            }
+    }
+    SetCursor(wxCURSOR_ARROW);
+
+    return bNeedRefresh;
+}
+
+void EffectsGrid::EnDisableRenderEffectsWithRefresh(int iOverrideState)
+{
+    if (EnDisableRenderEffects(iOverrideState)) {
+        //
+        // refresh the Sequencer Grid
+        //
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    }
+}
+
+bool EffectsGrid::EnDisableRenderEffects(int iOverrideState)
+{
+    bool bNeedRefresh = false;
+
+    if (mSequenceElements == nullptr)
+        return bNeedRefresh;
+
+    if (mSelectedEffect != nullptr || AtLeastOneEffectSelected()) {
+        auto efs = GetSelectedEffects();
+        // add in the selected effect if we didnt get it
+        if (mSelectedEffect != nullptr) {
+            bool found = false;
+            for (auto it = efs.begin(); it != efs.end(); ++it) {
+                if ((*it) == mSelectedEffect) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                efs.push_back(mSelectedEffect);
+            }
+        }
+
+        if (efs.size() > 0) {
+            wxASSERT(iOverrideState >= -1 && iOverrideState <= 1);
+
+            //
+            // take flipped (disabled) state of first item and apply to every item in the list
+            //
+            bool bAmIDisabledNow = (iOverrideState == -1 ? !(*efs.begin())->IsEffectRenderDisabled() : iOverrideState == 1);
+
+            for (auto it = efs.begin(); it != efs.end(); ++it) {
+                (*it)->SetEffectRenderDisabled(bAmIDisabledNow);
+            }
+            bNeedRefresh = true;
+        }
+    }
+    return bNeedRefresh;
+}
+
+void EffectsGrid::EnDisableSelectedModelOrEffectsWithRefresh(int iOverrideState)
+{
+    if (EnDisableSelectedModelOrEffects(iOverrideState)) {
+        //
+        // refresh the Sequencer Grid
+        //
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    }
+}
+
+bool EffectsGrid::EnDisableSelectedModelOrEffects(int iOverrideState)
+{
+    bool bNeedRefresh = false;
+    //
+    // process endis effects first 
+    // will return true if effects were enabled or disabled
+    // will return false if no effects were selected
+    //      when false (no effects were selected) call endis model 
+    
+    bNeedRefresh = EnDisableRenderEffects(iOverrideState);
+
+    if ( bNeedRefresh == false ) {
+        bNeedRefresh = EnDisableSelectedModel(iOverrideState);
+    }
+
+    return bNeedRefresh;
+}
+
 void EffectsGrid::ResetEffect()
 {
     if (mSequenceElements == nullptr)
@@ -4238,6 +4416,10 @@ void EffectsGrid::DeleteSelectedEffects()
     mResizing = false;
     mDragging = false;
     ForceRefresh();
+
+    // we need to update the row headings due to the effect indicator and this might be the last effect on the model
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(this, eventRowHeaderChanged);
 }
 
 void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)

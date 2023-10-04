@@ -828,7 +828,7 @@ void PolyPointScreenLocation::SetActiveAxis(MSLAXIS axis)
 {
    ModelScreenLocation::SetActiveAxis(axis);
 }
-bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const {
+bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const {
     std::unique_lock<std::mutex> locker(_mutex);
 
     if (active_handle != NO_HANDLE || mouse_down) {
@@ -836,10 +836,16 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
         int startVertex = vac->getCount();
         vac->PreAlloc(10 * num_points + 12);
         xlColor h1c, h2c, h3c;
+        if (fromBase)
+        {
+            h1c = FROM_BASE_HANDLES_COLOUR;
+            h2c = FROM_BASE_HANDLES_COLOUR;
+            h3c = FROM_BASE_HANDLES_COLOUR;
+        } else
         if (_locked) {
-            h1c = xlREDTRANSLUCENT;
-            h2c = xlREDTRANSLUCENT;
-            h3c = xlREDTRANSLUCENT;
+            h1c = LOCKED_HANDLES_COLOUR;
+            h2c = LOCKED_HANDLES_COLOUR;
+            h3c = LOCKED_HANDLES_COLOUR;
         } else {
             h1c = (highlighted_handle == START_HANDLE) ? xlYELLOWTRANSLUCENT : xlGREENTRANSLUCENT;
             h2c = xlBLUETRANSLUCENT;
@@ -1045,7 +1051,10 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
         auto vac = program->getAccumulator();
         int startVertex = vac->getCount();
         xlColor Box3dColor = xlWHITETRANSLUCENT;
-        if (_locked) Box3dColor = xlREDTRANSLUCENT;
+        if (fromBase)
+            Box3dColor = FROM_BASE_HANDLES_COLOUR;
+        else if (_locked)
+            Box3dColor = LOCKED_HANDLES_COLOUR;
         for (int i = 0; i < num_points - 1; ++i) {
             if (mPos[i].has_curve && mPos[i].curve != nullptr) {
                 mPos[i].curve->DrawBoundingBoxes(Box3dColor, vac);
@@ -1061,7 +1070,7 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
     return true;
 }
 
-bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const {
+bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const {
     std::unique_lock<std::mutex> locker(_mutex);
     
     auto vac = program->getAccumulator();
@@ -1079,8 +1088,11 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
     float y2 = maxY * scaley + worldPos_y + hw / 2 + boundary_offset;
     float z2 = maxZ * scalez + worldPos_z + hw / 2 + boundary_offset;
     xlColor handleColor = xlBLUETRANSLUCENT;
+    if (fromBase) {
+        handleColor = FROM_BASE_HANDLES_COLOUR;
+    } else
     if (_locked) {
-        handleColor = xlREDTRANSLUCENT;
+        handleColor = LOCKED_HANDLES_COLOUR;
     }
     vac->AddRectAsTriangles(x1, y1, x1 + hw, y1 + hw, handleColor);
     vac->AddRectAsTriangles(x1, y2, x1 + hw, y2 + hw, handleColor);

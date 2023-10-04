@@ -25,19 +25,19 @@ class HinksPix;
 class wxJSONValue;
 
 struct HinksPixOutput {
-    HinksPixOutput(int output_) :
+    HinksPixOutput(int output_ ,int defaultBrightness_) :
         output(output_),
         universe(1),
         startChannel(1),
-        pixels(50),
+        pixels(0),
         direction(0),
         protocol(0),
         nullPixel(0),
         colorOrder(0),
-        brightness(100),
+        brightness(defaultBrightness_),
         gamma(1),
         controllerStartChannel(1),
-        controllerEndChannel(150),
+        controllerEndChannel(0),
         used(false){};
     const int output;
     int universe;
@@ -164,9 +164,9 @@ class HinksPix : public BaseController
 #pragma endregion
 
 #pragma region Private Functions
-    bool InitControllerOutputData();
+    bool InitControllerOutputData(bool fullControl, int defaultBrightness);
     void InitExpansionBoardData(int expansion, int startport, int length);
-    std::unique_ptr<HinksPixSerial> InitSerialData();
+    std::unique_ptr<HinksPixSerial> InitSerialData(bool fullControl);
 
     bool UploadInputUniverses(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
     

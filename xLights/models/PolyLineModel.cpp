@@ -1250,8 +1250,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyLineModel::OnPropertyGridChange::AlternateNodes");
         return 0;
-    }
-    else if (!GetModelScreenLocation().IsLocked() && "ModelHeight" == event.GetPropertyName()) {
+    } else if (!GetModelScreenLocation().IsLocked() && !IsFromBase() && "ModelHeight" == event.GetPropertyName()) {
         height = event.GetValue().GetDouble();
         if (std::abs(height) < 0.01f) {
             if (height < 0.0f) {
@@ -1270,7 +1269,8 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyLineModel::OnPropertyGridChange::ModelHeight");
         return 0;
     }
-    else if (GetModelScreenLocation().IsLocked() && "ModelHeight" == event.GetPropertyName()) {
+        else if ((GetModelScreenLocation().IsLocked() || IsFromBase()) && "ModelHeight" == event.GetPropertyName())
+        {
         event.Veto();
         return 0;
     }

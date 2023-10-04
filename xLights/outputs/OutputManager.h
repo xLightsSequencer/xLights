@@ -45,6 +45,8 @@ class OutputManager
     std::string _globalFPPProxy;
     std::string _globalForceLocalIP;
     wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
+    std::string _baseShowDir = "";
+    bool _autoUpdateFromBaseShowDir = false;
     #pragma endregion 
 
     #pragma region Static Variables
@@ -85,6 +87,34 @@ public:
     static bool IsInteractive() { return _isInteractive; }
     static void SetInteractive(bool interactive) { _isInteractive = interactive; }
     static std::vector<std::string> GetExportHeaders();
+    #pragma endregion
+
+    #pragma region Base Show Dir
+    std::string GetBaseShowDir() const
+    {
+        return _baseShowDir;
+    }
+    void SetBaseShowDir(const std::string& baseShowDir)
+    {
+        if (_baseShowDir != baseShowDir)
+        {
+            _baseShowDir = baseShowDir;
+            _dirty = true;
+        }
+    }
+    bool IsAutoUpdateFromBaseShowDir() const
+    {
+        return _autoUpdateFromBaseShowDir;
+    }
+    void SetAutoUpdateFromBaseShowDir(bool update)
+    {
+        if (update != _autoUpdateFromBaseShowDir)
+        {
+            _autoUpdateFromBaseShowDir = update;
+            _dirty = true;
+        }
+    }
+    bool MergeFromBase(bool prompt);
     #pragma endregion 
 
     #pragma region Controller Management

@@ -101,10 +101,11 @@ public:
 
     #pragma region Constructors and Destructors
     Output(wxXmlNode* node);
-    Output(Output* output);
+    Output(const Output& from);
     Output();
     virtual ~Output();
     virtual wxXmlNode* Save();
+    virtual Output* Copy() = 0;
     #pragma endregion 
 
     #pragma region Static Functions

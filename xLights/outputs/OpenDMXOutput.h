@@ -33,10 +33,14 @@ public:
 
     #pragma region Constructors and Destructors
     OpenDMXOutput(wxXmlNode* node);
-    OpenDMXOutput(SerialOutput* output);
     OpenDMXOutput();
+    OpenDMXOutput(const OpenDMXOutput& from);
     virtual ~OpenDMXOutput() override {};
-    #pragma endregion 
+    virtual Output* Copy() override
+    {
+        return new OpenDMXOutput(*this);
+    }
+#pragma endregion 
 
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_OPENDMX; }

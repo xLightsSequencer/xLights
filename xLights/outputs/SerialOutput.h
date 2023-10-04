@@ -34,7 +34,7 @@ public:
 
     #pragma region Constructors and Destructors
     SerialOutput(wxXmlNode* node);
-    SerialOutput(SerialOutput* output);
+    SerialOutput(const SerialOutput& from);
     SerialOutput();
     virtual ~SerialOutput() override;
     virtual wxXmlNode* Save() override;

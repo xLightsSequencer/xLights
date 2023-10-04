@@ -52,7 +52,7 @@ class ModelManager : public ObjectManager
         std::list<std::string> GetModelsShadowing(const Model* m) const;
         void AddModel(Model* m);
         //void AddModel(wxXmlNode* m);
-        void Delete(const std::string &name);
+        bool Delete(const std::string &name);
         std::string GenerateModelName(const std::string& candidateModelName) const;
         void ResetModelGroups() const;
         std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol) const;
@@ -88,6 +88,7 @@ class ModelManager : public ObjectManager
 
         int GetPreviewWidth() const { return previewWidth; }
         int GetPreviewHeight() const { return previewHeight; }
+        bool MergeFromBase(const std::string& baseShowDir, bool prompt);
 
     private:
 

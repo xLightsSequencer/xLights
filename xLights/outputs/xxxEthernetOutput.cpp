@@ -132,10 +132,12 @@ xxxEthernetOutput::xxxEthernetOutput() : IPOutput() {
     memset(_data, 0, _channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
 }
 
-xxxEthernetOutput::xxxEthernetOutput(xxxEthernetOutput* output) : IPOutput(output) {
+xxxEthernetOutput::xxxEthernetOutput(const xxxEthernetOutput& from) : IPOutput(from) {
 
-    _data = (uint8_t*)malloc(_channels);
-    memset(_data, 0, _channels);
+    _channels = from._channels;
+    _universe = from._universe;
+    _data = (uint8_t*)malloc(_channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
+    memset(_data, 0, _channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
 }
 
 xxxEthernetOutput::~xxxEthernetOutput() {

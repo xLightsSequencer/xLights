@@ -16,6 +16,8 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<SupportsAutoLayout/>
+			<SupportsFullxLightsControl/>
+			<SupportsDefaultBrightness/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -52,6 +54,8 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<SupportsAutoLayout/>
+			<SupportsFullxLightsControl/>
+			<SupportsDefaultBrightness/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -93,6 +97,8 @@
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
 			<SupportsAutoLayout/>
+			<SupportsFullxLightsControl/>
+			<SupportsDefaultBrightness/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>

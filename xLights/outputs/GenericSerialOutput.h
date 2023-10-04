@@ -17,10 +17,14 @@ class GenericSerialOutput : public SerialOutput
 public:
 
     #pragma region Constructors and Destructors
-    GenericSerialOutput(SerialOutput* output);
     GenericSerialOutput(wxXmlNode* node);
+    GenericSerialOutput(const GenericSerialOutput& from);
     GenericSerialOutput();
     virtual ~GenericSerialOutput() override {};
+    virtual Output* Copy() override
+    {
+        return new GenericSerialOutput(*this);
+    }
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters

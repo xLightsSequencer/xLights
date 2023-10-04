@@ -44,11 +44,15 @@ public:
 
     #pragma region Constructors and Destructors
     LOROptimisedOutput(wxXmlNode* node);
-    LOROptimisedOutput(SerialOutput* output);
+    LOROptimisedOutput(const LOROptimisedOutput& from);
     LOROptimisedOutput();
     virtual ~LOROptimisedOutput() override {}
     void SetupHistory();
-    #pragma endregion 
+    virtual Output* Copy() override
+    {
+        return new LOROptimisedOutput(*this);
+    }
+#pragma endregion 
 
     #pragma region Getters and Setters
     LorControllers& GetControllers() { return _controllers; }

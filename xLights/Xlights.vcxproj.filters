@@ -1028,6 +1028,13 @@
     <ClCompile Include="controllers\FPPUploadProgressDialog.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
+    <ClCompile Include="AutoLabelDialog.cpp" />
+    <ClCompile Include="effects\DuplicateEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\DuplicatePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2068,6 +2075,13 @@
     </ClInclude>
     <ClInclude Include="controllers\FPPUploadProgressDialog.h">
       <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="AutoLabelDialog.h" />
+    <ClInclude Include="effects\DuplicateEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\DuplicatePanel.h">
+      <Filter>Effects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
