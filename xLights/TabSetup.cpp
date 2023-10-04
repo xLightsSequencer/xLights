@@ -1515,7 +1515,12 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         if (it->IsFromBase())
         {
             if (it->IsActive()) {
-                List_Controllers->SetItemTextColour(row, *wxBLUE);
+                if (IsDarkMode())
+                {
+                    List_Controllers->SetItemTextColour(row, *wxCYAN);
+                } else {
+                    List_Controllers->SetItemTextColour(row, *wxBLUE);
+                }
             } else {
                 List_Controllers->SetItemTextColour(row, wxColor(0x80, 0x80, 0xFF));
             }
