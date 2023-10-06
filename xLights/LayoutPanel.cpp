@@ -6746,7 +6746,7 @@ void LayoutPanel::ReplaceModel()
             }
         }
 
-        if (wxMessageBox("Use original size and position", "Use original and position", wxYES_NO) == wxYES) {
+        if (wxMessageBox("Use original size and position", "Use original size and position", wxYES_NO) == wxYES) {
             modelToReplaceItWith->SetHcenterPos(replaceModel->GetHcenterPos());
             modelToReplaceItWith->SetVcenterPos(replaceModel->GetVcenterPos());
             modelToReplaceItWith->SetDcenterPos(replaceModel->GetDcenterPos());       
