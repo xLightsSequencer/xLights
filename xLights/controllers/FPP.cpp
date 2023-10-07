@@ -63,6 +63,7 @@
 #include "../FSEQFile.h"
 #include "../Discovery.h"
 #include "../utils/CurlManager.h"
+#include "../utils/ip_utils.h"
 
 #include "Falcon.h"
 #include "Minleon.h"
@@ -1688,7 +1689,15 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
     for (const auto& it : outputManager->GetControllers()) {
         auto c = dynamic_cast<ControllerEthernet*>(it);
         if (c != nullptr) {
-            if (c->GetFPPProxy() == ipAddress) {
+            std::string proxy_ip = ip_utils::ResolveIP(c->GetFPPProxy());
+            std::string ipAddress_ip = ip_utils::ResolveIP(ipAddress);
+            if (
+                    (::Lower(c->GetFPPProxy()) == ::Lower(ipAddress)) 
+                 || (::Lower(proxy_ip) == ::Lower(ipAddress)) 
+                 || (::Lower(c->GetFPPProxy()) == ::Lower(ipAddress_ip))
+                 || (::Lower(proxy_ip) == ::Lower(ipAddress_ip))
+                ) 
+            {
                 selected.push_back(c);
             }
         }
@@ -3820,12 +3829,15 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     for (auto& it : outputManager->GetControllers()) {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
         if (eth != nullptr && eth->GetIP() != "" && eth->GetIP() != "MULTICAST") {
-            startAddresses.push_back(eth->GetIP());
+            startAddresses.push_back(::Lower(eth->GetResolvedIP()));
             if (eth->GetFPPProxy() != "") {
-                startAddresses.push_back(eth->GetFPPProxy());
+                startAddresses.push_back(::Lower(ip_utils::ResolveIP(eth->GetFPPProxy())));
             }
         }
     }
+
+    startAddresses.sort();
+    startAddresses.unique();
 
     Discovery discovery(frame, outputManager);
     FPP::PrepareDiscovery(discovery, startAddresses);
