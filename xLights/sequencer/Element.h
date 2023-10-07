@@ -143,9 +143,9 @@ protected:
     std::vector<EffectLayer*> mEffectLayers;
     std::list<EffectLayer *> mLayersToDelete;
     ChangeListener *listener = nullptr;
-    volatile int changeCount = 0;
-    volatile int dirtyStart = -1;
-    volatile int dirtyEnd = -1;
+    std::atomic<int> changeCount = 0;
+    std::atomic<int> dirtyStart = -1;
+    std::atomic<int> dirtyEnd = -1;
 
     std::recursive_timed_mutex changeLock;
 };
