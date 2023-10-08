@@ -309,6 +309,7 @@ bool EffectTreeDialog::PromptForName(wxWindow* parent, wxString& name, bool isNe
     do
     {
         ok=true;
+        dialog.SetValue(name);
         DlgResult=dialog.ShowModal();
         if (DlgResult == wxID_OK)
         {
@@ -596,13 +597,13 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
     }
 
     MyTreeItemData *itemData= (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
+    wxXmlNode* e = (wxXmlNode*)itemData->GetElement();
 
-    wxString newName;
+    wxString newName = e->GetAttribute("name");
     if (!PromptForName(this, newName, false, itemData->IsGroup())) return;
 
     DeleteGifImage(itemID);
 
-    wxXmlNode* e=(wxXmlNode*)itemData->GetElement();
     e->DeleteAttribute("name");
     e->AddAttribute("name", XmlSafe(newName));
     if (!itemData->IsGroup())

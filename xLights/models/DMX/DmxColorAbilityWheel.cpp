@@ -417,7 +417,7 @@ std::optional<xlColor> DmxColorAbilityWheel::GetWheelColorFromDMXValue(xlColor c
                     colour = it.color;
                     dmxValue = it.dmxValue;
                 }
-            }
+            }   
         }
         else
         {
