@@ -336,7 +336,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
 
         //FSEQ Type listbox
         if (inst->fppType == FPP_TYPE::FPP) {
-            if (!inst->IsVersionAtLeast(6, 0)) {
+            if (!inst->supportedForFPPConnect()) {
                 doUploadCheckbox->SetValue(false);
                 doUploadCheckbox->Enable(false);
                 
@@ -374,7 +374,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
         }
 
-        if (inst->fppType == FPP_TYPE::FPP && inst->IsVersionAtLeast(6, 0)) {
+        if (inst->fppType == FPP_TYPE::FPP && inst->supportedForFPPConnect()) {
             if (prgs) {
                 prgs->Pulse("Probing information from " + l);
             }

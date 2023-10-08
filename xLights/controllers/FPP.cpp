@@ -88,7 +88,7 @@ static std::set<std::string> FPP_VIDEO_EXT = {
 
 
 FPP::FPP(const std::string& ad) :
-    BaseController(ad, ""), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), curl(nullptr), fppType(FPP_TYPE::FPP) {
+    BaseController(ad, ""), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), fppType(FPP_TYPE::FPP) {
     wxIPV4address address;
     if (address.Hostname(ad)) {
         hostName = ad;
@@ -101,7 +101,7 @@ FPP::FPP(const std::string& ad) :
 
 
 FPP::FPP(const std::string& ip_, const std::string& proxy_, const std::string& model_) :
-    BaseController(ip_, proxy_), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), 
+    BaseController(ip_, proxy_), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr),
     fppType(FPP_TYPE::FPP), proxy(proxy_), pixelControllerType(model_)
 {
     ipAddress = ip_;
@@ -115,10 +115,9 @@ FPP::FPP(const std::string& ip_, const std::string& proxy_, const std::string& m
 }
 
 FPP::FPP(const FPP &c)
-    : majorVersion(c.majorVersion), minorVersion(c.minorVersion), patchVersion(c.patchVersion), outputFile(nullptr), parent(nullptr), curl(nullptr),
-    hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
+    : majorVersion(c.majorVersion), minorVersion(c.minorVersion), patchVersion(c.patchVersion), outputFile(nullptr), parent(nullptr), hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
     model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password), 
-    fppType(c.fppType), proxy(c.proxy) {
+    fppType(c.fppType), proxy(c.proxy), capeInfo(c.capeInfo) {
 
 }
 
@@ -130,10 +129,6 @@ FPP::~FPP() {
     if (tempFileName != "") {
         ::wxRemoveFile(tempFileName);
         tempFileName = "";
-    }
-    if (curl) {
-        curl_easy_cleanup(curl);
-        curl = nullptr;
     }
 }
 
@@ -223,11 +218,8 @@ static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userp) {
     return dt->readData(ptr, buffer_size);
 }
 
-void FPP::setupCurl(const std::string &url, bool isGet, int timeout) {
-    if (curl == nullptr) {
-        curl = curl_easy_init();
-    }
-    curl_easy_reset(curl);
+CURL *FPP::setupCurl(const std::string &url, bool isGet, int timeout) {
+    CURL* curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, BaseController::writeFunction);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curlInputBuffer);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -251,6 +243,7 @@ void FPP::setupCurl(const std::string &url, bool isGet, int timeout) {
     curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    return curl;
 }
 
 bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError) {
@@ -721,9 +714,8 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     } else {
         fullUrl = "http://" + fullUrl;
     }
-    setupCurl(fullUrl, false);
     //if we cannot upload it in 5 minutes, we have serious issues
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
+    CURL *curl = setupCurl(fullUrl, false, 5*60*1000);
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
     if (username != "") {
         curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
@@ -781,10 +773,11 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     data->postDataSize = data->memBuffPost.GetDataLen();
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(curl, CURLOPT_READDATA, data);
+
     data->lastDone = lastDone;
 
     
-    CurlManager::INSTANCE.addCURL(fullUrl, curl, [this, chunk, deleteFile, fullFileName, usingMove, filename, ext, utfFilename, data] (CURL *) {
+    CurlManager::INSTANCE.addCURL(fullUrl, curl, [this, chunk, deleteFile, fullFileName, usingMove, filename, ext, utfFilename, data] (CURL *curl) {
         long response_code = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         
@@ -807,7 +800,7 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
             wxRemoveFile(fullFileName);
         }
         updateProgress(1000, false);
-    }, false);
+    }, true);
 
     return false;
 }
@@ -3178,6 +3171,14 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                     if (rc == 200) {
                         found->extraData["httpConnected"] = true;
                         ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
+                    } else {
+                        discovery.AddCurl(ipAddr, "/fppjson.php?command=getSysInfo&simple", [&discovery, ipAddr, found] (int rc, const std::string &buffer, const std::string &err) {
+                            if (rc == 200) {
+                                found->extraData["httpConnected"] = true;
+                                ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
+                            }
+                            return true;
+                        });
                     }
                     return true;
                 });
@@ -3446,6 +3447,13 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
                     discovery.AddCurl(ipAddr, "/api/system/info", [&discovery, ipAddr] (int rc, const std::string &buffer, const std::string &err) {
                         if (rc == 200) {
                             ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
+                        } else {
+                            discovery.AddCurl(ipAddr, "/fppjson.php?command=getSysInfo&simple", [&discovery, ipAddr] (int rc, const std::string &buffer, const std::string &err) {
+                                if (rc == 200) {
+                                    ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
+                                }
+                                return true;
+                            });
                         }
                         return true;
                     });
@@ -3601,8 +3609,19 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
         });
     });
 }
+bool FPP::supportedForFPPConnect() const {
+    if (this->IsVersionAtLeast(6, 0)) {
+        return true;
+    }
+    if (this->IsVersionAtLeast(5, 3)) {
+        if (capeInfo.HasMember("verifiedKeyId")) {
+            return true;
+        }
+    }
+    return false;
+}
 
-bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
+static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputManager) {
     if (res->typeId == 0) {
         return false;
     }
@@ -3657,7 +3676,7 @@ inline void setIfEmpty(uint32_t &val, uint32_t nv) {
 void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (auto res : discovery.GetResults()) {
-        if (supportedForFPPConnect(res, outputManager)) {
+        if (::supportedForFPPConnect(res, outputManager)) {
             logger_base.info("FPP Discovery - Found Supported FPP Instance: %s (h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
             FPP *fpp = nullptr;
 
@@ -3692,6 +3711,9 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                         fpp->playlists.push_back(res->extraData["playlists"][x].AsString());
                     }
                 }
+                if (res->extraData.HasMember("cape")) {
+                    fpp->capeInfo = res->extraData["cape"];
+                }
                 instances.push_back(fpp);
             } else {
                 setIfEmpty(fpp->proxy, res->proxy);
@@ -3718,6 +3740,9 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                     for (int x = 0; x < res->extraData["playlists"].Size(); x++) {
                         fpp->playlists.push_back(res->extraData["playlists"][x].AsString());
                     }
+                }
+                if (res->extraData.HasMember("cape")) {
+                    fpp->capeInfo = res->extraData["cape"];
                 }
             }
         } else {

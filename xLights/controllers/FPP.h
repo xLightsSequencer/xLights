@@ -26,7 +26,7 @@ class FPP : public BaseController
 {
     public:
     FPP() :
-            BaseController("", ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), curl(nullptr), fppType(FPP_TYPE::FPP) {}
+            BaseController("", ""), majorVersion(0), minorVersion(0), outputFile(nullptr), parent(nullptr), fppType(FPP_TYPE::FPP) {}
     FPP(const std::string& ip_, const std::string& proxy_, const std::string& model_);
     FPP(const std::string &address);
     FPP(const FPP &c);
@@ -90,6 +90,7 @@ class FPP : public BaseController
     bool FinalizeUploadSequence();
     std::string GetTempFile() const { return tempFileName; }
     void ClearTempFile() { tempFileName = ""; }
+    bool supportedForFPPConnect() const;
 #endif
 
     bool UploadUDPOutputsForProxy(OutputManager* outputManager);
@@ -194,13 +195,13 @@ private:
         float duration = 0;
     };
     std::map<std::string, PlaylistEntry> sequences;
+    wxJSONValue capeInfo;
     std::string tempFileName;
     std::string baseSeqName;
     FSEQFile *outputFile = nullptr;
     bool outputFileIsOriginal = false;
 
-    void setupCurl(const std::string &url, bool isGet = true, int timeout = 30000);
-    CURL *curl = nullptr;
+    CURL *setupCurl(const std::string &url, bool isGet = true, int timeout = 30000);
     std::string curlInputBuffer;
     
     bool restartNeeded = false;
