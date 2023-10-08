@@ -90,8 +90,8 @@ class FPP : public BaseController
     bool FinalizeUploadSequence();
     std::string GetTempFile() const { return tempFileName; }
     void ClearTempFile() { tempFileName = ""; }
-    bool supportedForFPPConnect() const;
 #endif
+    bool supportedForFPPConnect() const;
 
     bool UploadUDPOutputsForProxy(OutputManager* outputManager);
     
