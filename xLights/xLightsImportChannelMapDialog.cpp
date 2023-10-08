@@ -418,12 +418,16 @@ const long xLightsImportChannelMapDialog::ID_STATICTEXT_BLEND_TYPE = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKBOX3 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON_IMPORT_OPTIONS = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKLISTBOX1 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_STATICTEXT2 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_TEXTCTRL2 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON4 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON5 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON2 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_PANEL1 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_STATICTEXT1 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_TEXTCTRL1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_LISTCTRL1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_PANEL2 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_SPLITTERWINDOW1 = wxNewId();
@@ -454,6 +458,8 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     wxButton* Button01;
     wxButton* Button02;
     wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer3;
+    wxFlexGridSizer* FlexGridSizer4;
 
     Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxFULL_REPAINT_ON_RESIZE, _T("wxID_ANY"));
     OldSizer = new wxFlexGridSizer(0, 1, 0, 0);
@@ -504,6 +510,13 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     TimingTrackListBox = new wxCheckListBox(Panel1, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
     TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxEXPAND, 0);
     Sizer1->Add(TimingTrackPanel, 0, wxEXPAND, 0);
+    FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer4->AddGrowableCol(1);
+    StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT2, _("Find:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_FindTo = new wxTextCtrl(Panel1, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+    FlexGridSizer4->Add(TextCtrl_FindTo, 1, wxALL|wxEXPAND, 5);
+    Sizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
     SizerMap = new wxFlexGridSizer(1, 1, 0, 0);
     SizerMap->AddGrowableCol(0);
     SizerMap->AddGrowableRow(0);
@@ -529,7 +542,14 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     Panel2 = new wxPanel(SplitterWindow1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     Sizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     Sizer2->AddGrowableCol(0);
-    Sizer2->AddGrowableRow(0);
+    Sizer2->AddGrowableRow(1);
+    FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer3->AddGrowableCol(1);
+    StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("Find:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_FindFrom = new wxTextCtrl(Panel2, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+    FlexGridSizer3->Add(TextCtrl_FindFrom, 1, wxALL|wxEXPAND, 5);
+    Sizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
     ListCtrl_Available = new wxListCtrl(Panel2, ID_LISTCTRL1, wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(100,-1)), wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL1"));
     Sizer2->Add(ListCtrl_Available, 1, wxALL|wxEXPAND, 5);
     Panel2->SetSizer(Sizer2);
@@ -544,11 +564,13 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick);
     Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBoxImportMediaClick);
     Connect(ID_BUTTON_IMPORT_OPTIONS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButtonImportOptionsClick);
+    Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindToText);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_OkClick);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
     Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_AutoMapClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
+    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindFromText);
     Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag);
     Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
     Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated);
@@ -1105,7 +1127,7 @@ void xLightsImportChannelMapDialog::LoadMappingFile(wxString const& filepath, bo
             }
         }
     }
-    
+
     MarkUsed();
     TreeListCtrl_Mapping->Refresh();
 }
@@ -1182,7 +1204,7 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
             wxString const mapping = mappings->Item(i).Get("mapping", wxString()).AsString();
             wxColor color = wxColor(mappings->Item(i).Get("color", wxString("white")).AsString());
             bool stashed = mappings->Item(i).Get("stashed", false).AsBool();
-        
+
             Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
 
             if (!stashed && TreeContainsModel(model) == nullptr && !modelwarning) {
@@ -1477,7 +1499,7 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
             if (m->_mapping.empty() && sm != nullptr) {
                 mapping["mapping"] = sm->_mapping;
                 mapping["color"] = sm->_color.GetAsString();
-                mapping["stashed"] = true; 
+                mapping["stashed"] = true;
             } else {
                 mapping["mapping"] = m->_mapping;
                 mapping["color"] = m->_color.GetAsString();
@@ -1494,7 +1516,7 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
                         smapping["strand"] = sm->_strand;
                         smapping["mapping"] = sm->_mapping;
                         smapping["color"] = sm->_color.GetAsString();
-                        smapping["stashed"] = true; 
+                        smapping["stashed"] = true;
                     } else {
                         smapping["strand"] = s->_strand;
                         smapping["mapping"] = s->_mapping;
@@ -2464,4 +2486,78 @@ void xLightsImportChannelMapDialog::generateMapHintsFile(wxString const& filenam
 
     f.Write("</MapHints>");
     f.Close();
+}
+
+void xLightsImportChannelMapDialog::OnTextCtrl_FindFromText(wxCommandEvent& event)
+{
+    // find the first line starting with the text
+    int index = -1;
+    auto from = TextCtrl_FindFrom->GetValue().Lower();
+
+    if (from == "")
+    {
+        // text just erased ... so scroll to the top
+        index = 0;
+    }
+    else
+    {
+        for (size_t i = 0; i < ListCtrl_Available->GetItemCount(); ++i)
+        {
+            if (ListCtrl_Available->GetItemText(i).Lower().StartsWith(from))
+            {
+                index = i;
+                break;
+            }
+        }
+    }
+
+    // if nothing found then find the first line containing the text
+    if (index == -1)
+    {
+        for (size_t i = 0; i < ListCtrl_Available->GetItemCount(); ++i) {
+            if (ListCtrl_Available->GetItemText(i).Lower().Contains(from)) {
+                index = i;
+                break;
+            }
+        }
+
+    }
+
+    // scroll to it
+    ListCtrl_Available->EnsureVisible(index);
+}
+
+void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
+{
+    // find the first line starting with the text
+    wxDataViewItem& index = wxDataViewItem(0);
+    auto to = TextCtrl_FindTo->GetValue().Lower();
+
+    if (to == "") {
+        // text just erased ... so scroll to the top
+        //index = 0;
+    } else {
+        for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
+            xLightsImportModelNode* m = _dataModel->GetNthChild(i);
+
+            if (m->_model.Lower().StartsWith(to)) {
+                index = (wxDataViewItem&)m;
+                break;
+            }
+        }
+    }
+
+    // if nothing found then find the first line containing the text
+    if (index.GetID() == 0) {
+        for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
+            xLightsImportModelNode* m = _dataModel->GetNthChild(i);
+            if (m->_model.Lower().Contains(to)) {
+                index = (wxDataViewItem&)m;
+                break;
+            }
+        }
+    }
+
+    // scroll to it
+    TreeListCtrl_Mapping->EnsureVisible(index);
 }
