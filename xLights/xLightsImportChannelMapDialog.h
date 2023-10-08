@@ -115,7 +115,7 @@ public:
     {
         // free all our children nodes
         size_t count = m_children.GetCount();
-        for (size_t i = 0; i < count; i++) {
+        for (size_t i = 0; i < count; ++i) {
             xLightsImportModelNode *child = m_children[i];
             delete child;
         }
@@ -127,7 +127,7 @@ public:
         _mapping = "";
         _color = *wxWHITE;
         size_t count = m_children.GetCount();
-        for (size_t i = 0; i < count; i++) {
+        for (size_t i = 0; i < count; ++i) {
             GetNthChild(i)->ClearMapping();
         }
     }
@@ -139,7 +139,7 @@ public:
         if (!_mapping.empty()) {
             return true;
         } else {
-            for (size_t i = 0; i < m_children.size(); i++) {
+            for (size_t i = 0; i < m_children.size(); ++i) {
                 xLightsImportModelNode* c = GetNthChild(i);
                 if (c->HasMapping()) {
                     return true;
@@ -212,7 +212,7 @@ public:
     {
         // free all our children nodes
         size_t count = m_children.GetCount();
-        for (size_t i = 0; i < count; i++) {
+        for (size_t i = 0; i < count; ++i) {
             xLightsImportModelNode *child = m_children[i];
             delete child;
         }
@@ -247,7 +247,7 @@ public:
     unsigned int GetMappedChildCount() const
     {
         size_t count = 0;
-        for (size_t i = 0; i < m_children.size(); i++) {
+        for (size_t i = 0; i < m_children.size(); ++i) {
             xLightsImportModelNode* c = GetNthChild(i);
             if (c->HasMapping()) {
                 count++;
