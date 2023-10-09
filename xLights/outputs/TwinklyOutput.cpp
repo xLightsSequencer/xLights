@@ -152,7 +152,8 @@ void TwinklyOutput::Close()
         _datagram = nullptr;
     }
 
-    SetLEDMode(false);
+    if (_enabled)
+        SetLEDMode(false);
 
     IPOutput::Close();
 }
