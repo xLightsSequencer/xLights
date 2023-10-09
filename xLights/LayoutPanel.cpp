@@ -4413,7 +4413,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         um->Enable(selectedBaseObject->IsLocked() && !selectedBaseObject->IsFromBase());
         auto ul = menu.Append(ID_PREVIEW_MODEL_UNLINKFROMBASE, "Unlink from base show folder");
         ul->Enable(selectedBaseObject->IsFromBase());
-
+        
         Model* model = dynamic_cast<Model*>(selectedBaseObject);
         if (model != nullptr && model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
             menu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
@@ -4434,7 +4434,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
             menu.Append(ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL, "Export xLights Model");
         }
         menu.Append(ID_PREVIEW_MODEL_CAD_EXPORT, "Export As DXF/STL/VRML");
-
+        
         menu.AppendSeparator();
         for (const auto& it : xlights->AllModels) {
             if (it.second->GetDisplayAs() == "ModelGroup") {
@@ -4446,11 +4446,10 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         menu.AppendSeparator();
         menu.Append(ID_PREVIEW_FLIP_HORIZONTAL, "Flip Horizontal")->Enable(!selectedBaseObject->IsFromBase());
         menu.Append(ID_PREVIEW_FLIP_VERTICAL, "Flip Vertical")->Enable(!selectedBaseObject->IsFromBase());
-    }
-
-    if (editing_models && (selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1) && !selectedBaseObject->IsFromBase())
-    {
-        menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace A Model With This Model");
+        
+        if ((selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1) && !selectedBaseObject->IsFromBase()) {
+            menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace A Model With This Model");
+        }
     }
 }
 
