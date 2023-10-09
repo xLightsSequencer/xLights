@@ -909,8 +909,9 @@ void xLightsFrame::UpdateModelsList()
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("        UpdateModelsList.");
 
-    if (ModelsNode == nullptr) return; // this happens when xlights is first loaded
-    if (ViewObjectsNode == nullptr) return; // this happens when xlights is first loaded
+    if (ModelsNode == nullptr 
+        || ViewObjectsNode == nullptr
+        || modelPreview == nullptr) return; // this happens when xlights is first loaded
 
     //abort any render as it will crash if the model changes
     AbortRender();
