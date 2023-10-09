@@ -2536,8 +2536,13 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
     auto to = TextCtrl_FindTo->GetValue().Lower();
 
     if (to == "") {
+#ifdef __WXMSW__
+        TreeListCtrl_Mapping->Scroll(wxPoint(0, 0));
+#else
+        // I am not convinced this works ... it should scroll to the top of the list but as the list is sorted this tends to scroll to the first group ... at least it does on windows
         xLightsImportModelNode* m = _dataModel->GetNthChild(0);
         TreeListCtrl_Mapping->EnsureVisible((wxDataViewItem)m);
+#endif
     } else {
         for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
             xLightsImportModelNode* m = _dataModel->GetNthChild(i);
