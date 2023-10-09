@@ -2536,12 +2536,18 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
     auto to = TextCtrl_FindTo->GetValue().Lower();
 
     if (to == "") {
+        if (TreeListCtrl_Mapping->GetSelectedItemsCount() == 1) {
+            // if there is a selection, scroll to it as that's the visible marker
+            // at this point.
+            TreeListCtrl_Mapping->EnsureVisible(TreeListCtrl_Mapping->GetSelection());
+        }
 #ifdef __WXMSW__
-        TreeListCtrl_Mapping->Scroll(wxPoint(0, 0));
-#else
-        // I am not convinced this works ... it should scroll to the top of the list but as the list is sorted this tends to scroll to the first group ... at least it does on windows
-        xLightsImportModelNode* m = _dataModel->GetNthChild(0);
-        TreeListCtrl_Mapping->EnsureVisible((wxDataViewItem)m);
+        else {
+            // There isn't a way to scroll to top on MacOS and Linux as far as I can find. Honestly, this shouldn't
+            // work on Windows either as wxDataViewControl does not inherit from wxScrollHelperBase according
+            // to the wxWidgets docs and thus should not implement the Scroll method
+            TreeListCtrl_Mapping->Scroll(wxPoint(0, 0));
+        }
 #endif
     } else {
         for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
