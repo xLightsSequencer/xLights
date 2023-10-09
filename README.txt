@@ -11,6 +11,21 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.16 Oct 9, 2023
+   -- enh (keith) Pre-poulate effect preset rename field with current name
+   -- enh (dartunder) Save/restore test mode tab selection
+   -- enh (keith) Add Find for effect import dialog
+   -- enh (keith) Add a Halloween palette with orange and a purple that look good on pixels without playing with gamma
+   -- enh (dkulp) Import effects - save/restore the "Lock" checkbox value
+   -- bug (dkulp) Fix crash with popup menus on layout panel
+   -- bug (dkulp) FPP Connect - fix hang when uploading to older controllers that use jqupload method
+   -- bug (dartunder) Fix test mode for controller sync enabled with FPP "Player Only"
+   -- bug (dkulp) Possibly fix some audio device crashes when Mac goes into/out of sleep mode
+   -- bug (dkulp) Fix a spurious log warning on file load that was incorrect
+   -- bug (dkulp) Fix some issues of loading sequences always requiring a re-render
+   -- bug (dkulp) FPP Connect - fix detection of some capes that use "v2" pinouts
+   -- bug (keith) Fix "Base layout" apperance in dark mode
+   -- bug (keith) Fix Color Wheel does not always return a feedback color on the UI
 2023.15 Oct 2, 2023
    -- enh (keith)     Add Twinkly 3D Model import
    -- enh (keith)     Add auto label of timing tracks
