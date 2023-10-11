@@ -706,8 +706,9 @@ void HinksPix::CalculateSmartReceivers(UDControllerPort* stringData) {
     int bank = expansionPort / REC_SIZE;
     int subPort = (expansionPort % REC_SIZE);
 
-    int prevID { - 1};
+    int prevID { -1 };
     int start_pixels { 1 };
+    int32_t portchans { 0 };
     for (const auto& it : stringData->GetModels()) {
         if (it->GetSmartRemote() > 0) {
             int id {it->GetSmartRemote() - 1};
@@ -740,12 +741,14 @@ void HinksPix::CalculateSmartReceivers(UDControllerPort* stringData) {
                         smartPort.portStartPixel[subPort] = start_pixels;
                         if (it->GetSmartRemoteType().find("16ac") != std::string::npos) {
                             smartPort.type = 2;
+                            smartPort.portStartPixel[subPort] = (portchans / 3) + 1;
                         }
                     }
                 }
             }
 
             int32_t chans = it->GetEndChannel() - it->GetStartChannel() + 1;
+            portchans += chans;
             int pixs = chans / std::max(it->GetChannelsPerPixel(),3);
             start_pixels += pixs;
             prevID = id;
