@@ -564,7 +564,7 @@ static NAMED_COLOUR namedColours[] = {
 const std::string& GetColourName(const wxColour& c)
 {
     const NAMED_COLOUR* nc = nullptr;
-    float min = 99999999999.0;
+    float min = 99999999999.0f;
 
     for (const auto& it : namedColours) {
         if (nc == nullptr) {

@@ -52,6 +52,18 @@ void DrawGLUtils::SetupDebugLogging() {
     }
 }
 
+void DrawGLUtils::DoLogGLError(const char* file, int line, const char* msg)
+{
+    const char* f2 = file + strlen(file);
+    while (f2 > file && *f2 != '\\' && *f2 != '/') {
+        f2--;
+    }
+    if (*f2 == '\\' || *f2 == '/') {
+        f2++;
+    }
+    static_logger_opengl_trace->debug("%s/%d - %s", f2, line, msg);
+}
+
 void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
     if (isDebugEnabled) {
         int er = glGetError();

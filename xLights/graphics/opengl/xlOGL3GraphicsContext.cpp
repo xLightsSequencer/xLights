@@ -171,12 +171,13 @@ bool DrawGLUtils::LoadGLFunctions() {
 
 class ShaderProgram {
 public:
-    ShaderProgram() : ProgramID(0) {}
+    ShaderProgram() {}
 
     void Cleanup() {
         if (ProgramID != 0) {
             LOG_GL_ERRORV(glUseProgram(0));
             LOG_GL_ERRORV(glDeleteProgram(ProgramID));
+            ProgramID = 0;
         }
     }
 
@@ -197,9 +198,8 @@ public:
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
     }
 
-    void Init(const char * vs, const char * fs) {
+    bool Init(const char * vs, const char * fs) {
         GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-
         if (VertexShaderID != 0) {
             GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
             if (FragmentShaderID != 0) {
@@ -207,9 +207,23 @@ public:
                 valid &= CompileShader(fs, FragmentShaderID);
                 ProgramID = CreateProgram(VertexShaderID, FragmentShaderID);
                 valid &= ProgramID != 0;
+
+                if (ProgramID == 0)
+                {
+                    DrawGLUtils::DoLogGLError(__FILE__, __LINE__, "Failed to create program from vertex and fragment shader");
+                }
+
                 glDeleteShader(FragmentShaderID);
             }
+            else
+            {
+                DrawGLUtils::DoLogGLError(__FILE__, __LINE__, "Failed to create fragment shader");
+            }
             glDeleteShader(VertexShaderID);
+        }
+        else
+        {
+            DrawGLUtils::DoLogGLError(__FILE__, __LINE__, "Failed to create vertex shader");
         }
 
         if (valid) {
@@ -219,6 +233,8 @@ public:
             LOG_GL_ERRORV(PointSmoothMaxID = glGetUniformLocation(ProgramID, "PointSmoothMax"));
             LOG_GL_ERRORV(RenderTypeID = glGetUniformLocation(ProgramID, "RenderType"));
         }
+
+        return valid;
     }
 
     void CalcSmoothPointParams(float ps) {
@@ -271,6 +287,10 @@ public:
             LOG_GL_ERRORV(glDetachShader(ProgramID, vs));
             LOG_GL_ERRORV(glDetachShader(ProgramID, fs));
         }
+        else
+        {
+            DrawGLUtils::DoLogGLError(__FILE__, __LINE__, "glCreateProgram failed.");
+        }
         return ProgramID;
     }
 
@@ -320,14 +340,17 @@ ShaderProgram normal3Program;
 ShaderProgram meshSolidProgram;
 ShaderProgram meshTextureProgram;
 
-void xlOGL3GraphicsContext::InitializeSharedContext() {
+bool xlOGL3GraphicsContext::InitializeSharedContext() {
+
+    bool valid = true;
+
     LOG_GL_ERRORV(DrawGLUtils::LoadGLFunctions());
     
     const GLubyte* str = glGetString(GL_VERSION);
     bool cp = str[0] > '3' || (str[0] == '3' && str[2] >= '3');
     
     if (cp) {
-        singleColor3Program.Init(
+        valid = valid && singleColor3Program.Init(
                                  "#version 330 core\n"
                                  "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
                                  "out vec4 fragmentColor;\n"
@@ -354,7 +377,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                                  "        color = vec4(fragmentColor.rgb, alpha);\n"
                                  "    }\n"
                                  "}\n");
-        texture3Program.Init(
+        valid = valid && texture3Program.Init(
                              "#version 330 core\n"
                              "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
                              "layout(location = 1) in vec2 vertexUV;\n"
@@ -382,7 +405,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                              "        color = vec4(fragmentColor.rgb, c.a * fragmentColor.a);\n"
                              "    }\n"
                              "}\n");
-        normal3Program.Init(
+        valid = valid && normal3Program.Init(
                             "#version 330 core\n"
                             "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
                             "layout(location = 1) in vec4 vertexColor;\n"
@@ -419,7 +442,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                             "}\n");
         
         
-        meshTextureProgram.Init(
+        valid = valid && meshTextureProgram.Init(
                                 "#version 330 core\n"
                                 "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
                                 "layout(location = 1) in vec3 vertexNormal_modelspace;\n"
@@ -463,7 +486,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                                 "    }\n"
                                 "    color = vec4(c.r*brightness, c.g*brightness, c.b*brightness, c.a);\n"
                                 "}\n");
-        meshSolidProgram.Init(
+        valid = valid && meshSolidProgram.Init(
                               "#version 330 core\n"
                               "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
                               "layout(location = 1) in vec3 vertexNormal_modelspace;\n"
@@ -489,7 +512,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                               "    color = fragmentColor;\n"
                               "}\n");
     } else {
-        singleColor3Program.Init("#version 120\n"
+        valid = valid && singleColor3Program.Init("#version 120\n"
                                  "attribute vec3 vertexPosition_modelspace;\n"
                                  "varying vec4 fragmentColor;\n"
                                  "uniform vec4 inColor;\n"
@@ -515,7 +538,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                                  "        gl_FragColor = vec4(fragmentColor.rgb, alpha);\n"
                                  "    }\n"
                                  "}\n");
-        normal3Program.Init(
+        valid = valid && normal3Program.Init(
                             "#version 120\n"
                             "attribute vec3 vertexPosition_modelspace;\n"
                             "attribute vec4 vertexColor;\n"
@@ -550,7 +573,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                             "    }\n"
                             "}\n");
         
-        texture3Program.Init("#version 120\n"
+        valid = valid && texture3Program.Init("#version 120\n"
                              "attribute vec3 vertexPosition_modelspace;\n"
                              "attribute vec2 vertexUV;\n"
                              "varying vec2 textCoord;\n"
@@ -576,7 +599,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                              "    }\n"
                              "}\n");
         
-        meshTextureProgram.Init(
+        valid = valid && meshTextureProgram.Init(
                                 "#version 120\n"
                                 "attribute vec3 vertexPosition_modelspace;\n"
                                 "attribute vec3 vertexNormal_modelspace;\n"
@@ -621,7 +644,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                                 "    gl_FragColor = vec4(c.r*brightness, c.g*brightness, c.b*brightness, c.a);\n"
                                 "}\n");
          
-        meshSolidProgram.Init(
+        valid = valid && meshSolidProgram.Init(
                               "#version 120\n"
                               "attribute vec3 vertexPosition_modelspace;\n"
                               "attribute vec3 vertexNormal_modelspace;\n"
@@ -645,6 +668,8 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                               "}\n"
                               );
     }
+
+    return valid;
 }
 
 class xlGLTexture : public xlTexture {

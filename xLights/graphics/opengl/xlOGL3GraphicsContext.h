@@ -35,7 +35,7 @@ public:
     xlOGL3GraphicsContext(xlGLCanvas *c);
     virtual ~xlOGL3GraphicsContext();
     
-    static void InitializeSharedContext();
+    static bool InitializeSharedContext();
     
     
     virtual xlVertexAccumulator *createVertexAccumulator() override;

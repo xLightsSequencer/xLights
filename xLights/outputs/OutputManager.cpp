@@ -1069,7 +1069,7 @@ std::list<std::string> OutputManager::GetForceIPs(const std::string& protocol) c
 
     for (const auto& it : GetControllers()) {
         auto e = dynamic_cast<ControllerEthernet*>(it);
-        if (e != nullptr && (it->GetOutputCount() > 0) && e->GetFirstOutput()->GetType() == protocol) {
+        if (e != nullptr && it->GetOutputCount() > 0 && e->GetFirstOutput()->GetType() == protocol) {
             auto fip = e->GetForceLocalIP();
             if (std::find(begin(res), end(res), fip) == end(res))
                 res.push_back(fip);
@@ -1081,7 +1081,7 @@ std::list<std::string> OutputManager::GetForceIPs(const std::string& protocol) c
 bool OutputManager::AtLeastOneOutputUsingProtocol(const std::string& protocol) const {
 
     for (const auto& it : GetControllers()) {
-        if ((it->GetOutputCount() > 0) && (it->GetFirstOutput()->GetType() == protocol)) {
+        if (it->GetOutputCount() > 0 && it->GetFirstOutput()->GetType() == protocol) {
             return true;
         }
     }
