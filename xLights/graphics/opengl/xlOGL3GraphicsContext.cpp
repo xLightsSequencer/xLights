@@ -199,18 +199,26 @@ public:
 
     void Init(const char * vs, const char * fs) {
         GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-        GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-        valid = CompileShader(vs, VertexShaderID);
-        valid &= CompileShader(fs, FragmentShaderID);
-        ProgramID = CreateProgram(VertexShaderID, FragmentShaderID);
-        glDeleteShader(VertexShaderID);
-        glDeleteShader(FragmentShaderID);
 
-        LOG_GL_ERRORV(glUseProgram(ProgramID));
-        LOG_GL_ERRORV(MatrixID = glGetUniformLocation(ProgramID, "MVP"));
-        LOG_GL_ERRORV(PointSmoothMinID = glGetUniformLocation(ProgramID, "PointSmoothMin"));
-        LOG_GL_ERRORV(PointSmoothMaxID = glGetUniformLocation(ProgramID, "PointSmoothMax"));
-        LOG_GL_ERRORV(RenderTypeID = glGetUniformLocation(ProgramID, "RenderType"));
+        if (VertexShaderID != 0) {
+            GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+            if (FragmentShaderID != 0) {
+                valid = CompileShader(vs, VertexShaderID);
+                valid &= CompileShader(fs, FragmentShaderID);
+                ProgramID = CreateProgram(VertexShaderID, FragmentShaderID);
+                valid &= ProgramID != 0;
+                glDeleteShader(FragmentShaderID);
+            }
+            glDeleteShader(VertexShaderID);
+        }
+
+        if (valid) {
+            LOG_GL_ERRORV(glUseProgram(ProgramID));
+            LOG_GL_ERRORV(MatrixID = glGetUniformLocation(ProgramID, "MVP"));
+            LOG_GL_ERRORV(PointSmoothMinID = glGetUniformLocation(ProgramID, "PointSmoothMin"));
+            LOG_GL_ERRORV(PointSmoothMaxID = glGetUniformLocation(ProgramID, "PointSmoothMax"));
+            LOG_GL_ERRORV(RenderTypeID = glGetUniformLocation(ProgramID, "RenderType"));
+        }
     }
 
     void CalcSmoothPointParams(float ps) {
@@ -237,30 +245,32 @@ public:
         static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
 
         GLuint ProgramID = glCreateProgram();
-        LOG_GL_ERRORV(glAttachShader(ProgramID, vs));
-        LOG_GL_ERRORV(glAttachShader(ProgramID, fs));
-        LOG_GL_ERRORV(glLinkProgram(ProgramID));
+        if (ProgramID != 0) {
+            LOG_GL_ERRORV(glAttachShader(ProgramID, vs));
+            LOG_GL_ERRORV(glAttachShader(ProgramID, fs));
+            LOG_GL_ERRORV(glLinkProgram(ProgramID));
 
-        GLint Result = GL_FALSE;
-        int InfoLogLength;
+            GLint Result = GL_FALSE;
+            int InfoLogLength;
 
-        LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result));
-        LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength));
-        if (!Result) {
-            logger_opengl.error("ShaderProgram::CreateProgram failed.");
-            if (InfoLogLength > 0) {
-                std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
-                glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-                wxString l = &ProgramErrorMessage[0];
-                l.Trim();
-                if (l.length() > 0) {
-                    printf("Program Log: %s\n", &ProgramErrorMessage[0]);
-                    logger_opengl.error(std::string(&ProgramErrorMessage[0]));
+            LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result));
+            LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength));
+            if (!Result) {
+                logger_opengl.error("ShaderProgram::CreateProgram failed.");
+                if (InfoLogLength > 0) {
+                    std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
+                    glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+                    wxString l = &ProgramErrorMessage[0];
+                    l.Trim();
+                    if (l.length() > 0) {
+                        printf("Program Log: %s\n", &ProgramErrorMessage[0]);
+                        logger_opengl.error(std::string(&ProgramErrorMessage[0]));
+                    }
                 }
             }
+            LOG_GL_ERRORV(glDetachShader(ProgramID, vs));
+            LOG_GL_ERRORV(glDetachShader(ProgramID, fs));
         }
-        LOG_GL_ERRORV(glDetachShader(ProgramID, vs));
-        LOG_GL_ERRORV(glDetachShader(ProgramID, fs));
         return ProgramID;
     }
 

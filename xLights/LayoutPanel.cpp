@@ -4368,9 +4368,13 @@ bool LayoutPanel::IsAllSelectedModelsArePixelProtocol() const
 }
 
 void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
+
+    if (selectedBaseObject == nullptr)
+        return;
+
     int selectedObjectCnt = editing_models ? ModelsSelectedCount() : ViewObjectsSelectedCount();
 
-    if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked() && !selectedBaseObject->IsFromBase())
+    if (!selectedBaseObject->GetBaseObjectScreenLocation().IsLocked() && !selectedBaseObject->IsFromBase())
     {
         bool need_sep = false;
         if( editing_models ) {
@@ -4405,7 +4409,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
             menu.Append(ID_PREVIEW_ALIGN_GROUND, "Align With Ground");
         }
     }
-    if (editing_models && (selectedBaseObject != nullptr))
+    if (editing_models)
     {
         auto lm = menu.Append(ID_PREVIEW_MODEL_LOCK, "Lock");
         lm->Enable(!selectedBaseObject->IsLocked() && !selectedBaseObject->IsFromBase());

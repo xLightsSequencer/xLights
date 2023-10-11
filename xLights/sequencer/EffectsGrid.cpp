@@ -486,8 +486,8 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
                     mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORDS, "Breakdown Selected Words");
                 }
             }
+            mnuLayer.Append(ID_GRID_MNU_HALVETIMINGS, "Divide Timings")->Enable(!selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer());
             if (ri->layerIndex == 0) {
-                mnuLayer.Append(ID_GRID_MNU_HALVETIMINGS, "Divide Timings")->Enable(!selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer());
                 mnuLayer.Append(ID_GRID_MNU_AUTOLABEL, "Auto Label Timings");
             }
             mSelectedEffect = selectedEffect;
