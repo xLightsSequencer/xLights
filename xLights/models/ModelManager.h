@@ -51,7 +51,7 @@ class ModelManager : public ObjectManager
         bool IsModelShadowing(const Model* m) const;
         std::list<std::string> GetModelsShadowing(const Model* m) const;
         void AddModel(Model* m);
-        //void AddModel(wxXmlNode* m);
+        void ReplaceModel(const std::string &name, Model* nm);
         bool Delete(const std::string &name);
         std::string GenerateModelName(const std::string& candidateModelName) const;
         void ResetModelGroups() const;

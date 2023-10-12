@@ -263,7 +263,7 @@ bool BaseObject::IsXmlChanged(wxXmlNode* n) const
         bool found = false;
         for (wxXmlNode* cc = ModelXml->GetChildren(); cc != nullptr; cc = cc->GetNext())
         {
-            if (cc->GetName() == nn->GetName() && (!nn->HasAttribute("Name") || (cc->GetAttribute("Name") == nn->GetAttribute("Name"))))
+            if (cc->GetName() == nn->GetName() && (!nn->HasAttribute("name") || (cc->GetAttribute("name") == nn->GetAttribute("name"))))
             {
                 found = true;
                 for (wxXmlAttribute* a = cc->GetAttributes(); a != nullptr; a = a->GetNext()) {
