@@ -3815,8 +3815,10 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     if (config->Read("FPPConnectForcedIPs", &force)) {
         wxArrayString ips = wxSplit(force, '|');
         for (const auto& a : ips) {
-            startAddresses.push_back(ToUTF8(a));
-            startAddressesForced.push_back(ToUTF8(a));
+            if (!a.empty()) {
+                startAddresses.push_back(ToUTF8(a));
+                startAddressesForced.push_back(ToUTF8(a));
+            }
         }
     }
     // add existing controller IP's to the discovery, helps speed up
@@ -3829,7 +3831,11 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     for (auto& it : outputManager->GetControllers()) {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
         if (eth != nullptr && eth->GetIP() != "" && eth->GetIP() != "MULTICAST") {
-            startAddresses.push_back(::Lower(eth->GetResolvedIP()));
+            if (eth->GetResolvedIP() == "") {
+                startAddresses.push_back(::Lower(eth->GetIP()));
+            } else {
+                startAddresses.push_back(::Lower(eth->GetResolvedIP()));
+            }
             if (eth->GetFPPProxy() != "") {
                 startAddresses.push_back(::Lower(ip_utils::ResolveIP(eth->GetFPPProxy())));
             }
