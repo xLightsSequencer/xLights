@@ -324,6 +324,8 @@ class LayoutPanel: public wxPanel
 
         void OnListCharHook(wxKeyEvent& event);
         ModelGroup* GetSelectedModelGroup() const;
+    
+        int calculateNodeCountOfSelected();
 
     protected:
         void FreezeTreeListView();
