@@ -6750,6 +6750,7 @@ void LayoutPanel::ReplaceModel()
         }
 
         if (wxMessageBox("Use original size and position", "Use original size and position", wxYES_NO) == wxYES) {
+            modelToReplaceItWith->GetModelScreenLocation().SetRotation(replaceModel->GetModelScreenLocation().GetRotation());
             modelToReplaceItWith->SetHcenterPos(replaceModel->GetHcenterPos());
             modelToReplaceItWith->SetVcenterPos(replaceModel->GetVcenterPos());
             modelToReplaceItWith->SetDcenterPos(replaceModel->GetDcenterPos());       
