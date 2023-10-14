@@ -73,6 +73,19 @@ void xLightsFrame::SetStatusText(const wxString& msg, int filename)
     }
 }
 
+void xLightsFrame::UpdateNodeText(int nodecount)
+{
+    if( nodecount > 0) {
+        NodeCountText->SetLabel(wxString::Format("Node Count: %d", nodecount));
+    } else {
+        //Extra padding to reduce status bar thrash
+        NodeCountText->SetLabel("");
+    }
+    NodeCountText->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+    NodeCountText->Refresh(); // Draw now so even when we are in CPU bound loops status updates
+    NodeCountText->GetParent()->Layout();
+}
+
 void xLightsFrame::SetStatusTextColor(const wxString& msg, const wxColor& color)
 {
     if (_renderMode || _checkSequenceMode) {
