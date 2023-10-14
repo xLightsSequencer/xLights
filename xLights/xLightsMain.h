@@ -355,7 +355,6 @@ public:
     void MarkModelsAsNeedingRender();
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int filename = 0) override;
-    void UpdateNodeText(int nodecount = 0);
     void SetStatusTextColor(const wxString &msg, const wxColor& colour);
 	std::string GetChannelToControllerMapping(int32_t channel);
     void GetControllerDetailsForChannel(int32_t channel, std::string& controllername, std::string& type, std::string& protocol, std::string& description, int32_t& channeloffset, std::string &ip, std::string& u, std::string& inactive, std::string& baud, int& start_universe, int& start_universe_channel);
@@ -724,7 +723,6 @@ public:
     static const long ID_GAUGE1;
     static const long ID_PANEL5;
     static const long ID_STATICTEXT7;
-    static const long ID_STATICTEXT8;
     static const long ID_PANEL1;
     static const long ID_NEW_SEQUENCE;
     static const long ID_OPEN_SEQUENCE;
@@ -1005,7 +1003,6 @@ public:
     wxSplitterWindow* SplitterWindowControllers;
     wxStaticBoxSizer* StaticBoxSizer1;
     wxStaticText* FileNameText;
-    wxStaticText* NodeCountText;
     wxStaticText* ShowDirectoryLabel;
     wxStaticText* StaticTextDummy;
     wxStaticText* StaticText_BaseShowDir;

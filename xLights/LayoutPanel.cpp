@@ -8494,22 +8494,18 @@ void LayoutPanel::HandleSelectionChanged() {
         int gSize = selectedTreeGroups.size();
         int smSize = selectedTreeSubModels.size();
         int totalSelections = mSize + smSize + gSize;
-        int totalNodesOfSelections = calculateNodeCountOfSelected();
-        
+
         std::string tooltip = "";
 
-        //Update node count label
-        xlights->UpdateNodeText(totalNodesOfSelections);
-        
         if (totalSelections > 1) {
             showBackgroundProperties();
-            tooltip = wxString::Format("Selected Items:\n -Groups: %d\n -Models: %d\n -SubModels: %d\n\nTotal Nodes: %d", gSize, mSize, smSize, totalNodesOfSelections);
+            tooltip = wxString::Format("Selected Items:\n -Groups: %d\n -Models: %d\n -SubModels: %d\n\nTotal Nodes: %d", gSize, mSize, smSize, calculateNodeCountOfSelected());
         } else if (gSize == 1) {
             Model* model = GetModelFromTreeItem(selectedTreeGroups[0]);
             if (model->IsFromBase()) {
                 tooltip = "From Base Show Folder";
             } else {
-                tooltip = wxString::Format("Total Nodes in Group: %d", totalNodesOfSelections);
+                tooltip = wxString::Format("Total Nodes in Group: %d", calculateNodeCountOfSelected());
             }
             ShowPropGrid(false);
             model_grp_panel->UpdatePanel(TreeListViewModels->GetItemText(selectedTreeGroups[0]));
@@ -8556,9 +8552,7 @@ void LayoutPanel::HandleSelectionChanged() {
         UnSelectAllModels(true);
         showBackgroundProperties();
         SetToolTipForTreeList(TreeListViewModels, "");
-        xlights->UpdateNodeText();
         xlights->SetStatusText("");
-        
     }
 }
 
