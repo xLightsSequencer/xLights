@@ -666,6 +666,32 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
             }
         }
     }
+
+    // we also need to load eseq files which may not have the same name as an xsq file
+    files.clear();
+    GetAllFilesInDir(dir, files, "*.eseq");
+    for (auto& filename : files) {
+        wxFileName fn(filename);
+        wxString file = fn.GetFullName();
+
+        logger_base.debug("ESEQ:  %s", (const char*)file.c_str());
+
+        // The eseq may already be in the list
+        bool found = false;
+        for (auto item = CheckListBox_Sequences->GetFirstItem(); !found && item.IsOk(); item = CheckListBox_Sequences->GetNextItem(item)) {
+            if (filename == CheckListBox_Sequences->GetItemText(item)) {
+                found = true;
+            }
+        }
+
+        if (!found) {
+            wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(),
+                                                                        filename);
+
+            DisplayDateModified(filename, item);
+        }
+    }
+
     if (ChoiceFilter->GetSelection() == 0) {
         wxString file;
         bool fcont = directory.GetFirst(&file, wxEmptyString, wxDIR_DIRS);
