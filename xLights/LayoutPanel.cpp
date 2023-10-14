@@ -8909,8 +8909,6 @@ bool LayoutPanel::IsNewModel(Model* m) const
 //Calculate the total node count of selected items in the panel. Handles calculations of models, submodels and groups
 int LayoutPanel::calculateNodeCountOfSelected()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("enter calculateNodeCount.......");
     int totalNodeCount = 0;
     std::vector<Model*> modelsProcessed;
     //We can break the selected groups into their components for processing. GetSelectedModelsForEdit already does this, even though we aren't editing. We can reuse that logic. This gives us all models, so I want to split this back up into models and submodels
@@ -8937,38 +8935,28 @@ int LayoutPanel::calculateNodeCountOfSelected()
     
     //Process the core models first. Save their pointer addresses for use in submodel and group processing
     for (const auto& model : selectedModels) {
-        logger_base.debug("calaculating selected models node counts");
         //If any of this models submodels are already counted, we shouldn't count the nodes from that submodel twice
         if (model != nullptr) {
-            if(std::find(modelsProcessed.begin(), modelsProcessed.end(), model) != modelsProcessed.end()){
-                logger_base.debug("already processed this model, meaning this model has already been counted......skip");
-            } else {
+            if(std::find(modelsProcessed.begin(), modelsProcessed.end(), model) == modelsProcessed.end()){
                 totalNodeCount += model->GetNodeCount();
-                logger_base.debug("Adding %d to total node count from %s. Total: %d", model->GetNodeCount(), model->name.c_str(), totalNodeCount);
                 modelsProcessed.push_back(model);
             }
         }
     }
     // Now process submodels. Submodels might already be counted from the above parent models, so dont process a submodel if it's parent is already processed and accounted for.
     for (const auto& subModel : selectedSubModels) {
-        logger_base.debug("calculating selected submodel node counts");
         Model* parent_info = dynamic_cast<SubModel*>(subModel)->GetParent();
-        
-        logger_base.debug("current submodel: %s parent: %s parent pointer: %p", subModel->GetName().c_str(), parent_info->GetFullName().c_str(), parent_info);
         if (subModel != nullptr) {
             //if this submodel is already in the count, dont do it
-            if(std::find(modelsProcessed.begin(), modelsProcessed.end(), parent_info) != modelsProcessed.end()) {
-                logger_base.debug("already processed the parent, meaning this submodel count already counted......skip");
-            } else if( std::find(modelsProcessed.begin(), modelsProcessed.end(), subModel) != modelsProcessed.end() ) {
-                logger_base.debug("already processed this submodel itself, meaning this submodel has already been counted......skip");
-            } else {
+            if(std::find(modelsProcessed.begin(), modelsProcessed.end(), parent_info) == modelsProcessed.end()
+               && std::find(modelsProcessed.begin(), modelsProcessed.end(), subModel) == modelsProcessed.end()
+               )
+            {
                 totalNodeCount += subModel->GetNodeCount();
                 modelsProcessed.push_back(subModel);
-                logger_base.debug("Adding %d to total node count from %s. Total: %d", subModel->GetNodeCount(), subModel->name.c_str(), totalNodeCount);
             }
         }
     }
     
-    logger_base.debug("exit calculateNodeCount.......Total Nodes: %d\n", totalNodeCount);
     return totalNodeCount;
 }
