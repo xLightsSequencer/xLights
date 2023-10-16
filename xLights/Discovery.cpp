@@ -343,7 +343,7 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
 
     logger_curl.info("Discovery Adding CURL - URL: %s    Method: GET", furl.c_str());
 
-    CurlManager::INSTANCE.addCURL(furl, curl, [this, data, url, furl, host, callback](CURL* c) {
+    CurlManager::INSTANCE.addCURL(furl, curl, [this, url, furl, host, callback](CURL* c) {
         if (finished) {
             return;
         }
@@ -586,7 +586,7 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
             cd->platform = "Falcon";
             int stringCount = falc.NumConfiguredStrings();
             auto variants = ControllerCaps::GetVariants(CONTROLLER_ETHERNET, "Falcon", model);
-            for (auto a : variants) {
+            for (auto const& a : variants) {
                 ControllerCaps *caps = ControllerCaps::GetControllerConfig("Falcon", model, a);
                 if (caps && stringCount <= caps->GetMaxPixelPort()) {
                     cd->SetVariant(a);

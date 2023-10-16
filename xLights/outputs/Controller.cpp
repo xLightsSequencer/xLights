@@ -899,7 +899,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
     wxPropertyGrid *propertyGrid  = (wxPropertyGrid*)event.GetEventObject();
 
     if (name == "ControllerName") {
-        auto cn = event.GetValue().GetString().Trim(true).Trim(false);
+        auto const& cn = event.GetValue().GetString().Trim(true).Trim(false);
         if (_outputManager->GetController(cn) != nullptr || cn == "" || cn == NO_CONTROLLER) {
             DisplayError("Controller name '" + cn + "' blank or already used. Controller names must be unique and non blank.");
             outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::ControllerName");
@@ -1037,7 +1037,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
 void Controller::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const {
 
     auto p = propGrid->GetPropertyByName("ControllerId");
-    auto const name = GetName();
+    auto const& name = GetName();
 
     if (p != nullptr) {
         // Id should be unique
