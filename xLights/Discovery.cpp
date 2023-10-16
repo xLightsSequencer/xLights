@@ -18,8 +18,6 @@
 #include <arpa/inet.h>
 #endif
 
-#include <log4cpp/Category.hh>
-
 #include "Discovery.h"
 #include "UtilFunctions.h"
 
@@ -29,6 +27,8 @@
 #include "controllers/SanDevices.h"
 #include "controllers/Falcon.h"
 #endif
+
+#include <log4cpp/Category.hh>
 
 #include "utils/CurlManager.h"
 
