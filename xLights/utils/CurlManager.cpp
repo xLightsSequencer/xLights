@@ -6,6 +6,8 @@
 #include <thread>
 #include <vector>
 
+#include <log4cpp/Category.hh>
+
 #include "CurlManager.h"
 
 
@@ -13,6 +15,7 @@
 #include <wx/app.h>
 #include "../xLightsVersion.h"
 #include "string_utils.h"
+
 
 CurlManager CurlManager::INSTANCE;
 
@@ -140,6 +143,7 @@ void CurlManager::add(const std::string& furl, const std::string& method, const 
         curl_easy_getinfo(c, CURLINFO_PRIVATE, &data);
         curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &rc);
 
+        static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
         logger_curl.info("    CURL Callback - URL: %s    Response Code: %d", furl.c_str(), rc);
 
         char* urlp = nullptr;

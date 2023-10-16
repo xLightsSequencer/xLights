@@ -1298,7 +1298,11 @@ bool FPP::FinalizeUploadSequence() {
         }
         outputFile = nullptr;
         if (tempFileName != "" && (fppType == FPP_TYPE::FPP || fppType == FPP_TYPE::ESPIXELSTICK)) {
-            cancelled = uploadOrCopyFile(baseSeqName, tempFileName, "sequences");
+            std::string directory = "sequences";
+            if (EndsWith(baseSeqName, ".eseq")) {
+                directory = "effects";
+            }
+            cancelled = uploadOrCopyFile(baseSeqName, tempFileName, directory);
             if (!outputFileIsOriginal) {
                 ::wxRemoveFile(tempFileName);
             }
