@@ -18,6 +18,8 @@
 #include <arpa/inet.h>
 #endif
 
+#include <log4cpp/Category.hh>
+
 #include "Discovery.h"
 #include "UtilFunctions.h"
 
