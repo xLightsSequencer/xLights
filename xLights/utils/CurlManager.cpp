@@ -107,6 +107,9 @@ CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd,
 void CurlManager::add(const std::string& furl, const std::string& method, const std::string& data,
                       const std::list<std::string>& extraHeaders,
                       std::function<void(int rc, const std::string& resp)>&& callback) {
+    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
+    logger_curl.info("Adding CURL - URL: %s    Method: %s", furl.c_str(), method.c_str());
+    
     CURL* curl = createCurl(furl);
 
     if (method == "POST") {
@@ -131,11 +134,13 @@ void CurlManager::add(const std::string& furl, const std::string& method, const 
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     }
 
-    addCURL(furl, curl, [callback, headers](CURL* c) {
+    addCURL(furl, curl, [furl, callback, headers](CURL* c) {
         CurlPrivateData* data = nullptr;
         long rc = 0;
         curl_easy_getinfo(c, CURLINFO_PRIVATE, &data);
         curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &rc);
+
+        logger_curl.info("    CURL Callback - URL: %s    Response Code: %d", furl.c_str(), rc);
 
         char* urlp = nullptr;
         curl_easy_getinfo(c, CURLINFO_EFFECTIVE_URL, &urlp);
@@ -158,8 +163,11 @@ void CurlManager::addPut(const std::string& url, const std::string& data, const 
 }
 
 std::string CurlManager::doGet(const std::string& furl, int& rc) {
+    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
     CURL* curl = createCurl(furl);
 
+    logger_curl.info("Adding Synchronous CURL - URL: %s    Method: GET", furl.c_str());
+    
     bool done = false;
     addCURL(
         furl, curl, [&done](CURL* c) { done = true; }, false);
@@ -178,6 +186,7 @@ std::string CurlManager::doGet(const std::string& furl, int& rc) {
     } else {
         resp = data->errorResp;
     }
+    logger_curl.info("    CURL Synchronous Response - URL: %s    Response Code: %d     Size: %d", furl.c_str(), rc, rc ? data->resp.size() : 0);
     delete data;
     curl_easy_cleanup(curl);
 
@@ -202,6 +211,9 @@ static size_t read_callback(void* ptr, size_t size, size_t nmemb, void* userp) {
     return numb;
 }
 std::string CurlManager::doPost(const std::string& furl, const std::string& contentType, const std::vector<uint8_t>& data, int& rc) {
+    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
+    logger_curl.info("Adding Synchronous CURL - URL: %s    Method: POST", furl.c_str());
+
     CURL* curl = createCurl(furl);
 
     struct curl_slist* head = nullptr;
@@ -239,12 +251,17 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
     } else {
         resp = cdata->errorResp;
     }
+    logger_curl.info("    CURL Synchronous Response - URL: %s    Response Code: %d     Size: %d", furl.c_str(), rc, rc ? cdata->resp.size() : 0);
     delete cdata;
     curl_slist_free_all(head);
     curl_easy_cleanup(curl);
+    
+
     return resp;
 }
 std::string CurlManager::doPut(const std::string& furl, const std::string& contentType, const std::vector<uint8_t>& data, int& rc) {
+    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
+    logger_curl.info("Adding Synchronous CURL - URL: %s    Method: PUT", furl.c_str());
     CURL* curl = createCurl(furl);
 
     struct curl_slist* head = nullptr;
@@ -281,6 +298,7 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
     } else {
         resp = cdata->errorResp;
     }
+    logger_curl.info("    CURL Synchronous Response - URL: %s    Response Code: %d     Size: %d", furl.c_str(), rc, rc ? cdata->resp.size() : 0);
     delete cdata;
     curl_slist_free_all(head);
     curl_easy_cleanup(curl);

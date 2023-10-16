@@ -1001,10 +1001,8 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                             //Read a bunch of frames so each parallel thread has more info to work with before returning out here
                             while (lastBuffered < FRAMES_TO_BUFFER && frame < seq->getNumFrames()) {
                                 FSEQFile::FrameData *f = seq->getFrame(frame);
-                                if (f != nullptr)
-                                {
-                                    if (!f->readFrame(&frames[lastBuffered][0], frames[lastBuffered].size()))
-                                    {
+                                if (f != nullptr) {
+                                    if (!f->readFrame(&frames[lastBuffered][0], frames[lastBuffered].size())) {
                                         logger_base.error("FPPConnect FSEQ file corrupt.");
                                     }
                                     delete f;
