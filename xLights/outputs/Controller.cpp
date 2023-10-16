@@ -123,6 +123,7 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     _variant = node->GetAttribute("Variant");
 
     SetSuppressDuplicateFrames(node->GetAttribute("SuppressDuplicates", "0") == "1");
+    SetMonitoring(node->GetAttribute("Monitor", "1") == "1");
 
     _dirty = false;
     SearchForNewVendor(_vendor, _model, _variant);
@@ -151,6 +152,7 @@ Controller::Controller(OutputManager* om, const Controller& from) :
     _autoLayout = from._autoLayout;
     _autoUpload = from._autoUpload;
     _suppressDuplicateFrames = from._suppressDuplicateFrames;
+    _monitor = from._monitor;
     for (const auto& it : from._outputs) {
         _outputs.push_back(it->Copy());
     }
@@ -182,6 +184,7 @@ wxXmlNode* Controller::Save() {
     node->AddAttribute("AutoLayout", _autoLayout ? "1" : "0");
     node->AddAttribute("AutoUpload", _autoUpload && SupportsAutoUpload() ? "1" : "0");
     node->AddAttribute("SuppressDuplicates", _suppressDuplicateFrames ? "1" : "0");
+    node->AddAttribute("Monitor", _monitor ? "1" : "0");
     for (const auto& it : _outputs) {
         node->AddChild(it->Save());
     }
@@ -260,6 +263,10 @@ bool Controller::UpdateFrom(Controller* from)
     if (_suppressDuplicateFrames != from->_suppressDuplicateFrames) {
         changed = true;
         _suppressDuplicateFrames = from->_suppressDuplicateFrames;
+    }
+    if (_monitor != from->_monitor) {
+        changed = true;
+        _monitor = from->_monitor;
     }
 
     bool outputsSame = _outputs.size() == from->_outputs.size();
@@ -542,6 +549,13 @@ void Controller::SetSuppressDuplicateFrames(bool suppress) {
         std::for_each(begin(_outputs), end(_outputs), [suppress](Output* o) { o->SetSuppressDuplicateFrames(suppress); });
     }
 }
+void Controller::SetMonitoring(bool monitor) {
+
+    if (_monitor != monitor) {
+        _monitor = monitor;
+        _dirty = true;
+    }
+}
 
 void Controller::SetGlobalFPPProxy(const std::string& globalFPPProxy)
 {
@@ -769,7 +783,11 @@ void Controller::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* mo
         p->SetValue(IsSuppressDuplicateFrames());
         p->Hide(!SupportsSuppressDuplicateFrames());
     }
-    
+    p  = propertyGrid->GetProperty("Monitor");
+    if (p) {
+        p->SetValue(IsMonitoring());
+    }
+
     p  = propertyGrid->GetProperty("FullxLightsControl");
     if (p) {
         p->SetValue(IsFullxLightsControl());
@@ -866,6 +884,10 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
     p = propertyGrid->Append(new wxEnumProperty("Active", "Active", ACTIVETYPENAMES, wxArrayInt(), (int)_active));
     p->SetHelpString("When inactive no data is output and any upload to FPP or xSchedule will also not output to the lights. When xLights only it will output when played in xLights but again FPP and xSchedule will not output to the lights.");
 
+    p = propertyGrid->Append(new wxBoolProperty("Monitor", "Monitor", IsMonitoring()));
+    p->SetEditor("CheckBox");
+    p->SetHelpString("When selected, the show player will monitor the connectivity to the controller via ping packets or other network traffic to make sure the controller is up and running.  Disabling can reduce network traffic as well as reduce load on the controller.");
+    
     p = propertyGrid->Append(new wxBoolProperty("Suppress Duplicate Frames", "SuppressDuplicates", IsSuppressDuplicateFrames()));
     p->SetEditor("CheckBox");
     p->SetHelpString("When selected if a data packet is the same in a subsequent frame then xLights will not send the duplicate frame trusting that the controller will just reuse the previously sent data. This can reduce unnecessary network traffic.");
@@ -918,6 +940,10 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
     } else if (name == "SuppressDuplicates") {
         SetSuppressDuplicateFrames(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::SuppressDuplicates");
+        return true;
+    } else if (name == "Monitor") {
+        SetMonitoring(event.GetValue().GetBool());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Monitor");
         return true;
     } else if (name == "AutoSize") {
         SetAutoSize(event.GetValue().GetBool(), outputModelManager);

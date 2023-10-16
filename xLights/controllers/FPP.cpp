@@ -47,6 +47,7 @@
 #include "../outputs/Output.h"
 #include "../outputs/E131Output.h"
 #include "../outputs/DDPOutput.h"
+#include "../outputs/ArtNetOutput.h"
 #include "../outputs/KinetOutput.h"
 #include "../outputs/TwinklyOutput.h"
 #include "../outputs/ControllerEthernet.h"
@@ -1858,8 +1859,10 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
             universe["id"] = it->GetUniverse();
             universe["startChannel"] = c;
             universe["channelCount"] = it->GetChannels();
-            universe["priority"] = 0;
             universe["address"] = wxString("");
+            universe["priority"] = 0;
+            universe["deDuplicate"] = eth->IsSuppressDuplicateFrames() ? 1 : 0;
+            universe["monitor"] = eth->IsMonitoring() ? 1 : 0;
 
             if (rngs && it->GetChannels() > 0 && controllerEnabled == Controller::ACTIVESTATE::ACTIVE) {
                 (*rngs)[c] = c + it->GetChannels() - 1;
@@ -1870,6 +1873,9 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
                 if (!input && (it->GetIP() != "MULTICAST")) {
                     universe["address"] = wxString(it->GetIP());
                 }
+                if (it->GetIP() == "MULTICAST") {
+                    universe["monitor"] = 0;
+                }
 
                 // TODO this needs work to restore the loading of multiple universes as a single line
                 if (allSameSize) {
@@ -1878,6 +1884,9 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
                     break;
                 }
                 universe["universeCount"] = 1;
+                E131Output* e131 = dynamic_cast<E131Output*>(it);
+                universe["priority"] = e131->GetPriority();
+
                 universes.Append(universe);
             } else if (it->GetType() == OUTPUT_DDP || it->GetType() == OUTPUT_ZCPP) {
                 if (!input) {
@@ -1898,11 +1907,15 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
                 if (!input && (it->GetIP() != "MULTICAST")) {
                     universe["address"] = wxString(it->GetIP());
                 }
+                if (it->GetIP() == "MULTICAST") {
+                    universe["monitor"] = 0;
+                }
                 if (allSameSize) {
                     universe["universeCount"] = it2->GetOutputCount();
                     universes.Append(universe);
                     break;
                 }
+                //ArtNetOutput* ano = dynamic_cast<ArtNetOutput*>(it);
                 universe["universeCount"] = 1;
                 universes.Append(universe);
             } else if (it->GetType() == OUTPUT_KINET) {
