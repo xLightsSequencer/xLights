@@ -11,6 +11,26 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.17 Oct 16, 2023
+   -- enh (dkulp) Add monitor attribute for controllers, FPP upload of co-universes will set priority/monitoring/deDup settings
+   -- enh (Kyle Grymonprez) Add Node Count to model tooltips
+   -- enh (keith) FPPConnect also show eseq files in subdirectories
+   -- enh (dartunder) Change the default color for locked selected effects to increase contrast
+   -- enh (keith) Add optional arrow to gridlines that points to the front
+   -- enh (Edward Catchpole) Show friendly names for known devices in the Import From Controller dialog
+   -- bug (dkulp) Add a bunch of logging to FPPConnect HTTP messages
+   -- bug (dkulp) Importing/loading some old sequences may cause crashes as FadeIn/Out used to allow spaces
+   -- bug (dartunder) Set the rotation to match the orignal when replacing a model
+   -- bug (keith) Fix total channels returns zero if fpp or other non channel controller is last in the list
+   -- bug (dkulp) FPPConnect - tried to examine empty IP address/host names
+   -- bug (dkulp) If model from base directory is updated, it is removed from all groups
+   -- bug (dkulp) If model from base directory's start channel doesn't match, don't mark "changed" if it will be auto-calculated
+   -- bug (keith) Add back in divide timings for layers 1+ on timing tracks
+   -- bug (scott) HinksPix - ac receivers have inconsistent channel counts, just use 3 channels per pixel
+   -- bug (Edward Catchpole) Fix inactive twinkly controllers blocking UI
+   -- bug (Daniel Hacquebord) FPPConnect - Don't resolve bad.address to 255.255.255.255
+   -- bug (Daniel Hacquebord) FPPConnect - eliminate duplcate FPP entries for FPP connect
+   -- bug (dkulp) FPPConnect - uploads eseq files to sequences directory
 2023.16 Oct 9, 2023
    -- enh (keith) Pre-poulate effect preset rename field with current name
    -- enh (dartunder) Save/restore test mode tab selection
