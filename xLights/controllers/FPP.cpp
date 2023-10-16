@@ -1881,6 +1881,9 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
                     universe["monitor"] = 0;
                 }
 
+                E131Output* e131 = dynamic_cast<E131Output*>(it);
+                universe["priority"] = e131->GetPriority();
+
                 // TODO this needs work to restore the loading of multiple universes as a single line
                 if (allSameSize) {
                     universe["universeCount"] = it2->GetOutputCount();
@@ -1888,8 +1891,6 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
                     break;
                 }
                 universe["universeCount"] = 1;
-                E131Output* e131 = dynamic_cast<E131Output*>(it);
-                universe["priority"] = e131->GetPriority();
 
                 universes.Append(universe);
             } else if (it->GetType() == OUTPUT_DDP || it->GetType() == OUTPUT_ZCPP) {
