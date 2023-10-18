@@ -852,17 +852,19 @@ int progress_callback(void *clientp,
 void prepareCurlForMulti(V7ProgressStruct *ps) {
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
     
-    constexpr uint64_t BLOCK_SIZE = 64*1024*1024;
+    constexpr uint64_t BLOCK_SIZE = 16*1024*1024;
     CurlManager::CurlPrivateData *cpd = nullptr;
     CURL *curl = CurlManager::INSTANCE.createCurl(ps->fullUrl, &cpd, true);
 
-    //if we cannot upload it in 5 minutes, we have serious issues
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*5*60);
+    //if we cannot upload a single chunk in 3 minutes, we have serious issues
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000*3*60);
 
     struct curl_slist *headers = nullptr;
-    headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
+    headers = curl_slist_append(headers, "Content-Type: application/offset+octet-stream");
     headers = curl_slist_append(headers, "X-Requested-With: FPPConnect");
-
+    headers = curl_slist_append(headers, "Expect:");
+    headers = curl_slist_append(headers, "Connection: keep-alive");
+    
     std::string offsetHeader = "Upload-Offset: " + std::to_string(ps->offset);
     headers = curl_slist_append(headers, offsetHeader.c_str());
     headers = curl_slist_append(headers, ps->fileSizeHeader.c_str());
