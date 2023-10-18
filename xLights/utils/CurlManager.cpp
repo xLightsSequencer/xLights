@@ -125,14 +125,19 @@ void CurlManager::add(const std::string& furl, const std::string& method, const 
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
     }
 
-    if ((method == "POST") || (method == "PUT")) {
-        curl_easy_setopt(curl, CURLOPT_COPYPOSTFIELDS, data.c_str());
-    }
-
     struct curl_slist* headers = NULL;
     for (auto& h : extraHeaders) {
         headers = curl_slist_append(headers, h.c_str());
     }
+
+    if ((method == "POST") || (method == "PUT")) {
+        curl_easy_setopt(curl, CURLOPT_COPYPOSTFIELDS, data.c_str());
+        // turn off the Expect continue thing
+        headers = curl_slist_append(headers, "Expect:");
+    } else if (method == "PATCH") {
+        headers = curl_slist_append(headers, "Expect:");
+    }
+
     if (headers) {
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     }
@@ -173,8 +178,7 @@ std::string CurlManager::doGet(const std::string& furl, int& rc) {
     logger_curl.info("Adding Synchronous CURL - URL: %s    Method: GET", furl.c_str());
     
     bool done = false;
-    addCURL(
-        furl, curl, [&done](CURL* c) { done = true; }, false);
+    addCURL(furl, curl, [&done](CURL* c) { done = true; }, false);
     while (!done && processCurls()) {
         wxYieldIfNeeded();
     }
@@ -225,6 +229,7 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
     head = curl_slist_append(head, ct.c_str());
     std::string cl = "Content-Length: " + std::to_string(data.size());
     head = curl_slist_append(head, cl.c_str());
+    head = curl_slist_append(head, "Expect:");
 
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, head);
@@ -238,8 +243,7 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)data.size());
 
     bool done = false;
-    addCURL(
-        furl, curl, [&done](CURL* c) { done = true; }, false);
+    addCURL(furl, curl, [&done](CURL* c) { done = true; }, false);
     while (!done && processCurls()) {
         wxYieldIfNeeded();
     }
@@ -273,6 +277,7 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
     head = curl_slist_append(head, ct.c_str());
     std::string cl = "Content-Length: " + std::to_string(data.size());
     head = curl_slist_append(head, cl.c_str());
+    head = curl_slist_append(head, "Expect:");
 
     curl_easy_setopt(curl, CURLOPT_PUT, 1L);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, head);
@@ -285,8 +290,7 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)data.size());
 
-    addCURL(
-        furl, curl, [](CURL* c) {}, false);
+    addCURL(furl, curl, [](CURL* c) {}, false);
     while (processCurls()) {
         wxYieldIfNeeded();
     }
