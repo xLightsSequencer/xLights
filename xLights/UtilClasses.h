@@ -34,8 +34,7 @@ public:
     }
     int GetInt(const std::string &key, const int def = 0) const {
         std::map<std::string,std::string>::const_iterator i(find(key));
-        size_t l = i->second.length();
-        if (i == end() || l == 0 || i->second.at(0) == ' ') {
+        if (i == end() || i->second.length() == 0 || i->second.at(0) == ' ') {
             return def;
         }
         try {
@@ -47,8 +46,7 @@ public:
     float GetFloat(const std::string& key, const float def = 0.0) const
     {
         std::map<std::string, std::string>::const_iterator i(find(key));
-        size_t l = i->second.length();
-        if (i == end() || l == 0 || i->second.at(0) == ' ') {
+        if (i == end() || i->second.length() == 0 || i->second.at(0) == ' ') {
             return def;
         }
         try {
@@ -61,8 +59,7 @@ public:
     double GetDouble(const std::string& key, const double def = 0.0) const
     {
         std::map<std::string, std::string>::const_iterator i(find(key));
-        size_t l = i->second.length();
-        if (i == end() || l == 0 || i->second.at(0) == ' ') {
+        if (i == end() || i->second.length() == 0 || i->second.at(0) == ' ') {
             return def;
         }
         try {
