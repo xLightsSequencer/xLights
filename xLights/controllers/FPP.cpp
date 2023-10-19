@@ -3871,6 +3871,10 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     startAddresses.sort();
     startAddresses.unique();
 
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::string ip_cache_dump = "Resolved IP Cache: " + ip_utils::DumpResolvedIPMap();
+    logger_base.debug(ip_cache_dump.c_str());
+
     Discovery discovery(frame, outputManager);
     FPP::PrepareDiscovery(discovery, startAddresses);
     discovery.Discover();

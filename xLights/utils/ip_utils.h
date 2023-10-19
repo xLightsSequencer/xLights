@@ -20,4 +20,5 @@ namespace ip_utils
 	std::string CleanupIP(const std::string& ip);
 	std::string ResolveIP(const std::string& ip);
 
+	std::string DumpResolvedIPMap(void);
 };

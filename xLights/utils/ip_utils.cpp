@@ -22,6 +22,15 @@ namespace ip_utils
 {
     static std::map<std::string, std::string> __resolvedIPMap;
 
+    std::string DumpResolvedIPMap(void)
+    {
+        std::string dump = "";
+        for (auto a : __resolvedIPMap) {
+            dump += a.first + "=>" + a.second + ";";
+        }
+        return dump;
+    }
+
 	bool IsIPValid(const std::string& ip)
     {
         wxString ips = wxString(ip).Trim(false).Trim(true);
