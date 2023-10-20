@@ -1024,6 +1024,12 @@ void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, in
     ssModel->Reset(1, pbc, strand, node);
     model = ssModel;
     reset(2, timing, true);
+
+    for (int x = 0; x < layers.size(); ++x) {
+        if (layers[x] != nullptr) {
+            layers[x]->buffer.SetChannelWithinModel(layers[x]->buffer.Nodes[0]->ActChan - pbc.GetFirstChannel());
+        }
+    }
 }
 
 void PixelBufferClass::Clear(int which)

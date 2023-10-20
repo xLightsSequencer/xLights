@@ -467,6 +467,14 @@ public:
     void SetFrameTimeInMs(int i);
     long GetStartTimeMS() const { return curEffStartPer * frameTimeInMs; }
     long GetEndTimeMS() const { return curEffEndPer * frameTimeInMs; }
+    void SetChannelWithinModel(int c)
+    {
+        _channelWithinModel = c;
+    }
+    int GetChannelWithinModel() const
+    {
+        return _channelWithinModel;
+    }
 
     const xlColor &GetPixel(int x, int y) const;
     void GetPixel(int x, int y, xlColor &color) const;
@@ -562,6 +570,7 @@ public:
     int curEffStartPer = 0;    /**< Start period of current effect. */
     int curEffEndPer = 0;      /**<  */
     int frameTimeInMs = 50;
+    int _channelWithinModel = 0;
     bool isTransformed = false;
 
     int fadeinsteps = 0;

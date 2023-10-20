@@ -19,6 +19,9 @@
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
 #include "../Parallel.h"
+#include "../models/Model.h"
+#include "../models/DMX/DmxPanTiltAbility.h"
+
 #include <log4cpp/Category.hh>
 
 static const std::string TEXTCTRL_Eff_On_Start("TEXTCTRL_Eff_On_Start");
@@ -188,6 +191,10 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
     bool shimmer = SettingsMap.GetInt(CHECKBOX_On_Shimmer, 0) > 0;
     float cycles = SettingsMap.GetDouble(TEXTCTRL_On_Cycles, 1.0);
     
+    // I would love to detect that this is on a tilt node and enforce the min/max for that here but
+    // there does not seem to be any way to know what node we are rendering. We can work out we are on 
+    // a model that supports it though ... see the DMX effect for how.
+
     int cidx = 0;
     if (shimmer) {
         int tot = buffer.curPeriod - buffer.curEffStartPer;
@@ -222,11 +229,24 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
         color.alpha = 255 - transparency;
     }
 
+    int minTilt = 0;
+    int maxTilt = 255;
+    Model* model_info = buffer.GetModel();
+    DmxPanTiltAbility* tilt = dynamic_cast<DmxPanTiltAbility*>(model_info);
+    if (tilt != nullptr) {
+        int tiltChannel = tilt->GetTiltChannel();
+
+        if (tiltChannel != 0 && tiltChannel == buffer.GetChannelWithinModel() + 1) {
+            minTilt = tilt->GetMinTilt();
+            maxTilt = tilt->GetMaxTilt();
+        }
+    }
+
     //Every Node set to selected color
     if (spatialcolour || buffer.dmx_buffer) {
 
         // doing x in parallel for large buffers
-        parallel_for(0, buffer.BufferWi, [&buffer, cidx, start, end, adjust, transparency, color](int x) {
+        parallel_for(0, buffer.BufferWi, [&buffer, cidx, start, end, adjust, transparency, color, minTilt, maxTilt](int x) {
             auto col = color;
             for (int y = 0; y < buffer.BufferHt; ++y) {
                 if (buffer.palette.IsRadial(cidx)) {
@@ -256,6 +276,22 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
                 if (transparency) {
                     col.alpha = 255 - transparency;
                 }
+
+                if (col.red < minTilt)
+                    col.red = minTilt;
+                if (col.green < minTilt)
+                    col.green = minTilt;
+                if (col.blue < minTilt)
+                    col.blue = minTilt;
+                if (col.red > maxTilt)
+                    col.red = maxTilt;
+                if (col.green > maxTilt)
+                    col.green = maxTilt;
+                if (col.blue > maxTilt)
+                    col.blue = maxTilt;
+                if (col.alpha < minTilt)
+                    col.alpha = minTilt;
+
                 buffer.SetPixel(x, y, col);
             }
         });

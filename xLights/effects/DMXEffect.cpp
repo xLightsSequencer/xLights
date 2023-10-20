@@ -15,6 +15,7 @@
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../models/ModelGroup.h"
+#include "../models/DMX/DmxPanTiltAbility.h"
 
 #include "../../include/dmx-16.xpm"
 #include "../../include/dmx-24.xpm"
@@ -280,11 +281,14 @@ void DMXEffect::adjustSettings(const std::string &version, Effect *effect, bool 
     }
 }
 
-bool DMXEffect::SetDMXSinglColorPixel(int chan, int num_channels, const SettingsMap &SettingsMap, double eff_pos, xlColor& color, RenderBuffer &buffer)
+bool DMXEffect::SetDMXSinglColorPixel(int chan, int num_channels, const SettingsMap &SettingsMap, double eff_pos, xlColor& color, RenderBuffer &buffer, int min, int max)
 {
     if( num_channels >= chan ) {
+
         std::string name = wxString::Format("DMX%d", chan).ToStdString();
         int value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+
+        value = std::max(min, std::min(value, max));
 
         if (SettingsMap.GetBool("CHECKBOX_INV" + name, false))
         {
@@ -373,6 +377,20 @@ void DMXEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
 
     const std::string& string_type = model_info->GetStringType();
 
+    DmxPanTiltAbility* tilt = dynamic_cast<DmxPanTiltAbility*>(model_info);
+
+    int tiltChannel = 0;
+    int minTilt = 0;
+    int maxTilt = 255;
+
+    if (tilt != nullptr) {
+        tiltChannel = tilt->GetTiltChannel();
+        if (tiltChannel != 0) {
+            minTilt = tilt->GetMinTilt();
+            maxTilt = tilt->GetMaxTilt();
+        }
+    }
+
     xlColor color = xlBLACK;
 
     if (StartsWith(string_type, "Single Color")) {
@@ -380,7 +398,16 @@ void DMXEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
         // handle channels for single color nodes
         for (uint32_t i = 1; i <= 40; ++i)
         {
-            if (SetDMXSinglColorPixel(i, num_channels, SettingsMap, eff_pos, color, buffer))
+            int min = 0;
+            int max = 255;
+
+            if (tiltChannel != 0 && i == tiltChannel)
+            {
+                min = minTilt;
+                max = maxTilt;
+            }
+
+            if (SetDMXSinglColorPixel(i, num_channels, SettingsMap, eff_pos, color, buffer, min, max))
                 return;
         }
    } else {
