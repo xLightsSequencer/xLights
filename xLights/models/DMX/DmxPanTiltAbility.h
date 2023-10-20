@@ -27,12 +27,12 @@ class DmxPanTiltAbility
         void AddPanTiltTypeProperties(wxPropertyGridInterface *grid);
         int OnPanTiltPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base);
 
-        int DmxPanTiltAbility::GetMinTilt() const
+        int GetMinTilt() const
         {
             return tilt_min;
         }
 
-        int DmxPanTiltAbility::GetMaxTilt() const
+        int GetMaxTilt() const
         {
             return tilt_max;
         }
