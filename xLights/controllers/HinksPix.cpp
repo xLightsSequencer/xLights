@@ -26,6 +26,13 @@
 
 #include <log4cpp/Category.hh>
 
+static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
+
+    if (data == nullptr) return 0;
+    data->append((char*)ptr, size * nmemb);
+    return size * nmemb;
+}
+
 #pragma region HinksPixOutput
 void HinksPixOutput::Dump() const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));

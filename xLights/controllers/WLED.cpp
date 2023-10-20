@@ -228,6 +228,13 @@ void WLED::UpdatePixelOutputs(bool& worked, int totalPixelCount, wxJSONValue& js
     jsonVal["hw"]["led"]["ins"] = newLEDS;
 }
 
+static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
+
+    if (data == nullptr) return 0;
+    data->append((char*)ptr, size * nmemb);
+    return size * nmemb;
+}
+
 bool WLED::PostJSON(wxJSONValue const& jsonVal) {
     wxString str;
     wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);

@@ -81,9 +81,12 @@ CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd,
     curl_easy_setopt(c, CURLOPT_CONNECTTIMEOUT_MS, 4000L);
     curl_easy_setopt(c, CURLOPT_TIMEOUT_MS, 12000L);
     curl_easy_setopt(c, CURLOPT_ACCEPT_ENCODING, "");
-    curl_easy_setopt(c, CURLOPT_NOSIGNAL, 1);
+    curl_easy_setopt(c, CURLOPT_NOSIGNAL, 1L);
     //curl_easy_setopt(c, CURLOPT_VERBOSE, 2L);
     curl_easy_setopt(c, CURLOPT_UPKEEP_INTERVAL_MS, 5000L);
+    if (hd->allowHTTP0_9) {
+        curl_easy_setopt(c, CURLOPT_HTTP09_ALLOWED, 1L);
+    }
 
     curl_easy_setopt(c, CURLOPT_WRITEFUNCTION, urlWriteData);
     CurlPrivateData* data = new CurlPrivateData();
@@ -267,6 +270,13 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
 
     return resp;
 }
+std::string CurlManager::doPost(const std::string& furl, const std::string& contentType, const std::string &data, int& rc) {
+    std::vector<uint8_t> vdata;
+    vdata.resize(data.size());
+    memcpy((void*)&vdata[0], (void*)data.c_str(), data.size());
+    return doPost(furl, contentType, vdata,  rc);
+}
+
 std::string CurlManager::doPut(const std::string& furl, const std::string& contentType, const std::vector<uint8_t>& data, int& rc) {
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
     logger_curl.info("Adding Synchronous CURL - URL: %s    Method: PUT", furl.c_str());
@@ -311,6 +321,12 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
     curl_slist_free_all(head);
     curl_easy_cleanup(curl);
     return resp;
+}
+std::string CurlManager::doPut(const std::string& furl, const std::string& contentType, const std::string &data, int& rc) {
+    std::vector<uint8_t> vdata;
+    vdata.resize(data.size());
+    memcpy((void*)&vdata[0], (void*)data.c_str(), data.size());
+    return doPut(furl, contentType, vdata,  rc);
 }
 
 bool CurlManager::doProcessCurls() {
@@ -369,6 +385,11 @@ void CurlManager::setHostUsernamePassword(const std::string& host, const std::st
     HostData* h = getHostData(host);
     h->username = username;
     h->password = password;
+}
+void CurlManager::setHostAllowHTTP_0_9(const std::string &host, bool v) {
+    std::unique_lock<std::mutex> l(lock);
+    HostData* h = getHostData(host);
+    h->allowHTTP0_9 = v;
 }
 
 std::string CurlManager::getHost(const std::string& url) {

@@ -44,8 +44,11 @@ public:
     std::string doGet(const std::string& furl, int& rc);
     std::string doPost(const std::string& furl, const std::string& contentType, const std::vector<uint8_t>& data, int& rc);
     std::string doPut(const std::string& furl, const std::string& contentType, const std::vector<uint8_t>& data, int& rc);
+    std::string doPost(const std::string& furl, const std::string& contentType, const std::string &data, int& rc);
+    std::string doPut(const std::string& furl, const std::string& contentType, const std::string &data, int& rc);
 
     void setHostUsernamePassword(const std::string& host, const std::string& username, const std::string password);
+    void setHostAllowHTTP_0_9(const std::string &host, bool v = true);
     bool processCurls() {
         if (numCurls) {
             return doProcessCurls();
@@ -83,6 +86,7 @@ private:
         std::string username;
         std::string password;
         int authStatus = 0;
+        bool allowHTTP0_9 = false;
     };
     std::map<std::string, HostData*> hostData;
     HostData* getHostData(const std::string& host);

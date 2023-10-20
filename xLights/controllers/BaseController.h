@@ -33,20 +33,13 @@ protected:
     #pragma endregion
 
     #pragma region Protected Functions
+    virtual bool needsHTTP_0_9() const { return false; }
     std::string GetURL(const std::string& url, const std::string& username = "", const std::string& password = "") const;
     std::string PutURL(const std::string& url, const std::string& request, const std::string& username = "", const std::string& password = "", const std::string& contentType = "x-www-form-urlencoded") const;
     #pragma endregion
 
 public:
-    
-    #pragma region Static Functions
-    static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
 
-        if (data == nullptr) return 0;
-        data->append((char*)ptr, size * nmemb);
-        return size * nmemb;
-    }
-    #pragma endregion
 
     #pragma region Constructors and Destructors
     BaseController() {}
