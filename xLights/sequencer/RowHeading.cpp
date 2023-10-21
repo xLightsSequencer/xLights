@@ -1666,11 +1666,7 @@ void RowHeading::render( wxPaintEvent& event )
                     containsEffectsIndicator = false;
                 }
 
-                if (rowInfo->element->GetType() == ElementType::ELEMENT_TYPE_MODEL)
-                {
-                    ModelElement* me = dynamic_cast<ModelElement*>(rowInfo->element);
-                }
-                else if (rowInfo->element->GetType() == ElementType::ELEMENT_TYPE_STRAND)
+                if (rowInfo->element->GetType() == ElementType::ELEMENT_TYPE_STRAND)
                 {
                     StrandElement* se = dynamic_cast<StrandElement*>(rowInfo->element);
 
