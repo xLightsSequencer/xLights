@@ -6582,7 +6582,7 @@ void LayoutPanel::RemoveSelectedModelsFromGroup() {
 void LayoutPanel::DeleteSelectedModels()
 {
     // I deliberately allow objects that come from base to be deleted.
-    if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked()) {
+    if (selectedBaseObject != nullptr) {
         xlights->AddTraceMessage("LayoutPanel::Delete Selected Model");
 
         wxArrayString modelsToDelete;
@@ -6623,7 +6623,7 @@ void LayoutPanel::DeleteSelectedModels()
 
             if (!allDeleted) {
                 wxBell();
-                wxMessageBox("One or models unable to be deleted. They may be locked or have effects on them.", "Delete failed", 5L, this);
+                wxMessageBox("One or more models cannot be deleted. They may be locked or have effects on them.", "Delete failed", 5L, this);
             }
 
             selectedBaseObject = nullptr;
