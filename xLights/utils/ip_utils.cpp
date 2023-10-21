@@ -111,6 +111,9 @@ namespace ip_utils
             if (r == "0.0.0.0") {
                 r = ip;
             }
+            if (r == "255.255.255.255") {
+                r = ip;
+            }
             __resolvedIPMap[ip] = r;
             return __resolvedIPMap[ip];
         }

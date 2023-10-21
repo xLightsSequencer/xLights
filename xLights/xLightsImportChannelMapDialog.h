@@ -26,6 +26,7 @@
 #include <wx/spinctrl.h>
 #include <wx/splitter.h>
 #include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 #include <map>
@@ -114,7 +115,7 @@ public:
     {
         // free all our children nodes
         size_t count = m_children.GetCount();
-        for (size_t i = 0; i < count; i++) {
+        for (size_t i = 0; i < count; ++i) {
             xLightsImportModelNode *child = m_children[i];
             delete child;
         }
@@ -126,7 +127,7 @@ public:
         _mapping = "";
         _color = *wxWHITE;
         size_t count = m_children.GetCount();
-        for (size_t i = 0; i < count; i++) {
+        for (size_t i = 0; i < count; ++i) {
             GetNthChild(i)->ClearMapping();
         }
     }
@@ -138,7 +139,7 @@ public:
         if (!_mapping.empty()) {
             return true;
         } else {
-            for (size_t i = 0; i < m_children.size(); i++) {
+            for (size_t i = 0; i < m_children.size(); ++i) {
                 xLightsImportModelNode* c = GetNthChild(i);
                 if (c->HasMapping()) {
                     return true;
@@ -211,7 +212,7 @@ public:
     {
         // free all our children nodes
         size_t count = m_children.GetCount();
-        for (size_t i = 0; i < count; i++) {
+        for (size_t i = 0; i < count; ++i) {
             xLightsImportModelNode *child = m_children[i];
             delete child;
         }
@@ -246,7 +247,7 @@ public:
     unsigned int GetMappedChildCount() const
     {
         size_t count = 0;
-        for (size_t i = 0; i < m_children.size(); i++) {
+        for (size_t i = 0; i < m_children.size(); ++i) {
             xLightsImportModelNode* c = GetNthChild(i);
             if (c->HasMapping()) {
                 count++;
@@ -411,8 +412,12 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxSpinCtrl* TimeAdjustSpinCtrl;
 		wxSplitterWindow* SplitterWindow1;
 		wxStaticBoxSizer* TimingTrackPanel;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText_Blend_Type;
 		wxStaticText* StaticText_TimeAdjust;
+		wxTextCtrl* TextCtrl_FindFrom;
+		wxTextCtrl* TextCtrl_FindTo;
 		//*)
 
         SequenceElements *mSequenceElements;
@@ -437,12 +442,16 @@ protected:
 		static const long ID_CHECKBOX3;
 		static const long ID_BUTTON_IMPORT_OPTIONS;
 		static const long ID_CHECKLISTBOX1;
+		static const long ID_STATICTEXT2;
+		static const long ID_TEXTCTRL2;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		static const long ID_PANEL1;
+		static const long ID_STATICTEXT1;
+		static const long ID_TEXTCTRL1;
 		static const long ID_LISTCTRL1;
 		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
@@ -469,6 +478,8 @@ protected:
 		void OnListCtrl_AvailableItemActivated(wxListEvent& event);
 		void OnButtonImportOptionsClick(wxCommandEvent& event);
 		void OnCheckBoxImportMediaClick(wxCommandEvent& event);
+		void OnTextCtrl_FindFromText(wxCommandEvent& event);
+		void OnTextCtrl_FindToText(wxCommandEvent& event);
 		//*)
 
         void RightClickTimingTracks(wxContextMenuEvent& event);

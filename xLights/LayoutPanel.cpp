@@ -4368,9 +4368,13 @@ bool LayoutPanel::IsAllSelectedModelsArePixelProtocol() const
 }
 
 void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
+
+    if (selectedBaseObject == nullptr)
+        return;
+
     int selectedObjectCnt = editing_models ? ModelsSelectedCount() : ViewObjectsSelectedCount();
 
-    if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked() && !selectedBaseObject->IsFromBase())
+    if (!selectedBaseObject->GetBaseObjectScreenLocation().IsLocked() && !selectedBaseObject->IsFromBase())
     {
         bool need_sep = false;
         if( editing_models ) {
@@ -4405,7 +4409,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
             menu.Append(ID_PREVIEW_ALIGN_GROUND, "Align With Ground");
         }
     }
-    if (editing_models && (selectedBaseObject != nullptr))
+    if (editing_models)
     {
         auto lm = menu.Append(ID_PREVIEW_MODEL_LOCK, "Lock");
         lm->Enable(!selectedBaseObject->IsLocked() && !selectedBaseObject->IsFromBase());
@@ -4413,7 +4417,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         um->Enable(selectedBaseObject->IsLocked() && !selectedBaseObject->IsFromBase());
         auto ul = menu.Append(ID_PREVIEW_MODEL_UNLINKFROMBASE, "Unlink from base show folder");
         ul->Enable(selectedBaseObject->IsFromBase());
-
+        
         Model* model = dynamic_cast<Model*>(selectedBaseObject);
         if (model != nullptr && model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
             menu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
@@ -4434,7 +4438,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
             menu.Append(ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL, "Export xLights Model");
         }
         menu.Append(ID_PREVIEW_MODEL_CAD_EXPORT, "Export As DXF/STL/VRML");
-
+        
         menu.AppendSeparator();
         for (const auto& it : xlights->AllModels) {
             if (it.second->GetDisplayAs() == "ModelGroup") {
@@ -4446,11 +4450,10 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         menu.AppendSeparator();
         menu.Append(ID_PREVIEW_FLIP_HORIZONTAL, "Flip Horizontal")->Enable(!selectedBaseObject->IsFromBase());
         menu.Append(ID_PREVIEW_FLIP_VERTICAL, "Flip Vertical")->Enable(!selectedBaseObject->IsFromBase());
-    }
-
-    if (editing_models && (selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1) && !selectedBaseObject->IsFromBase())
-    {
-        menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace A Model With This Model");
+        
+        if ((selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1) && !selectedBaseObject->IsFromBase()) {
+            menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace A Model With This Model");
+        }
     }
 }
 
@@ -6746,7 +6749,8 @@ void LayoutPanel::ReplaceModel()
             }
         }
 
-        if (wxMessageBox("Use original size and position", "Use original and position", wxYES_NO) == wxYES) {
+        if (wxMessageBox("Use original size and position", "Use original size and position", wxYES_NO) == wxYES) {
+            modelToReplaceItWith->GetModelScreenLocation().SetRotation(replaceModel->GetModelScreenLocation().GetRotation());
             modelToReplaceItWith->SetHcenterPos(replaceModel->GetHcenterPos());
             modelToReplaceItWith->SetVcenterPos(replaceModel->GetVcenterPos());
             modelToReplaceItWith->SetDcenterPos(replaceModel->GetDcenterPos());       
@@ -8495,11 +8499,13 @@ void LayoutPanel::HandleSelectionChanged() {
 
         if (totalSelections > 1) {
             showBackgroundProperties();
-            tooltip = wxString::Format("Selected Items:\n -Groups: %d\n -Models: %d\n -SubModels: %d\n", gSize, mSize, smSize);
+            tooltip = wxString::Format("Selected Items:\n -Groups: %d\n -Models: %d\n -SubModels: %d\n\nTotal Nodes: %d", gSize, mSize, smSize, calculateNodeCountOfSelected());
         } else if (gSize == 1) {
             Model* model = GetModelFromTreeItem(selectedTreeGroups[0]);
             if (model->IsFromBase()) {
                 tooltip = "From Base Show Folder";
+            } else {
+                tooltip = wxString::Format("Total Nodes in Group: %d", calculateNodeCountOfSelected());
             }
             ShowPropGrid(false);
             model_grp_panel->UpdatePanel(TreeListViewModels->GetItemText(selectedTreeGroups[0]));
@@ -8898,4 +8904,59 @@ bool LayoutPanel::IsNewModel(Model* m) const
     if (m == nullptr) return _newModel != nullptr;
 
     return m == _newModel;
+}
+
+//Calculate the total node count of selected items in the panel. Handles calculations of models, submodels and groups
+int LayoutPanel::calculateNodeCountOfSelected()
+{
+    int totalNodeCount = 0;
+    std::vector<Model*> modelsProcessed;
+    //We can break the selected groups into their components for processing. GetSelectedModelsForEdit already does this, even though we aren't editing. We can reuse that logic. This gives us all models, so I want to split this back up into models and submodels
+    std::vector<Model*> modelsToProcess = GetSelectedModelsForEdit();
+    std::vector<Model*> selectedModels;
+    std::vector<Model*> selectedSubModels;
+    
+    for (const auto& item : selectedTreeSubModels){
+        ModelTreeData *submodelData = (ModelTreeData*)TreeListViewModels->GetItemData(item);
+        Model* subModel = ((submodelData != nullptr) ? submodelData->GetModel() : nullptr);
+        if( subModel )
+            selectedSubModels.push_back(subModel);
+    }
+    
+    //Now parse the group elements into their perspective groups for processing
+    std::vector<Model*> sgModels = GetSelectedModelsForEdit();
+    for (const auto& item : sgModels){
+        if (item->GetDisplayAs() == "SubModel") {
+            selectedSubModels.push_back(item);
+        } else {
+            selectedModels.push_back(item);
+        }
+    }
+    
+    //Process the core models first. Save their pointer addresses for use in submodel and group processing
+    for (const auto& model : selectedModels) {
+        //If any of this models submodels are already counted, we shouldn't count the nodes from that submodel twice
+        if (model != nullptr) {
+            if(std::find(modelsProcessed.begin(), modelsProcessed.end(), model) == modelsProcessed.end()){
+                totalNodeCount += model->GetNodeCount();
+                modelsProcessed.push_back(model);
+            }
+        }
+    }
+    // Now process submodels. Submodels might already be counted from the above parent models, so dont process a submodel if it's parent is already processed and accounted for.
+    for (const auto& subModel : selectedSubModels) {
+        Model* parent_info = dynamic_cast<SubModel*>(subModel)->GetParent();
+        if (subModel != nullptr) {
+            //if this submodel is already in the count, dont do it
+            if(std::find(modelsProcessed.begin(), modelsProcessed.end(), parent_info) == modelsProcessed.end()
+               && std::find(modelsProcessed.begin(), modelsProcessed.end(), subModel) == modelsProcessed.end()
+               )
+            {
+                totalNodeCount += subModel->GetNodeCount();
+                modelsProcessed.push_back(subModel);
+            }
+        }
+    }
+    
+    return totalNodeCount;
 }

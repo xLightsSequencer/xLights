@@ -4823,6 +4823,10 @@ void Model::ExportAsCustomXModel() const
     if (state != "") {
         f.Write(state);
     }
+    wxString bufsubmodel = CreateBufferAsSubmodel();
+    if (bufsubmodel != "") {
+        f.Write(bufsubmodel);
+    }
     wxString submodel = SerialiseSubmodel();
     if (submodel != "") {
         f.Write(submodel);
@@ -6568,6 +6572,35 @@ wxString Model::SerialiseSubmodel() const
     }
 
     return res;
+}
+
+wxString Model::CreateBufferAsSubmodel() const
+{
+    int buffW = GetDefaultBufferWi();
+    int buffH = GetDefaultBufferHt();
+    std::vector<std::vector<wxString>> nodearray(buffH, std::vector<wxString>(buffW, ""));
+    uint32_t nodeCount = GetNodeCount();
+    for (uint32_t i = 0; i < nodeCount; i++) {
+        int bufx = Nodes[i]->Coords[0].bufX;
+        int bufy = Nodes[i]->Coords[0].bufY;
+        nodearray[bufy][bufx] = wxString::Format("%d", i + 1);
+    }
+    wxXmlNode* child = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+    child->AddAttribute("name", "DefaultRenderBuffer");
+    child->AddAttribute("layout", "horizontal");
+    child->AddAttribute("type", "ranges");
+
+    for (int x = 0; x < nodearray.size(); x++) {
+        child->AddAttribute(wxString::Format("line%d", x), CompressNodes(wxJoin(nodearray[x], ',')));
+    }
+
+    wxXmlDocument new_doc;
+    new_doc.SetRoot(new wxXmlNode(*child));
+    wxStringOutputStream stream;
+    new_doc.Save(stream);
+    wxString s = stream.GetString();
+    s = s.SubString(s.Find("\n") + 1, s.Length()); // skip over xml format header
+    return s;
 }
 
 std::list<std::string> Model::CheckModelSettings()

@@ -643,6 +643,11 @@ bool xLightsFrame::CloseSequence()
         CurrentSeqXmlFile = nullptr;
     }
 
+    if (mainSequencer != nullptr) {
+        if (mainSequencer->PanelEffectGrid != nullptr)
+            mainSequencer->PanelEffectGrid->ClearSelection();
+    }
+
     _sequenceElements.Clear();
     mSavedChangeCount = _sequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
@@ -656,8 +661,6 @@ bool xLightsFrame::CloseSequence()
         _searchPanel->ClearData();
     }
     if (mainSequencer != nullptr) {
-        if (mainSequencer->PanelEffectGrid != nullptr)
-            mainSequencer->PanelEffectGrid->ClearSelection();
         if (mainSequencer->PanelWaveForm != nullptr)
             mainSequencer->PanelWaveForm->CloseMedia();
         if (mainSequencer->ViewChoice != nullptr)

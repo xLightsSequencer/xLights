@@ -196,6 +196,8 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	HinkControllerList->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(-1,150)));
 	HinkControllerSizer = new wxFlexGridSizer(0, 8, 0, 0);
 	HinkControllerList->SetSizer(HinkControllerSizer);
+	HinkControllerSizer->Fit(HinkControllerList);
+	HinkControllerSizer->SetSizeHints(HinkControllerList);
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer2 = new wxFlexGridSizer(2, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
@@ -222,6 +224,8 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	CheckListBox_Sequences = new wxListView(Panel1, ID_LISTVIEW_Sequences, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTVIEW_Sequences"));
 	FlexGridSizer2->Add(CheckListBox_Sequences, 1, wxEXPAND, 0);
 	Panel1->SetSizer(FlexGridSizer2);
+	FlexGridSizer2->Fit(Panel1);
+	FlexGridSizer2->SetSizeHints(Panel1);
 	SplitterWindow1->SplitHorizontally(HinkControllerList, Panel1);
 	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
@@ -254,10 +258,9 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	BoxSizer1->Add(cancelButton, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
+	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_CHOICE_FILTER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&HinksPixExportDialog::OnChoiceFilterSelect);
-	Connect(ID_CHOICE_FOLDER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&HinksPixExportDialog::OnChoiceFolderSelect);
 	Connect(ID_BITMAPBUTTON_MOVE_UP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HinksPixExportDialog::OnBitmapButtonMoveUpClick);
 	Connect(ID_BITMAPBUTTON_MOVE_DOWN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HinksPixExportDialog::OnBitmapButtonMoveDownClick);
 	Connect(ID_LISTVIEW_Sequences,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&HinksPixExportDialog::SequenceListPopup);
@@ -734,14 +737,6 @@ void HinksPixExportDialog::SequenceListPopup(wxListEvent& /*event*/) {
     PopupMenu(&mnu);
 }
 
-void HinksPixExportDialog::OnChoiceFolderSelect(wxCommandEvent& /*event*/) {
-    LoadSequences();
-}
-
-void HinksPixExportDialog::OnChoiceFilterSelect(wxCommandEvent& /*event*/) {
-    LoadSequences();
-}
-
 void HinksPixExportDialog::GetFolderList(const wxString& folder) {
     ChoiceFolder->Append("--Show Folder--");
     wxArrayString subfolders;
@@ -833,7 +828,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
         }
 
         wxString drive = GetChoiceValue(DISK_COL + rowStr);
-        
+
         //try to fix path
         wxFileName dirname( drive, "" );
         drive = dirname.GetPath();
@@ -939,6 +934,7 @@ void HinksPixExportDialog::OnBitmapButtonMoveUpClick(wxCommandEvent& /*event*/) 
 }
 
 void HinksPixExportDialog::OnChoiceSelected(wxCommandEvent& event) {
+
     wxString const text = event.GetString();
     if (text.IsEmpty()) {
         return;
@@ -948,6 +944,11 @@ void HinksPixExportDialog::OnChoiceSelected(wxCommandEvent& event) {
     if (item) {
         wxChoice* cb = dynamic_cast<wxChoice*>(item);
         if (cb) {
+            if (cb == ChoiceFilter || cb == ChoiceFolder) {
+                LoadSequences();
+                return;
+            }
+
             auto name = cb->GetName();
             if (name.Contains(SLAVE1_COL) || name.Contains(SLAVE2_COL)) {
                 int row = 0;
@@ -1363,7 +1364,7 @@ bool HinksPixExportDialog::createTestFile(wxString const& drive) const {
     if (f.IsOpened()) {
         f.Write("test\r\n");
         f.Close();
-        
+
         wxRemoveFile(filename);
         return true;
     }

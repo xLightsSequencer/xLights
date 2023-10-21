@@ -695,7 +695,11 @@ Output::PINGSTATE ControllerEthernet::Ping() {
     if (GetResolvedIP() == "MULTICAST") {
         _lastPingResult = Output::PINGSTATE::PING_UNAVAILABLE;
     } else if (_outputs.size() > 0) {
-        _lastPingResult = dynamic_cast<IPOutput*>(_outputs.front())->Ping(GetResolvedIP(), GetFPPProxy());
+        std::string ip = GetResolvedIP();
+        if (ip.empty()) {
+            ip = GetIP();
+        }
+        _lastPingResult = dynamic_cast<IPOutput*>(_outputs.front())->Ping(ip, GetFPPProxy());
     }
     else {
         E131Output ipo;

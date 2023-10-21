@@ -11,6 +11,10 @@
 // Created:   2012-11-03
 // Copyright: Matt Brown ()
 
+#ifdef _DEBUG
+//#define SIMULATE_UPGRADE
+#endif
+
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
 #include <wx/debugrpt.h>
@@ -2174,7 +2178,7 @@ void xLightsFrame::DoPostStartupCommands()
     // dont check for updates if batch rendering
     if (!_renderMode && !_checkSequenceMode) {
 // Don't bother checking for updates when debugging.
-#ifndef _DEBUG
+#if !defined(_DEBUG) || defined(SIMULATE_UPGRADE)
         if (!IsFromAppStore()) {
             CheckForUpdate(1, true, false);
         }
@@ -8669,7 +8673,10 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
                           (const char*)urlVersion.c_str(),
                           (const char*)configver.c_str());
 
-        if ((!urlVersion.Matches(configver)) && (!urlVersion.Matches(xlights_version_string)) && IsVersionOlder(urlVersion, xlights_version_string)) {
+#ifndef SIMULATE_UPGRADE
+        if ((!urlVersion.Matches(configver)) && (!urlVersion.Matches(xlights_version_string)) && IsVersionOlder(urlVersion, xlights_version_string)) 
+#endif
+        {
             found_update = true;
             UpdaterDialog* dialog = new UpdaterDialog(this);
 

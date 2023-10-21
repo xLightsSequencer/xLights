@@ -336,7 +336,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
 
         //FSEQ Type listbox
         if (inst->fppType == FPP_TYPE::FPP) {
-            if (!inst->IsVersionAtLeast(6, 0)) {
+            if (!inst->supportedForFPPConnect()) {
                 doUploadCheckbox->SetValue(false);
                 doUploadCheckbox->Enable(false);
                 
@@ -374,7 +374,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
         }
 
-        if (inst->fppType == FPP_TYPE::FPP && inst->IsVersionAtLeast(6, 0)) {
+        if (inst->fppType == FPP_TYPE::FPP && inst->supportedForFPPConnect()) {
             if (prgs) {
                 prgs->Pulse("Probing information from " + l);
             }
@@ -666,6 +666,32 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
             }
         }
     }
+
+    // we also need to load eseq files which may not have the same name as an xsq file
+    files.clear();
+    GetAllFilesInDir(dir, files, "*.eseq");
+    for (auto& filename : files) {
+        wxFileName fn(filename);
+        wxString file = fn.GetFullName();
+
+        logger_base.debug("ESEQ:  %s", (const char*)file.c_str());
+
+        // The eseq may already be in the list
+        bool found = false;
+        for (auto item = CheckListBox_Sequences->GetFirstItem(); !found && item.IsOk(); item = CheckListBox_Sequences->GetNextItem(item)) {
+            if (filename == CheckListBox_Sequences->GetItemText(item)) {
+                found = true;
+            }
+        }
+
+        if (!found) {
+            wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(),
+                                                                        filename);
+
+            DisplayDateModified(filename, item);
+        }
+    }
+
     if (ChoiceFilter->GetSelection() == 0) {
         wxString file;
         bool fcont = directory.GetFirst(&file, wxEmptyString, wxDIR_DIRS);
@@ -975,10 +1001,8 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                             //Read a bunch of frames so each parallel thread has more info to work with before returning out here
                             while (lastBuffered < FRAMES_TO_BUFFER && frame < seq->getNumFrames()) {
                                 FSEQFile::FrameData *f = seq->getFrame(frame);
-                                if (f != nullptr)
-                                {
-                                    if (!f->readFrame(&frames[lastBuffered][0], frames[lastBuffered].size()))
-                                    {
+                                if (f != nullptr) {
+                                    if (!f->readFrame(&frames[lastBuffered][0], frames[lastBuffered].size())) {
                                         logger_base.error("FPPConnect FSEQ file corrupt.");
                                     }
                                     delete f;

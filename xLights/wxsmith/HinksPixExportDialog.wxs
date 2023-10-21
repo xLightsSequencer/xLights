@@ -47,7 +47,6 @@
 												<item>Only Current Directory</item>
 											</content>
 											<selection>0</selection>
-											<handler function="OnChoiceFilterSelect" entry="EVT_CHOICE" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
@@ -64,7 +63,6 @@
 									<object class="sizeritem">
 										<object class="wxChoice" name="ID_CHOICE_FOLDER" variable="ChoiceFolder" member="yes">
 											<selection>0</selection>
-											<handler function="OnChoiceFolderSelect" entry="EVT_CHOICE" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>

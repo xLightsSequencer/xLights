@@ -477,8 +477,8 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent) {
 }
 #pragma endregion
 
-void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& controllername, std::string& type, std::string& protocol, std::string& description, int32_t& channeloffset, std::string &ip, std::string& u, std::string& inactive, std::string& baud, int& start_universe, int& start_universe_channel) {
-
+void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& controllername, std::string& type, std::string& protocol, std::string& description, int32_t& channeloffset, std::string& ip, std::string& u, std::string& inactive, std::string& baud, int& start_universe, int& start_universe_channel)
+{
     int32_t sc = 0;
     int32_t csc = 0;
     Controller* c = _outputManager.GetController(channel, csc);
@@ -506,7 +506,8 @@ void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& 
         auto eth = dynamic_cast<ControllerEthernet*>(c);
         if (eth != nullptr) {
             ip = eth->GetIP();
-            u = o->GetUniverseString();
+            if (o != nullptr)
+                u = o->GetUniverseString();
         }
 
         auto ser = dynamic_cast<ControllerSerial*>(c);
@@ -1515,12 +1516,7 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         if (it->IsFromBase())
         {
             if (it->IsActive()) {
-                if (IsDarkMode())
-                {
-                    List_Controllers->SetItemTextColour(row, *wxCYAN);
-                } else {
-                    List_Controllers->SetItemTextColour(row, *wxBLUE);
-                }
+                List_Controllers->SetItemTextColour(row, CyanOrBlue());
             } else {
                 List_Controllers->SetItemTextColour(row, wxColor(0x80, 0x80, 0xFF));
             }

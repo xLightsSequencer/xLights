@@ -780,10 +780,23 @@ Output* OutputManager::GetOutput(int universe, const std::string& ip) const {
 #pragma endregion
 
 #pragma region Channel Mapping
-int32_t OutputManager::GetTotalChannels() const {
+int32_t OutputManager::GetTotalChannels() const
+{
+    if (_controllers.size() == 0)
+        return 0;
+    int ec = _controllers.back()->GetEndChannel();
 
-    if (_controllers.size() == 0) return 0;
-    return _controllers.back()->GetEndChannel();
+    // because some controllers with zero channels dont update their end channel ... look back until we find an end channel
+    if (ec == 0) {
+        auto it = _controllers.rbegin();
+        while (it != _controllers.rend() && (*it)->GetEndChannel() == 0) {
+            ++it;
+        }
+        if (it != _controllers.rend()) {
+            ec = (*it)->GetEndChannel();
+        }
+    }
+    return ec;
 }
 
 int32_t OutputManager::GetOutputsAbsoluteChannel(int universeIndex, int32_t startChannel) const
@@ -1069,7 +1082,7 @@ std::list<std::string> OutputManager::GetForceIPs(const std::string& protocol) c
 
     for (const auto& it : GetControllers()) {
         auto e = dynamic_cast<ControllerEthernet*>(it);
-        if (e != nullptr && (it->GetOutputCount() > 0) && e->GetFirstOutput()->GetType() == protocol) {
+        if (e != nullptr && it->GetOutputCount() > 0 && e->GetFirstOutput()->GetType() == protocol) {
             auto fip = e->GetForceLocalIP();
             if (std::find(begin(res), end(res), fip) == end(res))
                 res.push_back(fip);
@@ -1081,7 +1094,7 @@ std::list<std::string> OutputManager::GetForceIPs(const std::string& protocol) c
 bool OutputManager::AtLeastOneOutputUsingProtocol(const std::string& protocol) const {
 
     for (const auto& it : GetControllers()) {
-        if ((it->GetOutputCount() > 0) && (it->GetFirstOutput()->GetType() == protocol)) {
+        if (it->GetOutputCount() > 0 && it->GetFirstOutput()->GetType() == protocol) {
             return true;
         }
     }

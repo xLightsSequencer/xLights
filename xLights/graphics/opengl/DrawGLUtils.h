@@ -18,6 +18,7 @@ namespace DrawGLUtils
 #define IGNORE_GL_ERRORV(a) a; glGetError()
 
     bool LoadGLFunctions();
+    void DoLogGLError(const char* file, int line, const char* msg); // always logs
     void LogGLError(const char* file, int line, const char* msg = nullptr);
     void SetupDebugLogging();
 }
