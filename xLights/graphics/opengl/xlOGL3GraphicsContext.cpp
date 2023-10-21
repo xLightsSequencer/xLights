@@ -1790,26 +1790,41 @@ public:
         LOG_GL_ERRORV(glGenBuffers(1, &indexBuffer));
 
 
-        LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, vbuffer));
-        LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW));
+        if (vertices.size() > 0)
+        {
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, vbuffer));
+            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW));
 
-        LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, tbuffer));
-        LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, tvertices.size() * sizeof(float), &tvertices[0], GL_STATIC_DRAW));
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, tbuffer));
+            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, tvertices.size() * sizeof(float), &tvertices[0], GL_STATIC_DRAW));
+        }
 
-        LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, nbuffer));
-        LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(float), &normals[0], GL_STATIC_DRAW));
+        if (normals.size() > 0)
+        {
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, nbuffer));
+            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(float), &normals[0], GL_STATIC_DRAW));
+        }
         
-        LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wfIndexes));
-        LOG_GL_ERRORV(glBufferData(GL_ELEMENT_ARRAY_BUFFER, wireFrame.size() * sizeof(uint32_t), &wireFrame[0], GL_STATIC_DRAW));
-        LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        if (wireFrame.size() > 0)
+        {
+            LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wfIndexes));
+            LOG_GL_ERRORV(glBufferData(GL_ELEMENT_ARRAY_BUFFER, wireFrame.size() * sizeof(uint32_t), &wireFrame[0], GL_STATIC_DRAW));
+            LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        }
 
-        LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineIndexes));
-        LOG_GL_ERRORV(glBufferData(GL_ELEMENT_ARRAY_BUFFER, lines.size() * sizeof(uint32_t), &lines[0], GL_STATIC_DRAW));
-        LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        if (lines.size() > 0)
+        {
+            LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineIndexes));
+            LOG_GL_ERRORV(glBufferData(GL_ELEMENT_ARRAY_BUFFER, lines.size() * sizeof(uint32_t), &lines[0], GL_STATIC_DRAW));
+            LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        }
 
-        LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer));
-        LOG_GL_ERRORV(glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexes.size() * sizeof(uint32_t), &indexes[0], GL_STATIC_DRAW));
-        LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        if (indexes.size() > 0)
+        {
+            LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer));
+            LOG_GL_ERRORV(glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexes.size() * sizeof(uint32_t), &indexes[0], GL_STATIC_DRAW));
+            LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        }
     }
 
     GLuint vbuffer = 0;
