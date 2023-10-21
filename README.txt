@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.18 Oct 21, 2023
+   -- enh (dkulp) FPP Connect - query and media in parallel
+   -- bug (scott) Custom Model Export - Export Default Render Buffer as Submodel
+   -- bug (scott) Fix Submodel Dialog Sizing Issues
+   -- bug (dartunder) FPP upload - fix e1.31 priority not being set if universes are all the same size
+   -- bug (scott) HinksPix - fix folder and filter selector
+   -- bug (dkulp) FPP Connect - attempt to fix some FPP Connect issues by remove "Expect: Continue" headers
+   -- bug (robfallone) Fix OpenGL crash on startup with some mesh objects
 2023.17 Oct 16, 2023
    -- enh (dkulp) Add monitor attribute for controllers, FPP upload of co-universes will set priority/monitoring/deDup settings
    -- enh (Kyle Grymonprez) Add Node Count to model tooltips
