@@ -953,14 +953,21 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                             // need to adjust so they are unique
                             if (fseqType == 1) fseqType = 5;
                             if (fseqType == 2) fseqType = 6;
-                        }
-                        else {
+                        } else {
                             fseqType = 3;
                         }
                         cancelled |= inst->PrepareUploadSequence(seq,
                                                                 fseq, m2,
                                                                 fseqType);
-
+                    }
+                    row++;
+                }
+                while (CurlManager::INSTANCE.processCurls()) {
+                    wxYield();
+                }
+                row = 0;
+                for (const auto& inst : instances) {
+                    if (!cancelled && doUpload[row]) {
                         if (inst->WillUploadSequence()) {
                             uploadCount++;
                             if (inst->NeedCustomSequence()) {

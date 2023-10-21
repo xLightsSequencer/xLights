@@ -1074,6 +1074,53 @@ static void FindHostSpecificMedia(const std::string &hostName, std::string &medi
         }
     }
 }
+bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName) {
+    bool cancelled = false;
+    wxFileName mfn(FromUTF8(media));
+    std::string mediaFile = media;
+    mediaBaseName = ToUTF8(mfn.GetFullName());
+
+    if (majorVersion >= 6) {
+        FindHostSpecificMedia(hostName, mediaBaseName, mediaFile, mfn);
+    }
+    
+    std::string url = "/api/media/" + URLEncode(mediaBaseName) + "/meta";
+    std::string fullUrl = ipAddress + url;
+    std::string ipAddForGet = ipAddress;
+    if (!_fppProxy.empty()) {
+        fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+        ipAddForGet = _fppProxy;
+    } else {
+        fullUrl = "http://" + fullUrl;
+    }
+    if (username != "") {
+        CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
+    }
+    int response_code = 0;
+    CurlManager::INSTANCE.addGet(fullUrl, [this, mfn, mediaBaseName, mediaFile](int rc, const std::string &resp) {
+        bool doMediaUpload = true;
+        if (rc == 200) {
+            wxJSONValue currentMeta;
+            wxJSONReader reader;
+            reader.Parse(resp, &currentMeta);
+            if (currentMeta.HasMember("format") && currentMeta["format"].HasMember("size") &&
+                (mfn.GetSize() == std::atoi(currentMeta["format"]["size"].AsString().c_str()))) {
+                doMediaUpload = false;
+            }
+        }
+        if (doMediaUpload) {
+            std::string dir = "music";
+            for (auto &a : FPP_VIDEO_EXT) {
+                if (mfn.GetExt() == a) {
+                    dir = "videos";
+                }
+            }
+            uploadOrCopyFile(mediaBaseName, mediaFile, dir);
+        }
+    });
+        
+    return cancelled;
+}
 
 bool FPP::PrepareUploadSequence(FSEQFile *file,
                                 const std::string &seq,
@@ -1094,33 +1141,9 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     std::string mediaBaseName = "";
     bool cancelled = false;
     if (media != "" && fppType == FPP_TYPE::FPP) {
-        wxFileName mfn(FromUTF8(media));
-        std::string mediaFile = media;
-        mediaBaseName = ToUTF8(mfn.GetFullName());
-
-        if (majorVersion >= 6) {
-            FindHostSpecificMedia(hostName, mediaBaseName, mediaFile, mfn);
-        }
-
-        bool doMediaUpload = true;
-        wxJSONValue currentMeta;
-        if (GetURLAsJSON("/api/media/" + URLEncode(mediaBaseName) + "/meta", currentMeta, false)) {
-            if (currentMeta.HasMember("format") && currentMeta["format"].HasMember("size") &&
-                (mfn.GetSize() == std::atoi(currentMeta["format"]["size"].AsString().c_str()))) {
-                doMediaUpload = false;
-            }
-        }
-        if (doMediaUpload) {
-            std::string dir = "music";
-            for (auto &a : FPP_VIDEO_EXT) {
-                if (mfn.GetExt() == a) {
-                    dir = "videos";
-                }
-            }
-            cancelled |= uploadOrCopyFile(mediaBaseName, mediaFile, dir);
-        }
+        cancelled = CheckUploadMedia(media, mediaBaseName);
         if (cancelled) {
-            return cancelled;
+            return true;
         }
     }
     sequences[baseName].sequence = baseName;
