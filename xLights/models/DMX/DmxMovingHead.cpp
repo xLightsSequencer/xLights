@@ -267,9 +267,7 @@ void DmxMovingHead::InitModel() {
 	pan_slew_limit = wxAtof(ModelXml->GetAttribute("DmxPanSlewLimit", "0"));
 	tilt_channel = wxAtoi(ModelXml->GetAttribute("DmxTiltChannel", "0"));
 	tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "0"));
-    tilt_min = wxAtoi(ModelXml->GetAttribute("TiltMin", "0"));
-    tilt_max = wxAtoi(ModelXml->GetAttribute("TiltMax", "255"));
-    tilt_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxTiltDegOfRot", "180"));
+	tilt_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxTiltDegOfRot", "180"));
 	tilt_slew_limit = wxAtof(ModelXml->GetAttribute("DmxTiltSlewLimit", "0"));
 	shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
 	shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
@@ -1091,9 +1089,6 @@ void DmxMovingHead::ExportXlightsModel()
 
     wxString dct = ModelXml->GetAttribute("DmxColorType", "0");
 
-    wxString mint = ModelXml->GetAttribute("TiltMin", "0");
-    wxString maxt = ModelXml->GetAttribute("TiltMax", "255");
-
     if (s.empty()) {
         s = "Moving Head Top";
     }
@@ -1115,9 +1110,7 @@ void DmxMovingHead::ExportXlightsModel()
     f.Write(wxString::Format("DmxBeamWidth=\"%s\" ", dbw));
 
     f.Write(wxString::Format("DmxColorType=\"%s\" ", dct));
-    f.Write(wxString::Format("TiltMin=\"%s\" ", mint));
-    f.Write(wxString::Format("TiltMax=\"%s\" ", maxt));
-    color_ability->ExportParameters(f, ModelXml);
+    color_ability->ExportParameters(f,ModelXml);
 
     f.Write(" >\n");
 
@@ -1163,8 +1156,6 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         wxString dbl = root->GetAttribute("DmxBeamLength", "4");
         wxString dbw = root->GetAttribute("DmxBeamWidth", "30");
         wxString dct = root->GetAttribute("DmxColorType", "0");
-        wxString mint = root->GetAttribute("TiltMin", "0");
-        wxString maxt = root->GetAttribute("TiltMax", "255");
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
@@ -1186,8 +1177,6 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         SetProperty("DmxBeamLength", dbl);
         SetProperty("DmxBeamWidth", dbw);
         SetProperty("DmxColorType", dct);
-        SetProperty("TiltMin", mint);
-        SetProperty("TiltMax", maxt);
 
         int color_type = wxAtoi(dct);
         if (color_type == 0) {

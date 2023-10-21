@@ -441,8 +441,6 @@ public:
 
     bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     const std::string& GetStringType(void) const { return StringType; }
-    int GetNodeNamed(const std::string& name);
-    std::string GetNamedSetting(const std::string& name, const std::string& defaultValue);
     virtual int NodesPerString() const;
     virtual int NodesPerString(int string) const { return NodesPerString(); }
     virtual int MapPhysicalStringToLogicalString(int string) const { return string; }

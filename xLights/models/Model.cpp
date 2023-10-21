@@ -5019,28 +5019,6 @@ bool Model::HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray
     return GetModelScreenLocation().HitTest(ray_origin, ray_direction);
 }
 
-int Model::GetNodeNamed(const std::string& name)
-{
-    int count = 1;
-    for (auto& it : nodeNames) {
-        if (it == name)
-        {
-            return count;
-        }
-        ++count;
-    }
-    return 0;
-}
-
-std::string Model::GetNamedSetting(const std::string& name, const std::string& defaultValue)
-{
-    if (ModelXml->HasAttribute(name))
-    {
-        return ModelXml->GetAttribute(name, defaultValue);
-    }
-    return 0;
-}
-
 wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y, ModelPreview* preview) {
     return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes, preview);
 }
@@ -6600,7 +6578,7 @@ wxString Model::CreateBufferAsSubmodel() const
 {
     int buffW = GetDefaultBufferWi();
     int buffH = GetDefaultBufferHt();
-    std::vector<std::vector<std::string>> nodearray(buffH, std::vector<std::string>(buffW, ""));
+    std::vector<std::vector<wxString>> nodearray(buffH, std::vector<wxString>(buffW, ""));
     uint32_t nodeCount = GetNodeCount();
     for (uint32_t i = 0; i < nodeCount; i++) {
         int bufx = Nodes[i]->Coords[0].bufX;
@@ -6612,8 +6590,8 @@ wxString Model::CreateBufferAsSubmodel() const
     child->AddAttribute("layout", "horizontal");
     child->AddAttribute("type", "ranges");
 
-    for (int x = 0; x < nodearray.size(); ++x) {
-        child->AddAttribute(wxString::Format("line%d", x), CompressNodes(Join(nodearray[x], "'")));
+    for (int x = 0; x < nodearray.size(); x++) {
+        child->AddAttribute(wxString::Format("line%d", x), CompressNodes(wxJoin(nodearray[x], ',')));
     }
 
     wxXmlDocument new_doc;
