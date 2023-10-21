@@ -6578,9 +6578,9 @@ wxString Model::CreateBufferAsSubmodel() const
 {
     int buffW = GetDefaultBufferWi();
     int buffH = GetDefaultBufferHt();
-    std::vector<std::vector<wxString>> nodearray(buffH, std::vector<wxString>(buffW, ""));
+    std::vector<std::vector<std::string>> nodearray(buffH, std::vector<std::string>(buffW, ""));
     uint32_t nodeCount = GetNodeCount();
-    for (uint32_t i = 0; i < nodeCount; i++) {
+    for (uint32_t i = 0; i < nodeCount; ++i) {
         int bufx = Nodes[i]->Coords[0].bufX;
         int bufy = Nodes[i]->Coords[0].bufY;
         nodearray[bufy][bufx] = wxString::Format("%d", i + 1);
@@ -6590,8 +6590,8 @@ wxString Model::CreateBufferAsSubmodel() const
     child->AddAttribute("layout", "horizontal");
     child->AddAttribute("type", "ranges");
 
-    for (int x = 0; x < nodearray.size(); x++) {
-        child->AddAttribute(wxString::Format("line%d", x), CompressNodes(wxJoin(nodearray[x], ',')));
+    for (int x = 0; x < nodearray.size(); ++x) {
+        child->AddAttribute(wxString::Format("line%d", x), CompressNodes(Join(nodearray[x], ",")));
     }
 
     wxXmlDocument new_doc;
