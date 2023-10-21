@@ -120,7 +120,7 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     model_group_icon = BitmapCache::GetModelGroupIcon();
     fppCommand_icon = BitmapCache::GetFPPIcon();
     fppEffect_icon = BitmapCache::GetFPPIcon();
-    
+
     mCanPaste = false;
 
     wxConfigBase* config = wxConfigBase::Get();
@@ -398,7 +398,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 }
                 if (modelDisabled) {
                     modelMenu->Append(ID_ROW_MNU_RENDERENABLE_ALL, "Enable Render On All Models");
-                } 
+                }
 
                 modelMenu->Append(ID_ROW_MNU_PLAY_MODEL, "Play");
                 modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
@@ -1451,7 +1451,7 @@ void RowHeading::render( wxPaintEvent& event )
 
     // If effect labels grow with row size then so should labels.
     auto font = dc.GetFont();
-    
+
     // Note: DEFAULT_ROW_HEADING_HEIGHT is in PIXELS which is independent
     // of any scaling factor, thus, we need to set the font size in Pixels,
     // not points which would end up scaling depending on scale factor
@@ -1466,16 +1466,19 @@ void RowHeading::render( wxPaintEvent& event )
 
     xlColor labelColor = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT);
     wxColor labelWxColor = labelColor.asWxColor();
-    
+
     int effectNoticeWidth = FromDIP(4);
-    wxColor  effectNoticeColor(*wxYELLOW);
+    wxColor  effectNotice1Color(*wxYELLOW);
+    wxColor  effectNotice2Color(*wxBLUE);
     if (IsDarkMode()) {
         // drop to a mustard yellow so not so jarring on the eyes
-        effectNoticeColor = wxColour(0xEA, 0xAA, 0x00);
+        effectNotice1Color = wxColour(0xEA, 0xAA, 0x00);
     }
-    wxPen effectNoticePen(effectNoticeColor);
-    wxBrush effectNoticeBrush(effectNoticeColor);
-    
+    wxPen effectNotice1Pen(effectNotice1Color);
+    wxBrush effectNotice1Brush(effectNotice1Color);
+    wxPen effectNotice2Pen(effectNotice2Color);
+    wxBrush effectNotice2Brush(effectNotice2Color);
+
     for (int i = 0; i < mSequenceElements->GetVisibleRowInformationSize(); i++) {
         Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(i);
         wxString prefix;
@@ -1494,7 +1497,7 @@ void RowHeading::render( wxPaintEvent& event )
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.DrawRectangle(0, startY, w, DEFAULT_ROW_HEADING_HEIGHT + (i == 0 ? 0 : 1));
 
-        Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
+        Model* const m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
         if (m != nullptr && m->GetTagColour() != *wxBLACK) {
             wxBrush tagBrush(m->GetTagColour(), wxBRUSHSTYLE_SOLID);
             wxPen tagPen(m->GetTagColour());
@@ -1610,8 +1613,8 @@ void RowHeading::render( wxPaintEvent& event )
                 dc.SetPen(penOutline);
                 dc.SetBrush(brush2);
             }
+
             // draw Model Group icon if necessary
-            Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
             if (m != nullptr) {
                 if (m->GetDisplayAs() == "ModelGroup") {
                     dc.DrawBitmap(model_group_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
@@ -1636,27 +1639,61 @@ void RowHeading::render( wxPaintEvent& event )
                     }
                 }
 
-                bool hasEffects = rowInfo->element->HasEffects();
-                if (!hasEffects && m->GetDisplayAs() == "ModelGroup")
-                {
-                    // model groups are only marked if model group has direct effects or the model with effects is otherwise hidden in the view
-                    hasEffects = rowInfo->element->HasEffects();
+                bool hasDirectEffectsIndicator = false;
+                bool containsEffectsIndicator = rowInfo->element->HasEffects();
+                hasDirectEffectsIndicator = (rowInfo->element->GetEffectLayer(rowInfo->layerIndex)->GetEffectCount() > 0);
 
+                if (m->GetDisplayAs() == "ModelGroup")
+                {
                     int view = mSequenceElements->GetCurrentView();
                     ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
                     auto models = mg->ModelNames();
-                    for (auto it = models.begin(); !hasEffects && it != models.end(); ++it) {
+                    for (auto it = models.begin(); !containsEffectsIndicator && it != models.end(); ++it)
+                    {
                         ModelElement* mm = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(*it));
 
-                        if (mm != nullptr && !ModelInView(*it, view)) {
-                            hasEffects = mm->HasEffects();
+                        if (mm != nullptr && mm->HasEffects())
+                        {
+                            containsEffectsIndicator = true;
+                            break;
                         }
                     }
                 }
 
-                if (hasEffects) {
-                    dc.SetPen(effectNoticePen);
-                    dc.SetBrush(effectNoticeBrush);
+                if (rowInfo->layerIndex > 0)
+                {
+                    // We only want to report "contains" effects for the first layer. Subsequent layers only need to report direct effects.
+                    containsEffectsIndicator = false;
+                }
+
+                if (rowInfo->element->GetType() == ElementType::ELEMENT_TYPE_MODEL)
+                {
+                    ModelElement* me = dynamic_cast<ModelElement*>(rowInfo->element);
+                }
+                else if (rowInfo->element->GetType() == ElementType::ELEMENT_TYPE_STRAND)
+                {
+                    StrandElement* se = dynamic_cast<StrandElement*>(rowInfo->element);
+
+                    if (rowInfo->nodeIndex >= 0)
+                    {
+                        hasDirectEffectsIndicator = (se->GetNodeLayer(rowInfo->nodeIndex)->GetEffectCount() > 0);
+                        containsEffectsIndicator = hasDirectEffectsIndicator;
+                    }
+                }
+
+                if (hasDirectEffectsIndicator || containsEffectsIndicator)
+                {
+                    if (hasDirectEffectsIndicator)
+                    {
+                        dc.SetPen(effectNotice2Pen);
+                        dc.SetBrush(effectNotice2Brush);
+                    }
+                    else
+                    {
+                        dc.SetPen(effectNotice1Pen);
+                        dc.SetBrush(effectNotice1Brush);
+                    }
+
                     dc.DrawRectangle(getWidth() - effectNoticeWidth, startY, effectNoticeWidth, getHeight());
                     dc.SetPen(penOutline);
                     dc.SetBrush(brush2);
@@ -1678,7 +1715,7 @@ void RowHeading::render( wxPaintEvent& event )
                 }
                 dc.SetPen(penOutline);
                 dc.SetBrush(brush2);
-                
+
                 if (ti->GetSubType() == "FPP Commands") {
                     dc.DrawBitmap(fppCommand_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
                 } else if (ti->GetSubType() == "FPP Effects") {
