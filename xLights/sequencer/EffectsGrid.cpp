@@ -4416,10 +4416,6 @@ void EffectsGrid::DeleteSelectedEffects()
     mResizing = false;
     mDragging = false;
     ForceRefresh();
-
-    // we need to update the row headings due to the effect indicator and this might be the last effect on the model
-    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-    wxPostEvent(this, eventRowHeaderChanged);
 }
 
 void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
