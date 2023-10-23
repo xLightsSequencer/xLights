@@ -1467,15 +1467,6 @@ void RowHeading::render( wxPaintEvent& event )
     xlColor labelColor = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT);
     wxColor labelWxColor = labelColor.asWxColor();
     
-    int effectNoticeWidth = FromDIP(4);
-    wxColor  effectNoticeColor(*wxYELLOW);
-    if (IsDarkMode()) {
-        // drop to a mustard yellow so not so jarring on the eyes
-        effectNoticeColor = wxColour(0xEA, 0xAA, 0x00);
-    }
-    wxPen effectNoticePen(effectNoticeColor);
-    wxBrush effectNoticeBrush(effectNoticeColor);
-    
     for (int i = 0; i < mSequenceElements->GetVisibleRowInformationSize(); i++) {
         Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(i);
         wxString prefix;
@@ -1654,10 +1645,11 @@ void RowHeading::render( wxPaintEvent& event )
                     }
                 }
 
-                if (hasEffects) {
-                    dc.SetPen(effectNoticePen);
-                    dc.SetBrush(effectNoticeBrush);
-                    dc.DrawRectangle(getWidth() - effectNoticeWidth, startY, effectNoticeWidth, getHeight());
+                if (hasEffects)
+                {
+                    dc.SetPen(*wxYELLOW_PEN);
+                    dc.SetBrush(wxBrush(*wxYELLOW));
+                    dc.DrawRectangle(getWidth() - FromDIP(4), startY, FromDIP(4), getHeight());
                     dc.SetPen(penOutline);
                     dc.SetBrush(brush2);
                 }
