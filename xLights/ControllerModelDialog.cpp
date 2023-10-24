@@ -1153,7 +1153,8 @@ protected:
     int _string = 0;
     UDControllerPort* _port = nullptr;
     int _virtualString;
-    bool _isShadow = false;
+    bool _isShadowed = false;
+    bool _isShadowFor = false;
 
 public:
     ModelCMObject(UDControllerPort* port, int virtualString, const std::string& name, const std::string displayName, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, double scale) :
@@ -1170,10 +1171,12 @@ public:
         }
         auto cmn = displayName.substr(0, displayName.find("-str-"));
         if (GetModel() != nullptr) {
-            _isShadow = GetModel()->GetShadowModelFor() != "" || GetModel()->GetModelManager().IsModelShadowing(GetModel());
+            _isShadowed = GetModel()->GetModelManager().IsModelShadowing(GetModel());
+            _isShadowFor = GetModel()->GetShadowModelFor() != "";
         } else if (cmn != "" && (*mm)[cmn] != nullptr) {
             auto m = (*mm)[cmn];
-            _isShadow = m->GetShadowModelFor() != "" || mm->IsModelShadowing(m);
+            _isShadowed = mm->IsModelShadowing(m);
+            _isShadowFor = m->GetShadowModelFor() != "";
         }
     }
 
@@ -1295,7 +1298,11 @@ public:
 
         wxSize sz = _size;
         sz = sz.Scale(scale, scale);
-        if (_isShadow) {
+        if (_isShadowed) {
+            dc.SetPen(wxPen(dc.GetPen().GetColour(), dc.GetPen().GetWidth(), wxPENSTYLE_LONG_DASH));
+            dc.SetBrush(wxColour(211, 211, 211)); // light grey
+        }
+        if (_isShadowFor) {
             dc.SetPen(wxPen(dc.GetPen().GetColour(), dc.GetPen().GetWidth(), wxPENSTYLE_LONG_DASH));
         }
         dc.DrawRectangle(location + offset, sz);
@@ -1978,7 +1985,6 @@ void ControllerModelDialog::ReloadModels()
     std::string check;
     if (_caps != nullptr) {
         _cud->Check(_caps, check);
-        TextCtrl_Check->SetValue(check);
     }
 
     while (_models.size() > 0) {
@@ -1992,6 +1998,25 @@ void ControllerModelDialog::ReloadModels()
     }
 
     FixDMXChannels();
+
+    for (const auto& it : *_mm) {
+        if (it.second->GetDisplayAs() != "ModelGroup") {
+            if (_controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())) {
+                auto shadows = it.second->GetShadowedBy();
+                if (shadows.size() > 0) {
+                    std::string sh;
+                    for (const auto& it : shadows) {
+                        if (sh != "")
+                            sh += ", ";
+                        sh += it;
+                    }
+                    check += "WARN: " + it.second->Name() + " is shadowed by " + sh + ".\n ";
+                }
+            }
+        }
+    }
+
+    TextCtrl_Check->SetValue(check);
 
     for (const auto& it : *_mm) {
         if (it.second->GetDisplayAs() != "ModelGroup") {
