@@ -6608,13 +6608,9 @@ void LayoutPanel::DeleteSelectedModels()
             for (const auto& it : modelsToDelete) {
                 auto model = xlights->AllModels[it];
                 if (model != nullptr) {
-                    if (!model->IsLocked()) {
-                        xlights->GetDisplayElementsPanel()->RemoveModelFromLists(it);
-                        allDeleted = xlights->AllModels.Delete(it) && allDeleted;
-                        xlights->AddTraceMessage(wxString::Format("LayoutPanel::Delete Selected Model : %s", it));
-                    } else {
-                        allDeleted = false;
-                    }
+                    xlights->GetDisplayElementsPanel()->RemoveModelFromLists(it);
+                    allDeleted = xlights->AllModels.Delete(it) && allDeleted;
+                    xlights->AddTraceMessage(wxString::Format("LayoutPanel::Delete Selected Model : %s", it));
                 }
                 else {
                     allDeleted = false;
@@ -6623,7 +6619,7 @@ void LayoutPanel::DeleteSelectedModels()
 
             if (!allDeleted) {
                 wxBell();
-                wxMessageBox("One or more models cannot be deleted. They may be locked or have effects on them.", "Delete failed", 5L, this);
+                wxMessageBox("One or more models cannot be deleted. They may have effects on them.", "Delete failed", 5L, this);
             }
 
             selectedBaseObject = nullptr;
