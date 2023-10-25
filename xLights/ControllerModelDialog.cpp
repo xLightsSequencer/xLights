@@ -117,6 +117,8 @@ wxColour __darkYellow(60, 60, 0, wxALPHA_OPAQUE);
 wxColour __lightOrange(255, 201, 150, wxALPHA_OPAQUE);
 wxColour __darkOrange(150, 54, 3, wxALPHA_OPAQUE);
 wxColour __magenta(255, 0, 255, wxALPHA_OPAQUE);
+wxColour __lightShadow(211, 211, 211);
+wxColour __darkShadow(30, 24, 24);
 wxColour __textForeground;
 wxBrush __invalidBrush;
 wxBrush __dropTargetBrush;
@@ -135,6 +137,7 @@ wxBrush __modelSRCBrush;
 wxBrush __modelSRDBrush;
 wxBrush __modelSREBrush;
 wxBrush __modelSRFBrush;
+wxBrush __modelShadowBrush;
 wxColour __modelSRAText;
 wxColour __modelSRBText;
 wxColour __modelSRCText;
@@ -189,6 +192,7 @@ void SetColours(bool printing)
         __modelSRDBrush.SetColour(__darkAqua);
         __modelSREBrush.SetColour(__darkPink);
         __modelSRFBrush.SetColour(__darkYellow);
+        __modelShadowBrush.SetColour(__darkShadow);
         __backgroundPen.SetColour(__charcoal);
         __backgroundBrush.SetColour(__charcoal);
         __modelSRAText = __lightGreen;
@@ -212,6 +216,7 @@ void SetColours(bool printing)
         __modelSRDBrush.SetColour(__lightAqua);
         __modelSREBrush.SetColour(__lightPink);
         __modelSRFBrush.SetColour(__lightYellow);
+        __modelShadowBrush.SetColour(__lightShadow);
         __backgroundPen.SetColour(*wxWHITE);
         __backgroundBrush.SetColour(*wxWHITE);
         __modelSRAText = *wxBLACK;
@@ -1300,7 +1305,7 @@ public:
         sz = sz.Scale(scale, scale);
         if (_isShadowed) {
             dc.SetPen(wxPen(dc.GetPen().GetColour(), dc.GetPen().GetWidth(), wxPENSTYLE_LONG_DASH));
-            dc.SetBrush(wxColour(211, 211, 211)); // light grey
+            dc.SetBrush(__modelShadowBrush);
         }
         if (_isShadowFor) {
             dc.SetPen(wxPen(dc.GetPen().GetColour(), dc.GetPen().GetWidth(), wxPENSTYLE_LONG_DASH));
