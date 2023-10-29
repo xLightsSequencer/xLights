@@ -170,6 +170,7 @@ protected:
 
     double GetValueCurveDouble(const std::string& name, double def, const SettingsMap& SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor = 1);
     int GetValueCurveInt(const std::string& name, int def, const SettingsMap& SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor = 1);
+    int GetValueCurveIntMax(const std::string& name, int def, const SettingsMap& SettingsMap, int min, int max, int divisor = 1);
     EffectLayer* GetTiming(const std::string& timingtrack) const;
     Effect* GetCurrentTiming(const RenderBuffer& buffer, const std::string& timingtrack) const;
     std::string GetTimingTracks(const int maxLayers = 0, const int absoluteLayers = 0) const;

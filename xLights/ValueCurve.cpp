@@ -1679,6 +1679,16 @@ float ValueCurve::GetOutputValueAtDivided(float offset, long startMS, long endMS
     return (_min + (_max - _min) * GetValueAt(offset, startMS, endMS)) / _divisor;
 }
 
+float ValueCurve::GetMaxValueDivided()
+{
+    float max = GetMin() / _divisor;
+    for (int i = 0; i < 100; ++i)
+    {
+        max = std::max(max, GetOutputValueAtDivided(i * 50, 0, 100 * 50));
+    }
+    return max;
+}
+
 float ValueCurve::ApplyGain(float value, int gain) const
 {
     float v = (100.0 + gain) * value / 100.0;
