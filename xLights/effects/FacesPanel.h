@@ -55,6 +55,8 @@ class FacesPanel: public xlEffectPanel
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText71;
+        wxStaticText* StaticText_Faces_EyeBlinkFrequency;
+        BulkEditChoice* Choice_Faces_EyeBlinkFrequency;
 		//*)
 
 	protected:
@@ -79,6 +81,8 @@ class FacesPanel: public xlEffectPanel
 		static const long ID_CHECKBOX_Faces_TransparentBlack;
 		static const long IDD_SLIDER_Faces_TransparentBlack;
 		static const long ID_TEXTCTRL_Faces_TransparentBlack;
+        static const long ID_STATICTEXT_EYEBLINKFREQUENCY;
+        static const long ID_CHOICE_Faces_EyeBlinkFrequency;
 		//*)
 
 	public:
@@ -88,6 +92,7 @@ class FacesPanel: public xlEffectPanel
 		void OnCheckBox_SuppressWhenNotSingingClick(wxCommandEvent& event);
 		void OnCheckBox_FadeClick(wxCommandEvent& event);
 		void OnCheckBox_Faces_OutlineClick(wxCommandEvent& event);
+        void OnChoice_Faces_EyesSelected(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

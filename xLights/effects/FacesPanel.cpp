@@ -44,6 +44,9 @@ const long FacesPanel::ID_CHECKBOX_Faces_Fade = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_TransparentBlack = wxNewId();
 const long FacesPanel::IDD_SLIDER_Faces_TransparentBlack = wxNewId();
 const long FacesPanel::ID_TEXTCTRL_Faces_TransparentBlack = wxNewId();
+const long FacesPanel::ID_STATICTEXT_EYEBLINKFREQUENCY = wxNewId();
+const long FacesPanel::ID_CHOICE_Faces_EyeBlinkFrequency = wxNewId();
+
 //*)
 
 BEGIN_EVENT_TABLE(FacesPanel,wxPanel)
@@ -90,6 +93,7 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer97->Add(Choice_Faces_TimingTrack, 1, wxALL|wxEXPAND, 5);
 	StaticBoxSizer2->Add(FlexGridSizer97, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer47->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
+    
 	FlexGridSizer98 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer98->AddGrowableCol(1);
 	StaticText14 = new wxStaticText(this, ID_STATICTEXT15, _("Face Definition"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
@@ -104,7 +108,20 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Faces_Eyes->SetSelection( Choice_Faces_Eyes->Append(_("Auto")) );
 	Choice_Faces_Eyes->Append(_("(off)"));
 	FlexGridSizer98->Add(Choice_Faces_Eyes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    
+    //Eye Blink Frequency
+    StaticText_Faces_EyeBlinkFrequency = new wxStaticText(this,  ID_STATICTEXT_EYEBLINKFREQUENCY, _("Eye Blink Frequency"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_EYEBLINKFREQUENCY"));
+    FlexGridSizer98->Add(StaticText_Faces_EyeBlinkFrequency, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Faces_EyeBlinkFrequency = new BulkEditChoice(this, ID_CHOICE_Faces_EyeBlinkFrequency, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_EyeBlinkFrequency"));
+    Choice_Faces_EyeBlinkFrequency->Append(_("Slowest"));
+    Choice_Faces_EyeBlinkFrequency->Append(_("Slow"));
+    Choice_Faces_EyeBlinkFrequency->SetSelection( Choice_Faces_EyeBlinkFrequency->Append(_("Normal")) );
+    Choice_Faces_EyeBlinkFrequency->Append(_("Fast"));
+    Choice_Faces_EyeBlinkFrequency->Append(_("Fastest"));
+    FlexGridSizer98->Add(Choice_Faces_EyeBlinkFrequency, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    
+    FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    
 	CheckBox_Faces_Outline = new BulkEditCheckBox(this, ID_CHECKBOX_Faces_Outline, _("Show outline"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_Outline"));
 	CheckBox_Faces_Outline->SetValue(false);
 	FlexGridSizer98->Add(CheckBox_Faces_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -117,7 +134,8 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice1 = new BulkEditStateChoice(this, ID_CHOICE_Faces_UseState, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_UseState"));
 	FlexGridSizer98->Add(Choice1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+	
+    FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	CheckBox_SuppressWhenNotSinging = new BulkEditCheckBox(this, ID_CHECKBOX_Faces_SuppressWhenNotSinging, _("Suppress when not singing"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_SuppressWhenNotSinging"));
 	CheckBox_SuppressWhenNotSinging->SetValue(false);
@@ -125,6 +143,7 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Faces_Lead_Frames, _("Lead In/Out Frames"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Faces_Lead_Frames"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
+    
 	SpinCtrl_LeadFrames = new wxSpinCtrl(this, ID_SPINCTRL_Faces_LeadFrames, _T("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 1000, 0, _T("ID_SPINCTRL_Faces_LeadFrames"));
 	SpinCtrl_LeadFrames->SetValue(_T("0"));
 	FlexGridSizer1->Add(SpinCtrl_LeadFrames, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -152,6 +171,7 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_CHECKBOX_Faces_Outline,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FacesPanel::OnCheckBox_Faces_OutlineClick);
 	Connect(ID_CHECKBOX_Faces_SuppressWhenNotSinging,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FacesPanel::OnCheckBox_SuppressWhenNotSingingClick);
 	Connect(ID_CHECKBOX_Faces_Fade,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FacesPanel::OnCheckBox_FadeClick);
+    Connect(ID_CHOICE_Faces_Eyes,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&FacesPanel::OnChoice_Faces_EyesSelected);
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FacesPanel::OnVCChanged, 0, this);
@@ -202,6 +222,22 @@ void FacesPanel::ValidateWindow()
 	else {
         Choice1->Enable(false);
     }
+    
+    // @@@
+    wxString type = Choice_Faces_Eyes->GetStringSelection();
+    if (type == "Auto")
+    {
+        Choice_Faces_EyeBlinkFrequency->Enable();
+    }
+    else
+    {
+        Choice_Faces_EyeBlinkFrequency->Disable();
+    }
+}
+
+void FacesPanel::OnChoice_Faces_EyesSelected(wxCommandEvent& event)
+{
+    ValidateWindow();
 }
 
 void FacesPanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
@@ -222,3 +258,4 @@ void FacesPanel::OnCheckBox_Faces_OutlineClick(wxCommandEvent& event)
 {
 	ValidateWindow();
 }
+
