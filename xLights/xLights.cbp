@@ -213,6 +213,8 @@
 					<Add option="-rdynamic" />
 					<Add option="-lz" />
 					<Add option="-lzstd" />
+                                        <Add option="-lwebp" />
+                                        <Add option="-lwebpdemux" />
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
 					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
@@ -266,6 +268,8 @@
 					<Add option="-rdynamic" />
 					<Add option="-lz" />
 					<Add option="-lzstd" />
+                                        <Add option="-lwebp" />
+                                        <Add option="-lwebpdemux" />
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
 					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
