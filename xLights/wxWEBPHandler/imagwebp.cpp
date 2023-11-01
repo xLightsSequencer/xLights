@@ -11,7 +11,7 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#if wxUSE_IMAGE && wxUSE_WEBP
+#if wxUSE_IMAGE
 
 #include "wx/imagwebp.h"
 #include "webp/demux.h"
@@ -173,4 +173,4 @@ bool wxWEBPHandler::DoCanRead(wxInputStream& stream)
 
 #endif // wxUSE_STREAMS
 
-#endif // wxUSE_IMAGE && wxUSE_WEBP
+#endif // wxUSE_IMAGE

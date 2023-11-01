@@ -247,9 +247,7 @@ class ImageFilePickerCtrl : public wxFilePickerCtrl
 public:
     ImageFilePickerCtrl(wxWindow *parent, wxWindowID id, const wxString& path, const wxString& message, const wxString& wildcard, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) :
         wxFilePickerCtrl(parent, id, path, message, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
-#if wxUSE_WEBP
                                                     ";*.webp"
-            #endif
                                                     "|All files (*.*)|*.*",
                          pos, size, style, validator, name)
     {

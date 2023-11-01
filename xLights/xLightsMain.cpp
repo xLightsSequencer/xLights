@@ -1875,9 +1875,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     EnableNetworkChanges();
 
     wxImage::AddHandler(new wxGIFHandler);
-#if wxUSE_WEBP
     wxImage::AddHandler(new wxWEBPHandler);
-#endif
 
     config->Read("xLightse131Sync", &me131Sync, false);
     _outputManager.SetSyncEnabled(me131Sync);

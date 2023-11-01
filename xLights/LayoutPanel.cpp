@@ -2223,9 +2223,7 @@ public:
         wxImageFileProperty(label, name, ""), lastFileName(value)
     {
         SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
-#if wxUSE_WEBP
                                          ";*.webp"
-            #endif
                                          "|All files (*.*)|*.*");
         SetValueFromString(value);
         if (img != nullptr) {

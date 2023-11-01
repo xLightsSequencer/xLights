@@ -124,9 +124,7 @@ void DmxImage::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     wxPGProperty* prop = grid->Append(new wxImageFileProperty("Image", base_name + "Image", _imageFile));
     prop->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
-#if wxUSE_WEBP
                                            ";*.webp"
-        #endif
                                            "|All files (*.*)|*.*");
 
     prop = grid->Append(new wxFloatProperty("Offset X", base_name + "OffsetX", offset_x * OFFSET_SCALE));

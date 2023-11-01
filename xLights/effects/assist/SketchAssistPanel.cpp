@@ -43,11 +43,7 @@
 namespace
 {
     const wxString imgSelect("Select an image file");
-    const wxString imgFilters("*.jpg;*.gif;*.png;*.bmp;*.jpeg"
-#if wxUSE_WEBP
-                              ";*.webp"
-#endif
-    );
+    const wxString imgFilters("*.jpg;*.gif;*.png;*.bmp;*.jpeg;*.webp");
 
     const char HotkeysText[] =
         "Shift\tToggle segment type (line, one-point curve, two-point curve)\n"

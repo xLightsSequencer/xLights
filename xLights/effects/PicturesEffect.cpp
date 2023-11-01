@@ -463,9 +463,7 @@ bool PicturesEffect::IsPictureFile(std::string filename)
         ext == "jpg" ||
         ext == "jpeg" ||
         ext == "png" ||
-#if wxUSE_WEBP
         ext == "webp" ||
-#endif
         ext == "bmp"
         )
     {

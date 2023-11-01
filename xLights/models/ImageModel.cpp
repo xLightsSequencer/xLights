@@ -87,9 +87,7 @@ void ImageModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager*
                                              "Image",
                                              _imageFile));
     p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
-#if wxUSE_WEBP
                                         ";*.webp"
-        #endif                               
         "|All files (*.*)|*.*");
 
     p = grid->Append(new wxUIntProperty("Off Brightness", "OffBrightness", _offBrightness));

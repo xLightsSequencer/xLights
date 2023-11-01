@@ -160,10 +160,8 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
         "CustomBkgImage",
         custom_background));
     p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
-#if wxUSE_WEBP
                                         ";*.webp"
-                                        #endif
-        "|All files (*.*)|*.*");
+                                        "|All files (*.*)|*.*");
 }
 
 int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)

@@ -656,10 +656,8 @@ void ModelFaceDialog::OnMatrixModelsGridLabelLeftDClick(wxGridEvent& event)
 }
 
 static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
-#if wxUSE_WEBP
                                                ";*.webp"
-                                               #endif
-"|All files (*.*)|*.*";
+                                               "|All files (*.*)|*.*";
 void ModelFaceDialog::SelectMatrixImage(int r, int c)
 {
     std::string const name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();

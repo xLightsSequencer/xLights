@@ -15,7 +15,6 @@
 // wxWEBPHandler
 //-----------------------------------------------------------------------------
 
-#if wxUSE_WEBP
 class WXDLLIMPEXP_CORE wxWEBPHandler : public wxImageHandler
 {
 public:
@@ -37,7 +36,5 @@ protected:
 private:
     wxDECLARE_DYNAMIC_CLASS(wxWEBPHandler);
 };
-
-#endif // wxUSE_WEBP
 
 #endif // _WX_IMAGWEBP_H_
