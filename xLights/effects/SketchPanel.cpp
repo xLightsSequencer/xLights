@@ -25,7 +25,11 @@ namespace
     const char demoVideoURL2[] = "https://vimeo.com/698053599";
 
     const wxString imgSelect("Select an image file");
-    const wxString imgFilters("*.jpg;*.gif;*.png;*.bmp;*.jpeg");
+    const wxString imgFilters("*.jpg;*.gif;*.png;*.bmp;*.jpeg"
+#if wxUSE_WEBP
+                              ";*.webp"
+        #endif
+    );
 
     SketchAssistPanel* getSketchAssistPanel(wxWindow* win)
     {

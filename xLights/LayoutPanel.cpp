@@ -2219,10 +2219,14 @@ public:
     xlImageProperty(const wxString& label,
                     const wxString& name,
                     const wxString& value,
-                    const wxImage *img)
-        : wxImageFileProperty(label, name, ""), lastFileName(value)
+                    const wxImage* img) :
+        wxImageFileProperty(label, name, ""), lastFileName(value)
     {
-        SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*");
+        SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
+#if wxUSE_WEBP
+                                         ";*.webp"
+            #endif
+                                         "|All files (*.*)|*.*");
         SetValueFromString(value);
         if (img != nullptr) {
             setImage(*img);

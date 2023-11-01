@@ -32,7 +32,7 @@
 					<object class="sizeritem">
 						<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" variable="FilePickerCtrl1" member="yes">
 							<message>Select an image file</message>
-							<wildcard>*.jpg;*.gif;*.png;*.bmp;*.jpeg</wildcard>
+							<wildcard>*.jpg;*.gif;*.png;*.bmp;*.jpeg;*.webp</wildcard>
 							<handler function="OnFilePickerCtrl1FileChanged" entry="EVT_FILEPICKER_CHANGED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

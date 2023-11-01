@@ -124,6 +124,9 @@
 #pragma comment(lib, "swscale.lib")
 #pragma comment(lib, "z.lib")
 #pragma comment(lib, "lua5.3.5-static.lib")
+#pragma comment(lib, "libwebp.lib")
+#pragma comment(lib, "libwebpdecoder.lib")
+#pragma comment(lib, "libwebpdemux.lib")
 #endif
 
 xLightsFrame* xLightsApp::__frame = nullptr;
