@@ -1096,7 +1096,6 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
     if (username != "") {
         CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
     }
-    int response_code = 0;
     CurlManager::INSTANCE.addGet(fullUrl, [this, mfn, mediaBaseName, mediaFile](int rc, const std::string &resp) {
         bool doMediaUpload = true;
         if (rc == 200) {

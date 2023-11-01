@@ -140,7 +140,7 @@ bool wxWEBPHandler::SaveFile(wxImage *image, wxOutputStream& stream, bool verbos
     {
         wxLogWarning("WebP: Saving with alpha not implemented.");
     }
-    unsigned char * rgb = image->GetData();
+    //unsigned char * rgb = image->GetData();
     int stride = image->GetWidth();
     float quality_factor = 90;
     if (image->HasOption(wxIMAGE_OPTION_QUALITY))
