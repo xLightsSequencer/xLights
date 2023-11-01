@@ -1398,6 +1398,8 @@
 		<Unit filename="wxCheckedListCtrl.h" />
 		<Unit filename="wxModelGridCellRenderer.cpp" />
 		<Unit filename="wxModelGridCellRenderer.h" />
+		<Unit filename="wxWEBPHandler/imagwebp.cpp" />
+		<Unit filename="wxWEBPHandler/wx/imagwebp.h" />
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/AboutDialog.wxs" />
 		<Unit filename="wxsmith/AlignmentDialog.wxs" />
@@ -1433,8 +1435,8 @@
 		<Unit filename="wxsmith/CustomModelDialog.wxs" />
 		<Unit filename="wxsmith/CustomTimingDialog.wxs" />
 		<Unit filename="wxsmith/DMXPanel.wxs" />
-		<Unit filename="wxsmith/DuplicatePanel.wxs" />
 		<Unit filename="wxsmith/DuplicateDialog.wxs" />
+		<Unit filename="wxsmith/DuplicatePanel.wxs" />
 		<Unit filename="wxsmith/EffectAssist.wxs" />
 		<Unit filename="wxsmith/EffectIconPanel.wxs" />
 		<Unit filename="wxsmith/EffectTimingDialog.wxs" />
