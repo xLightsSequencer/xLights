@@ -36,6 +36,7 @@ class VirtualMatrixDialog : public wxDialog
     wxSize& _size;
     wxPoint& _location;
     std::string& _rotation;
+    std::string& _pixelChannels;
     std::string& _quality;
     OutputManager* _outputManager;
     wxSize _tempSize;
@@ -44,7 +45,7 @@ class VirtualMatrixDialog : public wxDialog
 
 public:
 
-    VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& _startChannel, bool& useMatrixSize, int& matrixMultiplier, ScheduleOptions* options, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& pixelChannels, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& _startChannel, bool& useMatrixSize, int& matrixMultiplier, ScheduleOptions* options, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~VirtualMatrixDialog();
 
     //(*Declarations(VirtualMatrixDialog)
@@ -52,6 +53,7 @@ public:
     wxButton* Button_Ok;
     wxButton* Button_Position;
     wxCheckBox* CheckBox_Topmost;
+    wxChoice* Choice_PixelChannels;
     wxChoice* Choice_Quality;
     wxChoice* Choice_Rotation;
     wxSpinCtrl* SpinCtrl_Height;
@@ -63,6 +65,7 @@ public:
     wxStaticText* StaticText5;
     wxStaticText* StaticText6;
     wxStaticText* StaticText7;
+    wxStaticText* StaticText9;
     wxTextCtrl* TextCtrl_Name;
     wxTextCtrl* TextCtrl_StartChannel;
     //*)
@@ -76,6 +79,8 @@ protected:
     static const long ID_SPINCTRL1;
     static const long ID_STATICTEXT4;
     static const long ID_SPINCTRL2;
+    static const long ID_STATICTEXT9;
+    static const long ID_CHOICE4;
     static const long ID_STATICTEXT2;
     static const long ID_CHOICE1;
     static const long ID_STATICTEXT5;

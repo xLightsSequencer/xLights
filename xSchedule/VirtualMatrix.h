@@ -19,6 +19,7 @@ class OutputManager;
 class ScheduleOptions;
 
 typedef enum {VM_NORMAL, VM_90, VM_270, VM_FLIP_HORIZONTAL, VM_FLIP_VERTICAL } VMROTATION;
+typedef enum {RGB, RGBW } VMPIXELCHANNELS;
 
 class VirtualMatrix 
 {
@@ -34,6 +35,7 @@ class VirtualMatrix
     wxSize _size;
     wxPoint _location;
     VMROTATION _rotation;
+    VMPIXELCHANNELS _pixelChannels;
     std::string _startChannel;
     wxImage _image;
     wxImageResizeQuality _quality;
@@ -45,12 +47,14 @@ public:
 
 		static VMROTATION EncodeRotation(const std::string rotation);
 		static std::string DecodeRotation(VMROTATION rotation);
+        static VMPIXELCHANNELS EncodePixelChannels(const std::string pixelChannels);
+        static std::string DecodePixelChannels(VMPIXELCHANNELS pixelChannels);
         static wxImageResizeQuality EncodeScalingQuality(const std::string quality, int& swsQuality);
         static std::string DecodeScalingQuality(wxImageResizeQuality quality, int swsQuality);
 
         VirtualMatrix(OutputManager* outputManager, wxXmlNode* n);
-        VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, int swsQuality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier);
-        VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, const std::string& rotation, const std::string& quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier);
+        VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, VMPIXELCHANNELS pixelChannels, wxImageResizeQuality quality, int swsQuality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier);
+        VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, const std::string& rotation, const std::string& pixelChannels, const std::string& quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier);
         VirtualMatrix(OutputManager* outputManager, ScheduleOptions* options);
         virtual ~VirtualMatrix() {}
         void Frame(uint8_t*buffer, size_t size);
@@ -60,7 +64,8 @@ public:
         void Suppress(bool suppress);
         std::string GetStartChannel() const { return _startChannel; }
         long GetStartChannelAsNumber() const;
-        size_t GetChannels() const { return _width * _height * 3; }
+        int GetPixelChannelsCount() const;
+        size_t GetChannels() const { return _width * _height * GetPixelChannelsCount(); }
         void SetStartChannel(const std::string& startChannel) { if (startChannel != _startChannel) { _startChannel = startChannel; _changeCount++; } }
         std::string GetName() const { return _name; }
         void SetName(const std::string& name) { if (name != _name) { _name = name; _changeCount++; } }
@@ -72,6 +77,7 @@ public:
         bool GetUseMatrixSize() const { return _useMatrixSize; }
         int GetMatrixMultiplier() const { return _matrixMultiplier; }
         std::string GetRotation() const { return DecodeRotation(_rotation); }
+        std::string GetPixelChannels() const { return DecodePixelChannels(_pixelChannels); }
         std::string GetScalingQuality() const { return DecodeScalingQuality(_quality, _swsQuality); }
         bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
         void ClearDirty() { _lastSavedChangeCount = _changeCount; }

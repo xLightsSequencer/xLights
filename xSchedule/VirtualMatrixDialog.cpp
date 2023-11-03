@@ -28,6 +28,8 @@ const long VirtualMatrixDialog::ID_STATICTEXT1 = wxNewId();
 const long VirtualMatrixDialog::ID_SPINCTRL1 = wxNewId();
 const long VirtualMatrixDialog::ID_STATICTEXT4 = wxNewId();
 const long VirtualMatrixDialog::ID_SPINCTRL2 = wxNewId();
+const long VirtualMatrixDialog::ID_STATICTEXT9 = wxNewId();
+const long VirtualMatrixDialog::ID_CHOICE4 = wxNewId();
 const long VirtualMatrixDialog::ID_STATICTEXT2 = wxNewId();
 const long VirtualMatrixDialog::ID_CHOICE1 = wxNewId();
 const long VirtualMatrixDialog::ID_STATICTEXT5 = wxNewId();
@@ -46,8 +48,8 @@ BEGIN_EVENT_TABLE(VirtualMatrixDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& startChannel, bool& useMatrixSize, int& matrixMultiplier, ScheduleOptions* options, wxWindowID id, const wxPoint& pos, const wxSize& size) :
-    _name(name), _width(width), _height(height), _topMost(topMost), _useMatrixSize(useMatrixSize), _matrixMultiplier(matrixMultiplier), _startChannel(startChannel), _size(vmsize), _location(vmlocation), _rotation(rotation), _quality(quality)
+VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& pixelChannels, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& startChannel, bool& useMatrixSize, int& matrixMultiplier, ScheduleOptions* options, wxWindowID id, const wxPoint& pos, const wxSize& size) :
+    _name(name), _width(width), _height(height), _topMost(topMost), _useMatrixSize(useMatrixSize), _matrixMultiplier(matrixMultiplier), _startChannel(startChannel), _size(vmsize), _location(vmlocation), _rotation(rotation), _pixelChannels(pixelChannels), _quality(quality)
 {
     _outputManager = outputManager;
     _tempSize = _size;
@@ -78,6 +80,12 @@ VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* output
     SpinCtrl_Width = new wxSpinCtrl(this, ID_SPINCTRL2, _T("32"), wxDefaultPosition, wxDefaultSize, 0, 1, 5000, 32, _T("ID_SPINCTRL2"));
     SpinCtrl_Width->SetValue(_T("32"));
     FlexGridSizer1->Add(SpinCtrl_Width, 1, wxALL|wxEXPAND, 5);
+    StaticText9 = new wxStaticText(this, ID_STATICTEXT9, _("Pixel channels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+    FlexGridSizer1->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_PixelChannels = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
+    Choice_PixelChannels->SetSelection( Choice_PixelChannels->Append(_("RGB")) );
+    Choice_PixelChannels->Append(_("RGBW"));
+    FlexGridSizer1->Add(Choice_PixelChannels, 1, wxALL|wxEXPAND, 5);
     StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Rotation:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Rotation = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
@@ -146,6 +154,7 @@ VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* output
 
     TextCtrl_Name->SetValue(_name);
     Choice_Rotation->SetStringSelection(_rotation);
+    Choice_PixelChannels->SetStringSelection(_pixelChannels);
     Choice_Quality->SetStringSelection(_quality);
     TextCtrl_StartChannel->SetValue(_startChannel);
     SpinCtrl_Width->SetValue(_width);
@@ -163,6 +172,7 @@ void VirtualMatrixDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     _name = TextCtrl_Name->GetValue().ToStdString();
     _rotation = Choice_Rotation->GetStringSelection().ToStdString();
+    _pixelChannels = Choice_PixelChannels->GetStringSelection().ToStdString();
     _quality = Choice_Quality->GetStringSelection().ToStdString();
     _startChannel = TextCtrl_StartChannel->GetValue().ToStdString();
     _width = SpinCtrl_Width->GetValue();
