@@ -864,7 +864,6 @@ bool ModelGroup::SubModelRenamed(const std::string &oldName, const std::string &
 }
 
 bool ModelGroup::CheckForChanges() const {
-
     unsigned long l = 0;
     for (const auto& it : models) {
         ModelGroup *grp = dynamic_cast<ModelGroup*>(it);
@@ -875,6 +874,13 @@ bool ModelGroup::CheckForChanges() const {
     }
 
     if (l != changeCount) {
+        if (!wxThread::IsMain()) {
+            //calling reset on any thread other than the main thread is bad.  In theory, any changes to the group/model
+            //would only be done on the main thread after an abortRender call so we shouldn't get here, but we are
+            //seeing stack traces in crash reports that show otherwise so likely some abortRender calls are missing.
+            return false;
+        }
+        
         // this is ugly ... it is casting away the const-ness of this
         ModelGroup *group = (ModelGroup*)this;
         if (group != nullptr) group->Reset();
