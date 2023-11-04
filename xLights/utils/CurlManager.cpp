@@ -70,6 +70,11 @@ static size_t urlReadData(void* ptr, size_t size, size_t nmemb, void* userp) {
     dt->curPos += numb;
     return numb;
 }
+static int urlSeekData(void *userp, curl_off_t offset, int origin) {
+    CurlManager::CurlPrivateData* dt = (CurlManager::CurlPrivateData*)userp;
+    dt->curPos = offset;
+    return CURL_SEEKFUNC_OK;
+}
 CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd, bool upload) {
     static std::string USERAGENT = wxAppConsole::GetInstance()->GetAppName().ToStdString() + "-" + xlights_version_string;
 
@@ -97,12 +102,14 @@ CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd,
     if (hd->username != "") {
         curl_easy_setopt(c, CURLOPT_USERNAME, hd->username.c_str());
         curl_easy_setopt(c, CURLOPT_PASSWORD, hd->password.c_str());
-        curl_easy_setopt(c, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
+        curl_easy_setopt(c, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
     }
     if (upload) {
         data->req = new std::vector<uint8_t>();
         curl_easy_setopt(c, CURLOPT_READDATA, data);
         curl_easy_setopt(c, CURLOPT_READFUNCTION, urlReadData);
+        curl_easy_setopt(c, CURLOPT_SEEKDATA, data);
+        curl_easy_setopt(c, CURLOPT_SEEKFUNCTION, urlSeekData);
     }
     if (cpd) {
         *cpd = data;
@@ -221,6 +228,12 @@ static size_t read_callback(void* ptr, size_t size, size_t nmemb, void* userp) {
     dt->curPos += numb;
     return numb;
 }
+
+static int seek_callback(void *userp, curl_off_t offset, int origin) {
+    struct ReadDataInfo* dt = (struct ReadDataInfo*)userp;
+    dt->curPos = offset;
+    return CURL_SEEKFUNC_OK;
+}
 std::string CurlManager::doPost(const std::string& furl, const std::string& contentType, const std::vector<uint8_t>& data, int& rc) {
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
     logger_curl.info("Adding Synchronous CURL - URL: %s    Method: POST", furl.c_str());
@@ -243,6 +256,8 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
 
     curl_easy_setopt(curl, CURLOPT_READDATA, &dta);
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
+    curl_easy_setopt(curl, CURLOPT_SEEKDATA, &dta);
+    curl_easy_setopt(curl, CURLOPT_SEEKFUNCTION, seek_callback);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)data.size());
 
     bool done = false;
@@ -298,6 +313,8 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
 
     curl_easy_setopt(curl, CURLOPT_READDATA, &dta);
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
+    curl_easy_setopt(curl, CURLOPT_SEEKDATA, &dta);
+    curl_easy_setopt(curl, CURLOPT_SEEKFUNCTION, seek_callback);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)data.size());
 
     addCURL(furl, curl, [](CURL* c) {}, false);
