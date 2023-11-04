@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.19 Nov 4, 2023
+   -- enh (keith) Add webp image support
+   -- enh (dartunder) Add warning and make it easier to see that a model had a shadow model in visualizer
+   -- bug (Daniel Hacquebord) Fix dark mode for shadow models in visualizer
+   -- bug (scott) Fix AlphaPix upload
+   -- bug (keith) Fix crash with liquid effect on large models
+   -- bug (scott) LUA Script: Select Sequences and deselect highlighted does nothing
+   -- bug (dkulp) FPP Connect: not uploading serial outputs from FPP Connect (worked fine from controller page)
+   -- bug (dkulp) FPP Connect: not able to upload to FPP instances with UI password set
+   -- bug (dkulp) Fix crash on MacOS with RotoZoom if GPU is busy
+   -- bug (dkulp) Workaround some other common crashes, but underlying cause of crash still under investigation
 2023.18 Oct 21, 2023
    -- enh (dkulp) FPP Connect - query and media in parallel
    -- bug (scott) Custom Model Export - Export Default Render Buffer as Submodel
