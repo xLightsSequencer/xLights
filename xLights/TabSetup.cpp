@@ -2137,20 +2137,27 @@ void xLightsFrame::OnListControllersItemRClick(wxListEvent& event) {
         ethernet += "xxx";
     }
     int count = List_Controllers->GetSelectedItemCount();
-    Controller *controller = nullptr;
-    if (count == 1) {
-        auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-        controller = _outputManager.GetController(name);
+
+    std::vector<Controller*> selectedControllers;
+    for (const auto& controllerName : GetSelectedControllerNames()) {
+        Controller* controller = _outputManager.GetController(controllerName);
+        if (controller)
+            selectedControllers.push_back(controller);
     }
+
+    bool anySelectedControllersFromBase = std::any_of(selectedControllers.begin(), selectedControllers.end(), [](const Controller* controller) { return controller->IsFromBase(); });
+    bool allSelectedControllersFromBase = std::all_of(selectedControllers.begin(), selectedControllers.end(), [](const Controller* controller) { return controller->IsFromBase(); });
+    bool enableActivateMenuItems = selectedControllers.size() > 0 && !anySelectedControllersFromBase;
+    bool enableUnlinkFromBaseMenuItem = selectedControllers.size() > 0 && allSelectedControllersFromBase;
 
     mnu.Append(ID_NETWORK_ADDETHERNET, ethernet)->Enable(ButtonAddControllerSerial->IsEnabled());
     mnu.Append(ID_NETWORK_ADDNULL, "Insert NULL")->Enable(ButtonAddControllerSerial->IsEnabled());
     mnu.Append(ID_NETWORK_ADDSERIAL, "Insert DMX/LOR/DLight/Renard")->Enable(ButtonAddControllerSerial->IsEnabled());
-    mnu.Append(ID_NETWORK_ACTIVE, "Activate")->Enable(ButtonAddControllerSerial->IsEnabled() && controller != nullptr && !controller->IsFromBase());
-    mnu.Append(ID_NETWORK_ACTIVEXLIGHTS, "Activate in xLights Only")->Enable(ButtonAddControllerSerial->IsEnabled() && controller != nullptr && !controller->IsFromBase());
-    mnu.Append(ID_NETWORK_INACTIVE, "Inactivate")->Enable(ButtonAddControllerSerial->IsEnabled() && controller != nullptr && !controller->IsFromBase());
+    mnu.Append(ID_NETWORK_ACTIVE, "Activate")->Enable(ButtonAddControllerSerial->IsEnabled() && enableActivateMenuItems);
+    mnu.Append(ID_NETWORK_ACTIVEXLIGHTS, "Activate in xLights Only")->Enable(ButtonAddControllerSerial->IsEnabled() && enableActivateMenuItems);
+    mnu.Append(ID_NETWORK_INACTIVE, "Inactivate")->Enable(ButtonAddControllerSerial->IsEnabled() && enableActivateMenuItems);
     mnu.Append(ID_NETWORK_DELETE, "Delete")->Enable(ButtonAddControllerSerial->IsEnabled());
-    mnu.Append(ID_NETWORK_UNLINKFROMBASE, "Unlink from Base Show Folder")->Enable(ButtonAddControllerSerial->IsEnabled() && controller != nullptr && controller->IsFromBase());
+    mnu.Append(ID_NETWORK_UNLINKFROMBASE, "Unlink from Base Show Folder")->Enable(ButtonAddControllerSerial->IsEnabled() && enableUnlinkFromBaseMenuItem);
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnListControllerPopup, nullptr, this);
     PopupMenu(&mnu);
