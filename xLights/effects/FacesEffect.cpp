@@ -239,6 +239,20 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
     return res;
 }
 
+int FacesEffect::GetMaxEyeDelay( std::string& eyeBlinkFreqString ) const {
+    int maxEyeDelay = 5500; //Normal
+    if( eyeBlinkFreqString  == "Slowest")
+        maxEyeDelay = 9000;
+    else if( eyeBlinkFreqString  == "Slow")
+        maxEyeDelay = 7250;
+    else if( eyeBlinkFreqString  == "Fast")
+        maxEyeDelay = 3750;
+    else if( eyeBlinkFreqString  == "Fastest")
+        maxEyeDelay = 2000;
+    
+    return maxEyeDelay;
+}
+
 void FacesEffect::SetPanelStatus(Model* cls) {
     FacesPanel* fp = (FacesPanel*)panel;
     if (fp == nullptr)
@@ -686,15 +700,7 @@ void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, c
     FacesRenderCache* cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new FacesRenderCache();
-        int maxEyeDelay = 5500; //Normal
-        if( eyeBlinkFreq  == "Slowest")
-            maxEyeDelay = 9000;
-        else if( eyeBlinkFreq  == "Slow")
-            maxEyeDelay = 7250;
-        else if( eyeBlinkFreq  == "Fast")
-            maxEyeDelay = 3750;
-        else if( eyeBlinkFreq  == "Fastest")
-            maxEyeDelay = 2000;
+        int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
         cache->nextBlinkTime = intRand(0, maxEyeDelay);
         buffer.infoCache[id] = cache;
     }
@@ -714,16 +720,7 @@ void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, c
         if (Phoneme == 9 || Phoneme == 10) {
             if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                 //calculate the blink time taking into account user selection
-                int maxEyeDelay = 5500; //Normal
-                if( eyeBlinkFreq  == "Slowest")
-                    maxEyeDelay = 9000;
-                else if( eyeBlinkFreq  == "Slow")
-                    maxEyeDelay = 7250;
-                else if( eyeBlinkFreq  == "Fast")
-                    maxEyeDelay = 3750;
-                else if( eyeBlinkFreq  == "Fastest")
-                    maxEyeDelay = 2000;
-                    
+                int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
                 cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
                 cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
                 eye = "Closed";
@@ -1037,15 +1034,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             if ("Auto" == eyes) {
                 if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                     //calculate the blink time taking into account user selection
-                    int maxEyeDelay = 5500; //Normal
-                    if( eyeBlinkFreq  == "Slowest")
-                        maxEyeDelay = 9000;
-                    else if( eyeBlinkFreq  == "Slow")
-                        maxEyeDelay = 7250;
-                    else if( eyeBlinkFreq  == "Fast")
-                        maxEyeDelay = 3750;
-                    else if( eyeBlinkFreq  == "Fastest")
-                        maxEyeDelay = 2000;
+                    int maxEyeDelay = GetMaxEyeDelay( eyeBlinkFreq );
                     cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
                     cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
                     eyes = "Closed";
@@ -1107,15 +1096,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                             }
                         } else {
                             //calculate the blink time taking into account user selection
-                            int maxEyeDelay = 5500; //Normal
-                            if( eyeBlinkFreq  == "Slowest")
-                                maxEyeDelay = 9000;
-                            else if( eyeBlinkFreq  == "Slow")
-                                maxEyeDelay = 7250;
-                            else if( eyeBlinkFreq  == "Fast")
-                                maxEyeDelay = 3750;
-                            else if( eyeBlinkFreq  == "Fastest")
-                                maxEyeDelay = 2000;
+                            int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
                             cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
                             cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
                             eyes = "Closed";
@@ -1132,15 +1113,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             if ("Auto" == eyes) {
                 if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                     //calculate the blink time, taking into account user selection
-                    int maxEyeDelay = 5500; //Normal
-                    if( eyeBlinkFreq  == "Slowest")
-                        maxEyeDelay = 9000;
-                    else if( eyeBlinkFreq  == "Slow")
-                        maxEyeDelay = 7250;
-                    else if( eyeBlinkFreq  == "Fast")
-                        maxEyeDelay = 3750;
-                    else if( eyeBlinkFreq  == "Fastest")
-                        maxEyeDelay = 2000;
+                    int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
                     cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
                     cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
                     eyes = "Closed";

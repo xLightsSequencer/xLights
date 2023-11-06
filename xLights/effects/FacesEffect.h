@@ -55,4 +55,5 @@ private:
     std::string MakeKey(int bufferWi, int bufferHt, std::string dirstr, std::string picture, std::string stf);
     uint8_t CalculateAlpha(SequenceElements* elements, int leadFrames, bool fade, const std::string& timingTrack, RenderBuffer& buffer);
     bool ShimmerState(RenderBuffer& buffer) const;
+    int GetMaxEyeDelay( std::string& eyeBlinkFreq ) const;
 };
