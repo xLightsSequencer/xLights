@@ -73,7 +73,7 @@ std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& sett
     }
 
     if (settings.GetInt("E_TEXTCTRL_Size", 500) > 1000) {
-        res.push_back(wxString::Format("    WARN: Liquid effect particle size > 1000 can slow render times significantly. Model '%s', Start %s", count, MAX_PARTICLES, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    WARN: Liquid effect particle size > 1000 can slow render times significantly. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;
