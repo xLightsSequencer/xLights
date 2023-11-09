@@ -1115,8 +1115,9 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
 
     xLightsFrame* xlframe = static_cast<xLightsFrame*>(GetParent());
     if (messages != "") {
-        wxMessageBox(messages, "Problems Uploading", wxOK | wxCENTRE, this);
+        logger_base.warn("FPP Connect Upload had errors or warnings:\n" + messages);
         xlframe->SetStatusText("FPP Connect Upload had errors or warnings", 0);
+        wxMessageBox(messages, "Problems Uploading", wxOK | wxCENTRE, this);
         prgs->EndModal(2);
     } else {
         if (cancelled) {
