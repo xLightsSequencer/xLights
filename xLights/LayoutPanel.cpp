@@ -6717,6 +6717,8 @@ void LayoutPanel::ReplaceModel()
 
         if (replaceModel == nullptr) return;
 
+        CreateUndoPoint("All", "", "");
+
         // Prompt user to copy the target models start channel ...but only if
         // they are not already the same and the new model uses a chaining start
         // channel ... the theory being if you took time to set the start channel
@@ -6753,7 +6755,10 @@ void LayoutPanel::ReplaceModel()
             }
         }
 
-        if (wxMessageBox("Use original size and position", "Use original size and position", wxYES_NO) == wxYES) {
+        auto rmn = replaceModel->GetName();
+        auto riw = modelToReplaceItWith->GetName();
+
+        if (wxMessageBox("Use original size and position of " + rmn, "Use original size and position", wxYES_NO) == wxYES) {
             modelToReplaceItWith->GetModelScreenLocation().SetRotation(replaceModel->GetModelScreenLocation().GetRotation());
             modelToReplaceItWith->SetHcenterPos(replaceModel->GetHcenterPos());
             modelToReplaceItWith->SetVcenterPos(replaceModel->GetVcenterPos());
@@ -6763,8 +6768,6 @@ void LayoutPanel::ReplaceModel()
             modelToReplaceItWith->SetDepth(replaceModel->GetDepth());    
         }
 
-        auto rmn = replaceModel->GetName();
-        auto riw = modelToReplaceItWith->GetName();
         xlights->AllModels.RenameInListOnly(dlg.GetStringSelection().ToStdString(), "Iamgoingtodeletethismodel");
         replaceModel->Rename("Iamgoingtodeletethismodel");
         xlights->AllModels.RenameInListOnly(modelToReplaceItWith->GetName(), dlg.GetStringSelection().ToStdString());
