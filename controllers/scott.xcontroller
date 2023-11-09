@@ -87,4 +87,10 @@
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
     </Controller>
+    <Controller Name="PB8DMX">
+        <Variant Name="" ID="PB8DMX" Base="FPP:FPPStringCape">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>8</MaxSerialPort>
+        </Variant>
+    </Controller>
 </Vendor>
