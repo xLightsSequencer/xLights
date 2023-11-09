@@ -65,6 +65,7 @@ public:
 
         data["E_CHOICE_CoroFaces_Phoneme"] = "E_CHOICE_Faces_Phoneme";
         data["E_CHOICE_CoroFaces_Eyes"] = "E_CHOICE_Faces_Eyes";
+        data["E_CHOICE_CoroFaces_EyeBlinkFrequency"] = "E_CHOICE_Faces_EyeBlinkFrequency";
         data["E_CHECKBOX_CoroFaces_Outline"] = "E_CHECKBOX_Faces_Outline";
         data["E_CHECKBOX_CoroFaces_InPapagayo"] = "";
         data["E_CHECKBOX_Faces_InPapagayo"] = "";

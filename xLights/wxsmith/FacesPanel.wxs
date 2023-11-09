@@ -105,13 +105,38 @@
 								<item>(off)</item>
 							</content>
 							<selection>2</selection>
+							<handler function="OnChoice_Faces_EyesSelect" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT_EYEBLINKFREQUENCY" variable="StaticText_Faces_EyeBlinkFrequency" member="yes">
+							<label>Eye Blink Frequency</label>
+						</object>
+						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE_Faces_EyeBlinkFrequency" subclass="BulkEditChoice" variable="Choice_Faces_EyeBlinkFrequency" member="yes">
+							<content>
+								<item>Slowest</item>
+								<item>Slow</item>
+								<item>Normal</item>
+								<item>Fast</item>
+								<item>Fastest</item>
+							</content>
+							<selection>2</selection>
+							<handler function="OnChoice_Faces_EyeBlinkFrequencySelect" entry="EVT_CHOICE" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
