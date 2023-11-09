@@ -70,6 +70,7 @@ const long ControllerModelDialog::CONTROLLER_BRIGHTNESS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR = wxNewId();
 const long ControllerModelDialog::CONTROLLER_REMOVEALLMODELS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE = wxNewId();
+const long ControllerModelDialog::CONTROLLER_REMOVESMARTREMOTE = wxNewId();
 const long ControllerModelDialog::CONTROLLER_MODEL_STRINGS = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerModelDialog, wxDialog)
@@ -604,6 +605,9 @@ public:
         if (_caps != nullptr && (_type == PORTTYPE::PIXEL) && _caps->SupportsSmartRemotes() && (_caps->GetSmartRemoteTypes().size() > 1)) {
             mnu.Append(ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE, "Set Smart Remote Type");
         }
+        if (_caps != nullptr && (_type == PORTTYPE::PIXEL) && _caps->SupportsSmartRemotes() && GetSmartRemoteCount() > 0) {
+            mnu.Append(ControllerModelDialog::CONTROLLER_REMOVESMARTREMOTE, "Remove Smart Remote");
+        }
         mnu.Append(ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS, "Remove All Models From Port");
         if (_caps != nullptr && ((_type == PORTTYPE::PIXEL && _caps->GetMaxPixelPort() > 1) || (_type == PORTTYPE::SERIAL && _caps->GetMaxSerialPort() > 1))) {
             mnu.Append(ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT, "Move All Models To Port");
@@ -745,6 +749,12 @@ public:
                 }
                 return true;
             }
+        } else if (id == ControllerModelDialog::CONTROLLER_REMOVESMARTREMOTE) {
+            int basePort = GetBasePort();
+            for (uint8_t p = 0; p < 4; ++p) {
+                _cud->GetControllerPixelPort(basePort + p)->ClearSmartRemoteOnAllModels();
+            }
+            return true;
         }
         return false;
     }
