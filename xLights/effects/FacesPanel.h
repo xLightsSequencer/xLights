@@ -92,7 +92,6 @@ class FacesPanel: public xlEffectPanel
 		void OnCheckBox_SuppressWhenNotSingingClick(wxCommandEvent& event);
 		void OnCheckBox_FadeClick(wxCommandEvent& event);
 		void OnCheckBox_Faces_OutlineClick(wxCommandEvent& event);
-		void OnChoice_Faces_EyesSelected(wxCommandEvent& event);
 		void OnChoice_Faces_EyeBlinkFrequencySelect(wxCommandEvent& event);
 		void OnChoice_Faces_EyesSelect(wxCommandEvent& event);
 		//*)

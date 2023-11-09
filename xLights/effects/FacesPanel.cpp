@@ -227,11 +227,6 @@ void FacesPanel::ValidateWindow()
     }
 }
 
-void FacesPanel::OnChoice_Faces_EyesSelected(wxCommandEvent& event)
-{
-    ValidateWindow();
-}
-
 void FacesPanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
 {
 	ValidateWindow();
