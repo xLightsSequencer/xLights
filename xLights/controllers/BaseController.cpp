@@ -117,7 +117,7 @@ std::string BaseController::GetURL(const std::string& url, const std::string& us
     }
     int rc = 0;
     std::string res = CurlManager::INSTANCE.doGet(furl, rc);
-    if (rc == 0) {
+    if (rc == 0 && !needsHTTP_0_9()) {
         logger_base.error("Failure to access %s: %s.", (const char*)furl.c_str(), res.c_str());
         return "";
     }
@@ -141,7 +141,7 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
     }
     int rc = 0;
     std::string res = CurlManager::INSTANCE.doPost(furl, contentType, request, rc);
-    if (rc == 0) {
+    if (rc == 0 && !needsHTTP_0_9()) {
         logger_base.error("Failure to post to %s: %s.", (const char*)furl.c_str(), res.c_str());
         return "";
     }
