@@ -216,7 +216,6 @@ void FacesPanel::ValidateWindow()
         Choice1->Enable(false);
     }
 
-    // @@@
     wxString type = Choice_Faces_Eyes->GetStringSelection();
     if (type == "Auto")
     {
