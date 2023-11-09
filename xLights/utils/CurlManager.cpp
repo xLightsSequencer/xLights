@@ -89,13 +89,14 @@ CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd,
     curl_easy_setopt(c, CURLOPT_NOSIGNAL, 1L);
     //curl_easy_setopt(c, CURLOPT_VERBOSE, 2L);
     curl_easy_setopt(c, CURLOPT_UPKEEP_INTERVAL_MS, 5000L);
-    if (hd->allowHTTP0_9) {
-        curl_easy_setopt(c, CURLOPT_HTTP09_ALLOWED, 1L);
-    }
 
     curl_easy_setopt(c, CURLOPT_WRITEFUNCTION, urlWriteData);
     CurlPrivateData* data = new CurlPrivateData();
     data->host = host;
+    if (hd->allowHTTP0_9) {
+        curl_easy_setopt(c, CURLOPT_HTTP09_ALLOWED, 1L);
+        data->isHTTP_0_9 = true;
+    }
     curl_easy_setopt(c, CURLOPT_ERRORBUFFER, data->errorResp);
     curl_easy_setopt(c, CURLOPT_WRITEDATA, &data->resp);
     curl_easy_setopt(c, CURLOPT_PRIVATE, data);
@@ -199,7 +200,7 @@ std::string CurlManager::doGet(const std::string& furl, int& rc) {
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc2);
     rc = rc2;
     std::string resp;
-    if (rc) {
+    if (rc || data->isHTTP_0_9) {
         resp.assign(reinterpret_cast<char*>(data->resp.data()), data->resp.size());
     } else {
         resp = data->errorResp;
@@ -272,7 +273,7 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc2);
     rc = rc2;
     std::string resp;
-    if (rc) {
+    if (rc || cdata->isHTTP_0_9) {
         resp.assign(reinterpret_cast<char*>(cdata->resp.data()), cdata->resp.size());
     } else {
         resp = cdata->errorResp;
@@ -328,7 +329,7 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc2);
     rc = rc2;
     std::string resp;
-    if (rc) {
+    if (rc || cdata->isHTTP_0_9) {
         resp.assign(reinterpret_cast<char*>(cdata->resp.data()), cdata->resp.size());
     } else {
         resp = cdata->errorResp;

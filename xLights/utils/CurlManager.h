@@ -26,6 +26,7 @@ public:
 
         std::vector<uint8_t>* req = nullptr;
         size_t curPos = 0;
+        bool isHTTP_0_9 = false;
     };
 
     // Raw methods for working directly with the CURL* objects
