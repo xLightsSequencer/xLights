@@ -1123,10 +1123,21 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
         }
         row++;
     }
+    xLightsFrame* xlframe = static_cast<xLightsFrame*>(GetParent());
     if (messages != "") {
+        xlframe->SetStatusText("FPP Connect Upload had errors or warnings", 0);
         wxMessageBox(messages, "Problems Uploading", wxOK | wxCENTRE, this);
-    }
-    prgs->EndModal(cancelled ? 1 : 0);
+        logger_base.warn("FPP Connect Upload had errors or warnings:\n" + messages);
+        prgs->EndModal(2);
+    } else {
+        if (cancelled) {
+            xlframe->SetStatusText("FPP Connect Upload Cancelled", 0);
+            prgs->EndModal(1);
+        } else {
+            xlframe->SetStatusText("FPP Connect Upload Complete", 0);
+            prgs->EndModal(0);
+        }
+    };
 }
 
 bool FPPConnectDialog::GetCheckValue(const std::string &col) {
