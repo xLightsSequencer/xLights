@@ -1122,10 +1122,18 @@ public:
             auto mi = srMenu->AppendRadioItem(wxNewId(), "None");
             if (_smartRemote == 0)
                 mi->Check();
-            for (int i = 0; i < srcount; i++) {
-                mi = srMenu->AppendRadioItem(wxNewId(), wxString(char(65 + i)));
-                if (_smartRemote == i + 1)
-                    mi->Check();
+            if (_caps->GetVendor() == "HinksPix") {
+                for (int i = 0; i < srcount; i++) {
+                    mi = srMenu->AppendRadioItem(wxNewId(), wxString::Format("%d", i));
+                    if (_smartRemote == i + 1)
+                        mi->Check();
+                }
+            } else {
+                for (int i = 0; i < srcount; i++) {
+                    mi = srMenu->AppendRadioItem(wxNewId(), wxString(char(65 + i)));
+                    if (_smartRemote == i + 1)
+                        mi->Check();
+                }
             }
 
             srMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
@@ -1138,6 +1146,9 @@ public:
         wxString label = ((wxMenu*)event.GetEventObject())->GetLabelText(id);
         if (label == "None") {
             SetAllModelsToReceiver(_port, _smartRemote, 0);
+            return true;
+        } else if (label >= "0" && label <= "25") {
+            SetAllModelsToReceiver(_port, _smartRemote, wxAtoi(label) + 1);
             return true;
         } else if (label >= "A" && label <= "Z") {
             SetAllModelsToReceiver(_port, _smartRemote, int(label[0]) - 64);
@@ -1389,11 +1400,19 @@ public:
                 auto mi = srMenu->AppendRadioItem(wxNewId(), "None");
                 if (GetModel()->GetSmartRemote() == 0)
                     mi->Check();
-                for (int i = 0; i < srcount; i++) {
-                    mi = srMenu->AppendRadioItem(wxNewId(), wxString(char(65 + i)));
-                    if (GetModel()->GetSmartRemote() == i + 1)
-                        mi->Check();
-                }
+
+
+                    for (int i = 0; i < srcount; i++) {
+                    if (_caps->GetVendor() == "HinksPix") {
+                        mi = srMenu->AppendRadioItem(wxNewId(), wxString::Format("%d", i));
+                    }
+                    else
+                    {
+                        mi = srMenu->AppendRadioItem(wxNewId(), wxString(char(65 + i)));
+                    }
+                        if (GetModel()->GetSmartRemote() == i + 1)
+                            mi->Check();
+                    }
 
                 if (_caps->GetSmartRemoteTypes().size() > 1) {
                     wxMenu* srType = new wxMenu();
@@ -1504,6 +1523,9 @@ public:
                 return true;
             } else if (label == "None") {
                 GetModel()->SetSmartRemote(0);
+                return true;
+            } else if (label >= "0" && label <= "25") {
+                GetModel()->SetSmartRemote(wxAtoi(label) + 1);
                 return true;
             } else if (label >= "A" && label <= "Z") {
                 GetModel()->SetSmartRemote(int(label[0]) - 64);
