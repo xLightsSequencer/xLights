@@ -2827,9 +2827,12 @@ bool FPP::UploadControllerProxies(OutputManager* outputManager)
         auto c = dynamic_cast<ControllerEthernet*>(it);
         if (c != nullptr) {
             std::string proxy_ip = ip_utils::ResolveIP(c->GetFPPProxy());
-            if (std::find(currentProxies.begin(), currentProxies.end(), proxy_ip) == currentProxies.end() ) {
-                newProxies.push_back(proxy_ip);
-                currentProxies.push_back(proxy_ip);
+            if (ipAddress.compare(proxy_ip) == 0) {
+                auto controllerip = c->GetIP();
+                if (std::find(currentProxies.begin(), currentProxies.end(), controllerip) == currentProxies.end()) {
+                    newProxies.push_back(controllerip);
+                    currentProxies.push_back(controllerip);
+                }
             }
         }
     }
