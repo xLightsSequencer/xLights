@@ -571,6 +571,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
 
     int32_t lastEndChannel = -1000;
     UDVirtualString* current = nullptr;
+    int curRemote = 0;
     for (const auto& it : _models) {
         bool first = false;
         int brightness = it->GetBrightness(NO_VALUE_INT);
@@ -586,12 +587,12 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
 
         if (current == nullptr || !mergeSequential) {
             if (smartRemote != 0) {
-                int curRemote = current == nullptr ? (smartRemote < 100 ? 0 : 99): current->_smartRemote < 100;
                 curRemote++;
                 for (int sr = curRemote; sr < smartRemote; sr++) {
                     // we seem to have missed one so create a dummy
                     current = new UDVirtualString();
                     _virtualStrings.push_back(current);
+                    curRemote++;
                     current->_endChannel = it->GetStartChannel() + 2;
                     current->_startChannel = it->GetStartChannel();
                     current->_description = "DUMMY";
