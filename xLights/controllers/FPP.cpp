@@ -2520,13 +2520,19 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             port->CreateVirtualStrings(false);
             for (const auto& pvs : port->GetVirtualStrings()) {
                 wxJSONValue vs;
-                vs["description"] = pvs->_description;
-                vs["startChannel"] = pvs->_startChannel - 1; // we need 0 based
-                vs["pixelCount"] = pvs->Channels() / pvs->_channelsPerPixel;
+                if (pvs->_isDummy) {
+                    vs["description"] = wxString("");
+                    vs["startChannel"] = 0;
+                    vs["pixelCount"] = 0;
+                } else {
+                    vs["description"] = pvs->_description;
+                    vs["startChannel"] = pvs->_startChannel - 1; // we need 0 based
+                    vs["pixelCount"] = pvs->Channels() / pvs->_channelsPerPixel;
 
-                rngs[pvs->_startChannel - 1] = pvs->Channels();
+                    rngs[pvs->_startChannel - 1] = pvs->Channels();
+                }
 
-                if (origStrings.find(vs["description"].AsString()) != origStrings.end()) {
+                if (!pvs->_isDummy && (origStrings.find(vs["description"].AsString()) != origStrings.end())) {
                     wxJSONValue &vo = origStrings[vs["description"].AsString()];
                     vs["groupCount"] = vo["groupCount"];
                     vs["reverse"] = vo["reverse"];
