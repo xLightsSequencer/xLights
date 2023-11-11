@@ -2836,18 +2836,11 @@ bool FPP::UploadControllerProxies(OutputManager* outputManager)
             }
         }
     }
-    if (this->IsVersionAtLeast(7, 3)) {
-        wxJSONValue proxies;
-        for (const auto& prox : currentProxies) {
-            proxies.Append(wxString(prox));
-        }
-        return PostJSONToURL("/api/proxies", proxies);
-    }
-    bool worked = true;
+
     for (const auto& nprox : newProxies) {
-        worked &= PostToURL("/api/proxies/" + nprox, "", "text/plain");
+        PostToURL("/api/proxies/" + nprox, "", "text/plain");
     }
-    return worked;
+    return false;
 }
 #endif
 
