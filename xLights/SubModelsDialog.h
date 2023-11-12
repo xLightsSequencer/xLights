@@ -249,6 +249,7 @@ protected:
     static const long SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL;
     static const long SUBMODEL_DIALOG_BLANKS_AS_ZERO;
     static const long SUBMODEL_DIALOG_BLANKS_AS_EMPTY;
+    static const long SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS;
 
     void SaveXML(Model* m);
     wxString GetSelectedName() const;

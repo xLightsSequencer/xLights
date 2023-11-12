@@ -32,6 +32,8 @@
 #include <wx/numdlg.h>
 #include <wx/tokenzr.h>
 
+#include <algorithm>
+
 #include "SubModelsDialog.h"
 #include "models/Model.h"
 #include "SubBufferPanel.h"
@@ -122,6 +124,8 @@ const long SubModelsDialog::SUBMODEL_DIALOG_EXPAND_STRANDS_ALL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_BLANKS_AS_ZERO = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_BLANKS_AS_EMPTY = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS = wxNewId();
+
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
 	//(*EventTable(SubModelsDialog)
@@ -1027,6 +1031,7 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.Append(SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL, "Compress All Strands");
     mnu.Append(SUBMODEL_DIALOG_BLANKS_AS_ZERO, "Convert Blanks To Zeros");
     mnu.Append(SUBMODEL_DIALOG_BLANKS_AS_EMPTY, "Convert Zeros To Empty");
+    mnu.Append(SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS, "Remove Blanks/Zeros");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -1037,46 +1042,46 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
     if (event.GetId() == SUBMODEL_DIALOG_REMOVE_DUPLICATE) {
         RemoveDuplicates(false);
     }
-    if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_DUPLICATE) {
+    else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_DUPLICATE) {
         RemoveDuplicates(true);
     }
-    if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR) {
+    else if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR) {
         RemoveAllDuplicates(true, false);
     }
-    if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB) {
+    else if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB) {
         RemoveAllDuplicates(false, false);
     }
-    if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR) {
+    else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR) {
         RemoveAllDuplicates(true, true);
     }
-    if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB) {
+    else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB) {
         RemoveAllDuplicates(false, true);
     }
-    if (event.GetId() == SUBMODEL_DIALOG_EVEN_ROWS) {
+    else if (event.GetId() == SUBMODEL_DIALOG_EVEN_ROWS) {
         MakeRowsUniform();
     }
-    if (event.GetId() == SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS) {
+    else if (event.GetId() == SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS) {
         PivotRowsColumns();
     }
-    if (event.GetId() == SUBMODEL_DIALOG_SYMMETRIZE) {
+    else if (event.GetId() == SUBMODEL_DIALOG_SYMMETRIZE) {
         Symmetrize();
     }
-    if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS) {
+    else if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS) {
         OrderPoints(false);
     }
-    if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS_ALL) {
+    else if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS_ALL) {
         OrderPoints(true);
     }
-    if (event.GetId() == SUBMODEL_DIALOG_COMBINE_STRANDS) {
+    else if (event.GetId() == SUBMODEL_DIALOG_COMBINE_STRANDS) {
         CombineStrands();
     }
-    if (event.GetId() == SUBMODEL_DIALOG_EXPAND_STRANDS_ALL) {
+    else if (event.GetId() == SUBMODEL_DIALOG_EXPAND_STRANDS_ALL) {
         processAllStrands([](wxString str) { return ExpandNodes(str); });
     }
-    if (event.GetId() == SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL) {
+    else if (event.GetId() == SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL) {
         processAllStrands([](wxString str) { return CompressNodes(str); });
     }
-    if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_ZERO) {
+    else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_ZERO) {
         processAllStrands([](wxString str) {
             auto ns = wxSplit(str, ',');
             for (auto i = ns.begin(); i != ns.end(); ++i) {
@@ -1086,13 +1091,23 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
             return wxJoin(ns, ',');
         });
     }
-    if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_EMPTY) {
+    else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_EMPTY) {
         processAllStrands([](wxString str) {
             auto ns = wxSplit(str, ',');
             for (auto i = ns.begin(); i != ns.end(); ++i) {
                 if (*i == "0")
                     *i = "";
             }
+            return wxJoin(ns, ',');
+        });
+    } else if (event.GetId() == SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS) {
+        processAllStrands([](wxString str) {
+            auto ns = wxSplit(str, ',');
+            ns.erase(std::remove_if(ns.begin(), ns.end(),
+                                    [](wxString& v) {
+                                        return (v == "0" || v == "");
+                                    }),
+                     ns.end());
             return wxJoin(ns, ',');
         });
     }
