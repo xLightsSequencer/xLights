@@ -11,6 +11,23 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.20 Nov 15, 2023
+   -- enh (scott) FPP Connect - Remove ancient FPP 1.x upload via mounted USB
+   -- enh (scott) FPP Connect - Add ability to upload Proxy Controller IPs
+   -- enh (MrPierreB) Selectively Offset parameters on remap of dmx channels
+   -- enh (keith) Add a quick way to make a block of ports a dumb receiver
+   -- enh (kylegrymonprez)  Adding ability to adjust the frequency of the "Auto" eye blink
+   -- enh (degracode ) Allow the Setup tab's Activate, Activate in xLights, Deactivate, and Unlink From Base menu items to be used when multiple controllers are selected
+   -- enh (keith) Add option to remove placeholders from submodels
+   -- enh (scott) Make ModelChainDialog growable
+   -- enh (dartunder) Show fpp connect results in status bar
+   -- bug (djulien) Allow Preview to be selected when showing 3D models
+   -- bug (dartunder) Fix delete warning for locked models, delete all models including locked after confirmation dialog.
+   -- bug (dkulp) FPP String upload: don't upload "DUMMY" entries
+   -- bug (keith) Show smart remotes as 0-15 on HinksPix
+   -- bug (dartunder) Fix undo for replace model command
+   -- bug (scott) Fix alphapix upload
+   -- bug (keith) Fix crash in Check Sequence in liquid effect
 2023.19 Nov 4, 2023
    -- enh (keith) Add webp image support
    -- enh (dartunder) Add warning and make it easier to see that a model had a shadow model in visualizer
