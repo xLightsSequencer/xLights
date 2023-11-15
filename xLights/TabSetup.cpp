@@ -2136,7 +2136,6 @@ void xLightsFrame::OnListControllersItemRClick(wxListEvent& event) {
     if (SpecialOptions::GetOption("xxx") == "true") {
         ethernet += "xxx";
     }
-    int count = List_Controllers->GetSelectedItemCount();
 
     std::vector<Controller*> selectedControllers;
     for (const auto& controllerName : GetSelectedControllerNames()) {

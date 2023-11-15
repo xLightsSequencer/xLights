@@ -5507,7 +5507,9 @@ void EffectsGrid::ResizeSingleEffect(int position)
 
 void EffectsGrid::ResizeSingleEffectMS(int timems)
 {
-    if (mEffectLayer->GetEffect(mResizeEffectIndex)->IsLocked() || mEffectLayer->IsFixedTimingLayer()) return;
+    Effect* effect = mEffectLayer->GetEffect(mResizeEffectIndex);
+    if (!effect) return;
+    if (effect->IsLocked() || mEffectLayer->IsFixedTimingLayer()) return;
 
     int time = mTimeline->RoundToMultipleOfPeriod(timems, mSequenceElements->GetFrequency());
     if (mResizingMode == EFFECT_RESIZE_LEFT || mResizingMode == EFFECT_RESIZE_LEFT_EDGE) {
