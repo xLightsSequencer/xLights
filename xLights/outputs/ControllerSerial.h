@@ -111,7 +111,7 @@ public:
         if (_model == "FPP") return _type;
         if (_outputs.size() > 0) return _outputs.front()->GetType(); else return Controller::GetColumn1Label();
     }
-    virtual std::string GetResolvedIP() const override {
+    virtual std::string GetResolvedIP(bool forceResolve) const override {
         if (_model == "FPP") return GetFirstOutput()->GetResolvedIP();
         return "";
     }

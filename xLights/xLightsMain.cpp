@@ -5025,7 +5025,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             for (const auto& itc : _outputManager.GetControllers()) {
                 auto eth = dynamic_cast<ControllerEthernet*>(itc);
                 if (eth != nullptr) {
-                    if (eth != it && it->GetIP() != "MULTICAST" && (it->GetIP() == eth->GetIP() || it->GetIP() == eth->GetResolvedIP())) {
+                    if (eth != it && it->GetIP() != "MULTICAST" && (it->GetIP() == eth->GetIP() || it->GetIP() == eth->GetResolvedIP(false))) {
                         wxString msg = wxString::Format("    ERR: %s IP Address '%s' for controller '%s' used on another controller '%s'. This is not allowed.",
                                                         (const char*)it->GetProtocol().c_str(),
                                                         (const char*)it->GetIP().c_str(),

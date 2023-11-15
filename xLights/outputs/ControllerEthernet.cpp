@@ -231,6 +231,12 @@ void ControllerEthernet::PostSetActive()
         }
     }
 }
+std::string ControllerEthernet::GetResolvedIP(bool forceResolve) const {
+    if (_resolvedIp == "" && _ip != "") {
+        return ip_utils::ResolveIP(_ip);
+    }
+    return _resolvedIp;
+}
 
 void ControllerEthernet::SetProtocol(const std::string& protocol) {
 
@@ -692,19 +698,18 @@ void ControllerEthernet::VMVChanged(wxPropertyGrid *grid)
 
 Output::PINGSTATE ControllerEthernet::Ping() {
 
-    if (GetResolvedIP() == "MULTICAST") {
+    if (GetResolvedIP(false) == "MULTICAST") {
         _lastPingResult = Output::PINGSTATE::PING_UNAVAILABLE;
     } else if (_outputs.size() > 0) {
-        std::string ip = GetResolvedIP();
+        std::string ip = GetResolvedIP(true);
         if (ip.empty()) {
             ip = GetIP();
         }
         _lastPingResult = dynamic_cast<IPOutput*>(_outputs.front())->Ping(ip, GetFPPProxy());
-    }
-    else {
+    } else {
         E131Output ipo;
         ipo.SetIP(_ip, IsActive());
-        _lastPingResult = ipo.Ping(GetResolvedIP(), GetFPPProxy());
+        _lastPingResult = ipo.Ping(GetResolvedIP(true), GetFPPProxy());
     }
     return GetLastPingState();
 }

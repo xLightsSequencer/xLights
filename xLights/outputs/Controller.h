@@ -260,7 +260,7 @@ public:
     virtual bool SupportsDefaultGamma() const { return false; }
 
     virtual std::string GetIP() const { return GetResolvedIP(); }
-    virtual std::string GetResolvedIP() const { return ""; }
+    virtual std::string GetResolvedIP(bool forceResolve = false) const { return ""; }
     virtual std::string GetFPPProxy() const { return ""; }
     virtual std::string GetProtocol() const { return ""; }
 

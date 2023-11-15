@@ -2367,7 +2367,7 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
         if (caps->SupportsInputOnlyUpload()) {
             auto vendor = controller->GetVendor();
             auto model = controller->GetModel();
-            auto ip = controller->GetResolvedIP();
+            auto ip = controller->GetResolvedIP(true);
             if (ip == "MULTICAST" || ip == "") {
                 wxTextEntryDialog dlg(this, "Controller IP Address", "IP Address", ip);
                 if (dlg.ShowModal() != wxID_OK) {
@@ -2432,7 +2432,7 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
         if (caps->SupportsUpload()) {
             auto vendor = controller->GetVendor();
             auto model = controller->GetModel();
-            auto ip = controller->GetResolvedIP();
+            auto ip = controller->GetResolvedIP(true);
             if (ip == "MULTICAST") {
                 wxTextEntryDialog dlg(this, "Controller IP Address", "IP Address", ip);
                 if (dlg.ShowModal() != wxID_OK) {
