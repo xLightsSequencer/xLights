@@ -53,6 +53,8 @@ protected:
 
 	static const long ID_MCU_SELECTALL;
 	static const long ID_MCU_SELECTNONE;
+    static const long ID_MCU_SELECTACTIVE;
+    static const long ID_MCU_DESELECTINACTIVE;
 
 private:
 
@@ -64,6 +66,8 @@ private:
 
 	void OnListRClick(wxContextMenuEvent& event);
 	void OnPopup(wxCommandEvent& event);
-
+    void OnProxyPopup(wxCommandEvent& event);
+    void SaveChecked();
+    void LoadChecked();
 	DECLARE_EVENT_TABLE()
 };
