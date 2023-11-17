@@ -311,9 +311,9 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
         Choice_TimingTrack->Append(te->GetName());
     }
 
-    Element* timingElement = xLightsApp::GetFrame()->GetMainSequencer()->PanelEffectGrid->GetActiveTimingElement();
+    auto timingElement = xLightsApp::GetFrame()->GetMainSequencer()->PanelEffectGrid->GetActiveTimingElement();
 
-    _vcp = new ValueCurvePanel(this, timingElement, start, end, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
+    _vcp = new ValueCurvePanel(this, timingElement.get(), start, end, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
     _vcp->SetMinSize(wxSize(200, 100));
     _vcp->SetValue(_vc);
     _vcp->SetType(_vc->GetType());

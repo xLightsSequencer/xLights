@@ -2771,11 +2771,11 @@ void xLightsXmlFile::Save(SequenceElements& seq_elements)
 
             int num_strands = me->GetSubModelAndStrandCount();
             for (int strand = 0; strand < num_strands; strand++) {
-                SubModelElement* se = me->GetSubModel(strand);
+                auto se = me->GetSubModel(strand);
                 num_layers = se->GetEffectLayerCount();
                 wxXmlNode* effect_layer_node = nullptr;
 
-                StrandElement* strEl = dynamic_cast<StrandElement*>(se);
+                StrandElement* strEl = dynamic_cast<StrandElement*>(se.get());
                 for (int j = 0; j < num_layers; ++j) {
                     EffectLayer* layer = se->GetEffectLayer(j);
 
@@ -3209,7 +3209,7 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
                     }
                 }
                 for (int s = 0; s < me->GetSubModelAndStrandCount(); s++) {
-                    SubModelElement* se = me->GetSubModel(s);
+                    auto se = me->GetSubModel(s);
                     for (int j = 0; j < se->GetEffectLayerCount(); j++) {
                         EffectLayer* layer = se->GetEffectLayer(j);
                         for (int k = 0; k < layer->GetEffectCount(); k++) {
@@ -3220,7 +3220,7 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
                         }
                     }
                     if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
-                        StrandElement* ste = dynamic_cast<StrandElement*>(se);
+                        StrandElement* ste = dynamic_cast<StrandElement*>(se.get());
                         for (int k = 0; k < ste->GetNodeLayerCount(); k++) {
                             NodeLayer* nlayer = ste->GetNodeLayer(k);
                             for (int l = 0; l < nlayer->GetEffectCount(); l++) {

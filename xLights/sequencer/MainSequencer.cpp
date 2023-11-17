@@ -1623,7 +1623,7 @@ void MainSequencer::InsertTimingMarkFromRange()
             t2 = PanelTimeLine->GetTimeLength();
         }
         if (is_range) {
-            Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
+            auto e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element.lock();
             if (e != nullptr) {
                 EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
                 if (el != nullptr) {
@@ -1648,7 +1648,7 @@ void MainSequencer::InsertTimingMarkFromRange()
         else
         {
             // x1 and x2 are the same. Insert from end time of timing to the left to x2
-            Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
+            auto e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element.lock();
             if (e != nullptr) {
                 EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
                 if (el != nullptr) {
@@ -1723,7 +1723,10 @@ void MainSequencer::SplitTimingMark()
     int selectedTiming = mSequenceElements->GetSelectedTimingRow();
     if (selectedTiming >= 0)
     {
-        Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
+        auto e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element.lock();
+        if (!e)
+            return;
+
         EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
 
         if (el == nullptr)

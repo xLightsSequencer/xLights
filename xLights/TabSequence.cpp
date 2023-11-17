@@ -748,7 +748,7 @@ bool xLightsFrame::EnsureSequenceElementsAreOrderedCorrectly(const std::string M
         }
 
         // Grab the existing elements
-        std::list<SubModelElement*> oldList;
+        std::list<std::shared_ptr<SubModelElement>> oldList;
         for (int i = 0; i < elementToCheck->GetSubModelCount(); i++) {
             oldList.push_back(elementToCheck->GetSubModel(i));
         }
@@ -774,10 +774,7 @@ bool xLightsFrame::EnsureSequenceElementsAreOrderedCorrectly(const std::string M
             }
         }
 
-        // delete any that are no longer there
-        for (auto it = oldList.begin(); it != oldList.end(); ++it) {
-            delete *it;
-        }
+        // oldList will go out of scope destroying any ones that weren't put back.
 
         return true;
     }

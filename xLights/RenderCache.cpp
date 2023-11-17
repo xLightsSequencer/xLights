@@ -397,7 +397,7 @@ static bool doOnEffectsInternal(Element *em, std::function<bool(Effect*)>& func)
     if (em->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
         ModelElement *me = (ModelElement*)em;
         for (int x = 0; x < me->GetSubModelCount(); x++) {
-            if (doOnEffectsInternal(me->GetSubModel(x), func)) {
+            if (doOnEffectsInternal(me->GetSubModel(x).get(), func)) {
                 return true;
             }
         }

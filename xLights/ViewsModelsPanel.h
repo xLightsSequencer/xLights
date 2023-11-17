@@ -67,6 +67,7 @@ class ViewsModelsPanel : public wxPanel
     bool _dragRowModel = false;
     bool _dragRowNonModel = false;
     std::list<std::string> _undo;
+    std::vector<std::shared_ptr<Element>> _localElements;
 
     void PopulateViews();
     void SortNonModels();

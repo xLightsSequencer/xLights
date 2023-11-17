@@ -166,7 +166,7 @@ void SelectPanel::populateModelsList(const std::string& effectType)
             ModelElement* mel = dynamic_cast<ModelElement*>(el);
             if (mel != nullptr) {
                 for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x) {
-                    SubModelElement* sme = mel->GetSubModel(x);
+                    auto sme = mel->GetSubModel(x);
                     if (sme != nullptr) {
                         for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
                             EffectLayer* elay = sme->GetEffectLayer(j);
@@ -233,7 +233,7 @@ void SelectPanel::populateEffectsList()
                 ModelElement* mel = dynamic_cast<ModelElement*>(el);
                 if (mel != nullptr) {
                     for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x) {
-                        SubModelElement* sme = mel->GetSubModel(x);
+                        auto sme = mel->GetSubModel(x);
                         if (sme != nullptr) {
                             for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
                                 EffectLayer* elay = sme->GetEffectLayer(j);

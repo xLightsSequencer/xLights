@@ -31,7 +31,7 @@ class TimeLine;
 class Row_Information_Struct
 {
 public:
-    Element *element;
+    std::weak_ptr<Element> element;
     int Index;
     int RowNumber;
     bool Collapsed;
@@ -216,7 +216,7 @@ private:
         const std::vector<std::string> & effectStrings,
         const std::vector<std::string> & colorPalettes,
         bool importing = false);
-    static bool SortElementsByIndex(const Element *element1, const Element *element2)
+    static bool SortElementsByIndex(const std::shared_ptr<Element>& element1, const std::shared_ptr<Element>& element2)
     {
         return (element1->GetIndex() < element2->GetIndex());
     }
@@ -224,7 +224,7 @@ private:
         int &rowIndex, int &selectedTimingRow, int &timingRowCount, int &timingColorIndex);
 
     void ClearAllViews();
-    std::vector<std::vector <Element*> > mAllViews;
+    std::vector<std::vector<std::shared_ptr<Element>>> mAllViews;
 
     // A vector of all the visible elements that may not be on screen
     // because they all do not fit. The timing elements will always

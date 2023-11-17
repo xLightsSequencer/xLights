@@ -150,7 +150,7 @@ std::vector<wxString> SearchPanel::GetModelList() const
             auto* mel = dynamic_cast<ModelElement*>(el);
             if (mel != nullptr) {
                 for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x) {
-                    auto* sme = mel->GetSubModel(x);
+                    auto sme = mel->GetSubModel(x);
                     if (sme != nullptr) {
                         for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
                             auto* elay = sme->GetEffectLayer(j);
@@ -221,7 +221,7 @@ void SearchPanel::FindSettings()
             auto* mel = dynamic_cast<ModelElement*>(el);
             if (mel != nullptr) {
                 for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x) {
-                    auto* sme = mel->GetSubModel(x);
+                    auto sme = mel->GetSubModel(x);
                     if (sme != nullptr) {
                         for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
                             auto* elay = sme->GetEffectLayer(j);

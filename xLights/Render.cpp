@@ -37,14 +37,14 @@ static const std::string STR_EMPTY("");
 
 class EffectLayerInfo {
 public:
-    EffectLayerInfo(): element(nullptr)
+    EffectLayerInfo()
     {
         numLayers = 0;
         buffer.reset(nullptr);
         strand = -1;
     }
 
-    EffectLayerInfo(int l) : element(nullptr) {
+    EffectLayerInfo(int l) {
         resize(l);
         buffer.reset(nullptr);
         strand = -1;
@@ -62,7 +62,7 @@ public:
     int numLayers;
     int strand;
     int submodel = -1;
-    Element *element;
+    std::weak_ptr<Element> element;
     PixelBufferClassPtr buffer;
     std::vector<Effect*> currentEffects;
     std::vector<int> currentEffectIdxs;
@@ -84,6 +84,7 @@ public:
     PixelBufferClass *buffer;
     bool *ResetEffectState;
     bool returnVal{ true };
+    bool rendered{ false };
     bool suppress{ false };
 };
 
@@ -216,7 +217,7 @@ public:
 
 class RenderJob: public Job, public NextRenderer {
 public:
-    RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false)
+    RenderJob(std::shared_ptr<ModelElement> row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false)
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe),
             gauge(nullptr), currentFrame(0), renderLog(log4cpp::Category::getInstance(std::string("log_render"))),
             supportsModelBlending(false), abort(false), statusMap(nullptr)
@@ -259,10 +260,10 @@ public:
                     }
                 }
                 for (int x = 0; x < row->GetSubModelAndStrandCount(); ++x) {
-                    SubModelElement *se = row->GetSubModel(x);
+                    auto se = row->GetSubModel(x);
                     if (se->HasEffects()) {
                         if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
-                            StrandElement *ste = (StrandElement*)se;
+                            auto ste = std::static_pointer_cast<StrandElement>(se);
                             if (ste->GetStrand() < model->GetNumStrands()) {
                                 subModelInfos.push_back(new EffectLayerInfo(se->GetEffectLayerCount() + 1));
                                 subModelInfos.back()->element = se;
@@ -283,7 +284,7 @@ public:
                         }
                     }
                     if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
-                        StrandElement *ste = (StrandElement*)se;
+                        auto ste = std::static_pointer_cast<StrandElement>(se);
                         if (ste->GetStrand() < model->GetNumStrands()) {
                             for (int n = 0; n < ste->GetNodeLayerCount(); ++n) {
                                 if (n < model->GetStrandLength(ste->GetStrand())) {
@@ -445,7 +446,8 @@ public:
         if (effect != nullptr) {
             std::string mname = "";
             if (submodel >= 0) {
-                mname = "Submodel: " + subModelInfos[submodel]->element->GetName() + " ";
+                auto p = subModelInfos[submodel]->element.lock();
+                mname = "Submodel: " + (p ? p->GetName() : "<expired>") + " ";
             }
             return wxString::Format("%sEffect: %s Start: %s End %s", mname.c_str(), effect->GetEffectName().c_str(),
                                     FORMATTIME(effect->GetStartTimeMS()), FORMATTIME(effect->GetEndTimeMS()));
@@ -458,7 +460,13 @@ public:
     }
 
     wxString GetwxStatus() {
-        std::string n = (statusSubmodel == -1 || statusSubmodel >= subModelInfos.size()) ? name : subModelInfos[statusSubmodel]->element->GetFullName();
+        std::string n;
+        if (statusSubmodel == -1 || statusSubmodel >= subModelInfos.size())
+            n = name;
+        else if (auto p = subModelInfos[statusSubmodel]->element.lock())
+            n = p->GetFullName();
+        else
+            n = "<expired>";
         switch (statusType) {
         case 0:
             return statusMsg;
@@ -547,7 +555,7 @@ public:
         return frame - (ef->GetStartTimeMS() / frameTime);
     }
 
-    bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
+    bool ProcessFrame(int frame, std::shared_ptr<Element> el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
         wxStopWatch sw;
         bool effectsToUpdate = false;
         Effect* tempEffect = nullptr;
@@ -820,7 +828,7 @@ public:
                     break;
                 }
 
-                bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
+                bool cleared = ProcessFrame(frame, rowToRender->shared_from_this(), mainModelInfo, mainBuffer, -1, supportsModelBlending);
                 if (!subModelInfos.empty()) {
                     maybeWaitForFrame(frame);
                     for (const auto& a : subModelInfos) {
@@ -829,7 +837,7 @@ public:
                             break;
                         }
                         EffectLayerInfo *info = a;
-                        ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared);
+                        ProcessFrame(frame, info->element.lock(), *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared);
                     }
                 }
 
@@ -849,7 +857,7 @@ public:
 
                         int strand = node.strand;
                         int inode = node.node;
-                        StrandElement *slayer = rowToRender->GetStrand(strand);
+                        auto slayer = rowToRender->GetStrand(strand);
                         if (slayer == nullptr) {
                             //deleted strand
                             continue;
@@ -925,7 +933,7 @@ public:
         abort = true;
     }
 
-    ModelElement* GetModelElement() const { return rowToRender; }
+    ModelElement* GetModelElement() const { return rowToRender.get(); }
 
 private:
 
@@ -988,7 +996,10 @@ private:
         if (submodel == -1) {
             return findEffectForFrame(rowToRender->GetEffectLayer(layer), frame, lastIdx);
         }
-        return findEffectForFrame(subModelInfos[submodel]->element->GetEffectLayer(layer), frame, lastIdx);
+        auto p = subModelInfos[submodel]->element.lock();
+        if (!p)
+            return nullptr;
+        return findEffectForFrame(p->GetEffectLayer(layer), frame, lastIdx);
     }
 
     void loadSettingsMap(const std::string &effectName,
@@ -998,7 +1009,7 @@ private:
         effect->CopySettingsMap(settingsMap, true);
     }
 
-    ModelElement *rowToRender;
+    std::shared_ptr<ModelElement> rowToRender;
     std::string name;
     PixelBufferClass *mainBuffer;
     int numLayers;
@@ -1081,6 +1092,11 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     {
         wxASSERT(false);
     }
+
+    ev->rendered = true;
+
+    // Notify listeners
+    lock.unlock();
     ev->signal.notify_all();
 }
 
@@ -1158,7 +1174,7 @@ static bool HasEffects(ModelElement *me) {
         }
     }
     for (int x = 0; x < me->GetStrandCount(); ++x) {
-        StrandElement *se = me->GetStrand(x);
+        auto se = me->GetStrand(x);
         for (int n = 0; n < se->GetNodeLayerCount(); ++n) {
             if (se->GetNodeLayer(n)->GetEffectCount() > 0) {
                 return true;
@@ -1457,19 +1473,15 @@ void xLightsFrame::Render(SequenceElements& seqElements,
         jobs[row] = nullptr;
         aggregators[row] = new AggregatorRenderer(seqData.NumFrames());
 
-        Element *rowEl = seqElements.GetElement((*it)->GetName());
+        auto raw = seqElements.GetElement((*it)->GetName());
 
-        if (rowEl == nullptr) {
+        if (raw == nullptr) {
             //logger_base.crit("xLightsFrame::Render rowEl is nullptr ... this is going to crash looking for '%s'.", (const char *)(*it)->GetName().c_str());
         } else {
-            if (rowEl->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-                ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
+            if (raw->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                auto me = std::dynamic_pointer_cast<ModelElement>(raw->shared_from_this());
 
-                if (me == nullptr) {
-                    logger_base.crit("xLightsFrame::Render me is nullptr ... this is going to crash.");
-                }
-
-                bool hasEffects = HasEffects(me);
+                bool hasEffects = HasEffects(me.get());
                 bool isRestricted = std::find(restrictToModels.begin(), restrictToModels.end(), *it) != restrictToModels.end();
                 if (hasEffects || (isRestricted && clear)) {
                     RenderJob *job = new RenderJob(me, seqData, this, false);
@@ -1962,10 +1974,13 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     wxYield();
 
     NextRenderer wait;
-    Element* el = _sequenceElements.GetElement(model);
-    if (el == nullptr)
+    auto elraw = _sequenceElements.GetElement(model);
+    if (!elraw)
         return false;
-    RenderJob* job = new RenderJob(dynamic_cast<ModelElement*>(el), _seqData, this, true);
+    auto me = std::dynamic_pointer_cast<ModelElement>(elraw->shared_from_this());
+    if (!me)
+        return false;
+    RenderJob* job = new RenderJob(me, _seqData, this, true);
     wxASSERT(job != nullptr);
     SequenceData* data = job->createExportBuffer();
     wxASSERT(data != nullptr);
@@ -2164,6 +2179,8 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
             }
             else {
                 if (bgThread && !reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, *b)) {
+                    std::unique_lock<std::mutex> lock(event->mutex);
+                    event->rendered = false;
                     event->effect = effectObj;
                     event->layer = layer;
                     event->period = period;
@@ -2172,29 +2189,15 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                     event->buffer = &buffer;
                     event->suppress = suppress;
 
-                    std::unique_lock<std::mutex> lock(event->mutex);
-
                     std::unique_lock<std::mutex> qlock(renderEventLock);
                     mainThreadRenderEvents.push(event);
                     qlock.unlock();
 
                     CallAfter(&xLightsFrame::RenderMainThreadEffects);
-                    if (event->signal.wait_for(lock, std::chrono::seconds(10)) == std::cv_status::no_timeout) {
-                        retval = event->returnVal;
-                    }
-                    else {
-                        logger_base.warn("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
-                        printf("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.\n", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
 
-                        // Give it one more chance
-                        if (event->signal.wait_for(lock, std::chrono::seconds(60)) == std::cv_status::no_timeout) {
-                            retval = event->returnVal;
-                        }
-                        else {
-                            logger_base.warn("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 70 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
-                            printf("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 70 secs.\n", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
-                        }
-                    }
+                    // Wait until done rendering
+                    event->signal.wait(lock, [&] { return event->rendered; });
+
                     if (period % 10 == 0) {
                         //constantly putting stuff on CallAfter can result in the main
                         //dispatch thread never being able to empty the CallAfter

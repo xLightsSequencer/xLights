@@ -6169,8 +6169,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                     Model* model = AllModels[me->GetModelName()];
 
                     for (size_t j = 0; j < me->GetStrandCount(); ++j) {
-                        StrandElement* se = me->GetStrand(j);
-                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning, disabledEffects, faces, states, viewPoints, usesShader, allfiles);
+                        auto se = me->GetStrand(j);
+                        CheckElement(se.get(), f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning, disabledEffects, faces, states, viewPoints, usesShader, allfiles);
 
                         for (size_t k = 0; k < se->GetNodeLayerCount(); ++k) {
                             NodeLayer* nl = se->GetNodeLayer(k);
@@ -6183,9 +6183,9 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                         }
                     }
                     for (size_t j = 0; j < me->GetSubModelAndStrandCount(); ++j) {
-                        Element* sme = me->GetSubModel(j);
+                        auto sme = me->GetSubModel(j);
                         if (sme->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
-                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, disabledEffects, faces, states, viewPoints, usesShader, allfiles);
+                            CheckElement(sme.get(), f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, disabledEffects, faces, states, viewPoints, usesShader, allfiles);
                         }
                     }
                 }
@@ -6827,15 +6827,15 @@ void xLightsFrame::ExportEffects(wxString const& filename)
 
         if (dynamic_cast<ModelElement*>(e) != nullptr) {
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
-                SubModelElement* se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
-                effects += ExportElement(f, se, effectfrequency, effecttotaltime, files);
+                auto se = std::dynamic_pointer_cast<ModelElement>(e->shared_from_this())->GetSubModel(s);
+                effects += ExportElement(f, se.get(), effectfrequency, effecttotaltime, files);
             }
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
-                StrandElement* se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
+                auto se = std::dynamic_pointer_cast<ModelElement>(e->shared_from_this())->GetStrand(s);
                 int node = 0;
                 for (size_t n = 0; n < se->GetNodeLayerCount(); n++) {
                     NodeLayer* nl = se->GetNodeLayer(n);
-                    effects += ExportNodes(f, se, nl, node++, effectfrequency, effecttotaltime, files);
+                    effects += ExportNodes(f, se.get(), nl, node++, effectfrequency, effecttotaltime, files);
                 }
             }
         }
@@ -6890,8 +6890,8 @@ void xLightsFrame::OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event)
             if (ele->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 ModelElement* me = dynamic_cast<ModelElement*>(ele);
                 for (int i = 0; i < me->GetStrandCount(); ++i) {
-                    Element* se = me->GetStrand(i);
-                    StrandElement* ste = dynamic_cast<StrandElement*>(se);
+                    auto se = me->GetStrand(i);
+                    auto ste = std::dynamic_pointer_cast<StrandElement>(se);
                     for (int k = 0; k < ste->GetNodeLayerCount(); ++k) {
                         NodeLayer* nl = ste->GetNodeLayer(k, false);
                         if (nl != nullptr) {
@@ -6900,7 +6900,7 @@ void xLightsFrame::OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event)
                     }
                 }
                 for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i) {
-                    Element* se = me->GetSubModel(i);
+                    auto se = me->GetSubModel(i);
                     for (int layer = 0; layer < se->GetEffectLayerCount(); layer++) {
                         EffectLayer* sel = se->GetEffectLayer(layer);
                         ShiftSelectedEffectsOnLayer(sel, milliseconds);
@@ -6938,8 +6938,8 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
             if (ele->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 ModelElement* me = dynamic_cast<ModelElement*>(ele);
                 for (int i = 0; i < me->GetStrandCount(); ++i) {
-                    Element* se = me->GetStrand(i);
-                    StrandElement* ste = dynamic_cast<StrandElement*>(se);
+                    auto se = me->GetStrand(i);
+                    auto ste = std::dynamic_pointer_cast<StrandElement>(se);
                     for (int k = 0; k < ste->GetNodeLayerCount(); ++k) {
                         NodeLayer* nl = ste->GetNodeLayer(k, false);
                         if (nl != nullptr) {
@@ -6948,7 +6948,7 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
                     }
                 }
                 for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i) {
-                    Element* se = me->GetSubModel(i);
+                    auto se = me->GetSubModel(i);
                     for (int layer = 0; layer < se->GetEffectLayerCount(); layer++) {
                         EffectLayer* sel = se->GetEffectLayer(layer);
                         ShiftEffectsOnLayer(sel, milliseconds);
@@ -7286,13 +7286,13 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         Element* e = _sequenceElements.GetElement(j);
         facesUsed.splice(end(facesUsed), e->GetFacesUsed(effectManager));
 
-        if (dynamic_cast<ModelElement*>(e) != nullptr) {
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
-                SubModelElement* se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
+        if (auto me = dynamic_cast<ModelElement*>(e)) {
+            for (size_t s = 0; s < me->GetSubModelAndStrandCount(); s++) {
+                auto se = me->GetSubModel(s);
                 facesUsed.splice(end(facesUsed), se->GetFacesUsed(effectManager));
             }
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
-                StrandElement* se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
+            for (size_t s = 0; s < me->GetStrandCount(); s++) {
+                auto se = me->GetStrand(s);
                 facesUsed.splice(end(facesUsed), se->GetFacesUsed(effectManager));
             }
         }
@@ -7383,13 +7383,13 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         Model* m = AllModels[e->GetModelName()];
         effectfiles.splice(end(effectfiles), e->GetFileReferences(m, effectManager));
 
-        if (dynamic_cast<ModelElement*>(e) != nullptr) {
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
-                SubModelElement* se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
+        if (auto me = dynamic_cast<ModelElement*>(e)) {
+            for (size_t s = 0; s < me->GetSubModelAndStrandCount(); s++) {
+                auto se = me->GetSubModel(s);
                 effectfiles.splice(end(effectfiles), se->GetFileReferences(m, effectManager));
             }
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
-                StrandElement* se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
+            for (size_t s = 0; s < me->GetStrandCount(); s++) {
+                auto se = me->GetStrand(s);
                 effectfiles.splice(end(effectfiles), se->GetFileReferences(m, effectManager));
             }
         }
@@ -7541,13 +7541,13 @@ bool xLightsFrame::CleanupSequenceFileLocations()
         Element* e = _sequenceElements.GetElement(j);
         changed = e->CleanupFileLocations(this, effectManager) || changed;
 
-        if (dynamic_cast<ModelElement*>(e) != nullptr) {
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
-                SubModelElement* se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
+        if (auto me = dynamic_cast<ModelElement*>(e)) {
+            for (size_t s = 0; s < me->GetSubModelAndStrandCount(); s++) {
+                auto se = me->GetSubModel(s);
                 changed = se->CleanupFileLocations(this, effectManager) || changed;
             }
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
-                StrandElement* se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
+            for (size_t s = 0; s < me->GetStrandCount(); s++) {
+                auto se = me->GetStrand(s);
                 changed = se->CleanupFileLocations(this, effectManager) || changed;
             }
         }

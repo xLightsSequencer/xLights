@@ -17,7 +17,7 @@
 #include "SequenceElements.h"
 #include "xLightsMain.h"
 
-Element::Element(SequenceElements *p, const std::string &name) :
+Element::Element(ConstructorKey, SequenceElements *p, const std::string &name) :
 mEffectLayers(),
 mName(name),
 mVisible(true),
@@ -25,9 +25,15 @@ listener((ChangeListener *)p),
 mCollapsed(false),
 parent(p)
 {
-    
 }
 Element::~Element() {
+    // Remove from map
+    {
+        auto& m = map();
+        std::lock_guard g(m.mutex);
+        m.map.erase(elementId);
+    }
+
     for (size_t x = 0; x < mEffectLayers.size(); x++) {
         delete mEffectLayers[x];
     }
@@ -310,8 +316,8 @@ bool SubModelElement::HasEffects() const
     return false;
 }
 
-TimingElement::TimingElement(SequenceElements *p, const std::string &name)
-: Element(p, name),
+TimingElement::TimingElement(ConstructorKey key, SequenceElements *p, const std::string &name)
+: Element(key, p, name),
     mFixed(0), mActive(false)
 { }
 
@@ -323,8 +329,8 @@ void TimingElement::Unfix()
     mFixed = 0;
 }
 
-SubModelElement::SubModelElement(ModelElement *p, const std::string &name)
-: Element(p->GetSequenceElements(), name), mParentModel(p)
+SubModelElement::SubModelElement(ConstructorKey key, ModelElement *p, const std::string &name)
+: Element(key, p->GetSequenceElements(), name), mParentModel(p)
 {
     AddEffectLayerInternal();
 }
@@ -342,8 +348,8 @@ std::string SubModelElement::GetFullName() const {
     return GetModelName() + "/" + GetName();
 }
 
-StrandElement::StrandElement(ModelElement *p, int strand)
-: SubModelElement(p, ""),
+StrandElement::StrandElement(ConstructorKey key, ModelElement *p, int strand)
+: SubModelElement(key, p, ""),
   mStrand(strand),
   mShowNodes(false)
 {
@@ -473,35 +479,22 @@ int StrandElement::GetEffectCount() const {
     return nodesum + sum;
 }
 
-ModelElement::ModelElement(SequenceElements *l, const std::string &name, bool selected)
-:   Element(l, name),
+ModelElement::ModelElement(ConstructorKey key, SequenceElements *l, const std::string &name, bool selected)
+:   Element(key, l, name),
     mSelected(selected),
     waitCount(0)
 {
 }
 
-ModelElement::ModelElement(const std::string &name)
-    : Element(nullptr, name),
+ModelElement::ModelElement(ConstructorKey key, const std::string &name)
+    : Element(key, nullptr, name),
     waitCount(0)
 {
 }
 
 ModelElement::~ModelElement()
 {
-    //make sure none of the render threads are rendering this model
-    std::unique_lock<std::recursive_timed_mutex> lock(changeLock);
-    while (waitCount > 0) {
-        lock.unlock();
-        wxSleep(1);
-        lock.lock();
-    }
-    for (size_t x = 0; x < mStrands.size(); x++) {
-        delete mStrands[x];
-    }
     mStrands.clear();
-    for (size_t x = 0; x < mSubModels.size(); x++) {
-        delete mSubModels[x];
-    }
     mSubModels.clear();
 }
 
@@ -580,14 +573,14 @@ bool ModelElement::HasEffects() const
     
     for (size_t x = 0; x < GetStrandCount(); ++x)
     {
-        StrandElement* se = GetStrand(x);
+        auto se = GetStrand(x);
 
         if (se != nullptr && se->HasEffects()) return true;
     }
 
     for (size_t x = 0; x < GetSubModelCount(); ++x)
     {
-        SubModelElement* sme = GetSubModel(x);
+        auto sme = GetSubModel(x);
 
         if (sme != nullptr && sme->HasEffects()) return true;
     }
@@ -607,7 +600,7 @@ int ModelElement::GetEffectCount() const {
      int strand_sum = std::accumulate(
         mStrands.begin(), 
         mStrands.end(), 0, 
-        [](int i, StrandElement* se) {
+        [](int i, const std::shared_ptr<StrandElement>& se) {
             if (se != nullptr) {
                 return se->GetEffectCount() + i;
             }
@@ -617,7 +610,7 @@ int ModelElement::GetEffectCount() const {
     int sub_sum = std::accumulate(
         mSubModels.begin(), 
         mSubModels.end(), 0, 
-        [](int i, SubModelElement* se) {
+        [](int i, const std::shared_ptr<SubModelElement>& se) {
             if (se != nullptr) {
                 return se->GetEffectCount() + i;
             }
@@ -715,22 +708,22 @@ void ModelElement::Init(Model &model) {
             }
         }
         if (!found) {
-            mSubModels.push_back(new SubModelElement(this, sm->Name()));
+            mSubModels.push_back(Element::Construct<SubModelElement>(this, sm->Name()));
         }
     }
     int ns = model.GetNumStrands();
     for (int x = 0; x < ns; x++) {
         if (x >= mStrands.size()) {
-            StrandElement* new_layer = new StrandElement(this, mStrands.size());
+            auto new_layer = Element::Construct<StrandElement>(this, mStrands.size());
             mStrands.push_back(new_layer);
         }
         mStrands[x]->InitFromModel(model);
     }
 }
 
-StrandElement* ModelElement::GetStrand(int index, bool create) {
+std::shared_ptr<StrandElement> ModelElement::GetStrand(int index, bool create) {
     while (create && index >= mStrands.size()) {
-        StrandElement* new_layer = new StrandElement(this, mStrands.size());
+        auto new_layer = Element::Construct<StrandElement>(this, mStrands.size());
         mStrands.push_back(new_layer);
         IncrementChangeCount(-1, -1);
     }
@@ -740,7 +733,7 @@ StrandElement* ModelElement::GetStrand(int index, bool create) {
     return mStrands[index];
 }
 
-StrandElement* ModelElement::GetStrand(int strand) const
+std::shared_ptr<StrandElement> ModelElement::GetStrand(int strand) const
 {
     if (strand >= mStrands.size()) {
         return nullptr;
@@ -759,14 +752,13 @@ int ModelElement::GetSubModelCount() const {
 void ModelElement::RemoveSubModel(const std::string &name) {
     for (auto a = mSubModels.begin(); a != mSubModels.end(); ++a) {
         if (name == (*a)->GetName()) {
-            delete *a;
             mSubModels.erase(a);
             break;
         }
     }
 }
 
-SubModelElement* ModelElement::GetSubModel(int i) const {
+std::shared_ptr<SubModelElement> ModelElement::GetSubModel(int i) const {
     if (i < mSubModels.size()) {
         return mSubModels[i];
     }
@@ -777,23 +769,11 @@ SubModelElement* ModelElement::GetSubModel(int i) const {
     return mStrands[i];
 }
 
-SubModelElement* ModelElement::GetSubModel(int i)
-{
-    if (i < mSubModels.size()) {
-        return mSubModels[i];
-    }
-    i -= mSubModels.size();
-    if (i >= mStrands.size()) {
-        return nullptr;
-    }
-    return mStrands[i];
-}
-
-void ModelElement::AddSubModel(SubModelElement* sme) {
+void ModelElement::AddSubModel(std::shared_ptr<SubModelElement> sme) {
     mSubModels.push_back(sme);
 }
 
-SubModelElement* ModelElement::GetSubModel(const std::string& name, bool create)
+std::shared_ptr<SubModelElement> ModelElement::GetSubModel(const std::string& name, bool create)
 {
     for (const auto& a : mSubModels) {
         if (name == a->GetName()) {
@@ -806,7 +786,7 @@ SubModelElement* ModelElement::GetSubModel(const std::string& name, bool create)
         }
     }
     if (create) {
-        mSubModels.push_back(new SubModelElement(this, name));
+        mSubModels.push_back(Element::Construct<SubModelElement>(this, name));
         return mSubModels.back();
     }
     return nullptr;

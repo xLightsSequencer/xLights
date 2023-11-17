@@ -1124,7 +1124,7 @@ void MapXLightsStrandEffects(EffectLayer* target, const std::string& name,
 void MapXLightsEffects(Element* target,
                        const std::string& name,
                        SequenceElements& seqEl,
-                       std::map<std::string, Element*>& elementMap,
+                       std::map<std::string, std::shared_ptr<Element>>& elementMap,
                        std::map<std::string, EffectLayer*>& layerMap,
                        std::vector<EffectLayer*>& mapped, bool eraseExisting,
                        SequencePackage& xsqPkg, bool lock, const std::map<std::string, std::string>& mapping)
@@ -1138,7 +1138,7 @@ void MapXLightsEffects(Element* target,
     }
 
     EffectLayer* src = layerMap[name];
-    Element* el = elementMap[name];
+    auto el = elementMap[name];
 
     if (src != nullptr) {
         MapXLightsEffects(target->GetEffectLayer(0), src, mapped, eraseExisting, xsqPkg, lock, mapping);
@@ -1146,7 +1146,8 @@ void MapXLightsEffects(Element* target,
     }
 
     if (el == nullptr) {
-        el = seqEl.GetElement(name);
+        if (auto p = seqEl.GetElement(name))
+            el = p->shared_from_this();
     }
 
     if (el == nullptr) {
@@ -1225,7 +1226,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::map<std::string, EffectLayer*> layerMap;
-    std::map<std::string, Element*> elementMap;
+    std::map<std::string, std::shared_ptr<Element>> elementMap;
     xLightsImportChannelMapDialog dlg(this, xsqPkg.GetXsqFile(), false, true, false, false, showModelBlending);
     dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
@@ -1252,12 +1253,12 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
             if (hasEffects) {
                 dlg.AddChannel(el->GetName(), el->GetEffectCount());
             }
-            elementMap[el->GetName()] = el;
+            elementMap[el->GetName()] = el->shared_from_this();
             int s = 0;
             for (size_t sm = 0; sm < el->GetSubModelAndStrandCount(); ++sm) {
-                SubModelElement* sme = el->GetSubModel(sm);
+                auto sme = el->GetSubModel(sm);
 
-                StrandElement* ste = dynamic_cast<StrandElement*>(sme);
+                StrandElement* ste = dynamic_cast<StrandElement*>(sme.get());
                 std::string smName = sme->GetName();
                 if (ste != nullptr) {
                     ++s;
@@ -1397,9 +1398,9 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 if (model == nullptr) {
                     logger_base.error("Attempt to add model %s during xLights import failed.", (const char*)modelName.c_str());
                 } else {
-                    SubModelElement* ste = model->GetSubModel(str);
+                    auto ste = model->GetSubModel(str);
                     if (ste != nullptr) {
-                        MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping);
+                        MapXLightsEffects(ste.get(), s->_mapping.ToStdString(), se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping);
                     }
                 }
             }
@@ -1412,8 +1413,8 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                     if (model == nullptr) {
                         logger_base.error("Attempt to add model %s during xLights import failed.", (const char*)modelName.c_str());
                     } else {
-                        SubModelElement* ste = model->GetSubModel(str);
-                        StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                        auto ste = model->GetSubModel(str);
+                        StrandElement* stre = dynamic_cast<StrandElement*>(ste.get());
                         if (stre != nullptr) {
                             NodeLayer* nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
@@ -1925,7 +1926,7 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
                 if (model == nullptr) {
                     logger_base.error("Attempt to add model %s during Vixen import failed.", (const char*)modelName.c_str());
                 } else {
-                    SubModelElement* ste = model->GetSubModel(str);
+                    auto ste = model->GetSubModel(str);
                     if (ste != nullptr) {
                         MapVixChannelInformation(this, ste->GetEffectLayer(0),
                                                  VixSeqData, frameTime, numFrames,
@@ -1944,8 +1945,8 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
                     if (model == nullptr) {
                         logger_base.error("Attempt to add model %s during Vixen import failed.", (const char*)modelName.c_str());
                     } else {
-                        SubModelElement* ste = model->GetSubModel(str);
-                        StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                        auto ste = model->GetSubModel(str);
+                        StrandElement* stre = dynamic_cast<StrandElement*>(ste.get());
                         if (stre != nullptr) {
                             NodeLayer* nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
@@ -2072,7 +2073,7 @@ void xLightsFrame::ImportHLS(const wxFileName& filename)
 
         if (!dlg.MapByStrand->GetValue()) {
             for (int str = 0; str < mc->GetNumSubModels(); str++) {
-                SubModelElement* se = model->GetSubModel(str);
+                auto se = model->GetSubModel(str);
                 EffectLayer* sl = se->GetEffectLayer(0);
 
                 MapHLSChannelInformation(this, sl,
@@ -2084,7 +2085,7 @@ void xLightsFrame::ImportHLS(const wxFileName& filename)
             }
         }
         for (int str = 0; str < mc->GetNumStrands(); str++) {
-            StrandElement* se = model->GetStrand(str, true);
+            auto se = model->GetStrand(str, true);
             EffectLayer* sl = se->GetEffectLayer(0);
 
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
@@ -2261,16 +2262,17 @@ void xLightsFrame::ImportSuperStar(const wxFileName& filename)
         AdjustAllTimings(input_xml.GetRoot(), offset / 10);
     }
 
-    Element* model = nullptr;
+    std::shared_ptr<Element> model;
 
     for (size_t i = 0; i < _sequenceElements.GetElementCount(); i++) {
-        if (_sequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-            model = _sequenceElements.GetElement(i);
+        if (auto p = _sequenceElements.GetElement(i))
+            model = p->shared_from_this();
+        if (!model || model->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             if (model->GetName() == model_name) {
                 model_found = true;
                 break;
             } else {
-                ModelElement* modelEl = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(i));
+                auto modelEl = std::dynamic_pointer_cast<ModelElement>(model);
                 for (int x = 0; x < modelEl->GetSubModelAndStrandCount(); x++) {
                     std::string name = modelEl->GetSubModel(x)->GetFullName();
                     if (name == model_name) {
@@ -2284,6 +2286,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName& filename)
             }
         }
     }
+
     if (model != nullptr && model_found) {
         int x_size = wxAtoi(dlg.TextCtrl_SS_X_Size->GetValue());
         int y_size = wxAtoi(dlg.TextCtrl_SS_Y_Size->GetValue());
@@ -2294,7 +2297,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName& filename)
         int bw, bh;
         cls->GetBufferSize("Default", "2D", "None", bw, bh, 0);
         wxSize modelSize(bw, bh);
-        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, dlg.ImageResizeChoice->GetSelection(), modelSize, blend);
+        ImportSuperStar(model.get(), input_xml, x_size, y_size, x_offset, y_offset, dlg.ImageResizeChoice->GetSelection(), modelSize, blend);
     }
     float elapsedTime = sw.Time() / 1000.0; // msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
@@ -2663,7 +2666,7 @@ void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelE
     wxString ccrName = m->_mapping;
 
     for (int str = 0; str < mc->GetNumStrands(); ++str) {
-        StrandElement* se = model->GetStrand(str, true);
+        auto se = model->GetStrand(str, true);
 
         for (int n = 0; n < se->GetNodeLayerCount(); n++) {
             EffectLayer* layer = se->GetNodeLayer(n, true);
@@ -2888,14 +2891,14 @@ bool xLightsFrame::ImportLMS(wxXmlDocument& input_xml, const wxFileName& filenam
                     logger_base.error("Attempt to add model %s during LMS import failed.", (const char*)modelName.c_str());
                 } else {
                     if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), s->_mapping) != dlg.ccrNames.end()) {
-                        StrandElement* se = model->GetStrand(str);
+                        auto se = model->GetStrand(str);
                         if (se != nullptr) {
-                            MapCCRStrand(dlg.GetChannelNames(), se, s, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
+                            MapCCRStrand(dlg.GetChannelNames(), se.get(), s, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                         } else {
                             logger_base.debug("LMS Import: Strand %d not found.", str);
                         }
                     } else {
-                        SubModelElement* ste = model->GetSubModel(str);
+                        auto ste = model->GetSubModel(str);
                         if (ste != nullptr) {
                             MapChannelInformation(effectManager,
                                                   ste->GetEffectLayer(0), input_xml,
@@ -2916,8 +2919,8 @@ bool xLightsFrame::ImportLMS(wxXmlDocument& input_xml, const wxFileName& filenam
                     if (model == nullptr) {
                         logger_base.error("Attempt to add model %s during LMS import failed.", (const char*)modelName.c_str());
                     } else {
-                        SubModelElement* ste = model->GetSubModel(str);
-                        StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                        auto ste = model->GetSubModel(str);
+                        StrandElement* stre = dynamic_cast<StrandElement*>(ste.get());
                         if (stre != nullptr) {
                             NodeLayer* nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
@@ -4257,10 +4260,10 @@ bool xLightsFrame::ImportS5(wxXmlDocument& input_xml, const wxFileName& filename
                     if (model == nullptr) {
                         logger_base.error("Attempt to add model %s during S5 import failed.", (const char*)modelName.c_str());
                     } else {
-                        SubModelElement* ste = model->GetSubModel(str);
+                        auto ste = model->GetSubModel(str);
                         if (ste != nullptr) {
                             if (!LOREdit::IsNodeStrandMapping(s->_mapping))
-                                MapS5Effects(effectManager, ste, lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                                MapS5Effects(effectManager, ste.get(), lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
                             else
                                 MapS5ChannelEffects(effectManager, ste->GetEffectLayer(0), lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
                         }
@@ -4275,8 +4278,8 @@ bool xLightsFrame::ImportS5(wxXmlDocument& input_xml, const wxFileName& filename
                         if (model == nullptr) {
                             logger_base.error("Attempt to add model %s during S5 import failed.", (const char*)modelName.c_str());
                         } else {
-                            SubModelElement* ste = model->GetSubModel(str);
-                            StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                            auto ste = model->GetSubModel(str);
+                            StrandElement* stre = dynamic_cast<StrandElement*>(ste.get());
                             if (stre != nullptr) {
                                 NodeLayer* nl = stre->GetNodeLayer(n, true);
                                 if (nl != nullptr) {
@@ -4392,9 +4395,9 @@ bool xLightsFrame::ImportLPE(wxXmlDocument& input_xml, const wxFileName& filenam
                 if (model == nullptr) {
                     logger_base.error("Attempt to add model %s during LPE import failed.", (const char*)modelName.c_str());
                 } else {
-                    SubModelElement* ste = model->GetSubModel(str);
+                    auto ste = model->GetSubModel(str);
                     if (ste != nullptr) {
-                        MapLPEEffects(effectManager, ste, input_xml, s->_mapping, CurrentSeqXmlFile->GetFrequency(), dlg.CheckBox_EraseExistingEffects->GetValue());
+                        MapLPEEffects(effectManager, ste.get(), input_xml, s->_mapping, CurrentSeqXmlFile->GetFrequency(), dlg.CheckBox_EraseExistingEffects->GetValue());
                     }
                 }
             }
@@ -4407,8 +4410,8 @@ bool xLightsFrame::ImportLPE(wxXmlDocument& input_xml, const wxFileName& filenam
                     if (model == nullptr) {
                         logger_base.error("Attempt to add model %s during LPE import failed.", (const char*)modelName.c_str());
                     } else {
-                        SubModelElement* ste = model->GetSubModel(str);
-                        StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                        auto ste = model->GetSubModel(str);
+                        StrandElement* stre = dynamic_cast<StrandElement*>(ste.get());
                         if (stre != nullptr) {
                             NodeLayer* nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
@@ -4588,9 +4591,9 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                 if (model == nullptr) {
                     logger_base.error("Attempt to add model %s during Vixen 3 import failed.", (const char*)modelName.c_str());
                 } else {
-                    SubModelElement* ste = model->GetSubModel(str);
+                    auto ste = model->GetSubModel(str);
                     if (ste != nullptr) {
-                        MapVixen3Effects(effectManager, ste, vixen, s->_mapping, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
+                        MapVixen3Effects(effectManager, ste.get(), vixen, s->_mapping, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
                     }
                 }
             }
@@ -4603,8 +4606,8 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                     if (model == nullptr) {
                         logger_base.error("Attempt to add model %s during Vixen 3 import failed.", (const char*)modelName.c_str());
                     } else {
-                        SubModelElement* ste = model->GetSubModel(str);
-                        StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                        auto ste = model->GetSubModel(str);
+                        StrandElement* stre = dynamic_cast<StrandElement*>(ste.get());
                         if (stre != nullptr) {
                             NodeLayer* nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
@@ -5737,7 +5740,7 @@ void xLightsFrame::ImportLSP(const wxFileName& filename)
 
         if (!dlg.MapByStrand->IsChecked()) {
             for (int str = 0; str < mc->GetNumSubModels(); str++) {
-                SubModelElement* se = model->GetSubModel(str);
+                auto se = model->GetSubModel(str);
 
                 if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                     MapLSPEffects(se->GetEffectLayer(0), nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
@@ -5747,11 +5750,11 @@ void xLightsFrame::ImportLSP(const wxFileName& filename)
             }
         }
         for (int str = 0; str < mc->GetNumStrands(); str++) {
-            StrandElement* se = model->GetStrand(str, true);
+            auto se = model->GetStrand(str, true);
 
             if ("" != dlg.ChannelMapGrid->GetCellValue(row, 3)) {
                 if (dlg.MapByStrand->IsChecked()) {
-                    MapLSPStrand(se, strandNodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
+                    MapLSPStrand(se.get(), strandNodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],
                                  dlg.ChannelMapGrid->GetCellBackgroundColour(row, 4));
                 } else {
                     MapLSPEffects(se->GetEffectLayer(0), nodes[dlg.ChannelMapGrid->GetCellValue(row, 3)],

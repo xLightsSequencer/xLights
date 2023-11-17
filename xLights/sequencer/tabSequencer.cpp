@@ -464,12 +464,12 @@ static bool HasEffects(ModelElement *el) {
         return true;
     }
     for (size_t sm = 0; sm < el->GetSubModelAndStrandCount(); sm++) {
-        SubModelElement *sme = el->GetSubModel(sm);
+        auto sme = el->GetSubModel(sm);
 
         if (sme->HasEffects()) {
             return true;
         }
-        StrandElement *ste = dynamic_cast<StrandElement *>(sme);
+        StrandElement *ste = dynamic_cast<StrandElement *>(sme.get());
         if (ste != nullptr) {
             for (size_t n = 0; n < ste->GetNodeLayerCount(); n++) {
                 NodeLayer *nl = ste->GetNodeLayer(n, true);
@@ -714,7 +714,7 @@ void xLightsFrame::CheckForValidModels()
                         bool hasStrandEffects = false;
                         bool hasNodeEffects = false;
                         for (int l = 0; l < el->GetStrandCount(); l++) {
-                            StrandElement* sl = el->GetStrand(l);
+                            auto sl = el->GetStrand(l);
                             for (int l2 = 0; l2 < sl->GetEffectLayerCount(); l2++) {
                                 if (sl->GetEffectLayer(l2)->GetEffectCount() > 0) {
                                     hasStrandEffects = true;
@@ -741,9 +741,9 @@ void xLightsFrame::CheckForValidModels()
                     }
                     else {
                         for (int x1 = 0; x1 < el->GetSubModelAndStrandCount(); x1++) {
-                            SubModelElement* sme = el->GetSubModel(x1);
+                            auto sme = el->GetSubModel(x1);
                             if (sme != nullptr &&
-                                dynamic_cast<StrandElement*>(sme) == nullptr &&
+                                dynamic_cast<StrandElement*>(sme.get()) == nullptr &&
                                 m->GetSubModel(sme->GetName()) == nullptr) {
                                 std::vector<std::string> AllSMNames;
                                 std::vector<std::string> ModelSMNames;
@@ -752,7 +752,7 @@ void xLightsFrame::CheckForValidModels()
                                     ModelSMNames.push_back(m->GetSubModel(z)->GetName());
                                 }
                                 if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
-                                    HandleChoices(this, AllSMNames, ModelSMNames, sme,
+                                    HandleChoices(this, AllSMNames, ModelSMNames, sme.get(),
                                         "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
                                         + "How should we handle this?",
                                         toMap, ignore, mapall);
@@ -2005,7 +2005,10 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
 
     _sequenceElements.get_undo_mgr().CreateUndoStep();
     for (size_t i = 0; i < _sequenceElements.GetRowInformationSize(); i++) {
-        Element* element = _sequenceElements.GetRowInformation(i)->element;
+        auto element = _sequenceElements.GetRowInformation(i)->element.lock();
+        if (!element)
+            continue;
+
         EffectLayer* el = _sequenceElements.GetEffectLayer(i);
 
         int startms = 99999999;
@@ -2044,7 +2047,10 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
     _sequenceElements.get_undo_mgr().CreateUndoStep();
 
     for(size_t i=0;i<_sequenceElements.GetVisibleRowInformationSize();i++) {
-        Element* element = _sequenceElements.GetVisibleRowInformation(i)->element;
+        auto element = _sequenceElements.GetVisibleRowInformation(i)->element.lock();
+        if (!element)
+            continue;
+
         EffectLayer* el = _sequenceElements.GetVisibleEffectLayer(i);
 
         int startms = 99999999;
@@ -2083,7 +2089,10 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
     _sequenceElements.get_undo_mgr().CreateUndoStep();
 
     for(size_t i=0;i<_sequenceElements.GetVisibleRowInformationSize();i++) {
-        Element* element = _sequenceElements.GetVisibleRowInformation(i)->element;
+        auto element = _sequenceElements.GetVisibleRowInformation(i)->element.lock();
+        if (!element)
+            continue;
+
         EffectLayer* el = _sequenceElements.GetVisibleEffectLayer(i);
 
         int startms = 99999999;
@@ -3779,7 +3788,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent& event)
         // we cant do this on model groups & submodels
         if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
             for (int i = 0; i < el->GetStrandCount(); ++i) {
-                StrandElement* se = el->GetStrand(i);
+                auto se = el->GetStrand(i);
                 for (int j = 0; j < se->GetNodeLayerCount(); ++j) {
                     EffectLayer* layer = se->GetNodeLayer(j);
                     xlColorVector colors;
@@ -3962,7 +3971,7 @@ void xLightsFrame::DoPromoteEffects(ModelElement* element)
 {
     // first promote from nodes to strands
     for (int x = 0; x < element->GetStrandCount(); x++) {
-        StrandElement* se = element->GetStrand(x);
+        auto se = element->GetStrand(x);
         EffectLayer* target = se->GetEffectLayer(0);
         if (element->GetStrandCount() <= 1) {
             if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
@@ -4031,7 +4040,7 @@ void xLightsFrame::DoPromoteEffects(ModelElement* element)
             bool collapse = true;
 
             for (int n = 0; n < element->GetStrandCount() && collapse; n++) {
-                StrandElement* se = element->GetStrand(n);
+                auto se = element->GetStrand(n);
                 for (int l = 0; l < se->GetEffectLayerCount(); l++) {
                     EffectLayer* node = se->GetEffectLayer(l);
                     if (node == base) {
@@ -4051,7 +4060,7 @@ void xLightsFrame::DoPromoteEffects(ModelElement* element)
             if (collapse) {
                 target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false);
                 for (int n = 0; n < element->GetStrandCount() && collapse; n++) {
-                    StrandElement* se = element->GetStrand(n);
+                    auto se = element->GetStrand(n);
                     for (int l = 0; l < se->GetEffectLayerCount(); l++) {
                         EffectLayer* node = se->GetEffectLayer(l);
                         int nodeIndex = 0;

@@ -156,7 +156,7 @@ public:
     int GetEndColumn() { return mRangeStartCol < mRangeEndCol ? mRangeEndCol : mRangeStartCol; }
     int GetEndRow() { return mRangeStartRow < mRangeEndRow ? mRangeEndRow : mRangeStartRow; }
     int GetMSFromColumn(int col) const;
-    Element* GetActiveTimingElement() const;
+    std::shared_ptr<Element> GetActiveTimingElement() const;
     void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true, bool async = false) const;
     void LockEffects(bool lock);    
     void DisableRenderEffects(bool disable);

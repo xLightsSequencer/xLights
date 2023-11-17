@@ -40,11 +40,56 @@ public:
     virtual void IncrementChangeCount(Element *el) = 0;
 };
 
-class Element {
+enum ElementId : uintptr_t
+{
+    kInvalidElementId = 0
+};
+
+namespace detail
+{
+inline ElementId nextElementId()
+{
+    static std::atomic_uintptr_t id{ 1 };
+    // Need atomicity only, so used relaxed semantics
+    return ElementId(id.fetch_add(1, std::memory_order_relaxed));
+}
+}
+
+class Element : public std::enable_shared_from_this<Element> {
+protected:
+    // To control who has visibility to be able to construct this. Use the Construct<> function only.
+    enum class ConstructorKey;
 public:
-    Element(SequenceElements *p, const std::string &name);
+    Element(ConstructorKey, SequenceElements* p, const std::string& name);
     virtual ~Element();
-    
+
+    template <class ElementType, class... Args, std::enable_if_t<std::is_base_of_v<Element, ElementType>, bool> = false>
+    static std::shared_ptr<ElementType> Construct(Args&&... args)
+    {
+        auto p = std::make_shared<ElementType>(ConstructorKey{}, std::forward<Args>(args)...);
+        if (p)
+        {
+            // The constructor itself does not have a weak pointer yet, so we must add to the map after construction.
+            auto& m = map();
+            std::lock_guard g(m.mutex);
+            m.map[p->GetId()] = std::static_pointer_cast<Element>(p);
+        }
+        return p;
+    }
+
+    ElementId GetId() const
+    {
+        return elementId;
+    }
+
+    static std::shared_ptr<Element> GetById(ElementId id)
+    {
+        auto& m = map();
+        std::lock_guard g(m.mutex);
+        auto it = m.map.find(id);
+        return it != m.map.end() ? it->second.lock() : std::shared_ptr<Element>{};
+    }
+
     virtual ElementType GetType() const = 0;
     std::string GetTypeDescription() const;
 
@@ -132,6 +177,8 @@ public:
 protected:
     EffectLayer* AddEffectLayerInternal();
 
+    ElementId elementId{ detail::nextElementId() };
+
     SequenceElements *parent = nullptr;
 
     std::string mName;
@@ -148,12 +195,24 @@ protected:
     std::atomic<int> dirtyEnd = -1;
 
     std::recursive_timed_mutex changeLock;
+
+private:
+    struct ElementMap
+    {
+        std::mutex mutex;
+        std::unordered_map<ElementId, std::weak_ptr<Element>> map;
+    };
+    static ElementMap& map()
+    {
+        static ElementMap m;
+        return m;
+    }
 };
 
 class TimingElement : public Element
 {
 public:
-    TimingElement(SequenceElements *p, const std::string &name);
+    TimingElement(ConstructorKey, SequenceElements *p, const std::string &name);
     virtual ~TimingElement();
     
     virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_TIMING; }
@@ -189,7 +248,7 @@ private:
 
 class SubModelElement : public Element {
 public:
-    SubModelElement(ModelElement *model, const std::string &name);
+    SubModelElement(ConstructorKey, ModelElement* model, const std::string& name);
     virtual ~SubModelElement();
     
     ModelElement *GetModelElement() const { return mParentModel;}
@@ -209,7 +268,7 @@ protected:
 
 class StrandElement : public SubModelElement {
 public:
-    StrandElement(ModelElement *model, int strand);
+    StrandElement(ConstructorKey, ModelElement* model, int strand);
     virtual ~StrandElement();
 
     void InitFromModel(Model &model);
@@ -247,8 +306,8 @@ private:
 class ModelElement : public Element
 {
     public:
-        ModelElement(SequenceElements *p, const std::string &name, bool selected);
-        ModelElement(const std::string &name);
+        ModelElement(ConstructorKey, SequenceElements *p, const std::string &name, bool selected);
+        ModelElement(ConstructorKey, const std::string &name);
         virtual ~ModelElement();
     
         void Init(Model &cls);
@@ -263,12 +322,11 @@ class ModelElement : public Element
         [[nodiscard]] int GetEffectCount() const override;
         int GetSubModelAndStrandCount() const;
         int GetSubModelCount() const;
-        SubModelElement *GetSubModel(int i) const;
-        SubModelElement *GetSubModel(int i);
-        SubModelElement *GetSubModel(const std::string &name, bool create = false);
+        std::shared_ptr<SubModelElement> GetSubModel(int i) const;
+        std::shared_ptr<SubModelElement> GetSubModel(const std::string &name, bool create = false);
         void RemoveSubModel(const std::string &name);
         void RemoveAllSubModels();
-        void AddSubModel(SubModelElement* sme);
+        void AddSubModel(std::shared_ptr<SubModelElement> sme);
 
         bool ShowStrands() const { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}
@@ -279,8 +337,8 @@ class ModelElement : public Element
         void IncWaitCount() { waitCount++; }
         int DecWaitCount() { return --waitCount; }
 
-        StrandElement *GetStrand(int strand, bool create = false);
-        StrandElement *GetStrand(int strand) const;
+        std::shared_ptr<StrandElement> GetStrand(int strand, bool create = false);
+        std::shared_ptr<StrandElement> GetStrand(int strand) const;
         int GetStrandCount() const { return mStrands.size(); }
     
         virtual void CleanupAfterRender() override;
@@ -289,8 +347,8 @@ class ModelElement : public Element
     private:
         bool mStrandsVisible = false;
         bool mSelected = false;
-        std::vector<SubModelElement*> mSubModels;
-        std::vector<StrandElement*> mStrands;
+        std::vector<std::shared_ptr<SubModelElement>> mSubModels;
+        std::vector<std::shared_ptr<StrandElement>> mStrands;
         std::atomic_int waitCount;
 };
 

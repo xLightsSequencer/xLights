@@ -354,7 +354,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
     if (ri == nullptr)
         logger_base.crit("EffectsGrid::rightClick No row information ... this is not going to end well.");
 
-    Element* element = ri->element;
+    auto element = ri->element.lock();
     if (element == nullptr)
         logger_base.crit("EffectsGrid::rightClick No row element ... this is not going to end well.");
     if (element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
@@ -560,25 +560,25 @@ void EffectsGrid::FindEffectsForData(uint32_t channel, uint8_t chans, uint32_t _
             }
 
             for (size_t j = 0; j < me->GetStrandCount(); ++j) {
-                StrandElement* se = me->GetStrand(j);
+                auto se = me->GetStrand(j);
                 for (auto it : se->GetEffectLayers()) {
                     if (it->HasEffectsInTimeRange(_findDataMS, _findDataMS)) {
-                        possible.push_back({ se, it, nullptr, it->GetEffectAtTime(_findDataMS), nullptr });
+                        possible.push_back({ se.get(), it, nullptr, it->GetEffectAtTime(_findDataMS), nullptr});
                     }
                 }
                 for (size_t j = 0; j < se->GetNodeLayerCount(); ++j) {
                     NodeLayer* nl = se->GetNodeEffectLayer(j);
                     if (nl->HasEffectsInTimeRange(_findDataMS, _findDataMS)) {
-                        possible.push_back({ se, nullptr, nl, nl->GetEffectAtTime(_findDataMS), nullptr });
+                        possible.push_back({ se.get(), nullptr, nl, nl->GetEffectAtTime(_findDataMS), nullptr});
                     }
                 }
             }
 
             for (size_t j = 0; j < me->GetSubModelCount(); ++j) {
-                SubModelElement* sm = me->GetSubModel(j);
+                auto sm = me->GetSubModel(j);
                 for (auto it : sm->GetEffectLayers()) {
                     if (it->HasEffectsInTimeRange(_findDataMS, _findDataMS)) {
-                        possible.push_back({ sm, it, nullptr, it->GetEffectAtTime(_findDataMS), nullptr });
+                        possible.push_back({ sm.get(), it, nullptr, it->GetEffectAtTime(_findDataMS), nullptr});
                     }
                 }
             }
@@ -690,21 +690,25 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     }
     else if (id == ID_GRID_MNU_FINDEFFECTFORDATA) {
         uint8_t chans = 0;
-        uint32_t channel = FindChannel(_findDataRI->element, _findDataRI->strandIndex, _findDataRI->nodeIndex, chans);
-        if (channel != 0xFFFFFFFF) {
-            int strandAdj = 0;
-            std::string parent;
-            if (_findDataRI->element->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
-                strandAdj -= dynamic_cast<StrandElement*>(_findDataRI->element)->GetModelElement()->GetSubModelCount();
-                parent = dynamic_cast<StrandElement*>(_findDataRI->element)->GetModelElement()->GetName();
+        auto element = _findDataRI->element.lock();
+        if (element)
+        {
+            uint32_t channel = FindChannel(element.get(), _findDataRI->strandIndex, _findDataRI->nodeIndex, chans);
+            if (channel != 0xFFFFFFFF) {
+                int strandAdj = 0;
+                std::string parent;
+                if (element->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                    strandAdj -= dynamic_cast<StrandElement*>(element.get())->GetModelElement()->GetSubModelCount();
+                    parent = dynamic_cast<StrandElement*>(element.get())->GetModelElement()->GetName();
+                }
+                logger_base.debug("FIND EFFECTS IMPACTING NODE: Element: %s %s %s strand %d node %d -> channels %u-%u", (char*)element->GetTypeDescription().c_str(), (char*)element->GetName().c_str(), (char*)parent.c_str(), _findDataRI->strandIndex + 1 + strandAdj, _findDataRI->nodeIndex + 1, channel + 1, channel + chans);
+                FindEffectsForData(channel, chans, _findDataMS);
             }
-            logger_base.debug("FIND EFFECTS IMPACTING NODE: Element: %s %s %s strand %d node %d -> channels %u-%u", (char*)_findDataRI->element->GetTypeDescription().c_str(), (char*)_findDataRI->element->GetName().c_str(), (char*)parent.c_str(), _findDataRI->strandIndex + 1 + strandAdj, _findDataRI->nodeIndex + 1, channel + 1, channel + chans);
-            FindEffectsForData(channel, chans, _findDataMS);
-        }
-        else {
-            std::vector<findDataEffect> actual;
-            xlights->ShowDataFindPanel();
-            xlights->GetFindDataPanel()->UpdateEffects(actual, this);
+            else {
+                std::vector<findDataEffect> actual;
+                xlights->ShowDataFindPanel();
+                xlights->GetFindDataPanel()->UpdateEffects(actual, this);
+            }
         }
     }
     else if (id == ID_GRID_MNU_RENDERENABLE) {
@@ -1321,7 +1325,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     else {
         if (!xlights->IsACActive() || rowIndex < mSequenceElements->GetNumberOfTimingRows()) {
             if (!out_of_bounds) {
-                Element* element = mSequenceElements->GetVisibleRowInformation(rowIndex)->element;
+                auto element = mSequenceElements->GetVisibleRowInformation(rowIndex)->element.lock();
                 if (element != nullptr) {
                     RunMouseOverHitTests(rowIndex, event.GetX(), event.GetY());
                 }
@@ -1683,14 +1687,18 @@ int EffectsGrid::GetSelectedEffectCount(const std::string& effectName) const
 
 void EffectsGrid::ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
 {
-    Element* lastModel = nullptr;
+    std::shared_ptr<Element> lastModel;
     RangeAccumulator rangeAccumulator;
 
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
 
-        if (ri->element != lastModel && lastModel != nullptr && rangeAccumulator.size() > 0) {
+        auto element = ri->element.lock();
+        if (!element)
+            continue;
+
+        if (element != lastModel && lastModel != nullptr && rangeAccumulator.size() > 0) {
             // send render events for all the ranges that changed
             // 1000 means if there is less than a second gap between ranges then we will just merge them
             //rangeAccumulator.Consolidate(1000);
@@ -1706,9 +1714,9 @@ void EffectsGrid::ApplyEffectSettingToSelected(const std::string& effectName, co
 
             rangeAccumulator.clear();
         }
-        lastModel = ri->element;
+        lastModel = element;
 
-        if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+        if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             // skip timing rows
         }
         else {
@@ -1736,14 +1744,17 @@ void EffectsGrid::ApplyEffectSettingToSelected(const std::string& effectName, co
 
 void EffectsGrid::ApplyButtonPressToSelected(const std::string& effectName, const std::string id)
 {
-    Element* lastModel = nullptr;
+    std::shared_ptr<Element> lastModel;
     RangeAccumulator rangeAccumulator;
 
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
+        auto element = ri->element.lock();
+        if (!element)
+            continue;
 
-        if (ri->element != lastModel && lastModel != nullptr && rangeAccumulator.size() > 0) {
+        if (element != lastModel && lastModel != nullptr && rangeAccumulator.size() > 0) {
             // send render events for all the ranges that changed
             // 1000 means if there is less than a second gap between ranges then we will just merge them
             //rangeAccumulator.Consolidate(1000);
@@ -1759,9 +1770,9 @@ void EffectsGrid::ApplyButtonPressToSelected(const std::string& effectName, cons
 
             rangeAccumulator.clear();
         }
-        lastModel = ri->element;
+        lastModel = element;
 
-        if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+        if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             // skip timing rows
         }
         else {
@@ -1789,14 +1800,17 @@ void EffectsGrid::ApplyButtonPressToSelected(const std::string& effectName, cons
 
 void EffectsGrid::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int>>& dmxmappings)
 {
-    Element* lastModel = nullptr;
+    std::shared_ptr<Element> lastModel = nullptr;
     RangeAccumulator rangeAccumulator;
 
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
+        auto element = ri->element.lock();
+        if (!element)
+            continue;
 
-        if (ri->element != lastModel && lastModel != nullptr && rangeAccumulator.size() > 0) {
+        if (element != lastModel && lastModel != nullptr && rangeAccumulator.size() > 0) {
             // send render events for all the ranges that changed
             // 1000 means if there is less than a second gap between ranges then we will just merge them
             //rangeAccumulator.Consolidate(1000);
@@ -1812,9 +1826,9 @@ void EffectsGrid::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int,
 
             rangeAccumulator.clear();
         }
-        lastModel = ri->element;
+        lastModel = element;
 
-        if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+        if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             // skip timing rows
         }
         else {
@@ -1842,14 +1856,17 @@ void EffectsGrid::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int,
 
 void EffectsGrid::ConvertSelectedEffectsTo(const std::string& effectName)
 {
-    Element* lastModel = nullptr;
+    std::shared_ptr<Element> lastModel;
     RangeAccumulator rangeAccumulator;
 
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
+        auto element = ri->element.lock();
+        if (!element)
+            continue;
 
-        if (ri->element != lastModel && lastModel != nullptr && rangeAccumulator.size() > 0) {
+        if (element != lastModel && lastModel != nullptr && rangeAccumulator.size() > 0) {
             // send render events for all the ranges that changed
             // 1000 means if there is less than a second gap between ranges then we will just merge them
             //rangeAccumulator.Consolidate(1000);
@@ -1865,9 +1882,9 @@ void EffectsGrid::ConvertSelectedEffectsTo(const std::string& effectName)
 
             rangeAccumulator.clear();
         }
-        lastModel = ri->element;
+        lastModel = element;
 
-        if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+        if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             // skip timing rows
         }
         else {
@@ -4389,7 +4406,10 @@ void EffectsGrid::DeleteSelectedEffects()
 
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     for (int i = 0; i < mSequenceElements->GetRowInformationSize(); i++) {
-        Element* element = mSequenceElements->GetRowInformation(i)->element;
+        auto element = mSequenceElements->GetRowInformation(i)->element.lock();
+        if (!element)
+            continue;
+
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
         int start = 99999999;
         int end = -1;
@@ -4450,7 +4470,10 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
     std::vector<bool> reserved;
     int first_model_row = mSequenceElements->GetNumberOfTimingRows();
     for (int i = first_model_row; i < rows_to_process; i++) {
-        Element* element = mSequenceElements->GetRowInformation(i)->element;
+        auto element = mSequenceElements->GetRowInformation(i)->element.lock();
+        if (!element)
+            continue;
+
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
         for (int x = 0; x < el->GetEffectCount(); x++) {
             Effect* ef = el->GetEffect(x);
@@ -4562,7 +4585,7 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
                     if (ef == mSelectedEffect) {
                         mSelectedEffect = nullptr;
                     }
-                    EffectLayer* new_el = EffectsGrid::FindOpenLayer(element, align_start, align_end);
+                    EffectLayer* new_el = EffectsGrid::FindOpenLayer(element.get(), align_start, align_end);
                     element->SetCollapsed(false);
                     Effect* new_ef = new_el->AddEffect(0,
                         name,
@@ -4699,7 +4722,7 @@ Effect* EffectsGrid::OldPaste(const wxString& data, const wxString& pasteDataVer
                     drop_row = eff_row + drop_row_offset + mSequenceElements->GetFirstVisibleModelRow();
                     Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
                     if (row_info == nullptr) break;
-                    Element* elem = row_info->element;
+                    auto elem = row_info->element.lock();
                     if (elem == nullptr) break;
                     EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
                     if (el == nullptr) break;
@@ -5117,7 +5140,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                     Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
                     if (row_info == nullptr)
                         break;
-                    Element* elem = row_info->element;
+                    auto elem = row_info->element.lock();
                     if (elem == nullptr)
                         break;
                     EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
@@ -5975,13 +5998,13 @@ void EffectsGrid::DrawLines(xlGraphicsContext *ctx) const
     xlColor color(33, 33, 33);
     for (size_t row = 0; row < mSequenceElements->GetVisibleRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
-        Element* e = ri->element;
+        auto e = ri->element.lock();
         y = row * DEFAULT_ROW_HEADING_HEIGHT;
 
         if (ri->layerIndex == 0 && ri->strandIndex == -1) {
             if (isEvenLayer) {
                 //Element is collapsed only one row should be shaded
-                int h = e->GetCollapsed() ? DEFAULT_ROW_HEADING_HEIGHT : DEFAULT_ROW_HEADING_HEIGHT * e->GetEffectLayerCount();
+                int h = (!e || e->GetCollapsed()) ? DEFAULT_ROW_HEADING_HEIGHT : DEFAULT_ROW_HEADING_HEIGHT * e->GetEffectLayerCount();
                 backgrounds->AddRectAsTriangles(x1, y, x2, y + h, color);
             }
             isEvenLayer = !isEvenLayer;
@@ -6027,7 +6050,8 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
     int x1, int y1, int x2, int y2,
     xlVertexColorAccumulator *backgrounds) const
 {
-    if (e->GetPaletteSize() == 0) {
+    auto rie = ri->element.lock();
+    if (e->GetPaletteSize() == 0 || !rie) {
         //if there are no colors selected, none of the "backgrounds" make sense.  Don't draw
         //the background and instead make sure the icon is displayed to the user knows they
         //need to make some decisions about the colors to be used.
@@ -6036,10 +6060,10 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
     RenderableEffect* ef = xlights->GetEffectManager()[e->GetEffectIndex()];
 
     xlColor colorMask = xlColor::NilColor();
-    Model* m = xlights->GetModel(ri->element->GetModelName());
+    Model* m = xlights->GetModel(rie->GetModelName());
     if (m != nullptr) {
         if (m->GetDisplayAs() == "Channel Block") {
-            StrandElement* se = dynamic_cast<StrandElement*>(ri->element);
+            StrandElement* se = dynamic_cast<StrandElement*>(rie.get());
             if (se != nullptr) {
                 colorMask = m->GetNodeMaskColor(se->GetStrand());
             } else {
@@ -6077,10 +6101,14 @@ void EffectsGrid::DrawEffects(xlGraphicsContext *ctx)
     int width = getWidth();
     for (int row = 0; row < mSequenceElements->GetVisibleRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
-        if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+        auto e = ri->element.lock();
+        if (!e)
+            continue;
+
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             DrawTimingEffects(row);
         } else {
-            wxString name = ri->element->GetName();
+            wxString name = e->GetName();
             EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(ri);
             if (effectLayer == nullptr) {
                 continue;
@@ -6107,8 +6135,8 @@ void EffectsGrid::DrawEffects(xlGraphicsContext *ctx)
                 std::vector<xlColor> colors;
                 std::vector<double> xs;
                 PixelBufferClass ncls(xlights);
-                StrandElement* se = dynamic_cast<StrandElement*>(ri->element);
-                Model* m = xlights->GetModel(ri->element->GetModelName());
+                StrandElement* se = dynamic_cast<StrandElement*>(e.get());
+                Model* m = xlights->GetModel(e->GetModelName());
                 ncls.InitNodeBuffer(*m, se->GetStrand(), ri->nodeIndex, seqData->FrameTime());
                 xlColor maskColor = m->GetNodeMaskColor(se->GetStrand());
                 xlColor lastColor;
@@ -6372,7 +6400,10 @@ void EffectsGrid::DrawTimingEffects(int row)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(row);
-    TimingElement* element = dynamic_cast<TimingElement*>(ri->element);
+    auto element = std::dynamic_pointer_cast<TimingElement>(ri->element.lock());
+    if (!element)
+        return;
+
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
 
     if (effectLayer == nullptr) logger_base.debug("EffectsGrid::DrawTimingEffects null effectLayer.");
@@ -6769,19 +6800,16 @@ void EffectsGrid::RaiseEffectDropped(int x, int y) const
     wxPostEvent(GetParent(), eventDropped);
 }
 
-Element* EffectsGrid::GetActiveTimingElement() const
+std::shared_ptr<Element> EffectsGrid::GetActiveTimingElement() const
 {
-    Element* returnValue=nullptr;
-
     for (int row = 0; row<mSequenceElements->GetVisibleRowInformationSize(); row++) {
-        Element* e = mSequenceElements->GetVisibleRowInformation(row)->element;
-        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && dynamic_cast<TimingElement*>(e)->GetActive()) {
-            returnValue = e;
-            break;
+        auto e = mSequenceElements->GetVisibleRowInformation(row)->element.lock();
+        if (e && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && dynamic_cast<TimingElement*>(e.get())->GetActive()) {
+            return e;
         }
     }
 
-    return returnValue;
+    return {};
 }
 
 void EffectsGrid::GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight) const
@@ -6893,8 +6921,7 @@ void EffectsGrid::CutModelEffects(int row_number, bool allLayers)
         EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row_number);
         effectLayer->SelectAllEffects();
         effectLayer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-    } else {
-        Element* element = mSequenceElements->GetVisibleRowInformation(row_number)->element;
+    } else if (auto element = mSequenceElements->GetVisibleRowInformation(row_number)->element.lock()) {
         for (int i = 0; i < element->GetEffectLayerCount(); i++) {
             EffectLayer* effectLayer = element->GetEffectLayer(i);
             effectLayer->SelectAllEffects();
@@ -6926,8 +6953,7 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers)
         } else {
             ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
         }
-    } else {
-        Element* e = mSequenceElements->GetVisibleRowInformation(row_number)->element;
+    } else if (auto e = mSequenceElements->GetVisibleRowInformation(row_number)->element.lock()) {
         mSequenceElements->UnSelectAllEffects();
         for (int i = 0; i < e->GetEffectLayerCount(); i++)
         {
