@@ -55,6 +55,7 @@ protected:
 	static const long ID_MCU_SELECTNONE;
     static const long ID_MCU_SELECTACTIVE;
     static const long ID_MCU_DESELECTINACTIVE;
+    static const long ID_MCU_SELECTAUTO;
 
 private:
 

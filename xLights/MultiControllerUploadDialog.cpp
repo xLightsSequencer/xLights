@@ -35,6 +35,7 @@ const long MultiControllerUploadDialog::ID_MCU_SELECTALL = wxNewId();
 const long MultiControllerUploadDialog::ID_MCU_SELECTNONE = wxNewId();
 const long MultiControllerUploadDialog::ID_MCU_SELECTACTIVE = wxNewId();
 const long MultiControllerUploadDialog::ID_MCU_DESELECTINACTIVE = wxNewId();
+const long MultiControllerUploadDialog::ID_MCU_SELECTAUTO = wxNewId();
 
 BEGIN_EVENT_TABLE(MultiControllerUploadDialog, wxDialog)
 	//(*EventTable(MultiControllerUploadDialog)
@@ -165,6 +166,7 @@ void MultiControllerUploadDialog::OnListRClick(wxContextMenuEvent& event)
     mnu.Append(ID_MCU_SELECTALL, "Select All");
     mnu.Append(ID_MCU_SELECTNONE, "Select None");
     mnu.Append(ID_MCU_SELECTACTIVE, "Select Active");
+    mnu.Append(ID_MCU_SELECTAUTO, "Select Auto Config");
     mnu.Append(ID_MCU_DESELECTINACTIVE, "Deselect Inactive");
 
     std::vector<std::string> proxies;
@@ -214,6 +216,13 @@ void MultiControllerUploadDialog::OnPopup(wxCommandEvent& event)
         for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++) {
             if (!_controllers[i]->IsActive()) {
                 CheckListBox_Controllers->Check(i, false);
+            }
+        }
+        ValidateWindow();
+    } else if (event.GetId() == ID_MCU_SELECTAUTO) {
+        for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++) {
+            if (_controllers[i]->IsAutoLayout()) {
+                CheckListBox_Controllers->Check(i);
             }
         }
         ValidateWindow();
