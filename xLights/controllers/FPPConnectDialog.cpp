@@ -358,7 +358,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
                 Choice1->SetSelection(inst->mode == "master" ? 1 : 2);
                 FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
             }
-        } else if (inst->fppType == FPP_TYPE::FALCONV4) {
+        } else if (inst->fppType == FPP_TYPE::FALCONV4V5) {
             wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, FSEQ_COL + rowStr);
             wxFont font = Choice1->GetFont();
             font.SetPointSize(font.GetPointSize() - 2);
@@ -420,7 +420,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             font.SetPointSize(font.GetPointSize() - 2);
             ComboBox1->SetFont(font);
             FPPInstanceSizer->Add(ComboBox1, 1, wxALL|wxEXPAND, 0);
-        } else if (inst->fppType == FPP_TYPE::FALCONV4) {
+        } else if (inst->fppType == FPP_TYPE::FALCONV4V5) {
             // this probably needs to be moved as this is not really a zlib thing but only the falcons end up here today so I am going to put it here for now
             wxCheckBox *CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MEDIA_COL + rowStr);
             CheckBox1->SetValue(inst->mode != "remote");
@@ -959,7 +959,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         int fseqType = 0;
                         if (inst->fppType == FPP_TYPE::FPP) {
                             fseqType = GetChoiceValueIndex(FSEQ_COL + rowStr);
-                        } else if (inst->fppType == FPP_TYPE::FALCONV4) {
+                        } else if (inst->fppType == FPP_TYPE::FALCONV4V5) {
                             fseqType = GetChoiceValueIndex(FSEQ_COL + rowStr);
                             // need to adjust so they are unique
                             if (fseqType == 1) fseqType = 5;
@@ -1050,7 +1050,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         if (!cancelled && doUpload[row]) {
                             cancelled |= inst->FinalizeUploadSequence();
 
-                            if (inst->fppType == FPP_TYPE::FALCONV4) {
+                            if (inst->fppType == FPP_TYPE::FALCONV4V5) {
                                 // a falcon
                                 std::string proxy = "";
                                 auto c = _outputManager->GetControllers(inst->ipAddress);

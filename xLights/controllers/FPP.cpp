@@ -3584,8 +3584,9 @@ static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputMan
         return res->majorVersion >= 4 && res->mode == "remote";
     }
 
-    if (res->typeId == 0x88 || res->typeId == 0x89) {
-        // F16V4 / F48V4
+    if (res->typeId == 0x88 || res->typeId == 0x89 ||
+        res->typeId == 0x90 || res->typeId == 0x91) {
+        // F16V4 / F48V4 / F16V5 / F48V5
         return res->mode != "bridge";
     }
 
@@ -3684,8 +3685,9 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
 void FPP::TypeIDtoControllerType(int typeId, FPP* inst) {
     if (typeId < 0x80) {
         inst->fppType = FPP_TYPE::FPP;
-    } else if (typeId == 0x88 || typeId == 0x89) {
-        inst->fppType = FPP_TYPE::FALCONV4;
+    } else if (typeId == 0x88 || typeId == 0x89 ||
+               typeId == 0x90 || typeId == 0x91) {
+        inst->fppType = FPP_TYPE::FALCONV4V5;
     } else if (typeId == 0xC2 || typeId == 0xC3) {
         inst->fppType = FPP_TYPE::ESPIXELSTICK;
     }

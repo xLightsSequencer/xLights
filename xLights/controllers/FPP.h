@@ -19,7 +19,7 @@ class FPPUploadProgressDialog;
 class Discovery;
 
 enum class FPP_TYPE { FPP,
-                      FALCONV4,
+                      FALCONV4V5,
                       ESPIXELSTICK };
 
 class FPP : public BaseController
