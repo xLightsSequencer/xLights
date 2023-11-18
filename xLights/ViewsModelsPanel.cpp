@@ -2496,13 +2496,13 @@ void ViewsModelsPanel::RemoveModelFromLists(const std::string& modelName)
 {
     for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
         if (ListCtrlModels->GetItemText(i, 1) == modelName) {
-            ListCtrlModels->SetItemPtrData(i, (wxUIntPtr)0);
+            ListCtrlModels->SetItemPtrData(i, (wxUIntPtr)ElementId::kInvalidElementId);
             break;
         }
     }
     for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i) {
         if (ListCtrlNonModels->GetItemText(i, 1) == modelName) {
-            ListCtrlNonModels->SetItemPtrData(i, (wxUIntPtr)0);
+            ListCtrlNonModels->SetItemPtrData(i, (wxUIntPtr)ElementId::kInvalidElementId);
             break;
         }
     }

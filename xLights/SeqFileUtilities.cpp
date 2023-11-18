@@ -2267,7 +2267,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName& filename)
     for (size_t i = 0; i < _sequenceElements.GetElementCount(); i++) {
         if (auto p = _sequenceElements.GetElement(i))
             model = p->shared_from_this();
-        if (!model || model->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+        if (model && model->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             if (model->GetName() == model_name) {
                 model_found = true;
                 break;
