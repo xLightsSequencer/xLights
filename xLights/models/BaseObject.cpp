@@ -248,6 +248,15 @@ void BaseObject::FlipVertical(bool ignoreLock) {
     IncrementChangeCount();
 }
 
+static inline bool checkNameAttributes(wxXmlNode* nn, wxXmlNode* cc) {
+    if (nn->HasAttribute("name")) {
+        return (cc->GetAttribute("name") == nn->GetAttribute("name"));
+    } else if (nn->HasAttribute("Name")) {
+        return (cc->GetAttribute("Name") == nn->GetAttribute("Name"));
+    }
+    return true;
+}
+
 bool BaseObject::IsXmlChanged(wxXmlNode* n) const
 {
     for (wxXmlAttribute* a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
@@ -263,7 +272,7 @@ bool BaseObject::IsXmlChanged(wxXmlNode* n) const
     for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
         bool found = false;
         for (wxXmlNode* cc = ModelXml->GetChildren(); cc != nullptr; cc = cc->GetNext()) {
-            if (cc->GetName() == nn->GetName() && (!nn->HasAttribute("name") || (cc->GetAttribute("name") == nn->GetAttribute("name")))) {
+            if (cc->GetName() == nn->GetName() && checkNameAttributes(nn, cc)) {
                 found = true;
                 for (wxXmlAttribute* a = cc->GetAttributes(); a != nullptr; a = a->GetNext()) {
                     if (!cc->HasAttribute(a->GetName()) || nn->GetAttribute(a->GetName()) != a->GetValue()) {
