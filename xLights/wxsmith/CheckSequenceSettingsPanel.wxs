@@ -86,6 +86,18 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX7" variable="CheckBox_DisableSketch" member="yes">
+					<label>Disable sketch image file checking.</label>
+					<help>Sketch effect image files are not essential to rendering.</help>
+					<handler function="OnCheckBox_DisableSketchClick" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>7</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>
