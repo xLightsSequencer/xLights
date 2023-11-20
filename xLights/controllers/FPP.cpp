@@ -261,7 +261,7 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
     std::string fullUrl = ipAddress + url;
     std::string ipAddForGet = ipAddress;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
-        fullUrl = ipAddress + "/fpp?path=" +  url;
+        fullUrl = ipAddress + "/fpp?path=" + url;
     }
     if (!_fppProxy.empty()) {
         fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
@@ -921,7 +921,7 @@ bool FPP::uploadFileV7(const std::string &filename,
 bool FPP::uploadOrCopyFile(const std::string &filename,
                            const std::string &file,
                            const std::string &dir) {
-    if (IsVersionAtLeast(6, 3, 2)) {
+    if (fppType == FPP_TYPE::FPP && IsVersionAtLeast(6, 3, 2)) {
         return uploadFileV7(filename, file, dir);
     }
     return uploadFile(filename, file);
@@ -3590,6 +3590,11 @@ static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputMan
         return res->mode != "bridge";
     }
 
+    if (res->typeId >= 0xA0 && res->typeId <= 0xAF) {
+        // Genius
+        return res->mode != "bridge";
+    }
+
     return false;
 }
 
@@ -3690,6 +3695,8 @@ void FPP::TypeIDtoControllerType(int typeId, FPP* inst) {
         inst->fppType = FPP_TYPE::FALCONV4V5;
     } else if (typeId == 0xC2 || typeId == 0xC3) {
         inst->fppType = FPP_TYPE::ESPIXELSTICK;
+    } else if (typeId >= 0xA0 && typeId <= 0xAF) {
+        inst->fppType = FPP_TYPE::GENIUS;
     }
 }
 

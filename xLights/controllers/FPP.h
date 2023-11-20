@@ -20,7 +20,8 @@ class Discovery;
 
 enum class FPP_TYPE { FPP,
                       FALCONV4V5,
-                      ESPIXELSTICK };
+                      ESPIXELSTICK,
+                      GENIUS };
 
 class FPP : public BaseController
 {

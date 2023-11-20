@@ -33,6 +33,7 @@
 #include "../Parallel.h"
 #include "../Discovery.h"
 #include "Falcon.h"
+#include "Experience.h"
 
 //(*IdInit(FPPConnectDialog)
 const long FPPConnectDialog::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -370,7 +371,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             Choice1->Append(_("V2 Uncompressed"));
             Choice1->SetSelection(2);
             FPPInstanceSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
-        } else if (inst->fppType == FPP_TYPE::ESPIXELSTICK) {
+        } else if (inst->fppType == FPP_TYPE::ESPIXELSTICK || inst->fppType == FPP_TYPE::GENIUS) {
             label = new wxStaticText(FPPInstanceList, wxID_ANY, "V2 Sparse/Uncompressed", wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATIC_TEXT_FS_" + rowStr));
             FPPInstanceSizer->Add(label, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
         } else {
@@ -1076,6 +1077,26 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                                 }
                                 else {
                                     logger_base.debug("Upload failed as FxxV4 is not connected.");
+                                    cancelled = true;
+                                }
+                                inst->ClearTempFile();
+                            } else if (inst->fppType == FPP_TYPE::GENIUS) {
+                                // a Genius
+                                std::string proxy;
+                                auto c = _outputManager->GetControllers(inst->ipAddress);
+                                if (c.size() == 1) {
+                                    proxy = c.front()->GetFPPProxy();
+                                }
+                                Experience genius(inst->ipAddress, proxy);
+                                if (genius.IsConnected()) {
+                                        std::function<bool(int, std::string)> updateProg = [&prgs, inst](int val, std::string msg) {
+                                        prgs->setActionLabel(msg);
+                                        inst->updateProgress(val, true);
+                                        return true;
+                                    };
+                                    cancelled |= !genius.UploadSequence(inst->GetTempFile(), fseq, updateProg);
+                                } else {
+                                    logger_base.debug("Upload failed as Genius is not connected.");
                                     cancelled = true;
                                 }
                                 inst->ClearTempFile();
