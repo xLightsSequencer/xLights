@@ -791,13 +791,15 @@ bool FPP::callMoveFile(const std::string &filename) {
     return GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename), val);
 }
 
-struct V7ProgressStruct {
+class V7ProgressStruct {
+public:
     wxFile in;
     FPP *instance;
     size_t length;
 
     size_t offset = 0;
     int lastPct = 0;
+    int errorCount = 0;
     
     std::string fullUrl;
     std::string fileSizeHeader;
@@ -853,6 +855,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
     cpd->req->resize(remaining);
     uint64_t read = ps->in.Read(cpd->req->data(), remaining);
     if (read != remaining) {
+        logger_curl.info("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
         ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
     }
     std::string contentSizeHeader = "Content-Length: " + std::to_string(remaining);
@@ -875,9 +878,20 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
         long response_code = 0;
         curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &response_code);
         logger_curl.info("    FPPConnect CURL Callbak - URL: %s    Response: %d", ps->fullUrl.c_str(), response_code);
-        ps->offset += remaining;
+        bool cancelled = false;
+        if (response_code != 200 && ps->errorCount < 3) {
+            // strange error on upload, let's restart and try again (up to three attempts)
+            ps->offset = 0;
+            ps->in.Seek(0);
+            ++ps->errorCount;
+        } else if (response_code != 200) {
+            ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + ". Response code: " + std::to_string(response_code));
+            cancelled = true;
+        } else {
+            ps->offset += remaining;
+        }
         uint64_t pct = (ps->offset * 1000) / ps->length;
-        bool cancelled = ps->instance->updateProgress(pct, false);
+        cancelled |= ps->instance->updateProgress(pct, false);
         if (cancelled || ps->offset >= ps->length) {
             delete ps;
         } else {

@@ -107,6 +107,8 @@ CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd,
     }
     if (upload) {
         data->req = new std::vector<uint8_t>();
+        curl_easy_setopt(c, CURLOPT_UPLOAD_BUFFERSIZE, 1024 * 1024);
+        curl_easy_setopt(c, CURLOPT_BUFFERSIZE, 1024 * 1024);
         curl_easy_setopt(c, CURLOPT_READDATA, data);
         curl_easy_setopt(c, CURLOPT_READFUNCTION, urlReadData);
         curl_easy_setopt(c, CURLOPT_SEEKDATA, data);
