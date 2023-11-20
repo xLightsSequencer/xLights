@@ -42,8 +42,8 @@ class MainSequencer: public wxPanel
         void UpdateEffectGridVerticalScrollBar();
         void UpdateTimeDisplay(int time_ms, float fps);
         void UpdateSelectedDisplay(int selected);
-        void GetSelectedEffectsData(wxString& copy_data);
-        void GetACEffectsData(wxString& copy_data);
+        bool GetSelectedEffectsData(wxString& copy_data);
+        bool GetACEffectsData(wxString& copy_data);
         void GetPresetData(wxString& copy_data);
         bool CopySelectedEffects();
         bool PasteByCellActive() const { return mPasteByCell; }

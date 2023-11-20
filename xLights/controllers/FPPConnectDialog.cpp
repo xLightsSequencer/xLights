@@ -459,7 +459,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             FPPInstanceSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
         }
 
-        row++;
+        ++row;
     }
     ApplySavedHostSettings();
 
@@ -583,7 +583,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                         case SP_XmlPullEvent::eStartTag: {
                                 SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
                                 wxString NodeName = wxString::FromAscii(stagEvent->getName());
-                                count++;
+                                ++count;
                                 if (NodeName == "xsequence") {
                                     isSequence = true;
                                 } else if (NodeName == "mediaFile") {
@@ -807,7 +807,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     for (row = 0; row < doUpload.size(); ++row) {
         std::string rowStr = std::to_string(row);
         doUpload[row] = GetCheckValue(CHECK_COL + rowStr);
-        uploadCount++;
+        ++uploadCount;
     }
     
     FPPUploadProgressDialog prgs(this);
@@ -824,7 +824,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         } else {
             inst->setProgress(nullptr, nullptr);
         }
-        row++;
+        ++row;
     }
     if (uploadCount) {
         //prgs.SetSize(450, 400);
@@ -920,7 +920,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 delete bc;
             }
         }
-        row++;
+        ++row;
     }
     row = 0;
     for (const auto& inst : instances) {
@@ -928,7 +928,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
             // update the channel ranges now that the config has been uploaded an fppd restarted
             inst->UpdateChannelRanges();
         }
-        row++;
+        ++row;
     }
     row = 0;
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();

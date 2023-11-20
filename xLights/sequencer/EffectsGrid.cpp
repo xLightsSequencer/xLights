@@ -896,7 +896,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
                             if (newstart != newend) {
                                 Effect* newef = el->AddEffect(0, "", "", "", newstart, newend, EFFECT_SELECTED, false);
                                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
-                                i++; // jump over the one we just inserted
+                                ++i; // jump over the one we just inserted
                             }
                         }
                         ef->SetSelected(EFFECT_SELECTED);
@@ -2186,7 +2186,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
                 uniqueLayers.push_back(elTarget);
             }
             else {
-                extraLayers++;
+                ++extraLayers;
             }
         }
     }
@@ -2993,17 +2993,17 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         if (mCellRangeSelected) {
             if (shift) {
                 if (mRangeCursorRow < mRangeEndRow) {
-                    mRangeCursorRow++;
+                    ++mRangeCursorRow;
                     mRangeStartRow = mRangeCursorRow;
                 } else {
                     if (mRangeEndRow < mSequenceElements->GetRowInformationSize() - 1) {
-                        mRangeCursorRow++;
+                        ++mRangeCursorRow;
                         mRangeEndRow = mRangeCursorRow;
                     }
                 }
             } else {
                 if (mRangeCursorRow < mSequenceElements->GetRowInformationSize() - 1) {
-                    mRangeCursorRow++;
+                    ++mRangeCursorRow;
                 }
                 mRangeStartRow = mRangeCursorRow;
                 mRangeEndRow = mRangeCursorRow;
@@ -3105,11 +3105,11 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
             Effect* eff2 = tel->GetEffect(mRangeEndCol + 1);
             if (eff1 != nullptr && eff2 != nullptr) {
                 if (mRangeCursorCol < mRangeEndCol) {
-                    mRangeCursorCol++;
+                    ++mRangeCursorCol;
                     mRangeStartCol = mRangeCursorCol;
                 }
                 else {
-                    mRangeCursorCol++;
+                    ++mRangeCursorCol;
                     mRangeEndCol = mRangeCursorCol;
                 }
 
@@ -3474,7 +3474,7 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
             int times = 2;
             while (time_plus_one == time && times < 11) {
                 time_plus_one = mTimeline->GetAbsoluteTimeMSfromPosition(position + times);
-                times++;
+                ++times;
             }
             int time_delta = (time_plus_one - time) * (10 / (times - 1));  // snap within 10 pixels
             if (time_delta == 0) time_delta = 25;
@@ -3700,13 +3700,13 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
     if (mCellRangeSelected) {
         if (shift) {
             if (mRangeEndRow < mSequenceElements->GetRowInformationSize() - 1) {
-                mRangeEndRow++;
+                ++mRangeEndRow;
             }
         }
         else {
             if (mRangeStartRow < mSequenceElements->GetRowInformationSize() - 1) {
-                mRangeStartRow++;
-                mRangeEndRow++;
+                ++mRangeStartRow;
+                ++mRangeEndRow;
             }
         }
         SetRCToolTip();
@@ -3747,7 +3747,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
                     return;
                 }
             }
-            row++;
+            ++row;
         }
     }  else if (MultipleEffectsSelected()) {
         logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving multiple effects.");
@@ -3838,9 +3838,9 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt)
         Effect* eff1 = tel->GetEffect(mRangeStartCol + 1);
         Effect* eff2 = tel->GetEffect(mRangeEndCol + 1);
         if (eff1 != nullptr && eff2 != nullptr) {
-            mRangeEndCol++;
+            ++mRangeEndCol;
             if (!shift) {
-                mRangeStartCol++;
+                ++mRangeStartCol;
             }
             SetRCToolTip();
             UpdateSelectedEffects();
@@ -3896,7 +3896,7 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt)
                                 force = true;
                                 break;
                             }
-                            col++;
+                            ++col;
                             if (col < tel->GetEffectCount()) {
                                 timing_effect = tel->GetEffect(col);
                             }
@@ -6991,7 +6991,7 @@ void EffectsGrid::DuplicateSelectedEffects()
                             mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                         }
                     }
-                    startCol++;
+                    ++startCol;
                 }
             }
             else {
