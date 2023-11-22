@@ -1157,7 +1157,7 @@ public:
         if (label == "None") {
             SetAllModelsToReceiver(_port, _smartRemote, 0);
             return true;
-        } else if (label >= "0" && label <= "25") {
+        } else if ((label >= "0" && label <= "9") || (label >= "10" && label <= "19")) {
             SetAllModelsToReceiver(_port, _smartRemote, wxAtoi(label) + 1);
             return true;
         } else if (label >= "A" && label <= "Z") {
@@ -1414,11 +1414,11 @@ public:
 
                     for (int i = 0; i < srcount; i++) {
                     if (_caps->GetVendor() == "HinksPix") {
-                        mi = srMenu->AppendRadioItem(wxNewId(), wxString::Format("%d", i));
+                        mi = srMenu->AppendRadioItem(wxNewId(), wxString::Format("%d", i), "SR Port");
                     }
                     else
                     {
-                        mi = srMenu->AppendRadioItem(wxNewId(), wxString(char(65 + i)));
+                        mi = srMenu->AppendRadioItem(wxNewId(), wxString(char(65 + i)), "SR Port");
                     }
                         if (GetModel()->GetSmartRemote() == i + 1)
                             mi->Check();
@@ -1442,7 +1442,7 @@ public:
 
                 wxMenu* srMax = new wxMenu();
                 for (int i = 0; i < srcount; i++) {
-                    mi = srMax->AppendRadioItem(wxNewId(), wxString::Format("%d", i + 1));
+                    mi = srMax->AppendRadioItem(wxNewId(), wxString::Format("%d", i + 1), "Cascade");
                     if (GetModel()->GetSRMaxCascade() == i + 1)
                         mi->Check();
                 }
@@ -1517,6 +1517,7 @@ public:
             return true;
         } else {
             wxString label = ((wxMenu*)event.GetEventObject())->GetLabelText(id);
+            wxString title = ((wxMenu*)event.GetEventObject())->GetHelpString(id);
             auto const types = GetModel()->GetSmartRemoteTypes();
             if (std::find(types.begin(), types.end(), label.ToStdString()) != types.end()) {
                 int const port = GetModel()->GetControllerPort();
@@ -1534,13 +1535,14 @@ public:
             } else if (label == "None") {
                 GetModel()->SetSmartRemote(0);
                 return true;
-            } else if (label >= "0" && label <= "25") {
+            } else if (title == "SR Port") {
+                if (label >= "A" && label <= "Z") {
+                    GetModel()->SetSmartRemote(int(label[0]) - 64);
+                    return true;
+                }
                 GetModel()->SetSmartRemote(wxAtoi(label) + 1);
                 return true;
-            } else if (label >= "A" && label <= "Z") {
-                GetModel()->SetSmartRemote(int(label[0]) - 64);
-                return true;
-            } else {
+            } else if (title == "Cascade") {
                 int max = wxAtoi(label);
                 if (max >= 1) {
                     GetModel()->SetSRMaxCascade(max);
