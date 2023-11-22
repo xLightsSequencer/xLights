@@ -1534,7 +1534,7 @@ public:
             } else if (label == "None") {
                 GetModel()->SetSmartRemote(0);
                 return true;
-            } else if (label >= "0" && label <= "25") {
+            } else if ((label >= "0" && label <= "9") || (label >= "10" && label <= "25")) {
                 GetModel()->SetSmartRemote(wxAtoi(label) + 1);
                 return true;
             } else if (label >= "A" && label <= "Z") {
