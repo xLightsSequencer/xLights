@@ -160,11 +160,11 @@ OSCPacket::OSCPacket(uint8_t* buffer, int buffsize, OSCOptions* options, int fra
     _buffer = (uint8_t*)malloc(_buffsize);
     memcpy(_buffer, buffer, buffsize);
     _progress = -2;
-    if (strlen((char*)buffer) > buffsize || strlen((char*)buffer) < 10) return;
+    if (strlen((char*)buffer) > buffsize) return;
     std::string path((char*)buffer);
     _path = path;
 
-    if (path.substr(0, 10) == "/Timecode/")
+    if (strlen((char*)buffer) >= 10 && path.substr(0, 10) == "/Timecode/")
     {
         _isSync = true;
         if (options->GetRemotePath() == "/Timecode/%STEPNAME%")

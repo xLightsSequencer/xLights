@@ -2357,6 +2357,16 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                 {
                     SetBackgroundPlayList(nullptr);
                     logger_base.info("Clear background playlist.");
+                } else if (command == "Stop all event playlists") {
+                    auto it2 = _eventPlayLists.begin();
+                    while (it2 != _eventPlayLists.end()) {
+                        logger_base.info("Stopped event playlist %s.", (const char*)(*it2)->GetNameNoTime().c_str());
+                        auto temp = it2;
+                        ++it2;
+                        (*temp)->Stop();
+                        delete *temp;
+                        _eventPlayLists.remove(*temp);
+                    }
                 }
                 else if (command == "Stop event playlist")
                 {
