@@ -489,6 +489,8 @@ ModelElement::ModelElement(const std::string &name)
 ModelElement::~ModelElement()
 {
     //make sure none of the render threads are rendering this model
+    // warning! locking the mutex here is dangerous and can lead to deadlocks with rendering threads (#4134 for example)!
+    // Make sure that xLightsFrame::AbortRender() is called prior to destructing any element objects.
     std::unique_lock<std::recursive_timed_mutex> lock(changeLock);
     while (waitCount > 0) {
         lock.unlock();

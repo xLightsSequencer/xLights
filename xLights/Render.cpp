@@ -83,6 +83,7 @@ public:
     SettingsMap *settingsMap;
     PixelBufferClass *buffer;
     bool *ResetEffectState;
+    bool rendering{ false };
     bool returnVal{ true };
     bool suppress{ false };
 };
@@ -1068,6 +1069,9 @@ void xLightsFrame::RenderMainThreadEffects() {
 void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     std::unique_lock<std::mutex> lock(ev->mutex);
 
+    // Should be marked as rendering by the render thread in RenderEffectFromMap
+    assert(ev->rendering);
+
     // validate that the effect still exists as this could be being processed after the effect was deleted
     if (_sequenceElements.IsValidEffect(ev->effect))
     {
@@ -1081,6 +1085,9 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     {
         wxASSERT(false);
     }
+    ev->rendering = false;
+    lock.unlock();
+
     ev->signal.notify_all();
 }
 
@@ -2164,6 +2171,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
             }
             else {
                 if (bgThread && !reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, *b)) {
+                    std::unique_lock<std::mutex> lock(event->mutex);
                     event->effect = effectObj;
                     event->layer = layer;
                     event->period = period;
@@ -2171,30 +2179,18 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                     event->ResetEffectState = &resetEffectState;
                     event->buffer = &buffer;
                     event->suppress = suppress;
-
-                    std::unique_lock<std::mutex> lock(event->mutex);
+                    event->rendering = true; // required and cleared by RenderEffectOnMainThread()
 
                     std::unique_lock<std::mutex> qlock(renderEventLock);
                     mainThreadRenderEvents.push(event);
                     qlock.unlock();
 
                     CallAfter(&xLightsFrame::RenderMainThreadEffects);
-                    if (event->signal.wait_for(lock, std::chrono::seconds(10)) == std::cv_status::no_timeout) {
-                        retval = event->returnVal;
-                    }
-                    else {
-                        logger_base.warn("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
-                        printf("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.\n", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
 
-                        // Give it one more chance
-                        if (event->signal.wait_for(lock, std::chrono::seconds(60)) == std::cv_status::no_timeout) {
-                            retval = event->returnVal;
-                        }
-                        else {
-                            logger_base.warn("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 70 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
-                            printf("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 70 secs.\n", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
-                        }
-                    }
+                    // Wait until rendering is done
+                    event->signal.wait(lock, [&] { return !event->rendering; });
+                    retval = event->returnVal;
+
                     if (period % 10 == 0) {
                         //constantly putting stuff on CallAfter can result in the main
                         //dispatch thread never being able to empty the CallAfter

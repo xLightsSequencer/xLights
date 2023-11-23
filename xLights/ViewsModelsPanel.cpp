@@ -618,6 +618,9 @@ void ViewsModelsPanel::RemoveSelectedModels()
             wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
             wxPostEvent(GetParent(), eventUnSelected);
 
+            // #4134: Abort any render in progress to avoid hanging
+            _sequenceElements->GetXLightsFrame()->AbortRender();
+
             for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
                 if (IsItemSelected(ListCtrlModels, i)) {
                     // Got a selected item so handle it
