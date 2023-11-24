@@ -261,11 +261,11 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	wxFlexGridSizer* FlexGridSizer13;
 	wxFlexGridSizer* FlexGridSizer14;
 	wxFlexGridSizer* FlexGridSizer15;
-    wxFlexGridSizer* FlexGridSizer16;
-    wxFlexGridSizer* FlexGridSizer17;
-    wxFlexGridSizer* FlexGridSizer18;
-    wxFlexGridSizer* FlexGridSizer19;
-    wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer16;
+	wxFlexGridSizer* FlexGridSizer17;
+	wxFlexGridSizer* FlexGridSizer18;
+	wxFlexGridSizer* FlexGridSizer19;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer5;
@@ -297,29 +297,29 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer11->AddGrowableCol(1);
 
-    FlexGridSizer17 = new wxFlexGridSizer(3, 0, 0, 0);
+	FlexGridSizer17 = new wxFlexGridSizer(3, 0, 0, 0);
 	BitmapButton_ReverseColours = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_ReverseColours, wxArtProvider::GetBitmapBundle("xlART_colorpanel_reverse_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(26,16), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_ReverseColours"));
 	FlexGridSizer17->Add(BitmapButton_ReverseColours, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 4);
-    BitmapButton_ShiftColoursLeft = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_ShiftColoursLeft, wxArtProvider::GetBitmapBundle("xlART_colorpanel_left_shift_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(26, 16), wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_ShiftColoursLeft"));
-    FlexGridSizer17->Add(BitmapButton_ShiftColoursLeft, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 4);
-    BitmapButton_ShiftColoursRight = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_ShiftColoursRight, wxArtProvider::GetBitmapBundle("xlART_colorpanel_right_shift_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(26, 16), wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_ShiftColoursRight"));
-    FlexGridSizer17->Add(BitmapButton_ShiftColoursRight, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 4);
-    FlexGridSizer11->Add(FlexGridSizer17, 1, wxALL | wxALIGN_LEFT | wxALIGN_TOP, 2);
+	BitmapButton_ShiftColoursLeft = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_ShiftColoursLeft, wxArtProvider::GetBitmapBundle("xlART_colorpanel_left_shift_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(26, 16), wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_ShiftColoursLeft"));
+	FlexGridSizer17->Add(BitmapButton_ShiftColoursLeft, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 4);
+	BitmapButton_ShiftColoursRight = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_ShiftColoursRight, wxArtProvider::GetBitmapBundle("xlART_colorpanel_right_shift_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(26, 16), wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_ShiftColoursRight"));
+	FlexGridSizer17->Add(BitmapButton_ShiftColoursRight, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 4);
+	FlexGridSizer11->Add(FlexGridSizer17, 1, wxALL | wxALIGN_LEFT | wxALIGN_TOP, 2);
 
-    FlexGridSizer18 = new wxFlexGridSizer(2, 0, 0, 0);
-    BitmapButton_ColourChoice = new ColourList(ColorScrollWindow,ID_CUSTOM1,wxDefaultPosition,wxDefaultSize,ZERO,wxDefaultValidator,_T("ID_CUSTOM1"));
+	FlexGridSizer18 = new wxFlexGridSizer(2, 0, 0, 0);
+	BitmapButton_ColourChoice = new ColourList(ColorScrollWindow,ID_CUSTOM1,wxDefaultPosition,wxDefaultSize,ZERO,wxDefaultValidator,_T("ID_CUSTOM1"));
 	FlexGridSizer18->Add(BitmapButton_ColourChoice, 1, wxALL, 2);
-    ButtonColor1 = new wxButton(ColorScrollWindow, ID_BUTTON1, _("Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer18->Add(ButtonColor1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 10);
-    FlexGridSizer11->Add(FlexGridSizer18, 1, wxALL | wxALIGN_LEFT | wxALIGN_TOP, 2);
+	ButtonColor1 = new wxButton(ColorScrollWindow, ID_BUTTON1, _("Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer18->Add(ButtonColor1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 10);
+	FlexGridSizer11->Add(FlexGridSizer18, 1, wxALL | wxALIGN_LEFT | wxALIGN_TOP, 2);
 
-    FlexGridSizer19 = new wxFlexGridSizer(2, 0, 0, 0);
-    // FlexGridSizer11->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_SavePalette = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON3, wxArtProvider::GetBitmapBundle("xlART_colorpanel_save_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24, 24), wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
-    FlexGridSizer19->Add(BitmapButton_SavePalette, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_DeletePalette = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON2, wxArtProvider::GetBitmapBundle("xlART_colorpanel_delete_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
+	FlexGridSizer19 = new wxFlexGridSizer(2, 0, 0, 0);
+	// FlexGridSizer11->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_SavePalette = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON3, wxArtProvider::GetBitmapBundle("xlART_colorpanel_save_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24, 24), wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
+	FlexGridSizer19->Add(BitmapButton_SavePalette, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_DeletePalette = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON2, wxArtProvider::GetBitmapBundle("xlART_colorpanel_delete_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
 	FlexGridSizer19->Add(BitmapButton_DeletePalette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 10);
-    FlexGridSizer11->Add(FlexGridSizer19, 1, wxALL | wxALIGN_LEFT | wxALIGN_TOP, 2);
+	FlexGridSizer11->Add(FlexGridSizer19, 1, wxALL | wxALIGN_LEFT | wxALIGN_TOP, 2);
 
 	FlexGridSizer9->Add(FlexGridSizer11, 1, wxALL|wxALIGN_LEFT, 2);
 	FlexGridSizer9->Add(-1,-1,1, wxALL|wxEXPAND, 5);
@@ -451,10 +451,10 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	Connect(ID_VALUECURVE_Color_HueAdjust,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Color_SaturationAdjust,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Color_ValueAdjust,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
-    Connect(ID_BITMAPBUTTON_ReverseColours, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ReverseColoursClick);
-    Connect(ID_BITMAPBUTTON_ShiftColoursLeft, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShiftColoursLeftClick);
-    Connect(ID_BITMAPBUTTON_ShiftColoursRight, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShiftColoursRightClick);
-    Connect(wxEVT_SIZE,(wxObjectEventFunction)&ColorPanel::OnResize);
+	Connect(ID_BITMAPBUTTON_ReverseColours, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ReverseColoursClick);
+	Connect(ID_BITMAPBUTTON_ShiftColoursLeft, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShiftColoursLeftClick);
+	Connect(ID_BITMAPBUTTON_ShiftColoursRight, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShiftColoursRightClick);
+	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ColorPanel::OnResize);
 	//*)
 
     SetName("Color");
