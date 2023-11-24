@@ -38,8 +38,8 @@ public:
     int nextBlinkTime;
     std::map<std::string, int> nodeNameCache;
 
-    FacesRenderCache() :
-        blinkEndTime(0) {
+    FacesRenderCache(int nextBlinkTime) :
+        blinkEndTime(0), nextBlinkTime(nextBlinkTime) {
     }
     virtual ~FacesRenderCache() {
         for (auto it : _imageCache) {
@@ -699,9 +699,8 @@ void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, c
 
     FacesRenderCache* cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
-        cache = new FacesRenderCache();
         int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
-        cache->nextBlinkTime = intRand(0, maxEyeDelay);
+        cache = new FacesRenderCache(intRand(0, maxEyeDelay));
         buffer.infoCache[id] = cache;
     }
 
@@ -920,9 +919,14 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     if (alpha == 0)
         return; // if alpha is zero dont bother.
 
+    std::string eyes = eyesIn;
+    std::string eyeBlinkFreq = eyeBlinkFreqIn;
+
     FacesRenderCache* cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
-        cache = new FacesRenderCache();
+        int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
+        cache = new FacesRenderCache(intRand(0, maxEyeDelay));
+
         buffer.infoCache[id] = cache;
     }
 
@@ -931,8 +935,6 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
         elements->AddRenderDependency(trackName, buffer.cur_model);
         cache->Clear();
     }
-    std::string eyes = eyesIn;
-    std::string eyeBlinkFreq = eyeBlinkFreqIn;
 
     if (buffer.cur_model == "") {
         return;
