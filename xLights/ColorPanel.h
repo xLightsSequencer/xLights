@@ -176,13 +176,14 @@ public:
 		xlLockButton* BitmapButton_SparkleFrequency;
 		xlSizedBitmapButton* BitmapButton_DeletePalette;
 		xlSizedBitmapButton* BitmapButton_SavePalette;
-		xlSizedBitmapButton* BitmapButton_ShuffleColours;
+		xlSizedBitmapButton* BitmapButton_ReverseColours;
+		xlSizedBitmapButton* BitmapButton_ShiftColoursLeft;
+		xlSizedBitmapButton* BitmapButton_ShiftColoursRight;
 		//*)
 
 	protected:
 
 		//(*Identifiers(ColorPanel)
-		static const long ID_BITMAPBUTTON4;
 		static const long ID_CUSTOM1;
 		static const long ID_BITMAPBUTTON3;
 		static const long ID_BUTTON1;
@@ -223,6 +224,9 @@ public:
 		static const long ID_VALUECURVE_Color_ValueAdjust;
 		static const long IDD_TEXTCTRL_Color_ValueAdjust;
 		static const long ID_SCROLLED_ColorScroll;
+		static const long ID_BITMAPBUTTON_ReverseColours;
+		static const long ID_BITMAPBUTTON_ShiftColoursLeft;
+		static const long ID_BITMAPBUTTON_ShiftColoursRight;
 		static const long ID_PANEL1;
 		//*)
 
@@ -235,7 +239,9 @@ public:
 		void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
 		void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_DeletePaletteClick(wxCommandEvent& event);
-		void OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event);
+		void OnBitmapButton_ReverseColoursClick(wxCommandEvent& event);
+		void OnBitmapButton_ShiftColoursLeftClick(wxCommandEvent& event);
+		void OnBitmapButton_ShiftColoursRightClick(wxCommandEvent& event);
 		void UpdateTouchBarSlider(wxScrollEvent& event);
 		void OnCheckBox_ResetColorPanelClick(wxCommandEvent& event);
 		void OnCheckBox_EnableChromakeyClick(wxCommandEvent& event);
