@@ -47,6 +47,7 @@ public:
             memset(_data, 0x00, _numChannels);
         }
         void Zero(unsigned int start, unsigned int count) {
+            if (_data == nullptr) return;
             if (start < 0) return;
             if (count < 1) return;
             if (start + count > _numChannels) return;

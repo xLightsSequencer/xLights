@@ -228,6 +228,13 @@ void WLED::UpdatePixelOutputs(bool& worked, int totalPixelCount, wxJSONValue& js
     jsonVal["hw"]["led"]["ins"] = newLEDS;
 }
 
+static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
+
+    if (data == nullptr) return 0;
+    data->append((char*)ptr, size * nmemb);
+    return size * nmemb;
+}
+
 bool WLED::PostJSON(wxJSONValue const& jsonVal) {
     wxString str;
     wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
@@ -348,14 +355,24 @@ int WLED::EncodeStringPortProtocol(const std::string& protocol) const {
     wxString p(protocol);
     p = p.Lower();
 
+    //3-wire
     if (p == "ws2811") return 22;
-    if (p == "tm18xx") return 31;
+    if (p == "tm1829") return 25;
+    if (p == "ucs8903") return 26;
+    if (p == "ucs8904") return 29;
+    if (p == "sk6812rgbw") return 30;
+    if (p == "apa109") return 30;//same
+    if (p == "tm1814") return 31;
+
+    //4-wire
     if (p == "ws2801") return 50;
-    if (p == "lpd8806") return 52;
     if (p == "apa102") return 51;
+    if (p == "lpd8806") return 52;
+    if (p == "p9813") return 53;
+    if (p == "lpd6803") return 54;
 
     wxASSERT(false);
-    return -1;
+    return 22;
 }
 
 int WLED::EncodeColorOrder(const std::string& colorOrder) const {
@@ -371,7 +388,7 @@ int WLED::EncodeColorOrder(const std::string& colorOrder) const {
     if (c == "gbr") return 5;
 
     wxASSERT(false);
-    return -1;
+    return 1;
 }
 
 bool WLED::EncodeDirection(const std::string& direction) const {

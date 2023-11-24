@@ -86,7 +86,9 @@ void ImageModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager*
 	wxPGProperty *p = grid->Append(new wxImageFileProperty("Image",
                                              "Image",
                                              _imageFile));
-    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*");
+    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
+                                        ";*.webp"
+        "|All files (*.*)|*.*");
 
     p = grid->Append(new wxUIntProperty("Off Brightness", "OffBrightness", _offBrightness));
     p->SetAttribute("Min", 0);
@@ -443,9 +445,9 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
     
     if ((Selected || (Highlighted && is_3d)) && color != nullptr && allowSelected) {
         if (is_3d) {
-            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted, IsFromBase());
         } else {
-            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), IsFromBase());
         }
     }
 }

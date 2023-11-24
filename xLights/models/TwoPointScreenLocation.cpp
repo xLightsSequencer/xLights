@@ -306,10 +306,14 @@ void TwoPointScreenLocation::AdvanceAxisTool()
     }
 }
 
-bool TwoPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const {
+bool TwoPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const {
     xlColor handleColor = xlBLUETRANSLUCENT;
+    if (fromBase)
+    {
+        handleColor = FROM_BASE_HANDLES_COLOUR;
+    } else
     if (_locked) {
-        handleColor = xlREDTRANSLUCENT;
+        handleColor = LOCKED_HANDLES_COLOUR;
     }
     
     auto va = program->getAccumulator();
@@ -355,7 +359,7 @@ bool TwoPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom,
 }
 
 
-bool TwoPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const {
+bool TwoPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const {
     auto va = program->getAccumulator();
     int startVert = va->getCount();
     va->PreAlloc(10);
@@ -364,10 +368,15 @@ bool TwoPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom,
         xlColor h1c = xlBLUETRANSLUCENT;
         xlColor h2c = xlBLUETRANSLUCENT;
         xlColor h3c = xlORANGETRANSLUCENT;
+        if (fromBase) {
+            h1c = FROM_BASE_HANDLES_COLOUR;
+            h2c = FROM_BASE_HANDLES_COLOUR;
+            h3c = FROM_BASE_HANDLES_COLOUR;
+        } else
         if (_locked) {
-            h1c = xlREDTRANSLUCENT;
-            h2c = xlREDTRANSLUCENT;
-            h3c = xlREDTRANSLUCENT;
+            h1c = LOCKED_HANDLES_COLOUR;
+            h2c = LOCKED_HANDLES_COLOUR;
+            h3c = LOCKED_HANDLES_COLOUR;
         } else {
             h1c = (highlighted_handle == START_HANDLE) ? xlYELLOWTRANSLUCENT : xlGREENTRANSLUCENT;
             h2c = (highlighted_handle == END_HANDLE) ? xlYELLOWTRANSLUCENT : xlBLUETRANSLUCENT;
@@ -453,7 +462,7 @@ bool TwoPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom,
         });
     } else if (drawBounding) {
         // the bounding box is so close to a single line don't draw it once it's selected
-        DrawBoundingBox(va);
+        DrawBoundingBox(va, fromBase);
         int endLines = va->getCount();
         program->addStep([startVert, endLines, program, va](xlGraphicsContext *ctx) {
             ctx->drawLines(va, startVert, endLines - startVert);
@@ -461,9 +470,12 @@ bool TwoPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom,
     }
     return true;
 }
-void TwoPointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac) const {
+void TwoPointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bool fromBase) const {
     xlColor Box3dColor = xlWHITETRANSLUCENT;
-    if (_locked) Box3dColor = xlREDTRANSLUCENT;
+    if (fromBase)
+        Box3dColor = FROM_BASE_HANDLES_COLOUR;
+    else if (_locked)
+        Box3dColor = LOCKED_HANDLES_COLOUR;
     
     glm::vec3 start = origin - glm::vec3(5, 5, 5);
     glm::vec3 end = point2 + glm::vec3(5, 5, 5);

@@ -35,6 +35,7 @@ public:
     void adjustSettings( const std::string& version, Effect* effect, bool removeDefaults = true ) override;
     std::list<std::string> CheckEffectSettings( const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache ) override;
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
+    virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
 
     AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) override;
     bool HasAssistPanel() override

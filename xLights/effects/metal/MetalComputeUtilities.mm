@@ -76,7 +76,7 @@ void MetalRenderBufferComputeData::abortCommandBuffer() {
 
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBufferCopy() {
     if (pixelBufferCopy == nil) {
-        int bufferSize = renderBuffer->GetPixelCount() * 4;
+        int bufferSize = std::max((int)renderBuffer->GetPixelCount(), (int)pixelBufferSize) * 4;
         id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModePrivate] retain];
         std::string name = renderBuffer->GetModelName() + "PixelBufferCopy";
         NSString* mn = [NSString stringWithUTF8String:name.c_str()];
@@ -336,8 +336,11 @@ bool MetalRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings &se
 }
 
 bool MetalRenderBufferComputeData::callRotoZoomFunction(id<MTLComputePipelineState> &function, RotoZoomData &data) {
-    id<MTLBuffer> bufferResult = getPixelBuffer();
     id<MTLCommandBuffer> commandBuffer = getCommandBuffer();
+    if (commandBuffer == nil) {
+        return false;
+    }
+    id<MTLBuffer> bufferResult = getPixelBuffer();
     id<MTLBuffer> bufferCopy = getPixelBufferCopy();
     id<MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
     [blitCommandEncoder setLabel:@"CopyDataToCopyBuffer"];

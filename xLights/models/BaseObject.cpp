@@ -54,7 +54,7 @@ void BaseObject::EnableLayoutGroupProperty(wxPropertyGridInterface* grid, bool e
 
 glm::vec3 BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
-    if (GetBaseObjectScreenLocation().IsLocked()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
+    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
 
     int i = GetBaseObjectScreenLocation().MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -65,7 +65,7 @@ glm::vec3 BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool Shift
     return GetBaseObjectScreenLocation().GetHandlePosition(handle);
 }
 glm::vec3 BaseObject::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
-    if (GetBaseObjectScreenLocation().IsLocked()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
+    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
 
     int i = GetBaseObjectScreenLocation().MoveHandle3D(scale, handle, rot, mov);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -91,6 +91,11 @@ void BaseObject::Lock(bool lock)
     IncrementChangeCount();
 }
 
+bool BaseObject::IsLocked() const
+{
+    return GetModelXml()->GetAttribute("Locked", "0") == "1";
+}
+
 void BaseObject::AddASAPWork(uint32_t work, const std::string& from)
 {
     xLightsApp::GetFrame()->GetOutputModelManager()->AddASAPWork(work, from, this, nullptr, GetName());
@@ -98,7 +103,7 @@ void BaseObject::AddASAPWork(uint32_t work, const std::string& from)
 
 void BaseObject::SetTop(float y) {
 
-   if (GetBaseObjectScreenLocation().IsLocked()) return;
+   if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetTop(y);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -107,7 +112,7 @@ void BaseObject::SetTop(float y) {
 
 void BaseObject::SetBottom(float y) {
 
-    if (GetBaseObjectScreenLocation().IsLocked()) return;
+    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetBottom(y);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -116,7 +121,7 @@ void BaseObject::SetBottom(float y) {
 
 void BaseObject::SetLeft(float x) {
 
-    if (GetBaseObjectScreenLocation().IsLocked()) return;
+    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetLeft(x);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -125,7 +130,7 @@ void BaseObject::SetLeft(float x) {
 
 void BaseObject::SetRight(float x) {
 
-    if (GetBaseObjectScreenLocation().IsLocked()) return;
+    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetRight(x);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -134,7 +139,7 @@ void BaseObject::SetRight(float x) {
 
 void BaseObject::SetFront(float z) {
 
-    if (GetBaseObjectScreenLocation().IsLocked()) return;
+    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetFront(z);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -143,7 +148,7 @@ void BaseObject::SetFront(float z) {
 
 void BaseObject::SetBack(float z) {
 
-    if (GetBaseObjectScreenLocation().IsLocked()) return;
+    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetBack(z);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -152,6 +157,8 @@ void BaseObject::SetBack(float z) {
 
 void BaseObject::SetWidth(float w, bool ignoreLock) {
 
+    if (IsFromBase())
+        return;
     if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) return;
 
     GetBaseObjectScreenLocation().SetMWidth(w);
@@ -161,6 +168,8 @@ void BaseObject::SetWidth(float w, bool ignoreLock) {
 
 void BaseObject::SetDepth(float d, bool ignoreLock) {
     
+    if (IsFromBase())
+        return;
     if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) return;
 
     GetBaseObjectScreenLocation().SetMDepth(d);
@@ -170,6 +179,8 @@ void BaseObject::SetDepth(float d, bool ignoreLock) {
 
 void BaseObject::SetHeight(float h, bool ignoreLock) {
 
+    if (IsFromBase())
+        return;
     if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) return;
 
     GetBaseObjectScreenLocation().SetMHeight(h);
@@ -180,7 +191,7 @@ void BaseObject::SetHeight(float h, bool ignoreLock) {
 
 void BaseObject::SetHcenterPos(float pos) {
 
-    if (GetBaseObjectScreenLocation().IsLocked()) return;
+    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetHcenterPos(pos);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -189,7 +200,7 @@ void BaseObject::SetHcenterPos(float pos) {
 
 void BaseObject::SetVcenterPos(float pos) {
 
-    if (GetBaseObjectScreenLocation().IsLocked()) return;
+    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetVcenterPos(pos);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -198,7 +209,7 @@ void BaseObject::SetVcenterPos(float pos) {
 
 void BaseObject::SetDcenterPos(float pos) {
 
-    if (GetBaseObjectScreenLocation().IsLocked()) return;
+    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetDcenterPos(pos);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -207,7 +218,7 @@ void BaseObject::SetDcenterPos(float pos) {
 
 bool BaseObject::Rotate(ModelScreenLocation::MSLAXIS axis, float factor)
 {
-    if (GetBaseObjectScreenLocation().IsLocked()) return false;
+    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return false;
 
     bool b = GetBaseObjectScreenLocation().Rotate(axis, factor);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -216,21 +227,78 @@ bool BaseObject::Rotate(ModelScreenLocation::MSLAXIS axis, float factor)
 }
 
 void BaseObject::FlipHorizontal(bool ignoreLock) {
-    if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) {
+    if (IsFromBase())
         return;
-    }
+    if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) 
+        return;
+    
     GetBaseObjectScreenLocation().Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, 180.0);
     GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
 void BaseObject::FlipVertical(bool ignoreLock) {
-    if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) {
+    if (IsFromBase())
         return;
-    }
+    if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) 
+        return;
+    
     GetBaseObjectScreenLocation().Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, 180.0);
     GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
+}
+
+static inline bool checkNameAttributes(wxXmlNode* nn, wxXmlNode* cc) {
+    if (nn->HasAttribute("name")) {
+        return (cc->GetAttribute("name") == nn->GetAttribute("name"));
+    } else if (nn->HasAttribute("Name")) {
+        return (cc->GetAttribute("Name") == nn->GetAttribute("Name"));
+    }
+    return true;
+}
+
+bool BaseObject::IsXmlChanged(wxXmlNode* n) const
+{
+    for (wxXmlAttribute* a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
+        if (!ModelXml->HasAttribute(a->GetName()) || ModelXml->GetAttribute(a->GetName()) != a->GetValue()) {
+            if (a->GetName() != "StartChannel" || !ModelXml->HasAttribute("Controller")) {
+                return true;
+            }
+        }
+    }
+
+    // This part assumes the nodes under the model only exist once or if they exist twice they have a "Name" attribute that distinguishes them
+    // it also assumes one level of child nodes only
+    for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+        bool found = false;
+        for (wxXmlNode* cc = ModelXml->GetChildren(); cc != nullptr; cc = cc->GetNext()) {
+            if (cc->GetName() == nn->GetName() && checkNameAttributes(nn, cc)) {
+                found = true;
+                for (wxXmlAttribute* a = cc->GetAttributes(); a != nullptr; a = a->GetNext()) {
+                    if (!cc->HasAttribute(a->GetName()) || nn->GetAttribute(a->GetName()) != a->GetValue()) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        if (!found) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool BaseObject::IsFromBase() const
+{
+    return ModelXml->GetAttribute("FromBase", "0") == "1";
+}
+
+void BaseObject::SetFromBase(bool fromBase) 
+{
+    if (ModelXml->HasAttribute("FromBase")) ModelXml->DeleteAttribute("FromBase");
+    ModelXml->AddAttribute("FromBase", fromBase ? "1" : "0");
 }
 
 float BaseObject::GetTop() {
@@ -282,7 +350,7 @@ float BaseObject::GetDcenterPos() {
 }
 
 void BaseObject::AddOffset(double deltax, double deltay, double deltaz) {
-	if (GetBaseObjectScreenLocation().IsLocked()) return;
+	if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
 	GetBaseObjectScreenLocation().AddOffset(deltax, deltay, deltaz);
 	GetBaseObjectScreenLocation().Write(ModelXml);
@@ -290,7 +358,7 @@ void BaseObject::AddOffset(double deltax, double deltay, double deltaz) {
 }
 
 void BaseObject::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {
-    if (GetBaseObjectScreenLocation().IsLocked()) return;
+    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().RotateAboutPoint(position, angle);
     GetBaseObjectScreenLocation().Write(ModelXml);
@@ -301,7 +369,7 @@ void BaseObject::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {
 bool BaseObject::Scale(const glm::vec3& factor)
 {
     bool return_value = false;
-    if (GetBaseObjectScreenLocation().IsLocked()) return false;
+    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return false;
 
     return_value = GetBaseObjectScreenLocation().Scale(factor);
     GetBaseObjectScreenLocation().Write(ModelXml);

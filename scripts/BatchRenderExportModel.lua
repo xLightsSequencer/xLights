@@ -1,3 +1,5 @@
+-- Script to Export Model MP4 for Selected Model, for the selected sequences.
+
 properties2 = {}
 properties2['groups'] = "false"
 
@@ -16,7 +18,7 @@ for i,seq in ipairs(seqs) do
     result = RunCommand('openSequence', properties)
 
     properties = {}
-	properties['highdef'] = 'true'	
+	properties['highdef'] = 'true'
 	RunCommand('renderAll', properties)
 
     properties = {}
@@ -32,7 +34,7 @@ for i,seq in ipairs(seqs) do
 	
 	properties = {}
 	properties['quiet'] = 'true'
-	properties['force'] = 'true'	
+	properties['force'] = 'true'
     result = RunCommand('closeSequence', {})
     Log(result['msg'])
 end

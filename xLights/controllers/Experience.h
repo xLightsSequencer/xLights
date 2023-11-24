@@ -56,6 +56,8 @@ public:
     virtual ~Experience(){};
 #pragma endregion
 
+    bool UploadSequence(const std::string& seq, const std::string& file, std::function<bool(int, std::string)> progress);
+
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
     int32_t SetInputUniverses(wxJSONValue& data, Controller* controller);

@@ -3550,7 +3550,8 @@ unsigned int Model::GetNumChannels() {
 
 void Model::SetPosition(double posx, double posy) {
 
-    if (GetModelScreenLocation().IsLocked()) return;
+    if (GetModelScreenLocation().IsLocked() || IsFromBase())
+        return;
 
     GetModelScreenLocation().SetPosition(posx, posy);
     IncrementChangeCount();
@@ -4295,7 +4296,7 @@ void Model::AddLayerSizeProperty(wxPropertyGridInterface* grid)
 {
     wxPGProperty* psn = grid->Append(new wxUIntProperty("Layers", "Layers", GetLayerSizeCount()));
     psn->SetAttribute("Min", 1);
-    psn->SetAttribute("Max", 50);
+    psn->SetAttribute("Max", 100);
     psn->SetEditor("SpinCtrl");
 
     if (GetLayerSizeCount() > 1) {
@@ -4822,6 +4823,10 @@ void Model::ExportAsCustomXModel() const
     if (state != "") {
         f.Write(state);
     }
+    wxString bufsubmodel = CreateBufferAsSubmodel();
+    if (bufsubmodel != "") {
+        f.Write(bufsubmodel);
+    }
     wxString submodel = SerialiseSubmodel();
     if (submodel != "") {
         f.Write(submodel);
@@ -5275,9 +5280,9 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx, 
 
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         if (is_3d) {
-            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted, IsFromBase());
         } else {
-            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), IsFromBase());
         }
     }
 }
@@ -5640,7 +5645,8 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 
 glm::vec3 Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX,int mouseY) {
 
-    if (GetModelScreenLocation().IsLocked()) return GetModelScreenLocation().GetHandlePosition(handle);
+    if (GetModelScreenLocation().IsLocked() || IsFromBase())
+        return GetModelScreenLocation().GetHandlePosition(handle);
 
     int i = GetModelScreenLocation().MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
     GetModelScreenLocation().Write(ModelXml);
@@ -5682,14 +5688,16 @@ void Model::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
 
 void Model::InsertHandle(int after_handle, float zoom, int scale) {
 
-    if (GetModelScreenLocation().IsLocked()) return;
+    if (GetModelScreenLocation().IsLocked() || IsFromBase())
+        return;
 
     GetModelScreenLocation().InsertHandle(after_handle, zoom, scale);
 }
 
 void Model::DeleteHandle(int handle) {
 
-    if (GetModelScreenLocation().IsLocked()) return;
+    if (GetModelScreenLocation().IsLocked() || IsFromBase())
+        return;
 
     GetModelScreenLocation().DeleteHandle(handle);
 }
@@ -6564,6 +6572,35 @@ wxString Model::SerialiseSubmodel() const
     }
 
     return res;
+}
+
+wxString Model::CreateBufferAsSubmodel() const
+{
+    int buffW = GetDefaultBufferWi();
+    int buffH = GetDefaultBufferHt();
+    std::vector<std::vector<std::string>> nodearray(buffH, std::vector<std::string>(buffW, ""));
+    uint32_t nodeCount = GetNodeCount();
+    for (uint32_t i = 0; i < nodeCount; ++i) {
+        int bufx = Nodes[i]->Coords[0].bufX;
+        int bufy = Nodes[i]->Coords[0].bufY;
+        nodearray[bufy][bufx] = wxString::Format("%d", i + 1);
+    }
+    wxXmlNode* child = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+    child->AddAttribute("name", "DefaultRenderBuffer");
+    child->AddAttribute("layout", "horizontal");
+    child->AddAttribute("type", "ranges");
+
+    for (int x = 0; x < nodearray.size(); ++x) {
+        child->AddAttribute(wxString::Format("line%d", x), CompressNodes(Join(nodearray[x], ",")));
+    }
+
+    wxXmlDocument new_doc;
+    new_doc.SetRoot(new wxXmlNode(*child));
+    wxStringOutputStream stream;
+    new_doc.Save(stream);
+    wxString s = stream.GetString();
+    s = s.SubString(s.Find("\n") + 1, s.Length()); // skip over xml format header
+    return s;
 }
 
 std::list<std::string> Model::CheckModelSettings()

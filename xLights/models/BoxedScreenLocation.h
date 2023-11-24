@@ -31,8 +31,8 @@ public:
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const override;
     
     //new drawing code
-    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const override;
-    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const override;
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const override;
+    virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const override;
 
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;

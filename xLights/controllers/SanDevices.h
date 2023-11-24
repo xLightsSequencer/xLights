@@ -190,5 +190,6 @@ public:
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
+    virtual bool needsHTTP_0_9() const override { return true; }
     #pragma endregion
 };

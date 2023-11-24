@@ -51,14 +51,17 @@ public:
 #pragma region Constructors and Destructors
     ControllerEthernet(OutputManager* om, wxXmlNode* node, const std::string& showDir);
     ControllerEthernet(OutputManager* om, bool acceptDuplicates = false);
+    ControllerEthernet(OutputManager* om, const ControllerEthernet& from);
     virtual ~ControllerEthernet();
     virtual wxXmlNode* Save() override;
+    virtual bool UpdateFrom(Controller* from) override;
+    virtual Controller* Copy(OutputManager* om) override;
 #pragma endregion
 
 #pragma region Getters and Setters
     void SetIP(const std::string& ip);
     virtual std::string GetIP() const override { return _ip; }
-    virtual std::string GetResolvedIP() const override { return _resolvedIp; }
+    virtual std::string GetResolvedIP(bool forceResolve = false) const override;
     virtual void PostSetActive() override;
 
     virtual std::string GetProtocol() const override { return _type; }

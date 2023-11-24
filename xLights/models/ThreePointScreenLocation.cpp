@@ -334,7 +334,7 @@ void ThreePointScreenLocation::SetActiveAxis(MSLAXIS axis)
         ModelScreenLocation::SetActiveAxis(axis);
     }
 }
-bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const {
+bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const {
     if (active_handle != -1) {
 
         float ymax = RenderHt;
@@ -357,8 +357,12 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
         vac->AddVertex(sx, sy, sz, xlWHITE);
 
         xlColor h4c = xlBLUETRANSLUCENT;
+        if (fromBase)
+        {
+            h4c = FROM_BASE_HANDLES_COLOUR;
+        } else
         if (_locked) {
-            h4c = xlREDTRANSLUCENT;
+            h4c = LOCKED_HANDLES_COLOUR;
         } else {
             h4c = (highlighted_handle == SHEAR_HANDLE) ? xlYELLOWTRANSLUCENT : xlBLUETRANSLUCENT;
         }
@@ -387,11 +391,11 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
         });
     }
 
-    TwoPointScreenLocation::DrawHandles(program, zoom, scale, drawBounding);
+    TwoPointScreenLocation::DrawHandles(program, zoom, scale, drawBounding, fromBase);
     return true;
 }
 
-bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const {
+bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const {
     float sx1 = center.x;
     float sy1 = center.y;
 
@@ -414,8 +418,12 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
     vac->AddVertex(sx, sy, xlWHITE);
 
     xlColor handleColor = xlBLUETRANSLUCENT;
+    if (fromBase)
+    {
+        handleColor = FROM_BASE_HANDLES_COLOUR;
+    } else
     if (_locked) {
-        handleColor = xlREDTRANSLUCENT;
+        handleColor = LOCKED_HANDLES_COLOUR;
     }
     float hw = GetRectHandleWidth(zoom, scale);
     vac->AddRectAsTriangles(sx - hw/2.0, sy - hw/2.0, sx + hw, sy + hw, handleColor);
@@ -427,12 +435,16 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
         ctx->drawTriangles(vac, startVertex + 2, count - 2);
     });
 
-    TwoPointScreenLocation::DrawHandles(program, zoom, scale);
+    TwoPointScreenLocation::DrawHandles(program, zoom, scale, fromBase);
     return true;
 }
-void ThreePointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac) const {
+
+void ThreePointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bool fromBase) const {
     xlColor Box3dColor = xlWHITETRANSLUCENT;
-    if (_locked) Box3dColor = xlREDTRANSLUCENT;
+    if (fromBase)
+        Box3dColor = FROM_BASE_HANDLES_COLOUR;
+    else if (_locked)
+        Box3dColor = LOCKED_HANDLES_COLOUR;
     DrawBoundingBoxLines(Box3dColor, aabb_min, aabb_max, draw_3d ? ModelMatrix : TranslateMatrix, *vac);
 }
 

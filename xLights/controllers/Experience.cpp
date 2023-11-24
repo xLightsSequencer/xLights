@@ -23,6 +23,8 @@
 
 #include <curl/curl.h>
 
+#include "../utils/Curl.h"
+
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
 #include <wx/sstream.h>
@@ -50,6 +52,18 @@ std::string Experience::PostJSONToURL(const std::string& url, const wxJSONValue&
     return PutURL(url, str, "", "", "application/json");
 }
 #pragma endregion
+
+bool Experience::UploadSequence(const std::string& seq, const std::string& file,std::function<bool(int, std::string)> progress)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
+    std::string url = "http://" + baseIP + _baseUrl + "/upload";
+    logger_base.debug("Uploading to URL: %s", (const char*)url.c_str());
+
+    wxFileName fn(file);
+    return Curl::HTTPUploadFile(url, seq, fn.GetFullName().ToStdString(), progress);
+}
 
 #pragma region Encode and Decode
 int Experience::EncodeBrightness(int brightness) const

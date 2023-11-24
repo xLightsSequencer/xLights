@@ -12,20 +12,30 @@
 
 #include "IPOutput.h"
 #include <array>
+#include <wx/wx.h>
 
 class wxJSONValue;
 class wxDatagramSocket;
 class Discovery;
 
+// define this to use some hard coded sample date
+// #define TEST_TWINKLY_FORMAT
+
 class TwinklyOutput : public IPOutput
 {
+    wxMilliClock_t _lastLEDModeTime = 0;
+
 public:
 #pragma region Constructors and Destructors
     TwinklyOutput(wxXmlNode* node, bool isActive);
     TwinklyOutput();
-    TwinklyOutput(TwinklyOutput* output);
+    TwinklyOutput(const TwinklyOutput& from);
     virtual ~TwinklyOutput() override;
     virtual wxXmlNode* Save() override;
+    virtual Output* Copy() override
+    {
+        return new TwinklyOutput(*this);
+    }
 #pragma endregion
 
 #pragma region Output overrides
@@ -45,6 +55,7 @@ public:
 #pragma endregion
 
 #pragma region Start and Stop
+    bool SetLEDMode(bool rt);
     virtual bool Open() override;
     virtual void Close() override;
 #pragma endregion
@@ -66,8 +77,8 @@ public:
     virtual void AllOff() override;
 #pragma endregion
 
-    bool GetLayout(std::vector<std::tuple<float, float, float>>& result);
-    static bool GetLayout(const std::string& ip, std::vector<std::tuple<float, float, float>>& result, uint16_t httpPort = 80);
+    bool GetLayout(std::vector<std::tuple<float, float, float>>& result, bool& is3D);
+    static bool GetLayout(const std::string& ip, std::vector<std::tuple<float, float, float>>& result, bool& is3D, uint16_t httpPort = 80);
     virtual void SetTransientData(int32_t& startChannel, int nullnumber) override;
     void SetHttpPort(uint16_t port)
     {

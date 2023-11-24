@@ -132,6 +132,7 @@ class ControllerModelDialog: public wxDialog
 		static const long CONTROLLER_BRIGHTNESS;
 		static const long CONTROLLER_BRIGHTNESSCLEAR;
         static const long CONTROLLER_SMARTREMOTETYPE;
+        static const long CONTROLLER_REMOVESMARTREMOTE;
         static const long CONTROLLER_MODEL_STRINGS;
 
 		wxBitmap RenderPicture(int startY, int startX, int width, int height, wxString const& pageName);

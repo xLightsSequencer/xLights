@@ -321,6 +321,7 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Run event playlist step if idle looped", 2, plst, false, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Stop event playlist", 1, pl, false, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Stop event playlist if playing step", 2, plst, false, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Stop all event playlists", 0, {}, false, false, false, false, false, true, true, true, false));
 
     _commands.push_back(new Command("Toggle loop current step", 0, {}, false, false, false, true, false, false, false, true, false));
     _commands.push_back(new Command("Toggle current playlist random", 0, {}, false, false, false, true, false, false, false, true, false));

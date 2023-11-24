@@ -349,7 +349,7 @@ bool MeshObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsP
     }
     
     if ((Selected || Highlighted) && allowSelected) {
-        GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
+        GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true, IsFromBase());
     }
     return false;
 }

@@ -350,7 +350,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
     }
 
     if (has_jaw) {
-        if (jaw_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        if (jaw_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
             return 0;
         }
         if ("DmxJawOrient" == event.GetPropertyName()) {
@@ -364,7 +364,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
     }
 
     if (has_pan) {
-        if (pan_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        if (pan_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
             return 0;
         }
         if ("DmxPanOrient" == event.GetPropertyName()) {
@@ -378,7 +378,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
     }
 
     if (has_tilt) {
-        if (tilt_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        if (tilt_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
             return 0;
         }
         if ("DmxTiltOrient" == event.GetPropertyName()) {
@@ -392,7 +392,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
     }
 
     if (has_nod) {
-        if (nod_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        if (nod_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
             return 0;
         }
         if ("DmxNodOrient" == event.GetPropertyName()) {
@@ -406,7 +406,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
     }
 
     if (has_eye_ud) {
-        if (eye_ud_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        if (eye_ud_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
             return 0;
         }
         if ("DmxEyeUDOrient" == event.GetPropertyName()) {
@@ -420,7 +420,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
     }
 
     if (has_eye_lr) {
-        if (eye_lr_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        if (eye_lr_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
             return 0;
         }
         if ("DmxEyeLROrient" == event.GetPropertyName()) {
@@ -658,9 +658,9 @@ void DmxSkull::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ct
     });
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         if (is_3d) {
-            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted, IsFromBase());
         } else {
-            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), IsFromBase());
         }
     }
 }

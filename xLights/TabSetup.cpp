@@ -69,6 +69,7 @@ const long xLightsFrame::ID_NETWORK_ACTIVE = wxNewId();
 const long xLightsFrame::ID_NETWORK_ACTIVEXLIGHTS = wxNewId();
 const long xLightsFrame::ID_NETWORK_INACTIVE = wxNewId();
 const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
+const long xLightsFrame::ID_NETWORK_UNLINKFROMBASE = wxNewId();
 
 #pragma region Show Directory
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event) {
@@ -142,10 +143,11 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
 }
 
 
-bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
-
+bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
+{
     wxString nd = newdir;
-    if (nd.EndsWith(wxFileName::GetPathSeparator())) nd = nd.SubString(0, nd.size() - 2);
+    if (nd.EndsWith(wxFileName::GetPathSeparator()))
+        nd = nd.SubString(0, nd.size() - 2);
 
     // don't change show directories with an open sequence because models won't match
     if (!CloseSequence()) {
@@ -177,10 +179,12 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
 
     // update most recently used array
     int idx = mruDirectories.Index(nd);
-    if (idx != wxNOT_FOUND) mruDirectories.RemoveAt(idx);
+    if (idx != wxNOT_FOUND)
+        mruDirectories.RemoveAt(idx);
     if (!CurrentDir.IsEmpty()) {
         idx = mruDirectories.Index(CurrentDir);
-        if (idx != wxNOT_FOUND) mruDirectories.RemoveAt(idx);
+        if (idx != wxNOT_FOUND)
+            mruDirectories.RemoveAt(idx);
         if (mruDirectories.empty()) {
             mruDirectories.push_back(CurrentDir);
         } else {
@@ -204,7 +208,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     wxString value;
     wxConfigBase* config = wxConfigBase::Get();
     if (permanent) {
-        if (DirExists) config->Write(_("LastDir"), nd);
+        if (DirExists)
+            config->Write(_("LastDir"), nd);
         _permanentShowFolder = nd;
     }
     for (size_t i = 0; i < MRUD_LENGTH; i++) {
@@ -225,7 +230,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     int i = RecentShowFoldersMenu->GetMenuItemCount();
     while (i) {
         i--;
-        wxMenuItem *item = RecentShowFoldersMenu->FindItemByPosition(0);
+        wxMenuItem* item = RecentShowFoldersMenu->FindItemByPosition(0);
         RecentShowFoldersMenu->Delete(item);
     }
 
@@ -262,8 +267,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     SpecialOptions::StashShowDir(CurrentDir.ToStdString());
     SpecialOptions::GetOption("", ""); // resets special options
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Show directory set to : %s.", (const char *)showDirectory.c_str());
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Show directory set to : %s.", (const char*)showDirectory.c_str());
 
     if (_logfile != nullptr) {
         wxLog::SetActiveTarget(nullptr);
@@ -288,7 +293,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     if (fseqLinkFlag) {
         fseqDirectory = CurrentDir;
         config->Write(_("FSEQDir"), wxString(fseqDirectory));
-        logger_base.debug("FSEQ Directory set to : %s.", (const char *)fseqDirectory.c_str());
+        logger_base.debug("FSEQ Directory set to : %s.", (const char*)fseqDirectory.c_str());
     }
 
     EnableNetworkChanges();
@@ -310,25 +315,31 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
                 return false;
             }
             DisplayError(wxString::Format("Unable to load network config %s : Time %ldms", networkFile.GetFullPath(), sww.Time()).ToStdString());
-        }
-        else {
+        } else {
             logger_base.debug("Loaded network config %s : Time %ldms", (const char*)networkFile.GetFullPath().c_str(), sww.Time());
             InitialiseControllersTab();
         }
-    }
-    else {
+    } else {
         _outputManager.SetShowDir(CurrentDir.ToStdString());
+        _outputManager.SetBaseShowDir("");
+        _outputManager.SetAutoUpdateFromBaseShowDir(false);
     }
 
     if (_outputManager.DidConvert()) {
         NetworkChange();
-    }
-    else {
+    } else {
         UnsavedNetworkChanges = false;
         UpdateControllerSave();
     }
 
     ShowDirectoryLabel->SetLabel(showDirectory);
+
+    CheckBox_AutoUpdateBase->SetValue(_outputManager.IsAutoUpdateFromBaseShowDir());
+    if (_outputManager.GetBaseShowDir() == "") {
+        StaticText_BaseShowDir->SetLabel("No Base Show Directory");
+    } else {
+        StaticText_BaseShowDir->SetLabel(_outputManager.GetBaseShowDir());
+    }
 
     if (permanent) {
         ShowDirectoryLabel->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
@@ -362,6 +373,11 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
 
     LoadEffectsFile();
 
+    if (_outputManager.IsAutoUpdateFromBaseShowDir() && _outputManager.GetBaseShowDir() != "") {
+        logger_base.debug("Updating from base folder on show folder open.");
+        UpdateFromBaseShowFolder(false);
+    }
+
     logger_base.debug("Get start channels right.");
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SetDir");
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
@@ -386,6 +402,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent) {
     if (AllModels.ReworkStartChannel() || UnsavedRgbEffectsChanges) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
     }
+
+    ValidateWindow();
 
     return true;
 }
@@ -459,8 +477,8 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent) {
 }
 #pragma endregion
 
-void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& controllername, std::string& type, std::string& protocol, std::string& description, int32_t& channeloffset, std::string &ip, std::string& u, std::string& inactive, std::string& baud, int& start_universe, int& start_universe_channel) {
-
+void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& controllername, std::string& type, std::string& protocol, std::string& description, int32_t& channeloffset, std::string& ip, std::string& u, std::string& inactive, std::string& baud, int& start_universe, int& start_universe_channel)
+{
     int32_t sc = 0;
     int32_t csc = 0;
     Controller* c = _outputManager.GetController(channel, csc);
@@ -488,7 +506,8 @@ void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& 
         auto eth = dynamic_cast<ControllerEthernet*>(c);
         if (eth != nullptr) {
             ip = eth->GetIP();
-            u = o->GetUniverseString();
+            if (o != nullptr)
+                u = o->GetUniverseString();
         }
 
         auto ser = dynamic_cast<ControllerSerial*>(c);
@@ -1436,6 +1455,7 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         Connect(ID_List_Controllers, wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemSelectedControllers);
         Connect(ID_List_Controllers, wxEVT_LIST_ITEM_DESELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemDeselectedControllers);
         Connect(ID_List_Controllers, wxEVT_LIST_BEGIN_DRAG, (wxObjectEventFunction)&xLightsFrame::OnListItemBeginDragControllers);
+        Connect(ID_List_Controllers, wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemSelectedControllers);
 
         List_Controllers->AppendColumn("Name");
         List_Controllers->AppendColumn("Protocol");
@@ -1493,7 +1513,15 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         List_Controllers->SetItem(row, 3, it->GetColumn3Label());
         List_Controllers->SetItem(row, 4, it->GetColumn4Label());
         List_Controllers->SetItem(row, 5, it->GetColumn5Label());
-        if (!it->IsActive()) {
+        if (it->IsFromBase())
+        {
+            if (it->IsActive()) {
+                List_Controllers->SetItemTextColour(row, CyanOrBlue());
+            } else {
+                List_Controllers->SetItemTextColour(row, wxColor(0x80, 0x80, 0xFF));
+            }
+        }
+        else if (!it->IsActive()) {
             List_Controllers->SetItemTextColour(row, *wxLIGHT_GREY);
         }
     }
@@ -1694,6 +1722,17 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
                 controller->AddProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
             }
             controller->UpdateProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
+
+            if (controller->IsFromBase()) {
+                Controllers_PropertyEditor->SetToolTip("This model comes from the base folder and its properties cannot be edited.");
+                auto it = Controllers_PropertyEditor->GetIterator(wxPG_ITERATE_ALL, nullptr);
+                while (!it.AtEnd()) {
+                    it.GetProperty()->Enable(false);
+                    it.Next(true);
+                }
+            } else {
+                Controllers_PropertyEditor->UnsetToolTip();
+            }
         }
     }
 
@@ -1891,9 +1930,22 @@ int xLightsFrame::GetSelectedControllerCount() const {
     return count;
 }
 
-void xLightsFrame::OnListItemSelectedControllers(wxListEvent& event) {
+void xLightsFrame::OnListItemSelectedControllers(wxListEvent& event)
+{
     if (!inInitialize) {
         SetControllersProperties();
+    }
+
+    auto name = List_Controllers->GetItemText(event.GetItem());
+    auto controller = _outputManager.GetController(name);
+
+    if (controller->IsFromBase())
+    {
+        List_Controllers->SetToolTip("From Base Show Directory");
+    }
+    else
+    {
+        List_Controllers->UnsetToolTip();
     }
 }
 
@@ -1921,7 +1973,7 @@ void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)
                 ControllerModelDialog dlg(this, &cud, &AllModels, controller);
                 dlg.ShowModal();
             } else {
-                DisplayError(name + " cannot be Visualise", this);
+                DisplayError(name + " cannot be Visualised", this);
             }
         }
         else {
@@ -1932,6 +1984,7 @@ void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)
 
 void xLightsFrame::OnListItemDeselectedControllers(wxListEvent& event) {
     SetControllersProperties();
+    List_Controllers->UnsetToolTip();
 }
 
 void xLightsFrame::OnListKeyDownControllers(wxListEvent& event) {
@@ -1962,6 +2015,22 @@ void xLightsFrame::SelectAllControllers() {
     for (int i = 0; i < List_Controllers->GetItemCount(); i++) {
         List_Controllers->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
     }
+}
+
+void xLightsFrame::UnlinkSelectedControllers()
+{
+    int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    while (item != -1) {
+        auto controller = _outputManager.GetController(List_Controllers->GetItemText(item));
+        if (controller != nullptr) {
+            controller->SetFromBase(false);
+
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "UnlinkSelectedControllers", nullptr);
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "UnlinkSelectedControllers", nullptr);
+        }
+        item = List_Controllers->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    }
+    SetControllersProperties();
 }
 
 void xLightsFrame::DeleteSelectedControllers() {
@@ -2067,13 +2136,27 @@ void xLightsFrame::OnListControllersItemRClick(wxListEvent& event) {
     if (SpecialOptions::GetOption("xxx") == "true") {
         ethernet += "xxx";
     }
+
+    std::vector<Controller*> selectedControllers;
+    for (const auto& controllerName : GetSelectedControllerNames()) {
+        Controller* controller = _outputManager.GetController(controllerName);
+        if (controller)
+            selectedControllers.push_back(controller);
+    }
+
+    bool anySelectedControllersFromBase = std::any_of(selectedControllers.begin(), selectedControllers.end(), [](const Controller* controller) { return controller->IsFromBase(); });
+    bool allSelectedControllersFromBase = std::all_of(selectedControllers.begin(), selectedControllers.end(), [](const Controller* controller) { return controller->IsFromBase(); });
+    bool enableActivateMenuItems = selectedControllers.size() > 0 && !anySelectedControllersFromBase;
+    bool enableUnlinkFromBaseMenuItem = selectedControllers.size() > 0 && allSelectedControllersFromBase;
+
     mnu.Append(ID_NETWORK_ADDETHERNET, ethernet)->Enable(ButtonAddControllerSerial->IsEnabled());
     mnu.Append(ID_NETWORK_ADDNULL, "Insert NULL")->Enable(ButtonAddControllerSerial->IsEnabled());
     mnu.Append(ID_NETWORK_ADDSERIAL, "Insert DMX/LOR/DLight/Renard")->Enable(ButtonAddControllerSerial->IsEnabled());
-    mnu.Append(ID_NETWORK_ACTIVE, "Activate")->Enable(ButtonAddControllerSerial->IsEnabled());
-    mnu.Append(ID_NETWORK_ACTIVEXLIGHTS, "Activate in xLights Only")->Enable(ButtonAddControllerSerial->IsEnabled());
-    mnu.Append(ID_NETWORK_INACTIVE, "Inactivate")->Enable(ButtonAddControllerSerial->IsEnabled());
+    mnu.Append(ID_NETWORK_ACTIVE, "Activate")->Enable(ButtonAddControllerSerial->IsEnabled() && enableActivateMenuItems);
+    mnu.Append(ID_NETWORK_ACTIVEXLIGHTS, "Activate in xLights Only")->Enable(ButtonAddControllerSerial->IsEnabled() && enableActivateMenuItems);
+    mnu.Append(ID_NETWORK_INACTIVE, "Inactivate")->Enable(ButtonAddControllerSerial->IsEnabled() && enableActivateMenuItems);
     mnu.Append(ID_NETWORK_DELETE, "Delete")->Enable(ButtonAddControllerSerial->IsEnabled());
+    mnu.Append(ID_NETWORK_UNLINKFROMBASE, "Unlink from Base Show Folder")->Enable(ButtonAddControllerSerial->IsEnabled() && enableUnlinkFromBaseMenuItem);
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnListControllerPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -2115,6 +2198,10 @@ void xLightsFrame::OnListControllerPopup(wxCommandEvent& event) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:ACTIVE");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ACTIVE");
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:ACTIVE");
+    } else if (id == ID_NETWORK_UNLINKFROMBASE) {
+        UnlinkSelectedControllers();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:UNLINKFROMBASE");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:UNLINKFROMBASE");
     }
     else if (id == ID_NETWORK_ACTIVEXLIGHTS) {
         ActivateSelectedControllers("xLights Only");
@@ -2280,7 +2367,7 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
         if (caps->SupportsInputOnlyUpload()) {
             auto vendor = controller->GetVendor();
             auto model = controller->GetModel();
-            auto ip = controller->GetResolvedIP();
+            auto ip = controller->GetResolvedIP(true);
             if (ip == "MULTICAST" || ip == "") {
                 wxTextEntryDialog dlg(this, "Controller IP Address", "IP Address", ip);
                 if (dlg.ShowModal() != wxID_OK) {
@@ -2345,7 +2432,7 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
         if (caps->SupportsUpload()) {
             auto vendor = controller->GetVendor();
             auto model = controller->GetModel();
-            auto ip = controller->GetResolvedIP();
+            auto ip = controller->GetResolvedIP(true);
             if (ip == "MULTICAST") {
                 wxTextEntryDialog dlg(this, "Controller IP Address", "IP Address", ip);
                 if (dlg.ShowModal() != wxID_OK) {

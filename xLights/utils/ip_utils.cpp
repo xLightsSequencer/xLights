@@ -51,7 +51,7 @@ namespace ip_utils
         }
 
         //hosts only, IP address should have already passed above
-        static wxRegEx hostAddr(R"(^([a-zA-Z0-9]+)(\.?)([a-zA-Z0-9]{2,})$)");
+        static wxRegEx hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
 
         wxString ips = wxString(ip).Trim(false).Trim(true);
         if (hostAddr.Matches(ips)) {
@@ -109,6 +109,9 @@ namespace ip_utils
             add.Hostname(ip);
             std::string r = add.IPAddress();
             if (r == "0.0.0.0") {
+                r = ip;
+            }
+            if (r == "255.255.255.255") {
                 r = ip;
             }
             __resolvedIPMap[ip] = r;

@@ -29,6 +29,7 @@
 #include <log4cpp/Category.hh>
 
 //#define LE_INTERPOLATE
+#define MAX_PARTICLES 100000
 
 LiquidEffect::LiquidEffect(int id) : RenderableEffect(id, "Liquid", liquid_16, liquid_24, liquid_32, liquid_48, liquid_64)
 {
@@ -47,12 +48,32 @@ std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& sett
     std::list<std::string> res;
 
     if (media == nullptr && (settings.GetBool("E_CHECKBOX_FlowMusic1", false) ||
-        settings.GetBool("E_CHECKBOX_FlowMusic2", false) ||
-        settings.GetBool("E_CHECKBOX_FlowMusic3", false) ||
-        settings.GetBool("E_CHECKBOX_FlowMusic4", false))
-        )
-    {
+                             settings.GetBool("E_CHECKBOX_FlowMusic2", false) ||
+                             settings.GetBool("E_CHECKBOX_FlowMusic3", false) ||
+                             settings.GetBool("E_CHECKBOX_FlowMusic4", false))) {
         res.push_back(wxString::Format("    WARN: Liquid effect cant change flow to music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+
+    int frameInterval = 50;
+    if (media != nullptr)
+        frameInterval = media->GetFrameInterval();
+    int lifetimeFrames = (1.1 * GetValueCurveIntMax("LifeTime", 1000, settings, LIQUID_LIFETIME_MIN, LIQUID_LIFETIME_MAX)) / 100 * frameInterval / 1000; // this is the lifetime in frames
+    if (lifetimeFrames == 0) {
+        lifetimeFrames = (eff->GetEndTimeMS() - eff->GetStartTimeMS()) / frameInterval;
+    }
+    lifetimeFrames = std::min(lifetimeFrames, (eff->GetEndTimeMS() - eff->GetStartTimeMS()) / frameInterval);
+    int flow1 = GetValueCurveIntMax("Flow1", 100, settings, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX);
+    int flow2 = settings.GetBool("E_CHECKBOX_Enabled2", false) ? GetValueCurveIntMax("Flow2", 100, settings, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX) : 0;
+    int flow3 = settings.GetBool("E_CHECKBOX_Enabled3", false) ? GetValueCurveIntMax("Flow3", 100, settings, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX) : 0;
+    int flow4 = settings.GetBool("E_CHECKBOX_Enabled4", false) ? GetValueCurveIntMax("Flow4", 100, settings, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX) : 0;
+    int count = lifetimeFrames * (flow1 + flow2 + flow3 + flow4);
+
+    if (count > MAX_PARTICLES) {
+        res.push_back(wxString::Format("    WARN: Liquid effect lifetime * (flow 1 + flow 2 + flow 3 + flow 4) = %d exceeds %d. Particle count will be limited. Model '%s', Start %s", count, MAX_PARTICLES, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+
+    if (settings.GetInt("E_TEXTCTRL_Size", 500) > 1000) {
+        res.push_back(wxString::Format("    WARN: Liquid effect particle size > 1000 can slow render times significantly. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;
@@ -224,7 +245,49 @@ void LiquidEffect::CreateBarrier(b2World* world, float x, float y, float width, 
     groundBody->CreateFixture((b2Shape*)&groundBox, 0.0f);
 }
 
-void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColor& color, bool mixColors, int despeckle)
+bool LiquidEffect::LostForever(int x, int y, int w, int h, float gravityX, float gravityY)
+{
+    // essentially vertical ... at this point it wont come back
+    if (gravityX < 0.0001f && gravityX > -0.0001f) {
+        if (x < -1 || x > w + 1)
+            return true;
+    }
+
+    // gravity left and off the screen so it wont come back
+    if (gravityX < 0.0001f)
+    {
+        if (x < -1)
+            return true;
+    }
+
+    // gravity right and off the screen so it wont come back
+    if (gravityX > -0.0001f) {
+        if (x > w + 1)
+            return true;
+    }
+
+    // essentially horizontal
+    if (gravityY < 0.0001f && gravityY > -0.0001f) {
+        if (y < -1 || y > h + 1)
+            return true;
+    }
+
+    // gravity down and off the bottom of the screen
+    if (gravityY > -0.0001f) {
+        if (y < -1)
+            return true;
+    }
+
+    // gravity up and off the top of the screen
+    if (gravityY < 0.0001f) {
+        if (y > h + 1)
+            return true;
+    }
+
+    return false;
+}
+
+void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColor& color, bool mixColors, int despeckle, float gravityX, float gravityY)
 {
 #ifdef LE_INTERPOLATE
     size_t bufsiz = sizeof(size_t) * buffer.BufferWi * buffer.BufferHt;
@@ -309,7 +372,7 @@ void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColo
             int x = positionBuffer[i].x;
             int y = positionBuffer[i].y;
 
-            if (y < -1 || x < -1 || x > buffer.BufferWi + 1)
+            if (LostForever(x, y, buffer.BufferWi, buffer.BufferHt, gravityX, gravityY))
             {
                 ps->DestroyParticle(i);
             }
@@ -331,7 +394,7 @@ void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColo
 
     if (despeckle > 0)
     {
-        for (size_t y = 0; y < buffer.BufferHt; y++) {
+        for (size_t y = 0; y < buffer.BufferHt; ++y) {
             for (size_t x = 0; x < buffer.BufferWi; ++x) {
                 if (buffer.GetPixel(x, y) == xlBLACK) {
                     buffer.SetPixel(x, y, GetDespeckleColor(buffer, x, y, despeckle));
@@ -373,14 +436,14 @@ xlColor LiquidEffect::GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y
                 // if any surrounding pixel is also black then we return black ... we only despeckly totally surrounded pixels
                 if (c == xlBLACK)
                 {
-                    blacks++;
+                    ++blacks;
                     if (blacks >= despeckle) return xlBLACK;
                 }
 
                 red += c.red;
                 green += c.green;
                 blue += c.blue;
-                count++;
+                ++count;
             }
         }
     }
@@ -406,6 +469,7 @@ void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direc
     velx -= velx * velVariation;
     vely -= vely * velVariation;
 
+    // if lifetime is 1000 ... then we live for 10 seconds
     float lt = lifetime / 100.0;
 
     int count = flow;
@@ -414,7 +478,15 @@ void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direc
         count *= audioLevel;
     }
 
-    for (int i = 0; i < count; i++)
+    // if we are going to exceed the maximum particles in 2 steps then we need to start flagging the older particles for deletion
+    // DestroyOldestParticle does not delete them immediately
+    if (ps->GetParticleCount() > MAX_PARTICLES - (2 * count)) {
+        for (int i = 0; i < ps->GetParticleCount() - (MAX_PARTICLES - 2 * count); ++i) {
+            ps->DestroyOldestParticle(i, true);
+        }
+    }
+
+    for (int i = 0; i < count && ps->GetParticleCount() < MAX_PARTICLES; ++i)
     {
         b2ParticleDef pd;
         if (particleType == "Elastic")
@@ -506,7 +578,7 @@ void LiquidEffect::CreateParticleSystem(b2World* world, int lifetime, int size)
     b2ParticleSystemDef particleSystemDef;
     auto particleSystem = world->CreateParticleSystem(&particleSystemDef);
     particleSystem->SetRadius((float)size / 1000.0f);
-    particleSystem->SetMaxParticleCount(100000);
+    particleSystem->SetMaxParticleCount(MAX_PARTICLES);
     if (lifetime > 0)
     {
         particleSystem->SetDestructionByAge(true);
@@ -521,6 +593,7 @@ void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], in
 )
 {
     // move all existing items
+    // If frame time is 50ms then time advances by 0.05s
     float32 timeStep = (float)buffer.frameTimeInMs / 1000.0;
     int32 velocityIterations = 6;
     int32 positionIterations = 2;
@@ -542,7 +615,7 @@ void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], in
         }
 
         int j = 0;
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 4; ++i)
         {
             if (enabled[i])
             {
@@ -564,7 +637,7 @@ void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], in
                     CreateParticles(ps, x4, y4, direction4, velocity4, flow4, flowMusic4, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize4);
                     break;
                 }
-                j++;
+                ++j;
             }
         }
     }
@@ -672,7 +745,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     {
          xlColor color;
         buffer.palette.GetColor(0, color);
-        Draw(buffer, ps, color, holdcolor || mixcolors, despeckle);
+        Draw(buffer, ps, color, holdcolor || mixcolors, despeckle, gravityX, gravityY);
     }
 
     // because of memory usage delete our world when rendered the last frame

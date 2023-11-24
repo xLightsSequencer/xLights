@@ -680,6 +680,7 @@ void ColorCurveButton::UpdateBitmap() {
     if (GetValue()->IsActive())
     {
         SetBitmap(_cc->GetImage(sz.GetWidth(), sz.GetHeight(), false));
+        UnsetToolTip();
     }
     else
     {
@@ -693,6 +694,7 @@ void ColorCurveButton::UpdateBitmap() {
         }
         wxBitmap bmp(image);
         SetBitmap(bmp);
+        SetToolTip(wxString::Format("%s\n%d,%d,%d\n%s", _color, color.Red(), color.Green(), color.Blue(), GetColourName(color)));
     }
     Refresh();
 }

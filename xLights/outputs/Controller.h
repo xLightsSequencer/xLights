@@ -65,8 +65,10 @@ protected:
     std::string _model;                      // the model of the controller
     std::string _variant;                    // the variant of the controller
     bool _suppressDuplicateFrames = false;   // should we suppress duplicate fromes
+    bool _monitor = true;                    // should FPP/player monitor this output (Ping) for connectivity
     Output::PINGSTATE _lastPingResult = Output::PINGSTATE::PING_UNKNOWN; // last ping result
     bool _tempDisable = false;
+    bool _fromBase = false;
 
     std::map<std::string, std::string> _runtimeProperties;  // place to store various properties/state/etc that may be needed at runtime
 #pragma endregion
@@ -76,8 +78,11 @@ public:
     #pragma region Constructors and Destructors
     Controller(OutputManager* om, wxXmlNode* node, const std::string& showDir);
     Controller(OutputManager* om);
+    Controller(OutputManager* om, const Controller& from);
     virtual ~Controller();
     virtual wxXmlNode* Save();
+    virtual Controller* Copy(OutputManager* om) = 0;
+    virtual bool UpdateFrom(Controller* from);
     #pragma endregion
 
     #pragma region Static Functions
@@ -108,6 +113,19 @@ public:
 
     bool IsDirty() const;
     void ClearDirty();
+
+    void SetFromBase(bool base)
+    {
+        if (_fromBase != base)
+        {
+            _dirty = true;
+            _fromBase = base;
+        }
+    }
+    bool IsFromBase() const
+    {
+        return _fromBase;
+    }
 
     const std::string& GetName() const { return _name; }
     void SetName(const std::string& name) { if (_name != name) { _name = name; _dirty = true; } }
@@ -164,6 +182,9 @@ public:
 
     bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
     void SetSuppressDuplicateFrames(bool suppress);
+
+    bool IsMonitoring() const { return _monitor; }
+    void SetMonitoring(bool monitor);
 
     void SetGlobalFPPProxy(const std::string& globalFPPProxy);
 
@@ -239,7 +260,7 @@ public:
     virtual bool SupportsDefaultGamma() const { return false; }
 
     virtual std::string GetIP() const { return GetResolvedIP(); }
-    virtual std::string GetResolvedIP() const { return ""; }
+    virtual std::string GetResolvedIP(bool forceResolve = false) const { return ""; }
     virtual std::string GetFPPProxy() const { return ""; }
     virtual std::string GetProtocol() const { return ""; }
 

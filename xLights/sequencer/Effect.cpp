@@ -65,6 +65,7 @@ public:
 
         data["E_CHOICE_CoroFaces_Phoneme"] = "E_CHOICE_Faces_Phoneme";
         data["E_CHOICE_CoroFaces_Eyes"] = "E_CHOICE_Faces_Eyes";
+        data["E_CHOICE_CoroFaces_EyeBlinkFrequency"] = "E_CHOICE_Faces_EyeBlinkFrequency";
         data["E_CHECKBOX_CoroFaces_Outline"] = "E_CHECKBOX_Faces_Outline";
         data["E_CHECKBOX_CoroFaces_InPapagayo"] = "";
         data["E_CHECKBOX_Faces_InPapagayo"] = "";
@@ -170,9 +171,24 @@ void Effect::ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColor
 
 #pragma region Constructors and Destructors
 
-Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette,
-               int startTimeMS, int endTimeMS, int Selected, bool Protected)
-    : mParentLayer(parent), mID(id), mEffectIndex(-1), mName(nullptr),
+// Used to create a temp copy of the effect in rendering only
+Effect::Effect(const Effect& ef)
+{
+    mID = ef.mID;
+    mEffectIndex = ef.mEffectIndex;
+    mName = ef.mName;
+    mStartTime = ef.mStartTime;
+    mEndTime = ef.mEndTime;
+    mParentLayer = ef.mParentLayer;
+    mColorMask = ef.mColorMask;
+    mSettings = ef.mSettings;
+    mPaletteMap = ef.mPaletteMap;
+    mColors = ef.mColors;
+    mCC = ef.mCC;
+}
+
+Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected, bool importing) :
+    mID(id), mParentLayer(parent) , mEffectIndex(-1), mName(nullptr),
       mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected), mCache(nullptr)
 {
     //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -182,7 +198,7 @@ Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const s
     mSettings.Parse(effectManager, settings, name);
 
     Element* parentElement = parent->GetParentElement();
-    if (parentElement != nullptr)
+    if (!importing && parentElement != nullptr)
     {
         Model* model = parentElement->GetSequenceElements()->GetXLightsFrame()->AllModels[parentElement->GetModelName()];
         FixBuffer(model);
@@ -776,6 +792,51 @@ void Effect::CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
     target = mColors;
     newcc = mCC;
+}
+
+void Effect::EraseSettingsStartingWith(const std::string& s)
+{
+    auto it = GetSettings().begin();
+    while (it != GetSettings().end()) {
+        if (StartsWith(it->first, "B_")) {
+            auto next = it;
+            ++next;
+            GetSettings().erase(it->first);
+            it = next;
+        } else {
+            ++it;
+        }
+    }
+}
+
+void Effect::ErasePalette()
+{
+    auto it = GetPaletteMap().begin();
+    while (it != GetPaletteMap().end()) {
+        if (StartsWith(it->first, "C_BUTTON_Palette") || StartsWith(it->first, "C_CHECKBOX_Palette")) {
+            auto next = it;
+            ++next;
+            GetPaletteMap().erase(it->first);
+            it = next;
+        } else {
+            ++it;
+        }
+    }
+}
+
+void Effect::EraseColourSettings()
+{
+    auto it = GetPaletteMap().begin();
+    while (it != GetPaletteMap().end()) {
+        if (!StartsWith(it->first, "C_BUTTON_Palette") && !StartsWith(it->first, "C_CHECKBOX_Palette")) {
+            auto next = it;
+            ++next;
+            GetPaletteMap().erase(it->first);
+            it = next;
+        } else {
+            ++it;
+        }
+    }
 }
 
 void Effect::PaletteMapUpdated() {

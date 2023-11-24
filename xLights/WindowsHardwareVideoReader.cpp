@@ -311,94 +311,102 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
     // I need to get the native size of the video first
     IMFMediaType* pType = nullptr;
     DYNAMICCALL("mfplat.dll", MFCreateMediaType, &pType, "WHVD: Failed to create media type");
+    if (SUCCEEDED(hr) && pType != nullptr) {
+        SAFEEXEC(pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video), "WHVD: Failed to set major type");
 
-    SAFEEXEC(pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video), "WHVD: Failed to set major type");
+        SAFEEXEC(pType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32), "WHVD: Failed to set sub type");
 
-    SAFEEXEC(pType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32), "WHVD: Failed to set sub type");
+        SAFEEXEC(_reader->SetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, pType), "WHVD: Failed to set media type");
 
-    SAFEEXEC(_reader->SetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, pType), "WHVD: Failed to set media type");
+        SAFEEXEC(_reader->SetStreamSelection((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, TRUE), "WHVD: Failed to set stream");
 
-    SAFEEXEC(_reader->SetStreamSelection((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, TRUE), "WHVD: Failed to set stream");
-
-    SafeRelease(&pType);
+        SafeRelease(&pType);
+        pType = nullptr;
+    }
 
     SAFEEXEC(_reader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &pType), "WHVD: Failed to get media type");
-
-    SAFEEXEC(MFGetAttributeSize(pType, MF_MT_FRAME_SIZE, &_nativeWidth, &_nativeHeight), "WHVD: Failed to get native size");
-
-    if (SUCCEEDED(hr)) {
-        PROPVARIANT var;
-        PropVariantInit(&var);
-
-        SAFEEXEC(_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &var), "WHVD: Failed to get duration");
+    if (SUCCEEDED(hr) && pType != nullptr) {
+        SAFEEXEC(MFGetAttributeSize(pType, MF_MT_FRAME_SIZE, &_nativeWidth, &_nativeHeight), "WHVD: Failed to get native size");
 
         if (SUCCEEDED(hr)) {
-            _duration = (uint32_t)(var.hVal.QuadPart / TIME_DIV);
+            PROPVARIANT var;
+            PropVariantInit(&var);
+
+            SAFEEXEC(_reader->GetPresentationAttribute((DWORD)MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &var), "WHVD: Failed to get duration");
+
+            if (SUCCEEDED(hr)) {
+                _duration = (uint32_t)(var.hVal.QuadPart / TIME_DIV);
+            }
+
+            PropVariantClear(&var);
         }
 
-        PropVariantClear(&var);
+        if (SUCCEEDED(hr)) {
+            uint32_t numerator = 0;
+            uint32_t denominator = 0;
+            SAFEEXEC(MFGetAttributeRatio(pType, MF_MT_FRAME_RATE, &numerator, &denominator), "WHVD: Failed to get frame rate");
+
+            if (SUCCEEDED(hr) && denominator != 0) {
+                _frameMS = (uint32_t)(1000.0f / ((float)numerator / (float)denominator));
+            }
+
+            if (denominator == 0) {
+                logger_base.error("WHVD: Failed to get frame rate ");
+            }
+        }
+
+        SafeRelease(&pType);
+        pType = nullptr;
     }
-
-    if (SUCCEEDED(hr)) {
-        uint32_t numerator = 0;
-        uint32_t denominator = 0;
-        SAFEEXEC(MFGetAttributeRatio(pType, MF_MT_FRAME_RATE, &numerator, &denominator), "WHVD: Failed to get frame rate");
-
-        if (SUCCEEDED(hr) && denominator != 0) {
-            _frameMS = (uint32_t)(1000.0f / ((float)numerator / (float)denominator));
-        }
-
-        if (denominator == 0) {
-            logger_base.error("WHVD: Failed to get frame rate ");
-        }
-    }
-
-    SafeRelease(&pType);
 
     // Configure the source reader to give us progressive RGB32 frames.
     // The source reader will load the decoder if needed.
 
     DYNAMICCALL("mfplat.dll", MFCreateMediaType, &pType, "WHVD: Failed to create media type");
+    if (SUCCEEDED(hr) && pType != nullptr) {
+        SAFEEXEC(pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video), "WHVD: Failed to set major type");
 
-    SAFEEXEC(pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video), "WHVD: Failed to set major type");
+        SAFEEXEC(pType->SetGUID(MF_MT_SUBTYPE, _wantAlpha ? MFVideoFormat_ARGB32 : MFVideoFormat_RGB32), "WHVD: Failed to set sub type");
 
-    SAFEEXEC(pType->SetGUID(MF_MT_SUBTYPE, _wantAlpha ? MFVideoFormat_ARGB32 : MFVideoFormat_RGB32), "WHVD: Failed to set sub type");
+        if (SUCCEEDED(hr)) {
+            if (usenativeresolution) {
+            } else {
+                SAFEEXEC(MFSetAttributeSize(pType, MF_MT_FRAME_SIZE, _width, _height), "WHVD: Failed to set target size");
 
-    if (SUCCEEDED(hr)) {
-        if (usenativeresolution) {
-        } else {
-            SAFEEXEC(MFSetAttributeSize(pType, MF_MT_FRAME_SIZE, _width, _height), "WHVD: Failed to set target size");
-
-            if (!keepaspectratio) {
-                // we need to stretch pixels
-                logger_base.info("Stretching pixels by %u/%u", _height * _nativeWidth, _width * _nativeHeight);
-                SAFEEXEC(MFSetAttributeRatio(pType, MF_MT_PIXEL_ASPECT_RATIO, _height * _nativeWidth, _width * _nativeHeight), "WHVD: Failed to set target ratio");
+                if (!keepaspectratio) {
+                    // we need to stretch pixels
+                    logger_base.info("Stretching pixels by %u/%u", _height * _nativeWidth, _width * _nativeHeight);
+                    SAFEEXEC(MFSetAttributeRatio(pType, MF_MT_PIXEL_ASPECT_RATIO, _height * _nativeWidth, _width * _nativeHeight), "WHVD: Failed to set target ratio");
+                }
             }
         }
+
+        SAFEEXEC(_reader->SetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, pType), "WHVD: Failed to set media type");
+
+        SAFEEXEC(_reader->SetStreamSelection((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, TRUE), "WHVD: Failed to set stream");
+
+        SafeRelease(&pType);
+        pType = nullptr;
     }
-
-    SAFEEXEC(_reader->SetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, pType), "WHVD: Failed to set media type");
-
-    SAFEEXEC(_reader->SetStreamSelection((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, TRUE), "WHVD: Failed to set stream");
-
-    SafeRelease(&pType);
 
     SAFEEXEC(_reader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &pType), "WHVD: Failed to get media type");
+    if (SUCCEEDED(hr) && pType != nullptr) {
+        _stride = (LONG)MFGetAttributeUINT32(pType, MF_MT_DEFAULT_STRIDE, 1);
+        wxASSERT(_stride = _width * GetPixelBytes());
 
-    _stride = (LONG)MFGetAttributeUINT32(pType, MF_MT_DEFAULT_STRIDE, 1);
-    wxASSERT(_stride = _width * GetPixelBytes());
+        GUID subtype = { 0 };
+        SAFEEXEC(pType->GetGUID(MF_MT_SUBTYPE, &subtype), "WHVD: Failed to get media subtype");
 
-    GUID subtype = { 0 };
-    SAFEEXEC(pType->GetGUID(MF_MT_SUBTYPE, &subtype), "WHVD: Failed to get media subtype");
-
-    if (SUCCEEDED(hr)) {
-        if (!IsEqualGUID(subtype, MFVideoFormat_RGB32) && !IsEqualGUID(subtype, MFVideoFormat_ARGB32)) {
-            logger_base.error("WHVD: Invalid media subtype");
-            hr = E_UNEXPECTED;
+        if (SUCCEEDED(hr)) {
+            if (!IsEqualGUID(subtype, MFVideoFormat_RGB32) && !IsEqualGUID(subtype, MFVideoFormat_ARGB32)) {
+                logger_base.error("WHVD: Invalid media subtype");
+                hr = E_UNEXPECTED;
+            }
         }
-    }
 
-    SafeRelease(&pType);
+        SafeRelease(&pType);
+        pType = nullptr;
+    }
 
     return hr;
 }

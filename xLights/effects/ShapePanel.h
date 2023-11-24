@@ -48,6 +48,7 @@ class ShapePanel: public xlEffectPanel
         void OnShowCharMap(wxCommandEvent& event);
 
 		//(*Declarations(ShapePanel)
+		BulkEditCheckBox* CheckBox_FilterLabelReg;
 		BulkEditCheckBox* CheckBox_Shape_FadeAway;
 		BulkEditCheckBox* CheckBox_Shape_FireTiming;
 		BulkEditCheckBox* CheckBox_Shape_HoldColour;
@@ -74,6 +75,7 @@ class ShapePanel: public xlEffectPanel
 		BulkEditSpinCtrl* SpinCtrl_CharCode;
 		BulkEditTextCtrl* TextCtrl_Shape_CentreX;
 		BulkEditTextCtrl* TextCtrl_Shape_CentreY;
+		BulkEditTextCtrl* TextCtrl_Shape_FilterLabel;
 		BulkEditTextCtrl* TextCtrl_Shape_Points;
 		BulkEditTextCtrl* TextCtrl_Shape_Rotation;
 		BulkEditTextCtrl* TextCtrl_Shape_Sensitivity;
@@ -96,6 +98,7 @@ class ShapePanel: public xlEffectPanel
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
 		wxStaticText* StaticText13;
+		wxStaticText* StaticText15;
 		wxStaticText* StaticText176;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
@@ -175,6 +178,9 @@ class ShapePanel: public xlEffectPanel
 		static const long ID_CHECKBOX_Shape_FireTiming;
 		static const long ID_STATICTEXT_Shape_FireTimingTrack;
 		static const long ID_CHOICE_Shape_FireTimingTrack;
+		static const long ID_STATICTEXT5;
+		static const long ID_TEXTCTRL_Shape_FilterLabel;
+		static const long ID_CHECKBOX_Shape_FilterReg;
 		//*)
 
 	public:

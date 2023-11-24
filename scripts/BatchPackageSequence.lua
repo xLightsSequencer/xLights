@@ -1,3 +1,5 @@
+-- Script to Package Sequence, for the selected sequences. 
+
 seqs = PromptSequences()
 for i,seq in ipairs(seqs) do 
     properties = {}

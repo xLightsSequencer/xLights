@@ -208,6 +208,17 @@ ControllerSerial::ControllerSerial(OutputManager* om) : Controller(om) {
 #endif
 }
 
+ControllerSerial::ControllerSerial(OutputManager* om, const ControllerSerial& from) :
+    Controller(om, from)
+{
+    SetSpeed(from._speed);
+    SetPrefix(from._saveablePrefix);
+    SetPostfix(from._saveablePostfix);
+    SetFPPProxy(from._fppProxy);
+    SetPort(from._port);
+    _serialOutput = static_cast<SerialOutput*>(from._serialOutput->Copy());
+}
+
 wxXmlNode* ControllerSerial::Save() {
     Output *o = _outputs.front();
     if (o != _serialOutput) {
@@ -230,6 +241,53 @@ wxXmlNode* ControllerSerial::Save() {
     }
 
     return um;
+}
+
+bool ControllerSerial::UpdateFrom(Controller* from)
+{
+    bool changed = Controller::UpdateFrom(from);
+
+    ControllerSerial* fromSerial = static_cast<ControllerSerial*>(from);
+
+    if (_port != fromSerial->_port) {
+        changed = true;
+        _port = fromSerial->_port;
+    }
+
+    if (_speed != fromSerial->_speed) {
+        changed = true;
+        _speed = fromSerial->_speed;
+    }
+    if (_type != fromSerial->_type) {
+        changed = true;
+        _type = fromSerial->_type;
+    }
+    if (_saveablePrefix != fromSerial->_saveablePrefix) {
+        changed = true;
+        _saveablePrefix = fromSerial->_saveablePrefix;
+    }
+    if (_saveablePostfix != fromSerial->_saveablePostfix) {
+        changed = true;
+        _saveablePostfix = fromSerial->_saveablePostfix;
+    }
+    if (_fppProxy != fromSerial->_fppProxy) {
+        changed = true;
+        _fppProxy = fromSerial->_fppProxy;
+    }
+
+    if (_serialOutput->GetLongDescription() != fromSerial->_serialOutput->GetLongDescription())
+    {
+        changed = true;
+        delete _serialOutput;
+        _serialOutput = static_cast<SerialOutput*>(fromSerial->_serialOutput->Copy());
+    }
+
+    return changed;
+}
+
+Controller* ControllerSerial::Copy(OutputManager* om)
+{
+    return new ControllerSerial(om, *this);
 }
 #pragma endregion
 

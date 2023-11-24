@@ -31,10 +31,29 @@ ControllerNull::ControllerNull(OutputManager* om) : Controller(om) {
     _outputs.push_back(new NullOutput());
 }
 
+ControllerNull::ControllerNull(OutputManager* om, const ControllerNull& from) :
+    Controller(om, from)
+{
+    // Nothing to actually copy
+}
+
 wxXmlNode* ControllerNull::Save() {
     wxXmlNode* um = Controller::Save();
 
     return um;
+}
+bool ControllerNull::UpdateFrom(Controller* from)
+{
+    bool changed = Controller::UpdateFrom(from);
+
+    // Nothing to copy that wont be copied by the base
+    //ControllerNull* fromNull = static_cast<ControllerNull*>(from);
+
+    return changed;
+}
+Controller* ControllerNull::Copy(OutputManager* om)
+{
+    return new ControllerNull(om, *this);
 }
 #pragma endregion
 

@@ -147,6 +147,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_NODELAYOUT;
         static const long ID_PREVIEW_MODEL_LOCK;
         static const long ID_PREVIEW_MODEL_UNLOCK;
+        static const long ID_PREVIEW_MODEL_UNLINKFROMBASE;
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM;
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM3D;
         static const long ID_PREVIEW_MODEL_CREATEGROUP;
@@ -183,11 +184,13 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_ALIGN_RIGHT;
         static const long ID_PREVIEW_ALIGN_H_CENTER;
         static const long ID_PREVIEW_ALIGN_V_CENTER;
+        static const long ID_PREVIEW_ALIGN_D_CENTER;
         static const long ID_PREVIEW_ALIGN_FRONT;
         static const long ID_PREVIEW_ALIGN_BACK;
         static const long ID_PREVIEW_DISTRIBUTE;
         static const long ID_PREVIEW_H_DISTRIBUTE;
         static const long ID_PREVIEW_V_DISTRIBUTE;
+        static const long ID_PREVIEW_D_DISTRIBUTE;
         static const long ID_PREVIEW_RESIZE;
         static const long ID_PREVIEW_RESIZE_SAMEWIDTH;
         static const long ID_PREVIEW_RESIZE_SAMEHEIGHT;
@@ -277,6 +280,7 @@ class LayoutPanel: public wxPanel
 		void DeleteSelectedObject();
         void DeleteSelectedGroups();
         void LockSelectedModels(bool lock);
+        void UnlinkSelectedModels();
         void PreviewSaveImage();
         void PreviewPrintImage();
         void ImportModelsFromRGBEffects();
@@ -320,6 +324,8 @@ class LayoutPanel: public wxPanel
 
         void OnListCharHook(wxKeyEvent& event);
         ModelGroup* GetSelectedModelGroup() const;
+    
+        int calculateNodeCountOfSelected();
 
     protected:
         void FreezeTreeListView();
@@ -398,8 +404,10 @@ class LayoutPanel: public wxPanel
         void PreviewModelAlignBacks();
         void PreviewModelAlignHCenter();
         void PreviewModelAlignVCenter();
+        void PreviewModelAlignDCenter();
         void PreviewModelHDistribute();
         void PreviewModelVDistribute();
+        void PreviewModelDDistribute();
         void PreviewModelResize(bool sameWidth, bool sameHeight);
         void PreviewModelFlipV();
         void PreviewModelFlipH();

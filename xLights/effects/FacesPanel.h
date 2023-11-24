@@ -40,6 +40,7 @@ class FacesPanel: public xlEffectPanel
 		BulkEditCheckBox* CheckBox_SuppressShimmer;
 		BulkEditCheckBox* CheckBox_SuppressWhenNotSinging;
 		BulkEditCheckBox* CheckBox_TransparentBlack;
+		BulkEditChoice* Choice_Faces_EyeBlinkFrequency;
 		BulkEditChoice* Choice_Faces_Eyes;
 		BulkEditChoice* Choice_Faces_TimingTrack;
 		BulkEditFaceChoice* Face_FaceDefinitonChoice;
@@ -55,6 +56,7 @@ class FacesPanel: public xlEffectPanel
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText71;
+		wxStaticText* StaticText_Faces_EyeBlinkFrequency;
 		//*)
 
 	protected:
@@ -68,6 +70,8 @@ class FacesPanel: public xlEffectPanel
 		static const long ID_CHOICE_Faces_FaceDefinition;
 		static const long ID_STATICTEXT_Faces_Eyes;
 		static const long ID_CHOICE_Faces_Eyes;
+		static const long ID_STATICTEXT_EYEBLINKFREQUENCY;
+		static const long ID_CHOICE_Faces_EyeBlinkFrequency;
 		static const long ID_CHECKBOX_Faces_Outline;
 		static const long ID_CHECKBOX_Faces_SuppressShimmer;
 		static const long ID_STATICTEXT1;
@@ -88,6 +92,8 @@ class FacesPanel: public xlEffectPanel
 		void OnCheckBox_SuppressWhenNotSingingClick(wxCommandEvent& event);
 		void OnCheckBox_FadeClick(wxCommandEvent& event);
 		void OnCheckBox_Faces_OutlineClick(wxCommandEvent& event);
+		void OnChoice_Faces_EyeBlinkFrequencySelect(wxCommandEvent& event);
+		void OnChoice_Faces_EyesSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -655,7 +655,9 @@ void ModelFaceDialog::OnMatrixModelsGridLabelLeftDClick(wxGridEvent& event)
     SelectMatrixImage(event.GetRow(), 0);// update eyes open column
 }
 
-static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*";
+static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
+                                               ";*.webp"
+                                               "|All files (*.*)|*.*";
 void ModelFaceDialog::SelectMatrixImage(int r, int c)
 {
     std::string const name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();

@@ -35,6 +35,7 @@
 #include "Minleon.h"
 #include "WLED.h"
 #include "Experience.h"
+#include "utils/CurlManager.h"
 
 #pragma region Constructors and Destructors
 BaseController::BaseController(const std::string& ip, const std::string &proxy) : _ip(ip), _fppProxy(proxy), _baseUrl("") {
@@ -104,103 +105,46 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
 
 #pragma region Protected Functions
 std::string BaseController::GetURL(const std::string& url, const std::string& username, const std::string& password) const{
-
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::string res;
+
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
-
-    CURL* curl = curl_easy_init();
-    if (curl) {
-        auto u = std::string("http://" + baseIP + _baseUrl + url);
-        logger_base.debug("Curl GET: %s", (const char*)u.c_str());
-        curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15);
-        curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
-        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-        //curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1);
-
-        std::string response_string;
-
-        if (!username.empty())
-        {
-            curl_easy_setopt(curl, CURLOPT_USERNAME, (const char*)username.c_str());
-            curl_easy_setopt(curl, CURLOPT_PASSWORD, (const char*)password.c_str());
-        }
-
-#ifdef __WXMSW__
-         curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, Curl::CurlDebug);
-         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-#endif
-
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
-
-        /* Perform the request, res will get the return code */
-        CURLcode r = curl_easy_perform(curl);
-
-        if (r != CURLE_OK) {
-            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
-        }
-        else {
-            res = response_string;
-        }
-
-        /* always cleanup */
-        curl_easy_cleanup(curl);
+    auto furl = std::string("http://" + baseIP + _baseUrl + url);
+    if (!username.empty()) {
+        CurlManager::INSTANCE.setHostUsernamePassword(baseIP, username, password);
+    }
+    if (needsHTTP_0_9() && _fppProxy.empty()) {
+        CurlManager::INSTANCE.setHostAllowHTTP_0_9(baseIP, true);
+    }
+    int rc = 0;
+    std::string res = CurlManager::INSTANCE.doGet(furl, rc);
+    if (rc == 0 && !needsHTTP_0_9()) {
+        logger_base.error("Failure to access %s: %s.", (const char*)furl.c_str(), res.c_str());
+        return "";
     }
     return res;
 }
 
 std::string BaseController::PutURL(const std::string& url, const std::string& request, const std::string& username, const std::string& password, const std::string& contentType) const
 {
-
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
     logger_base.debug("Making request to Controller '%s'.", (const char*)url.c_str());
     logger_base.debug("    With data '%s'.", (const char*)request.c_str());
-
-    CURL* curl = curl_easy_init();
-    if (curl != nullptr) {
-        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
-        auto u = std::string("http://" + baseIP + _baseUrl + url);
-        logger_base.debug("Curl POST: %s", (const char*)u.c_str());
-        curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
-        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-
-#ifdef __WXMSW__
-        curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, Curl::CurlDebug);
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-#endif
-
-        struct curl_slist* headers = NULL;
-
-        headers = curl_slist_append(headers, _("content-type: application/" + contentType).c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)request.size());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)request.c_str());
-        //curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1);
-
-        if (username != "")
-        {
-            curl_easy_setopt(curl, CURLOPT_USERNAME, (const char*)username.c_str());
-            curl_easy_setopt(curl, CURLOPT_PASSWORD, (const char*)password.c_str());
-        }
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30);
-        curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
-        std::string buffer = "";
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
-
-        CURLcode  ret = curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
-
-        if (ret == CURLE_OK) {
-            return buffer;
-        }
-        logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));
+    
+    auto furl = std::string("http://" + baseIP + _baseUrl + url);
+    if (!username.empty()) {
+        CurlManager::INSTANCE.setHostUsernamePassword(baseIP, username, password);
     }
-
-    return "";
+    if (needsHTTP_0_9() && _fppProxy.empty()) {
+        CurlManager::INSTANCE.setHostAllowHTTP_0_9(baseIP, true);
+    }
+    int rc = 0;
+    std::string res = CurlManager::INSTANCE.doPost(furl, contentType, request, rc);
+    if (rc == 0 && !needsHTTP_0_9()) {
+        logger_base.error("Failure to post to %s: %s.", (const char*)furl.c_str(), res.c_str());
+        return "";
+    }
+    return res;
 }
 #pragma endregion

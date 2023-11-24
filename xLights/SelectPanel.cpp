@@ -145,8 +145,7 @@ SelectPanel::~SelectPanel()
 
 void SelectPanel::populateModelsList(const std::string& effectType)
 {
-    if (effectType.empty()) return;
-
+//    if (effectType.empty()) return; //original behavior (require a type)
     std::vector<wxString> models;
 
     for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
@@ -157,7 +156,7 @@ void SelectPanel::populateModelsList(const std::string& effectType)
 
         for (int i = 0; i < el->GetEffectLayerCount(); ++i) {
             EffectLayer* elay = el->GetEffectLayer(i);
-            if (elay->HasEffectsByType(effectType)) {
+			if ((effectType.empty() && elay->HasEffects()) || elay->HasEffectsByType(effectType)) {
                 models.push_back(el->GetFullName());
                 break;
             }
@@ -171,7 +170,7 @@ void SelectPanel::populateModelsList(const std::string& effectType)
                     if (sme != nullptr) {
                         for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
                             EffectLayer* elay = sme->GetEffectLayer(j);
-                            if (elay->HasEffectsByType(effectType)) {
+                            if ((effectType.empty() && elay->HasEffects()) || elay->HasEffectsByType(effectType)) {
                                 models.push_back(sme->GetFullName());
                                 break;
                             }
@@ -219,7 +218,9 @@ void SelectPanel::populateEffectsList()
 
             for (int i = 0; i < el->GetEffectLayerCount(); ++i) {
                 EffectLayer* elay = el->GetEffectLayer(i);
-                std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, starttime, endtime);
+                std::vector<Effect*> effs = type.empty()?
+					elay->GetAllEffectsByTime(starttime, endtime):
+					elay->GetEffectsByTypeAndTime(type, starttime, endtime);
                 for (Effect* eff : effs) {
                     if (ContainsColor(eff)) {
                         auto id = ListCtrl_Select_Effects->InsertItem(ListCtrl_Select_Effects->GetItemCount(), wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname));
@@ -236,7 +237,9 @@ void SelectPanel::populateEffectsList()
                         if (sme != nullptr) {
                             for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
                                 EffectLayer* elay = sme->GetEffectLayer(j);
-                                std::vector<Effect*> effs = elay->GetEffectsByTypeAndTime(type, starttime, endtime);
+                                std::vector<Effect*> effs = type.empty()?
+									elay->GetAllEffectsByTime(starttime, endtime):
+									elay->GetEffectsByTypeAndTime(type, starttime, endtime);
                                 for (Effect* eff : effs) {
                                     if (ContainsColor(eff)) {
                                         auto id = ListCtrl_Select_Effects->InsertItem(ListCtrl_Select_Effects->GetItemCount() , wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname));
@@ -286,6 +289,9 @@ void SelectPanel::SelectEffects()
 
 void SelectPanel::OnButton_Select_RefreshClick(wxCommandEvent& event)
 {
+#ifdef __LINUX__
+    if (!ListCtrl_Select_Effects->GetItemCount()) OnComboBox_Select_EffectDropdown(event); //kludge: compensate for missed evt
+#endif
     populateModelsList(event.GetString().ToStdString());
     populateEffectsList();
 }

@@ -1547,6 +1547,13 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
 
     if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN) {
         params.xLightsFrm->SetMediaFilename(mf);
+        
+        if (numChannels < params.xLightsFrm->GetMaxNumChannels()) {
+            // if loading the main data AND the number of channels is less than what
+            // xLights needs, it's likely due to the fseq being sparse which is fine
+            // so set the number of channels to what is needed
+            numChannels = params.xLightsFrm->GetMaxNumChannels();
+        }
     }
 
     int falconPeriods = 0;

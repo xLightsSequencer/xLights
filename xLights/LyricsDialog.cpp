@@ -18,7 +18,6 @@
 //*)
 
 //(*IdInit(LyricsDialog)
-const long LyricsDialog::ID_STATICTEXT1 = wxNewId();
 const long LyricsDialog::ID_TEXTCTRL_Lyrics = wxNewId();
 const long LyricsDialog::ID_STATICTEXT3 = wxNewId();
 const long LyricsDialog::ID_TEXTCTRL_LYRIC_STARTTIME = wxNewId();
@@ -39,20 +38,14 @@ LyricsDialog::LyricsDialog(int endtime, wxWindow* parent,wxWindowID id,const wxP
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
-	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
+	Create(parent, id, _("Type or Paste Lyrics"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	FlexGridSizer1->AddGrowableRow(2);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Type or Paste Lyrics:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	wxFont StaticText1Font(14,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-	StaticText1->SetFont(StaticText1Font);
-	FlexGridSizer1->Add(StaticText1, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(20,0)).GetWidth());
-	wxSize __SpacerSize_1 = wxDLG_UNIT(this,wxSize(0,5));
-	FlexGridSizer1->Add(__SpacerSize_1.GetWidth(),__SpacerSize_1.GetHeight(),1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	FlexGridSizer1->AddGrowableRow(0);
 	TextCtrlLyrics = new wxTextCtrl(this, ID_TEXTCTRL_Lyrics, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE, wxDefaultValidator, _T("ID_TEXTCTRL_Lyrics"));
-	TextCtrlLyrics->SetMinSize(wxDLG_UNIT(this,wxSize(250,250)));
+	TextCtrlLyrics->SetMinSize(wxDLG_UNIT(this,wxSize(250,150)));
 	FlexGridSizer1->Add(TextCtrlLyrics, 1, wxLEFT|wxRIGHT|wxEXPAND, wxDLG_UNIT(this,wxSize(20,0)).GetWidth());
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Start Time (sec):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
@@ -62,20 +55,22 @@ LyricsDialog::LyricsDialog(int endtime, wxWindow* parent,wxWindowID id,const wxP
 	BoxSizer1->Add(TextCtrl_Lyric_StartTime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("End Time (sec):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	BoxSizer1->Add(StaticText4, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	TextCtrl_Lyric_EndTime = new wxTextCtrl(this, ID_TEXTCTRL_LYRIC_ENDTIME, _("0.00"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_LYRIC_ENDTIME"));
+	TextCtrl_Lyric_EndTime = new wxTextCtrl(this, ID_TEXTCTRL_LYRIC_ENDTIME, _("0.000"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_LYRIC_ENDTIME"));
 	TextCtrl_Lyric_EndTime->SetMaxLength(7);
 	BoxSizer1->Add(TextCtrl_Lyric_EndTime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, wxDLG_UNIT(this,wxSize(10,0)).GetWidth());
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Caution:  All timings/labels on this track will be replaced."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	wxFont StaticText2Font(11,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,_T("Arial"),wxFONTENCODING_DEFAULT);
 	StaticText2->SetFont(StaticText2Font);
-	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 20);
+	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 0);
+	FlexGridSizer1->Add(-1,20,1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
 	StdDialogButtonSizer1->Realize();
 	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
+	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
 

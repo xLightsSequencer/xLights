@@ -328,7 +328,7 @@ DMXPanel::DMXPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_INVDMX2->SetValue(false);
 	FlexGridSizer_Panel1->Add(CheckBox_INVDMX2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Label_DMX3 = new wxStaticText(ChannelPanel1, ID_STATICTEXT_DMX3, _("Channel 3:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_DMX3"));
-	FlexGridSizer_Panel1->Add(Label_DMX3, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer_Panel1->Add(Label_DMX3, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_DMX3 = new BulkEditSlider(ChannelPanel1, ID_SLIDER_DMX3, 0, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMX3"));
 	FlexGridSizer_Panel1->Add(Slider_DMX3, 1, wxALL|wxEXPAND, 2);
 	ValueCurve_DMX3 = new BulkEditValueCurveButton(ChannelPanel1, ID_VALUECURVE_DMX3, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_DMX3"));

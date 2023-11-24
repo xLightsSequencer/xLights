@@ -68,7 +68,7 @@ class SequenceElements : public ChangeListener
 public:
     SequenceElements(xLightsFrame *frame);
     virtual ~SequenceElements();
-    bool LoadSequencerFile(xLightsXmlFile& xml_file, const wxString& ShowDir);
+    bool LoadSequencerFile(xLightsXmlFile& xml_file, const wxString& ShowDir, bool importing = false);
     void Clear();
     void PrepareViews(xLightsXmlFile& xml_file);
     Element* AddElement(const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected, bool renderDisabled);
@@ -95,6 +95,7 @@ public:
     std::list<std::string> GetAllReferencedFiles();
     std::list<std::string> GetAllUsedEffectTypes() const;
     std::list<std::string> GetAllElementNamesWithEffects();
+    std::list<std::string> GetAllElementNamesWithEffectsExtended(); // this also gets submodels and strands
     int GetElementLayerCount(std::string elementName, std::list<int>* layers = nullptr);
     std::list<Effect*> GetElementLayerEffects(std::string elementName, int layer);
     bool IsValidEffect(Effect* e) const;
@@ -213,7 +214,8 @@ private:
         const std::string &type,
         wxXmlNode *effectLayerNode,
         const std::vector<std::string> & effectStrings,
-        const std::vector<std::string> & colorPalettes);
+        const std::vector<std::string> & colorPalettes,
+        bool importing = false);
     static bool SortElementsByIndex(const Element *element1, const Element *element2)
     {
         return (element1->GetIndex() < element2->GetIndex());

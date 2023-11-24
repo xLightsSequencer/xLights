@@ -26,6 +26,13 @@
 
 #include <log4cpp/Category.hh>
 
+static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
+
+    if (data == nullptr) return 0;
+    data->append((char*)ptr, size * nmemb);
+    return size * nmemb;
+}
+
 #pragma region HinksPixOutput
 void HinksPixOutput::Dump() const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -195,21 +202,21 @@ wxString HinksPixInputUniverse::BuildCommandEasyLights() const {
 #pragma endregion
 
 #pragma region Private Functions
-bool HinksPix::InitControllerOutputData() {
+bool HinksPix::InitControllerOutputData(bool fullControl, int defaultBrightness) {
     _pixelOutputs.clear();
 
     for (int i = 0; i < OUT_SIZE * EXP_PORTS; i++) {
-        _pixelOutputs.push_back(HinksPixOutput(i + 1));
+        _pixelOutputs.push_back(HinksPixOutput(i + 1, defaultBrightness));
     }
+    if (!fullControl) {
+        for (int i = 0; i < EXP_PORTS; i++) {
+            if (_EXP_Outputs[i] == EXPType::Local_SPI || _EXP_Outputs[i] == EXPType::Long_Range) {
 
-    for (int i = 0; i < EXP_PORTS; i++) {
-        if (_EXP_Outputs[i] == EXPType::Local_SPI || _EXP_Outputs[i] == EXPType::Long_Range) {
-
-            InitExpansionBoardData(i + 1, (i * OUT_SIZE) + 1, OUT_SIZE);
+                InitExpansionBoardData(i + 1, (i * OUT_SIZE) + 1, OUT_SIZE);
+            }
         }
     }
-
-    _serialOutput = InitSerialData();
+    _serialOutput = InitSerialData(fullControl);
     return true;
 }
 
@@ -237,27 +244,30 @@ void HinksPix::InitExpansionBoardData(int expansion, int startport, int length) 
     }
 }
 
-std::unique_ptr<HinksPixSerial> HinksPix::InitSerialData() {
+std::unique_ptr<HinksPixSerial> HinksPix::InitSerialData(bool fullControl) {
     std::unique_ptr<HinksPixSerial> serial = std::make_unique<HinksPixSerial>();
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (_controllerType == "E") {
-        logger_base.warn("Easylight 16 is missing Serial API ATM");
-        return serial;
-    }
-    
-    wxJSONValue data;
-    bool worked = GetControllerDataJSON(GetJSONModeURL(), data, "BLK: 0");
+    if (!fullControl) {
 
-    if (!worked || !data.HasMember("CMD")) {
-        logger_base.error("Invalid Data from controller");
-        return serial;
-    }
-    if (data.Size() != 0) {
-        serial->SetConfig(data);
-    } else {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("Invalid Return data %s", (const char*)data.AsString().c_str());
+        if (_controllerType == "E") {
+            logger_base.warn("Easylight 16 is missing Serial API ATM");
+            return serial;
+        }
+
+        wxJSONValue data;
+        bool worked = GetControllerDataJSON(GetJSONModeURL(), data, "BLK: 0");
+
+        if (!worked || !data.HasMember("CMD")) {
+            logger_base.error("Invalid Data from controller");
+            return serial;
+        }
+        if (data.Size() != 0) {
+            serial->SetConfig(data);
+        } else {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.error("Invalid Return data %s", (const char*)data.AsString().c_str());
+        }
     }
 
     return serial;
@@ -703,8 +713,9 @@ void HinksPix::CalculateSmartReceivers(UDControllerPort* stringData) {
     int bank = expansionPort / REC_SIZE;
     int subPort = (expansionPort % REC_SIZE);
 
-    int prevID { - 1};
+    int prevID { -1 };
     int start_pixels { 1 };
+    int32_t portchans { 0 };
     for (const auto& it : stringData->GetModels()) {
         if (it->GetSmartRemote() > 0) {
             int id {it->GetSmartRemote() - 1};
@@ -737,12 +748,14 @@ void HinksPix::CalculateSmartReceivers(UDControllerPort* stringData) {
                         smartPort.portStartPixel[subPort] = start_pixels;
                         if (it->GetSmartRemoteType().find("16ac") != std::string::npos) {
                             smartPort.type = 2;
+                            smartPort.portStartPixel[subPort] = (portchans / 3) + 1;
                         }
                     }
                 }
             }
 
             int32_t chans = it->GetEndChannel() - it->GetStartChannel() + 1;
+            portchans += chans;
             int pixs = chans / std::max(it->GetChannelsPerPixel(),3);
             start_pixels += pixs;
             prevID = id;
@@ -1038,6 +1051,15 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         return false;
     }*/
 
+    if (controller->GetModel() == "PRO" && _model == "HinksPix PRO 80") {// Hinkle added 
+        DisplayError(wxString::Format("Controller Reports as PRO80 BUT You have the Model as PRO - Please Fix"));
+        return false;
+    }
+    else if (controller->GetModel() == "PRO80" && _model == "HinksPix PRO") {// Hinkle added 
+        DisplayError(wxString::Format("Controller Reports as PRO BUT You have the Model as PRO80 - Please Fix"));
+        return false;
+    }
+
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
@@ -1084,12 +1106,16 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         progress.Update(100, "Aborting.");
         return false;
     }
+
+    bool const fullControl = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
+    int const defaultBrightness = controller->GetDefaultBrightnessUnderFullControl();
+
     bool worked = true;
 
     logger_base.info("Initializing Pixel Output Information.");
     progress.Update(5, "Initializing Pixel Output Information.");
 
-    InitControllerOutputData();
+    InitControllerOutputData(fullControl, defaultBrightness);
 
     logger_base.info("Calculating Universe Start Channel Mappings.");
     progress.Update(10, "Calculating Universe Start Channel Mappings.");

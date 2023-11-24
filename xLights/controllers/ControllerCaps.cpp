@@ -26,6 +26,12 @@
 std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> ControllerCaps::__controllers;
 
 inline ControllerCaps *FindVariant(std::list<ControllerCaps*> &variants, const std::string &var) {
+
+    if (variants.size() == 1 && var == "")
+    {
+        return variants.front();
+    }
+
     for (auto it : variants) {
         if (it->GetVariantName() == var) {
             return it;
@@ -573,6 +579,22 @@ int ControllerCaps::GetMaxGroupPixels() const
 int ControllerCaps::GetMaxZigZagPixels() const
 {
     return wxAtoi(GetXmlNodeContent(_config, "MaxZigZag", "-1"));
+}
+
+// Maximum pixels on a local port or dumb remotes and achieve 40 FPS
+int ControllerCaps::GetMaxPixelsAt40FPS() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "FPS40Pixels", "-1"));
+}
+
+// Maximum pixels on a port using smart remotes and achieve 40 FPS
+int ControllerCaps::GetMaxPixelsAt40FPS_SR() const
+{
+    int res = wxAtoi(GetXmlNodeContent(_config, "FPS40Pixels_SR", "-1"));
+
+    if (res == -1)
+        return GetMaxPixelsAt40FPS();
+    return res;
 }
 
 int ControllerCaps::GetMinGroupPixels() const

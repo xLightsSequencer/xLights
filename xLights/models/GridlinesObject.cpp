@@ -18,9 +18,7 @@
 #include "RulerObject.h"
 
 GridlinesObject::GridlinesObject(wxXmlNode *node, const ViewObjectManager &manager)
- : ObjectWithScreenLocation(manager), line_spacing(50), gridColor(xlColor(0,128, 0)),
-   width(1000.0f), height(1000.0f), hasAxis(false),
-    grid(nullptr)
+ : ObjectWithScreenLocation(manager), gridColor(xlColor(0,128, 0))
 {
     SetFromXml(node);
 }
@@ -43,6 +41,7 @@ void GridlinesObject::InitModel() {
         gridColor = xlColor(ModelXml->GetAttribute("GridColor", "#000000").ToStdString());
     }
     hasAxis = ModelXml->GetAttribute("GridAxis", "0") == "1";
+    pointToFront = ModelXml->GetAttribute("PointToFront", "0") == "1";
 }
 
 void GridlinesObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
@@ -66,6 +65,9 @@ void GridlinesObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputMan
     grid->Append(new wxColourProperty("Grid Color", "GridColor", gridColor.asWxColor()));
 
     p = grid->Append(new wxBoolProperty("Axis Lines", "GridAxis", hasAxis));
+    p->SetAttribute("UseCheckbox", true);
+
+    p = grid->Append(new wxBoolProperty("Point To Front", "PointToFront", hasAxis));
     p->SetAttribute("UseCheckbox", true);
 
     if (RulerObject::GetRuler() != nullptr) {
@@ -134,15 +136,27 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridAxis");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridAxis");
         return 0;
+    } else if (event.GetPropertyName() == "PointToFront") {
+        ModelXml->DeleteAttribute("PointToFront");
+        pointToFront = event.GetValue().GetBool();
+        if (pointToFront) {
+            ModelXml->AddAttribute("PointToFront", "1");
+        }
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::PointToFront");
+        // AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridAxis");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::PointToFront");
+        return 0;
     }
 
     return ViewObject::OnPropertyGridChange(grid, event);
 }
+
 bool GridlinesObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
     if (!IsActive()) { return true; }
     
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
-    if (uiObjectsInvalid || grid == nullptr) {
+    if (uiObjectsInvalid || grid == nullptr || createdRotation != GetObjectScreenLocation().GetRotation()) {
         if (grid) {
             delete grid;
         }
@@ -213,6 +227,52 @@ bool GridlinesObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGrap
                 grid->AddVertex(sx, sy, sz, gridColor);
             }
         }
+
+        if (pointToFront) {
+            createdRotation = GetObjectScreenLocation().GetRotation();
+
+            GetObjectScreenLocation().SetRotation(glm::vec3(-90.0f, -90.0f, -90.0f));
+
+            // draw an arrow in the middle pointing to the front
+
+            xlColor arrowColour = gridColor.ContrastColourNotBlack();
+
+            sx = 0;
+            sy = 0;
+            sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            grid->AddVertex(sx, sy, sz, arrowColour);
+            sz = 0;
+            sy = 0;
+            sx = 2 * line_spacing;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            grid->AddVertex(sx, sy, sz, arrowColour);
+
+            sz = 0;
+            sy = 0;
+            sx = 2 * line_spacing;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            grid->AddVertex(sx, sy, sz, arrowColour);
+            sz = 0.5 * line_spacing;
+            sy = 0;
+            sx = 1.5 * line_spacing;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            grid->AddVertex(sx, sy, sz, arrowColour);
+
+            sz = 0;
+            sy = 0;
+            sx = 2 * line_spacing;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            grid->AddVertex(sx, sy, sz, arrowColour);
+            sz = -0.5 * line_spacing;
+            sy = 0;
+            sx = 1.5 * line_spacing;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            grid->AddVertex(sx, sy, sz, arrowColour);
+
+            GetObjectScreenLocation().SetRotation(createdRotation);
+        }
+
         grid->Finalize(false, false);
         GetObjectScreenLocation().UpdateBoundingBox(width, height, 5.0f);
         uiObjectsInvalid = false;
@@ -223,7 +283,7 @@ bool GridlinesObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGrap
     });
     
     if ((Selected || Highlighted) && allowSelected) {
-        GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true);
+        GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true, IsFromBase());
     }
     return true;
 }

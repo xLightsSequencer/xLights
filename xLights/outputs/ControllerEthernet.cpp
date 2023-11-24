@@ -120,6 +120,19 @@ ControllerEthernet::ControllerEthernet(OutputManager* om, bool acceptDuplicates)
     _outputs.push_back(o);
 }
 
+ControllerEthernet::ControllerEthernet(OutputManager* om, const ControllerEthernet& from) :
+    Controller(om, from)
+{
+    _type = from._type;
+    SetIP(from._ip);
+    SetFPPProxy(from._fppProxy);
+    SetPriority(from._priority);
+    SetVersion(from._version);
+    _expanded = from._expanded;
+    _universePerString = from._universePerString;
+    _forceLocalIP = from._forceLocalIP;
+}
+
 ControllerEthernet::~ControllerEthernet() {
 
     // wait for an active ping to finish
@@ -142,6 +155,51 @@ wxXmlNode* ControllerEthernet::Save() {
     um->AddAttribute("ForceLocalIP", _forceLocalIP);
 
     return um;
+}
+bool ControllerEthernet::UpdateFrom(Controller* from)
+{
+    bool changed = Controller::UpdateFrom(from);
+
+    ControllerEthernet* fromEth = static_cast<ControllerEthernet*>(from);
+
+    if (_ip != fromEth->_ip) {
+        changed = true;
+        _ip = fromEth->_ip;
+    }
+    if (_type != fromEth->_type) {
+        changed = true;
+        _type = fromEth->_type;
+    }
+    if (_fppProxy != fromEth->_fppProxy) {
+        changed = true;
+        _fppProxy = fromEth->_fppProxy;
+    }
+    if (_priority != fromEth->_priority) {
+        changed = true;
+        _priority = fromEth->_priority;
+    }
+    if (_version != fromEth->_version) {
+        changed = true;
+        _version = fromEth->_version;
+    }
+    if (_expanded != fromEth->_expanded) {
+        changed = true;
+        _expanded = fromEth->_expanded;
+    }
+    if (_universePerString != fromEth->_universePerString) {
+        changed = true;
+        _universePerString = fromEth->_universePerString;
+    }
+    if (_forceLocalIP != fromEth->_forceLocalIP) {
+        changed = true;
+        _forceLocalIP = fromEth->_forceLocalIP;
+    }
+
+    return changed;
+}
+Controller* ControllerEthernet::Copy(OutputManager* om)
+{
+    return new ControllerEthernet(om, *this);
 }
 #pragma endregion
 
@@ -172,6 +230,12 @@ void ControllerEthernet::PostSetActive()
             it->SetResolvedIP(_resolvedIp);
         }
     }
+}
+std::string ControllerEthernet::GetResolvedIP(bool forceResolve) const {
+    if (_resolvedIp == "" && _ip != "") {
+        return ip_utils::ResolveIP(_ip);
+    }
+    return _resolvedIp;
 }
 
 void ControllerEthernet::SetProtocol(const std::string& protocol) {
@@ -634,15 +698,18 @@ void ControllerEthernet::VMVChanged(wxPropertyGrid *grid)
 
 Output::PINGSTATE ControllerEthernet::Ping() {
 
-    if (GetResolvedIP() == "MULTICAST") {
+    if (GetResolvedIP(false) == "MULTICAST") {
         _lastPingResult = Output::PINGSTATE::PING_UNAVAILABLE;
     } else if (_outputs.size() > 0) {
-        _lastPingResult = dynamic_cast<IPOutput*>(_outputs.front())->Ping(GetResolvedIP(), GetFPPProxy());
-    }
-    else {
+        std::string ip = GetResolvedIP(true);
+        if (ip.empty()) {
+            ip = GetIP();
+        }
+        _lastPingResult = dynamic_cast<IPOutput*>(_outputs.front())->Ping(ip, GetFPPProxy());
+    } else {
         E131Output ipo;
         ipo.SetIP(_ip, IsActive());
-        _lastPingResult = ipo.Ping(GetResolvedIP(), GetFPPProxy());
+        _lastPingResult = ipo.Ping(GetResolvedIP(true), GetFPPProxy());
     }
     return GetLastPingState();
 }
@@ -870,13 +937,21 @@ bool ControllerEthernet::SupportsUniversePerString() const
     }
     return false;
 }
+
 void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
     Controller::UpdateProperties(propertyGrid, modelManager, expandProperties);
     wxPGProperty *p = propertyGrid->GetProperty("Protocol");
     if (p) {
         wxPGChoices protocols = GetProtocols();
         p->SetChoices(protocols);
-        p->SetChoiceSelection(EncodeChoices(protocols, _type));
+        if (EncodeChoices(protocols, _type) == -1) {
+            p->SetChoiceSelection(0);
+            SetProtocol(Controller::DecodeChoices(protocols, 0));
+        }
+        else
+        {
+            p->SetChoiceSelection(EncodeChoices(protocols, _type));
+        }
     }
     p = propertyGrid->GetProperty("Multicast");
     if (p) {
@@ -1001,21 +1076,21 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("Some controllers can receive data from more than one source and will ignore one of the sources where this priority is lower.");
-
-    p = propertyGrid->Append(new wxBoolProperty("Managed", "Managed", _managed));
-    p->SetEditor("CheckBox");
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    
+    p = propertyGrid->Append(new wxStringProperty("Models", "Models", ""));
     p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+
+    auto p2 = propertyGrid->Append(new wxBoolProperty("Managed", "Managed", _managed));
+    p2->SetEditor("CheckBox");
+    p2->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    p2->ChangeFlag(wxPG_PROP_READONLY, true);
 
     bool allSameSize = AllSameSize();
     if (_outputs.size() >= 1) {
         //FIXME
-        _outputs.front()->AddProperties(propertyGrid, p, this, allSameSize, expandProperties);
-    }
-
-    p = propertyGrid->Append(new wxStringProperty("Models", "Models", ""));
-    p->ChangeFlag(wxPG_PROP_READONLY, true);
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        _outputs.front()->AddProperties(propertyGrid, p2, this, allSameSize, expandProperties);
+    }   
 }
 
 bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {

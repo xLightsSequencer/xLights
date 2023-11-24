@@ -57,6 +57,7 @@ class ColorManager
             COLOR_LOCKED_EFFECT,
             COLOR_EFFECT_SELECTED_DISABLED,
             COLOR_REFERENCE_EFFECT_DISABLED,
+            COLOR_WAVEFORM_MOUSE_MARKER,
             NUM_COLORS
         };
 
@@ -138,7 +139,7 @@ class ColorManager
             { ColorManager::ColorNames::COLOR_MODEL_OVERLAP, "ModelOverlap", "Model Overlap", xlRED, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB },
             { ColorManager::ColorNames::COLOR_LAYOUT_DASHES, "LayoutDashes", "Dashed Select", xlYELLOW, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB },
             { ColorManager::ColorNames::COLOR_EFFECT_SELECTED_FIXED, "EffectSelectedFixed", "Fixed Timings", xlColor(255, 128, 0), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
-            { ColorManager::ColorNames::COLOR_EFFECT_SELECTED_LOCKED, "EffectSelectedLocked", "Selected Locked Effects", xlColor(200, 0, 64), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
+            { ColorManager::ColorNames::COLOR_EFFECT_SELECTED_LOCKED, "EffectSelectedLocked", "Selected Locked Effects", xlColor(200, 128, 152), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
             { ColorManager::ColorNames::COLOR_REFERENCE_EFFECT_LOCKED, "ReferenceEffectLocked", "Locked Reference Effect", xlColor(255, 0, 127), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
             { ColorManager::ColorNames::COLOR_WAVEFORM, "Waveform", "Waveform", xlColor(130, 178, 207), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
             { ColorManager::ColorNames::COLOR_WAVEFORM_BACKGROUND, "WaveformBackground", "Waveform Background", xlColor(212, 208, 200), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID, wxSYS_COLOUR_BTNFACE },
@@ -147,7 +148,9 @@ class ColorManager
             { ColorManager::ColorNames::COLOR_DISABLED_EFFECT, "DisabledEffect", "Disabled Effects", xlColor(200, 200, 0), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
             { ColorManager::ColorNames::COLOR_LOCKED_EFFECT, "LockedEffect", "Locked Effects", xlColor(200, 0, 0), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
             { ColorManager::ColorNames::COLOR_EFFECT_SELECTED_DISABLED, "EffectSelectedDisabled", "Selected Disabled Effects", xlColor(200, 200, 64), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
-            { ColorManager::ColorNames::COLOR_REFERENCE_EFFECT_DISABLED, "ReferenceEffectDisabled", "Disabled Reference Effect", xlColor(255, 255, 127), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID }
+
+            { ColorManager::ColorNames::COLOR_REFERENCE_EFFECT_DISABLED, "ReferenceEffectDisabled", "Disabled Reference Effect", xlColor(255, 255, 127), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
+            { ColorManager::ColorNames::COLOR_WAVEFORM_MOUSE_MARKER, "WaveformMouseMarker", "Waveform Mouse Marker", xlColor(0, 0, 255), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID }
         };
 
     protected:

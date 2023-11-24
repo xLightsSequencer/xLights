@@ -25,6 +25,8 @@
 
 #include <log4cpp/Category.hh>
 
+#include <cmath>
+
 extern wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation);
 extern glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R);
 
@@ -139,6 +141,16 @@ void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
         worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "200.0"));
         worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
         worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
+
+        if (!std::isfinite(worldPos_x)) {
+            worldPos_x = 0.0F;
+        }
+        if (!std::isfinite(worldPos_y)) {
+            worldPos_y = 0.0F;
+        }
+        if (!std::isfinite(worldPos_z)) {
+            worldPos_z = 0.0F;
+        }
 
         scalex = wxAtof(ModelNode->GetAttribute("ScaleX", "1.0"));
         scaley = wxAtof(ModelNode->GetAttribute("ScaleY", "1.0"));
@@ -453,7 +465,7 @@ void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     }
 }
 
-bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const {
+bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const {
     auto vac = program->getAccumulator();
     int startVertex = vac->getCount();
     vac->PreAlloc(6 * 5 + 2);
@@ -462,8 +474,12 @@ bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, in
     float h1 = worldPos_y;
 
     xlColor handleColor = xlBLUETRANSLUCENT;
-    if (_locked) {
-        handleColor = xlREDTRANSLUCENT;
+    if (fromBase)
+    {
+        handleColor = FROM_BASE_HANDLES_COLOUR;
+    }
+    else if (_locked) {
+        handleColor = FROM_BASE_HANDLES_COLOUR;
     }
 
     float hw = GetRectHandleWidth(zoom, scale);
@@ -534,7 +550,8 @@ bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, in
     });
     return true;
 }
-bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const {
+bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram* program, float zoom, int scale, bool drawBounding, bool fromBase) const
+{
     auto vac = program->getAccumulator();
     int startVertex = vac->getCount();
     vac->PreAlloc(32 * 5);
@@ -543,8 +560,10 @@ bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, in
     float sz2 =  -RenderDp / 2;
 
     xlColor handleColor = xlBLUETRANSLUCENT;
-    if (_locked) {
-        handleColor = xlREDTRANSLUCENT;
+    if (fromBase) {
+        handleColor = FROM_BASE_HANDLES_COLOUR;
+    } else if (_locked) {
+        handleColor = LOCKED_HANDLES_COLOUR;
     }
 
     // Upper Left Handle
@@ -632,7 +651,10 @@ bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, in
     mHandlePosition[CENTER_HANDLE].z = worldPos_z;
 
     xlColor Box3dColor = xlWHITE;
-    if (_locked) Box3dColor = xlREDTRANSLUCENT;
+    if (fromBase)
+        Box3dColor = FROM_BASE_HANDLES_COLOUR;
+    else if (_locked)
+        Box3dColor = LOCKED_HANDLES_COLOUR;
 
     vac->AddVertex(mHandlePosition[L_TOP_HANDLE].x, mHandlePosition[L_TOP_HANDLE].y, mHandlePosition[L_TOP_HANDLE].z, Box3dColor);
     vac->AddVertex(mHandlePosition[R_TOP_HANDLE].x, mHandlePosition[R_TOP_HANDLE].y, mHandlePosition[R_TOP_HANDLE].z, Box3dColor);

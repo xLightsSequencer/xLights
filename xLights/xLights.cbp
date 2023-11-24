@@ -213,6 +213,8 @@
 					<Add option="-rdynamic" />
 					<Add option="-lz" />
 					<Add option="-lzstd" />
+                                        <Add option="-lwebp" />
+                                        <Add option="-lwebpdemux" />
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
 					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
@@ -266,6 +268,8 @@
 					<Add option="-rdynamic" />
 					<Add option="-lz" />
 					<Add option="-lzstd" />
+                                        <Add option="-lwebp" />
+                                        <Add option="-lwebpdemux" />
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
 					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
@@ -464,6 +468,8 @@
 		<Unit filename="AlignmentDialog.h" />
 		<Unit filename="AudioManager.cpp" />
 		<Unit filename="AudioManager.h" />
+		<Unit filename="AutoLabelDialog.cpp" />
+		<Unit filename="AutoLabelDialog.h" />
 		<Unit filename="BatchRenderDialog.cpp" />
 		<Unit filename="BatchRenderDialog.h" />
 		<Unit filename="BitmapCache.cpp" />
@@ -867,6 +873,10 @@
 		<Unit filename="effects/DMXEffect.h" />
 		<Unit filename="effects/DMXPanel.cpp" />
 		<Unit filename="effects/DMXPanel.h" />
+		<Unit filename="effects/DuplicateEffect.cpp" />
+		<Unit filename="effects/DuplicateEffect.h" />
+		<Unit filename="effects/DuplicatePanel.cpp" />
+		<Unit filename="effects/DuplicatePanel.h" />
 		<Unit filename="effects/EffectManager.cpp" />
 		<Unit filename="effects/EffectManager.h" />
 		<Unit filename="effects/EffectPanelUtils.cpp" />
@@ -1392,10 +1402,13 @@
 		<Unit filename="wxCheckedListCtrl.h" />
 		<Unit filename="wxModelGridCellRenderer.cpp" />
 		<Unit filename="wxModelGridCellRenderer.h" />
+		<Unit filename="wxWEBPHandler/imagwebp.cpp" />
+		<Unit filename="wxWEBPHandler/wx/imagwebp.h" />
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/AboutDialog.wxs" />
 		<Unit filename="wxsmith/AlignmentDialog.wxs" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />
+		<Unit filename="wxsmith/AutoLabelDialog.wxs" />
 		<Unit filename="wxsmith/BackupSettingsPanel.wxs" />
 		<Unit filename="wxsmith/BarsPanel.wxs" />
 		<Unit filename="wxsmith/BatchRenderDialog.wxs" />
@@ -1427,6 +1440,7 @@
 		<Unit filename="wxsmith/CustomTimingDialog.wxs" />
 		<Unit filename="wxsmith/DMXPanel.wxs" />
 		<Unit filename="wxsmith/DuplicateDialog.wxs" />
+		<Unit filename="wxsmith/DuplicatePanel.wxs" />
 		<Unit filename="wxsmith/EffectAssist.wxs" />
 		<Unit filename="wxsmith/EffectIconPanel.wxs" />
 		<Unit filename="wxsmith/EffectTimingDialog.wxs" />
@@ -1703,6 +1717,7 @@
 					<wxPanel wxs="wxsmith/ColorWashPanel.wxs" src="effects/ColorWashPanel.cpp" hdr="effects/ColorWashPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CurtainPanel.wxs" src="effects/CurtainPanel.cpp" hdr="effects/CurtainPanel.h" fwddecl="1" i18n="1" name="CurtainPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/DMXPanel.wxs" src="effects/DMXPanel.cpp" hdr="effects/DMXPanel.h" fwddecl="1" i18n="1" name="DMXPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/DuplicatePanel.wxs" src="effects/DuplicatePanel.cpp" hdr="effects/DuplicatePanel.h" fwddecl="1" i18n="1" name="DuplicatePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FacesPanel.wxs" src="effects/FacesPanel.cpp" hdr="effects/FacesPanel.h" fwddecl="1" i18n="1" name="FacesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FanPanel.wxs" src="effects/FanPanel.cpp" hdr="effects/FanPanel.h" fwddecl="1" i18n="1" name="FanPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FillPanel.wxs" src="effects/FillPanel.cpp" hdr="effects/FillPanel.h" fwddecl="1" i18n="1" name="FillPanel" language="CPP" />
@@ -1781,6 +1796,7 @@
 					<wxDialog wxs="wxsmith/DuplicateDialog.wxs" src="DuplicateDialog.cpp" hdr="DuplicateDialog.h" fwddecl="0" i18n="1" name="DuplicateDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MetronomeLabelDialog.wxs" src="MetronomeLabelDialog.cpp" hdr="MetronomeLabelDialog.h" fwddecl="0" i18n="1" name="MetronomeLabelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/FPPUploadProgressDialog.wxs" src="controllers/FPPUploadProgressDialog.cpp" hdr="controllers/FPPUploadProgressDialog.h" fwddecl="0" i18n="1" name="FPPUploadProgressDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/AutoLabelDialog.wxs" src="AutoLabelDialog.cpp" hdr="AutoLabelDialog.h" fwddecl="0" i18n="1" name="AutoLabelDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

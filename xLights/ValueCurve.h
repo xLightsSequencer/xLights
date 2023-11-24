@@ -146,6 +146,7 @@ public:
     float GetValueAt(float offset, long startMS, long endMS);
     float GetOutputValueAt(float offset, long startMS, long endMS);
     float GetOutputValueAtDivided(float offset, long startMS, long endMS);
+    float GetMaxValueDivided();
     float GetScaledValue(float offset) const;
     void SetActive(bool a) { _active = a; RenderType(); }
     bool IsActive() const { return _active && IsOk(); }

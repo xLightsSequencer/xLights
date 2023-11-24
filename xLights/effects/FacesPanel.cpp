@@ -33,6 +33,8 @@ const long FacesPanel::ID_STATICTEXT15 = wxNewId();
 const long FacesPanel::ID_CHOICE_Faces_FaceDefinition = wxNewId();
 const long FacesPanel::ID_STATICTEXT_Faces_Eyes = wxNewId();
 const long FacesPanel::ID_CHOICE_Faces_Eyes = wxNewId();
+const long FacesPanel::ID_STATICTEXT_EYEBLINKFREQUENCY = wxNewId();
+const long FacesPanel::ID_CHOICE_Faces_EyeBlinkFrequency = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_Outline = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_SuppressShimmer = wxNewId();
 const long FacesPanel::ID_STATICTEXT1 = wxNewId();
@@ -104,7 +106,16 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Faces_Eyes->SetSelection( Choice_Faces_Eyes->Append(_("Auto")) );
 	Choice_Faces_Eyes->Append(_("(off)"));
 	FlexGridSizer98->Add(Choice_Faces_Eyes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Faces_EyeBlinkFrequency = new wxStaticText(this, ID_STATICTEXT_EYEBLINKFREQUENCY, _("Eye Blink Frequency"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_EYEBLINKFREQUENCY"));
+	FlexGridSizer98->Add(StaticText_Faces_EyeBlinkFrequency, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Faces_EyeBlinkFrequency = new BulkEditChoice(this, ID_CHOICE_Faces_EyeBlinkFrequency, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_EyeBlinkFrequency"));
+	Choice_Faces_EyeBlinkFrequency->Append(_("Slowest"));
+	Choice_Faces_EyeBlinkFrequency->Append(_("Slow"));
+	Choice_Faces_EyeBlinkFrequency->SetSelection( Choice_Faces_EyeBlinkFrequency->Append(_("Normal")) );
+	Choice_Faces_EyeBlinkFrequency->Append(_("Fast"));
+	Choice_Faces_EyeBlinkFrequency->Append(_("Fastest"));
+	FlexGridSizer98->Add(Choice_Faces_EyeBlinkFrequency, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Faces_Outline = new BulkEditCheckBox(this, ID_CHECKBOX_Faces_Outline, _("Show outline"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_Outline"));
 	CheckBox_Faces_Outline->SetValue(false);
 	FlexGridSizer98->Add(CheckBox_Faces_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -149,6 +160,8 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 
 	Connect(IDD_RADIOBUTTON_Faces_Phoneme,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&FacesPanel::OnMouthMovementTypeSelected);
 	Connect(IDD_RADIOBUTTON_Faces_TimingTrack,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&FacesPanel::OnMouthMovementTypeSelected);
+	Connect(ID_CHOICE_Faces_Eyes,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&FacesPanel::OnChoice_Faces_EyesSelect);
+	Connect(ID_CHOICE_Faces_EyeBlinkFrequency,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&FacesPanel::OnChoice_Faces_EyeBlinkFrequencySelect);
 	Connect(ID_CHECKBOX_Faces_Outline,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FacesPanel::OnCheckBox_Faces_OutlineClick);
 	Connect(ID_CHECKBOX_Faces_SuppressWhenNotSinging,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FacesPanel::OnCheckBox_SuppressWhenNotSingingClick);
 	Connect(ID_CHECKBOX_Faces_Fade,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FacesPanel::OnCheckBox_FadeClick);
@@ -202,6 +215,16 @@ void FacesPanel::ValidateWindow()
 	else {
         Choice1->Enable(false);
     }
+
+    wxString type = Choice_Faces_Eyes->GetStringSelection();
+    if (type == "Auto")
+    {
+        Choice_Faces_EyeBlinkFrequency->Enable();
+    }
+    else
+    {
+        Choice_Faces_EyeBlinkFrequency->Disable();
+    }
 }
 
 void FacesPanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
@@ -221,4 +244,14 @@ void FacesPanel::OnCheckBox_FadeClick(wxCommandEvent& event)
 void FacesPanel::OnCheckBox_Faces_OutlineClick(wxCommandEvent& event)
 {
 	ValidateWindow();
+}
+
+void FacesPanel::OnChoice_Faces_EyeBlinkFrequencySelect(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void FacesPanel::OnChoice_Faces_EyesSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

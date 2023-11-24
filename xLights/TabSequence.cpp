@@ -42,6 +42,7 @@
 #include "ExternalHooks.h"
 
 #include "xLightsVersion.h"
+#include "TopEffectsPanel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -908,8 +909,9 @@ void xLightsFrame::UpdateModelsList()
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("        UpdateModelsList.");
 
-    if (ModelsNode == nullptr) return; // this happens when xlights is first loaded
-    if (ViewObjectsNode == nullptr) return; // this happens when xlights is first loaded
+    if (ModelsNode == nullptr 
+        || ViewObjectsNode == nullptr
+        || modelPreview == nullptr) return; // this happens when xlights is first loaded
 
     //abort any render as it will crash if the model changes
     AbortRender();
@@ -1564,6 +1566,10 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     mainSequencer->CheckBox_SuspendRender->Enable(enableSeq);
     enableAllToolbarControls(ViewToolBar, enable);
     PlayToolBar->EnableTool(ID_CHECKBOX_LIGHT_OUTPUT, enable);
+
+    effectsPnl->ButtonUpdateEffect->Enable(enableSeq);
+    effectsPnl->BitmapButtonRandomize->Enable(enableSeq);
+    effectsPnl->BitmapButtonSelectedEffect->Enable(enableSeq);
 
     enableAllChildControls(EffectsPanel1, enableSeqNotAC);
     if (enableSeqNotAC) EffectsPanel1->ValidateWindow();

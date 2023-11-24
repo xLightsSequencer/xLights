@@ -79,7 +79,9 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
 
     ControllerNameVendorMap("Experience Lights", "Genius Pixel 16 Controller", "Experience Lights", "Genius Pixel 16"),
     ControllerNameVendorMap("Experience Lights", "Genius Pixel 8 Controller", "Experience Lights", "Genius Pixel 8"),
-    ControllerNameVendorMap("Experience Lights", "Genius Long Range Controller", "Experience Lights", "Genius Long Range")
+    ControllerNameVendorMap("Experience Lights", "Genius Long Range Controller", "Experience Lights", "Genius Long Range"),
+    ControllerNameVendorMap("Experience Lights", "Genius PRO: Pixel 16 Controller", "Experience Lights", "Genius Pro 16 Port"),
+    ControllerNameVendorMap("Experience Lights", "Genius PRO: Pixel 32 Controller", "Experience Lights", "Genius Pro 32 Port")
 };
 
 #pragma region Constructors and Destructors
@@ -108,6 +110,7 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     _id = wxAtoi(node->GetAttribute("Id", "64001"));
     _name = node->GetAttribute("Name", om->UniqueName(node->GetName() + "_")).Trim(true).Trim(false);
     _description = node->GetAttribute("Description", "").Trim(true).Trim(false);
+    _fromBase = node->GetAttribute("FromBase", "0") == "1";
     _autoSize = node->GetAttribute("AutoSize", "0") == "1";
     SetAutoLayout(node->GetAttribute("AutoLayout", "1") == "1");
     _fullxLightsControl = node->GetAttribute("FullxLightsControl", "FALSE") == "TRUE";
@@ -120,6 +123,7 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
     _variant = node->GetAttribute("Variant");
 
     SetSuppressDuplicateFrames(node->GetAttribute("SuppressDuplicates", "0") == "1");
+    SetMonitoring(node->GetAttribute("Monitor", "1") == "1");
 
     _dirty = false;
     SearchForNewVendor(_vendor, _model, _variant);
@@ -128,6 +132,30 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
 Controller::Controller(OutputManager* om) : _outputManager(om) {
     // everything else is initialised in the header
     if (om != nullptr) _id = om->UniqueId();
+}
+
+Controller::Controller(OutputManager* om, const Controller& from) :
+    _outputManager(om)
+{
+    _dirty = true;
+    _id = from._id;
+    _name = from._name;
+    _description = from._description;
+    SetVendor(from.GetVendor());
+    SetModel(from.GetModel());
+    SetVariant(from.GetVariant());
+    _autoSize = from._autoSize;
+    _fullxLightsControl = from._fullxLightsControl;
+    _defaultBrightnessUnderFullControl = from._defaultBrightnessUnderFullControl;
+    _defaultGammaUnderFullControl = from._defaultGammaUnderFullControl;
+    _active = from._active;
+    _autoLayout = from._autoLayout;
+    _autoUpload = from._autoUpload;
+    _suppressDuplicateFrames = from._suppressDuplicateFrames;
+    _monitor = from._monitor;
+    for (const auto& it : from._outputs) {
+        _outputs.push_back(it->Copy());
+    }
 }
 
 Controller::~Controller() {
@@ -147,18 +175,132 @@ wxXmlNode* Controller::Save() {
     node->AddAttribute("Model", GetModel());
     node->AddAttribute("Variant", GetVariant());
     node->AddAttribute("AutoSize", _autoSize ? "1" : "0");
-    if (_fullxLightsControl) node->AddAttribute("FullxLightsControl", "TRUE");
+    node->AddAttribute("FromBase", _fromBase ? "1" : "0");
+    if (_fullxLightsControl)
+        node->AddAttribute("FullxLightsControl", "TRUE");
     node->AddAttribute("DefaultBrightnessUnderFullControl", wxString::Format("%d", _defaultBrightnessUnderFullControl));
     node->AddAttribute("DefaultGammaUnderFullControl", wxString::Format("%g", _defaultGammaUnderFullControl));
     node->AddAttribute("ActiveState", DecodeActiveState(_active));
     node->AddAttribute("AutoLayout", _autoLayout ? "1" : "0");
     node->AddAttribute("AutoUpload", _autoUpload && SupportsAutoUpload() ? "1" : "0");
     node->AddAttribute("SuppressDuplicates", _suppressDuplicateFrames ? "1" : "0");
+    node->AddAttribute("Monitor", _monitor ? "1" : "0");
     for (const auto& it : _outputs) {
         node->AddChild(it->Save());
     }
 
     return node;
+}
+bool Controller::UpdateFrom(Controller* from)
+{
+    bool changed = false;
+
+    if (_id != from->_id) {
+        changed = true;
+        _id = from->_id;
+    }
+
+    if (_name != from->_name) {
+        changed = true;
+        _name = from->_name;
+    }
+
+    if (_description != from->_description) {
+        changed = true;
+        _description = from->_description;
+    }
+
+    if (GetVendor() != from->GetVendor()) {
+        changed = true;
+        SetVendor(from->GetVendor());
+    }
+
+    if (GetModel() != from->GetModel()) {
+        changed = true;
+        SetModel(from->GetModel());
+    }
+
+    if (GetVariant() != from->GetVariant()) {
+        changed = true;
+        SetVariant(from->GetVariant());
+    }
+
+    if (_autoSize != from->_autoSize) {
+        changed = true;
+        _autoSize = from->_autoSize;
+    }
+
+    if (_fullxLightsControl != from->_fullxLightsControl) {
+        changed = true;
+        _fullxLightsControl = from->_fullxLightsControl;
+    }
+
+    if (_defaultBrightnessUnderFullControl != from->_defaultBrightnessUnderFullControl) {
+        changed = true;
+        _defaultBrightnessUnderFullControl = from->_defaultBrightnessUnderFullControl;
+    }
+
+    if (_defaultGammaUnderFullControl != from->_defaultGammaUnderFullControl) {
+        changed = true;
+        _defaultGammaUnderFullControl = from->_defaultGammaUnderFullControl;
+    }
+
+    if (_active != from->_active) {
+        changed = true;
+        _active = from->_active;
+    }
+
+    if (_autoLayout != from->_autoLayout) {
+        changed = true;
+        _autoLayout = from->_autoLayout;
+    }
+
+    if (_autoUpload != from->_autoUpload) {
+        changed = true;
+        _autoUpload = from->_autoUpload;
+    }
+
+    if (_suppressDuplicateFrames != from->_suppressDuplicateFrames) {
+        changed = true;
+        _suppressDuplicateFrames = from->_suppressDuplicateFrames;
+    }
+    if (_monitor != from->_monitor) {
+        changed = true;
+        _monitor = from->_monitor;
+    }
+
+    bool outputsSame = _outputs.size() == from->_outputs.size();
+    if (outputsSame) {
+        auto itto = _outputs.begin();
+        auto itfrom = from->_outputs.begin();
+
+        while (itto != _outputs.end() && outputsSame)
+        {
+            // this is probably not a great shortcut but it should catch most changes ... we can enhance it later
+            if ((*itto)->GetLongDescription() != (*itfrom)->GetLongDescription())
+            {
+                outputsSame = false;
+            }
+
+            ++itto;
+            ++itfrom;
+        }
+    }
+    if (!outputsSame) {
+        changed = true;
+        DeleteAllOutputs();
+
+        for (const auto& it : from->_outputs) {
+            _outputs.push_back(it->Copy());
+        }
+    }
+
+    if (changed)
+    {
+        _dirty = true;
+    }
+
+    return changed;
 }
 #pragma endregion
 
@@ -407,6 +549,13 @@ void Controller::SetSuppressDuplicateFrames(bool suppress) {
         std::for_each(begin(_outputs), end(_outputs), [suppress](Output* o) { o->SetSuppressDuplicateFrames(suppress); });
     }
 }
+void Controller::SetMonitoring(bool monitor) {
+
+    if (_monitor != monitor) {
+        _monitor = monitor;
+        _dirty = true;
+    }
+}
 
 void Controller::SetGlobalFPPProxy(const std::string& globalFPPProxy)
 {
@@ -634,7 +783,11 @@ void Controller::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* mo
         p->SetValue(IsSuppressDuplicateFrames());
         p->Hide(!SupportsSuppressDuplicateFrames());
     }
-    
+    p  = propertyGrid->GetProperty("Monitor");
+    if (p) {
+        p->SetValue(IsMonitoring());
+    }
+
     p  = propertyGrid->GetProperty("FullxLightsControl");
     if (p) {
         p->SetValue(IsFullxLightsControl());
@@ -731,6 +884,10 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
     p = propertyGrid->Append(new wxEnumProperty("Active", "Active", ACTIVETYPENAMES, wxArrayInt(), (int)_active));
     p->SetHelpString("When inactive no data is output and any upload to FPP or xSchedule will also not output to the lights. When xLights only it will output when played in xLights but again FPP and xSchedule will not output to the lights.");
 
+    p = propertyGrid->Append(new wxBoolProperty("Monitor", "Monitor", IsMonitoring()));
+    p->SetEditor("CheckBox");
+    p->SetHelpString("When selected, the show player will monitor the connectivity to the controller via ping packets or other network traffic to make sure the controller is up and running.  Disabling can reduce network traffic as well as reduce load on the controller.");
+    
     p = propertyGrid->Append(new wxBoolProperty("Suppress Duplicate Frames", "SuppressDuplicates", IsSuppressDuplicateFrames()));
     p->SetEditor("CheckBox");
     p->SetHelpString("When selected if a data packet is the same in a subsequent frame then xLights will not send the duplicate frame trusting that the controller will just reuse the previously sent data. This can reduce unnecessary network traffic.");
@@ -783,6 +940,10 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
     } else if (name == "SuppressDuplicates") {
         SetSuppressDuplicateFrames(event.GetValue().GetBool());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::SuppressDuplicates");
+        return true;
+    } else if (name == "Monitor") {
+        SetMonitoring(event.GetValue().GetBool());
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Monitor");
         return true;
     } else if (name == "AutoSize") {
         SetAutoSize(event.GetValue().GetBool(), outputModelManager);
@@ -876,7 +1037,7 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
 void Controller::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const {
 
     auto p = propGrid->GetPropertyByName("ControllerId");
-    auto const name = GetName();
+    auto const& name = GetName();
 
     if (p != nullptr) {
         // Id should be unique

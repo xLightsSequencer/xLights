@@ -15,7 +15,7 @@
 						<object class="wxFlexGridSizer" variable="Sizer1" member="yes">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>6</growablerows>
+							<growablerows>7</growablerows>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="Sizer_TimeAdjust" member="yes">
 									<cols>2</cols>
@@ -61,11 +61,20 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="yes">
-									<cols>1</cols>
+									<cols>2</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
 										<object class="wxCheckBox" name="ID_CHECKBOX11" variable="CheckBox_EraseExistingEffects" member="yes">
 											<label>Erase existing effects on imported models</label>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_LockEffects" member="yes">
+											<label>Lock effects on import</label>
+											<checked>1</checked>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
@@ -140,6 +149,31 @@
 									</object>
 								</object>
 								<flag>wxEXPAND</flag>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+									<cols>2</cols>
+									<growablecols>1</growablecols>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+											<label>Find:</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_FindTo" member="yes">
+											<handler function="OnTextCtrl_FindToText" entry="EVT_TEXT" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="SizerMap" member="yes">
@@ -219,7 +253,32 @@
 						<object class="wxFlexGridSizer" variable="Sizer2" member="yes">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>0</growablerows>
+							<growablerows>1</growablerows>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+									<cols>2</cols>
+									<growablecols>1</growablecols>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+											<label>Find:</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_FindFrom" member="yes">
+											<handler function="OnTextCtrl_FindFromText" entry="EVT_TEXT" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 							<object class="sizeritem">
 								<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListCtrl_Available" member="yes">
 									<size>100,-1d</size>

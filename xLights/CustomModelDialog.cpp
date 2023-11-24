@@ -3187,7 +3187,8 @@ float CustomModelDialog::GetLineLen(const std::tuple<float, float, float>& pt1, 
 {
     float xdiff = std::get<0>(pt1) - std::get<0>(pt2);
     float ydiff = std::get<1>(pt1) - std::get<1>(pt2);
-    return std::sqrt((xdiff * xdiff) + (ydiff * ydiff));
+    float zdiff = std::get<2>(pt1) - std::get<2>(pt2);
+    return std::sqrt((xdiff * xdiff) + (ydiff * ydiff) + (zdiff * zdiff));
 }
 
 void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event)
@@ -3210,10 +3211,21 @@ void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event
             int32_t startchannel = 1;
             int nullnumber = 0;
             it->SetTransientData(startchannel, nullnumber);
+
+            // If there's another controller already known with the same IP, give the discovered controller the same name
+            // Otherwise it'll have a default Twinkly name created from the MAC address that isn't particularly useful if you have lots of devices.
+            if (const Controller* existingController = _outputManager->GetControllerWithIP(it->GetIP())) {
+                const std::string& existingName = existingController->GetName();
+                if (existingName.size() > 0) {
+                    it->SetName(existingName);
+                }
+            }
+
             choices.push_back(it->GetLongDescription());
         }
     }
 
+#ifndef TEST_TWINKLY_FORMAT
     wxSingleChoiceDialog dlg(this, "Select controller to load from", "Download from controller", choices);
 
     if (dlg.ShowModal() == wxID_OK) {
@@ -3231,8 +3243,16 @@ void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event
         }
 
         if (downloadFrom != nullptr) {
+#endif
             std::vector<std::tuple<float, float, float>> modelData;
-            TwinklyOutput::GetLayout(downloadFrom->GetResolvedIP(), modelData);
+            bool is3D = false;
+            TwinklyOutput::GetLayout(
+#ifndef TEST_TWINKLY_FORMAT
+                downloadFrom->GetResolvedIP()
+#else
+                ""
+#endif
+                , modelData, is3D);
 
             if (modelData.size() > 0) {
                 // set the z size to 1
@@ -3246,22 +3266,38 @@ void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event
                 float minDiff = 9999.0;
                 float minX = 9999.0;
                 float minY = 9999.0;
+                float minZ = 9999.0;
+                float maxX = -9990.0;
+                float maxY = -9990.0;
+                float maxZ = -9990.0;
                 for (const auto& it : modelData) {
                     if (std::get<0>(last) == 9999) {
                         // dont process the first one
                     } else {
-                        if (GetLineLen(last, it) < minDiff) {
-                            minDiff = GetLineLen(last, it);
+                        float diff = GetLineLen(last, it);
+                        if (diff < minDiff && diff != 0.0f) {
+                            minDiff = diff;
                         }
                     }
                     if (std::get<0>(it) < minX)
                         minX = std::get<0>(it);
                     if (std::get<1>(it) < minY)
                         minY = std::get<1>(it);
+                    if (std::get<2>(it) < minZ)
+                        minZ = std::get<2>(it);
+                    if (std::get<0>(it) > maxX)
+                        maxX = std::get<0>(it);
+                    if (std::get<1>(it) > maxY)
+                        maxY = std::get<1>(it);
+                    if (std::get<2>(it) > maxZ)
+                        maxZ = std::get<2>(it);
                     last = it;
                 }
-                if (minDiff == 0)
-                    minDiff = 0.01f;
+
+                // These are the max dimensions of the generated model
+                #define MAXXY 300.0
+                #define MAXZ 30.0
+
                 if (minDiff == 9999.0) {
                     // must just be one node
                     for (auto& it : modelData) {
@@ -3270,20 +3306,29 @@ void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event
                     HeightSpin->SetValue(1);
                     WidthSpin->SetValue(1);
                 } else {
-                    float multiplier = 1.0 / (minDiff + 0.00001f);
-                    float maxX = 0;
-                    float maxY = 0;
+
+                    float divxy = minX < 0.0 || minY < 0.0 ? MAXXY / 2 : MAXXY;
+                    float divz = minZ < 0.0 ? MAXZ / 2 : MAXZ;
+
+                    float multiplierxy = 1.0 / (minDiff < (1.0 / divxy) ? (1.0 / divxy) : minDiff);
+                    float multiplierz = 1.0 / (minDiff < (1.0 / divz) ? (1.0 / divz) : minDiff);
+                    maxX = 0;
+                    maxY = 0;
+                    maxZ = 0;
 
                     // rescale everything and zero base it
                     for (auto& it : modelData) {
-                        it = { (std::get<0>(it) - minX) * multiplier, (std::get<1>(it) - minY) * multiplier, 0 };
+                        it = { (std::get<0>(it) - minX) * multiplierxy, (std::get<1>(it) - minY) * multiplierxy, is3D ? (std::get<2>(it) - minZ) * multiplierz : 0 };
                         if (std::get<0>(it) > maxX)
                             maxX = std::get<0>(it);
                         if (std::get<1>(it) > maxY)
                             maxY = std::get<1>(it);
+                        if (std::get<2>(it) > maxZ)
+                            maxZ = std::get<2>(it);
                     }
                     HeightSpin->SetValue(maxY+1);
                     WidthSpin->SetValue(maxX+1);
+                    SpinCtrl_Depth->SetValue(maxZ + 1);
                 }
 
                 ResizeCustomGrid();
@@ -3294,6 +3339,10 @@ void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event
                 for (const auto& it : modelData) {
                     auto x = std::get<0>(it);
                     auto y = std::get<1>(it);
+                    if (is3D)
+                    {
+                        grid = GetLayerGrid(std::get<2>(it));
+                    }
                     if (grid->GetCellValue(y, x) == "") {
                         grid->SetCellValue(y, x, wxString::Format("%d", i++));
                     }
@@ -3302,8 +3351,10 @@ void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event
                 UpdatePreview();
                 ValidateWindow();
             }
+#ifndef TEST_TWINKLY_FORMAT
         }
     }
+#endif
 }
 
 void CustomModelDialog::OnCheckBox_Show_DuplicatesClick(wxCommandEvent& event)

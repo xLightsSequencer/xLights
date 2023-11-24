@@ -52,6 +52,7 @@
             <Protocol>e131</Protocol>
             <Protocol>artnet</Protocol>
         </InputProtocols>
+		<FPS40Pixels>680</FPS40Pixels>
     </AbstractVariant>
     <AbstractVariant Name="BaseFalconV3Settings" Base="Falcon:BaseFalconSettings">
         <SupportsSmartRemotes>3</SupportsSmartRemotes>
@@ -67,6 +68,7 @@
         <SmartRemoteTypes>
             <Type>falcon_v1</Type>
         </SmartRemoteTypes>
+		<FPS40Pixels>680</FPS40Pixels>
     </AbstractVariant>
 	<Controller Name="F4V2">
 		<Variant Name="No Expansion Board" Base="Falcon:BaseFalconV2Settings">
@@ -212,6 +214,7 @@
             <Type>falcon_v2</Type>
         </SmartRemoteTypes>
         <ConfigDriver>Falcon</ConfigDriver>
+		<FPS40Pixels>704</FPS40Pixels>
     </AbstractVariant>
 	<Controller Name="F16V4">
 		<Variant Name="16 Local Ports" Base="Falcon:BaseV4FalconSettings">
@@ -303,6 +306,16 @@
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
             <v4BoardMode>11</v4BoardMode>
+			<SupportsRemotes/>
+			<SupportsSmartRemotes>6</SupportsSmartRemotes>
+		</Variant>
+	</Controller>
+	<Controller Name="F16V5">
+		<Variant Name="16 Local Ports + 4 Smart Receiver Chains" Base="Falcon:BaseV4FalconSettings">
+			<MaxPixelPort>32</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <v4BoardMode>4</v4BoardMode>
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>6</SupportsSmartRemotes>
 		</Variant>

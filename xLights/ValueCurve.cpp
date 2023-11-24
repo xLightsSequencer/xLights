@@ -1679,6 +1679,16 @@ float ValueCurve::GetOutputValueAtDivided(float offset, long startMS, long endMS
     return (_min + (_max - _min) * GetValueAt(offset, startMS, endMS)) / _divisor;
 }
 
+float ValueCurve::GetMaxValueDivided()
+{
+    float max = GetMin() / _divisor;
+    for (int i = 0; i < 100; ++i)
+    {
+        max = std::max(max, GetOutputValueAtDivided(i * 50, 0, 100 * 50));
+    }
+    return max;
+}
+
 float ValueCurve::ApplyGain(float value, int gain) const
 {
     float v = (100.0 + gain) * value / 100.0;
@@ -2186,16 +2196,47 @@ void ValueCurve::ScaleAndOffsetValues(float scale, int offset)
         return (val * scale ) + offset;
     };
 
-    _parameter1 = ScaleVal(_parameter1);
-    _parameter2 = ScaleVal(_parameter2);
-    _parameter3 = ScaleVal(_parameter3);
-    _parameter4 = ScaleVal(_parameter4);
+    std::vector<int> parametersToScale;
 
-    if (_type == "Custom")
-    {
-        for (auto& it : _values)
-        {
+    if (_type == "Custom") {
+        for (auto& it : _values) {
             it.y = ScaleVal(it.y);
         }
+    } else if (_type == "Flat") {
+        parametersToScale.push_back(1);
+    } else if (_type == "Ramp" || _type == "Ramp Up/Down Hold" || _type == "Saw Tooth" || _type == "Square" || _type == "Random" || _type == "Music" || _type == "Inverted Music" || 
+               _type == "Music Trigger Fade" || _type == "Timing Track Toggle" || _type == "Timing Track Fade Fixed" || _type == "Timing Track Fade Proportional") {
+        parametersToScale.push_back(1);
+        parametersToScale.push_back(2);
+    } else if (_type == "Ramp Up/Down") {
+        parametersToScale.push_back(1);
+        parametersToScale.push_back(2);
+        parametersToScale.push_back(3);
+    } else if (_type == "Parabolic Down" || _type == "Parabolic Up" || _type == "Logarithmic Up" || _type == "Logarithmic Down" || _type == "Exponential Up" || _type == "Exponential Down") {
+        parametersToScale.push_back(2);
+    } else if (_type == "Sine" || _type == "Abs Sine" || _type == "Decaying Sine") {
+        parametersToScale.push_back(4);
+    } else {
+        parametersToScale.push_back(1);
+        parametersToScale.push_back(2);
+        parametersToScale.push_back(3);
+        parametersToScale.push_back(4);
     }
+
+    for (int param : parametersToScale) {
+        switch (param) {
+        case 1:
+            _parameter1 = ScaleVal(_parameter1);
+            break;
+        case 2:
+            _parameter2 = ScaleVal(_parameter2);
+            break;
+        case 3:
+            _parameter3 = ScaleVal(_parameter3);
+            break;
+        case 4:
+            _parameter4 = ScaleVal(_parameter4);
+            break;
+        }
+    }    
 }

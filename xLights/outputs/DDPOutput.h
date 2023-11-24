@@ -71,8 +71,13 @@ public:
     #pragma region Constructors and Destructors
     DDPOutput(wxXmlNode* node, bool isActive);
     DDPOutput();
+    DDPOutput(const DDPOutput& from);
     virtual ~DDPOutput() override;
     virtual wxXmlNode* Save() override;
+    virtual Output* Copy() override
+    {
+        return new DDPOutput(*this);
+    }
     #pragma endregion
 
     #pragma region Static Functions

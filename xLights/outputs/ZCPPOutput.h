@@ -54,10 +54,14 @@ public:
     #pragma region Constructors and Destructors
     ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir);
     ZCPPOutput();
-    ZCPPOutput(ZCPPOutput* output);
+    ZCPPOutput(const ZCPPOutput& from);
     virtual ~ZCPPOutput() override;
     virtual wxXmlNode* Save() override;
-    #pragma endregion 
+    virtual Output* Copy() override
+    {
+        return new ZCPPOutput(*this);
+    }
+#pragma endregion 
     
     #pragma region Static Functions
     static void SendSync(const std::string& localIP);

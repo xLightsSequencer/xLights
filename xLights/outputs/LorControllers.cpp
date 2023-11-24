@@ -23,6 +23,15 @@ LorControllers::LorControllers(wxXmlNode* node) {
     _dirty = false;
 }
 
+LorControllers::LorControllers(const LorControllers& from)
+{
+    for (const auto& it : from._controllers)
+    {
+        _controllers.push_back(it->Copy());
+    }
+    _dirty = true;
+}
+
 void LorControllers::Save(wxXmlNode* node) {
     for (const auto& it : _controllers) {
         wxXmlNode* cntrl_node = new wxXmlNode(wxXML_ELEMENT_NODE, "controller");

@@ -828,7 +828,7 @@ void PolyPointScreenLocation::SetActiveAxis(MSLAXIS axis)
 {
    ModelScreenLocation::SetActiveAxis(axis);
 }
-bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const {
+bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const {
     std::unique_lock<std::mutex> locker(_mutex);
 
     if (active_handle != NO_HANDLE || mouse_down) {
@@ -836,10 +836,16 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
         int startVertex = vac->getCount();
         vac->PreAlloc(10 * num_points + 12);
         xlColor h1c, h2c, h3c;
+        if (fromBase)
+        {
+            h1c = FROM_BASE_HANDLES_COLOUR;
+            h2c = FROM_BASE_HANDLES_COLOUR;
+            h3c = FROM_BASE_HANDLES_COLOUR;
+        } else
         if (_locked) {
-            h1c = xlREDTRANSLUCENT;
-            h2c = xlREDTRANSLUCENT;
-            h3c = xlREDTRANSLUCENT;
+            h1c = LOCKED_HANDLES_COLOUR;
+            h2c = LOCKED_HANDLES_COLOUR;
+            h3c = LOCKED_HANDLES_COLOUR;
         } else {
             h1c = (highlighted_handle == START_HANDLE) ? xlYELLOWTRANSLUCENT : xlGREENTRANSLUCENT;
             h2c = xlBLUETRANSLUCENT;
@@ -1045,7 +1051,10 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
         auto vac = program->getAccumulator();
         int startVertex = vac->getCount();
         xlColor Box3dColor = xlWHITETRANSLUCENT;
-        if (_locked) Box3dColor = xlREDTRANSLUCENT;
+        if (fromBase)
+            Box3dColor = FROM_BASE_HANDLES_COLOUR;
+        else if (_locked)
+            Box3dColor = LOCKED_HANDLES_COLOUR;
         for (int i = 0; i < num_points - 1; ++i) {
             if (mPos[i].has_curve && mPos[i].curve != nullptr) {
                 mPos[i].curve->DrawBoundingBoxes(Box3dColor, vac);
@@ -1061,7 +1070,7 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
     return true;
 }
 
-bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const {
+bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const {
     std::unique_lock<std::mutex> locker(_mutex);
     
     auto vac = program->getAccumulator();
@@ -1079,8 +1088,11 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
     float y2 = maxY * scaley + worldPos_y + hw / 2 + boundary_offset;
     float z2 = maxZ * scalez + worldPos_z + hw / 2 + boundary_offset;
     xlColor handleColor = xlBLUETRANSLUCENT;
+    if (fromBase) {
+        handleColor = FROM_BASE_HANDLES_COLOUR;
+    } else
     if (_locked) {
-        handleColor = xlREDTRANSLUCENT;
+        handleColor = LOCKED_HANDLES_COLOUR;
     }
     vac->AddRectAsTriangles(x1, y1, x1 + hw, y1 + hw, handleColor);
     vac->AddRectAsTriangles(x1, y2, x1 + hw, y2 + hw, handleColor);
@@ -1936,7 +1948,11 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
         }
         else {
             auto o = name.find(" ", 12);
+            wxASSERT(o != std::string::npos);
+
             selected_handle = wxAtoi(name.substr(12, o - 12)) - 1;
+
+            wxASSERT(selected_handle + 1 < mPos.size());
 
             float oldLen = 0.0f;
             oldLen = RulerObject::UnMeasure(RulerObject::Measure(mPos[selected_handle].AsVector(), mPos[selected_handle + 1].AsVector()));
@@ -1946,11 +1962,19 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
             float dy = (mPos[selected_handle + 1].y - mPos[selected_handle].y) * len / oldLen - (mPos[selected_handle + 1].y - mPos[selected_handle].y);
             float dz = (mPos[selected_handle + 1].z - mPos[selected_handle].z) * len / oldLen - (mPos[selected_handle + 1].z - mPos[selected_handle].z);
 
+            // if this resulted in a divide by zero then set it to one ... setting it to zero leaves you stuck unable to change it further ... this will be weird but fixable
+            if (isnan(dx))
+                dx = 1.0f;
+            if (isnan(dy))
+                dy = 1.0f;
+            if (isnan(dz))
+                dz = 1.0f;
+
             for (auto i = selected_handle + 1; i < mPos.size(); i++) {
-                mPos[i].x += dx;
-                mPos[i].y += dy;
-                mPos[i].z += dz;
-            }
+                    mPos[i].x += dx;
+                    mPos[i].y += dy;
+                    mPos[i].z += dz;
+                }
 
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
             AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");

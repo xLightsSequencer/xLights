@@ -14,14 +14,17 @@
 #include "RenderBuffer.h"
 #include "SketchEffectDrawing.h"
 #include "SketchPanel.h"
+#include "../UtilFunctions.h"
+#include "../xLightsMain.h"
 #include "assist/AssistPanel.h"
 #include "assist/SketchAssistPanel.h"
+#include "../ExternalHooks.h"
 
-#include "../../include/sketch-64.xpm"
-#include "../../include/sketch-48.xpm"
-#include "../../include/sketch-32.xpm"
-#include "../../include/sketch-24.xpm"
 #include "../../include/sketch-16.xpm"
+#include "../../include/sketch-24.xpm"
+#include "../../include/sketch-32.xpm"
+#include "../../include/sketch-48.xpm"
+#include "../../include/sketch-64.xpm"
 
 #include <wx/image.h>
 
@@ -58,10 +61,9 @@ SketchEffect::SketchEffect(int id) :
 
 SketchEffect::~SketchEffect()
 {
-
 }
 
-void SketchEffect::Render(Effect* /*effect*/, const SettingsMap& settings, RenderBuffer& buffer )
+void SketchEffect::Render(Effect* /*effect*/, const SettingsMap& settings, RenderBuffer& buffer)
 {
     double progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
@@ -80,7 +82,7 @@ void SketchEffect::Render(Effect* /*effect*/, const SettingsMap& settings, Rende
     xlColorVector colors(buffer.GetColorCount());
     for (size_t i = 0; i < buffer.GetColorCount(); ++i)
         colors[i] = buffer.palette.GetColor(i);
-    
+
     if (sketchDef.empty())
         return;
     SketchEffectSketch sketch(SketchEffectSketch::SketchFromString(sketchDef));
@@ -96,10 +98,8 @@ void SketchEffect::Render(Effect* /*effect*/, const SettingsMap& settings, Rende
     int pxIndex = 0;
     int rgbIndex = 0;
     int alphaIndex = 0;
-    for ( int y = 0; y < bh; ++y )
-    {
-        for ( int x = 0; x < bw; ++x, ++pxIndex )
-        {
+    for (int y = 0; y < bh; ++y) {
+        for (int x = 0; x < bw; ++x, ++pxIndex) {
             rgb[rgbIndex++] = px[pxIndex].Red();
             rgb[rgbIndex++] = px[pxIndex].Green();
             rgb[rgbIndex++] = px[pxIndex].Blue();
@@ -116,10 +116,8 @@ void SketchEffect::Render(Effect* /*effect*/, const SettingsMap& settings, Rende
     //
     // wxImage --> RenderBuffer
     //
-    for ( int y = 0; y < bh; ++y )
-    {
-        for (int x = 0; x < bw; ++x, ++px)
-        {
+    for (int y = 0; y < bh; ++y) {
+        for (int x = 0; x < bw; ++x, ++px) {
             px->red = img.GetRed(x, y);
             px->green = img.GetGreen(x, y);
             px->blue = img.GetBlue(x, y);
@@ -150,23 +148,51 @@ void SketchEffect::SetDefaultParameters()
     p->ValidateWindow();
 }
 
-bool SketchEffect::needToAdjustSettings( const std::string& /*version*/ )
+bool SketchEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
+{
+    bool rc = false;
+    wxString file = SettingsMap["E_FILEPICKER_SketchBackground"];
+    if (FileExists(file)) {
+        if (!frame->IsInShowFolder(file)) {
+            SettingsMap["E_FILEPICKER_SketchBackground"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+            rc = true;
+        }
+    }
+
+    return rc;
+}
+
+bool SketchEffect::needToAdjustSettings(const std::string& /*version*/)
 {
     return false;
 }
 
-void SketchEffect::adjustSettings( const std::string& version, Effect* effect, bool removeDefaults/*=true*/ )
+void SketchEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults /*=true*/)
 {
     // give the base class a chance to adjust any settings
-    if ( RenderableEffect::needToAdjustSettings( version ) )
-    {
-        RenderableEffect::adjustSettings( version, effect, removeDefaults );
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
 }
 
-std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& /*settings*/, AudioManager* /*media*/, Model* /*model*/, Effect* /*eff*/, bool /*renderCache*/ )
+std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    return std::list<std::string>();
+    wxLogNull logNo; // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
+    std::list<std::string> res;
+
+    if (!xLightsFrame::IsCheckSequenceOptionDisabled("SketchImage")) {
+        wxString filename = settings.Get("E_FILEPICKER_SketchBackground", "");
+        if (filename == "" || !FileExists(filename)) {
+            // this is only a warning as it does not affect rendering
+            res.push_back(wxString::Format("    WARN: Sketch effect cant find image file '%s'. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        } else {
+            if (!IsFileInShowDir(xLightsFrame::CurrentDir, filename.ToStdString())) {
+                res.push_back(wxString::Format("    WARN: Sketch effect image file '%s' not under show directory. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            }
+        }
+    }
+
+    return res;
 }
 
 std::list<std::string> SketchEffect::GetFileReferences(Model* model, const SettingsMap& SettingsMap) const
@@ -195,7 +221,7 @@ AssistPanel* SketchEffect::GetAssistPanel(wxWindow* parent, xLightsFrame* /*xl_f
     auto sketchAssistPanel = new SketchAssistPanel(assistPanel->GetCanvasParent());
     sketchAssistPanel->SetSketchDef(m_panel->TextCtrl_SketchDef->GetValue().ToStdString());
     sketchAssistPanel->SetSketchUpdateCallback(lambda);
-    //sketchAssistPanel->SetxLightsFrame(xl_frame);
+    // sketchAssistPanel->SetxLightsFrame(xl_frame);
     assistPanel->AddPanel(sketchAssistPanel, wxALL | wxEXPAND);
 
     m_sketchAssistPanel = sketchAssistPanel;
@@ -228,10 +254,9 @@ double SketchEffect::GetSettingVCMax(const std::string& name) const
 
 void SketchEffect::RemoveDefaults(const std::string& version, Effect* effect)
 {
-
 }
 
-xlEffectPanel* SketchEffect::CreatePanel( wxWindow* parent )
+xlEffectPanel* SketchEffect::CreatePanel(wxWindow* parent)
 {
     m_panel = new SketchPanel(parent);
     return m_panel;
@@ -250,7 +275,7 @@ void SketchEffect::renderSketch(const SketchEffectSketch& sketch, wxImage& img, 
     // ... but we do a slightly different adjustment for the non-motion case
     if (!hasMotion)
         adjustedProgress = interpolate(progress, 0.0, 0.0, drawPercentage, 1.0, LinearInterpolater());
-  
+
     double totalLength = 0.;
     for (const auto& path : paths)
         totalLength += path->Length();
@@ -269,17 +294,16 @@ void SketchEffect::renderSketch(const SketchEffectSketch& sketch, wxImage& img, 
             path->drawPartialPath(gc.get(), sz, 0., progress + motionPercentage - 1.);
         return;
     }
- 
+
     double cumulativeLength = 0.;
     int i = 0;
-    for (auto iter = paths.cbegin(); iter != paths.cend(); ++iter, ++i)
-    {
-        wxColor color(colors[i%colors.size()].asWxColor());
+    for (auto iter = paths.cbegin(); iter != paths.cend(); ++iter, ++i) {
+        wxColor color(colors[i % colors.size()].asWxColor());
         wxPen pen(color, lineThickness);
         gc->SetPen(pen);
         double pathLength = (*iter)->Length();
         double percentageAtEndOfThisPath = (cumulativeLength + pathLength) / totalLength;
-    
+
         if (!hasMotion && percentageAtEndOfThisPath <= adjustedProgress)
             (*iter)->drawEntirePath(gc.get(), sz);
         else {

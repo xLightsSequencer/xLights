@@ -1017,16 +1017,16 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
             xlColor pold = pixels[y*BufferWi + x];
 
             xlColor c;
-            int r = pnew.red + pold.red * (255 - pnew.alpha) / 255;
+            int r = pnew.red + (pold.red * (255 - pnew.alpha)) / 255;
             if (r > 255) r = 255;
             c.red = r;
-            int g = pnew.green + pold.green * (255 - pnew.alpha) / 255;
+            int g = pnew.green + (pold.green * (255 - pnew.alpha)) / 255;
             if (g > 255) g = 255;
             c.green = g;
-            int b = pnew.blue + pold.blue * (255 - pnew.alpha) / 255;
+            int b = pnew.blue + (pold.blue * (255 - pnew.alpha)) / 255;
             if (b > 255) b = 255;
             c.blue = b;
-            int a = pnew.alpha + pold.alpha * (255 - pnew.alpha) / 255;
+            int a = pnew.alpha + (pold.alpha * (255 - pnew.alpha)) / 255;
             if (a > 255) a = 255;
             c.alpha = a;
 
@@ -1138,7 +1138,7 @@ void RenderBuffer::DrawVLine(int x, int ystart, int yend, const xlColor &color, 
         SetPixel(x, y, color, wrap);
     }
 }
-void RenderBuffer::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap) {
+void RenderBuffer::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap, bool useAlpha) {
     if (y1 > y2) {
         int i = y1;
         y1 = y2;
@@ -1151,7 +1151,7 @@ void RenderBuffer::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color,
     }
     for (int x = x1; x <= x2; x++) {
         for (int y = y1; y <= y2; y++) {
-            SetPixel(x, y, color, wrap);
+            SetPixel(x, y, color, wrap, useAlpha);
         }
     }
 }
