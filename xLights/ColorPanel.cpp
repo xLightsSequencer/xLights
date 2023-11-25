@@ -1396,7 +1396,6 @@ void ColorPanel::OnBitmapButton_DeletePaletteClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
-
 void ColorPanel::OnBitmapButton_ReverseColoursClick(wxCommandEvent& event)
 {
     std::string pal = GetCurrentPalette();
@@ -1539,4 +1538,3 @@ void ColorPanel::OnCheckBox_EnableChromakeyClick(wxCommandEvent& event)
 {
     ValidateWindow();
 }
-
