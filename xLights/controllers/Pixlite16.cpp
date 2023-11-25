@@ -958,7 +958,7 @@ bool Pixlite16::GetConfig()
     localAddr.AnyAddress();
     localAddr.Service(PIXLITE_PORT);
 
-    auto discovery = new wxDatagramSocket(localAddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
+    auto discovery = new wxDatagramSocket(localAddr, /* wxSOCKET_BROADCAST | */ wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
     if (discovery == nullptr) {
         logger_base.error("Error initialising PixLite/PixCon datagram.");
