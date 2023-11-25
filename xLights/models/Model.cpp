@@ -2921,6 +2921,11 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
             }
         }
     }
+    else
+    {
+        rgbwHandlingType = 1; // RGB
+    }
+
     description = UnXmlSafe(ModelNode->GetAttribute("Description"));
 
     wxString tempstr = ModelNode->GetAttribute("parm1");
