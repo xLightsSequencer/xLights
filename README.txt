@@ -11,6 +11,21 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.21 Nov 25, 2023
+   -- enh (dkulp) Allow upload of config to inactive controllers
+   -- enh (scott) Add More Right Click Options to Multi-Controller Upload, Save/Load Selected
+   -- enh (scott) FPP Connect - Add Falcon V5 Support
+   -- enh (keith) Downgrade sketch effect image missing to warning and allow suppression of the warning in preferences.
+   -- enh (scott) FPP Connect - add genius fseq upload
+   -- bug (dkulp) FPP Connect - fix crash with discovery/fpp connect if "Player Only" controller configured
+   -- bug (billnapier) Remove invisible unicode character in AlphxPix 4 settings
+   -- bug (dkulp) Fix Faces on models from Base show directory will always trigger the "dirty" flag
+   -- bug (keith) Fix copy on empty cell overwrites clipboard
+   -- bug (dkulp) Retry FSEQ upload on errors (up to three times)
+   -- bug (scott) HinkxPix won't allow assignment to smart receiver 3-9
+   -- bug (dartunder) Fix face blink effect
+   -- bug (keith) Fix eyes closed not mapping correctly
+   -- bug (keith) Fix PixLite config retrieval
 2023.20 Nov 15, 2023
    -- enh (scott) FPP Connect - Remove ancient FPP 1.x upload via mounted USB
    -- enh (scott) FPP Connect - Add ability to upload Proxy Controller IPs
