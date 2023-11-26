@@ -72,6 +72,10 @@ const long ControllerModelDialog::CONTROLLER_REMOVEALLMODELS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE = wxNewId();
 const long ControllerModelDialog::CONTROLLER_REMOVESMARTREMOTE = wxNewId();
 const long ControllerModelDialog::CONTROLLER_MODEL_STRINGS = wxNewId();
+const long ControllerModelDialog::CONTROLLER_STARTNULLS = wxNewId();
+const long ControllerModelDialog::CONTROLLER_ENDNULLS = wxNewId();
+const long ControllerModelDialog::CONTROLLER_COLORORDER = wxNewId();
+const long ControllerModelDialog::CONTROLLER_GROUPCOUNT = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerModelDialog, wxDialog)
 //(*EventTable(ControllerModelDialog)
@@ -1399,30 +1403,29 @@ public:
             if (!GetModel()->HasSingleNode(GetModel()->GetStringType()) && GetModel()->SupportsChangingStringCount()) {
                 mnu.AppendSeparator();
                 mnu.Append(ControllerModelDialog::CONTROLLER_MODEL_STRINGS, "Change String Count");
-                mnu.AppendSeparator();
             }
 
             if (_caps->SupportsSmartRemotes()) {
                 wxMenu* srMenu = new wxMenu();
+                mnu.AppendSeparator();
 
                 int srcount = _caps->GetSmartRemoteCount();
 
                 auto mi = srMenu->AppendRadioItem(wxNewId(), "None");
-                if (GetModel()->GetSmartRemote() == 0)
+                if (GetModel()->GetSmartRemote() == 0){
                     mi->Check();
+                }
 
-
-                    for (int i = 0; i < srcount; i++) {
+                for (int i = 0; i < srcount; i++) {
                     if (_caps->GetVendor() == "HinksPix") {
                         mi = srMenu->AppendRadioItem(wxNewId(), wxString::Format("%d", i), "SR Port");
-                    }
-                    else
-                    {
+                    } else {
                         mi = srMenu->AppendRadioItem(wxNewId(), wxString(char(65 + i)), "SR Port");
                     }
-                        if (GetModel()->GetSmartRemote() == i + 1)
-                            mi->Check();
+                    if (GetModel()->GetSmartRemote() == i + 1) {
+                        mi->Check();
                     }
+                }
 
                 if (_caps->GetSmartRemoteTypes().size() > 1) {
                     wxMenu* srType = new wxMenu();
@@ -1443,8 +1446,9 @@ public:
                 wxMenu* srMax = new wxMenu();
                 for (int i = 0; i < srcount; i++) {
                     mi = srMax->AppendRadioItem(wxNewId(), wxString::Format("%d", i + 1), "Cascade");
-                    if (GetModel()->GetSRMaxCascade() == i + 1)
+                    if (GetModel()->GetSRMaxCascade() == i + 1) {
                         mi->Check();
+                    }
                 }
 
                 srMenu->AppendSubMenu(srMax, "Cascaded Remotes");
@@ -1461,6 +1465,19 @@ public:
                     mnu.Append(ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR, "Clear Brightness");
                 }
             }
+            if (_caps->SupportsPixelPortNullPixels()) {
+                mnu.Append(ControllerModelDialog::CONTROLLER_STARTNULLS, "Set Start Nulls");
+            }
+            if (_caps->SupportsPixelPortEndNullPixels()) {
+                mnu.Append(ControllerModelDialog::CONTROLLER_ENDNULLS, "Set End Nulls");
+            }
+            if (_caps->SupportsPixelPortColourOrder()) {
+                mnu.Append(ControllerModelDialog::CONTROLLER_COLORORDER, "Set Color Order");
+            }
+            if (_caps->SupportsPixelPortGrouping()) {
+                mnu.Append(ControllerModelDialog::CONTROLLER_GROUPCOUNT, "Set Group Count");
+            }
+            
         } else if (GetModel() != nullptr && GetModel()->IsSerialProtocol()) {
             mnu.AppendSeparator();
             mnu.Append(ControllerModelDialog::CONTROLLER_DMXCHANNEL, "Set Channel");
@@ -1501,6 +1518,35 @@ public:
             wxNumberEntryDialog dlg(parent, "Enter the Model Brightness", "Brightness", "Model Brightness", GetModel()->GetControllerBrightness(), 0, 100);
             if (dlg.ShowModal() == wxID_OK) {
                 GetModel()->SetControllerBrightness(dlg.GetValue());
+            }
+            return true;
+        } else if (id == ControllerModelDialog::CONTROLLER_STARTNULLS) {
+            wxNumberEntryDialog dlg(parent, "Enter the Model Start Nulls", "Start Nulls", "Start Nulls", GetModel()->GetControllerStartNulls(), 0, 100);
+            if (dlg.ShowModal() == wxID_OK) {
+                GetModel()->SetControllerStartNulls(dlg.GetValue());
+            }
+            return true;
+        } else if (id == ControllerModelDialog::CONTROLLER_ENDNULLS) {
+            wxNumberEntryDialog dlg(parent, "Enter the End Nulls", "End Nulls", "Model End Nulls", GetModel()->GetControllerEndNulls(), 0, 100);
+            if (dlg.ShowModal() == wxID_OK) {
+                GetModel()->SetControllerEndNulls(dlg.GetValue());
+            }
+            return true;
+        } else if (id == ControllerModelDialog::CONTROLLER_COLORORDER) {
+            auto choices = Model::CONTROLLER_COLORORDER;
+            int selection = choices.Index(GetModel()->GetControllerColorOrder());
+            wxSingleChoiceDialog dlg(parent, "Model Color Order", "Color Order", choices);
+            if (selection >= 0 && selection < choices.size()) {
+                dlg.SetSelection(selection);
+            }
+            if (dlg.ShowModal() == wxID_OK) {
+                GetModel()->SetControllerColorOrder(choices[dlg.GetSelection()]);
+            }
+            return true;
+        } else if (id == ControllerModelDialog::CONTROLLER_GROUPCOUNT) {
+            wxNumberEntryDialog dlg(parent, "Enter the Group Count", "Group Count", "Model Group Count", GetModel()->GetControllerGroupCount(), 1, 500);
+            if (dlg.ShowModal() == wxID_OK) {
+                GetModel()->SetControllerGroupCount(dlg.GetValue());
             }
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR) {

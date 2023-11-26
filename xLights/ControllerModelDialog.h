@@ -134,6 +134,10 @@ class ControllerModelDialog: public wxDialog
         static const long CONTROLLER_SMARTREMOTETYPE;
         static const long CONTROLLER_REMOVESMARTREMOTE;
         static const long CONTROLLER_MODEL_STRINGS;
+		static const long CONTROLLER_STARTNULLS;
+        static const long CONTROLLER_ENDNULLS;
+        static const long CONTROLLER_COLORORDER;
+        static const long CONTROLLER_GROUPCOUNT;
 
 		wxBitmap RenderPicture(int startY, int startX, int width, int height, wxString const& pageName);
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);

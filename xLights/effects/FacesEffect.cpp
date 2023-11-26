@@ -1402,6 +1402,9 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                         auto c = sts[wxString::Format("s%d-Color", (int)i)];
                         if (r != "") {
                             xlColor colour = xlColor(c);
+                            if (c.empty()) {
+                                colour = xlWHITE;
+                            }
                             colour.alpha = ((int)alpha * colour.alpha) / 255;
 
                             // use the nodes as it is faster

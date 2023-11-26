@@ -90,6 +90,8 @@ public:
         PIXEL_STYLE_BLENDED_CIRCLE
     };
 
+    static wxArrayString CONTROLLER_COLORORDER;
+
     Model(const ModelManager& manager);
     virtual ~Model();
     static wxArrayString GetLayoutGroups(const ModelManager& mm);
@@ -323,21 +325,29 @@ public:
     void SetControllerPort(int port);
     void SetControllerBrightness(int brightness);
     void ClearControllerBrightness();
-    bool IsControllerBrightnessSet() const;
-    bool IsShadowModel() const;
-    std::string GetShadowModelFor() const;
-    std::string GetControllerName() const;
-    std::string GetControllerProtocol() const;
-    int GetControllerBrightness() const;
-    int GetControllerDMXChannel() const;
-    int GetSmartRemote() const;
-    bool GetSRCascadeOnPort() const;
-    int GetSRMaxCascade() const;
-    std::vector<std::string> GetSmartRemoteTypes() const;
-    std::string GetSmartRemoteType() const;
-    int GetSmartRemoteTypeIndex(const std::string& srType) const;
-    std::string GetSmartRemoteTypeName(int idx) const;
-    int GetSmartRemoteCount() const;
+    [[nodiscard]] bool IsControllerBrightnessSet() const;
+    [[nodiscard]] bool IsShadowModel() const;
+    [[nodiscard]] std::string GetShadowModelFor() const;
+    [[nodiscard]] std::string GetControllerName() const;
+    [[nodiscard]] std::string GetControllerProtocol() const;
+    [[nodiscard]] int GetControllerBrightness() const;
+    [[nodiscard]] int GetControllerDMXChannel() const;
+    [[nodiscard]] int GetSmartRemote() const;
+    [[nodiscard]] bool GetSRCascadeOnPort() const;
+    [[nodiscard]] int GetSRMaxCascade() const;
+    [[nodiscard]] std::vector<std::string> GetSmartRemoteTypes() const;
+    [[nodiscard]] std::string GetSmartRemoteType() const;
+    [[nodiscard]] int GetSmartRemoteTypeIndex(const std::string& srType) const;
+    [[nodiscard]] std::string GetSmartRemoteTypeName(int idx) const;
+    [[nodiscard]] int GetSmartRemoteCount() const;
+    [[nodiscard]] int GetControllerStartNulls() const;
+    [[nodiscard]] int GetControllerEndNulls() const;
+    [[nodiscard]] wxString GetControllerColorOrder() const;
+    [[nodiscard]] int GetControllerGroupCount() const;
+    void SetControllerStartNulls(int nulls);
+    void SetControllerEndNulls(int nulls);
+    void SetControllerColorOrder(wxString const& color);
+    void SetControllerGroupCount(int grouping);
 
     void GetPortSR(int string, int& outport, int& outsr) const;
     char GetSmartRemoteLetter() const;

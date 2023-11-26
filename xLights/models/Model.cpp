@@ -89,7 +89,7 @@ static const char *CONTROLLER_COLORORDER_VALUES[] = {
     "RGB", "RBG", "GBR", "GRB", "BRG", "BGR",
     "RGBW", "RBGW", "GBRW", "GRBW", "BRGW", "BGRW",
     "WRGB", "WRBG", "WGBR", "WGRB", "WBRG", "WBGR"};
-static wxArrayString CONTROLLER_COLORORDER(18, CONTROLLER_COLORORDER_VALUES);
+wxArrayString Model::CONTROLLER_COLORORDER(18, CONTROLLER_COLORORDER_VALUES);
 
 static wxArrayString LAYOUT_GROUPS;
 static wxArrayString CONTROLLERS;
@@ -7066,6 +7066,66 @@ void Model::SetControllerBrightness(int brightness)
     IncrementChangeCount();
 }
 
+void Model::SetControllerStartNulls(int nulls)
+{
+    if (nulls == wxAtoi(ModelXml->GetAttribute("nullNodes", "0"))) {
+        return;
+    }
+    GetControllerConnection()->DeleteAttribute("nullNodes");
+    GetControllerConnection()->AddAttribute("nullNodes", wxString::Format("%d", nulls));
+
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetConnectionStartNulls");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetConnectionStartNulls");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetConnectionStartNulls");
+    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetConnectionStartNulls");
+    IncrementChangeCount();
+}
+
+void Model::SetControllerEndNulls(int nulls)
+{
+    if (nulls == wxAtoi(ModelXml->GetAttribute("endNullNodes", "0"))) {
+        return;
+    }
+    GetControllerConnection()->DeleteAttribute("endNullNodes");
+    GetControllerConnection()->AddAttribute("endNullNodes", wxString::Format("%d", nulls));
+
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetConnectionPixelEndNullNodes");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetConnectionPixelEndNullNodes");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetConnectionPixelEndNullNodes");
+    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetConnectionPixelEndNullNodes");
+    IncrementChangeCount();
+}
+
+void Model::SetControllerColorOrder(wxString const& color)
+{
+    if (color == ModelXml->GetAttribute("colorOrder", "RGB")) {
+        return;
+    }
+    GetControllerConnection()->DeleteAttribute("colorOrder");
+    GetControllerConnection()->AddAttribute("colorOrder", color);
+
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetConnectionPixelColorOrder");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetConnectionPixelColorOrder");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetConnectionPixelColorOrder");
+    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetConnectionPixelColorOrder");
+    IncrementChangeCount();
+}
+
+void Model::SetControllerGroupCount(int grouping)
+{
+    if (grouping == wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "1"))) {
+        return;
+    }
+    GetControllerConnection()->DeleteAttribute("groupCount");
+    GetControllerConnection()->AddAttribute("groupCount", wxString::Format("%d", grouping));
+
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetConnectionPixelGroupCount");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetConnectionPixelGroupCount");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetConnectionPixelGroupCount");
+    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetConnectionPixelGroupCount");
+    IncrementChangeCount();
+}
+
 void Model::ClearControllerBrightness()
 {
     if (GetControllerConnection()->HasAttribute("brightness")) {
@@ -7086,6 +7146,26 @@ bool Model::IsControllerBrightnessSet() const
 int Model::GetControllerBrightness() const
 {
     return wxAtoi(GetControllerConnection()->GetAttribute("brightness", "100"));
+}
+
+int Model::GetControllerStartNulls() const
+{
+    return wxAtoi(GetControllerConnection()->GetAttribute("nullNodes", "0"));
+}
+
+int Model::GetControllerEndNulls() const
+{
+    return wxAtoi(GetControllerConnection()->GetAttribute("endNullNodes", "0"));
+}
+
+wxString Model::GetControllerColorOrder() const
+{
+    return GetControllerConnection()->GetAttribute("colorOrder", "RGB");
+}
+
+int Model::GetControllerGroupCount() const
+{
+    return wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "1"));
 }
 
 bool Model::IsShadowModel() const
