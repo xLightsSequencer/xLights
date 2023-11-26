@@ -21,6 +21,7 @@
 #include "xLightsMain.h"
 #include "support/VectorMath.h"
 #include "models/CustomModel.h"
+#include "utils/string_utils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -63,6 +64,7 @@ const long ModelStateDialog::ID_SPLITTERWINDOW1 = wxNewId();
 const long ModelStateDialog::ID_TIMER1 = wxNewId();
 
 const long ModelStateDialog::STATE_DIALOG_IMPORT_SUB = wxNewId();
+const long ModelStateDialog::STATE_DIALOG_IMPORT_ALL_SUB = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_COPY_STATES = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_IMPORT_MODEL = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_IMPORT_FILE = wxNewId();
@@ -854,6 +856,7 @@ void ModelStateDialog::OnButton_ImportClick(wxCommandEvent& event)
     }
     mnu.Append(STATE_DIALOG_IMPORT_MODEL, "Import From Model");
     mnu.Append(STATE_DIALOG_IMPORT_FILE, "Import From File");
+    mnu.Append(STATE_DIALOG_IMPORT_ALL_SUB, "Import From SubModels");
     mnu.AppendSeparator();
     mnu.Append(STATE_DIALOG_SHIFT, "Shift Nodes");
     mnu.Append(STATE_DIALOG_REVERSE, "Reverse Nodes");
@@ -1074,32 +1077,22 @@ wxString ModelStateDialog::getSubmodelNodes(Model* sm)
 
 void ModelStateDialog::OnAddBtnPopup(wxCommandEvent& event)
 {
-    if (event.GetId() == STATE_DIALOG_IMPORT_MODEL)
-    {
+    if (event.GetId() == STATE_DIALOG_IMPORT_MODEL) {
         ImportStatesFromModel();
-    }
-    else if (event.GetId() == STATE_DIALOG_IMPORT_FILE)
-    {
+    } else if (event.GetId() == STATE_DIALOG_IMPORT_FILE) {
         const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xModel Files (*.xmodel)|*.xmodel", wxFD_OPEN);
         if (filename.IsEmpty()) return;
-
         ImportStates(filename);
-    }
-    else if (event.GetId() == STATE_DIALOG_COPY)
-    {
+    } else if (event.GetId() == STATE_DIALOG_COPY) {
         CopyStateData();
-    }
-    else if (event.GetId() == STATE_DIALOG_RENAME)
-    {
+    }    else if (event.GetId() == STATE_DIALOG_RENAME) {
         RenameState();
-    }
-    else if(event.GetId() == STATE_DIALOG_SHIFT)
-    {
+    } else if(event.GetId() == STATE_DIALOG_SHIFT) {
         ShiftStateNodes();
-    }
-    else if(event.GetId() == STATE_DIALOG_REVERSE)
-    {
+    } else if(event.GetId() == STATE_DIALOG_REVERSE) {
         ReverseStateNodes();
+    } else if (event.GetId() == STATE_DIALOG_IMPORT_ALL_SUB) {
+        ImportStatesFromSubModels();
     }
 }
 
@@ -1178,6 +1171,58 @@ void ModelStateDialog::ImportStates(const wxString & filename)
     {
         DisplayError(filename + " Failure loading xModel file.");
     }
+}
+
+void ModelStateDialog::ImportStatesFromSubModels()
+{
+    if (model->GetSubModels().size() == 0) {
+        wxMessageBox("No SubModels Found.");
+        return;
+    }
+    wxTextEntryDialog dlg(this, "New State Model", "Enter name for new state model definition");
+    if (dlg.ShowModal() == wxID_OK) {
+        std::string name = dlg.GetValue().ToStdString();
+        if (NameChoice->FindString(name) == wxNOT_FOUND) {
+            NameChoice->Append(name);
+            NameChoice->SetStringSelection(name);
+            NameChoice->Enable();
+            DeleteButton->Enable();
+            StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
+            UpdateStateType();
+
+            int idx { 0 };
+            for (Model* sm : model->GetSubModels()) {
+                auto subname = cleanSubName(sm->Name());
+                const auto nodes = getSubmodelNodes(sm);
+                auto newNodeArrray = wxSplit(ExpandNodes(nodes), ',');
+
+                // sort
+                std::sort(newNodeArrray.begin(), newNodeArrray.end(),
+                          [](const wxString& a, const wxString& b) {
+                              return wxAtoi(a) < wxAtoi(b);
+                          });
+
+                // make unique
+                newNodeArrray.erase(std::unique(newNodeArrray.begin(), newNodeArrray.end()), newNodeArrray.end());
+                NodeRangeGrid->SetCellValue(idx, NAME_COL, subname);
+                NodeRangeGrid->SetCellValue(idx, CHANNEL_COL, CompressNodes(wxJoin(newNodeArrray, ',')));
+                GetValue(NodeRangeGrid, idx, NAME_COL, stateData[name]);
+                GetValue(NodeRangeGrid, idx, CHANNEL_COL, stateData[name]);
+                ++idx;
+                if (idx >= 200) {//state max out at 200
+                    break;
+                }
+            }
+            NodeRangeGrid->Refresh();
+        }
+    }
+}
+
+std::string ModelStateDialog::cleanSubName(std::string name)
+{
+    name = ::Lower(name);
+    Replace(name, " ", "_");
+    return name;
 }
 
 void ModelStateDialog::AddStates(std::map<std::string, std::map<std::string, std::string> > states)
