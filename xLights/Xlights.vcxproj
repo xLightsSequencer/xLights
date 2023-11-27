@@ -294,6 +294,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="DragValueCurveBitmapButton.cpp" />
     <ClCompile Include="DuplicateDialog.cpp" />
     <ClCompile Include="effects\assist\SketchAssistPanel.cpp" />
+    <CudaCompile Include="cuduFunctions.cu" />
+    <CudaCompile Include="effects\cuda\blur.cu" />
     <CudaCompile Include="effects\cuda\CudaComputeUtilities.cpp" />
     <ClCompile Include="effects\cuda\CudaEffectManager.cpp" />
     <ClCompile Include="effects\cuda\CudaRenderBufferComputeData.cpp" />
@@ -787,6 +789,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="effects\assist\xlGridCanvasEmpty.h" />
     <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
     <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
+    <CudaCompile Include="effects\cuda\blur.h" />
     <ClInclude Include="effects\cuda\CudaComputeUtilities.h" />
     <ClInclude Include="effects\cuda\CudaEffectDataTypes.h" />
     <ClInclude Include="effects\cuda\CudaRenderBufferComputeData.h" />

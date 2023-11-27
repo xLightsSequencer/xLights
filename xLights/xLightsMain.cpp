@@ -120,6 +120,11 @@
 
 #include <xlsxwriter.h>
 
+#if CUDA
+#include "effects/cuda/CudaComputeUtilities.h"
+#endif
+
+
 //(*InternalHeaders(xLightsFrame)
 #include <wx/bitmap.h>
 #include <wx/image.h>
@@ -1474,6 +1479,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         (int)config->GetNumberOfGroups(),
         config->GetStyle(),
         (const char*)config->GetVendorName().c_str());
+
+#if CUDA
+    CudaComputeUtilities::printGPUInfo();
+#endif
 
     config->Read("xLightsPlayControlsOnPreview", &_playControlsOnPreview, false);
     logger_base.debug("Play Controls On Preview: %s.", toStr( _playControlsOnPreview ));

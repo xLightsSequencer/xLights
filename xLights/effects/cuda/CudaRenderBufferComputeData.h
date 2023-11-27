@@ -6,6 +6,7 @@
 
 class PixelBufferClass;
 class RenderBuffer;
+class Blurrer;
 
 class CudaPixelBufferComputeData {
 public:
@@ -35,6 +36,7 @@ public:
 private:
 
     RenderBuffer *renderBuffer;
+    Blurrer * blurrer;
 
     int pixelBufferSize;
     bool committed {false};

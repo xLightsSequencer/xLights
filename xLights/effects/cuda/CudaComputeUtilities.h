@@ -12,6 +12,7 @@ public:
     bool computeEnabled() {
         return enabled;
     }
+    static void printGPUInfo();
 
     bool enabled {true};
 

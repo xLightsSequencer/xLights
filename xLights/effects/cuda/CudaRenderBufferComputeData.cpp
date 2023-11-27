@@ -4,6 +4,8 @@
 
 #include "../../RenderBuffer.h"
 
+#include "blur.h"
+
 //#include <cuda_runtime.h>
 //#include <device_launch_parameters.h>
 
@@ -17,7 +19,7 @@ CudaPixelBufferComputeData::~CudaPixelBufferComputeData() {
 CudaRenderBufferComputeData::CudaRenderBufferComputeData(RenderBuffer *rb, CudaPixelBufferComputeData *pbd) :
     renderBuffer(rb), 
     pixelBufferData(pbd) {
-
+    blurrer = Blurrer::factory();
 }
 
 CudaRenderBufferComputeData::~CudaRenderBufferComputeData() {
@@ -37,8 +39,12 @@ void CudaRenderBufferComputeData::bufferResized() {
 }
 
 bool CudaRenderBufferComputeData::blur(int radius) {
-    
-   return false;
+    if ((renderBuffer->BufferHt < (radius * 2)) || (renderBuffer->BufferWi < (radius * 2)) || ((renderBuffer->BufferWi * renderBuffer->BufferHt) < 1024)) {
+        // Smallish buffer, overhead of sending to GPU will be more than the gain
+        return false;
+    }
+    blurrer->BlurPixels(renderBuffer->GetPixels(), renderBuffer->BufferHt, renderBuffer->BufferWi, radius);
+    return true;
 }
 
 bool CudaRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings &settings) {

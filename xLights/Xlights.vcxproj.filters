@@ -2152,5 +2152,14 @@
     <CudaCompile Include="effects\cuda\CudaComputeUtilities.cpp">
       <Filter>Effects\cuda</Filter>
     </CudaCompile>
+    <CudaCompile Include="cuduFunctions.cu">
+      <Filter>Effects\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="effects\cuda\blur.cu">
+      <Filter>Effects\cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="effects\cuda\blur.h">
+      <Filter>Effects\cuda</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>
