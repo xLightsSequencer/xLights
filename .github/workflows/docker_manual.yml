@@ -10,8 +10,8 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: 'true'
-      - run: docker pull debenham/xlights
-      - run: docker run --name buildvm debenham/xlights /bin/bash Recipe.appimage
+      - run: docker pull ghcr.io/xlightssequencer/xlights-build-docker:master
+      - run: docker run --name buildvm ghcr.io/xlightssequencer/xlights-build-docker:master /bin/bash Recipe.appimage
       - run: 'docker cp buildvm:/xLights/xLights/AppImage/ /tmp/'
       - run: ls -lh /tmp/AppImage
 
