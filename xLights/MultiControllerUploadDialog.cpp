@@ -134,6 +134,7 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
         TextCtrl_Log->AppendText(message);
         TextCtrl_Log->AppendText("\n");
         TextCtrl_Log->AppendText("    Done.");
+	TextCtrl_Log->AppendText("\n");
     }
 
     CheckListBox_Controllers->Enable();
