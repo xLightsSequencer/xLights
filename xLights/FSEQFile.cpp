@@ -671,6 +671,16 @@ public:
         return true;
     }
 
+    virtual [[nodiscard]] size_t GetSize() const override
+    {
+        return m_size;
+    }
+
+    virtual [[nodiscard]] uint8_t* GetData() const override
+    {
+        return m_data;
+    }
+
     uint32_t m_size;
     uint8_t* m_data;
     std::vector<std::pair<uint32_t, uint32_t>> m_ranges;
