@@ -97,13 +97,19 @@ void MatrixModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     grid->Append(new wxEnumProperty("Direction", "MatrixStyle", MATRIX_STYLES, vMatrix ? 1 : 0));
     wxPGProperty *p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
     p->SetEditor("CheckBox");
+    p->Enable(_noZig == false);
+
+    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZig));
+    p->SetEditor("CheckBox");
+    p->Enable(_alternateNodes == false);
 }
 
-int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
+{
     if ("MatrixStyle" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DisplayAs");
         ModelXml->AddAttribute("DisplayAs", event.GetPropertyValue().GetLong() ? "Vert Matrix" : "Horiz Matrix");
-        //AdjustStringProperties(grid, parm1);
+        // AdjustStringProperties(grid, parm1);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixStyle");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::MatrixStyle");
@@ -113,7 +119,7 @@ int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     } else if ("MatrixStringCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        //AdjustStringProperties(grid, parm1);
+        // AdjustStringProperties(grid, parm1);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixStringCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::MatrixStringCount");
@@ -163,6 +169,17 @@ int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::AlternateNodes");
+        grid->GetPropertyByName("NoZig")->Enable(event.GetPropertyValue().GetBool() == false);
+        return 0;
+    } else if (event.GetPropertyName() == "NoZig") {
+        ModelXml->DeleteAttribute("NoZig");
+        ModelXml->AddAttribute("NoZig", event.GetPropertyValue().GetBool() ? "true" : "false");
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::NoZig");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::NoZig");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::NoZig");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::NoZig");
+        grid->GetPropertyByName("AlternateNodes")->Enable(event.GetPropertyValue().GetBool() == false);
         return 0;
     }
 
@@ -264,6 +281,7 @@ void MatrixModel::InitSingleChannelModel()
 
 void MatrixModel::InitModel() {
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
+    _noZig = (ModelXml->GetAttribute("NoZig", "false") == "true");
     if (DisplayAs == "Vert Matrix") {
         InitVMatrix();
     } else if (DisplayAs == "Horiz Matrix") {
@@ -371,7 +389,12 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
                             }
                         }
                     } else {
-                        Nodes[idx]->Coords[0].bufY = isBotToTop == (segmentnum % 2 == 0) ? y : PixelsPerStrand - y - 1;
+                        if (_noZig)
+                        {
+                            Nodes[idx]->Coords[0].bufY = isBotToTop == true ? y : PixelsPerStrand - y - 1;
+                        } else {
+                            Nodes[idx]->Coords[0].bufY = isBotToTop == (segmentnum % 2 == 0) ? y : PixelsPerStrand - y - 1;
+                        }
                     }
                 }
             }
@@ -405,7 +428,12 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
                             }
                         }
                     } else {
-                        Nodes[idx]->Coords[0].bufY = isBotToTop == (segmentnum % 2 == 0) ? y : PixelsPerStrand - y - 1;
+                        if (_noZig)
+                        {
+                            Nodes[idx]->Coords[0].bufY = isBotToTop == true ? y : PixelsPerStrand - y - 1;
+                        } else {
+                            Nodes[idx]->Coords[0].bufY = isBotToTop == (segmentnum % 2 == 0) ? y : PixelsPerStrand - y - 1;
+                        }
                     }
                     // before we adjust the buffer capture the screen coordinates
                     for (size_t c = 0; c < GetCoordCount(idx); c++) {
@@ -504,7 +532,12 @@ void MatrixModel::InitHMatrix() {
                             }
                         }
                     } else {
-                        Nodes[idx]->Coords[0].bufX = IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand - x - 1 : x;
+                        if (_noZig)
+                        {
+                            Nodes[idx]->Coords[0].bufX = IsLtoR != true ? PixelsPerStrand - x - 1 : x;
+                        } else {
+                            Nodes[idx]->Coords[0].bufX = IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand - x - 1 : x;
+                        }
                     }
                 }
             }
@@ -540,7 +573,12 @@ void MatrixModel::InitHMatrix() {
                             }
                         }
                     } else {
-                        Nodes[idx]->Coords[0].bufX = IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand - x - 1 : x;
+                        if (_noZig)
+                        {
+                            Nodes[idx]->Coords[0].bufX = IsLtoR != true ? PixelsPerStrand - x - 1 : x;
+                        } else {
+                            Nodes[idx]->Coords[0].bufX = IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand - x - 1 : x;
+                        }
                     }
                     // before we adjust the buffer capture the screen coordinates
                     for (size_t c = 0; c < GetCoordCount(idx); c++) {
@@ -579,6 +617,7 @@ void MatrixModel::ExportXlightsModel()
     wxString nn = ModelXml->GetAttribute("NodeNames");
     wxString da = ModelXml->GetAttribute("DisplayAs");
     wxString an = ModelXml->GetAttribute("AlternateNodes", "false");
+    wxString nz = ModelXml->GetAttribute("NoZig", "false");
     wxString ld = ModelXml->GetAttribute("LowDefinition", "100");
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<matrixmodel \n");
@@ -597,6 +636,7 @@ void MatrixModel::ExportXlightsModel()
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
+    f.Write(wxString::Format("NoZig=\"%s\" ", nz));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(wxString::Format("LowDefinition=\"%s\" ", ld));
     f.Write(ExportSuperStringColors());
@@ -651,6 +691,7 @@ void MatrixModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         wxString pt = root->GetAttribute("PixelType");
         wxString psp = root->GetAttribute("PixelSpacing");
         wxString an = root->GetAttribute("AlternateNodes");
+        wxString nz = root->GetAttribute("NoZig");
         wxString ld = root->GetAttribute("LowDefinition", "100");
 
         // generally xmodels dont have these ... but there are some cases where we do where it would point to a shadow model ... in those cases we want to bring it in
@@ -677,6 +718,7 @@ void MatrixModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         SetProperty("PixelType", pt);
         SetProperty("PixelSpacing", psp);
         SetProperty("AlternateNodes", an);
+        SetProperty("NoZig", nz);
         SetProperty("LowDefinition", ld);
         if (smf != "") {
             SetProperty("ShadowModelFor", smf);

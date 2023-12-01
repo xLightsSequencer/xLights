@@ -44,6 +44,7 @@ static wxPGChoices TREE_DIRECTIONS(wxArrayString(2, TREE_DIRECTION_VALUES));
 
 void TreeModel::InitModel() {
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
+    _noZig = (ModelXml->GetAttribute("NoZig", "false") == "true");
     bool isHMatrix = (ModelXml->GetAttribute("StrandDir", TREE_DIRECTION_VALUES[1]) == TREE_DIRECTION_VALUES[0]);
     wxStringTokenizer tkz(DisplayAs, " ");
     wxString token = tkz.GetNextToken();
@@ -388,6 +389,11 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
     p->SetEditor("CheckBox");
+    p->Enable(_noZig == false);
+
+    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZig));
+    p->SetEditor("CheckBox");
+    p->Enable(_alternateNodes == false);
 
     grid->Append(new wxEnumProperty("Strand Direction", "StrandDir", TREE_DIRECTIONS, vMatrix ? 1 : 0));
 }
@@ -419,11 +425,13 @@ void TreeModel::ExportXlightsModel()
     wxString tr = ModelXml->GetAttribute("TreeRotation", "3");
     wxString tsr = ModelXml->GetAttribute("TreeSpiralRotations", "0.0");
     wxString an = ModelXml->GetAttribute("AlternateNodes", "false");
+    wxString nz = ModelXml->GetAttribute("NoZig", "false");
     wxString sdr = ModelXml->GetAttribute("StrandDir", TREE_DIRECTION_VALUES[1]);
     wxString v = xlights_version_string;
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<treemodel \n");
     f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
+    f.Write(wxString::Format("NoZig=\"%s\" ", nz));
     f.Write(wxString::Format("StrandDir=\"%s\" ", sdr));
     f.Write(wxString::Format("name=\"%s\" ", name));
     f.Write(wxString::Format("parm1=\"%s\" ", p1));
@@ -496,6 +504,7 @@ void TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         wxString pt = root->GetAttribute("PixelType");
         wxString psp = root->GetAttribute("PixelSpacing");
         wxString an = root->GetAttribute("AlternateNodes");
+        wxString nz = root->GetAttribute("NoZig");
         wxString sdr = root->GetAttribute("StrandDir");
 
         // Add any model version conversion logic here
@@ -526,6 +535,7 @@ void TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         SetProperty("PixelType", pt);
         SetProperty("PixelSpacing", psp);
         SetProperty("AlternateNodes", an);
+        SetProperty("NoZig", nz);
         SetProperty("StrandDir", sdr);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
