@@ -113,7 +113,7 @@ float ThreePointScreenLocation::GetRealWidth() const
 float ThreePointScreenLocation::GetRealHeight() const
 {
     float width = RulerObject::Measure(origin, point2);
-    return RulerObject::Measure((width * height) / 2.0 * 1.0 * 100.0);
+    return (width * height) / 2.0 * 1.0;
 }
 
 void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
