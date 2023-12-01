@@ -113,56 +113,47 @@ void AdjustPanel::ValidateWindow()
         SpinCtrl_Value2->Disable();
     } else if (action == "Adjust By Value") {
         StaticText_Value1->SetLabel("Adjust by:");
-        SpinCtrl_Value1->SetMin(-255);
-        SpinCtrl_Value1->SetMax(255);
+        SpinCtrl_Value1->SetRange(-255, 255);
         SpinCtrl_Value1->Enable();
         StaticText_Value2->SetLabel("Unused:");
         SpinCtrl_Value2->Disable();
     } else if (action == "Adjust By Percentage") {
         StaticText_Value1->SetLabel("Adjust by:");
-        SpinCtrl_Value1->SetMin(-100);
-        SpinCtrl_Value1->SetMax(25500);
+        SpinCtrl_Value1->SetRange(-100, 25500);
         SpinCtrl_Value1->Enable();
         StaticText_Value2->SetLabel("Unused:");
         SpinCtrl_Value2->Disable();
     } else if (action == "Set Minimum") {
         StaticText_Value1->SetLabel("Minimum:");
-        SpinCtrl_Value1->SetMin(0);
-        SpinCtrl_Value1->SetMax(255);
+        SpinCtrl_Value1->SetRange(0, 255);
         SpinCtrl_Value1->Enable();
         StaticText_Value2->SetLabel("Unused:");
         SpinCtrl_Value2->Disable();
     } else if (action == "Set Maximum") {
         StaticText_Value1->SetLabel("Maximum:");
-        SpinCtrl_Value1->SetMin(0);
-        SpinCtrl_Value1->SetMax(255);
+        SpinCtrl_Value1->SetRange(0, 255);
         SpinCtrl_Value1->Enable();
         StaticText_Value2->SetLabel("Unused:");
         SpinCtrl_Value2->Disable();
     } else if (action == "Set Range") {
         StaticText_Value1->SetLabel("Minimum:");
-        SpinCtrl_Value1->SetMin(0);
-        SpinCtrl_Value1->SetMax(255);
+        SpinCtrl_Value1->SetRange(0, 255);
         SpinCtrl_Value1->Enable();
         StaticText_Value2->SetLabel("Maximum:");
-        SpinCtrl_Value2->SetMin(0);
-        SpinCtrl_Value2->SetMax(255);
+        SpinCtrl_Value2->SetRange(0, 255);
         SpinCtrl_Value2->Enable();
     } else if (action == "Shift With Wrap By Value") {
         StaticText_Value1->SetLabel("Shift by:");
-        SpinCtrl_Value1->SetMin(-255);
-        SpinCtrl_Value1->SetMax(255);
+        SpinCtrl_Value1->SetRange(-255, 255);
         SpinCtrl_Value1->Enable();
         StaticText_Value2->SetLabel("Unused:");
         SpinCtrl_Value2->Disable();
     } else if (action == "Prevent Range") {
         StaticText_Value1->SetLabel("Minimum:");
-        SpinCtrl_Value1->SetMin(0);
-        SpinCtrl_Value1->SetMax(255);
+        SpinCtrl_Value1->SetRange(0, 255);
         SpinCtrl_Value1->Enable();
         StaticText_Value2->SetLabel("Maximum:");
-        SpinCtrl_Value2->SetMin(0);
-        SpinCtrl_Value2->SetMax(255);
+        SpinCtrl_Value2->SetRange(0, 255);
         SpinCtrl_Value2->Enable();
     } else if (action == "Reverse") {
         StaticText_Value1->SetLabel("Unused:");
