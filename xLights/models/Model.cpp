@@ -2755,7 +2755,7 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
             if (sc.find_first_of(':') == std::string::npos) {
                 std::string cs = Trim(start.substr(1));
                 Controller* c = modelManager.GetOutputManager()->GetController(cs);
-                if (c != nullptr) {
+                if (c != nullptr && c->GetProtocol() != OUTPUT_PLAYER_ONLY) {
                     return c->GetStartChannel() - 1 + wxAtoi(sc);
                 }
             }

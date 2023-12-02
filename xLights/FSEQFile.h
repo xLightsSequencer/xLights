@@ -28,8 +28,8 @@ public:
         virtual ~FrameData() {};
 
         virtual bool readFrame(uint8_t *data, uint32_t maxChannels) = 0;
-        virtual [[nodiscard]] uint8_t* GetData() const = 0;
-        virtual [[nodiscard]] size_t GetSize() const = 0;
+        [[nodiscard]] virtual uint8_t* GetData() const = 0;
+        [[nodiscard]] virtual size_t GetSize() const = 0;
         uint32_t frame;
     };
 

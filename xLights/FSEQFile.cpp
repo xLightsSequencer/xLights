@@ -671,13 +671,11 @@ public:
         return true;
     }
 
-    virtual [[nodiscard]] size_t GetSize() const override
-    {
+    [[nodiscard]] virtual size_t GetSize() const override {
         return m_size;
     }
 
-    virtual [[nodiscard]] uint8_t* GetData() const override
-    {
+    [[nodiscard]] virtual uint8_t* GetData() const override {
         return m_data;
     }
 
