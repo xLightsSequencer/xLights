@@ -1162,6 +1162,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
             Destroy();
         } else {
             CloseSequence();
+            SetStatusText(_("Batch Render Done."));
         }
         return;
     }
@@ -1185,6 +1186,11 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     wxArrayString fileNames = origFilenames;
     wxString seq = fileNames[0];
     wxStopWatch sw; // start a stopwatch timer
+
+    auto b = _renderMode;
+    _renderMode = false;
+    SetStatusText(_("Batch Rendering " + seq));
+    _renderMode = b;
 
     printf("Processing file %s\n", (const char *)seq.c_str());
     logger_base.debug("Batch Render Processing file %s\n", (const char *)seq.c_str());
