@@ -36,6 +36,7 @@ class AdjustPanel: public xlEffectPanel
 
 		//(*Declarations(AdjustPanel)
 		BulkEditChoice* Choice_Action;
+		BulkEditSpinCtrl* SpinCtrl_Count;
 		BulkEditSpinCtrl* SpinCtrl_NthChannel;
 		BulkEditSpinCtrl* SpinCtrl_StartingAt;
 		BulkEditSpinCtrl* SpinCtrl_Value1;
@@ -44,6 +45,7 @@ class AdjustPanel: public xlEffectPanel
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
 		wxStaticText* StaticText_Value1;
 		wxStaticText* StaticText_Value2;
 		//*)
@@ -61,6 +63,8 @@ class AdjustPanel: public xlEffectPanel
 		static const long ID_SPINCTRL_NthChannel;
 		static const long ID_STATICTEXT5;
 		static const long ID_SPINCTRL_StartingAt;
+		static const long ID_STATICTEXT6;
+		static const long ID_SPINCTRL_Count;
 		//*)
 
 	public:

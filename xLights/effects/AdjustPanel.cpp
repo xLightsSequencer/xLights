@@ -35,6 +35,8 @@ const long AdjustPanel::ID_STATICTEXT4 = wxNewId();
 const long AdjustPanel::ID_SPINCTRL_NthChannel = wxNewId();
 const long AdjustPanel::ID_STATICTEXT5 = wxNewId();
 const long AdjustPanel::ID_SPINCTRL_StartingAt = wxNewId();
+const long AdjustPanel::ID_STATICTEXT6 = wxNewId();
+const long AdjustPanel::ID_SPINCTRL_Count = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(AdjustPanel,wxPanel)
@@ -72,6 +74,11 @@ AdjustPanel::AdjustPanel(wxWindow* parent) : xlEffectPanel(parent)
 	SpinCtrl_StartingAt = new BulkEditSpinCtrl(this, ID_SPINCTRL_StartingAt, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 1, _T("ID_SPINCTRL_StartingAt"));
 	SpinCtrl_StartingAt->SetValue(_T("1"));
 	FlexGridSizer_Main->Add(SpinCtrl_StartingAt, 1, wxALL|wxEXPAND, 5);
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT6, _("Count:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	FlexGridSizer_Main->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_Count = new BulkEditSpinCtrl(this, ID_SPINCTRL_Count, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 10000, 0, _T("ID_SPINCTRL_Count"));
+	SpinCtrl_Count->SetValue(_T("0"));
+	FlexGridSizer_Main->Add(SpinCtrl_Count, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer_Main);
 	FlexGridSizer_Main->Fit(this);
 	FlexGridSizer_Main->SetSizeHints(this);

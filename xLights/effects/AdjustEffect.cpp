@@ -70,24 +70,23 @@ void AdjustEffect::SetDefaultParameters() {
     layerBlendingPanel->CheckBox_Canvas->SetValue(true);
 }
 
-void AdjustEffect::AdjustChannels(bool singleColour, int numChannels, RenderBuffer& buffer, const std::string& action, int value1, int value2, int nth, int starting)
+void AdjustEffect::AdjustChannels(bool singleColour, int numChannels, RenderBuffer& buffer, const std::string& action, int value1, int value2, int nth, int starting, int count)
 {
     int channels = std::min(numChannels, buffer.BufferWi * buffer.BufferHt * (singleColour ? 1 : 3));
+    int done = 0;
 
-    for (int i = starting - 1; i < channels; i = i + nth) {
+    for (int i = starting - 1; (count == 0 || done < count) && i < channels; i = i + nth) {
+        ++done;
         int value = 0;
         xlColor c = xlBLACK;
 
         // get the channel value
-        if (singleColour)
-        {
+        if (singleColour) {
             c = buffer.GetPixel(i % buffer.BufferWi, i / buffer.BufferWi);
             value = c.red;
-        }
-        else
-        {
-            c = buffer.GetPixel((i/3) % buffer.BufferWi, (i / 3) / buffer.BufferWi);
-            if (i %3 == 0)
+        } else {
+            c = buffer.GetPixel((i / 3) % buffer.BufferWi, (i / 3) / buffer.BufferWi);
+            if (i % 3 == 0)
                 value = c.red;
             else if (i % 3 == 1)
                 value = c.green;
@@ -171,7 +170,7 @@ void AdjustEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     auto value2 = SettingsMap.GetInt("SPINCTRL_Value2", 0);
     auto nth = SettingsMap.GetInt("SPINCTRL_NthChannel", 1);
     auto starting = SettingsMap.GetInt("SPINCTRL_StartingAt", 1);
+    auto count = SettingsMap.GetInt("SPINCTRL_Count", 0);
 
-
-    AdjustChannels(StartsWith(string_type, "Single Color"), num_channels, buffer, action, value1, value2, nth, starting);
+    AdjustChannels(StartsWith(string_type, "Single Color"), num_channels, buffer, action, value1, value2, nth, starting, count);
 }
