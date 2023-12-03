@@ -165,6 +165,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_BULKEDIT_PIXELSTYLE;
         static const long ID_PREVIEW_BULKEDIT_TRANSPARENCY;
         static const long ID_PREVIEW_BULKEDIT_BLACKTRANSPARENCY;
+        static const long ID_PREVIEW_BULKEDIT_SHADOWMODELFOR;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERSTARTNULLNODES;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERENDNULLNODES;
@@ -345,6 +346,7 @@ class LayoutPanel: public wxPanel
         void BulkEditPixelStyle();
         void BulkEditTransparency();
         void BulkEditBlackTranparency();   
+        void BulkEditShadowModelFor();
         void BulkEditControllerConnection(int type);
         void BulkEditControllerPreview();
         void BulkEditDimmingCurves();
