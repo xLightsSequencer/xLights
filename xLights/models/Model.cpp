@@ -50,6 +50,7 @@
 #include "CustomModel.h"
 #include "RulerObject.h"
 #include "../utils/ip_utils.h"
+#include "../EditAliasesDialog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -205,6 +206,29 @@ public:
 protected:
     Model* m_model = nullptr;
     OutputManager* _outputManager = nullptr;
+};
+
+class AliasDialogAdapter : public wxPGEditorDialogAdapter
+{
+public:
+    AliasDialogAdapter(Model* model) :
+        wxPGEditorDialogAdapter(), m_model(model)
+    {
+    }
+    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
+                              wxPGProperty* WXUNUSED(property)) override
+    {
+        EditAliasesDialog dlg(propGrid, m_model);
+        if (dlg.ShowModal() == wxID_OK) {
+            wxVariant v(CLICK_TO_EDIT);
+            SetValue(v);
+            return true;
+        }
+        return false;
+    }
+
+protected:
+    Model* m_model = nullptr;
 };
 
 class StatesDialogAdapter : public wxPGEditorDialogAdapter
@@ -387,6 +411,8 @@ public:
             return new StatesDialogAdapter(m_model, _outputManager);
         case 5:
             return new SubModelsDialogAdapter(m_model, _outputManager);
+        case 6:
+            return new AliasDialogAdapter(m_model);
         default:
             break;
         }
@@ -665,6 +691,94 @@ Controller* Model::GetController() const
     return modelManager.GetXLightsFrame()->GetOutputManager()->GetController(controller);
 }
 
+bool Model::IsAlias(const std::string& alias) const
+{
+    for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext())
+    {
+        if (x->GetName() == "Aliases") {
+            for (auto xx = x->GetChildren(); xx != nullptr; xx = xx->GetNext()) {
+                if (Lower(alias) == xx->GetAttribute("name").Lower()) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+void Model::AddAlias(const std::string& alias)
+{
+    if (IsAlias(alias))
+        return;
+    for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
+        if (x->GetName() == "Aliases") {
+            auto n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
+            n->AddAttribute("name", Lower(alias));
+            x->AddChild(n);
+            IncrementChangeCount();
+            return;
+        }
+    }
+    auto aliases = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "Aliases");
+    auto n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
+    n->AddAttribute("name", Lower(alias));
+    aliases->AddChild(n);
+    IncrementChangeCount();
+    
+    ModelXml->AddChild(aliases);
+}
+
+void Model::DeleteAlias(const std::string& alias)
+{
+    while (IsAlias(alias)) { // while should not be required ... but just in case it ever ends up there more than once
+        for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
+            if (x->GetName() == "Aliases") {
+                for (auto xx = x->GetChildren(); xx != nullptr; xx = xx->GetNext()) {
+                    if (Lower(alias) == xx->GetContent().Lower()) {
+                        x->RemoveChild(xx);
+                        IncrementChangeCount();
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
+
+std::list<std::string> Model::GetAliases() const
+{
+    std::list<std::string> aliases;
+
+    for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
+        if (x->GetName() == "Aliases") {
+            for (auto xx = x->GetChildren(); xx != nullptr; xx = xx->GetNext()) {
+                aliases.push_back(xx->GetAttribute("name"));
+            }
+        }
+    }
+
+    return aliases;
+}
+
+void Model::SetAliases(std::list<std::string>& aliases)
+{
+    AddAlias("dummy"); // this ensures the owning element exists
+
+    for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
+        if (x->GetName() == "Aliases") {
+            while (x->GetChildren() != nullptr)
+                x->RemoveChild(x->GetChildren());
+
+            for (const auto& it : aliases) {
+                auto n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
+                n->AddAttribute("name", Lower(it));
+                x->AddChild(n);
+            }
+        }
+    }
+    IncrementChangeCount();
+}
+
 void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -795,6 +909,10 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(this, outputManager, "SubModels", "SubModels", CLICK_TO_EDIT, 5));
     grid->LimitPropertyEditing(p);
+    p = grid->Append(new PopupDialogProperty(this, outputManager, "Aliases", "Aliases", CLICK_TO_EDIT, 6));
+    grid->LimitPropertyEditing(p);
+    p->SetHelpString("Aliases are used in mapping to provide alternate names for this model which might match a model in a sequence you are importing from. To use it use the Auto Map button.");
+
 
     auto modelGroups = modelManager.GetGroupsContainingModel(this);
     if (modelGroups.size() > 0) {
@@ -1966,6 +2084,9 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         Model::WriteStateInfo(ModelXml, stateInfo);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelStates");
+        return 0;
+    } else if (event.GetPropertyName() == "Aliases") {
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Aliases");
         return 0;
     } else if (event.GetPropertyName().StartsWith("SuperStringColours")) {
         IncrementChangeCount();

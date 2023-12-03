@@ -67,8 +67,8 @@ class xLightsImportModelNode : wxDataViewTreeStoreNode
 {
 public:
     xLightsImportModelNode(xLightsImportModelNode* parent,
-        const wxString &model, const wxString &strand, const wxString &node,
-        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE) :
+                           const wxString& model, const wxString& strand, const wxString& node,
+                           const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const wxColor& color = *wxWHITE) :
         wxDataViewTreeStoreNode(parent, "XXX"),
         m_parent(parent),
         _model(model),
@@ -78,12 +78,13 @@ public:
         _color(color),
         _group(false),
         _mappingExists(mappingExists),
+        _aliases(aliases),
         m_container(false)
     { }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model, const wxString &strand,
-        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE) :
+                           const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const wxColor& color = *wxWHITE) :
         wxDataViewTreeStoreNode(parent, "XXX"),
         m_parent(parent),
         _model(model),
@@ -93,12 +94,13 @@ public:
         _color(color),
         _group(false),
         _mappingExists(mappingExists),
+        _aliases(aliases),
         m_container(true)
     { }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model,
-        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE, const bool isGroup = false) :
+                           const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const wxColor& color = *wxWHITE, const bool isGroup = false) :
         wxDataViewTreeStoreNode(parent, "XXX"),
         m_parent(parent),
         _model(model),
@@ -108,6 +110,7 @@ public:
         _color(color),
         _group(isGroup),
         _mappingExists(mappingExists),
+        _aliases(aliases),
         m_container(!isGroup)
     { }
 
@@ -133,6 +136,11 @@ public:
     }
 
     bool IsGroup() const { return _group; }
+
+    std::list<std::string> GetAliases() const
+    {
+        return _aliases;
+    }
 
     bool HasMapping()
     {
@@ -187,6 +195,7 @@ public:     // public to avoid getters/setters
     wxColor                 _color;
     bool                    _group;
     bool                    _mappingExists;
+    std::list<std::string> _aliases;
 
     // TODO/FIXME:
     // the GTK version of wxDVC (in particular wxDataViewCtrlInternal::ItemAdded)
@@ -491,10 +500,10 @@ protected:
         void BulkMapSubmodelsStrands(const std::string& fromModel, wxDataViewItem& toModel);
         void BulkMapNodes(const std::string& fromModel, wxDataViewItem& toModel);
         void DoAutoMap(
-            std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> lambda_model,
-            std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> lambda_strand,
-            std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> lambda_node,
-            const std::string& extra1, const std::string& extra2, const std::string& extra3);
+            std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_model,
+            std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_strand,
+            std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_node,
+            const std::string& extra1, const std::string& extra2, const std::string& mg);
 
 
         void LoadXMapMapping(wxString const& filename, bool hideWarnings);
@@ -505,39 +514,44 @@ protected:
         void generateMapHintsFile(wxString const& filename);
 
         static wxString AggressiveAutomap(const wxString& name);
-        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> aggressive =
-            [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2)
-        {
-            return AggressiveAutomap(wxString(s).Trim(true).Trim(false).Lower()) == c;
-        };
+        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>&)> aggressive =
+            [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2, const std::list<std::string>& aliases) {
+                if (AggressiveAutomap(wxString(s).Trim(true).Trim(false).Lower()) == c)
+                    return true;
 
-        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> norm =
-            [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2)
-        {
-            return wxString(s).Trim(true).Trim(false).Lower() == c;
-        };
+                for (const auto& it : aliases) {
+                    if (wxString(it).Trim(true).Trim(false).Lower() == c)
+                        return true;
+                }
 
-        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&)> regex =
-            [](const std::string& s, const std::string& c, const std::string& pattern, const std::string& replacement)
-        {
-            static wxRegEx r;
-            static std::string lastRegex;
-
-            if (wxString(c).Trim().Lower() != wxString(replacement).Trim().Lower())
                 return false;
+            };
 
-            // create a regex from extra
-            if (pattern != lastRegex) {
-                r.Compile(pattern, wxRE_ADVANCED | wxRE_ICASE);
-                lastRegex = pattern;
-            }
+        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>&)> norm =
+            [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2, const std::list<std::string>& aliases) {
+                return (wxString(s).Trim(true).Trim(false).Lower() == c);
+            };
 
-            // run is against s ... return true if it matches
-            if (r.IsValid()) {
-                return (r.Matches(s));
-            }
-            return false;
-        };
+        std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>&)> regex =
+            [](const std::string& s, const std::string& c, const std::string& pattern, const std::string& replacement, const std::list<std::string>& aliases) {
+                static wxRegEx r;
+                static std::string lastRegex;
+
+                if (wxString(c).Trim().Lower() != wxString(replacement).Trim().Lower())
+                    return false;
+
+                // create a regex from extra
+                if (pattern != lastRegex) {
+                    r.Compile(pattern, wxRE_ADVANCED | wxRE_ICASE);
+                    lastRegex = pattern;
+                }
+
+                // run is against s ... return true if it matches
+                if (r.IsValid()) {
+                    return (r.Matches(s));
+                }
+                return false;
+            };
 
         SequencePackage* _xsqPkg {nullptr};
 

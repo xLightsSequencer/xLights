@@ -6356,7 +6356,7 @@ void xLightsFrame::ValidateEffectAssets()
     }
 
     if (missing != "" && (_promptBatchRenderIssues || (!_renderMode && !_checkSequenceMode))) {
-        wxMessageBox("Sequence references files which cannot be found:\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
+        wxMessageBox("Sequence references files which cannot be found:\nShow Folder: " + showDirectory + "\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
     }
 }
 

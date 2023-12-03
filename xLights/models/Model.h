@@ -349,6 +349,12 @@ public:
     void SetControllerColorOrder(wxString const& color);
     void SetControllerGroupCount(int grouping);
 
+    bool IsAlias(const std::string& alias) const;
+    void AddAlias(const std::string& alias);
+    void DeleteAlias(const std::string& alias);
+    std::list<std::string> GetAliases() const;
+    void SetAliases(std::list<std::string>& aliases);
+
     void GetPortSR(int string, int& outport, int& outsr) const;
     char GetSmartRemoteLetter() const;
     char GetSmartRemoteLetterForString(int string = 1) const;
