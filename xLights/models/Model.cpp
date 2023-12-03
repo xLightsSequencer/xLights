@@ -667,6 +667,9 @@ Controller* Model::GetController() const
 
 void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxStopWatch sw;
+
     LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
 
     wxPGProperty* sp;
@@ -887,6 +890,9 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", modelTagColour));
     UpdateControllerProperties(grid);
     DisableUnusedProperties(grid);
+
+    if (sw.Time() > 500) 
+        logger_base.debug("        Model::AddProperties took %lums", sw.Time());
 }
 
 void Model::ClearIndividualStartChannels()

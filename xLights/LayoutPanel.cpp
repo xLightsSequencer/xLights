@@ -1175,6 +1175,7 @@ std::string LayoutPanel::TreeModelName(const Model* model, bool fullname)
         return "<" + name + ">";
     }
 }
+
 void LayoutPanel::FreezeTreeListView() {
     TreeListViewModels->Freeze();
     //turn off the column width auto-resize.  Makes it REALLY slow to populate the tree
@@ -1207,8 +1208,10 @@ void LayoutPanel::SetTreeListViewItemText(wxTreeListItem &item, int col, const w
 
 void LayoutPanel::refreshModelList() {
 
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("        refreshModelList.");
+    wxStopWatch sw;
 
     FreezeTreeListView();
 
@@ -1249,6 +1252,9 @@ void LayoutPanel::refreshModelList() {
         }
     }
     ThawTreeListView();
+
+    if (sw.Time() > 500)
+        logger_base.debug("        LayoutPanel::refreshModelList took %lums", sw.Time());
 }
 
 void LayoutPanel::RenameModelInTree(Model *model, const std::string& new_name)
@@ -1347,7 +1353,9 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
 
 void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models) {
 
-    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxStopWatch sw;
+
     FreezeTreeListView();
     unsigned sortcol;
     bool ascending;
@@ -1456,11 +1464,15 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UpdateModelList");
 
     ThawTreeListView();
+
+    if (sw.Time() > 500)
+        logger_base.debug("        LayoutPanel::UpdateModelList took %lums", sw.Time());
 }
 
 void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering)
 {
-    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxStopWatch sw;
     //logger_base.debug("Updated models for preview: %s.", (const char*)group.c_str());
 
     std::set<std::string> modelsAdded;
@@ -1587,6 +1599,9 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
             }
         }
     }
+
+    if (sw.Time() > 500)
+        logger_base.debug("        LayoutPanel::UpdateModelsForPreview took %lums", sw.Time());
 }
 
 void LayoutPanel::BulkEditDimmingCurves()
@@ -1870,6 +1885,7 @@ void LayoutPanel::BulkEditControllerName()
         ReselectTreeModels(selectedModelPaths);
     }
 }
+
 void LayoutPanel::BulkEditPixelSize() {
     std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
     // remember the selected models
@@ -1896,6 +1912,7 @@ void LayoutPanel::BulkEditPixelSize() {
         ReselectTreeModels(selectedModelPaths);
     }
 }
+
 void LayoutPanel::BulkEditPixelStyle() {
     std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
     // remember the selected models
@@ -1926,6 +1943,7 @@ void LayoutPanel::BulkEditPixelStyle() {
         ReselectTreeModels(selectedModelPaths);
     }
 }
+
 void LayoutPanel::BulkEditTransparency() {
     std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
     // remember the selected models
@@ -1952,6 +1970,7 @@ void LayoutPanel::BulkEditTransparency() {
         ReselectTreeModels(selectedModelPaths);
     }
 }
+
 void LayoutPanel::BulkEditBlackTranparency() {
     std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
     // remember the selected models
@@ -1978,6 +1997,7 @@ void LayoutPanel::BulkEditBlackTranparency() {
         ReselectTreeModels(selectedModelPaths);
     }
 }
+
 void LayoutPanel::BulkEditTagColour()
 {
     std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
@@ -2269,6 +2289,8 @@ private:
 void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxStopWatch sw;
+
     highlightedBaseObject = nullptr;
     selectedBaseObject = nullptr;
     selectionLatched = false;
@@ -2324,6 +2346,9 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     if (!updatingProperty && addBkgProps) {
         showBackgroundProperties();
     }
+
+    if (sw.Time() > 500)
+        logger_base.debug("        LayoutPanel::UnSelectAllModels took %lums", sw.Time());
 }
 
 void LayoutPanel::showBackgroundProperties()
@@ -2427,6 +2452,8 @@ void LayoutPanel::SelectAllModels()
 
 void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
 
+    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (base_object == nullptr || propertyEditor == nullptr) return;
     if (dynamic_cast<ModelGroup*>(base_object) != nullptr) {
         //groups don't use the property grid
@@ -2507,6 +2534,7 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
             }
         }
     }
+
     if (!frozen) propertyEditor->Thaw();
 
     if (_lastSelProp != "") {
@@ -8427,6 +8455,8 @@ void LayoutPanel::HandleSelectionChanged() {
         return;
     }
 
+    wxStopWatch sw;
+
     BaseObject* lastSelectedBaseObject = selectedBaseObject;
     Model* lastSelectedModel = dynamic_cast<Model*>(lastSelectedBaseObject);
     wxTreeListItems selectedItems;
@@ -8434,6 +8464,9 @@ void LayoutPanel::HandleSelectionChanged() {
 
     UnSelectAllModels(false);
     resetPropertyGrid();
+
+    if (sw.Time() > 500)
+        logger_base.debug("        LayoutPanel::HandleSelectionChanged after reset of property grid %lums", sw.Time());
 
     if (selectedItems.size() > 0) {
         bool isPrimary = false;
@@ -8477,6 +8510,8 @@ void LayoutPanel::HandleSelectionChanged() {
                 }
             }
         }
+        if (sw.Time() > 500)
+            logger_base.debug("        LayoutPanel::HandleSelectionChanged after select in tree %lums", sw.Time());
 
         // if we still don't have a primary model selected then force one if we can
         if (selectedPrimaryTreeItem == nullptr) {
@@ -8492,6 +8527,9 @@ void LayoutPanel::HandleSelectionChanged() {
                 SetTreeGroupModelsSelected(model, true);
             }
         }
+
+        if (sw.Time() > 500)
+            logger_base.debug("        LayoutPanel::HandleSelectionChanged after force select %lums", sw.Time());
 
         // determine which panel and tooltip to show if any
         int mSize = selectedTreeModels.size();
@@ -8537,6 +8575,9 @@ void LayoutPanel::HandleSelectionChanged() {
 
         SetToolTipForTreeList(TreeListViewModels, tooltip);
 
+        if (sw.Time() > 500)
+            logger_base.debug("        LayoutPanel::HandleSelectionChanged after tooltip %lums", sw.Time());
+
         // removing below or Keyboard Cut/Copy/Paste/etc will not fire when making selections in preview
         // #ifndef LINUX
         // TreeListViewModels->SetFocus();
@@ -8551,6 +8592,7 @@ void LayoutPanel::HandleSelectionChanged() {
         }
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleSelectionChanged");
+
     } else {
         selectedBaseObject = nullptr;
         UnSelectAllModels(true);
@@ -8558,6 +8600,9 @@ void LayoutPanel::HandleSelectionChanged() {
         SetToolTipForTreeList(TreeListViewModels, "");
         xlights->SetStatusText("");
     }
+
+    if (sw.Time() > 500)
+        logger_base.debug("        LayoutPanel::HandleSelectionChanged took %lums", sw.Time());
 }
 
 void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {

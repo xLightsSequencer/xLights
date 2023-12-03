@@ -140,7 +140,7 @@ void AdjustEffect::AdjustChannels(bool singleColour, int numChannels, RenderBuff
             c.red = value;
             c.green = value;
             c.blue = value;
-            buffer.SetPixel(i % buffer.BufferWi, i / buffer.BufferWi, c);
+            buffer.SetPixel(i % buffer.BufferWi, i / buffer.BufferWi, c, false, true, true);
         } else {
             if (i % 3 == 0)
                 c.red = value;
