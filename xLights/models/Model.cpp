@@ -717,12 +717,12 @@ Controller* Model::GetController() const
     return modelManager.GetXLightsFrame()->GetOutputManager()->GetController(controller);
 }
 
-bool Model::IsAlias(const std::string& alias) const
+bool Model::IsAlias(const std::string& alias, bool oldnameOnly) const
 {
     for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
         if (x->GetName() == "Aliases") {
             for (auto xx = x->GetChildren(); xx != nullptr; xx = xx->GetNext()) {
-                if (Lower(alias) == xx->GetAttribute("name").Lower() || Lower("oldname:" + alias) == xx->GetAttribute("name").Lower()) {
+                if ((!oldnameOnly && Lower(alias) == xx->GetAttribute("name").Lower()) || Lower("oldname:" + alias) == xx->GetAttribute("name").Lower()) {
                     return true;
                 }
             }

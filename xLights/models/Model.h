@@ -349,7 +349,7 @@ public:
     void SetControllerColorOrder(wxString const& color);
     void SetControllerGroupCount(int grouping);
 
-    bool IsAlias(const std::string& alias) const;
+    bool IsAlias(const std::string& alias, bool oldnameOnly = false) const;
     void AddAlias(const std::string& alias);
     void DeleteAlias(const std::string& alias);
     std::list<std::string> GetAliases() const;
