@@ -1189,7 +1189,12 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
 
     auto b = _renderMode;
     _renderMode = false;
-    SetStatusText(_("Batch Rendering " + seq));
+    if (fileNames.size() == 1)
+    {
+        SetStatusText(_("Batch Rendering " + seq + ". Last sequence."));
+    } else {
+        SetStatusText(_("Batch Rendering " + seq + ". " + wxString::Format("%d", (int)fileNames.size() - 1) + " sequences left to render."));
+    }
     _renderMode = b;
 
     printf("Processing file %s\n", (const char *)seq.c_str());
