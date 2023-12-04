@@ -1096,7 +1096,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         str.endNulls = it->_endNullPixelsSet ? it->_endNullPixels : 0;
                         str.startNulls = it->_startNullPixelsSet ? it->_startNullPixels : 0;
                         str.colourOrder = it->_colourOrderSet ? V4_EncodeColourOrder(it->_colourOrder) : colourOrder;
-                        str.direction = it->_reverseSet ? (it->_reverse == "F" ? 0 : 1) : direction;
+                        str.direction = it->_reverseSet ? (it->_reverse == "Forward" ? 0 : 1) : direction;
                         str.group = it->_groupCountSet ? it->_groupCount : group;
                         str.zigcount = it->_zigZagSet ? it->_zigZag : 0; // dont carry between props
                         str.pixels = INTROUNDUPDIV(it->Channels(), GetChannelsPerPixel(it->_protocol)) * str.group;
