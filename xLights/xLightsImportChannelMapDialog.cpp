@@ -46,6 +46,28 @@ int wxCALLBACK MyCompareFunctionDesc(wxIntPtr item1, wxIntPtr item2, wxIntPtr so
     return item1 == item2 ? 0 : ((item1 < item2) ? 1 : -1);
 }
 
+int wxCALLBACK MyCompareFunctionAscEffects(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+{
+    wxListCtrl* list = (wxListCtrl*)sortData;
+    auto i1 = list->GetItemText(item1, 0);
+    auto i2 = list->GetItemText(item2, 0);
+    auto it1 = wxAtoi(list->GetItemText(item1, 1));
+    auto it2 = wxAtoi(list->GetItemText(item2, 1));
+
+    return it1 == it2 ? 0 : ((it1 < it2) ? -1 : 1);
+}
+
+int wxCALLBACK MyCompareFunctionDescEffects(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+{
+    wxListCtrl* list = (wxListCtrl*)sortData;
+    auto i1 = list->GetItemText(item1, 0);
+    auto i2 = list->GetItemText(item2, 0);
+    auto it1 = wxAtoi(list->GetItemText(item1, 1));
+    auto it2 = wxAtoi(list->GetItemText(item2, 1));
+
+    return it1 == it2 ? 0 : ((it1 < it2) ? 1 : -1);
+}
+
 class MDDropSource : public wxDropSource
 {
     xLightsImportChannelMapDialog* _window;
@@ -1730,12 +1752,26 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect(wxListEvent& 
 
 void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent& event)
 {
-    if (_sortOrder == 0) {
-        _sortOrder = 1;
-        ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr) ListCtrl_Available);
-    } else {
-        _sortOrder = 0;
-        ListCtrl_Available->SortItems(MyCompareFunctionDesc, (wxIntPtr)ListCtrl_Available);
+    if (event.m_col == 0) {
+        if (_sortOrder == 0) {
+            _sortOrder = 1;
+            ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available);
+        } else {
+            _sortOrder = 0;
+            ListCtrl_Available->SortItems(MyCompareFunctionDesc, (wxIntPtr)ListCtrl_Available);
+        }
+    }
+    else if (event.m_col == 1)
+    {
+        if (_sortOrder == 3) {
+            _sortOrder = 4;
+            ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available); // put it back in start order as otherwise this does not work
+            ListCtrl_Available->SortItems(MyCompareFunctionAscEffects, (wxIntPtr)ListCtrl_Available);
+        } else {
+            _sortOrder = 3;
+            ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available); // put it back in start order as otherwise this does not work
+            ListCtrl_Available->SortItems(MyCompareFunctionDescEffects, (wxIntPtr)ListCtrl_Available);
+        }
     }
 }
 
