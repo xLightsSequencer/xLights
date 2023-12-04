@@ -12,6 +12,7 @@
 
 #include <wx/filename.h>
 #include <wx/timer.h>
+#include <wx/colourdata.h>
 
 //(*Headers(ModelFaceDialog)
 #include <wx/button.h>

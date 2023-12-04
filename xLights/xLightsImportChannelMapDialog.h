@@ -520,6 +520,11 @@ protected:
                     return true;
 
                 for (const auto& it : aliases) {
+                    if (wxString(it).Trim(true).Trim(false).Lower() == "oldname:" + c)
+                        return true;
+                }
+
+                for (const auto& it : aliases) {
                     if (wxString(it).Trim(true).Trim(false).Lower() == c)
                         return true;
                 }

@@ -145,8 +145,7 @@ bool ModelManager::Rename(const std::string& oldName, const std::string& newName
     if (model == nullptr || model->GetDisplayAs() == "SubModel") {
         return false;
     }
-    model->GetModelXml()->DeleteAttribute("name");
-    model->GetModelXml()->AddAttribute("name", nn);
+    model->Rename(nn);
     model->name = nn;
     if (dynamic_cast<SubModel*>(model) == nullptr) {
         std::lock_guard<std::recursive_mutex> lock(_modelMutex);
