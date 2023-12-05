@@ -44,10 +44,12 @@
 #define PALETTE_SIZE 8
 
 //(*IdInit(ColorPanel)
-const long ColorPanel::ID_BITMAPBUTTON4 = wxNewId();
+const long ColorPanel::ID_BITMAPBUTTON_ReverseColours = wxNewId();
+const long ColorPanel::ID_BITMAPBUTTON_LeftShiftColours = wxNewId();
+const long ColorPanel::ID_BITMAPBUTTON_RightShiftColours = wxNewId();
 const long ColorPanel::ID_CUSTOM1 = wxNewId();
-const long ColorPanel::ID_BITMAPBUTTON3 = wxNewId();
 const long ColorPanel::ID_BUTTON1 = wxNewId();
+const long ColorPanel::ID_BITMAPBUTTON3 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON2 = wxNewId();
 const long ColorPanel::ID_CHECKBOX_ResetColorPanel = wxNewId();
 const long ColorPanel::ID_STATICTEXT1 = wxNewId();
@@ -251,6 +253,9 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
     _supportsradial = false;
 
 	//(*Initialize(ColorPanel)
+	wxBoxSizer* BoxSizer1;
+	wxBoxSizer* BoxSizer2;
+	wxBoxSizer* BoxSizer3;
 	wxButton* ButtonColor1;
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer11;
@@ -290,17 +295,26 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxALIGN_RIGHT, 2);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer11->AddGrowableCol(1);
-	BitmapButton_ShuffleColours = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON4, wxArtProvider::GetBitmapBundle("xlART_colorpanel_switch_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
-	FlexGridSizer11->Add(BitmapButton_ShuffleColours, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BoxSizer1 = new wxBoxSizer(wxVERTICAL);
+	BitmapButton_ReverseColours = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_ReverseColours, wxArtProvider::GetBitmapBundle("xlART_colorpanel_reverse_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(26,16), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_ReverseColours"));
+	BoxSizer1->Add(BitmapButton_ReverseColours, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_LeftShiftColours = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_LeftShiftColours, wxArtProvider::GetBitmapBundle("xlART_colorpanel_left_shift_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(26,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_LeftShiftColours"));
+	BoxSizer1->Add(BitmapButton_LeftShiftColours, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_RightShiftColours = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_RightShiftColours, wxArtProvider::GetBitmapBundle("xlART_colorpanel_right_shift_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(26,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_RightShiftColours"));
+	BoxSizer1->Add(BitmapButton_RightShiftColours, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer11->Add(BoxSizer1, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
+	BoxSizer2 = new wxBoxSizer(wxVERTICAL);
 	BitmapButton_ColourChoice = new ColourList(ColorScrollWindow,ID_CUSTOM1,wxDefaultPosition,wxDefaultSize,ZERO,wxDefaultValidator,_T("ID_CUSTOM1"));
-	FlexGridSizer11->Add(BitmapButton_ColourChoice, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_SavePalette = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON3, wxArtProvider::GetBitmapBundle("xlART_colorpanel_save_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
-	FlexGridSizer11->Add(BitmapButton_SavePalette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer11->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BoxSizer2->Add(BitmapButton_ColourChoice, 1, wxALL|wxEXPAND, 2);
 	ButtonColor1 = new wxButton(ColorScrollWindow, ID_BUTTON1, _("Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer11->Add(ButtonColor1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BoxSizer2->Add(ButtonColor1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer11->Add(BoxSizer2, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
+	BoxSizer3 = new wxBoxSizer(wxVERTICAL);
+	BitmapButton_SavePalette = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON3, wxArtProvider::GetBitmapBundle("xlART_colorpanel_save_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
+	BoxSizer3->Add(BitmapButton_SavePalette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_DeletePalette = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON2, wxArtProvider::GetBitmapBundle("xlART_colorpanel_delete_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
-	FlexGridSizer11->Add(BitmapButton_DeletePalette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BoxSizer3->Add(BitmapButton_DeletePalette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer11->Add(BoxSizer3, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
 	FlexGridSizer9->Add(FlexGridSizer11, 1, wxALL|wxALIGN_LEFT, 2);
 	FlexGridSizer9->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 0);
@@ -412,14 +426,22 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer12->Add(TextCtrl_Color_ValueAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer4->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 2);
 	ColorScrollWindow->SetSizer(FlexGridSizer4);
+	FlexGridSizer4->Fit(ColorScrollWindow);
+	FlexGridSizer4->SetSizeHints(ColorScrollWindow);
 	FlexGridSizer3->Add(ColorScrollWindow, 1, wxALL|wxEXPAND, 0);
 	Panel_Sizer->SetSizer(FlexGridSizer3);
+	FlexGridSizer3->Fit(Panel_Sizer);
+	FlexGridSizer3->SetSizeHints(Panel_Sizer);
 	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer1);
+	FlexGridSizer1->Fit(this);
+	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShuffleColoursClick);
-	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_SavePaletteClick);
+    Connect(ID_BITMAPBUTTON_ReverseColours, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ReverseColoursClick);
+    Connect(ID_BITMAPBUTTON_LeftShiftColours, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShiftColoursLeftClick);
+    Connect(ID_BITMAPBUTTON_RightShiftColours,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShiftColoursRightClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnUpdateColorClick);
+	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_SavePaletteClick);
 	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_DeletePaletteClick);
 	Connect(ID_CHECKBOX_ResetColorPanel,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_ResetColorPanelClick);
 	Connect(ID_CHECKBOX_Chroma,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_EnableChromakeyClick);
@@ -1374,7 +1396,7 @@ void ColorPanel::OnBitmapButton_DeletePaletteClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void ColorPanel::OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event)
+void ColorPanel::OnBitmapButton_ReverseColoursClick(wxCommandEvent& event)
 {
     std::string pal = GetCurrentPalette();
 
@@ -1393,6 +1415,82 @@ void ColorPanel::OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event)
             buttons[PALETTE_SIZE - i - 1]->SetColor(as[i].ToStdString());
             buttons[PALETTE_SIZE - i - 1]->Refresh();
         }
+    }
+    FireChangeEvent();
+    ValidateWindow();
+}
+
+void ColorPanel::OnBitmapButton_ShiftColoursLeftClick(wxCommandEvent& event)
+{
+    std::string pal = GetCurrentPalette();
+
+    wxArrayString as = wxSplit(pal, ',');
+
+    bool zeroActive = as[0].Contains("Active");
+    std::string zeroItem = as[0].ToStdString();
+
+    for (size_t i = 0; i < PALETTE_SIZE - 1; ++i)
+    {
+        if (as[i + 1].Contains("Active"))
+        {
+            buttons[i]->GetValue()->Deserialise(as[i + 1].ToStdString());
+            buttons[i]->SetActive(true);
+            buttons[i]->Refresh();
+        }
+        else
+        {
+            buttons[i]->SetColor(as[i + 1].ToStdString());
+            buttons[i]->Refresh();
+        }
+    }
+    if (zeroActive)
+    {
+        buttons[PALETTE_SIZE - 1]->GetValue()->Deserialise(zeroItem);
+        buttons[PALETTE_SIZE - 1]->SetActive(true);
+        buttons[PALETTE_SIZE - 1]->Refresh();
+    }
+    else
+    {
+        buttons[PALETTE_SIZE - 1]->SetColor(zeroItem);
+        buttons[PALETTE_SIZE - 1]->Refresh();
+    }
+    FireChangeEvent();
+    ValidateWindow();
+}
+
+void ColorPanel::OnBitmapButton_ShiftColoursRightClick(wxCommandEvent& event)
+{
+    std::string pal = GetCurrentPalette();
+
+    wxArrayString as = wxSplit(pal, ',');
+
+    bool lastActive = as[PALETTE_SIZE - 1].Contains("Active");
+    std::string lastItem = as[PALETTE_SIZE - 1].ToStdString();
+
+    for (size_t i = PALETTE_SIZE - 1; i > 0; --i)
+    {
+        if (as[i - 1].Contains("Active"))
+        {
+            buttons[i]->GetValue()->Deserialise(as[i - 1].ToStdString());
+            buttons[i]->SetActive(true);
+            buttons[i]->Refresh();
+        }
+        else
+        {
+            buttons[i]->SetColor(as[i - 1].ToStdString());
+            buttons[i]->Refresh();
+        }
+    }
+    if (lastActive)
+    {
+        buttons[0]->GetValue()->Deserialise(lastItem);
+        buttons[0]->SetActive(true);
+        buttons[0]->Refresh();
+    }
+    else
+    {
+        buttons[0]->SetColor(lastItem);
+        buttons[0]->Refresh();
     }
     FireChangeEvent();
     ValidateWindow();

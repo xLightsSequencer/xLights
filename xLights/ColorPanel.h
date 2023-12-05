@@ -77,9 +77,9 @@ public:
 
         bool PaletteChanged;
         bool EffectChanged;
-    
+
         void SetDefaultPalette();
-    
+
 		static double GetSettingVCMin(const std::string& name)
         {
             if (name == "C_VALUECURVE_Brightness")
@@ -175,17 +175,21 @@ public:
 		xlLockButton* BitmapButton_MusicSparkles;
 		xlLockButton* BitmapButton_SparkleFrequency;
 		xlSizedBitmapButton* BitmapButton_DeletePalette;
+		xlSizedBitmapButton* BitmapButton_LeftShiftColours;
+		xlSizedBitmapButton* BitmapButton_ReverseColours;
+		xlSizedBitmapButton* BitmapButton_RightShiftColours;
 		xlSizedBitmapButton* BitmapButton_SavePalette;
-		xlSizedBitmapButton* BitmapButton_ShuffleColours;
 		//*)
 
 	protected:
 
 		//(*Identifiers(ColorPanel)
-		static const long ID_BITMAPBUTTON4;
+		static const long ID_BITMAPBUTTON_ReverseColours;
+		static const long ID_BITMAPBUTTON_LeftShiftColours;
+		static const long ID_BITMAPBUTTON_RightShiftColours;
 		static const long ID_CUSTOM1;
-		static const long ID_BITMAPBUTTON3;
 		static const long ID_BUTTON1;
+		static const long ID_BITMAPBUTTON3;
 		static const long ID_BITMAPBUTTON2;
 		static const long ID_CHECKBOX_ResetColorPanel;
 		static const long ID_STATICTEXT1;
@@ -235,10 +239,12 @@ public:
 		void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
 		void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_DeletePaletteClick(wxCommandEvent& event);
-		void OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event);
+		void OnBitmapButton_ReverseColoursClick(wxCommandEvent& event);
 		void UpdateTouchBarSlider(wxScrollEvent& event);
 		void OnCheckBox_ResetColorPanelClick(wxCommandEvent& event);
 		void OnCheckBox_EnableChromakeyClick(wxCommandEvent& event);
+		void OnBitmapButton_ShiftColoursLeftClick(wxCommandEvent& event);
+		void OnBitmapButton_ShiftColoursRightClick(wxCommandEvent& event);
 		//*)
 
         void OnCCButtonClick(wxCommandEvent& event);
@@ -247,7 +253,7 @@ public:
         void OnColourChoiceDropDown(wxCommandEvent& event);
         void OnColourChoiceSelect(wxCommandEvent& event);
         wxColourData colorData;
-    
+
         std::vector<ColorCurveButton*> buttons;
         std::vector<wxCheckBox*> checkBoxes;
         std::map<int, std::string> lastColors;
