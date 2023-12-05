@@ -4477,12 +4477,30 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
     }
     if (editing_models)
     {
+        bool anySelectedModelLocked = false;
+        bool anySelectedModelUnlocked = false;
+        bool allSelectedModelsFromBase = true;
+        bool anySelectedModelFromBase = false;
+
+        std::vector<Model*> selectedModels = GetSelectedModelsForEdit();
+        for (const auto& it : selectedModels) {
+            if (it->IsLocked())
+                anySelectedModelLocked = true;
+            else
+                anySelectedModelUnlocked = true;
+
+            if (!it->IsFromBase())
+                allSelectedModelsFromBase = false;
+            else
+                anySelectedModelFromBase = true;
+        }
+
         auto lm = menu.Append(ID_PREVIEW_MODEL_LOCK, "Lock");
-        lm->Enable(!selectedBaseObject->IsLocked() && !selectedBaseObject->IsFromBase());
+        lm->Enable(anySelectedModelUnlocked && !allSelectedModelsFromBase);
         auto um = menu.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock");
-        um->Enable(selectedBaseObject->IsLocked() && !selectedBaseObject->IsFromBase());
+        um->Enable(anySelectedModelLocked && !allSelectedModelsFromBase);
         auto ul = menu.Append(ID_PREVIEW_MODEL_UNLINKFROMBASE, "Unlink from base show folder");
-        ul->Enable(selectedBaseObject->IsFromBase());
+        ul->Enable(anySelectedModelFromBase);
         
         Model* model = dynamic_cast<Model*>(selectedBaseObject);
         if (model != nullptr && model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
