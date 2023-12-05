@@ -39,7 +39,14 @@ xlEffectPanel *ShockwaveEffect::CreatePanel(wxWindow *parent) {
 
 int ShockwaveEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
                                           xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
-    backgrounds.AddHBlendedRectangleAsTriangles(x1, y1, x2, y2, colorMask, 0, e->GetPalette());
+    int cycles = e->GetSettings().GetInt("E_SLIDER_Shockwave_Cycles", 1);
+    int totalsize = x2 - x1;
+    double x_size = totalsize / (double)cycles;
+    x_size = std::max(x_size, 0.01);
+    for (int i = 0; i < cycles; ++i) {
+        backgrounds.AddHBlendedRectangleAsTriangles(x1 + (i * x_size), y1, x1 + (i * x_size) +  x_size, y2, colorMask, 0, e->GetPalette());
+    }
+    
     return 2;
 }
 
@@ -63,14 +70,17 @@ void ShockwaveEffect::SetDefaultParameters() {
     SetSliderValue(sp->Slider_Shockwave_End_Width, 10);
     SetSliderValue(sp->Slider_Shockwave_Start_Radius, 1);
     SetSliderValue(sp->Slider_Shockwave_Start_Width, 5);
+    SetSliderValue(sp->Slider_Shockwave_Cycles, 1);
 
     SetCheckBoxValue(sp->CheckBox_Shockwave_Blend_Edges, true);
+    SetCheckBoxValue(sp->CheckBox_Shockwave_Scale, false);
 }
 
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
 void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    double eff_pos = buffer.GetEffectTimeIntervalPosition();
+    int cycles = SettingsMap.GetInt("SLIDER_Shockwave_Cycles", 1);
+    double eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
     int center_x = GetValueCurveInt("Shockwave_CenterX", 50, SettingsMap, eff_pos, SHOCKWAVE_X_MIN, SHOCKWAVE_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int center_y = GetValueCurveInt("Shockwave_CenterY", 50, SettingsMap, eff_pos, SHOCKWAVE_Y_MIN, SHOCKWAVE_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int start_radius = GetValueCurveInt("Shockwave_Start_Radius", 0, SettingsMap, eff_pos, SHOCKWAVE_STARTRADIUS_MIN, SHOCKWAVE_STARTRADIUS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -79,10 +89,12 @@ void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     int end_width = GetValueCurveInt("Shockwave_End_Width", 0, SettingsMap, eff_pos, SHOCKWAVE_ENDWIDTH_MIN, SHOCKWAVE_ENDWIDTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int acceleration = SettingsMap.GetInt("SLIDER_Shockwave_Accel", 0);
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Shockwave_Blend_Edges");
+    bool scale = SettingsMap.GetBool("CHECKBOX_Shockwave_Scale", false);
 
     int num_colors = buffer.palette.Size();
     if( num_colors == 0 )
         num_colors = 1;
+
     double eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
 
     HSVValue hsv, hsv1;
@@ -103,6 +115,13 @@ void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
 
     double radius1 = start_radius;
     double radius2 = end_radius;
+    if (scale) {//convert to percentage of buffer, i.e 100 is 100% of buffer size
+        double bufferMax = std::max(buffer.BufferHt, buffer.BufferWi);
+        radius1 = radius1 * (bufferMax / 200.0); //200 bc radius is half of the width
+        radius2 = radius2 * (bufferMax / 200.0);
+        start_width = start_width * (bufferMax / 100.0);
+        end_width = end_width * (bufferMax / 100.0);
+    }
     double radius_center = radius1 + (radius2 - radius1) * eff_pos_adj;
     double half_width = (start_width + (end_width - start_width) * eff_pos_adj) / 2.0;
     if (half_width < 0.25) {

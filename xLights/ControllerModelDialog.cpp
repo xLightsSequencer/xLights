@@ -40,6 +40,7 @@
 #include "outputs/Output.h"
 
 #include <log4cpp/Category.hh>
+#include <cmath>
 
 //(*IdInit(ControllerModelDialog)
 const long ControllerModelDialog::ID_PANEL1 = wxNewId();
@@ -71,6 +72,7 @@ const long ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR = wxNewId();
 const long ControllerModelDialog::CONTROLLER_REMOVEALLMODELS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE = wxNewId();
 const long ControllerModelDialog::CONTROLLER_REMOVESMARTREMOTE = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SETSMARTREMOTE = wxNewId();
 const long ControllerModelDialog::CONTROLLER_MODEL_STRINGS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_STARTNULLS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_ENDNULLS = wxNewId();
@@ -609,6 +611,9 @@ public:
         if (_caps != nullptr && (_type == PORTTYPE::PIXEL) && _caps->SupportsSmartRemotes() && (_caps->GetSmartRemoteTypes().size() > 1)) {
             mnu.Append(ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE, "Set Smart Remote Type");
         }
+        if (_caps != nullptr && (_type == PORTTYPE::PIXEL) && _caps->SupportsSmartRemotes()) {
+            mnu.Append(ControllerModelDialog::CONTROLLER_SETSMARTREMOTE, "Set Smart Remote ID and Increment");
+        }
         if (_caps != nullptr && (_type == PORTTYPE::PIXEL) && _caps->SupportsSmartRemotes() && GetSmartRemoteCount() > 0) {
             mnu.Append(ControllerModelDialog::CONTROLLER_REMOVESMARTREMOTE, "Remove Smart Remote");
         }
@@ -757,6 +762,44 @@ public:
             int basePort = GetBasePort();
             for (uint8_t p = 0; p < 4; ++p) {
                 _cud->GetControllerPixelPort(basePort + p)->ClearSmartRemoteOnAllModels();
+            }
+            return true;
+        } else if (id == ControllerModelDialog::CONTROLLER_SETSMARTREMOTE) {
+            wxArrayString choices;
+            int sr_count = _caps->GetSmartRemoteCount();
+            if (_caps->GetVendor() == "HinksPix") {
+                for (int i = 0; i < sr_count; i++) {
+                    choices.Add(wxString::Format("%d", i));
+                }
+            } else {
+                for (int i = 0; i < sr_count; i++) {
+                    choices.Add(wxString(char(65 + i)));
+                }
+            }
+            int selection{ -1 };
+            if (GetUDPort()->GetModels().size() != 0 && nullptr != GetUDPort()->GetModels().front()) {
+                selection = GetUDPort()->GetModels().front()->GetSmartRemote() - 1;//0=none, 1=A,Falcon/FPP, 1=0,HinksPix
+            }
+            wxSingleChoiceDialog dlg(parent, "Port Smart Remote ID", "Smart Remote ID", choices);
+            if (selection >= 0 && selection < choices.size()) {
+                dlg.SetSelection(selection);
+            }
+            if (dlg.ShowModal() == wxID_OK) {
+                int startId = dlg.GetSelection();
+                std::string lastName;
+                for (const auto& it : GetUDPort()->GetModels()) {
+                    if (lastName == it->GetModel()->Name()) {//skip multistring models sequentuial ports
+                        continue;
+                    }
+                    it->GetModel()->SetSmartRemote(startId + 1);
+                    int max_cas = std::min(it->GetModel()->GetSRMaxCascade(), (int)std::ceil(it->GetModel()->GetNumStrings() / 4.0));
+                    max_cas = std::max(max_cas, 1);
+                    startId += max_cas;
+                    if (startId >= sr_count) {
+                        startId = (sr_count - 1);
+                    }
+                    lastName = it->GetModel()->Name();
+                }
             }
             return true;
         }
@@ -3776,9 +3819,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
         if (!isSubsequentString) {
             sr += wxString::Format("\nSmart Remote Type: %s", m->GetSmartRemoteType());
             sr += wxString::Format("\nSmart Remote Cascade Down Port: %s", toStr(m->GetSRCascadeOnPort()));
-            if (m->GetSRCascadeOnPort()) {
-                sr += wxString::Format("\nSmart Remote Cascade Length: %d", m->GetSRMaxCascade());
-            }
+            sr += wxString::Format("\nSmart Remote Cascade Length: %d", m->GetSRMaxCascade());
         }
         sr += "\n";
     }

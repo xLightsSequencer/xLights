@@ -23,7 +23,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxChoice" name="ID_CHOICE_Faces_Phoneme" variable="Choice_Faces_Phoneme" member="yes">
+								<object class="wxChoice" name="ID_CHOICE_Faces_Phoneme" subclass="BulkEditChoice" variable="Choice_Faces_Phoneme" member="yes">
 									<content>
 										<item>AI</item>
 										<item>E</item>
@@ -208,7 +208,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSpinCtrl" name="ID_SPINCTRL_Faces_LeadFrames" variable="SpinCtrl_LeadFrames" member="yes">
+								<object class="wxSpinCtrl" name="ID_SPINCTRL_Faces_LeadFrames" subclass="BulkEditSpinCtrl" variable="SpinCtrl_LeadFrames" member="yes">
 									<value>0</value>
 									<max>1000</max>
 									<size>100,-1</size>
@@ -218,7 +218,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Faces_Fade" variable="CheckBox_Fade" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Faces_Fade" subclass="BulkEditCheckBox" variable="CheckBox_Fade" member="yes">
 									<label>Fade during lead in/out</label>
 									<handler function="OnCheckBox_FadeClick" entry="EVT_CHECKBOX" />
 								</object>

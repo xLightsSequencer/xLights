@@ -72,7 +72,7 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	RadioButton1 = new wxRadioButton(this, IDD_RADIOBUTTON_Faces_Phoneme, _("Phoneme"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_RADIOBUTTON_Faces_Phoneme"));
 	RadioButton1->SetValue(true);
 	FlexGridSizer97->Add(RadioButton1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Faces_Phoneme = new wxChoice(this, ID_CHOICE_Faces_Phoneme, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_Phoneme"));
+	Choice_Faces_Phoneme = new BulkEditChoice(this, ID_CHOICE_Faces_Phoneme, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_Phoneme"));
 	Choice_Faces_Phoneme->SetSelection( Choice_Faces_Phoneme->Append(_("AI")) );
 	Choice_Faces_Phoneme->Append(_("E"));
 	Choice_Faces_Phoneme->Append(_("FV"));
@@ -136,10 +136,10 @@ FacesPanel::FacesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Faces_Lead_Frames, _("Lead In/Out Frames"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Faces_Lead_Frames"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
-	SpinCtrl_LeadFrames = new wxSpinCtrl(this, ID_SPINCTRL_Faces_LeadFrames, _T("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 1000, 0, _T("ID_SPINCTRL_Faces_LeadFrames"));
+	SpinCtrl_LeadFrames = new BulkEditSpinCtrl(this, ID_SPINCTRL_Faces_LeadFrames, _T("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 1000, 0, _T("ID_SPINCTRL_Faces_LeadFrames"));
 	SpinCtrl_LeadFrames->SetValue(_T("0"));
 	FlexGridSizer1->Add(SpinCtrl_LeadFrames, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_Fade = new wxCheckBox(this, ID_CHECKBOX_Faces_Fade, _("Fade during lead in/out"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_Fade"));
+	CheckBox_Fade = new BulkEditCheckBox(this, ID_CHECKBOX_Faces_Fade, _("Fade during lead in/out"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_Fade"));
 	CheckBox_Fade->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_Fade, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer98->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);

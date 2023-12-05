@@ -35,13 +35,16 @@ class ShockwavePanel: public xlEffectPanel
 
 		//(*Declarations(ShockwavePanel)
 		BulkEditCheckBox* CheckBox_Shockwave_Blend_Edges;
+		BulkEditCheckBox* CheckBox_Shockwave_Scale;
 		BulkEditSlider* Slider_Shockwave_Accel;
 		BulkEditSlider* Slider_Shockwave_CenterX;
 		BulkEditSlider* Slider_Shockwave_CenterY;
+		BulkEditSlider* Slider_Shockwave_Cycles;
 		BulkEditSlider* Slider_Shockwave_End_Radius;
 		BulkEditSlider* Slider_Shockwave_End_Width;
 		BulkEditSlider* Slider_Shockwave_Start_Radius;
 		BulkEditSlider* Slider_Shockwave_Start_Width;
+		BulkEditTextCtrl* TextCtrl_Shockwave_Cycles;
 		BulkEditValueCurveButton* BitmapButton_Shockwave_CenterX;
 		BulkEditValueCurveButton* BitmapButton_Shockwave_CenterY;
 		BulkEditValueCurveButton* BitmapButton_Shockwave_End_Radius;
@@ -56,9 +59,11 @@ class ShockwavePanel: public xlEffectPanel
 		wxStaticText* StaticText158;
 		wxStaticText* StaticText159;
 		wxStaticText* StaticText166;
+		wxStaticText* StaticText1;
 		xlLockButton* BitmapButton_Shockwave_Accel;
 		xlLockButton* BitmapButton_Shockwave_Center_X;
 		xlLockButton* BitmapButton_Shockwave_Center_Y;
+		xlLockButton* BitmapButton_Shockwave_Cycles;
 		xlLockButton* BitmapButton_Shockwave_EndRadius;
 		xlLockButton* BitmapButton_Shockwave_EndWidth;
 		xlLockButton* BitmapButton_Shockwave_StartRadius;
@@ -103,7 +108,12 @@ class ShockwavePanel: public xlEffectPanel
 		static const long ID_SLIDER_Shockwave_Accel;
 		static const long IDD_TEXTCTRL_Shockwave_Accel;
 		static const long ID_BITMAPBUTTON_SLIDER_Shockwave_Accel;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_Shockwave_Cycles;
+		static const long IDD_TEXTCTRL_Shockwave_Cycles;
+		static const long ID_BITMAPBUTTON_SLIDER_Shockwave_Cycles;
 		static const long ID_CHECKBOX_Shockwave_Blend_Edges;
+		static const long ID_CHECKBOX_Shockwave_Scale;
 		static const long ID_PANEL44;
 		static const long ID_NOTEBOOK_Shockwave;
 		//*)

@@ -127,6 +127,7 @@ class ControllerModelDialog: public wxDialog
 		static const long CONTROLLER_CASCADEDOWNPORT;
 		static const long CONTROLLER_DMXCHANNELCHAIN;
 		static const long CONTROLLER_PROTOCOL;
+        static const long CONTROLLER_SETSMARTREMOTE;
 		static const long CONTROLLER_REMOVEPORTMODELS;
 		static const long CONTROLLER_MOVEMODELSTOPORT;
 		static const long CONTROLLER_BRIGHTNESS;
