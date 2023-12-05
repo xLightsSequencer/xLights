@@ -529,7 +529,6 @@ void xLightsFrame::GetControllerDetailsForChannel(int32_t channel, std::string& 
 }
 
 std::string xLightsFrame::GetChannelToControllerMapping(int32_t channel) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int32_t stch;
     Controller* c = _outputManager.GetController(channel, stch);
 
