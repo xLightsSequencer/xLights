@@ -133,18 +133,17 @@
 						<object class="wxSpinCtrl" name="ID_SPINCTRL_START_HOUR" variable="SpinCtrlStartHour" member="yes">
 							<value>0</value>
 							<max>23</max>
-							<minsize>50,-1</minsize>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 					</object>
 					<object class="sizeritem">
 						<object class="wxSpinCtrl" name="ID_SPINCTRL_START_MIN" variable="SpinCtrlStartMin" member="yes">
 							<value>0</value>
 							<max>59</max>
-							<minsize>50,-1</minsize>
+							<size>66,37</size>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 					</object>
 					<object class="sizeritem">
@@ -158,18 +157,16 @@
 						<object class="wxSpinCtrl" name="ID_SPINCTRL_END_HOUR" variable="SpinCtrlEndHour" member="yes">
 							<value>23</value>
 							<max>23</max>
-							<minsize>50,-1</minsize>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 					</object>
 					<object class="sizeritem">
 						<object class="wxSpinCtrl" name="ID_SPINCTRL_END_MIN" variable="SpinCtrlEndMin" member="yes">
 							<value>59</value>
 							<max>59</max>
-							<minsize>50,-1</minsize>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 					</object>
 					<object class="spacer">
