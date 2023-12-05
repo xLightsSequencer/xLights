@@ -90,7 +90,7 @@ void ThreePointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* p
     TwoPointScreenLocation::AddDimensionProperties(propertyEditor, 1.0);
     float width = RulerObject::Measure(origin, point2);
     wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight", 
-                                                                     RulerObject::Measure((width * height) / 2.0 * factor * 100.0)
+                                                                     (width * height) / 2.0 * factor
                                                                     ));
     prop->ChangeFlag(wxPG_PROP_READONLY, true);
     prop->SetAttribute("Precision", 2);
