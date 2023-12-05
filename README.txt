@@ -11,6 +11,31 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.22 Dec 5, 2023
+   -- enh (claudio)   Add virtual matrix to xSchedule using RGBW data
+   -- enh (lutz)      Add palette shift buttons
+   -- enh (scott)     Add cycles and scale to ripple effect
+   -- enh (scott)     Add set smart remote and increment to visualiser
+   -- enh (scott)     Add importing submodels as states
+   -- enh (scott)     Add more controller connection property setting to the visualiser
+   -- enh (keith)     Show progress in batch render including number left to render
+   -- enh (keith)     Add model aliases used to improve automap and handling opening sequences with model names that have changed
+   -- enh (keith)     Add an adjust effect - primarily for use on DMX effects to modify results without changing the underlying effects
+   -- enh (keith)     Add support for non-zig zagging trees with multiple strands but one string
+   -- enh (dartunder) Add bulk edit to clear shadow models
+   -- bug (dartunder) Fix 3 point model dimensions incorrect
+   -- bug (keith)     Fix Falcon V4 upload without full xlights control should not override port brightness
+   -- bug (keith)     Fix layout model locking menu items inconsistently available
+   -- bug (keith)     Fix Falcon V4/V5 reversed not uploading correctly
+   -- bug (keith)     Fix click on import effect count column does not sort by effect count
+   -- bug (keith)     Fix servo effect incompletely resets parameters
+   -- bug (keith)     Fix Eseq playback on xSchedule
+   -- bug (keith)     Fix default superstring to RGB handling
+   -- bug (scott)     Fix FPP compatible audio file types incomplete
+   -- bug (scott)     Fix missing bulk edit from some face effect properties
+   -- bug (dkulp)     Fix 4GB+ uncompressed FSEQ files
+   -- bug (dkulp)     Fix crash on player only controllers
+   -- bug (dkulp)     Fix OSX font crash
 2023.21 Nov 25, 2023
    -- enh (dkulp) Allow upload of config to inactive controllers
    -- enh (scott) Add More Right Click Options to Multi-Controller Upload, Save/Load Selected
