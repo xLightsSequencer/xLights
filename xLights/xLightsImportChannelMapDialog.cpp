@@ -622,7 +622,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     }
 
     wxConfigBase* config = wxConfigBase::Get();
-    CheckBox_LockEffects->SetValue(config->ReadBool("ImportEffectsLocked", true));
+    CheckBox_LockEffects->SetValue(config->ReadBool("ImportEffectsLocked", false));
     
     EnsureWindowHeaderIsOnScreen(this);
 }
