@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (scott)     Fix Import Dialog Groups Blue turning white.
 2023.22 Dec 5, 2023
    -- enh (claudio)   Add virtual matrix to xSchedule using RGBW data
    -- enh (lutz)      Add palette shift buttons
@@ -41,7 +42,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (scott) Add More Right Click Options to Multi-Controller Upload, Save/Load Selected
    -- enh (scott) FPP Connect - Add Falcon V5 Support
    -- enh (keith) Downgrade sketch effect image missing to warning and allow suppression of the warning in preferences.
-   -- enh (scott) FPP Connect - add genius fseq upload
+   -- enh (scott) FPP Connect - add Genius FSEQ upload
    -- bug (dkulp) FPP Connect - fix crash with discovery/fpp connect if "Player Only" controller configured
    -- bug (billnapier) Remove invisible unicode character in AlphxPix 4 settings
    -- bug (dkulp) Fix Faces on models from Base show directory will always trigger the "dirty" flag
