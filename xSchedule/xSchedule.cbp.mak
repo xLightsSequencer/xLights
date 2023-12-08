@@ -1994,7 +1994,7 @@ DimWhiteDialog.cpp: DimWhiteDialog.h xScheduleMain.h ScheduleManager.h
 
 ESEQFile.cpp: ESEQFile.h ../xLights/UtilFunctions.h
 
-ESEQFile.h: Blend.h
+ESEQFile.h: Blend.h ../xLights/FSEQFile.h
 
 EventARTNetPanel.cpp: EventARTNetPanel.h
 
