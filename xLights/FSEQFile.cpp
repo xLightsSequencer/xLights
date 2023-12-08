@@ -101,23 +101,9 @@ inline void AddSlowStorageWarning() {
 #endif
 
 #ifndef NO_ZSTD
-#ifdef __WXOSX__
 #define ZSTD_STATIC_LINKING_ONLY
-#endif
 #include <zstd.h>
-
-#ifdef _MSC_VER
-ZSTDLIB_API size_t ZSTD_compressStream2( ZSTD_CCtx* cctx,
-                                         ZSTD_outBuffer* output,
-                                         ZSTD_inBuffer* input,
-                                         ZSTD_EndDirective endOp)
-{
-    if (endOp == ZSTD_e_end) {
-        return ZSTD_endStream(cctx, output);
-    }
-    return ZSTD_compressStream(cctx, output, input);
-}
-#endif
+#include <thread>
 
 #ifdef ZSTD_STATIC_LINKING_ONLY
 class ZSTDThreadPoolHolder {

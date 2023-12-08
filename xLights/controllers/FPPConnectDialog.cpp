@@ -353,7 +353,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
                 font.SetPointSize(font.GetPointSize() - 2);
                 Choice1->SetFont(font);
                 Choice1->Append(_("V1"));
-                Choice1->Append(_("V2"));
+                Choice1->Append(_("V2 zstd"));
                 Choice1->Append(_("V2 Sparse/zstd"));
                 Choice1->Append(_("V2 Sparse/Uncompressed"));
                 Choice1->SetSelection(inst->mode == "master" ? 1 : 2);
