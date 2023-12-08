@@ -101,7 +101,10 @@ inline void AddSlowStorageWarning() {
 #endif
 
 #ifndef NO_ZSTD
+#ifndef __LINUX__
+//zstd on Debian 11 doesn't have the thread pool stuff
 #define ZSTD_STATIC_LINKING_ONLY
+#endif
 #include <zstd.h>
 #include <thread>
 
