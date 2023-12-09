@@ -222,21 +222,19 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
     int maxMWi = maxBuffer.x == -1 ? buffer.BufferWi : maxBuffer.x;
     int maxMHt = maxBuffer.y == -1 ? buffer.BufferHt : maxBuffer.y;
     if (loc == 2 || loc == 3) {
-        maxMHt = buffer.BufferWi;
-        maxMWi = buffer.BufferHt;
+        std::swap(maxMHt, maxMWi);
     }
 
-    int maxWi = buffer.BufferWi;
-    int maxHt = buffer.BufferHt;
+    int curWi = buffer.BufferWi;
+    int curHt = buffer.BufferHt;
     if (loc == 2 || loc == 3) {
-        maxHt = buffer.BufferWi;
-        maxWi = buffer.BufferHt;
+        std::swap(curHt, curWi);
     }
 
     if (maxMHt < 1)
         maxMHt = 1;
-    if (maxHt < 1)
-        maxHt = 1;
+    if (curHt < 1)
+        curHt = 1;
 
     FireRenderCache* cache = GetCache(buffer, id);
 
@@ -255,9 +253,9 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         int r = x % 2 == 0 ? 190 + (rand() % 10) : 100 + (rand() % 50);
         SetFireBuffer(x, 0, r, cache->FireBuffer, maxMWi, maxMHt);
     }
-    int step = 255 * 100 / maxHt / HeightPct;
-    for (int y = 1; y < maxHt; ++y) {
-        for (int x = 0; x < maxWi; ++x) {
+    int step = 255 * 100 / curHt / HeightPct;
+    for (int y = 1; y < maxMHt; ++y) {
+        for (int x = 0; x < maxMWi; ++x) {
             int v1 = GetFireBuffer(x - 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
             int v2 = GetFireBuffer(x + 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
             int v3 = GetFireBuffer(x, y - 1, cache->FireBuffer, maxMWi, maxMHt);
@@ -293,17 +291,15 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
     }
 
     //  Now play fire
-    for (int y = 0; y < maxHt; ++y) {
-        for (int x = 0; x < maxWi; ++x) {
+    for (int y = 0; y < curHt; ++y) {
+        for (int x = 0; x < curWi; ++x) {
             int xp = x;
             int yp = y;
             if (loc == 1 || loc == 3) {
-                yp = maxHt - y - 1;
+                yp = curHt - y - 1;
             }
             if (loc == 2 || loc == 3) {
-                int t = xp;
-                xp = yp;
-                yp = t;
+                std::swap(xp, yp);
             }
             if (HueShift > 0) {
                 HSVValue hsv = FirePalette[GetFireBuffer(x, y, cache->FireBuffer, maxMWi, maxMHt)];
