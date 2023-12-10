@@ -8750,12 +8750,8 @@ void xLightsFrame::SetSnapToTimingMarks(bool b)
 
 void xLightsFrame::PurgeDownloadCache()
 {
-    VendorModelDialog::GetCache().ClearCache();
-    VendorModelDialog::GetCache().Save();
-    VendorMusicDialog::GetCache().ClearCache();
-    VendorMusicDialog::GetCache().Save();
-    ShaderDownloadDialog::GetCache().ClearCache();
-    ShaderDownloadDialog::GetCache().Save();
+    CachedFileDownloader::GetDefaultCache().ClearCache();
+    CachedFileDownloader::GetDefaultCache().Save();
 }
 
 bool xLightsFrame::GetRecycleTips() const

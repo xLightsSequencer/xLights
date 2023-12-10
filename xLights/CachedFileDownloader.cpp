@@ -144,6 +144,7 @@ void CachedFileDownloader::SaveCache()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     if (!Initialize())
     {
         return;
@@ -184,6 +185,7 @@ void CachedFileDownloader::LoadCache()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     _cacheItems.clear();
 
     if (!Initialize())
@@ -224,6 +226,7 @@ void CachedFileDownloader::LoadCache()
 
 FileCacheItem* CachedFileDownloader::Find(wxURI url)
 {
+    std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     for (const auto& it : _cacheItems)
     {
         if (*it == url)
@@ -236,7 +239,9 @@ FileCacheItem* CachedFileDownloader::Find(wxURI url)
 }
 
 static std::unique_ptr<CachedFileDownloader> _defaultCache(nullptr);
+static std::mutex _defaultCacheLock;
 CachedFileDownloader& CachedFileDownloader::GetDefaultCache() {
+    std::unique_lock<std::mutex> lock(_defaultCacheLock);
     if (_defaultCache.get() == nullptr) {
         std::unique_ptr<CachedFileDownloader> tmp(new CachedFileDownloader());
         _defaultCache = std::move(tmp);
@@ -244,11 +249,12 @@ CachedFileDownloader& CachedFileDownloader::GetDefaultCache() {
     return *_defaultCache.get();
 }
 
-CachedFileDownloader::CachedFileDownloader(const std::string cacheDir) : _cacheDir(cacheDir)
+CachedFileDownloader::CachedFileDownloader() : _cacheDir("")
 {
     _initialised = false;
 }
 bool CachedFileDownloader::Initialize() {
+    std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     if (_initialised) {
         return _enabled;
     }
@@ -293,6 +299,7 @@ void CachedFileDownloader::ClearCache()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     logger_base.debug("File Cache cleared.");
+    std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     for (const auto& it :  _cacheItems)
     {
         it->Delete();
@@ -304,6 +311,7 @@ void CachedFileDownloader::PurgeAgedItems()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     logger_base.debug("File Cache purging aged items.");
+    std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     for (const auto& it : _cacheItems)
     {
         it->PurgeIfAged();
@@ -311,6 +319,7 @@ void CachedFileDownloader::PurgeAgedItems()
 }
 
 int CachedFileDownloader::size() {
+    std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     if (!Initialize()) {
         return 0;
     }
@@ -320,7 +329,7 @@ int CachedFileDownloader::size() {
 std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor, const wxString& forceType, wxProgressDialog* prog, int low, int high, bool keepProgress)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+    std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     if (!Initialize())
     {
         // because we dont have a valid place to save the cache we cant cache anything beyond this session

@@ -40,7 +40,6 @@ class ShaderDownloadDialog: public wxDialog
     std::string _shaderFile;
     int _currImage = -1;
     wxImage _shaderImage;
-    static CachedFileDownloader _cache;
 
     wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high) const;
     bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
@@ -57,7 +56,7 @@ class ShaderDownloadDialog: public wxDialog
 		virtual ~ShaderDownloadDialog();
         std::string GetShaderFile() const { return _shaderFile; }
         bool DlgInit(wxProgressDialog* prog, int low, int high);
-        static CachedFileDownloader& GetCache() { return _cache; }
+        static CachedFileDownloader& GetCache() { return CachedFileDownloader::GetDefaultCache(); }
 
 		//(*Declarations(ShaderDownloadDialog)
 		wxButton* Button_Download;

@@ -86,8 +86,8 @@ public:
     virtual void* Entry() override
     {
         // download Tip of day content here
-        CachedFileDownloader cache;
-        auto file = cache.GetFile(wxURI(TOD_BASE_URL + "tod.xml"), CACHEFOR::CACHETIME_DAY);
+        auto file = CachedFileDownloader::GetDefaultCache().GetFile(wxURI(TOD_BASE_URL + "tod.xml"), CACHEFOR::CACHETIME_DAY);
+        CachedFileDownloader::GetDefaultCache().Save();
 
         wxCommandEvent e(EVT_TIPOFDAY_READY);
         e.SetString(file);
@@ -121,8 +121,9 @@ public:
             url = baseURL + url.substr(baseFileLocation.size());
         }
         wxURI uri(url);
-        auto file = cache.GetFile(uri, CACHEFOR::CACHETIME_LONG);
+        auto file = CachedFileDownloader::GetDefaultCache().GetFile(uri, CACHEFOR::CACHETIME_LONG);
         if (file != "") {
+            CachedFileDownloader::GetDefaultCache().Save();
             *redirect = file;
             if (baseFileLocation == "") {
                 baseFileLocation = file.substr(0, file.find_last_of(wxFileName::GetPathSeparator()));
@@ -131,7 +132,6 @@ public:
         }
         return wxHtmlWindow::OnHTMLOpeningURL(type, url, redirect);
     }
-    mutable CachedFileDownloader cache;
     mutable std::string baseURL;
     mutable std::string baseFileLocation;
 };

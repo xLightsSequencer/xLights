@@ -35,7 +35,6 @@
 #undef min
 #undef max
 
-CachedFileDownloader ShaderDownloadDialog::_cache;
 
 class MShader
 {
@@ -327,9 +326,6 @@ ShaderDownloadDialog::ShaderDownloadDialog(wxWindow* parent, wxWindowID id, cons
 
     SetSize(800, 600);
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("File cache size: %d", _cache.size());
-
     ListView_Sites->AppendColumn("", wxListColumnFormat::wxLIST_FORMAT_LEFT);
     ListView_Sites->InsertItem(0, "www.interactiveshaderformat.com/");
     ListView_Sites->InsertItem(0, "www.shadertoy.com/");
@@ -426,7 +422,7 @@ ShaderDownloadDialog::~ShaderDownloadDialog()
 	//(*Destroy(ShaderDownloadDialog)
 	//*)
 
-    _cache.Save();
+    GetCache().Save();
 
     for (const auto& it : _shaders)
     {
