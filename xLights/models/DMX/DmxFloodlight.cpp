@@ -305,6 +305,17 @@ void DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
     }
 }
 
+void DmxFloodlight::EnableFixedChannels(xlColorVector& pixelVector)
+{
+    if (shutter_channel != 0 && shutter_on_value != 0) {
+        if (Nodes.size() > shutter_channel - 1) {
+            xlColor c(shutter_on_value, shutter_on_value, shutter_on_value);
+            pixelVector[shutter_channel - 1] = c;
+        }
+    }
+    DmxModel::EnableFixedChannels(pixelVector);
+}
+
 std::vector<std::string> DmxFloodlight::GenerateNodeNames() const
 {
     std::vector<std::string> names = DmxModel::GenerateNodeNames();
