@@ -584,6 +584,16 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
             cd->SetModel(model.ToStdString());
             cd->version = falc.GetFullName();
             cd->platform = "Falcon";
+            std::string mode = falc.GetMode();
+            if (mode == "Player") {
+                cd->mode = "player";
+            } else if (mode == "Remote") {
+                cd->mode = "remote";
+            } else if (mode == "Master") {
+                cd->mode = "player w/multisync";
+            } else {
+                cd->mode = "bridge";
+            }
             int stringCount = falc.NumConfiguredStrings();
             auto variants = ControllerCaps::GetVariants(CONTROLLER_ETHERNET, "Falcon", model);
             for (auto const& a : variants) {
@@ -592,7 +602,6 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
                     cd->SetVariant(a);
                 }
             }
-            std::string mode = falc.GetMode();
             if (("DDP" == mode || "Player" == mode || "Remote" == mode || "Master" == mode)
                 && ce->GetProtocol() != OUTPUT_DDP){
                 ce->SetProtocol(OUTPUT_DDP);

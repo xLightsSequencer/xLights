@@ -83,7 +83,7 @@ CURL* CurlManager::createCurl(const std::string& fullUrl, CurlPrivateData** cpd,
     CURL* c = curl_easy_init();
     curl_easy_setopt(c, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(c, CURLOPT_USERAGENT, USERAGENT.c_str());
-    curl_easy_setopt(c, CURLOPT_CONNECTTIMEOUT_MS, 4000L);
+    curl_easy_setopt(c, CURLOPT_CONNECTTIMEOUT_MS, 5000L);
     curl_easy_setopt(c, CURLOPT_TIMEOUT_MS, 12000L);
     curl_easy_setopt(c, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(c, CURLOPT_NOSIGNAL, 1L);

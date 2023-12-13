@@ -3126,11 +3126,15 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                     }
                     return true;
                 });
-            } else if (found->typeId >= 0xD0) {
+            } else if (found->typeId >= 0x80) {
                 discovery.AddCurl(ipAddr, "/", [&discovery, ipAddr, found](int rc, const std::string &buffer, const std::string &err) {
                     if (rc == 200 && buffer != "") {
                         found->extraData["httpConnected"] = true;
-                        discovery.DetectControllerType(ipAddr, "", buffer);
+                        if (ipAddr == "192.168.3.220") {
+                            discovery.DetectControllerType(ipAddr, "", buffer);
+                        } else {
+                            discovery.DetectControllerType(ipAddr, "", buffer);
+                        }
                     }
                     return true;
                 });
