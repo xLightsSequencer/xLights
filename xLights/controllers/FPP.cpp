@@ -3130,11 +3130,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 discovery.AddCurl(ipAddr, "/", [&discovery, ipAddr, found](int rc, const std::string &buffer, const std::string &err) {
                     if (rc == 200 && buffer != "") {
                         found->extraData["httpConnected"] = true;
-                        if (ipAddr == "192.168.3.220") {
-                            discovery.DetectControllerType(ipAddr, "", buffer);
-                        } else {
-                            discovery.DetectControllerType(ipAddr, "", buffer);
-                        }
+                        discovery.DetectControllerType(ipAddr, "", buffer);
                     }
                     return true;
                 });
