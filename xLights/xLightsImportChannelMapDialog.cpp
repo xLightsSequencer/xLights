@@ -444,6 +444,7 @@ const long xLightsImportChannelMapDialog::ID_STATICTEXT2 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_TEXTCTRL2 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON4 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_BUTTON6 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON5 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON2 = wxNewId();
@@ -543,13 +544,15 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     SizerMap->AddGrowableCol(0);
     SizerMap->AddGrowableRow(0);
     Sizer1->Add(SizerMap, 0, wxEXPAND, 0);
-    FlexGridSizer2 = new wxFlexGridSizer(0, 7, 0, 0);
+    FlexGridSizer2 = new wxFlexGridSizer(0, 8, 0, 0);
     FlexGridSizer2->AddGrowableCol(2);
     Button_Ok = new wxButton(Panel1, ID_BUTTON3, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     FlexGridSizer2->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Cancel = new wxButton(Panel1, ID_BUTTON4, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
     FlexGridSizer2->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+    Button_UpdateAliases = new wxButton(Panel1, ID_BUTTON6, _("Update Model Aliases Using Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
+    FlexGridSizer2->Add(Button_UpdateAliases, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_AutoMap = new wxButton(Panel1, ID_BUTTON5, _("Auto Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
     FlexGridSizer2->Add(Button_AutoMap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -559,6 +562,8 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     FlexGridSizer2->Add(Button02, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
     Panel1->SetSizer(Sizer1);
+    Sizer1->Fit(Panel1);
+    Sizer1->SetSizeHints(Panel1);
     Panel2 = new wxPanel(SplitterWindow1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     Sizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     Sizer2->AddGrowableCol(0);
@@ -573,25 +578,29 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     ListCtrl_Available = new wxListCtrl(Panel2, ID_LISTCTRL1, wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(100,-1)), wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL1"));
     Sizer2->Add(ListCtrl_Available, 1, wxALL|wxEXPAND, 5);
     Panel2->SetSizer(Sizer2);
+    Sizer2->Fit(Panel2);
+    Sizer2->SetSizeHints(Panel2);
     SplitterWindow1->SplitVertically(Panel1, Panel2);
     OldSizer->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
     SetSizer(OldSizer);
+    OldSizer->Fit(this);
     OldSizer->SetSizeHints(this);
 
-    Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick);
-    Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBoxImportMediaClick);
-    Connect(ID_BUTTON_IMPORT_OPTIONS, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButtonImportOptionsClick);
-    Connect(ID_TEXTCTRL2, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindToText);
-    Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_OkClick);
-    Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
-    Connect(ID_BUTTON5, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_AutoMapClick);
-    Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
-    Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
-    Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindFromText);
-    Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_BEGIN_DRAG, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag);
-    Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
-    Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated);
-    Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_COL_CLICK, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
+    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick);
+    Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBoxImportMediaClick);
+    Connect(ID_BUTTON_IMPORT_OPTIONS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButtonImportOptionsClick);
+    Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindToText);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_OkClick);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
+    Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick);
+    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_AutoMapClick);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
+    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindFromText);
+    Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag);
+    Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
+    Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated);
+    Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
     //*)
 
     Connect(ID_CHECKLISTBOX1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickTimingTracks);
@@ -623,7 +632,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 
     wxConfigBase* config = wxConfigBase::Get();
     CheckBox_LockEffects->SetValue(config->ReadBool("ImportEffectsLocked", false));
-    
+
     EnsureWindowHeaderIsOnScreen(this);
 }
 
@@ -2611,5 +2620,15 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
 
         // scroll to it
         TreeListCtrl_Mapping->EnsureVisible(index);
+    }
+}
+
+void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& event)
+{
+    for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
+        xLightsImportModelNode* m = _dataModel->GetNthChild(i);
+        if (m->HasMapping()) {
+            xlights->GetModel(m->_model)->AddAlias(m->_mapping);
+        }
     }
 }

@@ -735,6 +735,11 @@ void Model::AddAlias(const std::string& alias)
 {
     if (IsAlias(alias))
         return;
+
+    // a model name cant be its own alias
+    if (Lower(alias) == Lower(Name()))
+        return;
+
     for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
         if (x->GetName() == "Aliases") {
             auto n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");

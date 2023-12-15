@@ -400,6 +400,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxButton* Button_AutoMap;
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
+		wxButton* Button_UpdateAliases;
 		wxCheckBox* CheckBoxImportMedia;
 		wxCheckBox* CheckBox_EraseExistingEffects;
 		wxCheckBox* CheckBox_Import_Blend_Mode;
@@ -455,6 +456,7 @@ protected:
 		static const long ID_TEXTCTRL2;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
+		static const long ID_BUTTON6;
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
@@ -489,6 +491,7 @@ protected:
 		void OnCheckBoxImportMediaClick(wxCommandEvent& event);
 		void OnTextCtrl_FindFromText(wxCommandEvent& event);
 		void OnTextCtrl_FindToText(wxCommandEvent& event);
+		void OnButton_UpdateAliasesClick(wxCommandEvent& event);
 		//*)
 
         void RightClickTimingTracks(wxContextMenuEvent& event);
