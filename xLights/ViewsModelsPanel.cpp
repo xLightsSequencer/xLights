@@ -594,6 +594,9 @@ void ViewsModelsPanel::RemoveSelectedModels()
 
     SaveUndo();
 
+    // #4134: Abort any render in progress to avoid hanging
+    _sequenceElements->GetXLightsFrame()->AbortRender();
+
     if (_sequenceElements->GetCurrentView() == MASTER_VIEW) {
         bool hasEffects = false;
         for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
@@ -617,7 +620,7 @@ void ViewsModelsPanel::RemoveSelectedModels()
             // we need to unselect the current effect because we may be about to delete it
             wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
             wxPostEvent(GetParent(), eventUnSelected);
-
+            
             for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
                 if (IsItemSelected(ListCtrlModels, i)) {
                     // Got a selected item so handle it
@@ -627,8 +630,7 @@ void ViewsModelsPanel::RemoveSelectedModels()
                 }
             }
         }
-    }
-    else {
+    } else {
         for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
             if (IsItemSelected(ListCtrlModels, i)) {
                 // Got a selected item so handle it
@@ -665,8 +667,7 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
 
     if (p == -1) {
         p = _sequenceElements->GetElementCount();
-    }
-    else {
+    } else {
         if (p < 0) p = 0;
 
         if (currentView != MASTER_VIEW) {
@@ -2490,6 +2491,9 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
 {
     // this should never happen
     if (_sequenceElements == nullptr || _sequenceViewManager == nullptr) return;
+
+    //swapping out the master will completely change the rendering, abort it
+    _sequenceElements->GetXLightsFrame()->AbortRender();
 
     // get the selected view
     SequenceView* view = _sequenceViewManager->GetView(ListCtrlViews->GetItemText(_sequenceElements->GetCurrentView(), 1).ToStdString());
