@@ -1159,6 +1159,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         EnableSequenceControls(true);
         logger_base.debug("Batch render done.");
         printf("Done All Files\n");
+        wxBell();
         if (exitOnDone) {
             Destroy();
         } else {
