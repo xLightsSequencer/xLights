@@ -65,7 +65,8 @@ inline void GetAllFilesInDir(const wxString& dir, wxArrayString& files, const wx
 {
     wxDir::GetAllFiles(dir, &files, filespec, flags);
 }
-inline void SetButtonBackground(wxButton *b, const wxColour &c, int bgType) {
+inline void SetButtonBackground(wxButton* b, const wxColour& c, int bgType)
+{
     b->SetBackgroundColour(c);
     b->Refresh();
 }

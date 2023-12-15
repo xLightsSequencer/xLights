@@ -50,6 +50,7 @@
 #include "xLightsVersion.h"
 #include "models/SubModel.h"
 #include "CheckboxSelectDialog.h"
+#include "TempFileManager.h"
 
 #include <log4cpp/Category.hh>
 

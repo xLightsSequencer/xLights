@@ -741,6 +741,8 @@
 		<Unit filename="TabPreview.cpp" />
 		<Unit filename="TabSequence.cpp" />
 		<Unit filename="TabSetup.cpp" />
+		<Unit filename="TempFileManager.cpp" />
+		<Unit filename="TempFileManager.h" />
 		<Unit filename="TimingPanel.cpp" />
 		<Unit filename="TimingPanel.h" />
 		<Unit filename="TipOfTheDayDialog.cpp" />

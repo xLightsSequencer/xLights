@@ -323,6 +323,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         SetXmlSetting("renderCacheDir", showDirectory);
         UnsavedRgbEffectsChanges = true;
     }
+    _renderCache.SetRenderCacheFolder(renderCacheDirectory);
 
     mStoredLayoutGroup = GetXmlSetting("storedLayoutGroup", "Default");
 

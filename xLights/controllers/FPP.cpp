@@ -57,6 +57,7 @@
 #include "../Parallel.h"
 #include "ControllerCaps.h"
 #include "../ExternalHooks.h"
+#include "../TempFileManager.h"
 
 #include <log4cpp/Category.hh>
 #include "ControllerUploadData.h"
@@ -1085,6 +1086,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     sequences[baseName].duration = ((float)(file->getStepTime() * file->getNumFrames())) / 1000.0f;
 
     tempFileName = ToStdString(wxFileName::CreateTempFileName(ToWXString(baseName)));
+    TempFileManager::GetTempFileManager().AddTempFile(tempFileName);
     std::string fileName = tempFileName;
 
     FSEQFile::CompressionType ctype = ::FSEQFile::CompressionType::zstd;

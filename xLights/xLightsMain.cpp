@@ -112,6 +112,7 @@
 #include "outputs/ZCPPOutput.h"
 #include "sequencer/MainSequencer.h"
 #include "utils/ip_utils.h"
+#include "TempFileManager.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -1688,6 +1689,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     logger_base.debug("Enable Render Cache: %s.", (const char*)_enableRenderCache.c_str());
     _renderCache.Enable(_enableRenderCache);
 
+    config->Read(_("xLightsRenderCacheMaxSizeMB"), &_renderCacheMaximumSizeMB, 20 * 1024);
+    logger_base.debug("Render Cache Maximum Size: %luMB.", _renderCacheMaximumSizeMB);
+    _renderCache.SetMaximumSizeMB(_renderCacheMaximumSizeMB);
+
     config->Read("xLightsAutoSavePerspectives", &_autoSavePerspecive, false);
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
     logger_base.debug("Autosave perspectives: %s.", toStr(_autoSavePerspecive));
@@ -2054,6 +2059,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsShowACLights", _showACLights);
     config->Write("xLightsShowACRamps", _showACRamps);
     config->Write("xLightsEnableRenderCache", _enableRenderCache);
+    config->Write("xLightsRenderCacheMaxSizeMB", _renderCacheMaximumSizeMB);
     config->Write("xLightsPlayControlsOnPreview", _playControlsOnPreview);
     config->Write("xLightsShowBaseFolder", _showBaseShowFolder);
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
@@ -3934,6 +3940,7 @@ std::string xLightsFrame::PackageDebugFiles(bool showDialog)
         ExportEffects(filenamee);
         wxFileName fne(filenamee);
         report.AddFile(fne.GetFullPath(), "All Effects");
+        wxRemoveFile(filenamee);
     }
 
     report.Process();
@@ -4789,6 +4796,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     wxFile f;
     wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
+    TempFileManager::GetTempFileManager().AddTempFile(filename);
 
     if (writeToFile || displayInEditor) {
         f.Open(filename, wxFile::write);
@@ -9053,6 +9061,12 @@ void xLightsFrame::SetEnableRenderCache(const wxString& t)
         _renderCache.SetSequence("", "");
         _renderCache.Purge(&_sequenceElements, false);
     }
+}
+
+void xLightsFrame::SetRenderCacheMaximumSizeMB(size_t maxSizeMB)
+{
+    _renderCacheMaximumSizeMB = maxSizeMB;
+    _renderCache.SetMaximumSizeMB(maxSizeMB);
 }
 
 bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)

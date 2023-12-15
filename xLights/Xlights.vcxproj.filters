@@ -1045,6 +1045,7 @@
     <ClCompile Include="EditAliasesDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="TempFileManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2103,6 +2104,7 @@
     <ClInclude Include="EditAliasesDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="TempFileManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

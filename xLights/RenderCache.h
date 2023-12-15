@@ -26,23 +26,24 @@ class RenderCacheLoadThread;
 
 class RenderCacheItem
 {
-    RenderCache* _renderCache;
+    RenderCache* _renderCache = nullptr;
     std::string _cacheFile;
     std::string _effectName;
     std::map<std::string, std::string> _properties;
     std::map<std::string, std::vector<uint8_t *>> _frames;
     std::map<std::string, long> _frameSize;
-    bool _purged;
-    bool _dirty;
+    bool _purged = false;
+    bool _dirty = false;
     static std::string GetModelName(RenderBuffer* buffer);
 
     
+    uint8_t *_mmap = nullptr;
+    size_t _mmapSize = 0;
+    size_t _firstFrameOffset = 0;
+
     void unmmap();
     void remmap();
-    uint8_t *_mmap;
-    size_t _mmapSize;
-    size_t _firstFrameOffset;
-    
+
 public:
     RenderCacheItem(RenderCache* renderCache, const std::string& file);
     RenderCacheItem(RenderCache* renderCache, Effect* effect, RenderBuffer* buffer);
@@ -54,6 +55,7 @@ public:
     bool IsMatch(Effect* effect, RenderBuffer* buffer);
     void Delete();
     void Save();
+    void Touch() const;
     bool IsDone(RenderBuffer* buffer) const;
     const std::string& Description() const { return _cacheFile; }
     const std::string& EffectName() const { return _effectName; }
@@ -74,27 +76,32 @@ class RenderCache
 	std::map<std::string, PerEffectCache*> _cache;
     std::string _enabled; // Disabled | Locked Only | Enabled
     std::mutex _loadMutex;
+    size_t _maximumSizeMB = 0;
+    std::string _baseCache = "";
 
     void Close();
     void LoadCache();
     
     PerEffectCache* GetPerEffectCache(const std::string &s);
+    void EnforceMaximumSize();
 
     public:
 		RenderCache();
 		virtual ~RenderCache();
         inline bool IsEnabled() const { return _enabled != "Disabled"; }
+        void SetRenderCacheFolder(const std::string& path);
         void SetSequence(const std::string& path, const std::string& sequenceFile);
 		RenderCacheItem* GetItem(Effect* effect, RenderBuffer* buffer);
         void RemoveItem(RenderCacheItem *item);
         std::string GetCacheFolder() const { return _cacheFolder; }
         void CleanupCache(SequenceElements* sequenceElements);
         void Purge(SequenceElements* sequenceElements, bool dodelete);
-        void Enable(std::string enabled) { _enabled = enabled; }
+        void Enable(std::string enabled) { 
+            _enabled = enabled; 
+        }
         std::mutex& GetLoadMutex() { return _loadMutex; }
         void AddCacheItem(RenderCacheItem* rci);
         bool IsEffectOkForCaching(Effect* effect) const;
-    
-    
         bool UseMMap() const;
+        void SetMaximumSizeMB(size_t mb);
 };

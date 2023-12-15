@@ -29,6 +29,8 @@ class xLightsFrame;
 class SequenceFileSettingsPanel: public wxPanel
 {
 	bool ValidateWindow();
+    size_t DecodeMaxRenderCache(const std::string& rcs);
+    const std::string EncodeMaxRenderCache(size_t rcs);
 
 	public:
 
@@ -44,6 +46,7 @@ class SequenceFileSettingsPanel: public wxPanel
 		wxCheckBox* FSEQSaveCheckBox;
 		wxCheckBox* RenderOnSaveCheckBox;
 		wxChoice* AutoSaveIntervalChoice;
+		wxChoice* Choice_MaximumRenderCache;
 		wxChoice* FSEQVersionChoice;
 		wxChoice* ModelBlendDefaultChoice;
 		wxChoice* RenderCacheChoice;
@@ -53,6 +56,7 @@ class SequenceFileSettingsPanel: public wxPanel
 		wxListBox* MediaDirectoryList;
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
 		//*)
         
         virtual bool TransferDataFromWindow() override;
@@ -71,6 +75,8 @@ class SequenceFileSettingsPanel: public wxPanel
 		static const long ID_CHOICE3;
 		static const long ID_CHECKBOX6;
 		static const long ID_DIRPICKERCTRL3;
+		static const long ID_STATICTEXT3;
+		static const long ID_CHOICE5;
 		static const long ID_CHECKBOX5;
 		static const long ID_DIRPICKERCTRL2;
 		static const long ID_LISTBOX_MEDIA;
@@ -102,6 +108,7 @@ class SequenceFileSettingsPanel: public wxPanel
 		void OnModelBlendDefaultChoiceSelect(wxCommandEvent& event);
 		void OnViewDefaultChoiceSelect(wxCommandEvent& event);
 		void OnCheckBox_LowDefinitionRenderClick(wxCommandEvent& event);
+		void OnChoice_MaximumRenderCacheSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
