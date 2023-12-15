@@ -599,7 +599,7 @@ void TreeModel::ExportAsCustomXModel3D() const
         data.push_back(layer);
     }
 
-    uint32_t i = 0;
+    int i = 1;
     for (auto& n : Nodes) {
         int xx = SCALE_FACTOR_3D * w * (n->Coords[0].screenX - minx) / w;
         int yy = (SCALE_FACTOR_3D * h) - (SCALE_FACTOR_3D * h * (n->Coords[0].screenY - miny) / h);
