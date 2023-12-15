@@ -11,7 +11,7 @@ public:
     TempFileManager()
     {}
     virtual ~TempFileManager();
-    static TempFileManager& TempFileManager::GetTempFileManager();
+    static TempFileManager& GetTempFileManager();
     void AddTempFile(const std::string& file);
     void CleanupTempFiles();
 };
