@@ -123,7 +123,7 @@ void RenderCache::EnforceMaximumSize()
         std::string name;
         wxDateTime modified;
 
-        bool operator<(const struct CACHE_ENTRY& ce)
+        bool operator<(const struct CACHE_ENTRY& ce) const
         {
             return modified < ce.modified;
         }
