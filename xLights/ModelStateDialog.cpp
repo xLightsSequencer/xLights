@@ -22,6 +22,7 @@
 #include "support/VectorMath.h"
 #include "models/CustomModel.h"
 #include "utils/string_utils.h"
+#include "xlColourData.h"
 
 #include <log4cpp/Category.hh>
 
@@ -77,8 +78,6 @@ BEGIN_EVENT_TABLE(ModelStateDialog,wxDialog)
 	//(*EventTable(ModelStateDialog)
 	//*)
 END_EVENT_TABLE()
-
-wxColourData ModelStateDialog::_colorData;
 
 enum {
     SINGLE_NODE_STATE = 0,
@@ -747,11 +746,9 @@ void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
     else if (event.GetCol() == COLOUR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL);
-        _colorData.SetColour(c);
-        wxColourDialog dlg(this, &_colorData);
-        if (dlg.ShowModal() == wxID_OK) {
-            _colorData = dlg.GetColourData();
-            NodeRangeGrid->SetCellBackgroundColour(event.GetRow(), COLOUR_COL, dlg.GetColourData().GetColour());
+        auto const& [res, color] = xlColourData::INSTANCE.ShowColorDialog(this, c);
+        if (res == wxID_OK) {
+            NodeRangeGrid->SetCellBackgroundColour(event.GetRow(), COLOUR_COL, color);
             NodeRangeGrid->Refresh();
             GetValue(NodeRangeGrid, event.GetRow(), event.GetCol(), stateData[name]);
         }
@@ -764,11 +761,9 @@ void ModelStateDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
     if (event.GetCol() == COLOUR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         wxColor c = SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL);
-        _colorData.SetColour(c);
-        wxColourDialog dlg(this, &_colorData);
-        if (dlg.ShowModal() == wxID_OK) {
-            _colorData = dlg.GetColourData();
-            SingleNodeGrid->SetCellBackgroundColour(event.GetRow(), COLOUR_COL, dlg.GetColourData().GetColour());
+        auto const& [res, color] = xlColourData::INSTANCE.ShowColorDialog(this, c);
+        if (res == wxID_OK) {
+            SingleNodeGrid->SetCellBackgroundColour(event.GetRow(), COLOUR_COL, color);
             SingleNodeGrid->Refresh();
             GetValue(SingleNodeGrid, event.GetRow(), event.GetCol(), stateData[name]);
         }

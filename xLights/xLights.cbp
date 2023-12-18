@@ -1608,6 +1608,8 @@
 		<Unit filename="xlColorPicker.h" />
 		<Unit filename="xlColorPickerFields.cpp" />
 		<Unit filename="xlColorPickerFields.h" />
+		<Unit filename="xlColourData.cpp" />
+		<Unit filename="xlColourData.h" />
 		<Unit filename="xlGridCanvas.cpp" />
 		<Unit filename="xlGridCanvas.h" />
 		<Unit filename="xlLockButton.cpp" />

@@ -25,6 +25,7 @@
 #include "xLightsApp.h"
 #include "ExternalHooks.h"
 #include "sequencer/MainSequencer.h"
+#include "xlColourData.h"
 
 #include <log4cpp/Category.hh>
 
@@ -40,8 +41,8 @@ EVT_PAINT(ColorCurvePanel::Paint)
 EVT_MOUSE_CAPTURE_LOST(ColorCurvePanel::mouseCaptureLost)
 END_EVENT_TABLE()
 
-ColorCurvePanel::ColorCurvePanel(ColorCurve* cc, Element* timingElement, int start, int end, wxColourData& colorData ,wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
-    : wxWindow(parent, id, pos, size, style, "ID_VCP"), xlCustomControl(), _colorData(colorData), _timingElement(timingElement)
+ColorCurvePanel::ColorCurvePanel(ColorCurve* cc, Element* timingElement, int start, int end ,wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
+    : wxWindow(parent, id, pos, size, style, "ID_VCP"), xlCustomControl(), _timingElement(timingElement)
 {
     _start = start;
     _end = end;
@@ -92,7 +93,7 @@ BEGIN_EVENT_TABLE(ColorCurveDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxColourData& colorData, wxWindowID id,const wxPoint& pos,const wxSize& size)
+ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _cc = cc;
 
@@ -170,7 +171,7 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxColourDat
 
     Element* timingElement = xLightsApp::GetFrame()->GetMainSequencer()->PanelEffectGrid->GetActiveTimingElement();
 
-    _ccp = new ColorCurvePanel(_cc, timingElement, start, end, colorData, this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
+    _ccp = new ColorCurvePanel(_cc, timingElement, start, end, this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
     _ccp->SetMinSize(wxSize(500, 80));
     _ccp->SetType(_cc->GetType());
     FlexGridSizer6->Add(_ccp, 1, wxALL | wxEXPAND, 2);
@@ -381,14 +382,10 @@ void ColorCurvePanel::mouseLeftDClick(wxMouseEvent& event)
     }
     ccSortableColorPoint* pt = _cc->GetPointAt(x);
 
-    _colorData.SetColour(pt->color.asWxColor());
-    wxColourDialog cdlg(this, &_colorData);
-
-    if (cdlg.ShowModal() == wxID_OK)
-    {
-        _colorData = cdlg.GetColourData();
+    auto const& [res, color] = xlColourData::INSTANCE.ShowColorDialog(this, pt->color.asWxColor());
+    if (res == wxID_OK) {
         SaveUndo(*pt, true);
-        _cc->SetValueAt(x, _colorData.GetColour());
+        _cc->SetValueAt(x, color);
     }
     Refresh();
     SetToolTip("");

@@ -39,7 +39,6 @@ class OutputManager;
 
 class ModelStateDialog : public wxDialog
 {
-    static wxColourData _colorData;
 
 public:
     ModelStateDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);

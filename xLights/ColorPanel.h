@@ -252,7 +252,6 @@ public:
         wxButton* GetPaletteButton(int idx);
         void OnColourChoiceDropDown(wxCommandEvent& event);
         void OnColourChoiceSelect(wxCommandEvent& event);
-        wxColourData colorData;
 
         std::vector<ColorCurveButton*> buttons;
         std::vector<wxCheckBox*> checkBoxes;

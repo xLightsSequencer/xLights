@@ -22,6 +22,7 @@
 #include "sequencer/SequenceElements.h"
 #include "xLightsMain.h"
 #include "models/Model.h"
+#include "xlColourData.h"
 
 //(*IdInit(LMSImportChannelMapDialog)
 const long LMSImportChannelMapDialog::ID_CHOICE1 = wxNewId();
@@ -41,7 +42,6 @@ BEGIN_EVENT_TABLE(LMSImportChannelMapDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-wxColourData LMSImportChannelMapDialog::_colorData;
 
 #ifndef wxEVT_GRID_CELL_CHANGE
 //until CodeBlocks is updated to wxWidgets 3.x
@@ -338,12 +338,10 @@ void LMSImportChannelMapDialog::OnChannelMapGridCellLeftDClick(wxGridEvent& even
 {
     if (event.GetCol() == 4) {
         wxColor c = ChannelMapGrid->GetCellBackgroundColour(event.GetRow(), 4);
-        _colorData.SetColour(c);
-        wxColourDialog dlg(this, &_colorData);
-        if (dlg.ShowModal() == wxID_OK)
+        auto const& [res, color] = xlColourData::INSTANCE.ShowColorDialog(this, c); 
+        if (res == wxID_OK)
         {
-            _colorData = dlg.GetColourData();
-            ChannelMapGrid->SetCellBackgroundColour(event.GetRow(), 4, dlg.GetColourData().GetColour());
+            ChannelMapGrid->SetCellBackgroundColour(event.GetRow(), 4, color);
             ChannelMapGrid->Refresh();
             _dirty = true;
         }

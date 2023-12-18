@@ -113,6 +113,7 @@
 #include "sequencer/MainSequencer.h"
 #include "utils/ip_utils.h"
 #include "TempFileManager.h"
+#include "xlColourData.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -1512,6 +1513,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
                       config->GetStyle(),
                       (const char*)config->GetVendorName().c_str());
 
+    xlColourData::INSTANCE.Load(config);
     config->Read("xLightsPlayControlsOnPreview", &_playControlsOnPreview, false);
     logger_base.debug("Play Controls On Preview: %s.", toStr(_playControlsOnPreview));
 
@@ -2084,6 +2086,8 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsControllerSash", SplitterWindowControllers->GetSashPosition());
 
     SaveDockable();
+
+    xlColourData::INSTANCE.Save(config);
 
     // definitely not outputting data anymore
     config->Write("OutputActive", false);

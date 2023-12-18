@@ -69,6 +69,7 @@
 #include "ModelStateDialog.h"
 #include "CustomModelDialog.h"
 #include "SubModelsDialog.h"
+#include "xlColourData.h"
 
 #include "LayoutUtils.h"
 
@@ -2047,14 +2048,9 @@ void LayoutPanel::BulkEditTagColour()
         }
     }
 
-    wxColourData colorData;
-    colorData.SetColour(colour);
-    wxColourDialog dialog(this, &colorData);
-    OptimiseDialogPosition(&dialog);
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        colorData = dialog.GetColourData();
-        colour = colorData.GetColour();
+    auto const& [res, color] = xlColourData::INSTANCE.ShowColorDialog(this, colour);
+    if (res == wxID_OK) {
+        colour = color;
 
         for (Model* model: modelsToEdit) {
             model->SetTagColour(colour);

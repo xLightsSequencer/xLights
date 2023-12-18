@@ -31,6 +31,7 @@
 #include "../../xSchedule/wxJSON/jsonreader.h"
 #include "../../xSchedule/wxJSON/jsonwriter.h"
 #include <algorithm>
+#include "xlColourData.h"
 
 #include <log4cpp/Category.hh>
 
@@ -103,7 +104,6 @@ public:
 
 class ColorRenderer : public wxDataViewCustomRenderer
 {
-    static wxColourData _colorData;
     wxColor _color;
 
 public:
@@ -114,12 +114,9 @@ public:
 
     virtual bool ActivateCell(const wxRect &cell, wxDataViewModel *model, const wxDataViewItem &item, unsigned int col, const wxMouseEvent *mouseEvent) override
     {
-        _colorData.SetColour(_color);
-        wxColourDialog dlg(GetOwner()->GetOwner()->GetParent(), &_colorData);
-
-        if (dlg.ShowModal() == wxID_OK) {
-            _colorData = dlg.GetColourData();
-            _color = dlg.GetColourData().GetColour();
+        auto const& [res, newcolor] = xlColourData::INSTANCE.ShowColorDialog(GetOwner()->GetOwner()->GetParent(), _color);
+        if (res == wxID_OK) {
+            _color = newcolor;
             model->SetValue(wxVariant(_color.GetAsString()), item, col);
         }
 
@@ -159,7 +156,7 @@ public:
     }
 };
 
-wxColourData ColorRenderer::_colorData;
+//wxColourData ColorRenderer::_colorData;
 
 xLightsImportTreeModel::xLightsImportTreeModel()
 {
