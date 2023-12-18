@@ -723,8 +723,7 @@ std::map<int, std::list<std::pair<float, float>>> PianoEffect::LoadTimingTrack(c
                 }
             }
 
-            // std::eraseif
-            std::remove_if(tracker.begin(), tracker.end(), [](std::tuple<int, int, int> t) { return std::get<0>(t) == -1; });
+            tracker.erase(std::remove_if(tracker.begin(), tracker.end(), [](std::tuple<int, int, int> t) { return std::get<0>(t) == -1; }), tracker.end());
         }
 
         // clean up anything left in the tracker
