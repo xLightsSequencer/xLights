@@ -65,6 +65,7 @@ public:
 	wxBitmapButton* ButtonMoveDown;
 	wxBitmapButton* ButtonMoveUp;
 	wxBitmapButton* ButtonRemoveModel;
+	wxButton* ButtonAliases;
 	wxButton* ButtonClearFilter;
 	wxCheckBox* CheckBox_ShowInactiveModels;
 	wxCheckBox* CheckBox_ShowModelGroups;
@@ -113,6 +114,7 @@ protected:
 	static const long ID_SPINCTRL3;
 	static const long ID_STATICTEXT8;
 	static const long ID_COLOURPICKERCTRL_MG_TAGCOLOUR;
+	static const long ID_BUTTON2;
 	static const long ID_CHECKBOX1;
 	static const long ID_CHECKBOX3;
 	static const long ID_CHECKBOX2;
@@ -169,6 +171,7 @@ private:
 	void OnCheckBox_ShowOnlyModelsInCurrentViewClick(wxCommandEvent& event);
 	void OnColourPickerCtrl_ModelGroupTagColourColourChanged(wxColourPickerEvent& event);
 	void OnChoice_DefaultCameraSelect(wxCommandEvent& event);
+	void OnButtonAliasesClick(wxCommandEvent& event);
 	//*)
 
 	DECLARE_EVENT_TABLE()

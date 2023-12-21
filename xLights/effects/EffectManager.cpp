@@ -11,6 +11,7 @@
 #include "EffectManager.h"
 #include "OffEffect.h"
 #include "OnEffect.h"
+#include "AdjustEffect.h"
 #include "BarsEffect.h"
 #include "ButterflyEffect.h"
 #include "CandleEffect.h"
@@ -81,6 +82,7 @@ EffectManager::EffectManager()
 {
     add(createEffect(eff_OFF));
     add(createEffect(eff_ON));
+    add(createEffect(eff_ADJUST));
     add(createEffect(eff_BARS));
     add(createEffect(eff_BUTTERFLY));
     add(createEffect(eff_CANDLE));
@@ -153,7 +155,10 @@ RenderableEffect *EffectManager::createEffect(RGB_EFFECTS_e eff) {
     switch (eff) {
         case eff_OFF: return new OffEffect(eff_OFF);
         case eff_ON: return new OnEffect(eff_ON);
-        case eff_BARS: return new BarsEffect(eff_BARS);
+        case eff_ADJUST:
+        return new AdjustEffect(eff_ADJUST);
+        case eff_BARS:
+        return new BarsEffect(eff_BARS);
         case eff_BUTTERFLY: return new ButterflyEffect(eff_BUTTERFLY);
         case eff_CANDLE: return new CandleEffect(eff_CANDLE);
         case eff_CIRCLES: return new CirclesEffect(eff_CIRCLES);

@@ -28,8 +28,6 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
-CachedFileDownloader VendorModelDialog::_cache;
-
 class MModel;
 
 class MModelWiring
@@ -800,9 +798,6 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
 
     SetSize(800, 600);
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("File cache size: %d", _cache.size());
-
     PopulateModelPanel((MModel*)nullptr);
     PopulateVendorPanel(nullptr);
 
@@ -1038,10 +1033,9 @@ VendorModelDialog::~VendorModelDialog()
 	//(*Destroy(VendorModelDialog)
 	//*)
 
-    _cache.Save();
+    GetCache().Save();
 
-    for (const auto& it : _vendors)
-    {
+    for (const auto& it : _vendors) {
         delete it;
     }
 }

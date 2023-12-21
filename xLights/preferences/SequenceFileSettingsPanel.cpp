@@ -37,6 +37,8 @@ const long SequenceFileSettingsPanel::ID_CHOICE2 = wxNewId();
 const long SequenceFileSettingsPanel::ID_CHOICE3 = wxNewId();
 const long SequenceFileSettingsPanel::ID_CHECKBOX6 = wxNewId();
 const long SequenceFileSettingsPanel::ID_DIRPICKERCTRL3 = wxNewId();
+const long SequenceFileSettingsPanel::ID_STATICTEXT3 = wxNewId();
+const long SequenceFileSettingsPanel::ID_CHOICE5 = wxNewId();
 const long SequenceFileSettingsPanel::ID_CHECKBOX5 = wxNewId();
 const long SequenceFileSettingsPanel::ID_DIRPICKERCTRL2 = wxNewId();
 const long SequenceFileSettingsPanel::ID_LISTBOX_MEDIA = wxNewId();
@@ -56,6 +58,7 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	//(*Initialize(SequenceFileSettingsPanel)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxGridBagSizer* GridBagSizer1;
 	wxStaticBoxSizer* StaticBoxSizer1;
 	wxStaticBoxSizer* StaticBoxSizer2;
@@ -108,12 +111,31 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	FSEQVersionChoice->Append(_("V2 ZSTD/sparse"));
 	GridBagSizer1->Add(FSEQVersionChoice, wxGBPosition(8, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Render Cache Directory"));
+	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer3->AddGrowableCol(1);
 	CheckBox_RenderCache = new wxCheckBox(this, ID_CHECKBOX6, _("Use Show Folder"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
 	CheckBox_RenderCache->SetValue(false);
-	StaticBoxSizer3->Add(CheckBox_RenderCache, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(CheckBox_RenderCache, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	DirPickerCtrl_RenderCache = new wxDirPickerCtrl(this, ID_DIRPICKERCTRL3, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(400,-1), wxDIRP_DIR_MUST_EXIST|wxDIRP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_DIRPICKERCTRL3"));
-	StaticBoxSizer3->Add(DirPickerCtrl_RenderCache, 1, wxALL|wxEXPAND, 5);
-	GridBagSizer1->Add(StaticBoxSizer3, wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(DirPickerCtrl_RenderCache, 1, wxALL|wxEXPAND, 5);
+	StaticText6 = new wxStaticText(this, ID_STATICTEXT3, _("Maximum Render Cache Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer3->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_MaximumRenderCache = new wxChoice(this, ID_CHOICE5, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE5"));
+	Choice_MaximumRenderCache->SetSelection( Choice_MaximumRenderCache->Append(_("Unlimited")) );
+	Choice_MaximumRenderCache->Append(_("100 MB"));
+	Choice_MaximumRenderCache->Append(_("200 MB"));
+	Choice_MaximumRenderCache->Append(_("500 MB"));
+	Choice_MaximumRenderCache->Append(_("1 GB"));
+	Choice_MaximumRenderCache->Append(_("3 GB"));
+	Choice_MaximumRenderCache->Append(_("5 GB"));
+	Choice_MaximumRenderCache->Append(_("10 GB"));
+	Choice_MaximumRenderCache->Append(_("20 GB"));
+	Choice_MaximumRenderCache->Append(_("50 GB"));
+	Choice_MaximumRenderCache->Append(_("100 GB"));
+	Choice_MaximumRenderCache->Append(_("200 GB"));
+	FlexGridSizer3->Add(Choice_MaximumRenderCache, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	StaticBoxSizer3->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
+	GridBagSizer1->Add(StaticBoxSizer3, wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL|wxEXPAND, 5);
 	StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("FSEQ Directory"));
 	CheckBox_FSEQ = new wxCheckBox(this, ID_CHECKBOX5, _("Use Show Folder"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
 	CheckBox_FSEQ->SetValue(false);
@@ -153,6 +175,7 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnFSEQVersionChoiceSelect);
 	Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnCheckBox_RenderCacheClick);
 	Connect(ID_DIRPICKERCTRL3,wxEVT_COMMAND_DIRPICKER_CHANGED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnDirPickerCtrl_RenderCacheDirChanged);
+	Connect(ID_CHOICE5,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnChoice_MaximumRenderCacheSelect);
 	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnCheckBox_FSEQClick);
 	Connect(ID_DIRPICKERCTRL2,wxEVT_COMMAND_DIRPICKER_CHANGED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnDirPickerCtrl_FSEQDirChanged);
 	Connect(ID_LISTBOX_MEDIA,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&SequenceFileSettingsPanel::OnMediaDirectoryListSelect);
@@ -217,9 +240,69 @@ bool SequenceFileSettingsPanel::TransferDataFromWindow() {
     frame->SetRenderCacheFolder(CheckBox_RenderCache->GetValue(), DirPickerCtrl_RenderCache->GetPath());
 
     frame->SetDefaultSeqView(ViewDefaultChoice->GetStringSelection());
+    frame->SetRenderCacheMaximumSizeMB(DecodeMaxRenderCache(Choice_MaximumRenderCache->GetStringSelection()));
 
     return true;
 }
+
+size_t SequenceFileSettingsPanel::DecodeMaxRenderCache(const std::string& rcs)
+{
+    if (rcs == "Unlimited")
+        return 0;
+    if (rcs == "100 MB")
+        return 100;
+    if (rcs == "200 MB")
+        return 200;
+    if (rcs == "500 MB")
+        return 500;
+    if (rcs == "1 GB")
+        return 1 * 1024;
+    if (rcs == "3 GB")
+        return 3 * 1024;
+    if (rcs == "5 GB")
+        return 5 * 1024;
+    if (rcs == "10 GB")
+        return 10 * 1024;
+    if (rcs == "20 GB")
+        return 20 * 1024;
+    if (rcs == "50 GB")
+        return 50 * 1024;
+    if (rcs == "100 GB")
+        return 100 * 1024;
+    if (rcs == "200 GB")
+        return 200 * 1024;
+    return 0;
+}
+
+const std::string SequenceFileSettingsPanel::EncodeMaxRenderCache(size_t rcs)
+{
+    if (rcs == 0)
+        return "Unlimited";
+    if (rcs < 150)
+        return "100 MB";
+    if (rcs < 350)
+        return "200 MB";
+    if (rcs < 750)
+        return "500 MB";
+    if (rcs < 2 * 1024)
+        return "1 GB";
+    if (rcs < 4 * 1024)
+        return "3 GB";
+    if (rcs < 7.5f * 1024)
+        return "5 GB";
+    if (rcs < 15 * 1024)
+        return "10 GB";
+    if (rcs < 35 * 1024)
+        return "20 GB";
+    if (rcs < 75 * 1024)
+        return "50 GB";
+    if (rcs < 150 * 1024)
+        return "100 GB";
+    if (rcs < 300 * 1024)
+        return "200 GB";
+    return "Unlimited";
+}
+
 bool SequenceFileSettingsPanel::TransferDataToWindow() {
     FSEQVersionChoice->SetSelection(frame->SaveFSEQVersion() - 1);
     wxString rc = frame->EnableRenderCache();
@@ -229,6 +312,7 @@ bool SequenceFileSettingsPanel::TransferDataToWindow() {
     RenderCacheChoice->SetStringSelection(rc);
     FSEQSaveCheckBox->SetValue(frame->SaveFseqOnSave());
     RenderOnSaveCheckBox->SetValue(frame->RenderOnSave());
+    
     ModelBlendDefaultChoice->SetSelection(frame->ModelBlendDefaultOff());
     switch (frame->AutoSaveInterval()) {
         case 30:
@@ -273,6 +357,7 @@ bool SequenceFileSettingsPanel::TransferDataToWindow() {
     CheckBox_RenderCache->SetValue(cb);
     DirPickerCtrl_RenderCache->SetPath(folder);
     CheckBox_LowDefinitionRender->SetValue(frame->IsLowDefinitionRender());
+    Choice_MaximumRenderCache->SetStringSelection(EncodeMaxRenderCache(frame->RenderCacheMaximumSizeMB()));
 
     ViewDefaultChoice->Clear();
     ViewDefaultChoice->Append(wxString());
@@ -440,6 +525,13 @@ void SequenceFileSettingsPanel::OnViewDefaultChoiceSelect(wxCommandEvent& event)
 }
 
 void SequenceFileSettingsPanel::OnCheckBox_LowDefinitionRenderClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void SequenceFileSettingsPanel::OnChoice_MaximumRenderCacheSelect(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

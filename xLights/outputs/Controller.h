@@ -65,6 +65,7 @@ protected:
     std::string _model;                      // the model of the controller
     std::string _variant;                    // the variant of the controller
     bool _suppressDuplicateFrames = false;   // should we suppress duplicate fromes
+    bool _monitor = true;                    // should FPP/player monitor this output (Ping) for connectivity
     Output::PINGSTATE _lastPingResult = Output::PINGSTATE::PING_UNKNOWN; // last ping result
     bool _tempDisable = false;
     bool _fromBase = false;
@@ -182,6 +183,9 @@ public:
     bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
     void SetSuppressDuplicateFrames(bool suppress);
 
+    bool IsMonitoring() const { return _monitor; }
+    void SetMonitoring(bool monitor);
+
     void SetGlobalFPPProxy(const std::string& globalFPPProxy);
 
     Output::PINGSTATE GetLastPingState() const { return _lastPingResult; }
@@ -256,7 +260,7 @@ public:
     virtual bool SupportsDefaultGamma() const { return false; }
 
     virtual std::string GetIP() const { return GetResolvedIP(); }
-    virtual std::string GetResolvedIP() const { return ""; }
+    virtual std::string GetResolvedIP(bool forceResolve = false) const { return ""; }
     virtual std::string GetFPPProxy() const { return ""; }
     virtual std::string GetProtocol() const { return ""; }
 

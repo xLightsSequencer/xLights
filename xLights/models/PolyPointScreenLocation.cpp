@@ -1948,7 +1948,11 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
         }
         else {
             auto o = name.find(" ", 12);
+            wxASSERT(o != std::string::npos);
+
             selected_handle = wxAtoi(name.substr(12, o - 12)) - 1;
+
+            wxASSERT(selected_handle + 1 < mPos.size());
 
             float oldLen = 0.0f;
             oldLen = RulerObject::UnMeasure(RulerObject::Measure(mPos[selected_handle].AsVector(), mPos[selected_handle + 1].AsVector()));
@@ -1958,11 +1962,19 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
             float dy = (mPos[selected_handle + 1].y - mPos[selected_handle].y) * len / oldLen - (mPos[selected_handle + 1].y - mPos[selected_handle].y);
             float dz = (mPos[selected_handle + 1].z - mPos[selected_handle].z) * len / oldLen - (mPos[selected_handle + 1].z - mPos[selected_handle].z);
 
+            // if this resulted in a divide by zero then set it to one ... setting it to zero leaves you stuck unable to change it further ... this will be weird but fixable
+            if (isnan(dx))
+                dx = 1.0f;
+            if (isnan(dy))
+                dy = 1.0f;
+            if (isnan(dz))
+                dz = 1.0f;
+
             for (auto i = selected_handle + 1; i < mPos.size(); i++) {
-                mPos[i].x += dx;
-                mPos[i].y += dy;
-                mPos[i].z += dz;
-            }
+                    mPos[i].x += dx;
+                    mPos[i].y += dy;
+                    mPos[i].z += dz;
+                }
 
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
             AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");

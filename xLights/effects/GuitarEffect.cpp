@@ -50,7 +50,7 @@ public:
     {
         int zeroCount = 0;
         int total = 0;
-        for (auto v : _fingerPos) {
+        for (auto const& v : _fingerPos) {
             total += v.second;
             if (v.second == 0)
                 ++zeroCount;
@@ -67,7 +67,7 @@ public:
         int min = -1;
         int max = -1;
 
-        for (auto v : _fingerPos) {
+        for (auto const& v : _fingerPos) {
             // we ignore zero as it requires no fingers
             if (v.second != 0) {
                 if (min == -1 || v.second < min)
@@ -439,7 +439,7 @@ public:
             if (it._notes.size() == _notes.size()) {
                 if (listsMatch(it._notes, _notes)) {
                     auto t = new GuitarTiming(_startMS, _endMS);
-                    for (auto it2 : it._guitarTiming) {
+                    for (auto const& it2 : it._guitarTiming) {
                         t->AddFingerPos(it2.first, it2.second);
                     }
                     _possibleTimings.push_back(t);

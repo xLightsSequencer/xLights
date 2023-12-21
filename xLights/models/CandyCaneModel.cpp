@@ -112,10 +112,8 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "ArchesModel::OnPropertyGridChange::CandyCaneCount");
-        if (ModelXml->GetAttribute("Advanced", "0") == "1") {
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        }
+        AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
         return 0;
     } else if ("CandyCaneNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
@@ -211,21 +209,22 @@ bool CandyCaneModel::IsNodeFirst(int n) const
     return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - parm2);
 }
 
+// Canes are 3 high per width of each indivudual cane, then multiply by 2 because standard ThreePointLocation applies a / 2 for heights
 std::string CandyCaneModel::GetDimension() const
 {
     if (parm1 != 0) {
-        return GetModelScreenLocation().GetDimension(3.0 / parm1);
+        return GetModelScreenLocation().GetDimension(6.0 / parm1);
     }
-    return GetModelScreenLocation().GetDimension(1.0);
+    return GetModelScreenLocation().GetDimension(6.0);
 }
 
 void CandyCaneModel::AddDimensionProperties(wxPropertyGridInterface* grid)
 {
     if (parm1 != 0) {
-        GetModelScreenLocation().AddDimensionProperties(grid, 3.0 / parm1);
+        GetModelScreenLocation().AddDimensionProperties(grid, 6.0 / parm1);
     }
     else {
-        GetModelScreenLocation().AddDimensionProperties(grid, 1.0);
+        GetModelScreenLocation().AddDimensionProperties(grid, 6.0);
     }
 }
 

@@ -12,6 +12,7 @@
 
 #include <wx/filename.h>
 #include <wx/timer.h>
+#include <wx/colourdata.h>
 
 //(*Headers(ModelFaceDialog)
 #include <wx/button.h>
@@ -43,7 +44,6 @@ class OutputManager;
 class ModelFaceDialog : public wxDialog
 {
     const std::list<std::string> _phonemes = { "AI", "E", "etc", "FV", "L", "MBP", "O", "rest", "U", "WQ" };
-    static wxColourData _colorData;
 
     void PaintFace(wxDC& dc, int x, int y, const char* xpm[]);
     void DoSetPhonemes(wxFileName fn, std::string actualkey, std::string key, int count, int row, int col, std::string name, std::list<std::string> phonemes, std::string setPhoneme);

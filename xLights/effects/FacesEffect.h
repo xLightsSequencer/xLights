@@ -41,17 +41,19 @@ protected:
     virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 
 private:
+    const std::map<std::string, int> eyeBlinkMap;
     void mouth(RenderBuffer& buffer, int Phoneme, int BufferHt, int BufferWt, bool shimmer);
     void drawline1(RenderBuffer& buffer, int Phoneme, int x1, int x2, int y1, int y2, int colorIdx);
-    void drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, const std::string& eyes, int BufferHt, int BufferWi);
+    void drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, const std::string& eyes, const std::string& eyeBlinkFreq, int BufferHt, int BufferWi);
     void facesCircle(RenderBuffer& buffer, int Phoneme, int xc, int yc, double radius, int start_degrees, int end_degrees, int colorIdx);
     void drawline3(RenderBuffer& buffer, int Phoneme, int x1, int x2, int y6, int y7, int colorIdx);
 
-    void RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, uint8_t alpha, bool suppressShimmer);
-    void RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, uint8_t alpha, bool suppressShimmer);
+    void RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, const std::string& eyeBlinkFreq, bool face_outline, uint8_t alpha, bool suppressShimmer);
+    void RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, const std::string& eyeBlinkFreq, bool face_outline, uint8_t alpha, bool suppressShimmer);
     void RenderFaces(RenderBuffer& buffer, SequenceElements* elements, const std::string& faceDefintion,
-                     const std::string& Phoneme, const std::string& track, const std::string& eyes, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState, bool suppressShimmer);
+                     const std::string& Phoneme, const std::string& track, const std::string& eyes, const std::string& eyeBlinkFreq, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState, bool suppressShimmer);
     std::string MakeKey(int bufferWi, int bufferHt, std::string dirstr, std::string picture, std::string stf);
     uint8_t CalculateAlpha(SequenceElements* elements, int leadFrames, bool fade, const std::string& timingTrack, RenderBuffer& buffer);
     bool ShimmerState(RenderBuffer& buffer) const;
+    int GetMaxEyeDelay( std::string& eyeBlinkFreq ) const;
 };

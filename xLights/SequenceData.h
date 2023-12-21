@@ -46,19 +46,23 @@ public:
         void Zero() {
             memset(_data, 0x00, _numChannels);
         }
+
         void Zero(unsigned int start, unsigned int count) {
+            if (_data == nullptr) return;
             if (start < 0) return;
             if (count < 1) return;
             if (start + count > _numChannels) return;
             memset(&_data[start], 0x00, count);
         }
         
-        unsigned char &operator[](unsigned int channel) {
+        [[nodiscard]] unsigned char& operator[](unsigned int channel)
+        {
             wxASSERT(_zero == 0);
             return channel < _numChannels ? _data[channel] : _zero;
         }
         
-        const unsigned char *operator[](unsigned int channel) const {
+        [[nodiscard]] const unsigned char* operator[](unsigned int channel) const
+        {
             const unsigned char* cdata = _data;
             return channel < _numChannels ? &cdata[channel] : &_constzero;
         }
@@ -106,24 +110,38 @@ public:
     unsigned int TotalTime() const { return _numFrames * _frameTime; }
     bool OK(unsigned int frame, unsigned int channel) const { return frame < _numFrames && channel < _numChannels; }
     
-    FrameData &operator[](unsigned int frame) {
+    [[nodiscard]] FrameData& operator[](unsigned int frame)
+    {
         if (frame >= _numFrames) {
             return _invalidFrame;
         }
         return _frames[frame];
     }
-    const FrameData &operator[](unsigned int frame) const {
+    [[nodiscard]] const FrameData& operator[](unsigned int frame) const
+    {
         if (frame >= _numFrames) {
             return _invalidFrame;
         }
         return _frames[frame];
     }
     
-    unsigned int NumChannels() const { return _numChannels;}
-    unsigned int NumFrames() const { return _numFrames;}
-    unsigned int FrameTime() const { return _frameTime;}
-    bool IsValidData() const { return !_dataBlocks.empty(); }
+    [[nodiscard]] unsigned int NumChannels() const
+    {
+        return _numChannels;
+    }
+    [[nodiscard]] unsigned int NumFrames() const
+    {
+        return _numFrames;
+    }
+    [[nodiscard]] unsigned int FrameTime() const
+    {
+        return _frameTime;
+    }
+    [[nodiscard]] bool IsValidData() const
+    {
+        return !_dataBlocks.empty();
+    }
 
     // encodes contents of SeqData in channel order
-    wxString base64_encode();
+    [[nodiscard]] wxString base64_encode();
 };

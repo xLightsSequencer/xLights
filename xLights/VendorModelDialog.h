@@ -46,7 +46,6 @@ class VendorModelDialog: public wxDialog
     int _currImage = -1;
     wxImage _vendorImage;
     wxImage _modelImage;
-    static CachedFileDownloader _cache;
 
     wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const;
     bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
@@ -70,7 +69,7 @@ class VendorModelDialog: public wxDialog
         std::string GetModelFile() const { return _modelFile; }
         bool DlgInit(wxProgressDialog* prog, int low, int high);
         bool FindModelFile(const std::string &vendor, const std::string &model);
-        static CachedFileDownloader& GetCache() { return _cache; }
+        static CachedFileDownloader& GetCache() { return CachedFileDownloader::GetDefaultCache(); }
 
 		//(*Declarations(VendorModelDialog)
 		wxButton* Button_InsertModel;

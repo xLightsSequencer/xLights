@@ -37,8 +37,7 @@
 
 #include <log4cpp/Category.hh>
 
-
-#define DO_LOG_GL_MSG(a, ...) static_logger_opengl->debug(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
+#define DO_LOG_GL_MSG(a, ...) static_logger_opengl->error(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
 
 static bool isDebugEnabled = false;
 static bool isTraceDebugEnabled = false;
@@ -51,6 +50,18 @@ void DrawGLUtils::SetupDebugLogging() {
         isTraceDebugEnabled = static_logger_opengl_trace->isDebugEnabled();
         isDebugEnabled = static_logger_opengl->isDebugEnabled() | isTraceDebugEnabled;
     }
+}
+
+void DrawGLUtils::DoLogGLError(const char* file, int line, const char* msg)
+{
+    const char* f2 = file + strlen(file);
+    while (f2 > file && *f2 != '\\' && *f2 != '/') {
+        f2--;
+    }
+    if (*f2 == '\\' || *f2 == '/') {
+        f2++;
+    }
+    static_logger_opengl_trace->debug("%s/%d - %s", f2, line, msg);
 }
 
 void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {

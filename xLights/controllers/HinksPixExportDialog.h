@@ -117,8 +117,6 @@ private:
     //(*Handlers(HinksPixExportDialog)
     void OnClose(wxCloseEvent& event);
     void SequenceListPopup(wxListEvent& event);
-    void OnChoiceFolderSelect(wxCommandEvent& event);
-    void OnChoiceFilterSelect(wxCommandEvent& event);
     void OnAddRefreshButtonClick(wxCommandEvent& event);
     void OnButton_ExportClick(wxCommandEvent& event);
     void OnBitmapButtonMoveDownClick(wxCommandEvent& event);

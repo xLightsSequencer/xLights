@@ -145,8 +145,7 @@ bool ModelManager::Rename(const std::string& oldName, const std::string& newName
     if (model == nullptr || model->GetDisplayAs() == "SubModel") {
         return false;
     }
-    model->GetModelXml()->DeleteAttribute("name");
-    model->GetModelXml()->AddAttribute("name", nn);
+    model->Rename(nn);
     model->name = nn;
     if (dynamic_cast<SubModel*>(model) == nullptr) {
         std::lock_guard<std::recursive_mutex> lock(_modelMutex);
@@ -1506,6 +1505,33 @@ void ModelManager::AddModel(Model* model)
         }
     }
 }
+void ModelManager::ReplaceModel(const std::string &name, Model* nm) {
+    if (nm != nullptr && name != "") {
+        std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
+        Model *oldm = models[name];
+        models[nm->name] = nm;
+        ResetModelGroups();
+
+        if ("ModelGroup" == nm->GetDisplayAs()) {
+            if (nm->GetModelXml()->GetParent() != groupNode) {
+                if (nm->GetModelXml()->GetParent() != nullptr) {
+                    nm->GetModelXml()->GetParent()->RemoveChild(nm->GetModelXml());
+                }
+                groupNode->AddChild(nm->GetModelXml());
+            }
+        } else {
+            if (nm->GetModelXml()->GetParent() != modelNode) {
+                if (nm->GetModelXml()->GetParent() != nullptr) {
+                    nm->GetModelXml()->GetParent()->RemoveChild(nm->GetModelXml());
+                }
+                modelNode->AddChild(nm->GetModelXml());
+            }
+        }
+        oldm->GetModelXml()->GetParent()->RemoveChild(oldm->GetModelXml());
+        delete oldm->GetModelXml();
+        delete oldm;
+    }
+}
 
 Model* ModelManager::createAndAddModel(wxXmlNode* node, int previewW, int previewH)
 {
@@ -1678,10 +1704,8 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                 createAndAddModel(new wxXmlNode(*m), xlights->modelPreview->getWidth(), xlights->modelPreview->getHeight());
                 logger_base.debug("Adding model from base show folder: '%s'.", (const char*)name.c_str());
             } else {
-
                 bool force = false;
-                if (prompt && !curr->IsFromBase())
-                {
+                if (prompt && !curr->IsFromBase()) {
                     force = wxMessageBox(wxString::Format("Model %s found that clashes with base show directory. Do you want to take the base show directory version?", name), "Model clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES;
                 }
 
@@ -1690,8 +1714,8 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                     if (force || curr->IsXmlChanged(m)) {
                         m->AddAttribute("FromBase", "1");
                         changed = true;
-                        Delete(name);
-                        createAndAddModel(new wxXmlNode(*m), xlights->modelPreview->getWidth(), xlights->modelPreview->getHeight());
+                        Model  *newm = CreateModel(new wxXmlNode(*m));
+                        ReplaceModel(name, newm);
                         logger_base.debug("Updating model from base show folder: '%s'.", (const char*)name.c_str());
                     }
                 } else {
@@ -1739,9 +1763,9 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                         if (force || curr->IsXmlChanged(m)) {
                             m->AddAttribute("FromBase", "1");
                             m->AddAttribute("BaseModels", models1); // keep a copy of the models from the base show folder as we may want to prevent these being removed
-                            changed = true;
-                            Delete(name);
-                            createAndAddModel(new wxXmlNode(*m), xlights->modelPreview->getWidth(), xlights->modelPreview->getHeight());
+                            changed = true;                            
+                            Model  *newm = CreateModel(new wxXmlNode(*m));
+                            ReplaceModel(name, newm);
                             logger_base.debug("Updating model group from base show folder: '%s'.", (const char*)name.c_str());
                         }
                     }

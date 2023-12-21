@@ -78,6 +78,9 @@ class AlphaPix : public BaseController
             return 2;
         return 0;
     }
+
+    std::string APGetURL(const std::string& url) const;
+    std::string APPutURL(const std::string& url, const std::string& request) const;
     #pragma endregion
 
     #pragma region Private Static Functions
@@ -98,11 +101,22 @@ public:
     AlphaPix(const std::string& ip, const std::string &fppProxy);
     virtual ~AlphaPix();
     #pragma endregion
+
+#pragma region Static Functions
+    static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data)
+    {
+        if (data == nullptr)
+            return 0;
+        data->append((char*)ptr, size * nmemb);
+        return size * nmemb;
+    }
+#pragma endregion
     
     #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
+    virtual bool needsHTTP_0_9() const override { return true; }
     #pragma endregion
 };

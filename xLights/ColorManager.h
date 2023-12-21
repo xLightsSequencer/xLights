@@ -139,7 +139,7 @@ class ColorManager
             { ColorManager::ColorNames::COLOR_MODEL_OVERLAP, "ModelOverlap", "Model Overlap", xlRED, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB },
             { ColorManager::ColorNames::COLOR_LAYOUT_DASHES, "LayoutDashes", "Dashed Select", xlYELLOW, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB },
             { ColorManager::ColorNames::COLOR_EFFECT_SELECTED_FIXED, "EffectSelectedFixed", "Fixed Timings", xlColor(255, 128, 0), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
-            { ColorManager::ColorNames::COLOR_EFFECT_SELECTED_LOCKED, "EffectSelectedLocked", "Selected Locked Effects", xlColor(200, 0, 64), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
+            { ColorManager::ColorNames::COLOR_EFFECT_SELECTED_LOCKED, "EffectSelectedLocked", "Selected Locked Effects", xlColor(200, 128, 152), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
             { ColorManager::ColorNames::COLOR_REFERENCE_EFFECT_LOCKED, "ReferenceEffectLocked", "Locked Reference Effect", xlColor(255, 0, 127), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
             { ColorManager::ColorNames::COLOR_WAVEFORM, "Waveform", "Waveform", xlColor(130, 178, 207), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
             { ColorManager::ColorNames::COLOR_WAVEFORM_BACKGROUND, "WaveformBackground", "Waveform Background", xlColor(212, 208, 200), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID, wxSYS_COLOUR_BTNFACE },

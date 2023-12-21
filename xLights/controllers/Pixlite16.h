@@ -123,6 +123,7 @@ protected:
 
     static void CreateDiscovery(uint8_t* buffer);
     bool GetConfig();
+    bool GetConfig(wxIPV4address localAddr, std::string ip, const std::string& desiredip);
 
     bool SendConfig(bool logresult = false) const;
     bool SendMk3Config(bool logresult = false) const;

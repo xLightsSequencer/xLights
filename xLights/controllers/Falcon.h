@@ -101,7 +101,8 @@ class Falcon : public BaseController
     bool V4_ValidateWAV(const std::string& media);
 
 #ifndef DISCOVERYONLY
-    bool V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error, bool oneBased, uint32_t firstControllerChannel);
+    int V4_GetBrightness(int port, int sr, int defaultBrightness, const std::vector<FALCON_V4_STRING>& falconStrings);
+    bool V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error, bool oneBased, uint32_t firstControllerChannel, bool fullcontrol);
     void V4_MakeStringsValid(Controller* controlle, UDController& cud, std::vector<FALCON_V4_STRING>& falconStrings, int addressingMode);
 #endif
 

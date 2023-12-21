@@ -213,6 +213,8 @@
 					<Add option="-rdynamic" />
 					<Add option="-lz" />
 					<Add option="-lzstd" />
+					<Add option="-lwebp" />
+					<Add option="-lwebpdemux" />
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
 					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
@@ -266,6 +268,8 @@
 					<Add option="-rdynamic" />
 					<Add option="-lz" />
 					<Add option="-lzstd" />
+					<Add option="-lwebp" />
+					<Add option="-lwebpdemux" />
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
 					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
@@ -533,6 +537,8 @@
 		<Unit filename="DragValueCurveBitmapButton.h" />
 		<Unit filename="DuplicateDialog.cpp" />
 		<Unit filename="DuplicateDialog.h" />
+		<Unit filename="EditAliasesDialog.cpp" />
+		<Unit filename="EditAliasesDialog.h" />
 		<Unit filename="EffectAssist.cpp" />
 		<Unit filename="EffectAssist.h" />
 		<Unit filename="EffectIconPanel.cpp" />
@@ -735,6 +741,8 @@
 		<Unit filename="TabPreview.cpp" />
 		<Unit filename="TabSequence.cpp" />
 		<Unit filename="TabSetup.cpp" />
+		<Unit filename="TempFileManager.cpp" />
+		<Unit filename="TempFileManager.h" />
 		<Unit filename="TimingPanel.cpp" />
 		<Unit filename="TimingPanel.h" />
 		<Unit filename="TipOfTheDayDialog.cpp" />
@@ -840,6 +848,10 @@
 		<Unit filename="controllers/WLED.h" />
 		<Unit filename="controllers/WebSocketClient.cpp" />
 		<Unit filename="controllers/WebSocketClient.h" />
+		<Unit filename="effects/AdjustEffect.cpp" />
+		<Unit filename="effects/AdjustEffect.h" />
+		<Unit filename="effects/AdjustPanel.cpp" />
+		<Unit filename="effects/AdjustPanel.h" />
 		<Unit filename="effects/BarsEffect.cpp" />
 		<Unit filename="effects/BarsEffect.h" />
 		<Unit filename="effects/BarsPanel.cpp" />
@@ -1398,8 +1410,11 @@
 		<Unit filename="wxCheckedListCtrl.h" />
 		<Unit filename="wxModelGridCellRenderer.cpp" />
 		<Unit filename="wxModelGridCellRenderer.h" />
+		<Unit filename="wxWEBPHandler/imagwebp.cpp" />
+		<Unit filename="wxWEBPHandler/wx/imagwebp.h" />
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/AboutDialog.wxs" />
+		<Unit filename="wxsmith/AdjustPanel.wxs" />
 		<Unit filename="wxsmith/AlignmentDialog.wxs" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />
 		<Unit filename="wxsmith/AutoLabelDialog.wxs" />
@@ -1433,8 +1448,9 @@
 		<Unit filename="wxsmith/CustomModelDialog.wxs" />
 		<Unit filename="wxsmith/CustomTimingDialog.wxs" />
 		<Unit filename="wxsmith/DMXPanel.wxs" />
-		<Unit filename="wxsmith/DuplicatePanel.wxs" />
 		<Unit filename="wxsmith/DuplicateDialog.wxs" />
+		<Unit filename="wxsmith/DuplicatePanel.wxs" />
+		<Unit filename="wxsmith/EditAliasesDialog.wxs" />
 		<Unit filename="wxsmith/EffectAssist.wxs" />
 		<Unit filename="wxsmith/EffectIconPanel.wxs" />
 		<Unit filename="wxsmith/EffectTimingDialog.wxs" />
@@ -1592,6 +1608,8 @@
 		<Unit filename="xlColorPicker.h" />
 		<Unit filename="xlColorPickerFields.cpp" />
 		<Unit filename="xlColorPickerFields.h" />
+		<Unit filename="xlColourData.cpp" />
+		<Unit filename="xlColourData.h" />
 		<Unit filename="xlGridCanvas.cpp" />
 		<Unit filename="xlGridCanvas.h" />
 		<Unit filename="xlLockButton.cpp" />
@@ -1703,6 +1721,7 @@
 					<wxPanel wxs="wxsmith/xlColorPickerFields.wxs" src="xlColorPickerFields.cpp" hdr="xlColorPickerFields.h" fwddecl="0" i18n="1" name="xlColorPickerFields" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectAssist.wxs" src="EffectAssist.cpp" hdr="EffectAssist.h" fwddecl="0" i18n="1" name="EffectAssist" language="CPP" />
 					<wxPanel wxs="wxsmith/OnPanel.wxs" src="effects/OnPanel.cpp" hdr="effects/OnPanel.h" fwddecl="1" i18n="1" name="OnPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/AdjustPanel.wxs" src="effects/AdjustPanel.cpp" hdr="effects/AdjustPanel.h" fwddecl="1" i18n="1" name="AdjustPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/BarsPanel.wxs" src="effects/BarsPanel.cpp" hdr="effects/BarsPanel.h" fwddecl="1" i18n="1" name="BarsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/OffPanel.wxs" src="effects/OffPanel.cpp" hdr="effects/OffPanel.h" fwddecl="1" i18n="1" name="OffPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ButterflyPanel.wxs" src="effects/ButterflyPanel.cpp" hdr="effects/ButterflyPanel.h" fwddecl="1" i18n="1" name="ButterflyPanel" language="CPP" />
@@ -1791,6 +1810,7 @@
 					<wxDialog wxs="wxsmith/MetronomeLabelDialog.wxs" src="MetronomeLabelDialog.cpp" hdr="MetronomeLabelDialog.h" fwddecl="0" i18n="1" name="MetronomeLabelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/FPPUploadProgressDialog.wxs" src="controllers/FPPUploadProgressDialog.cpp" hdr="controllers/FPPUploadProgressDialog.h" fwddecl="0" i18n="1" name="FPPUploadProgressDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AutoLabelDialog.wxs" src="AutoLabelDialog.cpp" hdr="AutoLabelDialog.h" fwddecl="0" i18n="1" name="AutoLabelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/EditAliasesDialog.wxs" src="EditAliasesDialog.cpp" hdr="EditAliasesDialog.h" fwddecl="0" i18n="1" name="EditAliasesDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

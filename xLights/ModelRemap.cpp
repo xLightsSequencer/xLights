@@ -423,7 +423,7 @@ void RemapModelProperties::Remap(RemapModelProperties& original)
             wxXmlNode* nn = new wxXmlNode(*n);
 
             RemapNodes(nn, "Eyes-Closed", mapping);
-            RemapNodes(nn, "Eyes-Closed", mapping);
+            RemapNodes(nn, "Eyes-Closed2", mapping);
             RemapNodes(nn, "Eyes-Closed3", mapping);
             RemapNodes(nn, "Eyes-Open", mapping);
             RemapNodes(nn, "Eyes-Open2", mapping);

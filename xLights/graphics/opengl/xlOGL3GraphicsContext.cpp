@@ -171,12 +171,13 @@ bool DrawGLUtils::LoadGLFunctions() {
 
 class ShaderProgram {
 public:
-    ShaderProgram() : ProgramID(0) {}
+    ShaderProgram() {}
 
     void Cleanup() {
         if (ProgramID != 0) {
             LOG_GL_ERRORV(glUseProgram(0));
             LOG_GL_ERRORV(glDeleteProgram(ProgramID));
+            ProgramID = 0;
         }
     }
 
@@ -197,20 +198,43 @@ public:
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
     }
 
-    void Init(const char * vs, const char * fs) {
+    bool Init(const char * vs, const char * fs) {
         GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-        GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-        valid = CompileShader(vs, VertexShaderID);
-        valid &= CompileShader(fs, FragmentShaderID);
-        ProgramID = CreateProgram(VertexShaderID, FragmentShaderID);
-        glDeleteShader(VertexShaderID);
-        glDeleteShader(FragmentShaderID);
+        if (VertexShaderID != 0) {
+            GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+            if (FragmentShaderID != 0) {
+                valid = CompileShader(vs, VertexShaderID);
+                valid &= CompileShader(fs, FragmentShaderID);
+                ProgramID = CreateProgram(VertexShaderID, FragmentShaderID);
+                valid &= ProgramID != 0;
 
-        LOG_GL_ERRORV(glUseProgram(ProgramID));
-        LOG_GL_ERRORV(MatrixID = glGetUniformLocation(ProgramID, "MVP"));
-        LOG_GL_ERRORV(PointSmoothMinID = glGetUniformLocation(ProgramID, "PointSmoothMin"));
-        LOG_GL_ERRORV(PointSmoothMaxID = glGetUniformLocation(ProgramID, "PointSmoothMax"));
-        LOG_GL_ERRORV(RenderTypeID = glGetUniformLocation(ProgramID, "RenderType"));
+                if (ProgramID == 0)
+                {
+                    DrawGLUtils::DoLogGLError(__FILE__, __LINE__, "Failed to create program from vertex and fragment shader");
+                }
+
+                glDeleteShader(FragmentShaderID);
+            }
+            else
+            {
+                DrawGLUtils::DoLogGLError(__FILE__, __LINE__, "Failed to create fragment shader");
+            }
+            glDeleteShader(VertexShaderID);
+        }
+        else
+        {
+            DrawGLUtils::DoLogGLError(__FILE__, __LINE__, "Failed to create vertex shader");
+        }
+
+        if (valid) {
+            LOG_GL_ERRORV(glUseProgram(ProgramID));
+            LOG_GL_ERRORV(MatrixID = glGetUniformLocation(ProgramID, "MVP"));
+            LOG_GL_ERRORV(PointSmoothMinID = glGetUniformLocation(ProgramID, "PointSmoothMin"));
+            LOG_GL_ERRORV(PointSmoothMaxID = glGetUniformLocation(ProgramID, "PointSmoothMax"));
+            LOG_GL_ERRORV(RenderTypeID = glGetUniformLocation(ProgramID, "RenderType"));
+        }
+
+        return valid;
     }
 
     void CalcSmoothPointParams(float ps) {
@@ -237,30 +261,36 @@ public:
         static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
 
         GLuint ProgramID = glCreateProgram();
-        LOG_GL_ERRORV(glAttachShader(ProgramID, vs));
-        LOG_GL_ERRORV(glAttachShader(ProgramID, fs));
-        LOG_GL_ERRORV(glLinkProgram(ProgramID));
+        if (ProgramID != 0) {
+            LOG_GL_ERRORV(glAttachShader(ProgramID, vs));
+            LOG_GL_ERRORV(glAttachShader(ProgramID, fs));
+            LOG_GL_ERRORV(glLinkProgram(ProgramID));
 
-        GLint Result = GL_FALSE;
-        int InfoLogLength;
+            GLint Result = GL_FALSE;
+            int InfoLogLength;
 
-        LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result));
-        LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength));
-        if (!Result) {
-            logger_opengl.error("ShaderProgram::CreateProgram failed.");
-            if (InfoLogLength > 0) {
-                std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
-                glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-                wxString l = &ProgramErrorMessage[0];
-                l.Trim();
-                if (l.length() > 0) {
-                    printf("Program Log: %s\n", &ProgramErrorMessage[0]);
-                    logger_opengl.error(std::string(&ProgramErrorMessage[0]));
+            LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result));
+            LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength));
+            if (!Result) {
+                logger_opengl.error("ShaderProgram::CreateProgram failed.");
+                if (InfoLogLength > 0) {
+                    std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
+                    glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+                    wxString l = &ProgramErrorMessage[0];
+                    l.Trim();
+                    if (l.length() > 0) {
+                        printf("Program Log: %s\n", &ProgramErrorMessage[0]);
+                        logger_opengl.error(std::string(&ProgramErrorMessage[0]));
+                    }
                 }
             }
+            LOG_GL_ERRORV(glDetachShader(ProgramID, vs));
+            LOG_GL_ERRORV(glDetachShader(ProgramID, fs));
         }
-        LOG_GL_ERRORV(glDetachShader(ProgramID, vs));
-        LOG_GL_ERRORV(glDetachShader(ProgramID, fs));
+        else
+        {
+            DrawGLUtils::DoLogGLError(__FILE__, __LINE__, "glCreateProgram failed.");
+        }
         return ProgramID;
     }
 
@@ -310,14 +340,17 @@ ShaderProgram normal3Program;
 ShaderProgram meshSolidProgram;
 ShaderProgram meshTextureProgram;
 
-void xlOGL3GraphicsContext::InitializeSharedContext() {
+bool xlOGL3GraphicsContext::InitializeSharedContext() {
+
+    bool valid = true;
+
     LOG_GL_ERRORV(DrawGLUtils::LoadGLFunctions());
     
     const GLubyte* str = glGetString(GL_VERSION);
     bool cp = str[0] > '3' || (str[0] == '3' && str[2] >= '3');
     
     if (cp) {
-        singleColor3Program.Init(
+        valid = valid && singleColor3Program.Init(
                                  "#version 330 core\n"
                                  "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
                                  "out vec4 fragmentColor;\n"
@@ -344,7 +377,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                                  "        color = vec4(fragmentColor.rgb, alpha);\n"
                                  "    }\n"
                                  "}\n");
-        texture3Program.Init(
+        valid = valid && texture3Program.Init(
                              "#version 330 core\n"
                              "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
                              "layout(location = 1) in vec2 vertexUV;\n"
@@ -372,7 +405,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                              "        color = vec4(fragmentColor.rgb, c.a * fragmentColor.a);\n"
                              "    }\n"
                              "}\n");
-        normal3Program.Init(
+        valid = valid && normal3Program.Init(
                             "#version 330 core\n"
                             "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
                             "layout(location = 1) in vec4 vertexColor;\n"
@@ -409,7 +442,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                             "}\n");
         
         
-        meshTextureProgram.Init(
+        valid = valid && meshTextureProgram.Init(
                                 "#version 330 core\n"
                                 "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
                                 "layout(location = 1) in vec3 vertexNormal_modelspace;\n"
@@ -453,7 +486,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                                 "    }\n"
                                 "    color = vec4(c.r*brightness, c.g*brightness, c.b*brightness, c.a);\n"
                                 "}\n");
-        meshSolidProgram.Init(
+        valid = valid && meshSolidProgram.Init(
                               "#version 330 core\n"
                               "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
                               "layout(location = 1) in vec3 vertexNormal_modelspace;\n"
@@ -479,7 +512,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                               "    color = fragmentColor;\n"
                               "}\n");
     } else {
-        singleColor3Program.Init("#version 120\n"
+        valid = valid && singleColor3Program.Init("#version 120\n"
                                  "attribute vec3 vertexPosition_modelspace;\n"
                                  "varying vec4 fragmentColor;\n"
                                  "uniform vec4 inColor;\n"
@@ -505,7 +538,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                                  "        gl_FragColor = vec4(fragmentColor.rgb, alpha);\n"
                                  "    }\n"
                                  "}\n");
-        normal3Program.Init(
+        valid = valid && normal3Program.Init(
                             "#version 120\n"
                             "attribute vec3 vertexPosition_modelspace;\n"
                             "attribute vec4 vertexColor;\n"
@@ -540,7 +573,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                             "    }\n"
                             "}\n");
         
-        texture3Program.Init("#version 120\n"
+        valid = valid && texture3Program.Init("#version 120\n"
                              "attribute vec3 vertexPosition_modelspace;\n"
                              "attribute vec2 vertexUV;\n"
                              "varying vec2 textCoord;\n"
@@ -566,7 +599,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                              "    }\n"
                              "}\n");
         
-        meshTextureProgram.Init(
+        valid = valid && meshTextureProgram.Init(
                                 "#version 120\n"
                                 "attribute vec3 vertexPosition_modelspace;\n"
                                 "attribute vec3 vertexNormal_modelspace;\n"
@@ -611,7 +644,7 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                                 "    gl_FragColor = vec4(c.r*brightness, c.g*brightness, c.b*brightness, c.a);\n"
                                 "}\n");
          
-        meshSolidProgram.Init(
+        valid = valid && meshSolidProgram.Init(
                               "#version 120\n"
                               "attribute vec3 vertexPosition_modelspace;\n"
                               "attribute vec3 vertexNormal_modelspace;\n"
@@ -635,6 +668,8 @@ void xlOGL3GraphicsContext::InitializeSharedContext() {
                               "}\n"
                               );
     }
+
+    return valid;
 }
 
 class xlGLTexture : public xlTexture {
@@ -1755,26 +1790,41 @@ public:
         LOG_GL_ERRORV(glGenBuffers(1, &indexBuffer));
 
 
-        LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, vbuffer));
-        LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW));
+        if (vertices.size() > 0)
+        {
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, vbuffer));
+            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW));
 
-        LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, tbuffer));
-        LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, tvertices.size() * sizeof(float), &tvertices[0], GL_STATIC_DRAW));
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, tbuffer));
+            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, tvertices.size() * sizeof(float), &tvertices[0], GL_STATIC_DRAW));
+        }
 
-        LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, nbuffer));
-        LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(float), &normals[0], GL_STATIC_DRAW));
+        if (normals.size() > 0)
+        {
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, nbuffer));
+            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(float), &normals[0], GL_STATIC_DRAW));
+        }
         
-        LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wfIndexes));
-        LOG_GL_ERRORV(glBufferData(GL_ELEMENT_ARRAY_BUFFER, wireFrame.size() * sizeof(uint32_t), &wireFrame[0], GL_STATIC_DRAW));
-        LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        if (wireFrame.size() > 0)
+        {
+            LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wfIndexes));
+            LOG_GL_ERRORV(glBufferData(GL_ELEMENT_ARRAY_BUFFER, wireFrame.size() * sizeof(uint32_t), &wireFrame[0], GL_STATIC_DRAW));
+            LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        }
 
-        LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineIndexes));
-        LOG_GL_ERRORV(glBufferData(GL_ELEMENT_ARRAY_BUFFER, lines.size() * sizeof(uint32_t), &lines[0], GL_STATIC_DRAW));
-        LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        if (lines.size() > 0)
+        {
+            LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineIndexes));
+            LOG_GL_ERRORV(glBufferData(GL_ELEMENT_ARRAY_BUFFER, lines.size() * sizeof(uint32_t), &lines[0], GL_STATIC_DRAW));
+            LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        }
 
-        LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer));
-        LOG_GL_ERRORV(glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexes.size() * sizeof(uint32_t), &indexes[0], GL_STATIC_DRAW));
-        LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        if (indexes.size() > 0)
+        {
+            LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer));
+            LOG_GL_ERRORV(glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexes.size() * sizeof(uint32_t), &indexes[0], GL_STATIC_DRAW));
+            LOG_GL_ERRORV(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        }
     }
 
     GLuint vbuffer = 0;

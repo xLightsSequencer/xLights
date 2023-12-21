@@ -957,7 +957,17 @@ void Falcon::V4_MakeStringsValid(Controller* controller, UDController& cud, std:
     }
 }
 
-bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error, bool oneBased, uint32_t controllerFirstChannel)
+int Falcon::V4_GetBrightness(int port, int sr, int defaultBrightness, const std::vector<FALCON_V4_STRING>& falconStrings)
+{
+    for (const auto& it : falconStrings)
+    {
+        if (it.port == port && it.smartRemote == sr)
+            return it.brightness;
+    }
+    return defaultBrightness;
+}
+
+bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error, bool oneBased, uint32_t controllerFirstChannel, bool fullcontrol)
 {
     bool success = true;
 
@@ -1091,12 +1101,12 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         str.name = SafeDescription(it->_description);
                         str.blank = false;
                         str.gamma = V4_ValidGamma(it->_gammaSet ? it->_gamma * 10 : gamma);
-                        str.brightness = V4_ValidBrightness(it->_brightnessSet ? it->_brightness : defaultBrightness);
+                        str.brightness = V4_ValidBrightness(it->_brightnessSet ? it->_brightness : (fullcontrol ? defaultBrightness : V4_GetBrightness(p, sr, defaultBrightness, falconStrings)));
                         str.zigcount = 0;
                         str.endNulls = it->_endNullPixelsSet ? it->_endNullPixels : 0;
                         str.startNulls = it->_startNullPixelsSet ? it->_startNullPixels : 0;
                         str.colourOrder = it->_colourOrderSet ? V4_EncodeColourOrder(it->_colourOrder) : colourOrder;
-                        str.direction = it->_reverseSet ? (it->_reverse == "F" ? 0 : 1) : direction;
+                        str.direction = it->_reverseSet ? (it->_reverse == "Forward" ? 0 : 1) : direction;
                         str.group = it->_groupCountSet ? it->_groupCount : group;
                         str.zigcount = it->_zigZagSet ? it->_zigZag : 0; // dont carry between props
                         str.pixels = INTROUNDUPDIV(it->Channels(), GetChannelsPerPixel(it->_protocol)) * str.group;
@@ -1123,7 +1133,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                     str.name = wxString::Format("Port %d", p + 1);
                     str.blank = false;
                     str.gamma = 10;
-                    str.brightness = defaultBrightness;
+                    str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, 0, defaultBrightness, falconStrings);
                     str.zigcount = 0;
                     str.endNulls = 0;
                     str.startNulls = 0;
@@ -1156,7 +1166,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                     str.name = wxString::Format("Port %d", p + 1);
                     str.blank = false;
                     str.gamma = 10;
-                    str.brightness = defaultBrightness;
+                    str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, sr, defaultBrightness, falconStrings);
                     str.zigcount = 0;
                     str.endNulls = 0;
                     str.startNulls = 0;
@@ -1180,7 +1190,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                 str.name = wxString::Format("Port %d", p + 1);
                 str.blank = false;
                 str.gamma = 10;
-                str.brightness = defaultBrightness;
+                str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, sr, defaultBrightness, falconStrings);
                 str.zigcount = 0;
                 str.endNulls = 0;
                 str.startNulls = 0;
@@ -1340,7 +1350,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     std::vector<FALCON_V4_STRING> uploadStrings;
     std::string error;
-    if (!V4_PopulateStrings(uploadStrings, falconStrings, cud, caps, defaultBrightness, error, oneBased, controller->GetStartChannel())) {
+    if (!V4_PopulateStrings(uploadStrings, falconStrings, cud, caps, defaultBrightness, error, oneBased, controller->GetStartChannel(), fullcontrol)) {
         DisplayError("Falcon Outputs Upload: Problem constructing strings for upload:\n" + error, parent);
         if (doProgress) progress->Update(100, "Aborting.");
         return false;

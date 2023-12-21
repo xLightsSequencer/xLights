@@ -24,6 +24,7 @@ ESEQFile::ESEQFile()
     _frameBuffer = nullptr;
     _frame0Offset = 0;
     _ok = false;
+    _fseq = nullptr;
 }
 
 ESEQFile::ESEQFile(const std::string& filename)
@@ -36,6 +37,7 @@ ESEQFile::ESEQFile(const std::string& filename)
     _frameBuffer = nullptr;
     _frame0Offset = 0;
     _ok = true;
+    _fseq = nullptr;
     Load(_filename);
 }
 
@@ -47,6 +49,12 @@ ESEQFile::~ESEQFile()
 
 void ESEQFile::Close()
 {
+    if (_fseq != nullptr)
+    {
+        delete _fseq;
+        _fseq = nullptr;
+    }
+
     if (_fh != nullptr)
     {
         _fh->Close();
@@ -108,6 +116,7 @@ void ESEQFile::Load(const std::string& filename)
 
     Close();
 
+    _fseq = nullptr;
     _filename = FixFile("", filename);
     _fh = new wxFile(_filename);
 
@@ -129,7 +138,22 @@ void ESEQFile::Load(const std::string& filename)
             wxFileName fn(_filename);
             _frames = (size_t)(fn.GetSize().ToULong() - _frame0Offset) / _channelsPerFrame;
 
-            logger_base.info("ESEQ file %s opened.", (const char *)_filename.c_str());
+            logger_base.info("ESEQ file %s opened offset %lu channels %lu frames %lu.", (const char *)_filename.c_str(), _offset, _channelsPerFrame, _frames);
+        }
+        else if (std::string(tag) == "PSEQ")
+        {
+            Close();
+            _fseq = FSEQFile::openFSEQFile(filename);
+            _frame0Offset = 20;
+            _channelsPerFrame = _fseq->getChannelCount();
+            _modelSize = _channelsPerFrame;
+            _frameBuffer = (uint8_t*)malloc(_channelsPerFrame);
+            _frames = _fseq->getNumFrames();
+            if (_fseq->getVersionMajor() == 2)
+            {
+                _offset = dynamic_cast<V2FSEQFile*>(_fseq)->m_sparseRanges.front().first + 1;
+            }
+            logger_base.info("ESEQ file %s opened V2 offset %lu channels %lu frames %lu.", (const char*)_filename.c_str(), _offset, _channelsPerFrame, _frames);
         }
         else
         {
@@ -148,14 +172,18 @@ void ESEQFile::ReadData(uint8_t* buffer, size_t buffersize, size_t frame, APPLYM
 {
     if (frame >= _frames) return; // cant read past end of file
 
-    if (_fh->Tell() != _frame0Offset + _channelsPerFrame * frame)
-    {
-        // we need to seek to our frame
-        _fh->Seek(_frame0Offset + _channelsPerFrame * frame, wxFromStart);
-    }
+    if (_fseq != nullptr) {
+        FSEQFile::FrameData* fd = _fseq->getFrame(frame);
+        memcpy(_frameBuffer, fd->GetData(), std::min(_channelsPerFrame, fd->GetSize()));
+    } else {
+        if (_fh->Tell() != _frame0Offset + _channelsPerFrame * frame) {
+            // we need to seek to our frame
+            _fh->Seek(_frame0Offset + _channelsPerFrame * frame, wxFromStart);
+        }
 
-    // read in the frame from disk
-    _fh->Read(_frameBuffer, _channelsPerFrame);
+        // read in the frame from disk
+        _fh->Read(_frameBuffer, _channelsPerFrame);
+    }
 
     Blend(buffer, buffersize, _frameBuffer, _modelSize, applyMethod, _offset - 1);
 }

@@ -63,7 +63,12 @@ const long ShockwavePanel::ID_STATICTEXT_Shockwave_Accel = wxNewId();
 const long ShockwavePanel::ID_SLIDER_Shockwave_Accel = wxNewId();
 const long ShockwavePanel::IDD_TEXTCTRL_Shockwave_Accel = wxNewId();
 const long ShockwavePanel::ID_BITMAPBUTTON_SLIDER_Shockwave_Accel = wxNewId();
+const long ShockwavePanel::ID_STATICTEXT1 = wxNewId();
+const long ShockwavePanel::ID_SLIDER_Shockwave_Cycles = wxNewId();
+const long ShockwavePanel::IDD_TEXTCTRL_Shockwave_Cycles = wxNewId();
+const long ShockwavePanel::ID_BITMAPBUTTON_SLIDER_Shockwave_Cycles = wxNewId();
 const long ShockwavePanel::ID_CHECKBOX_Shockwave_Blend_Edges = wxNewId();
+const long ShockwavePanel::ID_CHECKBOX_Shockwave_Scale = wxNewId();
 const long ShockwavePanel::ID_PANEL44 = wxNewId();
 const long ShockwavePanel::ID_NOTEBOOK_Shockwave = wxNewId();
 //*)
@@ -133,7 +138,7 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_Shockwave_StartRadius->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer100->Add(BitmapButton_Shockwave_StartRadius, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText158 = new wxStaticText(Panel10, ID_STATICTEXT_Shockwave_End_Radius, _("Radius2:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shockwave_End_Radius"));
-	FlexGridSizer100->Add(StaticText158, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer100->Add(StaticText158, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Shockwave_End_Radius = new BulkEditSlider(Panel10, ID_SLIDER_Shockwave_End_Radius, 10, 0, 750, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_End_Radius"));
 	FlexGridSizer100->Add(Slider_Shockwave_End_Radius, 1, wxALL|wxEXPAND, 5);
 	BitmapButton_Shockwave_End_Radius = new BulkEditValueCurveButton(Panel10, ID_VALUECURVE_Shockwave_End_Radius, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shockwave_End_Radius"));
@@ -157,7 +162,7 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_Shockwave_StartWidth->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer100->Add(BitmapButton_Shockwave_StartWidth, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText159 = new wxStaticText(Panel10, ID_STATICTEXT_Shockwave_End_Width, _("Width2:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shockwave_End_Width"));
-	FlexGridSizer100->Add(StaticText159, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer100->Add(StaticText159, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Shockwave_End_Width = new BulkEditSlider(Panel10, ID_SLIDER_Shockwave_End_Width, 10, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_End_Width"));
 	FlexGridSizer100->Add(Slider_Shockwave_End_Width, 1, wxALL|wxEXPAND, 5);
 	BitmapButton_Shockwave_End_Width = new BulkEditValueCurveButton(Panel10, ID_VALUECURVE_Shockwave_End_Width, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Shockwave_End_Width"));
@@ -169,6 +174,8 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_Shockwave_EndWidth->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer100->Add(BitmapButton_Shockwave_EndWidth, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel10->SetSizer(FlexGridSizer100);
+	FlexGridSizer100->Fit(Panel10);
+	FlexGridSizer100->SetSizeHints(Panel10);
 	Panel14 = new wxPanel(Notebook3, ID_PANEL44, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL44"));
 	FlexGridSizer101 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer101->AddGrowableCol(1);
@@ -182,14 +189,35 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_Shockwave_Accel = new xlLockButton(Panel14, ID_BITMAPBUTTON_SLIDER_Shockwave_Accel, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Shockwave_Accel"));
 	BitmapButton_Shockwave_Accel->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer101->Add(BitmapButton_Shockwave_Accel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText1 = new wxStaticText(Panel14, ID_STATICTEXT1, _("Cycles:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer101->Add(StaticText1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Shockwave_Cycles = new BulkEditSlider(Panel14, ID_SLIDER_Shockwave_Cycles, 1, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shockwave_Cycles"));
+	FlexGridSizer101->Add(Slider_Shockwave_Cycles, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_Shockwave_Cycles = new BulkEditTextCtrl(Panel14, IDD_TEXTCTRL_Shockwave_Cycles, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel14,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shockwave_Cycles"));
+	TextCtrl_Shockwave_Cycles->SetMaxLength(3);
+	FlexGridSizer101->Add(TextCtrl_Shockwave_Cycles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Shockwave_Cycles = new xlLockButton(Panel14, ID_BITMAPBUTTON_SLIDER_Shockwave_Cycles, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Shockwave_Cycles"));
+	BitmapButton_Shockwave_Cycles->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+	FlexGridSizer101->Add(BitmapButton_Shockwave_Cycles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer101->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Shockwave_Blend_Edges = new BulkEditCheckBox(Panel14, ID_CHECKBOX_Shockwave_Blend_Edges, _("Blend Edges:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_Shockwave_Blend_Edges"));
 	CheckBox_Shockwave_Blend_Edges->SetValue(true);
 	FlexGridSizer101->Add(CheckBox_Shockwave_Blend_Edges, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer101->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer101->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer101->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Shockwave_Scale = new BulkEditCheckBox(Panel14, ID_CHECKBOX_Shockwave_Scale, _("Scale to Buffer:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_Shockwave_Scale"));
+	CheckBox_Shockwave_Scale->SetValue(false);
+	FlexGridSizer101->Add(CheckBox_Shockwave_Scale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel14->SetSizer(FlexGridSizer101);
+	FlexGridSizer101->Fit(Panel14);
+	FlexGridSizer101->SetSizeHints(Panel14);
 	Notebook3->AddPage(Panel10, _("Position"), false);
 	Notebook3->AddPage(Panel14, _("Options"), false);
 	FlexGridSizer110->Add(Notebook3, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer110);
+	FlexGridSizer110->Fit(this);
+	FlexGridSizer110->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_Shockwave_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnLockButtonClick);
@@ -204,6 +232,7 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_VALUECURVE_Shockwave_End_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Accel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Cycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnLockButtonClick);
 	//*)
     
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShockwavePanel::OnVCChanged, 0, this);

@@ -734,13 +734,12 @@ bool Curl::HTTPUploadFile(const std::string& url, const std::string& filename, c
         cancelled = true;
     } else {
         std::string curlInputBuffer;
-        curl_easy_reset(curl);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curlInputBuffer);
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 5000);
-        curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
         curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 
 #ifdef __WXMSW__
         // Temporarily adding this in order to try to catch ongoing curl crashes
@@ -770,6 +769,8 @@ bool Curl::HTTPUploadFile(const std::string& url, const std::string& filename, c
         chunk = curl_slist_append(chunk, ctMime.c_str());
         chunk = curl_slist_append(chunk, "X-Requested-With: FPPConnect");
         chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
+        chunk = curl_slist_append(chunk, "Expect:");
+
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
         wxMemoryBuffer memBuffPost;

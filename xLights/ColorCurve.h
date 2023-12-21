@@ -214,7 +214,6 @@ class ColorCurveButton :
 {
     ColorCurve* _cc;
     std::string _color;
-    static wxColourData _colorData;
     void LeftClick(wxCommandEvent& event);
     void RightClick(wxContextMenuEvent& event);
 

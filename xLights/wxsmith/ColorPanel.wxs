@@ -51,58 +51,96 @@
 															<cols>3</cols>
 															<growablecols>1</growablecols>
 															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" subclass="xlSizedBitmapButton" variable="BitmapButton_ShuffleColours" member="yes">
-																	<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_switch_xpm&quot;, wxART_BUTTON)' />
-																	<size>24,24</size>
-																	<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-																	<handler function="OnBitmapButton_ShuffleColoursClick" entry="EVT_BUTTON" />
+																<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+																	<orient>wxVERTICAL</orient>
+																	<object class="sizeritem">
+																		<object class="wxBitmapButton" name="ID_BITMAPBUTTON_ReverseColours" subclass="xlSizedBitmapButton" variable="BitmapButton_ReverseColours" member="yes">
+																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_reverse_xpm&quot;, wxART_BUTTON)' />
+																			<size>26,16</size>
+																			<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>2</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxBitmapButton" name="ID_BITMAPBUTTON_LeftShiftColours" subclass="xlSizedBitmapButton" variable="BitmapButton_LeftShiftColours" member="yes">
+																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_left_shift_xpm&quot;, wxART_BUTTON)' />
+																			<size>26,16</size>
+																			<handler function="OnBitmapButton_LeftShiftColoursClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>2</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxBitmapButton" name="ID_BITMAPBUTTON_RightShiftColours" subclass="xlSizedBitmapButton" variable="BitmapButton_RightShiftColours" member="yes">
+																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_right_shift_xpm&quot;, wxART_BUTTON)' />
+																			<size>26,16</size>
+																			<handler function="OnBitmapButton_RightShiftColoursClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>2</border>
+																		<option>1</option>
+																	</object>
 																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="Custom" name="ID_CUSTOM1" subclass="ColourList" variable="BitmapButton_ColourChoice" member="yes">
-																	<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
-																	<style>ZERO</style>
+																<object class="wxBoxSizer" variable="BoxSizer2" member="no">
+																	<orient>wxVERTICAL</orient>
+																	<object class="sizeritem">
+																		<object class="Custom" name="ID_CUSTOM1" subclass="ColourList" variable="BitmapButton_ColourChoice" member="yes">
+																			<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
+																			<style>ZERO</style>
+																		</object>
+																		<flag>wxALL|wxEXPAND</flag>
+																		<border>2</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxButton" name="ID_BUTTON1" variable="ButtonColor1" member="no">
+																			<label>Update</label>
+																			<handler function="OnUpdateColorClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
 																</object>
-																<flag>wxALL|wxEXPAND</flag>
-																<border>2</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" subclass="xlSizedBitmapButton" variable="BitmapButton_SavePalette" member="yes">
-																	<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_save_xpm&quot;, wxART_BUTTON)' />
-																	<size>24,24</size>
-																	<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-																	<handler function="OnBitmapButton_SavePaletteClick" entry="EVT_BUTTON" />
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="spacer">
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxButton" name="ID_BUTTON1" variable="ButtonColor1" member="no">
-																	<label>Update</label>
-																	<handler function="OnUpdateColorClick" entry="EVT_BUTTON" />
-																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" subclass="xlSizedBitmapButton" variable="BitmapButton_DeletePalette" member="yes">
-																	<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_delete_xpm&quot;, wxART_BUTTON)' />
-																	<size>24,24</size>
-																	<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-																	<handler function="OnBitmapButton_DeletePaletteClick" entry="EVT_BUTTON" />
+																<object class="wxBoxSizer" variable="BoxSizer3" member="no">
+																	<orient>wxVERTICAL</orient>
+																	<object class="sizeritem">
+																		<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" subclass="xlSizedBitmapButton" variable="BitmapButton_SavePalette" member="yes">
+																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_save_xpm&quot;, wxART_BUTTON)' />
+																			<size>24,24</size>
+																			<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+																			<handler function="OnBitmapButton_SavePaletteClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" subclass="xlSizedBitmapButton" variable="BitmapButton_DeletePalette" member="yes">
+																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_delete_xpm&quot;, wxART_BUTTON)' />
+																			<size>24,24</size>
+																			<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+																			<handler function="OnBitmapButton_DeletePaletteClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
 																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>

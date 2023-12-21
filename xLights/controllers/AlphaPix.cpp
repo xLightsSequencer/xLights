@@ -28,6 +28,8 @@
 
 #include <log4cpp/Category.hh>
 
+#include <curl/curl.h>
+
 #pragma region Output Classes
 class AlphaPixOutput
 {
@@ -107,7 +109,7 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    _page = GetURL("/");
+    _page = APGetURL("/");
     if (!_page.empty()) {
         if (_page.Contains("Existing user login")) {
             logger_base.error("AlphaPix Webpage locked out by another computer");
@@ -214,7 +216,7 @@ bool AlphaPix::ParseWebpage(const wxString& page, AlphaPixData& data) {
     }
     else {
         //Load advance color order page
-        const wxString colorPage = PutURL(GetColorOrderURL(), "RGBORD=1");
+        const wxString colorPage = APPutURL(GetColorOrderURL(), "RGBORD=1");
         for (auto& pixelPort : _pixelOutputs) {
             pixelPort->colorOrder = ExtractSingleColor(colorPage, pixelPort->output);
         }
@@ -582,6 +584,79 @@ std::string AlphaPix::SafeDescription(const std::string description) const {
     wxString desc(description);
     return desc.Left(16).ToStdString();
 }
+
+std::string AlphaPix::APGetURL(const std::string& url) const
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::string res;
+    std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
+
+    CURL* curl = curl_easy_init();
+    if (curl) {
+        auto u = std::string("http://" + baseIP + _baseUrl + url);
+        logger_base.debug("Curl GET: %s", (const char*)u.c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15);
+        curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
+        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+        std::string response_string;
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+
+        /* Perform the request, res will get the return code */
+        CURLcode r = curl_easy_perform(curl);
+
+        if (r != CURLE_OK) {
+            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
+        } else {
+            res = response_string;
+        }
+        /* always cleanup */
+        curl_easy_cleanup(curl);
+    }
+    return res;
+}
+
+std::string AlphaPix::APPutURL(const std::string& url, const std::string& request) const
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
+    logger_base.debug("Making request to Controller '%s'.", (const char*)url.c_str());
+    logger_base.debug("    With data '%s'.", (const char*)request.c_str());
+
+    CURL* curl = curl_easy_init();
+    if (curl != nullptr) {
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
+        auto u = std::string("http://" + baseIP + _baseUrl + url);
+        logger_base.debug("Curl POST: %s", (const char*)u.c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
+        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+
+        struct curl_slist* headers = NULL;
+        headers = curl_slist_append(headers, _("content-type: application/x-www-form-urlencoded").c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)request.size());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)request.c_str());
+        // curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1);
+
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30);
+        curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
+        std::string buffer = "";
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+
+        CURLcode ret = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+
+        if (ret == CURLE_OK) {
+            return buffer;
+        }
+        logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));
+    }
+
+    return "";
+}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -674,7 +749,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         if (serial->upload) {
             if (_modelnum == 4) {
                 const std::string serialRequest = wxString::Format("Rever5=1&DMX512=%d", serial->universe);
-                const wxString res = PutURL(GetDMXURL(), serialRequest);
+                const wxString res = APPutURL(GetDMXURL(), serialRequest);
                 if (res.empty())
                     worked = false;
                 wxMilliSleep(1000);
@@ -682,7 +757,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             else {
                 const std::string serialRequest = wxString::Format("Rever%d=1&DMX512_%d=%d",
                     serial->output, serial->output, serial->universe);
-                const wxString res = PutURL(GetDMXURL(serial->output), serialRequest);
+                const wxString res = APPutURL(GetDMXURL(serial->output), serialRequest);
                 if (res.empty())
                     worked = false;
                 wxMilliSleep(1000);
@@ -694,7 +769,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     progress.Update(50, "Uploading Protocol Type.");
     const int newProtocol = EncodeStringPortProtocol(pixelType);
     if (newProtocol != -1 && controllerData.protocol != newProtocol) {
-        const wxString res = PutURL(GetProtocolURL(), wxString::Format("IC=%d", newProtocol));
+        const wxString res = APPutURL(GetProtocolURL(), wxString::Format("IC=%d", newProtocol));
         if (res.empty())
             worked = false;
         wxMilliSleep(1000);
@@ -708,14 +783,14 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         colorOrder.erase(std::unique(colorOrder.begin(), colorOrder.end()), colorOrder.end());
         if (colorOrder.size() == 1) {
             //all the same color order, "simple mode" will do
-            const wxString res = PutURL(GetColorOrderURL(), wxString::Format("RGBORD=0&RGBS=%d", colorOrder[0]));
+            const wxString res = APPutURL(GetColorOrderURL(), wxString::Format("RGBORD=0&RGBS=%d", colorOrder[0]));
             if (res.empty())
                 worked = false;
             wxMilliSleep(1000);
         }
         else {
             // different color orders, "advance mode" needed
-            const wxString res = PutURL(GetColorOrderURL(), "RGBORD=1");
+            const wxString res = APPutURL(GetColorOrderURL(), "RGBORD=1");
             if (res.empty())
                 worked = false;
             wxMilliSleep(1000);
@@ -728,7 +803,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
                     pixelPort->output, pixelPort->colorOrder);
             }
 
-            const wxString res2 = PutURL(GetIndvColorOrderURL(), colorRequestString);
+            const wxString res2 = APPutURL(GetIndvColorOrderURL(), colorRequestString);
             if (res2.empty())
                 worked = false;
             wxMilliSleep(1000);
@@ -739,7 +814,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     progress.Update(70, "Uploading Output Description.");
     const std::string outName = SafeDescription(controller->GetName());
     if (!outName.empty() && !controllerData.name.IsSameAs(outName)) {
-        const wxString res = PutURL(GetNameURL(), "name=" + outName);
+        const wxString res = APPutURL(GetNameURL(), "name=" + outName);
         if (res.empty())
             worked = false;
         wxMilliSleep(1000);
@@ -760,7 +835,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     logger_base.info("Uploading Output Type.");
     progress.Update(80, "Updating Output Type.");
     if (!requestInputString.empty()) {
-        const wxString res = PutURL(GetInputTypeURL(), requestInputString);
+        const wxString res = APPutURL(GetInputTypeURL(), requestInputString);
         if (res.empty())
             worked = false;
         //wait for reboot
@@ -790,7 +865,7 @@ void AlphaPix::UploadPixelOutputs(bool& worked) {
     logger_base.info("PUT String Output Information.");
 
     if (!requestString.empty()) {
-        const wxString res = PutURL(GetOutputURL(), requestString);
+        const wxString res = APPutURL(GetOutputURL(), requestString);
         if (res.empty())
             worked = false;
         wxMilliSleep(2000);
@@ -820,7 +895,7 @@ void AlphaPix::UploadFlexPixelOutputs(bool& worked) {
 
         logger_base.info("PUT String Output Information.");
         if (!requestString.empty() && upload) {
-            const wxString res = PutURL(GetOutputURL(i + 1), requestString);
+            const wxString res = APPutURL(GetOutputURL(i + 1), requestString);
             if (res.empty())
                 worked = false;
             wxMilliSleep(2000);

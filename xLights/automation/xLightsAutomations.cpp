@@ -456,7 +456,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             }
             fpp->FinalizeUploadSequence();
 
-            if (fpp->fppType == FPP_TYPE::FALCONV4) {
+            if (fpp->fppType == FPP_TYPE::FALCONV4V5) {
                 // a falcon
                 std::string proxy = "";
                 auto c = _outputManager.GetControllers(fpp->ipAddress);

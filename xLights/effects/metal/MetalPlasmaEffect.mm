@@ -39,6 +39,12 @@ public:
             if (commandBuffer == nil) {
                 return false;
             }
+            
+            id<MTLBuffer> bufferResult = rbcd->getPixelBuffer();
+            if (bufferResult == nil) {
+                rbcd->abortCommandBuffer();
+                return false;
+            }
             id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
             if (computeEncoder == nil) {
                 rbcd->abortCommandBuffer();
@@ -49,15 +55,6 @@ public:
 
             NSInteger dataSize = sizeof(data);
             [computeEncoder setBytes:&data length:dataSize atIndex:0];
-
-            
-            id<MTLBuffer> bufferResult = rbcd->getPixelBuffer();
-            if (bufferResult == nil) {
-                computeEncoder = nil;
-                rbcd->abortCommandBuffer();
-                return false;
-            }
-
             [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
 
             NSInteger maxThreads = functions[ColorScheme].maxTotalThreadsPerThreadgroup;

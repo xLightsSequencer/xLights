@@ -17,10 +17,12 @@
 #include <wx/sckaddr.h>
 
 #include <map>
+#include <mutex>
 
 namespace ip_utils
 {
     static std::map<std::string, std::string> __resolvedIPMap;
+    static std::mutex __resolvedIPMapLock;
 
 	bool IsIPValid(const std::string& ip)
     {
@@ -103,12 +105,16 @@ namespace ip_utils
         if (IsIPValid(ip) || (ip == "MULTICAST") || ip == "" || StartsWith(ip, ".") || (ip[0] >= '0' && ip[0] <= '9')) {
             return ip;
         }
+        std::unique_lock<std::mutex> lock(__resolvedIPMapLock);
         const std::string& resolvedIp = __resolvedIPMap[ip];
         if (resolvedIp == "") {
             wxIPV4address add;
             add.Hostname(ip);
             std::string r = add.IPAddress();
             if (r == "0.0.0.0") {
+                r = ip;
+            }
+            if (r == "255.255.255.255") {
                 r = ip;
             }
             __resolvedIPMap[ip] = r;

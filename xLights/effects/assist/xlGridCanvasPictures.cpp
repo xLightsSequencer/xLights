@@ -18,7 +18,9 @@
 #include "../../ExternalHooks.h"
 #include "UtilFunctions.h"
 
-static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*";
+static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
+                                               ";*.webp"
+                                               "|All files (*.*)|*.*";
 
 BEGIN_EVENT_TABLE(xlGridCanvasPictures, xlGridCanvas)
 EVT_PAINT(xlGridCanvasPictures::render)

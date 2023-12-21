@@ -553,7 +553,11 @@ void xlGLCanvas::CreateGLContext() {
                 }
             }
             
-            xlOGL3GraphicsContext::InitializeSharedContext();
+            if (!xlOGL3GraphicsContext::InitializeSharedContext())
+            {
+                logger_opengl.error("Failed to initialise shared OpenGL context.");
+            }
+
             m_context = nullptr;
             CreateGLContext();
         } else {

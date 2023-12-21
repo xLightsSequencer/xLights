@@ -38,8 +38,8 @@ public:
     int nextBlinkTime;
     std::map<std::string, int> nodeNameCache;
 
-    FacesRenderCache() :
-        blinkEndTime(0), nextBlinkTime(intRand(0, 5000)) {
+    FacesRenderCache(int nextBlinkTime) :
+        blinkEndTime(0), nextBlinkTime(nextBlinkTime) {
     }
     virtual ~FacesRenderCache() {
         for (auto it : _imageCache) {
@@ -110,6 +110,10 @@ wxString FacesEffect::GetEffectString() {
 
     ret << "E_CHOICE_Faces_Eyes=";
     ret << p->Choice_Faces_Eyes->GetStringSelection().ToStdString();
+    ret << ",";
+
+    ret << "E_CHOICE_Faces_EyeBlinkFrequency=";
+    ret << p->Choice_Faces_EyeBlinkFrequency->GetStringSelection().ToStdString();
     ret << ",";
 
     ret << "E_CHOICE_Faces_FaceDefinition=";
@@ -235,6 +239,20 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
     return res;
 }
 
+int FacesEffect::GetMaxEyeDelay( std::string& eyeBlinkFreqString ) const {
+    int maxEyeDelay = 5500; //Normal
+    if( eyeBlinkFreqString  == "Slowest")
+        maxEyeDelay = 9000;
+    else if( eyeBlinkFreqString  == "Slow")
+        maxEyeDelay = 7250;
+    else if( eyeBlinkFreqString  == "Fast")
+        maxEyeDelay = 3750;
+    else if( eyeBlinkFreqString  == "Fastest")
+        maxEyeDelay = 2000;
+    
+    return maxEyeDelay;
+}
+
 void FacesEffect::SetPanelStatus(Model* cls) {
     FacesPanel* fp = (FacesPanel*)panel;
     if (fp == nullptr)
@@ -353,6 +371,7 @@ void FacesEffect::SetDefaultParameters() {
     SetRadioValue(fp->RadioButton1);
     SetChoiceValue(fp->Choice_Faces_Phoneme, "AI");
     SetChoiceValue(fp->Choice_Faces_Eyes, "Auto");
+    SetChoiceValue(fp->Choice_Faces_EyeBlinkFrequency, "Normal");
     SetChoiceValue(fp->Choice1, "");
 
     if (fp->Face_FaceDefinitonChoice->GetCount() > 0) {
@@ -453,6 +472,7 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
         RenderCoroFacesFromPGO(buffer,
                                SettingsMap["CHOICE_Faces_Phoneme"],
                                SettingsMap.Get("CHOICE_Faces_Eyes", "Auto"),
+                               SettingsMap.Get("CHOICE_Faces_EyeBlinkFrequency", "Normal"),
                                SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
                                alpha, SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", false));
     } else {
@@ -462,6 +482,7 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                     SettingsMap["CHOICE_Faces_Phoneme"],
                     SettingsMap["CHOICE_Faces_TimingTrack"],
                     SettingsMap["CHOICE_Faces_Eyes"],
+                    SettingsMap["CHOICE_Faces_EyeBlinkFrequency"],
                     SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
                     SettingsMap.GetBool("CHECKBOX_Faces_TransparentBlack", false),
                     SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0),
@@ -475,7 +496,7 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
     //}
 }
 
-void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool outline, uint8_t alpha, bool suppressShimmer) {
+void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, const std::string& eyeBlinkFreq, bool outline, uint8_t alpha, bool suppressShimmer) {
     if (alpha == 0)
         return; // 0 alpha means there is nothing to do
 
@@ -507,7 +528,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, 
     int Wt = buffer.BufferWi;
 
     // this draws eyes as well
-    drawoutline(buffer, PhonemeInt, outline, eyes, buffer.BufferHt, buffer.BufferWi);
+    drawoutline(buffer, PhonemeInt, outline, eyes, eyeBlinkFreq, buffer.BufferHt, buffer.BufferWi);
     mouth(buffer, PhonemeInt, Ht, Wt, shimmer); // draw a mouth syllable
 }
 
@@ -672,12 +693,14 @@ void FacesEffect::facesCircle(RenderBuffer& buffer, int Phoneme, int xc, int yc,
     }
 }
 
-void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, const std::string& eyes, int BufferHt, int BufferWi) {
+void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, const std::string& eyes, const std::string& eyeBlinkFreqIn, int BufferHt, int BufferWi) {
     std::string eye = eyes;
+    std::string eyeBlinkFreq = eyeBlinkFreqIn;
 
     FacesRenderCache* cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
-        cache = new FacesRenderCache();
+        int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
+        cache = new FacesRenderCache(intRand(0, maxEyeDelay));
         buffer.infoCache[id] = cache;
     }
 
@@ -695,8 +718,9 @@ void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, c
     if (eye == "Auto") {
         if (Phoneme == 9 || Phoneme == 10) {
             if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
-                //roughly every 5 seconds we'll blink
-                cache->nextBlinkTime += intRand(4500, 5500);
+                //calculate the blink time taking into account user selection
+                int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
+                cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
                 cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
                 eye = "Closed";
             } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
@@ -811,7 +835,7 @@ static bool parse_model(const wxString& want_model)
 // Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
 // Eyes_x_y = list of random elements (intended for eye blinks, etc)
 
-void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, uint8_t alpha, bool suppressShimmer)
+void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, const std::string& eyeBlinkFreq, bool face_outline, uint8_t alpha, bool suppressShimmer)
 {
     if (alpha == 0) return;
 
@@ -827,7 +851,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
 
     if (auto_phonemes.find((const char*)Phoneme.c_str()) != auto_phonemes.end())
     {
-        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, face_outline, alpha, suppressShimmer);
+        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, eyeBlinkFreq, face_outline, alpha, suppressShimmer);
         return;
     }
 
@@ -890,14 +914,19 @@ std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr,
 void FacesEffect::RenderFaces(RenderBuffer& buffer,
                               SequenceElements* elements, const std::string& faceDef,
                               const std::string& Phoneme, const std::string& trackName,
-                              const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState, bool suppressShimmer)
+                              const std::string& eyesIn, const std::string& eyeBlinkFreqIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState, bool suppressShimmer)
 {
     if (alpha == 0)
         return; // if alpha is zero dont bother.
 
+    std::string eyes = eyesIn;
+    std::string eyeBlinkFreq = eyeBlinkFreqIn;
+
     FacesRenderCache* cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
-        cache = new FacesRenderCache();
+        int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
+        cache = new FacesRenderCache(intRand(0, maxEyeDelay));
+
         buffer.infoCache[id] = cache;
     }
 
@@ -906,7 +935,6 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
         elements->AddRenderDependency(trackName, buffer.cur_model);
         cache->Clear();
     }
-    std::string eyes = eyesIn;
 
     if (buffer.cur_model == "") {
         return;
@@ -1007,8 +1035,9 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             phoneme = "rest";
             if ("Auto" == eyes) {
                 if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
-                    // roughly every 5 seconds we'll blink
-                    cache->nextBlinkTime += intRand(4500, 5500);
+                    //calculate the blink time taking into account user selection
+                    int maxEyeDelay = GetMaxEyeDelay( eyeBlinkFreq );
+                    cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
                     cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
                     eyes = "Closed";
                 } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
@@ -1058,7 +1087,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
 
                     if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                         if ((startms + 150) >= (buffer.curPeriod * buffer.frameTimeInMs)) {
-                            // don't want to blink RIGHT at the start of the rest, delay a little bie
+                            // don't want to blink RIGHT at the start of the rest, delay a little bit
                             int tmp = (buffer.curPeriod * buffer.frameTimeInMs) + intRand(150, 549);
 
                             // also don't want it right at the end
@@ -1068,8 +1097,9 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                                 cache->nextBlinkTime = tmp;
                             }
                         } else {
-                            // roughly every 5 seconds we'll blink
-                            cache->nextBlinkTime += intRand(4500, 5500);
+                            //calculate the blink time taking into account user selection
+                            int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
+                            cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
                             cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
                             eyes = "Closed";
                         }
@@ -1084,8 +1114,9 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     } else if (phoneme == "rest" || phoneme == "(off)") {
             if ("Auto" == eyes) {
                 if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
-                    // roughly every 5 seconds we'll blink
-                    cache->nextBlinkTime += intRand(4500, 5500);
+                    //calculate the blink time, taking into account user selection
+                    int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
+                    cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
                     cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
                     eyes = "Closed";
                 } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
@@ -1273,7 +1304,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     }
 
     if (type == 2) {
-        RenderFaces(buffer, phoneme, eyes, face_outline, alpha, suppressShimmer);
+        RenderFaces(buffer, phoneme, eyes, eyeBlinkFreq, face_outline, alpha, suppressShimmer);
         return;
     }
     if (type == 3) {
@@ -1371,6 +1402,9 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                         auto c = sts[wxString::Format("s%d-Color", (int)i)];
                         if (r != "") {
                             xlColor colour = xlColor(c);
+                            if (c.empty()) {
+                                colour = xlWHITE;
+                            }
                             colour.alpha = ((int)alpha * colour.alpha) / 255;
 
                             // use the nodes as it is faster

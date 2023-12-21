@@ -30,6 +30,7 @@ const long CheckSequenceSettingsPanel::ID_CHECKBOX3 = wxNewId();
 const long CheckSequenceSettingsPanel::ID_CHECKBOX4 = wxNewId();
 const long CheckSequenceSettingsPanel::ID_CHECKBOX5 = wxNewId();
 const long CheckSequenceSettingsPanel::ID_CHECKBOX6 = wxNewId();
+const long CheckSequenceSettingsPanel::ID_CHECKBOX7 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(CheckSequenceSettingsPanel,wxPanel)
@@ -70,7 +71,13 @@ CheckSequenceSettingsPanel::CheckSequenceSettingsPanel(wxWindow* parent, xLights
 	CheckBox_CustomSizeCheck->SetValue(false);
 	CheckBox_CustomSizeCheck->SetHelpText(_("Large custom models with largely empty cells generate significant rendering overhead. You may want to consider shrinking the custom model dimensions if this can done without too significantly adversely affecting appearance."));
 	GridBagSizer1->Add(CheckBox_CustomSizeCheck, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
+	CheckBox_DisableSketch = new wxCheckBox(this, ID_CHECKBOX7, _("Disable sketch image file checking."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
+	CheckBox_DisableSketch->SetValue(false);
+	CheckBox_DisableSketch->SetHelpText(_("Sketch effect image files are not essential to rendering."));
+	GridBagSizer1->Add(CheckBox_DisableSketch, wxGBPosition(7, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
 	SetSizer(GridBagSizer1);
+	GridBagSizer1->Fit(this);
+	GridBagSizer1->SetSizeHints(this);
 
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_DupUnivClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_NonContigChOnPortClick);
@@ -78,6 +85,7 @@ CheckSequenceSettingsPanel::CheckSequenceSettingsPanel(wxWindow* parent, xLights
 	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_DupNodeMGClick);
 	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_TransTimeClick);
 	Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_CustomSizeCheckClick);
+	Connect(ID_CHECKBOX7,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_DisableSketchClick);
 	//*)
 
 	CheckBox_DupUniv->SetToolTip(CheckBox_DupUniv->GetHelpText());
@@ -86,6 +94,7 @@ CheckSequenceSettingsPanel::CheckSequenceSettingsPanel(wxWindow* parent, xLights
     CheckBox_DupNodeMG->SetToolTip(CheckBox_DupNodeMG->GetHelpText());
     CheckBox_TransTime->SetToolTip(CheckBox_TransTime->GetHelpText());
     CheckBox_CustomSizeCheck->SetToolTip(CheckBox_CustomSizeCheck->GetHelpText());
+    CheckBox_DisableSketch->SetToolTip(CheckBox_DisableSketch->GetHelpText());
 }
 
 CheckSequenceSettingsPanel::~CheckSequenceSettingsPanel()
@@ -101,7 +110,7 @@ bool CheckSequenceSettingsPanel::TransferDataToWindow() {
     CheckBox_DupNodeMG->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("DupNodeMG"));
     CheckBox_TransTime->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("TransTime"));
     CheckBox_CustomSizeCheck->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("CustomSizeCheck"));
-
+    CheckBox_DisableSketch->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("SketchImage"));
     return true;
 }
 bool CheckSequenceSettingsPanel::TransferDataFromWindow() {
@@ -111,6 +120,7 @@ bool CheckSequenceSettingsPanel::TransferDataFromWindow() {
     xLightsFrame::SetCheckSequenceOptionDisable("DupNodeMG", CheckBox_DupNodeMG->IsChecked());
     xLightsFrame::SetCheckSequenceOptionDisable("TransTime", CheckBox_TransTime->IsChecked());
     xLightsFrame::SetCheckSequenceOptionDisable("CustomSizeCheck", CheckBox_CustomSizeCheck->IsChecked());
+    xLightsFrame::SetCheckSequenceOptionDisable("SketchImage", CheckBox_DisableSketch->IsChecked());
     return true;
 }
 
@@ -150,6 +160,13 @@ void CheckSequenceSettingsPanel::OnCheckBox_TransTimeClick(wxCommandEvent& event
 }
 
 void CheckSequenceSettingsPanel::OnCheckBox_CustomSizeCheckClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void CheckSequenceSettingsPanel::OnCheckBox_DisableSketchClick(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

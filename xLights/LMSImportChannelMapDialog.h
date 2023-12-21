@@ -34,7 +34,6 @@ class Model;
 
 class LMSImportChannelMapDialog: public wxDialog
 {
-    static wxColourData _colorData;
     wxFileName _filename;
         bool _dirty;
     public:

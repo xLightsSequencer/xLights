@@ -11,6 +11,10 @@
 // Created:   2012-11-03
 // Copyright: Matt Brown ()
 
+#ifdef _DEBUG
+//#define SIMULATE_UPGRADE
+#endif
+
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
 #include <wx/debugrpt.h>
@@ -108,6 +112,8 @@
 #include "outputs/ZCPPOutput.h"
 #include "sequencer/MainSequencer.h"
 #include "utils/ip_utils.h"
+#include "TempFileManager.h"
+#include "xlColourData.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -119,6 +125,8 @@
 #include "../include/control-play-blue-icon.xpm"
 
 #include <xlsxwriter.h>
+
+#include "wxWEBPHandler/wx/imagwebp.h"
 
 //(*InternalHeaders(xLightsFrame)
 #include <wx/bitmap.h>
@@ -1505,6 +1513,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
                       config->GetStyle(),
                       (const char*)config->GetVendorName().c_str());
 
+    xlColourData::INSTANCE.Load(config);
     config->Read("xLightsPlayControlsOnPreview", &_playControlsOnPreview, false);
     logger_base.debug("Play Controls On Preview: %s.", toStr(_playControlsOnPreview));
 
@@ -1681,6 +1690,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     }
     logger_base.debug("Enable Render Cache: %s.", (const char*)_enableRenderCache.c_str());
     _renderCache.Enable(_enableRenderCache);
+
+    config->Read(_("xLightsRenderCacheMaxSizeMB"), &_renderCacheMaximumSizeMB, 20 * 1024);
+    logger_base.debug("Render Cache Maximum Size: %luMB.", _renderCacheMaximumSizeMB);
+    _renderCache.SetMaximumSizeMB(_renderCacheMaximumSizeMB);
 
     config->Read("xLightsAutoSavePerspectives", &_autoSavePerspecive, false);
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
@@ -1869,6 +1882,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     EnableNetworkChanges();
 
     wxImage::AddHandler(new wxGIFHandler);
+    wxImage::AddHandler(new wxWEBPHandler);
 
     config->Read("xLightse131Sync", &me131Sync, false);
     _outputManager.SetSyncEnabled(me131Sync);
@@ -2047,6 +2061,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsShowACLights", _showACLights);
     config->Write("xLightsShowACRamps", _showACRamps);
     config->Write("xLightsEnableRenderCache", _enableRenderCache);
+    config->Write("xLightsRenderCacheMaxSizeMB", _renderCacheMaximumSizeMB);
     config->Write("xLightsPlayControlsOnPreview", _playControlsOnPreview);
     config->Write("xLightsShowBaseFolder", _showBaseShowFolder);
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
@@ -2071,6 +2086,8 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsControllerSash", SplitterWindowControllers->GetSashPosition());
 
     SaveDockable();
+
+    xlColourData::INSTANCE.Save(config);
 
     // definitely not outputting data anymore
     config->Write("OutputActive", false);
@@ -2174,7 +2191,7 @@ void xLightsFrame::DoPostStartupCommands()
     // dont check for updates if batch rendering
     if (!_renderMode && !_checkSequenceMode) {
 // Don't bother checking for updates when debugging.
-#ifndef _DEBUG
+#if !defined(_DEBUG) || defined(SIMULATE_UPGRADE)
         if (!IsFromAppStore()) {
             CheckForUpdate(1, true, false);
         }
@@ -3927,6 +3944,7 @@ std::string xLightsFrame::PackageDebugFiles(bool showDialog)
         ExportEffects(filenamee);
         wxFileName fne(filenamee);
         report.AddFile(fne.GetFullPath(), "All Effects");
+        wxRemoveFile(filenamee);
     }
 
     report.Process();
@@ -4782,6 +4800,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     wxFile f;
     wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
+    TempFileManager::GetTempFileManager().AddTempFile(filename);
 
     if (writeToFile || displayInEditor) {
         f.Open(filename, wxFile::write);
@@ -5018,7 +5037,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             for (const auto& itc : _outputManager.GetControllers()) {
                 auto eth = dynamic_cast<ControllerEthernet*>(itc);
                 if (eth != nullptr) {
-                    if (eth != it && it->GetIP() != "MULTICAST" && (it->GetIP() == eth->GetIP() || it->GetIP() == eth->GetResolvedIP())) {
+                    if (eth != it && it->GetIP() != "MULTICAST" && (it->GetIP() == eth->GetIP() || it->GetIP() == eth->GetResolvedIP(false))) {
                         wxString msg = wxString::Format("    ERR: %s IP Address '%s' for controller '%s' used on another controller '%s'. This is not allowed.",
                                                         (const char*)it->GetProtocol().c_str(),
                                                         (const char*)it->GetIP().c_str(),
@@ -6349,7 +6368,7 @@ void xLightsFrame::ValidateEffectAssets()
     }
 
     if (missing != "" && (_promptBatchRenderIssues || (!_renderMode && !_checkSequenceMode))) {
-        wxMessageBox("Sequence references files which cannot be found:\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
+        wxMessageBox("Sequence references files which cannot be found:\nShow Folder: " + showDirectory + "\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
     }
 }
 
@@ -8669,7 +8688,10 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
                           (const char*)urlVersion.c_str(),
                           (const char*)configver.c_str());
 
-        if ((!urlVersion.Matches(configver)) && (!urlVersion.Matches(xlights_version_string)) && IsVersionOlder(urlVersion, xlights_version_string)) {
+#ifndef SIMULATE_UPGRADE
+        if ((!urlVersion.Matches(configver)) && (!urlVersion.Matches(xlights_version_string)) && IsVersionOlder(urlVersion, xlights_version_string)) 
+#endif
+        {
             found_update = true;
             UpdaterDialog* dialog = new UpdaterDialog(this);
 
@@ -8740,12 +8762,8 @@ void xLightsFrame::SetSnapToTimingMarks(bool b)
 
 void xLightsFrame::PurgeDownloadCache()
 {
-    VendorModelDialog::GetCache().ClearCache();
-    VendorModelDialog::GetCache().Save();
-    VendorMusicDialog::GetCache().ClearCache();
-    VendorMusicDialog::GetCache().Save();
-    ShaderDownloadDialog::GetCache().ClearCache();
-    ShaderDownloadDialog::GetCache().Save();
+    CachedFileDownloader::GetDefaultCache().ClearCache();
+    CachedFileDownloader::GetDefaultCache().Save();
 }
 
 bool xLightsFrame::GetRecycleTips() const
@@ -9047,6 +9065,12 @@ void xLightsFrame::SetEnableRenderCache(const wxString& t)
         _renderCache.SetSequence("", "");
         _renderCache.Purge(&_sequenceElements, false);
     }
+}
+
+void xLightsFrame::SetRenderCacheMaximumSizeMB(size_t maxSizeMB)
+{
+    _renderCacheMaximumSizeMB = maxSizeMB;
+    _renderCache.SetMaximumSizeMB(maxSizeMB);
 }
 
 bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)

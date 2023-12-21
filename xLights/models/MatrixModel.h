@@ -50,5 +50,6 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
     
         bool vMatrix = false;
         bool _alternateNodes = false;
+        bool _noZig = false;
     private:
 };

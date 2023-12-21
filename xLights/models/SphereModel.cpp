@@ -338,7 +338,7 @@ void SphereModel::ExportAsCustomXModel3D() const
         data.push_back(layer);
     }
 
-    int i = 0;
+    int i = 1;
     for (auto& n: Nodes)
     {
         int xx = SCALE_FACTOR_3D * (float)BufferWi * (n->Coords[0].screenX - minx) / w;

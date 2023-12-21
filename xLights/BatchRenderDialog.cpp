@@ -164,7 +164,7 @@ void BatchRenderDialog::OnPopupCommand(wxCommandEvent &event)
             CheckListBox_Sequences->UncheckItem(item);
         } else if (id == ID_MNU_SELECTHIGH && !isChecked && isSelected) {
             CheckListBox_Sequences->CheckItem(item);
-        } else if (id == ID_MNU_SELECTHIGH && isChecked && isSelected) {
+        } else if (id == ID_MNU_DESELECTHIGH && isChecked && isSelected) {
             CheckListBox_Sequences->UncheckItem(item);
         }
         item = CheckListBox_Sequences->GetNextItem(item);

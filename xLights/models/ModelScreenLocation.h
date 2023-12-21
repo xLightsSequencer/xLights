@@ -270,6 +270,19 @@ protected:
     glm::vec3 GetWorldPosition() const { return glm::vec3(worldPos_x, worldPos_y, worldPos_z); }
     void SetWorldPosition(const glm::vec3& worldPos) { worldPos_x = worldPos.x; worldPos_y = worldPos.y; worldPos_z = worldPos.z; }
     glm::vec3 GetRotation() const { return glm::vec3(rotatex, rotatey, rotatez); }
+    void SetRotation(const glm::vec3& rotate)
+    {
+        rotatex = rotate.x;
+        rotatey = rotate.y;
+        rotatez = rotate.z;
+
+        glm::mat4 Identity(glm::mat4(1.0f));
+        glm::mat4 rx = glm::rotate(Identity, glm::radians(rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 ry = glm::rotate(Identity, glm::radians(rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
+        rotate_quat = glm::quat_cast(rz * ry * rx);
+        rotation_init = false;
+    }
     glm::quat GetRotationQuat() const { return rotate_quat; }
     glm::vec3 GetScaleMatrix() const { return glm::vec3(scalex, scaley, scalez); }
     void SetScaleMatrix(const glm::vec3& scale) const {

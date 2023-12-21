@@ -65,11 +65,12 @@ Instructions for other Linux distributions will vary.
      libcurl4-openssl-dev
      libltc-dev
      liblua5.3-dev
+     libwebp-dev
      cbp2make (optional but recommended if compiling from git)
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libavutil-dev libportmidi-dev libzstd-dev libcurl4-openssl-dev libltc-dev liblua5.3-dev wget git cbp2make
+     sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libavutil-dev libportmidi-dev libzstd-dev libwebp-dev libcurl4-openssl-dev libltc-dev liblua5.3-dev wget git cbp2make
 
      Example commands to install packages on Fedora 38
 
@@ -88,7 +89,7 @@ Instructions for other Linux distributions will vary.
     Install other packages:
 
      sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-     sudo dnf install gcc-c++ gtk3-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL2-devel portmidi-devel libzstd-devel curl-devel libltc-devel lua-devel
+     sudo dnf install gcc-c++ gtk3-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL2-devel portmidi-devel libzstd-devel libwebp-devel curl-devel libltc-devel lua-devel
 
      Note: newer versions of libportmidi combined the .so files. Easiest workaround is to add a sym link to the combine .so file:
         sudo ln -s /usr/lib64/libportmidi.so /usr/lib64/libporttime.so

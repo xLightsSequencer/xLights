@@ -1574,7 +1574,10 @@ wxJSONReader::AppendUES( wxMemoryBuffer& utf8Buff, const char* uesBuffer )
     wchar_t ch = (wchar_t) l;
     char buffer[16];
     size_t len = wxConvUTF8.FromWChar( buffer, 10, &ch, 1 );
-    utf8Buff.AppendData( buffer, len );
+    // xlights ... this does fail from time to time so prevent a crash
+    if (len != wxCONV_FAILED) {
+        utf8Buff.AppendData(buffer, len);
+    }
 
     // sould never fail
     wxASSERT( len != wxCONV_FAILED );

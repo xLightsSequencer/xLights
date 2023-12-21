@@ -110,7 +110,9 @@
 #include "../include/cc_radialout.xpm"
 #include "../include/save.xpm"
 #include "../include/delete.xpm"
-#include "../include/switch.xpm"
+#include "../include/reverse.xpm"
+#include "../include/left_shift.xpm"
+#include "../include/right_shift.xpm"
 
 
 #include "../include/valuecurvenotselected.xpm"
@@ -509,8 +511,12 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
         return CreateBitmapBundleFromXPMs(sz, "cc_radialin_xpm", {cc_radialin_xpm, cc_radialin_xpm});
     } else if ("xlART_cc_radialout_xpm" == id) {
         return CreateBitmapBundleFromXPMs(sz, "cc_radialout_xpm", {cc_radialout_xpm, cc_radialout_xpm});
-    } else if ("xlART_colorpanel_switch_xpm" == id) {
-        return CreateBitmapBundleFromXPMs(sz, "colorpanel_switch_xpm", {switch_xpm, switch_xpm});
+    } else if ("xlART_colorpanel_reverse_xpm" == id) {
+        return CreateBitmapBundleFromXPMs(sz, "colorpanel_switch_xpm", {reverse_xpm, reverse_xpm});
+    } else if ("xlART_colorpanel_left_shift_xpm" == id) {
+        return CreateBitmapBundleFromXPMs(sz, "colorpanel_left_shift_xpm", { left_shift_xpm, left_shift_xpm });
+    } else if ("xlART_colorpanel_right_shift_xpm" == id) {
+        return CreateBitmapBundleFromXPMs(sz, "colorpanel_right_shift_xpm", { right_shift_xpm, right_shift_xpm });
     } else if ("xlART_colorpanel_delete_xpm" == id) {
         return CreateBitmapBundleFromXPMs(sz, "colorpanel_delete_xpm", {delete_xpm, delete_xpm});
     } else if ("xlART_colorpanel_save_xpm" == id) {

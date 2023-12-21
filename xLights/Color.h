@@ -177,6 +177,22 @@ public:
     void fromHSL(const HSLValue &v);
     void toHSL(HSLValue &v) const;
 
+    xlColor ContrastColourNotBlack() const
+    {
+        xlColor c;
+        HSLValue hsl = asHSL();
+        hsl.hue += 0.5;
+        if (hsl.hue > 1.0)
+            hsl.hue -= 1.0;
+
+        if (hsl.lightness > 0.8 || hsl.lightness < 0.2)
+            hsl.lightness = 0.5;
+
+        c.fromHSL(hsl);
+
+        return c;
+    }
+
     static xlColor NilColor()
     {
         return xlColor(0, 0, 0, 0);

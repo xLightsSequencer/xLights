@@ -566,8 +566,29 @@ void xLightsFrame::CheckForValidModels()
                     if (!mapall) {
                         dialog.StaticTextMessage->SetLabel("Model '" + name + "'\ndoes not exist in your list of models");
                         dialog.ChoiceModels->Set(ToArrayString(AllNames));
+                        bool renameAlias = false;
                         if (AllNames.size() > 0) {
-                            dialog.ChoiceModels->SetSelection(0);
+
+                            std::string mapto = "";
+                            // go through all the models looking for an alias match
+                            for (const auto& it : AllModels)
+                            {
+                                if (it.second->IsAlias(name, true)) {
+                                    renameAlias = true;
+                                    mapto = it.first;
+                                    break;
+                                } else if (it.second->IsAlias(name, false)) {
+                                    // this is an alias but not a rename one
+                                    mapto = it.first;                                
+                                }
+                            }
+
+                            if (mapto == "") {
+                                dialog.ChoiceModels->SetSelection(0);
+                            } else {
+                                dialog.ChoiceModels->SetStringSelection(mapto);
+                                dialog.RadioButtonRename->SetValue(true);
+                            }
                         }
                         else {
                             dialog.ChoiceModels->Hide();
@@ -576,7 +597,8 @@ void xLightsFrame::CheckForValidModels()
                         }
                         dialog.Fit();
 
-                        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && !cancelled && HasEffects(me)) {
+                        // if mapto is not blank then we can use an oldname alias to remap automagically
+                        if (!renameAlias && ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && !cancelled && HasEffects(me)) {
                             cancelled = (dialog.ShowModal() == wxID_CANCEL);
                         }
                     }

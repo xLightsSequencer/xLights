@@ -91,8 +91,9 @@ VirtualMatricesDialog::VirtualMatricesDialog(wxWindow* parent, OutputManager* ou
     ListView1->InsertColumn(7, "Start Channel");
     ListView1->InsertColumn(8, "Quality");
     ListView1->InsertColumn(9, "Matrix Multiplier");
+    ListView1->InsertColumn(10, "Pixel");
 
-    SetSize(950, 400);
+    SetSize(1000, 400);
 
     PopulateList();
 
@@ -175,8 +176,9 @@ void VirtualMatricesDialog::OnButton_OkClick(wxCommandEvent& event)
             matrixMultiplier = wxAtoi(ListView1->GetItemText(i, 9));
             useMatrixSize = true;
         }
+        std::string pixelChannels = ListView1->GetItemText(i, 10).ToStdString();
 
-        _vmatrices->push_back(new VirtualMatrix(_outputManager, width, height, topMost, rotation, quality, startChannel, name, size, location, useMatrixSize, matrixMultiplier));
+        _vmatrices->push_back(new VirtualMatrix(_outputManager, width, height, topMost, rotation, pixelChannels, quality, startChannel, name, size, location, useMatrixSize, matrixMultiplier));
     }
 
     EndDialog(wxID_OK);
@@ -208,6 +210,7 @@ void VirtualMatricesDialog::DoAdd()
     int height = 16;
     bool topMost = true;
     std::string rotation = "";
+    std::string pixelChannels = "";
     wxSize size = _options->GetDefaultVideoSize();
     wxPoint location = _options->GetDefaultVideoPos();
     std::string startChannel = "1";
@@ -215,7 +218,7 @@ void VirtualMatricesDialog::DoAdd()
     bool useMatrixSize = false;
     int matrixMultiplier = 1;
 
-    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier, _options);
+    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, pixelChannels, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier, _options);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -237,6 +240,7 @@ void VirtualMatricesDialog::DoAdd()
         {
             ListView1->SetItem(row, 9, "");
         }
+        ListView1->SetItem(row, 10, pixelChannels);
     }
 
     ValidateWindow();
@@ -264,6 +268,7 @@ void VirtualMatricesDialog::DoEdit()
     int height = wxAtoi(ListView1->GetItemText(item, 2));
     bool topMost = ListView1->GetItemText(item, 3) == "Yes";
     std::string rotation = ListView1->GetItemText(item, 4).ToStdString();
+    std::string pixelChannels = ListView1->GetItemText(item, 10).ToStdString();
     auto sz = wxSplit(ListView1->GetItemText(item, 5), ',');
     wxSize size(300, 300);
     if (sz.GetCount() == 2)
@@ -286,7 +291,7 @@ void VirtualMatricesDialog::DoEdit()
         useMatrixSize = true;
     }
 
-    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier, _options);
+    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, pixelChannels, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier, _options);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -307,6 +312,7 @@ void VirtualMatricesDialog::DoEdit()
         {
             ListView1->SetItem(item, 9, "");
         }
+        ListView1->SetItem(item, 10, pixelChannels);
     }
 
     ValidateWindow();
@@ -334,5 +340,6 @@ void VirtualMatricesDialog::PopulateList()
         {
             ListView1->SetItem(row, 9, "");
         }
+        ListView1->SetItem(row, 10, (*it)->GetPixelChannels());
     }
 }

@@ -34,7 +34,7 @@ public:
     }
     int GetInt(const std::string &key, const int def = 0) const {
         std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end() || i->second.length() == 0) {
+        if (i == end() || i->second.length() == 0 || i->second.at(0) == ' ') {
             return def;
         }
         try {
@@ -46,7 +46,7 @@ public:
     float GetFloat(const std::string& key, const float def = 0.0) const
     {
         std::map<std::string, std::string>::const_iterator i(find(key));
-        if (i == end() || i->second.length() == 0) {
+        if (i == end() || i->second.length() == 0 || i->second.at(0) == ' ') {
             return def;
         }
         try {
@@ -59,7 +59,7 @@ public:
     double GetDouble(const std::string& key, const double def = 0.0) const
     {
         std::map<std::string, std::string>::const_iterator i(find(key));
-        if (i == end() || i->second.length() == 0) {
+        if (i == end() || i->second.length() == 0 || i->second.at(0) == ' ') {
             return def;
         }
         try {
@@ -246,7 +246,10 @@ class ImageFilePickerCtrl : public wxFilePickerCtrl
 {
 public:
     ImageFilePickerCtrl(wxWindow *parent, wxWindowID id, const wxString& path, const wxString& message, const wxString& wildcard, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) :
-        wxFilePickerCtrl(parent, id, path, message, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*", pos, size, style, validator, name)
+        wxFilePickerCtrl(parent, id, path, message, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
+                                                    ";*.webp"
+                                                    "|All files (*.*)|*.*",
+                         pos, size, style, validator, name)
     {
     }
 };

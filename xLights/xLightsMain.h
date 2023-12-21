@@ -1072,6 +1072,7 @@ public:
     bool _showACLights = false;
     bool _showACRamps = false;
     wxString _enableRenderCache;
+    size_t _renderCacheMaximumSizeMB = 0;
     bool _playControlsOnPreview = true;
     bool _showBaseShowFolder = false;
     bool _autoShowHousePreview = false;
@@ -1234,6 +1235,11 @@ public:
     }
     const wxString &EnableRenderCache() const { return _enableRenderCache; }
     void SetEnableRenderCache(const wxString &t);
+    void SetRenderCacheMaximumSizeMB(size_t maxSizeMB);
+    size_t RenderCacheMaximumSizeMB() const
+    {
+        return _renderCacheMaximumSizeMB;
+    }
 
     bool RenderOnSave() const { return mRenderOnSave; }
     void SetRenderOnSave(bool b);

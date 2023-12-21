@@ -336,8 +336,11 @@ bool MetalRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings &se
 }
 
 bool MetalRenderBufferComputeData::callRotoZoomFunction(id<MTLComputePipelineState> &function, RotoZoomData &data) {
-    id<MTLBuffer> bufferResult = getPixelBuffer();
     id<MTLCommandBuffer> commandBuffer = getCommandBuffer();
+    if (commandBuffer == nil) {
+        return false;
+    }
+    id<MTLBuffer> bufferResult = getPixelBuffer();
     id<MTLBuffer> bufferCopy = getPixelBufferCopy();
     id<MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
     [blitCommandEncoder setLabel:@"CopyDataToCopyBuffer"];

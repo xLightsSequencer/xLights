@@ -382,10 +382,81 @@ std::optional<xlColor> DmxColorAbilityWheel::GetDMXWheelValue(xlColor const& col
 
 std::optional<xlColor> DmxColorAbilityWheel::GetWheelColorFromDMXValue(xlColor const& dmx) const
 {
-    if (auto const found{ std::find_if(colors.begin(), colors.end(),
-                                       [&dmx](auto const& col) { return abs(dmx.Red() - col.dmxValue)<=5; }) };
-        found != colors.end()) {
-        return (*found).color;
+    // if the colour has a zero colour in the list then take colour lower than the specified value
+    // If the colour has a 255 colour in the list then take the colour higher than the specified value
+    // else assume the colour is the mid point so take the closest colour
+    std::optional<xlColor> colour = std::nullopt;
+
+    auto zero = std::find_if(colors.begin(), colors.end(),
+                             [](auto const& col) { return col.dmxValue == 0; });
+
+    if (zero != colors.end()) {
+
+        int dmxValue = -1;
+
+        // because colours may not be in order
+        for (const auto& it : colors)
+        {
+            if (it.dmxValue <= dmx.Red() && it.dmxValue > dmxValue)
+            {
+                colour = it.color;
+                dmxValue = it.dmxValue;
+            }
+        }
+    } else {
+        auto twofivefive = std::find_if(colors.begin(), colors.end(),
+                                 [](auto const& col) { return col.dmxValue == 255; });
+
+        if (twofivefive != colors.end()) {
+
+            int dmxValue = 256;
+
+            // because colours may not be in order
+            for (const auto& it : colors) {
+                if (it.dmxValue >= dmx.Red() && it.dmxValue < dmxValue) {
+                    colour = it.color;
+                    dmxValue = it.dmxValue;
+                }
+            }   
+        }
+        else
+        {
+            // because colours may not be in order ... we need to sort them to be safe
+            auto temp = colors;
+            std::sort(temp.begin(), temp.end(), [](const auto& a, const auto& b) { return a.dmxValue < b.dmxValue; });
+
+            for (size_t i = 0; i < temp.size(); ++i)
+            {
+                // anything less than the first colour value is that colour
+                if (i == 0 && dmx.Red() <= temp[i].dmxValue)
+                {
+                    colour = temp[i].color;
+                    break;
+                }
+                // anything greater than the last colour value is that colour
+                else if (i == temp.size() - 1)
+                {
+                    colour = temp[i].color;
+                    break;
+                }
+                else
+                {
+                    if (dmx.Red() >= temp[i].dmxValue && dmx.Red() <= temp[i + 1].dmxValue)
+                    {
+                        if (dmx.Red() <= temp[i].dmxValue + (temp[i+1].dmxValue - temp[i].dmxValue) / 2)
+                        {
+                            colour = temp[i].color;
+                        }
+                        else
+                        {
+                            colour = temp[i+1].color;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
     }
-    return std::nullopt;
+
+    return colour;
 }

@@ -21,6 +21,8 @@
 #include "controllers/ControllerCaps.h"
 #include "outputs/ControllerEthernet.h"
 
+#include "utils/ip_utils.h"
+
 //(*IdInit(MultiControllerUploadDialog)
 const long MultiControllerUploadDialog::ID_STATICTEXT1 = wxNewId();
 const long MultiControllerUploadDialog::ID_CHECKLISTBOX1 = wxNewId();
@@ -31,6 +33,9 @@ const long MultiControllerUploadDialog::ID_TEXTCTRL1 = wxNewId();
 
 const long MultiControllerUploadDialog::ID_MCU_SELECTALL = wxNewId();
 const long MultiControllerUploadDialog::ID_MCU_SELECTNONE = wxNewId();
+const long MultiControllerUploadDialog::ID_MCU_SELECTACTIVE = wxNewId();
+const long MultiControllerUploadDialog::ID_MCU_DESELECTINACTIVE = wxNewId();
+const long MultiControllerUploadDialog::ID_MCU_SELECTAUTO = wxNewId();
 
 BEGIN_EVENT_TABLE(MultiControllerUploadDialog, wxDialog)
 	//(*EventTable(MultiControllerUploadDialog)
@@ -92,9 +97,8 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent, wxWin
             }
         }
     }
-
+    LoadChecked();
     Fit();
-
     ValidateWindow();
 }
 
@@ -130,6 +134,7 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
         TextCtrl_Log->AppendText(message);
         TextCtrl_Log->AppendText("\n");
         TextCtrl_Log->AppendText("    Done.");
+	TextCtrl_Log->AppendText("\n");
     }
 
     CheckListBox_Controllers->Enable();
@@ -140,6 +145,7 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
 
 void MultiControllerUploadDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
+    SaveChecked();
     EndDialog(wxID_CLOSE);
 }
 
@@ -160,6 +166,28 @@ void MultiControllerUploadDialog::OnListRClick(wxContextMenuEvent& event)
     wxMenu mnu;
     mnu.Append(ID_MCU_SELECTALL, "Select All");
     mnu.Append(ID_MCU_SELECTNONE, "Select None");
+    mnu.Append(ID_MCU_SELECTACTIVE, "Select Active");
+    mnu.Append(ID_MCU_SELECTAUTO, "Select Auto Config");
+    mnu.Append(ID_MCU_DESELECTINACTIVE, "Deselect Inactive");
+
+    std::vector<std::string> proxies;
+    for (auto* c : _controllers) {
+        auto controllerproxy = c->GetFPPProxy();
+        if (!controllerproxy.empty()) {
+            if (std::find(proxies.begin(), proxies.end(), controllerproxy) == proxies.end()) {
+                proxies.push_back(controllerproxy);
+            }
+        }
+    }
+    if (!proxies.empty()) {
+        std::sort(proxies.begin(), proxies.end());
+        wxMenu* srMenu = new wxMenu();
+        for (auto p : proxies) {
+            srMenu->Append(wxNewId(), wxString(p));
+        }
+        srMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&MultiControllerUploadDialog::OnProxyPopup, nullptr, this);
+        mnu.AppendSubMenu(srMenu, "Select with Proxy");
+    }
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&MultiControllerUploadDialog::OnPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -172,11 +200,81 @@ void MultiControllerUploadDialog::OnPopup(wxCommandEvent& event)
             CheckListBox_Controllers->Check(i);
         }
         ValidateWindow();
-    }
-    else if (event.GetId() == ID_MCU_SELECTNONE) {
+    } else if (event.GetId() == ID_MCU_SELECTNONE) {
         for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++) {
             CheckListBox_Controllers->Check(i, false);
         }
         ValidateWindow();
+    } else if (event.GetId() == ID_MCU_SELECTACTIVE) {
+        for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++) {
+            if (_controllers[i]->IsActive()) {
+                CheckListBox_Controllers->Check(i);
+            }
+            
+        }
+        ValidateWindow();
+    } else if (event.GetId() == ID_MCU_DESELECTINACTIVE) {
+        for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++) {
+            if (!_controllers[i]->IsActive()) {
+                CheckListBox_Controllers->Check(i, false);
+            }
+        }
+        ValidateWindow();
+    } else if (event.GetId() == ID_MCU_SELECTAUTO) {
+        for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++) {
+            if (_controllers[i]->IsAutoLayout()) {
+                CheckListBox_Controllers->Check(i);
+            }
+        }
+        ValidateWindow();
+    }
+}
+
+void MultiControllerUploadDialog::OnProxyPopup(wxCommandEvent& event)
+{
+    auto id = event.GetId();
+    wxString label = ((wxMenu*)event.GetEventObject())->GetLabelText(id);
+    for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++) {
+        if (!_controllers[i] || _controllers[i]->GetFPPProxy().empty()) {
+            continue;
+        }
+        if (label.compare(_controllers[i]->GetFPPProxy()) == 0) {
+            CheckListBox_Controllers->Check(i);
+        }
+    }
+    ValidateWindow();
+}
+
+void MultiControllerUploadDialog::SaveChecked()
+{
+    wxArrayInt ch;
+    CheckListBox_Controllers->GetCheckedItems(ch);
+    std::list<int> fake;
+    std::vector<std::string> selected_controllers;
+    for (int i = 0; i < ch.Count() ; i++) {
+        auto c = _controllers[ch[i]];
+        selected_controllers.push_back(c->GetIP());
+    }
+
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("MultiControllerUploadSelection", wxString(Join(selected_controllers, ",")));
+    config->Flush();
+}
+
+void MultiControllerUploadDialog::LoadChecked()
+{
+    wxConfigBase* config = wxConfigBase::Get();
+
+    if (config != nullptr) {
+        wxString controllerSelect = "";
+
+        config->Read("MultiControllerUploadSelection", &controllerSelect);
+        std::vector<std::string> selected_controllers = Split(controllerSelect, ',');
+        for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++) {
+            auto c = _controllers[i];
+            if (std::find(selected_controllers.begin(), selected_controllers.end(), c->GetIP()) != selected_controllers.end()) {
+                CheckListBox_Controllers->Check(i);
+            }
+        }
     }
 }

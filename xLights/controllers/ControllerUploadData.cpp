@@ -110,28 +110,31 @@ int UDControllerPortModel::GetLightsPerNode() const
 int UDControllerPortModel::GetDMXChannelOffset() const
 {
     wxXmlNode* node = _model->GetControllerConnection();
-    if (node->HasAttribute("channel"))  return wxAtoi(node->GetAttribute("channel"));
+    if (node != nullptr && node->HasAttribute("channel"))
+        return wxAtoi(node->GetAttribute("channel"));
     return 1;
 }
 
 int UDControllerPortModel::GetBrightness(int currentBrightness) const
 {
     wxXmlNode* node = _model->GetControllerConnection();
-    if (node->HasAttribute("brightness"))  return wxAtoi(node->GetAttribute("brightness"));
+    if (node != nullptr && node->HasAttribute("brightness"))  return wxAtoi(node->GetAttribute("brightness"));
     return currentBrightness;
 }
 
 int UDControllerPortModel::GetStartNullPixels(int currentStartNullPixels) const
 {
     wxXmlNode* node = _model->GetControllerConnection();
-    if (node->HasAttribute("nullNodes"))  return wxAtoi(node->GetAttribute("nullNodes"));
+    if (node != nullptr && node->HasAttribute("nullNodes"))
+        return wxAtoi(node->GetAttribute("nullNodes"));
     return currentStartNullPixels;
 }
 
 int UDControllerPortModel::GetEndNullPixels(int currentEndNullPixels) const
 {
     wxXmlNode* node = _model->GetControllerConnection();
-    if (node->HasAttribute("endNullNodes"))  return wxAtoi(node->GetAttribute("endNullNodes"));
+    if (node != nullptr && node->HasAttribute("endNullNodes"))
+        return wxAtoi(node->GetAttribute("endNullNodes"));
     return currentEndNullPixels;
 }
 
@@ -150,28 +153,32 @@ float UDControllerPortModel::GetAmps(int defaultBrightness) const
 int UDControllerPortModel::GetSmartTs(int currentSmartTs) const
 {
     wxXmlNode* node = _model->GetControllerConnection();
-    if (node->HasAttribute("ts"))  return wxAtoi(node->GetAttribute("ts"));
+    if (node != nullptr && node->HasAttribute("ts"))
+        return wxAtoi(node->GetAttribute("ts"));
     return currentSmartTs;
 }
 
 float UDControllerPortModel::GetGamma(int currentGamma)  const
 {
     wxXmlNode* node = _model->GetControllerConnection();
-    if (node->HasAttribute("gamma"))  return wxAtof(node->GetAttribute("gamma"));
+    if (node != nullptr && node->HasAttribute("gamma"))
+        return wxAtof(node->GetAttribute("gamma"));
     return currentGamma;
 }
 
 std::string UDControllerPortModel::GetColourOrder(const std::string& currentColourOrder) const
 {
     wxXmlNode* node = _model->GetControllerConnection();
-    if (node->HasAttribute("colorOrder"))  return node->GetAttribute("colorOrder");
+    if (node != nullptr && node->HasAttribute("colorOrder"))
+        return node->GetAttribute("colorOrder");
     return currentColourOrder;
 }
 
 std::string UDControllerPortModel::GetDirection(const std::string& currentDirection) const
 {
     wxXmlNode* node = _model->GetControllerConnection();
-    if (node->HasAttribute("reverse"))  return wxAtoi(node->GetAttribute("reverse")) == 1 ? "Reverse" : "Forward";
+    if (node != nullptr && node->HasAttribute("reverse"))
+        return wxAtoi(node->GetAttribute("reverse")) == 1 ? "Reverse" : "Forward";
     return currentDirection;
 }
 
@@ -179,7 +186,7 @@ int UDControllerPortModel::GetGroupCount(int currentGroupCount) const
 {
 
     wxXmlNode* node = _model->GetControllerConnection();
-    if (node->HasAttribute("groupCount")) {
+    if (node != nullptr && node->HasAttribute("groupCount")) {
         return wxAtoi(node->GetAttribute("groupCount"));
     }
     return currentGroupCount;
@@ -188,7 +195,7 @@ int UDControllerPortModel::GetGroupCount(int currentGroupCount) const
 int UDControllerPortModel::GetZigZag(int currentZigZag) const
 {
     wxXmlNode* node = _model->GetControllerConnection();
-    if (node->HasAttribute("zigZag")) {
+    if (node != nullptr && node->HasAttribute("zigZag")) {
         return wxAtoi(node->GetAttribute("zigZag"));
     }
     return currentZigZag;
@@ -564,6 +571,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
 
     int32_t lastEndChannel = -1000;
     UDVirtualString* current = nullptr;
+    int curRemote = 0;
     for (const auto& it : _models) {
         bool first = false;
         int brightness = it->GetBrightness(NO_VALUE_INT);
@@ -579,12 +587,12 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
 
         if (current == nullptr || !mergeSequential) {
             if (smartRemote != 0) {
-                int curRemote = current == nullptr ? (smartRemote < 100 ? 0 : 99): current->_smartRemote < 100;
                 curRemote++;
                 for (int sr = curRemote; sr < smartRemote; sr++) {
                     // we seem to have missed one so create a dummy
                     current = new UDVirtualString();
                     _virtualStrings.push_back(current);
+                    curRemote++;
                     current->_endChannel = it->GetStartChannel() + 2;
                     current->_startChannel = it->GetStartChannel();
                     current->_description = "DUMMY";

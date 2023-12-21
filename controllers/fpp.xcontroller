@@ -229,6 +229,7 @@
         <Variant Name="24 Output DPI" ID="DPIPixels-24" Base="FPP:FPPStringDPIPiHat">
             <MaxPixelPort>24</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
+            <SupportsVirtualMatrix/>
             <SupportsLEDPanelMatrix/>
             <fppSerialPort1>ttyAMA0</fppSerialPort1>
         </Variant>

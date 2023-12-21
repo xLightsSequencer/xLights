@@ -3434,19 +3434,25 @@ std::string PixelTestDialog::SerialiseSettings()
 
     bool suspend = CheckBox_SuppressUnusedOutputs->GetValue();
 
-    return wxString::Format("%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%s",
+    int notebookSelection = Notebook2->GetSelection();
+
+    return wxString::Format("%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%s|%d",
                             speed,
                             standardFunction, standardBackground, standardHighlight,
                             rgbFunction, rgbBackgroundR, rgbBackgroundG, rgbBackgroundB,
                             rgbHighlightR, rgbHighlightG, rgbHighlightB,
-                            rgbCycleFunction, suspend ? "T" : "F")
+                            rgbCycleFunction, suspend ? "T" : "F", notebookSelection)
         .ToStdString();
 }
 
 void PixelTestDialog::DeserialiseSettings(const std::string& settings)
 {
-    if (settings == "")
+    if (settings == "") {
+        // set defaults for fresh install
+        Notebook2->SetSelection(2); // 2 - RGB Cycle
+        RadioButton_RGBCycle_ABC->SetValue(true); // RGB Cycle A-B-C
         return;
+    }
 
     wxArrayString values = wxSplit(settings, '|');
 
@@ -3567,6 +3573,20 @@ void PixelTestDialog::DeserialiseSettings(const std::string& settings)
         if (values.size() >= 13) {
             if (values[12] == "T") {
                 CheckBox_SuppressUnusedOutputs->SetValue(true);
+            }
+        }
+
+        if (values.size() >= 14) {
+            switch (wxAtoi(values[13])) {
+            case 1: 
+                Notebook2->SetSelection(1); // 1 - RGB Chase
+                break;
+            case 2: 
+                Notebook2->SetSelection(2); // 2 - RGB Cycle
+                break;
+            default: 
+                Notebook2->SetSelection(0); // 0 - Standard
+                break;
             }
         }
     }

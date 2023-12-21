@@ -226,6 +226,36 @@ void RenderBuffer::AlphaBlend(const RenderBuffer& src)
 
 inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
+// MoC - March 2023
+// The wx font map is not thread safe in some cases, effects using
+//   it from background threads need to mutex each other (and ideally
+//   the event loop thread but meh.  This is not the best place (WX
+//   would be a better place), but this is better than no place.
+//
+// The first step here was centralizing the access methods, putting a
+//   lock around them then became possible.
+//   Per dkulp, we could, in the future, pre-populate the cache from the
+//   main thread, or we could use CallAfter or similar to do the font
+//   lookup on the main thread, which may be incrementally better than
+//   just a lock shared between background threads.
+std::mutex FONT_MAP_LOCK;
+
+std::map<std::string, wxFontInfo> FONT_MAP_TXT;
+std::map<std::string, wxFontInfo> FONT_MAP_SHP;
+
+class FontMapLock
+{
+    std::unique_lock<std::mutex> lk;
+
+public:
+    FontMapLock() :
+        lk(FONT_MAP_LOCK)
+    {}
+
+    ~FontMapLock()
+    {}
+};
+
 DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha) : nullBitmap(wxNullBitmap)
 {
     gc = nullptr;
@@ -244,6 +274,7 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, boo
     dc = new wxMemoryDC(*bitmap);
 
     if (!allowShared) {
+        FontMapLock lk;
         //make sure we UnShare everything that is being held onto
         //also use "non-normal" defaults to avoid "==" issue that
         //would keep it from using the non-shared versions
@@ -303,35 +334,6 @@ PathDrawingContext::PathDrawingContext(int BufferWi, int BufferHt, bool allowSha
 
 PathDrawingContext::~PathDrawingContext() {}
 
-// MoC - March 2023
-// The wx font map is not thread safe in some cases, effects using
-//   it from background threads need to mutex each other (and ideally
-//   the event loop thread but meh.  This is not the best place (WX
-//   would be a better place), but this is better than no place.
-//
-// The first step here was centralizing the access methods, putting a
-//   lock around them then became possible.  
-//   Per dkulp, we could, in the future, pre-populate the cache from the
-//   main thread, or we could use CallAfter or similar to do the font
-//   lookup on the main thread, which may be incrementally better than
-//   just a lock shared between background threads.
-std::mutex FONT_MAP_LOCK;
-
-std::map<std::string, wxFontInfo> FONT_MAP_TXT;
-std::map<std::string, wxFontInfo> FONT_MAP_SHP;
-
-class FontMapLock
-{
-    std::unique_lock<std::mutex> lk;
-
-public:
-    FontMapLock() :
-        lk(FONT_MAP_LOCK)
-    {}
-
-    ~FontMapLock()
-    {}
-};
 
 
 TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowShared)
@@ -538,6 +540,7 @@ void PathDrawingContext::FillPath(wxGraphicsPath& path, wxPolygonFillMode fillSt
 
 void TextDrawingContext::SetFont(const wxFontInfo& font, const xlColor& color)
 {
+    FontMapLock lk;
     if (gc != nullptr) {
         int style = wxFONTFLAG_NOT_ANTIALIASED;
         if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
@@ -602,7 +605,6 @@ void TextDrawingContext::SetFont(const wxFontInfo& font, const xlColor& color)
          lf.lfPitchAndFamily,
          lf.lfFaceName);*/
         {
-            FontMapLock lk;
             wxString s = f.GetNativeFontInfoDesc();
             s.Replace(";2;", ";3;", false);
             f.SetNativeFontInfo(s);

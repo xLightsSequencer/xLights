@@ -106,6 +106,8 @@ protected:
 
 void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxPGProperty* p = grid->Append(new CustomModelProperty(this, outputManager, "Model Data", "CustomData", CLICK_TO_EDIT));
     grid->LimitPropertyEditing(p);
 
@@ -132,7 +134,7 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
 
         if (hasIndiv) {
             int c = _strings;
-            for (int x = 0; x < c; x++) {
+            for (int x = 0; x < c; ++x) {
                 nm = StartNodeAttrName(x);
                 std::string val = ModelXml->GetAttribute(nm, "").ToStdString();
                 if (val.empty()) {
@@ -156,10 +158,17 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
         }
     }
 
+    wxStopWatch sw;
     p = grid->Append(new wxImageFileProperty("Background Image",
         "CustomBkgImage",
         custom_background));
-    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*");
+
+    if (sw.Time() > 500)
+        logger_base.debug("        Adding background image property (%s) to model %s really slow: %lums", (const char*)custom_background.c_str(), (const char*)name.c_str(), sw.Time());
+
+    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
+                                        ";*.webp"
+                                        "|All files (*.*)|*.*");
 }
 
 int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
@@ -282,6 +291,9 @@ void CustomModel::UpdateModel(int width, int height, int depth, const std::strin
 
 void CustomModel::InitModel()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxStopWatch sw;
+
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
     InitCustomMatrix(customModel);
     //CopyBufCoord2ScreenCoord();
@@ -293,6 +305,11 @@ void CustomModel::InitModel()
     screenLocation.SetRenderSize(parm1, parm2, _depth);
     if (_depth > 1) {
         screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D
+    }
+
+    if (sw.Time() > 5)
+    {
+        logger_base.debug("Custom model %s took %lums to initialise.", (const char*)name.c_str(), sw.Time());
     }
 }
 
