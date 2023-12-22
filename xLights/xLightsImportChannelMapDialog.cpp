@@ -2277,13 +2277,13 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                             model->_mapping = ListCtrl_Available->GetItemText(j);
                             model->_mappingExists = true;
                         }
-                        for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                            auto strand = model->GetNthChild(k);
-                            if (strand != nullptr) {
-                                if (strand->_mapping.empty() &&lambda_strand(model->_model + "/" + strand->_strand, availName, extra1, extra2, aliases)) {
-                                    strand->_mapping = ListCtrl_Available->GetItemText(j);
-                                    strand->_mappingExists = true;
-                                }
+                        //for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                        //    auto strand = model->GetNthChild(k);
+                        //    if (strand != nullptr) {
+                        //        if (strand->_mapping.empty() && lambda_strand(model->_model + "/" + strand->_strand, availName, extra1, extra2, aliases)) {
+                        //            strand->_mapping = ListCtrl_Available->GetItemText(j) + "/" + strand->_strand;
+                        //            strand->_mappingExists = true;
+                        //        }
                                 //for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
                                 //    auto node = strand->GetNthChild(m);
                                 //    if (node != nullptr) {
@@ -2296,8 +2296,8 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                                 //        }
                                 //    }
                                 //}
-                            }
-                        }
+                       //     }
+                      //  }
                     }
                 }
             }
