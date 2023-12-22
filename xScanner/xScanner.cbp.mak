@@ -464,7 +464,7 @@ ScanWork.cpp: ScanWork.h ../xLights/Parallel.h xScannerMain.h xScannerApp.h ../x
 
 ../xLights/controllers/Falcon.cpp: ../xLights/UtilFunctions.h
 
-../xLights/controllers/FPP.cpp: ../include/zstd.h ../xLights/UtilFunctions.h ../xLights/xLightsVersion.h ../xLights/Parallel.h ../xLights/ExternalHooks.h ../xLights/FSEQFile.h ../xLights/Discovery.h ../xLights/TraceLog.h
+../xLights/controllers/FPP.cpp: ../include/zstd.h ../xLights/UtilFunctions.h ../xLights/xLightsVersion.h ../xLights/Parallel.h ../xLights/ExternalHooks.h ../xLights/TempFileManager.h ../xLights/FSEQFile.h ../xLights/Discovery.h ../xLights/TraceLog.h
 
 ../xLights/controllers/ControllerCaps.cpp: ../xLights/UtilFunctions.h ../xLights/ExternalHooks.h
 
