@@ -203,7 +203,8 @@ struct Schedule {
 
     void removePlaylist(wxString const& playlist)
     {
-        std::erase_if(Items, [&playlist](auto const& it) { return it.Playlist == playlist; });
+        Items.erase(std::remove_if(Items.begin(), Items.end(), [&playlist](auto const& it) { return it.Playlist == playlist; }), Items.end());
+        //std::erase_if(Items, [&playlist](auto const& it) { return it.Playlist == playlist; });
     }
 
     [[nodiscard]] std::vector<ScheduleItem> GetSortedSchedule() const
