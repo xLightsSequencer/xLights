@@ -11,7 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)     Added Scheduling to HinksPix Export Dialog.
+   -- enh (scott)     Persist Custom Colors across Color Dialogs.
+   -- bug (scott)     Fix Import Dialog AutoMapping Aliases to Submodel/Stands.
    -- bug (scott)     Fix Import Dialog Groups Blue turning white.
+   -- bug (scott)     Fix 3D Model Export starting at zero.
+   -- bug (scott)     Fix DMX Shutter value with On effect and Flood lights.
 2023.22 Dec 5, 2023
    -- enh (claudio)   Add virtual matrix to xSchedule using RGBW data
    -- enh (lutz)      Add palette shift buttons
