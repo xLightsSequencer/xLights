@@ -33,6 +33,8 @@
 #include "../include/spxml-0.5/spxmlevent.hpp"
 #include "../include/spxml-0.5/spxmlparser.hpp"
 
+#include <algorithm>
+
 static const std::string CHECK_COL = "ID_UPLOAD_";
 static const std::string MODE_COL = "ID_MODE_";
 static const std::string SLAVE1_COL = "ID_SLAVE1_";
