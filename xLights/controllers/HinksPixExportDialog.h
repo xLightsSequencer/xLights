@@ -1,6 +1,7 @@
 #ifndef HINKSPIXEXPORTDIALOG_H
 #define HINKSPIXEXPORTDIALOG_H
 
+#include <algorithm>
 #include <array>
 #include <list>
 #include <map>
