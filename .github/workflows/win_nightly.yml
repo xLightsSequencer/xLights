@@ -33,7 +33,7 @@ jobs:
 
     - name: Build wxWidgets
       working-directory: C:/wxWidgets/
-      run: msbuild /m .\build\msw\wx_vc16.sln /p:Configuration="Release" /p:Platform="x64"
+      run: msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
       
     - name: Build All
       shell: cmd
