@@ -38,7 +38,7 @@ static const std::string MODE_COL = "ID_MODE_";
 static const std::string SLAVE1_COL = "ID_SLAVE1_";
 static const std::string SLAVE2_COL = "ID_SLAVE2_";
 static const std::string DISK_COL = "ID_DISK_";
-
+static const std::string SEL_DISK = "Select Folder";
 
 enum class ScheduleColumn : int { PlayList = 0,
                                   StartHour,
@@ -457,6 +457,8 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
             case ScheduleColumn::EndHour:
                 max = 23;
                 break;
+            default:
+                break;
             }
             wxNumberEntryDialog dlg(this, "", "Set " + name, "Set " + name, 0, min, max);
             if (dlg.ShowModal() == wxID_OK) {
@@ -481,6 +483,8 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
             case ScheduleColumn::StartHour:
             case ScheduleColumn::EndHour:
                 max = 23;
+                break;
+            default:
                 break;
             }
             wxNumberEntryDialog dlg(this, "", "Set " + name, "Set " + name, 0, min, max);
@@ -696,6 +700,7 @@ void HinksPixExportDialog::CreateDriveList() {
         fcont = d.GetNext(&dir);
     }
 #endif
+    m_drives.push_back(SEL_DISK);
 }
 
 void HinksPixExportDialog::SaveSettings()
@@ -979,10 +984,14 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
         wxFileName dirname( drive, "" );
         drive = dirname.GetPath();
 
-        if (drive.IsEmpty()) {
+        if (drive.IsEmpty() || drive == SEL_DISK) {
             wxDirDialog dlg(this, "Select SD Directory for " + hix->GetName(), drive, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
             if (dlg.ShowModal() == wxID_OK) {
                 drive = dlg.GetPath();
+            } else {
+                error = true;
+                errorMsg = wxString::Format("No USB Drive Set for '%s'", hix->GetName());
+                continue;
             }
         }
         if (!ObtainAccessToURL(drive) || !createTestFile(drive))
