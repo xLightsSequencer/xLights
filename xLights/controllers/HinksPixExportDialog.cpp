@@ -451,7 +451,7 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
     int max = 59;
     if (id == ID_MNU_SETALL) {
         if (col <= static_cast<int>(ScheduleColumn::EndMin) &&
-            col >= static_cast<int>(ScheduleColumn::StartHour)) {                       
+            col >= static_cast<int>(ScheduleColumn::StartHour)) {
             switch (static_cast<ScheduleColumn>(col)) {
             case ScheduleColumn::StartHour:
             case ScheduleColumn::EndHour:
@@ -895,7 +895,7 @@ void HinksPixExportDialog::OnAddRefreshButtonClick(wxCommandEvent& /*event*/) {
 }
 
 void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));  
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!m_selectedPlayList.empty()) {
         StoreToObjectPlayList(m_selectedPlayList);
@@ -918,7 +918,6 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
     std::map<wxString, wxString> shortNames;
     std::vector<wxString> names;
     for (auto& playlist : m_playLists) {
-        bool worked{ true };
         for (auto& play : playlist.Items) {
             if (shortNames.find( play.FSEQ) == shortNames.end()) {
                 wxString const shortName = createUniqueShortName(play.FSEQ, names);
@@ -981,13 +980,14 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
         drive = dirname.GetPath();
 
         if (drive.IsEmpty()) {
-            error = true;
-            errorMsg = wxString::Format("No USB Drive Set for '%s'", hix->GetName());
-            continue;
+            wxDirDialog dlg(this, "Select SD Directory for " + hix->GetName(), drive, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+            if (dlg.ShowModal() == wxID_OK) {
+                drive = dlg.GetPath();
+            }
         }
         if (!ObtainAccessToURL(drive) || !createTestFile(drive))
         {
-            wxDirDialog dlg(this, "Select SD Directory", drive, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+            wxDirDialog dlg(this, "Select SD Directory for " + hix->GetName(), drive, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
             if (dlg.ShowModal() == wxID_OK) {
                 drive = dlg.GetPath();
             }
@@ -1027,7 +1027,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
                             logger_base.error("HinksPixExportDialog export - loading audio fails - %d : %d : %d", int(loaderState), int(decoderInitState), int(resamplerInitState));
                         }
                     }
-                    play.AU = auName;                    
+                    play.AU = auName;
                 }
                 play.HSEQ = shortHseqName;
             }
@@ -1652,7 +1652,7 @@ void HinksPixExportDialog::RedrawPlayList(wxString const& new_playlist, bool sav
 void HinksPixExportDialog::StoreToObjectSchedule()
 {
     CheckSchedules();
-    
+
     auto rows = GridSchedule->GetNumberRows();
     if (rows == 0) {
         return;
