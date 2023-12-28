@@ -11,12 +11,24 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2023.23 Dec 28, 2023
+   -- enh (dkulp)     Convert "New Style" Pinwheel effect to use Meta GPU rendering on MacOS
    -- enh (scott)     Added Scheduling to HinksPix Export Dialog.
    -- enh (scott)     Persist Custom Colors across Color Dialogs.
+   -- enh (dkulp)     Update to newer version of wxWidgets that fixes appearance of checkboxes on properties panels
+   -- enh (keith)     Bell at end of Batch Render, extra progress displayed during batch render
+   -- enh (keith)     Allow user control of maximum Render Cache size
    -- bug (scott)     Fix Import Dialog AutoMapping Aliases to Submodel/Stands.
    -- bug (scott)     Fix Import Dialog Groups Blue turning white.
    -- bug (scott)     Fix 3D Model Export starting at zero.
    -- bug (scott)     Fix DMX Shutter value with On effect and Flood lights.
+   -- bug (keith)     Fix crash with parsing JSON with certain UTF-8 characters
+   -- bug (tulzscha)  Fix fire effect buffer sizes
+   -- bug (dkulp)     Fix some random crashes that occur with various actions on the View Models panel
+   -- bug (dkulp)     Fix discovery of Falcon controllers as remotes if needing to use http discovery
+   -- bug (dkulp)     Fix potential crash/memory corruption at startup when resolving IP's on background threads
+   -- bug (dkulp)     Fix leftover files remaining in tmp directory
+   -- bug (dkulp)     Fix some problems writing ZSTD fseq files for layouts with well over 2M channels and complex effects
 2023.22 Dec 5, 2023
    -- enh (claudio)   Add virtual matrix to xSchedule using RGBW data
    -- enh (lutz)      Add palette shift buttons
