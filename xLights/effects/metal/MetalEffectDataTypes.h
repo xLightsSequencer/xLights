@@ -66,3 +66,26 @@ struct RotoZoomData {
     int32_t pivotpointx;
     int32_t pivotpointy;
 };
+
+struct MetalPinwheelData {
+    uint32_t width;
+    uint32_t height;
+    
+    int32_t pinwheel_arms;
+    int32_t xc_adj = 0;
+    int32_t yc_adj = 0;
+    int32_t degrees_per_arm;
+    int32_t pinwheel_twist;
+    int32_t max_radius;
+    int32_t poffset;
+    int32_t pw3dType;
+    int32_t pinwheel_rotation;
+
+    float tmax;
+    float pos;
+    
+    int32_t allowAlpha;
+    simd::uchar4 colorsAsColor[8];
+    simd::float3 colorsAsHSV[8];
+    uint16_t numColors;
+};

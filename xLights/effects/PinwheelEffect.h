@@ -102,9 +102,38 @@ protected:
         PW_3D_Inverted,
         PW_SWEEP
     };
+    
+    class PinwheelData {
+    public:
+        PinwheelData(int i) : pinwheel_arms(i), colorarray(i), colorIsSpacial(i), colorsAsHSV(i), colorsAsColor(i) {
+            
+        }
+        std::vector<size_t> colorarray;
+        std::vector<bool> colorIsSpacial;
+        std::vector<HSVValue> colorsAsHSV;
+        std::vector<xlColor> colorsAsColor;
+        
+        bool hasSpacial = false;
+        int pinwheel_arms;
+        Pinwheel3DType pw3dType;
+        int xc_adj = 0;
+        int yc_adj = 0;
+        float tmax;
+        int degrees_per_arm;
+        bool pinwheel_rotation;
+        int pinwheel_twist;
+        int max_radius;
+        int poffset;
+        float pos;
+    };
 
     virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
-    virtual void Draw_arm(RenderBuffer& buffer, int base_degrees, int max_radius, int pinwheel_twist, int xc_adj, int yc_adj, int colorIdx, Pinwheel3DType pinwheel_3d, float round);
+    
+    void RenderNewMethod(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer);
+    virtual void RenderNewArms(RenderBuffer& buffer, PinwheelData &data);
+    void RenderOldMethod(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer);
+    
+    void Draw_arm(RenderBuffer& buffer, int base_degrees, int max_radius, int pinwheel_twist, int xc_adj, int yc_adj, int colorIdx, Pinwheel3DType pinwheel_3d, float round);
 
     Pinwheel3DType to3dType(const std::string& pinwheel_3d);
     void adjustColor(Pinwheel3DType pw3dType, xlColor& color, HSVValue& hsv, bool allowAlpha, float round);

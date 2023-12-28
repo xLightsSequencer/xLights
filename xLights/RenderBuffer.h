@@ -473,6 +473,14 @@ public:
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false, bool useAlpha = false, bool dmx_ignore = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
 
+    //optimized/direct versions only usable in cases where x/y are known to be within bounds
+    void SetPixelDirect(int x, int y, const xlColor &color) {
+        pixels[y * BufferWi + x] = color;
+    }
+    const xlColor& GetPixelDirect(int x, int y) const {
+        return pixels[y * BufferWi + x];
+    }
+
     int GetNodeCount() const { return Nodes.size();}
     void SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore = false);
     void CopyNodeColorsToPixels(std::vector<uint8_t> &done);

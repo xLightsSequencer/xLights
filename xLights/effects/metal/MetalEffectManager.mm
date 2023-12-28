@@ -93,6 +93,8 @@ RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new MetalPlasmaEffect(eff);
         case EffectManager::eff_WARP:
             return new MetalWarpEffect(eff);
+        case EffectManager::eff_PINWHEEL:
+            return new MetalPinwheelEffect(eff);
         default:
             return nullptr;
         }
