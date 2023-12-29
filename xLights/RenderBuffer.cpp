@@ -1529,14 +1529,16 @@ void RenderBuffer::SetState(int period, bool ResetState, const std::string& mode
         needToInit = true;
     }
     curPeriod = period;
-    cur_model = model_name;
     curPeriod = period;
     palette.UpdateForProgress(GetEffectTimeIntervalPosition());
-    dmx_buffer = false;
-    Model* m = GetModel();
-    if (m != nullptr) {
-        if (m->GetDisplayAs().rfind("Dmx", 0) == 0) {
-            dmx_buffer = true;
+    if (cur_model != model_name) {
+        cur_model = model_name;
+        dmx_buffer = false;
+        Model* m = GetModel();
+        if (m != nullptr) {
+            if (m->GetDisplayAs().rfind("Dmx", 0) == 0) {
+                dmx_buffer = true;
+            }
         }
     }
 }
