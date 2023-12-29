@@ -67,6 +67,8 @@ struct RotoZoomData {
     int32_t pivotpointy;
 };
 
+// allow up to 16 arms, more than that and drop to CPU render
+#define MAX_METAL_PINWHEEL_ARMS 16
 struct MetalPinwheelData {
     uint32_t width;
     uint32_t height;
@@ -85,7 +87,7 @@ struct MetalPinwheelData {
     float pos;
     
     int32_t allowAlpha;
-    simd::uchar4 colorsAsColor[8];
-    simd::float3 colorsAsHSV[8];
+    simd::uchar4 colorsAsColor[MAX_METAL_PINWHEEL_ARMS];
+    simd::float3 colorsAsHSV[MAX_METAL_PINWHEEL_ARMS];
     uint16_t numColors;
 };
