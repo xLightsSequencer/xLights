@@ -97,7 +97,7 @@ Instructions for other Linux distributions will vary.
   b) Get the xLights source code by opening a terminal window and
      typing the following:
 
-     git clone --recurse-submodules https://github.com/smeighan/xLights.git xLights
+     git clone --recurse-submodules https://github.com/xLightsSequencer/xLights.git xLights
 
 
 xLights can be built 2 ways on Linux. First, you can use the

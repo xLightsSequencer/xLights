@@ -5905,7 +5905,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     // the user has decided they dont want it then treat them like an adult
                     if (!xlights->GetIgnoreVendorModelRecommendations()) {
 #endif
-                        wxURI mappingJson("https://raw.githubusercontent.com/smeighan/xLights/master/download/model_vendor_mapping.json");
+                        wxURI mappingJson("https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/model_vendor_mapping.json");
                         std::string json = CachedFileDownloader::GetDefaultCache().GetFile(mappingJson, CACHETIME_DAY);
                         if (json == "") {
                             json = wxStandardPaths::Get().GetResourcesDir() + "/model_vendor_mapping.json";

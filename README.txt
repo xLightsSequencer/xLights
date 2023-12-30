@@ -7,7 +7,7 @@ Vixen2, Vixen 3, LSP, and HLS.
 Latest releases are found at www.xlights.org
 Videos tutorials are found at videos.xlights.org
 Forums are located at nutcracker123.com/forum
-Issue Tracker is found here: www.github.com/smeighan/xLights/issues
+Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------

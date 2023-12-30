@@ -364,7 +364,7 @@ wxXmlDocument* ShaderDownloadDialog::GetXMLFromURL(wxURI url, std::string& filen
 
 bool ShaderDownloadDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
-    const std::string shaderlink = "https://raw.githubusercontent.com/smeighan/xLights/master/download/shaders.xml";
+    const std::string shaderlink = "https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/shaders.xml";
 
     bool rc = true;
     std::string filename;

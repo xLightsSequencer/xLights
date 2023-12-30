@@ -27,9 +27,9 @@
 
 #ifdef USE_WEBVIEW_FOR_TOD
 #include <wx/webview.h>
-static const std::string TOD_BASE_URL = "https://raw.githack.com/smeighan/xLights/master/TipOfDay/";
+static const std::string TOD_BASE_URL = "https://raw.githack.com/xLightsSequencer/xLights/master/TipOfDay/";
 #else
-static const std::string TOD_BASE_URL = "https://raw.githubusercontent.com/smeighan/xLights/master/TipOfDay/";
+static const std::string TOD_BASE_URL = "https://raw.githubusercontent.com/xLightsSequencer/xLights/master/TipOfDay/";
 #endif
 
 #define USE_GITHUB_HOSTED_TOD
