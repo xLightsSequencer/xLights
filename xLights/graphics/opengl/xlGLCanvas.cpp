@@ -652,7 +652,7 @@ bool xlGLCanvas::getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int
     bool padHeight = (h % 2);
     int widthWithPadding = padWidth ? (w + 1) : w;
     int heightWithPadding = padHeight ? (h + 1) : h;
-    unsigned int reqSize = widthWithPadding * 3 * heightWithPadding;
+    int reqSize = widthWithPadding * 3 * heightWithPadding;
     if (bufferSize < reqSize) {
         return false;
     }

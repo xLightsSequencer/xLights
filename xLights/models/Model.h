@@ -187,6 +187,7 @@ public:
     virtual void ExportXlightsModel() {}
     virtual void ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname, float& min_x, float& max_x, float& min_y, float& max_y);
     bool FourChannelNodes() const;
+    bool FiveChannelNodes() const;
     std::list<std::string> GetShadowedBy() const;
 
     void SetStartChannel(std::string const& startChannel);

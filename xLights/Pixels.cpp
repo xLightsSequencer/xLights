@@ -70,6 +70,8 @@
 // |--------------------------------------------------------------------------------------------------------------------------------------|
 // | SM16716        | RGB, 8 bit, 4 wire     | SM16716, SM16726                                  |                                        |
 // |--------------------------------------------------------------------------------------------------------------------------------------|
+// | SM16825        | RGBWW, 16 bit, 4 wire  |                                                   |                                        |
+// |--------------------------------------------------------------------------------------------------------------------------------------|
 // | SPXL-8Bit      | 8 Bit                  |                                                   | Entec                                  |
 // |--------------------------------------------------------------------------------------------------------------------------------------|
 // | SPXL-16Bit     | 16 Bit                 |                                                   | Entec                                  |
@@ -150,7 +152,8 @@ const static std::vector<std::vector<std::string>> __equivalentPixels =
     { "ucs9812" }, // I have not researched these
     { "my9231" },  // I have not researched these ... they may fit into an existing category
     { "ws2801", "ws2803" },
-    { "rgb+" } // not sure if these have a functional equivalent ... if they do these should be moved to artificial
+    { "rgb+" }, // not sure if these have a functional equivalent ... if they do these should be moved to artificial
+    { "sm16825", "sm16825 (16)" }
 };
 
 const static std::vector<std::vector<std::string>> __equivalentSerial = {
@@ -167,7 +170,8 @@ const static std::vector<std::vector<std::string>> __equivalentSerial = {
 
 const static std::vector<std::string> __artificalTypes =
 {
-    "tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "ucs8903 (16)", "ucs8904 (16)", "gs820x", "rgb+2", "dmx512p", "dmx512p-4"
+    "tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "ucs8903 (16)", "ucs8904 (16)", "gs820x", "rgb+2", "dmx512p", "dmx512p-4", 
+    "sm16825 (16)"
 };
 
 bool IsArtificialPixelType(const std::string& p)
@@ -354,5 +358,10 @@ int GetChannelsPerPixel(const std::string& p)
     if (std::find(begin(fourChanPixels), end(fourChanPixels), p) != end(fourChanPixels)) {
         return 4;
     }
+    const static std::vector<std::string> fiveChanPixels = { "sm16825", "sm16825 (16)" };
+    if (std::find(begin(fiveChanPixels), end(fiveChanPixels), p) != end(fiveChanPixels)) {
+        return 5;
+    }
+
     return 3;
 }

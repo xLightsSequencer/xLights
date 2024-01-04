@@ -10,6 +10,12 @@
 
 #include "Node.h"
 
+#define RGB_HANDLING_NORMAL 0
+#define RGB_HANDLING_RGB 1
+#define RGB_HANDLING_WHITE 2
+#define RGB_HANDLING_ADVANCED 3
+#define RGB_HANDLING_ALL 4
+
 const std::string NodeBaseClass::RED("R");
 const std::string NodeBaseClass::GREEN("G");
 const std::string NodeBaseClass::BLUE("B");
@@ -36,6 +42,7 @@ const std::string NodeBaseClass::GRBW("GRBW");
 const std::string NodeBaseClass::BRGW("BRGW");
 const std::string NodeBaseClass::BGRW("BGRW");
 
+const std::string NodeBaseClass::RGBWW("RGBWW");
 
 const std::string &NodeBaseClass::GetNodeType() const {
     switch (offsets[0]) {
@@ -59,7 +66,138 @@ const std::string &NodeBaseClass::GetNodeType() const {
 }
 
 
-const std::string &NodeClassRGBW::GetNodeType() const {
+const std::string& NodeClassRGBWW::GetNodeType() const
+{
+    return RGBWW;
+}
+
+void NodeClassRGBWW::SetFromChannels(const unsigned char* buf)
+{
+    switch (rgbwHandling) {
+    case RGB_HANDLING_RGB:
+    case RGB_HANDLING_ALL:
+        for (int x = 0; x < 3; x++) {
+                if (offsets[x] != 255) {
+                    c[x] = buf[offsets[x] + wOffset];
+                }
+        }
+        break;
+    case RGB_HANDLING_WHITE:
+        c[0] = c[1] = c[2] = buf[wIndex];
+        break;
+    case RGB_HANDLING_ADVANCED:
+
+        for (int x = 0; x < 3; x++) {
+                if (offsets[x] != 255) {
+                    c[x] = buf[offsets[x] + wOffset] + buf[wIndex];
+                }
+        }
+
+        break;
+
+    default: // RGB_HANDLING_NORMAL
+        if (buf[wIndex] != 0) {
+                c[0] = c[1] = c[2] = buf[wIndex];
+        } else {
+                for (int x = 0; x < 3; x++) {
+                    if (offsets[x] != 255) {
+                        c[x] = buf[offsets[x] + wOffset];
+                    }
+                }
+        }
+        break;
+    }
+}
+
+void NodeClassRGBWW::GetForChannels(unsigned char* buf) const
+{
+    buf[4] = 0x00; // the second W is always off
+
+    switch (rgbwHandling) {
+    case RGB_HANDLING_RGB:
+        for (int x = 0; x < 3; x++) {
+                if (offsets[x] != 255) {
+                    buf[offsets[x] + wOffset] = c[x];
+                }
+        }
+        buf[wIndex] = 0;
+        break;
+    case RGB_HANDLING_WHITE:
+        if (c[0] == c[1] && c[1] == c[2]) {
+                buf[wIndex] = c[0];
+        }
+        for (int x = 0; x < 3; x++) {
+                if (offsets[x] != 255) {
+                    buf[offsets[x] + wOffset] = 0;
+                }
+        }
+        break;
+    case RGB_HANDLING_ALL:
+        if (c[0] == c[1] && c[1] == c[2]) {
+                buf[wIndex] = c[0];
+        }
+
+        for (int x = 0; x < 3; x++) {
+                if (offsets[x] != 255) {
+                    buf[offsets[x] + wOffset] = c[x];
+                }
+        }
+        break;
+    case RGB_HANDLING_ADVANCED: {
+        uint8_t maxc = std::max(c[0], std::max(c[1], c[2]));
+        if (maxc == 0) {
+                buf[wIndex] = 0;
+                for (int x = 0; x < 3; x++) {
+                    if (offsets[x] != 255) {
+                        buf[offsets[x] + wOffset] = 0;
+                    }
+                }
+        } else {
+                uint8_t minc = std::min(c[0], std::min(c[1], c[2]));
+                // find colour with 100% hue
+                float multiplier = 255.0f / maxc;
+                float h0 = c[0] * multiplier;
+                float h1 = c[1] * multiplier;
+                float h2 = c[2] * multiplier;
+
+                float maxW = std::max(h0, std::max(h1, h2));
+                float minW = std::min(h0, std::min(h1, h2));
+                uint8_t whiteness = ((maxW + minW) / 2.0f - 127.5f) * (255.0f / 127.5f) / multiplier;
+                if (whiteness < 0)
+                    whiteness = 0;
+                else if (whiteness > minc)
+                    whiteness = minc;
+
+                buf[wIndex] = whiteness;
+                for (int x = 0; x < 3; x++) {
+                    if (offsets[x] != 255) {
+                        buf[offsets[x] + wOffset] = c[x] - whiteness;
+                    }
+                }
+        }
+    } break;
+    default: // RGB_HANDLING_NORMAL
+        if (c[0] == c[1] && c[1] == c[2]) {
+                for (int x = 0; x < 3; x++) {
+                    if (offsets[x] != 255) {
+                        buf[offsets[x] + wOffset] = 0;
+                    }
+                }
+                buf[wIndex] = c[0];
+        } else {
+                for (int x = 0; x < 3; x++) {
+                    if (offsets[x] != 255) {
+                        buf[offsets[x] + wOffset] = c[x];
+                    }
+                }
+                buf[wIndex] = 0;
+        }
+        break;
+    }
+}
+
+const std::string& NodeClassRGBW::GetNodeType() const
+{
     switch (offsets[0]) {
         case 0:
             if (offsets[1] == 1) {
@@ -79,12 +217,6 @@ const std::string &NodeClassRGBW::GetNodeType() const {
     }
     return wIndex == 0 ? WBGR : BGRW;
 }
-
-#define RGB_HANDLING_NORMAL   0
-#define RGB_HANDLING_RGB      1
-#define RGB_HANDLING_WHITE    2
-#define RGB_HANDLING_ADVANCED 3
-#define RGB_HANDLING_ALL      4
 
 void NodeClassRGBW::SetFromChannels(const unsigned char* buf)
 {

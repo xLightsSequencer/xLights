@@ -1479,11 +1479,11 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         Controllers_PropertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridChange, 0, this);
         Controllers_PropertyEditor->Connect(wxEVT_PG_ITEM_COLLAPSED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridCollapsed, 0, this);
         Controllers_PropertyEditor->Connect(wxEVT_PG_ITEM_EXPANDED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridExpanded, 0, this);
-        Controllers_PropertyEditor->SetValidationFailureBehavior(wxPG_VFB_MARK_CELL | wxPG_VFB_BEEP);
+        Controllers_PropertyEditor->SetValidationFailureBehavior(wxPGVFBFlags::MarkCell | wxPGVFBFlags::Beep);
 
-        Controllers_PropertyEditor->AddActionTrigger(wxPG_ACTION_NEXT_PROPERTY, WXK_RETURN);
+        Controllers_PropertyEditor->AddActionTrigger(wxPGKeyboardActions::NextProperty, WXK_RETURN);
         Controllers_PropertyEditor->DedicateKey(WXK_RETURN);
-        Controllers_PropertyEditor->AddActionTrigger(wxPG_ACTION_NEXT_PROPERTY, WXK_TAB);
+        Controllers_PropertyEditor->AddActionTrigger(wxPGKeyboardActions::NextProperty, WXK_TAB);
         Controllers_PropertyEditor->DedicateKey(WXK_TAB);
     }
 

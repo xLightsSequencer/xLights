@@ -859,7 +859,7 @@ void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fr
 
     uint32_t maxX = ((maxFrets - fretPos) * buffer.BufferWi) / maxFrets;
     if (showStrings) {
-        for (uint32_t x = maxX; x < buffer.BufferWi; ++x) {
+        for (int x = maxX; x < buffer.BufferWi; ++x) {
             buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), cc);
         }
     }
@@ -876,7 +876,7 @@ void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fr
     int start = centre - height / 2;
 
     for (uint32_t x = 0; x < maxX; ++x) {
-        for (uint32_t y = start; y < start + height; ++y) {
+        for (int y = start; y < start + height; ++y) {
             buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
         }
     }
@@ -900,7 +900,7 @@ void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t 
     double maxX = ((maxFrets - fretPos) * buffer.BufferWi) / maxFrets;
 
     if (showStrings) {
-        for (uint32_t x = maxX; x < buffer.BufferWi; ++x) {
+        for (int x = maxX; x < buffer.BufferWi; ++x) {
             buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), cc);
         }
     }
@@ -938,7 +938,7 @@ void GuitarEffect::DrawString(RenderBuffer& buffer, uint8_t string, uint8_t stri
     buffer.palette.GetColor(string, c);
 
     double perString = (float)buffer.BufferHt / strings;
-    for (uint32_t x = 0; x < buffer.BufferWi; ++x) {
+    for (int x = 0; x < buffer.BufferWi; ++x) {
         buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), c);
     }
 }
