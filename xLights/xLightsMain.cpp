@@ -103,6 +103,7 @@
 #include "effects/StateEffect.h"
 #include "graphics/opengl/xlGLCanvas.h"
 #include "models/ModelGroup.h"
+#include "models/RulerObject.h"
 #include "models/SubModel.h"
 #include "models/ViewObject.h"
 #include "outputs/ControllerEthernet.h"
@@ -4432,7 +4433,15 @@ void xLightsFrame::ExportModels(wxString const& filename)
         col_widths[col] = std::max(text.size() + FACTOR, col_widths[col]);
     };
 
-    const std::vector<std::string> model_header_cols{ "Model Name", "Shadowing", "Description", "Display As", "Dimensions", "String Type", "String Count", "Node Count", "Light Count", "Est Current (Amps)", "Channels Per Node", "Channel Count", "Start Channel", "Start Channel No", "#Universe(or id):Start Channel", "End Channel No", "Default Buffer W x H", "Preview", "Controller Ports", "Connection Protocol", "Connection Attributes", "Controller Name", "Controller Type", "Protocol", "Controller Description", "IP", "Baud", "Universe/Id", "Universe Channel", "Controller Channel", "Active" };
+    RulerObject* ruler = RulerObject::GetRuler();
+
+    std::vector<std::string> model_header_cols{ "Model Name", "Shadowing", "Description", "Display As", "Dimensions", "String Type", "String Count", "Node Count", "Light Count", "Est Current (Amps)", "Channels Per Node", "Channel Count", "Start Channel", "Start Channel No", "#Universe(or id):Start Channel", "End Channel No", "Default Buffer W x H", "Preview", "Controller Ports", "Connection Protocol", "Connection Attributes", "Controller Name", "Controller Type", "Protocol", "Controller Description", "IP", "Baud", "Universe/Id", "Universe Channel", "Controller Channel", "Active"};
+    if (ruler != nullptr) {
+        std::string unitDescription = ruler->GetUnitDescription();
+        model_header_cols.push_back("Location X (" + unitDescription + ")");
+        model_header_cols.push_back("Location Y (" + unitDescription + ")");
+        model_header_cols.push_back("Location Z (" + unitDescription + ")");
+    }
 
     std::map<int, double> _model_col_widths;
     for (int i = 0; i < model_header_cols.size(); i++) {
@@ -4512,6 +4521,14 @@ void xLightsFrame::ExportModels(wxString const& filename)
             worksheet_write_number(modelsheet, row, 28, stuc, format);
             worksheet_write_number(modelsheet, row, 29, channeloffset, format);
             write_worksheet_string(modelsheet, row, 30, inactive, format, _model_col_widths);
+
+            glm::vec3 position = model->GetBaseObjectScreenLocation().GetWorldPosition();
+            if (ruler != nullptr) {
+                worksheet_write_number(modelsheet, row, 31, ruler->Measure(position.x), format);
+                worksheet_write_number(modelsheet, row, 32, ruler->Measure(position.y), format);
+                worksheet_write_number(modelsheet, row, 33, ruler->Measure(position.z), format);
+            }
+
             ++row;
 
             if (ch < minchannel) {
