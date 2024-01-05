@@ -53,3 +53,5 @@ xScanner/x64
 /xLights/enc_temp_folder
 *~
 /.vs/xLights/v17
+/dependencies/log4cpp-codegit
+/macOS
