@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "Element.h"
@@ -94,7 +94,8 @@ const std::string &Element::GetModelName() const {
     return mName;
 }
 
-bool Element::HasEffects() const {
+bool Element::HasEffects() const
+{
     for (size_t x = 0; x < mEffectLayers.size(); x++) {
         if (mEffectLayers[x]->GetEffectCount() > 0) {
             return true;

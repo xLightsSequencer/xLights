@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <mutex>
@@ -550,6 +550,7 @@ public:
     bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
         wxStopWatch sw;
         bool effectsToUpdate = false;
+        Effect* tempEffect = nullptr;
         int numLayers = el->GetEffectLayerCount();
 
         for (int x = 0; x < info.validLayers.size(); x++) {
@@ -562,8 +563,66 @@ public:
             //must lock the layer so the Effect* stays valid
             std::unique_lock<std::recursive_mutex> elayerLock(elayer->GetLock());
             Effect* ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
-            if (ef != info.currentEffects[layer]) {
-                info.currentEffects[layer] = ef;
+            Effect* copy = nullptr;
+
+            if (ef != nullptr && ef->GetEffectIndex() == EffectManager::eff_DUPLICATE) {
+                // we are mirroring another model ... so find the right effect on that model/layer
+                Effect* orig = ef;
+                
+                ef = findEffectForFrame(orig->GetSetting("E_CHOICE_Duplicate_Model"), orig->GetSettings().GetInt("E_SPINCTRL_Duplicate_Layer"), frame);
+
+                if (ef != nullptr) {
+
+                    copy = ef;
+
+                    if (ef->GetEffectIndex() == EffectManager::eff_DUPLICATE) {
+                        // we cant duplicate a duplicate
+                        ef = nullptr;
+                    } else {
+                        tempEffect = new Effect(*ef);
+                        ef = tempEffect;
+
+                        if (orig->GetSetting("E_CHECKBOX_Duplicate_Override_Buffer") == "1") {
+                            ef->EraseSettingsStartingWith("B_");
+                            for (const auto& it : orig->GetSettings()) {
+                                if (StartsWith(it.first, "B_"))
+                                    ef->GetSettings()[it.first] = it.second;
+                            }
+                        }
+                        if (orig->GetSetting("E_CHECKBOX_Duplicate_Override_Timing") == "1") {
+                            ef->EraseSettingsStartingWith("T_");
+                            for (const auto& it : orig->GetSettings()) {
+                                if (StartsWith(it.first, "T_"))
+                                    ef->GetSettings()[it.first] = it.second;
+                            }
+                        }
+                        if (orig->GetSetting("E_CHECKBOX_Duplicate_Override_Palette") == "1") {
+                            ef->ErasePalette();
+                            for (const auto& it : orig->GetPaletteMap()) {
+                                if (StartsWith(it.first, "C_BUTTON_Palette") || StartsWith(it.first, "C_CHECKBOX_Palette"))
+                                    ef->GetPaletteMap()[it.first] = it.second;
+                            }
+                            ef->SetPalette(ef->GetPaletteAsString()); // this forces the colour parsing
+                        }
+                        if (orig->GetSetting("E_CHECKBOX_Duplicate_Override_Color") == "1") {
+                            ef->EraseColourSettings();
+                            for (const auto& it : orig->GetPaletteMap()) {
+                                if (!StartsWith(it.first, "C_BUTTON_Palette") && !StartsWith(it.first, "C_CHECKBOX_Palette"))
+                                    ef->GetPaletteMap()[it.first] = it.second;
+                            }
+                        }
+                    }
+                }
+            } 
+
+            Effect* compare = copy != nullptr ? copy : ef;
+
+            if (compare != info.currentEffects[layer]) {
+                if (copy != nullptr) {
+                    info.currentEffects[layer] = copy;
+                } else {
+                    info.currentEffects[layer] = ef;
+                }
                 SetInializingStatus(frame, layer, info.submodel, strand, -1);
                 initialize(layer, frame, ef, info.settingsMaps[layer], buffer);
                 info.effectStates[layer] = true;
@@ -666,6 +725,9 @@ public:
             RenderBuffer& b = buffer->BufferForLayer(0, -1);
             renderLog.info("*** Frame #%d at %dms render on model %s (%dx%d) took more than 1/2s => %dms.", frame, frame * b.frameTimeInMs, (const char *)el->GetName().c_str(), b.BufferWi, b.BufferHt, sw.Time());
         }
+
+        if (tempEffect != nullptr)
+            delete tempEffect;
 
         return effectsToUpdate;
     }
@@ -883,6 +945,24 @@ private:
             buffer->SetPalette(layer, newcolors, newcc);
             buffer->SetTimes(layer, el->GetStartTimeMS(), el->GetEndTimeMS());
         }
+    }
+
+    Effect* findEffectForFrame(const wxString& model, const int layer, int frame)
+    {
+        Effect* res = nullptr;
+
+        Element* e = rowToRender->GetSequenceElements()->GetElement(model);
+
+        if (e != nullptr) {
+            EffectLayer* el = e->GetEffectLayer(layer - 1);
+
+            if (el != nullptr) {
+                int discard = 0;
+                res = findEffectForFrame(el, frame, discard);
+            }
+        }
+
+        return res;
     }
 
     Effect *findEffectForFrame(EffectLayer* layer, int frame, int &lastIdx) {
@@ -1610,7 +1690,7 @@ void xLightsFrame::RenderDirtyModels() {
     Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, false, true, [] (bool) {});
 }
 
-bool xLightsFrame::AbortRender(int maxTimeMS)
+bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static bool inAbort = false;
@@ -1655,6 +1735,9 @@ bool xLightsFrame::AbortRender(int maxTimeMS)
     }
     logger_base.info("    Aborting renderers ... Done");
     inAbort = false;
+    if( numThreadsAborted != nullptr ) {
+        *numThreadsAborted = abortCount;
+    }
     return renderProgressInfo.empty();
 }
 

@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <algorithm>
@@ -1547,6 +1547,13 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
 
     if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN) {
         params.xLightsFrm->SetMediaFilename(mf);
+        
+        if (numChannels < params.xLightsFrm->GetMaxNumChannels()) {
+            // if loading the main data AND the number of channels is less than what
+            // xLights needs, it's likely due to the fseq being sparse which is fine
+            // so set the number of channels to what is needed
+            numChannels = params.xLightsFrm->GetMaxNumChannels();
+        }
     }
 
     int falconPeriods = 0;

@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <vector>
@@ -60,6 +60,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetModelCount() const { return models.size(); }
         std::string SerialiseModelGroup(const std::string& forModel) const;
         bool RemoveDuplicates();
+        bool IsModelFromBase(const std::string& modelName) const;
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const override;

@@ -10,6 +10,13 @@
             <fpp>1</fpp>
             <fpp1>17,16</fpp1>
         </Variant>
+        <Variant Name="PI W" ID="PB16_2_PI" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>16</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>ttyS1
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fpp>1</fpp>
+            <fpp1>17,-1</fpp1>
+        </Variant>
     </Controller>
     <Controller Name="PB16v2">
         <Variant Name="No Expansion" ID="PB16v2" Base="FPP:FPPStringCapeTTYs">
@@ -27,6 +34,14 @@
             <fpp1>21,16</fpp1>
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="PI W" ID="PB16v2_2_PI" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>20</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>ttyS1
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fpp>1</fpp>
+            <fpp1>17,4</fpp1>
+            <fpp2>21,-1</fpp2>
         </Variant>
     </Controller>
     <Controller Name="BBB16">
@@ -85,6 +100,51 @@
             <fpp2>33,16</fpp2>
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+    </Controller>
+    <Controller Name="PB8DMX">
+        <Variant Name="" ID="PB8DMX" Base="FPP:FPPStringCape">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>8</MaxSerialPort>
+        </Variant>
+    </Controller>
+    <Controller Name="Pi_Zero_W_16">
+        <Variant Name="" ID="Pi_Zero_W_16" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>24</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>17,4</fpp1>
+            <fpp2>21,4</fpp2>
+            <fpp3>25,-1</fpp3>
+        </Variant>
+    </Controller>
+    <Controller Name="Pi_Zero_24_Diff">
+        <Variant Name="" ID="Pi_Zero_24_Diff" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>24</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>5,4</fpp1>
+            <fpp2>9,4</fpp2>
+            <fpp3>13,4</fpp3>
+            <fpp4>17,4</fpp4>
+            <fpp5>21,4</fpp5>
+            <fpp6>25,-1</fpp6>
+        </Variant>
+    </Controller>
+    <Controller Name="Pi_Zero_Expansion">
+        <Variant Name="" ID="Pi_Zero_Expansion" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>16</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>17,-1</fpp1>
+        </Variant>
+    </Controller>
+    <Controller Name="Pi_Expansion">
+        <Variant Name="" ID="Pi_Expansion" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>16</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>17,-1</fpp1>
         </Variant>
     </Controller>
 </Vendor>

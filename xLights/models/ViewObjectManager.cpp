@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/xml/xml.h>
@@ -18,6 +18,8 @@
 #include "MeshObject.h"
 #include "TerrianObject.h"
 #include "xLightsMain.h"
+
+#include <log4cpp/Category.hh>
 
 ViewObjectManager::ViewObjectManager(xLightsFrame* xl) : xlights(xl)
 {
@@ -179,6 +181,65 @@ void ViewObjectManager::Delete(const std::string &name) {
             }
         }
     }
+}
+
+bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool changed = false;
+
+    wxXmlDocument doc;
+    doc.Load(baseShowDir + wxFileName::GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE);
+    if (!doc.IsOk()) {
+        return false;
+    }
+
+    wxXmlNode* objects = nullptr;
+    for (wxXmlNode* m = doc.GetRoot(); m != nullptr; m = m->GetNext()) {
+        for (wxXmlNode* mm = m->GetChildren(); mm != nullptr; mm = mm->GetNext()) {
+            if (mm->GetName() == "view_objects") {
+                objects = mm;
+            }
+        }
+    }
+
+    if (objects != nullptr) {
+        // compare models and load changes/new models
+        for (wxXmlNode* o = objects->GetChildren(); o != nullptr; o = o->GetNext()) {
+            // we only update existing models that came from the base
+            auto name = o->GetAttribute("name");
+
+            auto curr = GetObject(name);
+
+            if (curr == nullptr) {
+                // model does not exist
+                changed = true;
+                o->AddAttribute("FromBase", "1");
+                createAndAddObject(new wxXmlNode(*o));
+                logger_base.debug("Adding object from base show folder: '%s'.", (const char*)name.c_str());
+            } else {
+                bool force = false;
+                if (prompt && !curr->IsFromBase()) {
+                    force = wxMessageBox(wxString::Format("Object %s found that clashes with base show directory. Do you want to take the base show directory version?", name), "Object clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES;
+                }
+
+                if (force || curr->IsFromBase()) {
+                    // model does exist ... update it
+                    if (force || curr->IsXmlChanged(o)) {
+                        o->AddAttribute("FromBase", "1");
+                        changed = true;
+                        Delete(name);
+                        createAndAddObject(new wxXmlNode(*o));
+                        logger_base.debug("Updating object from base show folder: '%s'.", (const char*)name.c_str());
+                    }
+                } else {
+                    logger_base.debug("Object '%s' NOT updated from base show folder as it never came from there.", (const char*)name.c_str());
+                }
+            }
+        }
+    }
+
+    return changed;
 }
 
 bool ViewObjectManager::Rename(const std::string &oldName, const std::string &newName) {

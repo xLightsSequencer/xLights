@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "EffectLayer.h"
@@ -95,6 +95,7 @@ public:
     std::list<std::string> GetAllReferencedFiles();
     std::list<std::string> GetAllUsedEffectTypes() const;
     std::list<std::string> GetAllElementNamesWithEffects();
+    std::list<std::string> GetAllElementNamesWithEffectsExtended(); // this also gets submodels and strands
     int GetElementLayerCount(std::string elementName, std::list<int>* layers = nullptr);
     std::list<Effect*> GetElementLayerEffects(std::string elementName, int layer);
     bool IsValidEffect(Effect* e) const;

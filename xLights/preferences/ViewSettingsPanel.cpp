@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "ViewSettingsPanel.h"
@@ -30,6 +30,8 @@ const long ViewSettingsPanel::ID_CHOICE4 = wxNewId();
 const long ViewSettingsPanel::ID_CHOICE5 = wxNewId();
 const long ViewSettingsPanel::ID_CHECKBOX1 = wxNewId();
 const long ViewSettingsPanel::ID_CHECKBOX2 = wxNewId();
+const long ViewSettingsPanel::ID_CHECKBOX3 = wxNewId();
+const long ViewSettingsPanel::ID_CHOICE_TIMELINEZOOMING = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ViewSettingsPanel,wxPanel)
@@ -44,6 +46,7 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText4;
 	wxStaticText* StaticText5;
+	wxStaticText* StaticText6;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	GridBagSizer1 = new wxGridBagSizer(0, 0);
@@ -75,15 +78,28 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 	HousePreviewCheckBox = new wxCheckBox(this, ID_CHECKBOX2, _("Auto Show House Preview"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	HousePreviewCheckBox->SetValue(true);
 	GridBagSizer1->Add(HousePreviewCheckBox, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_BaseShowFolder = new wxCheckBox(this, ID_CHECKBOX3, _("Enable Base Show Folder Settings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+	CheckBox_BaseShowFolder->SetValue(false);
+	GridBagSizer1->Add(CheckBox_BaseShowFolder, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText6 = new wxStaticText(this, wxID_ANY, _("Timeline Zooming"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	GridBagSizer1->Add(StaticText6, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_TimelineZooming = new wxChoice(this, ID_CHOICE_TIMELINEZOOMING, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_TIMELINEZOOMING"));
+	Choice_TimelineZooming->SetSelection( Choice_TimelineZooming->Append(_("Play Marker Position")) );
+	Choice_TimelineZooming->Append(_("Mouse Marker Position"));
+	GridBagSizer1->Add(Choice_TimelineZooming, wxGBPosition(6, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridBagSizer1);
+	GridBagSizer1->Fit(this);
+	GridBagSizer1->SetSizeHints(this);
 
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnToolIconSizeChoiceSelect);
 	Connect(ID_CHOICE4,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnModelHandleSizeChoiceSelect);
 	Connect(ID_CHOICE5,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnEffectAssistChoiceSelect);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnPlayControlsCheckBoxClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnHousePreviewCheckBoxClick);
+	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_BaseShowFolderClick);
+	Connect(ID_CHOICE_TIMELINEZOOMING,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnChoice_TimelineZoomingSelect);
 	//*)
-    
+
     #ifdef _MSC_VER
     MSWDisableComposited();
     #endif
@@ -98,6 +114,7 @@ ViewSettingsPanel::~ViewSettingsPanel()
 bool ViewSettingsPanel::TransferDataToWindow() {
     HousePreviewCheckBox->SetValue(frame->AutoShowHousePreview());
     PlayControlsCheckBox->SetValue(frame->PlayControlsOnPreview());
+    CheckBox_BaseShowFolder->SetValue(frame->IsShowBaseShowFolder());
     int i = frame->EffectAssistMode();
     if (i >= 3) {
         i = 0;
@@ -121,6 +138,7 @@ bool ViewSettingsPanel::TransferDataToWindow() {
             break;
     }
 
+    Choice_TimelineZooming->SetSelection(frame->GetTimelineZooming()&1);
     return true;
 }
 bool ViewSettingsPanel::TransferDataFromWindow() {
@@ -128,6 +146,7 @@ bool ViewSettingsPanel::TransferDataFromWindow() {
     frame->SetEffectAssistMode(EffectAssistChoice->GetSelection());
     frame->SetPlayControlsOnPreview(PlayControlsCheckBox->IsChecked());
     frame->SetAutoShowHousePreview(HousePreviewCheckBox->IsChecked());
+    frame->SetShowBaseShowFolder(CheckBox_BaseShowFolder->IsChecked());
     switch (ToolIconSizeChoice->GetSelection()) {
         case 3:
             frame->SetToolIconSize(48);
@@ -143,6 +162,9 @@ bool ViewSettingsPanel::TransferDataFromWindow() {
             frame->SetToolIconSize(16);
             break;
     }
+
+    frame->SetTimelineZooming(Choice_TimelineZooming->GetSelection());
+
     return true;
 }
 
@@ -189,6 +211,20 @@ void ViewSettingsPanel::OnOpenGLRenderOrderChoiceSelect(wxCommandEvent& event)
 }
 
 void ViewSettingsPanel::OnOpenGLVersionChoiceSelect(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void ViewSettingsPanel::OnCheckBox_BaseShowFolderClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void ViewSettingsPanel::OnChoice_TimelineZoomingSelect(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

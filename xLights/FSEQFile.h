@@ -28,7 +28,8 @@ public:
         virtual ~FrameData() {};
 
         virtual bool readFrame(uint8_t *data, uint32_t maxChannels) = 0;
-
+        [[nodiscard]] virtual uint8_t* GetData() const = 0;
+        [[nodiscard]] virtual size_t GetSize() const = 0;
         uint32_t frame;
     };
 
@@ -83,9 +84,9 @@ public:
     virtual void dumpInfo(bool indent = false);
 
 
-    uint32_t      getNumFrames() const { return m_seqNumFrames; }
+    uint64_t      getNumFrames() const { return m_seqNumFrames; }
     int           getStepTime() const { return m_seqStepTime; }
-    uint32_t      getChannelCount() const  { return m_seqChannelCount; }
+    uint64_t      getChannelCount() const  { return m_seqChannelCount; }
     int           getVersionMajor() const { return m_seqVersionMajor; }
     int           getVersionMinor() const { return m_seqVersionMinor; }
     uint64_t      getUniqueId() const { return m_uniqueId; }

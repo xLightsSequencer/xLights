@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 //(*Headers(LyricsDialog)
@@ -25,7 +25,6 @@ class LyricsDialog: public wxDialog
 		virtual ~LyricsDialog();
 
 		//(*Declarations(LyricsDialog)
-		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
@@ -37,7 +36,6 @@ class LyricsDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(LyricsDialog)
-		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL_Lyrics;
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL_LYRIC_STARTTIME;

@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/xml/xml.h>
@@ -120,6 +120,19 @@ ControllerEthernet::ControllerEthernet(OutputManager* om, bool acceptDuplicates)
     _outputs.push_back(o);
 }
 
+ControllerEthernet::ControllerEthernet(OutputManager* om, const ControllerEthernet& from) :
+    Controller(om, from)
+{
+    _type = from._type;
+    SetIP(from._ip);
+    SetFPPProxy(from._fppProxy);
+    SetPriority(from._priority);
+    SetVersion(from._version);
+    _expanded = from._expanded;
+    _universePerString = from._universePerString;
+    _forceLocalIP = from._forceLocalIP;
+}
+
 ControllerEthernet::~ControllerEthernet() {
 
     // wait for an active ping to finish
@@ -142,6 +155,51 @@ wxXmlNode* ControllerEthernet::Save() {
     um->AddAttribute("ForceLocalIP", _forceLocalIP);
 
     return um;
+}
+bool ControllerEthernet::UpdateFrom(Controller* from)
+{
+    bool changed = Controller::UpdateFrom(from);
+
+    ControllerEthernet* fromEth = static_cast<ControllerEthernet*>(from);
+
+    if (_ip != fromEth->_ip) {
+        changed = true;
+        _ip = fromEth->_ip;
+    }
+    if (_type != fromEth->_type) {
+        changed = true;
+        _type = fromEth->_type;
+    }
+    if (_fppProxy != fromEth->_fppProxy) {
+        changed = true;
+        _fppProxy = fromEth->_fppProxy;
+    }
+    if (_priority != fromEth->_priority) {
+        changed = true;
+        _priority = fromEth->_priority;
+    }
+    if (_version != fromEth->_version) {
+        changed = true;
+        _version = fromEth->_version;
+    }
+    if (_expanded != fromEth->_expanded) {
+        changed = true;
+        _expanded = fromEth->_expanded;
+    }
+    if (_universePerString != fromEth->_universePerString) {
+        changed = true;
+        _universePerString = fromEth->_universePerString;
+    }
+    if (_forceLocalIP != fromEth->_forceLocalIP) {
+        changed = true;
+        _forceLocalIP = fromEth->_forceLocalIP;
+    }
+
+    return changed;
+}
+Controller* ControllerEthernet::Copy(OutputManager* om)
+{
+    return new ControllerEthernet(om, *this);
 }
 #pragma endregion
 
@@ -172,6 +230,12 @@ void ControllerEthernet::PostSetActive()
             it->SetResolvedIP(_resolvedIp);
         }
     }
+}
+std::string ControllerEthernet::GetResolvedIP(bool forceResolve) const {
+    if (_resolvedIp == "" && _ip != "") {
+        return ip_utils::ResolveIP(_ip);
+    }
+    return _resolvedIp;
 }
 
 void ControllerEthernet::SetProtocol(const std::string& protocol) {
@@ -634,15 +698,18 @@ void ControllerEthernet::VMVChanged(wxPropertyGrid *grid)
 
 Output::PINGSTATE ControllerEthernet::Ping() {
 
-    if (GetResolvedIP() == "MULTICAST") {
+    if (GetResolvedIP(false) == "MULTICAST") {
         _lastPingResult = Output::PINGSTATE::PING_UNAVAILABLE;
     } else if (_outputs.size() > 0) {
-        _lastPingResult = dynamic_cast<IPOutput*>(_outputs.front())->Ping(GetResolvedIP(), GetFPPProxy());
-    }
-    else {
+        std::string ip = GetResolvedIP(true);
+        if (ip.empty()) {
+            ip = GetIP();
+        }
+        _lastPingResult = dynamic_cast<IPOutput*>(_outputs.front())->Ping(ip, GetFPPProxy());
+    } else {
         E131Output ipo;
         ipo.SetIP(_ip, IsActive());
-        _lastPingResult = ipo.Ping(GetResolvedIP(), GetFPPProxy());
+        _lastPingResult = ipo.Ping(GetResolvedIP(true), GetFPPProxy());
     }
     return GetLastPingState();
 }

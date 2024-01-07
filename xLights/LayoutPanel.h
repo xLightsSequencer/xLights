@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 //(*Headers(LayoutPanel)
@@ -147,6 +147,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_NODELAYOUT;
         static const long ID_PREVIEW_MODEL_LOCK;
         static const long ID_PREVIEW_MODEL_UNLOCK;
+        static const long ID_PREVIEW_MODEL_UNLINKFROMBASE;
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM;
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM3D;
         static const long ID_PREVIEW_MODEL_CREATEGROUP;
@@ -164,6 +165,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_BULKEDIT_PIXELSTYLE;
         static const long ID_PREVIEW_BULKEDIT_TRANSPARENCY;
         static const long ID_PREVIEW_BULKEDIT_BLACKTRANSPARENCY;
+        static const long ID_PREVIEW_BULKEDIT_SHADOWMODELFOR;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERDIRECTION;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERSTARTNULLNODES;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERENDNULLNODES;
@@ -280,6 +282,7 @@ class LayoutPanel: public wxPanel
 		void DeleteSelectedObject();
         void DeleteSelectedGroups();
         void LockSelectedModels(bool lock);
+        void UnlinkSelectedModels();
         void PreviewSaveImage();
         void PreviewPrintImage();
         void ImportModelsFromRGBEffects();
@@ -323,6 +326,8 @@ class LayoutPanel: public wxPanel
 
         void OnListCharHook(wxKeyEvent& event);
         ModelGroup* GetSelectedModelGroup() const;
+    
+        int calculateNodeCountOfSelected();
 
     protected:
         void FreezeTreeListView();
@@ -342,6 +347,7 @@ class LayoutPanel: public wxPanel
         void BulkEditPixelStyle();
         void BulkEditTransparency();
         void BulkEditBlackTranparency();   
+        void BulkEditShadowModelFor();
         void BulkEditControllerConnection(int type);
         void BulkEditControllerPreview();
         void BulkEditDimmingCurves();

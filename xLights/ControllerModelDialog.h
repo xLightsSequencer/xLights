@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 //(*Headers(ControllerModelDialog)
@@ -127,12 +127,18 @@ class ControllerModelDialog: public wxDialog
 		static const long CONTROLLER_CASCADEDOWNPORT;
 		static const long CONTROLLER_DMXCHANNELCHAIN;
 		static const long CONTROLLER_PROTOCOL;
+        static const long CONTROLLER_SETSMARTREMOTE;
 		static const long CONTROLLER_REMOVEPORTMODELS;
 		static const long CONTROLLER_MOVEMODELSTOPORT;
 		static const long CONTROLLER_BRIGHTNESS;
 		static const long CONTROLLER_BRIGHTNESSCLEAR;
         static const long CONTROLLER_SMARTREMOTETYPE;
+        static const long CONTROLLER_REMOVESMARTREMOTE;
         static const long CONTROLLER_MODEL_STRINGS;
+		static const long CONTROLLER_STARTNULLS;
+        static const long CONTROLLER_ENDNULLS;
+        static const long CONTROLLER_COLORORDER;
+        static const long CONTROLLER_GROUPCOUNT;
 
 		wxBitmap RenderPicture(int startY, int startX, int width, int height, wxString const& pageName);
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);

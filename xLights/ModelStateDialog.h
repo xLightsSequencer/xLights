@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 //(*Headers(ModelStateDialog)
@@ -39,7 +39,6 @@ class OutputManager;
 
 class ModelStateDialog : public wxDialog
 {
-    static wxColourData _colorData;
 
 public:
     ModelStateDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
@@ -92,6 +91,7 @@ protected:
     static const long ID_TIMER1;
 
     static const long STATE_DIALOG_IMPORT_SUB;
+    static const long STATE_DIALOG_IMPORT_ALL_SUB;
     static const long STATE_DIALOG_COPY_STATES;
     static const long STATE_DIALOG_IMPORT_MODEL;
     static const long STATE_DIALOG_IMPORT_FILE;
@@ -165,6 +165,8 @@ private:
     wxString getSubmodelNodes(Model* sm);
     void ImportStates(const wxString& filename);
     void ImportStatesFromModel();
+    void ImportStatesFromSubModels();
+    std::string cleanSubName(std::string name);
     void AddStates(std::map<std::string, std::map<std::string, std::string>> states);
     wxArrayString getModelList(ModelManager* modelManager);
 

@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "VendorModelDialog.h"
@@ -27,8 +27,6 @@
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
-
-CachedFileDownloader VendorModelDialog::_cache;
 
 class MModel;
 
@@ -800,9 +798,6 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
 
     SetSize(800, 600);
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("File cache size: %d", _cache.size());
-
     PopulateModelPanel((MModel*)nullptr);
     PopulateVendorPanel(nullptr);
 
@@ -854,7 +849,7 @@ wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename
 bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
     const std::string vendorlink = "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
-    const std::string vendorlinkbackup = "https://github.com/smeighan/xLights/raw/master/download/xlights_vendors.xml";
+    const std::string vendorlinkbackup = "https://github.com/xLightsSequencer/xLights/raw/master/download/xlights_vendors.xml";
     //const std::string vendorlink = "http://localhost/xlights_vendors.xml";
 
     std::string filename;
@@ -1038,10 +1033,9 @@ VendorModelDialog::~VendorModelDialog()
 	//(*Destroy(VendorModelDialog)
 	//*)
 
-    _cache.Save();
+    GetCache().Save();
 
-    for (const auto& it : _vendors)
-    {
+    for (const auto& it : _vendors) {
         delete it;
     }
 }

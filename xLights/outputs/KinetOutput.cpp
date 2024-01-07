@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/xml/xml.h>
@@ -131,6 +131,15 @@ KinetOutput::KinetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActi
 KinetOutput::KinetOutput() : IPOutput() {
 
     _channels = 512;
+    _sequenceNum = 0;
+    _datagram = nullptr;
+    memset(_data, 0, sizeof(_data));
+}
+
+KinetOutput::KinetOutput(const KinetOutput& from) :
+    IPOutput(from)
+{
+    _channels = from._channels;
     _sequenceNum = 0;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));

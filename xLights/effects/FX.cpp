@@ -2665,7 +2665,7 @@ uint16_t WS2812FX::larson_scanner(bool dual) {
     SEGENV.aux0 = !SEGENV.aux0;
   }
   
-  for (uint16_t i = SEGENV.step; i < index; i++) {
+  for (uint16_t i = SEGENV.step; i < index; ++i) {
     uint16_t j = (SEGENV.aux0)?i:SEGLEN-1-i;
     setPixelColor( j, color_from_palette(j, true, PALETTE_SOLID_WRAP, 0));
   }

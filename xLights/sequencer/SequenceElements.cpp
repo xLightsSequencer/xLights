@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/wx.h>
@@ -1895,6 +1895,47 @@ std::list<std::string> SequenceElements::GetAllUsedEffectTypes() const
             }
         }
     }
+    return res;
+}
+
+std::list<std::string> SequenceElements::GetAllElementNamesWithEffectsExtended()
+{
+    std::list<std::string> res;
+
+    for (size_t i = 0; i < GetElementCount(); i++) {
+        Element* e = GetElement(i);
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            if (std::find(res.begin(), res.end(), e->GetFullName()) == res.end()) {
+                if (e->HasEffects()) {
+                    res.push_back(e->GetFullName());
+                }
+            }
+
+            auto me = dynamic_cast<ModelElement*>(e);
+            if (me != nullptr)
+            {
+                for (int i = 0; i < me->GetSubModelCount(); ++i)
+                {
+                    auto sm = me->GetSubModel(i);
+                    if (sm->HasEffects())
+                    {
+                        if (std::find(res.begin(), res.end(), sm->GetFullName()) == res.end()) {
+                            res.push_back(sm->GetFullName());
+                        }
+                    }
+                }
+                for (int i = 0; i < me->GetStrandCount(); ++i) {
+                    auto st = me->GetStrand(i);
+                    if (st->HasEffects()) {
+                        if (std::find(res.begin(), res.end(), st->GetFullName()) == res.end()) {
+                            res.push_back(st->GetFullName());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     return res;
 }
 

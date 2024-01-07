@@ -1029,6 +1029,23 @@
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="AutoLabelDialog.cpp" />
+    <ClCompile Include="effects\DuplicateEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\DuplicatePanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="wxWEBPHandler\imagwebp.cpp" />
+    <ClCompile Include="effects\AdjustEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\AdjustPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="EditAliasesDialog.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="TempFileManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2071,6 +2088,23 @@
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="AutoLabelDialog.h" />
+    <ClInclude Include="effects\DuplicateEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\DuplicatePanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="wxWEBPHandler\imagwebp.h" />
+    <ClInclude Include="effects\AdjustEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\AdjustPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="EditAliasesDialog.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="TempFileManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

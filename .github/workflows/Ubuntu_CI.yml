@@ -60,7 +60,7 @@ jobs:
       with:
           submodules: 'true'
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libswresample-dev libavutil-dev libavresample-dev libportmidi-dev libzstd-dev libcurl4-openssl-dev libltc-dev liblua5.3-dev wget git cbp2make
+      run: sudo apt-get update && sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libswresample-dev libavutil-dev libavresample-dev libportmidi-dev libzstd-dev libwebp-dev libcurl4-openssl-dev libltc-dev liblua5.3-dev wget git cbp2make
     - name: Make
       run: make -j 2
 

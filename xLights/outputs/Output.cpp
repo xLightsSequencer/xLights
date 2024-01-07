@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/xml/xml.h>
@@ -55,19 +55,19 @@ void Output::Save(wxXmlNode* node) {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-Output::Output(Output* output) {
+Output::Output(const Output& from) {
     _ok = true;
-    _dirty = output->IsDirty();
-    _channels = output->GetChannels();
-    _startChannel = output->GetStartChannel();
-    _suppressDuplicateFrames = output->IsSuppressDuplicateFrames();
-    _description_CONVERT = output->GetDescription_CONVERT();
-    _autoSize_CONVERT = output->IsAutoSize_CONVERT();
-    _forceLocalIP = output->GetForceLocalIP();
-    _fppProxy = output->GetFPPProxyIP();
-    _globalFPPProxy = output->_globalFPPProxy;
-    _globalForceLocalIP = output->_globalForceLocalIP;
-    _enabled = output->IsEnabled();
+    _dirty = from.IsDirty();
+    _channels = from.GetChannels();
+    _startChannel = from.GetStartChannel();
+    _suppressDuplicateFrames = from.IsSuppressDuplicateFrames();
+    _description_CONVERT = from.GetDescription_CONVERT();
+    _autoSize_CONVERT = from.IsAutoSize_CONVERT();
+    _forceLocalIP = from.GetForceLocalIP();
+    _fppProxy = from.GetFPPProxyIP();
+    _globalFPPProxy = from._globalFPPProxy;
+    _globalForceLocalIP = from._globalForceLocalIP;
+    _enabled = from.IsEnabled();
 }
 
 Output::Output(wxXmlNode* node) {

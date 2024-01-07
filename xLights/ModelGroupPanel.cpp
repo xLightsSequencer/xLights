@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
  //(*InternalHeaders(ModelGroupPanel)
@@ -26,6 +26,7 @@
 #include "OutputModelManager.h"
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
+#include "EditAliasesDialog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -99,6 +100,7 @@ const long ModelGroupPanel::ID_STATICTEXT11 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL3 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT8 = wxNewId();
 const long ModelGroupPanel::ID_COLOURPICKERCTRL_MG_TAGCOLOUR = wxNewId();
+const long ModelGroupPanel::ID_BUTTON2 = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX1 = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX3 = wxNewId();
 const long ModelGroupPanel::ID_CHECKBOX2 = wxNewId();
@@ -137,6 +139,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxStaticText* StaticText4;
 	wxStaticText* StaticText6;
@@ -202,8 +205,12 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer6->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Tag Color:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer6->Add(StaticText8, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	ColourPickerCtrl_ModelGroupTagColour = new wxColourPickerCtrl(this, ID_COLOURPICKERCTRL_MG_TAGCOLOUR, wxColour(0,0,0), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL_MG_TAGCOLOUR"));
-	FlexGridSizer6->Add(ColourPickerCtrl_ModelGroupTagColour, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(ColourPickerCtrl_ModelGroupTagColour, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonAliases = new wxButton(this, ID_BUTTON2, _("Aliases"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	FlexGridSizer5->Add(ButtonAliases, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
 	CheckBox_ShowSubmodels = new wxCheckBox(this, ID_CHECKBOX1, _("Show SubModels to Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_ShowSubmodels->SetValue(true);
 	FlexGridSizer6->Add(CheckBox_ShowSubmodels, 1, wxALL|wxEXPAND, 2);
@@ -272,6 +279,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange);
 	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange);
 	Connect(ID_COLOURPICKERCTRL_MG_TAGCOLOUR,wxEVT_COMMAND_COLOURPICKER_CHANGED,(wxObjectEventFunction)&ModelGroupPanel::OnColourPickerCtrl_ModelGroupTagColourColourChanged);
+	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonAliasesClick);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowSubmodelsClick);
 	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowInactiveModelsClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowModelGroupsClick);
@@ -983,7 +991,8 @@ bool ModelGroupPanel::IsItemSelected(wxListCtrl* ctrl, int item)
 
 void ModelGroupPanel::ValidateWindow()
 {
-    if (ChoiceModelLayoutType->GetStringSelection() == "Minimal Grid")
+    ModelGroup* mg = static_cast<ModelGroup*>(mModels[mGroup]);
+    if (ChoiceModelLayoutType->GetStringSelection() == "Minimal Grid" && mg != nullptr && !mg->IsFromBase())
     {
         SpinCtrl_XCentreOffset->Enable(true);
         SpinCtrl_YCentreOffset->Enable(true);
@@ -992,6 +1001,27 @@ void ModelGroupPanel::ValidateWindow()
     {
         SpinCtrl_XCentreOffset->Enable(false);
         SpinCtrl_YCentreOffset->Enable(false);
+    }
+
+    SizeSpinCtrl->Enable(mg != nullptr && !mg->IsFromBase());
+    ColourPickerCtrl_ModelGroupTagColour->Enable(mg != nullptr && !mg->IsFromBase());
+    Choice_DefaultCamera->Enable(mg != nullptr && !mg->IsFromBase());
+    ChoiceModelLayoutType->Enable(mg != nullptr && !mg->IsFromBase());
+    ChoicePreviews->Enable(mg != nullptr && !mg->IsFromBase());
+
+    bool moveable = true;
+
+    // this is incomplete but its a start
+    if (mg != nullptr && mg->IsFromBase() && ListBoxModelsInGroup->GetSelectedItemCount() == 1)
+    {
+        for (int i = 0; i < ListBoxModelsInGroup->GetItemCount(); ++i) {
+            if (IsItemSelected(ListBoxModelsInGroup, i)) {
+                std::string modelName = ListBoxModelsInGroup->GetItemText(i, 0).ToStdString();
+                if (mg->IsModelFromBase(modelName)) {
+                    moveable = false;
+                }
+            }
+        }
     }
 
     if (ListBoxAddToModelGroup->GetSelectedItemCount() == 0)
@@ -1009,13 +1039,13 @@ void ModelGroupPanel::ValidateWindow()
     }
     else
     {
-        ButtonRemoveModel->Enable(true);
+        ButtonRemoveModel->Enable(moveable);
     }
 
     if (GetSelectedModelCount() > 0 && GetSelectedModelCount() < ListBoxModelsInGroup->GetItemCount())
     {
-        ButtonMoveUp->Enable(true);
-        ButtonMoveDown->Enable(true);
+        ButtonMoveUp->Enable(moveable);
+        ButtonMoveDown->Enable(moveable);
     }
     else
     {
@@ -1076,6 +1106,8 @@ void ModelGroupPanel::AddSelectedModels(int index)
 
 void ModelGroupPanel::RemoveSelectedModels()
 {
+    ModelGroup* mg = static_cast<ModelGroup*>(mModels[mGroup]);
+
     ListBoxModelsInGroup->Freeze();
     ListBoxAddToModelGroup->Freeze();
 
@@ -1086,23 +1118,26 @@ void ModelGroupPanel::RemoveSelectedModels()
         {
             std::string modelName = ListBoxModelsInGroup->GetItemText(i, 0).ToStdString();
             Model* model = mModels[modelName];
-            if (model != nullptr) {
-                if ((model->GetDisplayAs() == "ModelGroup" && !CheckBox_ShowModelGroups->GetValue()) ||
-                    (model->GetDisplayAs() == "SubModel" && !CheckBox_ShowSubmodels->GetValue()))
-                {
-                    // these should not be moved
+
+            if (mg != nullptr && mg->IsFromBase() && mg->IsModelFromBase(modelName))
+            {
+                // we wont remove these models as they came from the base show folder
+            } else {
+                if (model != nullptr) {
+                    if ((model->GetDisplayAs() == "ModelGroup" && !CheckBox_ShowModelGroups->GetValue()) ||
+                        (model->GetDisplayAs() == "SubModel" && !CheckBox_ShowSubmodels->GetValue())) {
+                        // these should not be moved
+                    } else {
+                        int idx = ListBoxAddToModelGroup->InsertItem(0, modelName);
+                        ListBoxAddToModelGroup->SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+                    }
+                    model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ModelGroupPanel::RemoveSelectedModels");
+                    model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ModelGroupPanel::RemoveSelectedModels");
+                    model->GroupSelected = false;
                 }
-                else
-                {
-                    int idx = ListBoxAddToModelGroup->InsertItem(0, modelName);
-                    ListBoxAddToModelGroup->SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-                }
-                model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ModelGroupPanel::RemoveSelectedModels");
-                model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ModelGroupPanel::RemoveSelectedModels");
-                model->GroupSelected = false;
+                ListBoxModelsInGroup->DeleteItem(i);
+                i--;
             }
-            ListBoxModelsInGroup->DeleteItem(i);
-            i--;
         }
     }
     SaveGroupChanges();
@@ -1338,4 +1373,14 @@ void ModelGroupPanel::OnColourPickerCtrl_ModelGroupTagColourColourChanged(wxColo
 void ModelGroupPanel::OnChoice_DefaultCameraSelect(wxCommandEvent& event)
 {
     SaveGroupChanges();
+}
+
+void ModelGroupPanel::OnButtonAliasesClick(wxCommandEvent& event)
+{
+    ModelGroup* g = (ModelGroup*)mModels[mGroup];
+    if (g == nullptr)
+        return;
+    EditAliasesDialog dlg(this, g);
+
+    dlg.ShowModal();
 }

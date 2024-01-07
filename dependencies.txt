@@ -179,7 +179,7 @@ Usage:       read/write of v2 FSEQ files
 Link:        https://github.com/facebook/zstd
 Source:      https://github.com/facebook/zstd
 Last Pulled:
-Version:	 [latest version available as at Jan 2021 is 1.4.8 released Dec 2020 ... I doubt this is the version we are using]
+Version:	 [latest version available as at Dec 2023 is 1.5.5]
 License:     BSD
 Strategy:    zstd.h header added to xLights repository, static libraries added to lib for OSX/Windows
 

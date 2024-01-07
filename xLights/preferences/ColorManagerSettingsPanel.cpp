@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "ColorManagerSettingsPanel.h"
@@ -22,6 +22,7 @@
 #include "../xLightsMain.h"
 #include "../sequencer/MainSequencer.h"
 #include "../UtilFunctions.h"
+#include "xlColourData.h"
 
 //(*IdInit(ColorManagerSettingsPanel)
 const long ColorManagerSettingsPanel::ID_CHECKBOX1 = wxNewId();
@@ -237,14 +238,10 @@ void ColorManagerSettingsPanel::ColorButtonSelected(wxCommandEvent& event) {
     wxString name = button->GetName();
 
     wxColour color = button->GetBackgroundColour();
-    wxColourData _colorData;
-    _colorData.SetColour(color);
-    wxColourDialog dialog(this, &_colorData);
-    if (dialog.ShowModal() == wxID_OK) {
-        _colorData = dialog.GetColourData();
-        color = _colorData.GetColour();
-        SetButtonColor(button, color);
-        xlColor c(color);
+    auto const& [res, newcolor] = xlColourData::INSTANCE.ShowColorDialog(this, color);
+    if (res == wxID_OK) {
+        SetButtonColor(button, newcolor);
+        xlColor c(newcolor);
         frame->color_mgr.SetNewColor(name.ToStdString(), c);
         RefreshColors();
         frame->color_mgr.SetDirty();

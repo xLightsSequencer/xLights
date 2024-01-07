@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "DragColoursBitmapButton.h"
@@ -50,11 +50,12 @@ void DragColoursBitmapButton::SetColour(const std::string& colour)
         ColorCurve cc(colour);
         const wxBitmap& bbmp = cc.GetImage(size.GetWidth(), size.GetHeight(), false);
         SetBitmap(bbmp);
+        UnsetToolTip();
     }
     else {
         wxColour color (colour);
         SetBitmap(ColorCurve::GetSolidColourImage(size.GetWidth(), size.GetHeight(), color));
-        SetToolTip(wxString::Format("%s\n%d,%d,%d", colour, color.Red(), color.Green(), color.Blue()));
+        SetToolTip(wxString::Format("%s\n%d,%d,%d\n%s", colour, color.Red(), color.Green(), color.Blue(), GetColourName(color)));
     }
 }
 

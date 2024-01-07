@@ -26,7 +26,7 @@ if exist wxWidgets.old echo y | rmdir /s wxWidgets.old
 ren wxWidgets wxWidgets.old
 
 :clone
-git clone --recurse-submodules -b xlights_2023.02 https://github.com/xLightsSequencer/wxWidgets wxWidgets
+git clone --recurse-submodules -b xlights_2023.23b https://github.com/xLightsSequencer/wxWidgets wxWidgets
 
 cd wxWidgets
 msbuild.exe /m .\build\msw\wx_vc17.sln /p:Configuration="Debug" /p:Platform="x64"

@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <array>
@@ -55,6 +55,8 @@ public:
     Experience(const std::string& ip, const std::string& fppProxy);
     virtual ~Experience(){};
 #pragma endregion
+
+    bool UploadSequence(const std::string& seq, const std::string& file, std::function<bool(int, std::string)> progress);
 
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY

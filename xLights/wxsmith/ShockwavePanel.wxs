@@ -51,7 +51,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX" subclass="xlLockButton" variable="BitmapButton_Shockwave_Center_X" member="yes">
-										
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -100,7 +99,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY" subclass="xlLockButton" variable="BitmapButton_Shockwave_Center_Y" member="yes">
-										
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -150,7 +148,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Radius" subclass="xlLockButton" variable="BitmapButton_Shockwave_StartRadius" member="yes">
-										
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -164,7 +161,7 @@
 									<object class="wxStaticText" name="ID_STATICTEXT_Shockwave_End_Radius" variable="StaticText158" member="yes">
 										<label>Radius2:</label>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -200,7 +197,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_End_Radius" subclass="xlLockButton" variable="BitmapButton_Shockwave_EndRadius" member="yes">
-										
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -250,7 +246,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Width" subclass="xlLockButton" variable="BitmapButton_Shockwave_StartWidth" member="yes">
-										
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -264,7 +259,7 @@
 									<object class="wxStaticText" name="ID_STATICTEXT_Shockwave_End_Width" variable="StaticText159" member="yes">
 										<label>Width2:</label>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -300,7 +295,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width" subclass="xlLockButton" variable="BitmapButton_Shockwave_EndWidth" member="yes">
-										
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -349,7 +343,6 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Accel" subclass="xlLockButton" variable="BitmapButton_Shockwave_Accel" member="yes">
-										
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
@@ -360,9 +353,76 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+										<label>Cycles:</label>
+									</object>
+									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_Cycles" subclass="BulkEditSlider" variable="Slider_Shockwave_Cycles" member="yes">
+										<value>1</value>
+										<min>1</min>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_Cycles" subclass="BulkEditTextCtrl" variable="TextCtrl_Shockwave_Cycles" member="yes">
+										<value>1</value>
+										<maxlength>3</maxlength>
+										<size>20,-1d</size>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Cycles" subclass="xlLockButton" variable="BitmapButton_Shockwave_Cycles" member="yes">
+										<size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxCheckBox" name="ID_CHECKBOX_Shockwave_Blend_Edges" subclass="BulkEditCheckBox" variable="CheckBox_Shockwave_Blend_Edges" member="yes">
 										<label>Blend Edges:</label>
 										<checked>1</checked>
+										<style>wxALIGN_RIGHT</style>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Shockwave_Scale" subclass="BulkEditCheckBox" variable="CheckBox_Shockwave_Scale" member="yes">
+										<label>Scale to Buffer:</label>
 										<style>wxALIGN_RIGHT</style>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 //(*Headers(ViewSettingsPanel)
@@ -27,8 +27,10 @@ class ViewSettingsPanel: public wxPanel
 		virtual ~ViewSettingsPanel();
 
 		//(*Declarations(ViewSettingsPanel)
+		wxCheckBox* CheckBox_BaseShowFolder;
 		wxCheckBox* HousePreviewCheckBox;
 		wxCheckBox* PlayControlsCheckBox;
+		wxChoice* Choice_TimelineZooming;
 		wxChoice* EffectAssistChoice;
 		wxChoice* ModelHandleSizeChoice;
 		wxChoice* ToolIconSizeChoice;
@@ -45,6 +47,8 @@ class ViewSettingsPanel: public wxPanel
 		static const long ID_CHOICE5;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
+		static const long ID_CHECKBOX3;
+		static const long ID_CHOICE_TIMELINEZOOMING;
 		//*)
 
 	private:
@@ -58,6 +62,8 @@ class ViewSettingsPanel: public wxPanel
 		void OnModelHandleSizeChoiceSelect(wxCommandEvent& event);
 		void OnOpenGLRenderOrderChoiceSelect(wxCommandEvent& event);
 		void OnOpenGLVersionChoiceSelect(wxCommandEvent& event);
+		void OnCheckBox_BaseShowFolderClick(wxCommandEvent& event);		
+		void OnChoice_TimelineZoomingSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

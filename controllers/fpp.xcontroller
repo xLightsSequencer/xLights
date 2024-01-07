@@ -45,10 +45,12 @@
         <SupportsDefaultGamma/>
         <PreferredInputProtocol>DDP</PreferredInputProtocol>
         <ConfigDriver>FPP</ConfigDriver>
+		<FPS40Pixels>800</FPS40Pixels>
+		<FPS40Pixels_SR>720</FPS40Pixels_SR>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCape" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
-        <MaxPixelPortChannels>4200</MaxPixelPortChannels>
+        <MaxPixelPortChannels>4800</MaxPixelPortChannels>
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
         <SupportsRemotes/>
@@ -70,7 +72,7 @@
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCapeTTYs" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
-        <MaxPixelPortChannels>4200</MaxPixelPortChannels>
+        <MaxPixelPortChannels>4800</MaxPixelPortChannels>
         <SupportsVirtualStrings/>
         <SupportsAutoLayout/>
         <SupportsRemotes/>
@@ -227,6 +229,7 @@
         <Variant Name="24 Output DPI" ID="DPIPixels-24" Base="FPP:FPPStringDPIPiHat">
             <MaxPixelPort>24</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
+            <SupportsVirtualMatrix/>
             <SupportsLEDPanelMatrix/>
             <fppSerialPort1>ttyAMA0</fppSerialPort1>
         </Variant>

@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <string>
@@ -72,6 +72,9 @@ public:
     bool Rotate(ModelScreenLocation::MSLAXIS axis, float factor);
     void FlipHorizontal(bool ignoreLock = false);
     void FlipVertical(bool ignoreLock = false);
+    bool IsXmlChanged(wxXmlNode* n) const;
+    bool IsFromBase() const;
+    void SetFromBase(bool fromBase);
 
     float GetTop();
     float GetBottom();

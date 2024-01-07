@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "LorController.h"
@@ -29,12 +29,23 @@ LorController::LorController() {
 LorController::LorController(wxXmlNode* node) {
 
     _unit_id = wxAtoi(node->GetAttribute("UnitId", "1"));
-    _num_channels = wxAtoi(node->GetAttribute("NumChannels", "16"));;
+    _num_channels = wxAtoi(node->GetAttribute("NumChannels", "16"));
     _type = node->GetAttribute("CntlrType", "AC Controller").ToStdString();
     _mode = AddressMode(wxAtoi(node->GetAttribute("AddrMode", "1")));
     _description = node->GetAttribute("CntlrDesc", "LOR Controller").ToStdString();
     _expanded = node->GetAttribute("Expanded", "TRUE") == "TRUE";
     _dirty = false;
+}
+
+LorController::LorController(const LorController& from)
+{
+    _unit_id = from._unit_id;
+    _num_channels = from._num_channels;
+    _type = from._type;
+    _mode = from._mode;
+    _description = from._description;
+    _expanded = from._expanded;
+    _dirty = true;
 }
 
 void LorController::Save(wxXmlNode* node) {

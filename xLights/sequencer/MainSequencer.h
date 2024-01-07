@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/scrolwin.h>
@@ -42,8 +42,8 @@ class MainSequencer: public wxPanel
         void UpdateEffectGridVerticalScrollBar();
         void UpdateTimeDisplay(int time_ms, float fps);
         void UpdateSelectedDisplay(int selected);
-        void GetSelectedEffectsData(wxString& copy_data);
-        void GetACEffectsData(wxString& copy_data);
+        bool GetSelectedEffectsData(wxString& copy_data);
+        bool GetACEffectsData(wxString& copy_data);
         void GetPresetData(wxString& copy_data);
         bool CopySelectedEffects();
         bool PasteByCellActive() const { return mPasteByCell; }

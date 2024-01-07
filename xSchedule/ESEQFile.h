@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <string>
@@ -16,18 +16,21 @@
 #include <wx/file.h>
 
 #include "Blend.h"
+#include "../xLights/FSEQFile.h"
+
 
 class ESEQFile
 {
-	std::string _filename;
-	size_t _frames;
-	size_t _channelsPerFrame;
-	size_t _offset;
-	size_t _modelSize;
-    wxFile* _fh;
-    uint8_t* _frameBuffer;
-    size_t _frame0Offset;
-    bool _ok;
+    std::string _filename = "";
+	size_t _frames = 0;
+	size_t _channelsPerFrame =0;
+	size_t _offset = 0;
+	size_t _modelSize = 0;
+    wxFile* _fh = nullptr;
+    uint8_t* _frameBuffer = nullptr;
+    size_t _frame0Offset= 0;
+    bool _ok = false;
+    FSEQFile* _fseq = nullptr;
 
     public:
 

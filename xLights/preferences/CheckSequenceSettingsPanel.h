@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 //(*Headers(CheckSequenceSettingsPanel)
@@ -27,6 +27,7 @@ class CheckSequenceSettingsPanel: public wxPanel
 
 		//(*Declarations(CheckSequenceSettingsPanel)
 		wxCheckBox* CheckBox_CustomSizeCheck;
+		wxCheckBox* CheckBox_DisableSketch;
 		wxCheckBox* CheckBox_DupNodeMG;
 		wxCheckBox* CheckBox_DupUniv;
 		wxCheckBox* CheckBox_NonContigChOnPort;
@@ -48,6 +49,7 @@ class CheckSequenceSettingsPanel: public wxPanel
 		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX5;
 		static const long ID_CHECKBOX6;
+		static const long ID_CHECKBOX7;
 		//*)
 
 	private:
@@ -60,6 +62,7 @@ class CheckSequenceSettingsPanel: public wxPanel
 		void OnCheckBox_DupNodeMGClick(wxCommandEvent& event);
 		void OnCheckBox_TransTimeClick(wxCommandEvent& event);
 		void OnCheckBox_CustomSizeCheckClick(wxCommandEvent& event);
+		void OnCheckBox_DisableSketchClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

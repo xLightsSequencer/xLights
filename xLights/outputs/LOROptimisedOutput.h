@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "LOROutput.h"
@@ -44,11 +44,15 @@ public:
 
     #pragma region Constructors and Destructors
     LOROptimisedOutput(wxXmlNode* node);
-    LOROptimisedOutput(SerialOutput* output);
+    LOROptimisedOutput(const LOROptimisedOutput& from);
     LOROptimisedOutput();
     virtual ~LOROptimisedOutput() override {}
     void SetupHistory();
-    #pragma endregion 
+    virtual Output* Copy() override
+    {
+        return new LOROptimisedOutput(*this);
+    }
+#pragma endregion 
 
     #pragma region Getters and Setters
     LorControllers& GetControllers() { return _controllers; }

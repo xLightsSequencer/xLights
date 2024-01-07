@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 // Based on the protocol as described at http://www.3waylabs.com/ddp/
@@ -87,6 +87,17 @@ DDPOutput::DDPOutput() : IPOutput() {
     _sequenceNum = 0;
     _datagram = nullptr;
     _keepChannelNumbers = true;
+    memset(_data, 0, sizeof(_data));
+}
+
+DDPOutput::DDPOutput(const DDPOutput& from) :
+    IPOutput(from)
+{
+    _fulldata = nullptr;
+    _channelsPerPacket = from._channelsPerPacket;
+    _keepChannelNumbers = from._keepChannelNumbers;
+    _sequenceNum = 0;
+    _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
 }
 

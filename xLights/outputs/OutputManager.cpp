@@ -2,17 +2,18 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/xml/xml.h>
 #include <wx/msgdlg.h>
 #include <wx/config.h>
 #include <wx/filename.h>
+#include <wx/dir.h>
 
 #include "OutputManager.h"
 #include "ControllerEthernet.h"
@@ -176,6 +177,9 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
         _globalFPPProxy = doc.GetRoot()->GetAttribute("GlobalFPPProxy");
         _globalForceLocalIP = doc.GetRoot()->GetAttribute("GlobalForceLocalIP");
 
+        _autoUpdateFromBaseShowDir = doc.GetRoot()->GetAttribute("AutoUpdateFromBase", "0") == "1";
+        _baseShowDir = doc.GetRoot()->GetAttribute("BaseShowDir", "");
+
         std::map<std::string, bool> multiip;
         for (auto e = doc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
             if (e->GetName() == "network")
@@ -324,6 +328,70 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
     return true;
 }
 
+bool OutputManager::MergeFromBase(bool prompt)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool changed = false;
+
+    OutputManager baseOM;
+
+    if (baseOM.Load(_baseShowDir)) {
+
+        if (_globalFPPProxy == "" && baseOM.GetGlobalFPPProxy() != "") {
+            SetGlobalFPPProxy(baseOM.GetGlobalFPPProxy());
+            logger_base.debug("Updating global FPP Proxy from base show folder.");
+        }
+
+        if (_globalForceLocalIP == "" && baseOM.GetGlobalForceLocalIP() != "") {
+            SetGlobalForceLocalIP(baseOM.GetGlobalForceLocalIP());
+            logger_base.debug("Updating global Force Local IP from base show folder.");
+        }
+
+        for (const auto& baseit : baseOM.GetControllers())
+        {
+            bool found = false;
+
+            // check if the controller already exists
+            for (const auto& it : GetControllers())
+            {
+                // if ip and id match or the names match then assume it is the same
+                if ((it->GetIP() == baseit->GetIP() && it->GetId() == baseit->GetId()) || it->GetName() == baseit->GetName()) {
+                    // this is a match
+                    found = true;
+
+                    bool force = false;
+                    if (prompt && !it->IsFromBase()) {
+                        force = wxMessageBox(wxString::Format("Controller %s found that clashes with base show directory. Do you want to take the base show directory version?", it->GetName()), "Controller clash", wxICON_QUESTION | wxYES_NO, nullptr) == wxYES;
+                    }
+
+                    // we only update if controller originally came from base
+                    if (force || it->IsFromBase()) {
+                        if (force) it->SetFromBase(true);
+                        bool thischanged = it->UpdateFrom(baseit);
+                        changed = thischanged || changed;
+                        if (thischanged) logger_base.debug("Controller '%s' updated from base show folder.", (const char*)it->GetName().c_str());
+                    } else {
+                        logger_base.debug("Controller '%s' NOT updated from base show folder as it never came from there.", (const char*)it->GetName().c_str());
+                    }
+                }
+            }
+
+            if (!found) {
+                auto c = baseit->Copy(this);
+                c->SetFromBase(true);
+                AddController(c);
+                changed = true;
+                logger_base.debug("Adding controller '%s' from base show folder.", (const char*)c->GetName().c_str());
+            }
+        }
+
+    } else {
+        return false;
+    }
+
+    return changed;
+}
+
 bool OutputManager::Save() {
 
     wxXmlDocument doc;
@@ -332,6 +400,9 @@ bool OutputManager::Save() {
     root->AddAttribute("computer", wxGetHostName());
     root->AddAttribute("GlobalFPPProxy", _globalFPPProxy);
     root->AddAttribute("GlobalForceLocalIP", _globalForceLocalIP);
+
+    root->AddAttribute("AutoUpdateFromBase", _autoUpdateFromBaseShowDir  ? "1" : "0");
+    root->AddAttribute("BaseShowDir", _baseShowDir);
 
     doc.SetRoot(root);
 
@@ -709,10 +780,23 @@ Output* OutputManager::GetOutput(int universe, const std::string& ip) const {
 #pragma endregion
 
 #pragma region Channel Mapping
-int32_t OutputManager::GetTotalChannels() const {
+int32_t OutputManager::GetTotalChannels() const
+{
+    if (_controllers.size() == 0)
+        return 0;
+    int ec = _controllers.back()->GetEndChannel();
 
-    if (_controllers.size() == 0) return 0;
-    return _controllers.back()->GetEndChannel();
+    // because some controllers with zero channels dont update their end channel ... look back until we find an end channel
+    if (ec == 0) {
+        auto it = _controllers.rbegin();
+        while (it != _controllers.rend() && (*it)->GetEndChannel() == 0) {
+            ++it;
+        }
+        if (it != _controllers.rend()) {
+            ec = (*it)->GetEndChannel();
+        }
+    }
+    return ec;
 }
 
 int32_t OutputManager::GetOutputsAbsoluteChannel(int universeIndex, int32_t startChannel) const
@@ -965,15 +1049,17 @@ std::string OutputManager::UniqueName(const std::string& prefix) {
 
 bool OutputManager::IsIDUsed(int id)
 {
-    for (const auto& it : GetAllOutputs()) {
-        if (it->GetUniverse() == id) return true;
+    for (const auto& it : _controllers) {
+        if (it->GetId() == id) return true;
     }
     return false;
 }
 
 int OutputManager::UniqueId() {
-    int i = 0;
-    while (GetOutput(++i, "") != nullptr);
+    int i = 1;
+    while (IsIDUsed(i) || (GetOutput(i, "") != nullptr)) {
+        ++i;
+    }
     return i;
 }
 
@@ -998,7 +1084,7 @@ std::list<std::string> OutputManager::GetForceIPs(const std::string& protocol) c
 
     for (const auto& it : GetControllers()) {
         auto e = dynamic_cast<ControllerEthernet*>(it);
-        if (e != nullptr && e->GetFirstOutput()->GetType() == protocol) {
+        if (e != nullptr && it->GetOutputCount() > 0 && e->GetFirstOutput()->GetType() == protocol) {
             auto fip = e->GetForceLocalIP();
             if (std::find(begin(res), end(res), fip) == end(res))
                 res.push_back(fip);
@@ -1010,7 +1096,7 @@ std::list<std::string> OutputManager::GetForceIPs(const std::string& protocol) c
 bool OutputManager::AtLeastOneOutputUsingProtocol(const std::string& protocol) const {
 
     for (const auto& it : GetControllers()) {
-        if (it->GetFirstOutput()->GetType() == protocol) {
+        if (it->GetOutputCount() > 0 && it->GetFirstOutput()->GetType() == protocol) {
             return true;
         }
     }

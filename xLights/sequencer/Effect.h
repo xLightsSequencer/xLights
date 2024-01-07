@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "wx/wx.h"
@@ -61,12 +61,12 @@ class Effect
     wxLongLong _timeToDelete = 0;
 
     Effect() {}  //don't allow default or copy constructor
-    Effect(const Effect &e) {}
     static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors, xlColorCurveVector& mCC);
 
 public:
     Effect(EffectManager* effectManager, EffectLayer* parent, int id, const std::string & name, const std::string &settings, const std::string &palette,
         int startTimeMS, int endTimeMS, int Selected, bool Protected, bool importing = false);
+    Effect(const Effect& e);
     virtual ~Effect();
 
     int GetID() const { return mID; }
@@ -129,8 +129,6 @@ public:
     void FixBuffer(const Model* m);
     bool IsPersistent() const;
 
-
-
     const xlColorVector &GetPalette() const { return mColors; }
     int GetPaletteSize() const { return mColors.size(); }
     const SettingsMap &GetPaletteMap() const { return mPaletteMap; }
@@ -139,6 +137,9 @@ public:
     void SetPalette(const std::string& i);
     void SetColourOnlyPalette(const std::string& i, bool json = false);
     void CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const;
+    void EraseSettingsStartingWith(const std::string& s);
+    void ErasePalette();
+    void EraseColourSettings();
 
     /* Do NOT call these on any thread other than the main thread */
     SettingsMap &GetSettings() { return mSettings; }

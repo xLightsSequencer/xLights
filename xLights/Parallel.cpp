@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 //  Created by Daniel Kulp on 8/2/18.
 //  Copyright © 2018 Daniel Kulp. All rights reserved.
@@ -109,9 +109,11 @@ void parallel_for(int min, int max, std::function<void(int)>&& func, int minStep
         // work small enough to allow work stealing for faster cores/threads
         int blockSize = (max - min) / (calcSteps * 20);
         if (blockSize < 1) blockSize = 1;
+        std::list<Job*> jobs;
         for (int x = 0; x < calcSteps-1; x++) {
-            pool->PushJob(new ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize));
+            jobs.push_back(new ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize));
         }
+        pool->PushJobs(jobs);
         ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize).Process();
         std::unique_lock<std::mutex> lock(pool->poolLock);
         while (doneCount < calcSteps) {

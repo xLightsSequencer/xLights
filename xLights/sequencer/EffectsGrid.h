@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #ifndef _glpane_
@@ -158,8 +158,18 @@ public:
     int GetMSFromColumn(int col) const;
     Element* GetActiveTimingElement() const;
     void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true, bool async = false) const;
-    void LockEffects(bool lock);
+    void LockEffects(bool lock);    
     void DisableRenderEffects(bool disable);
+
+    bool EnDisableSelectedModel(int iOverrideState);
+    void EnDisableSelectedModelWithRefresh(int iOverrideState = -1);
+
+    bool EnDisableRenderEffects(int iOverrideState);
+    void EnDisableRenderEffectsWithRefresh(int iOverrideState = -1);
+
+    bool EnDisableSelectedModelOrEffects(int iOverrideState);
+    void EnDisableSelectedModelOrEffectsWithRefresh(int iOverrideState = -1);
+
     int GetDropRow() const { 
         if (mDragDropping) return mDropRow; 
         return -1;

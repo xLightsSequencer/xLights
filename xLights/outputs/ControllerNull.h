@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <list>
@@ -31,8 +31,12 @@ public:
 #pragma region Constructors and Destructors
     ControllerNull(OutputManager* om, wxXmlNode* node, const std::string& showDir);
     ControllerNull(OutputManager* om);
-    virtual ~ControllerNull() {}
+    ControllerNull(OutputManager* om, const ControllerNull& from);
+    virtual ~ControllerNull()
+    {}
     virtual wxXmlNode* Save() override;
+    virtual bool UpdateFrom(Controller* from) override;
+    virtual Controller* Copy(OutputManager* om) override;
 #pragma endregion Constructors and Destructors
 
 #pragma region Virtual Functions

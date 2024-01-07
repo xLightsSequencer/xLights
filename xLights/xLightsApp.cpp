@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #ifdef _DEBUG
@@ -124,6 +124,9 @@
 #pragma comment(lib, "swscale.lib")
 #pragma comment(lib, "z.lib")
 #pragma comment(lib, "lua5.3.5-static.lib")
+#pragma comment(lib, "libwebp.lib")
+#pragma comment(lib, "libwebpdecoder.lib")
+#pragma comment(lib, "libwebpdemux.lib")
 #endif
 
 xLightsFrame* xLightsApp::__frame = nullptr;

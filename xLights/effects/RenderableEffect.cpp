@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "RenderableEffect.h"
@@ -932,6 +932,35 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
         res = SettingsMap.GetDouble(sn, def);
     } else if (SettingsMap.Contains(tn)) {
         res = SettingsMap.GetDouble(tn, def);
+    }
+    return res;
+}
+
+int RenderableEffect::GetValueCurveIntMax(const std::string& name, int def, const SettingsMap& SettingsMap, int min, int max, int divisor)
+{
+    int res = def;
+
+    const std::string vn = "E_VALUECURVE_" + name;
+    if (SettingsMap.Contains(vn)) {
+        const std::string& vc = SettingsMap.Get(vn, xlEMPTY_STRING);
+
+        ValueCurve valc;
+        valc.SetDivisor(divisor);
+        valc.SetLimits(min, max);
+        valc.Deserialise(vc);
+        if (valc.IsActive()) {
+            return valc.GetMaxValueDivided();
+        }
+    }
+
+    const std::string sn = "E_SLIDER_" + name;
+    const std::string tn = "E_TEXTCTRL_" + name;
+    // bool slider = false;
+    if (SettingsMap.Contains(sn)) {
+        res = SettingsMap.GetInt(sn, def);
+        // slider = true;
+    } else if (SettingsMap.Contains(tn)) {
+        res = SettingsMap.GetInt(tn, def);
     }
     return res;
 }

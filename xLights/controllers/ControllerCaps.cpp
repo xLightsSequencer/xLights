@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "ControllerCaps.h"
@@ -579,6 +579,22 @@ int ControllerCaps::GetMaxGroupPixels() const
 int ControllerCaps::GetMaxZigZagPixels() const
 {
     return wxAtoi(GetXmlNodeContent(_config, "MaxZigZag", "-1"));
+}
+
+// Maximum pixels on a local port or dumb remotes and achieve 40 FPS
+int ControllerCaps::GetMaxPixelsAt40FPS() const
+{
+    return wxAtoi(GetXmlNodeContent(_config, "FPS40Pixels", "-1"));
+}
+
+// Maximum pixels on a port using smart remotes and achieve 40 FPS
+int ControllerCaps::GetMaxPixelsAt40FPS_SR() const
+{
+    int res = wxAtoi(GetXmlNodeContent(_config, "FPS40Pixels_SR", "-1"));
+
+    if (res == -1)
+        return GetMaxPixelsAt40FPS();
+    return res;
 }
 
 int ControllerCaps::GetMinGroupPixels() const

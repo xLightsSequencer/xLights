@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/wx.h>
@@ -545,8 +545,25 @@ void Waveform::DrawWaveView(xlGraphicsContext* ctx, const WaveView& wv)
 
     // draw mouse position line
     int mouse_marker = mTimeline->GetMousePosition();
+
+    if (xLightsApp::GetFrame() != nullptr && xLightsApp::GetFrame()->_timelineZooming == 1) { // 1 = Mouse Position, 0 = Play Marker
+        
+        //
+        // preference : use waveform mouse marker for centered zoom 
+        //
+        int aSelectedPlayMarkerStartMS = mTimeline->GetAbsoluteTimeMSfromPosition(mouse_marker);
+
+        mTimeline->SetZoomMarkerMS(aSelectedPlayMarkerStartMS);
+
+    }
+
     if (mouse_marker != -1) {
         color.Set(0, 0, 255, 255);
+        
+        if (xLightsApp::GetFrame() != nullptr) {
+            color = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM_MOUSE_MARKER);
+        }        
+
         float f = translateOffset(mouse_marker);
         vac->AddVertex(f, 1, 0, color);
         vac->AddVertex(f, mWindowHeight - 1, 0, color);

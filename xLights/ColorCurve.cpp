@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/wx.h>
@@ -21,14 +21,14 @@
 #include "UtilFunctions.h"
 #include "ColorPanel.h"
 
+#include "xlColourData.h"
+
 #include <log4cpp/Category.hh>
 
 #if wxUSE_GRAPHICS_CONTEXT == 0
 #error Please refer to README.windows to make necessary changes to wxWidgets setup.h file.
 #error You will also need to rebuild wxWidgets once the change is made.
 #endif
-
-wxColourData ColorCurveButton::_colorData;
 
 ColorCurve::ColorCurve(const std::string& id, const std::string type, xlColor c)
 {
@@ -605,13 +605,10 @@ void ColorCurveButton::LeftClick(wxCommandEvent& event)
 {
     ColorCurveButton* w = static_cast<ColorCurveButton*>(event.GetEventObject());
     wxColour color = w->GetBackgroundColour();
-    _colorData.SetColour(color);
-    wxColourDialog dialog(this, &_colorData);
-    if (dialog.ShowModal() == wxID_OK)
-    {
+    auto const& [res, ncolor] = xlColourData::INSTANCE.ShowColorDialog(this, color);
+    if (res == wxID_OK) {
         _cc->SetActive(false);
-        _colorData = dialog.GetColourData();
-        color = _colorData.GetColour();
+        color = ncolor;
         _color = color.GetAsString();
         _cc->SetDefault(color);
         UpdateBitmap();
@@ -623,7 +620,7 @@ void ColorCurveButton::RightClick(wxContextMenuEvent& event)
 {
     ColorCurveButton* w = static_cast<ColorCurveButton*>(event.GetEventObject());
 
-    ColorCurveDialog ccd(this, w->GetValue(), _colorData);
+    ColorCurveDialog ccd(this, w->GetValue());
     if (ccd.ShowModal() == wxID_OK)
     {
         w->SetActive(true);
@@ -680,6 +677,7 @@ void ColorCurveButton::UpdateBitmap() {
     if (GetValue()->IsActive())
     {
         SetBitmap(_cc->GetImage(sz.GetWidth(), sz.GetHeight(), false));
+        UnsetToolTip();
     }
     else
     {
@@ -693,7 +691,7 @@ void ColorCurveButton::UpdateBitmap() {
         }
         wxBitmap bmp(image);
         SetBitmap(bmp);
-        SetToolTip(wxString::Format("%s\n%d,%d,%d", _color, color.Red(), color.Green(), color.Blue()));
+        SetToolTip(wxString::Format("%s\n%d,%d,%d\n%s", _color, color.Red(), color.Green(), color.Blue(), GetColourName(color)));
     }
     Refresh();
 }

@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 // needed to ensure the __WXMSW__ is defined
@@ -399,6 +399,35 @@ void JobPool::PushJob(Job *job)
         UnlockThreads();
     }
     signal.notify_one();
+}
+void JobPool::PushJobs(std::list<Job *> jobs) {
+    std::unique_lock<std::mutex> locker(queueLock);
+    for (auto job : jobs) {
+        queue.push_back(job);
+        ++inFlight;
+    }
+    int count = inFlight;
+    count -= idleThreads;
+    count -= numThreads;
+    count = std::min(count, maxNumThreads - numThreads);
+    locker.unlock();
+    if (count > 0) {
+        LockThreads();
+        if (numThreads == 0 && count < MIN_JOBPOOLTHREADS && MIN_JOBPOOLTHREADS < maxNumThreads) {
+            //when we create first thread, assume we'll need extras real soon
+            count = MIN_JOBPOOLTHREADS;
+        }
+        for (int i = 0; i < count; i++) {
+            threads.push_back(new JobPoolWorker(this));
+            ++numThreads;
+        }
+        UnlockThreads();
+    }
+    if (jobs.size() > 1) {
+        signal.notify_all();
+    } else {
+        signal.notify_one();
+    }
 }
 
 void JobPool::Start(size_t poolSize, size_t minPoolSize)

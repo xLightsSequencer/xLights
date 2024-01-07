@@ -12,12 +12,12 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
-					<minsize>100</minsize>
+					<minsize>100,100</minsize>
 					<style>wxSP_3D|wxSP_3DSASH</style>
 					<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="FPPInstanceList" member="yes">
 						<minsize>800,100d</minsize>
 						<object class="wxFlexGridSizer" variable="FPPInstanceSizer" member="yes">
-							<cols>11</cols>
+							<cols>12</cols>
 						</object>
 					</object>
 					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">

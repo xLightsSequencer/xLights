@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "Output.h"
@@ -20,8 +20,13 @@ public:
     #pragma region Constructors and Destructors
     NullOutput(wxXmlNode* node);
     NullOutput() : Output() { _channels = 512; SetUniverse(64001); }
+    NullOutput(const NullOutput& from);
     virtual ~NullOutput() override {};
     virtual wxXmlNode* Save() override;
+    virtual Output* Copy() override
+    {
+        return new NullOutput(*this);
+    }
     #pragma endregion 
 
     #pragma region Getters and Setters

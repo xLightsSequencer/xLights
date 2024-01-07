@@ -10,7 +10,7 @@
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
-			<MaxPixelPortChannels>2040‬</MaxPixelPortChannels>
+			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<AllInputUniversesMustBeSameSize/>
             <NeedsFullUniverseForSerial/>
 			<SupportsAutoLayout/>

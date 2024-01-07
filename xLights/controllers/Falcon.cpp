@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "Falcon.h"
@@ -523,6 +523,8 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
 #define V4_PIXEL_PROTOCOL_WS2811_SLOW 15
 #define V4_PIXEL_PROTOCOL_SJ1221 16
 #define V4_PIXEL_PROTOCOL_DMX512P_4 17
+#define V4_PIXEL_PROTOCOL_SM16825 18
+#define V4_PIXEL_PROTOCOL_SM16825_16 19
 
 std::string Falcon::V4_DecodeMode(int mode) const
 {
@@ -563,6 +565,10 @@ std::string Falcon::V4_DecodePixelProtocol(int protocol)
         return "ws2811 slow";
     case V4_PIXEL_PROTOCOL_SJ1221:
         return "sj1221";
+    case V4_PIXEL_PROTOCOL_SM16825:
+        return "sm16825";
+    case V4_PIXEL_PROTOCOL_SM16825_16:
+        return "sm16825 16 bit";
     }
     return "";
 }
@@ -593,6 +599,10 @@ int Falcon::V4_EncodePixelProtocol(const std::string& protocol)
     if (protocol == "lx1203") return V4_PIXEL_PROTOCOL_WS2811;
     if (protocol == "sj1221")
         return V4_PIXEL_PROTOCOL_SJ1221;
+    if (protocol == "sm16825")
+        return V4_PIXEL_PROTOCOL_SM16825;
+    if (protocol == "sm16825 16 bit")
+        return V4_PIXEL_PROTOCOL_SM16825_16;
     return -1;
 }
 
@@ -712,6 +722,9 @@ int Falcon::V4_GetMaxPortPixels(int boardMode, int protocol)
             return 382;
         case V4_PIXEL_PROTOCOL_SJ1221:
             return 232;
+        case V4_PIXEL_PROTOCOL_SM16825:
+        case V4_PIXEL_PROTOCOL_SM16825_16:
+            return 210;
         }
     }
     else {
@@ -743,6 +756,9 @@ int Falcon::V4_GetMaxPortPixels(int boardMode, int protocol)
             return 557;
         case V4_PIXEL_PROTOCOL_SJ1221:
             return 339;
+        case V4_PIXEL_PROTOCOL_SM16825:
+        case V4_PIXEL_PROTOCOL_SM16825_16:
+            return 306;
         }
     }
 
@@ -957,7 +973,17 @@ void Falcon::V4_MakeStringsValid(Controller* controller, UDController& cud, std:
     }
 }
 
-bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error, bool oneBased, uint32_t controllerFirstChannel)
+int Falcon::V4_GetBrightness(int port, int sr, int defaultBrightness, const std::vector<FALCON_V4_STRING>& falconStrings)
+{
+    for (const auto& it : falconStrings)
+    {
+        if (it.port == port && it.smartRemote == sr)
+            return it.brightness;
+    }
+    return defaultBrightness;
+}
+
+bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error, bool oneBased, uint32_t controllerFirstChannel, bool fullcontrol)
 {
     bool success = true;
 
@@ -1091,12 +1117,12 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         str.name = SafeDescription(it->_description);
                         str.blank = false;
                         str.gamma = V4_ValidGamma(it->_gammaSet ? it->_gamma * 10 : gamma);
-                        str.brightness = V4_ValidBrightness(it->_brightnessSet ? it->_brightness : defaultBrightness);
+                        str.brightness = V4_ValidBrightness(it->_brightnessSet ? it->_brightness : (fullcontrol ? defaultBrightness : V4_GetBrightness(p, sr, defaultBrightness, falconStrings)));
                         str.zigcount = 0;
                         str.endNulls = it->_endNullPixelsSet ? it->_endNullPixels : 0;
                         str.startNulls = it->_startNullPixelsSet ? it->_startNullPixels : 0;
                         str.colourOrder = it->_colourOrderSet ? V4_EncodeColourOrder(it->_colourOrder) : colourOrder;
-                        str.direction = it->_reverseSet ? (it->_reverse == "F" ? 0 : 1) : direction;
+                        str.direction = it->_reverseSet ? (it->_reverse == "Forward" ? 0 : 1) : direction;
                         str.group = it->_groupCountSet ? it->_groupCount : group;
                         str.zigcount = it->_zigZagSet ? it->_zigZag : 0; // dont carry between props
                         str.pixels = INTROUNDUPDIV(it->Channels(), GetChannelsPerPixel(it->_protocol)) * str.group;
@@ -1123,7 +1149,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                     str.name = wxString::Format("Port %d", p + 1);
                     str.blank = false;
                     str.gamma = 10;
-                    str.brightness = defaultBrightness;
+                    str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, 0, defaultBrightness, falconStrings);
                     str.zigcount = 0;
                     str.endNulls = 0;
                     str.startNulls = 0;
@@ -1156,7 +1182,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                     str.name = wxString::Format("Port %d", p + 1);
                     str.blank = false;
                     str.gamma = 10;
-                    str.brightness = defaultBrightness;
+                    str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, sr, defaultBrightness, falconStrings);
                     str.zigcount = 0;
                     str.endNulls = 0;
                     str.startNulls = 0;
@@ -1180,7 +1206,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                 str.name = wxString::Format("Port %d", p + 1);
                 str.blank = false;
                 str.gamma = 10;
-                str.brightness = defaultBrightness;
+                str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, sr, defaultBrightness, falconStrings);
                 str.zigcount = 0;
                 str.endNulls = 0;
                 str.startNulls = 0;
@@ -1340,7 +1366,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     std::vector<FALCON_V4_STRING> uploadStrings;
     std::string error;
-    if (!V4_PopulateStrings(uploadStrings, falconStrings, cud, caps, defaultBrightness, error, oneBased, controller->GetStartChannel())) {
+    if (!V4_PopulateStrings(uploadStrings, falconStrings, cud, caps, defaultBrightness, error, oneBased, controller->GetStartChannel(), fullcontrol)) {
         DisplayError("Falcon Outputs Upload: Problem constructing strings for upload:\n" + error, parent);
         if (doProgress) progress->Update(100, "Aborting.");
         return false;

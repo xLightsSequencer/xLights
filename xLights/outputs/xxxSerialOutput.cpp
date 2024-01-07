@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "xxxSerialOutput.h"
@@ -30,8 +30,8 @@ void xxxSerialOutput::SendHeartbeat() const {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-xxxSerialOutput::xxxSerialOutput(SerialOutput* output) : SerialOutput(output) {
- 
+xxxSerialOutput::xxxSerialOutput(const xxxSerialOutput& from) : SerialOutput(from)
+{
     memset(_lastSent, 0x00, sizeof(_lastSent));
     memset(_notSentCount, 0x00, sizeof(_notSentCount));
     memset(_data, 0, sizeof(_data));

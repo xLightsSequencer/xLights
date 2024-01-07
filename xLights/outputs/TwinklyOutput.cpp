@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "TwinklyOutput.h"
@@ -38,10 +38,9 @@ TwinklyOutput::TwinklyOutput()
 {
 }
 
-TwinklyOutput::TwinklyOutput(TwinklyOutput* output) :
-    IPOutput(output)
-{
-    _httpPort = output->_httpPort;
+TwinklyOutput::TwinklyOutput(const TwinklyOutput& from) :
+    IPOutput(from){
+    _httpPort = from._httpPort;
 }
 
 TwinklyOutput::~TwinklyOutput()
@@ -153,7 +152,8 @@ void TwinklyOutput::Close()
         _datagram = nullptr;
     }
 
-    SetLEDMode(false);
+    if (_enabled)
+        SetLEDMode(false);
 
     IPOutput::Close();
 }

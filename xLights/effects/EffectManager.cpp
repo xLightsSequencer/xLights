@@ -1,16 +1,17 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "EffectManager.h"
 #include "OffEffect.h"
 #include "OnEffect.h"
+#include "AdjustEffect.h"
 #include "BarsEffect.h"
 #include "ButterflyEffect.h"
 #include "CandleEffect.h"
@@ -18,6 +19,7 @@
 #include "ColorWashEffect.h"
 #include "CurtainEffect.h"
 #include "DMXEffect.h"
+#include "DuplicateEffect.h"
 #include "FacesEffect.h"
 #include "FanEffect.h"
 #include "FillEffect.h"
@@ -81,6 +83,7 @@ EffectManager::EffectManager()
 {
     add(createEffect(eff_OFF));
     add(createEffect(eff_ON));
+    add(createEffect(eff_ADJUST));
     add(createEffect(eff_BARS));
     add(createEffect(eff_BUTTERFLY));
     add(createEffect(eff_CANDLE));
@@ -88,6 +91,7 @@ EffectManager::EffectManager()
     add(createEffect(eff_COLORWASH));
     add(createEffect(eff_CURTAIN));
     add(createEffect(eff_DMX));
+    add(createEffect(eff_DUPLICATE));
     add(createEffect(eff_FACES));
     add(createEffect(eff_FAN));
     add(createEffect(eff_FILL));
@@ -153,13 +157,17 @@ RenderableEffect *EffectManager::createEffect(RGB_EFFECTS_e eff) {
     switch (eff) {
         case eff_OFF: return new OffEffect(eff_OFF);
         case eff_ON: return new OnEffect(eff_ON);
-        case eff_BARS: return new BarsEffect(eff_BARS);
+        case eff_ADJUST:
+        return new AdjustEffect(eff_ADJUST);
+        case eff_BARS:
+        return new BarsEffect(eff_BARS);
         case eff_BUTTERFLY: return new ButterflyEffect(eff_BUTTERFLY);
         case eff_CANDLE: return new CandleEffect(eff_CANDLE);
         case eff_CIRCLES: return new CirclesEffect(eff_CIRCLES);
         case eff_COLORWASH: return new ColorWashEffect(eff_COLORWASH);
         case eff_CURTAIN: return new CurtainEffect(eff_CURTAIN);
         case eff_DMX: return new DMXEffect(eff_DMX);
+        case eff_DUPLICATE: return new DuplicateEffect(eff_DUPLICATE);
         case eff_FACES: return new FacesEffect(eff_FACES);
         case eff_FAN: return new FanEffect(eff_FAN);
         case eff_FILL: return new FillEffect(eff_FILL);

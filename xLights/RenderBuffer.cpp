@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <cmath>
@@ -226,6 +226,36 @@ void RenderBuffer::AlphaBlend(const RenderBuffer& src)
 
 inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
+// MoC - March 2023
+// The wx font map is not thread safe in some cases, effects using
+//   it from background threads need to mutex each other (and ideally
+//   the event loop thread but meh.  This is not the best place (WX
+//   would be a better place), but this is better than no place.
+//
+// The first step here was centralizing the access methods, putting a
+//   lock around them then became possible.
+//   Per dkulp, we could, in the future, pre-populate the cache from the
+//   main thread, or we could use CallAfter or similar to do the font
+//   lookup on the main thread, which may be incrementally better than
+//   just a lock shared between background threads.
+std::mutex FONT_MAP_LOCK;
+
+std::map<std::string, wxFontInfo> FONT_MAP_TXT;
+std::map<std::string, wxFontInfo> FONT_MAP_SHP;
+
+class FontMapLock
+{
+    std::unique_lock<std::mutex> lk;
+
+public:
+    FontMapLock() :
+        lk(FONT_MAP_LOCK)
+    {}
+
+    ~FontMapLock()
+    {}
+};
+
 DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha) : nullBitmap(wxNullBitmap)
 {
     gc = nullptr;
@@ -244,6 +274,7 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, boo
     dc = new wxMemoryDC(*bitmap);
 
     if (!allowShared) {
+        FontMapLock lk;
         //make sure we UnShare everything that is being held onto
         //also use "non-normal" defaults to avoid "==" issue that
         //would keep it from using the non-shared versions
@@ -303,35 +334,6 @@ PathDrawingContext::PathDrawingContext(int BufferWi, int BufferHt, bool allowSha
 
 PathDrawingContext::~PathDrawingContext() {}
 
-// MoC - March 2023
-// The wx font map is not thread safe in some cases, effects using
-//   it from background threads need to mutex each other (and ideally
-//   the event loop thread but meh.  This is not the best place (WX
-//   would be a better place), but this is better than no place.
-//
-// The first step here was centralizing the access methods, putting a
-//   lock around them then became possible.  
-//   Per dkulp, we could, in the future, pre-populate the cache from the
-//   main thread, or we could use CallAfter or similar to do the font
-//   lookup on the main thread, which may be incrementally better than
-//   just a lock shared between background threads.
-std::mutex FONT_MAP_LOCK;
-
-std::map<std::string, wxFontInfo> FONT_MAP_TXT;
-std::map<std::string, wxFontInfo> FONT_MAP_SHP;
-
-class FontMapLock
-{
-    std::unique_lock<std::mutex> lk;
-
-public:
-    FontMapLock() :
-        lk(FONT_MAP_LOCK)
-    {}
-
-    ~FontMapLock()
-    {}
-};
 
 
 TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowShared)
@@ -538,6 +540,7 @@ void PathDrawingContext::FillPath(wxGraphicsPath& path, wxPolygonFillMode fillSt
 
 void TextDrawingContext::SetFont(const wxFontInfo& font, const xlColor& color)
 {
+    FontMapLock lk;
     if (gc != nullptr) {
         int style = wxFONTFLAG_NOT_ANTIALIASED;
         if (font.GetWeight() == wxFONTWEIGHT_BOLD) {
@@ -602,7 +605,6 @@ void TextDrawingContext::SetFont(const wxFontInfo& font, const xlColor& color)
          lf.lfPitchAndFamily,
          lf.lfFaceName);*/
         {
-            FontMapLock lk;
             wxString s = f.GetNativeFontInfoDesc();
             s.Replace(";2;", ";3;", false);
             f.SetNativeFontInfo(s);
@@ -1017,16 +1019,16 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
             xlColor pold = pixels[y*BufferWi + x];
 
             xlColor c;
-            int r = pnew.red + pold.red * (255 - pnew.alpha) / 255;
+            int r = pnew.red + (pold.red * (255 - pnew.alpha)) / 255;
             if (r > 255) r = 255;
             c.red = r;
-            int g = pnew.green + pold.green * (255 - pnew.alpha) / 255;
+            int g = pnew.green + (pold.green * (255 - pnew.alpha)) / 255;
             if (g > 255) g = 255;
             c.green = g;
-            int b = pnew.blue + pold.blue * (255 - pnew.alpha) / 255;
+            int b = pnew.blue + (pold.blue * (255 - pnew.alpha)) / 255;
             if (b > 255) b = 255;
             c.blue = b;
-            int a = pnew.alpha + pold.alpha * (255 - pnew.alpha) / 255;
+            int a = pnew.alpha + (pold.alpha * (255 - pnew.alpha)) / 255;
             if (a > 255) a = 255;
             c.alpha = a;
 
@@ -1138,7 +1140,7 @@ void RenderBuffer::DrawVLine(int x, int ystart, int yend, const xlColor &color, 
         SetPixel(x, y, color, wrap);
     }
 }
-void RenderBuffer::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap) {
+void RenderBuffer::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap, bool useAlpha) {
     if (y1 > y2) {
         int i = y1;
         y1 = y2;
@@ -1151,7 +1153,7 @@ void RenderBuffer::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color,
     }
     for (int x = x1; x <= x2; x++) {
         for (int y = y1; y <= y2; y++) {
-            SetPixel(x, y, color, wrap);
+            SetPixel(x, y, color, wrap, useAlpha);
         }
     }
 }
@@ -1527,14 +1529,16 @@ void RenderBuffer::SetState(int period, bool ResetState, const std::string& mode
         needToInit = true;
     }
     curPeriod = period;
-    cur_model = model_name;
     curPeriod = period;
     palette.UpdateForProgress(GetEffectTimeIntervalPosition());
-    dmx_buffer = false;
-    Model* m = GetModel();
-    if (m != nullptr) {
-        if (m->GetDisplayAs().rfind("Dmx", 0) == 0) {
-            dmx_buffer = true;
+    if (cur_model != model_name) {
+        cur_model = model_name;
+        dmx_buffer = false;
+        Model* m = GetModel();
+        if (m != nullptr) {
+            if (m->GetDisplayAs().rfind("Dmx", 0) == 0) {
+                dmx_buffer = true;
+            }
         }
     }
 }

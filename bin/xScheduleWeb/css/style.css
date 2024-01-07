@@ -18,7 +18,7 @@ body{
 }
 
 .navbar-default {
-  background-color: #fff;
+  background-color: #000;
   border-color: rgba(0, 0, 0, .5);
   position: fixed;
   z-index: 5;

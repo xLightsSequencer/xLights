@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 //(*Headers(MultiControllerUploadDialog)
@@ -53,6 +53,9 @@ protected:
 
 	static const long ID_MCU_SELECTALL;
 	static const long ID_MCU_SELECTNONE;
+    static const long ID_MCU_SELECTACTIVE;
+    static const long ID_MCU_DESELECTINACTIVE;
+    static const long ID_MCU_SELECTAUTO;
 
 private:
 
@@ -64,6 +67,8 @@ private:
 
 	void OnListRClick(wxContextMenuEvent& event);
 	void OnPopup(wxCommandEvent& event);
-
+    void OnProxyPopup(wxCommandEvent& event);
+    void SaveChecked();
+    void LoadChecked();
 	DECLARE_EVENT_TABLE()
 };

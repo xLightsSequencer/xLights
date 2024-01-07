@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <stdint.h>
@@ -473,6 +473,14 @@ public:
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false, bool useAlpha = false, bool dmx_ignore = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
 
+    //optimized/direct versions only usable in cases where x/y are known to be within bounds
+    void SetPixelDirect(int x, int y, const xlColor &color) {
+        pixels[y * BufferWi + x] = color;
+    }
+    const xlColor& GetPixelDirect(int x, int y) const {
+        return pixels[y * BufferWi + x];
+    }
+
     int GetNodeCount() const { return Nodes.size();}
     void SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore = false);
     void CopyNodeColorsToPixels(std::vector<uint8_t> &done);
@@ -490,7 +498,7 @@ public:
     void Fill(const xlColor& color);
     void DrawHLine(int y, int xstart, int xend, const xlColor& color, bool wrap = false);
     void DrawVLine(int x, int ystart, int yend, const xlColor& color, bool wrap = false);
-    void DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap = false);
+    void DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap = false, bool useAlpha = false);
     void DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap = false);
     void DrawCircle(int xc, int yc, int r, const xlColor& color, bool filled = false, bool wrap = false);
     void DrawLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool useAlpha = false);

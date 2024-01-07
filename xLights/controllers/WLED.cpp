@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/msgdlg.h>
@@ -226,6 +226,13 @@ void WLED::UpdatePixelOutputs(bool& worked, int totalPixelCount, wxJSONValue& js
     }
 
     jsonVal["hw"]["led"]["ins"] = newLEDS;
+}
+
+static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
+
+    if (data == nullptr) return 0;
+    data->append((char*)ptr, size * nmemb);
+    return size * nmemb;
 }
 
 bool WLED::PostJSON(wxJSONValue const& jsonVal) {

@@ -3,15 +3,16 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <deque>
 #include <vector>
+#include <list>
 #include <string>
 #include <mutex>
 #include <atomic>
@@ -52,7 +53,8 @@ public:
     JobPool(const std::string &threadNameBase);
     virtual ~JobPool();
     
-    virtual void PushJob(Job *job);
+    void PushJob(Job *job);
+    void PushJobs(std::list<Job *> jobs);
     int size() const { return (int)threads.size(); }
     int maxSize() const { return maxNumThreads; }
     virtual void Start(size_t poolSize = 1, size_t minPoolSize = 0);

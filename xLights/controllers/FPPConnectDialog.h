@@ -89,7 +89,6 @@ class FPPConnectDialog: public wxDialog
         void OnLocationPopupClick(wxCommandEvent &evt);
         //*)
 
-        void CreateDriveList();
         void LoadSequencesFromFolder(wxString dir) const;
         void LoadSequences();
         void PopulateFPPInstanceList(wxProgressDialog *prgs = nullptr);

@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "xxxEthernetOutput.h"
@@ -132,10 +132,12 @@ xxxEthernetOutput::xxxEthernetOutput() : IPOutput() {
     memset(_data, 0, _channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
 }
 
-xxxEthernetOutput::xxxEthernetOutput(xxxEthernetOutput* output) : IPOutput(output) {
+xxxEthernetOutput::xxxEthernetOutput(const xxxEthernetOutput& from) : IPOutput(from) {
 
-    _data = (uint8_t*)malloc(_channels);
-    memset(_data, 0, _channels);
+    _channels = from._channels;
+    _universe = from._universe;
+    _data = (uint8_t*)malloc(_channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
+    memset(_data, 0, _channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
 }
 
 xxxEthernetOutput::~xxxEthernetOutput() {

@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "ScriptsDialog.h"
@@ -291,8 +291,8 @@ void ScriptsDialog::Run_Python_Script(wxString const& filepath) const
 
 void ScriptsDialog::OnButton_DownloadClick(wxCommandEvent& event)
 {
-    //https://api.github.com/repos/smeighan/xLights/contents/scripts
-    std::string json_data = Curl::HTTPSGet(R"(https://api.github.com/repos/smeighan/xLights/contents/scripts)");
+    //https://api.github.com/repos/xLightsSequencer/xLights/contents/scripts
+    std::string json_data = Curl::HTTPSGet(R"(https://api.github.com/repos/xLightsSequencer/xLights/contents/scripts)");
     std::vector<std::pair<wxString, wxString>> scripts = std::vector<std::pair<wxString, wxString>>();
     wxJSONValue val;
     wxJSONReader reader;

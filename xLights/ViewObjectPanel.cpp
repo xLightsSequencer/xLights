@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/artprov.h>
@@ -37,6 +37,7 @@ END_EVENT_TABLE()
 
 const long ViewObjectPanel::ID_TREELISTVIEW_OBJECTS = wxNewId();
 const long ViewObjectPanel::ID_MNU_DELETE_OBJECT = wxNewId();
+const long ViewObjectPanel::ID_MNU_UNLINKFROMBASE = wxNewId();
 
 ViewObjectPanel::ViewObjectPanel(wxWindow* parent,ViewObjectManager &Objects,LayoutPanel *xl,wxWindowID id,const wxPoint& pos,const wxSize& size)
 :   layoutPanel(xl), mViewObjects(Objects), mSelectedObject(nullptr)
@@ -177,7 +178,6 @@ int ViewObjectPanel::GetObjectTreeIcon(ViewObject* view_object, bool open) {
     }
     return Icon_File;
 }
-
 
 int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName) {
     int width = 0;
@@ -457,27 +457,34 @@ bool ViewObjectPanel::OnSelectionChanged(wxTreeListEvent& event, ViewObject** vi
 
     wxTreeListItem item = event.GetItem();
     if (item.IsOk()) {
-        ObjectTreeData *data = (ObjectTreeData*)TreeListViewObjects->GetItemData(item);
+        ObjectTreeData* data = (ObjectTreeData*)TreeListViewObjects->GetItemData(item);
         *view_object = ((data != nullptr) ? data->GetViewObject() : nullptr);
         if (*view_object != nullptr) {
             if ((*view_object)->GetDisplayAs() == "ObjectGroup") {
                 mSelectedGroup = item;
                 UpdateObjectList(false, currentLayoutGroup);
-                //model_grp_panel->UpdatePanel(view_object->name);
+                // model_grp_panel->UpdatePanel(view_object->name);
             } else {
                 mSelectedGroup = nullptr;
                 mSelectedObject = *view_object;
                 show_prop_grid = true;
             }
+
+            if ((*view_object)->IsFromBase()) {
+                TreeListViewObjects->SetToolTip("From Base Show Folder");
+            } else {
+                TreeListViewObjects->UnsetToolTip();
+            }
         } else {
             mSelectedGroup = nullptr;
             mSelectedObject = nullptr;
             show_prop_grid = true;
-            //UnSelectAllObjects(true);
+            // UnSelectAllObjects(true);
+            TreeListViewObjects->UnsetToolTip();
         }
-        #ifndef LINUX
+#ifndef LINUX
         TreeListViewObjects->SetFocus();
-        #endif
+#endif
     }
     return show_prop_grid;
 }
@@ -512,6 +519,18 @@ void ViewObjectPanel::OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPro
             wxASSERT(i == 0 || i == GRIDCHANGE_SUPPRESS_HOLDSIZE);
         }
     }
+
+    if (mSelectedObject != nullptr && mSelectedObject->IsFromBase()) {
+        propertyEditor->SetToolTip("This object comes from the base folder and its properties cannot be edited.");
+        auto it = propertyEditor->GetIterator(wxPG_ITERATE_ALL, nullptr);
+        while (!it.AtEnd()) {
+            it.GetProperty()->Enable(false);
+            it.Next(true);
+        }
+
+    } else {
+        propertyEditor->UnsetToolTip();
+    }
 }
 
 void ViewObjectPanel::OnItemContextMenu(wxTreeListEvent& event)
@@ -536,14 +555,8 @@ void ViewObjectPanel::OnItemContextMenu(wxTreeListEvent& event)
 
     if (mSelectedObject != nullptr ) {
         mnuContext.Append(ID_MNU_DELETE_OBJECT,"Delete");
-        //mnuContext.AppendSeparator();
+        mnuContext.Append(ID_MNU_UNLINKFROMBASE, "Unlink Models from Base Show Folder")->Enable(mSelectedObject->IsFromBase());
     }
-
-    /*mnuContext.Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
-    if( mSelectedGroup.IsOk() ) {
-        mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
-        mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
-    }*/
 
     mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ViewObjectPanel::OnObjectsPopup, nullptr, this);
     PopupMenu(&mnuContext);
@@ -558,26 +571,26 @@ void ViewObjectPanel::OnObjectsPopup(wxCommandEvent& event)
     {
         logger_base.debug("ViewObjectPanel::OnObjectsPopup DELETE_OBJECT");
         DeleteSelectedObject();
+    } else if (id == ID_MNU_UNLINKFROMBASE) {
+        logger_base.debug("ViewObjectPanel::OnObjectsPopup UNLINKFROMBASE");
+        UnlinkSelectedObject();
     }
-    /*else if(id == ID_MNU_DELETE_MODEL_GROUP)
-    {
-        logger_base.debug("ViewObjectPanel::OnObjectsPopup DELETE_MODEL_GROUP");
-        if( mSelectedGroup.IsOk() ) {
-            wxString name = TreeListViewModels->GetItemText(mSelectedGroup);
-            if (wxMessageBox("Are you sure you want to remove the " + name + " group?", "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
-                xlights->AllModels.Delete(name.ToStdString());
-                selectedModel = nullptr;
-                mSelectedGroup = nullptr;
-                UnSelectAllModels();
-                ShowPropGrid(true);
-                xlights->UpdateModelsList();
-                xlights->MarkEffectsFileDirty(true);
-            }
-        }
-    }*/
 }
 
-void ViewObjectPanel::DeleteSelectedObject() {
+void ViewObjectPanel::UnlinkSelectedObject()
+{
+    if (mSelectedObject != nullptr && mSelectedObject->IsFromBase()) {
+        mSelectedObject->SetFromBase(false);
+    }
+
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ViewObjectPanel::UnlinkSelectedObject");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::UnlinkSelectedObject");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::UnlinkSelectedObject");
+}
+
+void ViewObjectPanel::DeleteSelectedObject()
+{
+    // dont block deletes of objects from base
     if( mSelectedObject != nullptr && !mSelectedObject->GetObjectScreenLocation().IsLocked()) {
         layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
         // This should delete all selected models

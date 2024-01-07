@@ -15,7 +15,7 @@
 						<object class="wxFlexGridSizer" variable="Sizer1" member="yes">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>6</growablerows>
+							<growablerows>7</growablerows>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="Sizer_TimeAdjust" member="yes">
 									<cols>2</cols>
@@ -151,6 +151,31 @@
 								<flag>wxEXPAND</flag>
 							</object>
 							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+									<cols>2</cols>
+									<growablecols>1</growablecols>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+											<label>Find:</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_FindTo" member="yes">
+											<handler function="OnTextCtrl_FindToText" entry="EVT_TEXT" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="SizerMap" member="yes">
 									<cols>1</cols>
 									<rows>1</rows>
@@ -161,7 +186,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-									<cols>7</cols>
+									<cols>8</cols>
 									<growablecols>2</growablecols>
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON3" variable="Button_Ok" member="yes">
@@ -183,6 +208,15 @@
 									</object>
 									<object class="spacer">
 										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON6" variable="Button_UpdateAliases" member="yes">
+											<label>Update Model Aliases Using Mapping</label>
+											<handler function="OnButton_UpdateAliasesClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
@@ -228,7 +262,32 @@
 						<object class="wxFlexGridSizer" variable="Sizer2" member="yes">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>0</growablerows>
+							<growablerows>1</growablerows>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+									<cols>2</cols>
+									<growablecols>1</growablecols>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+											<label>Find:</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_FindFrom" member="yes">
+											<handler function="OnTextCtrl_FindFromText" entry="EVT_TEXT" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 							<object class="sizeritem">
 								<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListCtrl_Available" member="yes">
 									<size>100,-1d</size>

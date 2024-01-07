@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "xLightsMain.h"
@@ -35,7 +35,6 @@
 #undef min
 #undef max
 
-CachedFileDownloader ShaderDownloadDialog::_cache;
 
 class MShader
 {
@@ -327,9 +326,6 @@ ShaderDownloadDialog::ShaderDownloadDialog(wxWindow* parent, wxWindowID id, cons
 
     SetSize(800, 600);
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("File cache size: %d", _cache.size());
-
     ListView_Sites->AppendColumn("", wxListColumnFormat::wxLIST_FORMAT_LEFT);
     ListView_Sites->InsertItem(0, "www.interactiveshaderformat.com/");
     ListView_Sites->InsertItem(0, "www.shadertoy.com/");
@@ -368,7 +364,7 @@ wxXmlDocument* ShaderDownloadDialog::GetXMLFromURL(wxURI url, std::string& filen
 
 bool ShaderDownloadDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
-    const std::string shaderlink = "https://raw.githubusercontent.com/smeighan/xLights/master/download/shaders.xml";
+    const std::string shaderlink = "https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/shaders.xml";
 
     bool rc = true;
     std::string filename;
@@ -426,7 +422,7 @@ ShaderDownloadDialog::~ShaderDownloadDialog()
 	//(*Destroy(ShaderDownloadDialog)
 	//*)
 
-    _cache.Save();
+    GetCache().Save();
 
     for (const auto& it : _shaders)
     {

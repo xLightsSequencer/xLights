@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <map>
@@ -51,7 +51,7 @@ class ModelManager : public ObjectManager
         bool IsModelShadowing(const Model* m) const;
         std::list<std::string> GetModelsShadowing(const Model* m) const;
         void AddModel(Model* m);
-        //void AddModel(wxXmlNode* m);
+        void ReplaceModel(const std::string &name, Model* nm);
         bool Delete(const std::string &name);
         std::string GenerateModelName(const std::string& candidateModelName) const;
         void ResetModelGroups() const;
@@ -88,6 +88,7 @@ class ModelManager : public ObjectManager
 
         int GetPreviewWidth() const { return previewWidth; }
         int GetPreviewHeight() const { return previewHeight; }
+        bool MergeFromBase(const std::string& baseShowDir, bool prompt);
 
     private:
 

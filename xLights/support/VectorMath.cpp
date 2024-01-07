@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "VectorMath.h"
@@ -344,7 +344,7 @@ glm::mat4 VectorMath::rotationMatrixFromXAxisToVector2(const glm::vec3 &o, const
     if (o.y != p.y || o.z != p.z) {
         glm::vec3 v = glm::vec3(0, -a.z, a.y);
         float len = glm::length(a);
-        float angle = len == 0.0f ? 0.0 : acos(a.x / len);
+        float angle = len == 0.0f ? 0.0f : acos(a.x / len);
         return glm::rotate(angle, v);
     } else {
         if (p.x < o.x) {

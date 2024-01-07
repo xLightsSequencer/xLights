@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "OPCOutput.h"
@@ -93,8 +93,12 @@ OPCOutput::OPCOutput() : IPOutput() {
     memset(_data, 0x00, _channels + OPC_PACKET_HEADERLEN);
 }
 
-OPCOutput::OPCOutput(OPCOutput* output) : IPOutput(output) {
-
+OPCOutput::OPCOutput(const OPCOutput& from) :
+    IPOutput(from)
+{
+    _channels = from._channels;
+    _universe = from._universe;
+    _socket = nullptr;
     _data = (uint8_t*)malloc(_channels + OPC_PACKET_HEADERLEN);
     memset(_data, 0x00, _channels + OPC_PACKET_HEADERLEN);
 }

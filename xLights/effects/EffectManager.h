@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <map>
@@ -23,6 +23,7 @@ public:
     enum RGB_EFFECTS_e {
         eff_OFF,
         eff_ON,
+        eff_ADJUST,
         eff_BARS,
         eff_BUTTERFLY,
         eff_CANDLE,
@@ -30,6 +31,7 @@ public:
         eff_COLORWASH,
         eff_CURTAIN,
         eff_DMX,
+        eff_DUPLICATE,
         eff_FACES,
         eff_FAN,
         eff_FILL,

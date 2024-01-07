@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "ThreePointScreenLocation.h"
@@ -90,7 +90,7 @@ void ThreePointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* p
     TwoPointScreenLocation::AddDimensionProperties(propertyEditor, 1.0);
     float width = RulerObject::Measure(origin, point2);
     wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight", 
-                                                                     RulerObject::Measure((width * height) / 2.0 * factor * 100.0)
+                                                                     (width * height) / 2.0 * factor
                                                                     ));
     prop->ChangeFlag(wxPG_PROP_READONLY, true);
     prop->SetAttribute("Precision", 2);
@@ -113,7 +113,7 @@ float ThreePointScreenLocation::GetRealWidth() const
 float ThreePointScreenLocation::GetRealHeight() const
 {
     float width = RulerObject::Measure(origin, point2);
-    return RulerObject::Measure((width * height) / 2.0 * 1.0 * 100.0);
+    return (width * height) / 2.0 * 1.0;
 }
 
 void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
@@ -334,7 +334,7 @@ void ThreePointScreenLocation::SetActiveAxis(MSLAXIS axis)
         ModelScreenLocation::SetActiveAxis(axis);
     }
 }
-bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding) const {
+bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const {
     if (active_handle != -1) {
 
         float ymax = RenderHt;
@@ -357,8 +357,12 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
         vac->AddVertex(sx, sy, sz, xlWHITE);
 
         xlColor h4c = xlBLUETRANSLUCENT;
+        if (fromBase)
+        {
+            h4c = FROM_BASE_HANDLES_COLOUR;
+        } else
         if (_locked) {
-            h4c = xlREDTRANSLUCENT;
+            h4c = LOCKED_HANDLES_COLOUR;
         } else {
             h4c = (highlighted_handle == SHEAR_HANDLE) ? xlYELLOWTRANSLUCENT : xlBLUETRANSLUCENT;
         }
@@ -387,11 +391,11 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
         });
     }
 
-    TwoPointScreenLocation::DrawHandles(program, zoom, scale, drawBounding);
+    TwoPointScreenLocation::DrawHandles(program, zoom, scale, drawBounding, fromBase);
     return true;
 }
 
-bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale) const {
+bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const {
     float sx1 = center.x;
     float sy1 = center.y;
 
@@ -414,8 +418,12 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
     vac->AddVertex(sx, sy, xlWHITE);
 
     xlColor handleColor = xlBLUETRANSLUCENT;
+    if (fromBase)
+    {
+        handleColor = FROM_BASE_HANDLES_COLOUR;
+    } else
     if (_locked) {
-        handleColor = xlREDTRANSLUCENT;
+        handleColor = LOCKED_HANDLES_COLOUR;
     }
     float hw = GetRectHandleWidth(zoom, scale);
     vac->AddRectAsTriangles(sx - hw/2.0, sy - hw/2.0, sx + hw, sy + hw, handleColor);
@@ -427,12 +435,16 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
         ctx->drawTriangles(vac, startVertex + 2, count - 2);
     });
 
-    TwoPointScreenLocation::DrawHandles(program, zoom, scale);
+    TwoPointScreenLocation::DrawHandles(program, zoom, scale, fromBase);
     return true;
 }
-void ThreePointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac) const {
+
+void ThreePointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bool fromBase) const {
     xlColor Box3dColor = xlWHITETRANSLUCENT;
-    if (_locked) Box3dColor = xlREDTRANSLUCENT;
+    if (fromBase)
+        Box3dColor = FROM_BASE_HANDLES_COLOUR;
+    else if (_locked)
+        Box3dColor = LOCKED_HANDLES_COLOUR;
     DrawBoundingBoxLines(Box3dColor, aabb_min, aabb_max, draw_3d ? ModelMatrix : TranslateMatrix, *vac);
 }
 

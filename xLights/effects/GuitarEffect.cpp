@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 // I may still change the logic for choosing how to play each note. I am not convinced I have it right but i need feedback from someone using a real set of notes to give feedback on the choices.
@@ -50,7 +50,7 @@ public:
     {
         int zeroCount = 0;
         int total = 0;
-        for (auto v : _fingerPos) {
+        for (auto const& v : _fingerPos) {
             total += v.second;
             if (v.second == 0)
                 ++zeroCount;
@@ -67,7 +67,7 @@ public:
         int min = -1;
         int max = -1;
 
-        for (auto v : _fingerPos) {
+        for (auto const& v : _fingerPos) {
             // we ignore zero as it requires no fingers
             if (v.second != 0) {
                 if (min == -1 || v.second < min)
@@ -439,7 +439,7 @@ public:
             if (it._notes.size() == _notes.size()) {
                 if (listsMatch(it._notes, _notes)) {
                     auto t = new GuitarTiming(_startMS, _endMS);
-                    for (auto it2 : it._guitarTiming) {
+                    for (auto const& it2 : it._guitarTiming) {
                         t->AddFingerPos(it2.first, it2.second);
                     }
                     _possibleTimings.push_back(t);
@@ -859,7 +859,7 @@ void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fr
 
     uint32_t maxX = ((maxFrets - fretPos) * buffer.BufferWi) / maxFrets;
     if (showStrings) {
-        for (uint32_t x = maxX; x < buffer.BufferWi; ++x) {
+        for (int x = maxX; x < buffer.BufferWi; ++x) {
             buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), cc);
         }
     }
@@ -876,7 +876,7 @@ void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fr
     int start = centre - height / 2;
 
     for (uint32_t x = 0; x < maxX; ++x) {
-        for (uint32_t y = start; y < start + height; ++y) {
+        for (int y = start; y < start + height; ++y) {
             buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
         }
     }
@@ -900,7 +900,7 @@ void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t 
     double maxX = ((maxFrets - fretPos) * buffer.BufferWi) / maxFrets;
 
     if (showStrings) {
-        for (uint32_t x = maxX; x < buffer.BufferWi; ++x) {
+        for (int x = maxX; x < buffer.BufferWi; ++x) {
             buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), cc);
         }
     }
@@ -938,7 +938,7 @@ void GuitarEffect::DrawString(RenderBuffer& buffer, uint8_t string, uint8_t stri
     buffer.palette.GetColor(string, c);
 
     double perString = (float)buffer.BufferHt / strings;
-    for (uint32_t x = 0; x < buffer.BufferWi; ++x) {
+    for (int x = 0; x < buffer.BufferWi; ++x) {
         buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), c);
     }
 }

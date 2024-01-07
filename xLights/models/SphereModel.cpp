@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/tokenzr.h>
@@ -338,7 +338,7 @@ void SphereModel::ExportAsCustomXModel3D() const
         data.push_back(layer);
     }
 
-    int i = 0;
+    int i = 1;
     for (auto& n: Nodes)
     {
         int xx = SCALE_FACTOR_3D * (float)BufferWi * (n->Coords[0].screenX - minx) / w;

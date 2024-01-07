@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "ViewObject.h"
@@ -35,11 +35,13 @@ public:
 protected:
 
 private:
-    int line_spacing;
+    int line_spacing = 50;
     xlColor gridColor;
-    int width;
-    int height;
-    bool hasAxis;
+    int width = 1000.0f;
+    int height = 1000.0f;
+    bool hasAxis = false;
+    bool pointToFront = false;
+    glm::vec3 createdRotation;
     
-    xlVertexColorAccumulator *grid;
+    xlVertexColorAccumulator *grid = nullptr;
 };

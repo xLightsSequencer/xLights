@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <list>
@@ -53,8 +53,12 @@ public:
 #pragma region Constructors and Destructors
     ControllerSerial(OutputManager* om, wxXmlNode* node, const std::string& showDir);
     ControllerSerial(OutputManager* om);
-    virtual ~ControllerSerial() {}
+    ControllerSerial(OutputManager* om, const ControllerSerial& from);
+    virtual ~ControllerSerial()
+    {}
     virtual wxXmlNode* Save() override;
+    virtual bool UpdateFrom(Controller* from) override;
+    virtual Controller* Copy(OutputManager* om) override;
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -107,7 +111,7 @@ public:
         if (_model == "FPP") return _type;
         if (_outputs.size() > 0) return _outputs.front()->GetType(); else return Controller::GetColumn1Label();
     }
-    virtual std::string GetResolvedIP() const override {
+    virtual std::string GetResolvedIP(bool forceResolve) const override {
         if (_model == "FPP") return GetFirstOutput()->GetResolvedIP();
         return "";
     }
