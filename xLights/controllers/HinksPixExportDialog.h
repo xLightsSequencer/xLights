@@ -136,6 +136,7 @@ struct ScheduleItem {
     int EndHour;
     int EndMin;
     bool Enabled{true};
+    int Repeat{ 0 };
 
     [[nodiscard]] wxJSONValue asJSON() const
     {
@@ -146,6 +147,7 @@ struct ScheduleItem {
         vs["eh"] = EndHour;
         vs["em"] = EndMin;
         vs["en"] = Enabled;
+        vs["rp"] = Repeat;
         return vs;
     }
     void fromJSON(wxJSONValue const& json)
@@ -156,11 +158,44 @@ struct ScheduleItem {
         EndHour = json.ItemAt("eh").AsInt();
         EndMin = json.ItemAt("em").AsInt();
         Enabled = json.ItemAt("en").AsBool();
+        if (json.HasMember("rp")) {
+            Repeat = json.ItemAt("rp").AsInt();
+        }
     }
     [[nodiscard]] wxString asString() const
     {
         // Q is repeat count, 0 = infinite, 1 is "play once" in HSA
-        return wxString::Format("{\"S\":\"%d%02d\",\"E\":\"%d%02d\",\"P\":\"%s.ply\",\"Q\":0}", StartHour, StartMin, EndHour, EndMin, Playlist);
+        return wxString::Format("{\"S\":\"%d%02d\",\"E\":\"%d%02d\",\"P\":\"%s.ply\",\"Q\":%d}", StartHour, StartMin, EndHour, EndMin, Playlist, Repeat);
+    }
+
+    [[nodiscard]] static bool isValidRange(int val, int start, int end)
+    {
+        return (val >= start && val <= end);
+    }
+
+    [[nodiscard]] bool isValidTimes() const
+    {
+        return isValidRange(StartHour, 0, 23) &&
+               isValidRange(StartMin, 0, 59) &&
+               isValidRange(EndHour, 0, 23) &&
+               isValidRange(EndMin, 0, 59);
+    }
+
+    [[nodiscard]] bool isValid(wxString& reason) const
+    {
+        if (!isValidTimes()) {
+            reason = Playlist + " Hour/Minutes not valid range 0-23, 0-59";
+            return false;
+        }
+        if (EndHour < StartHour) {
+            reason = Playlist + "End Hour is Less Then Start Hour";
+            return false;
+        }
+        if (EndHour == StartHour && EndMin <= StartMin) {
+            reason = Playlist + "End Minute is Less Then Start Minute";
+            return false;
+        }
+        return true;
     }
 };
 
@@ -237,6 +272,35 @@ struct Schedule {
             f.Write("]");
             f.Close();
         }
+    }
+
+    [[nodiscard]] bool isValid(wxString &reason) const
+    {
+        auto sItems = GetSortedSchedule();
+        for (auto const& it : sItems) {
+            if (!it.Enabled) {
+                continue;
+            }
+            if (!it.isValid(reason)) {
+                return false;
+            }
+        }
+        //check for overlapping times
+        for (auto it1 = std::cbegin(sItems); it1 != std::cend(sItems); ++it1) {
+            for (auto it2 = std::next(it1); it2 != std::cend(sItems); ++it2) {
+                auto& schItm1 = *it1;
+                auto& schItm2 = *it2;
+                if (schItm1.EndHour > schItm2.StartHour) {
+                    reason = wxString::Format("%s End Hour overlaps %s Start Hour", schItm1.Playlist, schItm2.Playlist);
+                    return false;
+                }
+                if (schItm1.EndHour == schItm2.StartHour && schItm1.EndMin >= schItm1.StartMin) {
+                    reason = wxString::Format("%s End Minute overlaps %s Start Minute", schItm1.Playlist, schItm2.Playlist);
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 };
 

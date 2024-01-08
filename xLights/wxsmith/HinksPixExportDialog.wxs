@@ -11,7 +11,7 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxNotebook" name="ID_NOTEBOOK_EXPORT_ITEMS" variable="NotebookExportItems" member="yes">
-					<minsize>1000,400</minsize>
+					<minsize>1100,400</minsize>
 					<object class="notebookpage">
 						<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="HinkControllerList" member="yes">
 							<pos>-124,-53</pos>
@@ -45,7 +45,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxChoice" name="ID_CHOICE_PLAYLISTS" variable="ChoicePlaylists" member="yes" />
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -85,9 +85,8 @@
 												</content>
 												<selection>0</selection>
 											</object>
-											<flag>wxALL|wxEXPAND</flag>
+											<flag>wxALL</flag>
 											<border>5</border>
-											<option>1</option>
 										</object>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
@@ -114,6 +113,7 @@
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_MOVE_UP" variable="BitmapButtonMoveUp" member="yes">
 												<bitmap code='wxArtProvider::GetBitmapBundle(&quot;wxART_GO_UP&quot;, wxART_BUTTON)' />
+												<minsize>20,20</minsize>
 												<handler function="OnBitmapButtonMoveUpClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
@@ -123,6 +123,7 @@
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_MOVE_DOWN" variable="BitmapButtonMoveDown" member="yes">
 												<bitmap code='wxArtProvider::GetBitmapBundle(&quot;wxART_GO_DOWN&quot;, wxART_BUTTON)' />
+												<minsize>20,20</minsize>
 												<handler function="OnBitmapButtonMoveDownClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
