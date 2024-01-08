@@ -13,10 +13,11 @@
 #include <wx/textdlg.h>
 #include <wx/xml/xml.h>
 
-//(*InternalHeaders(EffectListDialog)
-#include <wx/string.h>
-#include <wx/intl.h>
 #include "UtilFunctions.h"
+
+//(*InternalHeaders(EffectListDialog)
+#include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(EffectListDialog)

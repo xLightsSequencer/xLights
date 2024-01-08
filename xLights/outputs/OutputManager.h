@@ -237,5 +237,6 @@ public:
     std::list<std::string> GetTestPresets();
     TestPreset* GetTestPreset(std::string preset);
     TestPreset* CreateTestPreset(std::string preset);
+    void DeleteTestPreset();
     #pragma endregion 
 };
