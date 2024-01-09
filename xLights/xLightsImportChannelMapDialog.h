@@ -564,7 +564,6 @@ protected:
         SequencePackage* _xsqPkg {nullptr};
 
         std::vector<std::unique_ptr<ImportChannel>> importChannels;
-        std::unique_ptr<wxImageList> m_imageList;
         std::map<int, int> m_iconIndexMap; // Order in list->one we got
 
 		DECLARE_EVENT_TABLE()

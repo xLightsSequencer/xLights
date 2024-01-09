@@ -11,10 +11,10 @@
  **************************************************************/
 
 //(*Headers(EffectListDialog)
-#include <wx/dialog.h>
-#include <wx/sizer.h>
 #include <wx/button.h>
+#include <wx/dialog.h>
 #include <wx/listbox.h>
+#include <wx/sizer.h>
 //*)
 
 class EffectListDialog: public wxDialog
@@ -25,9 +25,9 @@ public:
     virtual ~EffectListDialog();
 
     //(*Declarations(EffectListDialog)
+    wxButton* Button_Delete;
     wxButton* Button_Rename;
     wxListBox* ListBox1;
-    wxButton* Button_Delete;
     //*)
 
 protected:

@@ -710,9 +710,9 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         Sizer1->Hide(FlexGridSizer_Blend_Mode, true);
     }
 
-    m_imageList = std::make_unique<wxImageList>(16, 16, true);
-    LayoutUtils::CreateImageList(m_imageList.get(), m_iconIndexMap);
-    ListCtrl_Available->SetImageList(m_imageList.get(), wxIMAGE_LIST_SMALL);
+    wxVector<wxBitmapBundle> images;
+    LayoutUtils::CreateImageList(images, m_iconIndexMap);
+    ListCtrl_Available->SetSmallImages(images);    
     PopulateAvailable(false);
 
     _dataModel = new xLightsImportTreeModel();

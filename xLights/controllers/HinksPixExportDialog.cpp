@@ -207,7 +207,7 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	NotebookExportItems = new wxNotebook(this, ID_NOTEBOOK_EXPORT_ITEMS, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_EXPORT_ITEMS"));
-	NotebookExportItems->SetMinSize(wxSize(1000,400));
+	NotebookExportItems->SetMinSize(wxSize(1100,400));
 	HinkControllerList = new wxScrolledWindow(NotebookExportItems, ID_SCROLLEDWINDOW1, wxPoint(-124,-53), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
 	HinkControllerList->SetMinSize(wxDLG_UNIT(NotebookExportItems,wxSize(-1,150)));
 	HinkControllerSizer = new wxFlexGridSizer(0, 8, 0, 0);
@@ -223,7 +223,7 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	StaticText3 = new wxStaticText(Panel1, ID_STATICTEXT3, _("Playlist:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	BoxSizer3->Add(StaticText3, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ChoicePlaylists = new wxChoice(Panel1, ID_CHOICE_PLAYLISTS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PLAYLISTS"));
-	BoxSizer3->Add(ChoicePlaylists, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BoxSizer3->Add(ChoicePlaylists, 1, wxALL|wxEXPAND, 5);
 	ButtonAddPlaylist = new wxButton(Panel1, ID_BUTTON_ADD_PLAYLIST, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD_PLAYLIST"));
 	BoxSizer3->Add(ButtonAddPlaylist, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonRemove = new wxButton(Panel1, ID_BUTTON_REMOVE, _("Remove"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_REMOVE"));
@@ -234,7 +234,7 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	ChoiceFilter = new wxChoice(Panel1, ID_CHOICE_FILTER, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FILTER"));
 	ChoiceFilter->SetSelection( ChoiceFilter->Append(_("Recursive Search")) );
 	ChoiceFilter->Append(_("Only Current Directory"));
-	BoxSizer3->Add(ChoiceFilter, 1, wxALL|wxEXPAND, 5);
+	BoxSizer3->Add(ChoiceFilter, 0, wxALL, 5);
 	StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT2, _("Folder:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	BoxSizer3->Add(StaticText2, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	ChoiceFolder = new wxChoice(Panel1, ID_CHOICE_FOLDER, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FOLDER"));
@@ -242,8 +242,10 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	FlexGridSizer2->Add(BoxSizer3, 1, wxEXPAND, 0);
 	BoxSizer2 = new wxBoxSizer(wxVERTICAL);
 	BitmapButtonMoveUp = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_MOVE_UP, wxArtProvider::GetBitmapBundle("wxART_GO_UP", wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_MOVE_UP"));
+	BitmapButtonMoveUp->SetMinSize(wxSize(20,20));
 	BoxSizer2->Add(BitmapButtonMoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	BitmapButtonMoveDown = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_MOVE_DOWN, wxArtProvider::GetBitmapBundle("wxART_GO_DOWN", wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_MOVE_DOWN"));
+	BitmapButtonMoveDown->SetMinSize(wxSize(20,20));
 	BoxSizer2->Add(BitmapButtonMoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer2->Add(BoxSizer2, 1, wxALL|wxALIGN_CENTER_VERTICAL, 0);
 	CheckListBox_Sequences = new wxListView(Panel1, ID_LISTVIEW_Sequences, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTVIEW_Sequences"));
@@ -508,6 +510,10 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
             }
         }
     }
+
+    StoreToObjectSchedule();
+    CheckSchedules();
+    RedrawSchedules();
 }
 
 void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
@@ -841,7 +847,9 @@ void HinksPixExportDialog::OnClose(wxCloseEvent& /*event*/) {
 
 void HinksPixExportDialog::OnGridScheduleCellChanged(wxGridEvent& event)
 {
+    StoreToObjectSchedule();
     CheckSchedules();
+    RedrawSchedules();
 }
 
 void HinksPixExportDialog::OnGridScheduleCellRightClick(wxGridEvent& event)
@@ -1049,6 +1057,11 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
         prgs.Update(++count, "Generating Schedule File");
         for (const auto& schedule : m_schedules)
         {
+            wxString reason;
+            if (!schedule.isValid(reason)) {
+                error = true;
+                errorMsg = wxString::Format("'%s' Schedule was invalid!\n%s", schedule.Day, reason);
+            }
             schedule.saveAsFile(drive);
         }
         createModeFile(drive, GetChoiceValueIndex(MODE_COL + rowStr));
@@ -1660,8 +1673,6 @@ void HinksPixExportDialog::RedrawPlayList(wxString const& new_playlist, bool sav
 
 void HinksPixExportDialog::StoreToObjectSchedule()
 {
-    CheckSchedules();
-
     auto rows = GridSchedule->GetNumberRows();
     if (rows == 0) {
         return;
@@ -1751,17 +1762,16 @@ void HinksPixExportDialog::RedrawSchedules()
     for (auto day : DAYS) {
         if (auto dayRef = GetSchedule(day); dayRef) {
             auto const& sch = dayRef->get();
-            for (auto play : ChoicePlaylists->GetStrings()) {
-                bool found{false};
-                for(auto const& item :sch.Items){
-                    if (item.Playlist == play ){
-                        DrawPlaylistItem(day, item);
-                        found =true;
-                    }
-                }
-                if (!found) {
-                    DrawDefaultPlaylist(day, play);
-                }
+            auto playLists = ChoicePlaylists->GetStrings();
+
+            for (auto const& item : sch.GetSortedSchedule()) {
+                DrawPlaylistItem(day, item);
+                playLists.erase(std::remove(playLists.begin(), playLists.end(), item.Playlist), playLists.end());
+            }
+
+            //draw new playlists not already in schedule
+            for (auto play : playLists) {
+                DrawDefaultPlaylist(day, play);
             }
         } else {
             DrawDefaultDay(day);
@@ -1775,54 +1785,13 @@ void HinksPixExportDialog::RedrawSchedules()
 
 bool HinksPixExportDialog::CheckSchedules()
 {
-    auto rows = GridSchedule->GetNumberRows();
-
-    auto IsNumber = [](const std::string& s) {
-        return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
-    };
-
-    auto IsInt = [&](int row, ScheduleColumn col) {
-        auto val = GridSchedule->GetCellValue(row, static_cast<int>(col));
-        return IsNumber(val);
-    };
-
-    auto GetInt = [&](int row, ScheduleColumn col) {
-        auto val = GridSchedule->GetCellValue(row, static_cast<int>(col));
-        return wxAtoi(val);
-    };
-
-    auto IsValidRange = [&](int row, ScheduleColumn col, int start, int end) {
-        auto val = GetInt(row, col);
-        return (val >= start && val <= end);
-    };
-
-    auto GetCell = [&](int row, ScheduleColumn col) {
-        return GridSchedule->GetCellValue(row, static_cast<int>(col));
-    };
-
-    auto CheckRow = [&](int row ) {
-        if (!IsInt(row, ScheduleColumn::StartHour) || !IsInt(row, ScheduleColumn::StartMin) ||
-            !IsInt(row, ScheduleColumn::EndHour) || !IsInt(row, ScheduleColumn::EndMin)) {
-            return false;
-        }
-        if (!IsValidRange(row, ScheduleColumn::StartHour, 0, 23) ||
-            !IsValidRange(row, ScheduleColumn::StartMin, 0, 59) ||
-            !IsValidRange(row, ScheduleColumn::EndHour, 0, 23) ||
-            !IsValidRange(row, ScheduleColumn::EndMin, 0, 59)) {
-            return false;
-        }
-        return true;
-    };
-
-    for (int row = 0; row < rows; ++row) {
-        auto day = GridSchedule->GetRowLabelValue(row);
-        auto play = GetCell(row, ScheduleColumn::PlayList);
-        if (!CheckRow(row)) {
-            DisplayError(wxString::Format("Schedule %s '%s' Has Invalid Date Time", day, play));
+    for (const auto& schedule : m_schedules) {
+        wxString reason;
+        if (!schedule.isValid(reason)) {
+            DisplayError(wxString::Format("'%s' Schedule was invalid!\n%s", schedule.Day, reason));
             return false;
         }
     }
-    //todo: add overlap time checking
     return true;
 }
 

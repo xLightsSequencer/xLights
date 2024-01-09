@@ -1068,6 +1068,9 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                     startms = ef->GetStartTimeMS();
                     endms = ef->GetEndTimeMS();
                     phoneme = ef->GetEffectName();
+                    if (phoneme == "") {
+                        phoneme = "rest";
+                    }
                 }
                 if ("Auto" == eyes && phoneme == "rest" && type != 2) {
                     if (startms == -1) {

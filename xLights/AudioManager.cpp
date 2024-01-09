@@ -1111,16 +1111,19 @@ void AudioManager::AudioDeviceChanged() {
     if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING || oldMediaState == MEDIAPLAYINGSTATE::PAUSED) {
         ts = Tell();
     }
-    Stop();
-    auto sdl = __sdlManager.GetOutputSDL(_device);
-    if (sdl != nullptr) {
-        sdl->Reopen();
-    }
+    AbsoluteStop();
+     
     if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING || oldMediaState == MEDIAPLAYINGSTATE::PAUSED) {
-        Seek(ts);
-        if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING) {
-            Play();
-        }
+        wxTheApp->CallAfter([this, ts, oldMediaState]() {
+            auto sdl = __sdlManager.GetOutputSDL(_device);
+            if (!sdl->HasAudio(_sdlid)) {
+                _sdlid = sdl->AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
+            }
+            Seek(ts);
+            if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING) {
+                Play();
+            }
+        });
     }
  }
 void AudioManager::SetPlaybackRate(float rate)

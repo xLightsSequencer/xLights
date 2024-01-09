@@ -148,9 +148,7 @@ OutputManager::~OutputManager()
     // destroy all out output objects
     DeleteAllControllers();
 
-    for (auto&& tp : _testPresets) {
-        delete tp;
-    }
+    DeleteTestPreset();
 }
 #pragma endregion 
 
@@ -161,6 +159,8 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
     // Remove any existing outputs
     DeleteAllControllers();
+
+    DeleteTestPreset();
 
     wxFileName fn(showdir + wxFileName::GetPathSeparator() + GetNetworksFileName());
     _filename = fn.GetFullPath();
@@ -1402,5 +1402,12 @@ TestPreset* OutputManager::CreateTestPreset(std::string preset) {
     auto p = new TestPreset(preset);
     _testPresets.push_back(p);
     return p;
+}
+
+void OutputManager::DeleteTestPreset()
+{
+    for (auto&& tp : _testPresets) {
+        delete tp;
+    }
 }
 #pragma endregion 
