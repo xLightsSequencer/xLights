@@ -71,6 +71,7 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
         Mesh* head_mesh = nullptr;
         DmxMotor* pan_motor = nullptr;
         DmxMotor* tilt_motor = nullptr;
+        wxXmlNode* features_xml_node = nullptr;
         float beam_length;
         float beam_width = 4;
         int beam_orient;

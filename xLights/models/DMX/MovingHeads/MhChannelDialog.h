@@ -42,7 +42,7 @@ class MhChannelDialog: public wxDialog
 	private:
 
         void OnButton_FeatureClick(wxCommandEvent& event);
-        void OnButton_RenameFeatureClick(wxCommandEvent& event);
+        void On_CellChanged(wxCommandEvent& event);
     void AddChannel(int row, const std::string& name);
 
 		//(*Handlers(MhChannelDialog)

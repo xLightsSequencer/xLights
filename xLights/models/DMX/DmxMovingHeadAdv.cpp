@@ -22,12 +22,12 @@
 #include "DmxColorAbilityRGB.h"
 #include "DmxColorAbilityCMY.h"
 #include "DmxColorAbilityWheel.h"
-#include "DmxPresetAbility.h"
-#include "DmxMovingHeadAdv.h"
-#include "Mesh.h"
-#include "MhFeature.h"
-#include "MhFeatureDialog.h"
 #include "DmxMotor.h"
+#include "DmxMovingHeadAdv.h"
+#include "DmxPresetAbility.h"
+#include "Mesh.h"
+#include "MovingHeads/MhFeature.h"
+#include "MovingHeads/MhFeatureDialog.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -173,7 +173,7 @@ public:
                           const wxString& name,
                           const wxString& value,
                           int type) :
-        wxStringProperty(label, name, value), m_model(m), features(_features), node_xml(_node_xml), m_tp(type)
+        wxStringProperty(label, name, value), m_model(m), features(_features), features_xml_node(_node_xml), m_tp(type)
     {
     }
     // Set editor to have button
@@ -186,7 +186,7 @@ public:
     {
         switch (m_tp) {
         case 1:
-            return new MhConfigDialogAdapter(m_model, features, node_xml);
+            return new MhConfigDialogAdapter(m_model, features, features_xml_node);
         default:
             break;
         }
@@ -196,14 +196,14 @@ public:
 protected:
     DmxMovingHeadAdv* m_model = nullptr;
     std::vector<std::unique_ptr<MhFeature>>& features;
-    wxXmlNode* node_xml;
+    wxXmlNode* features_xml_node;
     int m_tp;
 };
 
 
 void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    auto p = grid->Append(new MhPopupDialogProperty(this, features, ModelXml, "Moving Head Config", "MHConfig", CLICK_TO_EDIT, 1));
+    auto p = grid->Append(new MhPopupDialogProperty(this, features, features_xml_node, "Moving Head Config", "MHConfig", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
 
     if (DMX_FIXTURES.GetCount() == 0) {
@@ -475,6 +475,10 @@ void DmxMovingHeadAdv::InitModel()
             if (head_mesh == nullptr) {
                 head_mesh = new Mesh(n, name);
             }
+        } else if ("Features" == name) {
+            if (features_xml_node == nullptr) {
+                features_xml_node = n;
+            }
         }
         n = n->GetNext();
     }
@@ -597,28 +601,30 @@ void DmxMovingHeadAdv::InitModel()
     }
 
     // process features
-    n = ModelXml->GetChildren();
-    while (n != nullptr) {
-        std::string node_name = n->GetName();
-        int feature_idx = node_name.find("MhFeature_");
-        if( feature_idx >= 0 ) {
+    if( features_xml_node == nullptr ) {
+        features_xml_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Features");
+        ModelXml->AddChild(features_xml_node);
+    } else {
+        n = features_xml_node->GetChildren();
+        while (n != nullptr) {
+            std::string node_name = n->GetName();
+            std::string feature_name = n->GetAttribute("Name", node_name);
             bool feature_found {false};
             for (auto it = features.begin(); it != features.end(); ++it) {
-                if( (*it)->GetXmlName() == node_name ) {
+                if( (*it)->GetName() == feature_name ) {
                     feature_found = true;
+                    (*it)->Init();
                     break;
                 }
             }
             if( !feature_found ) {
-                std::string feature_name = node_name.substr(10, node_name.length());
-                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
-                std::unique_ptr<MhFeature> newFeature(new MhFeature(new_node, feature_name));
+                std::unique_ptr<MhFeature> newFeature(new MhFeature(n, node_name, feature_name));
+                newFeature->Init();
                 features.push_back(std::move(newFeature));
             }
+            n = n->GetNext();
         }
-        n = n->GetNext();
     }
-
 }
 
 void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
@@ -665,9 +671,9 @@ void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsCon
     });
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         if (is_3d) {
-            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted);
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted, IsFromBase());
         } else {
-            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale());
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), IsFromBase());
         }
     }
 }

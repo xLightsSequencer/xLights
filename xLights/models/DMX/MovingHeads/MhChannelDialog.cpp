@@ -14,7 +14,7 @@ constexpr unsigned int CHANNEL_COLUMN = 1;
 constexpr unsigned int FINE_COLUMN = 2;
 constexpr unsigned int MIN_COLUMN = 3;
 constexpr unsigned int MAX_COLUMN = 4;
-constexpr unsigned int RANGE_COLUMN = 5;
+constexpr unsigned int FUNC_COLUMN = 5;
 constexpr unsigned int DELETE_COLUMN = 6;
 }
 
@@ -29,7 +29,7 @@ BEGIN_EVENT_TABLE(MhChannelDialog,wxDialog)
 	//(*EventTable(MhChannelDialog)
 	//*)
 EVT_COMMAND(wxID_ANY, EVT_GRID_ROW_CLICKED, MhChannelDialog::OnButton_FeatureClick)
-EVT_COMMAND(wxID_ANY, EVT_NAME_CHANGE, MhChannelDialog::OnButton_RenameFeatureClick)
+EVT_COMMAND(wxID_ANY, EVT_NAME_CHANGE, MhChannelDialog::On_CellChanged)
 END_EVENT_TABLE()
 
 MhChannelDialog::MhChannelDialog(std::unique_ptr<MhFeature>& _feature,wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
@@ -76,29 +76,29 @@ MhChannelDialog::MhChannelDialog(std::unique_ptr<MhFeature>& _feature,wxWindow* 
     Grid_Channels->SetColSize(FINE_COLUMN, 30);
     Grid_Channels->SetColSize(MIN_COLUMN, 50);
     Grid_Channels->SetColSize(MAX_COLUMN, 50);
-    Grid_Channels->SetColSize(RANGE_COLUMN, 250);
+    Grid_Channels->SetColSize(FUNC_COLUMN, 250);
     Grid_Channels->SetColSize(DELETE_COLUMN, 23);
     Grid_Channels->SetColLabelValue(NAME_COLUMN, "Name");
     Grid_Channels->SetColLabelValue(CHANNEL_COLUMN, "Channel");
     Grid_Channels->SetColLabelValue(FINE_COLUMN, "Fine");
     Grid_Channels->SetColLabelValue(MIN_COLUMN, "Min");
     Grid_Channels->SetColLabelValue(MAX_COLUMN, "Max");
-    Grid_Channels->SetColLabelValue(RANGE_COLUMN, "Function");
+    Grid_Channels->SetColLabelValue(FUNC_COLUMN, "Function");
     Grid_Channels->SetColLabelValue(DELETE_COLUMN, "");
 
     std::vector<std::unique_ptr<MhChannel>>& channels = feature->GetChannels();
     for (auto it = channels.begin(); it != channels.end(); ++it) {
         int channel_row {Grid_Channels->GetNumberRows()};
-        AddChannel(channel_row, (*it)->GetBaseName());
-        // Now add the ranges
+        AddChannel(channel_row, (*it)->GetName());
+        // Now add the function ranges
         std::vector<std::unique_ptr<MhChannel::MhRange>>& ranges = (*it)->GetRanges();
         int range_row = channel_row+1;
         for (auto it2 = ranges.begin(); it2 != ranges.end(); ++it2, ++range_row) {
             Grid_Channels->AppendRows(1);
             wxGridCellButtonRenderer* new_renderer = new wxGridCellButtonRenderer("");
             Grid_Channels->SetCellRenderer(range_row, DELETE_COLUMN, new_renderer);
-            Grid_Channels->SetCellValue(range_row, RANGE_COLUMN, (*it2)->GetName());
-            channel_map.push_back(std::make_pair((*it)->GetBaseName(), (*it2)->GetName()));
+            Grid_Channels->SetCellValue(range_row, FUNC_COLUMN, (*it2)->GetName());
+            channel_map.push_back(std::make_pair((*it)->GetName(), (*it2)->GetName()));
         }
         Grid_Channels->SetCellSize(channel_row, NAME_COLUMN, ranges.size()+1, 1);
         Grid_Channels->SetCellSize(channel_row, CHANNEL_COLUMN, ranges.size()+1, 1);
@@ -147,9 +147,9 @@ void MhChannelDialog::OnButton_FeatureClick(wxCommandEvent& event)
             // deleting one range from channel
             Grid_Channels->DeleteRows(row);
             for (auto it = channels.begin(); it != channels.end(); ++it) {
-                if( (*it)->GetBaseName() == selected_channel ) {
+                if( (*it)->GetName() == selected_channel ) {
                     std::vector<std::unique_ptr<MhChannel::MhRange>>& ranges = (*it)->GetRanges();
-                    int num_rows = ranges.size();
+                    //int num_rows = ranges.size();
                     for (auto it2 = ranges.begin(); it2 != ranges.end(); ++it2) {
                         if( (*it2)->GetName() == info.second ) {
                             ranges.erase(it2);
@@ -163,7 +163,7 @@ void MhChannelDialog::OnButton_FeatureClick(wxCommandEvent& event)
         } else {
             // deleting entire channel
             for (auto it = channels.begin(); it != channels.end(); ++it) {
-                if( (*it)->GetBaseName() == selected_channel ) {
+                if( (*it)->GetName() == selected_channel ) {
                     std::vector<std::unique_ptr<MhChannel::MhRange>>& ranges = (*it)->GetRanges();
                     int num_ranges = ranges.size();
                     Grid_Channels->DeleteRows(row);  // delete main channel row
@@ -185,9 +185,9 @@ void MhChannelDialog::OnButton_FeatureClick(wxCommandEvent& event)
         }
         FlexGridSizerMain->Layout();
         this->Fit();
-    } else if( Grid_Channels->GetGridCursorCol() == RANGE_COLUMN ) {
+    } else if( Grid_Channels->GetGridCursorCol() == FUNC_COLUMN ) {
         for (auto it = channels.begin(); it != channels.end(); ++it) {
-            if( (*it)->GetBaseName() == selected_channel ) {
+            if( (*it)->GetName() == selected_channel ) {
                 wxTextEntryDialog dlg(this, "Function Name", "Enter Function Name:");
                 OptimiseDialogPosition(&dlg);
                 if (dlg.ShowModal()) {
@@ -201,7 +201,7 @@ void MhChannelDialog::OnButton_FeatureClick(wxCommandEvent& event)
                         Grid_Channels->SetCellSize(row, NAME_COLUMN, ranges.size()+2, 1);
                         Grid_Channels->SetCellSize(row, CHANNEL_COLUMN, ranges.size()+2, 1);
                         Grid_Channels->SetCellSize(row, FINE_COLUMN, ranges.size()+2, 1);
-                        Grid_Channels->SetCellValue(new_row, RANGE_COLUMN, new_range);
+                        Grid_Channels->SetCellValue(new_row, FUNC_COLUMN, new_range);
                         Grid_Channels->SetCellAlignment(row, NAME_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
                         Grid_Channels->SetCellAlignment(row, CHANNEL_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
                         Grid_Channels->SetCellAlignment(row, FINE_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
@@ -216,18 +216,19 @@ void MhChannelDialog::OnButton_FeatureClick(wxCommandEvent& event)
     }
 }
 
-void MhChannelDialog::OnButton_RenameFeatureClick(wxCommandEvent& event)
+void MhChannelDialog::On_CellChanged(wxCommandEvent& event)
 {
-    int row = Grid_Channels->GetGridCursorRow();
-    
+    int row = event.GetId(); //Grid_Channels->GetGridCursorRow();
+    int col = event.GetInt();
+
     auto info = channel_map[row];
-    bool is_range = info.second != "";
+    //bool is_range = info.second != "";
     std::string selected_channel = info.first;
     std::vector<std::unique_ptr<MhChannel>>& channels = feature->GetChannels();
     for (auto it = channels.begin(); it != channels.end(); ++it) {
-        if( (*it)->GetBaseName() == selected_channel ) {
+        if( (*it)->GetName() == selected_channel ) {
             std::vector<std::unique_ptr<MhChannel::MhRange>>& ranges = (*it)->GetRanges();
-            int col = Grid_Channels->GetGridCursorCol();
+            //int col = Grid_Channels->GetGridCursorCol();
             std::string cell_value = Grid_Channels->GetCellValue(row, col);
             switch( col ) {
                 case NAME_COLUMN:
@@ -255,7 +256,7 @@ void MhChannelDialog::OnButton_RenameFeatureClick(wxCommandEvent& event)
                         }
                     }
                     break;
-                case RANGE_COLUMN:
+                case FUNC_COLUMN:
                     for (auto it2 = ranges.begin(); it2 != ranges.end(); ++it2) {
                         if( (*it2)->GetName() == info.second ) {
                             (*it2)->SetName(cell_value);
@@ -282,7 +283,7 @@ void MhChannelDialog::OnButton_AddChannelClick(wxCommandEvent& event)
 
             // Protect against duplicate channel names
             for (auto it = channels.begin(); it != channels.end(); ++it) {
-                if( (*it)->GetBaseName() == new_channel ) {
+                if( (*it)->GetName() == new_channel ) {
                     wxMessageBox(wxString::Format("Channel name %s already exists", new_channel), _("ERROR"));
                     return;
                 }
@@ -291,8 +292,8 @@ void MhChannelDialog::OnButton_AddChannelClick(wxCommandEvent& event)
             int num_rows {Grid_Channels->GetNumberRows()};
             AddChannel(num_rows, new_channel);
 
-            std::string node_name = new_channel;
-            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
+            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "channel");
+            new_node->AddAttribute("Name", new_channel);
             feature->GetXmlNode()->AddChild(new_node);
             std::unique_ptr<MhChannel> newChannel(new MhChannel(new_node, new_channel));
             feature->GetChannels().push_back(std::move(newChannel));
@@ -310,7 +311,7 @@ void MhChannelDialog::AddChannel(int row, const std::string& name)
     Grid_Channels->SetCellAlignment(row, FINE_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
     // Add buttons
     wxGridCellButtonRenderer* new_renderer = new wxGridCellButtonRenderer("Add New Function");
-    Grid_Channels->SetCellRenderer(row, RANGE_COLUMN, new_renderer);
+    Grid_Channels->SetCellRenderer(row, FUNC_COLUMN, new_renderer);
     new_renderer = new wxGridCellButtonRenderer("");
     Grid_Channels->SetCellRenderer(row, DELETE_COLUMN, new_renderer);
     channel_map.push_back(std::make_pair(name, ""));

@@ -13,21 +13,20 @@
 #include <wx/string.h>
 #include <glm/glm.hpp>
 
-#include "SerializedObject.h"
+//#include "SerializedObject.h"
 
-class BaseObject;
 class MhChannel;
 class wxXmlNode;
 
-class MhFeature : public SerializedObject
+class MhFeature// : public SerializedObject
 {
     public:
-        MhFeature(wxXmlNode* node, wxString _name);
+        MhFeature(wxXmlNode* node, wxString _xml_name, wxString pretty_name);
         virtual ~MhFeature();
 
-        void Init(BaseObject* base);
+        void Init();
 
-        std::string GetBaseName() { return base_name; }
+        std::string GetName() { return name; }
         std::string GetXmlName() { return xml_name; }
         wxXmlNode* GetXmlNode() { return node_xml; }
 
@@ -37,10 +36,8 @@ class MhFeature : public SerializedObject
 
     private:
         wxXmlNode* node_xml;
-        wxString base_name;
+        wxString name;
         wxString xml_name;
         std::vector<std::unique_ptr<MhChannel>> channels;
-
-        BaseObject* base;
 };
 

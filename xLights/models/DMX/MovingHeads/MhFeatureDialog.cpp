@@ -68,7 +68,7 @@ MhFeatureDialog::MhFeatureDialog(std::vector<std::unique_ptr<MhFeature>>& _featu
     for (auto it = features.begin(); it != features.end(); ++it) {
         int num_rows {Grid_Features->GetNumberRows()};
         Grid_Features->AppendRows(1);
-        Grid_Features->SetCellValue(num_rows, 0, (*it)->GetBaseName());
+        Grid_Features->SetCellValue(num_rows, 0, (*it)->GetName());
         // Add buttons
         wxGridCellButtonRenderer* new_renderer = new wxGridCellButtonRenderer("Config");
         Grid_Features->SetCellRenderer(num_rows, 1, new_renderer);
@@ -96,7 +96,7 @@ void MhFeatureDialog::OnButton_AddFeatureClick(wxCommandEvent& event)
 
             // Protect against duplicate feature names
             for (auto it = features.begin(); it != features.end(); ++it) {
-                if( (*it)->GetBaseName() == new_feature ) {
+                if( (*it)->GetName() == new_feature ) {
                     wxMessageBox(wxString::Format("Feature name %s already exists", new_feature), _("ERROR"));
                     return;
                 }
@@ -112,10 +112,10 @@ void MhFeatureDialog::OnButton_AddFeatureClick(wxCommandEvent& event)
             new_renderer = new wxGridCellButtonRenderer("");
             Grid_Features->SetCellRenderer(num_rows, 2, new_renderer);
 
-            std::string node_name = "MhFeature_" + new_feature;
-            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
+            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "feature");
+            new_node->AddAttribute("Name", new_feature);
             node_xml->AddChild(new_node);
-            std::unique_ptr<MhFeature> newFeature(new MhFeature(new_node, new_feature));
+            std::unique_ptr<MhFeature> newFeature(new MhFeature(new_node, "feature", new_feature));
             features.push_back(std::move(newFeature));
         }
         this->Fit();
@@ -136,7 +136,7 @@ void MhFeatureDialog::OnButton_FeatureClick(wxCommandEvent& event)
         }
         Grid_Features->DeleteRows(row);
         for (auto it = features.begin(); it != features.end(); ++it) {
-            if( (*it)->GetBaseName() == selected_feature ) {
+            if( (*it)->GetName() == selected_feature ) {
                 wxXmlNode* node = (*it)->GetXmlNode();
                 if( node != nullptr ) {
                     node_xml->RemoveChild(node);
@@ -150,8 +150,7 @@ void MhFeatureDialog::OnButton_FeatureClick(wxCommandEvent& event)
         this->Fit();
     } else if( Grid_Features->GetGridCursorCol() == 1 ) {
         for (auto it = features.begin(); it != features.end(); ++it) {
-            if( (*it)->GetBaseName() == selected_feature ) {
-                wxXmlNode* node = (*it)->GetXmlNode();
+            if( (*it)->GetName() == selected_feature ) {
                 MhChannelDialog dlg(*it, this);
                 dlg.SetFeatureName(selected_feature);
                 if (dlg.ShowModal() == wxID_OK) {
@@ -167,15 +166,17 @@ void MhFeatureDialog::OnButton_RenameFeatureClick(wxCommandEvent& event)
     if( Grid_Features->GetGridCursorCol() == 0 )
     {
         int row = Grid_Features->GetGridCursorRow();
+        std::string feature_name = wxString::Format("MhFeature%i", row);
 
         std::string selected_feature = Grid_Features->GetCellValue(row, 0);
-        Grid_Features->DeleteRows(row);
+        //Grid_Features->DeleteRows(row);
         for (auto it = features.begin(); it != features.end(); ++it) {
-            std::string feature_name = "MhFeature_" + selected_feature;
-            if( (*it)->GetBaseName() == feature_name ) {
-                wxXmlNode* node = (*it)->GetXmlNode();
+            wxXmlNode* node = (*it)->GetXmlNode();
+            std::string feature_name = node->GetAttribute("name");
+            if( (*it)->GetName() == feature_name ) {
                 if( node != nullptr ) {
-                    node->SetName(feature_name);
+                    node->DeleteAttribute("name");
+                    node->AddAttribute("name", feature_name);
                 }
                 break;
             }

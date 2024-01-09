@@ -13,7 +13,6 @@
 #include <wx/string.h>
 #include <glm/glm.hpp>
 
-class BaseObject;
 class wxXmlNode;
 
 class MhChannel
@@ -23,9 +22,10 @@ class MhChannel
         class MhRange
         {
         public:
-            MhRange(wxXmlNode* node, wxString _name);
+            MhRange(wxXmlNode* node, wxString pretty_name);
             virtual ~MhRange() = default;
 
+            void Init();
             void SetRangeMin(std::string& val);
             void SetRangeMax(std::string& val);
 
@@ -33,18 +33,18 @@ class MhChannel
             void SetName(std::string& val) { name = val; }
 
         private:
-            wxXmlNode* node_xml;
+            wxXmlNode* range_node;
             wxString name;
             unsigned int min = 0;
             unsigned int max = 255;
         };
 
-        MhChannel(wxXmlNode* node, wxString _name);
+        MhChannel(wxXmlNode* node, wxString pretty_name);
         virtual ~MhChannel() = default;
 
-        void Init(BaseObject* base);
+        void Init();
 
-        std::string GetBaseName() { return base_name; }
+        std::string GetName() { return name; }
         wxXmlNode* GetXmlNode() { return node_xml; }
 
         std::vector<std::unique_ptr<MhRange>>& GetRanges() { return ranges; }
@@ -63,10 +63,9 @@ class MhChannel
 
     private:
         wxXmlNode* node_xml;
-        wxString base_name;
+        wxString name;
         int channel_coarse = 0;
         int channel_fine = 0;
-        BaseObject* base;
     
         std::vector<std::unique_ptr<MhChannel::MhRange>> ranges;
 };

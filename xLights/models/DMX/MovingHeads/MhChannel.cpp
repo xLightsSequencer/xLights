@@ -14,18 +14,36 @@
 #include <wx/sstream.h>
 
 #include "MhChannel.h"
-#include "../../BaseObject.h"
 #include <glm/gtc/type_ptr.hpp>
 
-MhChannel::MhChannel(wxXmlNode* node, wxString _name)
-    : node_xml(node), base_name(_name)
+MhChannel::MhChannel(wxXmlNode* node, wxString pretty_name)
+: node_xml(node), name(pretty_name)
 {
 }
 
-void MhChannel::Init(BaseObject* base) {
-    this->base = base;
+void MhChannel::Init() {
     channel_coarse = wxAtoi(node_xml->GetAttribute("ChannelCoarse", "0"));
     channel_fine = wxAtoi(node_xml->GetAttribute("ChannelFine", "0"));
+    
+    wxXmlNode* n = node_xml->GetChildren();
+    while (n != nullptr) {
+        std::string node_name = n->GetName();
+        std::string range_name = n->GetAttribute("Name", node_name);
+        bool range_found {false};
+        for (auto it = ranges.begin(); it != ranges.end(); ++it) {
+            if( (*it)->GetName() == range_name ) {
+                range_found = true;
+                (*it)->Init();
+                break;
+            }
+        }
+        if( !range_found ) {
+            std::unique_ptr<MhRange> newRange(new MhRange(n, range_name));
+            newRange->Init();
+            ranges.push_back(std::move(newRange));
+        }
+        n = n->GetNext();
+    }
 }
 
 void MhChannel::SetChannelCoarse(std::string& val) {
@@ -40,25 +58,29 @@ void MhChannel::SetChannelFine(std::string& val) {
 
 void MhChannel::AddRange(std::string& name)
 {
-    wxString node_name = wxString::Format("Range%d", ranges.size()+1);
-    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
+    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "range");
+    new_node->AddAttribute("Name", name);
     node_xml->AddChild(new_node);
-    new_node->AddAttribute("RangeLabel", name);
-    std::unique_ptr<MhChannel::MhRange> newRange(new MhChannel::MhRange(new_node, node_name));
+    std::unique_ptr<MhChannel::MhRange> newRange(new MhChannel::MhRange(new_node, name));
     ranges.push_back(std::move(newRange));
 }
 
-MhChannel::MhRange::MhRange(wxXmlNode* node, wxString _name)
-    : node_xml(node), name(_name)
+MhChannel::MhRange::MhRange(wxXmlNode* node, wxString pretty_name)
+    : range_node(node), name(pretty_name)
 {
 }
 
 void MhChannel::MhRange::SetRangeMin(std::string& val) {
-    node_xml->DeleteAttribute("MinValue");
-    node_xml->AddAttribute("MinValue", val);
+    range_node->DeleteAttribute("MinValue");
+    range_node->AddAttribute("MinValue", val);
 }
 
 void MhChannel::MhRange::SetRangeMax(std::string& val) {
-    node_xml->DeleteAttribute("MaxValue");
-    node_xml->AddAttribute("MaxValue", val);
+    range_node->DeleteAttribute("MaxValue");
+    range_node->AddAttribute("MaxValue", val);
+}
+
+void MhChannel::MhRange::Init() {
+    min = wxAtoi(range_node->GetAttribute("RangeMin", "0"));
+    max = wxAtoi(range_node->GetAttribute("RangeMax", "255"));
 }

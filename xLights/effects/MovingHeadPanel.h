@@ -15,9 +15,9 @@
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
-#include "MovingHeadCanvasPanel.h"
-#include "MHRgbPickerPanel.h"
-#include "MHColorWheelPanel.h"
+#include "MovingHeadPanels/MovingHeadCanvasPanel.h"
+#include "MovingHeadPanels/MHRgbPickerPanel.h"
+#include "MovingHeadPanels/MHColorWheelPanel.h"
 #include "SketchCanvasPanel.h"
 #include "SketchEffectDrawing.h"
 

@@ -150,6 +150,7 @@ OnCellChanged(wxGridEvent &evt)
 {
     //SetGridCursor(evt.GetRow(), evt.GetCol());
     wxCommandEvent myevent(EVT_NAME_CHANGE, evt.GetRow());
+    myevent.SetInt(evt.GetCol());
     wxPostEvent(this, myevent);
 }
 
