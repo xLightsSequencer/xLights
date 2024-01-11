@@ -2388,6 +2388,12 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                 }
             }
         } else {
+            if (type == "Default" && model->GetDisplayAs() == "ModelGroup") {
+                const ModelGroup* gp = dynamic_cast<const ModelGroup*>(model);
+                if (gp != nullptr) {
+                    type = gp->GetDefaultBufferStyle();
+                }
+            }
             if (StartsWith(type, "Per Model")) {
                 tt = "Single Line";
                 if (type.compare(type.length() - 4, 4, "Deep") == 0) {

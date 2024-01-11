@@ -162,19 +162,6 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	ChoiceModelLayoutType = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	ChoiceModelLayoutType->SetSelection( ChoiceModelLayoutType->Append(_("Grid as per preview")) );
 	ChoiceModelLayoutType->Append(_("Minimal Grid"));
-	ChoiceModelLayoutType->Append(_("Horizontal Stack"));
-	ChoiceModelLayoutType->Append(_("Vertical Stack"));
-	ChoiceModelLayoutType->Append(_("Horizontal Stack - Scaled"));
-	ChoiceModelLayoutType->Append(_("Vertical Stack - Scaled"));
-	ChoiceModelLayoutType->Append(_("Horizontal Per Model"));
-	ChoiceModelLayoutType->Append(_("Vertical Per Model"));
-	ChoiceModelLayoutType->Append(_("Horizontal Per Model/Strand"));
-	ChoiceModelLayoutType->Append(_("Vertical Per Model/Strand"));
-	ChoiceModelLayoutType->Append(_("Single Line"));
-	ChoiceModelLayoutType->Append(_("Overlay - Centered"));
-	ChoiceModelLayoutType->Append(_("Overlay - Scaled"));
-	ChoiceModelLayoutType->Append(_("Single Line Model As A Pixel"));
-	ChoiceModelLayoutType->Append(_("Default Model As A Pixel"));
 	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxEXPAND, 2);
 	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Default Camera:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
 	FlexGridSizer6->Add(StaticText12, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -740,12 +727,12 @@ void ModelGroupPanel::SaveGroupChanges()
     case 1:
         e->AddAttribute("layout", "minimalGrid");
         break;
-    case 6:
-        e->AddAttribute("layout", "horizontal");
-        break;
-    case 7:
-        e->AddAttribute("layout", "vertical");
-        break;
+    //case 6://6/7 mapping to 2/3 for some reason
+    //    e->AddAttribute("layout", "horizontal");
+    //    break;
+    //case 7:
+    //    e->AddAttribute("layout", "vertical");
+    //    break;
     default:
         e->AddAttribute("layout", ChoiceModelLayoutType->GetStringSelection());
         break;

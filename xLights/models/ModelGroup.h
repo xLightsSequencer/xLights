@@ -21,6 +21,7 @@ class ModelManager;
 class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
+        static std::vector<std::string> DEFAULT_GROUP_BUFFER_STYLES;
 
         static bool AllModelsExist(wxXmlNode* node, const ModelManager& models);
         static bool RemoveNonExistentModels(wxXmlNode* node, const std::set<std::string>& allmodels);
@@ -40,6 +41,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetXCentreOffset() const;
         int GetYCentreOffset() const;
         std::string GetDefaultCamera() const;
+        std::string const& GetDefaultBufferStyle() const { return defaultBufferStyle;};
 
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}

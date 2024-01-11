@@ -42,6 +42,11 @@ static const std::string PER_MODEL_HORIZ_STRAND("Per Model Horizontal Per Strand
 
 std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES;
 
+std::vector<std::string> ModelGroup::DEFAULT_GROUP_BUFFER_STYLES{ HORIZ, VERT, HORIZ_SCALED, VERT_SCALED, HORIZ_PER_MODEL, VERT_PER_MODEL,
+                                                                  SINGLELINE_AS_PIXEL, DEFAULT_AS_PIXEL, HORIZ_PER_MODELSTRAND, VERT_PER_MODELSTRAND,
+                                                                  OVERLAY_CENTER, OVERLAY_SCALED, SINGLE_LINE, PER_MODEL_DEFAULT, PER_MODEL_PER_PREVIEW,
+                                                                  PER_MODEL_SINGLE_LINE, PER_MODEL_DEFAULT_DEEP, PER_MODEL_VERT_STRAND, PER_MODEL_HORIZ_STRAND};
+
 Model* ModelGroup::GetModel(std::string modelName) const
 {
     for (const auto& it : models) {
@@ -320,27 +325,9 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
     struct Initializer {
         Initializer() {
             GROUP_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
-            GROUP_BUFFER_STYLES.push_back(HORIZ);
-            GROUP_BUFFER_STYLES.push_back(VERT);
-            GROUP_BUFFER_STYLES.push_back(HORIZ_SCALED);
-            GROUP_BUFFER_STYLES.push_back(VERT_SCALED);
-            GROUP_BUFFER_STYLES.push_back(HORIZ_PER_MODEL);
-            GROUP_BUFFER_STYLES.push_back(VERT_PER_MODEL);
-            GROUP_BUFFER_STYLES.push_back(HORIZ_PER_MODELSTRAND);
-            GROUP_BUFFER_STYLES.push_back(VERT_PER_MODELSTRAND);
-            GROUP_BUFFER_STYLES.push_back(OVERLAY_CENTER);
-            GROUP_BUFFER_STYLES.push_back(OVERLAY_SCALED);
-            GROUP_BUFFER_STYLES.push_back(SINGLELINE_AS_PIXEL);
-            GROUP_BUFFER_STYLES.push_back(DEFAULT_AS_PIXEL);
-
-            GROUP_BUFFER_STYLES.push_back(PER_MODEL_DEFAULT);
-            GROUP_BUFFER_STYLES.push_back(PER_MODEL_PER_PREVIEW);
-            GROUP_BUFFER_STYLES.push_back(PER_MODEL_SINGLE_LINE);
-
-            GROUP_BUFFER_STYLES.push_back(PER_MODEL_DEFAULT_DEEP);
-
-            GROUP_BUFFER_STYLES.push_back( PER_MODEL_VERT_STRAND);
-            GROUP_BUFFER_STYLES.push_back( PER_MODEL_HORIZ_STRAND);
+            GROUP_BUFFER_STYLES.insert(GROUP_BUFFER_STYLES.end(),
+                DEFAULT_GROUP_BUFFER_STYLES.begin(),
+                DEFAULT_GROUP_BUFFER_STYLES.end());
         }
     };
     static Initializer ListInitializationGuard;
@@ -1407,6 +1394,30 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
             }
         }
         ApplyTransform(transform, Nodes, BufferWi, BufferHt);
+    } else if (StartsWith(type, "Per Model")) {
+        Model::InitRenderBufferNodes("Default", "2D", "None", Nodes, BufferWi, BufferHt, stagger);
+        std::string ntype = type.substr(10, type.length() - 10);
+        for (const auto& it : modelNames) {
+            Model* m = modelManager[it];
+            if (m != nullptr && m->IsActive()) {
+                int start = Nodes.size();
+                int x, y;
+                m->InitRenderBufferNodes(ntype, "2D", "None", Nodes, x, y, 0);
+               //while (start < Nodes.size()) {
+               //    for (auto& it2 : Nodes[start]->Coords) {
+               //        it2.bufX = x;
+               //        it2.bufY = y;
+               //    }
+               ////    y++;
+               //    start++;
+               //}
+                //if (y > BufferHt) {
+                //    BufferHt = y;
+                //}
+                //BufferWi++;
+            }
+        }
+        //ApplyTransform(transform, Nodes, BufferWi, BufferHt);
     } else {
         if (camera == "2D" && type == "Per Preview") {
             Nodes.clear();
