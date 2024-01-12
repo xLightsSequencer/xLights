@@ -118,7 +118,7 @@ protected:
     void WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer);
     std::list<Model*> GetModels(Model* model);
     void UpdateFixturePositions(Model *cls);
-    void RenderPositions(MovingHeadPanel *p, Model* model_info, double eff_pos, const SettingsMap &SettingsMap, RenderBuffer &buffer);
+    void RenderPositions(MovingHeadPanel *p, Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer);
     xlColor GetMultiColorBlend(double eff_pos, const wxArrayString& colors, RenderBuffer &buffer);
     void GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer);
     void CalculatePosition(int location, float& position, wxArrayString& heads, int groupings, float offset, float& delta );

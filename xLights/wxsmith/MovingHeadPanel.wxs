@@ -418,7 +418,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="IDD_SLIDER_MHCycles" subclass="BulkEditSliderF1" variable="Slider_MHCycles" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_MHCycles" subclass="BulkEditSliderF1" variable="Slider_MHCycles" member="yes">
 												<value>10</value>
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
@@ -431,7 +431,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_MHCycles" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHCycles" member="yes">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHCycles" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHCycles" member="no">
 												<value>0</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>

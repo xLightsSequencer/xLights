@@ -72,9 +72,6 @@ void MovingHeadEffect::SetDefaultParameters() {
 }
 
 void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    double cycles = SettingsMap.GetDouble("TEXTCTRL_MHCycles", 1.0);
-    double eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
-
     if (buffer.cur_model == "") {
         return;
     }
@@ -91,12 +88,12 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
             if (p == nullptr) {
                 return;
             }
-            RenderPositions(p, model_info, eff_pos, SettingsMap, buffer);
+            RenderPositions(p, model_info, SettingsMap, buffer);
         }
     }
 }
 
-void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, double eff_pos, const SettingsMap &SettingsMap, RenderBuffer &buffer)
+void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     int head_count = 0;
     for( int i = 1; i <= 8; ++i ) {
@@ -124,6 +121,7 @@ void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, do
             float time_offset = 0.0f;
             float path_scale = 0.0f;
             float delta = 0.0f;
+            float cycles = 1.0f;
             wxPoint2DDouble path_pt;
             bool path_parsed = false;
             bool pan_path_active = true;
@@ -133,6 +131,8 @@ void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, do
             wxArrayString colors;
             int groupings = 1;
             wxArrayString all_cmds = wxSplit(mh_settings, ';');
+
+            // Need to look for Cycles setting first to calculate effect position
             for (size_t j = 0; j < all_cmds.size(); ++j )
             {
                 std::string cmd = all_cmds[j];
@@ -141,6 +141,22 @@ void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, do
                 std::string cmd_type = cmd.substr(0, pos);
                 std::string settings = cmd.substr(pos+2, cmd.length());
                 std::replace( settings.begin(), settings.end(), '@', ';');
+                if( cmd_type == "Cycles" ) {
+                    cycles = atof(settings.c_str());
+                    break;
+                }
+            }
+            double eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
+
+            for (size_t j = 0; j < all_cmds.size(); ++j )
+            {
+                std::string cmd = all_cmds[j];
+                if( cmd == xlEMPTY_STRING ) continue;
+                int pos = cmd.find(":");
+                std::string cmd_type = cmd.substr(0, pos);
+                std::string settings = cmd.substr(pos+2, cmd.length());
+                std::replace( settings.begin(), settings.end(), '@', ';');
+
 
                 if( cmd_type == "Pan" ) {
                     pan_pos = atof(settings.c_str());

@@ -67,8 +67,8 @@ const long MovingHeadPanel::ID_SLIDER_MHGroupings = wxNewId();
 const long MovingHeadPanel::ID_VALUECURVE_MHGroupings = wxNewId();
 const long MovingHeadPanel::IDD_TEXTCTRL_MHGroupings = wxNewId();
 const long MovingHeadPanel::ID_STATICTEXT_MHCycles = wxNewId();
-const long MovingHeadPanel::IDD_SLIDER_MHCycles = wxNewId();
-const long MovingHeadPanel::ID_TEXTCTRL_MHCycles = wxNewId();
+const long MovingHeadPanel::ID_SLIDER_MHCycles = wxNewId();
+const long MovingHeadPanel::IDD_TEXTCTRL_MHCycles = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_SavePreset = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Position = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_MHPathContinue = wxNewId();
@@ -111,6 +111,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
     //(*Initialize(MovingHeadPanel)
     BulkEditTextCtrl* TextCtrl_MHGroupings;
+    BulkEditTextCtrlF1* TextCtrl_MHCycles;
     BulkEditTextCtrlF1* TextCtrl_MHPan;
     BulkEditTextCtrlF1* TextCtrl_MHPanOffset;
     BulkEditTextCtrlF1* TextCtrl_MHTilt;
@@ -250,10 +251,10 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerCycles->AddGrowableCol(1);
     StaticText_MHCycles = new wxStaticText(PanelPosition, ID_STATICTEXT_MHCycles, _("Cycles:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_MHCycles"));
     FlexGridSizerCycles->Add(StaticText_MHCycles, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_MHCycles = new BulkEditSliderF1(PanelPosition, IDD_SLIDER_MHCycles, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_MHCycles"));
+    Slider_MHCycles = new BulkEditSliderF1(PanelPosition, ID_SLIDER_MHCycles, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MHCycles"));
     FlexGridSizerCycles->Add(Slider_MHCycles, 1, wxALL|wxEXPAND, 2);
     FlexGridSizerCycles->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_MHCycles = new BulkEditTextCtrlF1(PanelPosition, ID_TEXTCTRL_MHCycles, _("0"), wxDefaultPosition, wxDLG_UNIT(PanelPosition,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_MHCycles"));
+    TextCtrl_MHCycles = new BulkEditTextCtrlF1(PanelPosition, IDD_TEXTCTRL_MHCycles, _("0"), wxDefaultPosition, wxDLG_UNIT(PanelPosition,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_MHCycles"));
     FlexGridSizerCycles->Add(TextCtrl_MHCycles, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizerPosition->Add(FlexGridSizerCycles, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizerPresets = new wxFlexGridSizer(0, 3, 0, 0);
@@ -428,7 +429,11 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerColor->Add(m_rgbColorPanel, 0, wxALL | wxEXPAND);
     Notebook2->AddPage(PanelColor, _("Color"), false);
     PanelColor->Show();
-    UpdateColorPanel();
+    // Delete Colorwheel page for now
+    while(Notebook2->GetPageCount()>1) {
+        Notebook2->RemovePage(1);
+    }
+    //UpdateColorPanel();
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(MovingHeadPanel::OnCharHook), (wxObject*) nullptr, this);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&MovingHeadPanel::OnResize);
@@ -472,59 +477,6 @@ MovingHeadPanel::~MovingHeadPanel()
 
 void MovingHeadPanel::OnResize(wxSizeEvent& event)
 {
-    /*bool update_sizes = false;
-
-    if( Notebook1->GetSelection() == 1 ) {
-        wxSize old_sz = m_movingHeadCanvasPanel->GetSize();
-        if( old_sz.GetWidth() > 270 ) {
-            update_sizes = true;
-        }
-    } else if( Notebook1->GetSelection() == 2 ) {
-        wxSize old_sz = m_sketchCanvasPanel->GetSize();
-        if( old_sz.GetWidth() > 270 ) {
-            update_sizes = true;
-        }
-    } else if( m_colorPanel != nullptr ) {
-        wxSize old_sz = m_colorPanel->GetSize();
-        if( old_sz.GetWidth() > 250 ) {
-            update_sizes = true;
-        }
-    }
-
-    if( update_sizes ) {
-        m_sketchCanvasPanel->SetMinSize(wxSize(-1, -1));
-        m_movingHeadCanvasPanel->SetMinSize(wxSize(-1, -1));
-        if( m_colorPanel != nullptr ) {
-            m_colorPanel->SetMinSize(wxSize(-1, -1));
-        }
-        Layout();
-    }
-
-    // set height to match width
-    wxSize new_size;
-    if( Notebook1->GetSelection() == 1 ) {
-        new_size = m_movingHeadCanvasPanel->GetSize();
-    } else if( Notebook1->GetSelection() == 2 ) {
-        new_size = m_sketchCanvasPanel->GetSize();
-    } else if( m_colorPanel != nullptr ) {
-        new_size = m_colorPanel->GetSize();
-    } else {
-        new_size = m_movingHeadCanvasPanel->GetSize();
-    }
-    new_size.SetHeight(new_size.GetWidth());
-    m_movingHeadCanvasPanel->SetMinSize(new_size);
-    m_sketchCanvasPanel->SetMinSize(new_size);
-    if( m_colorPanel != nullptr ) {
-        new_size.SetHeight(new_size.GetHeight() + 30);
-        m_colorPanel->SetMinSize(new_size);
-    }*/
-
-    //FlexGridSizerPosition->Fit(PanelPosition);
-    //FlexGridSizerPosition->SetSizeHints(PanelPosition);
-    //FlexGridSizerPathing->Fit(PanelPathing);
-    //FlexGridSizerPathing->SetSizeHints(PanelPathing);
-    //FlexGridSizerColor->Fit(PanelColor);
-    //FlexGridSizerColor->SetSizeHints(PanelColor);
     FlexGridSizer_Main->Fit(this);
     FlexGridSizer_Main->SetSizeHints(this);
     Layout();
@@ -900,7 +852,8 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
 
 void MovingHeadPanel::UpdateColorPanel()
 {
-    auto models = GetActiveModels();
+    // Color Wheel disabled for now
+/*    auto models = GetActiveModels();
     bool wheel_active = false;
     for (const auto& it : models) {
         if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
@@ -940,7 +893,7 @@ void MovingHeadPanel::UpdateColorPanel()
         while(Notebook2->GetPageCount()>1) {
             Notebook2->RemovePage(1);
         }
-    }
+    }*/
 }
     
 void MovingHeadPanel::UpdateMHSettings()
@@ -1000,6 +953,7 @@ void MovingHeadPanel::UpdateMHSettings()
                 AddSetting( "PanOffset", "PanOffset", mh_settings );
                 AddSetting( "TiltOffset", "TiltOffset", mh_settings );
                 AddSetting( "Groupings", "Groupings", mh_settings );
+                AddSetting( "Cycles", "Cycles", mh_settings );
                 mh_settings += ";";
                 mh_settings += headset;
 
