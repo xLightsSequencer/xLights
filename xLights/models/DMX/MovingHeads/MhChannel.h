@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/string.h>
@@ -30,6 +30,11 @@ class MhChannel
             void SetRangeMax(std::string& val);
 
             std::string GetName() { return name; }
+            int GetMin() { return min; }
+            int GetMax() { return max; }
+            std::string GetMinStr() { return wxString::Format(wxT("%i"), min ); }
+            std::string GetMaxStr() { return wxString::Format(wxT("%i"), max ); }
+
             void SetName(std::string& val) { name = val; }
 
         private:
@@ -51,6 +56,9 @@ class MhChannel
 
         int GetChannelCoarse() const { return channel_coarse; }
         int GetChannelFine() const { return channel_fine; }
+
+        std::string GetChanCoarseStr() { return channel_coarse > 0 ? wxString::Format(wxT("%i"), channel_coarse ) : ""; }
+        std::string GetChanFineStr() { return channel_fine > 0 ? wxString::Format(wxT("%i"), channel_fine ) : ""; }
 
         void SetChannelCoarse(std::string& val);
         void SetChannelFine(std::string& val);

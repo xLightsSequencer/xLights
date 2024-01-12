@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "MovingHeadPanel.h"
 #include "MovingHeadEffect.h"
 #include "MovingHeadPanels/MHPresetBitmapButton.h"
@@ -78,6 +88,7 @@ const long MovingHeadPanel::ID_CHECKBOX_MHIgnoreTilt = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_SavePathPreset = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Pathing = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Color = wxNewId();
+const long MovingHeadPanel::ID_PANEL_ColorWheel = wxNewId();
 const long MovingHeadPanel::ID_NOTEBOOK2 = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Control = wxNewId();
 const long MovingHeadPanel::ID_NOTEBOOK1 = wxNewId();
@@ -108,6 +119,8 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizerColorMain;
     wxFlexGridSizer* FlexGridSizerColorSliders;
+    wxFlexGridSizer* FlexGridSizerColorWheelMain;
+    wxFlexGridSizer* FlexGridSizerColorWheelSliders;
     wxFlexGridSizer* FlexGridSizerControl;
     wxFlexGridSizer* FlexGridSizerCycles;
     wxFlexGridSizer* FlexGridSizerFixtures;
@@ -324,7 +337,22 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     PanelColor->SetSizer(FlexGridSizerColorMain);
     FlexGridSizerColorMain->Fit(PanelColor);
     FlexGridSizerColorMain->SetSizeHints(PanelColor);
+    PanelColorWheel = new wxPanel(Notebook2, ID_PANEL_ColorWheel, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_ColorWheel"));
+    PanelColorWheel->Hide();
+    FlexGridSizerColorWheelMain = new wxFlexGridSizer(2, 1, 0, 0);
+    FlexGridSizerColorWheelMain->AddGrowableCol(0);
+    FlexGridSizerColorWheel = new wxFlexGridSizer(1, 1, 0, 0);
+    FlexGridSizerColorWheel->AddGrowableCol(0);
+    FlexGridSizerColorWheel->AddGrowableRow(0);
+    FlexGridSizerColorWheelMain->Add(FlexGridSizerColorWheel, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 0);
+    FlexGridSizerColorWheelSliders = new wxFlexGridSizer(1, 1, 0, 0);
+    FlexGridSizerColorWheelSliders->AddGrowableCol(0);
+    FlexGridSizerColorWheelMain->Add(FlexGridSizerColorWheelSliders, 1, wxALL|wxEXPAND, 0);
+    PanelColorWheel->SetSizer(FlexGridSizerColorWheelMain);
+    FlexGridSizerColorWheelMain->Fit(PanelColorWheel);
+    FlexGridSizerColorWheelMain->SetSizeHints(PanelColorWheel);
     Notebook2->AddPage(PanelColor, _("Color"), false);
+    Notebook2->AddPage(PanelColorWheel, _("ColorWheel"), false);
     FlexGridSizerControl->Add(Notebook2, 1, wxALL|wxEXPAND, 5);
     PanelControl->SetSizer(FlexGridSizerControl);
     FlexGridSizerControl->Fit(PanelControl);
@@ -395,6 +423,12 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
 
     m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::DefineStartPoint);
     m_sketchCanvasPanel->DrawGrid(true);
+
+    m_rgbColorPanel = new MHRgbPickerPanel(this, PanelColor, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
+    FlexGridSizerColor->Add(m_rgbColorPanel, 0, wxALL | wxEXPAND);
+    Notebook2->AddPage(PanelColor, _("Color"), false);
+    PanelColor->Show();
+    UpdateColorPanel();
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(MovingHeadPanel::OnCharHook), (wxObject*) nullptr, this);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&MovingHeadPanel::OnResize);
@@ -867,52 +901,44 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
 void MovingHeadPanel::UpdateColorPanel()
 {
     auto models = GetActiveModels();
-    std::string color_types = "None";
+    bool wheel_active = false;
     for (const auto& it : models) {
         if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
             DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
-            if( mhead->HasColorAbility() ) {
+            bool active = IsHeadActive(mhead->GetFixtureVal());
+            if( active && mhead->HasColorAbility() ) {
                 DmxColorAbility* ptrColorAbility = mhead->GetColorAbility();
                 std::string color_type = ptrColorAbility->GetTypeName();
-                if( color_types == "None" ) {
-                    color_types = color_type;
-                } else {
-                    if( color_type != color_types ) {
-                        color_types = "None";
-                        break;
-                    }
+                if( color_type == "ColorWheel" ){
+                    wheel_active = true;
+                    break;
                 }
             }
         }
     }
     
-    // All heads must be the same to show color panel
-    if( color_types == "RGBW" ) {
-        if( m_colorPanel != m_rgbColorPanel || m_colorPanel == nullptr ) {
-            if( m_colorPanel != nullptr ) delete m_colorPanel;
-            m_rgbColorPanel = new MHRgbPickerPanel(this, PanelColor, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
-            FlexGridSizerColor->Add(m_rgbColorPanel, 0, wxALL | wxEXPAND);
-            m_colorPanel = m_rgbColorPanel;
-            PanelColor->Show();
-            //wxSizeEvent dummy;
-            //OnResize( dummy );
-        }
-    }
-    else if( color_types == "ColorWheel" ) {
-        if( m_colorPanel != m_wheelColorPanel || m_colorPanel == nullptr) {
-            if( m_colorPanel != nullptr ) delete m_colorPanel;
+    if( wheel_active ) {
+        if( m_wheelColorPanel == nullptr) {
             xlColorVector colors;
             colors.push_back(xlRED);
             colors.push_back(xlGREEN);
             colors.push_back(xlBLUE);
             colors.push_back(xlWHITE);
-            m_wheelColorPanel = new MHColorWheelPanel(this, PanelColor, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
+            colors.push_back(xlCYAN);
+            colors.push_back(xlORANGE);
+            colors.push_back(xlYELLOW);
+            colors.push_back(xlPURPLETRANSLUCENT);
+            m_wheelColorPanel = new MHColorWheelPanel(this, PanelColorWheel, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
             m_wheelColorPanel->DefineColours(colors);
-            m_colorPanel = m_wheelColorPanel;
-            FlexGridSizerColor->Add(m_wheelColorPanel, 0, wxALL | wxEXPAND);
-            PanelColor->Show();
-            //wxSizeEvent dummy;
-            //OnResize( dummy );
+            FlexGridSizerColorWheel->Add(m_wheelColorPanel, 0, wxALL | wxEXPAND);
+            PanelColorWheel->Show();
+        }
+        if( Notebook2->GetPageCount() == 1 ) {
+            Notebook2->AddPage(PanelColorWheel, _("ColorWheel"), false);
+        }
+    } else {
+        while(Notebook2->GetPageCount()>1) {
+            Notebook2->RemovePage(1);
         }
     }
 }
@@ -1005,13 +1031,16 @@ void MovingHeadPanel::UpdateMHSettings()
                 }
 
                 if( is_path ) {
+                    if( mh_settings == xlEMPTY_STRING ) {
+                        mh_settings = "Pan: 0.0;Tilt: 0.0;PanOffset: 0.0;TiltOffset: 0.0;Groupings: 1;" + headset;
+                    }
                     AddPath( mh_settings );
                     AddSetting( "PathScale", "PathScale", mh_settings );
                     AddSetting( "TimeOffset", "TimeOffset", mh_settings );
                 }
 
-                // Add color
-                if( m_rgbColorPanel->HasColour() ) {
+                // Add RGB color settings
+                if( m_rgbColorPanel != nullptr && m_rgbColorPanel->HasColour() ) {
                     std::string color_text{m_rgbColorPanel->GetColour()};
                     if( color_text != xlEMPTY_STRING ) {
                         mh_settings += ";";
@@ -1036,36 +1065,67 @@ void MovingHeadPanel::UpdateColorSettings()
 {
     if( recall ) return;
 
-    if( m_rgbColorPanel->HasColour() ) {
-        std::string color_text{m_rgbColorPanel->GetColour()};
-        if( color_text != xlEMPTY_STRING ) {
-            for( int i = 1; i <= 8; ++i ) {
-                wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
-                wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
-                if( checkbox != nullptr ) {
-                    if( checkbox->IsChecked() ) {
-                        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
-                        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
-                        if( mh_textbox != nullptr ) {
-                            std::string mh_settings = mh_textbox->GetValue();
-                            if( mh_settings != xlEMPTY_STRING ) {
-                                bool found_color {false};
-                                wxArrayString all_cmds = wxSplit(mh_settings, ';');
-                                for (size_t j = 0; j < all_cmds.size(); ++j )
-                                {
-                                    std::string cmd = all_cmds[j];
-                                    if( cmd == xlEMPTY_STRING ) continue;
-                                    int pos = cmd.find(":");
-                                    std::string cmd_type = cmd.substr(0, pos);
-                                    if( cmd_type == "Color" ) {
-                                        all_cmds[j] = color_text;
-                                        found_color = true;
-                                        break;
-                                    }
+    bool rgb_active = false;
+    bool wheel_active = false;
+    std::string color_text{xlEMPTY_STRING};
+    std::string wheel_text{xlEMPTY_STRING};
+
+    if( m_rgbColorPanel != nullptr && m_rgbColorPanel->HasColour() ) {
+        color_text = m_rgbColorPanel->GetColour();
+        rgb_active = true;
+    }
+
+    if( m_wheelColorPanel != nullptr && m_wheelColorPanel->HasColour() ) {
+        wheel_text = m_wheelColorPanel->GetColour();
+        wheel_active = true;
+    }
+
+    if( color_text != xlEMPTY_STRING || wheel_text != xlEMPTY_STRING ) {
+        for( int i = 1; i <= 8; ++i ) {
+            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+            if( checkbox != nullptr ) {
+                if( checkbox->IsChecked() ) {
+                    wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+                    wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                    if( mh_textbox != nullptr ) {
+                        std::string mh_settings = mh_textbox->GetValue();
+                        if( mh_settings != xlEMPTY_STRING ) {
+                            bool found_color {false};
+                            bool found_wheel {false};
+                            wxArrayString all_cmds = wxSplit(mh_settings, ';');
+                            for (size_t j = 0; j < all_cmds.size(); ++j )
+                            {
+                                std::string cmd = all_cmds[j];
+                                if( cmd == xlEMPTY_STRING ) continue;
+                                int pos = cmd.find(":");
+                                std::string cmd_type = cmd.substr(0, pos);
+                                if( rgb_active && cmd_type == "Color" ) {
+                                    all_cmds[j] = color_text;
+                                    found_color = true;
                                 }
-                                if( !found_color ) {
-                                    all_cmds.Add(color_text);
+                                if( wheel_active && cmd_type == "Wheel" ) {
+                                    all_cmds[j] = wheel_text;
+                                    found_wheel = true;
                                 }
+                            }
+                            if( rgb_active && !found_color ) {
+                                all_cmds.Add(color_text);
+                            }
+                            if( wheel_active && !found_wheel ) {
+                                all_cmds.Add(wheel_text);
+                            }
+                            mh_settings = wxJoin( all_cmds, ';');
+                            mh_textbox->SetValue(mh_settings);
+                        } else {
+                            wxArrayString all_cmds;
+                            if( rgb_active ) {
+                                all_cmds.Add(color_text);
+                            }
+                            if( wheel_active ) {
+                                all_cmds.Add(wheel_text);
+                            }
+                            if( rgb_active || wheel_active ) {
                                 mh_settings = wxJoin( all_cmds, ';');
                                 mh_textbox->SetValue(mh_settings);
                             }
@@ -1163,6 +1223,7 @@ void MovingHeadPanel::OnButton_AllClick(wxCommandEvent& event)
 void MovingHeadPanel::OnButton_NoneClick(wxCommandEvent& event)
 {
     UncheckAllFixtures();
+    UpdateColorPanel();
 }
 
 void MovingHeadPanel::OnButton_EvensClick(wxCommandEvent& event)
@@ -1435,6 +1496,9 @@ void MovingHeadPanel::NotifyColorUpdated()
 
 void MovingHeadPanel::OnCheckBox_MHClick(wxCommandEvent& event)
 {
+    // update color panels since selected heads changed
+    UpdateColorPanel();
+
     bool all_same {true};
     std::string last_mh {xlEMPTY_STRING};
     for( int i = 1; i <= 8; ++i ) {
@@ -1459,6 +1523,18 @@ void MovingHeadPanel::OnCheckBox_MHClick(wxCommandEvent& event)
     if( all_same && last_mh != xlEMPTY_STRING ) {
         RecallSettings(last_mh);
     }
+}
+
+bool MovingHeadPanel::IsHeadActive(int num)
+{
+    wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
+    wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+    if( checkbox != nullptr ) {
+        if( checkbox->IsChecked() ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void MovingHeadPanel::RecallSettings(const std::string mh_settings)
@@ -1528,7 +1604,13 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
         } else if( cmd_type == "PathScale VC" ) {
             UpdateValueCurve("PathScale", settings.c_str());
         } else if( cmd_type == "Color" ) {
-            m_rgbColorPanel->SetColours(settings);
+            if( m_rgbColorPanel != nullptr ) {
+                m_rgbColorPanel->SetColours(settings);
+            }
+        } else if( cmd_type == "Wheel" ) {
+            if( m_wheelColorPanel != nullptr ) {
+                m_wheelColorPanel->SetColours(settings);
+            }
         }
     }
     float pan = 0.0f;

@@ -1,10 +1,21 @@
 #pragma once
 
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include <wx/geometry.h>
-#include <wx/panel.h>
 
 #include <memory>
 #include <vector>
+
+#include "MHColorPanel.h"
 
 class IMHRgbPickerPanelParent
 {
@@ -15,16 +26,16 @@ public:
 };
 
 
-class MHRgbPickerPanel : public wxPanel
+class MHRgbPickerPanel : public MHColorPanel
 {
 public:
     MHRgbPickerPanel(IMHRgbPickerPanelParent* rgbPickerParent, wxWindow* parent, wxWindowID id = wxID_ANY,
                       const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~MHRgbPickerPanel();
 
-    std::string GetColour();
-    bool HasColour() { return m_handles.size() > 0; }
-    void SetColours( const std::string& _colors );
+    virtual std::string GetColour() override;
+    virtual bool HasColour() override { return m_handles.size() > 0; }
+    virtual void SetColours( const std::string& _colors ) override;
     void OnSize(wxSizeEvent& event);
 
 private:

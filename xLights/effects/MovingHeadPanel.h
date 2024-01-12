@@ -1,3 +1,15 @@
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
 #ifndef MOVINGHEADPANEL_H
 #define MOVINGHEADPANEL_H
 
@@ -15,6 +27,7 @@
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
+#include "MHColorPanel.h"
 #include "MovingHeadPanels/MovingHeadCanvasPanel.h"
 #include "MovingHeadPanels/MHRgbPickerPanel.h"
 #include "MovingHeadPanels/MHColorWheelPanel.h"
@@ -73,6 +86,7 @@ public:
     wxCheckBox* CheckBox_MH7;
     wxCheckBox* CheckBox_MH8;
     wxFlexGridSizer* FlexGridSizerColor;
+    wxFlexGridSizer* FlexGridSizerColorWheel;
     wxFlexGridSizer* FlexGridSizerPathCanvas;
     wxFlexGridSizer* FlexGridSizerPathPresets;
     wxFlexGridSizer* FlexGridSizerPathing;
@@ -83,6 +97,7 @@ public:
     wxNotebook* Notebook1;
     wxNotebook* Notebook2;
     wxPanel* PanelColor;
+    wxPanel* PanelColorWheel;
     wxPanel* PanelControl;
     wxPanel* PanelPathing;
     wxPanel* PanelPosition;
@@ -164,6 +179,7 @@ protected:
     static const long ID_BUTTON_SavePathPreset;
     static const long ID_PANEL_Pathing;
     static const long ID_PANEL_Color;
+    static const long ID_PANEL_ColorWheel;
     static const long ID_NOTEBOOK2;
     static const long ID_PANEL_Control;
     static const long ID_NOTEBOOK1;
@@ -218,6 +234,7 @@ private:
     bool GetPosition(const std::string& ctrl_name, float& pos);
     void UpdatePositionCanvas(float pan, float tilt);
     void RecallSettings(const std::string mh_settings);
+    bool IsHeadActive(int num);
     
     // Preset Functions
     void PopulatePresets();
@@ -240,7 +257,6 @@ private:
     MovingHeadCanvasPanel* m_movingHeadCanvasPanel = nullptr;
     MHRgbPickerPanel* m_rgbColorPanel = nullptr;
     MHColorWheelPanel* m_wheelColorPanel = nullptr;
-    wxPanel* m_colorPanel = nullptr;
 
 //***************************************************
 // Pathing support

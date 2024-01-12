@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "MHColorWheelPanel.h"
 #include "Color.h"
 
@@ -8,7 +18,7 @@
 namespace
 {
     const int BorderWidth = 5;
-    const int handleRadius = 10;
+    //const int handleRadius = 10;
 }
 
 BEGIN_EVENT_TABLE(MHColorWheelPanel, wxPanel)
@@ -22,7 +32,7 @@ END_EVENT_TABLE()
 
 
 MHColorWheelPanel::MHColorWheelPanel(IMHColorWheelPanelParent* colorWheelParent, wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*=wxDefaultSize*/) :
-    wxPanel(parent, id, pos, size, wxNO_BORDER | wxWANTS_CHARS),
+    MHColorPanel(parent, id, pos, size),
     m_colorWheelParent(colorWheelParent)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -85,8 +95,8 @@ void MHColorWheelPanel::OnLeftUp(wxMouseEvent& event)
 
 void MHColorWheelPanel::OnMouseMove(wxMouseEvent& event)
 {
-    wxAffineMatrix2D m;
-    wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
+    //wxAffineMatrix2D m;
+    //wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
     if( m_mouseDown ) {
     }
 }
@@ -252,7 +262,7 @@ std::string MHColorWheelPanel::GetColour()
         }
         return text;
     } else {*/
-        return "Color: 0,0,0";
+        return "Wheel: 0,0,0";
     //}
 }
 

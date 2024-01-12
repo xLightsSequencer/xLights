@@ -1,3 +1,13 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
 #include "MhChannelDialog.h"
 #include "MhChannel.h"
 #include "MhFeature.h"
@@ -90,6 +100,12 @@ MhChannelDialog::MhChannelDialog(std::unique_ptr<MhFeature>& _feature,wxWindow* 
     for (auto it = channels.begin(); it != channels.end(); ++it) {
         int channel_row {Grid_Channels->GetNumberRows()};
         AddChannel(channel_row, (*it)->GetName());
+        Grid_Channels->SetCellValue(channel_row, CHANNEL_COLUMN, (*it)->GetChanCoarseStr());
+        Grid_Channels->SetCellValue(channel_row, FINE_COLUMN, (*it)->GetChanFineStr());
+        Grid_Channels->SetCellValue(channel_row, MIN_COLUMN, "0");
+        Grid_Channels->SetCellValue(channel_row, MAX_COLUMN, "255");
+        Grid_Channels->SetReadOnly(channel_row, MIN_COLUMN);
+        Grid_Channels->SetReadOnly(channel_row, MAX_COLUMN);
         // Now add the function ranges
         std::vector<std::unique_ptr<MhChannel::MhRange>>& ranges = (*it)->GetRanges();
         int range_row = channel_row+1;
@@ -98,6 +114,10 @@ MhChannelDialog::MhChannelDialog(std::unique_ptr<MhFeature>& _feature,wxWindow* 
             wxGridCellButtonRenderer* new_renderer = new wxGridCellButtonRenderer("");
             Grid_Channels->SetCellRenderer(range_row, DELETE_COLUMN, new_renderer);
             Grid_Channels->SetCellValue(range_row, FUNC_COLUMN, (*it2)->GetName());
+            Grid_Channels->SetCellValue(range_row, MIN_COLUMN, (*it2)->GetMinStr());
+            Grid_Channels->SetCellValue(range_row, MAX_COLUMN, (*it2)->GetMaxStr());
+            Grid_Channels->SetCellAlignment(range_row, MIN_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
+            Grid_Channels->SetCellAlignment(range_row, MAX_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
             channel_map.push_back(std::make_pair((*it)->GetName(), (*it2)->GetName()));
         }
         Grid_Channels->SetCellSize(channel_row, NAME_COLUMN, ranges.size()+1, 1);
@@ -185,7 +205,7 @@ void MhChannelDialog::OnButton_FeatureClick(wxCommandEvent& event)
         }
         FlexGridSizerMain->Layout();
         this->Fit();
-    } else if( Grid_Channels->GetGridCursorCol() == FUNC_COLUMN ) {
+    } else if( Grid_Channels->GetGridCursorCol() == FUNC_COLUMN && !is_range ) {
         for (auto it = channels.begin(); it != channels.end(); ++it) {
             if( (*it)->GetName() == selected_channel ) {
                 wxTextEntryDialog dlg(this, "Function Name", "Enter Function Name:");
@@ -205,6 +225,8 @@ void MhChannelDialog::OnButton_FeatureClick(wxCommandEvent& event)
                         Grid_Channels->SetCellAlignment(row, NAME_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
                         Grid_Channels->SetCellAlignment(row, CHANNEL_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
                         Grid_Channels->SetCellAlignment(row, FINE_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
+                        Grid_Channels->SetCellAlignment(new_row, MIN_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
+                        Grid_Channels->SetCellAlignment(new_row, MAX_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
                         this->Fit();
                         (*it)->AddRange(new_range);
                         channel_map.insert(channel_map.begin()+new_row, std::make_pair(selected_channel, new_range));
@@ -309,6 +331,12 @@ void MhChannelDialog::AddChannel(int row, const std::string& name)
     Grid_Channels->SetCellAlignment(row, NAME_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
     Grid_Channels->SetCellAlignment(row, CHANNEL_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
     Grid_Channels->SetCellAlignment(row, FINE_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
+    Grid_Channels->SetCellAlignment(row, MIN_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
+    Grid_Channels->SetCellAlignment(row, MAX_COLUMN, wxALIGN_CENTER, wxALIGN_CENTER);
+    Grid_Channels->SetCellValue(row, MIN_COLUMN, "0");
+    Grid_Channels->SetCellValue(row, MAX_COLUMN, "255");
+    Grid_Channels->SetReadOnly(row, MIN_COLUMN);
+    Grid_Channels->SetReadOnly(row, MAX_COLUMN);
     // Add buttons
     wxGridCellButtonRenderer* new_renderer = new wxGridCellButtonRenderer("Add New Function");
     Grid_Channels->SetCellRenderer(row, FUNC_COLUMN, new_renderer);

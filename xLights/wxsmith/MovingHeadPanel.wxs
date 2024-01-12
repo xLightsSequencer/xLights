@@ -686,7 +686,7 @@
 															<growablecols>0</growablecols>
 															<growablerows>0</growablerows>
 														</object>
-														<flag>wxALL|wxEXPAND</flag>
+														<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -701,6 +701,36 @@
 												</object>
 											</object>
 											<label>Color</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL_ColorWheel" variable="PanelColorWheel" member="yes">
+												<hidden>1</hidden>
+												<object class="wxFlexGridSizer" variable="FlexGridSizerColorWheelMain" member="no">
+													<cols>1</cols>
+													<rows>2</rows>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="FlexGridSizerColorWheel" member="yes">
+															<cols>1</cols>
+															<rows>1</rows>
+															<growablecols>0</growablecols>
+															<growablerows>0</growablerows>
+														</object>
+														<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="FlexGridSizerColorWheelSliders" member="no">
+															<cols>1</cols>
+															<rows>1</rows>
+															<growablecols>0</growablecols>
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>ColorWheel</label>
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>

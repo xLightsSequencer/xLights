@@ -10,23 +10,22 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/string.h>
-#include <glm/glm.hpp>
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
-class BaseObject;
-class wxXmlNode;
+#include <wx/panel.h>
 
-class SerializedObject
+class MHColorPanel : public wxPanel
 {
-    public:
-        SerializedObject(wxString _name);
-        virtual ~SerializedObject() = default;
-
-        void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
-        void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
+public:
+    MHColorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+    :    wxPanel(parent, id, pos, size, wxNO_BORDER | wxWANTS_CHARS)
+    {}
     
-    private:
-        wxString base_name;
+    virtual ~MHColorPanel() {};
+
+    virtual std::string GetColour() = 0;
+    virtual bool HasColour() = 0;
+    virtual void SetColours( const std::string& _colors ) = 0;
+
+private:
+
 };
 

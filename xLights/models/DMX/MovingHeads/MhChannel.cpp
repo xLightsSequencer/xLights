@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/xml/xml.h>
@@ -71,16 +71,16 @@ MhChannel::MhRange::MhRange(wxXmlNode* node, wxString pretty_name)
 }
 
 void MhChannel::MhRange::SetRangeMin(std::string& val) {
-    range_node->DeleteAttribute("MinValue");
-    range_node->AddAttribute("MinValue", val);
+    range_node->DeleteAttribute("Min");
+    range_node->AddAttribute("Min", val);
 }
 
 void MhChannel::MhRange::SetRangeMax(std::string& val) {
-    range_node->DeleteAttribute("MaxValue");
-    range_node->AddAttribute("MaxValue", val);
+    range_node->DeleteAttribute("Max");
+    range_node->AddAttribute("Max", val);
 }
 
 void MhChannel::MhRange::Init() {
-    min = wxAtoi(range_node->GetAttribute("RangeMin", "0"));
-    max = wxAtoi(range_node->GetAttribute("RangeMax", "255"));
+    min = wxAtoi(range_node->GetAttribute("Min", "0"));
+    max = wxAtoi(range_node->GetAttribute("Max", "255"));
 }
