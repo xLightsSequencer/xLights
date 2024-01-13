@@ -74,6 +74,7 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	GridBagSizer1->Add(RenderOnSaveCheckBox, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_LowDefinitionRender = new wxCheckBox(this, ID_CHECKBOX3, _("Low Definition Render"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	CheckBox_LowDefinitionRender->SetValue(false);
+	CheckBox_LowDefinitionRender->SetToolTip(_("If set, then any model with a low def factor set will be rendered at that percentage. Done to reduce render time during sequence creation."));
 	GridBagSizer1->Add(CheckBox_LowDefinitionRender, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL|wxEXPAND, 5);
 	FSEQSaveCheckBox = new wxCheckBox(this, ID_CHECKBOX2, _("Save FSEQ File On Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	FSEQSaveCheckBox->SetValue(false);
