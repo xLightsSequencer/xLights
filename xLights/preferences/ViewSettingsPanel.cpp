@@ -91,9 +91,9 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 	SetSizer(GridBagSizer1);
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
-    CheckBox_PresetPreview = new wxCheckBox(this, ID_CHECKBOX4, _("Hide Preset Previews"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
-    CheckBox_PresetPreview->SetValue(false);
-    GridBagSizer1->Add(CheckBox_PresetPreview, wxGBPosition(7, 0), wxGBSpan(1, 2), wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_PresetPreview = new wxCheckBox(this, ID_CHECKBOX4, _("Hide Preset Previews"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
+	CheckBox_PresetPreview->SetValue(false);
+	GridBagSizer1->Add(CheckBox_PresetPreview, wxGBPosition(7, 0), wxGBSpan(1, 2), wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
 
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnToolIconSizeChoiceSelect);
 	Connect(ID_CHOICE4,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnModelHandleSizeChoiceSelect);
@@ -102,12 +102,12 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnHousePreviewCheckBoxClick);
 	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_BaseShowFolderClick);
 	Connect(ID_CHOICE_TIMELINEZOOMING,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnChoice_TimelineZoomingSelect);
-    Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnPresetPreviewCheckBoxClick);
+	Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnPresetPreviewCheckBoxClick);
 	//*)
 
-    #ifdef _MSC_VER
-    MSWDisableComposited();
-    #endif
+	#ifdef _MSC_VER
+	MSWDisableComposited();
+	#endif
 }
 
 ViewSettingsPanel::~ViewSettingsPanel()
@@ -117,130 +117,130 @@ ViewSettingsPanel::~ViewSettingsPanel()
 }
 
 bool ViewSettingsPanel::TransferDataToWindow() {
-    HousePreviewCheckBox->SetValue(frame->AutoShowHousePreview());
-    PlayControlsCheckBox->SetValue(frame->PlayControlsOnPreview());
-    CheckBox_BaseShowFolder->SetValue(frame->IsShowBaseShowFolder());
-    int i = frame->EffectAssistMode();
-    if (i >= 3) {
-        i = 0;
-    }
-    EffectAssistChoice->SetSelection(i);
-    ModelHandleSizeChoice->SetSelection(frame->ModelHandleSize());
-    int ts = frame->ToolIconSize();
-    switch (ts) {
-        case 48:
-            ToolIconSizeChoice->SetSelection(3);
-            break;
-        case 32:
-            ToolIconSizeChoice->SetSelection(2);
-            break;
-        case 24:
-            ToolIconSizeChoice->SetSelection(1);
-            break;
-        case 16:
-        default:
-            ToolIconSizeChoice->SetSelection(0);
-            break;
-    }
+	HousePreviewCheckBox->SetValue(frame->AutoShowHousePreview());
+	PlayControlsCheckBox->SetValue(frame->PlayControlsOnPreview());
+	CheckBox_BaseShowFolder->SetValue(frame->IsShowBaseShowFolder());
+	int i = frame->EffectAssistMode();
+	if (i >= 3) {
+		i = 0;
+	}
+	EffectAssistChoice->SetSelection(i);
+	ModelHandleSizeChoice->SetSelection(frame->ModelHandleSize());
+	int ts = frame->ToolIconSize();
+	switch (ts) {
+		case 48:
+			ToolIconSizeChoice->SetSelection(3);
+			break;
+		case 32:
+			ToolIconSizeChoice->SetSelection(2);
+			break;
+		case 24:
+			ToolIconSizeChoice->SetSelection(1);
+			break;
+		case 16:
+		default:
+			ToolIconSizeChoice->SetSelection(0);
+			break;
+	}
 
-    Choice_TimelineZooming->SetSelection(frame->GetTimelineZooming()&1);
-    CheckBox_PresetPreview->SetValue(frame->HidePresetPreview());
-    return true;
+	Choice_TimelineZooming->SetSelection(frame->GetTimelineZooming()&1);
+	CheckBox_PresetPreview->SetValue(frame->HidePresetPreview());
+	return true;
 }
 bool ViewSettingsPanel::TransferDataFromWindow() {
-    frame->SetModelHandleSize(ModelHandleSizeChoice->GetSelection());
-    frame->SetEffectAssistMode(EffectAssistChoice->GetSelection());
-    frame->SetPlayControlsOnPreview(PlayControlsCheckBox->IsChecked());
-    frame->SetAutoShowHousePreview(HousePreviewCheckBox->IsChecked());
-    frame->SetShowBaseShowFolder(CheckBox_BaseShowFolder->IsChecked());
-    switch (ToolIconSizeChoice->GetSelection()) {
-        case 3:
-            frame->SetToolIconSize(48);
-            break;
-        case 2:
-            frame->SetToolIconSize(32);
-            break;
-        case 1:
-            frame->SetToolIconSize(24);
-            break;
-        case 0:
-        default:
-            frame->SetToolIconSize(16);
-            break;
-    }
+	frame->SetModelHandleSize(ModelHandleSizeChoice->GetSelection());
+	frame->SetEffectAssistMode(EffectAssistChoice->GetSelection());
+	frame->SetPlayControlsOnPreview(PlayControlsCheckBox->IsChecked());
+	frame->SetAutoShowHousePreview(HousePreviewCheckBox->IsChecked());
+	frame->SetShowBaseShowFolder(CheckBox_BaseShowFolder->IsChecked());
+	switch (ToolIconSizeChoice->GetSelection()) {
+		case 3:
+			frame->SetToolIconSize(48);
+			break;
+		case 2:
+			frame->SetToolIconSize(32);
+			break;
+		case 1:
+			frame->SetToolIconSize(24);
+			break;
+		case 0:
+		default:
+			frame->SetToolIconSize(16);
+			break;
+	}
 
-    frame->SetTimelineZooming(Choice_TimelineZooming->GetSelection());
-    frame->SetHidePresetPreview(CheckBox_PresetPreview->IsChecked());
+	frame->SetTimelineZooming(Choice_TimelineZooming->GetSelection());
+	frame->SetHidePresetPreview(CheckBox_PresetPreview->IsChecked());
 
-    return true;
+	return true;
 }
 
 void ViewSettingsPanel::OnToolIconSizeChoiceSelect(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void ViewSettingsPanel::OnHousePreviewCheckBoxClick(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void ViewSettingsPanel::OnPlayControlsCheckBoxClick(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void ViewSettingsPanel::OnPresetPreviewCheckBoxClick(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void ViewSettingsPanel::OnEffectAssistChoiceSelect(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void ViewSettingsPanel::OnModelHandleSizeChoiceSelect(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void ViewSettingsPanel::OnOpenGLRenderOrderChoiceSelect(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void ViewSettingsPanel::OnOpenGLVersionChoiceSelect(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void ViewSettingsPanel::OnCheckBox_BaseShowFolderClick(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void ViewSettingsPanel::OnChoice_TimelineZoomingSelect(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
