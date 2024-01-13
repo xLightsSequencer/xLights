@@ -269,7 +269,7 @@ std::string DecodeOS(wxOperatingSystemId o)
 void DumpConfig()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::string versionStr = "Version: " + xlights_version_string.c_str();
+    std::string versionStr = "Version: " + xlights_version_string.ToStdString();
     if (IsFromAppStore()) {
         versionStr += " - App Store";
     }

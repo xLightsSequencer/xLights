@@ -781,7 +781,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
         if (xml_file.GetMedia() == nullptr) {
             mediaFilename = xml_file.GetMediaFile();
             ObtainAccessToURL(mediaFilename);
-            if ((mediaFilename == wxEmptyString) || !FileExists(mediaFilename) || !wxIsReadable(mediaFilename)) {
+            if (mediaFilename.empty() || !FileExists(mediaFilename) || !wxIsReadable(mediaFilename)) {
                 SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectories, wxT(""), wxEmptyString);
                 setting_dlg.Fit();
                 int ret_val = setting_dlg.ShowModal();
@@ -807,7 +807,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
             ObtainAccessToURL(mediaFilename);
         }
 
-        if (mediaFilename != wxEmptyString) {
+        if (!mediaFilename.empty()) {
             wxString error;
             musicLength = mainSequencer->PanelWaveForm->OpenfileMedia(xml_file.GetMedia(), error);
             if (musicLength <= 0) {

@@ -162,7 +162,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
     DeleteTestPreset();
 
-    wxFileName fn(showdir + wxFileName::GetPathSeparator() + GetNetworksFileName());
+    wxFileName fn(showdir + GetPathSeparator() + GetNetworksFileName());
     _filename = fn.GetFullPath();
 
     wxXmlDocument doc;
@@ -974,7 +974,7 @@ void OutputManager::SetGlobalForceLocalIP(const std::string& forceLocalIP)
 
 void OutputManager::SetShowDir(const std::string& showDir) {
 
-    wxFileName fn(showDir + wxFileName::GetPathSeparator() + GetNetworksFileName());
+    wxFileName fn(showDir + GetPathSeparator() + GetNetworksFileName());
     _filename = fn.GetFullPath();
 }
 

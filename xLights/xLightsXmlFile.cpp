@@ -3161,8 +3161,8 @@ std::string xLightsXmlFile::GetMediaForXSQ(const std::string& xsq, const std::st
     if (mediaName != "") {
         if (!FileExists(mediaName)) {
             wxFileName fn(mediaName);
-            for (auto& md : mediaFolders) {
-                std::string tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
+            for (const std::string& md : mediaFolders) {
+                std::string tmn = md + ::GetPathSeparator() + fn.GetFullName().ToStdString();
                 if (FileExists(tmn)) {
                     mediaName = tmn;
                     break;

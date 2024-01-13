@@ -1104,7 +1104,7 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
         // we need to open the zip ... place the files in the "modeldownload" folder in the show folder
         logger_base.debug("    opening zipped model " + _modelFile);
 
-        auto dir = _showFolder + wxFileName::GetPathSeparator() + "modeldownload";
+        auto dir = _showFolder + GetPathSeparator() + "modeldownload";
         if (!wxDir::Exists(dir)) {
             logger_base.debug("Creating modeldownload directory " + dir);
             wxMkdir(dir);
@@ -1143,7 +1143,7 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
                         }
                     }
 
-                    auto file = dir + wxFileName::GetPathSeparator() + ent->GetName();
+                    auto file = dir + GetPathSeparator() + ent->GetName();
                     if (wxFileName(ent->GetName()).GetExt().Lower() == "xmodel") {
                         _modelFile = file;
                     }

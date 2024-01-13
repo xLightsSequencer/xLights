@@ -37,7 +37,7 @@ public:
         static bool __loaded = false;
         static std::map<std::string, std::string> __cache;
 
-        std::string file = StashShowDir() + wxFileName::GetPathSeparator() + "special.options";
+        std::string file = StashShowDir() + GetPathSeparator() + "special.options";
 
         if (option == "")
         {

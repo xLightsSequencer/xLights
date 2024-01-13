@@ -978,9 +978,9 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                     bool alt = child->GetAttribute("alt", "FALSE") == "TRUE";
                     bool shift = child->GetAttribute("shift", "FALSE") == "TRUE";
                     bool rcontrol = child->GetAttribute("rawControl", "FALSE") == "TRUE";
-                    if (oldk != "") {
+                    if (!oldk.empty()) {
                         k = oldk;
-                        if (k >= 'A' && k <= 'Z') shift = true; else shift = false;
+                        if (k[0] >= 'A' && k[0] <= 'Z') shift = true; else shift = false;
                     }
                     if (k == "") disabled = true;
                     if (type == "EFFECT") {
