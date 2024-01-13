@@ -34,6 +34,7 @@ class ViewSettingsPanel: public wxPanel
 		wxChoice* EffectAssistChoice;
 		wxChoice* ModelHandleSizeChoice;
 		wxChoice* ToolIconSizeChoice;
+        wxCheckBox* CheckBox_PresetPreview;
 		//*)
 
         virtual bool TransferDataFromWindow() override;
@@ -48,6 +49,7 @@ class ViewSettingsPanel: public wxPanel
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX3;
+        static const long ID_CHECKBOX4;
 		static const long ID_CHOICE_TIMELINEZOOMING;
 		//*)
 
@@ -64,6 +66,7 @@ class ViewSettingsPanel: public wxPanel
 		void OnOpenGLVersionChoiceSelect(wxCommandEvent& event);
 		void OnCheckBox_BaseShowFolderClick(wxCommandEvent& event);		
 		void OnChoice_TimelineZoomingSelect(wxCommandEvent& event);
+        void OnPresetPreviewCheckBoxClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
