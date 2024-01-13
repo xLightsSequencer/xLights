@@ -122,6 +122,9 @@ bool TextEffect::SupportsRenderCache(const SettingsMap& settings) const
     // we dont want to use render cache if text is coming from a file as the file might have changed
     if (ToWXString(settings["TEXTCTRL_Text"]) == "" && FileExists(settings["FILEPICKERCTRL_Text_File"]))
         return false;
+    // we dont want to use render cache if text is coming from lyric track, if you have text then it overrides the lyric track
+    if (ToWXString(settings["TEXTCTRL_Text"]) == ""  && settings["CHOICE_Text_LyricTrack"] != "")
+        return false;
     return true;
 }
 
