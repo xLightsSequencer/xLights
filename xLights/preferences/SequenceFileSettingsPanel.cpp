@@ -92,6 +92,7 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	RenderCacheChoice->Append(_("Disabled"));
 	GridBagSizer1->Add(RenderCacheChoice, wxGBPosition(4, 1), wxDefaultSpan, wxALL, 5);
 	StaticText2 = new wxStaticText(this, wxID_ANY, _("Auto Save Interval"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    StaticText2->SetToolTip(_("A backup file (.bkp) will be created of the current open sequence at this interval. No render created."));
 	GridBagSizer1->Add(StaticText2, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	AutoSaveIntervalChoice = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
 	AutoSaveIntervalChoice->Append(_("Disabled"));
@@ -158,8 +159,10 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	StaticBoxSizer1->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	GridBagSizer1->Add(StaticBoxSizer1, wxGBPosition(7, 0), wxGBSpan(1, 2), wxALL|wxEXPAND, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT2, _("Default View for New Sequences"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    StaticText5->SetToolTip(_("This view will be copied and used as your master view for a new sequence."));
 	GridBagSizer1->Add(StaticText5, wxGBPosition(3, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ViewDefaultChoice = new wxChoice(this, ID_CHOICE_VIEW_DEFAULT, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_DEFAULT"));
+	ViewDefaultChoice->SetMinSize(wxSize(200, -1));
 	ViewDefaultChoice->SetToolTip(_("This option is used to select which models will populate the master view when a new sequence is created."));
 	GridBagSizer1->Add(ViewDefaultChoice, wxGBPosition(3, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridBagSizer1);
@@ -186,9 +189,9 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
-    #ifdef _MSC_VER
-    MSWDisableComposited();
-    #endif
+	#ifdef _MSC_VER
+	MSWDisableComposited();
+	#endif
 }
 
 SequenceFileSettingsPanel::~SequenceFileSettingsPanel()
@@ -198,342 +201,342 @@ SequenceFileSettingsPanel::~SequenceFileSettingsPanel()
 }
 
 bool SequenceFileSettingsPanel::TransferDataFromWindow() {
-    frame->SetSaveFSEQVersion(FSEQVersionChoice->GetSelection() + 1);
-    frame->SetEnableRenderCache(RenderCacheChoice->GetStringSelection());
-    frame->SetRenderOnSave(RenderOnSaveCheckBox->IsChecked());
-    frame->SetSaveFseqOnSave(FSEQSaveCheckBox->IsChecked());
-    frame->SetModelBlendDefaultOff(ModelBlendDefaultChoice->GetSelection());
-    frame->SetLowDefinitionRender(CheckBox_LowDefinitionRender->IsChecked());
+	frame->SetSaveFSEQVersion(FSEQVersionChoice->GetSelection() + 1);
+	frame->SetEnableRenderCache(RenderCacheChoice->GetStringSelection());
+	frame->SetRenderOnSave(RenderOnSaveCheckBox->IsChecked());
+	frame->SetSaveFseqOnSave(FSEQSaveCheckBox->IsChecked());
+	frame->SetModelBlendDefaultOff(ModelBlendDefaultChoice->GetSelection());
+	frame->SetLowDefinitionRender(CheckBox_LowDefinitionRender->IsChecked());
 
-    switch (AutoSaveIntervalChoice->GetSelection()) {
-        case 0:
-            frame->SetAutoSaveInterval(0);
-            break;
-        case 1:
-            frame->SetAutoSaveInterval(3);
-            break;
-        case 2:
-            frame->SetAutoSaveInterval(5);
-            break;
-        case 3:
-            frame->SetAutoSaveInterval(10);
-            break;
-        case 4:
-            frame->SetAutoSaveInterval(15);
-            break;
-        case 5:
-            frame->SetAutoSaveInterval(30);
-            break;
-        default:
-            frame->SetAutoSaveInterval(5);
-            break;
-    }
+	switch (AutoSaveIntervalChoice->GetSelection()) {
+		case 0:
+			frame->SetAutoSaveInterval(0);
+			break;
+		case 1:
+			frame->SetAutoSaveInterval(3);
+			break;
+		case 2:
+			frame->SetAutoSaveInterval(5);
+			break;
+		case 3:
+			frame->SetAutoSaveInterval(10);
+			break;
+		case 4:
+			frame->SetAutoSaveInterval(15);
+			break;
+		case 5:
+			frame->SetAutoSaveInterval(30);
+			break;
+		default:
+			frame->SetAutoSaveInterval(5);
+			break;
+	}
 
-    std::list<std::string> mediaFolders;
-    wxArrayString dirs =  MediaDirectoryList->GetStrings();
-    for (auto &a : dirs) {
-        mediaFolders.push_back(a.ToStdString());
-    }
-    frame->SetMediaFolders(mediaFolders);
+	std::list<std::string> mediaFolders;
+	wxArrayString dirs =  MediaDirectoryList->GetStrings();
+	for (auto &a : dirs) {
+		mediaFolders.push_back(a.ToStdString());
+	}
+	frame->SetMediaFolders(mediaFolders);
 
-    frame->SetFSEQFolder(CheckBox_FSEQ->GetValue(), DirPickerCtrl_FSEQ->GetPath());
-    frame->SetRenderCacheFolder(CheckBox_RenderCache->GetValue(), DirPickerCtrl_RenderCache->GetPath());
+	frame->SetFSEQFolder(CheckBox_FSEQ->GetValue(), DirPickerCtrl_FSEQ->GetPath());
+	frame->SetRenderCacheFolder(CheckBox_RenderCache->GetValue(), DirPickerCtrl_RenderCache->GetPath());
 
-    frame->SetDefaultSeqView(ViewDefaultChoice->GetStringSelection());
-    frame->SetRenderCacheMaximumSizeMB(DecodeMaxRenderCache(Choice_MaximumRenderCache->GetStringSelection()));
+	frame->SetDefaultSeqView(ViewDefaultChoice->GetStringSelection());
+	frame->SetRenderCacheMaximumSizeMB(DecodeMaxRenderCache(Choice_MaximumRenderCache->GetStringSelection()));
 
-    return true;
+	return true;
 }
 
 size_t SequenceFileSettingsPanel::DecodeMaxRenderCache(const std::string& rcs)
 {
-    if (rcs == "Unlimited")
-        return 0;
-    if (rcs == "100 MB")
-        return 100;
-    if (rcs == "200 MB")
-        return 200;
-    if (rcs == "500 MB")
-        return 500;
-    if (rcs == "1 GB")
-        return 1 * 1024;
-    if (rcs == "3 GB")
-        return 3 * 1024;
-    if (rcs == "5 GB")
-        return 5 * 1024;
-    if (rcs == "10 GB")
-        return 10 * 1024;
-    if (rcs == "20 GB")
-        return 20 * 1024;
-    if (rcs == "50 GB")
-        return 50 * 1024;
-    if (rcs == "100 GB")
-        return 100 * 1024;
-    if (rcs == "200 GB")
-        return 200 * 1024;
-    return 0;
+	if (rcs == "Unlimited")
+		return 0;
+	if (rcs == "100 MB")
+		return 100;
+	if (rcs == "200 MB")
+		return 200;
+	if (rcs == "500 MB")
+		return 500;
+	if (rcs == "1 GB")
+		return 1 * 1024;
+	if (rcs == "3 GB")
+		return 3 * 1024;
+	if (rcs == "5 GB")
+		return 5 * 1024;
+	if (rcs == "10 GB")
+		return 10 * 1024;
+	if (rcs == "20 GB")
+		return 20 * 1024;
+	if (rcs == "50 GB")
+		return 50 * 1024;
+	if (rcs == "100 GB")
+		return 100 * 1024;
+	if (rcs == "200 GB")
+		return 200 * 1024;
+	return 0;
 }
 
 const std::string SequenceFileSettingsPanel::EncodeMaxRenderCache(size_t rcs)
 {
-    if (rcs == 0)
-        return "Unlimited";
-    if (rcs < 150)
-        return "100 MB";
-    if (rcs < 350)
-        return "200 MB";
-    if (rcs < 750)
-        return "500 MB";
-    if (rcs < 2 * 1024)
-        return "1 GB";
-    if (rcs < 4 * 1024)
-        return "3 GB";
-    if (rcs < 7.5f * 1024)
-        return "5 GB";
-    if (rcs < 15 * 1024)
-        return "10 GB";
-    if (rcs < 35 * 1024)
-        return "20 GB";
-    if (rcs < 75 * 1024)
-        return "50 GB";
-    if (rcs < 150 * 1024)
-        return "100 GB";
-    if (rcs < 300 * 1024)
-        return "200 GB";
-    return "Unlimited";
+	if (rcs == 0)
+		return "Unlimited";
+	if (rcs < 150)
+		return "100 MB";
+	if (rcs < 350)
+		return "200 MB";
+	if (rcs < 750)
+		return "500 MB";
+	if (rcs < 2 * 1024)
+		return "1 GB";
+	if (rcs < 4 * 1024)
+		return "3 GB";
+	if (rcs < 7.5f * 1024)
+		return "5 GB";
+	if (rcs < 15 * 1024)
+		return "10 GB";
+	if (rcs < 35 * 1024)
+		return "20 GB";
+	if (rcs < 75 * 1024)
+		return "50 GB";
+	if (rcs < 150 * 1024)
+		return "100 GB";
+	if (rcs < 300 * 1024)
+		return "200 GB";
+	return "Unlimited";
 }
 
 bool SequenceFileSettingsPanel::TransferDataToWindow() {
-    FSEQVersionChoice->SetSelection(frame->SaveFSEQVersion() - 1);
-    wxString rc = frame->EnableRenderCache();
-    if (rc == "Locked Only") {
-        rc = "Locked Effects Only";
-    }
-    RenderCacheChoice->SetStringSelection(rc);
-    FSEQSaveCheckBox->SetValue(frame->SaveFseqOnSave());
-    RenderOnSaveCheckBox->SetValue(frame->RenderOnSave());
-    
-    ModelBlendDefaultChoice->SetSelection(frame->ModelBlendDefaultOff());
-    switch (frame->AutoSaveInterval()) {
-        case 30:
-            AutoSaveIntervalChoice->SetSelection(5);
-            break;
-        case 15:
-            AutoSaveIntervalChoice->SetSelection(4);
-            break;
-        case 10:
-            AutoSaveIntervalChoice->SetSelection(3);
-            break;
-        case 3:
-            AutoSaveIntervalChoice->SetSelection(1);
-            break;
-        case 0:
-            AutoSaveIntervalChoice->SetSelection(0);
-            break;
-        case 5:
-        default:
-            AutoSaveIntervalChoice->SetSelection(2);
-            break;
-    }
+	FSEQVersionChoice->SetSelection(frame->SaveFSEQVersion() - 1);
+	wxString rc = frame->EnableRenderCache();
+	if (rc == "Locked Only") {
+		rc = "Locked Effects Only";
+	}
+	RenderCacheChoice->SetStringSelection(rc);
+	FSEQSaveCheckBox->SetValue(frame->SaveFseqOnSave());
+	RenderOnSaveCheckBox->SetValue(frame->RenderOnSave());
+	
+	ModelBlendDefaultChoice->SetSelection(frame->ModelBlendDefaultOff());
+	switch (frame->AutoSaveInterval()) {
+		case 30:
+			AutoSaveIntervalChoice->SetSelection(5);
+			break;
+		case 15:
+			AutoSaveIntervalChoice->SetSelection(4);
+			break;
+		case 10:
+			AutoSaveIntervalChoice->SetSelection(3);
+			break;
+		case 3:
+			AutoSaveIntervalChoice->SetSelection(1);
+			break;
+		case 0:
+			AutoSaveIntervalChoice->SetSelection(0);
+			break;
+		case 5:
+		default:
+			AutoSaveIntervalChoice->SetSelection(2);
+			break;
+	}
 
-    bool cb;
-    std::string folder;
-    frame->GetFSEQFolder(cb, folder);
-    CheckBox_FSEQ->SetValue(cb);
-    DirPickerCtrl_FSEQ->SetPath(folder);
+	bool cb;
+	std::string folder;
+	frame->GetFSEQFolder(cb, folder);
+	CheckBox_FSEQ->SetValue(cb);
+	DirPickerCtrl_FSEQ->SetPath(folder);
 
 
-    folder = frame->GetShowDirectory();
-    MediaDirectoryList->Clear();
-    for (auto &a : frame->GetMediaFolders()) {
-        if (a != folder) {
-            MediaDirectoryList->Append(a);
-        }
-    }
-    AddMediaButton->Enable();
-    RemoveMediaButton->Disable();
+	folder = frame->GetShowDirectory();
+	MediaDirectoryList->Clear();
+	for (auto &a : frame->GetMediaFolders()) {
+		if (a != folder) {
+			MediaDirectoryList->Append(a);
+		}
+	}
+	AddMediaButton->Enable();
+	RemoveMediaButton->Disable();
 
-    frame->GetRenderCacheFolder(cb, folder);
-    CheckBox_RenderCache->SetValue(cb);
-    DirPickerCtrl_RenderCache->SetPath(folder);
-    CheckBox_LowDefinitionRender->SetValue(frame->IsLowDefinitionRender());
-    Choice_MaximumRenderCache->SetStringSelection(EncodeMaxRenderCache(frame->RenderCacheMaximumSizeMB()));
+	frame->GetRenderCacheFolder(cb, folder);
+	CheckBox_RenderCache->SetValue(cb);
+	DirPickerCtrl_RenderCache->SetPath(folder);
+	CheckBox_LowDefinitionRender->SetValue(frame->IsLowDefinitionRender());
+	Choice_MaximumRenderCache->SetStringSelection(EncodeMaxRenderCache(frame->RenderCacheMaximumSizeMB()));
 
-    ViewDefaultChoice->Clear();
-    ViewDefaultChoice->Append(wxString());
-    ViewDefaultChoice->Append(frame->GetSequenceViews());
-    auto const& view = ViewDefaultChoice->FindString(frame->GetDefaultSeqView());
-    if (wxNOT_FOUND != view) {
-        ViewDefaultChoice->SetSelection(view);
-    }
+	ViewDefaultChoice->Clear();
+	ViewDefaultChoice->Append(wxString());
+	ViewDefaultChoice->Append(frame->GetSequenceViews());
+	auto const& view = ViewDefaultChoice->FindString(frame->GetDefaultSeqView());
+	if (wxNOT_FOUND != view) {
+		ViewDefaultChoice->SetSelection(view);
+	}
 
-    ValidateWindow();
+	ValidateWindow();
 
-    return true;
+	return true;
 }
 void SequenceFileSettingsPanel::OnRenderOnSaveCheckBoxClick(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnFSEQSaveCheckBoxClick(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnRenderCacheChoiceSelect(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnAutoSaveIntervalChoiceSelect(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnFSEQVersionChoiceSelect(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnRenderModeChoiceSelect(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 bool SequenceFileSettingsPanel::ValidateWindow()
 {
-    bool res = true;
-    RemoveMediaButton->Enable(MediaDirectoryList->GetSelection() != wxNOT_FOUND);
+	bool res = true;
+	RemoveMediaButton->Enable(MediaDirectoryList->GetSelection() != wxNOT_FOUND);
 
-    if (CheckBox_FSEQ->GetValue()) {
-        DirPickerCtrl_FSEQ->Enable(false);
-    } else {
-        if (!wxDir::Exists(DirPickerCtrl_FSEQ->GetPath())) res = false;
-        DirPickerCtrl_FSEQ->Enable(true);
-    }
+	if (CheckBox_FSEQ->GetValue()) {
+		DirPickerCtrl_FSEQ->Enable(false);
+	} else {
+		if (!wxDir::Exists(DirPickerCtrl_FSEQ->GetPath())) res = false;
+		DirPickerCtrl_FSEQ->Enable(true);
+	}
 
-    if (CheckBox_RenderCache->GetValue()) {
-        DirPickerCtrl_RenderCache->Enable(false);
-    } else {
-        if (!wxDir::Exists(DirPickerCtrl_RenderCache->GetPath())) res = false;
-        DirPickerCtrl_RenderCache->Enable(true);
-    }
+	if (CheckBox_RenderCache->GetValue()) {
+		DirPickerCtrl_RenderCache->Enable(false);
+	} else {
+		if (!wxDir::Exists(DirPickerCtrl_RenderCache->GetPath())) res = false;
+		DirPickerCtrl_RenderCache->Enable(true);
+	}
 
-    return res;
+	return res;
 }
 void SequenceFileSettingsPanel::OnCheckBox_RenderCacheClick(wxCommandEvent& event)
 {
-    ValidateWindow();
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	ValidateWindow();
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnCheckBox_MediaClick(wxCommandEvent& event)
 {
-    ValidateWindow();
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	ValidateWindow();
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnCheckBox_FSEQClick(wxCommandEvent& event)
 {
-    ValidateWindow();
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	ValidateWindow();
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnDirPickerCtrl_RenderCacheDirChanged(wxFileDirPickerEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnDirPickerCtrl_MediaDirChanged(wxFileDirPickerEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnDirPickerCtrl_FSEQDirChanged(wxFileDirPickerEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnAddMediaButtonClick(wxCommandEvent& event)
 {
-    wxDirDialog dlg(NULL, "Choose media directory", "",
-                    wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_NEW_DIR_BUTTON );
-    if (dlg.ShowModal() == wxID_OK) {
-        wxString d = dlg.GetPath();
-        if (MediaDirectoryList->FindString(d) == wxNOT_FOUND) {
-            MediaDirectoryList->Append(d);
-            if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-                TransferDataFromWindow();
-            }
-        }
-    }
+	wxDirDialog dlg(NULL, "Choose media directory", "",
+					wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_NEW_DIR_BUTTON );
+	if (dlg.ShowModal() == wxID_OK) {
+		wxString d = dlg.GetPath();
+		if (MediaDirectoryList->FindString(d) == wxNOT_FOUND) {
+			MediaDirectoryList->Append(d);
+			if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+				TransferDataFromWindow();
+			}
+		}
+	}
 }
 
 void SequenceFileSettingsPanel::OnRemoveMediaButtonClick(wxCommandEvent& event)
 {
-    int i = MediaDirectoryList->GetSelection();
-    if (i != wxNOT_FOUND) {
-        MediaDirectoryList->Delete(i);
-    }
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	int i = MediaDirectoryList->GetSelection();
+	if (i != wxNOT_FOUND) {
+		MediaDirectoryList->Delete(i);
+	}
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnMediaDirectoryListSelect(wxCommandEvent& event)
 {
-    RemoveMediaButton->Enable(MediaDirectoryList->GetSelection() != wxNOT_FOUND);
+	RemoveMediaButton->Enable(MediaDirectoryList->GetSelection() != wxNOT_FOUND);
 }
 
 void SequenceFileSettingsPanel::OnModelBlendDefaultChoiceSelect(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnViewDefaultChoiceSelect(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnCheckBox_LowDefinitionRenderClick(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
 
 void SequenceFileSettingsPanel::OnChoice_MaximumRenderCacheSelect(wxCommandEvent& event)
 {
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
+	if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+		TransferDataFromWindow();
+	}
 }
