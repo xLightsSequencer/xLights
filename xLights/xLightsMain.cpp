@@ -1527,6 +1527,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsAutoShowHousePreview", &_autoShowHousePreview, false);
     logger_base.debug("Autoshow House Preview: %s.", toStr(_autoShowHousePreview));
 
+    config->Read("xLightsHidePresetPreview", &_hidePresetPreview, false);
+    logger_base.debug("Hide Preset Preview: %s.", toStr(_hidePresetPreview));
+
     config->Read("xLightsSmallWaveform", &_smallWaveform, false);
     logger_base.debug("Small Waveform: %s.", toStr(_smallWaveform));
 
@@ -2068,6 +2071,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsPlayControlsOnPreview", _playControlsOnPreview);
     config->Write("xLightsShowBaseFolder", _showBaseShowFolder);
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
+    config->Write("xLightsHidePresetPreview", _hidePresetPreview);
     config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
     config->Write("xLightsLowDefinitionRender", _lowDefinitionRender);
     config->Write("xLightsTimelineZooming", _timelineZooming);
@@ -8417,6 +8421,11 @@ void xLightsFrame::SetShowBaseShowFolder(bool b)
 void xLightsFrame::SetAutoShowHousePreview(bool b)
 {
     _autoShowHousePreview = b;
+}
+
+void xLightsFrame::SetHidePresetPreview(bool b)
+{
+    _hidePresetPreview = b;
 }
 
 bool xLightsFrame::IsPaneDocked(wxWindow* window) const

@@ -31,6 +31,7 @@ const long ViewSettingsPanel::ID_CHOICE5 = wxNewId();
 const long ViewSettingsPanel::ID_CHECKBOX1 = wxNewId();
 const long ViewSettingsPanel::ID_CHECKBOX2 = wxNewId();
 const long ViewSettingsPanel::ID_CHECKBOX3 = wxNewId();
+const long ViewSettingsPanel::ID_CHECKBOX4 = wxNewId();
 const long ViewSettingsPanel::ID_CHOICE_TIMELINEZOOMING = wxNewId();
 //*)
 
@@ -90,6 +91,9 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 	SetSizer(GridBagSizer1);
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
+    CheckBox_PresetPreview = new wxCheckBox(this, ID_CHECKBOX4, _("Hide Preset Previews"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
+    CheckBox_PresetPreview->SetValue(false);
+    GridBagSizer1->Add(CheckBox_PresetPreview, wxGBPosition(7, 0), wxGBSpan(1, 2), wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
 
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnToolIconSizeChoiceSelect);
 	Connect(ID_CHOICE4,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnModelHandleSizeChoiceSelect);
@@ -98,6 +102,7 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindow
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnHousePreviewCheckBoxClick);
 	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_BaseShowFolderClick);
 	Connect(ID_CHOICE_TIMELINEZOOMING,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnChoice_TimelineZoomingSelect);
+    Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnPresetPreviewCheckBoxClick);
 	//*)
 
     #ifdef _MSC_VER
@@ -139,6 +144,7 @@ bool ViewSettingsPanel::TransferDataToWindow() {
     }
 
     Choice_TimelineZooming->SetSelection(frame->GetTimelineZooming()&1);
+    CheckBox_PresetPreview->SetValue(frame->HidePresetPreview());
     return true;
 }
 bool ViewSettingsPanel::TransferDataFromWindow() {
@@ -164,6 +170,7 @@ bool ViewSettingsPanel::TransferDataFromWindow() {
     }
 
     frame->SetTimelineZooming(Choice_TimelineZooming->GetSelection());
+    frame->SetHidePresetPreview(CheckBox_PresetPreview->IsChecked());
 
     return true;
 }
@@ -183,6 +190,13 @@ void ViewSettingsPanel::OnHousePreviewCheckBoxClick(wxCommandEvent& event)
 }
 
 void ViewSettingsPanel::OnPlayControlsCheckBoxClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void ViewSettingsPanel::OnPresetPreviewCheckBoxClick(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
