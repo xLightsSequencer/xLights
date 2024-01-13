@@ -9,12 +9,12 @@
  **************************************************************/
 
 #include "MHRgbPickerPanel.h"
-#include "Color.h"
 
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
 #include <wx/rawbmp.h>
 
+#include "../../UtilFunctions.h"
 namespace
 {
     const int BorderWidth = 5;
@@ -393,7 +393,7 @@ void MHRgbPickerPanel::SetColours( const std::string& _colors )
     selected_point = -1;
     active_handle = -1;
     wxArrayString colors = wxSplit(_colors, ',');
-    unsigned long num_colors {colors.size() / 3};
+    unsigned long num_colors = colors.size() / 3;
     for( int i = 0; i < num_colors; ++i ) {
         double hue { wxAtof(colors[i*3]) };
         double sat { wxAtof(colors[i*3+1]) };

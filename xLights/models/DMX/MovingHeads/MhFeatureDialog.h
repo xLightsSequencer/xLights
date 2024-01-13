@@ -18,7 +18,7 @@
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 //*)
-
+#include <wx/xml/xml.h>
 #include "tmGridCell.h"
 
 class MhFeature;

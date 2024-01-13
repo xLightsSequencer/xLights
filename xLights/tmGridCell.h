@@ -54,7 +54,7 @@ public:
 
 private:
     wxString m_strLabel;
-   wxButton *m_pButton;
+    wxButton *m_pButton;
 
     DECLARE_NO_COPY_CLASS(wxGridCellButtonEditor)
 };

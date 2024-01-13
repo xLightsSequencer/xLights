@@ -220,8 +220,8 @@ void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, co
                 if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
                     DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
                     if( mhead->GetFixtureVal() == i ) {
-                        int pan_cmd = (int)mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
-                        int tilt_cmd = (int)mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);
+                        int pan_cmd = mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
+                        int tilt_cmd = mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);
                         
                         WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
                         WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);

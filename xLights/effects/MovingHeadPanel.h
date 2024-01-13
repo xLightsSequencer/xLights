@@ -27,12 +27,15 @@
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
-#include "MHColorPanel.h"
+#include "MovingHeadPanels/MHColorPanel.h"
 #include "MovingHeadPanels/MovingHeadCanvasPanel.h"
 #include "MovingHeadPanels/MHRgbPickerPanel.h"
 #include "MovingHeadPanels/MHColorWheelPanel.h"
-#include "SketchCanvasPanel.h"
+#include "assist/SketchCanvasPanel.h"
 #include "SketchEffectDrawing.h"
+
+#include <wx/dir.h>
+#include <wx/listbox.h>
 
 class Model;
 class MHPresetBitmapButton;

@@ -11,6 +11,8 @@
 #include "MhChannelDialog.h"
 #include "MhChannel.h"
 #include "MhFeature.h"
+#include "../../../UtilFunctions.h"
+#include <wx/xml/xml.h>
 
 //(*InternalHeaders(MhChannelDialog)
 #include <wx/font.h>

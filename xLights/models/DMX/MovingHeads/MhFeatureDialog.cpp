@@ -13,6 +13,8 @@
 #include "MhChannelDialog.h"
 #include "tmGridCell.h"
 
+#include "../../../UtilFunctions.h"
+
 //(*InternalHeaders(MhFeatureDialog)
 #include <wx/intl.h>
 #include <wx/string.h>

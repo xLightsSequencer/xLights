@@ -12,7 +12,7 @@
 #include "MovingHeadEffect.h"
 #include "MovingHeadPanels/MHPresetBitmapButton.h"
 #include "MovingHeadPanels/MHPathPresetBitmapButton.h"
-#include "Model.h"
+#include "../models/Model.h"
 #include "../models/DMX/DmxMovingHeadAdv.h"
 #include "../models/DMX/DmxColorAbility.h"
 #include "../xLightsMain.h"
@@ -23,6 +23,10 @@
 #include "../models/ModelGroup.h"
 #include "xLightsApp.h"
 #include <wx/stdpaths.h>
+
+#include "ExternalHooks.h"
+
+#include <log4cpp/Category.hh>
 
 //(*InternalHeaders(MovingHeadPanel)
 #include <wx/bitmap.h>

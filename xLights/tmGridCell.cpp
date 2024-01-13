@@ -10,6 +10,9 @@
 
 #include "tmGridCell.h"
 
+#include "utils/string_utils.h"
+#include <wx/renderer.h>
+
 wxGridCellButtonRenderer::
 wxGridCellButtonRenderer(wxString label)
 {
@@ -156,10 +159,10 @@ OnCellChanged(wxGridEvent &evt)
 
 void wxGridCellButtonRenderer::DrawCloseButton(wxDC& dc, const wxRect &rect)
 {
-#ifdef __WXMSW__
-        // DrawTitleBarBitmap() is only available on MSW and OS X according to wx/renderer.h
-        wxRendererNative::Get().DrawTitleBarBitmap(&grid, dc, rect, wxTITLEBAR_BUTTON_CLOSE, wxCONTROL_CURRENT);
-#else
+//#ifdef __WXMSW__
+//        // DrawTitleBarBitmap() is only available on MSW and OS X according to wx/renderer.h
+ //   wxRendererNative::Get().DrawTitleBarBitmap(grid->parrent(), dc, rect, wxTITLEBAR_BUTTON_CLOSE, wxCONTROL_CURRENT);
+//#else
     // Drawing manually on macOS cause wxWidgets was not producing a good result
     wxColour glyphColor("#FF605C");
     wxColour lineColor(0,0,0);
@@ -175,7 +178,7 @@ void wxGridCellButtonRenderer::DrawCloseButton(wxDC& dc, const wxRect &rect)
     dc.SetPen(lineColor);
     dc.DrawLine(centerRect.GetTopLeft(), centerRect.GetBottomRight());
     dc.DrawLine(centerRect.GetTopRight(), centerRect.GetBottomLeft());
-#endif
+//#endif
 }
 
 void wxGridCellButtonRenderer::DrawTextButton(wxDC& dc, const wxRect &rect, wxGrid &grid)

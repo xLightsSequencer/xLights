@@ -11,8 +11,7 @@
  **************************************************************/
 
 #include "DmxColorAbility.h"
-
-
+#include "../../Color.h"
 
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;

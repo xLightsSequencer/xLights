@@ -11,10 +11,12 @@
  **************************************************************/
 
 #include <wx/geometry.h>
+#include <wx/bitmap.h>
 
 #include <memory>
 #include <vector>
 
+#include "Color.h"
 #include "MHColorPanel.h"
 
 class IMHColorWheelPanelParent

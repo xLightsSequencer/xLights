@@ -10,6 +10,16 @@
 
 #include "MHPresetBitmapButton.h"
 
+#include "../../Color.h"
+#include "../../utils/string_utils.h"
+#include "../../UtilFunctions.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtx/matrix_transform_2d.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+
+#include <map>
+
 MHPresetBitmapButton::MHPresetBitmapButton(wxWindow* parent, wxWindowID id, const wxBitmapBundle& bitmap, const wxPoint& pos,
     const wxSize& size, long style, const wxValidator& validator,
     const wxString& name)

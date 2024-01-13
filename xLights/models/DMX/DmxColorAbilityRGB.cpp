@@ -16,7 +16,7 @@
 #include "../BaseObject.h"
 #include "../Model.h"
 
-#include "../../Color.h"
+
 #include "../Node.h"
 
 void DmxColorAbilityRGB::InitColor( wxXmlNode* ModelXml)

@@ -9,11 +9,13 @@
  **************************************************************/
 
 #include "MHColorWheelPanel.h"
-#include "Color.h"
 
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
 #include <wx/rawbmp.h>
+
+#include <glm/gtx/rotate_vector.hpp>
+#include "../../UtilFunctions.h"
 
 namespace
 {
@@ -269,7 +271,7 @@ std::string MHColorWheelPanel::GetColour()
 void MHColorWheelPanel::SetColours( const std::string& _colors )
 {
     wxArrayString colors = wxSplit(_colors, ',');
-    unsigned long num_colors {colors.size() / 3};
+    unsigned long num_colors = colors.size() / 3;
     for( int i = 0; i < num_colors; ++i ) {
         double hue { wxAtof(colors[i*3]) };
         double sat { wxAtof(colors[i*3+1]) };

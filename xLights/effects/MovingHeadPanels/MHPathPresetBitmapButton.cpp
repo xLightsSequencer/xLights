@@ -9,7 +9,11 @@
  **************************************************************/
 
 #include "MHPathPresetBitmapButton.h"
-#include "SketchEffectDrawing.h"
+#include "../SketchEffectDrawing.h"
+
+#include "Color.h"
+
+#include <wx/graphics.h>
 
 MHPathPresetBitmapButton::MHPathPresetBitmapButton(wxWindow* parent, wxWindowID id, const wxBitmapBundle& bitmap, const wxPoint& pos,
     const wxSize& size, long style, const wxValidator& validator,

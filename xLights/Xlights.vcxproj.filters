@@ -1046,6 +1046,46 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="TempFileManager.cpp" />
+    <ClCompile Include="xlColourData.cpp" />
+    <ClCompile Include="effects\MovingHeadEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanels\MovingHeadCanvasPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\MovingHeads\MhChannel.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\MovingHeads\MhChannelDialog.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\MovingHeads\MhFeature.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\MovingHeads\MhFeatureDialog.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanels\MHRgbPickerPanel.cpp">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanels\MHPresetBitmapButton.cpp">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanels\MHPathPresetBitmapButton.cpp">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanels\MHColorWheelPanel.cpp">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxMotor.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxMovingHeadAdv.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2105,6 +2145,49 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="TempFileManager.h" />
+    <ClInclude Include="xlColourData.h" />
+    <ClInclude Include="effects\MovingHeadEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MovingHeadCanvasPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\MovingHeads\MhChannel.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\MovingHeads\MhChannelDialog.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\MovingHeads\MhFeature.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\MovingHeads\MhFeatureDialog.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MHColorPanel.h">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MHRgbPickerPanel.h">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MHPresetBitmapButton.h">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MHPathPresetBitmapButton.h">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MHColorWheelPanel.h">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxMotor.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxMovingHeadAdv.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2148,6 +2231,9 @@
     </Filter>
     <Filter Include="graphics\opengl\GL">
       <UniqueIdentifier>{6ee588bc-dc96-462e-b373-e36fbb8a27e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\MovingHeadPanels">
+      <UniqueIdentifier>{dea5bd41-37f4-437f-872b-6b26dc00a5c9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

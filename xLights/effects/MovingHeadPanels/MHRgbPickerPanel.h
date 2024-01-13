@@ -11,11 +11,14 @@
  **************************************************************/
 
 #include <wx/geometry.h>
+#include <wx/bitmap.h>
 
 #include <memory>
 #include <vector>
 
 #include "MHColorPanel.h"
+
+#include "../../Color.h"
 
 class IMHRgbPickerPanelParent
 {
@@ -86,7 +89,7 @@ private:
 
     void CreateHsvBitmap(const wxSize& newSize);
     void CreateHsvBitmapMask();
-    wxBitmap* m_hsvBitmap;
-    wxMask* m_hsvMask;
+    wxBitmap* m_hsvBitmap{ nullptr };
+    wxMask* m_hsvMask{ nullptr };
 };
 
