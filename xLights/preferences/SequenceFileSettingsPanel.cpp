@@ -92,7 +92,7 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	RenderCacheChoice->Append(_("Disabled"));
 	GridBagSizer1->Add(RenderCacheChoice, wxGBPosition(4, 1), wxDefaultSpan, wxALL, 5);
 	StaticText2 = new wxStaticText(this, wxID_ANY, _("Auto Save Interval"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    StaticText2->SetToolTip(_("A backup file (.bkp) will be created of the current open sequence at this interval. No render created."));
+	StaticText2->SetToolTip(_("A backup file (.bkp) will be created of the current open sequence at this interval. No render created."));
 	GridBagSizer1->Add(StaticText2, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	AutoSaveIntervalChoice = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
 	AutoSaveIntervalChoice->Append(_("Disabled"));
@@ -159,7 +159,7 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
 	StaticBoxSizer1->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	GridBagSizer1->Add(StaticBoxSizer1, wxGBPosition(7, 0), wxGBSpan(1, 2), wxALL|wxEXPAND, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT2, _("Default View for New Sequences"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    StaticText5->SetToolTip(_("This view will be copied and used as your master view for a new sequence."));
+	StaticText5->SetToolTip(_("This view will be copied and used as your master view for a new sequence."));
 	GridBagSizer1->Add(StaticText5, wxGBPosition(3, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ViewDefaultChoice = new wxChoice(this, ID_CHOICE_VIEW_DEFAULT, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_DEFAULT"));
 	ViewDefaultChoice->SetMinSize(wxSize(200, -1));
