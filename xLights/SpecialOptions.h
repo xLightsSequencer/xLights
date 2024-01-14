@@ -17,6 +17,7 @@
 #include <map>
 #include <log4cpp/Category.hh>
 #include "ExternalHooks.h"
+#include "UtilFunctions.h"
 
 // Special options are read from an xml file in the show folder
 // its use is for options we want the user to be able to set when required but not common enough to put in the UI
@@ -37,7 +38,7 @@ public:
         static bool __loaded = false;
         static std::map<std::string, std::string> __cache;
 
-        std::string file = StashShowDir() + wxFileName::GetPathSeparator() + "special.options";
+        std::string file = StashShowDir() + GetPathSeparator() + "special.options";
 
         if (option == "")
         {

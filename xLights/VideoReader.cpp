@@ -22,7 +22,6 @@ extern "C" {
 #include <libavutil/hwcontext.h>
 }
 
-#include "SpecialOptions.h"
 #include <log4cpp/Category.hh>
 
 #ifdef __WXOSX__
