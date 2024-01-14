@@ -20,6 +20,7 @@
 #include "outputs/ControllerEthernet.h"
 #include "../xSchedule/wxJSON/jsonval.h"
 #include <wx/secretstore.h>
+#include <set>
 
 class wxWindow;
 class wxDatagramSocket;

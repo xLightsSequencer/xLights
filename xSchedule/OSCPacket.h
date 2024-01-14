@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <string>
+#include <cstdint>
 
 class OSCOptions;
 
