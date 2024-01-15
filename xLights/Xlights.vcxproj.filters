@@ -1046,6 +1046,8 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="TempFileManager.cpp" />
+    <ClCompile Include="xlColourData.cpp" />
+    <ClCompile Include="SpecialOptions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2105,6 +2107,7 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="TempFileManager.h" />
+    <ClInclude Include="xlColourData.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

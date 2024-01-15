@@ -129,6 +129,8 @@
 
 #include "wxWEBPHandler/wx/imagwebp.h"
 
+#include <log4cpp/Category.hh>
+
 //(*InternalHeaders(xLightsFrame)
 #include <wx/bitmap.h>
 #include <wx/image.h>

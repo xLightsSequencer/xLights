@@ -32,6 +32,8 @@
 #include "GenericSerialOutput.h"
 #include "../models/ModelManager.h"
 
+#include <log4cpp/Category.hh>
+
 #pragma region Property Choices
 wxPGChoices ControllerSerial::__types;
 wxPGChoices ControllerSerial::__ports;
