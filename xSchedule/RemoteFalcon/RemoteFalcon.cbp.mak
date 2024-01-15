@@ -40,9 +40,9 @@ OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../../bin/RemoteFalcon.so
 
-OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/RemoteFalconSettingsDialog.o $(OBJDIR_LINUX_DEBUG)/RemoteFalconOptions.o $(OBJDIR_LINUX_DEBUG)/RemoteFalconMain.o $(OBJDIR_LINUX_DEBUG)/RemoteFalconApp.o $(OBJDIR_LINUX_DEBUG)/__/__/common/xlBaseApp.o $(OBJDIR_LINUX_DEBUG)/__/wxJSON/jsonval.o $(OBJDIR_LINUX_DEBUG)/__/wxJSON/jsonreader.o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/UtilFunctions.o
+OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/RemoteFalconSettingsDialog.o $(OBJDIR_LINUX_DEBUG)/RemoteFalconOptions.o $(OBJDIR_LINUX_DEBUG)/RemoteFalconMain.o $(OBJDIR_LINUX_DEBUG)/RemoteFalconApp.o $(OBJDIR_LINUX_DEBUG)/__/__/common/xlBaseApp.o $(OBJDIR_LINUX_DEBUG)/__/wxJSON/jsonval.o $(OBJDIR_LINUX_DEBUG)/__/wxJSON/jsonreader.o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/SpecialOptions.o
 
-OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/RemoteFalconSettingsDialog.o $(OBJDIR_LINUX_RELEASE)/RemoteFalconOptions.o $(OBJDIR_LINUX_RELEASE)/RemoteFalconMain.o $(OBJDIR_LINUX_RELEASE)/RemoteFalconApp.o $(OBJDIR_LINUX_RELEASE)/__/__/common/xlBaseApp.o $(OBJDIR_LINUX_RELEASE)/__/wxJSON/jsonval.o $(OBJDIR_LINUX_RELEASE)/__/wxJSON/jsonreader.o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/UtilFunctions.o
+OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/RemoteFalconSettingsDialog.o $(OBJDIR_LINUX_RELEASE)/RemoteFalconOptions.o $(OBJDIR_LINUX_RELEASE)/RemoteFalconMain.o $(OBJDIR_LINUX_RELEASE)/RemoteFalconApp.o $(OBJDIR_LINUX_RELEASE)/__/__/common/xlBaseApp.o $(OBJDIR_LINUX_RELEASE)/__/wxJSON/jsonval.o $(OBJDIR_LINUX_RELEASE)/__/wxJSON/jsonreader.o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/SpecialOptions.o
 
 all: linux_debug linux_release
 
@@ -92,6 +92,9 @@ $(OBJDIR_LINUX_DEBUG)/__/__/xLights/xLightsTimer.o: ../../xLights/xLightsTimer.c
 $(OBJDIR_LINUX_DEBUG)/__/__/xLights/UtilFunctions.o: ../../xLights/UtilFunctions.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/UtilFunctions.o
 
+$(OBJDIR_LINUX_DEBUG)/__/__/xLights/SpecialOptions.o: ../../xLights/SpecialOptions.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../../xLights/SpecialOptions.cpp -o $(OBJDIR_LINUX_DEBUG)/__/__/xLights/SpecialOptions.o
+
 clean_linux_debug: 
 	rm -f $(OBJ_LINUX_DEBUG) $(OUT_LINUX_DEBUG)
 
@@ -139,6 +142,9 @@ $(OBJDIR_LINUX_RELEASE)/__/__/xLights/xLightsTimer.o: ../../xLights/xLightsTimer
 $(OBJDIR_LINUX_RELEASE)/__/__/xLights/UtilFunctions.o: ../../xLights/UtilFunctions.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/UtilFunctions.o
 
+$(OBJDIR_LINUX_RELEASE)/__/__/xLights/SpecialOptions.o: ../../xLights/SpecialOptions.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../../xLights/SpecialOptions.cpp -o $(OBJDIR_LINUX_RELEASE)/__/__/xLights/SpecialOptions.o
+
 clean_linux_release: 
 	rm -f $(OBJ_LINUX_RELEASE) $(OUT_LINUX_RELEASE)
 
@@ -154,19 +160,19 @@ RemoteFalconMain.h: ../../xLights/xLightsTimer.h RemoteFalconOptions.h RemoteFal
 
 RemoteFalcon.h: ../../xLights/UtilFunctions.h RemoteFalconOptions.h ../../xLights/SpecialOptions.h
 
-../../xLights/SpecialOptions.h: ../../xLights/ExternalHooks.h
-
-../../xLights/ExternalHooks.h: ../../xLights/Color.h
-
 RemoteFalconApp.cpp: RemoteFalconMain.h RemoteFalconApp.h ../../xLights/xLightsVersion.h ../../xLights/SpecialOptions.h
 
 ../../common/xlBaseApp.cpp: ../../xLights/ExternalHooks.h ../../xLights/xLightsVersion.h
+
+../../xLights/ExternalHooks.h: ../../xLights/Color.h
 
 ../../xLights/xLightsVersion.cpp: ../../xLights/xLightsVersion.h
 
 ../../xLights/xLightsTimer.cpp: ../../xLights/xLightsTimer.h
 
 ../../xLights/UtilFunctions.cpp: ../../xLights/UtilFunctions.h ../../xLights/xLightsVersion.h ../../xLights/ExternalHooks.h
+
+../../xLights/SpecialOptions.cpp: ../../xLights/SpecialOptions.h ../../xLights/ExternalHooks.h ../../xLights/UtilFunctions.h
 
 .PHONY: before_linux_debug after_linux_debug clean_linux_debug before_linux_release after_linux_release clean_linux_release
 

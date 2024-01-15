@@ -97,7 +97,7 @@ class SMSMessage
 
     wxString GetUIMessage() const
     {
-        if (!wmessage.empty())
+        if (!_message.empty())
         {
             return wxString(_from) + ": " + wxString(_wmessage);
         }
