@@ -317,6 +317,8 @@
 		<Unit filename="../../common/xlBaseApp.cpp" />
 		<Unit filename="../../common/xlBaseApp.h" />
 		<Unit filename="../../common/xlStackWalker.h" />
+		<Unit filename="../../SpecialOptions.cpp" />
+		<Unit filename="../../SpecialOptions.h" />
 		<Unit filename="../../xLights/UtilFunctions.cpp" />
 		<Unit filename="../../xLights/UtilFunctions.h" />
 		<Unit filename="../../xLights/xLightsTimer.cpp" />

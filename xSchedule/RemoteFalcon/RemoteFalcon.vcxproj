@@ -185,6 +185,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\xlBaseApp.cpp" />
+    <ClCompile Include="..\..\xLights\SpecialOptions.cpp" />
     <ClCompile Include="..\..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\..\xLights\utils\Curl.cpp" />
     <ClCompile Include="..\..\xLights\xLightsVersion.cpp" />
