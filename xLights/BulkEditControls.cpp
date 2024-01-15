@@ -103,7 +103,7 @@ void BulkEditFilePickerCtrl::ValidateControl()
         if (file.Contains(',')) {
             GetTextCtrl()->SetBackgroundColour(*wxYELLOW);
             SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
-        } else if (!FileExists(file)) {
+        } else if (!FileExists(file) && !file.IsEmpty()) {
             GetTextCtrl()->SetBackgroundColour(*wxRED);
             SetToolTip("File " + file + " does not exist.");
         } else {
