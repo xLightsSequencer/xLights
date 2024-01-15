@@ -666,7 +666,7 @@ bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, con
         char result[4096];
 
         std::wstring s;
-        if (wtext != "")
+        if (!wtext.empty())
         {
             s = wtext;
         }
