@@ -580,6 +580,7 @@
     <ClCompile Include="..\xLights\utils\CurlManager.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="..\xLights\SpecialOptions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\xlBaseApp.h" />

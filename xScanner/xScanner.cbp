@@ -264,6 +264,8 @@
 		<Unit filename="../xLights/JobPool.h" />
 		<Unit filename="../xLights/Parallel.cpp" />
 		<Unit filename="../xLights/Parallel.h" />
+		<Unit filename="../xLights/SpecialOptions.cpp" />
+		<Unit filename="../xLights/SpecialOptions.h" />
 		<Unit filename="../xLights/TraceLog.cpp" />
 		<Unit filename="../xLights/TraceLog.h" />
 		<Unit filename="../xLights/UtilFunctions.cpp" />
