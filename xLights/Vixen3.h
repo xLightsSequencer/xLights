@@ -16,6 +16,7 @@
 
 #include <map>
 #include <cmath>
+#include <cstdint>
 
 struct VixenTiming
 {

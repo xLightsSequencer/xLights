@@ -13,6 +13,7 @@
 
 #include <string>
 #include <fstream>
+#include <cstdint>
 
 #include "CADPoint.h"
 

@@ -69,6 +69,7 @@
 #include "../xLights/outputs/ControllerEthernet.h"
 #include "../xLights/outputs/ControllerSerial.h"
 #include "RemoteModeConfigDialog.h"
+#include "ExternalHooks.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
