@@ -315,6 +315,7 @@
 		<Unit filename="../xLights/Parallel.cpp" />
 		<Unit filename="../xLights/Parallel.h" />
 		<Unit filename="../xLights/SequenceData.cpp" />
+		<Unit filename="../xLights/SpecialOptions.cpp" />
 		<Unit filename="../xLights/TraceLog.cpp" />
 		<Unit filename="../xLights/TraceLog.h" />
 		<Unit filename="../xLights/UtilFunctions.cpp" />
@@ -404,8 +405,8 @@
 		<Unit filename="../xLights/outputs/xxxEthernetOutput.h" />
 		<Unit filename="../xLights/outputs/xxxSerialOutput.cpp" />
 		<Unit filename="../xLights/outputs/xxxSerialOutput.h" />
-        <Unit filename="../xLights/utils/Curl.cpp" />
-        <Unit filename="../xLights/utils/Curl.h" />
+		<Unit filename="../xLights/utils/Curl.cpp" />
+		<Unit filename="../xLights/utils/Curl.h" />
 		<Unit filename="../xLights/utils/CurlManager.cpp" />
 		<Unit filename="../xLights/utils/CurlManager.h" />
 		<Unit filename="../xLights/utils/ip_utils.cpp" />
@@ -462,10 +463,10 @@
 		<Unit filename="EventDialog.h" />
 		<Unit filename="EventE131Panel.cpp" />
 		<Unit filename="EventE131Panel.h" />
-		<Unit filename="EventFPPPanel.cpp" />
-		<Unit filename="EventFPPPanel.h" />
 		<Unit filename="EventFPPCommandPresetPanel.cpp" />
 		<Unit filename="EventFPPCommandPresetPanel.h" />
+		<Unit filename="EventFPPPanel.cpp" />
+		<Unit filename="EventFPPPanel.h" />
 		<Unit filename="EventLorPanel.cpp" />
 		<Unit filename="EventLorPanel.h" />
 		<Unit filename="EventMIDIPanel.cpp" />
@@ -805,8 +806,8 @@
 		<Unit filename="wxsmith/EventDataPanel.wxs" />
 		<Unit filename="wxsmith/EventDialog.wxs" />
 		<Unit filename="wxsmith/EventE131Panel.wxs" />
-		<Unit filename="wxsmith/EventFPPPanel.wxs" />
 		<Unit filename="wxsmith/EventFPPCommandPresetPanel.wxs" />
+		<Unit filename="wxsmith/EventFPPPanel.wxs" />
 		<Unit filename="wxsmith/EventLorPanel.wxs" />
 		<Unit filename="wxsmith/EventMIDIPanel.wxs" />
 		<Unit filename="wxsmith/EventMQTTPanel.wxs" />
