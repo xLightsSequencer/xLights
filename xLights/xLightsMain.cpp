@@ -8617,7 +8617,7 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
 
     // wxString path = _T("/downloads/");
     wxString downloadUrl = wxT("https://xlights.org/downloads/");
-    wxString path = _T("/releases/");
+    wxString path = _T("/xlights.php");
     // wxString downloadUrl = wxT("https://xlights.org/releases/");
 
     logger_base.debug("Downloading %s", (const char*)downloadUrl.c_str());
