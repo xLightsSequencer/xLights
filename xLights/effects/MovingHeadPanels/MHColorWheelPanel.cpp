@@ -20,11 +20,13 @@
 namespace
 {
     const int BorderWidth = 5;
-    //const int handleRadius = 10;
+    const int handleRadius = 10;
 }
 
 BEGIN_EVENT_TABLE(MHColorWheelPanel, wxPanel)
     EVT_PAINT(MHColorWheelPanel::OnPaint)
+    EVT_KEY_DOWN(MHColorWheelPanel::OnKeyDown)
+    EVT_KEY_UP(MHColorWheelPanel::OnKeyUp)
     EVT_LEFT_DOWN(MHColorWheelPanel::OnLeftDown)
     EVT_LEFT_UP(MHColorWheelPanel::OnLeftUp)
     EVT_MOTION(MHColorWheelPanel::OnMouseMove)
@@ -78,7 +80,47 @@ void MHColorWheelPanel::OnPaint(wxPaintEvent& /*event*/)
     }
 
     pdc.DrawBitmap(*m_hsvBitmap, 0, 0, true);
-  
+
+    // draw color handles
+    int handle = 1;
+    for (auto it = m_handles.begin(); it != m_handles.end(); ++it) {
+        wxPoint ptUI {NormalizedToUI2((*it).pt)};
+        xlColor c {(*it).color};
+        wxBrush b {wxColour(c)};
+        pdc.SetBrush(b);
+        pdc.SetPen(*wxBLACK_PEN);
+        pdc.DrawCircle(ptUI, handleRadius-1);
+        pdc.DrawCircle(ptUI, handleRadius);
+        pdc.DrawCircle(ptUI, handleRadius+1);
+        pdc.SetTextForeground(wxColour(xlBLACK));
+        wxString text = wxString::Format("%d", handle);
+        pdc.DrawText(text, ptUI.x-4, ptUI.y-8);
+        handle++;
+    }
+}
+
+void MHColorWheelPanel::OnKeyDown(wxKeyEvent& event)
+{
+    int keycode = event.GetKeyCode();
+    if (keycode == WXK_DELETE) {
+        if( active_handle >= 0 ) {
+            m_handles.erase(m_handles.begin()+active_handle);
+            selected_point = -1;
+            active_handle = -1;
+            m_colorWheelParent->NotifyColorUpdated();
+            Refresh();
+        }
+    } else if (keycode == WXK_SHIFT) {
+        m_shiftdown = true;
+    }
+}
+
+void MHColorWheelPanel::OnKeyUp(wxKeyEvent& event)
+{
+    int keycode = event.GetKeyCode();
+    if (keycode == WXK_SHIFT) {
+        m_shiftdown = false;
+    }
 }
 
 void MHColorWheelPanel::OnLeftDown(wxMouseEvent& event)
@@ -87,8 +129,40 @@ void MHColorWheelPanel::OnLeftDown(wxMouseEvent& event)
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
     m_mousePos = UItoNormalized(ptUI);
     m_mouseDown = true;
+    HSVValue hsv;
+    if( m_handles.size() == 0 ) {
+        if( insideColors(ptUI.m_x, ptUI.m_y, hsv) ) {
+            m_handles.push_back(HandlePoint(m_mousePos, hsv));
+            selected_point = 0;
+            active_handle = 0;
+            m_colorWheelParent->NotifyColorUpdated();
+            Refresh();
+        }
+    } else if( insideColors(ptUI.m_x, ptUI.m_y, hsv) ) {
+        if( m_shiftdown ) {
+            if( m_handles.size() < colors.size() ) {
+                active_handle = m_handles.size();
+                m_handles.push_back(HandlePoint(m_mousePos, hsv));
+                selected_point = active_handle;
+                m_colorWheelParent->NotifyColorUpdated();
+                Refresh();
+            }
+        } else {
+            selected_point = HitTest(ptUI);
+            if( selected_point >= 0 ) {
+                active_handle = selected_point;
+                Refresh();
+            } else {
+                m_handles[active_handle].pt.m_x = m_mousePos.m_x;
+                m_handles[active_handle].pt.m_y = m_mousePos.m_y;
+                m_handles[active_handle].color = hsv;
+                selected_point = active_handle;
+                m_colorWheelParent->NotifyColorUpdated();
+                Refresh();
+            }
+        }
+    }
 }
-
 void MHColorWheelPanel::OnLeftUp(wxMouseEvent& event)
 {
     m_mouseDown = false;
@@ -97,9 +171,24 @@ void MHColorWheelPanel::OnLeftUp(wxMouseEvent& event)
 
 void MHColorWheelPanel::OnMouseMove(wxMouseEvent& event)
 {
-    //wxAffineMatrix2D m;
-    //wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
+    wxAffineMatrix2D m;
+    wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
     if( m_mouseDown ) {
+        if( selected_point != -1 ) {
+            HSVValue hsv;
+            if( insideColors(ptUI.m_x, ptUI.m_y, hsv) ) {
+                if( hsv.value == m_handles[selected_point].color.value &&
+                    hsv.saturation == m_handles[selected_point].color.saturation &&
+                    hsv.hue == m_handles[selected_point].color.hue ) {
+                    m_mousePos = UItoNormalized(ptUI);
+                    m_handles[selected_point].pt.m_x = m_mousePos.m_x;
+                    m_handles[selected_point].pt.m_y = m_mousePos.m_y;
+                    m_handles[selected_point].color = hsv;
+                    m_colorWheelParent->NotifyColorUpdated();
+                    Refresh();
+                }
+            }
+        }
     }
 }
 
@@ -110,7 +199,7 @@ void MHColorWheelPanel::OnEntered(wxMouseEvent& /*event*/)
 
 int MHColorWheelPanel::HitTest( wxPoint2DDouble& ptUI )
 {
-    /*for (int i = 0; i < m_handles.size(); ++i ) {
+    for (int i = 0; i < m_handles.size(); ++i ) {
         wxPoint2DDouble pt{NormalizedToUI(m_handles[i].pt)};
         if( (ptUI.m_x > pt.m_x - handleRadius) &&
         (ptUI.m_x < pt.m_x + handleRadius) &&
@@ -118,7 +207,7 @@ int MHColorWheelPanel::HitTest( wxPoint2DDouble& ptUI )
         (ptUI.m_y < pt.m_y + handleRadius) ) {
             return i;
         }
-    }*/
+    }
     return -1;
 }
 
@@ -174,50 +263,31 @@ void MHColorWheelPanel::CreateHsvBitmap(const wxSize& newSize)
     memDC.SetPen(*wxBLACK_PEN);
     memDC.SetBrush(*wxLIGHT_GREY_BRUSH);
     memDC.DrawCircle(center, center, radius);
+    m_filters.clear();
     for (auto const& col : colors) {
         float x = sin(glm::radians(start_angle)) * hyp + center;
         float y = cos(glm::radians(start_angle)) * hyp + center;
         memDC.SetBrush(wxColour(col.red,col.green,col.blue));
         memDC.DrawCircle(x, y, slot_radius);
         start_angle += pie_size;
+        m_filters.push_back(FilterLocation(x, y, slot_radius, col));
     }
 
     memDC.SelectObject(wxNullBitmap);
-    
-
-    /*
-    wxNativePixelData data(*m_hsvBitmap);
-    if ( !data )
-    {
-        // ... raw access to bitmap data unavailable
-        return;
-    }
-    wxNativePixelData::Iterator p(data);
-    for ( int y = 0; y < newSize.GetHeight(); ++y )
-    {
-        wxNativePixelData::Iterator rowStart = p;
-        for ( int x = 0; x < newSize.GetWidth(); ++x, ++p )
-        {
-            xlColor c {GetPointColor(x, y)};
-            p.Red() = c.red;
-            p.Green() = c.green;
-            p.Blue() = c.blue;
-        }
-        p = rowStart;
-        p.OffsetY(data, 1);
-    }*/
 }
 
-bool MHColorWheelPanel::insideColors(int x, int y)
+bool MHColorWheelPanel::insideColors(int x, int y, HSVValue& hsv)
 {
-    float xleg = (float)x - center;
-    float yleg = (float)y - center;
-    float hyp = sqrt(xleg * xleg + yleg * yleg);
-    if( hyp <= radius ) {  // inside circle
-        return true;
-    } else {
-        return false;
+    for (auto const& filter : m_filters) {
+        float xleg = (float)x - filter.x;
+        float yleg = (float)y - filter.y;
+        float hyp = sqrt(xleg * xleg + yleg * yleg);
+        if( hyp <= filter.radius ) {  // inside a filter
+            hsv = filter.color;
+            return true;
+        }
     }
+    return false;
 }
 
 xlColor MHColorWheelPanel::GetPointColor(int x, int y)
@@ -251,8 +321,8 @@ void MHColorWheelPanel::CreateHsvBitmapMask()
 
 std::string MHColorWheelPanel::GetColour()
 {
-/*    if( m_handles.size() >= 0 ) {
-        std::string text{"Color: "};
+    if( m_handles.size() >= 0 ) {
+        std::string text{"Wheel: "};
         bool add_comma = false;
         for (auto it = m_handles.begin(); it != m_handles.end(); ++it) {
             wxString color = wxString::Format("%f,%f,%f", (*it).color.hue, (*it).color.saturation, (*it).color.value);
@@ -263,9 +333,9 @@ std::string MHColorWheelPanel::GetColour()
             add_comma = true;
         }
         return text;
-    } else {*/
+    } else {
         return "Wheel: 0,0,0";
-    //}
+    }
 }
 
 void MHColorWheelPanel::SetColours( const std::string& _colors )
@@ -290,7 +360,10 @@ void MHColorWheelPanel::SetColours( const std::string& _colors )
 
 void MHColorWheelPanel::DefineColours( xlColorVector& _colors )
 {
-    colors = _colors;
-    CreateHsvBitmap(wxSize(256, 256));
-    CreateHsvBitmapMask();
+    if (_colors != colors) {
+        colors = _colors;
+        CreateHsvBitmap(wxSize(256, 256));
+        CreateHsvBitmapMask();
+    }
 }
+

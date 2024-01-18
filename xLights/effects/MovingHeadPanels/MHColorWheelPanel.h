@@ -43,6 +43,28 @@ public:
 
 private:
 
+    struct HandlePoint {
+        HandlePoint(wxPoint2DDouble _pt, HSVValue _color ) :
+            pt(_pt),
+            color(_color)
+        {}
+        wxPoint2DDouble pt;
+        HSVValue color;
+    };
+
+    struct FilterLocation {
+        FilterLocation(int _x, int _y, float _radius, HSVValue _color ) :
+            x(_x),
+            y(_y),
+            radius(_radius),
+            color(_color)
+        {}
+        float x;
+        float y;
+        float radius;
+        HSVValue color;
+    };
+
     DECLARE_EVENT_TABLE()
 
     void OnPaint(wxPaintEvent& event);
@@ -50,6 +72,8 @@ private:
     void OnLeftUp(wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent& event);
     void OnEntered(wxMouseEvent& event);
+    void OnKeyDown(wxKeyEvent& event);
+    void OnKeyUp(wxKeyEvent& event);
 
     wxPoint2DDouble UItoNormalized(const wxPoint2DDouble& pt) const;
     wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt) const;
@@ -59,10 +83,15 @@ private:
     wxPoint2DDouble m_mousePos;
     bool m_mouseDown {false};
     bool m_mouseDClick {false};
+    bool m_shiftdown {false};
 
     int HitTest( wxPoint2DDouble& ptUI );
-    bool insideColors(int x, int y);
+    bool insideColors(int x, int y, HSVValue& hsv);
     xlColor GetPointColor(int x, int y);
+    std::vector<HandlePoint> m_handles;
+    std::vector<FilterLocation> m_filters;
+    int selected_point {-1};
+    int active_handle {-1};
     double center {0};
     double radius {0};
 

@@ -433,11 +433,11 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerColor->Add(m_rgbColorPanel, 0, wxALL | wxEXPAND);
     Notebook2->AddPage(PanelColor, _("Color"), false);
     PanelColor->Show();
-    // Delete Colorwheel page for now
+    // Delete Colorwheel page
     while(Notebook2->GetPageCount()>1) {
         Notebook2->RemovePage(1);
     }
-    //UpdateColorPanel();
+    UpdateColorPanel();
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(MovingHeadPanel::OnCharHook), (wxObject*) nullptr, this);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&MovingHeadPanel::OnResize);
@@ -772,6 +772,7 @@ void MovingHeadPanel::OnButtonPathPresetClick(wxCommandEvent& event)
         selected_path = -1;
     }
     recall = false;
+    UpdateMHSettings();
     FireChangeEvent();
 }
 
@@ -857,38 +858,63 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
 void MovingHeadPanel::UpdateColorPanel()
 {
     // Color Wheel disabled for now
-/*    auto models = GetActiveModels();
+    auto models = GetActiveModels();
     bool wheel_active = false;
+    unsigned int num_colors = 0;
     for (const auto& it : models) {
         if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
             DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
             bool active = IsHeadActive(mhead->GetFixtureVal());
-            if( active && mhead->HasColorAbility() ) {
-                DmxColorAbility* ptrColorAbility = mhead->GetColorAbility();
-                std::string color_type = ptrColorAbility->GetTypeName();
-                if( color_type == "ColorWheel" ){
-                    wheel_active = true;
+            if( active ) {
+                if( mhead->HasColorAbility() ) {
+                    DmxColorAbility* ptrColorAbility = mhead->GetColorAbility();
+                    std::string color_type = ptrColorAbility->GetTypeName();
+                    if (color_type == "ColorWheel" ) {
+                        if (wheel_active) {
+                            // multiple color wheels so check if num colors is the same
+                            if ( ptrColorAbility->GetColors().size() != num_colors ) {
+                                wheel_active = false;
+                                break;
+                            }
+                        } else {
+                            wheel_active = true;
+                            num_colors = ptrColorAbility->GetColors().size();
+                        }
+                    } else {
+                        wheel_active = false;
+                        break;
+                    }
+                } else {
+                    wheel_active = false;
                     break;
                 }
             }
+        } else {
+            wheel_active = false;
+            break;
         }
     }
     
     if( wheel_active ) {
+        DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)models.front();
+        DmxColorAbility* ptrColorAbility = mhead->GetColorAbility();
+        auto colors = ptrColorAbility->GetColors();
         if( m_wheelColorPanel == nullptr) {
-            xlColorVector colors;
-            colors.push_back(xlRED);
+            /*colors.push_back(xlRED);
             colors.push_back(xlGREEN);
             colors.push_back(xlBLUE);
             colors.push_back(xlWHITE);
             colors.push_back(xlCYAN);
             colors.push_back(xlORANGE);
             colors.push_back(xlYELLOW);
-            colors.push_back(xlPURPLETRANSLUCENT);
+            colors.push_back(xlPURPLETRANSLUCENT);*/
             m_wheelColorPanel = new MHColorWheelPanel(this, PanelColorWheel, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
             m_wheelColorPanel->DefineColours(colors);
             FlexGridSizerColorWheel->Add(m_wheelColorPanel, 0, wxALL | wxEXPAND);
             PanelColorWheel->Show();
+        } else {
+            // check if number of colors is still the same
+            m_wheelColorPanel->DefineColours(colors);
         }
         if( Notebook2->GetPageCount() == 1 ) {
             Notebook2->AddPage(PanelColorWheel, _("ColorWheel"), false);
@@ -897,7 +923,7 @@ void MovingHeadPanel::UpdateColorPanel()
         while(Notebook2->GetPageCount()>1) {
             Notebook2->RemovePage(1);
         }
-    }*/
+    }
 }
     
 void MovingHeadPanel::UpdateMHSettings()
@@ -989,9 +1015,6 @@ void MovingHeadPanel::UpdateMHSettings()
                 }
 
                 if( is_path ) {
-                    if( mh_settings == xlEMPTY_STRING ) {
-                        mh_settings = "Pan: 0.0;Tilt: 0.0;PanOffset: 0.0;TiltOffset: 0.0;Groupings: 1;" + headset;
-                    }
                     AddPath( mh_settings );
                     AddSetting( "PathScale", "PathScale", mh_settings );
                     AddSetting( "TimeOffset", "TimeOffset", mh_settings );
