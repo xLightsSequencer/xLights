@@ -1406,8 +1406,9 @@ TestPreset* OutputManager::CreateTestPreset(std::string preset) {
 
 void OutputManager::DeleteTestPreset()
 {
-    for (auto&& tp : _testPresets) {
+    for (auto& tp : _testPresets) {
         delete tp;
     }
+    _testPresets.clear();
 }
 #pragma endregion 
