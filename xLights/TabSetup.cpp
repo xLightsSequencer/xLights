@@ -296,6 +296,14 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         logger_base.debug("FSEQ Directory set to : %s.", (const char*)fseqDirectory.c_str());
     }
 
+    long xsqLinkFlag = 0;
+    config->Read(_("XSQLinkFlag"), &xsqLinkFlag);
+    if (xsqLinkFlag) {
+        xsqDirectory = CurrentDir;
+        config->Write(_("XSQDir"), wxString(xsqDirectory));
+        logger_base.debug("Sequence XSQ Directory set to : %s.", (const char*)xsqDirectory.c_str());
+    }
+
     EnableNetworkChanges();
     DisplayXlightsFilename(wxEmptyString);
 

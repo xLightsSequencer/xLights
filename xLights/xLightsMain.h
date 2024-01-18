@@ -390,6 +390,7 @@ public:
     static xLightsXmlFile* CurrentSeqXmlFile; // global object for currently opened XML file
     const std::string &GetShowDirectory() const { return showDirectory; }
     const std::string &GetFseqDirectory() const { return fseqDirectory; }
+    const std::string &GetXsqDirectory() const { return xsqDirectory; }
     static wxString GetFilename() { return xlightsFilename; }
     void ConversionInit();
     void ConversionError(const wxString& msg);
@@ -1129,6 +1130,8 @@ public:
     void SetMediaFolders(const std::list<std::string> &folders);
     void GetFSEQFolder(bool& useShow, std::string& folder);
     void SetFSEQFolder(bool useShow, const std::string& folder);
+    void GetXSQFolder(bool& useShow, std::string& folder);
+    void SetXSQFolder(bool useShow, const std::string& folder);
     void GetRenderCacheFolder(bool& useShow, std::string& folder);
     void SetRenderCacheFolder(bool useShow, const std::string& folder);
     void UpdateViewMenu();
@@ -1373,6 +1376,7 @@ public:
     std::string showDirectory;
     std::list<std::string> mediaDirectories;
     std::string fseqDirectory;
+    std::string xsqDirectory;
     std::string renderCacheDirectory;
     std::string _backupDirectory;
     SeqDataType _seqData;

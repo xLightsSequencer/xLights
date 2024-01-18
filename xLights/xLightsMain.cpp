@@ -4292,6 +4292,44 @@ void xLightsFrame::SetFSEQFolder(bool useShow, const std::string& folder)
     logger_base.debug("FSEQ directory set to : %s.", (const char*)fseqDirectory.c_str());
 }
 
+void xLightsFrame::GetXSQFolder(bool& useShow, std::string& folder)
+{
+    useShow = (showDirectory == xsqDirectory);
+    folder = xsqDirectory;
+}
+
+void xLightsFrame::SetXSQFolder(bool useShow, const std::string& folder)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxConfigBase* config = wxConfigBase::Get();
+
+    if (useShow) {
+        config->Write("XSQLinkFlag", true);
+        if (xsqDirectory == showDirectory)
+            return;
+        xsqDirectory = showDirectory;
+    } else {
+        if (wxDir::Exists(folder)) {
+            ObtainAccessToURL(folder);
+            config->Write("XSQLinkFlag", false);
+            if (xsqDirectory == folder)
+                return;
+            xsqDirectory = folder;
+        } else {
+            DisplayError("Sequence XSQ directory does not exist. XSQ folder was not changed to " + folder + ". XSQ folder remains : " + xsqDirectory, this);
+            return;
+        }
+    }
+
+    SetXmlSetting("xsqDir", xsqDirectory);
+    UnsavedRgbEffectsChanges = true;
+    UpdateLayoutSave();
+    UpdateControllerSave();
+
+    logger_base.debug("Sequence XSQ directory set to : %s.", (const char*)xsqDirectory.c_str());
+}
+
 void xLightsFrame::GetRenderCacheFolder(bool& useShow, std::string& folder)
 {
     useShow = (showDirectory == renderCacheDirectory);

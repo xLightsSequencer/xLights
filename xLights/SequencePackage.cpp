@@ -94,6 +94,7 @@ void SequencePackage::InitDefaultImportOptions()
     // can still change these in the Mapping Dialog to whatever they would like.
 
     std::string showFolder = _xlights->GetShowDirectory();
+    wxString xsqDir = _xlights->GetXsqDirectory();
 
     // always default faces/shaders to default download folder as they tend to be reused
     _importOptions.SetDir(MediaTargetDir::FACES_DIR, wxString::Format("%s%c%s", showFolder, PATH_SEP, SUBFLD_FACES), true);
@@ -104,7 +105,7 @@ void SequencePackage::InitDefaultImportOptions()
 
     wxString mediaBaseFolder;
 
-    if (targetDir.ToStdString() != showFolder) {
+    if (targetDir.ToStdString() != showFolder && targetDir.ToStdString() != xsqDir) {
         // target xsq is not at the root of show folder, assume user manages show folder
         // with a subfolder per sequence as Gil noted
         mediaBaseFolder = targetDir;
