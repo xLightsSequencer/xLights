@@ -36,7 +36,7 @@ public:
     virtual ~MHColorWheelPanel();
 
     virtual std::string GetColour() override;
-    virtual bool HasColour() override { return false; }
+    virtual bool HasColour() override { return m_handles.size() > 0; }
     virtual void SetColours( const std::string& _colors ) override;
     void DefineColours( xlColorVector& _colors );
     void OnSize(wxSizeEvent& event);

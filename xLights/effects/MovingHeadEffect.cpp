@@ -205,6 +205,8 @@ void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, co
                     path_scale = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
                 } else if( cmd_type == "Color" ) {
                     colors = wxSplit(settings, ',');
+                } else if( cmd_type == "Wheel" ) {
+                    colors = wxSplit(settings, ',');
                 }
             }
 

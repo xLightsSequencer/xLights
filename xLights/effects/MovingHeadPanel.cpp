@@ -857,7 +857,7 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
 
 void MovingHeadPanel::UpdateColorPanel()
 {
-    // Color Wheel disabled for now
+    DmxMovingHeadAdv* first_mhead{nullptr};
     auto models = GetActiveModels();
     bool wheel_active = false;
     unsigned int num_colors = 0;
@@ -879,6 +879,9 @@ void MovingHeadPanel::UpdateColorPanel()
                         } else {
                             wheel_active = true;
                             num_colors = ptrColorAbility->GetColors().size();
+                            if( first_mhead == nullptr ) {
+                                first_mhead = mhead;
+                            }
                         }
                     } else {
                         wheel_active = false;
@@ -896,8 +899,7 @@ void MovingHeadPanel::UpdateColorPanel()
     }
     
     if( wheel_active ) {
-        DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)models.front();
-        DmxColorAbility* ptrColorAbility = mhead->GetColorAbility();
+        DmxColorAbility* ptrColorAbility = first_mhead->GetColorAbility();
         auto colors = ptrColorAbility->GetColors();
         if( m_wheelColorPanel == nullptr) {
             /*colors.push_back(xlRED);
@@ -1029,6 +1031,15 @@ void MovingHeadPanel::UpdateMHSettings()
                     }
                 }
 
+                // Add Color Wheel color settings
+                if( m_wheelColorPanel != nullptr && m_wheelColorPanel->HasColour() ) {
+                    std::string color_text{m_wheelColorPanel->GetColour()};
+                    if( color_text != xlEMPTY_STRING ) {
+                        mh_settings += ";";
+                        mh_settings += color_text;
+                    }
+                }
+
                 // update the settings textbox
                 wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
                 wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
@@ -1056,7 +1067,7 @@ void MovingHeadPanel::UpdateColorSettings()
         rgb_active = true;
     }
 
-    if( m_wheelColorPanel != nullptr && m_wheelColorPanel->HasColour() ) {
+    if( m_wheelColorPanel != nullptr && m_wheelColorPanel->HasColour() && Notebook2->GetPageCount() > 1 ) {
         wheel_text = m_wheelColorPanel->GetColour();
         wheel_active = true;
     }
