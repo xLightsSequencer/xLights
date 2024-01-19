@@ -1101,7 +1101,7 @@ std::string xLightsFrame::GetPresetIconFilename(const std::string& preset) const
 {
     wxString filename = preset + ".gif";
     filename.Replace("/", "_");
-    return (showDirectory + wxFileName::GetPathSeparator() + "presets" + wxFileName::GetPathSeparator() + filename).ToStdString();
+    return (showDirectory + GetPathSeparator() + "presets" + GetPathSeparator() + filename).ToStdString();
 }
 
 void xLightsFrame::CreatePresetIcons()

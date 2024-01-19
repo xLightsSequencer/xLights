@@ -666,7 +666,7 @@ bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, con
         char result[4096];
 
         std::wstring s;
-        if (wtext != "")
+        if (!wtext.empty())
         {
             s = wtext;
         }
@@ -674,7 +674,11 @@ bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, con
         {
             s = std::wstring(text.begin(), text.end());
         }
-        std::wstring p = t + "," + s + ",";
+	static std::wstring COMMA = {','};
+        std::wstring p(t.begin(), t.end());
+        p += COMMA;
+        p += s;
+        p += COMMA;
         _action("Set current text", (const wchar_t*)p.c_str(), "", result, sizeof(result));
         std::string res(result);
 

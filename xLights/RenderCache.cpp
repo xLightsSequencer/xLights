@@ -195,7 +195,7 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
     Close();
 
     if (path != "") {
-        _baseCache = path + wxFileName::GetPathSeparator() + "RenderCache";
+        _baseCache = path + GetPathSeparator() + "RenderCache";
         EnforceMaximumSize();
     }
 
@@ -203,7 +203,7 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
     {
         if (sequenceFile != "")
         {
-            _cacheFolder = path + wxFileName::GetPathSeparator() + "RenderCache" + wxFileName::GetPathSeparator() + sequenceFile + "_RENDER_CACHE";
+            _cacheFolder = path + GetPathSeparator() + "RenderCache" + GetPathSeparator() + sequenceFile + "_RENDER_CACHE";
             if (wxDir::Exists(_cacheFolder))
             {
                 if (GetBitness() == "32bit")
@@ -222,11 +222,11 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
 
     if (sequenceFile != "")
     {
-        _cacheFolder = path + wxFileName::GetPathSeparator() + "RenderCache" + wxFileName::GetPathSeparator() + sequenceFile + "_RENDER_CACHE";
+        _cacheFolder = path + GetPathSeparator() + "RenderCache" + GetPathSeparator() + sequenceFile + "_RENDER_CACHE";
 
         if (!wxDir::Exists(_cacheFolder))
         {
-            wxString common = path + wxFileName::GetPathSeparator() + "RenderCache";
+            wxString common = path + GetPathSeparator() + "RenderCache";
             if (!wxDir::Exists(common))
             {
                 logger_base.debug("Creating render cache folder %s.", (const char *)common.c_str());
@@ -482,7 +482,7 @@ void RenderCache::CleanupCache(SequenceElements* sequenceElements)
 
 void RenderCache::SetRenderCacheFolder(const std::string& path)
 {
-    _baseCache = path + wxFileName::GetPathSeparator() + "RenderCache";
+    _baseCache = path + GetPathSeparator() + "RenderCache";
     EnforceMaximumSize();
 }
 
@@ -599,7 +599,7 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, Rende
             effect->GetParentEffectLayer()->GetLayerNumber(),
             effect->GetStartTimeMS()).ToStdString();
     _effectName = effect->GetEffectName();
-    _cacheFile = renderCache->GetCacheFolder() + wxFileName::GetPathSeparator() + file;
+    _cacheFile = renderCache->GetCacheFolder() + GetPathSeparator() + file;
     _properties["Effect"] = effect->GetEffectName();
     _properties["Element"] = effect->GetParentEffectLayer()->GetParentElement()->GetFullName();
     _properties["EffectLayer"] = wxString::Format("%d", effect->GetParentEffectLayer()->GetLayerNumber());

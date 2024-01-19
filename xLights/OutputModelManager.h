@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <list>
+#include <cstdint>
 
 class xLightsFrame;
 class BaseObject;

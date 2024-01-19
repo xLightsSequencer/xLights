@@ -611,7 +611,7 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
                         auto dirs = fn.GetDirs();    
                         for (int i = 0; i < dirs.size(); i++)
                         {
-                            auto pth = value + fn.GetPathSeparator();
+                            auto pth = value + GetPathSeparator();
                             for (int j = i; j < dirs.size(); j++) {
                                 pth += dirs[j] + fn.GetPathSeparator();
                             }

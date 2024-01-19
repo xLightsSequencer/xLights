@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.01 Jan 17, 2024
+   -- change(dkulp) Move repo to xLightsSequencer org, update headers and url locations
+   -- enh (dkulp) Auto-Build in xCode cloud, initial setup for TestFlights builds
+   -- enh (keith) Limited support for RGBWW pixels
+   -- enh (derwin12) Use rest for missing face phoneme
+   -- enh (tygunn) When a ruler is defined, show the X/Y/Z coordinates of models in the models export
+   -- bug (Scott) Clear test presets when switching show folders
+   -- bug (dkulp) Hopefully fix crash on macOS when changing audio devices
+   -- bug (dkulp) Use BitmapBundles for icons in Import Dialog (HiDPI updates)
+   -- bug (scott) Fix upload to WLED if different pixel types are used
+   -- bug (cpinkham) Fix compile with gcc 13
 2023.23 Dec 28, 2023
    -- enh (dkulp)     Convert "New Style" Pinwheel effect to use Meta GPU rendering on MacOS
    -- enh (scott)     Added Scheduling to HinksPix Export Dialog.

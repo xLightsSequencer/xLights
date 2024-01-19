@@ -1357,6 +1357,8 @@
 		<Unit filename="sequencer/Waveform.h" />
 		<Unit filename="sequencer/tabSequencer.cpp" />
 		<Unit filename="serial.h" />
+		<Unit filename="SpecialOptions.cpp" />
+		<Unit filename="SpecialOptions.h" />
 		<Unit filename="support/EzGrid.cpp" />
 		<Unit filename="support/EzGrid.h" />
 		<Unit filename="support/FastComboEditor.cpp" />

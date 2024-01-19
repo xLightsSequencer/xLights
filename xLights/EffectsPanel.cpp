@@ -66,7 +66,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager, wxTimer *ti
 
     for (const auto& it : *effectManager) {
         RenderableEffect *p = it;
-        wxScrolledWindow* sw = new wxScrolledWindow(EffectChoicebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL" + p->Name()));
+        wxScrolledWindow* sw = new wxScrolledWindow(EffectChoicebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, "ID_PANEL" + p->Name());
         xlEffectPanel *panel = p->GetPanel(sw);
         panel->AddChangeListeners(timer);
         wxFlexGridSizer *fgs = new wxFlexGridSizer(1, 1, 0, 0);

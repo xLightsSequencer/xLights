@@ -355,11 +355,11 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager) 
         wxCheckBox* CheckBox1 = new wxCheckBox(HinkControllerList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, CHECK_COL + rowStr);
         HinkControllerSizer->Add(CheckBox1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
         std::string l = it->GetIP();
-        wxStaticText* label = new wxStaticText(HinkControllerList, wxID_ANY, l, wxDefaultPosition, wxDefaultSize, 0, _T("ID_IPADDRESS_" + rowStr));
+        wxStaticText* label = new wxStaticText(HinkControllerList, wxID_ANY, l, wxDefaultPosition, wxDefaultSize, 0, "ID_IPADDRESS_" + rowStr);
         HinkControllerSizer->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 1);
-        label = new wxStaticText(HinkControllerList, wxID_ANY, it->GetName(), wxDefaultPosition, wxDefaultSize, 0, _T("ID_DESCRIPTION_" + rowStr));
+        label = new wxStaticText(HinkControllerList, wxID_ANY, it->GetName(), wxDefaultPosition, wxDefaultSize, 0, "ID_DESCRIPTION_" + rowStr);
         HinkControllerSizer->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 1);
-        label = new wxStaticText(HinkControllerList, wxID_ANY, it->GetModel(), wxDefaultPosition, wxDefaultSize, 0, _T("ID_MODEL_" + rowStr));
+        label = new wxStaticText(HinkControllerList, wxID_ANY, it->GetModel(), wxDefaultPosition, wxDefaultSize, 0, "ID_MODEL_" + rowStr);
         HinkControllerSizer->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 1);
 
         wxChoice* Choice1 = new wxChoice(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, MODE_COL + rowStr);
@@ -594,7 +594,7 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
 
             xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
 
-            std::string fseqName = frame->GetFseqDirectory() + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
+            std::string fseqName = frame->GetFseqDirectory() + GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
             if (isSequence) {
                 //need to check for existence of fseq
                 if (!FileExists(fseqName)) {
@@ -608,7 +608,7 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
                 if (!FileExists(mediaName)) {
                     wxFileName fn(mediaName);
                     for (auto const& md : frame->GetMediaFolders()) {
-                        std::string tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
+                        std::string tmn = md + GetPathSeparator() + fn.GetFullName();
                         if (FileExists(tmn)) {
                             mediaName = tmn;
                             break;

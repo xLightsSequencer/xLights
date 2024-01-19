@@ -354,6 +354,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="models\DMX\MovingHeads\MhChannelDialog.cpp" />
     <ClCompile Include="models\DMX\MovingHeads\MhFeature.cpp" />
     <ClCompile Include="models\DMX\MovingHeads\MhFeatureDialog.cpp" />
+    <ClCompile Include="SpecialOptions.cpp" />
     <ClCompile Include="TempFileManager.cpp" />
     <ClCompile Include="utils\CurlManager.cpp" />
     <ClCompile Include="utils\ip_utils.cpp" />

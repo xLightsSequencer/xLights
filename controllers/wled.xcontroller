@@ -11,6 +11,7 @@
         <AllInputUniversesMustBeSameSize/>
         <UniversesMustBeSequential/>
         <SupportsAutoLayout/>
+        <SupportsMultipleSimultaneousOutputProtocols/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
             <Protocol>sk6812rgbw</Protocol>

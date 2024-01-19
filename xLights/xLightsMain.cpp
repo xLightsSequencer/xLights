@@ -129,6 +129,8 @@
 
 #include "wxWEBPHandler/wx/imagwebp.h"
 
+#include <log4cpp/Category.hh>
+
 //(*InternalHeaders(xLightsFrame)
 #include <wx/bitmap.h>
 #include <wx/image.h>
@@ -2651,7 +2653,7 @@ bool xLightsFrame::ShowFolderIsInBackup(const std::string showdir)
     int i = showdir.length() - 1;
     wxString dir = "";
     while (i >= 0) {
-        if (showdir[i] == '\\' || showdir == '/') {
+        if (showdir[i] == '\\' || showdir == "/") {
             if (dir.Lower() == "backup") {
                 return true;
             }
@@ -2752,7 +2754,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
         return;
     }
 
-    wxString newDirBackup = _backupDirectory + wxFileName::GetPathSeparator() + "Backup";
+    wxString newDirBackup = _backupDirectory + GetPathSeparator() + "Backup";
 
     if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup)) {
         DisplayError(wxString::Format("Unable to create backup directory '%s'!", newDirBackup).ToStdString());
@@ -8562,7 +8564,7 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
         wxArrayString files = dlg.GetFileList();
         wxArrayString filesToRender;
         for (auto f : files) {
-            wxFileName fname(this->GetShowDirectory() + wxFileName::GetPathSeparator() + f);
+            wxFileName fname(this->GetShowDirectory() + GetPathSeparator() + f);
             if (FileExists(fname))
                 filesToRender.push_back(fname.GetFullPath());
             else
@@ -8930,7 +8932,7 @@ void xLightsFrame::DoBackupPurge()
 
     logger_base.debug("    Keep backups on or after %s.", (const char*)purgeDate.FormatISODate().c_str());
 
-    wxString backupDir = _backupDirectory + wxFileName::GetPathSeparator() + "Backup";
+    wxString backupDir = _backupDirectory + GetPathSeparator() + "Backup";
 
     int count = 0;
     int purged = 0;
@@ -10095,8 +10097,8 @@ void xLightsFrame::OnMenuItemRestoreBackupSelected(wxCommandEvent& event)
         std::string errors;
         for (auto const& file : restoreFiles) {
             prgs.Pulse("Restoring '" + file + "'...");
-            bool success = wxCopyFile(restoreFolder + wxFileName::GetPathSeparator() + file,
-                                      showDirectory + wxFileName::GetPathSeparator() + file);
+            bool success = wxCopyFile(restoreFolder + GetPathSeparator() + file,
+                                      showDirectory + GetPathSeparator() + file);
             if (!success) {
                 errors += "Unable to copy file \"" + file + "\"\n";
             }

@@ -189,7 +189,7 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
     bool changed = false;
 
     wxXmlDocument doc;
-    doc.Load(baseShowDir + wxFileName::GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE);
+    doc.Load(baseShowDir + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE);
     if (!doc.IsOk()) {
         return false;
     }
