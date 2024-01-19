@@ -37,7 +37,7 @@ PythonRunner::PythonRunner(xLightsFrame* frame) :
 
 std::string PythonRunner::GetUserScriptFolder() const
 {
-    return _frame->GetShowDirectory() + wxFileName::GetPathSeparator() + "scripts" + wxFileName::GetPathSeparator();
+    return _frame->GetShowDirectory() + wxString::Format("%c", wxFileName::GetPathSeparator()) + "scripts" + wxString::Format("%c", wxFileName::GetPathSeparator());
 }
 
 std::string PythonRunner::GetSystemScriptFolder()
@@ -90,7 +90,7 @@ std::list<std::string> PythonRunner::PromptSequences() const
         wxArrayString files = dlg.GetFileList();
 
         for (auto const& f : files) {
-            wxFileName fname(_frame->GetShowDirectory() + wxFileName::GetPathSeparator() + f);
+            wxFileName fname(_frame->GetShowDirectory() + wxString::Format("%c", wxFileName::GetPathSeparator()) + f);
             if (FileExists(fname)) {
                 sequenceList.push_back(fname.GetFullPath());
             } else {
