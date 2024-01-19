@@ -1065,11 +1065,15 @@ void MovingHeadPanel::UpdateColorSettings()
     if( m_rgbColorPanel != nullptr && m_rgbColorPanel->HasColour() ) {
         color_text = m_rgbColorPanel->GetColour();
         rgb_active = true;
+    } else {
+        RemoveSetting("Color");
     }
 
     if( m_wheelColorPanel != nullptr && m_wheelColorPanel->HasColour() && Notebook2->GetPageCount() > 1 ) {
         wheel_text = m_wheelColorPanel->GetColour();
         wheel_active = true;
+    } else {
+        RemoveSetting("Wheel");
     }
 
     if( color_text != xlEMPTY_STRING || wheel_text != xlEMPTY_STRING ) {
@@ -1122,6 +1126,39 @@ void MovingHeadPanel::UpdateColorSettings()
                                 mh_textbox->SetValue(mh_settings);
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void MovingHeadPanel::RemoveSetting(std::string setting)
+{
+    for( int i = 1; i <= 8; ++i ) {
+        wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+        wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+        if( checkbox != nullptr ) {
+            if( checkbox->IsChecked() ) {
+                wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+                wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                if( mh_textbox != nullptr ) {
+                    std::string mh_settings = mh_textbox->GetValue();
+                    if( mh_settings != xlEMPTY_STRING ) {
+                        wxArrayString all_cmds = wxSplit(mh_settings, ';');
+                        wxArrayString updated_cmds;
+                        for (size_t j = 0; j < all_cmds.size(); ++j )
+                        {
+                            std::string cmd = all_cmds[j];
+                            if( cmd == xlEMPTY_STRING ) continue;
+                            int pos = cmd.find(":");
+                            std::string cmd_type = cmd.substr(0, pos);
+                            if( cmd_type != setting ) {
+                                updated_cmds.Add(all_cmds[j]);
+                            }
+                        }
+                        mh_settings = wxJoin( updated_cmds, ';');
+                        mh_textbox->SetValue(mh_settings);
                     }
                 }
             }

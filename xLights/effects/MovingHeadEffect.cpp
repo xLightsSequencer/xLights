@@ -126,6 +126,7 @@ void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, co
             bool path_parsed = false;
             bool pan_path_active = true;
             bool tilt_path_active = true;
+            bool has_color_wheel = false;
             std::string path_setting = "";
             wxArrayString heads;
             wxArrayString colors;
@@ -207,6 +208,7 @@ void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, co
                     colors = wxSplit(settings, ',');
                 } else if( cmd_type == "Wheel" ) {
                     colors = wxSplit(settings, ',');
+                    has_color_wheel = true;
                 }
             }
 
@@ -232,8 +234,13 @@ void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, co
                             DmxColorAbility* mh_color = mhead->GetColorAbility();
                             if (mh_color != nullptr) {
                                 if( colors.size() > 0 ) {
-                                    xlColor c {GetMultiColorBlend(eff_pos, colors, buffer)};
-                                    buffer.SetPixel(0, 0, c);
+                                    if( has_color_wheel ) {
+                                        xlColor c {GetWheelColor(eff_pos, colors)};
+                                        buffer.SetPixel(0, 0, c);
+                                    } else {
+                                        xlColor c {GetMultiColorBlend(eff_pos, colors, buffer)};
+                                        buffer.SetPixel(0, 0, c);
+                                    }
                                 }
                             }
                         }
@@ -280,6 +287,31 @@ xlColor MovingHeadEffect::GetMultiColorBlend(double eff_pos, const wxArrayString
     color.blue = buffer.ChannelBlend(c1.blue, c2.blue, ratio);
     return color;
 }
+
+xlColor MovingHeadEffect::GetWheelColor(double eff_pos, const wxArrayString& colors)
+{
+    size_t colorcnt = colors.size() / 3;
+    float colorsize = 1.0f / (float)colorcnt;
+    if (colorcnt <= 1)
+    {
+        double hue {wxAtof(colors[0])};
+        double sat {wxAtof(colors[1])};
+        double val {wxAtof(colors[2])};
+        HSVValue v{hue,sat,val};
+        return xlColor(v);
+    }
+    if (eff_pos >= 1.0) eff_pos = 0.99999f;
+    if (eff_pos < 0.0) eff_pos = 0.0f;
+    int coloridx1 = (int)(eff_pos / colorsize);
+    coloridx1 *= 3;
+    double h1 {wxAtof(colors[coloridx1])};
+    double s1 {wxAtof(colors[coloridx1+1])};
+    double v1 {wxAtof(colors[coloridx1+2])};
+    HSVValue hsv1(h1,s1,v1);
+    xlColor c1(hsv1);
+    return c1;
+}
+
 
 void MovingHeadEffect::GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer)
 {
