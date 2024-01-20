@@ -127,6 +127,8 @@ class EffectLayer
         void NumberEffects();
     protected:
     private:
+        std::unique_lock<std::recursive_mutex> acquireLockWaitForRender();
+    
         void SortEffects();
         void PlayEffect(Effect* effect);
 
@@ -142,6 +144,7 @@ class EffectLayer
         int mIndex = 0;
         Element* mParentElement = nullptr;
         std::recursive_mutex lock;
+        std::mutex effectsToDeleteLock;
 };
 
 class NamedLayer: public EffectLayer {
