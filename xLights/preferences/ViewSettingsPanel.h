@@ -28,13 +28,13 @@ class ViewSettingsPanel: public wxPanel
 
 		//(*Declarations(ViewSettingsPanel)
 		wxCheckBox* CheckBox_BaseShowFolder;
+		wxCheckBox* CheckBox_PresetPreview;
 		wxCheckBox* HousePreviewCheckBox;
 		wxCheckBox* PlayControlsCheckBox;
 		wxChoice* Choice_TimelineZooming;
 		wxChoice* EffectAssistChoice;
 		wxChoice* ModelHandleSizeChoice;
 		wxChoice* ToolIconSizeChoice;
-		wxCheckBox* CheckBox_PresetPreview;
 		//*)
 
         virtual bool TransferDataFromWindow() override;
@@ -49,8 +49,8 @@ class ViewSettingsPanel: public wxPanel
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX3;
-		static const long ID_CHECKBOX4;
 		static const long ID_CHOICE_TIMELINEZOOMING;
+		static const long ID_CHECKBOX4;
 		//*)
 
 	private:
