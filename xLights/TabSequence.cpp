@@ -323,6 +323,12 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         SetXmlSetting("xsqDir", showDirectory);
         UnsavedRgbEffectsChanges = true;
     }
+    if (xsqDirectory.compare(0, showDirectory.length(), showDirectory) != 0) { // dwe
+        logger_base.warn("Sequence Directory not within the Show Folder ... switching to Show Directory.");
+        xsqDirectory = showDirectory;
+        SetXmlSetting("xsqDir", showDirectory);
+        UnsavedRgbEffectsChanges = true;
+    }
     renderCacheDirectory = GetXmlSetting("renderCacheDir", fseqDirectory); // we user fseq directory if no setting is present
     ObtainAccessToURL(renderCacheDirectory);
     if (!wxDir::Exists(renderCacheDirectory)) {

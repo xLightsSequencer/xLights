@@ -433,6 +433,9 @@ void SequenceFileSettingsPanel::OnRenderModeChoiceSelect(wxCommandEvent& event)
 bool SequenceFileSettingsPanel::ValidateWindow()
 {
     bool res = true;
+    std::string showfolder;
+    showfolder = frame->GetShowDirectory();
+
     RemoveMediaButton->Enable(MediaDirectoryList->GetSelection() != wxNOT_FOUND);
 
     if (CheckBox_FSEQ->GetValue()) {
@@ -455,6 +458,15 @@ bool SequenceFileSettingsPanel::ValidateWindow()
     } else {
         if (!wxDir::Exists(DirPickerCtrl_RenderCache->GetPath())) res = false;
         DirPickerCtrl_RenderCache->Enable(true);
+    }
+
+    if (DirPickerCtrl_XSQ->GetPath().compare(0, showfolder.length(), showfolder)) { // dwe
+        wxMessageDialog msgDlg(this, "Sequence Directory not within the Show Folder", "Error", wxOK | wxCENTRE);
+        msgDlg.ShowModal();
+        res = false;
+        DirPickerCtrl_XSQ->Enable(false);
+        CheckBox_XSQ->SetValue(true);
+        DirPickerCtrl_XSQ->SetPath(showfolder);
     }
 
     return res;
@@ -506,6 +518,7 @@ void SequenceFileSettingsPanel::OnDirPickerCtrl_FSEQDirChanged(wxFileDirPickerEv
 
 void SequenceFileSettingsPanel::OnDirPickerCtrl_XSQDirChanged(wxFileDirPickerEvent& event)
 {
+    ValidateWindow();
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
     }
