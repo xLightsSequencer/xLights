@@ -103,7 +103,7 @@ void BulkEditFilePickerCtrl::ValidateControl()
         if (file.Contains(',')) {
             GetTextCtrl()->SetBackgroundColour(*wxYELLOW);
             SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
-        } else if (!FileExists(file) && !file.IsEmpty()) {
+        } else if (!FileExists(file)) {
             GetTextCtrl()->SetBackgroundColour(*wxRED);
             SetToolTip("File " + file + " does not exist.");
         } else {
@@ -117,7 +117,9 @@ void BulkEditFilePickerCtrl::ValidateControl()
 
 void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event)
 {
-    ValidateControl();
+    if (!GetFileName().GetFullPath().IsEmpty()) {
+        ValidateControl();
+    }
     event.Skip();
 }
 
@@ -130,7 +132,9 @@ bool BulkEditFilePickerCtrl::Enable(bool enable)
 
 void BulkEditFilePickerCtrl::OnFilePickerCtrl_TextLoseFocus(wxFocusEvent& event)
 {
-    ValidateControl();
+    if (!GetFileName().GetFullPath().IsEmpty()) {
+        ValidateControl();
+    }
     event.Skip();
 }
 
