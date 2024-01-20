@@ -2940,6 +2940,7 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
         if (inst->controller->GetProtocol() != OUTPUT_DDP) {
             inst->controller->SetProtocol(OUTPUT_DDP);
         }
+        SetControllerType(inst);
     } else if (inst->typeId == 0xC2 || inst->typeId == 0xC3) {
         if (inst->controller->GetProtocol() != OUTPUT_DDP) {
             inst->controller->SetProtocol(OUTPUT_DDP);
@@ -3048,7 +3049,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 inst.mode += " w/multisync";
             }
         }
-        if (inst.typeId == 0xC2 || inst.typeId == 0xC3) {
+        if (inst.typeId > 0x80) {
             inst.pixelControllerType = inst.platformModel;
         }
 
@@ -3293,6 +3294,9 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
         }
         if (val.HasMember("majorVersion")) {
             inst->majorVersion = val["majorVersion"].AsInt();
+        }
+        if (val.HasMember("capeInfo")) {
+            inst->pixelControllerType = ToUTF8(val["capeInfo"]["id"].AsString());
         }
 
         std::string file = "co-pixelStrings";
