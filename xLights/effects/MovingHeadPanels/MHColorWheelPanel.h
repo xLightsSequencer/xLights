@@ -97,8 +97,8 @@ private:
 
     void CreateHsvBitmap(const wxSize& newSize);
     void CreateHsvBitmapMask();
-    wxBitmap* m_hsvBitmap;
-    wxMask* m_hsvMask;
+    wxBitmap* m_hsvBitmap{ nullptr };
+    wxMask* m_hsvMask{ nullptr };
     
     xlColorVector colors;
 };
