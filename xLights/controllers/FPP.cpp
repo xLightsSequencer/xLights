@@ -2944,8 +2944,8 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
     } else if (inst->typeId == 0xC2 || inst->typeId == 0xC3) {
         if (inst->controller->GetProtocol() != OUTPUT_DDP) {
             inst->controller->SetProtocol(OUTPUT_DDP);
-            dynamic_cast<DDPOutput*>(inst->controller->GetOutputs().front())->SetKeepChannelNumber(false);
         }
+        dynamic_cast<DDPOutput*>(inst->controller->GetOutputs().front())->SetKeepChannelNumber(false);
         if (inst->majorVersion <= 3) {
             inst->pixelControllerType = inst->platformModel;
         } else if (inst->typeId == 0xC2) {
