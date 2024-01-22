@@ -1345,7 +1345,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
                 if (eth != nullptr
                     && eth->GetName() == it->GetName()
                     && eth->GetProtocol() == it->GetProtocol()) {
-                    if (wxMessageBox("The discovered controller matches an existing controller Description but has a different IP address. Do you want to update the IP address for that existing controller in xLights?", "Mismatch IP", wxYES_NO, this) == wxYES) {
+                    if (wxMessageBox("The discovered controller matches an existing controller name but has a different IP address. Do you want to update the IP address for that existing controller in xLights?", "Mismatch IP", wxYES_NO, this) == wxYES) {
                         updated = true;
                         eth->SetIP(it->GetIP());
                         found = true;
@@ -1364,8 +1364,8 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
             if (c.size() == 1
                 && it->GetName() != c.front()->GetName()
                 && c.front()->GetProtocol() == it->GetProtocol()) {
-                // existing zcpp with same ip but different description ... maybe we should update the description
-                if (wxMessageBox("The discovered controller matches an existing controllers IP address but has a different description. Do you want to update the description in xLights?", "Mismatch controller description", wxYES_NO, this) == wxYES) {
+                // existing zcpp with same ip but different name ... maybe we should update the name
+                if (wxMessageBox("The discovered controller matches an existing controller IP address but has a different name. Do you want to update the name for the existing controller in xLights?", "Mismatch controller name", wxYES_NO, this) == wxYES) {
                     renames[c.front()->GetName()] = it->GetName();
                     c.front()->SetName(it->GetName());
                     found = true;
