@@ -5915,23 +5915,28 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     warncountsave = warncount;
 
     // Check for submodels with duplicate nodes
-    LogAndWrite(f, "");
-    LogAndWrite(f, "SubModels with duplicate nodes");
+    if (!IsCheckSequenceOptionDisabled("DupNodeSub")) {
+            LogAndWrite(f, "");
+            LogAndWrite(f, "SubModels with duplicate nodes");
 
-    for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
-            for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
-                SubModel* sm = dynamic_cast<SubModel*>(it.second->GetSubModel(i));
-                if (sm != nullptr) {
-                    std::string dups = sm->GetDuplicateNodes();
-                    if (dups != "") {
-                        wxString msg = wxString::Format("    WARN: SubModel '%s' contains duplicate nodes: %s. This may not render as expected.", (const char*)sm->GetFullName().c_str(), (const char*)dups.c_str());
-                        LogAndWrite(f, msg.ToStdString());
-                        warncount++;
+        for (const auto& it : AllModels) {
+            if (it.second->GetDisplayAs() != "ModelGroup") {
+                for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
+                    SubModel* sm = dynamic_cast<SubModel*>(it.second->GetSubModel(i));
+                    if (sm != nullptr) {
+                        std::string dups = sm->GetDuplicateNodes();
+                        if (dups != "") {
+                            wxString msg = wxString::Format("    WARN: SubModel '%s' contains duplicate nodes: %s. This may not render as expected.", (const char*)sm->GetFullName().c_str(), (const char*)dups.c_str());
+                            LogAndWrite(f, msg.ToStdString());
+                            warncount++;
+                        }
                     }
                 }
             }
         }
+    } else {
+        LogAndWrite(f, "");
+        LogAndWrite(f, "SubModels with duplicate nodes - CHECK DISABLED");
     }
 
     if (errcount + warncount == errcountsave + warncountsave) {

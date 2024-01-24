@@ -87,6 +87,17 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX8" variable="CheckBox_DupNodeSub" member="yes">
+					<label>Disable checks for duplicate nodes in submodels.</label>
+					<help>Duplicate nodes in submodels can be a result of planned overlap of common pixels</help>
+				</object>
+				<col>0</col>
+				<row>8</row>
+				<flag>wxALL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX7" variable="CheckBox_DisableSketch" member="yes">
 					<label>Disable sketch image file checking.</label>
 					<help>Sketch effect image files are not essential to rendering.</help>

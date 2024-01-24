@@ -30,6 +30,7 @@ const long CheckSequenceSettingsPanel::ID_CHECKBOX3 = wxNewId();
 const long CheckSequenceSettingsPanel::ID_CHECKBOX4 = wxNewId();
 const long CheckSequenceSettingsPanel::ID_CHECKBOX5 = wxNewId();
 const long CheckSequenceSettingsPanel::ID_CHECKBOX6 = wxNewId();
+const long CheckSequenceSettingsPanel::ID_CHECKBOX8 = wxNewId();
 const long CheckSequenceSettingsPanel::ID_CHECKBOX7 = wxNewId();
 //*)
 
@@ -71,6 +72,10 @@ CheckSequenceSettingsPanel::CheckSequenceSettingsPanel(wxWindow* parent, xLights
 	CheckBox_CustomSizeCheck->SetValue(false);
 	CheckBox_CustomSizeCheck->SetHelpText(_("Large custom models with largely empty cells generate significant rendering overhead. You may want to consider shrinking the custom model dimensions if this can done without too significantly adversely affecting appearance."));
 	GridBagSizer1->Add(CheckBox_CustomSizeCheck, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
+	CheckBox_DupNodeSub = new wxCheckBox(this, ID_CHECKBOX8, _("Disable checks for duplicate nodes in submodels."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
+	CheckBox_DupNodeSub->SetValue(false);
+	CheckBox_DupNodeSub->SetHelpText(_("Duplicate nodes in submodels can be a result of planned overlap of common pixels"));
+	GridBagSizer1->Add(CheckBox_DupNodeSub, wxGBPosition(8, 0), wxDefaultSpan, wxALL, 5);
 	CheckBox_DisableSketch = new wxCheckBox(this, ID_CHECKBOX7, _("Disable sketch image file checking."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
 	CheckBox_DisableSketch->SetValue(false);
 	CheckBox_DisableSketch->SetHelpText(_("Sketch effect image files are not essential to rendering."));
@@ -92,6 +97,7 @@ CheckSequenceSettingsPanel::CheckSequenceSettingsPanel(wxWindow* parent, xLights
     CheckBox_NonContigChOnPort->SetToolTip(CheckBox_NonContigChOnPort->GetHelpText());
     CheckBox_PreviewGroup->SetToolTip(CheckBox_PreviewGroup->GetHelpText());
     CheckBox_DupNodeMG->SetToolTip(CheckBox_DupNodeMG->GetHelpText());
+    CheckBox_DupNodeMG->SetToolTip(CheckBox_DupNodeSub->GetHelpText());
     CheckBox_TransTime->SetToolTip(CheckBox_TransTime->GetHelpText());
     CheckBox_CustomSizeCheck->SetToolTip(CheckBox_CustomSizeCheck->GetHelpText());
     CheckBox_DisableSketch->SetToolTip(CheckBox_DisableSketch->GetHelpText());
@@ -108,6 +114,7 @@ bool CheckSequenceSettingsPanel::TransferDataToWindow() {
     CheckBox_NonContigChOnPort->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("NonContigChOnPort"));
     CheckBox_PreviewGroup->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("PreviewGroup"));
     CheckBox_DupNodeMG->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("DupNodeMG"));
+    CheckBox_DupNodeSub->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("DupNodeSub"));
     CheckBox_TransTime->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("TransTime"));
     CheckBox_CustomSizeCheck->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("CustomSizeCheck"));
     CheckBox_DisableSketch->SetValue(xLightsFrame::IsCheckSequenceOptionDisabled("SketchImage"));
@@ -118,6 +125,7 @@ bool CheckSequenceSettingsPanel::TransferDataFromWindow() {
     xLightsFrame::SetCheckSequenceOptionDisable("NonContigChOnPort", CheckBox_NonContigChOnPort->IsChecked());
     xLightsFrame::SetCheckSequenceOptionDisable("PreviewGroup", CheckBox_PreviewGroup->IsChecked());
     xLightsFrame::SetCheckSequenceOptionDisable("DupNodeMG", CheckBox_DupNodeMG->IsChecked());
+    xLightsFrame::SetCheckSequenceOptionDisable("DupNodeSub", CheckBox_DupNodeSub->IsChecked());
     xLightsFrame::SetCheckSequenceOptionDisable("TransTime", CheckBox_TransTime->IsChecked());
     xLightsFrame::SetCheckSequenceOptionDisable("CustomSizeCheck", CheckBox_CustomSizeCheck->IsChecked());
     xLightsFrame::SetCheckSequenceOptionDisable("SketchImage", CheckBox_DisableSketch->IsChecked());
@@ -167,6 +175,13 @@ void CheckSequenceSettingsPanel::OnCheckBox_CustomSizeCheckClick(wxCommandEvent&
 }
 
 void CheckSequenceSettingsPanel::OnCheckBox_DisableSketchClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void CheckSequenceSettingsPanel::OnCheckBox_DupNodeSubClick(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

@@ -29,6 +29,7 @@ class CheckSequenceSettingsPanel: public wxPanel
 		wxCheckBox* CheckBox_CustomSizeCheck;
 		wxCheckBox* CheckBox_DisableSketch;
 		wxCheckBox* CheckBox_DupNodeMG;
+		wxCheckBox* CheckBox_DupNodeSub;
 		wxCheckBox* CheckBox_DupUniv;
 		wxCheckBox* CheckBox_NonContigChOnPort;
 		wxCheckBox* CheckBox_PreviewGroup;
@@ -49,6 +50,7 @@ class CheckSequenceSettingsPanel: public wxPanel
 		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX5;
 		static const long ID_CHECKBOX6;
+		static const long ID_CHECKBOX8;
 		static const long ID_CHECKBOX7;
 		//*)
 
@@ -63,6 +65,7 @@ class CheckSequenceSettingsPanel: public wxPanel
 		void OnCheckBox_TransTimeClick(wxCommandEvent& event);
 		void OnCheckBox_CustomSizeCheckClick(wxCommandEvent& event);
 		void OnCheckBox_DisableSketchClick(wxCommandEvent& event);
+		void OnCheckBox_DupNodeSubClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
