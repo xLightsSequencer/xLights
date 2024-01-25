@@ -261,6 +261,7 @@ class ModelElement : public Element
 
         [[nodiscard]] virtual bool HasEffects() const override;
         [[nodiscard]] int GetEffectCount() const override;
+        [[nodiscard]] int GetModelEffectCount() const;
         int GetSubModelAndStrandCount() const;
         int GetSubModelCount() const;
         SubModelElement *GetSubModel(int i) const;

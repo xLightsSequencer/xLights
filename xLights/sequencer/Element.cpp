@@ -595,6 +595,18 @@ bool ModelElement::HasEffects() const
     return false;
 }
 
+int ModelElement::GetModelEffectCount() const
+{
+    int sum = std::accumulate(
+        mEffectLayers.begin(),
+        mEffectLayers.end(), 0,
+        [](int i, EffectLayer* l) {
+            return l->GetEffectCount() + i;
+        });
+
+    return sum;
+}
+
 int ModelElement::GetEffectCount() const {
 
     int sum = std::accumulate(
