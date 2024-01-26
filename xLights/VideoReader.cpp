@@ -841,7 +841,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
         //same frame, just return
         return _dstFrame;
     }
-    if (timestampMS >= timeOfPrevFrame && timestampMS < currenttime) {
+    if (timestampMS >= timeOfPrevFrame - 1 && timestampMS < currenttime) {
         //prev frame, just return, avoids a seek
         return _dstFrame2;
     }
@@ -865,7 +865,8 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
         bool seekedForward = false;
 		while (!_abort && (firstframe || ((currenttime + (_frameMS / 2.0)) < timestampMS)) &&
                currenttime <= _lengthMS &&
-               (av_read_frame(_formatContext, _packet)) == 0) {
+               (av_read_frame(_formatContext, _packet)) == 0)
+        {
             // Is this a packet from the video stream?
 			if (_packet->stream_index == _streamIndex) {
 
@@ -927,17 +928,12 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 		return nullptr;
 	} else {
         int currenttime = GetPos();
-        int timeOfNextFrame = currenttime + _frameMS;
-        int timeOfPrevFrame = currenttime - _frameMS;
-        if (timestampMS >= currenttime && timestampMS < timeOfNextFrame) {
+        if (timestampMS >= currenttime) {
             //same frame, just return
             return _dstFrame;
-        }
-        if (timestampMS >= timeOfPrevFrame && timestampMS < currenttime) {
-            //prev frame, just return, avoids a seek
+        } else {
+            //prev frame, occurs if we seeked just a bit too far because not all frames are the same integer number of ms
             return _dstFrame2;
         }
-
-		return _dstFrame;
 	}
 }
