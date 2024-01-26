@@ -1076,6 +1076,7 @@ public:
     bool _playControlsOnPreview = true;
     bool _showBaseShowFolder = false;
     bool _autoShowHousePreview = false;
+    bool _hidePresetPreview = false;
     bool _smallWaveform = false;
     bool _modelBlendDefaultOff = true;
     bool _lowDefinitionRender = false;
@@ -1256,6 +1257,9 @@ public:
 
     bool PlayControlsOnPreview() const { return _playControlsOnPreview;}
     void SetPlayControlsOnPreview(bool b);
+
+    bool HidePresetPreview() const { return _hidePresetPreview;}
+    void SetHidePresetPreview(bool b);
 
     bool IsShowBaseShowFolder() const
     {

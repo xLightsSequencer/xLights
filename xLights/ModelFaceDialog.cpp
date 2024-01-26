@@ -1261,23 +1261,31 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
             wxZipEntry *ent = zin.GetNextEntry();
             while (ent != nullptr)
             {
-                wxString filename = dir + wxFileName::GetPathSeparator() + ent->GetName();
-                files.push_back(filename);
-
-                if (!FileExists(filename))
-                {
-#ifdef __WXMSW__
-                    if (filename.length() > MAX_PATH) {
-                        logger_base.warn("Target filename longer than %d chars (%d). This will likely fail. %s.", MAX_PATH, (int)filename.length(), (const char*) filename.c_str());
+                if (ent->IsDir()) {
+                    wxString dirname = dir + wxFileName::GetPathSeparator() + ent->GetName();
+                    if (!wxDirExists(dirname)) {
+                        logger_base.debug("Extracting dir %s:%s to %s.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)dirname.c_str());
+                        wxFileName::Mkdir(dirname, wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
                     }
+                } else {
+                    wxString filename = dir + wxFileName::GetPathSeparator() + ent->GetName();
+                    files.push_back(filename);
+
+                    if (!FileExists(filename))
+                    {
+#ifdef __WXMSW__
+                        if (filename.length() > MAX_PATH) {
+                            logger_base.warn("Target filename longer than %d chars (%d). This will likely fail. %s.", MAX_PATH, (int)filename.length(), (const char*) filename.c_str());
+                        }
 #endif
 
-                    logger_base.debug("Extracting %s:%s to %s.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)filename.c_str());
-                    wxFileOutputStream fout(filename);
-                    zin.Read(fout);
-                }
-                if (!FileExists(filename)) {
-                    logger_base.error("File extract failed.");
+                        logger_base.debug("Extracting %s:%s to %s.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)filename.c_str());
+                        wxFileOutputStream fout(filename);
+                        zin.Read(fout);
+                    }
+                    if (!FileExists(filename)) {
+                        logger_base.error("File extract failed.");
+                    }
                 }
                 ent = zin.GetNextEntry();
             }

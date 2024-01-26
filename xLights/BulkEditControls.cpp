@@ -117,7 +117,9 @@ void BulkEditFilePickerCtrl::ValidateControl()
 
 void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event)
 {
-    ValidateControl();
+    if (!GetFileName().GetFullPath().IsEmpty()) {
+        ValidateControl();
+    }
     event.Skip();
 }
 
@@ -130,7 +132,9 @@ bool BulkEditFilePickerCtrl::Enable(bool enable)
 
 void BulkEditFilePickerCtrl::OnFilePickerCtrl_TextLoseFocus(wxFocusEvent& event)
 {
-    ValidateControl();
+    if (!GetFileName().GetFullPath().IsEmpty()) {
+        ValidateControl();
+    }
     event.Skip();
 }
 

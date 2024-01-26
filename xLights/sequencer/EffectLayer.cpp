@@ -36,7 +36,7 @@ EffectLayer::EffectLayer(Element* parent)
 
 EffectLayer::~EffectLayer()
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     for (int x = 0; x < mEffects.size(); x++) {
         delete mEffects[x];
     }
@@ -46,18 +46,39 @@ EffectLayer::~EffectLayer()
     }
 }
 
+// Some actions can be done while rendering so we don't want to abort the render,
+// but we also need to allow the main thread effects to be rendered so the
+// locks can be released.
+//
+// Of course, the best option is to use a Mac where there aren't any
+// main thread rendered effects
+std::unique_lock<std::recursive_mutex> EffectLayer::acquireLockWaitForRender() {
+    if (wxThread::IsMain()) {
+        std::unique_lock<std::recursive_mutex> locker(lock, std::try_to_lock);
+        while (!locker.owns_lock()) {
+            // could not get the lock, we'll render any main thread effects
+            // and then try again, possibly yielding to allow the background
+            // thread to get to a point where the lock can be released
+            xLightsApp::GetFrame()->RenderMainThreadEffects();
+            locker.try_lock();
+            if (!locker.owns_lock()) {
+                std::this_thread::yield();
+                locker.try_lock();
+            }
+        }
+        return locker;
+    }
+    return std::unique_lock<std::recursive_mutex>(lock);
+}
+
 void EffectLayer::CleanupAfterRender() {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
     auto it = mEffectsToDelete.begin();
-    while (it != mEffectsToDelete.end())
-    {
-        if ((*it)->IsTimeToDelete())
-        {
+    while (it != mEffectsToDelete.end()) {
+        if ((*it)->IsTimeToDelete()) {
             delete *it;
             it = mEffectsToDelete.erase(it);
-        }
-        else
-        {
+        } else {
             ++it;
         }
     }
@@ -70,18 +91,15 @@ int EffectLayer::GetIndex() const
 
 Effect* EffectLayer::GetEffect(int index) const
 {
-    if(index < mEffects.size())
-    {
+    if(index < mEffects.size()) {
         return mEffects[index];
-    }
-    else
-    {
+    } else {
         return nullptr;
     }
 }
 
 Effect* EffectLayer::GetEffectByTime(int timeMS) {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     for(const auto& it : mEffects) {
         if (timeMS >= it->GetStartTimeMS() &&
             timeMS <= it->GetEndTimeMS()) {
@@ -96,8 +114,7 @@ Effect* EffectLayer::GetEffectFromID(int id)
 {
     Effect* eff = nullptr;
     for (int x = 0; x < mEffects.size(); x++) {
-        if( mEffects[x]->GetID() == id )
-        {
+        if( mEffects[x]->GetID() == id ) {
             eff = mEffects[x];
             break;
         }
@@ -108,8 +125,7 @@ Effect* EffectLayer::GetEffectFromID(int id)
 int EffectLayer::GetFirstSelectedEffectStartMS() const
 {
     for (int x = 0; x < mEffects.size(); x++) {
-        if (mEffects[x]->GetSelected() != EFFECT_NOT_SELECTED)
-        {
+        if (mEffects[x]->GetSelected() != EFFECT_NOT_SELECTED) {
             return mEffects[x]->GetStartTimeMS();
         }
     }
@@ -119,8 +135,7 @@ int EffectLayer::GetFirstSelectedEffectStartMS() const
 int EffectLayer::GetLastSelectedEffectEndMS() const
 {
     for (int x = mEffects.size() - 1; x >= 0; x--) {
-        if (mEffects[x]->GetSelected() != EFFECT_NOT_SELECTED)
-        {
+        if (mEffects[x]->GetSelected() != EFFECT_NOT_SELECTED) {
             return mEffects[x]->GetEndTimeMS();
         }
     }
@@ -129,15 +144,14 @@ int EffectLayer::GetLastSelectedEffectEndMS() const
 
 void EffectLayer::RemoveEffect(int index)
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
-    if(index<mEffects.size())
-    {
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
+    if(index<mEffects.size()) {
         Effect *e = mEffects[index];
-        if (!e->IsLocked())
-        {
+        if (!e->IsLocked()) {
             mEffects.erase(mEffects.begin() + index);
             IncrementChangeCount(e->GetStartTimeMS(), e->GetEndTimeMS());
             e->SetTimeToDelete();
+            std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
             mEffectsToDelete.push_back(e);
             NumberEffects();
         }
@@ -146,13 +160,12 @@ void EffectLayer::RemoveEffect(int index)
 
 void EffectLayer::DeleteEffect(int id)
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
-    for (int i = 0; i<mEffects.size(); i++)
-    {
-        if (mEffects[i]->GetID() == id)
-        {
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
+    for (int i = 0; i<mEffects.size(); i++) {
+        if (mEffects[i]->GetID() == id) {
             IncrementChangeCount(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
             mEffects[i]->SetTimeToDelete();
+            std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
             mEffectsToDelete.push_back(mEffects[i]);
             mEffects.erase(mEffects.begin() + i);
             NumberEffects();
@@ -164,7 +177,7 @@ void EffectLayer::DeleteEffect(int id)
 
 void EffectLayer::RemoveAllEffects(UndoManager *undo_mgr)
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     std::vector<Effect*> newEffects;
     for (int x = 0; x < mEffects.size(); x++) {
         if (!mEffects[x]->IsLocked()) {
@@ -176,9 +189,9 @@ void EffectLayer::RemoveAllEffects(UndoManager *undo_mgr)
                     mEffects[x]->GetSelected(), mEffects[x]->GetProtected());
             }
             mEffects[x]->SetTimeToDelete();
+            std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
             mEffectsToDelete.push_back(mEffects[x]);
-        }
-        else             {
+        } else {
             newEffects.push_back(mEffects[x]);
         }
     }
@@ -192,11 +205,10 @@ void EffectLayer::RemoveAllEffects(UndoManager *undo_mgr)
 Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &settings, const std::string &palette,
                                int startTimeMS, int endTimeMS, int Selected, bool Protected, bool suppress_sort, bool importing)
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     std::string name(n);
     EffectManager* em = nullptr;
-    if (GetParentElement() != nullptr)
-    {
+    if (GetParentElement() != nullptr) {
         em = &(GetParentElement()->GetSequenceElements()->GetEffectManager());
     } else {
         em = &(xLightsApp::GetFrame()->GetEffectManager());
@@ -210,9 +222,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
         if (name == "") {
             name = "Off";
         }
-        if ((em->GetEffectIndex(name) == -1) &&
-            (name != "Random"))
-        {
+        if ((em->GetEffectIndex(name) == -1) && (name != "Random")) {
             log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Unknown effect: " + name + ". Not loaded. " + GetParentElement()->GetModelName());
             return nullptr;
@@ -223,8 +233,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     //      with this here debug runs a bit slower but any overlap will ASSERT but it wont impact release build
     //wxASSERT(!HasEffectsInTimeRange(startTimeMS, endTimeMS));
 
-    if (startTimeMS < 0 && endTimeMS <= 0)
-    {
+    if (startTimeMS < 0 && endTimeMS <= 0) {
         // This effect is not visible ... so lets not load it
         return nullptr;
     }
@@ -235,8 +244,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     Effect* e = new Effect(em, this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected, importing);
     wxASSERT(e != nullptr);
     mEffects.push_back(e);
-    if (!suppress_sort)
-    {
+    if (!suppress_sort) {
         SortEffects();
     }
     IncrementChangeCount(startTimeMS, endTimeMS);
@@ -346,19 +354,14 @@ bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS) const
 Effect* EffectLayer::GetEffectBeforeTime(int ms) const
 {
     int i;
-    for (i = 0; i < mEffects.size(); i++)
-    {
-        if (mEffects[i]->GetStartTimeMS() >= ms)
-        {
+    for (i = 0; i < mEffects.size(); i++) {
+        if (mEffects[i]->GetStartTimeMS() >= ms) {
             break;
         }
     }
-    if (i == 0)
-    {
+    if (i == 0) {
         return nullptr;
-    }
-    else
-    {
+    } else {
         return mEffects[i - 1];
     }
 }
@@ -366,19 +369,14 @@ Effect* EffectLayer::GetEffectBeforeTime(int ms) const
 Effect* EffectLayer::GetEffectAfterTime(int ms) const
 {
     int i;
-    for (i = 0; i < mEffects.size(); i++)
-    {
-        if (mEffects[i]->GetStartTimeMS() > ms)
-        {
+    for (i = 0; i < mEffects.size(); i++) {
+        if (mEffects[i]->GetStartTimeMS() > ms) {
             break;
         }
     }
-    if (i >= mEffects.size())
-    {
+    if (i >= mEffects.size()) {
         return nullptr;
-    }
-    else
-    {
+    } else {
         return mEffects[i];
     }
 }
@@ -845,7 +843,7 @@ void EffectLayer::UpdateAllSelectedEffects(const std::string& palette)
 
 void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     for(int i=0; i<mEffects.size();i++)
     {
         if (!mEffects[i]->IsLocked())
@@ -882,7 +880,7 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
 
 void EffectLayer::ButtUpMoveAllSelectedEffects(bool right, int lengthMS, UndoManager& undo_mgr)
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     for (int i = 0; i<mEffects.size(); i++)
     {
         if (!mEffects[i]->IsLocked())
@@ -987,7 +985,7 @@ void EffectLayer::ButtUpMoveAllSelectedEffects(bool right, int lengthMS, UndoMan
 
 void EffectLayer::StretchAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     for (int i = 0; i<mEffects.size(); i++)
     {
         if (!mEffects[i]->IsLocked())
@@ -1036,7 +1034,7 @@ void EffectLayer::StretchAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
 
 void EffectLayer::ButtUpStretchAllSelectedEffects(bool right, int lengthMS, UndoManager& undo_mgr)
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     for (int i = 0; i<mEffects.size(); i++)
     {
         if (!mEffects[i]->IsLocked())
@@ -1135,13 +1133,11 @@ void EffectLayer::ButtUpStretchAllSelectedEffects(bool right, int lengthMS, Undo
 
 void EffectLayer::TagAllSelectedEffects()
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
-    for(int i=0; i<mEffects.size();i++)
-    {
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
+    for(int i=0; i<mEffects.size();i++) {
         if( (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
             (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
-            (mEffects[i]->GetSelected() == EFFECT_SELECTED) )
-        {
+            (mEffects[i]->GetSelected() == EFFECT_SELECTED) ) {
             mEffects[i]->SetTagged(true);
         }
     }
@@ -1149,7 +1145,7 @@ void EffectLayer::TagAllSelectedEffects()
 
 std::vector<std::string> EffectLayer::GetUsedColours(bool selectedOnly)
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     std::vector<std::string> res;
 
     for (int i = 0; i < mEffects.size(); i++) {
@@ -1170,7 +1166,7 @@ std::vector<std::string> EffectLayer::GetUsedColours(bool selectedOnly)
 
 int EffectLayer::ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to, bool selectedOnly, UndoManager& undo_mgr)
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
 
     int replaced = 0;
 
@@ -1191,16 +1187,14 @@ int EffectLayer::ReplaceColours(xLightsFrame* frame, const std::string& from, co
 
 int EffectLayer::GetSelectedEffectCount(const std::string effectName)
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     int count = 0;
-    for (int i = 0; i<mEffects.size(); i++)
-    {
+    for (int i = 0; i<mEffects.size(); i++) {
         if ((effectName == "" || effectName == mEffects[i]->GetEffectName(-1)) &&
             ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
              (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
              (mEffects[i]->GetSelected() == EFFECT_SELECTED))
-           )
-        {
+           ) {
             count++;
         }
     }
@@ -1303,7 +1297,7 @@ void EffectLayer::ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_
 
 void EffectLayer::UnTagAllEffects()
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     for (int i = 0; i < mEffects.size(); i++) {
         mEffects[i]->SetTagged(false);
     }
@@ -1311,7 +1305,7 @@ void EffectLayer::UnTagAllEffects()
 
 void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     for (const auto& it : mEffects) {
         if (!it->IsLocked())
         {
@@ -1322,6 +1316,7 @@ void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
                     it->GetStartTimeMS(), it->GetEndTimeMS(),
                     it->GetSelected(), it->GetProtected());
                 it->SetTimeToDelete();
+                std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
                 mEffectsToDelete.push_back(it);
             }
         }
@@ -1331,12 +1326,13 @@ void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
 
 void EffectLayer::DeleteAllEffects()
 {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
 
     for (const auto& it : mEffects) {
         if (!it->IsLocked()) {
             IncrementChangeCount(it->GetStartTimeMS(), it->GetEndTimeMS());
             it->SetTimeToDelete();
+            std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
             mEffectsToDelete.push_back(it);
         }
     }
@@ -1344,11 +1340,12 @@ void EffectLayer::DeleteAllEffects()
 }
 
 void EffectLayer::DeleteEffectByIndex(int idx) {
-    std::unique_lock<std::recursive_mutex> locker(lock);
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     if (!mEffects[idx]->IsLocked())
     {
         IncrementChangeCount(mEffects[idx]->GetStartTimeMS(), mEffects[idx]->GetEndTimeMS());
         mEffects[idx]->SetTimeToDelete();
+        std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
         mEffectsToDelete.push_back(mEffects[idx]);
         mEffects.erase(mEffects.begin() + idx);
     }

@@ -1185,7 +1185,7 @@ void EffectTreeDialog::GenerateGifImage(wxTreeItemId itemID, bool regenerate)
 void EffectTreeDialog::LoadGifImage(wxString const& path)
 {
     TimerGif.Stop();
-    if(FileExists(path) && GIFImage::IsGIF(path)) {
+    if (FileExists(path) && GIFImage::IsGIF(path) && !xLightParent->HidePresetPreview()) {
         gifImage = std::make_unique<GIFImage>(path);
 
         if (!gifImage->IsOk()) {
