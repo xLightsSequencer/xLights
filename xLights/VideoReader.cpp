@@ -829,6 +829,9 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 #endif
 
     int currenttime = GetPos();
+    // NOTE:  As _frameMS is rounded down to an integer, these times are approximate.
+    //  timeOfNextFrame is as much as 1ms later
+    //  timeOfPrevFrame is as much as 1ms earlier.
     int timeOfNextFrame = currenttime + _frameMS;
     int timeOfPrevFrame = currenttime - _frameMS;
     
@@ -841,6 +844,8 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
         //same frame, just return
         return _dstFrame;
     }
+    // timeOfPrevFrame is rounded up, subtracting 1 ensures that we don't seek
+    //  for no good reason.
     if (timestampMS >= timeOfPrevFrame - 1 && timestampMS < currenttime) {
         //prev frame, just return, avoids a seek
         return _dstFrame2;
