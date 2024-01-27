@@ -1459,7 +1459,7 @@ void xLightsFrame::SaveAsSequence()
     wxString newFilename;
     wxFileDialog fd(this,
                     "Choose filename to Save Sequence:",
-                    CurrentDir,
+                    xsqDirectory,
                     CurrentSeqXmlFile->GetName(),
                     strSequenceSaveAsFileTypes,
                     wxFD_SAVE | wxFD_OVERWRITE_PROMPT);

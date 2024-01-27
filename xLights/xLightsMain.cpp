@@ -4305,14 +4305,12 @@ void xLightsFrame::SetXSQFolder(bool useShow, const std::string& folder)
     wxConfigBase* config = wxConfigBase::Get();
 
     if (useShow) {
-        config->Write("XSQLinkFlag", true);
         if (xsqDirectory == showDirectory)
             return;
         xsqDirectory = showDirectory;
     } else {
         if (wxDir::Exists(folder)) {
             ObtainAccessToURL(folder);
-            config->Write("XSQLinkFlag", false);
             if (xsqDirectory == folder)
                 return;
             xsqDirectory = folder;
