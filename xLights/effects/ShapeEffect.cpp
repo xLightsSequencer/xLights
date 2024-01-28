@@ -1210,6 +1210,30 @@ void ShapeEffect::Drawpresent(RenderBuffer& buffer, int xc, int yc, double radiu
     }
 }
 
+bool ShapeEffect::needToAdjustSettings(const std::string& version)
+{
+    // give the base class a chance to adjust any settings
+    return IsVersionOlder("2024.02", version);
+}
+
+void ShapeEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
+    // give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+    SettingsMap& settings = effect->GetSettings();
+    if (settings.Contains("E_CHOICE_Shape_ObjectToDraw")) {
+        if (settings["E_CHOICE_Shape_ObjectToDraw"] == "Emoji") {
+            std::string val = settings.Get("E_SLIDER_Shape_CentreY", "");
+            // int val = effect->GetSettings().GetInt("E_SLIDER_Shape_CentreY", 0);
+            if (val != "") {
+                settings["E_SLIDER_Shape_CentreY"] = wxString::Format(wxT("%d"), 100 - wxAtoi(val));
+            }
+        }
+    }
+}
+
 void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, wxFontInfo& font) const
 {
     if (radius < 1)
