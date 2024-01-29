@@ -1614,7 +1614,7 @@ public:
     }
 
     // turns on the nominated bulbs
-    void SetBulbs(OutputManager* outputManager, bool nodes, int count, int startch, int node, int ms, uint8_t intensity)
+    void SetBulbs(OutputManager* outputManager, bool nodes, int count, int startch, int node, int ms, uint8_t intensity, int channels_per_node)
     {
         static log4cpp::Category& logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
 
@@ -1632,12 +1632,12 @@ public:
             if (nodes) {
                 for (uint32_t j = 0; j < count; ++j) {
                     if (node == j) {
-                        for (uint32_t i = 0; i < 3; ++i) {
-                            outputManager->SetOneChannel(startch + j * 3 + i - 1, intensity);
+                        for (uint32_t i = 0; i < channels_per_node; ++i) {
+                            outputManager->SetOneChannel(startch + j * channels_per_node + i - 1, intensity);
                         }
                     } else {
-                        for (uint32_t i = 0; i < 3; ++i) {
-                            outputManager->SetOneChannel(startch + j * 3 + i - 1, 0);
+                        for (uint32_t i = 0; i < channels_per_node; ++i) {
+                            outputManager->SetOneChannel(startch + j * channels_per_node + i - 1, 0);
                         }
                     }
                 }
@@ -1653,8 +1653,8 @@ public:
         } else {
             if (nodes) {
                 for (uint32_t j = 0; j < count; ++j) {
-                    for (uint32_t i = 0; i < 3; ++i) {
-                        outputManager->SetOneChannel(startch + j * 3 + i - 1, intensity);
+                    for (uint32_t i = 0; i < channels_per_node; ++i) {
+                        outputManager->SetOneChannel(startch + j * channels_per_node + i - 1, intensity);
                     }
                 }
             } else {
@@ -1700,7 +1700,7 @@ public:
     }
 
     // turns on the nominated bulbs using a base ... so when the bulb number has that bit set then the bulb turns on
-    void SetBulbsUsingBase3(OutputManager* outputManager, bool nodes, int count, int startch, uint32_t digit, uint32_t bits, int ms, uint8_t intensity)
+    void SetBulbsUsingBase3(OutputManager* outputManager, bool nodes, int count, int startch, uint32_t digit, uint32_t bits, int ms, uint8_t intensity, int channels_per_node)
     {
         wxASSERT(digit < bits);
 
@@ -1708,24 +1708,35 @@ public:
         long curtime = ts.GetMilliseconds().ToLong();
         outputManager->StartFrame(curtime);
 
+        int r_offset = 0;
+        int g_offset = 1;
+        int b_offset = 2;
+        if (channels_per_node == 4) {
+            // This hack currently only works for WRGB nodes.
+            // We could handle various color orders here if we had more info (pixel type, GRB vs. WRGB, etc).
+            r_offset = 1;
+            g_offset = 2;
+            b_offset = 3;
+        }
+
         if (nodes) {
             for (uint32_t j = 0; j < count; ++j) {
                 auto value = convertToBase3(j + 1, bits)[digit];
                 switch (value) {
                 case '0':
-                    outputManager->SetOneChannel(startch + j * 3 + 0 - 1, intensity);
-                    outputManager->SetOneChannel(startch + j * 3 + 1 - 1, 0);
-                    outputManager->SetOneChannel(startch + j * 3 + 2 - 1, 0);
+                    outputManager->SetOneChannel(startch + j * channels_per_node + r_offset - 1, intensity);
+                    outputManager->SetOneChannel(startch + j * channels_per_node + g_offset - 1, 0);
+                    outputManager->SetOneChannel(startch + j * channels_per_node + b_offset - 1, 0);
                     break;
                 case '1':
-                    outputManager->SetOneChannel(startch + j * 3 + 0 - 1, 0);
-                    outputManager->SetOneChannel(startch + j * 3 + 1 - 1, intensity);
-                    outputManager->SetOneChannel(startch + j * 3 + 2 - 1, 0);
+                    outputManager->SetOneChannel(startch + j * channels_per_node + r_offset - 1, 0);
+                    outputManager->SetOneChannel(startch + j * channels_per_node + g_offset - 1, intensity);
+                    outputManager->SetOneChannel(startch + j * channels_per_node + b_offset - 1, 0);
                     break;
                 case '2':
-                    outputManager->SetOneChannel(startch + j * 3 + 0 - 1, 0);
-                    outputManager->SetOneChannel(startch + j * 3 + 1 - 1, 0);
-                    outputManager->SetOneChannel(startch + j * 3 + 2 - 1, intensity);
+                    outputManager->SetOneChannel(startch + j * channels_per_node + r_offset - 1, 0);
+                    outputManager->SetOneChannel(startch + j * channels_per_node + g_offset - 1, 0);
+                    outputManager->SetOneChannel(startch + j * channels_per_node + b_offset - 1, intensity);
                     break;
                 default:
                     break;
@@ -1747,37 +1758,37 @@ public:
         }
     }
 
-    void RunSequence(xLightsFrame* frame, OutputManager* outputManager, bool nodes, uint32_t startChannel, uint32_t numPixels, uint8_t intensity, std::function<void(float)> progressCallback = nullptr)
+    void RunSequence(xLightsFrame* frame, OutputManager* outputManager, bool nodes, uint32_t startChannel, uint32_t numPixels, uint8_t intensity, int channels_per_node, std::function<void(float)> progressCallback = nullptr)
     {
         StartBulbOutput(outputManager, frame);
 
         auto totalTime = GetSequenceRunTime(numPixels);
 
         // 3.0 seconds off 0.5 seconds on ... 0.5 seconds off ... 0.5 second on ... 0.5 seconds off
-        SetBulbs(outputManager, nodes, numPixels, startChannel, -1, LEADOFF, 0);
+        SetBulbs(outputManager, nodes, numPixels, startChannel, -1, LEADOFF, 0, channels_per_node);
         if (progressCallback != nullptr)
             progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
-        SetBulbs(outputManager, nodes, numPixels, startChannel, -1, FLAGON, intensity);
+        SetBulbs(outputManager, nodes, numPixels, startChannel, -1, FLAGON, intensity, channels_per_node);
         if (progressCallback != nullptr)
             progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
-        SetBulbs(outputManager, nodes, numPixels, startChannel, -1, FLAGOFF, 0);
+        SetBulbs(outputManager, nodes, numPixels, startChannel, -1, FLAGOFF, 0, channels_per_node);
         if (progressCallback != nullptr)
             progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
-        SetBulbs(outputManager, nodes, numPixels, startChannel, -1, FLAGON, intensity);
+        SetBulbs(outputManager, nodes, numPixels, startChannel, -1, FLAGON, intensity, channels_per_node);
         if (progressCallback != nullptr)
             progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
-        SetBulbs(outputManager, nodes, numPixels, startChannel, -1, FLAGOFF, 0);
+        SetBulbs(outputManager, nodes, numPixels, startChannel, -1, FLAGOFF, 0, channels_per_node);
         if (progressCallback != nullptr)
             progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
 
         // then in turn each node on for 0.5 seconds
         for (uint32_t i = 0; i < GetBits(numPixels) && !wxGetKeyState(WXK_ESCAPE); ++i) {
             // logger_pcm.debug("%d of %d", i, count);
-            SetBulbsUsingBase3(outputManager, nodes, numPixels, startChannel, i, GetBits(numPixels), NODEON, intensity);
+            SetBulbsUsingBase3(outputManager, nodes, numPixels, startChannel, i, GetBits(numPixels), NODEON, intensity, channels_per_node);
             if (progressCallback != nullptr)
                 progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
         }
-        SetBulbs(outputManager, nodes, numPixels, startChannel, -1, 0, 0);
+        SetBulbs(outputManager, nodes, numPixels, startChannel, -1, 0, 0, channels_per_node);
 
         if (progressCallback != nullptr)
             progressCallback(1.0);
@@ -1785,37 +1796,37 @@ public:
         EndBulbOutput(outputManager, frame);
     }
 
-    void RunManualSequence(xLightsFrame* frame, OutputManager* outputManager, uint32_t startChannel, uint32_t numPixels, uint8_t intensity, std::function<void(float)> progressCallback = nullptr)
+    void RunManualSequence(xLightsFrame* frame, OutputManager* outputManager, uint32_t startChannel, uint32_t numPixels, uint8_t intensity, int channels_per_node, std::function<void(float)> progressCallback = nullptr)
     {
         StartBulbOutput(outputManager, frame);
 
         auto totalTime = GetManualSequenceRunTime(numPixels);
 
         // 3.0 seconds off 0.5 seconds on ... 0.5 seconds off ... 0.5 second on ... 0.5 seconds off
-        SetBulbs(outputManager, true, numPixels, startChannel, -1, LEADOFF, 0);
+        SetBulbs(outputManager, true, numPixels, startChannel, -1, LEADOFF, 0, channels_per_node);
         if (progressCallback != nullptr)
             progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
-        SetBulbs(outputManager, true, numPixels, startChannel, -1, FLAGON, intensity);
+        SetBulbs(outputManager, true, numPixels, startChannel, -1, FLAGON, intensity, channels_per_node);
         if (progressCallback != nullptr)
             progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
-        SetBulbs(outputManager, true, numPixels, startChannel, -1, FLAGOFF, 0);
+        SetBulbs(outputManager, true, numPixels, startChannel, -1, FLAGOFF, 0, channels_per_node);
         if (progressCallback != nullptr)
             progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
-        SetBulbs(outputManager, true, numPixels, startChannel, -1, FLAGON, intensity);
+        SetBulbs(outputManager, true, numPixels, startChannel, -1, FLAGON, intensity, channels_per_node);
         if (progressCallback != nullptr)
             progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
-        SetBulbs(outputManager, true, numPixels, startChannel, -1, FLAGOFF, 0);
+        SetBulbs(outputManager, true, numPixels, startChannel, -1, FLAGOFF, 0, channels_per_node);
         if (progressCallback != nullptr)
             progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
 
         // then in turn each node on for 0.5 seconds
         for (uint32_t i = 0; i < numPixels && !wxGetKeyState(WXK_ESCAPE); ++i) {
             // logger_pcm.debug("%d of %d", i, count);
-            SetBulbs(outputManager, true, numPixels, startChannel, i, NODEON, intensity);
+            SetBulbs(outputManager, true, numPixels, startChannel, i, NODEON, intensity, channels_per_node);
             if (progressCallback != nullptr)
                 progressCallback((float)(wxDateTime::UNow() - _startOutputTime).GetMilliseconds().ToLong() / (float)totalTime);
         }
-        SetBulbs(outputManager, true, numPixels, startChannel, -1, 0, 0);
+        SetBulbs(outputManager, true, numPixels, startChannel, -1, 0, 0, channels_per_node);
 
         if (progressCallback != nullptr)
             progressCallback(1.0);
@@ -3116,9 +3127,19 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     bool nodes = NodesRadioButton->GetValue();
     bool manual = ManualNodesRadioButton->GetValue();
 
+    int channels_per_node = 4;
+    // hard-coded hack set to 4 for WRGB for now.
+    // Use some sort of GUI controls for final pass.
+    // I imagine this enhancement would be nice as "color order"
+    // (like is done in defining models) to support various types
+    // of pixels, like a dropdown for RGB, GRB...WRGB,WGRB...RGBW
+    // ...etc, defaulting to the original RGB behavior.
+
     logger_pcm.info("   Count: %d.", count);
     logger_pcm.info("   Start Channel: %d.", startch);
     logger_pcm.info("   Intensity: %d.", intensity);
+    logger_pcm.info("   Channels Per Node: %d.", channels_per_node);
+
     if (nodes || manual)
     {
         if (nodes) {
@@ -3127,7 +3148,7 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
         else {
             logger_pcm.info("   Manual Nodes.");
         }
-        logger_pcm.info("   Channels that will be affected %ld-%ld of %ld channels", startch, startch + (count * 3) - 1, _outputManager->GetTotalChannels());
+        logger_pcm.info("   Channels that will be affected %ld-%ld of %ld channels", startch, startch + (count * channels_per_node) - 1, _outputManager->GetTotalChannels());
     }
     else
     {
@@ -3136,9 +3157,9 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     }
 
     if (manual) {
-        _generator->RunManualSequence(_parent, _outputManager, startch, count, intensity, std::bind(&GenerateCustomModelDialog::UpdateProgressCallback, this, std::placeholders::_1));
+        _generator->RunManualSequence(_parent, _outputManager, startch, count, intensity, channels_per_node, std::bind(&GenerateCustomModelDialog::UpdateProgressCallback, this, std::placeholders::_1));
     } else {
-        _generator->RunSequence(_parent, _outputManager, nodes, startch, count, intensity, std::bind(&GenerateCustomModelDialog::UpdateProgressCallback, this, std::placeholders::_1));
+        _generator->RunSequence(_parent, _outputManager, nodes, startch, count, intensity, channels_per_node, std::bind(&GenerateCustomModelDialog::UpdateProgressCallback, this, std::placeholders::_1));
     }
 
     delete _pd;
