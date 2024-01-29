@@ -772,7 +772,7 @@ void MovingHeadPanel::OnButtonPathPresetClick(wxCommandEvent& event)
         selected_path = -1;
     }
     recall = false;
-    UpdateMHSettings();
+    UpdatePathSettings();
     FireChangeEvent();
 }
 
@@ -784,11 +784,28 @@ void MovingHeadPanel::ValidateWindow()
 {
 }
 
+static std::list<std::string> vcurves_pos = {"ID_VALUECURVE_MHPan", "ID_VALUECURVE_MHTilt", "ID_VALUECURVE_MHPanOffset",
+                                             "ID_VALUECURVE_MHTiltOffset", "ID_VALUECURVE_MHGroupings" };
+static std::list<std::string> vcurves_path = {"ID_VALUECURVE_MHPathScale", "ID_VALUECURVE_MHTimeOffset" };
+
 void MovingHeadPanel::OnVCChanged(wxCommandEvent& event)
 {
     EffectPanelUtils::OnVCChanged(event);
 
-    UpdateMHSettings();
+    BulkEditValueCurveButton* vc_btn = reinterpret_cast<BulkEditValueCurveButton*>(event.GetEventObject());
+    
+    if( vc_btn != nullptr ) {
+        std::string vc_id = vc_btn->GetValue()->GetId();
+        bool pos_found = (std::find(vcurves_pos.begin(), vcurves_pos.end(), vc_id) != vcurves_pos.end());
+        if( pos_found ) {
+            UpdateMHSettings();
+        } else {
+            bool path_found = (std::find(vcurves_path.begin(), vcurves_path.end(), vc_id) != vcurves_path.end());
+            if( path_found ) {
+                UpdatePathSettings();
+            }
+        }
+    }
 
     FireChangeEvent();
 }
@@ -796,7 +813,18 @@ void MovingHeadPanel::OnVCChanged(wxCommandEvent& event)
 void MovingHeadPanel::OnSliderUpdated(wxCommandEvent& event)
 {
     int event_id = event.GetId();
-    UpdateMHSettings();
+    if (event_id == ID_SLIDER_MHPan ||
+        event_id == ID_SLIDER_MHTilt ||
+        event_id == ID_SLIDER_MHPanOffset ||
+        event_id == ID_SLIDER_MHTiltOffset ||
+        event_id == ID_SLIDER_MHGroupings ||
+        event_id == ID_SLIDER_MHCycles) {
+        UpdateMHSettings();
+    }
+    else if (event_id == ID_SLIDER_MHPathScale ||
+             event_id == ID_SLIDER_MHTimeOffset) {
+        UpdatePathSettings();
+    }
     if (event_id == ID_SLIDER_MHPan ||
         event_id == ID_SLIDER_MHTilt )
     {
@@ -812,15 +840,7 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
 {
     int event_id = event.GetId();
 
-    if (event_id == IDD_TEXTCTRL_MHPan ||
-        event_id == IDD_TEXTCTRL_MHTilt ||
-        event_id == IDD_TEXTCTRL_MHPanOffset ||
-        event_id == IDD_TEXTCTRL_MHTiltOffset ||
-        event_id == IDD_TEXTCTRL_MHGroupings ||
-        event_id == IDD_TEXTCTRL_MHTimeOffset ||
-        event_id == IDD_TEXTCTRL_MHPathScale) {
-        UpdateMHSettings();
-    } else if (event_id == ID_TEXTCTRL_MHPathDef) {
+    if (event_id == ID_TEXTCTRL_MHPathDef) {
         if( m_sketchDef != TextCtrl_MHPathDef->GetValue() ) {
             m_sketchDef = TextCtrl_MHPathDef->GetValue();
             m_sketch = SketchEffectSketch::SketchFromString(m_sketchDef);
@@ -837,6 +857,18 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
                 }
             }
         }
+    }
+    else if (event_id == IDD_TEXTCTRL_MHPan ||
+             event_id == IDD_TEXTCTRL_MHTilt ||
+             event_id == IDD_TEXTCTRL_MHPanOffset ||
+             event_id == IDD_TEXTCTRL_MHTiltOffset ||
+             event_id == IDD_TEXTCTRL_MHGroupings ||
+             event_id == IDD_TEXTCTRL_MHCycles) {
+        UpdateMHSettings();
+    }
+    else if (event_id == IDD_TEXTCTRL_MHTimeOffset ||
+             event_id == IDD_TEXTCTRL_MHPathScale) {
+        UpdatePathSettings();
     }
     if( event_id == IDD_TEXTCTRL_MHPan ) {
         float pan = 0.0f;
@@ -902,14 +934,6 @@ void MovingHeadPanel::UpdateColorPanel()
         DmxColorAbility* ptrColorAbility = first_mhead->GetColorAbility();
         auto colors = ptrColorAbility->GetColors();
         if( m_wheelColorPanel == nullptr) {
-            /*colors.push_back(xlRED);
-            colors.push_back(xlGREEN);
-            colors.push_back(xlBLUE);
-            colors.push_back(xlWHITE);
-            colors.push_back(xlCYAN);
-            colors.push_back(xlORANGE);
-            colors.push_back(xlYELLOW);
-            colors.push_back(xlPURPLETRANSLUCENT);*/
             m_wheelColorPanel = new MHColorWheelPanel(this, PanelColorWheel, wxID_ANY, wxDefaultPosition, wxSize(-1, -1));
             m_wheelColorPanel->DefineColours(colors);
             FlexGridSizerColorWheel->Add(m_wheelColorPanel, 0, wxALL | wxEXPAND);
@@ -927,7 +951,12 @@ void MovingHeadPanel::UpdateColorPanel()
         }
     }
 }
-    
+
+static std::list<std::string> possettings = {"Heads", "Pan", "Tilt", "PanOffset", "TiltOffset", "Groupings", "Cycles",
+                                             "Pan VC", "Tilt VC", "PanOffset VC", "TiltOffset VC", "Groupings VC"};
+static std::list<std::string> pathsettings = {"Path", "PathScale", "TimeOffset", "IgnorePan", "IgnoreTilt", "PathScale VC", "TimeOffset VC" };
+static std::list<std::string> colorsettings = {"Color", "Wheel" };
+
 void MovingHeadPanel::UpdateMHSettings()
 {
     if( recall ) return;
@@ -938,6 +967,8 @@ void MovingHeadPanel::UpdateMHSettings()
     }
 
     UpdateColorPanel();
+
+    RemoveSettings(possettings);
 
     std::string headset = xlEMPTY_STRING;
 
@@ -975,78 +1006,22 @@ void MovingHeadPanel::UpdateMHSettings()
         wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
         if( checkbox != nullptr ) {
             if( checkbox->IsChecked() ) {
-                std::string mh_settings = xlEMPTY_STRING;
-                bool is_path = false;
-
-                AddSetting( "Pan", "Pan", mh_settings );
-                AddSetting( "Tilt", "Tilt", mh_settings );
-
-                // add common settings
-                AddSetting( "PanOffset", "PanOffset", mh_settings );
-                AddSetting( "TiltOffset", "TiltOffset", mh_settings );
-                AddSetting( "Groupings", "Groupings", mh_settings );
-                AddSetting( "Cycles", "Cycles", mh_settings );
-                mh_settings += ";";
-                mh_settings += headset;
-
-                // add path only settings
-
-                // See if pan path is ignored
-                checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_MHIgnorePan"));
-                if( checkbox != nullptr ) {
-                    if( !checkbox->IsChecked() ) {
-                        is_path = true;
-                    } else {
-                        mh_settings += ";IgnorePan: ";
-                    }
-                }
-
-                // See if tilt path is ignored
-                checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_MHIgnoreTilt"));
-                if( checkbox != nullptr ) {
-                    if( !checkbox->IsChecked() ) {
-                        is_path = true;
-                    } else {
-                        mh_settings += ";IgnoreTilt: ";
-                    }
-                }
-
-                // See if there are any path segments
-                if( m_sketch.getLength() <= 0.0 ) {
-                    is_path = false;
-                }
-
-                if( is_path ) {
-                    AddPath( mh_settings );
-                    AddSetting( "PathScale", "PathScale", mh_settings );
-                    AddSetting( "TimeOffset", "TimeOffset", mh_settings );
-                }
-
-                // Add RGB color settings
-                if( m_rgbColorPanel != nullptr && m_rgbColorPanel->HasColour() ) {
-                    std::string color_text{m_rgbColorPanel->GetColour()};
-                    if( color_text != xlEMPTY_STRING ) {
-                        mh_settings += ";";
-                        mh_settings += color_text;
-                    }
-                }
-
-                // Add Color Wheel color settings
-                if( m_wheelColorPanel != nullptr && m_wheelColorPanel->HasColour() ) {
-                    std::string color_text{m_wheelColorPanel->GetColour()};
-                    if( color_text != xlEMPTY_STRING ) {
-                        mh_settings += ";";
-                        mh_settings += color_text;
-                    }
-                }
-
-                // update the settings textbox
                 wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
                 wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
                 if( mh_textbox != nullptr ) {
-                    if( mh_settings != xlEMPTY_STRING ) {
-                        mh_textbox->SetValue(mh_settings);
-                    }
+                    std::string mh_settings = mh_textbox->GetValue();
+
+                    AddSetting( "Pan", "Pan", mh_settings );
+                    AddSetting( "Tilt", "Tilt", mh_settings );
+                    AddSetting( "PanOffset", "PanOffset", mh_settings );
+                    AddSetting( "TiltOffset", "TiltOffset", mh_settings );
+                    AddSetting( "Groupings", "Groupings", mh_settings );
+                    AddSetting( "Cycles", "Cycles", mh_settings );
+                    mh_settings += ";";
+                    mh_settings += headset;
+
+                    // update the settings textbox
+                    mh_textbox->SetValue(mh_settings);
                 }
             }
         }
@@ -1062,18 +1037,16 @@ void MovingHeadPanel::UpdateColorSettings()
     std::string color_text{xlEMPTY_STRING};
     std::string wheel_text{xlEMPTY_STRING};
 
+    RemoveSettings(colorsettings);
+    
     if( m_rgbColorPanel != nullptr && m_rgbColorPanel->HasColour() ) {
         color_text = m_rgbColorPanel->GetColour();
         rgb_active = true;
-    } else {
-        RemoveSetting("Color");
     }
 
     if( m_wheelColorPanel != nullptr && m_wheelColorPanel->HasColour() && Notebook2->GetPageCount() > 1 ) {
         wheel_text = m_wheelColorPanel->GetColour();
         wheel_active = true;
-    } else {
-        RemoveSetting("Wheel");
     }
 
     if( color_text != xlEMPTY_STRING || wheel_text != xlEMPTY_STRING ) {
@@ -1086,46 +1059,15 @@ void MovingHeadPanel::UpdateColorSettings()
                     wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
                     if( mh_textbox != nullptr ) {
                         std::string mh_settings = mh_textbox->GetValue();
-                        if( mh_settings != xlEMPTY_STRING ) {
-                            bool found_color {false};
-                            bool found_wheel {false};
-                            wxArrayString all_cmds = wxSplit(mh_settings, ';');
-                            for (size_t j = 0; j < all_cmds.size(); ++j )
-                            {
-                                std::string cmd = all_cmds[j];
-                                if( cmd == xlEMPTY_STRING ) continue;
-                                int pos = cmd.find(":");
-                                std::string cmd_type = cmd.substr(0, pos);
-                                if( rgb_active && cmd_type == "Color" ) {
-                                    all_cmds[j] = color_text;
-                                    found_color = true;
-                                }
-                                if( wheel_active && cmd_type == "Wheel" ) {
-                                    all_cmds[j] = wheel_text;
-                                    found_wheel = true;
-                                }
-                            }
-                            if( rgb_active && !found_color ) {
-                                all_cmds.Add(color_text);
-                            }
-                            if( wheel_active && !found_wheel ) {
-                                all_cmds.Add(wheel_text);
-                            }
-                            mh_settings = wxJoin( all_cmds, ';');
-                            mh_textbox->SetValue(mh_settings);
-                        } else {
-                            wxArrayString all_cmds;
-                            if( rgb_active ) {
-                                all_cmds.Add(color_text);
-                            }
-                            if( wheel_active ) {
-                                all_cmds.Add(wheel_text);
-                            }
-                            if( rgb_active || wheel_active ) {
-                                mh_settings = wxJoin( all_cmds, ';');
-                                mh_textbox->SetValue(mh_settings);
-                            }
+                        if( rgb_active ) {
+                            mh_settings += ";";
+                            mh_settings += color_text;
                         }
+                        if( wheel_active ) {
+                            mh_settings += ";";
+                            mh_settings += wheel_text;
+                        }
+                        mh_textbox->SetValue(mh_settings);
                     }
                 }
             }
@@ -1133,7 +1075,55 @@ void MovingHeadPanel::UpdateColorSettings()
     }
 }
 
-void MovingHeadPanel::RemoveSetting(std::string setting)
+void MovingHeadPanel::UpdatePathSettings()
+{
+    if( recall ) return;
+
+    RemoveSettings(pathsettings);
+
+    for( int i = 1; i <= 8; ++i ) {
+        wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+        wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+        if( checkbox != nullptr ) {
+            if( checkbox->IsChecked() ) {
+                wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+                wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                if( mh_textbox != nullptr ) {
+                    std::string mh_settings = mh_textbox->GetValue();
+
+                    // See if there are any path segments
+                    if( m_sketch.getLength() > 0.0 ) {
+                        AddPath( mh_settings );
+                        AddSetting( "PathScale", "PathScale", mh_settings );
+                        AddSetting( "TimeOffset", "TimeOffset", mh_settings );
+
+                        // See if pan path is ignored
+                        checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_MHIgnorePan"));
+                        if( checkbox != nullptr ) {
+                            if( checkbox->IsChecked() ) {
+                                mh_settings += ";IgnorePan: ";
+                            }
+                        }
+                        
+                        // See if tilt path is ignored
+                        checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_MHIgnoreTilt"));
+                        if( checkbox != nullptr ) {
+                            if( checkbox->IsChecked() ) {
+                                mh_settings += ";IgnoreTilt: ";
+                            }
+                        }
+                        
+                        // update the settings textbox
+                        mh_textbox->SetValue(mh_settings);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Added special case to remove all path settings at once so we don't have to search several times
+void MovingHeadPanel::RemoveSettings(std::list<std::string>& settings)
 {
     for( int i = 1; i <= 8; ++i ) {
         wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
@@ -1153,7 +1143,8 @@ void MovingHeadPanel::RemoveSetting(std::string setting)
                             if( cmd == xlEMPTY_STRING ) continue;
                             int pos = cmd.find(":");
                             std::string cmd_type = cmd.substr(0, pos);
-                            if( cmd_type != setting ) {
+                            bool found = (std::find(settings.begin(), settings.end(), cmd_type) != settings.end());
+                            if( !found ) {
                                 updated_cmds.Add(all_cmds[j]);
                             }
                         }
@@ -1342,13 +1333,13 @@ std::list<Model*> MovingHeadPanel::GetActiveModels()
 void MovingHeadPanel::OnCheckBox_MHIgnorePanClick(wxCommandEvent& event)
 {
     CheckBox_MHIgnorePan->SetValue(event.GetInt());
-    UpdateMHSettings();
+    UpdatePathSettings();
 }
 
 void MovingHeadPanel::OnCheckBox_MHIgnoreTiltClick(wxCommandEvent& event)
 {
     CheckBox_MHIgnoreTilt->SetValue(event.GetInt());
-    UpdateMHSettings();
+    UpdatePathSettings();
 }
 
 void MovingHeadPanel::OnCharHook(wxKeyEvent& event)
@@ -1387,7 +1378,7 @@ void MovingHeadPanel::NotifySketchUpdated()
 {
     m_sketchDef = m_sketch.toString();
     TextCtrl_MHPathDef->SetValue(m_sketchDef);
-    UpdateMHSettings();
+    UpdatePathSettings();
 }
 
 void MovingHeadPanel::NotifySketchPathsUpdated()
