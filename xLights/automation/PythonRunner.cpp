@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "PythonRunner.h"
@@ -37,15 +37,15 @@ PythonRunner::PythonRunner(xLightsFrame* frame) :
 
 std::string PythonRunner::GetUserScriptFolder() const
 {
-    return _frame->GetShowDirectory() + wxFileName::GetPathSeparator() + "scripts" + wxFileName::GetPathSeparator();
+    return _frame->GetShowDirectory() + GetPathSeparator() + "scripts" + GetPathSeparator();
 }
 
 std::string PythonRunner::GetSystemScriptFolder()
 {
 #ifndef __WXMSW__
-    return wxStandardPaths::Get().GetResourcesDir() + wxFileName::GetPathSeparator() + "scripts";
+    return wxStandardPaths::Get().GetResourcesDir() + GetPathSeparator() + "scripts";
 #else
-    return wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath() + wxFileName::GetPathSeparator() + "scripts";
+    return wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath() + GetPathSeparator() + "scripts";
 #endif
 }
 
@@ -90,7 +90,7 @@ std::list<std::string> PythonRunner::PromptSequences() const
         wxArrayString files = dlg.GetFileList();
 
         for (auto const& f : files) {
-            wxFileName fname(_frame->GetShowDirectory() + wxFileName::GetPathSeparator() + f);
+            wxFileName fname(_frame->GetShowDirectory() + GetPathSeparator() + f);
             if (FileExists(fname)) {
                 sequenceList.push_back(fname.GetFullPath());
             } else {

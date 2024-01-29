@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "VendorModelDialog.h"
@@ -849,7 +849,7 @@ wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename
 bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
     const std::string vendorlink = "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
-    const std::string vendorlinkbackup = "https://github.com/smeighan/xLights/raw/master/download/xlights_vendors.xml";
+    const std::string vendorlinkbackup = "https://github.com/xLightsSequencer/xLights/raw/master/download/xlights_vendors.xml";
     //const std::string vendorlink = "http://localhost/xlights_vendors.xml";
 
     std::string filename;
@@ -1104,7 +1104,7 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
         // we need to open the zip ... place the files in the "modeldownload" folder in the show folder
         logger_base.debug("    opening zipped model " + _modelFile);
 
-        auto dir = _showFolder + wxFileName::GetPathSeparator() + "modeldownload";
+        auto dir = _showFolder + GetPathSeparator() + "modeldownload";
         if (!wxDir::Exists(dir)) {
             logger_base.debug("Creating modeldownload directory " + dir);
             wxMkdir(dir);
@@ -1143,7 +1143,7 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
                         }
                     }
 
-                    auto file = dir + wxFileName::GetPathSeparator() + ent->GetName();
+                    auto file = dir + GetPathSeparator() + ent->GetName();
                     if (wxFileName(ent->GetName()).GetExt().Lower() == "xmodel") {
                         _modelFile = file;
                     }

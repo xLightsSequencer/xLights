@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/file.h>
@@ -652,7 +652,7 @@ bool xlGLCanvas::getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int
     bool padHeight = (h % 2);
     int widthWithPadding = padWidth ? (w + 1) : w;
     int heightWithPadding = padHeight ? (h + 1) : h;
-    unsigned int reqSize = widthWithPadding * 3 * heightWithPadding;
+    int reqSize = widthWithPadding * 3 * heightWithPadding;
     if (bufferSize < reqSize) {
         return false;
     }

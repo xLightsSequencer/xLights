@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #define ZERO 0
@@ -666,7 +666,7 @@ bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, con
         char result[4096];
 
         std::wstring s;
-        if (wtext != "")
+        if (!wtext.empty())
         {
             s = wtext;
         }
@@ -674,7 +674,11 @@ bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, con
         {
             s = std::wstring(text.begin(), text.end());
         }
-        std::wstring p = t + "," + s + ",";
+	static std::wstring COMMA = {','};
+        std::wstring p(t.begin(), t.end());
+        p += COMMA;
+        p += s;
+        p += COMMA;
         _action("Set current text", (const wchar_t*)p.c_str(), "", result, sizeof(result));
         std::string res(result);
 

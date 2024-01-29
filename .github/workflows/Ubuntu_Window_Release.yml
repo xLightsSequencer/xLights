@@ -15,7 +15,7 @@ jobs:
         with:
           submodules: 'true'
       - run: docker pull ghcr.io/xlightssequencer/xlights-build-docker:master
-      - run: docker run --name buildvm ghcr.io/xlightssequencer/xlights-build-docker /bin/bash Recipe.appimage
+      - run: docker run --name buildvm ghcr.io/xlightssequencer/xlights-build-docker:master /bin/bash Recipe.appimage
       - run: 'docker cp buildvm:/xLights/xLights/AppImage/ /tmp/'
       - run: ls -lh /tmp/AppImage
 
@@ -30,18 +30,18 @@ jobs:
 
    steps:
     - name: Checkout xLights
-      run: git clone https://github.com/smeighan/xLights.git C:/xLights/ --depth 1  --depth=1 --shallow-submodules --recurse-submodules
+      run: git clone https://github.com/xLightsSequencer/xLights.git C:/xLights/ --depth 1  --depth=1 --shallow-submodules --recurse-submodules
 
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v1
 
     - name: Download wxWidgets
       run: 
-        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2023.11 https://github.com/xLightsSequencer/wxWidgets C:/wxWidgets/
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2024.01 https://github.com/xLightsSequencer/wxWidgets C:/wxWidgets/
 
     - name: Build wxWidgets
       working-directory: C:/wxWidgets/
-      run: msbuild /m .\build\msw\wx_vc16.sln /p:Configuration="Release" /p:Platform="x64"
+      run: msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
 
     - name: Build All
       shell: cmd

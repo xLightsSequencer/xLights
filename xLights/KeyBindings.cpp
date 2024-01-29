@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/xml/xml.h>
@@ -978,9 +978,9 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                     bool alt = child->GetAttribute("alt", "FALSE") == "TRUE";
                     bool shift = child->GetAttribute("shift", "FALSE") == "TRUE";
                     bool rcontrol = child->GetAttribute("rawControl", "FALSE") == "TRUE";
-                    if (oldk != "") {
+                    if (!oldk.empty()) {
                         k = oldk;
-                        if (k >= 'A' && k <= 'Z') shift = true; else shift = false;
+                        if (k[0] >= 'A' && k[0] <= 'Z') shift = true; else shift = false;
                     }
                     if (k == "") disabled = true;
                     if (type == "EFFECT") {

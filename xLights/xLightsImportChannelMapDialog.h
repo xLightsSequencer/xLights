@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 // need to do these manually due to issues with wxSmith
@@ -564,7 +564,6 @@ protected:
         SequencePackage* _xsqPkg {nullptr};
 
         std::vector<std::unique_ptr<ImportChannel>> importChannels;
-        std::unique_ptr<wxImageList> m_imageList;
         std::map<int, int> m_iconIndexMap; // Order in list->one we got
 
 		DECLARE_EVENT_TABLE()

@@ -341,6 +341,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="IPEntryDialog.cpp" />
     <ClCompile Include="MetronomeLabelDialog.cpp" />
     <ClCompile Include="models\DMX\DmxColorAbilityCMY.cpp" />
+    <ClCompile Include="SpecialOptions.cpp" />
     <ClCompile Include="TempFileManager.cpp" />
     <ClCompile Include="utils\CurlManager.cpp" />
     <ClCompile Include="utils\ip_utils.cpp" />

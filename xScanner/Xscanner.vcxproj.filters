@@ -152,6 +152,9 @@
     <ClCompile Include="..\xLights\utils\CurlManager.cpp">
       <Filter>xLights\utils</Filter>
     </ClCompile>
+    <ClCompile Include="..\xLights\SpecialOptions.cpp">
+      <Filter>xLights</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />

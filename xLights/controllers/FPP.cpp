@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #ifndef NOMINMAX
@@ -2940,11 +2940,12 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
         if (inst->controller->GetProtocol() != OUTPUT_DDP) {
             inst->controller->SetProtocol(OUTPUT_DDP);
         }
+        SetControllerType(inst);
     } else if (inst->typeId == 0xC2 || inst->typeId == 0xC3) {
         if (inst->controller->GetProtocol() != OUTPUT_DDP) {
             inst->controller->SetProtocol(OUTPUT_DDP);
-            dynamic_cast<DDPOutput*>(inst->controller->GetOutputs().front())->SetKeepChannelNumber(false);
         }
+        dynamic_cast<DDPOutput*>(inst->controller->GetOutputs().front())->SetKeepChannelNumber(false);
         if (inst->majorVersion <= 3) {
             inst->pixelControllerType = inst->platformModel;
         } else if (inst->typeId == 0xC2) {
@@ -2964,6 +2965,10 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
         //falcon range
         if (created) {
             inst->controller->SetProtocol(OUTPUT_E131);
+            inst->SetVendor("Falcon");
+            inst->SetModel(AfterLast(inst->platformModel, ' '));
+            inst->controller->SetAutoLayout(true);
+            inst->controller->SetAutoSize(true, nullptr);
         }
     }
     setRangesToChannelCount(inst);
@@ -3048,7 +3053,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 inst.mode += " w/multisync";
             }
         }
-        if (inst.typeId == 0xC2 || inst.typeId == 0xC3) {
+        if (inst.typeId > 0x80) {
             inst.pixelControllerType = inst.platformModel;
         }
 
@@ -3293,6 +3298,9 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
         }
         if (val.HasMember("majorVersion")) {
             inst->majorVersion = val["majorVersion"].AsInt();
+        }
+        if (val.HasMember("capeInfo")) {
+            inst->pixelControllerType = ToUTF8(val["capeInfo"]["id"].AsString());
         }
 
         std::string file = "co-pixelStrings";

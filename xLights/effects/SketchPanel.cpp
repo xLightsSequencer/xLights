@@ -1,7 +1,7 @@
 #include "SketchPanel.h"
 #include "BulkEditControls.h"
-#include "assist/SketchAssistPanel.h"
 #include "../xLightsMain.h"
+#include "assist/SketchAssistPanel.h"
 
 #include <wx/filepicker.h>
 #include <wx/hyperlink.h>
@@ -86,12 +86,11 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
     TextCtrl_SketchDef->SetEditable(false);
 
     auto bgLabel = new wxStaticText(this, wxID_ANY, "Background:");
-    FilePicker_SketchBackground = new wxFilePickerCtrl(this, ID_FILEPICKER_SketchBackground,
-                                                       wxEmptyString, imgSelect, imgFilters,
-                                                       wxDefaultPosition, wxDefaultSize,
-                                                       wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL,
-                                                       wxDefaultValidator, "ID_FILEPICKER_SketchBackground");
-    //FilePicker_SketchBackground->GetTextCtrl()->SetEditable(false);
+    FilePicker_SketchBackground = new xlSketchFilePickerCtrl(this, ID_FILEPICKER_SketchBackground,
+                                                             wxEmptyString, imgSelect, imgFilters,
+                                                             wxDefaultPosition, wxDefaultSize,
+                                                             wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL,
+                                                             wxDefaultValidator, "ID_FILEPICKER_SketchBackground");
 
     auto opacityLabel = new wxStaticText(this, wxID_ANY, "Opacity:");
     Slider_SketchBackgroundOpacity = new wxSlider(this, ID_SLIDER_SketchBackgroundOpacity, 0x30, 0x00, 0xff,
@@ -185,7 +184,7 @@ SketchPanel::SketchPanel(wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wx
 
     mainSizer->Add(settingsSizer, 1, wxALL | wxEXPAND, 2);
 
-	SetSizer(mainSizer);
+    SetSizer(mainSizer);
     mainSizer->Fit(this);
     mainSizer->SetSizeHints(this);
 
@@ -218,10 +217,11 @@ void SketchPanel::ValidateWindow()
     Slider_DrawPercentage->Enable(!motion);
     BitmapButton_DrawPercentage->Enable(!motion);
     TextCtrl_DrawPercentage->Enable(!motion);
-    
+
     Slider_MotionPercentage->Enable(motion);
     BitmapButton_MotionPercentage->Enable(motion);
     TextCtrl_MotionPercentage->Enable(motion);
+    FilePicker_SketchBackground->SetToolTip(wxFileName(FilePicker_SketchBackground->GetFileName()).GetFullName());
 }
 
 void SketchPanel::OnFilePickerCtrl_FileChanged(wxCommandEvent& event)

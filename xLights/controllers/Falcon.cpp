@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "Falcon.h"
@@ -523,6 +523,8 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
 #define V4_PIXEL_PROTOCOL_WS2811_SLOW 15
 #define V4_PIXEL_PROTOCOL_SJ1221 16
 #define V4_PIXEL_PROTOCOL_DMX512P_4 17
+#define V4_PIXEL_PROTOCOL_SM16825 18
+#define V4_PIXEL_PROTOCOL_SM16825_16 19
 
 std::string Falcon::V4_DecodeMode(int mode) const
 {
@@ -563,6 +565,10 @@ std::string Falcon::V4_DecodePixelProtocol(int protocol)
         return "ws2811 slow";
     case V4_PIXEL_PROTOCOL_SJ1221:
         return "sj1221";
+    case V4_PIXEL_PROTOCOL_SM16825:
+        return "sm16825";
+    case V4_PIXEL_PROTOCOL_SM16825_16:
+        return "sm16825 16 bit";
     }
     return "";
 }
@@ -593,6 +599,10 @@ int Falcon::V4_EncodePixelProtocol(const std::string& protocol)
     if (protocol == "lx1203") return V4_PIXEL_PROTOCOL_WS2811;
     if (protocol == "sj1221")
         return V4_PIXEL_PROTOCOL_SJ1221;
+    if (protocol == "sm16825")
+        return V4_PIXEL_PROTOCOL_SM16825;
+    if (protocol == "sm16825 16 bit")
+        return V4_PIXEL_PROTOCOL_SM16825_16;
     return -1;
 }
 
@@ -712,6 +722,9 @@ int Falcon::V4_GetMaxPortPixels(int boardMode, int protocol)
             return 382;
         case V4_PIXEL_PROTOCOL_SJ1221:
             return 232;
+        case V4_PIXEL_PROTOCOL_SM16825:
+        case V4_PIXEL_PROTOCOL_SM16825_16:
+            return 210;
         }
     }
     else {
@@ -743,6 +756,9 @@ int Falcon::V4_GetMaxPortPixels(int boardMode, int protocol)
             return 557;
         case V4_PIXEL_PROTOCOL_SJ1221:
             return 339;
+        case V4_PIXEL_PROTOCOL_SM16825:
+        case V4_PIXEL_PROTOCOL_SM16825_16:
+            return 306;
         }
     }
 

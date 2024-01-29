@@ -3,7 +3,7 @@
 #include "../ButterflyEffect.h"
 #include "../PlasmaEffect.h"
 #include "../WarpEffect.h"
-
+#include "../PinwheelEffect.h"
 
 class MetalButterflyEffectData;
 
@@ -50,4 +50,16 @@ public:
 
 private:
     MetalPlasmaEffectData *data;
+};
+
+class MetalPinwheelEffectData;
+
+class MetalPinwheelEffect : public PinwheelEffect {
+public:
+    MetalPinwheelEffect(int i);
+    virtual ~MetalPinwheelEffect();
+
+    virtual void RenderNewArms(RenderBuffer& buffer, PinwheelEffect::PinwheelData &data) override;
+private:
+    MetalPinwheelEffectData *data;
 };

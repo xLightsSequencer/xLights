@@ -30,11 +30,11 @@
 	</vendor>
 	<vendor>
 		<name>DMX Fixture Library</name>
-		<link>https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_fixtures.xml</link>
+		<link>https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/dmx_fixtures.xml</link>
 	</vendor>
 	<vendor>
 		<name>DMX Model Library</name>
-		<link>https://raw.githubusercontent.com/smeighan/xLights/master/download/dmx_models.xml</link>
+		<link>https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/dmx_models.xml</link>
 	</vendor>
 	<musicvendor>
 		<name>Free</name>

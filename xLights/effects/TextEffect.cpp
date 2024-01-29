@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "TextEffect.h"
@@ -121,6 +121,9 @@ bool TextEffect::SupportsRenderCache(const SettingsMap& settings) const
 {
     // we dont want to use render cache if text is coming from a file as the file might have changed
     if (ToWXString(settings["TEXTCTRL_Text"]) == "" && FileExists(settings["FILEPICKERCTRL_Text_File"]))
+        return false;
+    // we dont want to use render cache if text is coming from lyric track, if you have text then it overrides the lyric track
+    if (ToWXString(settings["TEXTCTRL_Text"]) == ""  && settings["CHOICE_Text_LyricTrack"] != "")
         return false;
     return true;
 }

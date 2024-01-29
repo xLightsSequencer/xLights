@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <vector>
@@ -21,7 +21,8 @@
 
 #define NODE_RGB_CHAN_CNT           3
 #define NODE_RGBW_CHAN_CNT          4
-#define NODE_SINGLE_COLOR_CHAN_CNT  1
+#define NODE_RGBWW_CHAN_CNT 5
+#define NODE_SINGLE_COLOR_CHAN_CNT 1
 
 class Model;
 
@@ -221,6 +222,8 @@ public:
     static const std::string GRBW;
     static const std::string BRGW;
     static const std::string BGRW;
+
+    static const std::string RGBWW;
 };
 
 class NodeClassRed : public NodeBaseClass
@@ -435,6 +438,38 @@ public:
     {
         return new NodeClassWhite(*this);
     }
+};
+
+class NodeClassRGBWW : public NodeBaseClass
+{
+public:
+    NodeClassRGBWW(int StringNumber, size_t NodesPerString, const std::string& rgbOrder, int rgbwtype, const std::string& n = xlEMPTY_STRING) :
+        NodeBaseClass(StringNumber, NodesPerString, rgbOrder)
+    {
+        chanCnt = NODE_RGBWW_CHAN_CNT;
+        SetName(n);
+        wOffset = 0;
+        wIndex = 3;
+        rgbwHandling = rgbwtype;
+    }
+    NodeClassRGBWW(const NodeClassRGBWW& c) :
+        NodeBaseClass(c), wOffset(c.wOffset), wIndex(c.wIndex), rgbwHandling(c.rgbwHandling)
+    {
+    }
+
+    virtual void SetFromChannels(const unsigned char* buf) override;
+    virtual void GetForChannels(unsigned char* buf) const override;
+    virtual const std::string& GetNodeType() const override;
+
+    virtual NodeBaseClass* clone() const override
+    {
+        return new NodeClassRGBWW(*this);
+    }
+
+private:
+    uint8_t wOffset;
+    uint8_t wIndex;
+    uint8_t rgbwHandling;
 };
 
 class NodeClassRGBW : public NodeBaseClass

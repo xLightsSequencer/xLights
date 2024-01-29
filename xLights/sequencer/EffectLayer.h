@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "wx/wx.h"
@@ -127,6 +127,8 @@ class EffectLayer
         void NumberEffects();
     protected:
     private:
+        std::unique_lock<std::recursive_mutex> acquireLockWaitForRender();
+    
         void SortEffects();
         void PlayEffect(Effect* effect);
 
@@ -142,6 +144,7 @@ class EffectLayer
         int mIndex = 0;
         Element* mParentElement = nullptr;
         std::recursive_mutex lock;
+        std::mutex effectsToDeleteLock;
 };
 
 class NamedLayer: public EffectLayer {

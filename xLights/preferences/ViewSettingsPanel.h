@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 //(*Headers(ViewSettingsPanel)
@@ -28,6 +28,7 @@ class ViewSettingsPanel: public wxPanel
 
 		//(*Declarations(ViewSettingsPanel)
 		wxCheckBox* CheckBox_BaseShowFolder;
+		wxCheckBox* CheckBox_PresetPreview;
 		wxCheckBox* HousePreviewCheckBox;
 		wxCheckBox* PlayControlsCheckBox;
 		wxChoice* Choice_TimelineZooming;
@@ -49,6 +50,7 @@ class ViewSettingsPanel: public wxPanel
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX3;
 		static const long ID_CHOICE_TIMELINEZOOMING;
+		static const long ID_CHECKBOX4;
 		//*)
 
 	private:
@@ -64,6 +66,7 @@ class ViewSettingsPanel: public wxPanel
 		void OnOpenGLVersionChoiceSelect(wxCommandEvent& event);
 		void OnCheckBox_BaseShowFolderClick(wxCommandEvent& event);		
 		void OnChoice_TimelineZoomingSelect(wxCommandEvent& event);
+		void OnPresetPreviewCheckBoxClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

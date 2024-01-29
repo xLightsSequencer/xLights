@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/filename.h>
@@ -1129,7 +1129,7 @@ bool DeleteDirectory(std::string directory)
                 logger_base.debug("  No files found.");
             }
             while (found && res) {
-                auto ff = directory + wxFileName::GetPathSeparator() + filename;
+                auto ff = directory + GetPathSeparator() + filename;
                 logger_base.debug("  Deleting file: %s.", (const char*)ff.c_str());
                 if (!wxRemoveFile(ff)) {
                     logger_base.error("    Could not delete file %s.", (const char*)ff.c_str());
@@ -1143,7 +1143,7 @@ bool DeleteDirectory(std::string directory)
                 logger_base.debug("  No subdirectories found.");
             }
             while (found && res) {
-                auto dd = directory + wxFileName::GetPathSeparator() + filename;
+                auto dd = directory + GetPathSeparator() + filename;
                 logger_base.debug("  Deleting directory: %s.", (const char*)dd.c_str());
                 res &= DeleteDirectory(dd);
                 found = d.GetNext(&filename);

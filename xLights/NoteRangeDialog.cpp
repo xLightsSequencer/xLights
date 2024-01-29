@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "NoteRangeDialog.h"
@@ -131,10 +131,10 @@ void NoteRangeDialog::OnTextCtrl_HighText(wxCommandEvent& event)
 {
     int newHigh = wxAtoi(TextCtrl_High->GetValue());
     Slider_High->SetValue(newHigh);
-    if (Slider_High->GetValue() < Slider_Low->GetValue())
-    {
-        Slider_Low->SetValue(Slider_High->GetValue());
-        TextCtrl_Low->SetValue(wxString::Format("%d", Slider_Low->GetValue()));
+    if (Slider_High->GetValue() < Slider_Low->GetValue()) {
+        Button_Ok->Enable(false);
+    } else {
+        Button_Ok->Enable(true);
     }
     UpdateNotes();
 }
@@ -143,10 +143,10 @@ void NoteRangeDialog::OnTextCtrl_LowText(wxCommandEvent& event)
 {
     int newLow = wxAtoi(TextCtrl_Low->GetValue());
     Slider_Low->SetValue(newLow);
-    if (Slider_Low->GetValue() > Slider_High->GetValue())
-    {
-        Slider_High->SetValue(Slider_Low->GetValue());
-        TextCtrl_High->SetValue(wxString::Format("%d", Slider_High->GetValue()));
+    if (Slider_Low->GetValue() > Slider_High->GetValue()) {
+        Button_Ok->Enable(false);
+    } else {
+        Button_Ok->Enable(true);
     }
     UpdateNotes();
 }

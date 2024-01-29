@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
  //(*InternalHeaders(xLightsImportChannelMapDialog)
@@ -710,9 +710,9 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         Sizer1->Hide(FlexGridSizer_Blend_Mode, true);
     }
 
-    m_imageList = std::make_unique<wxImageList>(16, 16, true);
-    LayoutUtils::CreateImageList(m_imageList.get(), m_iconIndexMap);
-    ListCtrl_Available->SetImageList(m_imageList.get(), wxIMAGE_LIST_SMALL);
+    wxVector<wxBitmapBundle> images;
+    LayoutUtils::CreateImageList(images, m_iconIndexMap);
+    ListCtrl_Available->SetSmallImages(images);    
     PopulateAvailable(false);
 
     _dataModel = new xLightsImportTreeModel();
@@ -2277,13 +2277,13 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                             model->_mapping = ListCtrl_Available->GetItemText(j);
                             model->_mappingExists = true;
                         }
-                        for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                            auto strand = model->GetNthChild(k);
-                            if (strand != nullptr) {
-                                if (strand->_mapping.empty() &&lambda_strand(model->_model + "/" + strand->_strand, availName, extra1, extra2, aliases)) {
-                                    strand->_mapping = ListCtrl_Available->GetItemText(j);
-                                    strand->_mappingExists = true;
-                                }
+                        //for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                        //    auto strand = model->GetNthChild(k);
+                        //    if (strand != nullptr) {
+                        //        if (strand->_mapping.empty() && lambda_strand(model->_model + "/" + strand->_strand, availName, extra1, extra2, aliases)) {
+                        //            strand->_mapping = ListCtrl_Available->GetItemText(j) + "/" + strand->_strand;
+                        //            strand->_mappingExists = true;
+                        //        }
                                 //for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
                                 //    auto node = strand->GetNthChild(m);
                                 //    if (node != nullptr) {
@@ -2296,8 +2296,8 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                                 //        }
                                 //    }
                                 //}
-                            }
-                        }
+                       //     }
+                      //  }
                     }
                 }
             }

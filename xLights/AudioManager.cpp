@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/wx.h>
@@ -1111,16 +1111,19 @@ void AudioManager::AudioDeviceChanged() {
     if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING || oldMediaState == MEDIAPLAYINGSTATE::PAUSED) {
         ts = Tell();
     }
-    Stop();
-    auto sdl = __sdlManager.GetOutputSDL(_device);
-    if (sdl != nullptr) {
-        sdl->Reopen();
-    }
+    AbsoluteStop();
+     
     if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING || oldMediaState == MEDIAPLAYINGSTATE::PAUSED) {
-        Seek(ts);
-        if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING) {
-            Play();
-        }
+        wxTheApp->CallAfter([this, ts, oldMediaState]() {
+            auto sdl = __sdlManager.GetOutputSDL(_device);
+            if (!sdl->HasAudio(_sdlid)) {
+                _sdlid = sdl->AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
+            }
+            Seek(ts);
+            if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING) {
+                Play();
+            }
+        });
     }
  }
 void AudioManager::SetPlaybackRate(float rate)

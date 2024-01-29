@@ -7,11 +7,54 @@ Vixen2, Vixen 3, LSP, and HLS.
 Latest releases are found at www.xlights.org
 Videos tutorials are found at videos.xlights.org
 Forums are located at nutcracker123.com/forum
-Issue Tracker is found here: www.github.com/smeighan/xLights/issues
+Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.02 Jan 26, 2024
+   -- enh (derwin12)    Allow bulk edit of sketch effect bg filename
+   -- enh (derwin12)    Add preference to skip loading of preset gif images
+   -- enh (derwin12)    Handling pasting of network drive files
+   -- enh (scott)       Force "Don't keep start channels" for ESPixelStick discovery
+   -- enh (derwin12)    Store imported shaders the same was as imported images/videos
+   -- enh (scott)       Try to detect FPP controller types during discovery
+   -- bug (dkulp)       Some fixes for locks/hangs when moving/editing "main thread effects" (Shader on Windows)
+   -- bug (derwin12)    Dont use render cache if using words from the lyric track
+   -- bug (derwin12)    VU Meter missing the last bar
+   -- bug (derwin12)    Fix faces download with faces in subdirectories
+   -- bug (scott)       Fix Falcon v4 discovery through FPP
+   -- bug (merryoncherry) Fix video stuttering with some video framerates
+   -- bug (derwin12)    Fix some data entry issues with Waveform Filter
+   -- bug (derwin12)    Fix "number of effects" displayed for models on import dialog (it included submodels which display separately)
+2024.01 Jan 17, 2024
+   -- change(dkulp) Move repo to xLightsSequencer org, update headers and url locations
+   -- enh (dkulp) Auto-Build in xCode cloud, initial setup for TestFlights builds
+   -- enh (keith) Limited support for RGBWW pixels
+   -- enh (derwin12) Use rest for missing face phoneme
+   -- enh (tygunn) When a ruler is defined, show the X/Y/Z coordinates of models in the models export
+   -- bug (Scott) Clear test presets when switching show folders
+   -- bug (dkulp) Hopefully fix crash on macOS when changing audio devices
+   -- bug (dkulp) Use BitmapBundles for icons in Import Dialog (HiDPI updates)
+   -- bug (scott) Fix upload to WLED if different pixel types are used
+   -- bug (cpinkham) Fix compile with gcc 13
+2023.23 Dec 28, 2023
+   -- enh (dkulp)     Convert "New Style" Pinwheel effect to use Meta GPU rendering on MacOS
+   -- enh (scott)     Added Scheduling to HinksPix Export Dialog.
+   -- enh (scott)     Persist Custom Colors across Color Dialogs.
+   -- enh (dkulp)     Update to newer version of wxWidgets that fixes appearance of checkboxes on properties panels
+   -- enh (keith)     Bell at end of Batch Render, extra progress displayed during batch render
+   -- enh (keith)     Allow user control of maximum Render Cache size
+   -- bug (scott)     Fix Import Dialog AutoMapping Aliases to Submodel/Stands.
    -- bug (scott)     Fix Import Dialog Groups Blue turning white.
+   -- bug (scott)     Fix 3D Model Export starting at zero.
+   -- bug (scott)     Fix DMX Shutter value with On effect and Flood lights.
+   -- bug (keith)     Fix crash with parsing JSON with certain UTF-8 characters
+   -- bug (tulzscha)  Fix fire effect buffer sizes
+   -- bug (dkulp)     Fix some random crashes that occur with various actions on the View Models panel
+   -- bug (dkulp)     Fix discovery of Falcon controllers as remotes if needing to use http discovery
+   -- bug (dkulp)     Fix potential crash/memory corruption at startup when resolving IP's on background threads
+   -- bug (dkulp)     Fix leftover files remaining in tmp directory
+   -- bug (dkulp)     Fix some problems writing ZSTD fseq files for layouts with well over 2M channels and complex effects
 2023.22 Dec 5, 2023
    -- enh (claudio)   Add virtual matrix to xSchedule using RGBW data
    -- enh (lutz)      Add palette shift buttons

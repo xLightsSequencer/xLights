@@ -243,6 +243,7 @@
     <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp" />
     <ClCompile Include="..\xLights\Parallel.cpp" />
     <ClCompile Include="..\xLights\SequenceData.cpp" />
+    <ClCompile Include="..\xLights\SpecialOptions.cpp" />
     <ClCompile Include="..\xLights\TraceLog.cpp" />
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\utils\Curl.cpp" />

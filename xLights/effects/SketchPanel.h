@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EffectPanelUtils.h"
+#include "../BulkEditControls.h"
 
 class BulkEditCheckBox;
 class BulkEditSlider;
@@ -10,6 +11,26 @@ class SketchAssistPanel;
 
 class wxFilePickerCtrl;
 class wxSlider;
+
+class xlSketchFilePickerCtrl : public BulkEditFilePickerCtrl
+{
+public:
+    xlSketchFilePickerCtrl(wxWindow* parent,
+                           wxWindowID id,
+                           const wxString& path = wxEmptyString,
+                           const wxString& message = wxFileSelectorPromptStr,
+                           const wxString& wildcard = wxFileSelectorDefaultWildcardStr,
+                           const wxPoint& pos = wxDefaultPosition,
+                           const wxSize& size = wxDefaultSize,
+                           long style = wxFLP_DEFAULT_STYLE,
+                           const wxValidator& validator = wxDefaultValidator,
+                           const wxString& name = wxFilePickerCtrlNameStr) :
+        BulkEditFilePickerCtrl(parent, id, path, message, wxImage::GetImageExtWildcard(), pos, size, style, validator, name)
+    {
+    }
+    virtual ~xlSketchFilePickerCtrl()
+    {}
+};
 
 class SketchPanel : public xlEffectPanel
 {
@@ -61,7 +82,7 @@ protected:
     static const long ID_VALUECURVE_MotionPercentage;
     static const long ID_TEXTCTRL_MotionPercentage;
 
- private:
+private:
     DECLARE_EVENT_TABLE()
 
     void OnFilePickerCtrl_FileChanged(wxCommandEvent& event);

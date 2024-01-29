@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/tokenzr.h>
@@ -3161,8 +3161,8 @@ std::string xLightsXmlFile::GetMediaForXSQ(const std::string& xsq, const std::st
     if (mediaName != "") {
         if (!FileExists(mediaName)) {
             wxFileName fn(mediaName);
-            for (auto& md : mediaFolders) {
-                std::string tmn = md + wxFileName::GetPathSeparator() + fn.GetFullName();
+            for (const std::string& md : mediaFolders) {
+                std::string tmn = md + ::GetPathSeparator() + fn.GetFullName().ToStdString();
                 if (FileExists(tmn)) {
                     mediaName = tmn;
                     break;

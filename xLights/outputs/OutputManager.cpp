@@ -2,11 +2,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/xml/xml.h>
@@ -148,9 +148,7 @@ OutputManager::~OutputManager()
     // destroy all out output objects
     DeleteAllControllers();
 
-    for (auto&& tp : _testPresets) {
-        delete tp;
-    }
+    DeleteTestPreset();
 }
 #pragma endregion 
 
@@ -162,7 +160,9 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
     // Remove any existing outputs
     DeleteAllControllers();
 
-    wxFileName fn(showdir + wxFileName::GetPathSeparator() + GetNetworksFileName());
+    DeleteTestPreset();
+
+    wxFileName fn(showdir + GetPathSeparator() + GetNetworksFileName());
     _filename = fn.GetFullPath();
 
     wxXmlDocument doc;
@@ -974,7 +974,7 @@ void OutputManager::SetGlobalForceLocalIP(const std::string& forceLocalIP)
 
 void OutputManager::SetShowDir(const std::string& showDir) {
 
-    wxFileName fn(showDir + wxFileName::GetPathSeparator() + GetNetworksFileName());
+    wxFileName fn(showDir + GetPathSeparator() + GetNetworksFileName());
     _filename = fn.GetFullPath();
 }
 
@@ -1402,5 +1402,13 @@ TestPreset* OutputManager::CreateTestPreset(std::string preset) {
     auto p = new TestPreset(preset);
     _testPresets.push_back(p);
     return p;
+}
+
+void OutputManager::DeleteTestPreset()
+{
+    for (auto& tp : _testPresets) {
+        delete tp;
+    }
+    _testPresets.clear();
 }
 #pragma endregion 

@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "wx/wx.h"
@@ -4927,7 +4927,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
     logger_base.info("Pasting data: %s", (const char*)data.c_str());
 
-    wxArrayString all_efdata = wxSplit(data, '\n');
+    wxArrayString all_efdata = wxSplit(data, '\n', wxT('\0'));
     if (all_efdata.size() == 0)
         return res;
 
@@ -4995,7 +4995,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
             if (all_efdata.size() < 2)
                 return res;
 
-            wxArrayString eff1data = wxSplit(all_efdata[1], '\t');
+            wxArrayString eff1data = wxSplit(all_efdata[1], '\t', wxT('\0'));
             if (eff1data.size() < 7)
                 return res;
 
@@ -5082,7 +5082,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
             for (int rpts = 0; rpts < timestopaste; ++rpts) {
                 for (size_t i = 1; i < all_efdata.size() - 1; i++) {
-                    wxArrayString efdata = wxSplit(all_efdata[i], '\t');
+                    wxArrayString efdata = wxSplit(all_efdata[i], '\t', wxT('\0'));
                     if (efdata.size() < 8)
                         break;
                     bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
@@ -5162,7 +5162,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
             if (all_efdata.size() < 2)
                 return res;
 
-            wxArrayString efdata = wxSplit(all_efdata[1], '\t');
+            wxArrayString efdata = wxSplit(all_efdata[1], '\t', wxT('\0'));
             if (efdata.size() < 3) {
                 return res;
             }
@@ -5244,7 +5244,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
             if (all_efdata.size() < 2)
                 return res;
 
-            wxArrayString efdata = wxSplit(all_efdata[1], '\t');
+            wxArrayString efdata = wxSplit(all_efdata[1], '\t', wxT('\0'));
             if (efdata.size() < 3)
                 return res;
             if (efdata[0] == "Random") {

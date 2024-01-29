@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include "VUMeterEffect.h"
@@ -2970,9 +2970,9 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
             }
 
             if (random && bars > 2) {
-                int lb = lastbar;
-                while (lb == (int)lastbar) {
-                    lastbar = 1 + rand01() * bars;
+                int lb = (int)lastbar + 1;
+                while (lb == (int)lastbar + 1) {
+                    lastbar = 1 + static_cast<int>(rand01() * bars);
                 }
                 if (lastbar > bars) lastbar = 1;
             }
@@ -2990,7 +2990,7 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
 
         if (bar >= 0)
         {
-            for (int x = startx; x < endx; ++x)
+            for (int x = startx; x < endx + 1; ++x)
             {
                 for (int y = 0; y < buffer.BufferHt; ++y)
                 {
@@ -3013,11 +3013,11 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
             }
 
             if (random && bars > 2) {
-                int lb = lastbar;
-                while (lb == (int)lastbar) {
-                    lastbar = 1 + rand01() * bars;
+                int lb = (int)lastbar + 1;
+                while (lb == (int)lastbar + 1) {
+                    lastbar = 1 + static_cast<int>(rand01() * bars);
                 }
-                if (lastbar > bars + 1)
+                if (lastbar > bars)
                     lastbar = 1;
             } else {
                 lastbar++;
@@ -3042,7 +3042,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
                 if (endx > buffer.BufferWi)
                     endx = buffer.BufferWi;
 
-                for (int x = startx; x < endx; x++) {
+                for (int x = startx; x < endx + 1; x++) {
                     for (int y = 0; y < buffer.BufferHt; y++) {
                         buffer.SetPixel(x, y, color);
                     }
@@ -3060,7 +3060,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
                 endx = buffer.BufferWi;
 
             if (bar >= 0) {
-                for (int x = startx; x < endx; x++) {
+                for (int x = startx; x < endx + 1; x++) {
                     for (int y = 0; y < buffer.BufferHt; y++) {
                         buffer.SetPixel(x, y, color);
                     }
@@ -3097,9 +3097,9 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer& buffer, int bars, int 
             }
 
             if (random && bars > 2) {
-                int lb = lastbar;
-                while (lb == (int)lastbar) {
-                    lastbar = 1 + rand01() * bars;
+                int lb = (int)lastbar + 1;
+                while (lb == (int)lastbar + 1) {
+                    lastbar = 1 + static_cast<int>(rand01() * bars);
                 }
                 if (lastbar > bars)
                     lastbar = 1;
@@ -3119,7 +3119,7 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer& buffer, int bars, int 
             endx = buffer.BufferWi;
 
         if (bar >= 0) {
-            for (int x = startx; x < endx; ++x) {
+            for (int x = startx; x < endx +1; ++x) {
                 for (int y = 0; y < buffer.BufferHt; ++y) {
                     buffer.SetPixel(x, y, color1);
                 }

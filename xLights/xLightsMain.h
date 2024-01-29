@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #ifdef _MSC_VER
@@ -1076,6 +1076,7 @@ public:
     bool _playControlsOnPreview = true;
     bool _showBaseShowFolder = false;
     bool _autoShowHousePreview = false;
+    bool _hidePresetPreview = false;
     bool _smallWaveform = false;
     bool _modelBlendDefaultOff = true;
     bool _lowDefinitionRender = false;
@@ -1256,6 +1257,9 @@ public:
 
     bool PlayControlsOnPreview() const { return _playControlsOnPreview;}
     void SetPlayControlsOnPreview(bool b);
+
+    bool HidePresetPreview() const { return _hidePresetPreview;}
+    void SetHidePresetPreview(bool b);
 
     bool IsShowBaseShowFolder() const
     {

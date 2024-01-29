@@ -1,11 +1,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <wx/wfstream.h>
@@ -97,7 +97,6 @@ void SequencePackage::InitDefaultImportOptions()
 
     // always default faces/shaders to default download folder as they tend to be reused
     _importOptions.SetDir(MediaTargetDir::FACES_DIR, wxString::Format("%s%c%s", showFolder, PATH_SEP, SUBFLD_FACES), true);
-    _importOptions.SetDir(MediaTargetDir::SHADERS_DIR, wxString::Format("%s%c%s", showFolder, PATH_SEP, SUBFLD_SHADERS), true);
 
     wxFileName targetXsq(_xlights->GetSeqXmlFileName());
     wxString targetDir = targetXsq.GetPath();
@@ -116,6 +115,7 @@ void SequencePackage::InitDefaultImportOptions()
     // set the defaults for media sub folders
     _importOptions.SetDir(MediaTargetDir::GLEDIATORS_DIR, wxString::Format("%s%c%s", mediaBaseFolder, PATH_SEP, SUBFLD_GLEDIATORS), true);
     _importOptions.SetDir(MediaTargetDir::IMAGES_DIR, wxString::Format("%s%c%s", mediaBaseFolder, PATH_SEP, SUBFLD_IMAGES), true);
+    _importOptions.SetDir(MediaTargetDir::SHADERS_DIR, wxString::Format("%s%c%s", mediaBaseFolder, PATH_SEP, SUBFLD_SHADERS), true);
     _importOptions.SetDir(MediaTargetDir::VIDEOS_DIR, wxString::Format("%s%c%s", mediaBaseFolder, PATH_SEP, SUBFLD_VIDEOS), true);
 }
 

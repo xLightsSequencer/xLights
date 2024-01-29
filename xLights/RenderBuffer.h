@@ -3,11 +3,11 @@
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
- * https://github.com/smeighan/xLights
+ * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
  * developers.
  * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/smeighan/xLights/blob/master/License.txt
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
 #include <stdint.h>
@@ -472,6 +472,14 @@ public:
     void GetPixel(int x, int y, xlColor &color) const;
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false, bool useAlpha = false, bool dmx_ignore = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
+
+    //optimized/direct versions only usable in cases where x/y are known to be within bounds
+    void SetPixelDirect(int x, int y, const xlColor &color) {
+        pixels[y * BufferWi + x] = color;
+    }
+    const xlColor& GetPixelDirect(int x, int y) const {
+        return pixels[y * BufferWi + x];
+    }
 
     int GetNodeCount() const { return Nodes.size();}
     void SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore = false);

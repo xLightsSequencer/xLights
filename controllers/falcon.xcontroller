@@ -203,6 +203,8 @@
 			<Protocol>dmx512p</Protocol>
 			<Protocol>dmx512p-4</Protocol>
 			<Protocol>sj1221</Protocol>
+			<Protocol>sm16825</Protocol>
+			<Protocol>sm16825 16 bit</Protocol>
 		</PixelProtocols>
         <InputProtocols>
             <Protocol>e131</Protocol>
