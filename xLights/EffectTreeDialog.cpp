@@ -31,6 +31,10 @@ wxDEFINE_EVENT(EVT_EFFTREEDROP, wxCommandEvent);
 
 //(*IdInit(EffectTreeDialog)
 const long EffectTreeDialog::ID_TREECTRL1 = wxNewId();
+const long EffectTreeDialog::ID_BUTTON11 = wxNewId();
+const long EffectTreeDialog::ID_BUTTON9 = wxNewId();
+const long EffectTreeDialog::ID_BUTTON10 = wxNewId();
+const long EffectTreeDialog::ID_BUTTON12 = wxNewId();
 const long EffectTreeDialog::ID_STATICBITMAP_GIF = wxNewId();
 const long EffectTreeDialog::ID_BUTTON6 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON1 = wxNewId();
@@ -59,6 +63,7 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	//(*Initialize(EffectTreeDialog)
 	wxBoxSizer* BoxSizer1;
 	wxBoxSizer* BoxSizer2;
+	wxBoxSizer* BoxSizer3;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
@@ -68,12 +73,22 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
 	FlexGridSizer2->AddGrowableRow(0);
 	TreeCtrl1 = new wxTreeCtrl(this, ID_TREECTRL1, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL1"));
 	TreeCtrl1->SetMinSize(wxDLG_UNIT(this,wxSize(80,-1)));
 	FlexGridSizer2->Add(TreeCtrl1, 1, wxALL|wxEXPAND, 5);
+	BoxSizer3 = new wxBoxSizer(wxVERTICAL);
+	Button_Top = new wxButton(this, ID_BUTTON11, _("^^"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
+	BoxSizer3->Add(Button_Top, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_MoveUp = new wxButton(this, ID_BUTTON9, _("^"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
+	BoxSizer3->Add(Button_MoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_MoveDown = new wxButton(this, ID_BUTTON10, _("v"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
+	BoxSizer3->Add(Button_MoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Bottom = new wxButton(this, ID_BUTTON12, _("vv"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON12"));
+	BoxSizer3->Add(Button_Bottom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(BoxSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer3 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(0);
@@ -125,6 +140,10 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_ACTIVATED,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1ItemActivated);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1SelectionChanged);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_KEY_DOWN,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1KeyDown);
+	Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnButton_TopClick);
+	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnButton_MoveUpClick);
+	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnButton_MoveDownClick);
+	Connect(ID_BUTTON12,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnButton_BottomClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtApplyClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtNewPresetClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtUpdateClick);
@@ -1432,7 +1451,7 @@ std::list<std::string> EffectTreeDialog::GetGifFileNamesRecursive(wxTreeItemId i
         }
 
         if (TreeCtrl1->ItemHasChildren(child)) {
-            gifNames.merge(GetGifFileNamesRecursive(child));
+          //dwe  gifNames.merge(GetGifFileNamesRecursive(child));
         }
 
         child = TreeCtrl1->GetNextChild(itemId, cookie);
@@ -1670,4 +1689,20 @@ bool EffectTreeDialogTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxSt
     }
 
     return false;
+}
+
+void EffectTreeDialog::OnButton_TopClick(wxCommandEvent& event)
+{
+}
+
+void EffectTreeDialog::OnButton_MoveUpClick(wxCommandEvent& event)
+{
+}
+
+void EffectTreeDialog::OnButton_MoveDownClick(wxCommandEvent& event)
+{
+}
+
+void EffectTreeDialog::OnButton_BottomClick(wxCommandEvent& event)
+{
 }
