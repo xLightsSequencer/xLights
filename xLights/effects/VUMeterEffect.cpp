@@ -2990,7 +2990,7 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
 
         if (bar >= 0)
         {
-            for (int x = startx; x < endx + 1; ++x)
+            for (int x = startx; x < endx; x++)
             {
                 for (int y = 0; y < buffer.BufferHt; ++y)
                 {
@@ -3042,7 +3042,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
                 if (endx > buffer.BufferWi)
                     endx = buffer.BufferWi;
 
-                for (int x = startx; x < endx + 1; x++) {
+                for (int x = startx; x < endx; x++) {
                     for (int y = 0; y < buffer.BufferHt; y++) {
                         buffer.SetPixel(x, y, color);
                     }
@@ -3060,7 +3060,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
                 endx = buffer.BufferWi;
 
             if (bar >= 0) {
-                for (int x = startx; x < endx + 1; x++) {
+                for (int x = startx; x < endx; x++) {
                     for (int y = 0; y < buffer.BufferHt; y++) {
                         buffer.SetPixel(x, y, color);
                     }
@@ -3119,7 +3119,7 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer& buffer, int bars, int 
             endx = buffer.BufferWi;
 
         if (bar >= 0) {
-            for (int x = startx; x < endx +1; ++x) {
+            for (int x = startx; x < endx; x++) {
                 for (int y = 0; y < buffer.BufferHt; ++y) {
                     buffer.SetPixel(x, y, color1);
                 }
