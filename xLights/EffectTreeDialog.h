@@ -42,6 +42,10 @@ class EffectTreeDialog : public wxDialog
 		virtual ~EffectTreeDialog();
 
 		//(*Declarations(EffectTreeDialog)
+		wxButton* Button_Bottom;
+		wxButton* Button_MoveDown;
+		wxButton* Button_MoveUp;
+		wxButton* Button_Top;
 		wxButton* ETButton1;
 		wxButton* btAddGroup;
 		wxButton* btApply;
@@ -64,6 +68,10 @@ class EffectTreeDialog : public wxDialog
 
 		//(*Identifiers(EffectTreeDialog)
 		static const long ID_TREECTRL1;
+		static const long ID_BUTTON11;
+		static const long ID_BUTTON9;
+		static const long ID_BUTTON10;
+		static const long ID_BUTTON12;
 		static const long ID_STATICBITMAP_GIF;
 		static const long ID_BUTTON6;
 		static const long ID_BUTTON1;
@@ -98,6 +106,11 @@ class EffectTreeDialog : public wxDialog
 		void OnTextCtrl1TextEnter(wxCommandEvent& event);
 		void OnTimerGifTrigger(wxTimerEvent& event);
 		void OnTreeCtrl1KeyDown(wxTreeEvent& event);
+		void OnButton2Click(wxCommandEvent& event);
+		void OnButton_TopClick(wxCommandEvent& event);
+		void OnButton_MoveUpClick(wxCommandEvent& event);
+		void OnButton_MoveDownClick(wxCommandEvent& event);
+		void OnButton_BottomClick(wxCommandEvent& event);
 		//*)
 
         void DeleteSelectedItem();
