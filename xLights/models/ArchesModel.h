@@ -23,7 +23,6 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
         virtual int GetNumPhysicalStrings() const override { return 1; }
-        virtual bool StrandsZigZagOnString() const override { return zigzag; }
 
         virtual int GetLightsPerNode() const override { return parm3; } // default to one unless a model supports this
         virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;

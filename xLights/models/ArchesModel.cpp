@@ -644,15 +644,9 @@ void ArchesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         wxString psp = root->GetAttribute("PixelSpacing");
         wxString ls = root->GetAttribute("LayerSizes");
         wxString h = root->GetAttribute("Hollow");
-        wxString zz = root->GetAttribute("ZigZag");
+        wxString zz = root->GetAttribute("ZigZag", "true");
 
         // Add any model version conversion logic here
-
-        if (zz == "")
-        {
-            zz = "true";
-        }
-
         // Source version will be the program version that created the custom model
 
         SetProperty("parm1", p1);
