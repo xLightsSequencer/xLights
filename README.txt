@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- end (gjones)      Expand size of Default View for New Sequences preference box. Fixes #4255
    -- bug (gjones)      Fix dragging Preset group so it stays a group.  Fixes #4304.
 2024.02 Jan 26, 2024
    -- enh (derwin12)    Allow bulk edit of sketch effect bg filename
