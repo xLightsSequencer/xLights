@@ -1535,13 +1535,11 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
 
                 if (addingToGroup) {
                     dstParentNode->AddChild(srcNode);
-                    newId = TreeCtrl1->AppendItem(dstParentId, srcName);
+                    newId = TreeCtrl1->AppendItem(dstParentId, srcName, -1, -1, new MyTreeItemData (srcNode, true));
                 } else {
                     dstParentNode->InsertChildAfter(srcNode, dstNode);
-                    newId = TreeCtrl1->InsertItem(dstParentId, dstItemId, srcName);
+                    newId = TreeCtrl1->InsertItem(dstParentId, dstItemId, srcName, -1, -1, new MyTreeItemData (srcNode));
                 }
-
-                TreeCtrl1->SetItemData(newId, new MyTreeItemData(srcNode));
 
                 if (srcIsGroup) {
                     AddTreeElementsRecursive(srcNode, newId);
