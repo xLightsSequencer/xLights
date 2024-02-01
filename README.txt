@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gjones)      Fix dragging Preset group so it stays a group.  Fixes #4304.
 2024.02 Jan 26, 2024
    -- enh (derwin12)    Allow bulk edit of sketch effect bg filename
    -- enh (derwin12)    Add preference to skip loading of preset gif images

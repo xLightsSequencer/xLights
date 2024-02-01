@@ -1545,6 +1545,7 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
 
                 if (srcIsGroup) {
                     AddTreeElementsRecursive(srcNode, newId);
+                    TreeCtrl1->SetItemHasChildren(newId);
                     if (srcIsExpanded) {
                         TreeCtrl1->Expand(newId);
                     }
