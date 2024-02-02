@@ -1527,6 +1527,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsAutoShowHousePreview", &_autoShowHousePreview, false);
     logger_base.debug("Autoshow House Preview: %s.", toStr(_autoShowHousePreview));
 
+    config->Read("xLightsZoomMethodToCursor", &_zoomMethodToCursor, true);
+    logger_base.debug("Zoom Method To Cursor: %s.", toStr(_zoomMethodToCursor));
+
     config->Read("xLightsHidePresetPreview", &_hidePresetPreview, false);
     logger_base.debug("Hide Preset Preview: %s.", toStr(_hidePresetPreview));
 
@@ -2071,6 +2074,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsPlayControlsOnPreview", _playControlsOnPreview);
     config->Write("xLightsShowBaseFolder", _showBaseShowFolder);
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
+    config->Write("xLightsZoomMethodToCursor", _zoomMethodToCursor);
     config->Write("xLightsHidePresetPreview", _hidePresetPreview);
     config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
     config->Write("xLightsLowDefinitionRender", _lowDefinitionRender);
@@ -8421,6 +8425,11 @@ void xLightsFrame::SetShowBaseShowFolder(bool b)
 void xLightsFrame::SetAutoShowHousePreview(bool b)
 {
     _autoShowHousePreview = b;
+}
+
+void xLightsFrame::SetZoomMethodToCursor(bool b)
+{
+    _zoomMethodToCursor = b;
 }
 
 void xLightsFrame::SetHidePresetPreview(bool b)
