@@ -644,6 +644,10 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
 
         _wsClient.Send("G1");
         std::string config = GetWSResponse();
+        if (config.empty()) {
+            DisplayError("Failed to get Data from ESPixelStick");
+            return false;
+        }
         config = config.substr(2);
 
         wxJSONValue origJson;
