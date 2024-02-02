@@ -157,6 +157,18 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_ZoomMethod" variable="CheckBox_ZoomMethod" member="yes">
+					<label>Zoom To Cursor</label>
+					<checked>1</checked>
+					<handler function="OnCheckBox_ZoomMethodClick" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>8</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>

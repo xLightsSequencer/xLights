@@ -32,6 +32,7 @@ const long ViewSettingsPanel::ID_CHECKBOX2 = wxNewId();
 const long ViewSettingsPanel::ID_CHECKBOX3 = wxNewId();
 const long ViewSettingsPanel::ID_CHOICE_TIMELINEZOOMING = wxNewId();
 const long ViewSettingsPanel::ID_CHECKBOX4 = wxNewId();
+const long ViewSettingsPanel::ID_CHECKBOX_ZoomMethod = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ViewSettingsPanel, wxPanel)
@@ -91,6 +92,9 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
     CheckBox_PresetPreview = new wxCheckBox(this, ID_CHECKBOX4, _("Hide Preset Previews"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
     CheckBox_PresetPreview->SetValue(false);
     GridBagSizer1->Add(CheckBox_PresetPreview, wxGBPosition(7, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_ZoomMethod = new wxCheckBox(this, ID_CHECKBOX_ZoomMethod, _("Zoom To Cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ZoomMethod"));
+    CheckBox_ZoomMethod->SetValue(true);
+    GridBagSizer1->Add(CheckBox_ZoomMethod, wxGBPosition(8, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(GridBagSizer1);
     GridBagSizer1->Fit(this);
     GridBagSizer1->SetSizeHints(this);
@@ -103,6 +107,7 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
     Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_BaseShowFolderClick);
     Connect(ID_CHOICE_TIMELINEZOOMING,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnChoice_TimelineZoomingSelect);
     Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnPresetPreviewCheckBoxClick);
+    Connect(ID_CHECKBOX_ZoomMethod,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_ZoomMethodClick);
     //*)
 
 #ifdef _MSC_VER
@@ -154,6 +159,7 @@ bool ViewSettingsPanel::TransferDataFromWindow()
     frame->SetEffectAssistMode(EffectAssistChoice->GetSelection());
     frame->SetPlayControlsOnPreview(PlayControlsCheckBox->IsChecked());
     frame->SetAutoShowHousePreview(HousePreviewCheckBox->IsChecked());
+    frame->SetZoomMethodToCursor(CheckBox_ZoomMethod->IsChecked());
     frame->SetShowBaseShowFolder(CheckBox_BaseShowFolder->IsChecked());
     switch (ToolIconSizeChoice->GetSelection()) {
     case 3:
@@ -241,6 +247,13 @@ void ViewSettingsPanel::OnCheckBox_BaseShowFolderClick(wxCommandEvent& event)
 }
 
 void ViewSettingsPanel::OnChoice_TimelineZoomingSelect(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void ViewSettingsPanel::OnCheckBox_ZoomMethodClick(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

@@ -149,6 +149,9 @@ private:
     void OnButtonImportClick(wxCommandEvent& event);
     void OnMatrixModelsGridLabelLeftDClick(wxGridEvent& event);
     void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
+    void OnMatrixModelsGridResize(wxSizeEvent& event);
+    void OnSingleNodeGridResize(wxSizeEvent& event);
+    void OnNodeRangeGridResize(wxSizeEvent& event);
     //*)
 
     void OnAddBtnPopup(wxCommandEvent& event);

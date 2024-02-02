@@ -77,6 +77,9 @@ void ArchesModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
         p->SetAttribute("Min", 0);
         p->SetAttribute("Max", 95);
         p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxBoolProperty("Zig-Zag Layers", "ZigZag", zigzag));
+        p->SetEditor("CheckBox");
     }
 
     p = grid->Append(new wxUIntProperty("Lights Per Node", "ArchesLights", parm3));
@@ -184,15 +187,24 @@ int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::HandleLayerSizePropertyChange::LayeredArches");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ArchesModel::HandleLayerSizePropertyChange::LayeredArches");
         return 0;
+    } else if ("ZigZag" == event.GetPropertyName()) {
+        zigzag = event.GetPropertyValue().GetBool();
+        ModelXml->DeleteAttribute("ZigZag");
+        ModelXml->AddAttribute("ZigZag", event.GetPropertyValue().GetBool() ? "true" : "false");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesZigZag");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesZigZag");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesZigZag");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesZigZag");
+        return 0;
     } else if ("Hollow" == event.GetPropertyName()) {
         _hollow = event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Hollow");
         ModelXml->AddAttribute("Hollow", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesGap");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesGap");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesGap");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesGap");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesHollow");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnPropertyGridChange::ArchesHollow");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnPropertyGridChange::ArchesHollow");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ArchesModel::OnPropertyGridChange::ArchesHollow");
         return 0;
     } else if ("ArchesGap" == event.GetPropertyName()) {
         _gap = event.GetPropertyValue().GetLong();
@@ -316,6 +328,7 @@ void ArchesModel::InitModel()
         }
         SetArchCoord();
     } else {
+        zigzag = (ModelXml->GetAttribute("ZigZag", "true") == "true");
         int maxLen = 0;
         int lcount = 0;
         int sumNodes = 0;
@@ -377,7 +390,7 @@ void ArchesModel::InitModel()
                     }
                 }
                 y = y + 1;
-                dir = !dir;
+                if (zigzag) dir = !dir;
             }
         }
 
@@ -564,6 +577,7 @@ void ArchesModel::ExportXlightsModel()
     wxString an = ModelXml->GetAttribute("Angle", "0");
     wxString ls = ModelXml->GetAttribute("LayerSizes", "");
     wxString h = ModelXml->GetAttribute("Hollow", "70");
+    wxString zz = ModelXml->GetAttribute("ZigZag", "true");
 
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<archesmodel \n");
@@ -585,6 +599,7 @@ void ArchesModel::ExportXlightsModel()
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(wxString::Format("LayerSizes=\"%s\" ", ls));
     f.Write(wxString::Format("Hollow=\"%s\" ", h));
+    f.Write(wxString::Format("ZigZag=\"%s\" ", zz));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
 
@@ -629,6 +644,7 @@ void ArchesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         wxString psp = root->GetAttribute("PixelSpacing");
         wxString ls = root->GetAttribute("LayerSizes");
         wxString h = root->GetAttribute("Hollow");
+        wxString zz = root->GetAttribute("ZigZag", "true");
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
@@ -652,6 +668,7 @@ void ArchesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         SetProperty("PixelSpacing", psp);
         SetProperty("LayerSizes", ls);
         SetProperty("Hollow", h);
+        SetProperty("ZigZag", zz);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);
