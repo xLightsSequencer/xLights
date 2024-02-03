@@ -53,11 +53,12 @@ MHColorWheelPanel::~MHColorWheelPanel()
 
 void MHColorWheelPanel::OnSize(wxSizeEvent& event){
     wxSize old_sz = GetSize();
-    if( old_sz.GetWidth() != old_sz.GetHeight() ) {
-        if( old_sz.GetWidth() > 270 ) {
+    if (old_sz.GetWidth() != old_sz.GetHeight()) {
+        if (old_sz.GetWidth() > 270) {
             wxSize new_size = old_sz;
             new_size.SetHeight(new_size.GetWidth());
             SetMinSize(new_size);
+            SetSize(new_size);
         }
     }
     Refresh();
@@ -74,7 +75,13 @@ void MHColorWheelPanel::OnPaint(wxPaintEvent& /*event*/)
 
     wxSize dcSize = pdc.GetSize();
 
-    if ( m_hsvBitmap->GetSize() != dcSize ) {
+    // Windows leaves artifacts in the clear area of the mask without this clear but
+    // with the clear OSX doesn't look as nice because it paints a background
+    #ifdef __WXMSW__
+        pdc.Clear();
+    #endif
+
+    if (m_hsvBitmap->GetSize() != dcSize) {
         CreateHsvBitmap(dcSize);
         CreateHsvBitmapMask();
     }
@@ -247,6 +254,7 @@ void MHColorWheelPanel::CreateHsvBitmap(const wxSize& newSize)
 
     if( m_hsvBitmap != nullptr ) {
         delete m_hsvBitmap;
+        m_hsvBitmap = nullptr;
     }
 
     m_hsvBitmap = new wxBitmap( newSize.GetWidth(), newSize.GetHeight() );
@@ -314,7 +322,7 @@ xlColor MHColorWheelPanel::GetPointColor(int x, int y)
 
 void MHColorWheelPanel::CreateHsvBitmapMask()
 {
-    wxColour color(0,0,0);
+    wxColour color(0, 0, 0);
     m_hsvMask = new wxMask(*m_hsvBitmap, color);
     m_hsvBitmap->SetMask(m_hsvMask);
 }

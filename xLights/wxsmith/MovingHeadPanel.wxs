@@ -8,6 +8,7 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizerFixtures" member="no">
 					<cols>1</cols>
+					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizerFixturesLabel" member="no">
 							<cols>3</cols>
@@ -674,7 +675,6 @@
 									<object class="wxNotebook" name="ID_NOTEBOOK2" variable="Notebook2" member="yes">
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL_Color" variable="PanelColor" member="yes">
-												<hidden>1</hidden>
 												<object class="wxFlexGridSizer" variable="FlexGridSizerColorMain" member="no">
 													<cols>1</cols>
 													<rows>2</rows>
@@ -686,7 +686,7 @@
 															<growablecols>0</growablecols>
 															<growablerows>0</growablerows>
 														</object>
-														<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+														<flag>wxALL|wxEXPAND</flag>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -716,7 +716,7 @@
 															<growablecols>0</growablecols>
 															<growablerows>0</growablerows>
 														</object>
-														<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+														<flag>wxALL|wxEXPAND</flag>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">

@@ -43,11 +43,9 @@ MovingHeadCanvasPanel::MovingHeadCanvasPanel(IMovingHeadCanvasParent* movingHead
 void MovingHeadCanvasPanel::OnSize(wxSizeEvent& event){
     wxSize old_sz = GetSize();
     if( old_sz.GetWidth() != old_sz.GetHeight() ) {
-        if( old_sz.GetWidth() > 270 ) {
-            wxSize new_size = old_sz;
-            new_size.SetHeight(new_size.GetWidth());
-            SetMinSize(new_size);
-        }
+        old_sz.SetHeight(old_sz.GetWidth());
+        SetMinSize(old_sz);
+        SetSize(old_sz);
     }
     Refresh();
     //skip the event.

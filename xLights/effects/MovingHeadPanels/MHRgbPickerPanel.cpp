@@ -45,7 +45,7 @@ MHRgbPickerPanel::MHRgbPickerPanel(IMHRgbPickerPanelParent* rgbPickerParent, wxW
 
 MHRgbPickerPanel::~MHRgbPickerPanel()
 {
-    if( m_hsvBitmap != nullptr ) {
+    if (m_hsvBitmap != nullptr) {
         delete m_hsvBitmap;
     }
 }
@@ -53,10 +53,11 @@ MHRgbPickerPanel::~MHRgbPickerPanel()
 void MHRgbPickerPanel::OnSize(wxSizeEvent& event){
     wxSize old_sz = GetSize();
     if( old_sz.GetWidth() != old_sz.GetHeight() ) {
-        if( old_sz.GetWidth() > 270 ) {
+        if (old_sz.GetWidth() > 270) {
             wxSize new_size = old_sz;
             new_size.SetHeight(new_size.GetWidth() + 30);
             SetMinSize(new_size);
+            SetSize(new_size);
         }
     }
     Refresh();
@@ -72,6 +73,12 @@ void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/)
      return;
 
     wxSize dcSize = pdc.GetSize();
+    
+// Windows leaves artifacts in the clear area of the mask without this clear but
+// with the clear OSX doesn't look as nice because it paints a background
+#ifdef __WXMSW__
+    pdc.Clear();
+#endif
 
     if ( m_hsvBitmap->GetSize() != dcSize ) {
         CreateHsvBitmap(dcSize);
@@ -301,6 +308,7 @@ void MHRgbPickerPanel::CreateHsvBitmap(const wxSize& newSize)
 
     if( m_hsvBitmap != nullptr ) {
         delete m_hsvBitmap;
+        m_hsvBitmap = nullptr;
     }
 
     m_hsvBitmap = new wxBitmap( newSize.GetWidth(), newSize.GetHeight() );
@@ -363,7 +371,7 @@ xlColor MHRgbPickerPanel::GetPointColor(int x, int y)
 
 void MHRgbPickerPanel::CreateHsvBitmapMask()
 {
-    wxColour color(0,0,0);
+    wxColour color(0, 0, 0);
     m_hsvMask = new wxMask(*m_hsvBitmap, color);
     m_hsvBitmap->SetMask(m_hsvMask);
 }
