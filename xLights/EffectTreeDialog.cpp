@@ -1449,9 +1449,14 @@ std::list<std::string> EffectTreeDialog::GetGifFileNamesRecursive(wxTreeItemId i
     while (child.IsOk()) {
         std::string gifName = generatePresetName(child).ToStdString();
 
+        // ignore empty group
         if (gifName != "") {
             wxFileName gifFileName(xLightParent->GetPresetIconFilename(gifName));
             gifNames.push_back(gifFileName.GetFullPath());
+        }
+
+        if (TreeCtrl1->ItemHasChildren(child)) {
+            gifNames.merge(GetGifFileNamesRecursive(child));
         }
 
         child = TreeCtrl1->GetNextChild(itemId, cookie);
@@ -1499,7 +1504,7 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
             // Effect Dropped
             int flags = wxTREE_HITTEST_ONITEM;
 
-            wxTreeItemId dstItemId = TreeCtrl1->HitTest(wxPoint(x, y), flags);           
+            wxTreeItemId dstItemId = TreeCtrl1->HitTest(wxPoint(x, y), flags);
 
             if (dstItemId.IsOk()) {
 
