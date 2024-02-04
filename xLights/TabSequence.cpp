@@ -320,8 +320,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     if (!wxDir::Exists(xsqDirectory)) {
         logger_base.warn("Sequence XSQ Directory not Found ... switching to Show Directory.");
         xsqDirectory = showDirectory;
-    }
-    if (xsqDirectory.compare(0, showDirectory.length(), showDirectory) != 0) {
+    } else if (xsqDirectory.compare(0, showDirectory.length(), showDirectory) != 0) {
         logger_base.warn("Sequence Directory not within the Show Folder ... switching to Show Directory.");
         xsqDirectory = showDirectory;
     }
