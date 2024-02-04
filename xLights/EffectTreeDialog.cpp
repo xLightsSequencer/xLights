@@ -1449,14 +1449,9 @@ std::list<std::string> EffectTreeDialog::GetGifFileNamesRecursive(wxTreeItemId i
     while (child.IsOk()) {
         std::string gifName = generatePresetName(child).ToStdString();
 
-        // ignore empty group
         if (gifName != "") {
             wxFileName gifFileName(xLightParent->GetPresetIconFilename(gifName));
             gifNames.push_back(gifFileName.GetFullPath());
-        }
-
-        if (TreeCtrl1->ItemHasChildren(child)) {
-          //dwe  gifNames.merge(GetGifFileNamesRecursive(child));
         }
 
         child = TreeCtrl1->GetNextChild(itemId, cookie);
@@ -1495,7 +1490,6 @@ void EffectTreeDialog::PurgeDanglingGifs() {
 
 void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
     wxArrayString parms = wxSplit(event.GetString(), ',');
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int x = event.GetExtraLong() >> 16;
     int y = event.GetExtraLong() & 0xFFFF;
 
@@ -1505,8 +1499,7 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
             // Effect Dropped
             int flags = wxTREE_HITTEST_ONITEM;
 
-            wxTreeItemId dstItemId = TreeCtrl1->HitTest(wxPoint(x, y), flags);
-            logger_base.debug("DropEffect: Dest %s", (const char*)TreeCtrl1->GetItemText(dstItemId).c_str());            
+            wxTreeItemId dstItemId = TreeCtrl1->HitTest(wxPoint(x, y), flags);           
 
             if (dstItemId.IsOk()) {
 
@@ -1520,7 +1513,6 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
                 // gather drag source item info
                 wxTreeItemId srcItemId = TreeCtrl1->GetSelection();
                 wxString srcName = TreeCtrl1->GetItemText(srcItemId);
-                logger_base.debug("DropEffect: Source %s", (const char*)TreeCtrl1->GetItemText(srcItemId).c_str()); 
 
                 if (TreeCtrl1->HasChildren(srcItemId)) {
                     srcIsGroup = true;
