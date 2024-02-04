@@ -29,6 +29,10 @@
 
 wxDEFINE_EVENT(EVT_EFFTREEDROP, wxCommandEvent);
 
+// Menu Constants
+const long EffectTreeDialog::ID_GRID_MNU_SORT_ASC = wxNewId();
+const long EffectTreeDialog::ID_GRID_MNU_SORT_ALL_ASC = wxNewId();
+
 //(*IdInit(EffectTreeDialog)
 const long EffectTreeDialog::ID_TREECTRL1 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON11 = wxNewId();
@@ -138,6 +142,7 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_BEGIN_DRAG,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1BeginDrag);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_ACTIVATED,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1ItemActivated);
+	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1ItemRightClick);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1SelectionChanged);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_KEY_DOWN,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1KeyDown);
 	Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnButton_TopClick);
@@ -1490,6 +1495,7 @@ void EffectTreeDialog::PurgeDanglingGifs() {
 
 void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
     wxArrayString parms = wxSplit(event.GetString(), ',');
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int x = event.GetExtraLong() >> 16;
     int y = event.GetExtraLong() & 0xFFFF;
 
@@ -1500,6 +1506,7 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
             int flags = wxTREE_HITTEST_ONITEM;
 
             wxTreeItemId dstItemId = TreeCtrl1->HitTest(wxPoint(x, y), flags);
+            logger_base.debug("DropEffect: Dest %s", (const char*)TreeCtrl1->GetItemText(dstItemId).c_str());            
 
             if (dstItemId.IsOk()) {
 
@@ -1513,6 +1520,7 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
                 // gather drag source item info
                 wxTreeItemId srcItemId = TreeCtrl1->GetSelection();
                 wxString srcName = TreeCtrl1->GetItemText(srcItemId);
+                logger_base.debug("DropEffect: Source %s", (const char*)TreeCtrl1->GetItemText(srcItemId).c_str()); 
 
                 if (TreeCtrl1->HasChildren(srcItemId)) {
                     srcIsGroup = true;
@@ -1564,6 +1572,7 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
 
                 if (srcIsGroup) {
                     AddTreeElementsRecursive(srcNode, newId);
+                    TreeCtrl1->SetItemHasChildren(newId);
                     if (srcIsExpanded) {
                         TreeCtrl1->Expand(newId);
                     }
@@ -1694,16 +1703,203 @@ bool EffectTreeDialogTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxSt
 
 void EffectTreeDialog::OnButton_TopClick(wxCommandEvent& event)
 {
+    wxTreeItemId movedItem = TreeCtrl1->GetSelection();
+    if (!movedItem.IsOk() || movedItem == treeRootID) {
+        return;
+    }
+    wxTreeItemId prevSiblingId = TreeCtrl1->GetPrevSibling(movedItem);
+    if (!prevSiblingId.IsOk()) {
+        return;
+    }
+    wxTreeItemId parentItem = TreeCtrl1->GetItemParent(movedItem);
+    if (!parentItem.IsOk()) {
+        return;
+    }
+    wxTreeItemIdValue cookie;
+    wxTreeItemId firstChild = TreeCtrl1->GetFirstChild(parentItem, cookie);
+    if (!firstChild.IsOk()) {
+        return;
+    }
+    MoveNode(movedItem, firstChild, true);
+    wxTreeItemId nextSiblingId = TreeCtrl1->GetNextSibling(firstChild);
+    if (!nextSiblingId.IsOk()) {
+        return;
+    }
+    MoveNode(firstChild, nextSiblingId, false);
 }
 
 void EffectTreeDialog::OnButton_MoveUpClick(wxCommandEvent& event)
 {
+    wxTreeItemId movedItem = TreeCtrl1->GetSelection();
+    if (!movedItem.IsOk() || movedItem == treeRootID) {
+        return;
+    }
+
+    wxTreeItemId prevSiblingId = TreeCtrl1->GetPrevSibling(movedItem);
+    if (!prevSiblingId.IsOk()) { 
+        return;
+    }
+    MoveNode(prevSiblingId, movedItem, false);
 }
 
 void EffectTreeDialog::OnButton_MoveDownClick(wxCommandEvent& event)
 {
+    wxTreeItemId movedItem = TreeCtrl1->GetSelection();
+    if (!movedItem.IsOk() || movedItem == treeRootID) {
+        return;
+    }
+
+    wxTreeItemId parentId = TreeCtrl1->GetItemParent(movedItem);
+    if (!parentId.IsOk()) {
+        return;
+    }
+
+    wxTreeItemId nextSiblingId = TreeCtrl1->GetNextSibling(movedItem);
+    while (nextSiblingId.IsOk() && TreeCtrl1->GetItemParent(nextSiblingId) != parentId) {
+        nextSiblingId = TreeCtrl1->GetNextSibling(nextSiblingId);
+    }
+
+    if (!nextSiblingId.IsOk()) {
+        return;
+    }
+
+    TreeCtrl1->SetItemDropHighlight(movedItem, false);
+    MoveNode(movedItem, nextSiblingId, true);
 }
 
 void EffectTreeDialog::OnButton_BottomClick(wxCommandEvent& event)
 {
+    wxTreeItemId movedItem = TreeCtrl1->GetSelection();
+    if (!movedItem.IsOk() || movedItem == treeRootID) {
+        return;
+    }
+
+    wxTreeItemId parentId = TreeCtrl1->GetItemParent(movedItem);
+    if (!parentId.IsOk()) {
+        return;
+    }
+
+    wxTreeItemId nextSiblingId = TreeCtrl1->GetNextSibling(movedItem);
+    if (!nextSiblingId.IsOk()) {
+        return;
+    }
+    wxTreeItemId lastSiblingId = nextSiblingId;
+    while (nextSiblingId.IsOk() && TreeCtrl1->GetItemParent(nextSiblingId) == parentId) {
+        nextSiblingId = TreeCtrl1->GetNextSibling(nextSiblingId);
+        if (nextSiblingId.IsOk())
+            lastSiblingId = nextSiblingId;
+    }
+    MoveNode(movedItem, lastSiblingId, true);
+}
+
+void EffectTreeDialog::MoveNode(wxTreeItemId& srcItemId, wxTreeItemId& dstItemId, bool selSrc)
+{
+    if (!dstItemId.IsOk() || !srcItemId.IsOk()) {
+        return;
+    }
+    bool srcIsGroup = false;
+    bool srcIsExpanded = false;
+
+    TreeCtrl1->SetItemDropHighlight(dstItemId, false);
+
+    wxString srcName = TreeCtrl1->GetItemText(srcItemId);
+    if (TreeCtrl1->HasChildren(srcItemId)) {
+        srcIsGroup = true;
+        srcIsExpanded = TreeCtrl1->IsExpanded(srcItemId);
+    }
+
+    wxTreeItemId dstParentId = TreeCtrl1->GetItemParent(dstItemId);
+    MyTreeItemData* srcData = (MyTreeItemData*)TreeCtrl1->GetItemData(srcItemId);
+    wxXmlNode* srcNode = srcData->GetElement();
+    wxXmlNode* srcParentNode = srcNode->GetParent();
+
+    MyTreeItemData* dstData = (MyTreeItemData*)TreeCtrl1->GetItemData(dstItemId);
+    wxXmlNode* dstNode = dstData->GetElement();
+
+    MyTreeItemData* dstParentData = (MyTreeItemData*)TreeCtrl1->GetItemData(dstParentId);
+    wxXmlNode* dstParentNode = dstParentData->GetElement();
+
+    srcParentNode->RemoveChild(srcNode);
+    TreeCtrl1->Delete(srcItemId);
+
+    wxTreeItemId newId;
+    dstParentNode->InsertChildAfter(srcNode, dstNode);
+    newId = TreeCtrl1->InsertItem(dstParentId, dstItemId, srcName, -1, -1, new MyTreeItemData(srcNode));
+
+    TreeCtrl1->SetItemData(newId, new MyTreeItemData(srcNode));
+    if (srcIsGroup) {
+        AddTreeElementsRecursive(srcNode, newId);
+        if (srcIsExpanded) {
+            TreeCtrl1->Expand(newId);
+        }
+    }
+
+    if (selSrc) {
+        TreeCtrl1->SelectItem(newId);
+        TreeCtrl1->EnsureVisible(newId);
+    } else {
+        TreeCtrl1->SelectItem(dstItemId);
+        TreeCtrl1->EnsureVisible(dstItemId);
+    }
+    EffectsFileDirty();
+    ValidateWindow();
+}
+
+void EffectTreeDialog::OnGridPopup(wxCommandEvent& event)
+{
+    int id = event.GetId();
+    wxTreeItemId selectedItemId = TreeCtrl1->GetSelection();
+
+    if (!selectedItemId.IsOk()) {
+        return;
+    }
+    wxTreeItemId parentId = treeRootID;
+    if (selectedItemId != treeRootID) {
+        parentId = TreeCtrl1->GetItemParent(selectedItemId);
+    }
+    if (!parentId.IsOk()) {
+        return;
+    }
+    if (id == ID_GRID_MNU_SORT_ASC) {
+        if (TreeCtrl1->HasChildren(parentId)) {
+            TreeCtrl1->SortChildren(parentId);
+        }
+    } else if (id == ID_GRID_MNU_SORT_ALL_ASC) {
+        if (TreeCtrl1->HasChildren(parentId)) {
+            SortTreeCtrl(TreeCtrl1, parentId);
+        }
+    }
+}
+
+void EffectTreeDialog::OnTreeCtrl1ItemRightClick(wxTreeEvent& event)
+{
+    wxTreeItemId selectedItem = TreeCtrl1->GetSelection();
+    if (selectedItem == treeRootID && TreeCtrl1->GetChildrenCount(selectedItem) == 0) {
+        return;
+    }
+    SetFocus();
+    wxMenu mnuLayer;
+
+    wxMenuItem* menu_sort_asc = mnuLayer.Append(ID_GRID_MNU_SORT_ASC, "Sort Group");
+    menu_sort_asc->Enable(true);
+    wxMenuItem* menu_sort_all_asc = mnuLayer.Append(ID_GRID_MNU_SORT_ALL_ASC, "Sort All");
+    menu_sort_all_asc->Enable(true);
+
+    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectTreeDialog::OnGridPopup, nullptr, this);
+    PopupMenu(&mnuLayer);
+}
+
+void EffectTreeDialog::SortTreeCtrl(wxTreeCtrl* treeCtrl, const wxTreeItemId& itemId)
+{
+    if (!itemId.IsOk())
+        return;
+
+    treeCtrl->SortChildren(itemId);
+
+    wxTreeItemIdValue cookie;
+    wxTreeItemId childId = treeCtrl->GetFirstChild(itemId, cookie);
+    while (childId.IsOk()) {
+        SortTreeCtrl(treeCtrl, childId);
+        childId = treeCtrl->GetNextChild(itemId, cookie);
+    }
 }

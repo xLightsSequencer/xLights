@@ -63,7 +63,11 @@ class EffectTreeDialog : public wxDialog
         wxTreeItemId treeRootID;
         void InitItems(wxXmlNode *e);
         bool NameCollissionInGroup(wxTreeItemId groupId, std::string name);
-    
+        static const long ID_GRID_MNU_SORT_ASC;
+        static const long ID_GRID_MNU_SORT_ALL_ASC;
+        void MoveNode(wxTreeItemId& srcItem, wxTreeItemId& destItem, bool selSrc);
+        void SortTreeCtrl(wxTreeCtrl* treeCtrl, const wxTreeItemId& itemId);
+  
 	protected:
 
 		//(*Identifiers(EffectTreeDialog)
@@ -98,7 +102,6 @@ class EffectTreeDialog : public wxDialog
 		void OnTreeCtrl1ItemActivated(wxTreeEvent& event);
 		void OnButton_OKClick(wxCommandEvent& event);
 		void OnTreeCtrl1BeginDrag(wxTreeEvent& event);
-		void OnTreeCtrl1EndDrag(wxTreeEvent& event);
 		void OnbtImportClick(wxCommandEvent& event);
 		void OnbtExportClick(wxCommandEvent& event);
 		void OnTreeCtrl1SelectionChanged(wxTreeEvent& event);
@@ -106,11 +109,11 @@ class EffectTreeDialog : public wxDialog
 		void OnTextCtrl1TextEnter(wxCommandEvent& event);
 		void OnTimerGifTrigger(wxTimerEvent& event);
 		void OnTreeCtrl1KeyDown(wxTreeEvent& event);
-		void OnButton2Click(wxCommandEvent& event);
 		void OnButton_TopClick(wxCommandEvent& event);
 		void OnButton_MoveUpClick(wxCommandEvent& event);
 		void OnButton_MoveDownClick(wxCommandEvent& event);
 		void OnButton_BottomClick(wxCommandEvent& event);
+		void OnTreeCtrl1ItemRightClick(wxTreeEvent& event);
 		//*)
 
         void DeleteSelectedItem();
@@ -123,6 +126,7 @@ class EffectTreeDialog : public wxDialog
         wxTreeItemId m_draggedItem;
         std::mutex preset_mutex;
         bool _effectsFixed = false;
+        void OnGridPopup(wxCommandEvent& event);
         void AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeItemId curGroupID);
         wxXmlNode* CreateEffectGroupNode(wxString& name);
         void ApplyEffect(bool dblClick=false);
@@ -155,7 +159,6 @@ class EffectTreeDialog : public wxDialog
         void DeleteGifsRecursive(wxTreeItemId parentId);
         void PurgeDanglingGifs();
         bool PromptForName(wxWindow* parent, wxString& name, bool isNew, bool isGroup);
-        void UnHighlightItemsRecursively(const wxTreeItemId& parentId, const wxTreeItemId& skipId, wxTreeItemIdValue cookie);
         void OnDropEffect(wxCommandEvent& event);
 
 };
