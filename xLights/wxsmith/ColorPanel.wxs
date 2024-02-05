@@ -48,7 +48,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
-															<cols>3</cols>
+															<cols>4</cols>
 															<growablecols>1</growablecols>
 															<object class="sizeritem">
 																<object class="wxBoxSizer" variable="BoxSizer1" member="no">
@@ -58,6 +58,7 @@
 																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_reverse_xpm&quot;, wxART_BUTTON)' />
 																			<size>26,16</size>
 																			<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+																			<handler function="OnBitmapButton_ReverseColoursClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>2</border>
@@ -67,7 +68,7 @@
 																		<object class="wxBitmapButton" name="ID_BITMAPBUTTON_LeftShiftColours" subclass="xlSizedBitmapButton" variable="BitmapButton_LeftShiftColours" member="yes">
 																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_left_shift_xpm&quot;, wxART_BUTTON)' />
 																			<size>26,16</size>
-																			<handler function="OnBitmapButton_LeftShiftColoursClick" entry="EVT_BUTTON" />
+																			<handler function="OnBitmapButton_ShiftColoursLeftClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>2</border>
@@ -77,7 +78,7 @@
 																		<object class="wxBitmapButton" name="ID_BITMAPBUTTON_RightShiftColours" subclass="xlSizedBitmapButton" variable="BitmapButton_RightShiftColours" member="yes">
 																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_right_shift_xpm&quot;, wxART_BUTTON)' />
 																			<size>26,16</size>
-																			<handler function="OnBitmapButton_RightShiftColoursClick" entry="EVT_BUTTON" />
+																			<handler function="OnBitmapButton_ShiftColoursRightClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>2</border>
@@ -134,6 +135,23 @@
 																			<size>24,24</size>
 																			<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 																			<handler function="OnBitmapButton_DeletePaletteClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																</object>
+																<flag>wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBoxSizer" variable="BoxSizer4" member="no">
+																	<orient>wxVERTICAL</orient>
+																	<object class="sizeritem">
+																		<object class="wxTextCtrl" name="ID_TEXTCTRL_PaletteName" variable="txtCtrlPaletteName" member="yes">
+																			<maxlength>25</maxlength>
+																			<tooltip>Enter palette name if desired prior to saving.</tooltip>
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>

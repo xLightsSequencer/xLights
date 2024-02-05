@@ -128,6 +128,7 @@ private:
         wxColour GetPaletteColor(int idx) const;
         void LoadPalettes(wxDir& directory, bool subdirs);
         void LoadAllPalettes();
+        wxString RemoveNonAlphanumeric(const wxString& str);
 
 public:
         void SetButtonColor(ColorCurveButton* btn, const std::string &v, bool notify = true);
@@ -170,6 +171,7 @@ public:
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
+		wxTextCtrl* txtCtrlPaletteName;
 		xlLockButton* BitmapButton_Brightness;
 		xlLockButton* BitmapButton_Contrast;
 		xlLockButton* BitmapButton_MusicSparkles;
@@ -191,6 +193,7 @@ public:
 		static const long ID_BUTTON1;
 		static const long ID_BITMAPBUTTON3;
 		static const long ID_BITMAPBUTTON2;
+		static const long ID_TEXTCTRL_PaletteName;
 		static const long ID_CHECKBOX_ResetColorPanel;
 		static const long ID_STATICTEXT1;
 		static const long ID_SLIDER_ChromaSensitivity;
