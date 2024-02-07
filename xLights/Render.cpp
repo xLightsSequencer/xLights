@@ -1972,26 +1972,22 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     int cpn = job->getBuffer()->GetChanCountPerNode();
 
     if (doRender) {
-        // always render the whole model
-        job->setRenderRange(0, _seqData.NumFrames());
-        job->setPreviousFrameDone(END_OF_RENDER_FRAME);
-        job->addNext(&wait);
-        jobPool.PushJob(job);
-        //wait to complete
-        while (!wait.checkIfDone(_seqData.NumFrames())) {
+        RenderAll();
+        // Render all to capture any effects at the group levels
+        // wait to complete
+        while (mRendering) {
             wxYield();
         }
-    } else {
-        Model* m2 = GetModel(model);
-        for (size_t frame = 0; frame < _seqData.NumFrames(); ++frame) {
-            for (size_t x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
-                //chan in main buffer
-                int ostart = m2->NodeStartChannel(x);
-                int nstart = job->getBuffer()->NodeStartChannel(x);
-                //copy to render buffer for export
-                job->getBuffer()->SetNodeChannelValues(x, &_seqData[frame][ostart]);
-                job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
-            }
+    }
+    Model* m2 = GetModel(model);
+    for (size_t frame = 0; frame < _seqData.NumFrames(); ++frame) {
+        for (size_t x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
+            //chan in main buffer
+            int ostart = m2->NodeStartChannel(x);
+            int nstart = job->getBuffer()->NodeStartChannel(x);
+            //copy to render buffer for export
+            job->getBuffer()->SetNodeChannelValues(x, &_seqData[frame][ostart]);
+            job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
         }
     }
     delete job;
