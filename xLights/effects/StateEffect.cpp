@@ -13,6 +13,7 @@
 #include "StateEffect.h"
 #include "StatePanel.h"
 #include "../models/Model.h"
+#include "../models/SubModel.h"
 #include "../sequencer/SequenceElements.h"
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
@@ -97,9 +98,10 @@ void StateEffect::SetPanelStatus(Model *cls) {
     if (cls != nullptr) {
 
         Model* m = cls;
-        if (cls->GetDisplayAs() == "ModelGroup")
-        {
+        if (cls->GetDisplayAs() == "ModelGroup") {
             m = ((ModelGroup*)cls)->GetFirstModel();
+        } else if (cls->GetDisplayAs() == "SubModel") {
+            m = ((SubModel*)cls)->GetParent();
         }
 
         std::list<std::string> used;
@@ -136,9 +138,10 @@ std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
     if (cls != nullptr) {
 
         Model* m = cls;
-        if (cls->GetDisplayAs() == "ModelGroup")
-        {
+        if (cls->GetDisplayAs() == "ModelGroup") {
             m = ((ModelGroup*)cls)->GetFirstModel();
+        } else if (cls->GetDisplayAs() == "SubModel") {
+            m = ((SubModel*)cls)->GetParent();
         }
 
         if (m != nullptr)
