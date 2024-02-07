@@ -25,9 +25,9 @@ static const std::string STACKED_STRANDS("Stacked Strands");
 const std::vector<std::string> SubModel::BUFFER_STYLES{ DEFAULT, KEEP_XY, STACKED_STRANDS };
 
 // Check for duplicate nodes in a submodel
-void SubModel::CheckDuplicates(const std::vector<int>& nodeIndexes)
+wxString SubModel::CheckDuplicates(const std::vector<int>& nodeIndexes, std::string dupNodes)
 {
-    _duplicateNodes = "";
+    _duplicateNodes = dupNodes;
 
     auto it = begin(nodeIndexes);
 
@@ -43,6 +43,7 @@ void SubModel::CheckDuplicates(const std::vector<int>& nodeIndexes)
         }
         ++it;
     }
+    return _duplicateNodes;
 }
 
 SubModel::SubModel(Model* p, wxXmlNode* n) :
@@ -110,7 +111,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                 line++;
             }
 
-            CheckDuplicates(nodeIndexes);
+            CheckDuplicates(nodeIndexes, (std::string) "");
 
             float minx = 10000;
             float maxx = -1;
@@ -159,8 +160,10 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
             int line = 0;
             int maxRow = 0;
             int maxCol = 0;
+            std::string dupNodes = "";
             std::vector<int> nodeIndexes;
             while (n->HasAttribute(wxString::Format("line%d", line))) {
+                nodeIndexes.clear();
                 wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
                 //logger_base.debug("    Line %d: %s", line, (const char*)nodes.c_str());
                 _properyGridDisplay = nodes + "," + _properyGridDisplay;
@@ -240,8 +243,8 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                     }
                 }
                 line++;
+                dupNodes = CheckDuplicates(nodeIndexes, dupNodes);
             }
-            CheckDuplicates(nodeIndexes);
             SetBufferSize(maxRow + 1, maxCol + 1);
         }
     }

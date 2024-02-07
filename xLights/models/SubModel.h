@@ -53,7 +53,7 @@ public:
     std::string GetDuplicateNodes() const { return _duplicateNodes; }
 
 private:
-    void CheckDuplicates(const std::vector<int>& nodeIndexes);
+    wxString CheckDuplicates(const std::vector<int>& nodeIndexes, std::string dupNodes);
 
     Model *parent = nullptr;
     bool _nodesAllValid = false;
