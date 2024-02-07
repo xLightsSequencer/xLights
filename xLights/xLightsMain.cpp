@@ -2899,7 +2899,10 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
             if (!success) {
                 logger_base.error("    Copy Failed.");
                 errors += "Unable to copy file \"" + srcDir.GetNameWithSep() + fname + "\"\n";
-            }
+                if (srcDir.GetNameWithSep().length() + fname.length() > 225) {
+                    errors += "Consider shortening the directory path or filename.\n";
+                }
+            }   
         }
     }
 
