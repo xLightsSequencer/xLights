@@ -1451,15 +1451,14 @@ void PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         ModelXml->DeleteAttribute("IndivSegs");
         if (is == "1") {
             ModelXml->AddAttribute("IndivSegs", "1");
-            num_segments = num_points - 1;
-            for (int x = 0; x < num_segments; x++) {
+            for (int x = 0; x < num_points - 1; x++) {
                 ModelXml->DeleteAttribute(SegAttrName(x));
                 wxString seg = root->GetAttribute(SegAttrName(x), "");
                 // TODO this needs to be fixed like the individual start channel code in model
                 int seg_length = wxAtoi(seg);
                 ModelXml->AddAttribute(SegAttrName(x), wxString::Format("%d", seg_length));
             }
-            for (int x = 0; x < num_segments-1; x++) {
+            for (int x = 0; x < num_points; x++) {
                 ModelXml->DeleteAttribute(CornerAttrName(x));
                 wxString corner = root->GetAttribute(CornerAttrName(x), "Neither");
                 SetProperty(CornerAttrName(x), corner);
@@ -1527,11 +1526,11 @@ void PolyLineModel::ExportXlightsModel()
     f.Write(wxString::Format("IndivSegs=\"%s\" ", is));
     f.Write(wxString::Format("NumPoints=\"%s\" ", pts));
     int count = wxAtoi(pts);
-    for (int x = 0; x < count; x++) {
+    for (int x = 0; x < count-1; x++) {
         wxString seg = ModelXml->GetAttribute(SegAttrName(x), "");
         f.Write(wxString::Format("%s=\"%s\" ", SegAttrName(x), seg));
     }
-    for (int x = 0; x < count-1; x++) {
+    for (int x = 0; x < count; x++) {
         wxString corner = ModelXml->GetAttribute(CornerAttrName(x), "Neither");
         f.Write(wxString::Format("%s=\"%s\" ", CornerAttrName(x), corner));
     }
@@ -1595,9 +1594,9 @@ void PolyLineModel::NormalizePointData()
     float minX = 100000.0f;
     float minY = 100000.0f;
     float minZ = 100000.0f;
-    float maxX = 0.0f;
-    float maxY = 0.0f;
-    float maxZ = 0.0f;
+    float maxX = -100000.0f;
+    float maxY = -100000.0f;
+    float maxZ = -100000.0f;
 
     for (int i = 0; i < num_points; ++i) {
         if (pPos[i].x < minX)
@@ -1616,27 +1615,12 @@ void PolyLineModel::NormalizePointData()
             pPos[i].curve->check_min_max(minX, maxX, minY, maxY, minZ, maxZ);
         }
     }
-    float deltax = maxX - minX;
-    float deltay = maxY - minY;
-    float deltaz = maxZ - minZ;
 
     // normalize all the point data
     for (int i = 0; i < num_points; ++i) {
-        if (deltax == 0.0f) {
-            pPos[i].x = 0.0f;
-        } else {
-            pPos[i].x = (pPos[i].x - minX) / deltax;
-        }
-        if (deltay == 0.0f) {
-            pPos[i].y = 0.0f;
-        } else {
-            pPos[i].y = (pPos[i].y - minY) / deltay;
-        }
-        if (deltaz == 0.0f) {
-            pPos[i].z = 0.0f;
-        } else {
-            pPos[i].z = (pPos[i].z - minZ) / deltaz;
-        }
+        pPos[i].x = pPos[i].x - minX;
+        pPos[i].y = pPos[i].y - minY;
+        pPos[i].z = pPos[i].z - minZ;
         if (pPos[i].has_curve) {
             float cp0x = pPos[i].curve->get_cp0x();
             float cp0y = pPos[i].curve->get_cp0y();
@@ -1644,12 +1628,12 @@ void PolyLineModel::NormalizePointData()
             float cp1x = pPos[i].curve->get_cp1x();
             float cp1y = pPos[i].curve->get_cp1y();
             float cp1z = pPos[i].curve->get_cp1z();
-            cp0x = (cp0x - minX) / deltax;
-            cp0y = (cp0y - minY) / deltay;
-            cp0z = (cp0z - minZ) / deltaz;
-            cp1x = (cp1x - minX) / deltax;
-            cp1y = (cp1y - minY) / deltay;
-            cp1z = (cp1z - minZ) / deltaz;
+            cp0x = cp0x - minX;
+            cp0y = cp0y - minY;
+            cp0z = cp0z - minZ;
+            cp1x = cp1x - minX;
+            cp1y = cp1y - minY;
+            cp1z = cp1z - minZ;
             pPos[i].curve->set_cp0(cp0x, cp0y, cp0z);
             pPos[i].curve->set_cp1(cp1x, cp1y, cp1z);
         }
