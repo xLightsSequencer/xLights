@@ -160,7 +160,10 @@ void RemapModelProperties::RemapNodes(wxXmlNode* n, const std::string& attr, con
     std::vector<uint32_t> nnl;
     for (const auto it : nl) {
         if (mapping.find(it) == mapping.end()) {
-            // this should not happen
+            // didnt find value, check if a placeholder
+            if (it == 0) {
+                nnl.push_back(0);
+            }
         } else {
             nnl.push_back(mapping.at(it));
         }
