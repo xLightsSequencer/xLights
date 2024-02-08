@@ -41,13 +41,13 @@ const long EffectTreeDialog::ID_BUTTON10 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON12 = wxNewId();
 const long EffectTreeDialog::ID_STATICBITMAP_GIF = wxNewId();
 const long EffectTreeDialog::ID_BUTTON6 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON1 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON2 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON7 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON3 = wxNewId();
+const long EffectTreeDialog::ID_BUTTON2 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON4 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON5 = wxNewId();
+const long EffectTreeDialog::ID_BUTTON1 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON8 = wxNewId();
+const long EffectTreeDialog::ID_BUTTON3 = wxNewId();
+const long EffectTreeDialog::ID_BUTTON5 = wxNewId();
 const long EffectTreeDialog::ID_TEXTCTRL_SEARCH = wxNewId();
 const long EffectTreeDialog::ID_BUTTON_SEARCH = wxNewId();
 const long EffectTreeDialog::ID_TIMER_GIF = wxNewId();
@@ -65,12 +65,12 @@ END_EVENT_TABLE()
 EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(EffectTreeDialog)
-	wxBoxSizer* BoxSizer1;
 	wxBoxSizer* BoxSizer2;
 	wxBoxSizer* BoxSizer3;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxGridSizer* BoxSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Effect Presets"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
@@ -84,51 +84,51 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	TreeCtrl1->SetMinSize(wxDLG_UNIT(this,wxSize(80,-1)));
 	FlexGridSizer2->Add(TreeCtrl1, 1, wxALL|wxEXPAND, 5);
 	BoxSizer3 = new wxBoxSizer(wxVERTICAL);
-	Button_Top = new wxButton(this, ID_BUTTON11, _("^^"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
-	BoxSizer3->Add(Button_Top, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_MoveUp = new wxButton(this, ID_BUTTON9, _("^"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
-	BoxSizer3->Add(Button_MoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_MoveDown = new wxButton(this, ID_BUTTON10, _("v"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
-	BoxSizer3->Add(Button_MoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Bottom = new wxButton(this, ID_BUTTON12, _("vv"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON12"));
-	BoxSizer3->Add(Button_Bottom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2->Add(BoxSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer3 = new wxFlexGridSizer(2, 1, 0, 0);
+	Button_Top = new wxButton(this, ID_BUTTON11, _("^^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(15,-1)), 0, wxDefaultValidator, _T("ID_BUTTON11"));
+	BoxSizer3->Add(Button_Top, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	Button_MoveUp = new wxButton(this, ID_BUTTON9, _("^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(15,-1)), 0, wxDefaultValidator, _T("ID_BUTTON9"));
+	BoxSizer3->Add(Button_MoveUp, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	Button_MoveDown = new wxButton(this, ID_BUTTON10, _("v"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(15,-1)), 0, wxDefaultValidator, _T("ID_BUTTON10"));
+	BoxSizer3->Add(Button_MoveDown, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	Button_Bottom = new wxButton(this, ID_BUTTON12, _("vv"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(15,-1)), 0, wxDefaultValidator, _T("ID_BUTTON12"));
+	BoxSizer3->Add(Button_Bottom, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	FlexGridSizer2->Add(BoxSizer3, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer3 = new wxFlexGridSizer(3, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(0);
 	StaticBitmapGif = new wxStaticBitmap(this, ID_STATICBITMAP_GIF, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICBITMAP_GIF"));
 	FlexGridSizer3->Add(StaticBitmapGif, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
-	BoxSizer1 = new wxBoxSizer(wxVERTICAL);
+	BoxSizer1 = new wxGridSizer(4, 2, 0, 0);
 	btApply = new wxButton(this, ID_BUTTON6, _("&Apply Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
 	btApply->SetToolTip(_("Apply the selected effect Preset."));
 	BoxSizer1->Add(btApply, 0, wxALL|wxEXPAND, 5);
-	btNewPreset = new wxButton(this, ID_BUTTON1, _("&New Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	btNewPreset->SetToolTip(_("Create New Effect Preset from current settings."));
-	BoxSizer1->Add(btNewPreset, 0, wxALL|wxEXPAND, 5);
-	btUpdate = new wxButton(this, ID_BUTTON2, _("&Update Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-	btUpdate->SetToolTip(_("Update the selected effect preset to reflect current effect settings."));
-	BoxSizer1->Add(btUpdate, 0, wxALL|wxEXPAND, 5);
 	btAddGroup = new wxButton(this, ID_BUTTON7, _("Add &Group"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
 	btAddGroup->SetToolTip(_("Add effect preset group."));
 	BoxSizer1->Add(btAddGroup, 0, wxALL|wxEXPAND, 5);
-	btRename = new wxButton(this, ID_BUTTON3, _("&Rename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-	btRename->SetToolTip(_("Rename currently selected effect preset."));
-	BoxSizer1->Add(btRename, 0, wxALL|wxEXPAND, 5);
+	btUpdate = new wxButton(this, ID_BUTTON2, _("&Update Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	btUpdate->SetToolTip(_("Update the selected effect preset to reflect current effect settings."));
+	BoxSizer1->Add(btUpdate, 0, wxALL|wxEXPAND, 5);
 	btDelete = new wxButton(this, ID_BUTTON4, _("&Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
 	btDelete->SetToolTip(_("Delete curently selected effect preset."));
 	BoxSizer1->Add(btDelete, 0, wxALL|wxEXPAND, 5);
-	btExport = new wxButton(this, ID_BUTTON5, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-	BoxSizer1->Add(btExport, 0, wxALL|wxEXPAND, 5);
+	btNewPreset = new wxButton(this, ID_BUTTON1, _("&New Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	btNewPreset->SetToolTip(_("Create New Effect Preset from current settings."));
+	BoxSizer1->Add(btNewPreset, 0, wxALL|wxEXPAND, 5);
 	btImport = new wxButton(this, ID_BUTTON8, _("&Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
 	btImport->SetToolTip(_("Import presets from another file."));
 	BoxSizer1->Add(btImport, 0, wxALL|wxEXPAND, 5);
+	btRename = new wxButton(this, ID_BUTTON3, _("&Rename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	btRename->SetToolTip(_("Rename currently selected effect preset."));
+	BoxSizer1->Add(btRename, 0, wxALL|wxEXPAND, 5);
+	btExport = new wxButton(this, ID_BUTTON5, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	BoxSizer1->Add(btExport, 0, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
 	BoxSizer2 = new wxBoxSizer(wxHORIZONTAL);
 	TextCtrl1 = new wxTextCtrl(this, ID_TEXTCTRL_SEARCH, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_SEARCH"));
 	BoxSizer2->Add(TextCtrl1, 1, wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
 	ETButton1 = new wxButton(this, ID_BUTTON_SEARCH, _("Search"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_SEARCH"));
 	BoxSizer2->Add(ETButton1, 0, wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 0);
-	BoxSizer1->Add(BoxSizer2, 0, wxALL|wxEXPAND, 5);
-	FlexGridSizer3->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(BoxSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
@@ -150,13 +150,13 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnButton_MoveDownClick);
 	Connect(ID_BUTTON12,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnButton_BottomClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtApplyClick);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtNewPresetClick);
-	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtUpdateClick);
 	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtAddGroupClick);
-	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtRenameClick);
+	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtUpdateClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtDeleteClick);
-	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtExportClick);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtNewPresetClick);
 	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtImportClick);
+	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtRenameClick);
+	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtExportClick);
 	Connect(ID_TEXTCTRL_SEARCH,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&EffectTreeDialog::OnTextCtrl1TextEnter);
 	Connect(ID_BUTTON_SEARCH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnETButton1Click);
 	Connect(ID_TIMER_GIF,wxEVT_TIMER,(wxObjectEventFunction)&EffectTreeDialog::OnTimerGifTrigger);
@@ -171,7 +171,7 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
     // remember dialog size/location
     if (!wxPersistentRegisterAndRestore(this, "xLights.EffectTreeDialog")) {
         // defaults if this hasn't already been persisted
-        SetSize(700, 500);
+        SetSize(700, 600);
         CenterOnScreen();
     }
 
@@ -1429,8 +1429,9 @@ void EffectTreeDialog::DeleteGifsRecursive(wxTreeItemId parentId) {
     }
 }
 
-std::list<std::string> EffectTreeDialog::GetGifFileNamesRecursive(wxTreeItemId itemId) {
-    std::list<std::string> gifNames;
+std::vector<std::string> EffectTreeDialog::GetGifFileNamesRecursive(wxTreeItemId itemId)
+{
+    std::vector<std::string> gifNames;
 
     if (!TreeCtrl1->ItemHasChildren(itemId)) {
         std::string gifName = generatePresetName(itemId).ToStdString();
@@ -1455,8 +1456,11 @@ std::list<std::string> EffectTreeDialog::GetGifFileNamesRecursive(wxTreeItemId i
             gifNames.push_back(gifFileName.GetFullPath());
         }
 
-        if (TreeCtrl1->ItemHasChildren(child)) {
-            gifNames.merge(GetGifFileNamesRecursive(child));
+        if ( TreeCtrl1->ItemHasChildren(child)) {
+            auto list = GetGifFileNamesRecursive(child);
+            if (!list.empty()) {
+                gifNames.insert(gifNames.end(), list.begin(), list.end());
+            }
         }
 
         child = TreeCtrl1->GetNextChild(itemId, cookie);
@@ -1474,7 +1478,7 @@ void EffectTreeDialog::PurgeDanglingGifs() {
     GetAllFilesInDir(presetDir, filesOnDisk, "*.gif");
 
     // Get potential gif names, may or may not be generated yet
-    std::list<std::string> filesFromTree = GetGifFileNamesRecursive(treeRootID);
+    auto filesFromTree = GetGifFileNamesRecursive(treeRootID);
 
     // trim filesOnDisk down to only those that are dangling
     for (const auto& treeFile : filesFromTree) {
@@ -1542,7 +1546,7 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
                 wxXmlNode* dstParentNode = dstParentData->GetElement();
 
                 // Now Perform the move / rgbeffects updates
-                std::list<std::string> priorGifFiles;
+                std::vector<std::string> priorGifFiles;
 
                 if (TreeCtrl1->GetItemParent(srcItemId) != dstParentId) {
                     // Source has a new parent, gather the current preview names so we can rename
@@ -1575,7 +1579,7 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
 
                 if (parentChanged) {
                     // get new filenames
-                    std::list<std::string> newGifFiles = GetGifFileNamesRecursive(newId);
+                    auto newGifFiles = GetGifFileNamesRecursive(newId);
 
                     // rename the gifs to new name if they exist
                     while (!priorGifFiles.empty()) {
@@ -1585,9 +1589,8 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
                             wxFileName newGifFn(newGifFiles.front());
                             wxRenameFile(priorGifFn.GetFullPath(), newGifFiles.front());
                         }
-
-                        priorGifFiles.pop_front();
-                        newGifFiles.pop_front();
+                        priorGifFiles.erase(priorGifFiles.begin());
+                        newGifFiles.erase(newGifFiles.begin());
                     }
                 }
 
