@@ -108,7 +108,7 @@ public:
 
             ++it;
         }
-        
+
         return false;
     }
 
