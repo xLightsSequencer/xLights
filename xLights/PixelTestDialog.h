@@ -99,8 +99,8 @@ public:
     {
         auto it = _ranges.begin();
 
-        while (it != _ranges.end())
-		{
+        while (it != _ranges.end()) 
+        {
             long s = GetStart(*it);
             long e = GetEnd(*it);
 
@@ -109,7 +109,7 @@ public:
             ++it;
         }
         
-		return false;
+        return false;
     }
 
     long GetFirst()
