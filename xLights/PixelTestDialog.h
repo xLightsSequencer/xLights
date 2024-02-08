@@ -100,16 +100,16 @@ public:
         auto it = _ranges.begin();
 
         while (it != _ranges.end())
-        {
+		{
             long s = GetStart(*it);
             long e = GetEnd(*it);
 
-            if ((start >= s && start <= e) || (end >= s && end <= e)) return true;
+            if ((s >= start && s <= end) || (e >= start && e <= end)) return true;
 
             ++it;
         }
-
-        return false;
+        
+		return false;
     }
 
     long GetFirst()
