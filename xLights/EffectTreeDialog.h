@@ -78,13 +78,13 @@ class EffectTreeDialog : public wxDialog
 		static const long ID_BUTTON12;
 		static const long ID_STATICBITMAP_GIF;
 		static const long ID_BUTTON6;
-		static const long ID_BUTTON1;
-		static const long ID_BUTTON2;
 		static const long ID_BUTTON7;
-		static const long ID_BUTTON3;
+		static const long ID_BUTTON2;
 		static const long ID_BUTTON4;
-		static const long ID_BUTTON5;
+		static const long ID_BUTTON1;
 		static const long ID_BUTTON8;
+		static const long ID_BUTTON3;
+		static const long ID_BUTTON5;
 		static const long ID_TEXTCTRL_SEARCH;
 		static const long ID_BUTTON_SEARCH;
 		static const long ID_TIMER_GIF;
@@ -155,7 +155,7 @@ class EffectTreeDialog : public wxDialog
         wxTreeItemId FindGroupItem(wxTreeItemId parent, std::string name);
         std::string GetFullPathOfGroup(wxTreeItemId itemId);
         void FixRgbEffects(wxXmlNode* parent);
-        std::list<std::string> GetGifFileNamesRecursive(wxTreeItemId itemId);
+        std::vector<std::string> GetGifFileNamesRecursive(wxTreeItemId itemId);
         void DeleteGifsRecursive(wxTreeItemId parentId);
         void PurgeDanglingGifs();
         bool PromptForName(wxWindow* parent, wxString& name, bool isNew, bool isGroup);
