@@ -1426,21 +1426,50 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool> & validLa
             if (node >= thelayer->buffer.Nodes.size()) {
                 //logger_base.crit("PixelBufferClass::GetMixedColor thelayer->buffer.Nodes does not contain node %d as it is only %d in size ... this was going to crash.", node, thelayer->buffer.Nodes.size());
             } else {
-                auto &coord = thelayer->buffer.Nodes[node]->Coords[0];
-                int x = coord.bufX;
-                int y = coord.bufY;
-
-                if (thelayer->isMasked(x, y)
-                    || x < 0
-                    || y < 0
-                    || x >= thelayer->BufferWi
-                    || y >= thelayer->BufferHt
-                    ) {
+                int x = 0;
+                int y = 0;
+                if (thelayer->buffer.Nodes[node]->Coords.size() > 1) {
                     color.Set(0, 0, 0, 0);
+                    xlColor c2;
+                    bool found = false;
+                    for (auto it = thelayer->buffer.Nodes[node]->Coords.rbegin(); it != thelayer->buffer.Nodes[node]->Coords.rend(); ++it) {
+                        //find the last coordinate with a color, compatibility with older xLights that only allowed a
+                        //node to exist once in the submodel and would use the coord of the last appearance
+                        auto coord = *it;
+                        int x1 = coord.bufX;
+                        int y1 = coord.bufY;
+                        if (!thelayer->isMasked(x1, y1)) {
+                            thelayer->buffer.GetPixel(x1, y1, c2);
+                            if (c2.alpha != 0) {
+                                found = true;
+                                color = c2;
+                                x = x1;
+                                y = y1;
+                                break;
+                            }
+                        }
+                    }
+                    if (!found) {
+                        auto &coord = thelayer->buffer.Nodes[node]->Coords[0];
+                        x = coord.bufX;
+                        y = coord.bufY;
+                    }
                 } else {
-                    thelayer->buffer.GetPixel(x, y, color);
+                    auto &coord = thelayer->buffer.Nodes[node]->Coords[0];
+                    x = coord.bufX;
+                    y = coord.bufY;
+                    
+                    if (thelayer->isMasked(x, y)
+                        || x < 0
+                        || y < 0
+                        || x >= thelayer->BufferWi
+                        || y >= thelayer->BufferHt
+                        ) {
+                        color.Set(0, 0, 0, 0);
+                    } else {
+                        thelayer->buffer.GetPixel(x, y, color);
+                    }
                 }
-
                 // adjust for HSV adjustments
                 if (thelayer->needsHSVAdjust) {
                     HSVValue hsv = color.asHSV();
@@ -3135,40 +3164,23 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
 
 static int DecodeType(const std::string &type)
 {
-    if (type == "Wipe")
-    {
+    if (type == "Wipe") {
         return 1;
-    }
-    else if (type == "Clock")
-    {
+    } else if (type == "Clock") {
         return 2;
-    }
-    else if (type == "From Middle")
-    {
+    } else if (type == "From Middle") {
         return 3;
-    }
-    else if (type == "Square Explode")
-    {
+    } else if (type == "Square Explode") {
         return 4;
-    }
-    else if (type == "Circle Explode")
-    {
+    } else if (type == "Circle Explode") {
         return 5;
-    }
-    else if (type == "Blinds")
-    {
+    } else if (type == "Blinds") {
         return 6;
-    }
-    else if (type == "Blend")
-    {
+    } else if (type == "Blend") {
         return 7;
-    }
-    else if (type == "Slide Checks")
-    {
+    } else if (type == "Slide Checks") {
         return 8;
-    }
-    else if (type == "Slide Bars")
-    {
+    } else if (type == "Slide Bars") {
         return 9;
     }
 
@@ -3403,8 +3415,7 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out)
             startradians += 2.0f * (float)M_PI;
             currentradians += 2.0f * (float)M_PI;
         }
-    }
-    else {
+    } else {
         currentradians = startradians + currentradians;
     }
 
@@ -3413,8 +3424,7 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out)
             float radianspixel;
             if (x - BufferWi / 2 == 0 && y - BufferHt / 2 == 0) {
                 radianspixel = 0.0;
-            }
-            else {
+            } else {
                 radianspixel = atan2(x - BufferWi / 2,
                     y - BufferHt / 2);
             }
@@ -3522,8 +3532,7 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
         }
     }
 
-    for (int i = 0; i < step; i++)
-    {
+    for (int i = 0; i < step; i++) {
         int jy = rng() % actualpixels;
         int jx = rng() % actualpixels;
 
@@ -3533,23 +3542,17 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
 
             // check if there is anything left to mask
             bool undone = false;
-            for (int tx = 0; tx < std::min(xpixels, actualpixels) && undone == false; ++tx)
-            {
-                for (int ty = 0; ty < std::min(ypixels, actualpixels) && undone == false; ++ty)
-                {
-                    if (mask[tx * adjust * BufferHt + ty * adjust] == m1)
-                    {
+            for (int tx = 0; tx < std::min(xpixels, actualpixels) && undone == false; ++tx) {
+                for (int ty = 0; ty < std::min(ypixels, actualpixels) && undone == false; ++ty) {
+                    if (mask[tx * adjust * BufferHt + ty * adjust] == m1) {
                         undone = true;
                     }
                 }
             }
 
-            if (undone)
-            {
+            if (undone) {
                 i--;
-            }
-            else
-            {
+            } else {
                 break;
             }
         } else {
