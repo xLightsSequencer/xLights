@@ -159,6 +159,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
             int line = 0;
             int maxRow = 0;
             int maxCol = 0;
+            std::map<int, int> nodeIndexMap;
             std::vector<int> nodeIndexes;
             while (n->HasAttribute(wxString::Format("line%d", line))) {
                 wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
@@ -168,17 +169,13 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                 while (wtkz.HasMoreTokens()) {
                     wxString valstr = wtkz.GetNextToken();
                     auto [start, end] = getRange(valstr);
-                    if (start == 0)
-                    {
+                    if (start == 0) {
                         if (vert) {
                             row++;
-                        }
-                        else {
+                        } else {
                             col++;
                         }
-                    }
-                    else
-                    {
+                    } else {
                         start--;
                         end--;
                         bool done = false;
@@ -186,28 +183,38 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                         while (!done) {
                             if ((uint32_t)nn < p->GetNodeCount()) {
                                 nodeIndexes.push_back(nn);
-                                NodeBaseClass* node = p->Nodes[nn]->clone();
-                                startChannel = (std::min)(startChannel, node->ActChan);
-                                Nodes.push_back(NodeBaseClassPtr(node));
-                                for (auto& c : node->Coords) {
-                                    c.bufX = col;
-                                    c.bufY = row;
+                                NodeBaseClass* node;
+                                if (nodeIndexMap.find(nn) == nodeIndexMap.end()) {
+                                    node = p->Nodes[nn]->clone();
+                                    startChannel = (std::min)(startChannel, node->ActChan);
+                                    nodeIndexMap[nn] = Nodes.size();
+                                    Nodes.push_back(NodeBaseClassPtr(node));
+                                    if (node->Coords.size() > 1) {
+                                        node->Coords.resize(1);
+                                    }
+                                    for (auto& c : node->Coords) {
+                                        c.bufX = col;
+                                        c.bufY = row;
+                                    }
+                                } else {
+                                    node = Nodes[nodeIndexMap[nn]].get();
+                                    int i = node->Coords.size();
+                                    node->Coords.push_back(node->Coords[0]);
+                                    node->Coords[i].bufX = col;
+                                    node->Coords[i].bufY = row;
                                 }
                                 if (vert) {
                                     row++;
-                                }
-                                else {
+                                } else {
                                     col++;
                                 }
-                            }
-                            else {
+                            } else {
                                 _nodesAllValid = false;
                             }
                             if (start > end) {
                                 nn--;
                                 done = nn < end;
-                            }
-                            else {
+                            } else {
                                 nn++;
                                 done = nn > end;
                             }
@@ -216,8 +223,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                 }
                 if (vert) {
                     row--;
-                }
-                else {
+                } else {
                     col--;
                 }
                 if (maxRow < row) {
@@ -233,8 +239,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                     if (vert) {
                         row = 0;
                         col++;
-                    }
-                    else {
+                    } else {
                         col = 0;
                         row++;
                     }
@@ -244,8 +249,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
             CheckDuplicates(nodeIndexes);
             SetBufferSize(maxRow + 1, maxCol + 1);
         }
-    }
-    else {
+    } else {
         // subbuffers cant generate duplicate nodes
         wxString range = n->GetAttribute("subBuffer");
         _properyGridDisplay = range;
@@ -310,8 +314,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
         if (maxx < minx || maxy < miny || Nodes.size() == 0) {
             // invalid buffer, set it to just a 1x1 as 0x0 can cause some render issues
             SetBufferSize(1, 1);
-        }
-        else {
+        } else {
             x2 = int(std::ceil(maxx - minx)) + 1;
             y2 = int(std::ceil(maxy - miny)) + 1;
             SetBufferSize(y2, x2);
