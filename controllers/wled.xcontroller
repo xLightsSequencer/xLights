@@ -153,7 +153,7 @@
             <Port7>23</Port7>
             <Port8>22</Port8>
         </Variant>
-         <Variant Name="E8-WiFi Plus" Base="WLED:ESP32WLEDSettings">
+        <Variant Name="E8-WiFi Plus" Base="WLED:ESP32WLEDSettings">
             <MaxPixelPort>8</MaxPixelPort>
             <MaxSerialPort>0</MaxSerialPort>
             <Port1>5</Port1>
@@ -176,12 +176,34 @@
             <Port4>4</Port4>
         </Variant>
     </Controller>
-	<Controller Name="RGB2Go-Duo2Go">
+    <Controller Name="RGB2Go-Duo2Go">
         <Variant Name="" Base="WLED:BaseWLEDSettings">
             <MaxPixelPort>2</MaxPixelPort>
             <MaxSerialPort>0</MaxSerialPort>
             <Port1>2</Port1>
             <Port2>1</Port2>
+        </Variant>
+    </Controller>
+    <Controller Name="RGB2Go-Tetra2Go">
+        <Variant Name="Base" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>4</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+            <Port2>13</Port2>
+            <Port3>12</Port3>
+            <Port4>14</Port4>
+        </Variant>
+        <Variant Name="w/ Differential Module" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+            <Port2>13</Port2>
+            <Port3>12</Port3>
+            <Port4>14</Port4>
+            <Port5>27</Port5>
+            <Port6>26</Port6>
+            <Port7>25</Port7>
+            <Port8>33</Port8>
         </Variant>
     </Controller>
 </Vendor>
