@@ -125,6 +125,14 @@ void DMXEffect::SetDefaultParameters() {
     dp->ValueCurve_DMX38->SetActive(false);
     dp->ValueCurve_DMX39->SetActive(false);
     dp->ValueCurve_DMX40->SetActive(false);
+    dp->ValueCurve_DMX41->SetActive(false);
+    dp->ValueCurve_DMX42->SetActive(false);
+    dp->ValueCurve_DMX43->SetActive(false);
+    dp->ValueCurve_DMX44->SetActive(false);
+    dp->ValueCurve_DMX45->SetActive(false);
+    dp->ValueCurve_DMX46->SetActive(false);
+    dp->ValueCurve_DMX47->SetActive(false);
+    dp->ValueCurve_DMX48->SetActive(false);
 
     SetSliderValue(dp->Slider_DMX1, 0);
     SetSliderValue(dp->Slider_DMX2, 0);
@@ -166,6 +174,14 @@ void DMXEffect::SetDefaultParameters() {
     SetSliderValue(dp->Slider_DMX38, 0);
     SetSliderValue(dp->Slider_DMX39, 0);
     SetSliderValue(dp->Slider_DMX40, 0);
+    SetSliderValue(dp->Slider_DMX41, 0);
+    SetSliderValue(dp->Slider_DMX42, 0);
+    SetSliderValue(dp->Slider_DMX43, 0);
+    SetSliderValue(dp->Slider_DMX44, 0);
+    SetSliderValue(dp->Slider_DMX45, 0);
+    SetSliderValue(dp->Slider_DMX46, 0);
+    SetSliderValue(dp->Slider_DMX47, 0);
+    SetSliderValue(dp->Slider_DMX48, 0);
 
     SetCheckBoxValue(dp->CheckBox_INVDMX1, false);
     SetCheckBoxValue(dp->CheckBox_INVDMX2, false);
@@ -207,6 +223,14 @@ void DMXEffect::SetDefaultParameters() {
     SetCheckBoxValue(dp->CheckBox_INVDMX38, false);
     SetCheckBoxValue(dp->CheckBox_INVDMX39, false);
     SetCheckBoxValue(dp->CheckBox_INVDMX40, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX41, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX42, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX43, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX44, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX45, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX46, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX47, false);
+    SetCheckBoxValue(dp->CheckBox_INVDMX48, false);
 }
 
 void DMXEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
@@ -417,7 +441,9 @@ void DMXEffect::SetPanelStatus(Model *cls) {
             if( name == "" ) {
                 label->SetLabel(wxString::Format("Channel%d:", i));
             } else {
-                label->SetLabel(wxString::Format("%s:", name));
+              //  label->SetWindowStyle(wxALL | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
+                label->SetLabel(wxString::Format("%s:", name)); // dwe not being set to right justified
+              //  label->SetWindowStyle(wxALL | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
             }
         }
         wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i);
