@@ -11,6 +11,24 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- end (gjones)      Add preference whether layout view zooms to center or mouse cursor
+   -- enh (gjones)      Expand size of Default View for New Sequences preference box. Fixes #4255
+   -- bug (gjones)      Fix dragging Preset group so it stays a group.  Fixes #4304
+2024.02 Jan 26, 2024
+   -- enh (derwin12)    Allow bulk edit of sketch effect bg filename
+   -- enh (derwin12)    Add preference to skip loading of preset gif images
+   -- enh (derwin12)    Handling pasting of network drive files
+   -- enh (scott)       Force "Don't keep start channels" for ESPixelStick discovery
+   -- enh (derwin12)    Store imported shaders the same was as imported images/videos
+   -- enh (scott)       Try to detect FPP controller types during discovery
+   -- bug (dkulp)       Some fixes for locks/hangs when moving/editing "main thread effects" (Shader on Windows)
+   -- bug (derwin12)    Dont use render cache if using words from the lyric track
+   -- bug (derwin12)    VU Meter missing the last bar
+   -- bug (derwin12)    Fix faces download with faces in subdirectories
+   -- bug (scott)       Fix Falcon v4 discovery through FPP
+   -- bug (merryoncherry) Fix video stuttering with some video framerates
+   -- bug (derwin12)    Fix some data entry issues with Waveform Filter
+   -- bug (derwin12)    Fix "number of effects" displayed for models on import dialog (it included submodels which display separately)
 2024.01 Jan 17, 2024
    -- change(dkulp) Move repo to xLightsSequencer org, update headers and url locations
    -- enh (dkulp) Auto-Build in xCode cloud, initial setup for TestFlights builds

@@ -111,6 +111,7 @@
 						<item>30 Minutes</item>
 					</content>
 					<selection>2</selection>
+					<tooltip>A backup file (.bkp) will be created of the current open sequence at this interval. No render created.</tooltip>
 					<handler function="OnAutoSaveIntervalChoiceSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
@@ -304,6 +305,7 @@
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText5" member="yes">
 					<label>Default View for New Sequences</label>
+					<tooltip>This option is used to select which models will populate the master view when a new sequence is created.</tooltip>
 				</object>
 				<col>0</col>
 				<row>3</row>
@@ -314,11 +316,12 @@
 			<object class="sizeritem">
 				<object class="wxChoice" name="ID_CHOICE_VIEW_DEFAULT" variable="ViewDefaultChoice" member="yes">
 					<tooltip>This option is used to select which models will populate the master view when a new sequence is created.</tooltip>
+					<minsize>200,-1</minsize>
 					<handler function="OnViewDefaultChoiceSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
 				<row>3</row>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

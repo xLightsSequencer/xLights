@@ -1076,6 +1076,8 @@ public:
     bool _playControlsOnPreview = true;
     bool _showBaseShowFolder = false;
     bool _autoShowHousePreview = false;
+    bool _zoomMethodToCursor = true;
+    bool _hidePresetPreview = false;
     bool _smallWaveform = false;
     bool _modelBlendDefaultOff = true;
     bool _lowDefinitionRender = false;
@@ -1257,6 +1259,9 @@ public:
     bool PlayControlsOnPreview() const { return _playControlsOnPreview;}
     void SetPlayControlsOnPreview(bool b);
 
+    bool HidePresetPreview() const { return _hidePresetPreview;}
+    void SetHidePresetPreview(bool b);
+
     bool IsShowBaseShowFolder() const
     {
         return _showBaseShowFolder;
@@ -1265,6 +1270,9 @@ public:
 
     bool AutoShowHousePreview() const { return _autoShowHousePreview;}
     void SetAutoShowHousePreview(bool b);
+
+    bool ZoomMethodToCursor() const { return _zoomMethodToCursor;}
+    void SetZoomMethodToCursor(bool b);
 
     int EffectAssistMode() const { return mEffectAssistMode;}
     void SetEffectAssistMode(int i);

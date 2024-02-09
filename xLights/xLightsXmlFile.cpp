@@ -1708,6 +1708,7 @@ void xLightsXmlFile::ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent
 {
     wxString name = UnXmlSafe(node->GetAttribute("name"));
     wxString v = node->GetAttribute("SourceVersion");
+    wxString st = node->GetAttribute("subType");
 
     name = UniqueTimingName(xLightsParent, name);
 
@@ -1717,7 +1718,7 @@ void xLightsXmlFile::ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent
     wxXmlNode* timing = nullptr;
     if (sequence_loaded)
     {
-        element = xLightsParent->AddTimingElement(std::string(name.c_str()));
+        element = xLightsParent->AddTimingElement(std::string(name.c_str()), std::string(st.c_str()));
     }
     else
     {

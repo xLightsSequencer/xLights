@@ -1250,7 +1250,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
             }
             if (hasEffects) {
-                dlg.AddChannel(el->GetName(), el->GetEffectCount());
+                dlg.AddChannel(el->GetName(), el->GetModelEffectCount());
             }
             elementMap[el->GetName()] = el;
             int s = 0;
@@ -1258,7 +1258,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 SubModelElement* sme = el->GetSubModel(sm);
 
                 StrandElement* ste = dynamic_cast<StrandElement*>(sme);
-                std::string smName = sme->GetName();
+                std::string smName = sme->GetName();                
                 if (ste != nullptr) {
                     ++s;
                     if (smName == "") {

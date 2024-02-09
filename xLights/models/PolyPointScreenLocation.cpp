@@ -208,9 +208,9 @@ void PolyPointScreenLocation::Read(wxXmlNode* ModelNode)
         worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
         if (isnan(worldPos_z)) worldPos_z = 0.0;
 
-        scalex = wxAtof(ModelNode->GetAttribute("ScaleX", "100.0"));
-        scaley = wxAtof(ModelNode->GetAttribute("ScaleY", "100.0"));
-        scalez = wxAtof(ModelNode->GetAttribute("ScaleZ", "100.0"));
+        scalex = wxAtof(ModelNode->GetAttribute("ScaleX", "1.0"));
+        scaley = wxAtof(ModelNode->GetAttribute("ScaleY", "1.0"));
+        scalez = wxAtof(ModelNode->GetAttribute("ScaleZ", "1.0"));
 
         if (scalex <= 0 || std::isinf(scalex) || isnan(scalex)) {
             scalex = 1.0f;

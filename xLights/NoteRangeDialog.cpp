@@ -131,10 +131,10 @@ void NoteRangeDialog::OnTextCtrl_HighText(wxCommandEvent& event)
 {
     int newHigh = wxAtoi(TextCtrl_High->GetValue());
     Slider_High->SetValue(newHigh);
-    if (Slider_High->GetValue() < Slider_Low->GetValue())
-    {
-        Slider_Low->SetValue(Slider_High->GetValue());
-        TextCtrl_Low->SetValue(wxString::Format("%d", Slider_Low->GetValue()));
+    if (Slider_High->GetValue() < Slider_Low->GetValue()) {
+        Button_Ok->Enable(false);
+    } else {
+        Button_Ok->Enable(true);
     }
     UpdateNotes();
 }
@@ -143,10 +143,10 @@ void NoteRangeDialog::OnTextCtrl_LowText(wxCommandEvent& event)
 {
     int newLow = wxAtoi(TextCtrl_Low->GetValue());
     Slider_Low->SetValue(newLow);
-    if (Slider_Low->GetValue() > Slider_High->GetValue())
-    {
-        Slider_High->SetValue(Slider_Low->GetValue());
-        TextCtrl_High->SetValue(wxString::Format("%d", Slider_High->GetValue()));
+    if (Slider_Low->GetValue() > Slider_High->GetValue()) {
+        Button_Ok->Enable(false);
+    } else {
+        Button_Ok->Enable(true);
     }
     UpdateNotes();
 }
