@@ -441,9 +441,7 @@ void DMXEffect::SetPanelStatus(Model *cls) {
             if( name == "" ) {
                 label->SetLabel(wxString::Format("Channel%d:", i));
             } else {
-              //  label->SetWindowStyle(wxALL | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
-                label->SetLabel(wxString::Format("%s:", name)); // dwe not being set to right justified
-              //  label->SetWindowStyle(wxALL | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
+                label->SetLabel(wxString::Format("%s:", name));
             }
         }
         wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i);
@@ -471,6 +469,9 @@ void DMXEffect::SetPanelStatus(Model *cls) {
                 inv->Enable(true);
         }
     }
+    p->FlexGridSizer_Panel1->Layout();
+    p->FlexGridSizer_Panel2->Layout();
+    p->FlexGridSizer_Panel3->Layout();
     p->FlexGridSizer_Main->Layout();
     p->Refresh();
 }
