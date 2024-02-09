@@ -1435,7 +1435,7 @@
 					</object>
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL1" variable="ChannelPanel3" member="yes">
-							<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer_Panel3" member="yes">
 								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
