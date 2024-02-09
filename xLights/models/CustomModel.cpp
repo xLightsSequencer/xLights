@@ -1165,6 +1165,7 @@ void CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
 
         GetModelScreenLocation().SetMWidth(max_x - min_x);
         GetModelScreenLocation().SetMHeight(max_y - min_y);
+        GetModelScreenLocation().SetMDepth(1.0);
 
         ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
 
