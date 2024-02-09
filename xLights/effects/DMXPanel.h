@@ -186,6 +186,7 @@ class DMXPanel: public xlEffectPanel
 		wxButton* ButtonRemap;
 		wxButton* Button_Load_State;
 		wxButton* Button_SaveAsState;
+		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* FlexGridSizer_Main;
 		wxFlexGridSizer* FlexGridSizer_Panel1;
 		wxFlexGridSizer* FlexGridSizer_Panel2;

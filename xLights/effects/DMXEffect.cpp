@@ -441,7 +441,9 @@ void DMXEffect::SetPanelStatus(Model *cls) {
             if( name == "" ) {
                 label->SetLabel(wxString::Format("Channel%d:", i));
             } else {
-                label->SetLabel(wxString::Format("%s:", name));
+              //  label->SetWindowStyle(wxALL | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
+                label->SetLabel(wxString::Format("%s:", name)); // dwe not being set to right justified
+              //  label->SetWindowStyle(wxALL | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
             }
         }
         wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i);
