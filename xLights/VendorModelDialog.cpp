@@ -927,6 +927,7 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
         {
             AddHierachy(v, it, it->_categories);
         }
+        //TreeCtrl_Navigator->Expand(v);
     }
 
     if (first.IsOk() && first != root)
