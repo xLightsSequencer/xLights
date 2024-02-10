@@ -198,7 +198,7 @@ TextPanel::TextPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer119->Add(StaticText186, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer66 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer66->AddGrowableCol(0);
-	Slider_Text_Speed = new BulkEditSlider(Panel_Text1, IDD_SLIDER_Text_Speed, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Text_Speed"));
+	Slider_Text_Speed = new BulkEditSlider(Panel_Text1, IDD_SLIDER_Text_Speed, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Text_Speed"));
 	FlexGridSizer66->Add(Slider_Text_Speed, 1, wxALL|wxEXPAND, 1);
 	TextCtrl72 = new BulkEditTextCtrl(Panel_Text1, ID_TEXTCTRL_Text_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(Panel_Text1,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Speed"));
 	TextCtrl72->SetMaxLength(3);
