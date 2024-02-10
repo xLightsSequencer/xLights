@@ -58,6 +58,10 @@ const long FPPConnectDialog::ID_FPP_INSTANCE_LIST = wxNewId();
 
 static const long ID_POPUP_MNU_SORT_NAME = wxNewId();
 static const long ID_POPUP_MNU_SORT_IP = wxNewId();
+static const long ID_POPUP_MNU_SELECT_ALL = wxNewId();
+static const long ID_POPUP_MNU_DESELECT_ALL = wxNewId();
+static const long ID_POPUP_MNU_CAPE_SELECT_ALL = wxNewId();
+static const long ID_POPUP_MNU_CAPE_DESELECT_ALL = wxNewId();
 
 #define SORT_SEQ_NAME_COL 0
 #define SORT_SEQ_TIME_COL 1
@@ -192,7 +196,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
     instances = FPP::GetInstances(this, outputManager);
 
-    AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
+    wxPanel *p2 = AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
+    p2->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& FPPConnectDialog::UploadPopupMenu, nullptr, this);
     wxPanel *p = AddInstanceHeader("Location", "Host and IP Address.");
     p->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& FPPConnectDialog::LocationPopupMenu, nullptr, this);
 
@@ -205,7 +210,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     AddInstanceHeader("UDP Out", "'None'- Device is not going to send Pixel data across the network. \n \n 'All' This will send pixel data over your Show Network from FPP instance to all controllers marked as 'ACTIVE'. \n \n 'Proxied' will set UDP Out only for Controllers with a Proxy IP address set.");
     AddInstanceHeader("Add Proxies", "Upload Proxy IP Adresses to FPP.");
     AddInstanceHeader("Playlist","Select Playlist to Add Uploaded Sequences Too.");
-    AddInstanceHeader("Pixel Hat/Cape", "Display Hat or Hat Attached to FPP Device, If Found.");
+    wxPanel *p3 = AddInstanceHeader("Pixel Hat/Cape", "Display Hat or Hat Attached to FPP Device, If Found.");
+    p3->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&FPPConnectDialog::CapePopupMenu, nullptr, this);
 
     prgs.Pulse("Populating FPP instance list");
     PopulateFPPInstanceList(&prgs);
@@ -235,8 +241,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
-    
-    
+
+
     wxPoint loc;
     wxSize sz;
     LoadWindowPosition("xLightsFPPConnectPos", sz, loc);
@@ -302,6 +308,62 @@ void FPPConnectDialog::LocationPopupMenu(wxContextMenuEvent& event) {
     PopupMenu(&mnu);
 }
 
+void FPPConnectDialog::OnUploadPopupClick(wxCommandEvent& event)
+{
+    int row = 0;
+    for (const auto& inst : instances) {
+        std::string l = inst->hostName + " - " + inst->ipAddress;
+        if (inst->fppType == FPP_TYPE::FPP) {
+            if (inst->supportedForFPPConnect()) {
+                std::string rowStr = std::to_string(row);
+                if (event.GetId() == ID_POPUP_MNU_SELECT_ALL) {
+                    SetCheckValue(CHECK_COL + rowStr, true);
+                } else if (event.GetId() == ID_POPUP_MNU_DESELECT_ALL) {
+                    SetCheckValue(CHECK_COL + rowStr, false);
+                }
+            }
+        }
+        row++;
+    }
+}
+
+void FPPConnectDialog::CapePopupMenu(wxContextMenuEvent& event)
+{
+    wxMenu mnu;
+    mnu.Append(ID_POPUP_MNU_CAPE_SELECT_ALL, "Select All");
+    mnu.Append(ID_POPUP_MNU_CAPE_DESELECT_ALL, "Deselect All");
+    mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FPPConnectDialog::OnCapePopupClick), NULL, this);
+    PopupMenu(&mnu);
+}
+
+void FPPConnectDialog::OnCapePopupClick(wxCommandEvent& event)
+{
+    int row = 0;
+    for (const auto& inst : instances) {
+        std::string l = inst->hostName + " - " + inst->ipAddress;
+        if (inst->fppType == FPP_TYPE::FPP) {
+            if (inst->supportedForFPPConnect()) {
+                std::string rowStr = std::to_string(row);
+                if (event.GetId() == ID_POPUP_MNU_CAPE_SELECT_ALL) {
+                    SetCheckValue(UPLOAD_CONTROLLER_COL + rowStr, true);
+                } else if (event.GetId() == ID_POPUP_MNU_CAPE_DESELECT_ALL) {
+                    SetCheckValue(UPLOAD_CONTROLLER_COL + rowStr, false);
+                }
+            }
+        }
+        row++;
+    }
+}
+
+void FPPConnectDialog::UploadPopupMenu(wxContextMenuEvent& event)
+{
+    wxMenu mnu;
+    mnu.Append(ID_POPUP_MNU_SELECT_ALL, "Select All");
+    mnu.Append(ID_POPUP_MNU_DESELECT_ALL, "Deselect All");
+    mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FPPConnectDialog::OnUploadPopupClick), NULL, this);
+    PopupMenu(&mnu);
+}
+
 void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
     FPPInstanceList->Freeze();
     //remove all the children from the first upload checkbox on
@@ -344,7 +406,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             if (!inst->supportedForFPPConnect()) {
                 doUploadCheckbox->SetValue(false);
                 doUploadCheckbox->Enable(false);
-                
+
                 label = new wxStaticText(FPPInstanceList, wxID_ANY, "Unsupported", wxDefaultPosition, wxDefaultSize, 0, "ID_STATIC_TEXT_FS_" + rowStr);
                 FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             } else {
@@ -396,7 +458,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             Choice1->Append(_("Local"));
             Choice1->SetSelection(0);
             FPPInstanceSizer->Add(Choice1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
-            
+
             Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, UDP_COL + rowStr);
             font = Choice1->GetFont();
             font.SetPointSize(font.GetPointSize() - 2);
@@ -410,7 +472,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
 
             wxCheckBox* CheckBoxProxy = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, PROXY_COL + rowStr);
             FPPInstanceSizer->Add(CheckBoxProxy, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
-            
+
             //playlist combo box
             wxComboBox *ComboBox1 = new wxComboBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER, wxDefaultValidator, PLAYLIST_COL + rowStr);
             ComboBox1->Append(_(""));
@@ -517,12 +579,12 @@ FPPConnectDialog::~FPPConnectDialog()
     CheckListBox_Sequences->GetSortColumn(&sortCol, &ascendingOrder);
     config->Write("xLightsFPPConnectSequenceSortCol", sortCol);
     config->Write("xLightsFPPConnectSequenceSortOrder", ascendingOrder);
-    
+
     int i = SplitterWindow1->GetSashPosition();
     config->Write("FPPConnectSashPosition", i);
 
     SaveWindowPosition("xLightsFPPConnectPos", this);
-    
+
 	//(*Destroy(FPPConnectDialog)
 	//*)
 
@@ -800,8 +862,8 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 {
     Button_Upload->Enable(false);
     AddFPPButton->Enable(false);
-    
-    
+
+
     std::vector<bool> doUpload(instances.size());
     int row = 0;
     int uploadCount = 0;
@@ -810,7 +872,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         doUpload[row] = GetCheckValue(CHECK_COL + rowStr);
         ++uploadCount;
     }
-    
+
     FPPUploadProgressDialog prgs(this);
     row = 0;
     for (const auto& inst : instances) {
@@ -938,7 +1000,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
             for (const auto& inst : instances) {
                 inst->updateProgress(0, true);
             }
-            
+
             wxString fseqRaw = CheckListBox_Sequences->GetItemText(item);
             std::string fseq = ToUTF8(fseqRaw);
             std::string media = ToUTF8(CheckListBox_Sequences->GetItemText(item, 2));
@@ -1004,7 +1066,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         for (size_t x = 0; x < frames.size(); x++) {
                             frames[x].resize(seq->getMaxChannel() + 1);
                         }
-                        
+
                         for (size_t frame = 0; frame < seq->getNumFrames() && !cancelled; frame++) {
                             int donePct = frame * 1000 / seq->getNumFrames();
                             if (donePct != lastDone) {
@@ -1014,7 +1076,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                                 }
                                 wxYield();
                             }
-                            
+
                             int lastBuffered = 0;
                             size_t startFrame = frame;
                             //Read a bunch of frames so each parallel thread has more info to work with before returning out here
@@ -1067,8 +1129,8 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                                         }
                                         m2 = "";
                                     }
-                                    std::function<bool(int, std::string)> updateProg = [&prgs, inst](int val, std::string msg) 
-                                    { 
+                                    std::function<bool(int, std::string)> updateProg = [&prgs, inst](int val, std::string msg)
+                                    {
                                         prgs->setActionLabel(msg);
                                         inst->updateProgress(val, true);
                                         return true;
