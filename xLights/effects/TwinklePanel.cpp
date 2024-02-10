@@ -75,7 +75,7 @@ TwinklePanel::TwinklePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer4->Add(BitmapButton_TwinkleCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText104 = new wxStaticText(this, ID_STATICTEXT_Twinkle_Steps, _("Twinkle Steps"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Twinkle_Steps"));
 	FlexGridSizer4->Add(StaticText104, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Twinkle_Steps = new BulkEditSlider(this, ID_SLIDER_Twinkle_Steps, 30, 2, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle_Steps"));
+	Slider_Twinkle_Steps = new BulkEditSlider(this, ID_SLIDER_Twinkle_Steps, 30, 2, 400, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle_Steps"));
 	FlexGridSizer4->Add(Slider_Twinkle_Steps, 1, wxALL|wxEXPAND, 5);
 	BitmapButton_Twinkle_StepsVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Twinkle_Steps, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_VALUECURVE_Twinkle_Steps"));
 	FlexGridSizer4->Add(BitmapButton_Twinkle_StepsVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
