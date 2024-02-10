@@ -31,6 +31,8 @@ const long ImportPreviewsModelsDialog::ID_BUTTON2 = wxNewId();
 
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_SELECTALL = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_DESELECTALL = wxNewId();
+const long ImportPreviewsModelsDialog::ID_MNU_IPM_SELECTHIGH = wxNewId();
+const long ImportPreviewsModelsDialog::ID_MNU_IPM_DESELECTHIGH = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_SELECTSIBLINGS = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_DESELECTSIBLINGS = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_DESELECTEXISTING = wxNewId();
@@ -264,6 +266,9 @@ void ImportPreviewsModelsDialog::OnContextMenu(wxTreeListEvent& event)
     mnuContext.Append(ID_MNU_IPM_SELECTALL, "Select All");
     mnuContext.Append(ID_MNU_IPM_DESELECTALL, "Deselect All");
     mnuContext.AppendSeparator();
+    mnuContext.Append(ID_MNU_IPM_SELECTHIGH, "Select Highlighted");
+    mnuContext.Append(ID_MNU_IPM_DESELECTHIGH, "Deselect Highlighted");
+    mnuContext.AppendSeparator();
     mnuContext.Append(ID_MNU_IPM_SELECTSIBLINGS, "Select Siblings");
     mnuContext.Append(ID_MNU_IPM_DESELECTSIBLINGS, "Deselect Siblings");
     mnuContext.Append(ID_MNU_IPM_DESELECTEXISTING, "Deselect Models Already In Layout");
@@ -284,6 +289,14 @@ void ImportPreviewsModelsDialog::OnListPopup(wxCommandEvent& event)
     else if (event.GetId() == ID_MNU_IPM_DESELECTALL)
     {
         SelectAll(false);
+    } 
+    else if (event.GetId() == ID_MNU_IPM_SELECTHIGH) 
+    {
+        SelectHighlighted(true);
+    } 
+    else if (event.GetId() == ID_MNU_IPM_DESELECTHIGH) 
+    {
+        SelectHighlighted(false);
     }
     else if (event.GetId() == ID_MNU_IPM_SELECTSIBLINGS)
     {
@@ -359,21 +372,45 @@ bool ImportPreviewsModelsDialog::LayoutExists(const std::string& layoutName) con
     return false;
 }
 
+void ImportPreviewsModelsDialog::SelectRecursiveModel(wxString m, bool checked)
+{
+    size_t pos = m.find('/');
+    std::string model = (pos != std::string::npos) ? m.substr(0, pos) : m; // remove submodel from name
+    for (wxTreeListItem it = TreeListCtrl1->GetFirstItem(); it.IsOk(); it = TreeListCtrl1->GetNextItem(it)) {
+        if (model == TreeListCtrl1->GetItemText(it)) {
+            TreeListCtrl1->CheckItem(it, checked ? wxCHK_CHECKED : wxCHK_UNCHECKED);
+            if (((impTreeItemData*)TreeListCtrl1->GetItemData(it))->IsModelGroup()) {
+                wxString const models = ((impTreeItemData*)TreeListCtrl1->GetItemData(it))->GetModelXml()->GetAttribute("models");
+                wxArrayString const modelArray = wxSplit(models, ',');
+                for (size_t i = 0; i < modelArray.size(); ++i) {
+                    SelectRecursiveModel(modelArray[i], checked);
+                }
+            }
+            break;
+        }
+    }
+}
 
 void ImportPreviewsModelsDialog::SelectSiblings(wxTreeListItem item, bool checked)
 {
-    wxTreeListItem parent = TreeListCtrl1->GetItemParent(item);
-    for (wxTreeListItem it = TreeListCtrl1->GetFirstChild(parent); it.IsOk(); it = TreeListCtrl1->GetNextSibling(it))
-    {
-        TreeListCtrl1->CheckItem(it, checked ? wxCHK_CHECKED : wxCHK_UNCHECKED);
+    if (item.IsOk()) {
+        SelectRecursiveModel(TreeListCtrl1->GetItemText(item), checked);
     }
 }
 
 void ImportPreviewsModelsDialog::SelectAll(bool checked)
 {
-    for (wxTreeListItem it = TreeListCtrl1->GetFirstItem(); it.IsOk(); it = TreeListCtrl1->GetNextItem(it))
-    {
+    for (wxTreeListItem it = TreeListCtrl1->GetFirstItem(); it.IsOk(); it = TreeListCtrl1->GetNextItem(it)) {
         TreeListCtrl1->CheckItem(it, checked ? wxCHK_CHECKED : wxCHK_UNCHECKED);
+    }
+}
+
+void ImportPreviewsModelsDialog::SelectHighlighted(bool checked)
+{
+    for (wxTreeListItem it = TreeListCtrl1->GetFirstItem(); it.IsOk(); it = TreeListCtrl1->GetNextItem(it)) {
+        if (TreeListCtrl1->IsSelected(it)) {
+            TreeListCtrl1->CheckItem(it, checked ? wxCHK_CHECKED : wxCHK_UNCHECKED);
+        }
     }
 }
 
