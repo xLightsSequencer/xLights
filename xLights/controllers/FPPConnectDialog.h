@@ -86,11 +86,11 @@ class FPPConnectDialog: public wxDialog
 		void OnChoiceFolderSelect(wxCommandEvent& event);
 		void OnChoiceFilterSelect(wxCommandEvent& event);
 		void LocationPopupMenu(wxContextMenuEvent& event);
-        void OnLocationPopupClick(wxCommandEvent& event);
-        void UploadPopupMenu(wxContextMenuEvent& event);
-        void OnUploadPopupClick(wxCommandEvent& event);
-        void CapePopupMenu(wxContextMenuEvent& event);
-        void OnCapePopupClick(wxCommandEvent& event);
+		void OnLocationPopupClick(wxCommandEvent& event);
+		void UploadPopupMenu(wxContextMenuEvent& event);
+		void OnUploadPopupClick(wxCommandEvent& event);
+		void CapePopupMenu(wxContextMenuEvent& event);
+		void OnCapePopupClick(wxCommandEvent& event);
 		//*)
 
         void LoadSequencesFromFolder(wxString dir) const;
