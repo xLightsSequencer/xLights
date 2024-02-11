@@ -444,12 +444,27 @@ void DmxMovingHeadAdv::InitModel()
     }
 
     beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "4.0"));
-    beam_width = GetDefaultBeamWidth();
     if (ModelXml->HasAttribute("DmxBeamWidth")) {
         beam_width = wxAtof(ModelXml->GetAttribute("DmxBeamWidth"));
     }
     beam_orient = wxAtoi(ModelXml->GetAttribute("DmxBeamOrient", "0"));
-    beam_y_offset = wxAtof(ModelXml->GetAttribute("DmxBeamYOffset", "0"));
+
+    // Setup some reasonable defaults for new model creation
+    if (ModelXml->HasAttribute("DmxBeamYOffset")) {
+        beam_y_offset = wxAtof(ModelXml->GetAttribute("DmxBeamYOffset"));
+    } else {
+        ModelXml->AddAttribute("DmxBeamYOffset", "17");
+        beam_y_offset = 17.0f;
+    }
+    if (!ModelXml->HasAttribute("DmxRedChannel")) {
+        ModelXml->AddAttribute("DmxRedChannel", "5");
+    }
+    if (!ModelXml->HasAttribute("DmxGreenChannel")) {
+        ModelXml->AddAttribute("DmxGreenChannel", "6");
+    }
+    if (!ModelXml->HasAttribute("DmxBlueChannel")) {
+        ModelXml->AddAttribute("DmxBlueChannel", "7");
+    }
 
     wxXmlNode* n = ModelXml->GetChildren();
     while (n != nullptr) {
@@ -493,17 +508,6 @@ void DmxMovingHeadAdv::InitModel()
         new_node->AddAttribute("RangeOfMotion", "540");
         new_node->AddAttribute("OrientHome", "90");
         new_node->AddAttribute("SlewLimit", "180");
-
-        // if no pan motor must be brand new model so setup default properties here
-        ModelXml->DeleteAttribute("DmxBeamYOffset");
-        ModelXml->AddAttribute("DmxBeamYOffset", "17");
-        ModelXml->DeleteAttribute("DmxRedChannel");
-        ModelXml->AddAttribute("DmxRedChannel", "5");
-        ModelXml->DeleteAttribute("DmxGreenChannel");
-        ModelXml->AddAttribute("DmxGreenChannel", "6");
-        ModelXml->DeleteAttribute("DmxBlueChannel");
-        ModelXml->AddAttribute("DmxBlueChannel", "7");
-
     }
 
     // create tilt motor
@@ -1049,7 +1053,7 @@ void DmxMovingHeadAdv::ExportXlightsModel()
 
 void DmxMovingHeadAdv::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
-    if (root->GetName() == "DmxMovingHeadAdv" || root->GetName() == "dmxservo3axis") {
+    if (root->GetName() == "DmxMovingHeadAdv") {
         ImportBaseParameters(root);
 
         wxString name = root->GetAttribute("name");

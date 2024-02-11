@@ -243,12 +243,10 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
 
 void DmxMovingHead::InitModel() {
     DmxModel::InitModel();
-    if (DisplayAs != "DmxMovingHead3D") {
-        DisplayAs = "DmxMovingHead";
-        screenLocation.SetRenderSize(1, 1, 1);
-        if (screenLocation.GetScaleZ() < 1.0) {
-            screenLocation.SetScaleZ(1.0);
-        }
+    DisplayAs = "DmxMovingHead";
+    screenLocation.SetRenderSize(1, 1, 1);
+    if (screenLocation.GetScaleZ() < 1.0) {
+        screenLocation.SetScaleZ(1.0);
     }
     StringType = "Single Color White";
     parm2 = 1;

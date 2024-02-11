@@ -45,7 +45,6 @@
 #include "DMX/DmxFloodlight.h"
 #include "DMX/DmxGeneral.h"
 #include "DMX/DmxMovingHead.h"
-#include "DMX/DmxMovingHead3D.h"
 #include "DMX/DmxMovingHeadAdv.h"
 #include "DMX/DmxServo.h"
 #include "DMX/DmxServo3D.h"
@@ -1201,15 +1200,6 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxGeneral(node, *this, false);
-    } else if (type == "DmxMovingHead3D") {
-        protocol = "";
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "8");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "1");
-        node->DeleteAttribute("StringType");
-        node->AddAttribute("StringType", "Single Color White");
-        model = new DmxMovingHead3D(node, *this, false);
     } else if (type == "DmxMovingHeadAdv") {
         protocol = "";
         node->DeleteAttribute("parm1");
@@ -1384,7 +1374,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
             style == "Moving Head SideBars") {
             type = "DmxMovingHead";
         } else if (style == "Moving Head 3D") {
-            type = "DmxMovingHead3D";
+            type = "DmxMovingHeadAdv";
         } else if (style == "Flood Light") {
             type = "DmxFloodlight";
         } else if (style == "Skulltronix Skull") {
@@ -1403,6 +1393,28 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
             node->AddAttribute("DisplayAs", type);
             node->DeleteAttribute("DmxStyle");
             node->AddAttribute("DmxStyle", "Moving Head 3D");
+        } else if (version >= "5") { // After version 2024.2 the DmxMovingHead3D is being converted to the DmxMovingHeadAdv
+            type = "DmxMovingHeadAdv";
+            node->DeleteAttribute("DisplayAs");
+            node->AddAttribute("DisplayAs", type);
+            node->DeleteAttribute("DmxStyle");
+            float beam_length = wxAtof(node->GetAttribute("DmxBeamLength", "4.0"));
+            node->DeleteAttribute("DmxBeamLength");
+            node->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)(beam_length * 1.275f)));  // try to match old beam length
+            node->AddAttribute("DmxBeamYOffset", "0");
+            wxXmlNode* n = node->GetChildren();
+            while (n != nullptr) {
+                std::string name = n->GetName();
+                if ("BaseMesh" == name) {
+                    n->SetName("YokeMesh");
+                    std::string new_name = "BaseMesh";
+                    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+                    new_node->AddAttribute("ObjFile", wxEmptyString);
+                    node->AddChild(new_node);
+                    break;
+                }
+                n = n->GetNext();
+            }
         }
     } else if (type == "DmxServo3Axis") {
         type = "DmxServo3d";
@@ -1429,8 +1441,6 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
         model = new DmxMovingHead(node, *this, zeroBased);
     } else if (type == "DmxGeneral") {
         model = new DmxGeneral(node, *this, zeroBased);
-    } else if (type == "DmxMovingHead3D") {
-        model = new DmxMovingHead3D(node, *this, zeroBased);
     } else if (type == "DmxMovingHeadAdv") {
         model = new DmxMovingHeadAdv(node, *this, zeroBased);
     } else if (type == "DmxFloodlight") {

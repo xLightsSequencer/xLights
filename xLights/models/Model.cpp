@@ -6178,7 +6178,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                         delete model;
                     }
                     if (isMovingHead) {
-                        model = xlights->AllModels.CreateDefaultModel("DmxMovingHead3D", startChannel);
+                        model = xlights->AllModels.CreateDefaultModel("DmxMovingHeadAdv", startChannel);
                     } else {
                         model = xlights->AllModels.CreateDefaultModel("DmxMovingHead", startChannel);
                         model->GetModelXml()->DeleteAttribute("DmxStyle");
@@ -6430,7 +6430,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     style == "Moving Head SideBars") {
                     dmx_type = "DmxMovingHead";
                 } else if (style == "Moving Head 3D") {
-                    dmx_type = "DmxMovingHead3D";
+                    dmx_type = "DmxMovingHeadAdv";
                 } else if (style == "Flood Light") {
                     dmx_type = "DmxFloodlight";
                 } else if (style == "Skulltronix Skull") {
