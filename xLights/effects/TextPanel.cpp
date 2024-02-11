@@ -268,6 +268,8 @@ TextPanel::TextPanel(wxWindow* parent) : xlEffectPanel(parent)
 	GridBagSizer6->Add(Slider_Text_YStart, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer142->Add(GridBagSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel16->SetSizer(FlexGridSizer142);
+	FlexGridSizer142->Fit(Panel16);
+	FlexGridSizer142->SetSizeHints(Panel16);
 	Panel17 = new wxPanel(Notebook6, IDD_PANEL17, wxPoint(104,13), wxDefaultSize, wxTAB_TRAVERSAL, _T("IDD_PANEL17"));
 	FlexGridSizer144 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer144->AddGrowableCol(0);
@@ -292,13 +294,19 @@ TextPanel::TextPanel(wxWindow* parent) : xlEffectPanel(parent)
 	GridBagSizer7->Add(Slider_Text_YEnd, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer144->Add(GridBagSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel17->SetSizer(FlexGridSizer144);
+	FlexGridSizer144->Fit(Panel17);
+	FlexGridSizer144->SetSizeHints(Panel17);
 	Notebook6->AddPage(Panel16, _("Start Position"), false);
 	Notebook6->AddPage(Panel17, _("End Position"), false);
 	FlexGridSizer141->Add(Notebook6, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer69->Add(FlexGridSizer141, 1, wxALL|wxEXPAND, 1);
 	Panel_Text1->SetSizer(FlexGridSizer69);
+	FlexGridSizer69->Fit(Panel_Text1);
+	FlexGridSizer69->SetSizeHints(Panel_Text1);
 	FlexGridSizer46->Add(Panel_Text1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer46);
+	FlexGridSizer46->Fit(this);
+	FlexGridSizer46->SetSizeHints(this);
 
 	Connect(ID_TEXTCTRL_Text,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TextPanel::OnTextCtrl_TextText);
 	Connect(ID_FILEPICKERCTRL_Text_File,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&TextPanel::OnFilePickerCtrl1FileChanged);
