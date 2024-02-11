@@ -1581,7 +1581,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     wxConfigBase* config = wxConfigBase::Get();
     DeserialiseSettings(config->Read("xLightsTestSettings").ToStdString());
 
-    SetSuspend(false);
+    SetSuspend(CheckBox_SuppressUnusedOutputs->GetValue());
 
     _starttime = wxDateTime::UNow();
 
