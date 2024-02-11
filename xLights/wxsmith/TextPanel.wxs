@@ -217,7 +217,6 @@
 										<object class="sizeritem">
 											<object class="wxSlider" name="IDD_SLIDER_Text_Speed" subclass="BulkEditSlider" variable="Slider_Text_Speed" member="yes">
 												<value>10</value>
-												<max>50</max>
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>1</border>
