@@ -1024,6 +1024,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
+        mSequenceElements->GetXLightsFrame()->RenderEffectForModel(element->GetModelName(), 0, 99999999);
     } else if (id == ID_ROW_MNU_MODEL_CONVERTTOPERMODEL) {
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         for (int i = 0; i < element->GetEffectLayerCount(); i++) {
@@ -1032,6 +1033,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
+        mSequenceElements->GetXLightsFrame()->RenderEffectForModel(element->GetModelName(), 0, 99999999);
     } else if (id == ID_ROW_MNU_SELECT_MODEL_EFFECTS) {
         for (int i = 0; i < element->GetEffectLayerCount(); i++) {
             element->GetEffectLayer(i)->SelectAllEffects();
