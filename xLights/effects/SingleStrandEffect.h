@@ -97,7 +97,7 @@ protected:
     virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 
 private:
-    void RenderSingleStrandChase(RenderBuffer& buffer,
+    void RenderSingleStrandChase(RenderBuffer& buffer, Effect* eff,
                                  const std::string& ColorScheme, int Number_Chases, int chaseSize,
                                  const std::string& Chase_Type1,
                                  bool Chase_3dFade1, bool Chase_Group_All,

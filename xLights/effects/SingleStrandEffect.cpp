@@ -140,7 +140,7 @@ void SingleStrandEffect::adjustSettings(const std::string& version, Effect* effe
     }
 }
 
-void SingleStrandEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+    void SingleStrandEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     if ("Skips" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {
@@ -156,7 +156,7 @@ void SingleStrandEffect::Render(Effect* effect, const SettingsMap& SettingsMap, 
                              GetValueCurveInt("FX_Speed", 128, SettingsMap, eff_pos, SINGLESTRAND_FXSPEED_MIN, SINGLESTRAND_FXSPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
                              SettingsMap.Get("CHOICE_SingleStrand_FX", "Blink"), SettingsMap.Get("CHOICE_SingleStrand_FX_Palette", "Default"));
     } else {
-        RenderSingleStrandChase(buffer,
+        RenderSingleStrandChase(buffer, effect, 
                                 SettingsMap.Get("CHOICE_SingleStrand_Colors", "Palette"),
                                 GetValueCurveInt("Number_Chases", 1, SettingsMap, eff_pos, SINGLESTRAND_CHASES_MIN, SINGLESTRAND_CHASES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
                                 GetValueCurveInt("Color_Mix1", 10, SettingsMap, eff_pos, SINGLESTRAND_COLOURMIX_MIN, SINGLESTRAND_COLOURMIX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
@@ -349,7 +349,7 @@ int mapChaseType(const std::string &Chase_Type) {
     return 0;
 }
 
-void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
+void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* eff,
     const std::string & ColorSchemeName, int Number_Chases, int chaseSize,
     const std::string &Chase_Type1,
     bool Chase_Fade3d1, bool Chase_Group_All,
@@ -375,9 +375,11 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
     int ChaseDirection = (chaseType == 0 || chaseType == 2 || chaseType == 6 ||
                           chaseType == 9 || chaseType == 13 || chaseType == 14);
 
-    if (buffer.needToInit)
-    {
+    if (buffer.needToInit) {
         buffer.needToInit = false;
+        std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
+        int rects = (chaseSize + 1) * (buffer.curEffEndPer - buffer.curEffStartPer + 1);
+        eff->GetBackgroundDisplayList().resize(rects * 6);
     }
 
     bool Mirror = false;
@@ -511,6 +513,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer &buffer,
             draw_chase(buffer, DoubleEnd ? x - 1 * scaledChaseWidth : x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Chase_Fade3d1, bool(ChaseDirection) == DoubleEnd, Mirror);
         }
     }
+    buffer.CopyPixelsToDisplayListX(eff, 0, 0, chaseSize);
 }
 
 void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
