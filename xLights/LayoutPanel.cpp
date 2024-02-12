@@ -191,6 +191,7 @@ const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_EMPTY_MODEL_GROUPS = wxNewId();
 const long LayoutPanel::ID_MNU_RENAME_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_CLONE_MODEL_GROUP = wxNewId();
+const long LayoutPanel::ID_MNU_BULKEDIT_GROUP_TAGCOLOR = wxNewId();
 const long LayoutPanel::ID_MNU_MAKESCVALID = wxNewId();
 const long LayoutPanel::ID_MNU_MAKEALLSCVALID = wxNewId();
 const long LayoutPanel::ID_MNU_MAKEALLSCNOTOVERLAPPING = wxNewId();
@@ -2061,6 +2062,20 @@ void LayoutPanel::BulkEditTagColour()
 
         // reselect all the models
         ReselectTreeModels(selectedModelPaths);
+    }
+}
+
+void LayoutPanel::BulkEditGroupTagColor()
+{
+    wxColour c = *wxBLACK;
+    auto const& [res, color] = xlColourData::INSTANCE.ShowColorDialog(this, c);
+    if (res == wxID_OK) {
+        c = color;
+
+        for (const auto& item : selectedTreeGroups) {
+            Model* model = GetModelFromTreeItem(item);
+            model->SetTagColour(c);
+        }
     }
 }
 
@@ -7746,6 +7761,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         //model_grp_panel->UpdatePanel(name);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
+    } else if (event.GetId() == ID_MNU_BULKEDIT_GROUP_TAGCOLOR) {
+        BulkEditGroupTagColor();
     }
     else if (event.GetId() == ID_PREVIEW_FLIP_HORIZONTAL) {
         if (editing_models) {
@@ -8422,6 +8439,11 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     }
 
     mnuContext.Append(ID_MNU_DELETE_EMPTY_MODEL_GROUPS, "Delete Empty Groups");
+
+    if (selectedTreeGroups.size() > 1) {
+        mnuContext.AppendSeparator();
+        mnuContext.Append(ID_MNU_BULKEDIT_GROUP_TAGCOLOR, "Bulk Edit Tag Color");
+    }
 
     bool foundInvalid = false;
     bool foundOverlapping = false;
