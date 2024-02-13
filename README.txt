@@ -11,9 +11,32 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.03 Feb 14, 2024
+   -- UPDATE (dkulp)    New PayPal donation URL
    -- end (gjones)      Add preference whether layout view zooms to center or mouse cursor
    -- enh (gjones)      Expand size of Default View for New Sequences preference box. Fixes #4255
+   -- enh (MartinMueller) Several additional ESP variants
+   -- enh (keith)       Autosize the face dialog columns
+   -- enh (merryoncherry) Options for arches to not zig/zag
+   -- enh (dkulp)       Allow SubModels to have duplicate nodes for "Ranges" default and stacked styles
+   -- enh (derwin12)    Add comments to failed backup notice
+   -- enh (derwin12)    Added right click sort along with buttons to move presets up/down/top and botton within the list
+   -- enh (derwin12)    Dont initially expand the vendors on the load of the download models
+   -- enh (derwin12)    Faster text movement and longer twinkly settings
+   -- enh (derwin12)    Add background effect image for the Single strand chase
+   -- enh (derwin12)    Add select all and deselect all on FPP Connect controller dialog
+   -- enh (derwin12)    Add bulk edit tag color for groups
+   -- enh (derwin12)    Render and Export Model now renders all
+   -- enh (derwin12)    Remove the default sorting of Import View
+   -- enh (derwin12)    Add select highlighted to import previews right click menu
+   -- bug (derwin12)    Shape Effect - Flip the Y value for Emoji
+   -- bug (scott)       Exported timing tracks to include subType
    -- bug (gjones)      Fix dragging Preset group so it stays a group.  Fixes #4304
+   -- bug (scott)       Fix crash in ESPixelStick upload to non-PixelStick
+   -- bug (derwin12)    Remap Custom Model ignores placeholders
+   -- bug (tygunn)      Fix some bugs/issues with Polyline import/export
+   -- bug (derwin12)    Honor the dont send data to unused ports when opening the tools test dialog
+   -- bug (derwin12)    Render after performing an effect convert to 'per model'
 2024.02 Jan 26, 2024
    -- enh (derwin12)    Allow bulk edit of sketch effect bg filename
    -- enh (derwin12)    Add preference to skip loading of preset gif images
