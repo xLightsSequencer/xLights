@@ -201,7 +201,7 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::str
     }
 
     logger_base.debug(" DDP query using %s", (const char*)localaddr.IPAddress().c_str());
-    wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
+    wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT); // wxSOCKET_BLOCK causes xLights to lock up waiting forever - SEH, dont use NOWAIT as it can result in dropped packets
 
     if (datagram == nullptr) {
         logger_base.error("Error initialising DDP query datagram.");
