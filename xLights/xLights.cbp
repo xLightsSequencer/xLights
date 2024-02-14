@@ -1152,8 +1152,6 @@
 		<Unit filename="models/DMX/DmxModel.h" />
 		<Unit filename="models/DMX/DmxMovingHead.cpp" />
 		<Unit filename="models/DMX/DmxMovingHead.h" />
-		<Unit filename="models/DMX/DmxMovingHead3D.cpp" />
-		<Unit filename="models/DMX/DmxMovingHead3D.h" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.cpp" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.h" />
 		<Unit filename="models/DMX/DmxPresetAbility.cpp" />
