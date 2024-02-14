@@ -229,6 +229,14 @@
 						</object>
 						<label>Effects Assistant</label>
 					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM10" variable="AuiToolBarItemSelectEffects" member="no">
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_EFFECTASSISTANT&quot;)' />
+							<shorthelp>Select Effects</shorthelp>
+							<handler function="ShowHideSelectEffectsWindow" entry="EVT_TOOL" />
+						</object>
+						<label>Select Effects</label>
+					</object>
 				</object>
 				<name>Windows Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>

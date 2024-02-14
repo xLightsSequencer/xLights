@@ -179,6 +179,7 @@ wxDECLARE_EVENT(EVT_SEQUENCE_FFORWARD10, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_SEEKTO, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SHOW_SELECT_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_NOTES, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
@@ -622,6 +623,7 @@ public:
     void OnButton_ClearBaseShowDirClick(wxCommandEvent& event);
     void OnCheckBox_AutoUpdateBaseClick(wxCommandEvent& event);
     void OnButton_UpdateBaseClick(wxCommandEvent& event);
+    void ShowHideSelectEffectsWindow(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -664,6 +666,7 @@ public:
     static const long ID_AUITOOLBARITEM6;
     static const long ID_AUITOOLBARITEM8;
     static const long ID_AUITOOLBARITEM9;
+    static const long ID_AUITOOLBARITEM10;
     static const long ID_AUIWINDOWTOOLBAR;
     static const long ID_PASTE_BY_TIME;
     static const long ID_PASTE_BY_CELL;
