@@ -29,6 +29,7 @@
 		<InputProtocols>
 			<Protocol>e131</Protocol>
 			<Protocol>ddp</Protocol>
+			<Protocol>artnet</Protocol>
 		</InputProtocols>
 		<SmartRemoteTypes>
 			<Type>falcon_v2</Type>
