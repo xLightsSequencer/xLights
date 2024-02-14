@@ -384,7 +384,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="models\DMX\DmxImage.cpp" />
     <ClCompile Include="models\DMX\DmxModel.cpp" />
     <ClCompile Include="models\DMX\DmxMovingHead.cpp" />
-    <ClCompile Include="models\DMX\DmxMovingHead3D.cpp" />
     <ClCompile Include="models\DMX\DmxPanTiltAbility.cpp" />
     <ClCompile Include="models\DMX\DmxPresetAbility.cpp" />
     <ClCompile Include="models\DMX\DmxServo.cpp" />
@@ -892,7 +891,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="models\DMX\DmxImage.h" />
     <ClInclude Include="models\DMX\DmxModel.h" />
     <ClInclude Include="models\DMX\DmxMovingHead.h" />
-    <ClInclude Include="models\DMX\DmxMovingHead3D.h" />
     <ClInclude Include="models\DMX\DmxPanTiltAbility.h" />
     <ClInclude Include="models\DMX\DmxPresetAbility.h" />
     <ClInclude Include="models\DMX\DmxServo.h" />
