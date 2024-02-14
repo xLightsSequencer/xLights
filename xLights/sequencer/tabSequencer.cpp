@@ -3030,6 +3030,19 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
     UpdateViewMenu();
 }
 
+void xLightsFrame::ShowHideSelectEffectsWindow(wxCommandEvent& event)
+{
+    InitSequencer();
+    bool visible = m_mgr->GetPane("SelectEffect").IsShown();
+    if (visible) {
+        m_mgr->GetPane("SelectEffect").Hide();
+    } else {
+        m_mgr->GetPane("SelectEffect").Show();
+    }
+    m_mgr->Update();
+    UpdateViewMenu();
+}
+
 void xLightsFrame::OnMenuDockAllSelected(wxCommandEvent& event)
 {
     ResetAllSequencerWindows();
