@@ -711,9 +711,6 @@
     <ClCompile Include="models\DMX\DmxPanTiltAbility.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="models\DMX\DmxMovingHead3D.cpp">
-      <Filter>Models\DMX</Filter>
-    </ClCompile>
     <ClCompile Include="models\DMX\DmxShutterAbility.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
@@ -1808,9 +1805,6 @@
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="models\DMX\DmxPanTiltAbility.h">
-      <Filter>Models\DMX</Filter>
-    </ClInclude>
-    <ClInclude Include="models\DMX\DmxMovingHead3D.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="models\DMX\DmxShutterAbility.h">
