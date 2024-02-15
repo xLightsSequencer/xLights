@@ -470,6 +470,9 @@ protected:
 
         static const long ID_MNU_SELECTALL;
         static const long ID_MNU_SELECTNONE;
+        static const long ID_MNU_COLLAPSEALL;
+        static const long ID_MNU_EXPANDALL;
+        static const long ID_MNU_SHOWALLMAPPED;
 
 	private:
         wxString FindTab(wxString &line);
@@ -495,7 +498,12 @@ protected:
 		//*)
 
         void RightClickTimingTracks(wxContextMenuEvent& event);
+        void RightClickModels(wxDataViewEvent& event);
+        void CollapseAll();
+        void ExpandAll();
+        void ShowAllMapped();
         void OnPopupTimingTracks(wxCommandEvent& event);
+        void OnPopupModels(wxCommandEvent& event);
         void OnDrop(wxCommandEvent& event);
         void HandleDropAvailable(wxDataViewItem dropTarget, std::string availableModelName);
         void SetImportMediaTooltip();

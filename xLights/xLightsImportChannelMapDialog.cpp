@@ -455,10 +455,13 @@ const long xLightsImportChannelMapDialog::ID_SPLITTERWINDOW1 = wxNewId();
 
 const long xLightsImportChannelMapDialog::ID_MNU_SELECTALL = wxNewId();
 const long xLightsImportChannelMapDialog::ID_MNU_SELECTNONE = wxNewId();
+const long xLightsImportChannelMapDialog::ID_MNU_COLLAPSEALL = wxNewId();
+const long xLightsImportChannelMapDialog::ID_MNU_EXPANDALL = wxNewId();
+const long xLightsImportChannelMapDialog::ID_MNU_SHOWALLMAPPED = wxNewId();
 
 BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
-	//(*EventTable(xLightsImportChannelMapDialog)
-	//*)
+//(*EventTable(xLightsImportChannelMapDialog)
+//*)
 END_EVENT_TABLE()
 
 xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName& filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, bool allowImportBlend, wxWindowID id, const wxPoint& pos, const wxSize& size)
@@ -642,6 +645,78 @@ void xLightsImportChannelMapDialog::RightClickTimingTracks(wxContextMenuEvent& e
     PopupMenu(&mnuLayer);
 }
 
+void xLightsImportChannelMapDialog::RightClickModels(wxDataViewEvent& event)
+{
+    wxDataViewItem item = event.GetItem();
+    if (item.IsOk()) {
+        wxMenu mnuLayer;
+        mnuLayer.Append(ID_MNU_COLLAPSEALL, "Collapse All");
+        mnuLayer.Append(ID_MNU_EXPANDALL, "Expand All");
+        mnuLayer.Append(ID_MNU_SHOWALLMAPPED, "Show All Mapped Models");
+        mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupModels, nullptr, this);
+        TreeListCtrl_Mapping->PopupMenu(&mnuLayer, event.GetPosition());
+    }
+}
+
+void xLightsImportChannelMapDialog::OnPopupModels(wxCommandEvent& event)
+{
+    int id = event.GetId();
+    if (id == ID_MNU_EXPANDALL) {
+        ExpandAll();
+    } else if (id == ID_MNU_COLLAPSEALL) {
+        CollapseAll();
+    } else if (id == ID_MNU_SHOWALLMAPPED) {
+        ShowAllMapped();
+    }
+}
+
+void xLightsImportChannelMapDialog::CollapseAll()
+{
+    wxDataViewItemArray models;
+    _dataModel->GetChildren(wxDataViewItem(0), models);
+    for (size_t i = 0; i < models.size(); ++i) {
+        xLightsImportModelNode* amodel = (xLightsImportModelNode*)models[i].GetID();
+        TreeListCtrl_Mapping->Collapse(models[i]);
+    }
+}
+
+void xLightsImportChannelMapDialog::ExpandAll()
+{
+    wxDataViewItemArray models;
+    _dataModel->GetChildren(wxDataViewItem(0), models);
+    for (size_t i = 0; i < models.size(); ++i) {
+        xLightsImportModelNode* amodel = (xLightsImportModelNode*)models[i].GetID();
+
+        wxDataViewItemArray strands;
+        _dataModel->GetChildren(models[i], strands);
+        for (size_t j = 0; j < strands.size(); ++j) {
+            xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
+            if (!(const char*)astrand->_strand.StartsWith((const wxString) "Strand")) {
+                TreeListCtrl_Mapping->Expand(models[i]);
+            }
+        }
+    }
+}
+
+void xLightsImportChannelMapDialog::ShowAllMapped()
+{
+    // expand all models that have strands that have a value
+    wxDataViewItemArray models;
+    _dataModel->GetChildren(wxDataViewItem(0), models);
+    for (size_t i = 0; i < models.size(); ++i) {
+        xLightsImportModelNode* amodel = (xLightsImportModelNode*)models[i].GetID();
+
+        wxDataViewItemArray strands;
+        _dataModel->GetChildren(models[i], strands);
+        for (size_t j = 0; j < strands.size(); ++j) {
+            xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
+            if (astrand->HasMapping()) {
+                TreeListCtrl_Mapping->Expand(models[i]);
+            }
+        }
+    }
+}
+
 void xLightsImportChannelMapDialog::OnPopupTimingTracks(wxCommandEvent& event)
 {
     for (unsigned int i = 0; i < TimingTrackListBox->GetCount(); ++i) {
@@ -712,7 +787,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
 
     wxVector<wxBitmapBundle> images;
     LayoutUtils::CreateImageList(images, m_iconIndexMap);
-    ListCtrl_Available->SetSmallImages(images);    
+    ListCtrl_Available->SetSmallImages(images);
     PopulateAvailable(false);
 
     _dataModel = new xLightsImportTreeModel();
@@ -756,6 +831,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_BEGIN_DRAG, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnBeginDrag);
     // This does not work ... I suspect the control is not letting it through
     //Connect(ID_TREELISTCTRL1, wxEVT_KEY_DOWN, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnKeyDown);
+    Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickModels);
 
 
 #ifdef __WXOSX__
