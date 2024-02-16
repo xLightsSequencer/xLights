@@ -189,7 +189,7 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
         x -= (Skips_BandSize + Skips_SkipSize) * colorcnt;
     }
 
-    if (buffer.needToInit)
+    if (buffer.needToInit || eff->GetBackgroundDisplayList().size()  != ((Skips_SkipSize + Skips_BandSize) * (buffer.curEffEndPer - buffer.curEffStartPer + 1))*6)
     {
         buffer.needToInit = false;
         std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
@@ -375,7 +375,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
     int ChaseDirection = (chaseType == 0 || chaseType == 2 || chaseType == 6 ||
                           chaseType == 9 || chaseType == 13 || chaseType == 14);
 
-    if (buffer.needToInit) {
+    if (buffer.needToInit || eff->GetBackgroundDisplayList().size() != ((chaseSize + 1) * (buffer.curEffEndPer - buffer.curEffStartPer + 1))*6) {
         buffer.needToInit = false;
         std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
         int rects = (chaseSize + 1) * (buffer.curEffEndPer - buffer.curEffStartPer + 1);
