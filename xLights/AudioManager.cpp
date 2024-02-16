@@ -544,7 +544,7 @@ void AudioData::RestorePos()
             return;
         }
 
-        logger_base.debug("SDL initialized input: '%s'", (const char*)_device.c_str());
+        logger_base.debug("SDL initialized output: '%s'", (const char*)_device.c_str());
     }
 
     OutputSDL::~OutputSDL()
