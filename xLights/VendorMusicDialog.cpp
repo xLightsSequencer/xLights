@@ -703,6 +703,20 @@ void VendorMusicDialog::OnButton_SearchClick(wxCommandEvent& event)
                 return;
             }
 
+            wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(current);
+            if (tid != nullptr) {
+                if (((MSLVendorBaseTreeItemData*)tid)->GetType() == "SequenceLyric") {
+                    auto doc = ((MSLSequenceLyricTreeItemData*)tid)->GetSequenceLyric();
+                    if (((wxString)doc->_creator).Lower().Contains(TextCtrl_Search->GetValue().Lower())) {
+                        TreeCtrl_Navigator->SelectItem(current);
+                        TreeCtrl_Navigator->EnsureVisible(current);
+                        if (current == start) {
+                            wxBell();
+                        }
+                        return;
+                    }
+                }
+            }
         } while (current != start);
         wxBell();
     }
