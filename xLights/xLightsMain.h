@@ -1256,6 +1256,10 @@ public:
     bool SuppressFadeHints() const { return mSuppressFadeHints; }
     void SetSuppressFadeHints(bool b);
 
+    bool IsSuppressColorWarn() const { return mSuppressColorWarn; }
+    bool SuppressColorWarn() const { return mSuppressColorWarn; }
+    void SetSuppressColorWarn(bool b);
+
     bool PlayControlsOnPreview() const { return _playControlsOnPreview;}
     void SetPlayControlsOnPreview(bool b);
 
@@ -1572,6 +1576,7 @@ private:
     bool mBackupOnLaunch = true;
     bool me131Sync = false;
     bool mSuppressFadeHints = false;
+    bool mSuppressColorWarn = false;
     wxString mAltBackupDir;
     int mIconSize;
     int mGridSpacing;
