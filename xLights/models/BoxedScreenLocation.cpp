@@ -1286,10 +1286,18 @@ float BoxedScreenLocation::GetBack() const {
 }
 
 float BoxedScreenLocation::GetRestorableMWidth() const {
-    return (RenderWi-1) * scalex;
+    if (RenderWi == 1) {
+        return scalex;
+    } else {
+        return (RenderWi - 1) * scalex;
+    }
 }
 float BoxedScreenLocation::GetRestorableMHeight() const {
-    return (RenderHt-1) * scaley;
+    if (RenderHt == 1) {
+        return scaley;
+    } else {
+        return (RenderHt - 1) * scaley;
+    }
 }
 float BoxedScreenLocation::GetMWidth() const {
     return RenderWi * scalex;
@@ -1300,7 +1308,11 @@ float BoxedScreenLocation::GetMHeight() const {
 void BoxedScreenLocation::SetMWidth(float w) {
     if (RenderWi == 1)
     { 
-        scalex = 1;
+        if (w != 0) {
+            scalex = w;
+        } else {
+            scalex = 1;
+        }
     }
     else
     {
@@ -1326,7 +1338,11 @@ float BoxedScreenLocation::GetRestorableMDepth() const {
 void BoxedScreenLocation::SetMHeight(float h) {
     if (RenderHt == 1 || h == 0)
     {
-        scaley = 1;
+        if (h != 0) {
+            scaley = h;
+        } else {
+            scaley = 1;
+        }
     }
     else
     {
