@@ -9637,6 +9637,12 @@ void xLightsFrame::SetSuppressFadeHints(bool b)
     mainSequencer->PanelEffectGrid->Refresh();
 }
 
+void xLightsFrame::SetSuppressColorWarn(bool b)
+{
+    mSuppressColorWarn = b;
+    mainSequencer->PanelEffectGrid->Refresh();
+}
+
 bool xLightsFrame::IsNewModel(Model* m) const
 {
     return layoutPanel->IsNewModel(m);
