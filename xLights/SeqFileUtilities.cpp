@@ -524,7 +524,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
             _seqData.init(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
 
-        logger_base.debug("Initializeing Display Elements");
+        logger_base.debug("Initializing Display Elements");
         displayElementsPanel->Initialize();
 
         // if we loaded the fseq but not the xml then we need to populate views
