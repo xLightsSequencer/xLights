@@ -752,10 +752,15 @@ void xLightsFrame::CheckForValidModels()
                                     ModelSMNames.push_back(m->GetSubModel(z)->GetName());
                                 }
                                 if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
+                                    int priorCnt = el->GetSubModelAndStrandCount();
                                     HandleChoices(this, AllSMNames, ModelSMNames, sme,
                                         "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
                                         + "How should we handle this?",
                                         toMap, ignore, mapall);
+                                    // if count after is less than the count before then the submodel list is shorter, so rewind the index
+                                    if (priorCnt != el->GetSubModelAndStrandCount()) {
+                                        --x1;
+                                    }
                                 }
                             }
                         }
