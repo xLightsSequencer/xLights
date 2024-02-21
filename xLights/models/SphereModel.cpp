@@ -288,7 +288,6 @@ void SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
     }
 }
 
-#define SCALE_FACTOR_3D (2.0)
 void SphereModel::ExportAsCustomXModel3D() const
 {
 
@@ -322,14 +321,23 @@ void SphereModel::ExportAsCustomXModel3D() const
     float h = maxy - miny;
     float d = maxz - minz;
 
+    int scaleFactor3D = 2;
+    while (!Find3DCustomModelScale(scaleFactor3D, minx, miny, minz, w, h, d)) {
+        ++scaleFactor3D;
+        if (scaleFactor3D > 20) { // Using 2D technique from Scott
+            scaleFactor3D = 2;
+            break;
+        }
+    }
+
     std::vector<std::vector<std::vector<int>>> data;
-    for (int l = 0; l < BufferWi * SCALE_FACTOR_3D + 1; l++)
+    for (int l = 0; l < BufferWi * scaleFactor3D + 1; l++)
     {
         std::vector<std::vector<int>> layer;
-        for (int r = BufferHt * SCALE_FACTOR_3D + 1; r >= 0; r--)
+        for (int r = BufferHt * scaleFactor3D + 1; r >= 0; r--)
         {
             std::vector<int> row;
-            for (int c = 0; c < BufferWi * SCALE_FACTOR_3D + 1; c++)
+            for (int c = 0; c < BufferWi * scaleFactor3D + 1; c++)
             {
                 row.push_back(-1);
             }
@@ -341,12 +349,12 @@ void SphereModel::ExportAsCustomXModel3D() const
     int i = 1;
     for (auto& n: Nodes)
     {
-        int xx = SCALE_FACTOR_3D * (float)BufferWi * (n->Coords[0].screenX - minx) / w;
-        int yy = (SCALE_FACTOR_3D * (float)BufferHt) - (SCALE_FACTOR_3D * (float)BufferHt * (n->Coords[0].screenY - miny) / h);
-        int zz = SCALE_FACTOR_3D * (float)BufferWi * (n->Coords[0].screenZ - minz) / d;
-        wxASSERT(xx >= 0 && xx < SCALE_FACTOR_3D * BufferWi + 1);
-        wxASSERT(yy >= 0 && yy < SCALE_FACTOR_3D * BufferHt + 1);
-        wxASSERT(zz >= 0 && zz < SCALE_FACTOR_3D * BufferWi + 1);
+        int xx = (scaleFactor3D * (float)BufferWi) * (n->Coords[0].screenX - minx) / w;
+        int yy = (scaleFactor3D * (float)BufferHt) - (scaleFactor3D * (float)BufferHt * (n->Coords[0].screenY - miny) / h);
+        int zz = (scaleFactor3D * (float)BufferWi) * (n->Coords[0].screenZ - minz) / d;
+        wxASSERT(xx >= 0 && xx < scaleFactor3D * BufferWi + 1);
+        wxASSERT(yy >= 0 && yy < scaleFactor3D * BufferHt + 1);
+        wxASSERT(zz >= 0 && zz < scaleFactor3D * BufferWi + 1);
         wxASSERT(data[zz][yy][xx] == -1);
         data[zz][yy][xx] = i++;
     }
@@ -384,9 +392,9 @@ void SphereModel::ExportAsCustomXModel3D() const
         cm += ll;
     }
 
-    wxString p1 = wxString::Format("%i", (int)(SCALE_FACTOR_3D * BufferWi + 1));
-    wxString p2 = wxString::Format("%i", (int)(SCALE_FACTOR_3D * BufferHt + 1));
-    wxString dd = wxString::Format("%i", (int)(SCALE_FACTOR_3D * BufferWi + 1));
+    wxString p1 = wxString::Format("%i", (int)(scaleFactor3D * BufferWi + 1));
+    wxString p2 = wxString::Format("%i", (int)(scaleFactor3D * BufferHt + 1));
+    wxString dd = wxString::Format("%i", (int)(scaleFactor3D * BufferWi + 1));
     wxString p3 = wxString::Format("%i", parm3);
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
@@ -446,6 +454,31 @@ void SphereModel::ExportAsCustomXModel3D() const
     {
         f.Write(submodel);
     }
+    ExportDimensions(f);
     f.Write("</custommodel>");
     f.Close();
+}
+
+bool SphereModel::Find3DCustomModelScale(int scale, float minx, float miny, float minz, float w, float h, float d) const
+{
+    size_t nodeCount = GetNodeCount();
+    if (nodeCount <= 1) {
+        return true;
+    }
+    for (int i = 0; i < nodeCount; ++i) {
+        for (int j = i + 1; j < nodeCount; ++j) {
+            int x1 = (scale * (float)BufferWi) * (Nodes[i]->Coords[0].screenX - minx) / w;
+            int y1 = (scale * (float)BufferHt) - (scale * (float)BufferHt * (Nodes[i]->Coords[0].screenY - miny) / h);
+            int z1 = (scale * (float)BufferWi) * (Nodes[i]->Coords[0].screenZ - minz) / d;
+
+            int x2 = (scale * (float)BufferWi) * (Nodes[j]->Coords[0].screenX - minx) / w;
+            int y2 = (scale * (float)BufferHt) - (scale * (float)BufferHt * (Nodes[j]->Coords[0].screenY - miny) / h);
+            int z2 = (scale * (float)BufferWi) * (Nodes[j]->Coords[0].screenZ - minz) / d;
+
+            if (x1 == x2 && y1 == y2 && z1 == z2) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
