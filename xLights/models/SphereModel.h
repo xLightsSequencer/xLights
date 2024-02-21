@@ -25,6 +25,7 @@ public:
     virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
     virtual int NodeRenderOrder() override { return 1; }
     virtual void ExportAsCustomXModel3D() const override;
+    bool Find3DCustomModelScale(int scale, float minx, float miny, float minz, float w, float h, float d) const;
     virtual bool SupportsExportAsCustom3D() const override
     {
         return true;
@@ -39,4 +40,3 @@ private:
     double _endLatitude = 86;
     double _sphereDegrees = 360;
 };
-
