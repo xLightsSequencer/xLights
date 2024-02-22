@@ -191,9 +191,9 @@ public:
 		static const long ID_BITMAPBUTTON_RightShiftColours;
 		static const long ID_CUSTOM1;
 		static const long ID_BUTTON1;
-		static const long ID_BITMAPBUTTON3;
-		static const long ID_BITMAPBUTTON2;
 		static const long ID_TEXTCTRL_PaletteName;
+		static const long ID_BITMAPBUTTON2;
+		static const long ID_BITMAPBUTTON3;
 		static const long ID_CHECKBOX_ResetColorPanel;
 		static const long ID_STATICTEXT1;
 		static const long ID_SLIDER_ChromaSensitivity;
