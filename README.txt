@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- end (gjones)      Prevent model group centers (red X) from moving when models are added/removed/moved
 2024.03 Feb 14, 2024
    -- UPDATE (dkulp)    New PayPal donation URL
    -- end (gjones)      Add preference whether layout view zooms to center or mouse cursor

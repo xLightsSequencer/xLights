@@ -627,12 +627,48 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
 
     auto mg = GetSelectedModelGroup();
     if (minx != 999999 && !Is3D() && mg != nullptr && xlights->AllModels.IsModelValid(mg)) {
-        int offx = 0;
-        int offy = 0;
-        offx = mg->GetXCentreOffset();
-        offy = mg->GetYCentreOffset();
-
-        DrawGroupCentre((minx + maxx) / 2.0 + (offx * (maxx - minx)) / 2000.0, (miny + maxy) / 2.0 + (offy * (maxy - miny)) / 2000.0);
+        if( !mg->GetCentreDefined() ) {
+            wxXmlNode* ModelXml = mg->GetModelXml();
+            int deltaX = wxAtoi(ModelXml->GetAttribute("XCentreDelta", "0"));
+            int deltaY = wxAtoi(ModelXml->GetAttribute("YCentreDelta", "0"));
+            int offx = mg->GetXCentreOffset() + deltaX;
+            int offy = mg->GetYCentreOffset() + deltaY;
+            float cx = (minx + maxx) / 2.0 + (offx * (maxx - minx)) / 2000.0;
+            float cy = (miny + maxy) / 2.0 + (offy * (maxy - miny)) / 2000.0;
+            DrawGroupCentre(cx, cy);
+            mg->SetCentreX( cx );
+            mg->SetCentreY( cy );
+            mg->SetCentreDefined( true );
+            mg->SetCentreMinx(minx);
+            mg->SetCentreMiny(miny);
+            mg->SetCentreMaxx(maxx);
+            mg->SetCentreMaxy(maxy);
+        } else {
+            DrawGroupCentre( mg->GetCentreX(), mg->GetCentreY());
+            // Check whether model group boundaries have changed
+            wxXmlNode* ModelXml = mg->GetModelXml();
+            int xminx = wxAtoi(ModelXml->GetAttribute("centreMinx", "0"));
+            int xminy = wxAtoi(ModelXml->GetAttribute("centreMiny", "0"));
+            int xmaxx = wxAtoi(ModelXml->GetAttribute("centreMaxx", "0"));
+            int xmaxy = wxAtoi(ModelXml->GetAttribute("centreMaxy", "0"));
+            if (xminx != (int)minx || xminy != (int)miny || xmaxx != (int)maxx || xmaxy != (int)maxy) {
+                // need to calc new offsets
+                int offx = mg->GetXCentreOffset();
+                int offy = mg->GetYCentreOffset();
+                float cx = mg->GetCentreX();
+                float cy = mg->GetCentreY();
+                float offsetX = ((cx - ((minx + maxx) / 2.0)) * 2000.0) / (maxx - minx);
+                float offsetY = ((cy - ((miny + maxy) / 2.0)) * 2000.0) / (maxy - miny);
+                float deltaX = offsetX - offx;
+                float deltaY = offsetY - offy;
+                mg->SetXCentreDelta(deltaX);
+                mg->SetYCentreDelta(deltaY);
+                mg->SetCentreMinx(minx);
+                mg->SetCentreMiny(miny);
+                mg->SetCentreMaxx(maxx);
+                mg->SetCentreMaxy(maxy);
+            }
+        }
     }
 }
 
