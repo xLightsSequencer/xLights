@@ -11,6 +11,7 @@
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW2" variable="SplitterWindow2" member="yes">
 					<minsize>10</minsize>
 					<orientation>vertical</orientation>
+					<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 					<handler function="OnSplitterWindowSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
 					<object class="wxPanel" name="ID_PANEL5" variable="LeftPanel" member="yes">
 						<object class="wxFlexGridSizer" variable="LeftPanelSizer" member="no">
@@ -20,6 +21,7 @@
 							<object class="sizeritem">
 								<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="ModelSplitter" member="yes">
 									<minsize>100</minsize>
+									<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 									<handler function="OnModelSplitterSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
 									<object class="wxPanel" name="ID_PANEL3" variable="FirstPanel" member="yes">
 										<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">

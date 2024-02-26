@@ -13,10 +13,10 @@
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 					<sashpos>10</sashpos>
-					<minpanesize>100</minpanesize>
+					<minsize>900</minsize>
 					<orientation>vertical</orientation>
 					<size>602,134</size>
-					<minsize>900,400</minsize>
+					<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 							<cols>1</cols>
@@ -47,9 +47,9 @@
 						<object class="notebookpage">
 							<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW2" variable="SplitterWindow2" member="yes">
 								<sashgravity>0.600000</sashgravity>
-								<minpanesize>10</minpanesize>
 								<orientation>vertical</orientation>
 								<pos>57,24</pos>
+								<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 								<object class="wxCheckListBox" name="ID_CHECKLISTBOX_LAYOUT" variable="CheckListBoxLayout" member="yes">
 									<pos>42,42</pos>
 									<minsize>0,300</minsize>

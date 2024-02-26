@@ -805,8 +805,8 @@
 													<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindowControllers" member="yes">
 														<sashpos>1000</sashpos>
 														<sashgravity>0.800000</sashgravity>
-														<minpanesize>20</minpanesize>
 														<orientation>vertical</orientation>
+														<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 														<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
 															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllers" member="yes">
 																<cols>1</cols>
