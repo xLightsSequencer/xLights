@@ -683,7 +683,6 @@ void xLightsImportChannelMapDialog::CollapseAll()
     wxDataViewItemArray models;
     _dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); ++i) {
-        xLightsImportModelNode* amodel = (xLightsImportModelNode*)models[i].GetID();
         TreeListCtrl_Mapping->Collapse(models[i]);
     }
 }
@@ -693,8 +692,6 @@ void xLightsImportChannelMapDialog::ExpandAll()
     wxDataViewItemArray models;
     _dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); ++i) {
-        xLightsImportModelNode* amodel = (xLightsImportModelNode*)models[i].GetID();
-
         wxDataViewItemArray strands;
         _dataModel->GetChildren(models[i], strands);
         for (size_t j = 0; j < strands.size(); ++j) {
@@ -712,8 +709,6 @@ void xLightsImportChannelMapDialog::ShowAllMapped()
     wxDataViewItemArray models;
     _dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); ++i) {
-        xLightsImportModelNode* amodel = (xLightsImportModelNode*)models[i].GetID();
-
         wxDataViewItemArray strands;
         _dataModel->GetChildren(models[i], strands);
         for (size_t j = 0; j < strands.size(); ++j) {
