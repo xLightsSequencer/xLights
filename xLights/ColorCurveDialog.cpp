@@ -9,9 +9,9 @@
  **************************************************************/
 
  //(*InternalHeaders(ColorCurveDialog)
-#include <wx/intl.h>
-#include <wx/string.h>
-//*)
+ #include <wx/intl.h>
+ #include <wx/string.h>
+ //*)
 
 #include <wx/dcbuffer.h>
 #include <wx/file.h>
@@ -98,16 +98,13 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     _cc = cc;
 
     //(*Initialize(ColorCurveDialog)
+    wxBoxSizer* ButtonSizer;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
-    wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer4;
-    wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer6;
 
-    Create(parent, id, _("Color Curve"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
-    SetClientSize(wxDefaultSize);
-    Move(wxDefaultPosition);
+    Create(parent, wxID_ANY, _("Color Curve"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(2);
@@ -133,18 +130,17 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
     PresetSizer = new wxFlexGridSizer(0, 5, 0, 0);
     FlexGridSizer1->Add(PresetSizer, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
+    ButtonSizer = new wxBoxSizer(wxHORIZONTAL);
     ButtonLoad = new wxButton(this, ID_BUTTON3, _("Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-    FlexGridSizer5->Add(ButtonLoad, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonSizer->Add(ButtonLoad, 0, wxALL, 5);
     ButtonExport = new wxButton(this, ID_BUTTON4, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    FlexGridSizer5->Add(ButtonExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
-    Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer3->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonSizer->Add(ButtonExport, 0, wxALL, 5);
+    ButtonSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+    Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok!!"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    ButtonSizer->Add(Button_Ok, 0, wxALL, 5);
     Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    FlexGridSizer3->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonSizer->Add(Button_Cancel, 0, wxALL, 5);
+    FlexGridSizer1->Add(ButtonSizer, 1, wxALL|wxEXPAND, 5);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -191,6 +187,7 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     PopulatePresets();
 
     SetEscapeId(Button_Cancel->GetId());
+    Fit();
 
     ValidateWindow();
 }
