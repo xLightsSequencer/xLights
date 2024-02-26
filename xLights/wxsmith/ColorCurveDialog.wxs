@@ -106,7 +106,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON1" variable="Button_Ok" member="yes">
-							<label>Ok!!</label>
+							<label>Ok</label>
 							<handler function="OnButton_OkClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL</flag>

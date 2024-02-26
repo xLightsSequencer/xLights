@@ -136,7 +136,7 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
     ButtonExport = new wxButton(this, ID_BUTTON4, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
     ButtonSizer->Add(ButtonExport, 0, wxALL, 5);
     ButtonSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-    Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok!!"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     ButtonSizer->Add(Button_Ok, 0, wxALL, 5);
     Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     ButtonSizer->Add(Button_Cancel, 0, wxALL, 5);
