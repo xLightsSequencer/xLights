@@ -69,6 +69,24 @@ int wxCALLBACK MyCompareFunctionDescEffects(wxIntPtr item1, wxIntPtr item2, wxIn
     return it1 == it2 ? 0 : ((it1 < it2) ? 1 : -1);
 }
 
+int wxCALLBACK MyCompareFunctionAscName(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+{
+    wxListCtrl* list = (wxListCtrl*)sortData;
+    auto i1 = list->GetItemText(item1, 0);
+    auto i2 = list->GetItemText(item2, 0);
+
+    return i1.Cmp(i2);
+}
+
+int wxCALLBACK MyCompareFunctionDescName(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+{
+    wxListCtrl* list = (wxListCtrl*)sortData;
+    auto i1 = list->GetItemText(item1, 0);
+    auto i2 = list->GetItemText(item2, 0);
+
+    return i2.Cmp(i1);
+}
+
 class MDDropSource : public wxDropSource
 {
     xLightsImportChannelMapDialog* _window;
@@ -197,13 +215,8 @@ int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataVie
             else {
                 return NumberAwareStringCompareRev(node1->_node.ToStdString(), node2->_node.ToStdString());
             }
-        } else if (node1->_strand != "" && node2->_strand != "") {
-            if (ascending) {
-                return NumberAwareStringCompare(node1->_strand.ToStdString(), node2->_strand.ToStdString());
-            }
-            else {
-                return NumberAwareStringCompareRev(node1->_strand.ToStdString(), node2->_strand.ToStdString());
-            }
+        } else if (node1->_strand != "" && node2->_strand != "") { // dont sort the submodels
+            return 1;
         }
         else
         {
@@ -738,6 +751,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     TreeListCtrl_Mapping->Freeze();
     TreeListCtrl_Mapping->AssociateModel(_dataModel);
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE));
+    TreeListCtrl_Mapping->GetColumn(0)->SetSortOrder(true);
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 1, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
     if (_allowColorChoice) {
         TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Color", new ColorRenderer(), 2, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
@@ -858,6 +872,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
 
     _sortOrder = 1;
     ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available);
+    ListCtrl_Available->ShowSortIndicator(0, true);
 
     // Set Autosize Width after it is populated or it doesn't work
     ListCtrl_Available->SetColumnWidth(0, wxLIST_AUTOSIZE);
@@ -1760,10 +1775,14 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent&
     if (event.m_col == 0) {
         if (_sortOrder == 0) {
             _sortOrder = 1;
-            ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available);
-        } else {
+            ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available); // put it back in start order as otherwise this does not work
+            ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)ListCtrl_Available);
+            ListCtrl_Available->ShowSortIndicator(0, true);
+         } else {
             _sortOrder = 0;
-            ListCtrl_Available->SortItems(MyCompareFunctionDesc, (wxIntPtr)ListCtrl_Available);
+            ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available); // put it back in start order as otherwise this does not work
+            ListCtrl_Available->SortItems(MyCompareFunctionDescName, (wxIntPtr)ListCtrl_Available);
+            ListCtrl_Available->ShowSortIndicator(0, false);
         }
     }
     else if (event.m_col == 1)
@@ -1772,10 +1791,12 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent&
             _sortOrder = 4;
             ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available); // put it back in start order as otherwise this does not work
             ListCtrl_Available->SortItems(MyCompareFunctionAscEffects, (wxIntPtr)ListCtrl_Available);
+            ListCtrl_Available->ShowSortIndicator(1, true);
         } else {
             _sortOrder = 3;
             ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available); // put it back in start order as otherwise this does not work
             ListCtrl_Available->SortItems(MyCompareFunctionDescEffects, (wxIntPtr)ListCtrl_Available);
+            ListCtrl_Available->ShowSortIndicator(1, false);
         }
     }
 }
