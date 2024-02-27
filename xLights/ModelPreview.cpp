@@ -633,10 +633,8 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
         last_maxy = maxy;
         if( !mg->GetCentreDefined() ) {
             wxXmlNode* ModelXml = mg->GetModelXml();
-            int deltaX = wxAtoi(ModelXml->GetAttribute("XCentreDelta", "0"));
-            int deltaY = wxAtoi(ModelXml->GetAttribute("YCentreDelta", "0"));
-            int offx = mg->GetXCentreOffset() + deltaX;
-            int offy = mg->GetYCentreOffset() + deltaY;
+            int offx = mg->GetXCentreOffset();
+            int offy = mg->GetYCentreOffset();
             float cx = (minx + maxx) / 2.0 + (offx * (maxx - minx)) / 2000.0;
             float cy = (miny + maxy) / 2.0 + (offy * (maxy - miny)) / 2000.0;
             DrawGroupCentre(cx, cy);
@@ -663,14 +661,13 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 float cy = mg->GetCentreY();
                 float offsetX = ((cx - ((minx + maxx) / 2.0)) * 2000.0) / (maxx - minx);
                 float offsetY = ((cy - ((miny + maxy) / 2.0)) * 2000.0) / (maxy - miny);
-                float deltaX = offsetX - offx;
-                float deltaY = offsetY - offy;
-                mg->SetXCentreDelta(deltaX);
-                mg->SetYCentreDelta(deltaY);
+                mg->SetXCentreOffset(offsetX);
+                mg->SetYCentreOffset(offsetY);
                 mg->SetCentreMinx(minx);
                 mg->SetCentreMiny(miny);
                 mg->SetCentreMaxx(maxx);
                 mg->SetCentreMaxy(maxy);
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::RenderModels::DrawGroupCentre", nullptr, nullptr, mg->GetName());
             }
         }
     }

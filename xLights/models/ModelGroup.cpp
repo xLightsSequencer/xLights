@@ -756,10 +756,8 @@ bool ModelGroup::Reset(bool zeroBased) {
             offsetX = ((cx - ((xminx + xmaxx) / 2.0)) * 2000.0) / (xmaxx - xminx);
             offsetY = ((cy - ((xminy + xmaxy) / 2.0)) * 2000.0) / (xmaxy - xminy);
         } else {
-            int deltaX = wxAtoi(ModelXml->GetAttribute("XCentreDelta", "0"));
-            int deltaY = wxAtoi(ModelXml->GetAttribute("YCentreDelta", "0"));
-            offsetX = GetXCentreOffset() + deltaX;
-            offsetY = GetYCentreOffset() + deltaY;
+            offsetX = GetXCentreOffset();
+            offsetY = GetYCentreOffset();
         }
 
         int offx = (offsetX * BufferWi) / 1000;
