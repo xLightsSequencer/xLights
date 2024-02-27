@@ -37,54 +37,40 @@
 
 wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
 
-int wxCALLBACK MyCompareFunctionAsc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
-{
-    return item1 == item2 ? 0 : ((item1 < item2) ? -1 : 1);
-}
-
-int wxCALLBACK MyCompareFunctionDesc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
-{
-    return item1 == item2 ? 0 : ((item1 < item2) ? 1 : -1);
-}
-
 int wxCALLBACK MyCompareFunctionAscEffects(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
-    wxListCtrl* list = (wxListCtrl*)sortData;
-    auto i1 = list->GetItemText(item1, 0);
-    auto i2 = list->GetItemText(item2, 0);
-    auto it1 = wxAtoi(list->GetItemText(item1, 1));
-    auto it2 = wxAtoi(list->GetItemText(item2, 1));
-
-    return it1 == it2 ? 0 : ((it1 < it2) ? -1 : 1);
+    ImportChannel *i1 = (ImportChannel*)item1;
+    ImportChannel *i2 = (ImportChannel*)item2;
+    return i1->effectCount - i2->effectCount;
 }
 
 int wxCALLBACK MyCompareFunctionDescEffects(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
-    wxListCtrl* list = (wxListCtrl*)sortData;
-    auto i1 = list->GetItemText(item1, 0);
-    auto i2 = list->GetItemText(item2, 0);
-    auto it1 = wxAtoi(list->GetItemText(item1, 1));
-    auto it2 = wxAtoi(list->GetItemText(item2, 1));
-
-    return it1 == it2 ? 0 : ((it1 < it2) ? 1 : -1);
+    ImportChannel *i1 = (ImportChannel*)item1;
+    ImportChannel *i2 = (ImportChannel*)item2;
+    return i2->effectCount - i1->effectCount;
 }
 
 int wxCALLBACK MyCompareFunctionAscName(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
-    wxListCtrl* list = (wxListCtrl*)sortData;
-    auto i1 = list->GetItemText(item1, 0);
-    auto i2 = list->GetItemText(item2, 0);
-
-    return i1.Cmp(i2);
+    if (sortData) {
+        //map by CCR is on
+        return item1 - item2;
+    }
+    ImportChannel *i1 = (ImportChannel*)item1;
+    ImportChannel *i2 = (ImportChannel*)item2;
+    return i1->name.compare(i2->name);
 }
 
 int wxCALLBACK MyCompareFunctionDescName(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
-    wxListCtrl* list = (wxListCtrl*)sortData;
-    auto i1 = list->GetItemText(item1, 0);
-    auto i2 = list->GetItemText(item2, 0);
-
-    return i2.Cmp(i1);
+    if (sortData) {
+        //map by CCR is on
+        return item2 - item1;
+    }
+    ImportChannel *i1 = (ImportChannel*)item1;
+    ImportChannel *i2 = (ImportChannel*)item2;
+    return i2->name.compare(i1->name);
 }
 
 class MDDropSource : public wxDropSource
@@ -914,7 +900,8 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
         bool countEnabled{false};
         for (auto const& m : importChannels) {
             ListCtrl_Available->InsertItem(j, m->name);
-            ListCtrl_Available->SetItemData(j, j);
+            wxUIntPtr ptr = (wxUIntPtr)m.get();
+            ListCtrl_Available->SetItemData(j, ptr);
             if (!m->type.empty()) {
                 ListCtrl_Available->SetItemColumnImage(j, 0, m_iconIndexMap[LayoutUtils::GetModelTreeIcon(m->type, LayoutUtils::GroupMode::Regular)]);
             } else {
@@ -937,7 +924,8 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
     }
 
     _sortOrder = 1;
-    ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available);
+    
+    ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
     ListCtrl_Available->ShowSortIndicator(0, true);
 
     // Set Autosize Width after it is populated or it doesn't work
@@ -1841,27 +1829,23 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent&
     if (event.m_col == 0) {
         if (_sortOrder == 0) {
             _sortOrder = 1;
-            ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available); // put it back in start order as otherwise this does not work
-            ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)ListCtrl_Available);
+            ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
             ListCtrl_Available->ShowSortIndicator(0, true);
          } else {
             _sortOrder = 0;
-            ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available); // put it back in start order as otherwise this does not work
-            ListCtrl_Available->SortItems(MyCompareFunctionDescName, (wxIntPtr)ListCtrl_Available);
+            ListCtrl_Available->SortItems(MyCompareFunctionDescName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
             ListCtrl_Available->ShowSortIndicator(0, false);
         }
-    }
-    else if (event.m_col == 1)
-    {
+    } else if (event.m_col == 1) {
         if (_sortOrder == 3) {
             _sortOrder = 4;
-            ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available); // put it back in start order as otherwise this does not work
-            ListCtrl_Available->SortItems(MyCompareFunctionAscEffects, (wxIntPtr)ListCtrl_Available);
+            ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue()); // put it back in start order as otherwise this does not work
+            ListCtrl_Available->SortItems(MyCompareFunctionAscEffects, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
             ListCtrl_Available->ShowSortIndicator(1, true);
         } else {
             _sortOrder = 3;
-            ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available); // put it back in start order as otherwise this does not work
-            ListCtrl_Available->SortItems(MyCompareFunctionDescEffects, (wxIntPtr)ListCtrl_Available);
+            ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue()); // put it back in start order as otherwise this does not work            
+            ListCtrl_Available->SortItems(MyCompareFunctionDescEffects, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
             ListCtrl_Available->ShowSortIndicator(1, false);
         }
     }
