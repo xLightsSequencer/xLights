@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gjones)      Allow model group centers (red cross) to be defined with right-click (Set Center Offset Here)
    -- enh (gjones)      Prevent model group centers (red cross) from moving when models are added/removed/moved
    -- enh (gjones)      Modified center offset (red cross) spin controls so enter key will latch values
    -- enh (gjones)      Expand range from +/- 1000 to +/- 5000 for red cross offsets

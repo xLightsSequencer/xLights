@@ -627,6 +627,10 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
 
     auto mg = GetSelectedModelGroup();
     if (minx != 999999 && !Is3D() && mg != nullptr && xlights->AllModels.IsModelValid(mg)) {
+        last_minx = minx;
+        last_miny = miny;
+        last_maxx = maxx;
+        last_maxy = maxy;
         if( !mg->GetCentreDefined() ) {
             wxXmlNode* ModelXml = mg->GetModelXml();
             int deltaX = wxAtoi(ModelXml->GetAttribute("XCentreDelta", "0"));
@@ -698,6 +702,19 @@ void ModelPreview::DrawGroupCentre(float x, float y)
     solidProgram->addStep([start, end, this, acc](xlGraphicsContext* ctx) {
         ctx->drawTriangles(acc, start, end - start);
     });
+}
+
+void ModelPreview::SetCenterOffset(ModelGroup* mg, int x, int y)
+{
+    float offsetX = ((x - ((last_minx + last_maxx) / 2.0)) * 2000.0) / (last_maxx - last_minx);
+    float offsetY = ((y - ((last_miny + last_maxy) / 2.0)) * 2000.0) / (last_maxy - last_miny);
+    mg->SetXCentreOffset(offsetX);
+    mg->SetYCentreOffset(offsetY);
+    mg->SetXCentreDelta(0);
+    mg->SetYCentreDelta(0);
+    mg->SetCentreX( x );
+    mg->SetCentreY( y );
+    mg->SetCentreDefined( true );
 }
 
 void ModelPreview::RenderModel(Model* m, bool wiring, bool highlightFirst, int highlightpixel)

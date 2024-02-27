@@ -230,6 +230,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_LAYOUT_DXF_EXPORT;
         static const long ID_PREVIEW_FLIP_HORIZONTAL;
         static const long ID_PREVIEW_FLIP_VERTICAL;
+        static const long ID_SET_CENTER_OFFSET;
 
 	public:
 

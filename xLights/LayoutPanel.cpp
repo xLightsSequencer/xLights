@@ -231,6 +231,7 @@ const long LayoutPanel::ID_PREVIEW_MODEL_CAD_EXPORT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_LAYOUT_DXF_EXPORT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_FLIP_HORIZONTAL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_FLIP_VERTICAL = wxNewId();
+const long LayoutPanel::ID_SET_CENTER_OFFSET = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -4655,8 +4656,17 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnu.Append(ID_PREVIEW_ALIGN, "Align", mnuAlign, "");
         mnu.Append(ID_PREVIEW_DISTRIBUTE, "Distribute", mnuDistribute, "");
         mnu.Append(ID_PREVIEW_RESIZE, "Resize", mnuResize, "");
-
         mnu.AppendSeparator();
+        
+        if (!is_3d) {
+            auto mg = GetSelectedModelGroup();
+            if (xlights->AllModels.IsModelValid(mg)) {
+                mnu.Append(ID_SET_CENTER_OFFSET, _("Set Center Offset Here"));
+                mnu.AppendSeparator();
+                m_previous_mouse_x = event.GetX();
+                m_previous_mouse_y = event.GetY();
+            }
+        }
     }
 
     if (selectedObjectCnt > 0) {
@@ -4874,6 +4884,16 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         } else {
             objects_panel->PreviewObjectResize(true, true);
         }
+    } else if (event.GetId() == ID_SET_CENTER_OFFSET) {
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(m_previous_mouse_x, m_previous_mouse_y, ray_origin, ray_direction);
+        auto mg = GetSelectedModelGroup();
+        modelPreview->SetCenterOffset(mg, ray_origin.x, ray_origin.y);
+        mg->Reset();
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_SET_CENTER_OFFSET");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_SET_CENTER_OFFSET", nullptr, nullptr, GetSelectedModelName());
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_SET_CENTER_OFFSET");
     } else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT) {
         ShowNodeLayout();
     } else if (event.GetId() == ID_PREVIEW_MODEL_LOCK) {
