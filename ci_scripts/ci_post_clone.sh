@@ -13,4 +13,4 @@ git pull
 
 cd ${CI_PRIMARY_REPOSITORY_PATH}/macOS
 rm -rf dependencies
-ln -s ${$CI_DERIVED_DATA_PATH}/xLights-macOS-dependencies.git dependencies
+ln -s ${CI_DERIVED_DATA_PATH}/xLights-macOS-dependencies.git dependencies
