@@ -192,4 +192,5 @@ private:
 	void SortModelsByName();
 	void CopyModelList();
 	wxArrayString getGroupList();
+    void OnSpinCtrlTextEnter(wxCommandEvent& evt);
 };

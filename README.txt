@@ -11,7 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- end (gjones)      Prevent model group centers (red X) from moving when models are added/removed/moved
+   -- enh (gjones)      Prevent model group centers (red cross) from moving when models are added/removed/moved
+   -- enh (gjones)      Modified center offset (red cross) spin controls so enter key will latch values
+   -- enh (gjones)      Expand range from +/- 1000 to +/- 5000 for red cross offsets
 2024.03 Feb 14, 2024
    -- UPDATE (dkulp)    New PayPal donation URL
    -- end (gjones)      Add preference whether layout view zooms to center or mouse cursor
