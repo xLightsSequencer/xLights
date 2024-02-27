@@ -2,11 +2,12 @@
 env
 pwd
 
+mkdir -p $CI_DERIVED_DATA_PATH
 cd $CI_DERIVED_DATA_PATH
-if [ ! -d xLights-macOS-dependencies.git ]; then
-    git clone https://github.com/xLightsSequencer/xLights-macOS-dependencies.git
+if [ ! -d xLights-macOS-dependencies ]; then
+    git clone https://github.com/xLightsSequencer/xLights-macOS-dependencies.git xLights-macOS-dependencies
 fi
-cd xLights-macOS-dependencies.git
+cd xLights-macOS-dependencies
 git reset --hard
 git pull
 
