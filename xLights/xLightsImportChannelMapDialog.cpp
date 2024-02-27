@@ -188,6 +188,17 @@ bool xLightsImportTreeModel::GetAttr(const wxDataViewItem &item, unsigned int co
     return set;
 }
 
+inline int findChildIndex(xLightsImportModelNode *parent, const std::string &strandName) {
+    int idx = 0;
+    for (auto &i : parent->GetChildren()) {
+        if (i->_strand == strandName) {
+            return idx;
+        }
+        idx++;
+    }
+    return -1;
+}
+
 int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataViewItem& item2, unsigned column, bool ascending) const
 {
     if (column == 0) {
@@ -197,19 +208,17 @@ int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataVie
         if (node1->_node != "" && node2->_node != "") {
             if (ascending) {
                 return NumberAwareStringCompare(node1->_node.ToStdString(), node2->_node.ToStdString());
-            }
-            else {
+            } else {
                 return NumberAwareStringCompareRev(node1->_node.ToStdString(), node2->_node.ToStdString());
             }
         } else if (node1->_strand != "" && node2->_strand != "") { // dont sort the submodels
-            return 1;
-        }
-        else
-        {
+            int idx1 = findChildIndex(node1->GetParent(), node1->_strand);
+            int idx2 = findChildIndex(node2->GetParent(), node2->_strand);
+            return idx1 - idx2;
+        } else {
             if (ascending) {
                 return NumberAwareStringCompare(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
-            }
-            else {
+            } else {
                 return NumberAwareStringCompareRev(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
             }
         }
