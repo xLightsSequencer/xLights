@@ -707,8 +707,6 @@ void ModelPreview::SetCenterOffset(ModelGroup* mg, int x, int y)
     float offsetY = ((y - ((last_miny + last_maxy) / 2.0)) * 2000.0) / (last_maxy - last_miny);
     mg->SetXCentreOffset(offsetX);
     mg->SetYCentreOffset(offsetY);
-    mg->SetXCentreDelta(0);
-    mg->SetYCentreDelta(0);
     mg->SetCentreX( x );
     mg->SetCentreY( y );
     mg->SetCentreDefined( true );

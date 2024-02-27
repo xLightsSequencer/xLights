@@ -88,10 +88,6 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetCentreMiny( int miny );
         void SetCentreMaxx( int maxx );
         void SetCentreMaxy( int maxy );
-        int GetXCentreDelta() const;
-        int GetYCentreDelta() const;
-        void SetXCentreDelta( float dx );
-        void SetYCentreDelta( float dy );
 
     protected:
         static std::vector<std::string> GROUP_BUFFER_STYLES;

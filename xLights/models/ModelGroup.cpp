@@ -539,28 +539,6 @@ void ModelGroup::SetCentreMaxy( int maxy )
     ModelXml->AddAttribute("centreMaxy", wxString::Format("%i", maxy));
 }
 
-void ModelGroup::SetXCentreDelta( float dx )
-{
-    ModelXml->DeleteAttribute("XCentreDelta");
-    ModelXml->AddAttribute("XCentreDelta", wxString::Format("%f", dx));
-}
-
-void ModelGroup::SetYCentreDelta( float dy )
-{
-    ModelXml->DeleteAttribute("YCentreDelta");
-    ModelXml->AddAttribute("YCentreDelta", wxString::Format("%f", dy));
-}
-
-int ModelGroup::GetXCentreDelta() const
-{
-    return wxAtoi(ModelXml->GetAttribute("XCentreDelta", "0"));
-}
-
-int ModelGroup::GetYCentreDelta() const
-{
-    return wxAtoi(ModelXml->GetAttribute("YCentreDelta", "0"));
-}
-
 bool ModelGroup::Reset(bool zeroBased) {
     this->zeroBased = zeroBased;
     selected = false;
