@@ -59,7 +59,7 @@ int wxCALLBACK MyCompareFunctionAscName(wxIntPtr item1, wxIntPtr item2, wxIntPtr
     }
     ImportChannel *i1 = (ImportChannel*)item1;
     ImportChannel *i2 = (ImportChannel*)item2;
-    return i1->name.compare(i2->name);
+    return NumberAwareStringCompare(i1->name, i2->name);
 }
 
 int wxCALLBACK MyCompareFunctionDescName(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
@@ -70,7 +70,7 @@ int wxCALLBACK MyCompareFunctionDescName(wxIntPtr item1, wxIntPtr item2, wxIntPt
     }
     ImportChannel *i1 = (ImportChannel*)item1;
     ImportChannel *i2 = (ImportChannel*)item2;
-    return i2->name.compare(i1->name);
+    return NumberAwareStringCompareRev(i1->name, i2->name);
 }
 
 class MDDropSource : public wxDropSource
@@ -1844,7 +1844,7 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent&
             ListCtrl_Available->ShowSortIndicator(1, true);
         } else {
             _sortOrder = 3;
-            ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue()); // put it back in start order as otherwise this does not work            
+            ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue()); // put it back in start order as otherwise this does not work
             ListCtrl_Available->SortItems(MyCompareFunctionDescEffects, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
             ListCtrl_Available->ShowSortIndicator(1, false);
         }
