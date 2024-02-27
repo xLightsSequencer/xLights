@@ -1,6 +1,18 @@
 #!/bin/sh
 env
-pwd
+
+echo ""
+echo "Workspace"
+ls -lart ${CI_WORKSPACE_PATH}
+
+echo ""
+echo "Archive"
+ls -lart ${CI_ARCHIVE_PATH}
+
+echo ""
+echo "TMP"
+ls -lart ${TMPDIR}
+
 
 mkdir -p $CI_DERIVED_DATA_PATH
 cd $CI_DERIVED_DATA_PATH
