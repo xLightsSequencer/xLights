@@ -11,10 +11,24 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.04 Feb 29, 2024
    -- enh (gjones)      Allow model group centers (red cross) to be defined with right-click (Set Center Offset Here)
    -- enh (gjones)      Prevent model group centers (red cross) from moving when models are added/removed/moved
    -- enh (gjones)      Modified center offset (red cross) spin controls so enter key will latch values
    -- enh (gjones)      Expand range from +/- 1000 to +/- 5000 for red cross offsets
+   -- enh (derwin12)    Add Select Effects dialog to UI toolbar
+   -- enh (derwin12)    Add expand and collapse to import mapping dialog
+   -- enh (derwin12)    Allow editin dimensions for Image type props
+   -- enh (derwin12)    Include creator in the search for Sequence Downloads
+   -- enh (derwin12)    Add preference to hide color update warning
+   -- enh (derwin12)    Scale the sphere ot get a better 3d export
+   -- enh (derwin12)    Resize/relayout several dialogs
+   -- enh (derwin12)    DMX effect put 16 channels on one page
+   -- bug (derwin12)    Remapping of missing submodels skips over some
+   -- bug (dkulp)       Fix crash when sorting by effect count in Import dialog
+   -- bug (dkulp)       Fix crash in Single Strand Chase effect if value curves are used for chase size
+   -- bug (scott)       Experience controllers support ArtNet
+   -- bug (scott)       Fix Minleon upload
 2024.03 Feb 14, 2024
    -- UPDATE (dkulp)    New PayPal donation URL
    -- end (gjones)      Add preference whether layout view zooms to center or mouse cursor
