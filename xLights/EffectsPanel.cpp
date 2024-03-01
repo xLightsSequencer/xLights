@@ -57,7 +57,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager, wxTimer *ti
     FlexGridSizer1->Add(EffectChoicebook, 1, wxRIGHT|wxEXPAND, 2);
     SetSizer(FlexGridSizer1);
 
-    Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&EffectsPanel::EffectSelected);
+    Connect(ID_CHOICEBOOK1, wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&EffectsPanel::EffectSelected);
     //*)
 
     Connect(EffectChoicebook->GetChoiceCtrl()->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&EffectsPanel::OnRightDownChoice, nullptr, this);

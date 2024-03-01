@@ -39,6 +39,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetGridSize() const;
         int GetXCentreOffset() const;
         int GetYCentreOffset() const;
+        void SetXCentreOffset( float cx );
+        void SetYCentreOffset( float cy );
         std::string GetDefaultCamera() const;
 
         bool IsSelected() const { return selected;}
@@ -76,6 +78,17 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 
         bool CheckForChanges() const;
 
+        float GetCentreX() const { return centrex; }
+        float GetCentreY() const { return centrey; }
+        bool GetCentreDefined() const { return centreDefined; }
+        void SetCentreX( float cx );
+        void SetCentreY( float cy );
+        void SetCentreDefined( bool defined );
+        void SetCentreMinx( int minx );
+        void SetCentreMiny( int miny );
+        void SetCentreMaxx( int maxx );
+        void SetCentreMaxy( int maxy );
+
     protected:
         static std::vector<std::string> GROUP_BUFFER_STYLES;
 
@@ -86,5 +99,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         std::vector<Model *> activeModels;
         bool selected;
         std::string defaultBufferStyle;
+        bool centreDefined = false;
+        float centrex;
+        float centrey;
 };
 

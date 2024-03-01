@@ -1157,8 +1157,10 @@ void ColorPanel::OnUpdateColorClick(wxCommandEvent& event)
 {
     int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
     if (alleffects > 1) {
-        if (wxMessageBox("Are you sure you want to change the colours on all selected effects?", "Update all", wxYES_NO | wxCENTRE, this) == wxNO)
-            return;
+        if (!xLightsApp::GetFrame()->IsSuppressColorWarn()) {
+            if (wxMessageBox("Are you sure you want to change the colours on all selected effects?", "Update all", wxYES_NO | wxCENTRE, this) == wxNO)
+                return;
+        }
     }
 
     wxCommandEvent eventEffectUpdated(EVT_EFFECT_PALETTE_UPDATED);

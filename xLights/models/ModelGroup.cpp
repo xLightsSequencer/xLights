@@ -310,6 +310,12 @@ std::string ModelGroup::SerialiseModelGroup(const std::string& forModel) const
     }
     new_doc.GetRoot()->DeleteAttribute("models");
     new_doc.GetRoot()->AddAttribute("models", nmns);
+    new_doc.GetRoot()->DeleteAttribute("centrex");
+    new_doc.GetRoot()->AddAttribute("centrex", wxString::Format("%f", centrex));
+    new_doc.GetRoot()->DeleteAttribute("centrey");
+    new_doc.GetRoot()->AddAttribute("centrey", wxString::Format("%f", centrey));
+    new_doc.GetRoot()->DeleteAttribute("centreDefined");
+    new_doc.GetRoot()->AddAttribute("centreDefined", wxString::Format("%d", centreDefined));
     wxStringOutputStream stream;
     new_doc.Save(stream);
     wxString s = stream.GetString();
@@ -471,9 +477,66 @@ int ModelGroup::GetYCentreOffset() const
     return wxAtoi(ModelXml->GetAttribute("YCentreOffset", "0"));
 }
 
+void ModelGroup::SetXCentreOffset( float cx )
+{
+    ModelXml->DeleteAttribute("XCentreOffset");
+    ModelXml->AddAttribute("XCentreOffset", wxString::Format("%f", cx));
+}
+
+void ModelGroup::SetYCentreOffset( float cy )
+{
+    ModelXml->DeleteAttribute("YCentreOffset");
+    ModelXml->AddAttribute("YCentreOffset", wxString::Format("%f", cy));
+}
+
 std::string ModelGroup::GetDefaultCamera() const
 {
     return ModelXml->GetAttribute("DefaultCamera", "2D");
+}
+
+void ModelGroup::SetCentreX( float cx )
+{
+    centrex = cx;
+    ModelXml->DeleteAttribute("centrex");
+    ModelXml->AddAttribute("centrex", wxString::Format("%f", cx));
+}
+
+void ModelGroup::SetCentreY( float cy )
+{
+    centrey = cy;
+    ModelXml->DeleteAttribute("centrey");
+    ModelXml->AddAttribute("centrey", wxString::Format("%f", cy));
+}
+
+void ModelGroup::SetCentreDefined( bool defined )
+{
+    centreDefined = defined;
+    ModelXml->DeleteAttribute("centreDefined");
+    ModelXml->AddAttribute("centreDefined", wxString::Format("%d", centreDefined));
+}
+
+void ModelGroup::SetCentreMinx( int minx )
+{
+    ModelXml->DeleteAttribute("centreMinx");
+    ModelXml->AddAttribute("centreMinx", wxString::Format("%i", minx));
+}
+
+void ModelGroup::SetCentreMiny( int miny )
+{
+    ModelXml->DeleteAttribute("centreMiny");
+    ModelXml->AddAttribute("centreMiny", wxString::Format("%i", miny));
+}
+
+void ModelGroup::SetCentreMaxx( int maxx )
+{
+    ModelXml->DeleteAttribute("centreMaxx");
+    ModelXml->AddAttribute("centreMaxx", wxString::Format("%i", maxx));
+}
+
+void ModelGroup::SetCentreMaxy( int maxy )
+{
+    ModelXml->DeleteAttribute("centreMaxy");
+    ModelXml->AddAttribute("centreMaxy", wxString::Format("%i", maxy));
 }
 
 bool ModelGroup::Reset(bool zeroBased) {
@@ -484,10 +547,13 @@ bool ModelGroup::Reset(bool zeroBased) {
     DisplayAs = "ModelGroup";
     StringType = "RGB Nodes";
 
+    centrex = wxAtof(ModelXml->GetAttribute("centrex", "0"));
+    centrey = wxAtof(ModelXml->GetAttribute("centrey", "0"));
+    centreDefined = wxAtoi(ModelXml->GetAttribute("centreDefined", "false"));
+
     layout_group = ModelXml->GetAttribute("LayoutGroup", "Unassigned");
     int gridSize = wxAtoi(ModelXml->GetAttribute("GridSize", "400"));
-    int offsetX = wxAtoi(ModelXml->GetAttribute("XCentreOffset", "0"));
-    int offsetY = wxAtoi(ModelXml->GetAttribute("YCentreOffset", "0"));
+
     modelTagColour = wxColour(ModelXml->GetAttribute("TagColour", "Black"));
     std::string layout = ModelXml->GetAttribute("layout", "minimalGrid").ToStdString();
     defaultBufferStyle = layout;
@@ -564,6 +630,11 @@ bool ModelGroup::Reset(bool zeroBased) {
             minChan = it->ActChan;
         }
     }
+
+    float xminx = minx;
+    float xmaxx = maxx;
+    float xminy = miny;
+    float xmaxy = maxy;
 
     if (miny < 0) {
         for (const auto& it : Nodes) {
@@ -655,6 +726,18 @@ bool ModelGroup::Reset(bool zeroBased) {
     }
     else
     {
+        int offsetX;
+        int offsetY;
+        if( GetCentreDefined()) {
+            float cx = GetCentreX();
+            float cy = GetCentreY();
+            offsetX = ((cx - ((xminx + xmaxx) / 2.0)) * 2000.0) / (xmaxx - xminx);
+            offsetY = ((cy - ((xminy + xmaxy) / 2.0)) * 2000.0) / (xmaxy - xminy);
+        } else {
+            offsetX = GetXCentreOffset();
+            offsetY = GetYCentreOffset();
+        }
+
         int offx = (offsetX * BufferWi) / 1000;
         int offy = (offsetY * BufferHt) / 1000;
 
@@ -664,10 +747,12 @@ bool ModelGroup::Reset(bool zeroBased) {
         if (offx > 0) offx = 0;
         if (offy > 0) offy = 0;
 
-        for (const auto& it : Nodes) {
-            for (auto& coord : it->Coords) {
-                coord.bufX -= offx;
-                coord.bufY -= offy;
+        if (offx < 0 || offy < 0) {
+            for (const auto& it : Nodes) {
+                for (auto& coord : it->Coords) {
+                    coord.bufX -= offx;
+                    coord.bufY -= offy;
+                }
             }
         }
     }

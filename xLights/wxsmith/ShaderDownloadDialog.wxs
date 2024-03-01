@@ -11,8 +11,9 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+					<minsize>10</minsize>
 					<orientation>vertical</orientation>
-					<minsize>10,10</minsize>
+					<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 					<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 							<cols>1</cols>
@@ -94,7 +95,7 @@
 									<object class="sizeritem">
 										<object class="wxHyperlinkCtrl" name="ID_HYPERLINKCTRL4" variable="HyperlinkCtrl_Website" member="yes">
 											<label>https://xlights.org</label>
-											<style>wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER</style>
+											<style>wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxBORDER_NONE</style>
 											<handler function="OnHyperlinkCtrl_WebsiteClick" entry="EVT_HYPERLINK" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>

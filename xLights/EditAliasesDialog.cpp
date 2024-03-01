@@ -62,6 +62,7 @@ EditAliasesDialog::EditAliasesDialog(wxWindow* parent, Model* m, wxWindowID id, 
         ListBoxAliases->Append(it);
 	}
 
+    SetSizerAndFit(FlexGridSizer1);
 	SetEscapeId(ID_BUTTON4);
 
 	ValidateWindow();

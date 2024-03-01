@@ -37,36 +37,40 @@
 
 wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
 
-int wxCALLBACK MyCompareFunctionAsc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
-{
-    return item1 == item2 ? 0 : ((item1 < item2) ? -1 : 1);
-}
-
-int wxCALLBACK MyCompareFunctionDesc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
-{
-    return item1 == item2 ? 0 : ((item1 < item2) ? 1 : -1);
-}
-
 int wxCALLBACK MyCompareFunctionAscEffects(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
-    wxListCtrl* list = (wxListCtrl*)sortData;
-    auto i1 = list->GetItemText(item1, 0);
-    auto i2 = list->GetItemText(item2, 0);
-    auto it1 = wxAtoi(list->GetItemText(item1, 1));
-    auto it2 = wxAtoi(list->GetItemText(item2, 1));
-
-    return it1 == it2 ? 0 : ((it1 < it2) ? -1 : 1);
+    ImportChannel *i1 = (ImportChannel*)item1;
+    ImportChannel *i2 = (ImportChannel*)item2;
+    return i1->effectCount - i2->effectCount;
 }
 
 int wxCALLBACK MyCompareFunctionDescEffects(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
-    wxListCtrl* list = (wxListCtrl*)sortData;
-    auto i1 = list->GetItemText(item1, 0);
-    auto i2 = list->GetItemText(item2, 0);
-    auto it1 = wxAtoi(list->GetItemText(item1, 1));
-    auto it2 = wxAtoi(list->GetItemText(item2, 1));
+    ImportChannel *i1 = (ImportChannel*)item1;
+    ImportChannel *i2 = (ImportChannel*)item2;
+    return i2->effectCount - i1->effectCount;
+}
 
-    return it1 == it2 ? 0 : ((it1 < it2) ? 1 : -1);
+int wxCALLBACK MyCompareFunctionAscName(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+{
+    if (sortData) {
+        //map by CCR is on
+        return item1 - item2;
+    }
+    ImportChannel *i1 = (ImportChannel*)item1;
+    ImportChannel *i2 = (ImportChannel*)item2;
+    return NumberAwareStringCompare(i1->name, i2->name);
+}
+
+int wxCALLBACK MyCompareFunctionDescName(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+{
+    if (sortData) {
+        //map by CCR is on
+        return item2 - item1;
+    }
+    ImportChannel *i1 = (ImportChannel*)item1;
+    ImportChannel *i2 = (ImportChannel*)item2;
+    return NumberAwareStringCompareRev(i1->name, i2->name);
 }
 
 class MDDropSource : public wxDropSource
@@ -184,6 +188,17 @@ bool xLightsImportTreeModel::GetAttr(const wxDataViewItem &item, unsigned int co
     return set;
 }
 
+inline int findChildIndex(xLightsImportModelNode *parent, const std::string &strandName) {
+    int idx = 0;
+    for (auto &i : parent->GetChildren()) {
+        if (i->_strand == strandName) {
+            return idx;
+        }
+        idx++;
+    }
+    return -1;
+}
+
 int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataViewItem& item2, unsigned column, bool ascending) const
 {
     if (column == 0) {
@@ -193,24 +208,17 @@ int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataVie
         if (node1->_node != "" && node2->_node != "") {
             if (ascending) {
                 return NumberAwareStringCompare(node1->_node.ToStdString(), node2->_node.ToStdString());
-            }
-            else {
+            } else {
                 return NumberAwareStringCompareRev(node1->_node.ToStdString(), node2->_node.ToStdString());
             }
-        } else if (node1->_strand != "" && node2->_strand != "") {
-            if (ascending) {
-                return NumberAwareStringCompare(node1->_strand.ToStdString(), node2->_strand.ToStdString());
-            }
-            else {
-                return NumberAwareStringCompareRev(node1->_strand.ToStdString(), node2->_strand.ToStdString());
-            }
-        }
-        else
-        {
+        } else if (node1->_strand != "" && node2->_strand != "") { // dont sort the submodels
+            int idx1 = findChildIndex(node1->GetParent(), node1->_strand);
+            int idx2 = findChildIndex(node2->GetParent(), node2->_strand);
+            return idx1 - idx2;
+        } else {
             if (ascending) {
                 return NumberAwareStringCompare(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
-            }
-            else {
+            } else {
                 return NumberAwareStringCompareRev(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
             }
         }
@@ -455,10 +463,13 @@ const long xLightsImportChannelMapDialog::ID_SPLITTERWINDOW1 = wxNewId();
 
 const long xLightsImportChannelMapDialog::ID_MNU_SELECTALL = wxNewId();
 const long xLightsImportChannelMapDialog::ID_MNU_SELECTNONE = wxNewId();
+const long xLightsImportChannelMapDialog::ID_MNU_COLLAPSEALL = wxNewId();
+const long xLightsImportChannelMapDialog::ID_MNU_EXPANDALL = wxNewId();
+const long xLightsImportChannelMapDialog::ID_MNU_SHOWALLMAPPED = wxNewId();
 
 BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
-	//(*EventTable(xLightsImportChannelMapDialog)
-	//*)
+//(*EventTable(xLightsImportChannelMapDialog)
+//*)
 END_EVENT_TABLE()
 
 xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName& filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, bool allowImportBlend, wxWindowID id, const wxPoint& pos, const wxSize& size)
@@ -485,7 +496,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     OldSizer = new wxFlexGridSizer(0, 1, 0, 0);
     OldSizer->AddGrowableCol(0);
     OldSizer->AddGrowableRow(0);
-    SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
+    SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
     SplitterWindow1->SetSashGravity(0.5);
     Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     Sizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -559,8 +570,6 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     FlexGridSizer2->Add(Button02, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
     Panel1->SetSizer(Sizer1);
-    Sizer1->Fit(Panel1);
-    Sizer1->SetSizeHints(Panel1);
     Panel2 = new wxPanel(SplitterWindow1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     Sizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     Sizer2->AddGrowableCol(0);
@@ -575,29 +584,26 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     ListCtrl_Available = new wxListCtrl(Panel2, ID_LISTCTRL1, wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(100,-1)), wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL1"));
     Sizer2->Add(ListCtrl_Available, 1, wxALL|wxEXPAND, 5);
     Panel2->SetSizer(Sizer2);
-    Sizer2->Fit(Panel2);
-    Sizer2->SetSizeHints(Panel2);
     SplitterWindow1->SplitVertically(Panel1, Panel2);
     OldSizer->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
     SetSizer(OldSizer);
-    OldSizer->Fit(this);
     OldSizer->SetSizeHints(this);
 
-    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick);
-    Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBoxImportMediaClick);
-    Connect(ID_BUTTON_IMPORT_OPTIONS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButtonImportOptionsClick);
-    Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindToText);
-    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_OkClick);
-    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
-    Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick);
-    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_AutoMapClick);
-    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
-    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
-    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindFromText);
-    Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag);
-    Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
-    Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated);
-    Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
+    Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick);
+    Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBoxImportMediaClick);
+    Connect(ID_BUTTON_IMPORT_OPTIONS, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButtonImportOptionsClick);
+    Connect(ID_TEXTCTRL2, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindToText);
+    Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_OkClick);
+    Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
+    Connect(ID_BUTTON6, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick);
+    Connect(ID_BUTTON5, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_AutoMapClick);
+    Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
+    Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
+    Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindFromText);
+    Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_BEGIN_DRAG, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag);
+    Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
+    Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated);
+    Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_COL_CLICK, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
     //*)
 
     Connect(ID_CHECKLISTBOX1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickTimingTracks);
@@ -640,6 +646,73 @@ void xLightsImportChannelMapDialog::RightClickTimingTracks(wxContextMenuEvent& e
     mnuLayer.Append(ID_MNU_SELECTNONE, "Select None");
     mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupTimingTracks, nullptr, this);
     PopupMenu(&mnuLayer);
+}
+
+void xLightsImportChannelMapDialog::RightClickModels(wxDataViewEvent& event)
+{
+    wxDataViewItem item = event.GetItem();
+    if (item.IsOk()) {
+        wxMenu mnuLayer;
+        mnuLayer.Append(ID_MNU_COLLAPSEALL, "Collapse All");
+        mnuLayer.Append(ID_MNU_EXPANDALL, "Expand All");
+        mnuLayer.Append(ID_MNU_SHOWALLMAPPED, "Show All Mapped Models");
+        mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupModels, nullptr, this);
+        TreeListCtrl_Mapping->PopupMenu(&mnuLayer, event.GetPosition());
+    }
+}
+
+void xLightsImportChannelMapDialog::OnPopupModels(wxCommandEvent& event)
+{
+    int id = event.GetId();
+    if (id == ID_MNU_EXPANDALL) {
+        ExpandAll();
+    } else if (id == ID_MNU_COLLAPSEALL) {
+        CollapseAll();
+    } else if (id == ID_MNU_SHOWALLMAPPED) {
+        ShowAllMapped();
+    }
+}
+
+void xLightsImportChannelMapDialog::CollapseAll()
+{
+    wxDataViewItemArray models;
+    _dataModel->GetChildren(wxDataViewItem(0), models);
+    for (size_t i = 0; i < models.size(); ++i) {
+        TreeListCtrl_Mapping->Collapse(models[i]);
+    }
+}
+
+void xLightsImportChannelMapDialog::ExpandAll()
+{
+    wxDataViewItemArray models;
+    _dataModel->GetChildren(wxDataViewItem(0), models);
+    for (size_t i = 0; i < models.size(); ++i) {
+        wxDataViewItemArray strands;
+        _dataModel->GetChildren(models[i], strands);
+        for (size_t j = 0; j < strands.size(); ++j) {
+            xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
+            if (!(const char*)astrand->_strand.StartsWith((const wxString) "Strand")) {
+                TreeListCtrl_Mapping->Expand(models[i]);
+            }
+        }
+    }
+}
+
+void xLightsImportChannelMapDialog::ShowAllMapped()
+{
+    // expand all models that have strands that have a value
+    wxDataViewItemArray models;
+    _dataModel->GetChildren(wxDataViewItem(0), models);
+    for (size_t i = 0; i < models.size(); ++i) {
+        wxDataViewItemArray strands;
+        _dataModel->GetChildren(models[i], strands);
+        for (size_t j = 0; j < strands.size(); ++j) {
+            xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
+            if (astrand->HasMapping()) {
+                TreeListCtrl_Mapping->Expand(models[i]);
+            }
+        }
+    }
 }
 
 void xLightsImportChannelMapDialog::OnPopupTimingTracks(wxCommandEvent& event)
@@ -712,7 +785,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
 
     wxVector<wxBitmapBundle> images;
     LayoutUtils::CreateImageList(images, m_iconIndexMap);
-    ListCtrl_Available->SetSmallImages(images);    
+    ListCtrl_Available->SetSmallImages(images);
     PopulateAvailable(false);
 
     _dataModel = new xLightsImportTreeModel();
@@ -738,6 +811,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     TreeListCtrl_Mapping->Freeze();
     TreeListCtrl_Mapping->AssociateModel(_dataModel);
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE));
+    TreeListCtrl_Mapping->GetColumn(0)->SetSortOrder(true);
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 1, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
     if (_allowColorChoice) {
         TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Color", new ColorRenderer(), 2, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
@@ -756,6 +830,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_BEGIN_DRAG, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnBeginDrag);
     // This does not work ... I suspect the control is not letting it through
     //Connect(ID_TREELISTCTRL1, wxEVT_KEY_DOWN, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnKeyDown);
+    Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickModels);
 
 
 #ifdef __WXOSX__
@@ -834,7 +909,8 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
         bool countEnabled{false};
         for (auto const& m : importChannels) {
             ListCtrl_Available->InsertItem(j, m->name);
-            ListCtrl_Available->SetItemData(j, j);
+            wxUIntPtr ptr = (wxUIntPtr)m.get();
+            ListCtrl_Available->SetItemData(j, ptr);
             if (!m->type.empty()) {
                 ListCtrl_Available->SetItemColumnImage(j, 0, m_iconIndexMap[LayoutUtils::GetModelTreeIcon(m->type, LayoutUtils::GroupMode::Regular)]);
             } else {
@@ -857,7 +933,9 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
     }
 
     _sortOrder = 1;
-    ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available);
+    
+    ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
+    ListCtrl_Available->ShowSortIndicator(0, true);
 
     // Set Autosize Width after it is populated or it doesn't work
     ListCtrl_Available->SetColumnWidth(0, wxLIST_AUTOSIZE);
@@ -1760,22 +1838,24 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent&
     if (event.m_col == 0) {
         if (_sortOrder == 0) {
             _sortOrder = 1;
-            ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available);
-        } else {
+            ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
+            ListCtrl_Available->ShowSortIndicator(0, true);
+         } else {
             _sortOrder = 0;
-            ListCtrl_Available->SortItems(MyCompareFunctionDesc, (wxIntPtr)ListCtrl_Available);
+            ListCtrl_Available->SortItems(MyCompareFunctionDescName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
+            ListCtrl_Available->ShowSortIndicator(0, false);
         }
-    }
-    else if (event.m_col == 1)
-    {
+    } else if (event.m_col == 1) {
         if (_sortOrder == 3) {
             _sortOrder = 4;
-            ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available); // put it back in start order as otherwise this does not work
-            ListCtrl_Available->SortItems(MyCompareFunctionAscEffects, (wxIntPtr)ListCtrl_Available);
+            ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue()); // put it back in start order as otherwise this does not work
+            ListCtrl_Available->SortItems(MyCompareFunctionAscEffects, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
+            ListCtrl_Available->ShowSortIndicator(1, true);
         } else {
             _sortOrder = 3;
-            ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available); // put it back in start order as otherwise this does not work
-            ListCtrl_Available->SortItems(MyCompareFunctionDescEffects, (wxIntPtr)ListCtrl_Available);
+            ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue()); // put it back in start order as otherwise this does not work
+            ListCtrl_Available->SortItems(MyCompareFunctionDescEffects, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
+            ListCtrl_Available->ShowSortIndicator(1, false);
         }
     }
 }

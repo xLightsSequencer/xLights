@@ -11,6 +11,7 @@
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 					<orientation>vertical</orientation>
+					<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
 						<object class="wxFlexGridSizer" variable="Sizer1" member="yes">
 							<cols>1</cols>
@@ -143,6 +144,7 @@
 									<object class="sizeritem">
 										<object class="wxCheckListBox" name="ID_CHECKLISTBOX1" variable="TimingTrackListBox" member="yes">
 											<style>wxVSCROLL</style>
+											<handler function="OnTimingTrackListBoxRightClick" entry="EVT_LISTBOX_DCLICK" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<option>1</option>

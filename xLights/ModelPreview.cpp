@@ -627,12 +627,49 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
 
     auto mg = GetSelectedModelGroup();
     if (minx != 999999 && !Is3D() && mg != nullptr && xlights->AllModels.IsModelValid(mg)) {
-        int offx = 0;
-        int offy = 0;
-        offx = mg->GetXCentreOffset();
-        offy = mg->GetYCentreOffset();
-
-        DrawGroupCentre((minx + maxx) / 2.0 + (offx * (maxx - minx)) / 2000.0, (miny + maxy) / 2.0 + (offy * (maxy - miny)) / 2000.0);
+        last_minx = minx;
+        last_miny = miny;
+        last_maxx = maxx;
+        last_maxy = maxy;
+        if( !mg->GetCentreDefined() ) {
+            wxXmlNode* ModelXml = mg->GetModelXml();
+            int offx = mg->GetXCentreOffset();
+            int offy = mg->GetYCentreOffset();
+            float cx = (minx + maxx) / 2.0 + (offx * (maxx - minx)) / 2000.0;
+            float cy = (miny + maxy) / 2.0 + (offy * (maxy - miny)) / 2000.0;
+            DrawGroupCentre(cx, cy);
+            mg->SetCentreX( cx );
+            mg->SetCentreY( cy );
+            mg->SetCentreDefined( true );
+            mg->SetCentreMinx(minx);
+            mg->SetCentreMiny(miny);
+            mg->SetCentreMaxx(maxx);
+            mg->SetCentreMaxy(maxy);
+        } else {
+            DrawGroupCentre( mg->GetCentreX(), mg->GetCentreY());
+            // Check whether model group boundaries have changed
+            wxXmlNode* ModelXml = mg->GetModelXml();
+            int xminx = wxAtoi(ModelXml->GetAttribute("centreMinx", "0"));
+            int xminy = wxAtoi(ModelXml->GetAttribute("centreMiny", "0"));
+            int xmaxx = wxAtoi(ModelXml->GetAttribute("centreMaxx", "0"));
+            int xmaxy = wxAtoi(ModelXml->GetAttribute("centreMaxy", "0"));
+            if (xminx != (int)minx || xminy != (int)miny || xmaxx != (int)maxx || xmaxy != (int)maxy) {
+                // need to calc new offsets
+                int offx = mg->GetXCentreOffset();
+                int offy = mg->GetYCentreOffset();
+                float cx = mg->GetCentreX();
+                float cy = mg->GetCentreY();
+                float offsetX = ((cx - ((minx + maxx) / 2.0)) * 2000.0) / (maxx - minx);
+                float offsetY = ((cy - ((miny + maxy) / 2.0)) * 2000.0) / (maxy - miny);
+                mg->SetXCentreOffset(offsetX);
+                mg->SetYCentreOffset(offsetY);
+                mg->SetCentreMinx(minx);
+                mg->SetCentreMiny(miny);
+                mg->SetCentreMaxx(maxx);
+                mg->SetCentreMaxy(maxy);
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::RenderModels::DrawGroupCentre", nullptr, nullptr, mg->GetName());
+            }
+        }
     }
 }
 
@@ -662,6 +699,17 @@ void ModelPreview::DrawGroupCentre(float x, float y)
     solidProgram->addStep([start, end, this, acc](xlGraphicsContext* ctx) {
         ctx->drawTriangles(acc, start, end - start);
     });
+}
+
+void ModelPreview::SetCenterOffset(ModelGroup* mg, int x, int y)
+{
+    float offsetX = ((x - ((last_minx + last_maxx) / 2.0)) * 2000.0) / (last_maxx - last_minx);
+    float offsetY = ((y - ((last_miny + last_maxy) / 2.0)) * 2000.0) / (last_maxy - last_miny);
+    mg->SetXCentreOffset(offsetX);
+    mg->SetYCentreOffset(offsetY);
+    mg->SetCentreX( x );
+    mg->SetCentreY( y );
+    mg->SetCentreDefined( true );
 }
 
 void ModelPreview::RenderModel(Model* m, bool wiring, bool highlightFirst, int highlightpixel)

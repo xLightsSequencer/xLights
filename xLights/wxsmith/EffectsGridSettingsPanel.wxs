@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="EffectsGridSettingsPanel">
-		<pos_arg>1</pos_arg>
-		<size_arg>1</size_arg>
+		<id_arg>0</id_arg>
 		<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
 			<object class="sizeritem">
 				<object class="wxStaticText" name="wxID_ANY" variable="StaticText5" member="no">
@@ -99,6 +98,17 @@
 				<colspan>2</colspan>
 				<col>0</col>
 				<row>6</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX5" variable="ColorUpdateWarnCheckBox" member="yes">
+					<label>Hide Color Update Warning</label>
+					<handler function="OnColorUpdateWarnCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>7</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>

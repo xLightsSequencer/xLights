@@ -375,11 +375,13 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
     int ChaseDirection = (chaseType == 0 || chaseType == 2 || chaseType == 6 ||
                           chaseType == 9 || chaseType == 13 || chaseType == 14);
 
-    if (buffer.needToInit) {
+    //chasesize is a value curve item and can change throughout the effect and thus
+    //the number of rects could change
+    int rects = (chaseSize + 1) * (buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6;
+    if (buffer.needToInit || rects >= eff->GetBackgroundDisplayList().size()) {
         buffer.needToInit = false;
         std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
-        int rects = (chaseSize + 1) * (buffer.curEffEndPer - buffer.curEffStartPer + 1);
-        eff->GetBackgroundDisplayList().resize(rects * 6);
+        eff->GetBackgroundDisplayList().resize(rects);
     }
 
     bool Mirror = false;

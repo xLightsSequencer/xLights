@@ -361,6 +361,8 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
         return CreateBitmapBundleFromXPMs(sz, id, {effsettings_16, effsettings_24, effsettings_32, effsettings_48, effsettings_64});
     } else if ("xlART_EFFECTASSISTANT" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {effassistant_16, effassistant_24, effassistant_32, effassistant_48, effassistant_64});
+    } else if ("xlART_SELECTEFFECTS" == id) {
+        return CreateBitmapBundleFromXPMs(sz, id, {seleffects_16, seleffects_24, seleffects_32, seleffects_48, seleffects_64});
     } else if ("xlART_MODEL_PREVIEW" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {model_preview_16, model_preview_24, model_preview_32, model_preview_48, model_preview_64});
     } else if ("xlART_HOUSE_PREVIEW" == id) {

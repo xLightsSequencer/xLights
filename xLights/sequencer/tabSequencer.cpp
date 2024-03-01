@@ -752,10 +752,15 @@ void xLightsFrame::CheckForValidModels()
                                     ModelSMNames.push_back(m->GetSubModel(z)->GetName());
                                 }
                                 if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
+                                    int priorCnt = el->GetSubModelAndStrandCount();
                                     HandleChoices(this, AllSMNames, ModelSMNames, sme,
                                         "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
                                         + "How should we handle this?",
                                         toMap, ignore, mapall);
+                                    // if count after is less than the count before then the submodel list is shorter, so rewind the index
+                                    if (priorCnt != el->GetSubModelAndStrandCount()) {
+                                        --x1;
+                                    }
                                 }
                             }
                         }
@@ -3045,6 +3050,19 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
     displayElementsPanel->GetSize(&w, &h);
     info.FloatingSize(std::max(600, w), std::max(400, h));
     info.Show();
+    m_mgr->Update();
+    UpdateViewMenu();
+}
+
+void xLightsFrame::ShowHideSelectEffectsWindow(wxCommandEvent& event)
+{
+    InitSequencer();
+    bool visible = m_mgr->GetPane("SelectEffect").IsShown();
+    if (visible) {
+        m_mgr->GetPane("SelectEffect").Hide();
+    } else {
+        m_mgr->GetPane("SelectEffect").Show();
+    }
     m_mgr->Update();
     UpdateViewMenu();
 }

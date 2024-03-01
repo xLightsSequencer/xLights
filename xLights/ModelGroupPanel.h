@@ -182,7 +182,7 @@ private:
 	int GetSelectedModelCount();
 	void OnPopup(wxCommandEvent& event);
 
-	void SaveGroupChanges();
+	void SaveGroupChanges(bool updateCentre = false);
 	void AddSelectedModels(int index);
 	void RemoveSelectedModels();
 	void MoveSelectedModelsTo(int indexTo);
@@ -192,4 +192,5 @@ private:
 	void SortModelsByName();
 	void CopyModelList();
 	wxArrayString getGroupList();
+    void OnSpinCtrlTextEnter(wxCommandEvent& evt);
 };

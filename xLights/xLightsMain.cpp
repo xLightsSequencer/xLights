@@ -166,6 +166,7 @@ const long xLightsFrame::ID_TOGGLE_HOUSE_PREVIEW = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM6 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM8 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM9 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM10 = wxNewId();
 const long xLightsFrame::ID_AUIWINDOWTOOLBAR = wxNewId();
 const long xLightsFrame::ID_PASTE_BY_TIME = wxNewId();
 const long xLightsFrame::ID_PASTE_BY_CELL = wxNewId();
@@ -397,6 +398,7 @@ wxDEFINE_EVENT(EVT_SEQUENCE_FFORWARD10, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_SEEKTO, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SHOW_SELECTED_EFFECTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 wxDEFINE_EVENT(EVT_IMPORT_NOTES, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
@@ -453,6 +455,7 @@ EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_SEEKTO, xLightsFrame::SequenceSeekTo)
 EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_REPLAY_SECTION, xLightsFrame::SequenceReplaySection)
 EVT_COMMAND(wxID_ANY, EVT_TOGGLE_PLAY, xLightsFrame::TogglePlay)
 EVT_COMMAND(wxID_ANY, EVT_SHOW_DISPLAY_ELEMENTS, xLightsFrame::ShowDisplayElements)
+EVT_COMMAND(wxID_ANY, EVT_SHOW_SELECTED_EFFECTS, xLightsFrame::ShowHideSelectEffectsWindow)
 EVT_COMMAND(wxID_ANY, EVT_IMPORT_TIMING, xLightsFrame::ExecuteImportTimingElement)
 EVT_COMMAND(wxID_ANY, EVT_IMPORT_NOTES, xLightsFrame::ExecuteImportNotes)
 EVT_COMMAND(wxID_ANY, EVT_CONVERT_DATA_TO_EFFECTS, xLightsFrame::ConvertDataRowToEffects)
@@ -641,8 +644,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     wxStaticText* StaticText38;
 
     Create(parent, wxID_ANY, _("<use variables in xLightsMain.h>"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
-    SetClientSize(wxSize(1411, 1103));
-    MainAuiManager = new wxAuiManager(this, wxAUI_MGR_ALLOW_FLOATING | wxAUI_MGR_DEFAULT);
+    SetClientSize(wxSize(1411,1103));
+    MainAuiManager = new wxAuiManager(this, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_DEFAULT);
     MainToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_MAIN, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     MainToolBar->AddTool(ID_AUITOOLBAR_OPENSHOW, _("Open Show Directory"), GetToolbarBitmapBundle("wxART_FOLDER_OPEN"), wxNullBitmap, wxITEM_NORMAL, _("Select Show Directory"), wxEmptyString, NULL);
     MainToolBar->AddTool(ID_AUITOOLBAR_NEWSEQUENCE, _("New Sequence"), GetToolbarBitmapBundle("wxART_NEW"), wxNullBitmap, wxITEM_NORMAL, _("New Sequence"), wxEmptyString, NULL);
@@ -672,6 +675,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM6, _("Models"), GetToolbarBitmapBundle("xlART_SEQUENCE_ELEMENTS"), wxNullBitmap, wxITEM_NORMAL, _("Display Elements"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM8, _("Effects"), GetToolbarBitmapBundle("xlART_EFFECTS"), wxNullBitmap, wxITEM_NORMAL, _("Effects"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM9, _("Effects Assistant"), GetToolbarBitmapBundle("xlART_EFFECTASSISTANT"), wxNullBitmap, wxITEM_NORMAL, _("Effects Assistant"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM10, _("Select Effects"), GetToolbarBitmapBundle("xlART_SELECTEFFECTS"), wxNullBitmap, wxITEM_NORMAL, _("Select Effects"), wxEmptyString, NULL);
     WindowMgmtToolbar->Realize();
     MainAuiManager->AddPane(WindowMgmtToolbar, wxAuiPaneInfo().Name(_T("Windows Tool Bar")).ToolbarPane().Caption(_("Windows Tool Bar")).CloseButton(false).Layer(10).Position(12).Top().Gripper());
     EditToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_EDIT, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -679,39 +683,39 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     EditToolBar->AddTool(ID_PASTE_BY_CELL, _("Paste By Cell"), GetToolbarBitmapBundle("xlART_PASTE_BY_CELL"), wxNullBitmap, wxITEM_CHECK, _("Paste By Cell"), wxEmptyString, NULL);
     EditToolBar->Realize();
     MainAuiManager->AddPane(EditToolBar, wxAuiPaneInfo().Name(_T("Edit Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(5).Top().Gripper());
-    ACToolbar = new xlAuiToolBar(this, ID_AUITOOLBAR_AC, wxPoint(1, 30), wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-    ChoiceParm1 = new wxChoice(ACToolbar, ID_CHOICE_PARM1, wxPoint(276, 12), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PARM1"));
-    ChoiceParm1->SetSelection(ChoiceParm1->Append(_("0")));
-    ChoiceParm1->Append(_("10"));
-    ChoiceParm1->Append(_("20"));
-    ChoiceParm1->Append(_("25"));
-    ChoiceParm1->Append(_("30"));
-    ChoiceParm1->Append(_("33"));
-    ChoiceParm1->Append(_("40"));
-    ChoiceParm1->Append(_("50"));
-    ChoiceParm1->Append(_("60"));
-    ChoiceParm1->Append(_("66"));
-    ChoiceParm1->Append(_("70"));
-    ChoiceParm1->Append(_("75"));
-    ChoiceParm1->Append(_("80"));
-    ChoiceParm1->Append(_("90"));
-    ChoiceParm1->Append(_("100"));
-    ChoiceParm2 = new wxChoice(ACToolbar, ID_CHOICE_PARM2, wxPoint(476, 11), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PARM2"));
-    ChoiceParm2->Append(_("0"));
-    ChoiceParm2->Append(_("10"));
-    ChoiceParm2->Append(_("20"));
-    ChoiceParm2->Append(_("25"));
-    ChoiceParm2->Append(_("30"));
-    ChoiceParm2->Append(_("33"));
-    ChoiceParm2->Append(_("40"));
-    ChoiceParm2->Append(_("50"));
-    ChoiceParm2->Append(_("60"));
-    ChoiceParm2->Append(_("66"));
-    ChoiceParm2->Append(_("70"));
-    ChoiceParm2->Append(_("75"));
-    ChoiceParm2->Append(_("80"));
-    ChoiceParm2->Append(_("90"));
-    ChoiceParm2->SetSelection(ChoiceParm2->Append(_("100")));
+    ACToolbar = new xlAuiToolBar(this, ID_AUITOOLBAR_AC, wxPoint(1,30), wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
+    ChoiceParm1 = new wxChoice(ACToolbar, ID_CHOICE_PARM1, wxPoint(276,12), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PARM1"));
+    ChoiceParm1->SetSelection( ChoiceParm1->Append(_T("0")) );
+    ChoiceParm1->Append(_T("10"));
+    ChoiceParm1->Append(_T("20"));
+    ChoiceParm1->Append(_T("25"));
+    ChoiceParm1->Append(_T("30"));
+    ChoiceParm1->Append(_T("33"));
+    ChoiceParm1->Append(_T("40"));
+    ChoiceParm1->Append(_T("50"));
+    ChoiceParm1->Append(_T("60"));
+    ChoiceParm1->Append(_T("66"));
+    ChoiceParm1->Append(_T("70"));
+    ChoiceParm1->Append(_T("75"));
+    ChoiceParm1->Append(_T("80"));
+    ChoiceParm1->Append(_T("90"));
+    ChoiceParm1->Append(_T("100"));
+    ChoiceParm2 = new wxChoice(ACToolbar, ID_CHOICE_PARM2, wxPoint(476,11), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PARM2"));
+    ChoiceParm2->Append(_T("0"));
+    ChoiceParm2->Append(_T("10"));
+    ChoiceParm2->Append(_T("20"));
+    ChoiceParm2->Append(_T("25"));
+    ChoiceParm2->Append(_T("30"));
+    ChoiceParm2->Append(_T("33"));
+    ChoiceParm2->Append(_T("40"));
+    ChoiceParm2->Append(_T("50"));
+    ChoiceParm2->Append(_T("60"));
+    ChoiceParm2->Append(_T("66"));
+    ChoiceParm2->Append(_T("70"));
+    ChoiceParm2->Append(_T("75"));
+    ChoiceParm2->Append(_T("80"));
+    ChoiceParm2->Append(_T("90"));
+    ChoiceParm2->SetSelection( ChoiceParm2->Append(_T("100")) );
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACDISABLED, _("Disable"), GetToolbarBitmapBundle("xlAC_DISABLED"), wxNullBitmap, wxITEM_CHECK, wxEmptyString, wxEmptyString, NULL);
     ACToolbar->AddSeparator();
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACSELECT, _("Select"), GetToolbarBitmapBundle("xlAC_SELECT"), wxNullBitmap, wxITEM_CHECK, _("Select - SHIFT L"), wxEmptyString, NULL);
@@ -743,7 +747,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     EffectsToolBar = new xlAuiToolBar(this, ID_AUIEFFECTSTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     EffectsToolBar->Realize();
     MainAuiManager->AddPane(EffectsToolBar, wxAuiPaneInfo().Name(_T("EffectsToolBar")).ToolbarPane().Caption(_("Effects")).CloseButton(false).Layer(5).Top().Gripper());
-    Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_TOP | wxBORDER_NONE);
+    Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxBORDER_NONE);
     PanelSetup = new wxPanel(Notebook1, ID_PANEL_SETUP, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_SETUP"));
     FlexGridSizerSetup = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetup->AddGrowableCol(0);
@@ -751,138 +755,125 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, PanelSetup, _("Directories"));
     GridBagSizer1 = new wxGridBagSizer(0, 0);
     StaticText38 = new wxStaticText(PanelSetup, wxID_ANY, _("Show Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    GridBagSizer1->Add(StaticText38, wxGBPosition(0, 0), wxDefaultSpan, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(StaticText38, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Button03 = new wxButton(PanelSetup, ID_BUTTON3, _("Change Permanently"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-    GridBagSizer1->Add(Button03, wxGBPosition(0, 1), wxDefaultSpan, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(Button03, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_CheckShowFolderTemporarily = new wxButton(PanelSetup, ID_BUTTON11, _("Change Temporarily"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
-    GridBagSizer1->Add(Button_CheckShowFolderTemporarily, wxGBPosition(0, 2), wxDefaultSpan, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(Button_CheckShowFolderTemporarily, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_ChangeTemporarilyAgain = new wxButton(PanelSetup, ID_BUTTON13, _("Change Temporarily Again"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON13"));
     Button_ChangeTemporarilyAgain->Hide();
-    GridBagSizer1->Add(Button_ChangeTemporarilyAgain, wxGBPosition(0, 3), wxDefaultSpan, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(Button_ChangeTemporarilyAgain, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ShowDirectoryLabel = new wxStaticText(PanelSetup, ID_STATICTEXT4, _("{Show Directory not set}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-    GridBagSizer1->Add(ShowDirectoryLabel, wxGBPosition(0, 4), wxDefaultSpan, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(ShowDirectoryLabel, wxGBPosition(0, 4), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_BaseShowDirLabel = new wxStaticText(PanelSetup, ID_STATICTEXT2, _("Base Show Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    GridBagSizer1->Add(StaticText_BaseShowDirLabel, wxGBPosition(1, 0), wxDefaultSpan, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(StaticText_BaseShowDirLabel, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Button_ChangeBaseShowDir = new wxButton(PanelSetup, ID_BUTTON14, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON14"));
-    GridBagSizer1->Add(Button_ChangeBaseShowDir, wxGBPosition(1, 1), wxDefaultSpan, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(Button_ChangeBaseShowDir, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_ClearBaseShowDir = new wxButton(PanelSetup, ID_BUTTON15, _("Clear"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON15"));
-    GridBagSizer1->Add(Button_ClearBaseShowDir, wxGBPosition(1, 2), wxDefaultSpan, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(Button_ClearBaseShowDir, wxGBPosition(1, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_BaseShowDir = new wxStaticText(PanelSetup, ID_STATICTEXT3, _("No base show directory"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-    GridBagSizer1->Add(StaticText_BaseShowDir, wxGBPosition(1, 4), wxDefaultSpan, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(StaticText_BaseShowDir, wxGBPosition(1, 4), wxDefaultSpan, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
     CheckBox_AutoUpdateBase = new wxCheckBox(PanelSetup, ID_CHECKBOX1, _("Auto Update On Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     CheckBox_AutoUpdateBase->SetValue(false);
-    FlexGridSizer1->Add(CheckBox_AutoUpdateBase, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(CheckBox_AutoUpdateBase, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_UpdateBase = new wxButton(PanelSetup, ID_BUTTON16, _("Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON16"));
-    FlexGridSizer1->Add(Button_UpdateBase, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    GridBagSizer1->Add(FlexGridSizer1, wxGBPosition(1, 3), wxDefaultSpan, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(Button_UpdateBase, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(FlexGridSizer1, wxGBPosition(1, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizer1->AddGrowableCol(4);
-    StaticBoxSizer1->Add(GridBagSizer1, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizerSetup->Add(StaticBoxSizer1, 1, wxALL | wxEXPAND, 5);
+    StaticBoxSizer1->Add(GridBagSizer1, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizerSetup->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, PanelSetup, _("Controllers"));
     FlexGridSizerNetworks = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizerNetworks->AddGrowableCol(2);
     FlexGridSizerNetworks->AddGrowableRow(0);
     BoxSizer1 = new wxBoxSizer(wxVERTICAL);
     ButtonSaveSetup = new wxButton(PanelSetup, ID_BUTTON_SAVE_SETUP, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_SETUP"));
-    BoxSizer1->Add(ButtonSaveSetup, 1, wxALL | wxEXPAND, 3);
+    BoxSizer1->Add(ButtonSaveSetup, 1, wxALL|wxEXPAND, 3);
     ButtonAddControllerSerial = new wxButton(PanelSetup, ID_BUTTON9, _("Add USB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
-    BoxSizer1->Add(ButtonAddControllerSerial, 1, wxALL | wxEXPAND, 3);
+    BoxSizer1->Add(ButtonAddControllerSerial, 1, wxALL|wxEXPAND, 3);
     ButtonAddControllerEthernet = new wxButton(PanelSetup, ID_BUTTON6, _("Add Ethernet"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
-    BoxSizer1->Add(ButtonAddControllerEthernet, 1, wxALL | wxEXPAND, 3);
+    BoxSizer1->Add(ButtonAddControllerEthernet, 1, wxALL|wxEXPAND, 3);
     ButtonAddControllerNull = new wxButton(PanelSetup, ID_BUTTON10, _("Add Null"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
-    BoxSizer1->Add(ButtonAddControllerNull, 1, wxALL | wxEXPAND, 3);
+    BoxSizer1->Add(ButtonAddControllerNull, 1, wxALL|wxEXPAND, 3);
     ButtonDiscover = new wxButton(PanelSetup, ID_BUTTON5, _("Discover"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    BoxSizer1->Add(ButtonDiscover, 1, wxALL | wxEXPAND, 3);
-    FlexGridSizerNetworks->Add(BoxSizer1, 1, wxALIGN_TOP | wxALIGN_CENTER_HORIZONTAL, 0);
+    BoxSizer1->Add(ButtonDiscover, 1, wxALL|wxEXPAND, 3);
+    FlexGridSizerNetworks->Add(BoxSizer1, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 0);
     FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
     BitmapButtonMoveNetworkUp = new wxBitmapButton(PanelSetup, ID_BITMAPBUTTON1, GetButtonBitmapBundle("wxART_GO_UP"), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
     BitmapButtonMoveNetworkUp->SetToolTip(_("Move selected item up"));
-    FlexGridSizer9->Add(BitmapButtonMoveNetworkUp, 1, wxALL | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer9->Add(BitmapButtonMoveNetworkUp, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButtonMoveNetworkDown = new wxBitmapButton(PanelSetup, ID_BITMAPBUTTON2, GetButtonBitmapBundle("wxART_GO_DOWN"), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
     BitmapButtonMoveNetworkDown->SetToolTip(_("Move selected item down"));
-    FlexGridSizer9->Add(BitmapButtonMoveNetworkDown, 1, wxALL | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerNetworks->Add(FlexGridSizer9, 1, wxBOTTOM | wxLEFT | wxALIGN_LEFT | wxALIGN_TOP, 10);
-    SplitterWindowControllers = new wxSplitterWindow(PanelSetup, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-    SplitterWindowControllers->SetMinimumPaneSize(20);
+    FlexGridSizer9->Add(BitmapButtonMoveNetworkDown, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerNetworks->Add(FlexGridSizer9, 1, wxBOTTOM|wxLEFT|wxALIGN_LEFT|wxALIGN_TOP, 10);
+    SplitterWindowControllers = new wxSplitterWindow(PanelSetup, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
     SplitterWindowControllers->SetSashGravity(0.8);
     Panel2 = new wxPanel(SplitterWindowControllers, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     FlexGridSizerSetupControllers = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetupControllers->AddGrowableCol(0);
     FlexGridSizerSetupControllers->AddGrowableRow(0);
     Panel2->SetSizer(FlexGridSizerSetupControllers);
-    FlexGridSizerSetupControllers->Fit(Panel2);
-    FlexGridSizerSetupControllers->SetSizeHints(Panel2);
-    Panel5 = new wxPanel(SplitterWindowControllers, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxALWAYS_SHOW_SB, _T("ID_PANEL6"));
-    Panel5->SetMinSize(wxSize(20, -1));
+    Panel5 = new wxPanel(SplitterWindowControllers, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxALWAYS_SHOW_SB, _T("ID_PANEL6"));
+    Panel5->SetMinSize(wxSize(20,-1));
     FlexGridSizerSetupRight = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetupRight->AddGrowableCol(0);
     FlexGridSizerSetupRight->AddGrowableRow(0);
     FlexGridSizerSetupProperties = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetupProperties->AddGrowableCol(0);
     FlexGridSizerSetupProperties->AddGrowableRow(0);
-    FlexGridSizerSetupRight->Add(FlexGridSizerSetupProperties, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizerSetupRight->Add(FlexGridSizerSetupProperties, 1, wxALL|wxEXPAND, 5);
     FlexGridSizerSetupControllerButtons = new wxFlexGridSizer(1, 0, 0, 0);
     ButtonVisualise = new wxButton(Panel5, ID_BUTTON1, _("Visualise ..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizerSetupControllerButtons->Add(ButtonVisualise, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerSetupControllerButtons->Add(ButtonVisualise, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonUploadInput = new wxButton(Panel5, ID_BUTTON2, _("Upload Input"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    FlexGridSizerSetupControllerButtons->Add(ButtonUploadInput, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerSetupControllerButtons->Add(ButtonUploadInput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonUploadOutput = new wxButton(Panel5, ID_BUTTON4, _("Upload Output"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    FlexGridSizerSetupControllerButtons->Add(ButtonUploadOutput, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerSetupControllerButtons->Add(ButtonUploadOutput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonOpen = new wxButton(Panel5, ID_BUTTON7, _("Open"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
-    FlexGridSizerSetupControllerButtons->Add(ButtonOpen, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerSetupControllerButtons->Add(ButtonOpen, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_OpenProxy = new wxButton(Panel5, ID_BUTTON12, _("Open Proxy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON12"));
-    FlexGridSizerSetupControllerButtons->Add(Button_OpenProxy, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerSetupControllerButtons->Add(Button_OpenProxy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonControllerDelete = new wxButton(Panel5, ID_BUTTON8, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
-    FlexGridSizerSetupControllerButtons->Add(ButtonControllerDelete, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerSetupControllerButtons->Add(ButtonControllerDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticTextDummy = new wxStaticText(Panel5, ID_STATICTEXT1, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizerSetupControllerButtons->Add(StaticTextDummy, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerSetupRight->Add(FlexGridSizerSetupControllerButtons, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizerSetupControllerButtons->Add(StaticTextDummy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerSetupRight->Add(FlexGridSizerSetupControllerButtons, 1, wxALL|wxEXPAND, 5);
     Panel5->SetSizer(FlexGridSizerSetupRight);
-    FlexGridSizerSetupRight->Fit(Panel5);
-    FlexGridSizerSetupRight->SetSizeHints(Panel5);
     SplitterWindowControllers->SplitVertically(Panel2, Panel5);
     SplitterWindowControllers->SetSashPosition(1000);
-    FlexGridSizerNetworks->Add(SplitterWindowControllers, 1, wxALL | wxEXPAND, 5);
-    StaticBoxSizer2->Add(FlexGridSizerNetworks, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizerSetup->Add(StaticBoxSizer2, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizerNetworks->Add(SplitterWindowControllers, 1, wxALL|wxEXPAND, 5);
+    StaticBoxSizer2->Add(FlexGridSizerNetworks, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizerSetup->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
     PanelSetup->SetSizer(FlexGridSizerSetup);
-    FlexGridSizerSetup->Fit(PanelSetup);
-    FlexGridSizerSetup->SetSizeHints(PanelSetup);
     PanelPreview = new wxPanel(Notebook1, ID_PANEL_PREVIEW, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_PREVIEW"));
     FlexGridSizerPreview = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerPreview->AddGrowableCol(0);
     FlexGridSizerPreview->AddGrowableRow(0);
     PanelPreview->SetSizer(FlexGridSizerPreview);
-    FlexGridSizerPreview->Fit(PanelPreview);
-    FlexGridSizerPreview->SetSizeHints(PanelPreview);
-    PanelSequencer = new wxPanel(Notebook1, XLIGHTS_SEQUENCER_TAB, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxWANTS_CHARS, _T("XLIGHTS_SEQUENCER_TAB"));
-    m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING | wxAUI_MGR_DEFAULT);
+    PanelSequencer = new wxPanel(Notebook1, XLIGHTS_SEQUENCER_TAB, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("XLIGHTS_SEQUENCER_TAB"));
+    m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_DEFAULT);
     Notebook1->AddPage(PanelSetup, _("Controllers"), true);
     Notebook1->AddPage(PanelPreview, _("Layout"));
     Notebook1->AddPage(PanelSequencer, _("Sequencer"));
     MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).PaneBorder(false));
-    AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     StatusBarSizer = new wxGridBagSizer(0, 0);
     StatusText = new wxStaticText(AUIStatusBar, ID_STATICTEXT6, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
-    StatusBarSizer->Add(StatusText, wxGBPosition(0, 0), wxDefaultSpan, wxALL | wxEXPAND, 2);
+    StatusBarSizer->Add(StatusText, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxEXPAND, 2);
     Panel1 = new wxPanel(AUIStatusBar, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
-    Panel1->SetMinSize(wxDLG_UNIT(AUIStatusBar, wxSize(100, -1)));
+    Panel1->SetMinSize(wxDLG_UNIT(AUIStatusBar,wxSize(100,-1)));
     GaugeSizer = new wxFlexGridSizer(1, 1, 0, 0);
     GaugeSizer->AddGrowableCol(0);
-    ProgressBar = new wxGauge(Panel1, ID_GAUGE1, 100, wxDefaultPosition, wxDLG_UNIT(Panel1, wxSize(100, -1)), 0, wxDefaultValidator, _T("ID_GAUGE1"));
+    ProgressBar = new wxGauge(Panel1, ID_GAUGE1, 100, wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(100,-1)), 0, wxDefaultValidator, _T("ID_GAUGE1"));
     GaugeSizer->Add(ProgressBar, 0, wxEXPAND, 0);
     Panel1->SetSizer(GaugeSizer);
-    GaugeSizer->Fit(Panel1);
-    GaugeSizer->SetSizeHints(Panel1);
-    StatusBarSizer->Add(Panel1, wxGBPosition(0, 1), wxDefaultSpan, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+    StatusBarSizer->Add(Panel1, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     FileNameText = new wxStaticText(AUIStatusBar, ID_STATICTEXT7, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-    StatusBarSizer->Add(FileNameText, wxGBPosition(0, 2), wxDefaultSpan, wxALL | wxEXPAND, 2);
+    StatusBarSizer->Add(FileNameText, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxEXPAND, 2);
     StatusBarSizer->AddGrowableRow(0);
     AUIStatusBar->SetSizer(StatusBarSizer);
-    StatusBarSizer->Fit(AUIStatusBar);
-    StatusBarSizer->SetSizeHints(AUIStatusBar);
-    MainAuiManager->AddPane(AUIStatusBar, wxAuiPaneInfo().Name(_T("Status Bar")).DefaultPane().Caption(_("Status bar")).CaptionVisible(false).CloseButton(false).Bottom().DockFixed().Dockable(false).Floatable(false).FloatingPosition(wxPoint(0, 0)).FloatingSize(wxSize(0, 0)).Movable(false).PaneBorder(false));
+    MainAuiManager->AddPane(AUIStatusBar, wxAuiPaneInfo().Name(_T("Status Bar")).DefaultPane().Caption(_("Status bar")).CaptionVisible(false).CloseButton(false).Bottom().DockFixed().Dockable(false).Floatable(false).FloatingPosition(wxPoint(0,0)).FloatingSize(wxSize(0,0)).Movable(false).PaneBorder(false));
     MainAuiManager->Update();
     MenuBar = new wxMenuBar();
     MenuFile = new wxMenu();
@@ -1189,6 +1180,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_AUITOOLBARITEM6, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideDisplayElementsWindow);
     Connect(ID_AUITOOLBARITEM8, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemShowHideEffects);
     Connect(ID_AUITOOLBARITEM9, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
+    Connect(ID_AUITOOLBARITEM10,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideSelectEffectsWindow);
     Connect(ID_PASTE_BY_TIME, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPasteByTimeClick);
     Connect(ID_PASTE_BY_CELL, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPasteByCellClick);
     Connect(ID_AUITOOLBARITEM_ACDISABLED, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAC_DisableClick);
@@ -1231,8 +1223,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_BUTTON7, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonOpenClick);
     Connect(ID_BUTTON12, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_OpenProxyClick);
     Connect(ID_BUTTON8, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonControllerDeleteClick);
-    m_mgr->Connect(wxEVT_AUI_PANE_CLOSE, (wxObjectEventFunction)&xLightsFrame::OnPaneClose, 0, this);
-    PanelSequencer->Connect(wxEVT_PAINT, (wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint, 0, this);
+    m_mgr->Connect(wxEVT_AUI_PANE_CLOSE, (wxObjectEventFunction)&xLightsFrame::OnPaneClose, NULL, this);
+    PanelSequencer->Connect(wxEVT_PAINT, (wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint, NULL, this);
     Connect(ID_NOTEBOOK1, wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
     Connect(ID_NOTEBOOK1, wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGING, (wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanging);
     Connect(ID_NEW_SEQUENCE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnButtonNewSequenceClick);
@@ -2902,7 +2894,7 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
                 if (srcDir.GetNameWithSep().length() + fname.length() > 225) {
                     errors += "Consider shortening the directory path or filename.\n";
                 }
-            }   
+            }
         }
     }
 
@@ -8683,7 +8675,7 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
                           (const char*)configver.c_str());
 
 #ifndef SIMULATE_UPGRADE
-        if ((!urlVersion.Matches(configver)) && (!urlVersion.Matches(xlights_version_string)) && IsVersionOlder(urlVersion, xlights_version_string)) 
+        if ((!urlVersion.Matches(configver)) && (!urlVersion.Matches(xlights_version_string)) && IsVersionOlder(urlVersion, xlights_version_string))
 #endif
         {
             found_update = true;
@@ -9642,6 +9634,12 @@ void xLightsFrame::SetModelHandleSize(int i)
 void xLightsFrame::SetSuppressFadeHints(bool b)
 {
     mSuppressFadeHints = b;
+    mainSequencer->PanelEffectGrid->Refresh();
+}
+
+void xLightsFrame::SetSuppressColorWarn(bool b)
+{
+    mSuppressColorWarn = b;
     mainSequencer->PanelEffectGrid->Refresh();
 }
 
