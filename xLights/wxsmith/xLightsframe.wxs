@@ -753,6 +753,7 @@
 														<object class="sizeritem">
 															<object class="wxButton" name="ID_BUTTON6" variable="ButtonAddControllerEthernet" member="yes">
 																<label>Add Ethernet</label>
+																<size>98,28</size>
 																<handler function="OnButtonAddControllerEthernetClick" entry="EVT_BUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
