@@ -512,10 +512,18 @@ void xLightsFrame::CheckForValidModels()
             if (element && ElementType::ELEMENT_TYPE_MODEL == element->GetType()) {
                 std::string name = element->GetModelName();
                 
-                if (AllModels[name] == nullptr) {
-                    int numfx = element->GetEffectCount(); //useful info for user
-                    std::string desc = name + "(" + std::to_string(numfx) + ")";
-                    missingModels.push_back(desc); //show which ones have effects (tells user how important)
+                if (AllModels[name] == nullptr && element->GetEffectCount()>0) {
+                    //check to see if we have an alias
+                    for (const auto& it : AllModels) {
+                        if (it.second->IsAlias(name, true)) {
+                            //this will map to an alias later, skip it
+                        } else if (it.second->IsAlias(name, false)) {
+                            int numfx = element->GetEffectCount(); // useful info for user
+                            std::string desc = name + "(" + std::to_string(numfx) + ")";
+                            missingModels.push_back(desc); // show which ones have effects (tells user how important)
+                        }
+                    }
+                    
                 }
                 //remove the current models from the list so we don't end up with the same model represented twice
                 Remove(AllNames, name);
