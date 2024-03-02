@@ -159,10 +159,10 @@ void xLightsFrame::CreateSequencer()
                    .Float().MaximizeButton(true));
     // Hide the panel on start.
     wxAuiPaneInfo & info = m_mgr->GetPane("DisplayElements");
-    info.BestSize(wxSize(600, 400));
+    info.BestSize(wxSize(750, 1050));
     int w, h;
     displayElementsPanel->GetSize(&w, &h);
-    info.FloatingSize(std::max(600, w), std::max(400, h));
+    info.FloatingSize(std::max(750, w), std::max(1050, h));
     info.Hide();
 
     m_mgr->AddPane(perspectivePanel,wxAuiPaneInfo().Name(wxT("Perspectives")).Caption(wxT("Perspectives")).Left().Layer(1).Hide());
@@ -3034,10 +3034,10 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
 {
     displayElementsPanel->Initialize();
     wxAuiPaneInfo & info = m_mgr->GetPane("DisplayElements");
-    info.BestSize(wxSize(600, 400));
+    info.BestSize(wxSize(750, 1050));
     int w, h;
     displayElementsPanel->GetSize(&w, &h);
-    info.FloatingSize(std::max(600, w), std::max(400, h));
+    info.FloatingSize(std::max(750, w), std::max(1050, h));
     info.Show();
     m_mgr->Update();
     UpdateViewMenu();
@@ -3087,10 +3087,10 @@ void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
     if (visible) {
         info.Hide();
     } else {
-        info.BestSize(wxSize(600, 400));
+        info.BestSize(wxSize(750, 1050));
         int w, h;
         displayElementsPanel->GetSize(&w, &h);
-        info.FloatingSize(std::max(600, w), std::max(400, h));
+        info.FloatingSize(std::max(750, w), std::max(1050, h));
         info.Show();
     }
     m_mgr->Update();
