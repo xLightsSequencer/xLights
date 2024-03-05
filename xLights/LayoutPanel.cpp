@@ -6712,6 +6712,8 @@ void LayoutPanel::DeleteSelectedModels()
         for (const auto& item : selectedTreeModels) {
             if (item.IsOk()) {
                 wxString modelName = TreeListViewModels->GetItemText(item);
+                modelName.Replace("<", "");
+                modelName.Replace(">", "");
                 modelsToDelete.Add(modelName);
                 modelsToConfirm = modelsToConfirm + wxString::Format("%s- %s\n", "    ", modelName);
             }
