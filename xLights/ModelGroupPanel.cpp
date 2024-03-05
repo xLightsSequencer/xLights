@@ -122,6 +122,7 @@ const long ModelGroupPanel::ID_LISTCTRL2 = wxNewId();
 const long ModelGroupPanel::ID_MNU_CLEARALL = wxNewId();
 const long ModelGroupPanel::ID_MNU_COPY = wxNewId();
 const long ModelGroupPanel::ID_MNU_SORTBYNAME = wxNewId();
+const long ModelGroupPanel::ID_MNU_SORTBYLOCATION = wxNewId();
 
 BEGIN_EVENT_TABLE(ModelGroupPanel,wxPanel)
 	//(*EventTable(ModelGroupPanel)
@@ -1268,6 +1269,7 @@ void ModelGroupPanel::OnListBoxModelsInGroupItemRClick(wxListEvent& event)
     if(ListBoxModelsInGroup->GetItemCount() != 0) {
         mnu.AppendSeparator();
         mnu.Append(ID_MNU_SORTBYNAME, "Sort By Name");
+        mnu.Append(ID_MNU_SORTBYLOCATION, "Sort By Location");
         mnu.AppendSeparator();
         mnu.Append(ID_MNU_CLEARALL, "Clear");
     }
@@ -1294,6 +1296,8 @@ void ModelGroupPanel::OnPopup(wxCommandEvent& event)
     }
     else if (id == ID_MNU_SORTBYNAME) {
         SortModelsByName();
+    } else if (id == ID_MNU_SORTBYLOCATION) {
+        SortModelsByLocation();
     }
 }
 
@@ -1336,6 +1340,37 @@ void ModelGroupPanel::SortModelsByName()
     models.Sort(wxStringNumberAwareStringCompare);
     for (int i = 0; i < models.size(); ++i) {
         ListBoxModelsInGroup->InsertItem(i, models[i]);
+    }
+    SaveGroupChanges();
+    UpdatePanel(mGroup);
+}
+
+void ModelGroupPanel::SortModelsByLocation()
+{
+    ModelGroup* g = (ModelGroup*)mModels[mGroup];
+    if (g == nullptr)
+        return;
+    std::vector<std::pair<wxString, float>> modelPos;
+
+    for (int i = ListBoxModelsInGroup->GetItemCount(); i >= 0; --i) {
+        wxString const modelName = ListBoxModelsInGroup->GetItemText(i, 0);
+        Model* model = mModels[modelName];
+        float pos;
+        if (model != nullptr) {
+            pos = model->GetLeft();
+        } else {
+            pos = 0;
+        }
+        modelPos.push_back(std::make_pair(modelName, pos));
+
+        ListBoxModelsInGroup->SetItemState(i, 0, wxLIST_STATE_SELECTED);
+        ListBoxModelsInGroup->DeleteItem(i);
+    }
+    std::sort(modelPos.begin(), modelPos.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.second < rhs.second;
+    });
+    for (int i = 0; i < modelPos.size(); ++i) {
+        ListBoxModelsInGroup->InsertItem(i, modelPos[i].first);
     }
     SaveGroupChanges();
     UpdatePanel(mGroup);
