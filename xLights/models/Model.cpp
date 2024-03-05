@@ -548,7 +548,7 @@ void Model::Rename(std::string const& newName)
     ModelXml->DeleteAttribute("name");
     ModelXml->AddAttribute("name", name);
 
-    if (oldname != "") {
+    if (oldname != "" && newName != "Iamgoingtodeletethismodel") {
         if (wxMessageBox("Would you like to save the old name as an alias for this prop. This could be useful if you have sequences already sequenced against this prop using the old name.", "Save old name as alias", wxYES_NO | wxICON_QUESTION, GetModelManager().GetXLightsFrame()) == wxYES) {
             AddAlias("oldname:" + oldname);
         }
