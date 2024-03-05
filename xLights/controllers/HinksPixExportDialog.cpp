@@ -1103,7 +1103,11 @@ void HinksPixExportDialog::OnButtonAddPlaylistClick(wxCommandEvent& event)
 {
     wxTextEntryDialog dlg(this, "Playlist Name", "Enter Playlist Name", "MAIN");
     if (dlg.ShowModal() == wxID_OK) {
-        wxString n = dlg.GetValue();
+        wxString n = dlg.GetValue().Trim().Trim(false);
+        if (n.IsEmpty()) {
+            DisplayError("Playlist Name Cannot be Empty", this);
+            return;
+        }
         if (auto playlistRef = GetPlayList(n); playlistRef) {
             DisplayError("Playlist Name Already Exists", this);
             return;

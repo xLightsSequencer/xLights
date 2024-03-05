@@ -287,9 +287,15 @@ struct Schedule {
         }
         //check for overlapping times
         for (auto it1 = std::cbegin(sItems); it1 != std::cend(sItems); ++it1) {
+            auto& schItm1 = *it1;
+            if (!schItm1.Enabled) {
+                continue;
+            }
             for (auto it2 = std::next(it1); it2 != std::cend(sItems); ++it2) {
-                auto& schItm1 = *it1;
                 auto& schItm2 = *it2;
+                if (!schItm2.Enabled) {
+                    continue;
+                }
                 if (schItm1.EndHour > schItm2.StartHour) {
                     reason = wxString::Format("%s End Hour overlaps %s Start Hour", schItm1.Playlist, schItm2.Playlist);
                     return false;
