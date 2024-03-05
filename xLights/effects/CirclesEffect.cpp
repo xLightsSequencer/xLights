@@ -145,6 +145,8 @@ void CirclesEffect::SetDefaultParameters() {
     SetSliderValue(cp->Slider_Circles_Count, 3);
     SetSliderValue(cp->Slider_Circles_Size, 5);
     SetSliderValue(cp->Slider_Circles_Speed, 10);
+    SetSliderValue(cp->Slider_Circles_XC, 0);
+    SetSliderValue(cp->Slider_Circles_YC, 0);
 
     SetCheckBoxValue(cp->CheckBox_Circles_Bounce, false);
     SetCheckBoxValue(cp->CheckBox_Circles_Radial, false);
@@ -190,6 +192,8 @@ void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
 
     if (radial || radial_3D)
     {
+        start_x = start_x + (GetValueCurveInt("Circles_XC", 0, SettingsMap, oset, CIRCLES_POS_MIN, CIRCLES_POS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(CIRCLES_POS_MAX) * start_x);
+        start_y = start_y + (GetValueCurveInt("Circles_YC", 0, SettingsMap, oset, CIRCLES_POS_MIN, CIRCLES_POS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / float(CIRCLES_POS_MAX) * start_y);
         RenderRadial(buffer, start_x, start_y, radius, colorCnt, number, radial_3D, effectState);
         return; //radial is the easiest case so just get out.
     }
