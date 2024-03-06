@@ -88,7 +88,6 @@ std::pair<std::list<std::string>, std::string> LuaRunner::PromptSequences() cons
             forceHighDefinitionRender = "true";
         }
     }
-    
     return std::make_pair(sequenceList, forceHighDefinitionRender);
 }
 
