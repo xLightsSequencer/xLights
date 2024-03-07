@@ -739,7 +739,7 @@ void DrawLabel(TextDrawingContext *dc,
                TextRenderCache *cache,
                const std::string &fontString,
                const std::vector<xlColor> colors,
-               const boolean perWord = false)
+               const bool perWord = false)
 {
     // find the text position
     wxCoord widthText, heightText, heightLine;
