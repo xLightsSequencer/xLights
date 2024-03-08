@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="PicturesAssistPanel">
-		<pos_arg>1</pos_arg>
-		<size_arg>1</size_arg>
+		<id_arg>0</id_arg>
 		<style>wxTAB_TRAVERSAL|wxWANTS_CHARS</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
 			<cols>1</cols>
@@ -27,17 +26,15 @@
 													<object class="wxFlexGridSizer" variable="ColorPickerSizer" member="no">
 														<cols>1</cols>
 													</object>
-													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
 													<object class="wxFlexGridSizer" variable="PaintToolsSizer" member="no">
-														<cols>4</cols>
+														<cols>6</cols>
 														<hgap>10</hgap>
 													</object>
-													<flag>wxALL|wxEXPAND</flag>
-													<border>5</border>
+													<flag>wxALL</flag>
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
@@ -93,7 +90,6 @@
 																</object>
 															</object>
 															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>5</border>
 															<option>1</option>
 														</object>
 														<object class="sizeritem">
@@ -121,26 +117,22 @@
 															<option>1</option>
 														</object>
 													</object>
-													<flag>wxALL|wxEXPAND</flag>
-													<border>5</border>
+													<flag>wxALL</flag>
 													<option>1</option>
 												</object>
 											</object>
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
 										<option>1</option>
 									</object>
 								</object>
 							</object>
 							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-							<border>5</border>
 							<option>1</option>
 						</object>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<flag>wxALL</flag>
 				<option>1</option>
 			</object>
 		</object>

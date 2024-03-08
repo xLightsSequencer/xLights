@@ -34,7 +34,11 @@ class xlColorPickerFields: public xlColorPicker
 		virtual ~xlColorPickerFields();
 
         virtual void SetColor(xlColor& color );
+		virtual int GetActiveButton();
+        virtual void SetButtonColor(const int, xlColor& color);
+        wxColour GetButtonColor(const int);
         virtual void NotifyColorChange();
+        virtual void ResetPanel();
 
 		//(*Declarations(xlColorPickerFields)
 		wxBitmapButton* BitmapButton_Swatch1;
@@ -116,7 +120,6 @@ class xlColorPickerFields: public xlColorPicker
 
         ColorDisplayMode mDisplayMode;
         wxBitmapButton* mActiveButton;
-        wxWindow* mMsgParent;
 
 		DECLARE_EVENT_TABLE()
 };
