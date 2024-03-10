@@ -169,6 +169,7 @@ private:
         bool effectMixVaries;
         bool canvas = false;
         bool persistent = false;
+        bool renderingDisabled = false;
         int fadeInSteps;
         int fadeOutSteps;
         std::string inTransitionType;
@@ -286,7 +287,8 @@ public:
 
     void Clear(int which);
 
-    void SetLayerSettings(int layer, const SettingsMap &settings);
+    void SetLayerSettings(int layer, const SettingsMap &settings, bool layerEnabled);
+    bool IsRenderingDisabled(int layer) const;
     bool IsPersistent(int layer);
     int GetFreezeFrame(int layer);
     int GetSuppressUntil(int layer);
