@@ -65,10 +65,10 @@ std::string LuaRunner::PromptSelection(sol::object const& items, std::string con
     return {};
 }
 
-std::pair<std::list<std::string>, std::string> LuaRunner::PromptSequences() const
+std::pair<std::list<std::string>, bool> LuaRunner::PromptSequences() const
 {
     std::list<std::string> sequenceList;
-    std::string forceHighDefinitionRender = "false";
+    bool forceHighDefinitionRender = false;
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     BatchRenderDialog dlg(_frame);
@@ -85,7 +85,7 @@ std::pair<std::list<std::string>, std::string> LuaRunner::PromptSequences() cons
             }
         }
         if (dlg.CheckBox_ForceHighDefinition->IsChecked()) {
-            forceHighDefinitionRender = "true";
+            forceHighDefinitionRender = true;
         }
     }
     return std::make_pair(sequenceList, forceHighDefinitionRender);
