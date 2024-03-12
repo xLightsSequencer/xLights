@@ -556,9 +556,9 @@ void FPPConnectDialog::OnPopup(wxCommandEvent &event)
             CheckListBox_Sequences->CheckItem(item);
         } else if (id == ID_MNU_SELECTNONE && isChecked) {
             CheckListBox_Sequences->UncheckItem(item);
-        } else if (id == ID_MNU_SELECTHIGH && !isChecked && isSelected) {
+        } else if (id == ID_MNU_SELECTHIGH && isSelected) {
             CheckListBox_Sequences->CheckItem(item);
-        } else if (id == ID_MNU_SELECTHIGH && isChecked && isSelected) {
+        } else if (id == ID_MNU_DESELECTHIGH && isSelected) {
             CheckListBox_Sequences->UncheckItem(item);
         }
         item = CheckListBox_Sequences->GetNextItem(item);
