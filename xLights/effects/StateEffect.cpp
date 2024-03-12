@@ -234,7 +234,11 @@ void StateEffect::RenderState(RenderBuffer &buffer,
 
     Model* model_info = buffer.GetModel();
     if (model_info == nullptr) {
-        return;
+        buffer.cur_model = buffer.cur_model.substr(0, buffer.cur_model.find("/"));
+        model_info = buffer.GetModel();
+        if (model_info == nullptr) {
+            return;
+        }
     }
 
     std::string definition = faceDefinition;
