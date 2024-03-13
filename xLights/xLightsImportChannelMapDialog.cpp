@@ -2707,4 +2707,5 @@ void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& 
             xlights->GetModel(m->_model)->AddAlias(m->_mapping);
         }
     }
+    xlights->SetStatusText(_("Update Aliases Done."));
 }
