@@ -11,6 +11,20 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.05 Mar 14, 2024
+   - eng (scott)        Add some additional columns to controller list
+   - enh (cybercop23)   Increase default size of Display Elements window,
+   - enh (cybercop23)   Remove duplicate prompts for Save Alias
+   - enh (derwin12)     Add "Color by word" option for Text effect
+   - enh (derwin12)     Add sort by location to model groups
+   - enh (cybercop23)   Allow inactive models to be deleted
+   - enh (derwin12)     Add X/Y positioning to Circle effect when using radial options
+   - enh (derwin12)     Face Dialog - sort and compress entered nodes
+   - enh (derwin12)     Lua Scripting - expose the "Force High Definition" option
+   - bug (derwin12)     Fix chapter bookmark display issues on Linux
+   - bug (scott)        HinksPix - Fix overlap check and empy playlist name issues
+   - bug (scott)        Fix crash in import dialog
+   - bug (dkulp)        Fix several crashes due to effects with rendering disabled   
 2024.04 Feb 29, 2024
    -- enh (gjones)      Allow model group centers (red cross) to be defined with right-click (Set Center Offset Here)
    -- enh (gjones)      Prevent model group centers (red cross) from moving when models are added/removed/moved
