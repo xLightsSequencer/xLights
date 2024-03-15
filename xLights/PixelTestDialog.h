@@ -349,6 +349,8 @@ class PixelTestDialog: public wxDialog
         static const long ID_TREELISTCTRL_Controllers;
         static const long ID_MNU_TEST_SELECTALL;
         static const long ID_MNU_TEST_DESELECTALL;
+        static const long ID_MNU_SELECTHIGH;
+		static const long ID_MNU_DESELECTHIGH;
         static const long ID_MNU_TEST_SELECTN;
         static const long ID_MNU_TEST_DESELECTN;
         static const long ID_MNU_TEST_NUMBER;
@@ -466,7 +468,6 @@ class PixelTestDialog: public wxDialog
 		void RenderModel();
         void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
         void SelectAllInBoundingRect(bool shiftdwn);
-        void RemoveNodes();
         void UpdateVisualModelFromTracker();
 
         bool AreChannelsAvailable(Model* model);
