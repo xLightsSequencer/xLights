@@ -356,6 +356,8 @@ class PixelTestDialog: public wxDialog
         static const long ID_TREELISTCTRL_Controllers;
         static const long ID_MNU_TEST_SELECTALL;
         static const long ID_MNU_TEST_DESELECTALL;
+        static const long ID_MNU_SELECTHIGH;
+		static const long ID_MNU_DESELECTHIGH;
         static const long ID_MNU_TEST_SELECTN;
         static const long ID_MNU_TEST_DESELECTN;
         static const long ID_MNU_TEST_NUMBER;

@@ -1140,6 +1140,8 @@ const long PixelTestDialog::ID_TREELISTCTRL_Models = wxNewId();
 const long PixelTestDialog::ID_TREELISTCTRL_Controllers = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_SELECTALL = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_DESELECTALL = wxNewId();
+const long PixelTestDialog::ID_MNU_SELECTHIGH = wxNewId();
+const long PixelTestDialog::ID_MNU_DESELECTHIGH = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_SELECTN = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_DESELECTN = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_NUMBER = wxNewId();
@@ -2329,6 +2331,8 @@ void PixelTestDialog::OnContextMenu(wxTreeListEvent& event)
     wxMenu mnuContext;
     mnuContext.Append(ID_MNU_TEST_SELECTALL, "Select All");
     mnuContext.Append(ID_MNU_TEST_DESELECTALL, "Deselect All");
+    mnuContext.Append(ID_MNU_SELECTHIGH, "Select Highlighted");
+    mnuContext.Append(ID_MNU_DESELECTHIGH, "Deselect Highlighted");
     mnuContext.Append(ID_MNU_TEST_SELECTN, "Select Many");
     mnuContext.Append(ID_MNU_TEST_DESELECTN, "Deselect Many");
     if (_rcTree == TreeListCtrl_Controllers)
@@ -2340,8 +2344,6 @@ void PixelTestDialog::OnContextMenu(wxTreeListEvent& event)
 
 void PixelTestDialog::OnListPopup(wxCommandEvent& event)
 {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxTreeListCtrl* tree = _rcTree;
     wxTreeListItem selected = _rcItem;
     wxTreeListItem root = tree->GetFirstChild(tree->GetRootItem());
@@ -2385,6 +2387,52 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
         }
         tree->CheckItem(tree->GetRootItem(), wxCHK_UNCHECKED);
         CascadeSelected(tree, tree->GetRootItem(), wxCHK_UNCHECKED);
+    } else if (id == ID_MNU_SELECTHIGH) {
+        wxTreeListItems selections;
+        tree->GetSelections(selections);
+        if (selections.size() > 1) {
+            for (int i = 0; i < selections.size(); i++) {
+                TestItemBase* tc = (TestItemBase*)tree->GetItemData(selections[i]);
+                if (tree->GetCheckedState(selections[i]) == wxCHK_UNCHECKED && tc->IsClickable()) {
+                    // check the items
+                    tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_CHECKED);
+                    if (tc->IsContiguous()) {
+                        _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                    } else {
+                        long ch = tc->GetFirstChannel();
+                        while (ch != -1) {
+                            _channelTracker.AddRange(ch, ch);
+                            ch = tc->GetNextChannel();
+                        }
+                    }
+                    CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_CHECKED);
+                }
+            }
+        }
+        _checkChannelList = true;
+    } else if (id == ID_MNU_DESELECTHIGH) {
+        wxTreeListItems selections;
+        tree->GetSelections(selections);
+        if (selections.size() > 1) {
+            for (int i = 0; i < selections.size(); i++) {
+                TestItemBase* tc = (TestItemBase*)tree->GetItemData(selections[i]);
+                if (tree->GetCheckedState(selections[i]) == wxCHK_CHECKED) {
+                    // uncheck the items
+                    tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
+                    if (tc->IsContiguous()) {
+                        _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                    } else {
+                        long ch = tc->GetFirstChannel();
+                        while (ch != -1) {
+                            _channelTracker.RemoveRange(ch, ch);
+                            ch = tc->GetNextChannel();
+                        }
+                    }
+                    CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
+                }
+            }
+        }
+        _checkChannelList = true;
     } else if (id == ID_MNU_TEST_SELECTN) {
         if (selected.IsOk()) {
             wxNumberEntryDialog dlg(this, "Number to select", "", "", 2, 1, 1000);
