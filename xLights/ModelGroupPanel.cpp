@@ -1357,7 +1357,14 @@ void ModelGroupPanel::SortModelsByLocation()
         Model* model = mModels[modelName];
         float pos;
         if (model != nullptr) {
-            pos = model->GetLeft();
+            if (model->GetDisplayAs() == "ModelGroup") {
+                Model* m = dynamic_cast<ModelGroup*>(model)->GetFirstModel();
+                if (m == nullptr)
+                    m = model;
+                pos = m->GetLeft();
+            } else {
+                pos = model->GetLeft();
+            }
         } else {
             pos = 0;
         }
