@@ -231,7 +231,9 @@ class PixelTestDialog: public wxDialog
 		DIM,
 		TWINKLE,
 		SHIMMER,
-		RGBW
+		RGBW,
+        PortCycle,
+        ColorBlocks
 	};
 
 	public:
@@ -280,6 +282,7 @@ class PixelTestDialog: public wxDialog
 		wxNotebook* Notebook2;
 		wxPanel* Panel1;
 		wxPanel* Panel2;
+		wxPanel* PanelController;
 		wxPanel* PanelRGB;
 		wxPanel* PanelRGBCycle;
 		wxPanel* PanelStandard;
@@ -289,6 +292,9 @@ class PixelTestDialog: public wxDialog
 		wxPanel* Panel_Models;
 		wxPanel* Panel_Outputs;
 		wxPanel* Panel_VisualModel;
+		wxRadioButton* RadioButton_Controller_CyclePorts;
+		wxRadioButton* RadioButton_Controller_Off;
+		wxRadioButton* RadioButton_Controller_PixelCount;
 		wxRadioButton* RadioButton_RGBCycle_ABC;
 		wxRadioButton* RadioButton_RGBCycle_ABCAll;
 		wxRadioButton* RadioButton_RGBCycle_ABCAllNone;
@@ -336,6 +342,7 @@ class PixelTestDialog: public wxDialog
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
 		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
 		wxStaticText* StatusBar1;
 		xLightsTimer Timer1;
 		//*)
@@ -415,6 +422,11 @@ class PixelTestDialog: public wxDialog
 		static const long ID_RADIOBUTTON_RGBCycle_RGBW;
 		static const long ID_CHECKBOX2;
 		static const long ID_PANEL10;
+		static const long ID_STATICTEXT9;
+		static const long ID_RADIOBUTTON_CONTROLLER_OFF;
+		static const long ID_RADIOBUTTON_CONTROLLER_CYCLEPORTS;
+		static const long ID_RADIOBUTTON_CONTROLLER_PIXELCOUNT;
+		static const long ID_PANEL12;
 		static const long ID_NOTEBOOK2;
 		static const long ID_STATICTEXT1;
 		static const long ID_SLIDER_Speed;
@@ -466,7 +478,6 @@ class PixelTestDialog: public wxDialog
 		void RenderModel();
         void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
         void SelectAllInBoundingRect(bool shiftdwn);
-        void RemoveNodes();
         void UpdateVisualModelFromTracker();
 
         bool AreChannelsAvailable(Model* model);
