@@ -198,10 +198,9 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                                     }
                                 } else {
                                     node = Nodes[nodeIndexMap[nn]].get();
-                                    int i = node->Coords.size();
-                                    node->Coords.push_back(node->Coords[0]);
-                                    node->Coords[i].bufX = col;
-                                    node->Coords[i].bufY = row;
+                                    node->Coords.insert(node->Coords.begin(), node->Coords[0]);
+                                    node->Coords[0].bufX = col;
+                                    node->Coords[0].bufY = row;
                                 }
                                 if (vert) {
                                     row++;

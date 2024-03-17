@@ -1433,7 +1433,7 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool> & validLa
                     color.Set(0, 0, 0, 0);
                     xlColor c2;
                     bool found = false;
-                    for (auto it = thelayer->buffer.Nodes[node]->Coords.rbegin(); it != thelayer->buffer.Nodes[node]->Coords.rend(); ++it) {
+                    for (auto it = thelayer->buffer.Nodes[node]->Coords.begin(); it != thelayer->buffer.Nodes[node]->Coords.end(); ++it) {
                         //find the last coordinate with a color, compatibility with older xLights that only allowed a
                         //node to exist once in the submodel and would use the coord of the last appearance
                         auto coord = *it;
