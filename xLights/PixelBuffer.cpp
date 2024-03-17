@@ -1439,6 +1439,7 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool> & validLa
                         auto coord = *it;
                         int x1 = coord.bufX;
                         int y1 = coord.bufY;
+                        
                         if (!thelayer->isMasked(x1, y1)) {
                             thelayer->buffer.GetPixel(x1, y1, c2);
                             if (c2.alpha != 0) {
