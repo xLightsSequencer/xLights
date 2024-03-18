@@ -1221,7 +1221,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                     effect->SetEffectIndex(effectManager.GetEffectIndex(effectName));
                     resetStrings = true;
                 }
-                SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+                SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetFullName(),
                     effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
                     !event.isNew);
                 selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
@@ -2503,11 +2503,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     //p->Freeze();
     Model *model = GetModel(modelName);
     if (setDefaults) {
-        if (modelName == "") {
-            ResetPanelDefaultSettings(effectName, nullptr, false);
-        } else {
-            ResetPanelDefaultSettings(effectName, model, false);
-        }
+        ResetPanelDefaultSettings(effectName, model, false);
     }
 
     EffectsPanel1->SetEffectPanelStatus(model, effectName);

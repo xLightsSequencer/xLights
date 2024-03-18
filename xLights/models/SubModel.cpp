@@ -365,3 +365,58 @@ void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outpu
         p->ChangeFlag(wxPG_PROP_READONLY, true);
     }
 }
+
+static const std::string VERT_PER_STRAND("Vertical Per Strand");
+static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");
+std::vector<std::string> SubModel::SUBMODEL_BUFFER_STYLES;
+const std::vector<std::string>& SubModel::GetBufferStyles() const {
+    struct Initializer {
+        Initializer() {
+            SUBMODEL_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
+            SUBMODEL_BUFFER_STYLES.push_back(VERT_PER_STRAND);
+            SUBMODEL_BUFFER_STYLES.push_back(HORIZ_PER_STRAND);
+        }
+    };
+    static Initializer ListInitializationGuard;
+    return SUBMODEL_BUFFER_STYLES;
+}
+
+void SubModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const {
+    std::string ntype = type;
+    bool isRanges = _type == "ranges";
+    if (isRanges && (type == VERT_PER_STRAND || type == HORIZ_PER_STRAND)) {
+        bool vert = _layout == "vertical";
+        if (vert && (type == HORIZ_PER_STRAND)) {
+            Model::GetBufferSize("Dafault", camera, "Rotate CW 90", BufferWi, BufferHi, stagger);
+            AdjustForTransform(transform, BufferWi, BufferHi);
+        } else if (!vert && (type == VERT_PER_STRAND)) {
+            Model::GetBufferSize("Dafault", camera, "Rotate CC 90", BufferWi, BufferHi, stagger);
+            AdjustForTransform(transform, BufferWi, BufferHi);
+        } else {
+            Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+        }
+    } else {
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+    }
+}
+void SubModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
+                                     std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep) const {
+    std::string ntype = type;
+    bool isRanges = _type == "ranges";
+    if (isRanges && (type == VERT_PER_STRAND || type == HORIZ_PER_STRAND)) {
+        bool vert = _layout == "vertical";
+        // these can be optimized as the default for "isRanges" is per strand.  We can use "default" or a simple rotate
+        // to avoid re-calculating everything
+        if (vert && (type == HORIZ_PER_STRAND)) {
+            Model::InitRenderBufferNodes("Dafault", camera, "Rotate CW 90", Nodes, BufferWi, BufferHi, stagger, deep);
+            AdjustForTransform(transform, BufferWi, BufferHi);
+        } else if (!vert && (type == VERT_PER_STRAND)) {
+            Model::InitRenderBufferNodes("Dafault", camera, "Rotate CC 90", Nodes, BufferWi, BufferHi, stagger, deep);
+            AdjustForTransform(transform, BufferWi, BufferHi);
+        } else {
+            Model::InitRenderBufferNodes("Default", camera, transform, Nodes, BufferWi, BufferHi, stagger, deep);
+        }
+    } else {
+        Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi, stagger, deep);
+    }
+}
