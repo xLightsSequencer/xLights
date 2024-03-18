@@ -50,7 +50,7 @@ TextEffect::~TextEffect()
 
 std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     wxString textFilename = settings.Get("E_FILEPICKERCTRL_Text_File", "");
     wxString text = ToWXString(settings.Get("E_TEXTCTRL_Text", ""));

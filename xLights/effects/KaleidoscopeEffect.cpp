@@ -44,7 +44,7 @@ xlEffectPanel *KaleidoscopeEffect::CreatePanel(wxWindow *parent)
 
 std::list<std::string> KaleidoscopeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("T_CHECKBOX_Canvas", "0") == "0")
     {

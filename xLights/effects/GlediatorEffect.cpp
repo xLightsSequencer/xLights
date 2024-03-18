@@ -147,7 +147,7 @@ GlediatorEffect::~GlediatorEffect()
 
 std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     wxString GledFilename = settings.Get("E_FILEPICKERCTRL_Glediator_Filename", "");
 

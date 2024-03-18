@@ -53,7 +53,7 @@ PicturesEffect::~PicturesEffect()
 std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     wxString pictureFilename = settings.Get("E_FILEPICKER_Pictures_Filename", "");
 

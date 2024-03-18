@@ -38,7 +38,7 @@ DuplicateEffect::~DuplicateEffect()
 
 std::list<std::string> DuplicateEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     // get the sequence elements
     auto& se = model->GetModelManager().GetXLightsFrame()->GetSequenceElements();

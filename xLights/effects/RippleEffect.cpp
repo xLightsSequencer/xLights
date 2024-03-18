@@ -1684,7 +1684,7 @@ std::list<std::string> RippleEffect::GetFileReferences(Model* model, const Setti
 
 std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     std::string object = settings["E_CHOICE_Ripple_Object_To_Draw"];
     if (object == "SVG") {

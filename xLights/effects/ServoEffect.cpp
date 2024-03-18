@@ -46,7 +46,7 @@ xlEffectPanel *ServoEffect::CreatePanel(wxWindow *parent) {
 
 std::list<std::string> ServoEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     wxString timing = settings.Get("E_CHOICE_Servo_TimingTrack", "");
 

@@ -38,7 +38,7 @@ PianoEffect::~PianoEffect()
 
 std::list<std::string> PianoEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "") == "") {
         res.push_back(wxString::Format("    ERR: Piano effect needs a timing track. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());

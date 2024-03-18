@@ -31,12 +31,10 @@ StrobeEffect::~StrobeEffect()
 
 std::list<std::string> StrobeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
-
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Strobe_Music", false)) {
         res.push_back(wxString::Format("    WARN: Strobe effect cant follow music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
-
     return res;
 }
 

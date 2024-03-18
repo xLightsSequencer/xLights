@@ -609,7 +609,7 @@ GuitarEffect::~GuitarEffect()
 
 std::list<std::string> GuitarEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", "") == "")
     {

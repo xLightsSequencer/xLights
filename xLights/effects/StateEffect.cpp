@@ -37,7 +37,7 @@ StateEffect::~StateEffect()
 
 std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     // -Buffer not rotated
     wxString bufferTransform = settings.Get("B_CHOICE_BufferTransform", "None");
