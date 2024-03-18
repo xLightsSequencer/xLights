@@ -400,7 +400,7 @@ void SubModel::GetBufferSize(const std::string &type, const std::string &camera,
     }
 }
 void SubModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-                                     std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep) const {
+                                     std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, int stagger, bool deep) const {
     std::string ntype = type;
     bool isRanges = _type == "ranges";
     if (isRanges && (type == VERT_PER_STRAND || type == HORIZ_PER_STRAND)) {
@@ -408,15 +408,15 @@ void SubModel::InitRenderBufferNodes(const std::string &type, const std::string 
         // these can be optimized as the default for "isRanges" is per strand.  We can use "default" or a simple rotate
         // to avoid re-calculating everything
         if (vert && (type == HORIZ_PER_STRAND)) {
-            Model::InitRenderBufferNodes("Dafault", camera, "Rotate CW 90", Nodes, BufferWi, BufferHi, stagger, deep);
-            AdjustForTransform(transform, BufferWi, BufferHi);
+            Model::InitRenderBufferNodes("Dafault", camera, "Rotate CW 90", newNodes, BufferWi, BufferHi, stagger, deep);
+            ApplyTransform(transform, newNodes, BufferWi, BufferHi);
         } else if (!vert && (type == VERT_PER_STRAND)) {
-            Model::InitRenderBufferNodes("Dafault", camera, "Rotate CC 90", Nodes, BufferWi, BufferHi, stagger, deep);
-            AdjustForTransform(transform, BufferWi, BufferHi);
+            Model::InitRenderBufferNodes("Dafault", camera, "Rotate CC 90", newNodes, BufferWi, BufferHi, stagger, deep);
+            ApplyTransform(transform, newNodes, BufferWi, BufferHi);
         } else {
-            Model::InitRenderBufferNodes("Default", camera, transform, Nodes, BufferWi, BufferHi, stagger, deep);
+            Model::InitRenderBufferNodes("Default", camera, transform, newNodes, BufferWi, BufferHi, stagger, deep);
         }
     } else {
-        Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi, stagger, deep);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, stagger, deep);
     }
 }
