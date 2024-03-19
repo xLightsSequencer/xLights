@@ -360,6 +360,9 @@ const long xLightsFrame::ID_XFADESOCKET = wxNewId();
 const long xLightsFrame::ID_MENU_ITEM_PREVIEWS = wxNewId();
 const long xLightsFrame::ID_MENU_ITEM_PREVIEWS_SHOW_ALL = wxNewId();
 
+const long xLightsFrame::ID_MENUITEM_REVERTTO = wxNewId();
+
+
 wxDEFINE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SCRUB, wxCommandEvent);
 wxDEFINE_EVENT(EVT_GSCROLL, wxCommandEvent);
@@ -1932,6 +1935,38 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     SetAudioControls();
 
 #ifdef __WXOSX__
+    revertToMenu = new wxMenu;
+    revertToMenu->Append(wxID_ANY, "Last Saved");
+    revertToMenuItem = MenuFile->Insert(5, ID_MENUITEM_REVERTTO, _("Revert To..."), revertToMenu, wxEmptyString);
+    MenuFile->Bind(wxEVT_MENU_OPEN, [&](wxMenuEvent& event) {
+        event.Skip();
+        if (CurrentSeqXmlFile && CurrentSeqXmlFile->GetSequenceLoaded()) {
+            revertToMenuItem->Enable(true);
+            while (revertToMenu->GetMenuItemCount() > 1) {
+                revertToMenu->Remove(revertToMenu->FindItemByPosition(1));
+            }
+            for (auto &r : GetFileRevisions(CurrentSeqXmlFile->GetFullPath())) {
+                revertToMenu->Append(wxID_ANY, r);
+            }
+        } else {
+            revertToMenuItem->Enable(false);
+        }
+    });
+    revertToMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, [&](wxCommandEvent &event) {
+        if (CurrentSeqXmlFile) {
+            wxString rev = revertToMenu->GetLabelText(event.GetId());
+            std::string origUrl = CurrentSeqXmlFile->GetFullPath();
+            std::string newUrl = GetURLForRevision(origUrl, rev);
+            if (CloseSequence()) {
+                OpenSequence(origUrl, nullptr, newUrl);
+            }
+            if (newUrl != origUrl) {
+                wxRemoveFile(newUrl);
+            }
+        }
+    });
+    
+    
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, true);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
     VideoReader::InitHWAcceleration();
@@ -9937,10 +9972,13 @@ void xLightsFrame::ReplaceModelWithModelFixGroups(const std::string& oldModel, c
 
 void xLightsFrame::OnMenuItemRunScriptSelected(wxCommandEvent& event)
 {
+    printf("Foo!\n");
+    /*
     if (!_scriptsDialog) {
         _scriptsDialog = std::make_unique<ScriptsDialog>(this);
     }
     _scriptsDialog->Show();
+     */
 }
 
 void xLightsFrame::UpdateViewMenu()

@@ -26,6 +26,9 @@
 
 #ifndef __XL_EXTERNAL_HOOKS__
 
+#include <string>
+#include <list>
+
 #include <functional>
 #include <wx/file.h>
 #include <wx/filename.h>
@@ -70,5 +73,8 @@ inline void SetButtonBackground(wxButton* b, const wxColour& c, int bgType)
     b->SetBackgroundColour(c);
     b->Refresh();
 }
+inline void MarkNewFileRevision(const std::string &path, int retainMax = 15) {}
+inline std::list<std::string> GetFileRevisions(const std::string &path) { return std::list<std::string>(); }
+inline std::string GetURLForRevision(const std::string &path, const std::string &rev) { return path; }
 
 #endif

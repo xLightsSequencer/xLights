@@ -842,7 +842,7 @@ public:
     static const long ID_PANEL_EFFECTS1;
     static const long ID_PANEL_EFFECTS;
     static const long ID_NOTEBOOK_EFFECTS;
-
+    static const long ID_MENUITEM_REVERTTO;
     static const long ID_XFADESOCKET;
     static const long ID_XFADESERVER;
 
@@ -1053,6 +1053,8 @@ public:
     wxMenuItem* mrud_MenuItem[MRUD_LENGTH];
     wxArrayString mruFiles;  // most recently used directories
     wxMenuItem* mruf_MenuItem[MRUF_LENGTH];
+    wxMenu *revertToMenu = nullptr;
+    wxMenuItem* revertToMenuItem = nullptr;
 
     OutputManager _outputManager;
     OutputModelManager _outputModelManager;
@@ -1550,7 +1552,7 @@ public:
     wxXmlNode* LayoutGroupsNode = nullptr;
     wxXmlNode* ViewObjectsNode = nullptr;
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
-    void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog);
+    void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();
