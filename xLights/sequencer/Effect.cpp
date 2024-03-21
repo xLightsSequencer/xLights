@@ -198,9 +198,8 @@ Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const s
     mSettings.Parse(effectManager, settings, name);
 
     Element* parentElement = parent->GetParentElement();
-    if (!importing && parentElement != nullptr)
-    {
-        Model* model = parentElement->GetSequenceElements()->GetXLightsFrame()->AllModels[parentElement->GetModelName()];
+    if (!importing && parentElement != nullptr) {
+        Model* model = parentElement->GetSequenceElements()->GetXLightsFrame()->AllModels[parentElement->GetFullName()];
         FixBuffer(model);
     }
 
@@ -208,12 +207,10 @@ Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const s
     //  settings["key"] == "test val"
     // code which as a side effect creates a blank value under the key
     // an example of this is fix to issue #622
-    if (mSettings.Get("T_CHOICE_Out_Transition_Type", "XXX") == "")
-    {
+    if (mSettings.Get("T_CHOICE_Out_Transition_Type", "XXX") == "") {
         mSettings.erase("T_CHOICE_Out_Transition_Type");
     }
-    if (mSettings.Get("Converted", "XXX") == "")
-    {
+    if (mSettings.Get("Converted", "XXX") == "") {
         mSettings.erase("Converted");
     }
 
@@ -231,8 +228,7 @@ Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const s
     //    }
     //}
 
-    if (mEndTime < mStartTime)
-    {
+    if (mEndTime < mStartTime) {
         //should never happend, but if we load something with invalid times, make sure we can at least
         //show/select/delete the effect
         int tmp = mStartTime;
@@ -276,8 +272,7 @@ bool Effect::IsTimeToDelete() const
 
 void Effect::SetEffectIndex(int effectIndex)
 {
-    if (mEffectIndex != effectIndex)
-    {
+    if (mEffectIndex != effectIndex) {
         mEffectIndex = effectIndex;
         IncrementChangeCount();
         background.LockedClear();
@@ -288,13 +283,11 @@ const std::string& Effect::GetEffectName() const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (mName != nullptr)
-    {
+    if (mName != nullptr) {
         return *mName;
     }
 
-    if (GetParentEffectLayer() == nullptr)
-    {
+    if (GetParentEffectLayer() == nullptr) {
         logger_base.crit("Call to Effect::GetEffectName() called but parent effect layer was null ... this will crash.");
         wxASSERT(false);
     }
@@ -305,15 +298,13 @@ const std::string& Effect::GetEffectName() const
 const std::string& Effect::GetEffectName(int index) const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (GetParentEffectLayer() == nullptr)
-    {
+    if (GetParentEffectLayer() == nullptr) {
         // This really should never happen ... we should be digging into why it does
         logger_base.crit("Call to Effect::GetEffectName(int) called but parent effect layer was null ... this will crash.");
         wxASSERT(false);
     }
 
-    if (index < 0)
-    {
+    if (index < 0) {
         return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(mEffectIndex);
     }
     return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(index);
@@ -322,16 +313,13 @@ const std::string& Effect::GetEffectName(int index) const
 void Effect::SetEffectName(const std::string & name)
 {
     int idx = GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
-    if (mEffectIndex != idx || mEffectIndex == -1)
-    {
+    if (mEffectIndex != idx || mEffectIndex == -1) {
         mEffectIndex = idx;
-        if (mName != nullptr)
-        {
+        if (mName != nullptr) {
             delete mName;
             mName = nullptr;
         }
-        if (mEffectIndex == -1)
-        {
+        if (mEffectIndex == -1) {
             mName = new std::string(name);
         }
         IncrementChangeCount();
@@ -357,13 +345,10 @@ void Effect::SetStartTimeMS(int startTimeMS)
 {
     wxASSERT(!IsLocked());
 
-    if (startTimeMS > mStartTime)
-    {
+    if (startTimeMS > mStartTime) {
         IncrementChangeCount();
         mStartTime = startTimeMS;
-    }
-    else
-    {
+    } else {
         mStartTime = startTimeMS;
         IncrementChangeCount();
     }
@@ -373,13 +358,10 @@ void Effect::SetEndTimeMS(int endTimeMS)
 {
     wxASSERT(!IsLocked());
 
-    if (endTimeMS < mEndTime)
-    {
+    if (endTimeMS < mEndTime) {
         IncrementChangeCount();
         mEndTime = endTimeMS;
-    }
-    else
-    {
+    } else {
         mEndTime = endTimeMS;
         IncrementChangeCount();
     }
@@ -392,15 +374,12 @@ bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS) const
 
 void Effect::ConvertTo(int effectIndex)
 {
-    if (effectIndex != mEffectIndex)
-    {
+    if (effectIndex != mEffectIndex) {
         SetEffectIndex(effectIndex);
         SettingsMap newSettings;
         // remove any E_ settings as the effect type has changed
-        for (const auto& it : mSettings)
-        {
-            if (!StartsWith(it.first, "E_"))
-            {
+        for (const auto& it : mSettings) {
+            if (!StartsWith(it.first, "E_")) {
                 newSettings[it.first] = it.second;
             }
         }
@@ -410,13 +389,10 @@ void Effect::ConvertTo(int effectIndex)
         std::string effectText = xLightsApp::GetFrame()->GetEffectTextFromWindows(palette);
 
         auto es = wxSplit(effectText, ',');
-        for (auto it: es)
-        {
-            if (StartsWith(it, "E_"))
-            {
+        for (auto it: es) {
+            if (StartsWith(it, "E_")) {
                 auto sv = wxSplit(it, '=');
-                if (sv.size()==2)
-                {
+                if (sv.size()==2) {
                     mSettings[sv[0]] = sv[1];
                 }
             }
@@ -709,14 +685,10 @@ void Effect::FixBuffer(const Model* m)
     auto styles = m->GetBufferStyles();
     auto style = mSettings.Get("B_CHOICE_BufferStyle", "Default");
 
-    if (std::find(styles.begin(), styles.end(), style) == styles.end())
-    {
-        if (style.substr(0, 9) == "Per Model")
-        {
+    if (std::find(styles.begin(), styles.end(), style) == styles.end()) {
+        if (style.substr(0, 9) == "Per Model") {
             mSettings["B_CHOICE_BufferStyle"] = style.substr(10);
-        }
-        else
-        {
+        } else {
             mSettings["B_CHOICE_BufferStyle"] = "Default";
         }
     }
