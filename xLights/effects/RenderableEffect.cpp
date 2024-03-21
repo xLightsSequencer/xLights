@@ -36,6 +36,7 @@
 
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
+#include "../models/SubModel.h"
 
 RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data16,
@@ -286,13 +287,12 @@ bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
 }
 
 bool RenderableEffect::needToAdjustSettings(const std::string &version) {
-    return IsVersionOlder("2019.61", version);
+    return IsVersionOlder("2024.05", version);
 }
 
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
-
-    if (IsVersionOlder("2019.61", version))
-    {
+    
+    if (IsVersionOlder("2019.61", version)) {
         SettingsMap& sm = effect->GetSettings();
 
         wxString rzRotations = sm.Get("B_VALUECURVE_Rotations", "");
@@ -429,7 +429,35 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
             }
         }
     }
+    if (IsVersionOlder("2024.05", version)) {
+        std::string mn = effect->GetParentEffectLayer()->GetParentElement()->GetFullName();
+        SubModel * m = dynamic_cast<SubModel*>(xLightsApp::GetFrame()->GetModel(mn));
+        if (m != nullptr) {
+            size_t mx = 0;
+            for (int x = 0; x < m->GetNodeCount(); x++) {
+                mx = std::max(m->GetNode(x)->Coords.size(), mx);
+            }
+            if (mx > 1) {
+                // SubModels with duplicate nodes using "Single Line" on old effects
+                // need to use a legacy Single Line style
+                std::string bs = effect->GetSettings().Get("B_CHOICE_BufferStyle", "Default");
+                if (bs == "Single Line") {
+                    effect->GetSettings()["B_CHOICE_BufferStyle"] = "** Single Line Legacy";
+                }
+            }
+        }
+    }
 }
+std::list<std::string> RenderableEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
+{
+    std::list<std::string> res;
+    if (settings.Get("B_CHOICE_BufferStyle", "").starts_with("** ")) {
+        res.push_back(wxString::Format("    WARN: Effect using legacy buffer format '%s' which will be removed in the future. Model '%s', Start %s", 
+                                       settings.Get("B_CHOICE_BufferStyle", ""), model->GetName(),
+                                       FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+    return res;
+};
 
 void RenderableEffect::RemoveDefaults(const std::string &version, Effect *effect) {
     SettingsMap &palette = effect->GetPaletteMap();

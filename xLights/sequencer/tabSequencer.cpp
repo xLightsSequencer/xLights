@@ -2620,7 +2620,10 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 			}
 
 			wxChoice* ctrl = (wxChoice*)CtrlWin;
-			ctrl->SetStringSelection(value);
+            if (!ctrl->SetStringSelection(value) && value.StartsWith("**")) {
+                ctrl->Append(value);
+                ctrl->SetStringSelection(value);
+            }
             if (ctrl->GetStringSelection() != value && count < 10) {
                 // if did not take ... possibly because it has not loaded the values yet
                 // If it doesn't take after 10 attempts, the "value" is not in the list of possible values
