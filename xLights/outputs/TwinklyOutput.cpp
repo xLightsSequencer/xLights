@@ -879,12 +879,12 @@ void TwinklyOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller *c
     if (p) {
         p->SetValue(GetChannels());
         if (c->IsAutoSize()) {
-            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
         } else {
             p->SetEditor("SpinCtrl");
-            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
             p->SetHelpString("");
         }

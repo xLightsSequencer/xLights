@@ -2518,7 +2518,7 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
     if( editing_models ) {
         auto p = propertyEditor->Append(new wxStringProperty("Name", "ModelName", base_object->name));
         if (dynamic_cast<SubModel*>(base_object) != nullptr) {
-            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("SubModel names cannot be changed here.");
         }

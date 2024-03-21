@@ -333,19 +333,19 @@ void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outpu
 {
     wxPGProperty* p = grid->Append(new wxStringProperty("SubModel Type", "SMT", _type));
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
 
     p = grid->Append(new wxStringProperty("SubModel Layout", "SML", _layout));
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
 
     p = grid->Append(new wxStringProperty("SubModel Buffer Style", "SMBS", _bufferStyle));
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
 
     p = grid->Append(new wxStringProperty("SubModel", "SMN", _properyGridDisplay));
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
 
     auto modelGroups = parent->GetModelManager().GetGroupsContainingModel(this);
     if (modelGroups.size() > 0) {
