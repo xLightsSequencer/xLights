@@ -352,7 +352,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxCheckBox" name="ID_CHECKBOX_Chase_Group_All" subclass="BulkEditCheckBox" variable="CheckBox_Chase_Group_All" member="yes">
-										<label>Group All Arches</label>
+										<label>Group All Strands</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
