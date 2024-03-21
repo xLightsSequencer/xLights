@@ -35,7 +35,6 @@ public:
         return glm::vec3(0, 0, 0);
     }
 
-
     virtual const std::string &GetLayoutGroup() const override { return parent->GetLayoutGroup(); }
 
     virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;

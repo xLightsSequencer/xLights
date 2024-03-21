@@ -24,6 +24,83 @@ static const std::string STACKED_STRANDS("Stacked Strands");
 
 const std::vector<std::string> SubModel::BUFFER_STYLES{ DEFAULT, KEEP_XY, STACKED_STRANDS };
 
+static auto getRange(wxString const& a) {
+    if (a.Contains("-")) {
+        int idx = a.Index('-');
+        return std::make_pair(wxAtoi(a.Left(idx)), wxAtoi(a.Right(a.size() - idx - 1)));
+    }
+    int i = wxAtoi(a);
+    return std::make_pair(i, i);
+};
+
+template<class Func>
+void visitSubmodelXmlNodeRangesStranded(wxXmlNode* n, const std::string &bufferStyle, bool vert, int& maxRow, int& maxCol, std::string& propertyGridDisplay, unsigned int& startChannel, Func f)
+{
+    int row = 0;
+    int col = 0;
+    int line = 0;
+    maxRow = 0;
+    maxCol = 0;
+    std::map<int, int> nodeIndexMap;
+    std::vector<int> nodeIndexes;
+    while (n->HasAttribute(wxString::Format("line%d", line))) {
+        wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
+        // logger_base.debug("    Line %d: %s", line, (const char*)nodes.c_str());
+        propertyGridDisplay = nodes + "," + propertyGridDisplay;
+        wxStringTokenizer wtkz(nodes, ",");
+        while (wtkz.HasMoreTokens()) {
+            wxString valstr = wtkz.GetNextToken();
+            auto [start, end] = getRange(valstr);
+            if (start == 0) {
+                if (vert) {
+                    row++;
+                } else {
+                    col++;
+                }
+            } else {
+                start--;
+                end--;
+                bool done = false;
+                wxInt32 nn = start;
+                while (!done) {
+                    f(nn, col, row);
+                    if (start > end) {
+                        nn--;
+                        done = nn < end;
+                    } else {
+                        nn++;
+                        done = nn > end;
+                    }
+                }
+            }
+        }
+        if (vert) {
+            row--;
+        } else {
+            col--;
+        }
+        if (maxRow < row) {
+            maxRow = row;
+        }
+        if (maxCol < col) {
+            maxCol = col;
+        }
+        if (bufferStyle == STACKED_STRANDS) {
+            row = 0;
+            col = 0;
+        } else {
+            if (vert) {
+                row = 0;
+                col++;
+            } else {
+                col = 0;
+                row++;
+            }
+        }
+        line++;
+    }
+}
+
 // Check for duplicate nodes in a submodel
 void SubModel::CheckDuplicates(const std::vector<int>& nodeIndexes)
 {
@@ -72,15 +149,6 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
 
     bool vert = _layout == "vertical";
     bool isRanges = _type == "ranges";
-
-    auto getRange = [](wxString const& a) {
-        if (a.Contains("-")) {
-            int idx = a.Index('-');
-            return std::make_pair(wxAtoi(a.Left(idx)), wxAtoi(a.Right(a.size() - idx - 1)));
-        }
-        int i = wxAtoi(a);
-        return std::make_pair(i, i);
-    };
 
     unsigned int startChannel = UINT32_MAX;
     if (isRanges) {
@@ -154,97 +222,41 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                 SetBufferSize(y_size, x_size);
             }
         } else { //default and stacked buffer styles
-            int row = 0;
-            int col = 0;
-            int line = 0;
             int maxRow = 0;
             int maxCol = 0;
             std::map<int, int> nodeIndexMap;
             std::vector<int> nodeIndexes;
-            while (n->HasAttribute(wxString::Format("line%d", line))) {
-                wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
-                //logger_base.debug("    Line %d: %s", line, (const char*)nodes.c_str());
-                _properyGridDisplay = nodes + "," + _properyGridDisplay;
-                wxStringTokenizer wtkz(nodes, ",");
-                while (wtkz.HasMoreTokens()) {
-                    wxString valstr = wtkz.GetNextToken();
-                    auto [start, end] = getRange(valstr);
-                    if (start == 0) {
-                        if (vert) {
-                            row++;
-                        } else {
-                            col++;
+            visitSubmodelXmlNodeRangesStranded(n, _bufferStyle, vert, maxRow, maxCol, _properyGridDisplay, startChannel, [&](int nn, int col, int row) {
+                if ((uint32_t)nn < p->GetNodeCount()) {
+                    nodeIndexes.push_back(nn);
+                    NodeBaseClass* node;
+                    if (nodeIndexMap.find(nn) == nodeIndexMap.end()) {
+                        node = p->Nodes[nn]->clone();
+                        startChannel = (std::min)(startChannel, node->ActChan);
+                        nodeIndexMap[nn] = Nodes.size();
+                        Nodes.push_back(NodeBaseClassPtr(node));
+                        if (node->Coords.size() > 1) {
+                            node->Coords.resize(1);
+                        }
+                        for (auto& c : node->Coords) {
+                            c.bufX = col;
+                            c.bufY = row;
                         }
                     } else {
-                        start--;
-                        end--;
-                        bool done = false;
-                        wxInt32 nn = start;
-                        while (!done) {
-                            if ((uint32_t)nn < p->GetNodeCount()) {
-                                nodeIndexes.push_back(nn);
-                                NodeBaseClass* node;
-                                if (nodeIndexMap.find(nn) == nodeIndexMap.end()) {
-                                    node = p->Nodes[nn]->clone();
-                                    startChannel = (std::min)(startChannel, node->ActChan);
-                                    nodeIndexMap[nn] = Nodes.size();
-                                    Nodes.push_back(NodeBaseClassPtr(node));
-                                    if (node->Coords.size() > 1) {
-                                        node->Coords.resize(1);
-                                    }
-                                    for (auto& c : node->Coords) {
-                                        c.bufX = col;
-                                        c.bufY = row;
-                                    }
-                                } else {
-                                    node = Nodes[nodeIndexMap[nn]].get();
-                                    node->Coords.insert(node->Coords.begin(), node->Coords[0]);
-                                    node->Coords[0].bufX = col;
-                                    node->Coords[0].bufY = row;
-                                }
-                                if (vert) {
-                                    row++;
-                                } else {
-                                    col++;
-                                }
-                            } else {
-                                _nodesAllValid = false;
-                            }
-                            if (start > end) {
-                                nn--;
-                                done = nn < end;
-                            } else {
-                                nn++;
-                                done = nn > end;
-                            }
-                        }
+                        node = Nodes[nodeIndexMap[nn]].get();
+                        node->Coords.insert(node->Coords.begin(), node->Coords[0]);
+                        node->Coords[0].bufX = col;
+                        node->Coords[0].bufY = row;
                     }
-                }
-                if (vert) {
-                    row--;
-                } else {
-                    col--;
-                }
-                if (maxRow < row) {
-                    maxRow = row;
-                }
-                if (maxCol < col) {
-                    maxCol = col;
-                }
-                if (_bufferStyle == STACKED_STRANDS) {
-                    row = 0;
-                    col = 0;
-                } else {
                     if (vert) {
-                        row = 0;
-                        col++;
-                    } else {
-                        col = 0;
                         row++;
+                    } else {
+                        col++;
                     }
+                } else {
+                    _nodesAllValid = false;
                 }
-                line++;
-            }
+            });
             CheckDuplicates(nodeIndexes);
             SetBufferSize(maxRow + 1, maxCol + 1);
         }
@@ -368,7 +380,8 @@ void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outpu
 
 static const std::string VERT_PER_STRAND("Vertical Per Strand");
 static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");
-std::vector<std::string> SubModel::SUBMODEL_BUFFER_STYLES;
+static const std::string SINGLE_LINE("Single Line");
+    std::vector<std::string> SubModel::SUBMODEL_BUFFER_STYLES;
 const std::vector<std::string>& SubModel::GetBufferStyles() const {
     struct Initializer {
         Initializer() {
@@ -387,15 +400,29 @@ void SubModel::GetBufferSize(const std::string &type, const std::string &camera,
     if (isRanges && (type == VERT_PER_STRAND || type == HORIZ_PER_STRAND)) {
         bool vert = _layout == "vertical";
         if (vert && (type == HORIZ_PER_STRAND)) {
-            Model::GetBufferSize("Dafault", camera, "Rotate CW 90", BufferWi, BufferHi, stagger);
+            Model::GetBufferSize("Default", camera, "Rotate CW 90", BufferWi, BufferHi, stagger);
             AdjustForTransform(transform, BufferWi, BufferHi);
         } else if (!vert && (type == VERT_PER_STRAND)) {
-            Model::GetBufferSize("Dafault", camera, "Rotate CC 90", BufferWi, BufferHi, stagger);
+            Model::GetBufferSize("Default", camera, "Rotate CC 90", BufferWi, BufferHi, stagger);
             AdjustForTransform(transform, BufferWi, BufferHi);
         } else {
             Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
         }
-    } else {
+    } else if (isRanges && type == SINGLE_LINE) {
+        int nNodes = 0;
+        int d1, d2;
+        std::string d3;
+        unsigned int d4;
+        bool vert = _layout == "vertical";
+        visitSubmodelXmlNodeRangesStranded(ModelXml, _bufferStyle, vert, d1, d2, d3, d4, [&](int nn, int col, int row) {
+            if ((uint32_t)nn < parent->GetNodeCount()) {
+                ++nNodes;
+            }
+        });
+        BufferHi = 1;
+        BufferWi = nNodes;
+    }
+    else {
         Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
     }
 }
@@ -416,6 +443,39 @@ void SubModel::InitRenderBufferNodes(const std::string &type, const std::string 
         } else {
             Model::InitRenderBufferNodes("Default", camera, transform, newNodes, BufferWi, BufferHi, stagger, deep);
         }
+    } else if (isRanges && type == SINGLE_LINE) {
+        int firstNode = newNodes.size();
+        newNodes.reserve(firstNode + Nodes.size());
+        for (auto& it : Nodes) {
+            newNodes.push_back(NodeBaseClassPtr(it.get()->clone()));
+        }
+
+        int cnt = 0;
+        int nNodes = 0;
+        int d1, d2;
+        std::string d3;
+        unsigned int d4;
+        bool vert = _layout == "vertical";
+        std::map<int, int> seenNodes;
+        std::map<int, int> nodeNumIndexes;
+        visitSubmodelXmlNodeRangesStranded(ModelXml, _bufferStyle, vert, d1, d2, d3, d4, [&](int nn, int col, int row) {
+            if ((uint32_t)nn < parent->GetNodeCount()) {
+                if (seenNodes.find(nn) == seenNodes.end()) {
+                    seenNodes[nn] = 0;
+                    nodeNumIndexes[nn] = cnt;
+                    ++cnt;
+                }
+                ++nNodes;
+                auto &cn = newNodes[firstNode + nodeNumIndexes[nn]];
+                if (cn->Coords.size() > seenNodes[nn]) {
+                    cn->Coords[seenNodes[nn]].bufX = nNodes;
+                    cn->Coords[seenNodes[nn]].bufY = 0;
+                }
+                seenNodes[nn] += 1;
+            }
+        });
+        BufferHi = 1;
+        BufferWi = nNodes;
     } else {
         Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, stagger, deep);
     }
