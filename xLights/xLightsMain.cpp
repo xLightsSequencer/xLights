@@ -5377,6 +5377,9 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                 errcount++;
             } else if (ostart == nullptr || oend == nullptr) {
                 wxString msg = wxString::Format("    ERR: Model '%s' is not configured for a controller.", it.first);
+                if (!it.second->IsActive()) {
+                    msg = wxString::Format("    WARN: Model '%s' is not configured for a controller.", it.first);
+                }
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             } else if (ostart->GetType() != oend->GetType()) {
