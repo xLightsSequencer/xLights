@@ -124,6 +124,10 @@ void SingleStrandEffect::adjustSettings(const std::string& version, Effect* effe
             if (bs == "Single Line") {
                 settings["B_CHOICE_BufferStyle"] = "Horizontal Per Strand";
                 settings["E_CHECKBOX_Chase_Group_All"] = "1";
+                std::string t = settings.Get("B_CHOICE_BufferTransform", "None");
+                if (t.empty()) {
+                    settings["B_CHOICE_BufferTransform"] = "Flip Vertical";
+                }
             }
         }
     }
