@@ -527,7 +527,7 @@ protected:
         static wxString AggressiveAutomap(const wxString& name);
         std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>&)> aggressive =
             [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2, const std::list<std::string>& aliases) {
-                if (AggressiveAutomap(wxString(s).Trim(true).Trim(false).Lower()) == c)
+                if (AggressiveAutomap(wxString(s).Trim(true).Trim(false).Lower()) == AggressiveAutomap(wxString(c))) // alias trimmed and lower at save
                     return true;
 
                 for (const auto& it : aliases) {
