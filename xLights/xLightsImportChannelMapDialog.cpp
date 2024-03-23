@@ -910,7 +910,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
         for (auto const& m : importChannels) {
             ListCtrl_Available->InsertItem(j, m->name);
             wxUIntPtr ptr = (wxUIntPtr)m.get();
-            ListCtrl_Available->SetItemData(j, ptr);
+            ListCtrl_Available->SetItemPtrData(j, ptr);
             if (!m->type.empty()) {
                 ListCtrl_Available->SetItemColumnImage(j, 0, m_iconIndexMap[LayoutUtils::GetModelTreeIcon(m->type, LayoutUtils::GroupMode::Regular)]);
             } else {
@@ -1004,9 +1004,9 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
 
             for (const auto& it : modelNames) {
                 if (std::find(it.begin(), it.end(), '/') != it.end()) {
-                    // this is a submodel ... dont add it
+                    // this is a submodel ... don't add it
 
-                    // The risk here is the submodel is in the group but the parent model isnt so there will be no way to
+                    // The risk here is the submodel is in the group but the parent model isn't so there will be no way to
                     // map it. Maybe we should grab the parent model and ensure it is included in the list
                     // Given up until this change this actually crashed my guess is no one is screaming for it now
                 } else {
@@ -1169,7 +1169,7 @@ xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::st
 void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 {
     if (_dirty) {
-        if (wxMessageBox("Are you sure you dont want to save your changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
+        if (wxMessageBox("Are you sure you don't want to save your changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
             return;
         }
     }
@@ -2707,4 +2707,5 @@ void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& 
             xlights->GetModel(m->_model)->AddAlias(m->_mapping);
         }
     }
+    xlights->SetStatusText(_("Update Aliases Done."));
 }

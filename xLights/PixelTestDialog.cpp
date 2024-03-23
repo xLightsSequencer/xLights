@@ -969,6 +969,7 @@ class CPR_PortTestItem : public TestItemBase
     std::list<CPR_SRTestItem*> _remotes;
     std::string _portName;
     uint16_t _port = 0xFFFF;
+    int _pixels{ 0 };
 
     CPR_SRTestItem* GetSmartRemote(char srl, UDControllerPort* pud, ModelManager& modelManager, bool channelsAvailable)
     {
@@ -1021,6 +1022,7 @@ public:
         _absoluteStartChannel = pud->GetStartChannel();
         _absoluteEndChannel = pud->GetEndChannel();
         _port = pud->GetPort();
+        _pixels = pud->Pixels();
 
         for (const auto& it : pud->GetModels()) {
             int nodes = it->Channels() / it->GetChannelsPerPixel();
@@ -1060,6 +1062,8 @@ class CPR_ControllerTestItem : public TestItemBase
     bool _channelsAvailable = false;
     std::string _controllerName;
     std::list<CPR_PortTestItem*> _ports;
+    int _pixelPorts{ 0 };
+    int _serialPorts{ 0 };
 
 public:
     virtual ~CPR_ControllerTestItem()
@@ -1082,6 +1086,8 @@ public:
                     auto pud = cud->GetControllerSerialPort(p + 1);
                     _ports.push_back(new CPR_PortTestItem(wxString::Format("Serial Port %d", p + 1), pud, modelManager, _channelsAvailable));
                 }
+                _pixelPorts = caps->GetMaxPixelPort();
+                _serialPorts = caps->GetMaxSerialPort();
             } else {
                 _channelsAvailable = controller->IsActive() && (cud->GetMaxPixelPort() > 0 || cud->GetMaxSerialPort());
                 for (auto p = 0; p < cud->GetMaxPixelPort(); ++p) {
@@ -1092,6 +1098,8 @@ public:
                     auto pud = cud->GetControllerSerialPort(p + 1);
                     _ports.push_back(new CPR_PortTestItem(wxString::Format("Serial Port %d", p + 1), pud, modelManager, _channelsAvailable));
                 }
+                _pixelPorts = cud->GetMaxPixelPort();
+                _serialPorts = cud->GetMaxSerialPort();
             }
 
             _name = "";
@@ -1132,6 +1140,8 @@ const long PixelTestDialog::ID_TREELISTCTRL_Models = wxNewId();
 const long PixelTestDialog::ID_TREELISTCTRL_Controllers = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_SELECTALL = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_DESELECTALL = wxNewId();
+const long PixelTestDialog::ID_MNU_SELECTHIGH = wxNewId();
+const long PixelTestDialog::ID_MNU_DESELECTHIGH = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_SELECTN = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_DESELECTN = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_NUMBER = wxNewId();
@@ -1198,6 +1208,11 @@ const long PixelTestDialog::ID_RADIOBUTTON_RGBCycle_MixedColors = wxNewId();
 const long PixelTestDialog::ID_RADIOBUTTON_RGBCycle_RGBW = wxNewId();
 const long PixelTestDialog::ID_CHECKBOX2 = wxNewId();
 const long PixelTestDialog::ID_PANEL10 = wxNewId();
+const long PixelTestDialog::ID_STATICTEXT9 = wxNewId();
+const long PixelTestDialog::ID_RADIOBUTTON_CONTROLLER_OFF = wxNewId();
+const long PixelTestDialog::ID_RADIOBUTTON_CONTROLLER_CYCLEPORTS = wxNewId();
+const long PixelTestDialog::ID_RADIOBUTTON_CONTROLLER_PIXELCOUNT = wxNewId();
+const long PixelTestDialog::ID_PANEL12 = wxNewId();
 const long PixelTestDialog::ID_NOTEBOOK2 = wxNewId();
 const long PixelTestDialog::ID_STATICTEXT1 = wxNewId();
 const long PixelTestDialog::ID_SLIDER_Speed = wxNewId();
@@ -1236,6 +1251,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     wxFlexGridSizer* FlexGridSizer14;
     wxFlexGridSizer* FlexGridSizer15;
     wxFlexGridSizer* FlexGridSizer16;
+    wxFlexGridSizer* FlexGridSizer17;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
@@ -1464,9 +1480,27 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     FlexGridSizer13->Add(CheckBox_Tag50th, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer12->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 5);
     PanelRGBCycle->SetSizer(FlexGridSizer12);
+
+    FlexGridSizer12->Fit(PanelRGBCycle);
+    FlexGridSizer12->SetSizeHints(PanelRGBCycle);
+    PanelController = new wxPanel(Notebook2, ID_PANEL12, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL12"));
+    FlexGridSizer17 = new wxFlexGridSizer(0, 1, 0, 0);
+    StaticText8 = new wxStaticText(PanelController, ID_STATICTEXT9, _("Function"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+    FlexGridSizer17->Add(StaticText8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    RadioButton_Controller_Off = new wxRadioButton(PanelController, ID_RADIOBUTTON_CONTROLLER_OFF, _("Off"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_CONTROLLER_OFF"));
+    FlexGridSizer17->Add(RadioButton_Controller_Off, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    RadioButton_Controller_CyclePorts = new wxRadioButton(PanelController, ID_RADIOBUTTON_CONTROLLER_CYCLEPORTS, _("Port Cycle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_CONTROLLER_CYCLEPORTS"));
+    FlexGridSizer17->Add(RadioButton_Controller_CyclePorts, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    RadioButton_Controller_PixelCount = new wxRadioButton(PanelController, ID_RADIOBUTTON_CONTROLLER_PIXELCOUNT, _("10 Pixel Blocks"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON_CONTROLLER_PIXELCOUNT"));
+    FlexGridSizer17->Add(RadioButton_Controller_PixelCount, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    PanelController->SetSizer(FlexGridSizer17);
+    FlexGridSizer17->Fit(PanelController);
+    FlexGridSizer17->SetSizeHints(PanelController);
+
     Notebook2->AddPage(PanelStandard, _("Standard"), false);
     Notebook2->AddPage(PanelRGB, _("RGB"), false);
     Notebook2->AddPage(PanelRGBCycle, _("RGB Cycle"), false);
+    Notebook2->AddPage(PanelController, _("Controller"), false);
     FlexGridSizer3->Add(Notebook2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer5->AddGrowableCol(1);
@@ -2278,6 +2312,8 @@ void PixelTestDialog::OnContextMenu(wxTreeListEvent& event)
     wxMenu mnuContext;
     mnuContext.Append(ID_MNU_TEST_SELECTALL, "Select All");
     mnuContext.Append(ID_MNU_TEST_DESELECTALL, "Deselect All");
+    mnuContext.Append(ID_MNU_SELECTHIGH, "Select Highlighted");
+    mnuContext.Append(ID_MNU_DESELECTHIGH, "Deselect Highlighted");
     mnuContext.Append(ID_MNU_TEST_SELECTN, "Select Many");
     mnuContext.Append(ID_MNU_TEST_DESELECTN, "Deselect Many");
     if (_rcTree == TreeListCtrl_Controllers)
@@ -2289,8 +2325,6 @@ void PixelTestDialog::OnContextMenu(wxTreeListEvent& event)
 
 void PixelTestDialog::OnListPopup(wxCommandEvent& event)
 {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxTreeListCtrl* tree = _rcTree;
     wxTreeListItem selected = _rcItem;
     wxTreeListItem root = tree->GetFirstChild(tree->GetRootItem());
@@ -2334,6 +2368,52 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
         }
         tree->CheckItem(tree->GetRootItem(), wxCHK_UNCHECKED);
         CascadeSelected(tree, tree->GetRootItem(), wxCHK_UNCHECKED);
+    } else if (id == ID_MNU_SELECTHIGH) {
+        wxTreeListItems selections;
+        tree->GetSelections(selections);
+        if (selections.size() > 1) {
+            for (int i = 0; i < selections.size(); i++) {
+                TestItemBase* tc = (TestItemBase*)tree->GetItemData(selections[i]);
+                if (tree->GetCheckedState(selections[i]) == wxCHK_UNCHECKED && tc->IsClickable()) {
+                    // check the items
+                    tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_CHECKED);
+                    if (tc->IsContiguous()) {
+                        _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                    } else {
+                        long ch = tc->GetFirstChannel();
+                        while (ch != -1) {
+                            _channelTracker.AddRange(ch, ch);
+                            ch = tc->GetNextChannel();
+                        }
+                    }
+                    CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_CHECKED);
+                }
+            }
+        }
+        _checkChannelList = true;
+    } else if (id == ID_MNU_DESELECTHIGH) {
+        wxTreeListItems selections;
+        tree->GetSelections(selections);
+        if (selections.size() > 1) {
+            for (int i = 0; i < selections.size(); i++) {
+                TestItemBase* tc = (TestItemBase*)tree->GetItemData(selections[i]);
+                if (tree->GetCheckedState(selections[i]) == wxCHK_CHECKED) {
+                    // uncheck the items
+                    tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
+                    if (tc->IsContiguous()) {
+                        _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                    } else {
+                        long ch = tc->GetFirstChannel();
+                        while (ch != -1) {
+                            _channelTracker.RemoveRange(ch, ch);
+                            ch = tc->GetNextChannel();
+                        }
+                    }
+                    CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
+                }
+            }
+        }
+        _checkChannelList = true;
     } else if (id == ID_MNU_TEST_SELECTN) {
         if (selected.IsOk()) {
             wxNumberEntryDialog dlg(this, "Number to select", "", "", 2, 1, 1000);
@@ -2800,6 +2880,10 @@ void PixelTestDialog::TestButtonsOff()
     RadioButton_RGBCycle_ABCAllNone->SetValue(false);
     RadioButton_RGBCycle_MixedColors->SetValue(false);
     RadioButton_RGBCycle_RGBW->SetValue(false);
+
+    RadioButton_Controller_Off->SetValue(true);
+    RadioButton_Controller_CyclePorts->SetValue(false);
+    RadioButton_Controller_PixelCount->SetValue(false);
 }
 
 PixelTestDialog::TestFunctions PixelTestDialog::GetTestFunction(int notebookSelection)
@@ -2951,6 +3035,16 @@ PixelTestDialog::TestFunctions PixelTestDialog::GetTestFunction(int notebookSele
         else if (RadioButton_RGBCycle_RGBW->GetValue())
         {
             return PixelTestDialog::TestFunctions::RGBW;
+        }
+        break;
+
+    case 3:
+        if (RadioButton_Controller_Off->GetValue()) {
+            return PixelTestDialog::TestFunctions::OFF;
+        } else if (RadioButton_Controller_CyclePorts->GetValue()) {
+            return PixelTestDialog::TestFunctions::PortCycle;
+        } else if (RadioButton_Controller_PixelCount->GetValue()) {
+            return PixelTestDialog::TestFunctions::ColorBlocks;
         }
         break;
     }
@@ -3286,6 +3380,76 @@ void PixelTestDialog::OnTimer(long curtime)
                 }
             }
             break;
+
+            case 3: { // controller test
+                // standard tests
+                v = Slider_Speed->GetValue(); // 0-100
+
+                interval = v * 10;
+                // GetCheckedItems(chArray);
+                if (testFunc == PixelTestDialog::TestFunctions::PortCycle) {
+                    wxTreeListItem i = TreeListCtrl_Controllers->GetFirstChild(TreeListCtrl_Controllers->GetRootItem());
+                    uint16_t ports{ 0 };
+                    while (i != nullptr) {
+                        TestItemBase* tc = (TestItemBase*)TreeListCtrl_Controllers->GetItemData(i);
+                        if (tc->IsClickable()) {
+                            if (tc->GetType() == "Controller") {
+                                // controller
+                                CPR_ControllerTestItem* con = (CPR_ControllerTestItem*)tc;
+                                for (auto p : con->GetPorts()) {
+                                    if (!p->IsClickable()) {
+                                        continue;
+                                    }
+                                    ports = std::max(ports, p->GetPort());
+                                    int offSet{ 2 };
+                                    if (p->GetPort() == 1) {
+                                        offSet = 0;
+                                    }
+                                    for (long j = p->GetFirstChannel(); j < p->GetLastChannel(); ++j) {
+                                        _outputManager->SetOneChannel((j - 1), 0);
+                                    }
+                                    if (p->GetPort() == rgbCycle + 1) {
+                                        for (long j = p->GetFirstChannel(); j < p->GetLastChannel(); j += 3) {
+                                            _outputManager->SetOneChannel((j - 1) + offSet, 255);
+                                        }
+                                        StatusBar1->SetLabelText(wxString::Format(_("Testing %ld channels Port %ld"), static_cast<long>(chArray.Count()), p->GetPort()));
+                                    }
+                                }
+                            }
+                        }
+                        i = TreeListCtrl_Controllers->GetNextSibling(i);
+                    }
+                    if (curtime >= NextSequenceStart) {
+                        rgbCycle++;
+                        rgbCycle = rgbCycle % ports;
+                        NextSequenceStart = curtime + (interval * 2);
+                    }
+                } else if (testFunc == PixelTestDialog::TestFunctions::ColorBlocks) {
+                    wxTreeListItem i = TreeListCtrl_Controllers->GetFirstChild(TreeListCtrl_Controllers->GetRootItem());
+                    while (i != nullptr) {
+                        TestItemBase* tc = (TestItemBase*)TreeListCtrl_Controllers->GetItemData(i);
+                        if (tc->IsClickable()) {
+                            if (tc->GetType() == "Controller") {
+                                // controller
+                                CPR_ControllerTestItem* con = (CPR_ControllerTestItem*)tc;
+                                for (auto p : con->GetPorts()) {
+                                    if (!p->IsClickable()) {
+                                        continue;
+                                    }
+                                    //assume 3 channel pixels
+                                    for (long j = p->GetFirstChannel(); j < p->GetLastChannel(); j += 3) {
+                                        long pix = j - p->GetFirstChannel();
+                                        pix = pix % 90;
+                                        pix = pix / 30;
+                                        _outputManager->SetOneChannel((j - 1) + pix, 255);
+                                    }
+                                }
+                            }
+                        }
+                        i = TreeListCtrl_Controllers->GetNextSibling(i);
+                    }
+                }
+            } break;
         }
     }
 }
@@ -3397,6 +3561,13 @@ std::string PixelTestDialog::SerialiseSettings()
         rgbCycleFunction = 5;
     }
 
+    int controllerFunction{ 0 };
+    if (RadioButton_Controller_CyclePorts->GetValue()) {
+        controllerFunction = 1;
+    } else if (RadioButton_Controller_PixelCount->GetValue()) {
+        controllerFunction = 2;
+    }
+
     int speed = Slider_Speed->GetValue();
 
     int standardBackground = Slider_Standard_Background->GetValue();
@@ -3413,12 +3584,12 @@ std::string PixelTestDialog::SerialiseSettings()
 
     int notebookSelection = Notebook2->GetSelection();
 
-    return wxString::Format("%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%s|%d",
+    return wxString::Format("%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%s|%d|%d",
                             speed,
                             standardFunction, standardBackground, standardHighlight,
                             rgbFunction, rgbBackgroundR, rgbBackgroundG, rgbBackgroundB,
                             rgbHighlightR, rgbHighlightG, rgbHighlightB,
-                            rgbCycleFunction, suspend ? "T" : "F", notebookSelection)
+                            rgbCycleFunction, suspend ? "T" : "F", notebookSelection, controllerFunction)
         .ToStdString();
 }
 
@@ -3561,8 +3732,24 @@ void PixelTestDialog::DeserialiseSettings(const std::string& settings)
             case 2: 
                 Notebook2->SetSelection(2); // 2 - RGB Cycle
                 break;
+            case 3:
+                Notebook2->SetSelection(3); // 3 - Controller
+                break;
             default: 
                 Notebook2->SetSelection(0); // 0 - Standard
+                break;
+            }
+        }
+        if (values.size() >= 15) {
+            switch (wxAtoi(values[14])) {
+            case 1:
+                RadioButton_Controller_CyclePorts->SetValue(true);
+                break;
+            case 2:
+                RadioButton_Controller_PixelCount->SetValue(true);
+                break;
+            default:
+                RadioButton_Controller_Off->SetValue(true);
                 break;
             }
         }

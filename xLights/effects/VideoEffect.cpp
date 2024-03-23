@@ -38,7 +38,7 @@ VideoEffect::~VideoEffect()
 
 std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     wxString filename = settings.Get("E_FILEPICKERCTRL_Video_Filename", "");
 

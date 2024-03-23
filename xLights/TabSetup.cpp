@@ -1459,6 +1459,12 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         List_Controllers->AppendColumn("Address");
         List_Controllers->AppendColumn("Universes/Id");
         List_Controllers->AppendColumn("Channels");
+        List_Controllers->AppendColumn("Vendor");
+        List_Controllers->AppendColumn("Model");
+        List_Controllers->AppendColumn("Variant");
+        List_Controllers->AppendColumn("Active");
+        List_Controllers->AppendColumn("Auto Layout");
+        List_Controllers->AppendColumn("Auto Size");
         List_Controllers->AppendColumn("Description");
 
         ButtonAddControllerEthernet->SetToolTip("Use this button to add E1.31, Artnet, DDP and ZCPP controllers.");
@@ -1504,12 +1510,17 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         if (std::find(begin(selections), end(selections), it->GetName()) != selections.end()) {
             List_Controllers->SetItemState(row, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
         }
-        //List_Controllers->SetItem(row, 1, it->GetColumn6Label());
         List_Controllers->SetItem(row, 1, it->GetColumn1Label());
         List_Controllers->SetItem(row, 2, it->GetColumn2Label());
         List_Controllers->SetItem(row, 3, it->GetColumn3Label());
         List_Controllers->SetItem(row, 4, it->GetColumn4Label());
         List_Controllers->SetItem(row, 5, it->GetColumn5Label());
+        List_Controllers->SetItem(row, 6, it->GetColumn6Label());
+        List_Controllers->SetItem(row, 7, it->GetColumn7Label());
+        List_Controllers->SetItem(row, 8, it->GetColumn8Label());
+        List_Controllers->SetItem(row, 9, it->GetColumn9Label());
+        List_Controllers->SetItem(row, 10, it->GetColumn10Label());
+        List_Controllers->SetItem(row, 11, it->GetColumn11Label());
         if (it->IsFromBase())
         {
             if (it->IsActive()) {
@@ -1525,13 +1536,13 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
 
     auto sz = 0;
     for (int i = 0; i < List_Controllers->GetColumnCount() - 1; i++) {
-        List_Controllers->SetColumnWidth(i, wxLIST_AUTOSIZE);
-        if (List_Controllers->GetColumnWidth(i) < 100) List_Controllers->SetColumnWidth(i, 100);
+        List_Controllers->SetColumnWidth(i, wxLIST_AUTOSIZE_USEHEADER);
+        //if (List_Controllers->GetColumnWidth(i) < 75) List_Controllers->SetColumnWidth(i, 75);
         sz += List_Controllers->GetColumnWidth(i);
     }
 
     int lc = List_Controllers->GetColumnCount() - 1;
-    List_Controllers->SetColumnWidth(lc, wxLIST_AUTOSIZE);
+    List_Controllers->SetColumnWidth(lc, wxLIST_AUTOSIZE_USEHEADER);
     if (List_Controllers->GetColumnWidth(lc) < 100) List_Controllers->SetColumnWidth(lc, 100);
 
     if (sz + List_Controllers->GetColumnWidth(lc) < List_Controllers->GetSize().GetWidth()) {

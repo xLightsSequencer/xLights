@@ -304,12 +304,12 @@ void xxxEthernetOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controlle
     if (p) {
         p->SetValue((int)c->GetOutputs().size());
         if (c->IsAutoSize()) {
-            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("Port Count cannot be changed when an output is set to Auto Size.");
         } else {
             p->SetEditor("SpinCtrl");
-            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
             p->SetHelpString("");
         }
@@ -326,13 +326,13 @@ void xxxEthernetOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controlle
     p = propertyGrid->GetProperty("IndivSizes");
     if (p) {
         if (ce->IsAutoSize()) {
-            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("Individual Sizes cannot be changed when an output is set to Auto Size.");
         } else {
             bool v = !ce->AllSameSize() || ce->IsForcingSizes() || ce->IsUniversePerString();
             p->SetValue(v);
-            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
             p->SetHelpString("");
         }
@@ -373,12 +373,12 @@ void xxxEthernetOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controlle
             p->Hide(false);
             p->SetValue(GetChannels());
             if (ce->IsAutoSize()) {
-                p->ChangeFlag(wxPG_PROP_READONLY, true);
+                p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
                 p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
             } else {
                 p->SetEditor("SpinCtrl");
-                p->ChangeFlag(wxPG_PROP_READONLY, false);
+                p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
                 p->SetHelpString("");
             }
@@ -404,7 +404,7 @@ void xxxEthernetOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty
     p->SetAttribute("Max", 1000);
 
     p = propertyGrid->Insert(before, new wxStringProperty("Ports", "UniversesDisplay", ""));
-    p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
 

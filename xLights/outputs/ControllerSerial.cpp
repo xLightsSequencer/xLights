@@ -665,7 +665,7 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
         p = propertyGrid->Append(new wxEnumProperty("Speed", "Speed", __speeds, Controller::EncodeChoices(__speeds, wxString::Format("%d", _speed))));
         if (dynamic_cast<SerialOutput*>(_outputs.front())) {
             if (!dynamic_cast<SerialOutput*>(_outputs.front())->AllowsBaudRateSetting()) {
-                p->ChangeFlag(wxPG_PROP_READONLY, true);
+                p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
                 p->SetBackgroundColour(*wxLIGHT_GREY);
                 p->SetHelpString("Speed is fixed for this protocol.");
             }
@@ -687,7 +687,7 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
         p->SetAttribute("Max", max);
 
         if (IsAutoSize()) {
-            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
             p->SetBackgroundColour(*wxLIGHT_GREY);
             p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
         } else {
@@ -696,7 +696,7 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
     }
 
     p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), -1)));
-    p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     p->SetHelpString(modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), 4));
 

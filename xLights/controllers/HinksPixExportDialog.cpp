@@ -1103,7 +1103,11 @@ void HinksPixExportDialog::OnButtonAddPlaylistClick(wxCommandEvent& event)
 {
     wxTextEntryDialog dlg(this, "Playlist Name", "Enter Playlist Name", "MAIN");
     if (dlg.ShowModal() == wxID_OK) {
-        wxString n = dlg.GetValue();
+        wxString n = dlg.GetValue().Trim().Trim(false);
+        if (n.IsEmpty()) {
+            DisplayError("Playlist Name Cannot be Empty", this);
+            return;
+        }
         if (auto playlistRef = GetPlayList(n); playlistRef) {
             DisplayError("Playlist Name Already Exists", this);
             return;
@@ -1688,6 +1692,8 @@ void HinksPixExportDialog::StoreToObjectSchedule()
         return GridSchedule->GetCellValue(row, static_cast<int>(col));
     };
 
+    auto playLists = ChoicePlaylists->GetStrings();
+
     for (int row = 0; row <rows; ++row)
     {
         auto day = GridSchedule->GetRowLabelValue(row);
@@ -1699,6 +1705,10 @@ void HinksPixExportDialog::StoreToObjectSchedule()
             auto st_min = GetCell(row, ScheduleColumn::StartMin);
             auto ed_hr = GetCell(row, ScheduleColumn::EndHour);
             auto ed_min = GetCell(row, ScheduleColumn::EndMin);
+
+            if (std::find(playLists.begin(), playLists.end(), play) == playLists.end()) {
+                continue;//skip removed playlists
+            }
 
             ScheduleItem item(play);
             item.StartHour = wxAtoi(st_hr);
@@ -1765,6 +1775,9 @@ void HinksPixExportDialog::RedrawSchedules()
             auto playLists = ChoicePlaylists->GetStrings();
 
             for (auto const& item : sch.GetSortedSchedule()) {
+                if (std::find(playLists.begin(), playLists.end(), item.Playlist) == playLists.end()) {
+                    continue; // skip removed playlists
+                }
                 DrawPlaylistItem(day, item);
                 playLists.erase(std::remove(playLists.begin(), playLists.end(), item.Playlist), playLists.end());
             }

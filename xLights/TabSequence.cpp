@@ -1625,6 +1625,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItemShiftEffects->Enable(false);
         MenuItemShiftSelectedEffects->Enable(false);
         MenuItem_ColorReplace->Enable(false);
+        if (revertToMenuItem) revertToMenuItem->Enable(false);
     }
     if (!enable && _seqData.NumFrames() > 0) {
         //file is loaded, but we're doing something that requires controls disabled (such as rendering)

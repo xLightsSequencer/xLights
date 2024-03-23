@@ -43,11 +43,19 @@ class CirclesPanel: public xlEffectPanel
 		BulkEditSlider* Slider_Circles_Count;
 		BulkEditSlider* Slider_Circles_Size;
 		BulkEditSlider* Slider_Circles_Speed;
+		BulkEditSlider* Slider_Circles_XC;
+		BulkEditSlider* Slider_Circles_YC;
+		BulkEditTextCtrl* TextCtrl_Circles_XC;
+		BulkEditTextCtrl* TextCtrl_Circles_YC;
 		BulkEditValueCurveButton* BitmapButton_Circles_Count;
 		BulkEditValueCurveButton* BitmapButton_Circles_Size;
 		BulkEditValueCurveButton* BitmapButton_Circles_Speed;
+		BulkEditValueCurveButton* BitmapButton_Circles_XC;
+		BulkEditValueCurveButton* BitmapButton_Circles_YC;
 		wxStaticText* StaticText136;
 		wxStaticText* StaticText137;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText31;
 		xlLockButton* BitmapButton2;
 		xlLockButton* BitmapButton_CirclesBounce;
@@ -59,6 +67,8 @@ class CirclesPanel: public xlEffectPanel
 		xlLockButton* BitmapButton_CirclesRadial;
 		xlLockButton* BitmapButton_CirclesSize;
 		xlLockButton* BitmapButton_Circles_Linear_Fade;
+		xlLockButton* BitmapButton_Circles_XC_Lock;
+		xlLockButton* BitmapButton_Circles_YC_Lock;
 		xlLockButton* BitmapButton_RandomMotion;
 		//*)
 
@@ -96,12 +106,21 @@ class CirclesPanel: public xlEffectPanel
 		static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m;
 		static const long ID_CHECKBOX_Circles_Linear_Fade;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Linear_Fade;
+		static const long ID_STATICTEXT_X_CENTER;
+		static const long ID_SLIDER_Circles_XC;
+		static const long ID_VALUECURVE_Circles_XC;
+		static const long ID_TEXTCTRL_Circles_XC;
+		static const long ID_BITMAPBUTTON_CHECKBOX_CIRCLES_XC;
+		static const long ID_STATICTEXT_Y_CENTER;
+		static const long ID_SLIDER_Circles_YC;
+		static const long ID_VALUECURVE_Circles_YC;
+		static const long ID_TEXTCTRL_Circles_YC;
+		static const long ID_BITMAPBUTTON_CHECKBOX_CIRCLES_YC;
 		//*)
 
 	public:
 
 		//(*Handlers(CirclesPanel)
-		void OnCheckBox_Circles_BubblesClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

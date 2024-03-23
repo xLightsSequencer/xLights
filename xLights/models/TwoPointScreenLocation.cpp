@@ -892,7 +892,7 @@ wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, c
 void TwoPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
 {
     wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", RulerObject::Measure(origin, point2)));
-    //prop->ChangeFlag(wxPG_PROP_READONLY, true);
+    //prop->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
     prop->SetAttribute("Precision", 2);
     //prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 }

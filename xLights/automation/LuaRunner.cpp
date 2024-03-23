@@ -65,9 +65,10 @@ std::string LuaRunner::PromptSelection(sol::object const& items, std::string con
     return {};
 }
 
-std::list<std::string> LuaRunner::PromptSequences() const
+std::pair<std::list<std::string>, bool> LuaRunner::PromptSequences() const
 {
     std::list<std::string> sequenceList;
+    bool forceHighDefinitionRender = false;
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     BatchRenderDialog dlg(_frame);
@@ -83,8 +84,11 @@ std::list<std::string> LuaRunner::PromptSequences() const
                 logger_base.info("PromptSequences: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
             }
         }
+        if (dlg.CheckBox_ForceHighDefinition->IsChecked()) {
+            forceHighDefinitionRender = true;
+        }
     }
-    return sequenceList;
+    return std::make_pair(sequenceList, forceHighDefinitionRender);
 }
 
 std::list<std::string> LuaRunner::SplitString(std::string const& text, char const& delimiter) const

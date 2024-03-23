@@ -159,6 +159,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     MenuItem_ExportEffects->Enable(true);
     MenuItem_ImportEffects->Enable(true);
     MenuItem_PurgeRenderCache->Enable(true);
+    if (revertToMenuItem) revertToMenuItem->Enable(true);
 
     unsigned int max = GetMaxNumChannels();
     size_t memRequired = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(), mMediaLengthMS) / ms;
@@ -218,7 +219,7 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
     PanelSequencer->SetLabel("XLIGHTS_SEQUENCER_TAB:" + sequence);
 }
 
-void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialog* plog)
+void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialog* plog, const wxString &rp)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     ClearNonExistentFiles();
@@ -247,56 +248,58 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
             wxMessageBox("NOTE: When you save this .xbkp file it will save as a .xsq file overwriting any existing sequence .xsq file", "Warning");
         }
 
-        // check if there is a autosave backup file which is newer than the file we have been asked to open
-        if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq") {
-            wxFileName fn(filename);
-            wxFileName xx = fn;
-            xx.SetExt("xbkp");
-            wxString asfile = xx.GetLongPath();
-
-            if (FileExists(asfile)) {
-                // the autosave file exists
-                wxDateTime xmltime = fn.GetModificationTime();
-                wxFileName asfn(asfile);
-                wxDateTime xbkptime = asfn.GetModificationTime();
-
-                if (xbkptime.IsValid() && xmltime.IsValid() && (xbkptime > xmltime)) {
-                    // autosave file is newer
-                    if (wxMessageBox("Autosaved file found which seems to be newer than your sequence file ... would you like to open that instead and replace your xml file?", "Newer file found", wxYES_NO) == wxYES) {
-                        // run a backup ... equivalent of a F10
-                        DoBackup(false, false, true);
-
-                        // delete the old xml file
-                        wxRemoveFile(filename);
-
-                        // rename the autosave file
-                        wxRenameFile(asfile, filename);
-                    } else {
-                        if (FileExists(fn)) {
-                            // set the backup to be older than the XML files to avoid re-promting
-                            xmltime -= wxTimeSpan(0, 0, 3, 0); // subtract 2 seconds as FAT time resulution is 2 seconds
-                            asfn.SetTimes(&xmltime, &xmltime, &xmltime);
+        if (!rp.IsEmpty()) {
+            // check if there is a autosave backup file which is newer than the file we have been asked to open
+            if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq") {
+                wxFileName fn(filename);
+                wxFileName xx = fn;
+                xx.SetExt("xbkp");
+                wxString asfile = xx.GetLongPath();
+                
+                if (FileExists(asfile)) {
+                    // the autosave file exists
+                    wxDateTime xmltime = fn.GetModificationTime();
+                    wxFileName asfn(asfile);
+                    wxDateTime xbkptime = asfn.GetModificationTime();
+                    
+                    if (xbkptime.IsValid() && xmltime.IsValid() && (xbkptime > xmltime)) {
+                        // autosave file is newer
+                        if (wxMessageBox("Autosaved file found which seems to be newer than your sequence file ... would you like to open that instead and replace your xml file?", "Newer file found", wxYES_NO) == wxYES) {
+                            // run a backup ... equivalent of a F10
+                            DoBackup(false, false, true);
+                            
+                            // delete the old xml file
+                            wxRemoveFile(filename);
+                            
+                            // rename the autosave file
+                            wxRenameFile(asfile, filename);
+                        } else {
+                            if (FileExists(fn)) {
+                                // set the backup to be older than the XML files to avoid re-promting
+                                xmltime -= wxTimeSpan(0, 0, 3, 0); // subtract 2 seconds as FAT time resulution is 2 seconds
+                                asfn.SetTimes(&xmltime, &xmltime, &xmltime);
+                            }
                         }
                     }
                 }
             }
         }
-
         wxStopWatch sw; // start a stopwatch timer
 
         wxFileName selected_file(filename);
-
         SetPanelSequencerLabel(selected_file.GetName().ToStdString());
-
         wxFileName xml_file = selected_file;
-        if (xml_file.GetExt() != "xml") {
-            xml_file.SetExt("xsq");
-            // maybe the filename has not changed
-            if (!FileExists(xml_file)) {
-                // xsq not found ... maybe it is xbkp
-                xml_file.SetExt("xbkp");
+        
+        if (rp.IsEmpty()) {
+            if (xml_file.GetExt() != "xml") {
+                xml_file.SetExt("xsq");
+                // maybe the filename has not changed
                 if (!FileExists(xml_file)) {
-                    xml_file.SetExt("xml");
+                    // xsq not found ... maybe it is xbkp
+                    xml_file.SetExt("xbkp");
+                    if (!FileExists(xml_file)) {
+                        xml_file.SetExt("xml");
+                    }
                 }
             }
         }
@@ -368,11 +371,17 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
             logger_base.debug("Could not Find FSEQ File at: '%s'", (const char*)fseq_file.GetFullPath().c_str());
         }
 
+        
+        wxFileName realPath = rp;
+        if (rp.IsEmpty()) {
+            realPath = xml_file;
+        }
+
         // assign global xml file object
         CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
 
         // open the xml file so we can see if it has media
-        CurrentSeqXmlFile->Open(GetShowDirectory());
+        CurrentSeqXmlFile->Open(GetShowDirectory(), false, realPath);
 
         _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName().ToStdString());
 
@@ -1181,7 +1190,7 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
     }
 
     xLightsXmlFile xlf(xsqPkg.GetXsqFile());
-    xlf.Open(GetShowDirectory(), true);
+    xlf.Open(GetShowDirectory(), true, xsqPkg.GetXsqFile());
     SequenceElements se(this);
     se.SetFrequency(_sequenceElements.GetFrequency());
     se.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.

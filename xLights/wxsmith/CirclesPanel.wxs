@@ -199,6 +199,7 @@
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Radial" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Radial" member="yes">
 							<label>Radial</label>
+							<handler function="ValidateWindow" entry="EVT_CHECKBOX" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -218,6 +219,7 @@
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Plasma" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Plasma" member="yes">
 							<label>Plasma</label>
+							<handler function="ValidateWindow" entry="EVT_CHECKBOX" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -237,6 +239,7 @@
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Radial_3D" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Radial_3D" member="yes">
 							<label>Radial 3D</label>
+							<handler function="ValidateWindow" entry="EVT_CHECKBOX" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -256,7 +259,7 @@
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Bubbles" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Bubbles" member="yes">
 							<label>Bubbles</label>
-							<handler function="OnCheckBox_Circles_BubblesClick" entry="EVT_CHECKBOX" />
+							<handler function="ValidateWindow" entry="EVT_CHECKBOX" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -277,6 +280,7 @@
 						<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Collide" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Collide" member="yes">
 							<label>Collide</label>
 							<hidden>1</hidden>
+							<handler function="ValidateWindow" entry="EVT_CHECKBOX" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -298,6 +302,7 @@
 						<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Random_m" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Random_m" member="yes">
 							<label>Random Motion</label>
 							<hidden>1</hidden>
+							<handler function="ValidateWindow" entry="EVT_CHECKBOX" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -329,6 +334,116 @@
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizerCenterX" member="no">
+							<cols>4</cols>
+							<growablecols>1</growablecols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT_X_CENTER" variable="StaticText1" member="yes">
+									<label>X Center</label>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_Circles_XC" subclass="BulkEditSlider" variable="Slider_Circles_XC" member="yes">
+									<min>-50</min>
+									<max>50</max>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Circles_XC" subclass="BulkEditValueCurveButton" variable="BitmapButton_Circles_XC" member="yes">
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL_Circles_XC" subclass="BulkEditTextCtrl" variable="TextCtrl_Circles_XC" member="yes">
+									<value>0</value>
+									<maxlength>3</maxlength>
+									<size>20,-1d</size>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_CIRCLES_XC" subclass="xlLockButton" variable="BitmapButton_Circles_XC_Lock" member="yes">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizerCenterY" member="no">
+							<cols>4</cols>
+							<growablecols>1</growablecols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT_Y_CENTER" variable="StaticText2" member="yes">
+									<label>Y Center</label>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_Circles_YC" subclass="BulkEditSlider" variable="Slider_Circles_YC" member="yes">
+									<min>-50</min>
+									<max>50</max>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Circles_YC" subclass="BulkEditValueCurveButton" variable="BitmapButton_Circles_YC" member="yes">
+									<bitmap code="GetValueCurveNotSelectedBitmap()" />
+									<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL_Circles_YC" subclass="BulkEditTextCtrl" variable="TextCtrl_Circles_YC" member="yes">
+									<value>0</value>
+									<maxlength>3</maxlength>
+									<size>20,-1d</size>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_CIRCLES_YC" subclass="xlLockButton" variable="BitmapButton_Circles_YC_Lock" member="yes">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>1</border>

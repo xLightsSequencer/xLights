@@ -134,7 +134,7 @@ wxString FacesEffect::GetEffectString() {
 
 std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
     wxLogNull logNo; // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     wxString definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
     if (definition == "Default" && !model->faceInfo.empty() && model->faceInfo.begin()->first != "") {

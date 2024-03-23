@@ -632,7 +632,6 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
         last_maxx = maxx;
         last_maxy = maxy;
         if( !mg->GetCentreDefined() ) {
-            wxXmlNode* ModelXml = mg->GetModelXml();
             int offx = mg->GetXCentreOffset();
             int offy = mg->GetYCentreOffset();
             float cx = (minx + maxx) / 2.0 + (offx * (maxx - minx)) / 2000.0;
@@ -655,8 +654,6 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
             int xmaxy = wxAtoi(ModelXml->GetAttribute("centreMaxy", "0"));
             if (xminx != (int)minx || xminy != (int)miny || xmaxx != (int)maxx || xmaxy != (int)maxy) {
                 // need to calc new offsets
-                int offx = mg->GetXCentreOffset();
-                int offy = mg->GetYCentreOffset();
                 float cx = mg->GetCentreX();
                 float cy = mg->GetCentreY();
                 float offsetX = ((cx - ((minx + maxx) / 2.0)) * 2000.0) / (maxx - minx);

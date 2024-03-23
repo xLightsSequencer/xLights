@@ -931,6 +931,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
             layers[x]->bufferType = "Default";
         }
         layers[x]->camera = "2D";
+        layers[x]->renderingDisabled = false;
         layers[x]->bufferTransform = "None";
         layers[x]->outTransitionType = "Fade";
         layers[x]->inTransitionType = "Fade";
@@ -1432,12 +1433,13 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool> & validLa
                     color.Set(0, 0, 0, 0);
                     xlColor c2;
                     bool found = false;
-                    for (auto it = thelayer->buffer.Nodes[node]->Coords.rbegin(); it != thelayer->buffer.Nodes[node]->Coords.rend(); ++it) {
+                    for (auto it = thelayer->buffer.Nodes[node]->Coords.begin(); it != thelayer->buffer.Nodes[node]->Coords.end(); ++it) {
                         //find the last coordinate with a color, compatibility with older xLights that only allowed a
                         //node to exist once in the submodel and would use the coord of the last appearance
                         auto coord = *it;
                         int x1 = coord.bufX;
                         int y1 = coord.bufY;
+                        
                         if (!thelayer->isMasked(x1, y1)) {
                             thelayer->buffer.GetPixel(x1, y1, c2);
                             if (c2.alpha != 0) {
@@ -2092,6 +2094,7 @@ static const std::string SLIDER_PivotPointX("SLIDER_PivotPointX");
 static const std::string SLIDER_PivotPointY("SLIDER_PivotPointY");
 static const std::string SLIDER_XPivot("SLIDER_XPivot");
 static const std::string SLIDER_YPivot("SLIDER_YPivot");
+static const std::string X_Effect_RenderDisabled("X_Effect_RenderDisabled");
 
 static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
@@ -2296,11 +2299,12 @@ namespace
    }
 }
 
-void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMap) {
+void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMap, bool layerEnabled) {
     LayerInfo *inf = layers[layer];
     inf->persistent = settingsMap.GetBool(CHECKBOX_OverlayBkg);
     inf->mask.clear();
 
+    inf->renderingDisabled = layerEnabled && settingsMap.Contains(X_Effect_RenderDisabled);
     inf->fadeInSteps = (int)(settingsMap.GetDouble(TEXTCTRL_Fadein, 0.0)*1000)/frameTimeInMs;
     inf->fadeOutSteps = (int)(settingsMap.GetDouble(TEXTCTRL_Fadeout, 0.0)*1000)/frameTimeInMs;
 
@@ -2530,7 +2534,9 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 bool PixelBufferClass::IsPersistent(int layer) {
     return layers[layer]->persistent;
 }
-
+bool PixelBufferClass::IsRenderingDisabled(int layer) const {
+    return layers[layer]->renderingDisabled;
+}
 int PixelBufferClass::GetFreezeFrame(int layer)
 {
     return layers[layer]->freezeAfterFrame;
@@ -3024,6 +3030,9 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
 }
 
 void PixelBufferClass::HandleLayerBlurZoom(int EffectPeriod, int layer) {
+    if (IsRenderingDisabled(layer)) {
+        return;
+    }
     int effStartPer, effEndPer;
     layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
     float offset = 0.0f;

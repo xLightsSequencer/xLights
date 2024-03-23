@@ -71,7 +71,7 @@ AssistPanel *MorphEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_fram
 
 std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("E_VALUECURVE_Morph_Start_X1", "").find("Active=TRUE") != std::string::npos ||
         settings.Get("E_VALUECURVE_Morph_Start_X2", "").find("Active=TRUE") != std::string::npos ||

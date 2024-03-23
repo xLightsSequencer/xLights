@@ -548,7 +548,7 @@ void Model::Rename(std::string const& newName)
     ModelXml->DeleteAttribute("name");
     ModelXml->AddAttribute("name", name);
 
-    if (oldname != "") {
+    if (oldname != "" && newName != "Iamgoingtodeletethismodel") {
         if (wxMessageBox("Would you like to save the old name as an alias for this prop. This could be useful if you have sequences already sequenced against this prop using the old name.", "Save old name as alias", wxYES_NO | wxICON_QUESTION, GetModelManager().GetXLightsFrame()) == wxYES) {
             AddAlias("oldname:" + oldname);
         }
@@ -954,7 +954,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         p = grid->Append(new wxStringProperty("In Model Groups", "MGS", mgs));
         p->SetHelpString(mgscr);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPG_PROP_READONLY, true);
+        p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
     }
 
     AddControllerProperties(grid);
@@ -1008,22 +1008,28 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
 
     p = grid->Append(new wxPropertyCategory("Appearance", "ModelAppearance"));
     sp = grid->AppendIn(p, new wxBoolProperty("Active", "Active", IsActive()));
+    sp->SetHelpString("If unchecked the model will not be shown in the layout screen.");
     sp->SetAttribute("UseCheckbox", true);
     sp = grid->AppendIn(p, new wxUIntProperty("Pixel Size", "ModelPixelSize", pixelSize));
     sp->SetAttribute("Min", 1);
     sp->SetAttribute("Max", 300);
     sp->SetEditor("SpinCtrl");
+    sp->SetHelpString("By increasing the pixel size, the appearance of the element can be made to display a bigger size.");
 
-    grid->AppendIn(p, new wxEnumProperty("Pixel Style", "ModelPixelStyle", PIXEL_STYLES, wxArrayInt(), (int)_pixelStyle));
+    sp = grid->AppendIn(p, new wxEnumProperty("Pixel Style", "ModelPixelStyle", PIXEL_STYLES, wxArrayInt(), (int)_pixelStyle));
+    sp->SetHelpString("A visual representation of a pixel.");
     sp = grid->AppendIn(p, new wxUIntProperty("Transparency", "ModelPixelTransparency", transparency));
+    sp->SetHelpString("Adjust how opaque the element is on the display.");
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 100);
     sp->SetEditor("SpinCtrl");
     sp = grid->AppendIn(p, new wxUIntProperty("Black Transparency", "ModelPixelBlackTransparency", blackTransparency));
+    sp->SetHelpString("Adjust how transparent the element is on the display.");
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 100);
     sp->SetEditor("SpinCtrl");
-    grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", modelTagColour));
+    sp = grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", modelTagColour));
+    sp->SetHelpString("A visual color assigned to the model in the model list.");
     UpdateControllerProperties(grid);
     DisableUnusedProperties(grid);
 
@@ -1170,7 +1176,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                     } else {
                         std::string type = GetSmartRemoteType();
                         auto smt = grid->AppendIn(p, new wxStringProperty("Smart Remote Type", "SmartRemoteType", type));
-                        smt->ChangeFlag(wxPG_PROP_READONLY, true);
+                        smt->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
                         smt->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
                     }
                 }

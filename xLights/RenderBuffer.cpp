@@ -1474,7 +1474,8 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixelVector.size()) {
         color = pixels[pidx];
     } else {
-        color = xlBLACK;
+        color = this->allowAlpha ? xlCLEAR : xlBLACK;
+        
     }
 }
 
@@ -1483,7 +1484,7 @@ const xlColor& RenderBuffer::GetPixel(int x, int y) const {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixelVector.size()) {
         return pixels[pidx];
     }
-    return xlBLACK;
+    return this->allowAlpha ? xlCLEAR : xlBLACK;
 }
 
 // 0,0 is lower left
@@ -1512,7 +1513,7 @@ const xlColor& RenderBuffer::GetTempPixel(int x, int y) {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbufVector.size()) {
         return tempbuf[y * BufferWi + x];
     }
-    return xlBLACK;
+    return this->allowAlpha ? xlCLEAR : xlBLACK;
 }
 
 const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
@@ -1520,7 +1521,7 @@ const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbufVector.size()) {
         return tempbuf[y * BufferWi + x];
     }
-    return xlBLACK;
+    return this->allowAlpha ? xlCLEAR : xlBLACK;
 }
 
 void RenderBuffer::SetState(int period, bool ResetState, const std::string& model_name)

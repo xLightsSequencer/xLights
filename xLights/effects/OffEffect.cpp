@@ -30,7 +30,7 @@ OffEffect::~OffEffect()
 
 std::list<std::string> OffEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     // if persistent is on then canvas/off transparent cant be checked
     if (settings.Get("B_CHECKBOX_OverlayBkg", "0") == "0")

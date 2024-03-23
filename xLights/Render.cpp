@@ -700,7 +700,7 @@ public:
 
                 if (suppress) {
                     info.validLayers[layer] = false;
-                } else {
+                } else if (info.validLayers[layer]) {
                     buffer->HandleLayerBlurZoom(frame, layer);
                 }
             } else {
@@ -930,14 +930,19 @@ public:
 private:
 
     void initialize(int layer, int frame, Effect *el, SettingsMap &settingsMap, PixelBufferClass *buffer) {
+        bool layerEnabled = true;
         if (el == nullptr || el->GetEffectIndex() == -1) {
             settingsMap.clear();
         } else {
+            auto e = el->GetParentEffectLayer()->GetParentElement();
+            if (e != nullptr) {
+                layerEnabled = !e->IsRenderDisabled();
+            }
             loadSettingsMap(el->GetEffectName(),
                             el,
                             settingsMap);
         }
-        buffer->SetLayerSettings(layer, settingsMap);
+        buffer->SetLayerSettings(layer, settingsMap, layerEnabled);
         if (el != nullptr) {
             xlColorVector newcolors;
             xlColorCurveVector newcc;
@@ -2096,8 +2101,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
 
     // dont render disabled effects
     if (effectObj == nullptr) return false;
-    if (effectObj->IsRenderDisabled()) return false;
-
+    
     if (layer >= buffer.GetLayerCount()) {
         logger_base.error("Model %s Effect %s at frame %d tried to render on a layer %d that does not exist (Only %d found).",
             (const char*)buffer.GetModel()->GetName().c_str(), (const char*)effectObj->GetEffectName().c_str(), period, layer + 1, buffer.GetLayerCount());
@@ -2105,6 +2109,10 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
         return false;
     }
 
+    if (buffer.IsRenderingDisabled(layer)) {
+        return false;
+    }
+    
     if (buffer.BufferForLayer(layer, -1).BufferHt == 0 || buffer.BufferForLayer(layer, -1).BufferWi == 0) {
         return false;
     }

@@ -159,10 +159,10 @@ void xLightsFrame::CreateSequencer()
                    .Float().MaximizeButton(true));
     // Hide the panel on start.
     wxAuiPaneInfo & info = m_mgr->GetPane("DisplayElements");
-    info.BestSize(wxSize(600, 400));
+    info.BestSize(wxSize(750, 1050));
     int w, h;
     displayElementsPanel->GetSize(&w, &h);
-    info.FloatingSize(std::max(600, w), std::max(400, h));
+    info.FloatingSize(std::max(750, w), std::max(1050, h));
     info.Hide();
 
     m_mgr->AddPane(perspectivePanel,wxAuiPaneInfo().Name(wxT("Perspectives")).Caption(wxT("Perspectives")).Left().Layer(1).Hide());
@@ -512,10 +512,18 @@ void xLightsFrame::CheckForValidModels()
             if (element && ElementType::ELEMENT_TYPE_MODEL == element->GetType()) {
                 std::string name = element->GetModelName();
                 
-                if (AllModels[name] == nullptr) {
-                    int numfx = element->GetEffectCount(); //useful info for user
-                    std::string desc = name + "(" + std::to_string(numfx) + ")";
-                    missingModels.push_back(desc); //show which ones have effects (tells user how important)
+                if (AllModels[name] == nullptr && element->GetEffectCount()>0) {
+                    //check to see if we have an alias
+                    for (const auto& it : AllModels) {
+                        if (it.second->IsAlias(name, true)) {
+                            //this will map to an alias later, skip it
+                        } else if (it.second->IsAlias(name, false)) {
+                            int numfx = element->GetEffectCount(); // useful info for user
+                            std::string desc = name + "(" + std::to_string(numfx) + ")";
+                            missingModels.push_back(desc); // show which ones have effects (tells user how important)
+                        }
+                    }
+                    
                 }
                 //remove the current models from the list so we don't end up with the same model represented twice
                 Remove(AllNames, name);
@@ -1213,7 +1221,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                     effect->SetEffectIndex(effectManager.GetEffectIndex(effectName));
                     resetStrings = true;
                 }
-                SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+                SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetFullName(),
                     effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
                     !event.isNew);
                 selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
@@ -2514,11 +2522,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     //p->Freeze();
     Model *model = GetModel(modelName);
     if (setDefaults) {
-        if (modelName == "") {
-            ResetPanelDefaultSettings(effectName, nullptr, false);
-        } else {
-            ResetPanelDefaultSettings(effectName, model, false);
-        }
+        ResetPanelDefaultSettings(effectName, model, false);
     }
 
     EffectsPanel1->SetEffectPanelStatus(model, effectName);
@@ -2635,7 +2639,10 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 			}
 
 			wxChoice* ctrl = (wxChoice*)CtrlWin;
-			ctrl->SetStringSelection(value);
+            if (!ctrl->SetStringSelection(value) && value.StartsWith("**")) {
+                ctrl->Append(value);
+                ctrl->SetStringSelection(value);
+            }
             if (ctrl->GetStringSelection() != value && count < 10) {
                 // if did not take ... possibly because it has not loaded the values yet
                 // If it doesn't take after 10 attempts, the "value" is not in the list of possible values
@@ -3045,10 +3052,10 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
 {
     displayElementsPanel->Initialize();
     wxAuiPaneInfo & info = m_mgr->GetPane("DisplayElements");
-    info.BestSize(wxSize(600, 400));
+    info.BestSize(wxSize(750, 1050));
     int w, h;
     displayElementsPanel->GetSize(&w, &h);
-    info.FloatingSize(std::max(600, w), std::max(400, h));
+    info.FloatingSize(std::max(750, w), std::max(1050, h));
     info.Show();
     m_mgr->Update();
     UpdateViewMenu();
@@ -3098,10 +3105,10 @@ void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
     if (visible) {
         info.Hide();
     } else {
-        info.BestSize(wxSize(600, 400));
+        info.BestSize(wxSize(750, 1050));
         int w, h;
         displayElementsPanel->GetSize(&w, &h);
-        info.FloatingSize(std::max(600, w), std::max(400, h));
+        info.FloatingSize(std::max(750, w), std::max(1050, h));
         info.Show();
     }
     m_mgr->Update();

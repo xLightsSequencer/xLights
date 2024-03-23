@@ -832,7 +832,7 @@ void xLightsXmlFile::CreateNew()
     version_string = xlights_version_string;
 }
 
-bool xLightsXmlFile::Open(const wxString& ShowDir, bool ignore_audio)
+bool xLightsXmlFile::Open(const wxString& ShowDir, bool ignore_audio, const wxFileName &realFilename)
 {
     if (!FileExists())
         return false;
@@ -843,7 +843,7 @@ bool xLightsXmlFile::Open(const wxString& ShowDir, bool ignore_audio)
         return LoadV3Sequence();
     }
     else if (IsXmlSequence(*this)) {
-        return LoadSequence(ShowDir, ignore_audio);
+        return LoadSequence(ShowDir, ignore_audio, realFilename);
     }
     return false;
 }
@@ -1048,12 +1048,16 @@ void xLightsXmlFile::ConvertToFixedPointTiming()
     }
 }
 
-bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
+bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, const wxFileName &realFilename)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("LoadSequence: Loading sequence " + GetFullPath());
+    if (realFilename.GetFullPath() != GetFullPath()) {
+        logger_base.info("LoadSequence: Loading sequence " + GetFullPath() + " from " + realFilename.GetFullPath());
+    } else {
+        logger_base.info("LoadSequence: Loading sequence " + GetFullPath());
+    }
 
-    if (!seqDocument.Load(GetFullPath())) {
+    if (!seqDocument.Load(realFilename.GetFullPath())) {
         logger_base.error("LoadSequence: XML file load failed.");
         return false;
     }
@@ -2408,7 +2412,7 @@ void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayStri
 
         logger_base.info("Loading sequence file " + std::string(next_file.GetFullPath().c_str()));
         xLightsXmlFile file(next_file);
-        file.LoadSequence(dir, true);
+        file.LoadSequence(dir, true, next_file);
 
         SequenceElements se(xLightsParent);
         se.SetFrequency(file.GetFrequency());
@@ -2861,6 +2865,7 @@ void xLightsXmlFile::Save(SequenceElements& seq_elements)
 #endif
 
     seqDocument.Save(GetFullPath());
+    MarkNewFileRevision(GetFullPath());
 }
 
 bool xLightsXmlFile::TimingAlreadyExists(const std::string & section, xLightsFrame* xLightsParent)

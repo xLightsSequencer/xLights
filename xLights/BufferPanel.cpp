@@ -711,6 +711,8 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
         }
         if (BufferStyleChoice->IsEmpty()) {
             BufferStyleChoice->Append("Default");
+            BufferStyleChoice->Append("Per Preview");
+            BufferStyleChoice->Append("As Pixel");
         }
 
         Choice_PerPreviewCamera->SetStringSelection("2D");

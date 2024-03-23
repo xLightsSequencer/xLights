@@ -178,7 +178,7 @@ void SketchEffect::adjustSettings(const std::string& version, Effect* effect, bo
 std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     wxLogNull logNo; // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (!xLightsFrame::IsCheckSequenceOptionDisabled("SketchImage")) {
         wxString filename = settings.Get("E_FILEPICKER_SketchBackground", "");

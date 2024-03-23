@@ -578,7 +578,7 @@ void PolyLineModel::InitModel()
             }
         }
         Nodes[curNode]->ActChan = chan;
-        Nodes[curNode]->Coords[curCoord].bufX = width;
+        Nodes[curNode]->Coords[curCoord].bufX = SingleNode ? 0 : width;
         if (_alternateNodes) {
             if (y + 1 <= (nodesInDrop + 1) / 2) {
                 if (up) {

@@ -47,6 +47,12 @@ MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
 }
 
 id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer() {
+    if (commandBuffer != nil && committed) {
+        // This should not happen.  If we get here, some work was sent
+        // to the GPU, but then nothing asked for the result so the
+        // work was irrelevant.   That would need to be tracked down.
+        waitForCompletion();
+    }
     if (commandBuffer == nil) {
         int max = MAX_COMMANDBUFFER_COUNT - 4;
         if (MetalComputeUtilities::INSTANCE.prioritizeGraphics()) {

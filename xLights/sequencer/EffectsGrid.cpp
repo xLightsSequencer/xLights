@@ -5923,8 +5923,8 @@ void EffectsGrid::SetFirstEffectSelected()
                 if (eff->GetSelected()) {
                     mSelectedRow = row;
                     mSelectedEffect = eff;
-                    RaiseSelectedEffectChanged(mSelectedEffect, false);
-                    RaisePlayModelEffect(element, mSelectedEffect, false);
+                    RaiseSelectedEffectChanged(eff, false);
+                    RaisePlayModelEffect(element, eff, false);
                     wxCommandEvent eventRowChanged(EVT_SELECTED_ROW_CHANGED);
                     eventRowChanged.SetInt(mSelectedRow);
                     eventRowChanged.SetString(element->GetModelName());
