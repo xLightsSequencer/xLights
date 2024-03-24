@@ -3801,6 +3801,19 @@ void Model::ApplyTransform(const std::string& type,
     }
 }
 
+const std::string Model::AdjustBufferStyle(const std::string &style) const {
+    auto styles = GetBufferStyles();
+    if (std::find(styles.begin(), styles.end(), style) == styles.end()) {
+        if (style.substr(0, 9) == "Per Model") {
+            return style.substr(10);
+        } else {
+            return "Default";
+        }
+    }
+    return style;
+}
+
+
 void Model::InitRenderBufferNodes(const std::string& type, const std::string& camera,
                                   const std::string& transform,
                                   std::vector<NodeBaseClassPtr>& newNodes, int& bufferWi, int& bufferHt, int stagger, bool deep) const

@@ -681,16 +681,10 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
 void Effect::FixBuffer(const Model* m)
 {
     if (m == nullptr) return;
-
-    auto styles = m->GetBufferStyles();
     auto style = mSettings.Get("B_CHOICE_BufferStyle", "Default");
-
-    if (std::find(styles.begin(), styles.end(), style) == styles.end()) {
-        if (style.substr(0, 9) == "Per Model") {
-            mSettings["B_CHOICE_BufferStyle"] = style.substr(10);
-        } else {
-            mSettings["B_CHOICE_BufferStyle"] = "Default";
-        }
+    std::string newStyle = m->AdjustBufferStyle(style);
+    if (newStyle != style) {
+        mSettings["B_CHOICE_BufferStyle"] = newStyle;
     }
 }
 
