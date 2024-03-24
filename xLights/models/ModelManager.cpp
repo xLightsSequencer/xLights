@@ -1393,7 +1393,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
             node->AddAttribute("DisplayAs", type);
             node->DeleteAttribute("DmxStyle");
             node->AddAttribute("DmxStyle", "Moving Head 3D");
-        } else if (version >= "5") { // After version 2024.2 the DmxMovingHead3D is being converted to the DmxMovingHeadAdv
+        } else if (version >= "5") { // After version 2024.5 the DmxMovingHead3D is being converted to the DmxMovingHeadAdv
             type = "DmxMovingHeadAdv";
             node->DeleteAttribute("DisplayAs");
             node->AddAttribute("DisplayAs", type);
@@ -1402,6 +1402,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
             node->DeleteAttribute("DmxBeamLength");
             node->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)(beam_length * 1.275f)));  // try to match old beam length
             node->AddAttribute("DmxBeamYOffset", "0");
+            // Migrate Mesh settings
             wxXmlNode* n = node->GetChildren();
             while (n != nullptr) {
                 std::string name = n->GetName();
@@ -1415,6 +1416,50 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
                 }
                 n = n->GetNext();
             }
+            n = node->GetChildren();
+            while (n != nullptr) {
+                std::string name = n->GetName();
+                if ("HeadMesh" == name) {
+                    n->DeleteAttribute("ObjFile");
+                    n->AddAttribute("ObjFile", "MovingHead3DX_Head.obj");
+                    n->DeleteAttribute("RotateY");
+                    n->AddAttribute("RotateY", "90");
+                    break;
+                }
+                n = n->GetNext();
+            }
+            // Migrate PanMotor settings
+            std::string new_name = "PanMotor";
+            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+            node->AddChild(new_node);
+            int channel = wxAtoi(node->GetAttribute("DmxPanChannel", "1"));
+            node->DeleteAttribute("DmxPanChannel");
+            new_node->AddAttribute("ChannelCoarse", wxString::Format("%d", channel));
+            int slew_limit = wxAtoi(node->GetAttribute("DmxPanSlewLimit", "180"));
+            node->DeleteAttribute("DmxPanSlewLimit");
+            new_node->AddAttribute("SlewLimit", wxString::Format("%d", slew_limit));
+            int range_of_motion = wxAtoi(node->GetAttribute("DmxPanDegOfRot", "540"));
+            node->DeleteAttribute("DmxPanDegOfRot");
+            new_node->AddAttribute("RangeOfMotion", wxString::Format("%d", range_of_motion));
+            int orientation = 360 - wxAtoi(node->GetAttribute("DmxPanOrient", "0"));
+            node->DeleteAttribute("DmxPanOrient");
+            new_node->AddAttribute("OrientZero", wxString::Format("%d", orientation));
+            // Migrate TiltMotor settings
+            new_name = "TiltMotor";
+            new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+            node->AddChild(new_node);
+            channel = wxAtoi(node->GetAttribute("DmxTiltChannel", "1"));
+            node->DeleteAttribute("DmxTiltChannel");
+            new_node->AddAttribute("ChannelCoarse", wxString::Format("%d", channel));
+            slew_limit = wxAtoi(node->GetAttribute("DmxTiltSlewLimit", "180"));
+            node->DeleteAttribute("DmxPanSlewLimit");
+            new_node->AddAttribute("SlewLimit", wxString::Format("%d", slew_limit));
+            range_of_motion = wxAtoi(node->GetAttribute("DmxTiltDegOfRot", "180"));
+            node->DeleteAttribute("DmxTiltDegOfRot");
+            new_node->AddAttribute("RangeOfMotion", wxString::Format("%d", range_of_motion));
+            orientation = 360 - wxAtoi(node->GetAttribute("DmxTiltOrient", "0"));
+            node->DeleteAttribute("DmxTiltOrient");
+            new_node->AddAttribute("OrientZero", wxString::Format("%d", orientation));
         }
     } else if (type == "DmxServo3Axis") {
         type = "DmxServo3d";
