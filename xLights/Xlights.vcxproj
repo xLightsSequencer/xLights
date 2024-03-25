@@ -293,6 +293,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="DragValueCurveBitmapButton.cpp" />
     <ClCompile Include="DuplicateDialog.cpp" />
     <ClCompile Include="EditAliasesDialog.cpp" />
+    <ClCompile Include="EditSubmodelAliasesDialog.cpp" />
     <ClCompile Include="effects\AdjustEffect.cpp" />
     <ClCompile Include="effects\AdjustPanel.cpp" />
     <ClCompile Include="effects\assist\SketchAssistPanel.cpp" />
@@ -787,6 +788,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="DragValueCurveBitmapButton.h" />
     <ClInclude Include="DuplicateDialog.h" />
     <ClInclude Include="EditAliasesDialog.h" />
+    <ClInclude Include="EditSubmodelAliasesDialog.h" />
     <ClInclude Include="effects\AdjustEffect.h" />
     <ClInclude Include="effects\AdjustPanel.h" />
     <ClInclude Include="effects\assist\AssistPanel.h" />

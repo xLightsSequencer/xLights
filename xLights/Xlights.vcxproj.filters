@@ -1048,6 +1048,7 @@
     <ClCompile Include="TempFileManager.cpp" />
     <ClCompile Include="xlColourData.cpp" />
     <ClCompile Include="SpecialOptions.cpp" />
+    <ClCompile Include="EditSubmodelAliasesDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2108,6 +2109,7 @@
     </ClInclude>
     <ClInclude Include="TempFileManager.h" />
     <ClInclude Include="xlColourData.h" />
+    <ClInclude Include="EditSubmodelAliasesDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
