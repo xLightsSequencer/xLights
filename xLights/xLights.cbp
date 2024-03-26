@@ -198,6 +198,7 @@
 					<Add directory="xLights/models" />
 					<Add directory="../dependencies/libxlsxwriter/include" />
 					<Add directory="../include/sol2-3.2.2" />
+					<Add directory="../dependencies" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -253,6 +254,7 @@
 					<Add directory="xLights/models" />
 					<Add directory="../dependencies/libxlsxwriter/include" />
 					<Add directory="../include/sol2-3.2.2" />
+					<Add directory="../dependencies" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
