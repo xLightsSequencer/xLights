@@ -81,6 +81,7 @@ private:
     std::list<ccSortableColorPoint> _undo;
     int _start;
     int _end;
+    int _totalBorderWidth;
     Element* _timingElement;
 };
 

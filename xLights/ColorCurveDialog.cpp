@@ -58,6 +58,7 @@ ColorCurvePanel::ColorCurvePanel(ColorCurve* cc, Element* timingElement, int sta
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     _grabbedPoint = -1;
     _startPoint = -1;
+    _totalBorderWidth = 3; // The border around the color curve seems to account for 3 pixels, which needs to be accounted for when using the ColorCurvePanel Width.
 
     Refresh();
 }
@@ -71,10 +72,9 @@ void ColorCurvePanel::Select(float x)
 void ColorCurvePanel::Convert(float &x, wxMouseEvent& event) const
 {
     wxSize size = GetSize();
-    float startX = 0.0; // size.GetWidth() / 10.0;
-    float bw = size.GetWidth(); //  *0.8;
+    float bw = size.GetWidth() - _totalBorderWidth;
 
-    x = (event.GetX() - startX) / bw;
+    x = event.GetX() / bw;
     x = ccSortableColorPoint::Normalise(x);
 }
 
@@ -632,26 +632,27 @@ void ColorCurvePanel::DrawHouse(wxAutoBufferedPaintDC& pdc, int x, int height, b
 void ColorCurvePanel::DrawStopsAsHouses(wxAutoBufferedPaintDC& pdc)
 {
     wxSize s = GetSize();
+    int width = s.GetWidth() - _totalBorderWidth;
     std::list<ccSortableColorPoint> pts = _cc->GetPoints();
 
     wxPointList pl;
-    pl.push_back(new wxPoint(s.GetWidth()*-0.01, 0));
-    pl.push_back(new wxPoint(s.GetWidth()*-0.01, s.GetHeight()*-0.22));
+    pl.push_back(new wxPoint(width*-0.01, 0));
+    pl.push_back(new wxPoint(width*-0.01, s.GetHeight()*-0.22));
     pl.push_back(new wxPoint(0, s.GetHeight()*-0.30));
-    pl.push_back(new wxPoint(s.GetWidth()*0.01, s.GetHeight()*-0.22));
-    pl.push_back(new wxPoint(s.GetWidth()*0.01, 0));
+    pl.push_back(new wxPoint(width*0.01, s.GetHeight()*-0.22));
+    pl.push_back(new wxPoint(width*0.01, 0));
 
     if (pts.size() > 0)
     {
         for (auto p = pts.begin()++; p != pts.end(); ++p)
         {
-            DrawHouse(pdc, p->x * s.GetWidth(), s.GetHeight(), false, _cc->GetValueAt(p->x).asWxColor(), pl);
+            DrawHouse(pdc, p->x * width, s.GetHeight(), false, _cc->GetValueAt(p->x).asWxColor(), pl);
         }
     }
 
     if (_grabbedPoint >= 0)
     {
-        DrawHouse(pdc, _grabbedPoint * s.GetWidth(), s.GetHeight(), true, _cc->GetValueAt(_grabbedPoint).asWxColor(), pl);
+        DrawHouse(pdc, _grabbedPoint * width, s.GetHeight(), true, _cc->GetValueAt(_grabbedPoint).asWxColor(), pl);
     }
 }
 
@@ -660,7 +661,7 @@ void ColorCurvePanel::DrawTiming(wxAutoBufferedPaintDC& pdc, long timeMS)
     wxSize s = GetSize();
     long interval = _end - _start;
     float pos = (float)(timeMS - _start) / (float)interval;
-    int x = pos * s.GetWidth();
+    int x = pos * (s.GetWidth() - _totalBorderWidth);
 
     pdc.SetPen(*wxBLUE);
     pdc.DrawLine(x, 0, x, s.GetHeight());
