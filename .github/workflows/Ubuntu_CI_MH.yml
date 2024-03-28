@@ -1,0 +1,66 @@
+name: Ubuntu CI Adv MH
+
+on:
+  push:
+    branches: [ moving_head_adv ]
+    paths-ignore:
+      - '.github/workflows/*.yml'
+      - '.github/ISSUE_TEMPLATE/*.md'
+      - 'build_scripts/**'
+      - 'cmudict/**'
+      - 'colorcurves/**'
+      - 'controllers/**'
+      - 'documentation/**'
+      - 'download/**'
+      - 'images/**'
+      - 'lib/windows/**'
+      - 'lib/windows64/**'
+      - 'meshobjects/**'
+      - 'palettes/**'
+      - 'scripts/**'
+      - 'songs/**'
+      - 'TipOfDay/**'
+      - 'valuecurves/**'
+      - '*.md'
+      - '*.yml'
+      - '*.txt'
+      - '*.docx'
+      - 'README.*'
+  pull_request:
+    branches: [ moving_head_adv ]
+    paths-ignore:
+      - '.github/workflows/*.yml'
+      - '.github/ISSUE_TEMPLATE/*.md'
+      - 'build_scripts/**'
+      - 'cmudict/**'
+      - 'colorcurves/**'
+      - 'controllers/**'
+      - 'documentation/**'
+      - 'download/**'
+      - 'images/**'
+      - 'meshobjects/**'
+      - 'palettes/**'
+      - 'scripts/**'
+      - 'songs/**'
+      - 'TipOfDay/**'
+      - 'valuecurves/**'
+      - '*.md'
+      - '*.yml'
+      - '*.txt'
+      - '*.docx'
+      - 'README.*'    
+  workflow_dispatch:
+jobs:
+  build:
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+          submodules: 'true'
+          ref: moving_head_adv
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install g++ gcc build-essential libgtk-3-dev libunwind-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libavutil-dev libportmidi-dev libzstd-dev libwebp-dev libcurl4-openssl-dev libltc-dev liblua5.3-dev wget git cbp2make
+    - name: Make
+      run: make -j 2
