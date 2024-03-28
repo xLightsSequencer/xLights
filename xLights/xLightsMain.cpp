@@ -9975,13 +9975,10 @@ void xLightsFrame::ReplaceModelWithModelFixGroups(const std::string& oldModel, c
 
 void xLightsFrame::OnMenuItemRunScriptSelected(wxCommandEvent& event)
 {
-    printf("Foo!\n");
-    /*
     if (!_scriptsDialog) {
         _scriptsDialog = std::make_unique<ScriptsDialog>(this);
     }
     _scriptsDialog->Show();
-     */
 }
 
 void xLightsFrame::UpdateViewMenu()
