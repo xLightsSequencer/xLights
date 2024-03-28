@@ -1192,8 +1192,12 @@
 		<Unit filename="models/DMX/Mesh.h" />
 		<Unit filename="models/DMX/MovingHeads/MhChannel.cpp" />
 		<Unit filename="models/DMX/MovingHeads/MhChannel.h" />
+		<Unit filename="models/DMX/MovingHeads/MhChannelDialog.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhChannelDialog.h" />
 		<Unit filename="models/DMX/MovingHeads/MhFeature.cpp" />
 		<Unit filename="models/DMX/MovingHeads/MhFeature.h" />
+		<Unit filename="models/DMX/MovingHeads/MhFeatureDialog.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhFeatureDialog.h" />
 		<Unit filename="models/DMX/Servo.cpp" />
 		<Unit filename="models/DMX/Servo.h" />
 		<Unit filename="models/DMX/ServoConfigDialog.cpp" />
@@ -1523,6 +1527,8 @@
 		<Unit filename="wxsmith/MediaImportOptionsDialog.wxs" />
 		<Unit filename="wxsmith/MeteorsPanel.wxs" />
 		<Unit filename="wxsmith/MetronomeLabelDialog.wxs" />
+		<Unit filename="wxsmith/MhChannelDialog.wxs" />
+		<Unit filename="wxsmith/MhFeatureDialog.wxs" />
 		<Unit filename="wxsmith/ModelChainDialog.wxs" />
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
