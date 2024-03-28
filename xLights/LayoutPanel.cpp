@@ -8921,6 +8921,7 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
 
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutMode3D", is_3d);
+    xlights->SetXmlSetting("LayoutMode3D", is_3d ? "1" : "0");
     Refresh();
 }
 

@@ -1575,6 +1575,8 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         List_Controllers->EnsureVisible(itemSelected);
     }
 
+    Panel2->SetMinSize(wxSize(400, -1));
+    Panel5->SetMinSize(wxSize(600, -1));
     List_Controllers->Thaw();
 
     Panel2->Layout();
