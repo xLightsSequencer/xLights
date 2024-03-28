@@ -2231,7 +2231,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                             }
 
                             wxStopWatch sw;
-                            if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap)) {
+                            if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap) && _renderCache.IsEnabled()) {
                                 if (!effectObj->GetFrame(*rb, _renderCache)) {
                                     reff->Render(effectObj, SettingsMap, *rb);
                                     GPURenderUtils::waitForRenderCompletion(rb);
