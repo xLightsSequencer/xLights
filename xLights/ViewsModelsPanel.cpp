@@ -2487,7 +2487,7 @@ void ViewsModelsPanel::RemoveModelFromLists(const std::string& modelName)
     }
 }
 
-void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
+void ViewsModelsPanel::DoMakeMaster()
 {
     // this should never happen
     if (_sequenceElements == nullptr || _sequenceViewManager == nullptr) return;
@@ -2500,7 +2500,7 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
     if (view != nullptr) {
         auto models = view->GetModels();
 
-//        bool hadEffects = false;
+        //        bool hadEffects = false;
         std::vector<std::string> hadEffects;
         for (int i = 0; i < _sequenceElements->GetElementCount(MASTER_VIEW); ++i) {
             std::string name = _sequenceElements->GetElement(i)->GetFullName();
@@ -2515,18 +2515,18 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
                         //_sequenceElements->DeleteElement(name); //this removes models not found in the "new" master view from ALL Views, not just the master view, causing models to disappear from random Views
                         RemoveModelFromLists(name);
                         --i;
-                    }
+                    } 
                     else {
-//                        hadEffects = true;
+                        //                        hadEffects = true;
                         hadEffects.push_back(name);
                     }
                 }
             }
         }
 
-//        if (hadEffects) {
+        //        if (hadEffects) {
         if (hadEffects.size()) { //show which one(s)
-//            DisplayWarning("One or more models had effects on them so they were not removed.");
+            //            DisplayWarning("One or more models had effects on them so they were not removed.");
             std::string msg = std::to_string(hadEffects.size()) + " model";
             if (hadEffects.size() != 1) msg += "s"; //OCD/grammar police :P
             msg += " had effects, were not removed: ";
@@ -2556,6 +2556,11 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
 
         ValidateWindow();
     }
+}
+
+void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
+{
+    DoMakeMaster();
 }
 
 int wxCALLBACK MyCompareFunctionVMPAsc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)

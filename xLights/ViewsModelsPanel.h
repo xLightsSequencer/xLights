@@ -138,6 +138,7 @@ public:
     void OnListCtrlItemCheck(wxCommandEvent& event);
     void UpdateModelsForSelectedView();
     void RemoveModelFromLists(const std::string& modelName);
+    void DoMakeMaster();
 
     //(*Declarations(ViewsModelsPanel)
     wxButton* ButtonClone;

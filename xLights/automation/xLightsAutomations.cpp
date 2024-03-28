@@ -868,6 +868,36 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         models = "[" + models + "]";
         return sendResponse(models, "models", 200, true);
         
+    } else if (cmd == "getViews") {
+        std::string views; 
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("No sequence open.", "msg", 503, false);
+        }
+        auto AllViews = GetViewsManager()->GetViews();
+        for (auto it = AllViews.begin(); it != AllViews.end(); ++it) {
+            views += "\"" + JSONSafe((*it)->GetName()) + "\",";            
+        }
+        if (!views.empty()) {
+            views.pop_back(); // remove last comma
+        }
+        views = "[" + views + "]";
+        return sendResponse(views, "views", 200, true);
+
+    } else if (cmd == "makeMaster") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("No sequence open.", "msg", 503, false);
+        }
+        if (params["view"].empty()) {
+            return sendResponse("No template view selected.", "msg", 504, false);
+        }
+        auto view = params["view"];
+
+        displayElementsPanel->SelectView(view);
+
+        // Click on the Make Master item
+        displayElementsPanel->DoMakeMaster();
+        std::string response = "{\"msg\":\"Master view updated.\"}";
+        return sendResponse(response, "", 200, true);
     } else if (cmd == "getModel") {
         auto model = params["model"];
         auto m = AllModels.GetModel(model);
