@@ -381,6 +381,12 @@ const std::vector<std::string>& SubModel::GetBufferStyles() const {
     static Initializer ListInitializationGuard;
     return SUBMODEL_BUFFER_STYLES;
 }
+const std::string SubModel::AdjustBufferStyle(const std::string &style) const {
+    if (style == LEGACY_SINGLE_LINE) {
+        return style;
+    }
+    return Model::AdjustBufferStyle(style);
+}
 
 void SubModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const {
     std::string ntype = type;

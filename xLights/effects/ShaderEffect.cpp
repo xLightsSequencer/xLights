@@ -15,6 +15,7 @@
 #include "../../include/shader_16.xpm"
 #include <wx/wx.h>
 #include <wx/config.h>
+#include <semaphore>
 
 #ifndef __WXOSX__
     #include <GL/gl.h>
@@ -548,6 +549,17 @@ private:
 #endif /* __WXMSW__*/
 
 
+#if defined(__WXOSX__)
+constexpr int osxSharedContextCount = 24;
+constexpr int COMPILED_PROGRAM_RETAIN_COUNT = osxSharedContextCount;
+static WXGLContext sharedContext = 0;
+static std::list<WXGLContext> sharedContexts;
+static std::mutex sharedContextsLock;
+static std::condition_variable sharedContextsNotifier;
+#else
+constexpr int COMPILED_PROGRAM_RETAIN_COUNT = 10;
+#endif
+
 class ShaderRenderCache : public EffectRenderCache {
 public:
     class ShaderInfo {
@@ -639,12 +651,10 @@ public:
         }
         if (_shaderConfig != nullptr) delete _shaderConfig;
 #if defined(__WXOSX__)
-        if (s_glContext) {
-            WXGLSetCurrentContext(s_glContext);
-            DestroyResources();
-            WXGLUnsetCurrentContext();
-            WXGLDestroyContext(s_glContext);
-        }
+        std::unique_lock<std::mutex> lock(sharedContextsLock);
+        WXGLSetCurrentContext(sharedContext);
+        DestroyResources();
+        WXGLUnsetCurrentContext();
 #elif defined(__WXMSW__)
         if (glContextInfo) {
             glContextInfo->SetCurrent();
@@ -692,20 +702,38 @@ public:
 
     void SetProgramId(unsigned programId, ShaderInfo *si) {
         if (s_programId && s_shaderInfo) {
-            std::unique_lock<std::mutex> lock(shaderMapMutex);
-            // we'll keep 10 of them around.  We can always re-compile if we need more later
-            // but this keeps object retention count a bit bounded
-            if (s_shaderInfo->programIds.size() > 10) {
-                glDeleteProgram(s_programId);
-            } else {
-                s_shaderInfo->programIds.push_back(s_programId);
-            }
-            s_programId = 0;
+            StoreProgramId();
         }
         s_programId = programId;
         s_shaderInfo = si;
         if (_shaderConfig) {
             s_code = _shaderConfig->GetCode();
+        }
+    }
+    unsigned RefreshProgramId() {
+        if (s_shaderInfo) {
+            std::unique_lock<std::mutex> lock(shaderMapMutex);
+            if (s_shaderInfo->programIds.empty()) {
+                lock.unlock();
+                s_programId = ShaderEffect::programIdForShaderCode(_shaderConfig, this);
+            } else {
+                s_programId = s_shaderInfo->programIds.back();
+                s_shaderInfo->programIds.pop_back();
+            }
+        }
+        return s_programId;
+    }
+    void StoreProgramId() {
+        if (s_programId && s_shaderInfo) {
+            std::unique_lock<std::mutex> lock(shaderMapMutex);
+            // we'll keep some of them around.  We can always re-compile if we need more later
+            // but this keeps object retention count a bit bounded
+            if (s_shaderInfo->programIds.size() > COMPILED_PROGRAM_RETAIN_COUNT) {
+                glDeleteProgram(s_programId);
+            } else {
+                s_shaderInfo->programIds.push_back(s_programId);
+            }
+            s_programId = 0;
         }
     }
 
@@ -803,6 +831,12 @@ bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap
 void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
 #if defined(__WXOSX__)
     WXGLUnsetCurrentContext();
+    
+    std::unique_lock<std::mutex> lock(sharedContextsLock);
+    sharedContexts.push_front(cache->s_glContext);
+    cache->s_glContext = nullptr;
+    lock.unlock();
+    sharedContextsNotifier.notify_all();
 #elif defined(__WXMSW__)
     if (cache->glContextInfo != nullptr) {
         // release it from the thread every time so we never find ourselves in a situation where it has not been released by a thread
@@ -811,148 +845,153 @@ void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
 #endif
 }
 
+#if defined(__WXOSX__)
+void adjustWGLContext(WXGLContext ctx) {
+    struct GLRendererInfo {
+      GLint rendererID;       // RendererID number
+      GLint accelerated;      // Whether Hardware accelerated
+      GLint online;           // Whether renderer (/GPU) is onilne. Second GPU on Mac Pro is offline
+      GLint virtualScreen;    // Virtual screen number
+      GLint videoMemoryMB;
+      GLint textureMemoryMB;
+      GLint eGpu;
+      const GLubyte *vendor;
+    };
+    WXGLSetCurrentContext(ctx);
+
+    // Grab the GLFW context and pixel format for future calls
+    CGLContextObj contextObject = CGLGetCurrentContext();
+    CGLPixelFormatObj pixel_format = CGLGetPixelFormat(contextObject);
+
+    // Number of renderers
+    CGLRendererInfoObj rend;
+    GLint nRenderers = 0;
+    CGLQueryRendererInfo(0xffffffff, &rend, &nRenderers);
+
+    // Number of virtual screens
+    GLint nVirtualScreens = 0;
+    CGLDescribePixelFormat(pixel_format, 0, kCGLPFAVirtualScreenCount, &nVirtualScreens);
+
+    int maxMem = 0;
+
+    // Get renderer information
+    std::vector<GLRendererInfo> Renderers(nRenderers);
+    for (GLint i = 0; i < nRenderers; ++i) {
+        CGLDescribeRenderer(rend, i, kCGLRPOnline, &(Renderers[i].online));
+        CGLDescribeRenderer(rend, i, kCGLRPAcceleratedCompute, &(Renderers[i].accelerated));
+        CGLDescribeRenderer(rend, i, kCGLRPRendererID,  &(Renderers[i].rendererID));
+        CGLDescribeRenderer(rend, i, kCGLRPVideoMemoryMegabytes, &(Renderers[i].videoMemoryMB));
+        CGLDescribeRenderer(rend, i, kCGLRPTextureMemoryMegabytes, &(Renderers[i].textureMemoryMB));
+        CGLDescribeRenderer(rend, i, (CGLRendererProperty)142, &(Renderers[i].eGpu));
+    }
+
+    // Get corresponding virtual screen
+    for (GLint i = 0; i != nVirtualScreens; ++i) {
+        CGLSetVirtualScreen(contextObject, i);
+        GLint r;
+        CGLGetParameter(contextObject, kCGLCPCurrentRendererID, &r);
+
+        for (GLint j = 0; j < nRenderers; ++j) {
+            if (Renderers[j].rendererID == r) {
+                Renderers[j].virtualScreen = i;
+                Renderers[j].vendor = glGetString(GL_VENDOR);
+            }
+        }
+    }
+
+    // Print out information of renderers
+    bool found = false;
+    //printf("No. renderers: %d\n", nRenderers);
+    //printf(" No. virtual screens: %d\n", nVirtualScreens);
+    for (GLint i = 0; i < nRenderers; ++i) {
+        /*
+        printf("Renderer: %d\n", i);
+        printf(" Virtual Screen: %d\n", Renderers[i].virtualScreen);
+        printf(" Renderer ID: %d\n", Renderers[i].rendererID);
+        printf(" Vendor: %s\n", Renderers[i].vendor);
+        printf(" Accelerated: %d\n", Renderers[i].accelerated);
+        printf(" Online: %d\n", Renderers[i].online);
+        printf(" Video Memory MB: %d\n", Renderers[i].videoMemoryMB);
+        printf(" Texture Memory MB: %d\n", Renderers[i].textureMemoryMB);
+        printf(" eGpu: %d\n", Renderers[i].eGpu);
+        */
+        if (Renderers[i].eGpu) {
+            //prefer an eGPU if we find one
+            CGLSetVirtualScreen(contextObject, Renderers[i].virtualScreen);
+            found = true;
+        } else {
+            // otherwise, use the one with the most video memory
+            // as we'll assume that's the best option
+            maxMem = std::max(maxMem, Renderers[i].videoMemoryMB);
+        }
+    }
+
+    // Set the context to our desired virtual screen (and therefore OpenGL renderer)
+    if (!found) {
+        for (GLint i = 0; i < nRenderers; ++i) {
+            if (maxMem == Renderers[i].videoMemoryMB) {
+                CGLSetVirtualScreen(contextObject, Renderers[i].virtualScreen);
+            }
+        }
+    }
+    
+    const GLubyte* str = glGetString(GL_VERSION);
+    const GLubyte* rendn = glGetString(GL_RENDERER);
+    const GLubyte* vend = glGetString(GL_VENDOR);
+    wxString configs = wxString::Format("ShaderEffect - glVer:  %s  (%s)(%s)",
+                                        (const char *)str,
+                                        (const char *)rendn,
+                                        (const char *)vend);
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info(configs);
+}
+#endif
+
+
 bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
 #if defined(__WXOSX__)
     if (cache->s_glContext == nullptr) {
-        wxGLAttributes attributes;
-        attributes.AddAttribute(51 /* NSOpenGLPFAMinimumPolicy */ );
-        attributes.AddAttribute(96 /* NSOpenGLPFAAcceleratedCompute */ );
-        attributes.AddAttribute(97 /* NSOpenGLPFAAllowOfflineRenderers */ );
-        attributes.MinRGBA(8, 8, 8, 8).EndList();
-        wxGLContextAttrs cxtAttrs;
-        cxtAttrs.CoreProfile().EndList();
+        std::unique_lock<std::mutex> lock(sharedContextsLock);
+        if (sharedContext == 0) {
+            wxGLAttributes attributes;
+            attributes.AddAttribute(51 /* NSOpenGLPFAMinimumPolicy */ );
+            attributes.AddAttribute(96 /* NSOpenGLPFAAcceleratedCompute */ );
+            attributes.AddAttribute(97 /* NSOpenGLPFAAllowOfflineRenderers */ );
+            attributes.MinRGBA(8, 8, 8, 8).EndList();
+            wxGLContextAttrs cxtAttrs;
+            cxtAttrs.CoreProfile().EndList();
 
-        WXGLPixelFormat pixelFormat = WXGLChoosePixelFormat(attributes.GetGLAttrs(),
-                                                            attributes.GetSize(),
-                                                            cxtAttrs.GetGLAttrs(),
-                                                            cxtAttrs.GetSize());
-        if (!pixelFormat) {
-            // couldn't get an AcceleratedCompute format, let's at least try defaults
-            wxGLAttributes attributes2;
-            attributes2.PlatformDefaults().MinRGBA(8, 8, 8, 8).EndList();
-            pixelFormat = WXGLChoosePixelFormat(attributes2.GetGLAttrs(),
-                                                attributes2.GetSize(),
-                                                cxtAttrs.GetGLAttrs(),
-                                                cxtAttrs.GetSize());
-        }
-        if (pixelFormat) {
-            static std::mutex sharedContextLock;
-            static WXGLContext sharedContext = 0;
-
-            std::unique_lock<std::mutex> lock(sharedContextLock);
-            if (sharedContext == 0) {
-                sharedContext = WXGLCreateContext(pixelFormat, 0);
-            }
-            lock.unlock();
-            cache->s_glContext = WXGLCreateContext(pixelFormat, sharedContext);
-
-            WXGLDestroyPixelFormat(pixelFormat);
-            if (!cache->s_glContext) {
-                return false;
-            }
-
-            struct GLRendererInfo {
-              GLint rendererID;       // RendererID number
-              GLint accelerated;      // Whether Hardware accelerated
-              GLint online;           // Whether renderer (/GPU) is onilne. Second GPU on Mac Pro is offline
-              GLint virtualScreen;    // Virtual screen number
-              GLint videoMemoryMB;
-              GLint textureMemoryMB;
-              GLint eGpu;
-              const GLubyte *vendor;
-            };
-            WXGLSetCurrentContext(cache->s_glContext);
-
-            // Grab the GLFW context and pixel format for future calls
-            CGLContextObj contextObject = CGLGetCurrentContext();
-            CGLPixelFormatObj pixel_format = CGLGetPixelFormat(contextObject);
-
-            // Number of renderers
-            CGLRendererInfoObj rend;
-            GLint nRenderers = 0;
-            CGLQueryRendererInfo(0xffffffff, &rend, &nRenderers);
-
-            // Number of virtual screens
-            GLint nVirtualScreens = 0;
-            CGLDescribePixelFormat(pixel_format, 0, kCGLPFAVirtualScreenCount, &nVirtualScreens);
-
-            int maxMem = 0;
-
-            // Get renderer information
-            std::vector<GLRendererInfo> Renderers(nRenderers);
-            for (GLint i = 0; i < nRenderers; ++i) {
-                CGLDescribeRenderer(rend, i, kCGLRPOnline, &(Renderers[i].online));
-                CGLDescribeRenderer(rend, i, kCGLRPAcceleratedCompute, &(Renderers[i].accelerated));
-                CGLDescribeRenderer(rend, i, kCGLRPRendererID,  &(Renderers[i].rendererID));
-                CGLDescribeRenderer(rend, i, kCGLRPVideoMemoryMegabytes, &(Renderers[i].videoMemoryMB));
-                CGLDescribeRenderer(rend, i, kCGLRPTextureMemoryMegabytes, &(Renderers[i].textureMemoryMB));
-                CGLDescribeRenderer(rend, i, (CGLRendererProperty)142, &(Renderers[i].eGpu));
-            }
-
-            // Get corresponding virtual screen
-            for (GLint i = 0; i != nVirtualScreens; ++i) {
-                CGLSetVirtualScreen(contextObject, i);
-                GLint r;
-                CGLGetParameter(contextObject, kCGLCPCurrentRendererID, &r);
-
-                for (GLint j = 0; j < nRenderers; ++j) {
-                    if (Renderers[j].rendererID == r) {
-                        Renderers[j].virtualScreen = i;
-                        Renderers[j].vendor = glGetString(GL_VENDOR);
-                    }
-                }
-            }
-
-            // Print out information of renderers
-            bool found = false;
-            //printf("No. renderers: %d\n", nRenderers);
-            //printf(" No. virtual screens: %d\n", nVirtualScreens);
-            for (GLint i = 0; i < nRenderers; ++i) {
-                /*
-                printf("Renderer: %d\n", i);
-                printf(" Virtual Screen: %d\n", Renderers[i].virtualScreen);
-                printf(" Renderer ID: %d\n", Renderers[i].rendererID);
-                printf(" Vendor: %s\n", Renderers[i].vendor);
-                printf(" Accelerated: %d\n", Renderers[i].accelerated);
-                printf(" Online: %d\n", Renderers[i].online);
-                printf(" Video Memory MB: %d\n", Renderers[i].videoMemoryMB);
-                printf(" Texture Memory MB: %d\n", Renderers[i].textureMemoryMB);
-                printf(" eGpu: %d\n", Renderers[i].eGpu);
-                */
-                if (Renderers[i].eGpu) {
-                    //prefer an eGPU if we find one
-                    CGLSetVirtualScreen(contextObject, Renderers[i].virtualScreen);
-                    found = true;
-                } else {
-                    // otherwise, use the one with the most video memory
-                    // as we'll assume that's the best option
-                    maxMem = std::max(maxMem, Renderers[i].videoMemoryMB);
-                }
-            }
-
-            // Set the context to our desired virtual screen (and therefore OpenGL renderer)
-            if (!found) {
-                for (GLint i = 0; i < nRenderers; ++i) {
-                    if (maxMem == Renderers[i].videoMemoryMB) {
-                        CGLSetVirtualScreen(contextObject, Renderers[i].virtualScreen);
-                    }
-                }
+            
+            WXGLPixelFormat pixelFormat = WXGLChoosePixelFormat(attributes.GetGLAttrs(),
+                                                                attributes.GetSize(),
+                                                                cxtAttrs.GetGLAttrs(),
+                                                                cxtAttrs.GetSize());
+            if (!pixelFormat) {
+                // couldn't get an AcceleratedCompute format, let's at least try defaults
+                wxGLAttributes attributes2;
+                attributes2.PlatformDefaults().MinRGBA(8, 8, 8, 8).EndList();
+                pixelFormat = WXGLChoosePixelFormat(attributes2.GetGLAttrs(),
+                                                    attributes2.GetSize(),
+                                                    cxtAttrs.GetGLAttrs(),
+                                                    cxtAttrs.GetSize());
             }
             
-            const GLubyte* str = glGetString(GL_VERSION);
-            const GLubyte* rendn = glGetString(GL_RENDERER);
-            const GLubyte* vend = glGetString(GL_VENDOR);
-            wxString configs = wxString::Format("ShaderEffect - glVer:  %s  (%s)(%s)",
-                                                (const char *)str,
-                                                (const char *)rendn,
-                                                (const char *)vend);
-
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.info(configs);
-            //printf("%s\n", (const char *)configs.c_str());
-        } else {
-            return false;
+            sharedContext = WXGLCreateContext(pixelFormat, 0);
+            adjustWGLContext(sharedContext);
+            for (int x = 0; x < osxSharedContextCount; x++) {
+                // create some shared contexts to use if we run out
+                WXGLContext sc = WXGLCreateContext(pixelFormat, sharedContext);
+                adjustWGLContext(sc);
+                sharedContexts.push_front(sc);
+            }
+            WXGLDestroyPixelFormat(pixelFormat);
         }
+        while (sharedContexts.empty()) {
+            sharedContextsNotifier.wait(lock);
+        }
+        cache->s_glContext = sharedContexts.front();
+        sharedContexts.pop_front();
     }
     WXGLSetCurrentContext(cache->s_glContext);
     return true;
@@ -1059,7 +1098,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
             return;
         }
         if (_shaderConfig != nullptr) {
-            programId = cache->s_programId;
+            programId = cache->RefreshProgramId();
         } else if (programId == 0) {
             programId = programIdForShaderCode(_shaderConfig, cache);
         }
@@ -1119,14 +1158,8 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
 
     LOG_GL_ERRORV(glBindVertexArray(s_vertexArrayId));
     LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId));
-
-
-    GLint current = 0;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &current);
-    if (current != programId) {
-        LOG_GL_ERRORV(glUseProgram(programId));
-    }
-
+    LOG_GL_ERRORV(glUseProgram(programId));
+    
     int colourIndex = 0;
     if (!si->SetUniform2f("RENDERSIZE", buffer.BufferWi, buffer.BufferHt)) {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize()) {
@@ -1255,10 +1288,8 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
     LOG_GL_ERRORV(glReadPixels(0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, buffer.GetPixels()));
-    if (!CanRenderOnBackgroundThread(eff, SettingsMap, buffer)) {
-        LOG_GL_ERRORV(glUseProgram(0));
-    }
-
+    LOG_GL_ERRORV(glUseProgram(0));
+    cache->StoreProgramId();
     UnsetGLContext(cache);
 }
 

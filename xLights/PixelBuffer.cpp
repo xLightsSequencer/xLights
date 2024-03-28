@@ -2094,7 +2094,7 @@ static const std::string SLIDER_PivotPointX("SLIDER_PivotPointX");
 static const std::string SLIDER_PivotPointY("SLIDER_PivotPointY");
 static const std::string SLIDER_XPivot("SLIDER_XPivot");
 static const std::string SLIDER_YPivot("SLIDER_YPivot");
-static const std::string X_Effect_RenderDisabled("X_Effect_RenderDisabled");
+static const std::string X_Effect_RenderDisabled("Effect_RenderDisabled");
 
 static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
@@ -2304,7 +2304,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->persistent = settingsMap.GetBool(CHECKBOX_OverlayBkg);
     inf->mask.clear();
 
-    inf->renderingDisabled = layerEnabled && settingsMap.Contains(X_Effect_RenderDisabled);
+    inf->renderingDisabled = !layerEnabled || settingsMap.Contains(X_Effect_RenderDisabled);
     inf->fadeInSteps = (int)(settingsMap.GetDouble(TEXTCTRL_Fadein, 0.0)*1000)/frameTimeInMs;
     inf->fadeOutSteps = (int)(settingsMap.GetDouble(TEXTCTRL_Fadeout, 0.0)*1000)/frameTimeInMs;
 

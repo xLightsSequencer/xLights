@@ -51,7 +51,9 @@ public:
         return BUFFER_STYLES;
     }
     
-    const std::vector<std::string>& GetBufferStyles() const override;
+    virtual const std::vector<std::string>& GetBufferStyles() const override;
+    virtual const std::string AdjustBufferStyle(const std::string &style) const override;
+
     virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const override;
     virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
         std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;

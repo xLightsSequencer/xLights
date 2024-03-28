@@ -11,8 +11,24 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.06 Mar 25, 2024
+   - enh (dkulp)        Update wxWidgets to latest patches to fix various Dark Mode issues and Mac docking issues
+   - enh (dkulp)        Add Horizontal/Vertical By Strand buffer styles to SubModels
+   - enh (dkulp)        Rename "Group all arches" to "Group all strands"
+   - enh (dkulp)        Map old SingleStrand/SingleLine effects on SubModels to proper setup
+   - enh (dkulp)        Update to c++20, requires update to Ubuntu Jammy
+   - enh (derwin12)     Add Select/Deselect Highlighted to Tools Test dialog
+   - enh (derwin12)     Add delete submodels to sequencer model right click menu
+   - enh (derwin12)     Add color palette to Picture Assistant
+   - enh (scott)        Test dialog - add some controller based tests
+   - bug (cybercop23)   Allow state effect on SubModels
+   - bug (dkulp)        Fix PolyLine single node style rendering
+   - bug (dkulp)        BufferStyle panel not showing buffer styles for SubModels
+   - bug (cybercop23)   Fix auto-map alias at SubModel level with spaces in names
+   - bug (derwin12)     Clear the red status of the shader after downloading shader
+   - bug (derwin12)     Fixes/Improvement to the sort model by location on Group within a Group   
 2024.05 Mar 14, 2024
-   - eng (scott)        Add some additional columns to controller list
+   - enh (scott)        Add some additional columns to controller list
    - enh (cybercop23)   Increase default size of Display Elements window,
    - enh (cybercop23)   Remove duplicate prompts for Save Alias
    - enh (derwin12)     Add "Color by word" option for Text effect
