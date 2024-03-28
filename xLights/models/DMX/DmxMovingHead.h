@@ -59,6 +59,4 @@ class DmxMovingHead : public DmxMovingHeadComm, public DmxPanTiltAbility, public
         int dmx_style_val;
         float beam_length;
         float beam_width;
-
-
 };

@@ -21,7 +21,6 @@ class DmxMovingHeadComm : public DmxModel
             DmxModel(node,manager,zeroBased)
         {
         }
-        //DmxMovingHeadComm(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~DmxMovingHeadComm(){};
 
         virtual DmxMotorBase* GetPanMotor() = 0;

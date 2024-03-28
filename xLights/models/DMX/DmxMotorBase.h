@@ -10,14 +10,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/string.h>
-#include <glm/glm.hpp>
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
-class BaseObject;
-class wxXmlNode;
-class wxFile;
-
 class DmxMotorBase
 {
 public:
@@ -30,6 +22,5 @@ public:
 
     virtual int ConvertPostoCmd(float position) = 0;
     virtual float GetPosition(int channel_value) = 0;
-
 };
 

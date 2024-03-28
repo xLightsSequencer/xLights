@@ -10,12 +10,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 #include "DmxMotorBase.h"
-#include <wx/string.h>
-#include <glm/glm.hpp>
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
-class BaseObject;
-class wxXmlNode;
 
 class DmxMotorPanTilt : public DmxMotorBase
 {

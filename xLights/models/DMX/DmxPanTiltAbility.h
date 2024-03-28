@@ -48,14 +48,6 @@ class DmxPanTiltAbility
         }
 
     protected:
-        //int pan_channel;
-        //int pan_orient;
-        //int pan_deg_of_rot;
-        //float pan_slew_limit;
-        //int tilt_channel;
-        //int tilt_orient;
-        //int tilt_deg_of_rot;
-        //float tilt_slew_limit;
         std::unique_ptr<DmxMotorPanTilt> pan_motor = nullptr;
         std::unique_ptr<DmxMotorPanTilt> tilt_motor = nullptr;
 

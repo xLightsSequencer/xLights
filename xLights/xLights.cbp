@@ -721,6 +721,8 @@
 		<Unit filename="SevenSegmentDialog.h" />
 		<Unit filename="ShaderDownloadDialog.cpp" />
 		<Unit filename="ShaderDownloadDialog.h" />
+		<Unit filename="SpecialOptions.cpp" />
+		<Unit filename="SpecialOptions.h" />
 		<Unit filename="SplashDialog.cpp" />
 		<Unit filename="SplashDialog.h" />
 		<Unit filename="StartChannelDialog.cpp" />
@@ -1148,8 +1150,15 @@
 		<Unit filename="models/DMX/DmxImage.h" />
 		<Unit filename="models/DMX/DmxModel.cpp" />
 		<Unit filename="models/DMX/DmxModel.h" />
+		<Unit filename="models/DMX/DmxMotor.cpp" />
+		<Unit filename="models/DMX/DmxMotor.h" />
+		<Unit filename="models/DMX/DmxMotorBase.h" />
+		<Unit filename="models/DMX/DmxMotorPanTilt.h" />
 		<Unit filename="models/DMX/DmxMovingHead.cpp" />
 		<Unit filename="models/DMX/DmxMovingHead.h" />
+		<Unit filename="models/DMX/DmxMovingHeadAdv.cpp" />
+		<Unit filename="models/DMX/DmxMovingHeadAdv.h" />
+		<Unit filename="models/DMX/DmxMovingHeadComm.h" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.cpp" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.h" />
 		<Unit filename="models/DMX/DmxPresetAbility.cpp" />
@@ -1166,6 +1175,14 @@
 		<Unit filename="models/DMX/DmxSkulltronix.h" />
 		<Unit filename="models/DMX/Mesh.cpp" />
 		<Unit filename="models/DMX/Mesh.h" />
+		<Unit filename="models/DMX/MovingHeads/MhChannel.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhChannel.h" />
+		<Unit filename="models/DMX/MovingHeads/MhChannelDialog.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhChannelDialog.h" />
+		<Unit filename="models/DMX/MovingHeads/MhFeature.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhFeature.h" />
+		<Unit filename="models/DMX/MovingHeads/MhFeatureDialog.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhFeatureDialog.h" />
 		<Unit filename="models/DMX/Servo.cpp" />
 		<Unit filename="models/DMX/Servo.h" />
 		<Unit filename="models/DMX/ServoConfigDialog.cpp" />
@@ -1353,8 +1370,6 @@
 		<Unit filename="sequencer/Waveform.h" />
 		<Unit filename="sequencer/tabSequencer.cpp" />
 		<Unit filename="serial.h" />
-		<Unit filename="SpecialOptions.cpp" />
-		<Unit filename="SpecialOptions.h" />
 		<Unit filename="support/EzGrid.cpp" />
 		<Unit filename="support/EzGrid.h" />
 		<Unit filename="support/FastComboEditor.cpp" />
@@ -1815,9 +1830,6 @@
 					<wxDialog wxs="wxsmith/EditAliasesDialog.wxs" src="EditAliasesDialog.cpp" hdr="EditAliasesDialog.h" fwddecl="0" i18n="1" name="EditAliasesDialog" language="CPP" />
 				</resources>
 			</wxsmith>
-			<code_completion />
-			<envvars />
-			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
