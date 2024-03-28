@@ -10,11 +10,13 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "DmxModel.h"
+#include "DmxMovingHeadComm.h"
 #include "DmxPanTiltAbility.h"
 #include "DmxShutterAbility.h"
 
-class DmxMovingHead : public DmxModel, public DmxPanTiltAbility, public DmxShutterAbility
+class DmxMotorBase;
+
+class DmxMovingHead : public DmxMovingHeadComm, public DmxPanTiltAbility, public DmxShutterAbility
 {
     public:
         DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
@@ -33,6 +35,9 @@ class DmxMovingHead : public DmxModel, public DmxPanTiltAbility, public DmxShutt
         virtual std::list<std::string> CheckModelSettings() override;
         void EnableFixedChannels(xlColorVector& pixelVector) override;
         [[nodiscard]] std::vector<std::string> GenerateNodeNames() const override;
+
+        DmxMotorBase* GetPanMotor() override { return pan_motor.get(); }
+        DmxMotorBase* GetTiltMotor() override { return tilt_motor.get(); }
 
     protected:
         void Draw3DDMXBaseLeft(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle);
@@ -55,5 +60,5 @@ class DmxMovingHead : public DmxModel, public DmxPanTiltAbility, public DmxShutt
         float beam_length;
         float beam_width;
 
-    private:
+
 };

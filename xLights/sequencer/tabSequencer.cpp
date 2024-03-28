@@ -1306,7 +1306,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                 // see if all models in the group match the desired model types
                 bool all_good = true;
                 for (const auto& it : mg->GetFlatModels(true, false)) {
-                    if (it->GetDisplayAs() != "DmxMovingHeadAdv") {
+                    if (it->GetDisplayAs() != "DmxMovingHeadAdv" && it->GetDisplayAs() != "DmxMovingHead") {
                         all_good = false;
                         break;
                     }

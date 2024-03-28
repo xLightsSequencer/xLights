@@ -23,6 +23,8 @@
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
 #include "../models/DMX/DmxMovingHeadAdv.h"
+#include "../models/DMX/DmxMovingHead.h"
+#include "../models/DMX/DmxMovingHeadComm.h"
 #include "../models/DMX/DmxMotor.h"
 #include "../models/ModelGroup.h"
 
@@ -83,7 +85,8 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     const std::string& string_type = model_info->GetStringType();
 
     if (StartsWith(string_type, "Single Color")) {
-        if( model_info->GetDisplayAs() == "DmxMovingHeadAdv" ) {
+        if( model_info->GetDisplayAs() == "DmxMovingHeadAdv" ||
+            model_info->GetDisplayAs() == "DmxMovingHead") {
             MovingHeadPanel *p = (MovingHeadPanel*)panel;
             if (p == nullptr) {
                 return;
@@ -95,6 +98,7 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
 
 void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
+    //head count is never used?
     int head_count = 0;
     for( int i = 1; i <= 8; ++i ) {
         wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
@@ -221,8 +225,8 @@ void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, co
 
             // find models that map to this moving head position
             for (const auto& it : models) {
-                if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
-                    DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+                if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+                    DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
                     if( mhead->GetFixtureVal() == i ) {
                         int pan_cmd = mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
                         int tilt_cmd = mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);
@@ -415,7 +419,7 @@ void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_pa
 
 }
 
-void MovingHeadEffect::WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer)
+void MovingHeadEffect::WriteCmdToPixel(DmxMotorBase* motor, int value, RenderBuffer &buffer)
 {
     xlColor lsb_c = xlBLACK;
     xlColor msb_c = xlBLACK;
@@ -433,9 +437,9 @@ void MovingHeadEffect::WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer 
 
     if( coarse_channel >= 0 ) {
         buffer.SetPixel(coarse_channel, 0, msb_c, false, false, true);
-        if( fine_channel >= 0 ) {
-            buffer.SetPixel(fine_channel, 0, lsb_c, false, false, true);
-        }
+    }
+    if (fine_channel >= 0) {
+        buffer.SetPixel(fine_channel, 0, lsb_c, false, false, true);
     }
 }
 
@@ -487,8 +491,8 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
     auto models = GetModels(cls);
     bool single_model = models.size() == 1;
     for (const auto& it : models) {
-        if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
-            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", mhead->GetFixtureVal());
             wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
             if( checkbox != nullptr ) {

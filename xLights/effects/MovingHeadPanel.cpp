@@ -887,13 +887,13 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
 
 void MovingHeadPanel::UpdateColorPanel()
 {
-    DmxMovingHeadAdv* first_mhead{nullptr};
+    DmxMovingHeadComm* first_mhead{ nullptr };
     auto models = GetActiveModels();
     bool wheel_active = false;
     unsigned int num_colors = 0;
     for (const auto& it : models) {
-        if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
-            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             bool active = IsHeadActive(mhead->GetFixtureVal());
             if( active ) {
                 if( mhead->HasColorAbility() ) {
@@ -989,8 +989,8 @@ void MovingHeadPanel::UpdateMHSettings()
                 int fixture_num = 1;
                 auto models = GetActiveModels();
                 for (const auto& it : models) {
-                    if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
-                        DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+                    if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+                        DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
                         if( mhead->GetFixtureVal() == i ) {
                             fixture_num = mhead->GetFixtureVal();
                         }
@@ -1227,8 +1227,8 @@ void MovingHeadPanel::OnButton_AllClick(wxCommandEvent& event)
     auto models = GetActiveModels();
 
     for (const auto& it : models) {
-        if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
-            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             int num = mhead->GetFixtureVal();
             wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
             wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
@@ -1254,8 +1254,8 @@ void MovingHeadPanel::OnButton_EvensClick(wxCommandEvent& event)
     auto models = GetActiveModels();
 
     for (const auto& it : models) {
-        if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
-            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             int num = mhead->GetFixtureVal();
             if( num % 2 == 0 ) {
                 wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
@@ -1277,8 +1277,8 @@ void MovingHeadPanel::OnButton_OddsClick(wxCommandEvent& event)
     auto models = GetActiveModels();
 
     for (const auto& it : models) {
-        if( it->GetDisplayAs() == "DmxMovingHeadAdv" ) {
-            DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)it;
+        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             int num = mhead->GetFixtureVal();
             if( num % 2 > 0 ) {
                 wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);

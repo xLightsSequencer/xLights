@@ -10,15 +10,18 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "DmxModel.h"
-#include "DmxShutterAbility.h"
+#include "DmxMovingHeadComm.h"
 #include "DmxPanTiltAbility.h"
+#include "DmxShutterAbility.h"
+#include "DmxMotorBase.h"
+#include "DmxMotor.h"
+#include <memory>
 
 class Mesh;
-class DmxMotor;
+//class DmxMotor;
 class MhFeature;
 
-class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxShutterAbility
+class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility
 {
     public:
     DmxMovingHeadAdv(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
@@ -36,12 +39,13 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
         virtual std::list<std::string> CheckModelSettings() override;
 
         int GetNumMotors() const { return NUM_MOTORS; }
-        DmxMotor* GetAxis(int num) { return num == 1 ? tilt_motor : pan_motor; }
-        DmxMotor* GetPanMotor() { return pan_motor; }
-        DmxMotor* GetTiltMotor() { return tilt_motor; }
+        DmxMotor* GetAxis(int num) { return num == 1 ? tilt_motor.get() : pan_motor.get(); }
+
+        DmxMotorBase* GetPanMotor() override { return pan_motor.get(); }
+        DmxMotorBase* GetTiltMotor() override { return tilt_motor.get(); }
         void UpdateNodeNames() { update_node_names = true; }
         void UpdateBits() { update_bits = true; }
-        int GetFixtureVal() const { return fixture_val + 1; }
+        int GetFixtureVal() const override { return fixture_val + 1; }
 
     protected:
         virtual void InitModel() override;
@@ -61,6 +65,8 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
 
         float brightness = 100.0f;
 
+        std::unique_ptr<DmxMotor> pan_motor = nullptr;
+        std::unique_ptr<DmxMotor> tilt_motor = nullptr;
     private:
         static const int NUM_MOTORS = 2;
 
@@ -69,8 +75,7 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
         Mesh* base_mesh = nullptr;
         Mesh* yoke_mesh = nullptr;
         Mesh* head_mesh = nullptr;
-        DmxMotor* pan_motor = nullptr;
-        DmxMotor* tilt_motor = nullptr;
+
         wxXmlNode* features_xml_node = nullptr;
         float beam_length;
         float beam_width = 4;
@@ -80,5 +85,6 @@ class DmxMovingHeadAdv : public DmxModel, public DmxPanTiltAbility, public DmxSh
         std::string dmx_fixture = "MH1";
         wxString obj_path = "";
         std::vector<std::unique_ptr<MhFeature>> features;
+        std::map<std::string, PanTiltState> panTiltStates;
 };
 

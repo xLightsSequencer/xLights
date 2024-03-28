@@ -73,8 +73,8 @@ static const char* DMX_COLOR_TYPES_ADV_VALUES[] = {
 
 static wxPGChoices DMX_COLOR_TYPES_ADV(wxArrayString(4, DMX_COLOR_TYPES_ADV_VALUES));
 
-DmxMovingHeadAdv::DmxMovingHeadAdv(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxModel(node, manager, zeroBased)
+DmxMovingHeadAdv::DmxMovingHeadAdv(wxXmlNode *node, const ModelManager &manager, bool zeroBased) :
+    DmxMovingHeadComm(node, manager, zeroBased)
 {
     wxStandardPaths stdp = wxStandardPaths::Get();
 #ifndef __WXMSW__
@@ -92,14 +92,15 @@ DmxMovingHeadAdv::~DmxMovingHeadAdv()
 }
 
 void DmxMovingHeadAdv::Clear() {
-    
-    if (pan_motor != nullptr) {
-        delete pan_motor;
-    }
-
-    if (tilt_motor != nullptr) {
-        delete tilt_motor;
-    }
+    pan_motor.reset();
+    tilt_motor.reset();
+    //if (pan_motor != nullptr) {
+    //    delete pan_motor;
+    //}
+    //
+    //if (tilt_motor != nullptr) {
+    //    delete tilt_motor;
+    //}
 
     if (base_mesh != nullptr) {
         delete base_mesh;
@@ -472,11 +473,11 @@ void DmxMovingHeadAdv::InitModel()
 
         if ("PanMotor" == name) {
              if (pan_motor == nullptr) {
-                 pan_motor = new DmxMotor(n, name);
+                pan_motor = std::make_unique<DmxMotor>(n, name);
              }
         } else if ("TiltMotor" == name) {
             if (tilt_motor == nullptr) {
-                tilt_motor = new DmxMotor(n, name);
+                tilt_motor = std::make_unique<DmxMotor>(n, name);
             }
         } else if ("BaseMesh" == name) {
             if (base_mesh == nullptr) {
@@ -503,8 +504,8 @@ void DmxMovingHeadAdv::InitModel()
         std::string new_name = "PanMotor";
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
         ModelXml->AddChild(new_node);
-        pan_motor = new DmxMotor(new_node, new_name);
-        pan_motor->SetChannelCoarse(1, this);
+        pan_motor = std::make_unique<DmxMotor>(new_node, new_name);
+        pan_motor->SetChannelCoarse(1);
         new_node->AddAttribute("RangeOfMotion", "540");
         new_node->AddAttribute("OrientHome", "90");
         new_node->AddAttribute("SlewLimit", "180");
@@ -517,8 +518,8 @@ void DmxMovingHeadAdv::InitModel()
         ModelXml->AddChild(new_node);
         new_node->AddAttribute("OrientHome", "90");
         new_node->AddAttribute("SlewLimit", "180");
-        tilt_motor = new DmxMotor(new_node, new_name);
-        tilt_motor->SetChannelCoarse(3, this);
+        tilt_motor = std::make_unique<DmxMotor>(new_node, new_name);
+        tilt_motor->SetChannelCoarse(3);
     }
 
     // create base mesh

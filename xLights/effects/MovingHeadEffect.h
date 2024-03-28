@@ -22,7 +22,7 @@
 #define MOVING_HEAD_SCALE_MIN -100
 #define MOVING_HEAD_SCALE_MAX 100
 
-class DmxMotor;
+class DmxMotorBase;
 class MovingHeadPanel;
 
 class MovingHeadEffect : public RenderableEffect
@@ -115,9 +115,9 @@ protected:
     {
         return false;
     }
-    void WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer);
+    void WriteCmdToPixel(DmxMotorBase* motor, int value, RenderBuffer& buffer);
     std::list<Model*> GetModels(Model* model);
-    void UpdateFixturePositions(Model *cls);
+    void UpdateFixturePositions(Model* cls){};//missing function body
     void RenderPositions(MovingHeadPanel *p, Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer);
     xlColor GetMultiColorBlend(double eff_pos, const wxArrayString& colors, RenderBuffer &buffer);
     xlColor GetWheelColor(double eff_pos, const wxArrayString& colors);

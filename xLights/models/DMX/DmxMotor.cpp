@@ -21,32 +21,22 @@
 #include <glm/gtc/type_ptr.hpp>
 
 DmxMotor::DmxMotor(wxXmlNode* node, wxString _name)
-    : node_xml(node),
-      base_name(_name),
-      channel_coarse(0),
-      channel_fine(0),
-      min_limit(-180),
-      max_limit(180),
-      min_value(0),
-      max_value(65535),
-      range_of_motion(180.0f),
-      reverse(false),
-      upside_down(false),
-      rev(1)
-{
+    : DmxMotorBase(), node_xml(node), base_name(_name) {
+
 }
 
 DmxMotor::~DmxMotor()
 {
 }
 
-void DmxMotor::SetChannelCoarse(int chan, BaseObject* base) {
+void DmxMotor::SetChannelCoarse(int chan) {
     channel_coarse = chan;
     node_xml->DeleteAttribute("ChannelCoarse");
     node_xml->AddAttribute("ChannelCoarse", wxString::Format("%d", channel_coarse));
 }
 
-void DmxMotor::Init(BaseObject* base) {
+void DmxMotor::Init(BaseObject* base)
+{
     this->base = base;
     channel_coarse = wxAtoi(node_xml->GetAttribute("ChannelCoarse", "0"));
     channel_fine = wxAtoi(node_xml->GetAttribute("ChannelFine", "0"));
@@ -58,50 +48,51 @@ void DmxMotor::Init(BaseObject* base) {
     slew_limit = wxAtof(node_xml->GetAttribute("SlewLimit", "0.0f"));
     reverse = wxAtoi(node_xml->GetAttribute("Reverse", "0"));
     upside_down = wxAtoi(node_xml->GetAttribute("UpsideDown", "0"));
-    if ( reverse ) {
+    if (reverse) {
         rev = -1;
     } else {
         rev = 1;
     }
 }
-
-int DmxMotor::ConvertPostoCmd( float position )
-{
-    float limited_pos = position;
-    if( limited_pos > max_limit ) {
-        limited_pos = max_limit;
-    } else if( limited_pos < min_limit ) {
-        limited_pos = min_limit;
-    }
-
-    if( upside_down ) {
-        limited_pos = -1.0f * limited_pos;
-    }
-
-    float goto_home = (float)max_value * (float)orient_home / range_of_motion;
-    float amount_to_move = (float)max_value * limited_pos / range_of_motion * rev;
-    float cmd = goto_home + amount_to_move;
-    float full_spin = (float)max_value * 360.0 / range_of_motion;
-
-    if( cmd < 0 ) {
-        if( cmd + full_spin < max_value ) {
-            cmd += full_spin;
-        } else {
-            cmd = 0;   // tbd....figure out which limit is closer to desired target
+    int DmxMotor::ConvertPostoCmd(float position)
+    {
+        float limited_pos = position;
+        if (limited_pos > max_limit) {
+            limited_pos = max_limit;
+        } else if (limited_pos < min_limit) {
+            limited_pos = min_limit;
         }
-    } else if( cmd > max_value ) {
-        if( cmd - full_spin >= 0.0f ) {
-            cmd -= full_spin;
-        } else {
-            cmd = max_value;   // tbd....figure out which limit is closer to desired target
-        }
-    }
-    return cmd;
-}
 
-float DmxMotor::GetPosition(int channel_value) {
-    return ((1.0 - ((channel_value - min_value) / (float)(max_value - min_value))) * (rev * range_of_motion) - (rev * range_of_motion));
-}
+        if (upside_down) {
+            limited_pos = -1.0f * limited_pos;
+        }
+
+        float goto_home = (float)max_value * (float)orient_home / range_of_motion;
+        float amount_to_move = (float)max_value * limited_pos / range_of_motion * rev;
+        float cmd = goto_home + amount_to_move;
+        float full_spin = (float)max_value * 360.0 / range_of_motion;
+
+        if (cmd < 0) {
+            if (cmd + full_spin < max_value) {
+                cmd += full_spin;
+            } else {
+                cmd = 0; // tbd....figure out which limit is closer to desired target
+            }
+        } else if (cmd > max_value) {
+            if (cmd - full_spin >= 0.0f) {
+                cmd -= full_spin;
+            } else {
+                cmd = max_value; // tbd....figure out which limit is closer to desired target
+            }
+        }
+        return cmd;
+    }
+
+    float DmxMotor::GetPosition(int channel_value)
+    {
+        return ((1.0 - ((channel_value - min_value) / (float)(max_value - min_value))) * (rev * range_of_motion) - (rev * range_of_motion));
+    }
+
 
 void DmxMotor::AddTypeProperties(wxPropertyGridInterface *grid) {
     grid->Append(new wxPropertyCategory(base_name, base_name + "Properties"));

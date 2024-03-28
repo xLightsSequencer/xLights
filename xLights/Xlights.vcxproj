@@ -857,7 +857,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="MetronomeLabelDialog.h" />
     <ClInclude Include="models\DMX\DmxColorAbilityCMY.h" />
     <ClInclude Include="models\DMX\DmxMotor.h" />
+    <ClInclude Include="models\DMX\DmxMotorBase.h" />
+    <ClInclude Include="models\DMX\DmxMotorPanTilt.h" />
     <ClInclude Include="models\DMX\DmxMovingHeadAdv.h" />
+    <ClInclude Include="models\DMX\DmxMovingHeadComm.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhChannel.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhChannelDialog.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhFeature.h" />
