@@ -1106,7 +1106,7 @@ void xLightsFrame::UnselectEffect(){
 void xLightsFrame::EffectChanged(wxCommandEvent& event)
 {
     Effect* effect = (Effect*)event.GetClientData();
-    SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+    SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetFullName(),
                       effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
                       true);
     selectedEffectString = "";  // force update to effect rendering
@@ -1300,13 +1300,13 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
         last_effect_created = effect;
 
-        _sequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID() );
+        _sequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetFullName(), el->GetIndex(), effect->GetID() );
 
         mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
 
         // need to do this otherwise they dont update when we drop the model
-        bufferPanel->UpdateBufferStyles(AllModels[el->GetParentElement()->GetModelName()]);
-        bufferPanel->UpdateCamera(AllModels[el->GetParentElement()->GetModelName()]);
+        bufferPanel->UpdateBufferStyles(AllModels[el->GetParentElement()->GetFullName()]);
+        bufferPanel->UpdateCamera(AllModels[el->GetParentElement()->GetModelName()]); //need the full model, not submodel, for the camera
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
             DoStopSequence();
@@ -1331,7 +1331,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
     if (playType != PLAY_TYPE_MODEL && last_effect_created != nullptr)
     {
-        SetEffectControls(last_effect_created->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+        SetEffectControls(last_effect_created->GetParentEffectLayer()->GetParentElement()->GetFullName(),
                           last_effect_created->GetEffectName(), last_effect_created->GetSettings(),
                           last_effect_created->GetPaletteMap(), false);
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
@@ -1439,7 +1439,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
 
     if (playType != PLAY_TYPE_MODEL && last_effect_created != nullptr)
     {
-        SetEffectControls(last_effect_created->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+        SetEffectControls(last_effect_created->GetParentEffectLayer()->GetParentElement()->GetFullName(),
             last_effect_created->GetEffectName(), last_effect_created->GetSettings(),
             last_effect_created->GetPaletteMap(), false);
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
@@ -2135,7 +2135,7 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
                 el->GetEffect(j)->SetEffectName(effectName);
                 el->GetEffect(j)->SetPalette(palette);
 
-                SetEffectControls(el->GetEffect(j)->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+                SetEffectControls(el->GetEffect(j)->GetParentEffectLayer()->GetParentElement()->GetFullName(),
                                   el->GetEffect(j)->GetEffectName(),
                                   el->GetEffect(j)->GetSettings(),
                                   el->GetEffect(j)->GetPaletteMap(),
