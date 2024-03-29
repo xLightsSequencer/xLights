@@ -965,6 +965,8 @@
 		<Unit filename="effects/MorphEffect.h" />
 		<Unit filename="effects/MorphPanel.cpp" />
 		<Unit filename="effects/MorphPanel.h" />
+		<Unit filename="effects/MovingHeadEffect.cpp" />
+		<Unit filename="effects/MovingHeadEffect.h" />
 		<Unit filename="effects/MovingHeadPanel.cpp" />
 		<Unit filename="effects/MovingHeadPanel.h" />
 		<Unit filename="effects/MovingHeadPanels/MHColorPanel.h" />
