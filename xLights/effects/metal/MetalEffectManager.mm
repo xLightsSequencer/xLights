@@ -95,6 +95,8 @@ RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new MetalWarpEffect(eff);
         case EffectManager::eff_PINWHEEL:
             return new MetalPinwheelEffect(eff);
+        case EffectManager::eff_SHOCKWAVE:
+            return new MetalShockwaveEffect(eff);
         default:
             return nullptr;
         }
