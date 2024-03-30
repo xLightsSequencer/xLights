@@ -1416,7 +1416,6 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
 
 void PixelBufferClass::GetMixedColor(int node, const std::vector<bool> & validLayers, int EffectPeriod, int saveLayer)
 {
-    auto &sparkle = layers[0]->buffer.Nodes[node]->sparkle;
     int cnt = 0;
     xlColor c(xlBLACK);
     xlColor color;
@@ -1515,6 +1514,17 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool> & validLa
                         thelayer->outputSparkleCount > 0)) {
 
                     int sc = thelayer->outputSparkleCount;
+                    
+                    size_t nc = layers[0]->buffer.Nodes.size();
+                    if (sparkles.size() < nc) {
+                        int sz = sparkles.size();
+                        sparkles.resize(layers[0]->buffer.Nodes.size());
+                        while (sz < nc) {
+                            sparkles[sz++] = rand() % 10000;
+                        }
+                    }
+                    auto &sparkle = sparkles[node];
+                    
                     switch (sparkle % (208 - sc))
                     {
                     case 1:
@@ -3056,7 +3066,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
 {
     int curStep;
 
-    for(int ii=0; ii < numLayers; ii++) {
+    for (int ii=0; ii < numLayers; ii++) {
         if (!validLayers[ii]) {
             continue;
         }
@@ -3115,7 +3125,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                prevRB = &layers[ii+1]->buffer;
             layers[ii]->renderTransitions(isFirstFrame, prevRB);
         } else {
-           layers[ii]->mask.clear();
+            layers[ii]->mask.clear();
         }
         layers[ii]->calculateNodeOutputParams(EffectPeriod);
         
@@ -3695,6 +3705,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
     if (inMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
         if ( nonMaskTransition( inTransitionType ) ) {
+            GPURenderUtils::waitForRenderCompletion(&buffer);
+
             ColorBuffer cb( buffer.pixels, buffer.pixelVector.size(), buffer.BufferWi, buffer.BufferHt );
 
             if ( inTransitionType == STR_FOLD ) {

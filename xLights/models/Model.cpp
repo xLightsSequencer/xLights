@@ -3054,11 +3054,6 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
 
     InitModel();
 
-    size_t NodeCount = GetNodeCount();
-    for (size_t i = 0; i < NodeCount; ++i) {
-        Nodes[i]->sparkle = rand() % 10000;
-    }
-
     wxXmlNode* f = ModelNode->GetChildren();
     faceInfo.clear();
     stateInfo.clear();

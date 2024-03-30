@@ -45,7 +45,6 @@ public:
     };
 
     uint32_t ActChan = 0;   // 0 is the first channel
-    uint32_t sparkle = 0;
     uint32_t StringNum = 0; // node is part of this string (0 is the first string)
     std::vector<CoordStruct> Coords;
     std::string *name = nullptr;
@@ -59,7 +58,7 @@ public:
         offsets[1] = 1;
         offsets[2] = 2;
     }
-    NodeBaseClass(const NodeBaseClass& c) : sparkle(c.sparkle), ActChan(c.ActChan), StringNum(c.StringNum),
+    NodeBaseClass(const NodeBaseClass& c) : ActChan(c.ActChan), StringNum(c.StringNum),
         Coords(c.Coords), name(nullptr), chanCnt(c.chanCnt), model(c.model), _maskColor(c._maskColor)
     {
         if (c.name != nullptr) {

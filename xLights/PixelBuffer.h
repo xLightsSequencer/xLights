@@ -228,6 +228,7 @@ private:
     PixelBufferClass &operator=(const PixelBufferClass &);
     int numLayers = 0;
     std::vector<LayerInfo*> layers;
+    std::vector<uint32_t> sparkles;
     int frameTimeInMs = 50;
 
     //both fg and bg may be modified, bg will contain the new, mixed color to be the bg for the next mix
