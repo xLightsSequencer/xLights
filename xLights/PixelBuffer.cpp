@@ -3762,6 +3762,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
     if (outMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
         if ( nonMaskTransition( outTransitionType ) ) {
+            GPURenderUtils::waitForRenderCompletion(&buffer);
+            
             ColorBuffer cb( buffer.pixels, buffer.pixelVector.size(), buffer.BufferWi, buffer.BufferHt );
             if ( outTransitionType == STR_FOLD ) {
                foldOut( buffer, cb, prevRB, outMaskFactor, outTransitionReverse );
