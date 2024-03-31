@@ -1416,7 +1416,6 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
 
 void PixelBufferClass::GetMixedColor(int node, const std::vector<bool> & validLayers, int EffectPeriod, int saveLayer)
 {
-    auto &sparkle = layers[0]->buffer.Nodes[node]->sparkle;
     int cnt = 0;
     xlColor c(xlBLACK);
     xlColor color;
@@ -1515,6 +1514,17 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool> & validLa
                         thelayer->outputSparkleCount > 0)) {
 
                     int sc = thelayer->outputSparkleCount;
+                    
+                    size_t nc = layers[0]->buffer.Nodes.size();
+                    if (sparkles.size() < nc) {
+                        int sz = sparkles.size();
+                        sparkles.resize(layers[0]->buffer.Nodes.size());
+                        while (sz < nc) {
+                            sparkles[sz++] = rand() % 10000;
+                        }
+                    }
+                    auto &sparkle = sparkles[node];
+                    
                     switch (sparkle % (208 - sc))
                     {
                     case 1:
@@ -3056,7 +3066,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
 {
     int curStep;
 
-    for(int ii=0; ii < numLayers; ii++) {
+    for (int ii=0; ii < numLayers; ii++) {
         if (!validLayers[ii]) {
             continue;
         }
@@ -3115,7 +3125,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
                prevRB = &layers[ii+1]->buffer;
             layers[ii]->renderTransitions(isFirstFrame, prevRB);
         } else {
-           layers[ii]->mask.clear();
+            layers[ii]->mask.clear();
         }
         layers[ii]->calculateNodeOutputParams(EffectPeriod);
         
@@ -3209,15 +3219,16 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
-    if ( InTransitionAdjustValueCurve.IsActive() )
-       adjust = static_cast<int>( InTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
 
     if (out) {
         reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
-        if ( OutTransitionAdjustValueCurve.IsActive() )
-           adjust = static_cast<int>( OutTransitionAdjustValueCurve.GetOutputValueAt( factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS() ) );
+        if (OutTransitionAdjustValueCurve.IsActive())
+            adjust = static_cast<int>(OutTransitionAdjustValueCurve.GetOutputValueAt(factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
+    } else {
+        if (InTransitionAdjustValueCurve.IsActive())
+            adjust = static_cast<int>(InTransitionAdjustValueCurve.GetOutputValueAt(factor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
     }
     uint8_t m1 = 255;
     uint8_t m2 = 0;
@@ -3228,33 +3239,35 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
         m2 = 255;
     }
 
-    double w_2 = 0.5 * buffer.BufferWi;
-    double h_2 = 0.5 * buffer.BufferHt;
-    Vec2D p1( w_2, 0. );
-    Vec2D p2( w_2, buffer.BufferHt );
+    double w_2 = 0.5 * (float)buffer.BufferWi;
+    double h_2 = 0.5 * (float)buffer.BufferHt;
+    Vec2D p1(w_2, 0.0f);
+    Vec2D p2(w_2, 500.0f); //  something sufficiently large so the rotations will work better
 
-    double angle = interpolate( 0.01 * adjust, 0.0, -M_PI_2, 1.0, M_PI_2, LinearInterpolater() );
-    p1 = p1.RotateAbout( angle, Vec2D( w_2, h_2 ) );
-    p2 = p2.RotateAbout( angle, Vec2D( w_2, h_2 ) );
+    double angle = interpolate(0.01 * adjust, 0.0, -M_PI_2, 1.0, M_PI_2, LinearInterpolater());
+    p1 = p1.RotateAbout(angle, Vec2D(w_2, h_2));
+    p2 = p2.RotateAbout(angle, Vec2D(w_2, h_2));
 
-    double p1_p2_len = p2.Dist( p1 );
+    double p1_p2_len = p2.Dist(p1);
     double y2_less_y1 = p2.y - p1.y;
     double x2_less_x1 = p2.x - p1.x;
     double offset = p2.x * p1.y - p2.y * p1.x;
-    uint8_t c = 0;
+    
+    // find the distance from the line to the four corners and use the max for timing
+    double distBR = std::abs(y2_less_y1 * (buffer.BufferWi-1) - x2_less_x1 * 0 + offset) / p1_p2_len;
+    double distUR = std::abs(y2_less_y1 * (buffer.BufferWi-1) - x2_less_x1 * (buffer.BufferHt-1) + offset) / p1_p2_len;
+    double distBL = std::abs(y2_less_y1 * 0 - x2_less_x1 * 0 + offset) / p1_p2_len;
+    double distUL = std::abs(y2_less_y1 * 0 - x2_less_x1 * (buffer.BufferHt-1) + offset) / p1_p2_len;
+    double len = std::max(std::max(distBR, distBL), std::max(distUR, distUL));
+    double step = len * factor;
 
-    double len = ::sqrt( buffer.BufferWi * buffer.BufferWi + buffer.BufferHt * buffer.BufferHt );
-    double step = len / 2.0 * factor;
-
-   for (int x = 0; x < BufferWi; ++x )
-   {
-      for ( int y = 0; y < BufferHt; ++y )
-      {
-         double dist = std::abs( y2_less_y1 * x - x2_less_x1 * y + offset ) / p1_p2_len;
-         c = (dist > step) ? m1 : m2;
-         mask[x * BufferHt + y] = c;
-      }
-   }
+    for (int x = 0; x < BufferWi; ++x) {
+        for (int y = 0; y < BufferHt; ++y) {
+            double dist = std::abs(y2_less_y1 * x - x2_less_x1 * y + offset) / p1_p2_len;
+            uint8_t c = (dist > step) ? m1 : m2;
+            mask[x * BufferHt + y] = c;
+        }
+    }
 }
 
 void PixelBufferClass::LayerInfo::createCircleExplodeMask(bool out) {
@@ -3695,6 +3708,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
     if (inMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
         if ( nonMaskTransition( inTransitionType ) ) {
+            GPURenderUtils::waitForRenderCompletion(&buffer);
+
             ColorBuffer cb( buffer.pixels, buffer.pixelVector.size(), buffer.BufferWi, buffer.BufferHt );
 
             if ( inTransitionType == STR_FOLD ) {
@@ -3747,6 +3762,8 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, const Ren
     if (outMaskFactor < 1.0) {
         mask.resize(BufferHt * BufferWi);
         if ( nonMaskTransition( outTransitionType ) ) {
+            GPURenderUtils::waitForRenderCompletion(&buffer);
+            
             ColorBuffer cb( buffer.pixels, buffer.pixelVector.size(), buffer.BufferWi, buffer.BufferHt );
             if ( outTransitionType == STR_FOLD ) {
                foldOut( buffer, cb, prevRB, outMaskFactor, outTransitionReverse );

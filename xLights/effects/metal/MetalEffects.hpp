@@ -4,6 +4,7 @@
 #include "../PlasmaEffect.h"
 #include "../WarpEffect.h"
 #include "../PinwheelEffect.h"
+#include "../ShockwaveEffect.h"
 
 class MetalButterflyEffectData;
 
@@ -62,4 +63,20 @@ public:
     virtual void RenderNewArms(RenderBuffer& buffer, PinwheelEffect::PinwheelData &data) override;
 private:
     MetalPinwheelEffectData *data;
+};
+
+
+class MetalShockwaveEffectData;
+
+class MetalShockwaveEffect : public ShockwaveEffect {
+public:
+    MetalShockwaveEffect(int i);
+    virtual ~MetalShockwaveEffect();
+
+
+    virtual void Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) override;
+
+
+private:
+    MetalShockwaveEffectData *data;
 };

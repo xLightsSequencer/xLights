@@ -548,7 +548,6 @@ public:
     }
 
     bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
-        wxStopWatch sw;
         bool effectsToUpdate = false;
         Effect* tempEffect = nullptr;
         int numLayers = el->GetEffectLayerCount();
@@ -719,11 +718,6 @@ public:
             }
             buffer->CalcOutput(frame, info.validLayers);
             buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
-        }
-
-        if (sw.Time() > 500) {
-            RenderBuffer& b = buffer->BufferForLayer(0, -1);
-            renderLog.info("*** Frame #%d at %dms render on model %s (%dx%d) took more than 1/2s => %dms.", frame, frame * b.frameTimeInMs, (const char *)el->GetName().c_str(), b.BufferWi, b.BufferHt, sw.Time());
         }
 
         if (tempEffect != nullptr)

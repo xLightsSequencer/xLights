@@ -91,3 +91,22 @@ struct MetalPinwheelData {
     simd::float3 colorsAsHSV[MAX_METAL_PINWHEEL_ARMS];
     uint16_t numColors;
 };
+
+
+struct MetalShockwaveData {
+    uint32_t width;
+    uint32_t height;
+    
+    int32_t xc_adj = 0;
+    int32_t yc_adj = 0;
+    
+    float radius1;
+    float radius2;
+    float radius_center;
+    float half_width;
+    
+    simd::uchar4 color;
+    simd::float3 colorHSV;
+    uint16_t blend;
+    uint16_t allowAlpha;
+};

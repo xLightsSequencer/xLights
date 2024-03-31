@@ -262,6 +262,19 @@ Get List of all the Models and Model Groups
 Response
     {"res":200, "models": ["All House","MegaTree","Arch1","Arch2","Outline","WindowFrame1"]}
 
+Get List of all the Views from an open Sequence
+    {"cmd":"getViews"}
+Response
+    {"res":200, "views": ["Master View","Singing","Template"]}
+    {"res":503, "msg": "No sequence open."}
+
+Make a given view the Master View
+    {"cmd":"makeMaster" "view": "viewname"}
+Response
+    {"res":200}
+    {"res":503, "msg": "No sequence open."}
+    {"res":504, "msg": "No template view selected."}
+
 Get List of all the Controllers
     {"cmd":"getControllers"}
 Response
