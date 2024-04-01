@@ -239,17 +239,18 @@ extern const wxString xlEMPTY_WXSTRING;
         return r;
     }
 
-    inline std::string Join(std::vector<std::string> const &strings, std::string delim)
+    template <class T>
+    inline std::string Join(T const &strings, std::string delim)
     {
         if (strings.empty()) {
             return std::string();
         }
-     
-        return std::accumulate(strings.begin() + 1, strings.end(), strings[0],
+        auto begin = strings.begin();
+        ++begin;
+        return std::accumulate(begin, strings.end(), strings.front(),
             [&delim](std::string x, std::string y) {
                 return x + delim + y;
             }
         );
     }
-
 //};
