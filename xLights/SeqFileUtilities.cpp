@@ -501,6 +501,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = atoi(mss.c_str());
         logger_base.debug("Sequence Timing: %d", ms);
+        Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
         bool loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
 
         unsigned int numChan = GetMaxNumChannels();
