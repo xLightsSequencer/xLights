@@ -176,12 +176,4 @@
             <Port4>4</Port4>
         </Variant>
     </Controller>
-	<Controller Name="RGB2Go-Duo2Go">
-        <Variant Name="" Base="WLED:BaseWLEDSettings">
-            <MaxPixelPort>2</MaxPixelPort>
-            <MaxSerialPort>0</MaxSerialPort>
-            <Port1>2</Port1>
-            <Port2>1</Port2>
-        </Variant>
-    </Controller>
 </Vendor>
