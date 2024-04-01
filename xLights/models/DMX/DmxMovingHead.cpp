@@ -98,6 +98,8 @@ public:
 
 static wxPGChoices DMX_STYLES;
 
+static wxPGChoices DMX_FIXTURES;
+
 enum DMX_STYLE {
     DMX_STYLE_MOVING_HEAD_TOP,
     DMX_STYLE_MOVING_HEAD_SIDE,
@@ -119,6 +121,19 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
     }
 
     grid->Append(new wxEnumProperty("DMX Style", "DmxStyle", DMX_STYLES, dmx_style_val));
+
+    if (DMX_FIXTURES.GetCount() == 0) {
+        DMX_FIXTURES.Add("MH1");
+        DMX_FIXTURES.Add("MH2");
+        DMX_FIXTURES.Add("MH3");
+        DMX_FIXTURES.Add("MH4");
+        DMX_FIXTURES.Add("MH5");
+        DMX_FIXTURES.Add("MH6");
+        DMX_FIXTURES.Add("MH7");
+        DMX_FIXTURES.Add("MH8");
+    }
+
+    grid->Append(new wxEnumProperty("Fixture", "DmxFixture", DMX_FIXTURES, fixture_val));
 
     DmxModel::AddTypeProperties(grid, outputManager);
 
@@ -238,6 +253,14 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
         return 0;
+    } else if ("DmxFixture" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxFixture");
+        fixture_val = event.GetPropertyValue().GetLong();
+        dmx_fixture = FixtureIDtoString(fixture_val);
+        ModelXml->AddAttribute("DmxFixture", dmx_fixture);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DmxFixture");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DmxFixture");
+        return 0;
     }
 
     return DmxModel::OnPropertyGridChange(grid, event);
@@ -303,6 +326,13 @@ void DmxMovingHead::InitModel() {
 
     if (dmx_style.empty()) {
         dmx_style = "Moving Head Top";
+    }
+
+    dmx_fixture = ModelXml->GetAttribute("DmxFixture", "MH1");
+    fixture_val = FixtureStringtoID(dmx_fixture);
+
+    if (dmx_fixture.empty()) {
+        dmx_fixture = "MH1";
     }
 }
 
@@ -1096,8 +1126,8 @@ void DmxMovingHead::ExportXlightsModel()
     wxString sv = ModelXml->GetAttribute("DmxShutterOnValue", "0");
     wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "4");
     wxString dbw = ModelXml->GetAttribute("DmxBeamWidth", "30");
-
     wxString dct = ModelXml->GetAttribute("DmxColorType", "0");
+    wxString dfx = ModelXml->GetAttribute("DmxFixture", "MH1");
 
     if (s.empty()) {
         s = "Moving Head Top";
@@ -1118,8 +1148,8 @@ void DmxMovingHead::ExportXlightsModel()
     f.Write(wxString::Format("DmxShutterOnValue=\"%s\" ", sv));
     f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
     f.Write(wxString::Format("DmxBeamWidth=\"%s\" ", dbw));
-
     f.Write(wxString::Format("DmxColorType=\"%s\" ", dct));
+    f.Write(wxString::Format("DmxFixture=\"%s\" ", dfx));
     color_ability->ExportParameters(f,ModelXml);
 
     f.Write(" >\n");
@@ -1166,6 +1196,7 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         wxString dbl = root->GetAttribute("DmxBeamLength", "4");
         wxString dbw = root->GetAttribute("DmxBeamWidth", "30");
         wxString dct = root->GetAttribute("DmxColorType", "0");
+        wxString dfx = root->GetAttribute("DmxFixture", "MH1");
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
@@ -1187,6 +1218,7 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         SetProperty("DmxBeamLength", dbl);
         SetProperty("DmxBeamWidth", dbw);
         SetProperty("DmxColorType", dct);
+        SetProperty("DmxFixture", dfx);
 
         int color_type = wxAtoi(dct);
         if (color_type == 0) {

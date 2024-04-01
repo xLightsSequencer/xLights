@@ -45,7 +45,6 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility
         DmxMotorBase* GetTiltMotor() override { return tilt_motor.get(); }
         void UpdateNodeNames() { update_node_names = true; }
         void UpdateBits() { update_bits = true; }
-        int GetFixtureVal() const override { return fixture_val + 1; }
 
     protected:
         virtual void InitModel() override;
@@ -81,8 +80,6 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility
         float beam_width = 4;
         int beam_orient;
         float beam_y_offset;
-        int fixture_val = 0;
-        std::string dmx_fixture = "MH1";
         wxString obj_path = "";
         std::vector<std::unique_ptr<MhFeature>> features;
         std::map<std::string, PanTiltState> panTiltStates;

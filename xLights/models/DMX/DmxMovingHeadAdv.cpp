@@ -117,17 +117,6 @@ void DmxMovingHeadAdv::Clear() {
 
 static wxPGChoices DMX_FIXTURES;
 
-enum DMX_FIXTURE {
-    DMX_MOVING_HEAD_1,
-    DMX_MOVING_HEAD_2,
-    DMX_MOVING_HEAD_3,
-    DMX_MOVING_HEAD_4,
-    DMX_MOVING_HEAD_5,
-    DMX_MOVING_HEAD_6,
-    DMX_MOVING_HEAD_7,
-    DMX_MOVING_HEAD_8
-};
-
 static const std::string CLICK_TO_EDIT("--Click To Edit--");
 class MhConfigDialogAdapter : public wxPGEditorDialogAdapter
 {
@@ -324,23 +313,7 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
     if ("DmxFixture" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxFixture");
         fixture_val = event.GetPropertyValue().GetLong();
-        if (fixture_val == DMX_MOVING_HEAD_1) {
-            dmx_fixture = "MH1";
-        } else if (fixture_val == DMX_MOVING_HEAD_2) {
-            dmx_fixture = "MH2";
-        } else if (fixture_val == DMX_MOVING_HEAD_3) {
-            dmx_fixture = "MH3";
-        } else if (fixture_val == DMX_MOVING_HEAD_4) {
-            dmx_fixture = "MH4";
-        } else if (fixture_val == DMX_MOVING_HEAD_5) {
-            dmx_fixture = "MH5";
-        } else if (fixture_val == DMX_MOVING_HEAD_6) {
-            dmx_fixture = "MH6";
-        } else if (fixture_val == DMX_MOVING_HEAD_7) {
-            dmx_fixture = "MH7";
-        } else if (fixture_val == DMX_MOVING_HEAD_8) {
-            dmx_fixture = "MH8";
-        }
+        dmx_fixture = FixtureIDtoString(fixture_val); 
         ModelXml->AddAttribute("DmxFixture", dmx_fixture);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxFixture");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxFixture");
@@ -584,22 +557,7 @@ void DmxMovingHeadAdv::InitModel()
     update_node_names = false;
     
     dmx_fixture = ModelXml->GetAttribute("DmxFixture", "MH1");
-    fixture_val = DMX_MOVING_HEAD_1;
-    if( dmx_fixture == "MH2" ) {
-        fixture_val = DMX_MOVING_HEAD_2;
-    } else if( dmx_fixture == "MH3" ) {
-        fixture_val = DMX_MOVING_HEAD_3;
-    } else if( dmx_fixture == "MH4" ) {
-        fixture_val = DMX_MOVING_HEAD_4;
-    } else if( dmx_fixture == "MH5" ) {
-        fixture_val = DMX_MOVING_HEAD_5;
-    } else if( dmx_fixture == "MH6" ) {
-        fixture_val = DMX_MOVING_HEAD_6;
-    } else if( dmx_fixture == "MH7" ) {
-        fixture_val = DMX_MOVING_HEAD_7;
-    } else if( dmx_fixture == "MH8" ) {
-        fixture_val = DMX_MOVING_HEAD_8;
-    }
+    fixture_val = FixtureStringtoID(dmx_fixture);
 
     if (dmx_fixture.empty()) {
         dmx_fixture = "MH1";

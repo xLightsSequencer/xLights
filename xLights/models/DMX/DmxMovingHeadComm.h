@@ -14,6 +14,17 @@
 
 class DmxMotorBase;
 
+enum DMX_FIXTURE {
+    DMX_MOVING_HEAD_1,
+    DMX_MOVING_HEAD_2,
+    DMX_MOVING_HEAD_3,
+    DMX_MOVING_HEAD_4,
+    DMX_MOVING_HEAD_5,
+    DMX_MOVING_HEAD_6,
+    DMX_MOVING_HEAD_7,
+    DMX_MOVING_HEAD_8
+};
+
 class DmxMovingHeadComm : public DmxModel
 {
     public:
@@ -25,5 +36,64 @@ class DmxMovingHeadComm : public DmxModel
 
         virtual DmxMotorBase* GetPanMotor() = 0;
         virtual DmxMotorBase* GetTiltMotor() = 0;
-        virtual int GetFixtureVal() const { return 1; };
+        virtual int GetFixtureVal() const {
+            return fixture_val + 1;
+        };
+
+        static std::string FixtureIDtoString(int fixture_val) {
+            if (fixture_val == DMX_MOVING_HEAD_1) {
+                return "MH1";
+            }
+            if (fixture_val == DMX_MOVING_HEAD_2) {
+                return "MH2";
+            }
+            if (fixture_val == DMX_MOVING_HEAD_3) {
+                return "MH3";
+            }
+            if (fixture_val == DMX_MOVING_HEAD_4) {
+                return "MH4";
+            }
+            if (fixture_val == DMX_MOVING_HEAD_5) {
+                return "MH5";
+            }
+            if (fixture_val == DMX_MOVING_HEAD_6) {
+                return "MH6";
+            }
+            if (fixture_val == DMX_MOVING_HEAD_7) {
+                return "MH7";
+            }
+            if (fixture_val == DMX_MOVING_HEAD_8) {
+                return "MH8";
+            }
+            return "MH1";
+        }
+
+        static int FixtureStringtoID(std::string const& dmx_fixture) {
+            if (dmx_fixture == "MH2") {
+                return DMX_MOVING_HEAD_2;
+            }
+            if (dmx_fixture == "MH3") {
+                return DMX_MOVING_HEAD_3;
+            }
+            if (dmx_fixture == "MH4") {
+                return DMX_MOVING_HEAD_4;
+            }
+            if (dmx_fixture == "MH5") {
+                return DMX_MOVING_HEAD_5;
+            }
+            if (dmx_fixture == "MH6") {
+                return DMX_MOVING_HEAD_6;
+            }
+            if (dmx_fixture == "MH7") {
+                return DMX_MOVING_HEAD_7;
+            }
+            if (dmx_fixture == "MH8") {
+                return DMX_MOVING_HEAD_8;
+            }
+            return DMX_MOVING_HEAD_1;
+        }
+
+    protected:
+        int fixture_val{ 0 };
+        std::string dmx_fixture = "MH1";
 };
