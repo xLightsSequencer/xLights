@@ -79,6 +79,7 @@ public:
     wxButton* Button_MHPathContinue;
     wxButton* Button_None;
     wxButton* Button_Odds;
+    wxButton* Button_ResetToDefault;
     wxCheckBox* CheckBox_MH1;
     wxCheckBox* CheckBox_MH2;
     wxCheckBox* CheckBox_MH3;
@@ -103,6 +104,7 @@ public:
     wxPanel* PanelControl;
     wxPanel* PanelPathing;
     wxPanel* PanelPosition;
+    wxPanel* PanelStatus;
     wxStaticText* Label_Pan;
     wxStaticText* Label_PanOffset;
     wxStaticText* Label_PathScale;
@@ -121,6 +123,7 @@ public:
     wxTextCtrl* TextCtrl_MH7_Settings;
     wxTextCtrl* TextCtrl_MH8_Settings;
     wxTextCtrl* TextCtrl_MHPathDef;
+    wxTextCtrl* TextCtrl_Status;
     //*)
     
 protected:
@@ -184,6 +187,9 @@ protected:
     static const long ID_PANEL_ColorWheel;
     static const long ID_NOTEBOOK2;
     static const long ID_PANEL_Control;
+    static const long ID_TEXTCTRL_Status;
+    static const long ID_BUTTON_ResetToDefault;
+    static const long ID_PANEL1;
     static const long ID_NOTEBOOK1;
     static const long ID_TEXTCTRL_MH1_Settings;
     static const long ID_TEXTCTRL_MH2_Settings;
@@ -215,6 +221,7 @@ private:
     void OnCheckBox_MHIgnoreTiltClick(wxCommandEvent& event);
     void OnButtonSavePresetClick(wxCommandEvent& event);
     void OnButtonSavePathPresetClick(wxCommandEvent& event);
+    void OnButton_ResetToDefaultClick(wxCommandEvent& event);
     //*)
     
     DECLARE_EVENT_TABLE()
@@ -224,6 +231,7 @@ private:
     void UpdateMHSettings();
     void UpdateColorSettings();
     void UpdatePathSettings();
+    void UpdateStatusPanel();
     void RemoveSettings(std::list<std::string>& settings);
     void AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings);
     void AddPath(std::string& mh_settings);

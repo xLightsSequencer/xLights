@@ -95,6 +95,9 @@ const long MovingHeadPanel::ID_PANEL_Color = wxNewId();
 const long MovingHeadPanel::ID_PANEL_ColorWheel = wxNewId();
 const long MovingHeadPanel::ID_NOTEBOOK2 = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Control = wxNewId();
+const long MovingHeadPanel::ID_TEXTCTRL_Status = wxNewId();
+const long MovingHeadPanel::ID_BUTTON_ResetToDefault = wxNewId();
+const long MovingHeadPanel::ID_PANEL1 = wxNewId();
 const long MovingHeadPanel::ID_NOTEBOOK1 = wxNewId();
 const long MovingHeadPanel::ID_TEXTCTRL_MH1_Settings = wxNewId();
 const long MovingHeadPanel::ID_TEXTCTRL_MH2_Settings = wxNewId();
@@ -120,6 +123,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     BulkEditTextCtrlF1* TextCtrl_MHPanOffset;
     BulkEditTextCtrlF1* TextCtrl_MHTilt;
     BulkEditTextCtrlF1* TextCtrl_MHTiltOffset;
+    wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizerColorMain;
@@ -362,9 +366,21 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     PanelControl->SetSizer(FlexGridSizerControl);
     FlexGridSizerControl->Fit(PanelControl);
     FlexGridSizerControl->SetSizeHints(PanelControl);
+    PanelStatus = new wxPanel(Notebook1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer1->AddGrowableCol(0);
+    FlexGridSizer1->AddGrowableRow(0);
+    TextCtrl_Status = new wxTextCtrl(PanelStatus, ID_TEXTCTRL_Status, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE, wxDefaultValidator, _T("ID_TEXTCTRL_Status"));
+    FlexGridSizer1->Add(TextCtrl_Status, 1, wxALL|wxEXPAND, 5);
+    Button_ResetToDefault = new wxButton(PanelStatus, ID_BUTTON_ResetToDefault, _("Reset to Default"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ResetToDefault"));
+    FlexGridSizer1->Add(Button_ResetToDefault, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    PanelStatus->SetSizer(FlexGridSizer1);
+    FlexGridSizer1->Fit(PanelStatus);
+    FlexGridSizer1->SetSizeHints(PanelStatus);
     Notebook1->AddPage(PanelPosition, _("Position"), false);
     Notebook1->AddPage(PanelPathing, _("Pathing"), false);
     Notebook1->AddPage(PanelControl, _("Control"), false);
+    Notebook1->AddPage(PanelStatus, _("Status"), false);
     FlexGridSizer_Main->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer_Positions = new wxFlexGridSizer(0, 8, 0, 0);
     TextCtrl_MH1_Settings = new wxTextCtrl(this, ID_TEXTCTRL_MH1_Settings, wxEmptyString, wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("ID_TEXTCTRL_MH1_Settings"));
@@ -415,6 +431,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_CHECKBOX_MHIgnorePan,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHIgnorePanClick);
     Connect(ID_CHECKBOX_MHIgnoreTilt,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHIgnoreTiltClick);
     Connect(ID_BUTTON_SavePathPreset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButtonSavePathPresetClick);
+    Connect(ID_BUTTON_ResetToDefault,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_ResetToDefaultClick);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&MovingHeadPanel::OnNotebook1PageChanged);
     //*)
 
@@ -698,7 +715,7 @@ void MovingHeadPanel::SavePreset(const wxArrayString& preset, bool is_path)
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
         return;
     }
-    
+
     wxString v = xlights_version_string;
     if( is_path ) {
         f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<mhpathpreset \n");
@@ -776,10 +793,14 @@ void MovingHeadPanel::OnButtonPathPresetClick(wxCommandEvent& event)
 
 void MovingHeadPanel::OnNotebook1PageChanged(wxNotebookEvent& event)
 {
+    if (Notebook1->GetPageText(Notebook1->GetSelection()) == "Status") {
+        UpdateStatusPanel();
+    }
 }
 
 void MovingHeadPanel::ValidateWindow()
 {
+    UpdateStatusPanel();  // currently only way I found to update the status panel if its already active and a new effect is selected
 }
 
 static std::list<std::string> vcurves_pos = {"ID_VALUECURVE_MHPan", "ID_VALUECURVE_MHTilt", "ID_VALUECURVE_MHPanOffset",
@@ -791,7 +812,7 @@ void MovingHeadPanel::OnVCChanged(wxCommandEvent& event)
     EffectPanelUtils::OnVCChanged(event);
 
     BulkEditValueCurveButton* vc_btn = reinterpret_cast<BulkEditValueCurveButton*>(event.GetEventObject());
-    
+
     if( vc_btn != nullptr ) {
         std::string vc_id = vc_btn->GetValue()->GetId();
         bool pos_found = (std::find(vcurves_pos.begin(), vcurves_pos.end(), vc_id) != vcurves_pos.end());
@@ -927,7 +948,7 @@ void MovingHeadPanel::UpdateColorPanel()
             break;
         }
     }
-    
+
     if( wheel_active ) {
         DmxColorAbility* ptrColorAbility = first_mhead->GetColorAbility();
         auto colors = ptrColorAbility->GetColors();
@@ -1039,7 +1060,7 @@ void MovingHeadPanel::UpdateColorSettings()
     std::string wheel_text{xlEMPTY_STRING};
 
     RemoveSettings(colorsettings);
-    
+
     if( m_rgbColorPanel != nullptr && m_rgbColorPanel->HasColour() ) {
         color_text = m_rgbColorPanel->GetColour();
         rgb_active = true;
@@ -1105,7 +1126,7 @@ void MovingHeadPanel::UpdatePathSettings()
                                 mh_settings += ";IgnorePan: ";
                             }
                         }
-                        
+
                         // See if tilt path is ignored
                         checkbox = (wxCheckBox*)(this->FindWindowByName("ID_CHECKBOX_MHIgnoreTilt"));
                         if( checkbox != nullptr ) {
@@ -1113,7 +1134,7 @@ void MovingHeadPanel::UpdatePathSettings()
                                 mh_settings += ";IgnoreTilt: ";
                             }
                         }
-                        
+
                         // update the settings textbox
                         mh_textbox->SetValue(mh_settings);
                     }
@@ -1121,6 +1142,63 @@ void MovingHeadPanel::UpdatePathSettings()
             }
         }
     }
+}
+
+void MovingHeadPanel::UpdateStatusPanel()
+{
+    std::string all_settings = xlEMPTY_STRING;
+    for( int i = 1; i <= 8; ++i ) {
+        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+        if( mh_textbox != nullptr ) {
+            std::string mh_settings = mh_textbox->GetValue();
+            if( mh_settings != xlEMPTY_STRING ) {
+                wxString settings = wxString::Format("MH%d:\n", i);
+                all_settings += settings;
+                wxArrayString all_cmds = wxSplit(mh_settings, ';');
+                bool pos_set = false;
+                bool path_set = false;
+                bool color_set = false;
+                for (size_t j = 0; j < all_cmds.size(); ++j )
+                {
+                    std::string cmd = all_cmds[j];
+                    if( cmd == xlEMPTY_STRING ) continue;
+                    int pos = cmd.find(":");
+                    std::string cmd_type = cmd.substr(0, pos);
+                    if( cmd_type == "Pan" ) {
+                        pos_set = true;
+                    } else if (cmd_type == "Path") {
+                        path_set = true;
+                    } else if (cmd_type == "Color") {
+                        color_set = true;
+                    }
+                }
+                if (pos_set) {
+                    all_settings += "Position: ";
+                    for (size_t j = 0; j < all_cmds.size(); ++j )
+                    {
+                        std::string cmd = all_cmds[j];
+                        if( cmd == xlEMPTY_STRING ) continue;
+                        int pos = cmd.find(":");
+                        std::string cmd_type = cmd.substr(0, pos);
+                        bool found = (std::find(possettings.begin(), possettings.end(), cmd_type) != possettings.end());
+                        if( found ) {
+                            all_settings += (all_cmds[j]) + " ";
+                        }
+                    }
+                    all_settings += "\n";
+                }
+                if (path_set) {
+                    all_settings += "Path: Active\n";
+                }
+                if (color_set) {
+                    all_settings += "Color: Active\n";
+                }
+                all_settings += "\n";
+            }
+        }
+    }
+    TextCtrl_Status->SetValue(all_settings);
 }
 
 // Added special case to remove all path settings at once so we don't have to search several times
@@ -1649,4 +1727,21 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
     }
 
     recall = false;
+}
+
+void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
+{
+    std::string all_settings = xlEMPTY_STRING;
+    for( int i = 1; i <= 8; ++i ) {
+        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+        if( mh_textbox != nullptr ) {
+            std::string mh_settings = mh_textbox->GetValue();
+            if( mh_settings != xlEMPTY_STRING ) {
+                mh_textbox->SetValue(xlEMPTY_STRING);
+            }
+        }
+    }
+    FireChangeEvent();
+    UpdateStatusPanel();
 }
