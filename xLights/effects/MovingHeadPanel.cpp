@@ -95,7 +95,7 @@ const long MovingHeadPanel::ID_PANEL_Color = wxNewId();
 const long MovingHeadPanel::ID_PANEL_ColorWheel = wxNewId();
 const long MovingHeadPanel::ID_NOTEBOOK2 = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Control = wxNewId();
-const long MovingHeadPanel::ID_TEXTCTRL_Status = wxNewId();
+const long MovingHeadPanel::IDD_TEXTCTRL_Status = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_ResetToDefault = wxNewId();
 const long MovingHeadPanel::ID_PANEL1 = wxNewId();
 const long MovingHeadPanel::ID_NOTEBOOK1 = wxNewId();
@@ -370,7 +370,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
-    TextCtrl_Status = new wxTextCtrl(PanelStatus, ID_TEXTCTRL_Status, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE, wxDefaultValidator, _T("ID_TEXTCTRL_Status"));
+    TextCtrl_Status = new wxTextCtrl(PanelStatus, IDD_TEXTCTRL_Status, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE, wxDefaultValidator, _T("IDD_TEXTCTRL_Status"));
     FlexGridSizer1->Add(TextCtrl_Status, 1, wxALL|wxEXPAND, 5);
     Button_ResetToDefault = new wxButton(PanelStatus, ID_BUTTON_ResetToDefault, _("Reset to Default"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ResetToDefault"));
     FlexGridSizer1->Add(Button_ResetToDefault, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

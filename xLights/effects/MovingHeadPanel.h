@@ -187,7 +187,7 @@ protected:
     static const long ID_PANEL_ColorWheel;
     static const long ID_NOTEBOOK2;
     static const long ID_PANEL_Control;
-    static const long ID_TEXTCTRL_Status;
+    static const long IDD_TEXTCTRL_Status;
     static const long ID_BUTTON_ResetToDefault;
     static const long ID_PANEL1;
     static const long ID_NOTEBOOK1;

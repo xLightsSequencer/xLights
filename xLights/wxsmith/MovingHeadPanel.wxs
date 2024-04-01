@@ -748,7 +748,7 @@
 								<growablecols>0</growablecols>
 								<growablerows>0</growablerows>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL_Status" variable="TextCtrl_Status" member="yes">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Status" variable="TextCtrl_Status" member="yes">
 										<style>wxTE_MULTILINE</style>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
