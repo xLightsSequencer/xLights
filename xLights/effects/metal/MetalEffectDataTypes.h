@@ -110,3 +110,18 @@ struct MetalShockwaveData {
     uint16_t blend;
     uint16_t allowAlpha;
 };
+
+struct TransitionData {
+    uint32_t width;
+    uint32_t height;
+
+    uint32_t pWidth;
+    uint32_t pHeight;
+
+    float adjust;
+    float progress;
+    
+    bool hasPrev;
+    bool reverse;
+    bool out;
+};

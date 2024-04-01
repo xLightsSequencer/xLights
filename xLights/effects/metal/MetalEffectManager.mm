@@ -77,6 +77,13 @@ public:
     virtual void setPrioritizeGraphics(bool p) override {
         MetalComputeUtilities::INSTANCE.prioritizeGraphics(p);
     }
+    virtual bool doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) override {
+        if (enabled()) {
+            MetalPixelBufferComputeData *d = static_cast<MetalPixelBufferComputeData*>(pixelBuffer->gpuRenderData);
+            return d->doTransitions(pixelBuffer, layer, prevRB);
+        }
+        return false;
+    }
 
     bool isEnabled = true;
 };

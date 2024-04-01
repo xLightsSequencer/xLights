@@ -81,6 +81,13 @@ public:
         }
         return false;
     };
+    
+    static bool Transitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) {
+        if (INSTANCE) {
+            return INSTANCE->doTransitions(pixelBuffer, layer, prevRB);
+        }
+        return false;
+    }
 protected:
     GPURenderUtils() { INSTANCE = this; }
     virtual ~GPURenderUtils() { INSTANCE = nullptr; };
@@ -94,6 +101,7 @@ protected:
 
     virtual bool doBlur(RenderBuffer *buffer, int radius) = 0;
     virtual bool doRotoZoom(RenderBuffer *buffer, RotoZoomSettings &settings) = 0;
+    virtual bool doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) = 0;
     virtual void setPrioritizeGraphics(bool p) = 0;
 
 

@@ -6,6 +6,7 @@
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
 
 #include "MetalEffectDataTypes.h"
+#include "DissolveTransitionPattern.h"
 
 MetalComputeUtilities MetalComputeUtilities::INSTANCE;
 
@@ -14,6 +15,168 @@ MetalPixelBufferComputeData::MetalPixelBufferComputeData() {
 }
 MetalPixelBufferComputeData::~MetalPixelBufferComputeData() {
 }
+
+bool MetalPixelBufferComputeData::doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) {
+    PixelBufferClass::LayerInfo *li = pixelBuffer->layers[layer];
+    int ms = li->BufferHt * li->BufferWi;
+    if (ms < 1024) {
+        li->maskSize = 0; // start with empty mask
+        return false;
+    }
+    if (li->inMaskFactor < 1.0 || li->outMaskFactor < 1.0) {
+        if (ms > li->maskMaxSize) {
+            MetalRenderBufferComputeData *bd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&li->buffer);
+            if (bd->maskBuffer) {
+                [bd->maskBuffer release];
+            }
+            li->maskMaxSize = ms;
+            bd->maskBuffer= [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:li->maskMaxSize options:MTLResourceStorageModeShared] retain];
+            std::string name = li->buffer.GetModelName() + "MaskBuffer-" + std::to_string(layer);
+            NSString* mn = [NSString stringWithUTF8String:name.c_str()];
+            [bd->maskBuffer setLabel:mn];
+            li->mask = static_cast<uint8_t*>(bd->maskBuffer.contents);
+        }
+    }
+    li->maskSize = 0; // start with empty mask
+
+    const auto &tiIn = MetalComputeUtilities::INSTANCE.transitions.find(li->inTransitionType);
+    if (tiIn == MetalComputeUtilities::INSTANCE.transitions.end()) {
+        return false;
+    }
+    const auto &tiOut = MetalComputeUtilities::INSTANCE.transitions.find(li->outTransitionType);
+    if (tiOut == MetalComputeUtilities::INSTANCE.transitions.end()) {
+        return false;
+    }
+
+    TransitionData data;
+    data.width = li->BufferWi;
+    data.height = li->BufferHt;
+    data.hasPrev = prevRB != nullptr;
+    if (prevRB) {
+        data.pWidth = prevRB->BufferWi;
+        data.pHeight = prevRB->BufferHt;
+    }
+    if (li->inMaskFactor < 1.0) {
+        data.progress = li->inMaskFactor;
+        data.adjust = li->inTransitionAdjust;
+        data.reverse = li->inTransitionReverse;
+        data.out = false;
+        if (li->InTransitionAdjustValueCurve.IsActive()) {
+            data.adjust = li->InTransitionAdjustValueCurve.GetOutputValueAt(li->inMaskFactor, li->buffer.GetStartTimeMS(), li->buffer.GetEndTimeMS());
+        }
+        if (tiIn->second->reversed) {
+            data.progress =  1.0f - li->inMaskFactor;
+        }
+        if (tiIn->second->type == 1) {
+            li->maskSize = li->BufferHt * li->BufferWi;
+            if (!doMap(tiIn->second->function, data, &li->buffer)) {
+                return false;
+            }
+        } else if (tiIn->second->type == 2) {
+            if (!doTransition(tiIn->second->function, data, &li->buffer, prevRB)) {
+                return false;
+            }
+        } else if (tiIn->second->type == 3) {
+            if (!doTransition(tiIn->second->function, data, &li->buffer, MetalComputeUtilities::INSTANCE.dissolveBuffer)) {
+                return false;
+            }
+        }
+    }
+    if (li->outMaskFactor < 1.0) {
+        data.progress = li->outMaskFactor;
+        data.adjust = li->outTransitionAdjust;
+        data.reverse = li->outTransitionReverse;
+        data.out = true;
+        if (li->OutTransitionAdjustValueCurve.IsActive()) {
+            data.adjust = li->OutTransitionAdjustValueCurve.GetOutputValueAt(li->outMaskFactor, li->buffer.GetStartTimeMS(), li->buffer.GetEndTimeMS());
+        }
+        if (tiOut->second->reversed) {
+            data.progress =  1.0f - li->outMaskFactor;
+        }
+        if (tiOut->second->type == 1) {
+            li->maskSize = li->BufferHt * li->BufferWi;
+            if (!doMap(tiOut->second->function, data, &li->buffer)) {
+                return false;
+            }
+        } else if (tiOut->second->type == 2) {
+            if (!doTransition(tiOut->second->function, data, &li->buffer, prevRB)) {
+                return false;
+            }
+        } else if (tiOut->second->type == 3) {
+            if (!doTransition(tiOut->second->function, data, &li->buffer, MetalComputeUtilities::INSTANCE.dissolveBuffer)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+bool MetalPixelBufferComputeData::doMap(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer) {
+    MetalRenderBufferComputeData *bd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(buffer);
+    id<MTLCommandBuffer> commandBuffer = bd->getCommandBuffer();
+    if (commandBuffer == nil) {
+        return false;
+    }
+
+    id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+    [computeEncoder setLabel:f.label];
+    [computeEncoder setComputePipelineState:f];
+
+    int dataSize = sizeof(data);
+    [computeEncoder setBytes:&data length:dataSize atIndex:0];
+    [computeEncoder setBuffer:bd->maskBuffer offset:0 atIndex:1];
+    int w = f.threadExecutionWidth;
+    int h = f.maxTotalThreadsPerThreadgroup / w;
+    MTLSize threadsPerThreadgroup = MTLSizeMake(w, h, 1);
+    MTLSize threadsPerGrid = MTLSizeMake(data.width, data.height, 1);
+    [computeEncoder dispatchThreads:threadsPerGrid
+              threadsPerThreadgroup:threadsPerThreadgroup];
+
+    [computeEncoder endEncoding];
+    return true;
+}
+
+bool MetalPixelBufferComputeData::doTransition(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer, RenderBuffer *prevRB) {
+    id<MTLBuffer> bufferPrev = nil;
+    if (prevRB) bufferPrev = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(prevRB)->getPixelBuffer();
+    return doTransition(f, data, buffer, bufferPrev);
+}
+bool MetalPixelBufferComputeData::doTransition(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer, id<MTLBuffer> &prev) {
+    MetalRenderBufferComputeData *bd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(buffer);
+    id<MTLCommandBuffer> commandBuffer = bd->getCommandBuffer();
+    if (commandBuffer == nil) {
+        return false;
+    }
+    id<MTLBuffer> bufferResult = bd->getPixelBuffer();
+    id<MTLBuffer> bufferCopy = bd->getPixelBufferCopy();
+    id<MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
+    [blitCommandEncoder setLabel:@"CopyDataToCopyBuffer"];
+    [blitCommandEncoder copyFromBuffer:bufferResult
+                          sourceOffset:0
+                              toBuffer:bufferCopy
+                     destinationOffset:0
+                                  size:(data.width*data.height*4)];
+    [blitCommandEncoder endEncoding];
+    
+    id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+    [computeEncoder setLabel:f.label];
+    [computeEncoder setComputePipelineState:f];
+    
+    int dataSize = sizeof(data);
+    [computeEncoder setBytes:&data length:dataSize atIndex:0];
+    [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
+    [computeEncoder setBuffer:bufferCopy offset:0 atIndex:2];
+    [computeEncoder setBuffer:prev offset:0 atIndex:3];
+    int w = f.threadExecutionWidth;
+    int h = f.maxTotalThreadsPerThreadgroup / w;
+    MTLSize threadsPerThreadgroup = MTLSizeMake(w, h, 1);
+    MTLSize threadsPerGrid = MTLSizeMake(data.width, data.height, 1);
+    [computeEncoder dispatchThreads:threadsPerGrid
+              threadsPerThreadgroup:threadsPerThreadgroup];
+
+    [computeEncoder endEncoding];
+    return true;
+}
+
 
 static std::mutex commandBufferMutex;
 std::atomic<uint32_t> MetalRenderBufferComputeData::commandBufferCount(0);
@@ -24,6 +187,7 @@ MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, Met
     pixelBuffer = nil;
     pixelBufferCopy = nil;
     pixelTexture = nil;
+    maskBuffer = nil;
     pixelBufferSize = 0;
     pixelTextureSize = {0, 0};
 }
@@ -42,6 +206,9 @@ MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
         }
         if (pixelTexture != nil) {
             [pixelTexture release];
+        }
+        if (maskBuffer != nil) {
+            [maskBuffer release];
         }
     }
 }
@@ -112,7 +279,7 @@ id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
         std::string name = renderBuffer->GetModelName() + "PixelBuffer";
         NSString* mn = [NSString stringWithUTF8String:name.c_str()];
         [newBuffer setLabel:mn];
-        memcpy(newBuffer.contents, renderBuffer->pixels, pixelBufferSize * 4);
+        memcpy(newBuffer.contents, renderBuffer->pixels, pixelBufferSize == 0 ? bufferSize : pixelBufferSize * 4);
         pixelBufferSize = renderBuffer->pixelVector.size();
         pixelBuffer = newBuffer;
         renderBuffer->pixels = static_cast<xlColor*>(pixelBuffer.contents);
@@ -400,6 +567,7 @@ MetalRenderBufferComputeData *MetalRenderBufferComputeData::getMetalRenderBuffer
 MetalComputeUtilities::MetalComputeUtilities() {
     enabled = false;
     device = nil;
+    dissolveBuffer = nil;
     
     NSArray *devices = MTLCopyAllDevices();
     for (id d in devices) {
@@ -415,7 +583,7 @@ MetalComputeUtilities::MetalComputeUtilities() {
         device = nil;
         return;
     }
-
+    
     NSError *libraryError = NULL;
     NSString *libraryFile = [[NSBundle mainBundle] pathForResource:@"EffectComputeFunctions" ofType:@"metallib"];
     if (!libraryFile) {
@@ -428,7 +596,7 @@ MetalComputeUtilities::MetalComputeUtilities() {
         return;
     }
     [library setLabel:@"EffectComputeFunctionsLibrary"];
-
+    
     commandQueue = [device newCommandQueueWithMaxCommandBufferCount:MAX_COMMANDBUFFER_COUNT];
     if (!commandQueue) {
         return;
@@ -440,6 +608,40 @@ MetalComputeUtilities::MetalComputeUtilities() {
     yrotateFunction = FindComputeFunction("RotoZoomRotateY");
     zrotateFunction = FindComputeFunction("RotoZoomRotateZ");
     rotateBlankFunction = FindComputeFunction("RotoZoomBlank");
+
+    transitions[""] = new TransitionInfo(0);
+    transitions["None"] = new TransitionInfo(0);
+    transitions["Fade"] = new TransitionInfo(0);
+    
+    transitions["Wipe"] = new TransitionInfo("wipeTransition", 1);
+    transitions["Clock"] = new TransitionInfo("clockTransition", 1);
+    transitions["From Middle"] = new TransitionInfo("fromMiddleTransition", 1);
+    transitions["Circle Explode"] = new TransitionInfo("circleExplodeTransition", 1);
+    transitions["Square Explode"] = new TransitionInfo("squareExplodeTransition", 1);
+    transitions["Blend"] = new TransitionInfo("blendTransition", 1);
+    transitions["Slide Checks"] = new TransitionInfo("slideChecksTransition", 1);
+    transitions["Slide Bars"] = new TransitionInfo("slideBarsTransition", 1);
+    transitions["Blinds"] = new TransitionInfo("blindsTransition", 1);
+    
+    transitions["Shatter"] = new TransitionInfo("shatterTransition", 2, true);
+    transitions["Star"] = new TransitionInfo("starTransition", 2);
+    transitions["Pinwheel"] = new TransitionInfo("pinwheelTransition", 2, true);
+    transitions["Bow Tie"] = new TransitionInfo("bowTieTransition", 2);
+    transitions["Blobs"] = new TransitionInfo("blobsTransition", 2);
+    transitions["Fold"] = new TransitionInfo("foldTransition", 2);
+    transitions["Zoom"] = new TransitionInfo("zoomTransition", 2);
+    transitions["Circular Swirl"] = new TransitionInfo("circularSwirlTransition", 2, true);
+    transitions["Doorway"] = new TransitionInfo("doorwayTransition", 2);
+    transitions["Swap"] = new TransitionInfo("swapTransition", 2);
+    transitions["Circles"] = new TransitionInfo("circlesTransition", 2, true);
+    transitions["Dissolve"] = new TransitionInfo("dissolveTransition", 3, true);
+    
+    int bufferSize = DissolvePatternWidth * DissolvePatternHeight;
+    dissolveBuffer = [[device newBufferWithBytes:DissolveTransitonPattern
+                                          length:bufferSize
+                                         options:MTLResourceStorageModeShared] retain];
+
+    [dissolveBuffer setLabel:@"DissolveTransitonPattern"];
 }
 MetalComputeUtilities::~MetalComputeUtilities() {
     @autoreleasepool {
@@ -451,7 +653,26 @@ MetalComputeUtilities::~MetalComputeUtilities() {
         yrotateFunction = nil;
         zrotateFunction = nil;
         rotateBlankFunction = nil;
+        
+        for (auto &a : transitions) {
+            delete a.second;
+            a.second = nullptr;
+        }
+        transitions.clear();
+        
+        if (dissolveBuffer != nil) {
+            [dissolveBuffer release];
+            dissolveBuffer = nil;
+        }
     }
+}
+MetalComputeUtilities::TransitionInfo::TransitionInfo(int t) : type(t), reversed(false), function(nil) {
+}
+MetalComputeUtilities::TransitionInfo::TransitionInfo(const char *fn, int t, bool r) : type(t), reversed(r) {
+    function = MetalComputeUtilities::INSTANCE.FindComputeFunction(fn);
+}
+MetalComputeUtilities::TransitionInfo::~TransitionInfo() {
+    function = nil;
 }
 
 id<MTLComputePipelineState> MetalComputeUtilities::FindComputeFunction(const char *name) {
