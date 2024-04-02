@@ -11,6 +11,24 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.07 Apr 2, 2024
+   - enh (joero4)       Update ColorCurve dialog to make it easier to adjust near edges
+   - enh (dkulp)        MacOS - Add Shockwave to GPU rendered effects
+   - enh (dkulp)        MacOS - transitions handled on GPU
+   - enh (derwin12)     Lua script updates to allow updating the master view
+   - enh (scott)        Added RGB2Go controllers
+   - enh (derwin12)     Add ability toadd and edit aliases on SubModels
+   - enh (derwin12)     Save and use 3D mode selection in xlight_rgbeffects.xml file
+   - enh (derwin12)     Show any model warnings (missing nodes, etc..) before allowing users to create faces
+   - bug (dkulp)        Fix some issues where Buffer Styles list would not update to syles valid for submodels
+   - bug (dkulp)        Fix disabled effects still rendering
+   - bug (scott)        Fix SVG shape effect (nanosvg update)
+   - bug (scott)        Fix Scripting dialog not working
+   - bug (dkulp)        MacOS - limit number of OpenGL contexts created for Shader Effect, reduce memory usage
+   - bug (dkulp)        MacOS - Fix non-mask transitions not rendering properly with GPU rendered effects
+   - bug (dkulp)        Fix timing of "From Middle" transition when buffer ht is not 1
+   - bug (dkulp)        Switch to sequence tab before loading sequence to avoid a very hard to reproduce/debug crash
+   - bug (derwin12)     Fix crash in DMX Remap Channel Dialog
 2024.06 Mar 25, 2024
    - enh (dkulp)        Update wxWidgets to latest patches to fix various Dark Mode issues and Mac docking issues
    - enh (dkulp)        Add Horizontal/Vertical By Strand buffer styles to SubModels
