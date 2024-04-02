@@ -375,7 +375,10 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         modelPreview->SetBackgroundBrightness(layoutPanel->GetBackgroundBrightnessForSelectedPreview(), layoutPanel->GetBackgroundAlphaForSelectedPreview());
         modelPreview->SetScaleBackgroundImage(layoutPanel->GetBackgroundScaledForSelectedPreview());
     }
-    bool is_3d = GetXmlSetting("LayoutMode3D", "0") == "1";
+    
+    wxConfigBase* config = wxConfigBase::Get();
+    bool is_3d = config->ReadBool("LayoutMode3D", false);
+    is_3d = GetXmlSetting("LayoutMode3D", is_3d ? "1" : "0") == "1";
     modelPreview->Set3D(is_3d);
     layoutPanel->CheckBox_3D->SetValue(is_3d);
 
