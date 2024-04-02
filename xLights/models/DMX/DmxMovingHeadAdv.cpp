@@ -591,10 +591,10 @@ void DmxMovingHeadAdv::InitModel()
 }
 
 void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
-                                      xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
-                                      const xlColor* c, bool allowSelected, bool wiring,
-                                      bool highlightFirst, int highlightpixel,
-                                      float* boundingBox)
+                                            xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
+                                            const xlColor* c, bool allowSelected, bool wiring,
+                                            bool highlightFirst, int highlightpixel,
+                                            float* boundingBox)
 {
     if (!IsActive())
         return;
@@ -612,7 +612,8 @@ void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsCon
     sprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
-            //not 3d, flatten to the 0 plane
+            //not 3d, flatten to the 0.5 plane
+            ctx->Translate(0, 0, 0.5f);
             ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
@@ -620,7 +621,8 @@ void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsCon
     tprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
-            //not 3d, flatten to the 0 plane
+            //not 3d, flatten to the 0.5 plane
+            ctx->Translate(0, 0, 0.5f);
             ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
@@ -659,8 +661,12 @@ void DmxMovingHeadAdv::DisplayEffectOnWindow(ModelPreview* preview, double point
     if (ctx) {
         int w, h;
         preview->GetSize(&w, &h);
-        float scaleX = float(w) * 0.95f / GetModelScreenLocation().RenderWi;
-        float scaleY = float(h) * 0.95f / GetModelScreenLocation().RenderHt;
+        float scaleX = float(w) * 0.95f / float(GetModelScreenLocation().RenderWi);
+        float scaleY = float(h) * 0.95f / float(GetModelScreenLocation().RenderHt);
+        if (GetModelScreenLocation().RenderDp > 1) {
+            float scaleZ = float(w) * 0.95f / float(GetModelScreenLocation().RenderDp);
+            scaleX = std::min(scaleX, scaleZ);
+        }
 
         float aspect = screenLocation.GetScaleX();
         aspect /= screenLocation.GetScaleY();
@@ -676,17 +682,15 @@ void DmxMovingHeadAdv::DisplayEffectOnWindow(ModelPreview* preview, double point
 
         preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext* ctx) {
             ctx->PushMatrix();
-            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
-            ctx->TranslateViewMatrix(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
-                                     h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
-            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0);
+            ctx->Translate(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.5f);
+            ctx->Scale(scaleX, scaleY, 0.001f);
         });
         preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
             ctx->PushMatrix();
-            ctx->ScaleViewMatrix(1.0f, 1.0f, 0.001f);
-            ctx->TranslateViewMatrix(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
-                                     h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
-            ctx->ScaleViewMatrix(scaleX, scaleY, 1.0f);
+            ctx->Translate(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
+                           h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.5f);
+            ctx->Scale(scaleX, scaleY, 0.001f);
         });
         DrawModel(preview, ctx, preview->getCurrentSolidProgram(), preview->getCurrentTransparentProgram(), true, nullptr);
         preview->getCurrentTransparentProgram()->addStep([=](xlGraphicsContext* ctx) {
