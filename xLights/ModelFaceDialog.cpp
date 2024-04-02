@@ -476,10 +476,7 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
     UpdatePreview("", *wxWHITE);
     std::list<std::string> warnings = cls->CheckModelSettings();
     if (!warnings.empty()) {
-        std::string warningsStr;
-        for (const auto& warning : warnings) {
-            warningsStr += warning + "\n";
-        }
+        std::string warningsStr = Join(warnings, "\n");
         // Show the concatenated warnings in a wxMessageBox
         wxMessageBox(wxString(warningsStr), "Warnings", wxOK | wxICON_WARNING);
     }
