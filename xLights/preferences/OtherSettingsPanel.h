@@ -45,6 +45,7 @@ class OtherSettingsPanel: public wxPanel
 		wxChoice* Choice_LinkControllerUpload;
 		wxChoice* Choice_LinkSave;
 		wxChoice* Choice_MinTipLevel;
+		wxChoice* HardwareVideoRenderChoice;
 		wxSpinCtrlDouble* SpinCtrlDoubleBitrate;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -65,6 +66,7 @@ class OtherSettingsPanel: public wxPanel
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL1;
 		static const long ID_CHECKBOX1;
+		static const long ID_CHOICE4;
 		static const long ID_CHECKBOX7;
 		static const long ID_STATICTEXT3;
 		static const long ID_CHOICE_CODEC;

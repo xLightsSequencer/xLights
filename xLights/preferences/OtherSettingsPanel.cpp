@@ -38,6 +38,7 @@ const long OtherSettingsPanel::ID_CHOICE1 = wxNewId();
 const long OtherSettingsPanel::ID_STATICTEXT2 = wxNewId();
 const long OtherSettingsPanel::ID_TEXTCTRL1 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX1 = wxNewId();
+const long OtherSettingsPanel::ID_CHOICE4 = wxNewId();
 const long OtherSettingsPanel::ID_CHECKBOX7 = wxNewId();
 const long OtherSettingsPanel::ID_STATICTEXT3 = wxNewId();
 const long OtherSettingsPanel::ID_CHOICE_CODEC = wxNewId();
@@ -70,6 +71,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     wxStaticBoxSizer* StaticBoxSizer1;
     wxStaticBoxSizer* StaticBoxSizer2;
     wxStaticBoxSizer* StaticBoxSizer3;
+    wxStaticBoxSizer* StaticBoxSizer4;
     wxStaticText* StaticText1;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -86,9 +88,18 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     GridBagSizer1->Add(StaticText1, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     eMailTextControl = new wxTextCtrl(this, ID_TEXTCTRL1, _("noone@nowhere.xlights.org"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(150,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
     GridBagSizer1->Add(eMailTextControl, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxEXPAND, 5);
+    StaticBoxSizer4 = new wxStaticBoxSizer(wxVERTICAL, this, _("Hardware Video"));
     HardwareVideoDecodingCheckBox = new wxCheckBox(this, ID_CHECKBOX1, _("Hardware Video Decoding"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     HardwareVideoDecodingCheckBox->SetValue(false);
-    GridBagSizer1->Add(HardwareVideoDecodingCheckBox, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
+    StaticBoxSizer4->Add(HardwareVideoDecodingCheckBox, 1, wxALL|wxEXPAND, 5);
+    HardwareVideoRenderChoice = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
+    HardwareVideoRenderChoice->Append(_("DirectX11"));
+    HardwareVideoRenderChoice->SetSelection( HardwareVideoRenderChoice->Append(_("FFmpeg Auto")) );
+    HardwareVideoRenderChoice->Append(_("FFmpeg CUDA"));
+    HardwareVideoRenderChoice->Append(_("FFmpeg QSV"));
+    HardwareVideoRenderChoice->Append(_("FFmpeg Vulkan"));
+    StaticBoxSizer4->Add(HardwareVideoRenderChoice, 1, wxALL|wxEXPAND, 5);
+    GridBagSizer1->Add(StaticBoxSizer4, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
     ShaderCheckbox = new wxCheckBox(this, ID_CHECKBOX7, _("Shaders on Background Threads"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
     ShaderCheckbox->SetValue(false);
     GridBagSizer1->Add(ShaderCheckbox, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -144,7 +155,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Choice_MinTipLevel->Append(_("Advanced"));
     Choice_MinTipLevel->Append(_("Expert"));
     FlexGridSizer2->Add(Choice_MinTipLevel, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_RecycleTips = new wxCheckBox(this, ID_CHECKBOX8, _("Recycle tips once all seen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
     CheckBox_RecycleTips->SetValue(false);
     FlexGridSizer2->Add(CheckBox_RecycleTips, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -158,6 +169,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE4,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX7,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHOICE_CODEC,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_SPINCTRLDOUBLE_BITRATE,wxEVT_SPINCTRLDOUBLE,(wxObjectEventFunction)&OtherSettingsPanel::OnSpinCtrlDoubleBitrateChange);
@@ -174,6 +186,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
 #ifdef __LINUX__
     HardwareVideoDecodingCheckBox->Hide();
     ShaderCheckbox->Hide();
+    HardwareVideoRenderChoice->Hide();
 #endif
 #ifdef __WXOSX__
     //repurpose ShaderCheckbox for GPU rendering
@@ -183,6 +196,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     } else {
         ShaderCheckbox->Hide();
     }
+    HardwareVideoRenderChoice->Hide();
 #endif
 
     #ifdef _MSC_VER
@@ -200,6 +214,9 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetExcludeAudioFromPackagedSequences(ExcludeAudioCheckBox->IsChecked());
     frame->SetExcludePresetsFromPackagedSequences(ExcludePresetsCheckBox->IsChecked());
     frame->SetHardwareVideoAccelerated(HardwareVideoDecodingCheckBox->IsChecked());
+#ifdef _MSC_VER
+    frame->SetHardwareVideoRenderer(HardwareVideoRenderChoice->GetSelection());
+#endif
 #ifdef __WXOSX__
     frame->SetUseGPURendering(ShaderCheckbox->IsChecked());
 #else
@@ -222,6 +239,9 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     ExcludeAudioCheckBox->SetValue(frame->ExcludeAudioFromPackagedSequences());
     ExcludePresetsCheckBox->SetValue(frame->ExcludePresetsFromPackagedSequences());
     HardwareVideoDecodingCheckBox->SetValue(frame->HardwareVideoAccelerated());
+#ifdef _MSC_VER
+    HardwareVideoRenderChoice->SetSelection(frame->HardwareVideoRenderer());
+#endif
 #ifdef __WXOSX__
     ShaderCheckbox->SetValue(frame->UseGPURendering());
 #else

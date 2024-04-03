@@ -169,6 +169,7 @@ void ScriptsDialog::OnPopup(wxCommandEvent& event)
     }else if (event.GetId() == ID_MCU_VIEWSCRIPTFOLDER) {
         int sel = ListBoxScripts->GetSelection();
         if (sel == wxNOT_FOUND) {
+            wxLaunchDefaultApplication(_runner->GetUserScriptFolder());
             return;
         }
         wxLaunchDefaultApplication(wxPathOnly(_scripts.at(sel)));

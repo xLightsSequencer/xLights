@@ -1990,7 +1990,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     _taskBarIcon = std::make_unique<xlMacDockIcon>(this);
 #else
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, false);
+    config->Read(_("xLightsVideoReaderRenderer"), &_hwVideoRenderer, 1);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
+    VideoReader::SetHardwareRenderType(_hwVideoRenderer);
 #endif
 #ifdef __WXMSW__
     // make sure Direct2DRenderer is created on the main thread before the other threads need it
@@ -9829,6 +9831,13 @@ void xLightsFrame::SetHardwareVideoAccelerated(bool b)
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsVideoReaderAccelerated", VideoReader::IsHardwareAcceleratedVideo());
+}
+
+void xLightsFrame::SetHardwareVideoRenderer(int type) {
+    _hwVideoRenderer = type;
+    VideoReader::SetHardwareRenderType(_hwVideoRenderer);
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsVideoReaderRenderer", VideoReader::GetHardwareRenderType());
 }
 
 bool xLightsFrame::ShadersOnBackgroundThreads() const

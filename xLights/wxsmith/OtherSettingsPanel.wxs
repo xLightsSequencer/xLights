@@ -62,9 +62,34 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="HardwareVideoDecodingCheckBox" member="yes">
-					<label>Hardware Video Decoding</label>
-					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
+				<object class="wxStaticBoxSizer" variable="StaticBoxSizer4" member="no">
+					<label>Hardware Video</label>
+					<orient>wxVERTICAL</orient>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX1" variable="HardwareVideoDecodingCheckBox" member="yes">
+							<label>Hardware Video Decoding</label>
+							<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE4" variable="HardwareVideoRenderChoice" member="yes">
+							<content>
+								<item>DirectX11</item>
+								<item>FFmpeg Auto</item>
+								<item>FFmpeg CUDA</item>
+								<item>FFmpeg QSV</item>
+								<item>FFmpeg Vulkan</item>
+							</content>
+							<selection>1</selection>
+							<handler function="OnControlChanged" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<col>0</col>
 				<row>1</row>
