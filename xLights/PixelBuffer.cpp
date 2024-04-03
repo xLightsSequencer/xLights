@@ -1456,15 +1456,6 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool>& validLay
                      thelayer->sparkle_count > 0 ||
                      thelayer->outputSparkleCount > 0)) {
                     int sc = thelayer->outputSparkleCount;
-
-                    size_t nc = layers[0]->buffer.Nodes.size();
-                    if (sparkles.size() < nc) {
-                        int sz = sparkles.size();
-                        sparkles.resize(layers[0]->buffer.Nodes.size());
-                        while (sz < nc) {
-                            sparkles[sz++] = rand() % 10000;
-                        }
-                    }
                     auto& sparkle = sparkles[node];
 
                     switch (sparkle % (208 - sc)) {
@@ -3060,14 +3051,33 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& val
     // layer calculation and map to output
     size_t NodeCount = layers[0]->buffer.Nodes.size();
     int countValid = 0;
+    bool hasSparkles = false;
     for (int ii = (numLayers - 1); ii >= 0; --ii) {
         if (!validLayers[ii]) {
             continue;
         }
         ++countValid;
         GPURenderUtils::waitForRenderCompletion(&layers[ii]->buffer);
+        
+        if (!hasSparkles &&
+            (layers[ii]->use_music_sparkle_count ||
+             layers[ii]->sparkle_count > 0 ||
+             layers[ii]->outputSparkleCount > 0)) {
+            hasSparkles = true;
+        }
     }
 
+    if (hasSparkles && sparkles.size() < layers[0]->buffer.Nodes.size()) {
+        // initialize the sparkle info
+        size_t sz = sparkles.size();
+        size_t nc = layers[0]->buffer.Nodes.size();
+        sparkles.resize(nc);
+        while (sz < nc) {
+            sparkles[sz++] = rand() % 10000;
+        }
+    }
+    
+    
     int blockSize = std::max(5000 / std::max(countValid, 1), 500);
     /*
     //bunch of test code to test the timing of various block sizes to see what impact
