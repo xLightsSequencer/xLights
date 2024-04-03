@@ -7142,7 +7142,7 @@ void Model::SetControllerColorOrder(wxString const& color)
 
 void Model::SetControllerGroupCount(int grouping)
 {
-    if (grouping == wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "1"))) {
+    if (grouping == wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "0"))) {
         return;
     }
     GetControllerConnection()->DeleteAttribute("groupCount");
