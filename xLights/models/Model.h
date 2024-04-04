@@ -525,7 +525,7 @@ public:
             return strandNames[x];
         }
         if (def) {
-            return wxString::Format("Strand %d", (int)x + 1).ToStdString();
+            return std::string("Strand ") + std::to_string(x + 1);
         }
         return "";
     }
@@ -541,14 +541,14 @@ public:
             return nodeNames[x];
         }
         if (def) {
-            return wxString::Format("Node %d", (int)x + 1).ToStdString();
+            return std::string("Node ") + std::to_string(x + 1);
         }
         return "";
     }
 
     static std::string StartChanAttrName(int idx)
     {
-        return wxString::Format(wxT("String%i"), idx + 1).ToStdString();  // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
+        return std::string("String") + std::to_string(idx + 1); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
     }
     // returns true for models that only have 1 string and where parm1 does NOT represent the # of strings
     static bool HasOneString(const std::string& DispAs)
