@@ -170,10 +170,10 @@ void TreeModel::SetTreeCoord(long degrees)
                 double xt = topradius * sin(angle);
                 double zb = radius * cos(angle);
                 double zt = topradius * cos(angle);
-                double yb = ybot;
-                double yt = ytop;
-                // double yb = ybot - perspective * radius * cos(angle);
-                // double yt = ytop - perspective * topradius * cos(angle);
+                //double yb = ybot;
+                //double yt = ytop;
+                double yb = ybot - perspective * radius * cos(angle);
+                double yt = ytop - perspective * topradius * cos(angle);
                 double posOnString = 0.5;
                 if (BufferHt > 1) {
                     posOnString = yPos[bufferY] / (double)(BufferHt - 1.0);
