@@ -64,8 +64,8 @@ private:
     public:
         LayerInfo(xLightsFrame* frame) :
             buffer(frame) {
-            inMaskFactor = 0;
-            outMaskFactor = 0;
+            inMaskFactor = 1.0;
+            outMaskFactor = 1.0;
             blur = 0;
             rotation = 0.0f;
             rotations = 0;
@@ -86,7 +86,7 @@ private:
             saturationadjust = 0;
             valueadjust = 0;
             contrast = 0;
-            fadeFactor = 0.0;
+            fadeFactor = 1.0;
             mixType = MixTypes::Mix_Normal;
             effectMixThreshold = 0.0;
             effectMixVaries = false;
@@ -144,7 +144,7 @@ private:
         ValueCurve InTransitionAdjustValueCurve;
         ValueCurve OutTransitionAdjustValueCurve;
         int sparkle_count;
-        bool use_music_sparkle_count;
+        bool use_music_sparkle_count = false;
         float music_sparkle_count_factor;
         int blur;
         int rotation;
@@ -163,7 +163,7 @@ private:
         int saturationadjust;
         int valueadjust;
         int contrast;
-        double fadeFactor;
+        double fadeFactor = 1.0f;
         MixTypes mixType;
         float effectMixThreshold;
         bool effectMixVaries;
@@ -180,8 +180,8 @@ private:
         int outTransitionAdjust;
         bool inTransitionReverse;
         bool outTransitionReverse;
-        float inMaskFactor;
-        float outMaskFactor;
+        float inMaskFactor = 1.0f;
+        float outMaskFactor = 1.0f;
         int stagger;
 
         std::vector<std::unique_ptr<RenderBuffer>>* modelBuffers = nullptr;
@@ -205,13 +205,13 @@ private:
 
         void clear();
 
-        float outputHueAdjust;
-        float outputSaturationAdjust;
-        float outputValueAdjust;
+        float outputHueAdjust = 0.0f;
+        float outputSaturationAdjust = 0.0f;
+        float outputValueAdjust = 0.0f;
         bool needsHSVAdjust = false;
         int outputSparkleCount = 0;
-        int outputBrightnessAdjust = 0;
-        float outputEffectMixThreshold;
+        int outputBrightnessAdjust = 100;
+        float outputEffectMixThreshold = 0.0f;
 
         void calculateNodeOutputParams(int effectPeriod);
 
