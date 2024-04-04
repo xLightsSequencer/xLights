@@ -547,6 +547,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             }
 
             if (answer == wxYES) {
+                mSequenceElements->GetXLightsFrame()->AbortRender();
                 element->RemoveEffectLayer(layerIndex);
                 wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
                 wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -583,6 +584,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     }
                 }
                 if (deleteLayers == true) {
+                    mSequenceElements->GetXLightsFrame()->AbortRender();
                     for (int deleteLayer = startDeleteLayer; deleteLayer >= layerIndex; deleteLayer--) {
                         element->RemoveEffectLayer(deleteLayer);
                     }
@@ -606,6 +608,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 if (element->GetEffectLayerCount() == 1) {
                     // last layer ... dont delete it
                 } else {
+                    mSequenceElements->GetXLightsFrame()->AbortRender();
                     element->RemoveEffectLayer(i);
                     --i;
                     deleted = true;
@@ -987,6 +990,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_DELETE_ROW_EFFECTS) {
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
+        mSequenceElements->GetXLightsFrame()->AbortRender();
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         if (layer_index < element->GetEffectLayerCount()) {
             if (ri->nodeIndex == -1) {
@@ -1013,6 +1017,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
     } else if (id == ID_ROW_MNU_ROW_CONVERTTOPERMODEL) {
         mSequenceElements->get_undo_mgr().CreateUndoStep();
+        mSequenceElements->GetXLightsFrame()->AbortRender();
         if (layer_index < element->GetEffectLayerCount()) {
             if (ri->nodeIndex == -1) {
                 element->GetEffectLayer(layer_index)->ConvertEffectsToPerModel(mSequenceElements->get_undo_mgr());
@@ -1029,6 +1034,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         mSequenceElements->GetXLightsFrame()->RenderEffectForModel(element->GetModelName(), 0, 99999999);
     } else if (id == ID_ROW_MNU_MODEL_CONVERTTOPERMODEL) {
         mSequenceElements->get_undo_mgr().CreateUndoStep();
+        mSequenceElements->GetXLightsFrame()->AbortRender();
         for (int i = 0; i < element->GetEffectLayerCount(); i++) {
             element->GetEffectLayer(i)->ConvertEffectsToPerModel(mSequenceElements->get_undo_mgr());
         }
@@ -1048,6 +1054,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
         mSequenceElements->get_undo_mgr().CreateUndoStep();
+        mSequenceElements->GetXLightsFrame()->AbortRender();
         for (int i = 0; i < element->GetEffectLayerCount(); ++i) {
             if (element->GetEffectLayer(i)->GetEffectCount() > 0) {
                 element->GetEffectLayer(i)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
@@ -1057,6 +1064,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
         mSequenceElements->get_undo_mgr().CreateUndoStep();
+        mSequenceElements->GetXLightsFrame()->AbortRender();
         ModelElement* me = dynamic_cast<ModelElement*>(element);
         if (me == nullptr) {
             SubModelElement* se = dynamic_cast<SubModelElement*>(element);
@@ -1078,6 +1086,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
         mSequenceElements->get_undo_mgr().CreateUndoStep();
+        mSequenceElements->GetXLightsFrame()->AbortRender();
         auto me = dynamic_cast<ModelElement*>(element);
         if (me != nullptr) {
             for (size_t s = 0; s < me->GetStrandCount(); ++s) {
