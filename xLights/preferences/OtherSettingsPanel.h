@@ -39,6 +39,7 @@ class OtherSettingsPanel: public wxPanel
 		wxCheckBox* CheckBox_RecycleTips;
 		wxCheckBox* ExcludeAudioCheckBox;
 		wxCheckBox* ExcludePresetsCheckBox;
+		wxCheckBox* GPURenderCheckbox;
 		wxCheckBox* HardwareVideoDecodingCheckBox;
 		wxCheckBox* ShaderCheckbox;
 		wxChoice* ChoiceCodec;
@@ -63,8 +64,6 @@ class OtherSettingsPanel: public wxPanel
 		//(*Identifiers(OtherSettingsPanel)
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE1;
-		static const long ID_STATICTEXT2;
-		static const long ID_TEXTCTRL1;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHOICE4;
 		static const long ID_CHECKBOX7;
@@ -74,13 +73,16 @@ class OtherSettingsPanel: public wxPanel
 		static const long ID_SPINCTRLDOUBLE_BITRATE;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX3;
-		static const long ID_CHOICE2;
 		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX6;
 		static const long ID_CHECKBOX5;
 		static const long ID_STATICTEXT4;
 		static const long ID_CHOICE3;
 		static const long ID_CHECKBOX8;
+		static const long ID_STATICTEXT2;
+		static const long ID_CHOICE2;
+		static const long ID_TEXTCTRL1;
+		static const long ID_CHECKBOX9;
 		//*)
 
 	private:
@@ -89,6 +91,7 @@ class OtherSettingsPanel: public wxPanel
 		//(*Handlers(OtherSettingsPanel)
 		void OnControlChanged(wxCommandEvent& event);
 		void OnSpinCtrlDoubleBitrateChange(wxSpinDoubleEvent& event);
+		void OnPaint(wxPaintEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
