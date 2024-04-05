@@ -749,8 +749,6 @@
 		<Unit filename="TimingPanel.h" />
 		<Unit filename="TipOfTheDayDialog.cpp" />
 		<Unit filename="TipOfTheDayDialog.h" />
-		<Unit filename="tmGridCell.cpp" />
-		<Unit filename="tmGridCell.h" />
 		<Unit filename="TopEffectsPanel.cpp" />
 		<Unit filename="TopEffectsPanel.h" />
 		<Unit filename="TraceLog.cpp" />
@@ -1138,6 +1136,7 @@
 		<Unit filename="models/ArchesModel.h" />
 		<Unit filename="models/BaseObject.cpp" />
 		<Unit filename="models/BaseObject.h" />
+		<Unit filename="models/BaseObjectVisitor.h" />
 		<Unit filename="models/BoxedScreenLocation.cpp" />
 		<Unit filename="models/BoxedScreenLocation.h" />
 		<Unit filename="models/CandyCaneModel.cpp" />
@@ -1273,6 +1272,7 @@
 		<Unit filename="models/WindowFrameModel.h" />
 		<Unit filename="models/WreathModel.cpp" />
 		<Unit filename="models/WreathModel.h" />
+		<Unit filename="models/XmlSerializer.h" />
 		<Unit filename="outputs/ArtNetOutput.cpp" />
 		<Unit filename="outputs/ArtNetOutput.h" />
 		<Unit filename="outputs/Controller.cpp" />
@@ -1395,6 +1395,8 @@
 		<Unit filename="support/GridCellChoiceRenderer.h" />
 		<Unit filename="support/VectorMath.cpp" />
 		<Unit filename="support/VectorMath.h" />
+		<Unit filename="tmGridCell.cpp" />
+		<Unit filename="tmGridCell.h" />
 		<Unit filename="utils/Curl.cpp" />
 		<Unit filename="utils/Curl.h" />
 		<Unit filename="utils/CurlManager.cpp" />
@@ -1849,6 +1851,9 @@
 					<wxDialog wxs="wxsmith/MhFeatureDialog.wxs" src="models/DMX/MovingHeads/MhFeatureDialog.cpp" hdr="models/DMX/MovingHeads/MhFeatureDialog.h" fwddecl="0" i18n="1" name="MhFeatureDialog" language="CPP" />
 				</resources>
 			</wxsmith>
+			<code_completion />
+			<envvars />
+			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

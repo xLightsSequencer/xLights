@@ -855,6 +855,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
     <ClInclude Include="MetronomeLabelDialog.h" />
+    <ClInclude Include="models\BaseObjectVisitor.h" />
     <ClInclude Include="models\DMX\DmxColorAbilityCMY.h" />
     <ClInclude Include="models\DMX\DmxMotor.h" />
     <ClInclude Include="models\DMX\DmxMotorBase.h" />
@@ -865,6 +866,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="models\DMX\MovingHeads\MhChannelDialog.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhFeature.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhFeatureDialog.h" />
+    <ClInclude Include="models\XmlSerializer.h" />
     <ClInclude Include="TempFileManager.h" />
     <ClInclude Include="utils\CurlManager.h" />
     <ClInclude Include="utils\ip_utils.h" />
