@@ -125,3 +125,29 @@ struct TransitionData {
     bool reverse;
     bool out;
 };
+
+struct LayerBlendingData {
+    int32_t nodeCount;
+    uint32_t bufferWi;
+    uint32_t bufferHi;
+    
+    bool useMask;
+    
+    float hueAdjust;
+    float valueAdjust;
+    float saturationAdjust;
+    
+    int brightness;
+    int contrast;
+    float fadeFactor;
+    float effectMixThreshold;
+    bool effectMixVaries;
+    int mixTypeData;
+    
+    int outputSparkleCount;
+    simd::uchar4 sparkleColor;
+    
+    bool isChromaKey;
+    int chromaSensitivity;
+    simd::uchar4 chromaColor;
+};

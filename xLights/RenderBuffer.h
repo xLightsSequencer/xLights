@@ -594,4 +594,6 @@ private:
 
     void SetPixelDMXModel(int x, int y, const xlColor& color);
     void Forget();
+    
+    friend class MetalPixelBufferComputeData;
 };

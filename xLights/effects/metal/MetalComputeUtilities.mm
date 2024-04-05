@@ -11,9 +11,251 @@
 MetalComputeUtilities MetalComputeUtilities::INSTANCE;
 
 
+inline void setLabel(id<MTLComputeCommandEncoder> enc, const std::string &s) {
+#ifdef DEBUG
+    NSString* mn = [NSString stringWithUTF8String:s.c_str()];
+    [enc setLabel:mn];
+#endif
+}
+inline void setLabel(id<MTLBuffer> buf, const std::string &s) {
+#ifdef DEBUG
+    NSString* mn = [NSString stringWithUTF8String:s.c_str()];
+    [buf setLabel:mn];
+#endif
+}
+
 MetalPixelBufferComputeData::MetalPixelBufferComputeData() {
+    sparkleBuffer = nil;
+    tmpBufferLayer = nil;
+    tmpBufferBlend = nil;
 }
 MetalPixelBufferComputeData::~MetalPixelBufferComputeData() {
+    if (sparkleBuffer != nil) {
+        [sparkleBuffer release];
+    }
+    if (tmpBufferLayer != nil) {
+        [tmpBufferLayer release];
+    }
+    if (tmpBufferBlend != nil) {
+        [tmpBufferBlend release];
+    }
+}
+bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer) {
+    if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < 1024) {
+        return false;
+    }
+    for (int l = validLayers.size() - 1; l >= 0; --l) {
+        if (validLayers[l]) {
+            if (MetalComputeUtilities::INSTANCE.blendFunctions.find(pixelBuffer->layers[l]->mixType) == MetalComputeUtilities::INSTANCE.blendFunctions.end()) {
+                return false;
+            }
+        }
+    }
+        
+    if (!pixelBuffer->sparklesVector.empty()) {
+        if (pixelBuffer->sparkles == &pixelBuffer->sparklesVector[0] && sparkleBuffer != nil) {
+            [sparkleBuffer release];
+        }
+        if (sparkleBuffer == nil) {
+            sparkleBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithBytes:&pixelBuffer->sparklesVector[0]
+                                             length:pixelBuffer->sparklesVector.size() * sizeof(uint16_t)
+                                            options:MTLResourceStorageModeShared] retain];
+            std::string name = pixelBuffer->GetModelName() + "SparkleBuffer";
+            setLabel(sparkleBuffer, name);
+            pixelBuffer->sparkles = static_cast<uint16_t*>(sparkleBuffer.contents);
+        }
+    }
+    if (tmpBufferLayer == nil) {
+        int len = pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() * sizeof(uint32_t);
+        tmpBufferLayer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModePrivate] retain];
+        tmpBufferBlend = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared] retain];
+        setLabel(tmpBufferLayer, pixelBuffer->GetModelName() + "-WorkBuffer");
+        setLabel(tmpBufferBlend, pixelBuffer->GetModelName() + "-BlendBuffer");
+    }
+    MetalRenderBufferComputeData *slRMRB = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&pixelBuffer->layers[saveLayer]->buffer);
+    if (slRMRB->isCommitted()) {
+        slRMRB->waitForCompletion();
+    }
+    id<MTLCommandBuffer> commandBuffer = slRMRB->getCommandBuffer("-Blend");
+    if (commandBuffer == nil) {
+        return false;
+    }
+    bool first = true;
+    for (int l = validLayers.size() - 1; l >= 0; --l) {
+        if (validLayers[l]) {
+            auto layer = pixelBuffer->layers[l];
+            MetalRenderBufferComputeData *layerCD = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&layer->buffer);
+            
+            LayerBlendingData data;
+            data.nodeCount = layer->buffer.GetNodeCount();
+            data.bufferHi = layer->buffer.BufferHt;
+            data.bufferWi = layer->buffer.BufferWi;
+            data.useMask = layer->maskSize > 0;
+            data.hueAdjust = layer->outputHueAdjust;
+            data.valueAdjust = layer->outputValueAdjust;
+            data.saturationAdjust = layer->outputSaturationAdjust;
+            data.outputSparkleCount = layer->outputSparkleCount;
+            data.contrast = layer->contrast;
+            data.brightness = layer->outputBrightnessAdjust;
+            data.isChromaKey = layer->isChromaKey;
+            data.chromaSensitivity = layer->chromaSensitivity;
+            data.chromaColor = layer->chromaKeyColour.asChar4();
+            data.effectMixThreshold = layer->outputEffectMixThreshold;
+            data.effectMixVaries = layer->effectMixVaries;
+
+            // first, we grab the color for the node from the buffer for the layer
+            id<MTLBuffer> lcdPixelBuffer = layerCD->getPixelBuffer();
+            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+            [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.getColorsFunction];
+            setLabel(computeEncoder, "GetColors");
+            int dataSize = sizeof(data);
+            [computeEncoder setBytes:&data length:dataSize atIndex:0];
+            [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:1];
+            [computeEncoder setBuffer:lcdPixelBuffer offset:0 atIndex:2];
+            
+            if (layerCD->maskBuffer == nil) {
+                //layerCD->maskMaxSize = 2;
+                layerCD->maskBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:2 options:MTLResourceStorageModeShared] retain];
+            }
+            
+            [computeEncoder setBuffer:layerCD->maskBuffer offset:0 atIndex:3];
+            [computeEncoder setBuffer:layerCD->getIndexBuffer() offset:0 atIndex:4];
+            NSInteger maxThreads = MetalComputeUtilities::INSTANCE.getColorsFunction.maxTotalThreadsPerThreadgroup;
+            NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);
+            MTLSize gridSize = MTLSizeMake(data.nodeCount, 1, 1);
+            MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
+            [computeEncoder dispatchThreads:gridSize
+                      threadsPerThreadgroup:threadsPerThreadgroup];
+            [computeEncoder endEncoding];
+            
+            if (layer->needsHSVAdjust) {
+                id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+                [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.adjustHSVFunction];
+                setLabel(computeEncoder, "AdjustHSV");
+                int dataSize = sizeof(data);
+                [computeEncoder setBytes:&data length:dataSize atIndex:0];
+                [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:1];
+                NSInteger maxThreads = MetalComputeUtilities::INSTANCE.adjustHSVFunction.maxTotalThreadsPerThreadgroup;
+                NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);
+                MTLSize gridSize = MTLSizeMake(data.nodeCount, 1, 1);
+                MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
+                [computeEncoder dispatchThreads:gridSize
+                          threadsPerThreadgroup:threadsPerThreadgroup];
+                [computeEncoder endEncoding];
+            }
+            if (layer->use_music_sparkle_count ||
+                layer->sparkle_count > 0 ||
+                layer->outputSparkleCount > 0) {
+                
+                data.sparkleColor = layer->sparklesColour.asChar4();
+                
+                id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+                [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.applySparklesFunction];
+                setLabel(computeEncoder, "ApplySparkles");
+                int dataSize = sizeof(data);
+                [computeEncoder setBytes:&data length:dataSize atIndex:0];
+                [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:1];
+                [computeEncoder setBuffer:sparkleBuffer offset:0 atIndex:2];
+                NSInteger maxThreads = MetalComputeUtilities::INSTANCE.applySparklesFunction.maxTotalThreadsPerThreadgroup;
+                NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);
+                MTLSize gridSize = MTLSizeMake(data.nodeCount, 1, 1);
+                MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
+                [computeEncoder dispatchThreads:gridSize
+                          threadsPerThreadgroup:threadsPerThreadgroup];
+                [computeEncoder endEncoding];
+            }
+            if (layer->contrast != 0 || layer->outputBrightnessAdjust != 100) {
+                
+                id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+                [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.brightnessContrastFunction];
+                setLabel(computeEncoder, "ApplyBrightnessContrast");
+                int dataSize = sizeof(data);
+                [computeEncoder setBytes:&data length:dataSize atIndex:0];
+                [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:1];
+                NSInteger maxThreads = MetalComputeUtilities::INSTANCE.brightnessContrastFunction.maxTotalThreadsPerThreadgroup;
+                NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);
+                MTLSize gridSize = MTLSizeMake(data.nodeCount, 1, 1);
+                MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
+                [computeEncoder dispatchThreads:gridSize
+                          threadsPerThreadgroup:threadsPerThreadgroup];
+                [computeEncoder endEncoding];
+            }
+            data.fadeFactor = layer->fadeFactor;
+            if (first) {
+                first = false;
+                id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+                [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.firstLayerFadeFunction];
+                setLabel(computeEncoder, "ApplyFadeBottomLayer");
+                int dataSize = sizeof(data);
+                [computeEncoder setBytes:&data length:dataSize atIndex:0];
+                [computeEncoder setBuffer:tmpBufferBlend offset:0 atIndex:1];
+                [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:2];
+                NSInteger maxThreads = MetalComputeUtilities::INSTANCE.firstLayerFadeFunction.maxTotalThreadsPerThreadgroup;
+                NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);
+                MTLSize gridSize = MTLSizeMake(data.nodeCount, 1, 1);
+                MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
+                [computeEncoder dispatchThreads:gridSize
+                          threadsPerThreadgroup:threadsPerThreadgroup];
+                [computeEncoder endEncoding];
+            } else {
+                if (!layer->buffer.allowAlpha && layer->fadeFactor != 1.0) {
+                    // need to fade the first here as we're not mixing anything
+                    id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+                    [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.nonAlphaFadeFunction];
+                    setLabel(computeEncoder, "ApplyNonAlphaFade");
+                    int dataSize = sizeof(data);
+                    [computeEncoder setBytes:&data length:dataSize atIndex:0];
+                    [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:1];
+                    NSInteger maxThreads = MetalComputeUtilities::INSTANCE.nonAlphaFadeFunction.maxTotalThreadsPerThreadgroup;
+                    NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);
+                    MTLSize gridSize = MTLSizeMake(data.nodeCount, 1, 1);
+                    MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
+                    [computeEncoder dispatchThreads:gridSize
+                              threadsPerThreadgroup:threadsPerThreadgroup];
+                    [computeEncoder endEncoding];
+                }
+                
+                id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+                auto &f = MetalComputeUtilities::INSTANCE.blendFunctions[layer->mixType];
+                data.mixTypeData = f->mixTypeData;
+
+                [computeEncoder setComputePipelineState:f->function];
+                setLabel(computeEncoder, f->name);
+                int dataSize = sizeof(data);
+                [computeEncoder setBytes:&data length:dataSize atIndex:0];
+                [computeEncoder setBuffer:tmpBufferBlend offset:0 atIndex:1];
+                [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:2];
+                if (f->needIndexes) {
+                    [computeEncoder setBuffer:layerCD->getIndexBuffer() offset:0 atIndex:3];
+                }
+                NSInteger maxThreads = f->function.maxTotalThreadsPerThreadgroup;
+                NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);
+                MTLSize gridSize = MTLSizeMake(data.nodeCount, 1, 1);
+                MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
+                [computeEncoder dispatchThreads:gridSize
+                          threadsPerThreadgroup:threadsPerThreadgroup];
+                [computeEncoder endEncoding];
+            }
+        }
+    }
+    slRMRB->commit();
+    
+    for (int ii = (pixelBuffer->numLayers - 1); ii >= 0; --ii) {
+        if (!validLayers[ii]) {
+            continue;
+        }
+        if (ii != saveLayer) {
+            GPURenderUtils::waitForRenderCompletion(&pixelBuffer->layers[ii]->buffer);
+        }
+    }
+    slRMRB->waitForCompletion();
+    
+    xlColor *colors = (xlColor*)(tmpBufferBlend.contents);
+    int nc = pixelBuffer->layers[saveLayer]->buffer.GetNodeCount();
+    for (int x = 0;  x < nc; x++) {
+        pixelBuffer->layers[saveLayer]->buffer.Nodes[x]->SetColor(colors[x]);
+    }
+    return true;
 }
 
 bool MetalPixelBufferComputeData::doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) {
@@ -32,8 +274,7 @@ bool MetalPixelBufferComputeData::doTransitions(PixelBufferClass *pixelBuffer, i
             li->maskMaxSize = ms;
             bd->maskBuffer= [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:li->maskMaxSize options:MTLResourceStorageModeShared] retain];
             std::string name = li->buffer.GetModelName() + "MaskBuffer-" + std::to_string(layer);
-            NSString* mn = [NSString stringWithUTF8String:name.c_str()];
-            [bd->maskBuffer setLabel:mn];
+            setLabel(bd->maskBuffer, name);
             li->mask = static_cast<uint8_t*>(bd->maskBuffer.contents);
         }
     }
@@ -112,7 +353,7 @@ bool MetalPixelBufferComputeData::doTransitions(PixelBufferClass *pixelBuffer, i
 }
 bool MetalPixelBufferComputeData::doMap(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer) {
     MetalRenderBufferComputeData *bd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(buffer);
-    id<MTLCommandBuffer> commandBuffer = bd->getCommandBuffer();
+    id<MTLCommandBuffer> commandBuffer = bd->getCommandBuffer("-Map");
     if (commandBuffer == nil) {
         return false;
     }
@@ -142,12 +383,15 @@ bool MetalPixelBufferComputeData::doTransition(id<MTLComputePipelineState> &f, T
 }
 bool MetalPixelBufferComputeData::doTransition(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer, id<MTLBuffer> &prev) {
     MetalRenderBufferComputeData *bd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(buffer);
-    id<MTLCommandBuffer> commandBuffer = bd->getCommandBuffer();
+    id<MTLCommandBuffer> commandBuffer = bd->getCommandBuffer("-Transition");
     if (commandBuffer == nil) {
         return false;
     }
     id<MTLBuffer> bufferResult = bd->getPixelBuffer();
     id<MTLBuffer> bufferCopy = bd->getPixelBufferCopy();
+    if (prev == nil) {
+        prev = bufferCopy;
+    }
     id<MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
     [blitCommandEncoder setLabel:@"CopyDataToCopyBuffer"];
     [blitCommandEncoder copyFromBuffer:bufferResult
@@ -182,7 +426,7 @@ static std::mutex commandBufferMutex;
 std::atomic<uint32_t> MetalRenderBufferComputeData::commandBufferCount(0);
 #define MAX_COMMANDBUFFER_COUNT 256
 
-MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, MetalPixelBufferComputeData *pbd) : renderBuffer(rb), pixelBufferData(pbd) {
+MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, MetalPixelBufferComputeData *pbd, int l) : renderBuffer(rb), pixelBufferData(pbd), layer(l) {
     commandBuffer = nil;
     pixelBuffer = nil;
     pixelBufferCopy = nil;
@@ -190,6 +434,9 @@ MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, Met
     maskBuffer = nil;
     pixelBufferSize = 0;
     pixelTextureSize = {0, 0};
+    indexBuffer = nil;
+    indexes = nullptr;
+    indexesSize = 0;
 }
 MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
     pixelBufferData = nullptr;
@@ -210,10 +457,13 @@ MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
         if (maskBuffer != nil) {
             [maskBuffer release];
         }
+        if (indexBuffer != nil)  {
+            [indexBuffer release];
+        }
     }
 }
 
-id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer() {
+id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer(const std::string &postfix) {
     if (commandBuffer != nil && committed) {
         // This should not happen.  If we get here, some work was sent
         // to the GPU, but then nothing asked for the result so the
@@ -234,7 +484,11 @@ id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer() {
         }
         std::unique_lock<std::mutex> lock(commandBufferMutex);
         commandBuffer = [[MetalComputeUtilities::INSTANCE.commandQueue commandBuffer] retain];
-        NSString* mn = [NSString stringWithUTF8String:renderBuffer->GetModelName().c_str()];
+        std::string modelName = renderBuffer->GetModelName() + "-" + std::to_string(layer);
+        if (!postfix.empty()) {
+            modelName += postfix;
+        }
+        NSString* mn = [NSString stringWithUTF8String:modelName.c_str()];
         [commandBuffer setLabel:mn];
     }
     return commandBuffer;
@@ -246,14 +500,16 @@ void MetalRenderBufferComputeData::abortCommandBuffer() {
         --commandBufferCount;
     }
 }
+id<MTLBuffer> MetalRenderBufferComputeData::getIndexBuffer() {
+    return indexBuffer;
+}
 
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBufferCopy() {
     if (pixelBufferCopy == nil) {
         int bufferSize = std::max((int)renderBuffer->GetPixelCount(), (int)pixelBufferSize) * 4;
         id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModePrivate] retain];
         std::string name = renderBuffer->GetModelName() + "PixelBufferCopy";
-        NSString* mn = [NSString stringWithUTF8String:name.c_str()];
-        [newBuffer setLabel:mn];
+        setLabel(newBuffer, name);
         pixelBufferCopy = newBuffer;
     }
     return pixelBufferCopy;
@@ -262,6 +518,47 @@ void MetalRenderBufferComputeData::bufferResized() {
     if (pixelBuffer && pixelBufferSize < renderBuffer->GetPixelCount()) {
         //buffer needs to get bigger
         getPixelBuffer(false);
+    }
+    int indexCount = renderBuffer->Nodes.size();
+    for (auto &n : renderBuffer->Nodes) {
+        if (n->Coords.size() > 1) {
+            indexCount += n->Coords.size() + 1;
+        }
+    }
+    if (indexesSize < indexCount) {
+        if (indexBuffer != nil) {
+            [indexBuffer release];
+        }
+        indexBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:(indexCount * sizeof(int32_t)) options:MTLResourceStorageModeShared] retain];
+        std::string name = renderBuffer->GetModelName() + "IndexBuffer";
+        setLabel(indexBuffer, name);
+        indexes = static_cast<int32_t*>(indexBuffer.contents);
+        indexesSize = indexCount;
+    }
+    int idx = 0;
+    int extraIdx = renderBuffer->Nodes.size();
+    for (auto &n : renderBuffer->Nodes) {
+        if (n->Coords.size() > 1) {
+            indexes[idx] = extraIdx | 0x10000000;
+            int countIdx = extraIdx++;
+            indexes[countIdx] = n->Coords.size();
+            for (auto &c : n->Coords) {
+                if (c.bufY < 0 || c.bufY >= renderBuffer->BufferHt ||
+                    c.bufX < 0 || c.bufX >= renderBuffer->BufferWi ) {
+                    indexes[countIdx] -= 1;
+                } else {
+                    int32_t pidx = c.bufY * renderBuffer->BufferWi + c.bufX;
+                    indexes[extraIdx++] = pidx;
+                }
+            }
+        } else if (n->Coords[0].bufY < 0 || n->Coords[0].bufY >= renderBuffer->BufferHt ||
+                   n->Coords[0].bufX < 0 || n->Coords[0].bufX >= renderBuffer->BufferWi ) {
+            indexes[idx] = -1;
+        } else {
+            int32_t pidx = n->Coords[0].bufY * renderBuffer->BufferWi + n->Coords[0].bufX;
+            indexes[idx] = pidx;
+        }
+        ++idx;
     }
 }
 
@@ -277,8 +574,7 @@ id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
         int bufferSize = renderBuffer->GetPixelCount() * 4;
         id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeShared] retain];
         std::string name = renderBuffer->GetModelName() + "PixelBuffer";
-        NSString* mn = [NSString stringWithUTF8String:name.c_str()];
-        [newBuffer setLabel:mn];
+        setLabel(newBuffer, name);
         memcpy(newBuffer.contents, renderBuffer->pixels, pixelBufferSize == 0 ? bufferSize : pixelBufferSize * 4);
         pixelBufferSize = renderBuffer->pixelVector.size();
         pixelBuffer = newBuffer;
@@ -407,7 +703,7 @@ bool MetalRenderBufferComputeData::blur(int radius) {
         return false;
     }
     @autoreleasepool {
-        id<MTLCommandBuffer> commandBuffer = getCommandBuffer();
+        id<MTLCommandBuffer> commandBuffer = getCommandBuffer("-Blur");
         if (commandBuffer == nil) {
             return false;
         }
@@ -509,7 +805,7 @@ bool MetalRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings &se
 }
 
 bool MetalRenderBufferComputeData::callRotoZoomFunction(id<MTLComputePipelineState> &function, RotoZoomData &data) {
-    id<MTLCommandBuffer> commandBuffer = getCommandBuffer();
+    id<MTLCommandBuffer> commandBuffer = getCommandBuffer("-RotoZoom");
     if (commandBuffer == nil) {
         return false;
     }
@@ -601,6 +897,9 @@ MetalComputeUtilities::MetalComputeUtilities() {
     if (!commandQueue) {
         return;
     }
+#ifdef DEBUG
+    printf("CommandQueue: %p\n", (void*)commandQueue);
+#endif
     [commandQueue setLabel:@"MetalEffectCommandQueue"];
     enabled = true;
     
@@ -608,6 +907,14 @@ MetalComputeUtilities::MetalComputeUtilities() {
     yrotateFunction = FindComputeFunction("RotoZoomRotateY");
     zrotateFunction = FindComputeFunction("RotoZoomRotateZ");
     rotateBlankFunction = FindComputeFunction("RotoZoomBlank");
+    
+    getColorsFunction = FindComputeFunction("GetColorsForNodes");
+    putColorsFunction = FindComputeFunction("PutColorsForNodes");
+    adjustHSVFunction = FindComputeFunction("AdjustHSV");
+    applySparklesFunction = FindComputeFunction("ApplySparkles");
+    brightnessContrastFunction = FindComputeFunction("AdjustBrightnessContrast");
+    firstLayerFadeFunction = FindComputeFunction("FirstLayerFade");
+    nonAlphaFadeFunction = FindComputeFunction("NonAlphaFade");
 
     transitions[""] = new TransitionInfo(0);
     transitions["None"] = new TransitionInfo(0);
@@ -636,6 +943,31 @@ MetalComputeUtilities::MetalComputeUtilities() {
     transitions["Circles"] = new TransitionInfo("circlesTransition", 2, true);
     transitions["Dissolve"] = new TransitionInfo("dissolveTransition", 3, true);
     
+    blendFunctions[MixTypes::Mix_Normal] = new BlendFunctionInfo("NormalBlendFunction");
+    blendFunctions[MixTypes::Mix_Effect1] = new BlendFunctionInfo("Effect1_2_Function");
+    blendFunctions[MixTypes::Mix_Effect2] = new BlendFunctionInfo("Effect1_2_Function", 1);
+    blendFunctions[MixTypes::Mix_Mask1] = new BlendFunctionInfo("Mask1Function");
+    blendFunctions[MixTypes::Mix_Mask2] = new BlendFunctionInfo("Mask2Function");
+    blendFunctions[MixTypes::Mix_Unmask1] = new BlendFunctionInfo("Unmask1Function");
+    blendFunctions[MixTypes::Mix_Unmask2] = new BlendFunctionInfo("Unmask2Function");
+    blendFunctions[MixTypes::Mix_TrueUnmask1] = new BlendFunctionInfo("TrueUnmask1Function");
+    blendFunctions[MixTypes::Mix_TrueUnmask2] = new BlendFunctionInfo("TrueUnmask2Function");
+    blendFunctions[MixTypes::Mix_Shadow_1on2] = new BlendFunctionInfo("Shadow_1on2Function");
+    blendFunctions[MixTypes::Mix_Shadow_2on1] = new BlendFunctionInfo("Shadow_2on1Function");
+    blendFunctions[MixTypes::Mix_Layered] = new BlendFunctionInfo("LayeredFunction");
+    blendFunctions[MixTypes::Mix_Average] = new BlendFunctionInfo("AveragedFunction");
+    blendFunctions[MixTypes::Mix_1_reveals_2] = new BlendFunctionInfo("Reveal12Function");
+    blendFunctions[MixTypes::Mix_2_reveals_1] = new BlendFunctionInfo("Reveal21Function");
+    blendFunctions[MixTypes::Mix_Additive] = new BlendFunctionInfo("AdditiveFunction");
+    blendFunctions[MixTypes::Mix_Subtractive] = new BlendFunctionInfo("SubtractiveFunction");
+    blendFunctions[MixTypes::Mix_Max] = new BlendFunctionInfo("MaxFunction");
+    blendFunctions[MixTypes::Mix_Min] = new BlendFunctionInfo("MinFunction");
+    blendFunctions[MixTypes::Mix_AsBrightness] = new BlendFunctionInfo("AsBrightnessFunction");
+    blendFunctions[MixTypes::Mix_Highlight] = new BlendFunctionInfo("HighlightFunction");
+    blendFunctions[MixTypes::Mix_Highlight_Vibrant] = new BlendFunctionInfo("HighlightVibrantFunction");
+    blendFunctions[MixTypes::Mix_BottomTop] = new BlendFunctionInfo("BottomTopFunction",0, true);
+    blendFunctions[MixTypes::Mix_LeftRight] = new BlendFunctionInfo("LeftRightFunction",0, true);
+    
     int bufferSize = DissolvePatternWidth * DissolvePatternHeight;
     dissolveBuffer = [[device newBufferWithBytes:DissolveTransitonPattern
                                           length:bufferSize
@@ -654,11 +986,25 @@ MetalComputeUtilities::~MetalComputeUtilities() {
         zrotateFunction = nil;
         rotateBlankFunction = nil;
         
+        getColorsFunction = nil;
+        putColorsFunction = nil;
+        adjustHSVFunction = nil;
+        applySparklesFunction = nil;
+        brightnessContrastFunction = nil;
+        firstLayerFadeFunction = nil;
+        nonAlphaFadeFunction = nil;
+        
         for (auto &a : transitions) {
             delete a.second;
             a.second = nullptr;
         }
         transitions.clear();
+        
+        for (auto &a : blendFunctions) {
+            delete a.second;
+            a.second = nullptr;
+        }
+        blendFunctions.clear();
         
         if (dissolveBuffer != nil) {
             [dissolveBuffer release];
@@ -672,6 +1018,13 @@ MetalComputeUtilities::TransitionInfo::TransitionInfo(const char *fn, int t, boo
     function = MetalComputeUtilities::INSTANCE.FindComputeFunction(fn);
 }
 MetalComputeUtilities::TransitionInfo::~TransitionInfo() {
+    function = nil;
+}
+
+MetalComputeUtilities::BlendFunctionInfo::BlendFunctionInfo(const char *fn, int mtd, bool ni) : name(fn), mixTypeData(mtd), needIndexes(ni) {
+    function = MetalComputeUtilities::INSTANCE.FindComputeFunction(fn);
+}
+MetalComputeUtilities::BlendFunctionInfo::~BlendFunctionInfo() {
     function = nil;
 }
 
