@@ -24,5 +24,5 @@ namespace ModelToCAD
 
 	bool ExportCAD(Model* m, std::string filePath, std::string const& type);
 
-	bool ExportCAD(ModelManager* allmodels, std::string filePath, std::string const& type);
+	bool ExportCAD(ModelManager* allmodels, std::string filePath, std::string const& type, std::string const& layout);
 };

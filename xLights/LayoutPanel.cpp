@@ -4537,8 +4537,9 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         {
             menu.Append(ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL, "Export xLights Model");
         }
+#ifdef _DEBUG
         menu.Append(ID_PREVIEW_MODEL_CAD_EXPORT, "Export As DXF/STL/VRML");
-        
+#endif
         menu.AppendSeparator();
         for (const auto& it : xlights->AllModels) {
             if (it.second->GetDisplayAs() == "ModelGroup") {
@@ -5198,9 +5199,9 @@ void LayoutPanel::ExportModelAsCAD()
 
 void LayoutPanel::ExportLayoutDXF()
 {
-    wxString const filename = wxFileSelector(_("Choose output file"), wxEmptyString, "Layout", wxEmptyString, "DXF File (*.dxf)|*.dxf", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxString const filename = wxFileSelector(_("Choose output file"), wxEmptyString, currentLayoutGroup + "_Layout", wxEmptyString, "DXF File (*.dxf)|*.dxf", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename != "") {
-        if (ModelToCAD::ExportCAD(&xlights->AllModels, filename, "dxf")) {
+        if (ModelToCAD::ExportCAD(&xlights->AllModels, filename, "dxf", currentLayoutGroup)) {
             xlights->SetStatusText(wxString::Format("Exported '%s' Successfully", filename));
         } else {
             xlights->SetStatusText(wxString::Format("Export Failed '%s'", filename));
@@ -8932,6 +8933,8 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
 
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutMode3D", is_3d);
+    xlights->SetXmlSetting("LayoutMode3D", is_3d ? "1" : "0");
+    xlights->UnsavedRgbEffectsChanges = true;
     Refresh();
 }
 

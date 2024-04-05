@@ -24,6 +24,14 @@ extern "C"
 class WindowsHardwareVideoReader;
 #endif
 
+enum class WINHARDWARERENDERTYPE : int {
+    DIRECX11_API = 0,
+    FFMPEG_AUTO,
+    FFMPEG_CUDA,
+    FFMPEG_QSV,
+    FFMPEG_VULKAN
+};
+
 class VideoReader
 {
 public:
@@ -43,10 +51,13 @@ public:
     std::string GetFilename() const { return _filename; }
     int GetPixelChannels() const { return _wantAlpha ? 4 : 3; }
     static void SetHardwareAcceleratedVideo(bool accel);
+    static void SetHardwareRenderType(int type);
     static bool IsHardwareAcceleratedVideo() { return HW_ACCELERATION_ENABLED; }
+    static int GetHardwareRenderType() { return static_cast<std::underlying_type_t<WINHARDWARERENDERTYPE>>(HW_ACCELERATION_TYPE); }
     static void InitHWAcceleration();
 private:
     static bool HW_ACCELERATION_ENABLED;
+    static WINHARDWARERENDERTYPE HW_ACCELERATION_TYPE;
     bool readFrame(int timestampMS);
     void reopenContext(bool allowHWDecoder = true);
     

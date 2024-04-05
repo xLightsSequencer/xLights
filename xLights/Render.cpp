@@ -701,6 +701,7 @@ public:
                     info.validLayers[layer] = false;
                 } else if (info.validLayers[layer]) {
                     buffer->HandleLayerBlurZoom(frame, layer);
+                    buffer->HandleLayerTransitions(frame, layer);
                 }
             } else {
                 info.validLayers[layer] = true;

@@ -115,7 +115,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);IGNORE_VENDORS;$(DefineConstants);</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
@@ -167,7 +167,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
@@ -293,6 +293,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="DragValueCurveBitmapButton.cpp" />
     <ClCompile Include="DuplicateDialog.cpp" />
     <ClCompile Include="EditAliasesDialog.cpp" />
+    <ClCompile Include="EditSubmodelAliasesDialog.cpp" />
     <ClCompile Include="effects\AdjustEffect.cpp" />
     <ClCompile Include="effects\AdjustPanel.cpp" />
     <ClCompile Include="effects\assist\SketchAssistPanel.cpp" />
@@ -799,6 +800,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="DragValueCurveBitmapButton.h" />
     <ClInclude Include="DuplicateDialog.h" />
     <ClInclude Include="EditAliasesDialog.h" />
+    <ClInclude Include="EditSubmodelAliasesDialog.h" />
     <ClInclude Include="effects\AdjustEffect.h" />
     <ClInclude Include="effects\AdjustPanel.h" />
     <ClInclude Include="effects\assist\AssistPanel.h" />

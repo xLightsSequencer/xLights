@@ -51,7 +51,7 @@ RemapDMXChannelsDialog::RemapDMXChannelsDialog(wxWindow* parent, wxWindowID id,c
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(0);
 	Grid1 = new wxGrid(ScrolledWindow1, ID_GRID1, wxDefaultPosition, wxSize(609,400), 0, _T("ID_GRID1"));
-	Grid1->CreateGrid(40,4);
+	Grid1->CreateGrid(48,4);
 	Grid1->EnableEditing(true);
 	Grid1->EnableGridLines(true);
 	Grid1->SetDefaultColSize(150, true);
@@ -100,7 +100,7 @@ RemapDMXChannelsDialog::RemapDMXChannelsDialog(wxWindow* parent, wxWindowID id,c
     Grid1->SetColSize(3, 75);
 
     wxArrayString mapTo;
-    for (int i = 0; i < 40; i++)
+    for (int i = 0; i < 48; i++)
     {
         mapTo.push_back(wxString::Format("Channel %d", i + 1));
         Grid1->SetCellValue(i, DMXMappingColumns::From, mapTo[i]);

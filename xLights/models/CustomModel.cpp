@@ -823,7 +823,7 @@ std::string CustomModel::ComputeStringStartNode(int x) const
     int nodes = GetNodeCount();
     float nodesPerString = (float)nodes / (float)strings;
 
-    return wxString::Format("%d", (int)(x * nodesPerString + 1)).ToStdString();
+    return std::to_string((int)(x * nodesPerString + 1));
 }
 
 int CustomModel::GetCustomNodeStringNumber(int node) const
@@ -858,7 +858,7 @@ std::string CustomModel::GetNodeName(size_t x, bool def) const {
         return Nodes[x]->GetName();
     }
     if (def) {
-        return wxString::Format("Node %d", (int)(x + 1)).ToStdString();
+        return std::string("Node ") + std::to_string(x + 1);
     }
     return "";
 }

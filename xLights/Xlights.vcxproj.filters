@@ -1084,6 +1084,7 @@
       <Filter>Models\DMX</Filter>
     </ClCompile>
     <ClCompile Include="SpecialOptions.cpp" />
+    <ClCompile Include="EditSubmodelAliasesDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2141,7 +2142,6 @@
     </ClInclude>
     <ClInclude Include="TempFileManager.h" />
     <ClInclude Include="xlColourData.h" />
-<<<<<<< HEAD
     <ClInclude Include="effects\MovingHeadEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
@@ -2184,8 +2184,7 @@
     <ClInclude Include="models\DMX\DmxMovingHeadAdv.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-=======
->>>>>>> origin/master
+    <ClInclude Include="EditSubmodelAliasesDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

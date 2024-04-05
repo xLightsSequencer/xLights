@@ -958,9 +958,13 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
 
     if (cache->nodeNameCache.empty()) {
         for (size_t x = 0; x < model_info->GetNodeCount(); x++) {
-            cache->nodeNameCache[model_info->GetNodeName(x, true)] = x;
-            if (model_info->GetNodeName(x, true) != wxString::Format("Node %d", (int)x + 1)) {
-                cache->nodeNameCache[wxString::Format("Node %d", (int)x + 1)] = x;
+            std::string nn = model_info->GetNodeName(x, false);
+            std::string defNN = "Node " + std::to_string(x + 1);
+            if (!nn.empty()) {
+                cache->nodeNameCache[nn] = x;
+            }
+            if (nn != defNN) {
+                cache->nodeNameCache[defNN] = x;
             }
         }
     }

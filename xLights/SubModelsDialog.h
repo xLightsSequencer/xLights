@@ -225,6 +225,7 @@ protected:
     static const long SUBMODEL_DIALOG_EXPORT_XMODEL;
     static const long SUBMODEL_DIALOG_EXPORT_TOOTHERS;
     static const long SUBMODEL_DIALOG_GENERATE;
+    static const long SUBMODEL_DIALOG_ALIASES;
     static const long SUBMODEL_DIALOG_SHIFT;
     static const long SUBMODEL_DIALOG_FLIP_HOR;
     static const long SUBMODEL_DIALOG_FLIP_VER;
@@ -275,6 +276,7 @@ protected:
     void UnSelectAll();
 
     void Generate();
+    void Aliases();
     void Shift();
     void FlipHorizontal();
     void FlipVertical();

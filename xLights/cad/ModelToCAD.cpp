@@ -48,7 +48,7 @@ namespace ModelToCAD
 	}
 
 	//TODO: Make full layout export work with STL and VRML files
-	bool ExportCAD(ModelManager* allmodels, std::string filePath, std::string const& type)
+	bool ExportCAD(ModelManager* allmodels, std::string filePath, std::string const& type, std::string const& layout)
 	{
 		auto cadFile = Create(std::move(filePath), type);
 		if (!cadFile || !cadFile->Open()) {
@@ -58,7 +58,7 @@ namespace ModelToCAD
 		for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
 			Model* mm = m->second;
 
-			if (mm->GetLayoutGroup() != "Default") {
+			if (mm->GetLayoutGroup() != layout) {
 				continue;
 			}
 

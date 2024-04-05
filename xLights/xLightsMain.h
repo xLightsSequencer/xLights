@@ -1074,6 +1074,7 @@ public:
     bool _promptBatchRenderIssues = true;
     bool _disablePromptBatchRenderIssues = false;
     bool _hwVideoAccleration = false;
+    int _hwVideoRenderer = 1;
     bool _showACLights = false;
     bool _showACRamps = false;
     wxString _enableRenderCache;
@@ -1184,6 +1185,9 @@ public:
 
     bool HardwareVideoAccelerated() const { return _hwVideoAccleration; }
     void SetHardwareVideoAccelerated(bool b);
+
+    int HardwareVideoRenderer() const { return _hwVideoRenderer; }
+    void SetHardwareVideoRenderer(int type);
 
     bool ShadersOnBackgroundThreads() const;
     void SetShadersOnBackgroundThreads(bool b);

@@ -3,6 +3,7 @@
 #include <Metal/Metal.h>
 #include <MetalKit/MetalKit.h>
 
+
 #include "GPURenderUtils.h"
 #include "MetalEffectDataTypes.h"
 
@@ -14,6 +15,14 @@ public:
     MetalPixelBufferComputeData();
     ~MetalPixelBufferComputeData();
 
+    bool doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB);
+    
+    id<MTLBuffer> maskBuffer;
+    
+    
+    bool doTransition(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer, RenderBuffer *prevRB);
+    bool doMap(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer);
+    bool doTransition(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer, id<MTLBuffer> &prev);
 };
 
 class MetalRenderBufferComputeData {
@@ -39,6 +48,7 @@ public:
     id<MTLBuffer> getPixelBuffer(bool sendToGPU = true);
     id<MTLTexture> getPixelTexture();
     id<MTLBuffer> getPixelBufferCopy();
+    
 
     void commit();
     void waitForCompletion();
@@ -47,6 +57,7 @@ public:
     bool blur(int radius);
     bool rotoZoom(GPURenderUtils::RotoZoomSettings &settings);
 
+    id<MTLBuffer> maskBuffer;
 private:
     bool callRotoZoomFunction(id<MTLComputePipelineState> &f, RotoZoomData &data);
     
@@ -93,6 +104,19 @@ public:
     id<MTLComputePipelineState> yrotateFunction;
     id<MTLComputePipelineState> zrotateFunction;
     id<MTLComputePipelineState> rotateBlankFunction;
+    
+    
+    class TransitionInfo {
+    public:
+        TransitionInfo(int t);
+        TransitionInfo(const char *fn, int t, bool r = false);
+        ~TransitionInfo();
+        id<MTLComputePipelineState> function;
+        int type;
+        bool reversed;
+    };
+    std::map<std::string, TransitionInfo*> transitions;
+    id<MTLBuffer> dissolveBuffer;
     
     static MetalComputeUtilities INSTANCE;
 };
