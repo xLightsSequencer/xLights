@@ -69,7 +69,6 @@ void ImageModel::InitRenderBufferNodes(const std::string &type, const std::strin
     // set it to zero zero
     node->Coords[0].bufX = 0;
     node->Coords[0].bufY = 0;
-    node->Coords[0].bufZ = 0;
     float x = 0.0;
     float y = 0.0;
     float z = 0.0;

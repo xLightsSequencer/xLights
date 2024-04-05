@@ -105,7 +105,6 @@ void PolyLineModel::InitRenderBufferNodes(const std::string& type, const std::st
                 for (size_t c = 0; c < CoordCount; c++) {
                     newNodes[idx]->Coords[c].bufX = location;
                     newNodes[idx]->Coords[c].bufY = m;
-                    newNodes[idx]->Coords[c].bufZ = 0;
                 }
                 idx++;
                 seg_idx++;
