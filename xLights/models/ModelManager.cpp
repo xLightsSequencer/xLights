@@ -1363,6 +1363,9 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
         return grp;
     }
     std::string type = node->GetAttribute("DisplayAs").ToStdString();
+    if (type.empty()) {
+        if (Lower(node->GetName().ToStdString()) == "custommodel") type = "Custom";
+    }
 
     // Upgrade older DMX models
     if (type == "DMX") {
