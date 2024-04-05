@@ -10,23 +10,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/string.h>
-#include <glm/glm.hpp>
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
-class BaseObject;
-class wxXmlNode;
+class DmxMovingHeadAdv;
 
-class SerializedObject
+struct BaseObjectVisitor
 {
-    public:
-        SerializedObject(wxString _name);
-        virtual ~SerializedObject() = default;
-
-        void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
-        void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
+    virtual void Visit(const DmxMovingHeadAdv &moving_head) = 0;
     
-    private:
-        wxString base_name;
+    virtual ~BaseObjectVisitor() {}
 };
-

@@ -376,6 +376,8 @@ void DmxModel::ImportBaseParameters(wxXmlNode* root)
     SetProperty("NodeNames", nn);
     SetProperty("DisplayAs", da);
 
+    _startSide = ss;
+
     if (nullptr != preset_ability) {
         preset_ability->ImportParameters(root, this);
     }

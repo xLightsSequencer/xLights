@@ -131,6 +131,7 @@ public:
     virtual int GetNumPhysicalStrings() const;
     ControllerCaps* GetControllerCaps() const;
     Controller* GetController() const;
+    std::string GetStartSide() const { return _startSide; }
 
     virtual bool SupportsChangingStringCount() const { return false; };
     virtual bool ChangeStringCount(long count,  std::string& message) { return false; };
@@ -282,6 +283,8 @@ protected:
     int blackTransparency = 0;
     wxColour modelTagColour = *wxBLACK;
     uint8_t _lowDefFactor = 100;
+
+    std::string _startSide = "B";
 
     int StrobeRate = 0; // 0 = no strobing
     bool zeroBased =  false;

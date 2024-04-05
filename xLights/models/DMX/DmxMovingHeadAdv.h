@@ -18,7 +18,6 @@
 #include <memory>
 
 class Mesh;
-//class DmxMotor;
 class MhFeature;
 
 class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility
@@ -46,6 +45,9 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility
         void UpdateNodeNames() { update_node_names = true; }
         void UpdateBits() { update_bits = true; }
 
+        virtual bool SupportsVisitors() override {return true;}
+        void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
+
     protected:
         virtual void InitModel() override;
         void Clear();
@@ -54,7 +56,6 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility
 
         void Draw3DBeam(xlVertexColorAccumulator *vac, xlColor beam_color, float beam_length_displayed, float pan_angle_raw, float tilt_angle, bool shutter_open, float beam_offset);
 
-        virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
         virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;

@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "DmxModel.h"
+#include "../ModelManager.h"
 
 class DmxMotorBase;
 

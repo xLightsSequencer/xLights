@@ -972,48 +972,6 @@ void DmxMovingHeadAdv::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_c
     }
 }
 
-void DmxMovingHeadAdv::ExportXlightsModel()
-{
-    wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty())
-        return;
-    wxFile f(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<DmxMovingHeadAdv \n");
-
-    ExportBaseParameters(f);
-
-    wxString bits = ModelXml->GetAttribute("Bits16");
-    f.Write(wxString::Format("Bits16=\"%s\" ", bits));
-
-    f.Write(" >\n");
-
-    wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
-
-    base_mesh->Serialise(ModelXml, f, show_dir);
-    yoke_mesh->Serialise(ModelXml, f, show_dir);
-    head_mesh->Serialise(ModelXml, f, show_dir);
-
-    wxString submodel = SerialiseSubmodel();
-    if (submodel != "") {
-        f.Write(submodel);
-    }
-    wxString state = SerialiseState();
-    if (state != "") {
-        f.Write(state);
-    }
-    wxString groups = SerialiseGroups();
-    if (groups != "") {
-        f.Write(groups);
-    }
-    f.Write("</DmxMovingHeadAdv>");
-    f.Close();
-}
-
 void DmxMovingHeadAdv::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "DmxMovingHeadAdv") {

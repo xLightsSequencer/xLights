@@ -3023,6 +3023,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     IsLtoR = tempstr != "R";
     if (ModelNode->HasAttribute("StartSide")) {
         tempstr = ModelNode->GetAttribute("StartSide");
+        _startSide = tempstr;
         isBotToTop = (tempstr == "B");
     } else {
         isBotToTop = true;
