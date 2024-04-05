@@ -16,7 +16,7 @@ float2 lerp(float2 a, float2 b, float progress) {
     return float2(x, y);
 }
 
-uchar4 tex2D(device uchar4* src, float s, float t, uint32_t w, uint32_t h) {
+uchar4 tex2D(const device uchar4* src, float s, float t, uint32_t w, uint32_t h) {
     s = clamp(0.0, s, 1.0);
     t = clamp(0.0, t, 1.0);
     int x = int(round((s * (w - 1))));
@@ -24,7 +24,7 @@ uchar4 tex2D(device uchar4* src, float s, float t, uint32_t w, uint32_t h) {
     int idx = y * w + x;
     return src[idx];
 }
-uchar4 tex2D(device uchar4* src, float2 st, uint32_t w, uint32_t h) {
+uchar4 tex2D(const device uchar4* src, float2 st, uint32_t w, uint32_t h) {
     return tex2D(src, st.x, st.y, w, h);
 }
 float rand(int x, int y, int z) {
@@ -460,8 +460,8 @@ float2 ShatterTransitionCode_voronoi(float2 x) {
 }
 kernel void shatterTransition(constant TransitionData &data,
                               device uchar4* result,
-                              device uchar4* src,
-                              device uchar4* prevSrc,
+                              const device uchar4* src,
+                              const device uchar4* prevSrc,
                               uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -506,8 +506,8 @@ kernel void shatterTransition(constant TransitionData &data,
 
 kernel void starTransition(constant TransitionData &data,
                            device uchar4* result,
-                           device uchar4* src,
-                           device uchar4* prevSrc,
+                           const device uchar4* src,
+                           const device uchar4* prevSrc,
                            uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -547,9 +547,9 @@ kernel void starTransition(constant TransitionData &data,
 
 kernel void pinwheelTransition(constant TransitionData &data,
                            device uchar4* result,
-                           device uchar4* src,
-                           device uchar4* prevSrc,
-                               uint2 index [[thread_position_in_grid]]) {
+                           const device uchar4* src,
+                           const device uchar4* prevSrc,
+                           uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
     uint sidx = index.y * data.width + index.x;
@@ -589,7 +589,7 @@ bool pointInTriangle(float2 pt, float2 p1, float2 p2, float2 p3) {
     return b1 == b2 && b2 == b3;
 }
 constant float bowTieHeight = 0.5;
-uchar4 bowTie_firstHalf(device uchar4*  cb, device uchar4* rb1, float2 uv, float progress, float adjust, constant TransitionData &data) {
+uchar4 bowTie_firstHalf(const device uchar4*  cb, const device uchar4* rb1, float2 uv, float progress, float adjust, constant TransitionData &data) {
     if (uv.y < 0.5) {
         float2 botLeft(0., progress - bowTieHeight);
         float2 botRight(1., progress - bowTieHeight);
@@ -610,7 +610,7 @@ uchar4 bowTie_firstHalf(device uchar4*  cb, device uchar4* rb1, float2 uv, float
     }
     return {0, 0, 0, 255};
 }
-uchar4 bowTie_secondHalf(device uchar4*  cb, device uchar4* rb1, float2 uv, float progress, float adjust, constant TransitionData &data) {
+uchar4 bowTie_secondHalf(const device uchar4*  cb, const device uchar4* rb1, float2 uv, float progress, float adjust, constant TransitionData &data) {
     if (uv.x > adjust) {
         float2 top(progress + bowTieHeight, 1.);
         float2 bot(progress + bowTieHeight, 0.);
@@ -639,8 +639,8 @@ uchar4 bowTie_secondHalf(device uchar4*  cb, device uchar4* rb1, float2 uv, floa
 
 kernel void bowTieTransition(constant TransitionData &data,
                            device uchar4* result,
-                           device uchar4* src,
-                           device uchar4* prevSrc,
+                           const device uchar4* src,
+                           const device uchar4* prevSrc,
                            uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -698,8 +698,8 @@ float blobsNoise(float2 st) {
 
 kernel void blobsTransition(constant TransitionData &data,
                            device uchar4* result,
-                           device uchar4* src,
-                           device uchar4* prevSrc,
+                           const device uchar4* src,
+                           const device uchar4* prevSrc,
                            uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -727,8 +727,8 @@ kernel void blobsTransition(constant TransitionData &data,
 constant float CAMERA_DIST = 2.0;
 kernel void foldTransition(constant TransitionData &data,
                            device uchar4* result,
-                           device uchar4* src,
-                           device uchar4* prevSrc,
+                           const device uchar4* src,
+                           const device uchar4* prevSrc,
                            uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -793,8 +793,8 @@ kernel void foldTransition(constant TransitionData &data,
 
 kernel void zoomTransition(constant TransitionData &data,
                            device uchar4* result,
-                           device uchar4* src,
-                           device uchar4* prevSrc,
+                           const device uchar4* src,
+                           const device uchar4* prevSrc,
                            uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -809,8 +809,8 @@ kernel void zoomTransition(constant TransitionData &data,
 
 kernel void circularSwirlTransition(constant TransitionData &data,
                            device uchar4* result,
-                           device uchar4* src,
-                           device uchar4* prevSrc,
+                           const device uchar4* src,
+                           const device uchar4* prevSrc,
                            uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -848,7 +848,7 @@ bool dwInBounds(float2 p) {
 float2 project(float2 p) {
     return p * float2(1.0, -1.2) + float2(0.0, -0.02);
 }
-uchar4 bgColor(float2 p, float2 pto, device uchar4* src, constant TransitionData &data) {
+uchar4 bgColor(float2 p, float2 pto, const device uchar4* src, constant TransitionData &data) {
     uchar4 c = {0, 0, 0, 255};
     pto = project(pto);
     if (dwInBounds(pto)) {
@@ -859,9 +859,9 @@ uchar4 bgColor(float2 p, float2 pto, device uchar4* src, constant TransitionData
 }
 
 kernel void doorwayTransition(constant TransitionData &data,
-                           device uchar4* result,
-                           device uchar4* src,
-                           device uchar4* prevSrc,
+                              device uchar4* result,
+                              const device uchar4* src,
+                              const device uchar4* prevSrc,
                               uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -909,8 +909,9 @@ namespace SwapTransitionCode {
     float2 project_for_swap(float2 p) {
         return p * float2(1.0, -1.2) + float2(0.0, -0.02);
     }
-    uchar4 bgColor(float2 p, float2 pfr, float2 pto, device uchar4* src,
-                    device uchar4* prevSrc, constant TransitionData &data) {
+    uchar4 bgColor(float2 p, float2 pfr, float2 pto, 
+                   const device uchar4* src,
+                   const device uchar4* prevSrc, constant TransitionData &data) {
         uchar4 c = {0, 0, 0, 255};
 
         float2 projectedPFR(project_for_swap(pfr));
@@ -926,8 +927,8 @@ namespace SwapTransitionCode {
     }
     
     uchar4 swapTransition(constant TransitionData &data,
-                          device uchar4* src,
-                          device uchar4* prevSrc,
+                          const device uchar4* src,
+                          const device uchar4* prevSrc,
                           float t, float s) {
         const float depth = 3.0f;
         const float perspective = 0.4f;
@@ -958,8 +959,8 @@ namespace SwapTransitionCode {
 
 kernel void swapTransition(constant TransitionData &data,
                            device uchar4* result,
-                           device uchar4* src,
-                           device uchar4* prevSrc,
+                           const device uchar4* src,
+                           const device uchar4* prevSrc,
                            uint2 index [[thread_position_in_grid]]) {
 
     if (index.x >= data.width) return;
@@ -974,8 +975,8 @@ kernel void swapTransition(constant TransitionData &data,
 
 kernel void circlesTransition(constant TransitionData &data,
                               device uchar4* result,
-                              device uchar4* src,
-                              device uchar4* prevSrc,
+                              const device uchar4* src,
+                              const device uchar4* prevSrc,
                               uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -1010,7 +1011,7 @@ kernel void circlesTransition(constant TransitionData &data,
 
 constant uint DissolvePatternWidth = 512;
 constant uint DissolvePatternHeight = 512;
-uchar4 dissolveTexTransition(float s, float t, device uchar* data) {
+uchar4 dissolveTexTransition(float s, float t, const device uchar* data) {
     //const unsigned char* data = DissolveTransitonPattern;
     s = clamp(0., s, 1.);
     t = clamp(0., t, 1.);
@@ -1024,8 +1025,8 @@ uchar4 dissolveTexTransition(float s, float t, device uchar* data) {
 
 kernel void dissolveTransition(constant TransitionData &data,
                            device uchar4* result,
-                           device uchar4* src,
-                           device uchar* disolvePattern,
+                           const device uchar4* src,
+                           const device uchar* disolvePattern,
                            uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
