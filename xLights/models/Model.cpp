@@ -3020,6 +3020,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     std::string dependsonmodel;
     int32_t StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel", "1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
     tempstr = ModelNode->GetAttribute("Dir");
+    _dir = tempstr;
     IsLtoR = tempstr != "R";
     if (ModelNode->HasAttribute("StartSide")) {
         tempstr = ModelNode->GetAttribute("StartSide");

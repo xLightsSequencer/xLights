@@ -20,15 +20,25 @@ namespace XmlNodeKeys
 {
     constexpr auto ModelsNodeName = "models";
 
-    constexpr auto DisplayAsAttribute = "DisplayAs";
-    constexpr auto StartSideAttribute = "StartSide";
-    constexpr auto DirAttribute       = "Dir";
+    // Common BaseObject Attributes
+    constexpr auto NameAttribute        = "name";
+    constexpr auto DisplayAsAttribute   = "DisplayAs";
+    constexpr auto LayoutGroupAttribute = "LayoutGroup";
+
+    // Common Model Attributes
+    constexpr auto StartSideAttribute     = "StartSide";
+    constexpr auto DirAttribute           = "Dir";
+    constexpr auto Parm1Attribute         = "parm1";
+    constexpr auto Parm2Attribute         = "parm2";
+    constexpr auto Parm3Attribute         = "parm3";
+    constexpr auto AntialiasAttribute     = "Antialias";
+    constexpr auto PixelSizeAttribute     = "PixelSize";
+    constexpr auto StringTypeAttribute    = "StringType";
+    constexpr auto TransparencyAttribute  = "Transparency";
+    constexpr auto StartChannelAttribute  = "StartChannel";
+    constexpr auto versionNumberAttribute = "versionNumber";
 
     constexpr auto DmxMovingHeadAdvNodeName = "DmxMovingHeadAdv";
-
-    //constexpr auto DocumentNodeName = "PaintDocument";
-    //constexpr auto VersionAttribute = "version";
-    //constexpr auto VersionValue = "1.2";
 };
 
 struct XmlSerializingVisitor : BaseObjectVisitor
@@ -39,16 +49,32 @@ struct XmlSerializingVisitor : BaseObjectVisitor
 
     wxXmlNode *parentNode;
 
-    void AddCommonModelAttributes(const Model &model, wxXmlNode *node)
+    void AddBaseObjectAttributes(const BaseObject &base, wxXmlNode *node)
     {
-        node->AddAttribute(XmlNodeKeys::DisplayAsAttribute, XmlNodeKeys::DmxMovingHeadAdvNodeName);
-        node->AddAttribute(XmlNodeKeys::StartSideAttribute, model.GetStartSide());
-        node->AddAttribute(XmlNodeKeys::DirAttribute, model.GetStartSide());
+        node->AddAttribute(XmlNodeKeys::NameAttribute, base.GetName());
+        node->AddAttribute(XmlNodeKeys::DisplayAsAttribute, base.GetDisplayAs());
+        node->AddAttribute(XmlNodeKeys::LayoutGroupAttribute, base.GetLayoutGroup());
     }
 
-     void Visit(const DmxMovingHeadAdv &moving_head) override
+    void AddCommonModelAttributes(const Model &model, wxXmlNode *node)
+    {
+        node->AddAttribute(XmlNodeKeys::StartSideAttribute, model.GetStartSide());
+        node->AddAttribute(XmlNodeKeys::DirAttribute, model.GetDirection());
+        node->AddAttribute(XmlNodeKeys::Parm1Attribute, std::to_string(model.GetParm1()));
+        node->AddAttribute(XmlNodeKeys::Parm2Attribute, std::to_string(model.GetParm2()));
+        node->AddAttribute(XmlNodeKeys::Parm3Attribute, std::to_string(model.GetParm3()));
+        node->AddAttribute(XmlNodeKeys::AntialiasAttribute, std::to_string((long)model.GetPixelStyle()));
+        node->AddAttribute(XmlNodeKeys::PixelSizeAttribute, std::to_string(model.GetPixelSize()));
+        node->AddAttribute(XmlNodeKeys::StringTypeAttribute, model.GetStringType());
+        node->AddAttribute(XmlNodeKeys::TransparencyAttribute, std::to_string(model.GetTransparency()));
+        node->AddAttribute(XmlNodeKeys::StartChannelAttribute, model.GetModelStartChannel());
+        node->AddAttribute(XmlNodeKeys::versionNumberAttribute, CUR_MODEL_POS_VER);
+    }
+
+    void Visit(const DmxMovingHeadAdv &moving_head) override
     {
         wxXmlNode *mhNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::DmxMovingHeadAdvNodeName);
+        AddBaseObjectAttributes(moving_head, mhNode);
         AddCommonModelAttributes(moving_head, mhNode);
         parentNode->AddChild(mhNode);
     }

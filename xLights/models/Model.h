@@ -131,7 +131,14 @@ public:
     virtual int GetNumPhysicalStrings() const;
     ControllerCaps* GetControllerCaps() const;
     Controller* GetController() const;
+
+    std::string GetModelStartChannel() const { return ModelStartChannel; }
     std::string GetStartSide() const { return _startSide; }
+    std::string GetDirection() const { return _dir; }
+    long GetParm1() const { return parm1; }
+    long GetParm2() const { return parm2; }
+    long GetParm3() const { return parm3; }
+    int GetTransparency() const { return transparency; }
 
     virtual bool SupportsChangingStringCount() const { return false; };
     virtual bool ChangeStringCount(long count,  std::string& message) { return false; };
@@ -283,8 +290,8 @@ protected:
     int blackTransparency = 0;
     wxColour modelTagColour = *wxBLACK;
     uint8_t _lowDefFactor = 100;
-
     std::string _startSide = "B";
+    std::string _dir = "L";
 
     int StrobeRate = 0; // 0 = no strobing
     bool zeroBased =  false;
