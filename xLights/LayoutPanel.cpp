@@ -4954,7 +4954,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             return;
         if (md->SupportsVisitors()) {
             XmlSerializer serializer;
-            serializer.SerializeModel(*md);
+            serializer.SerializeAndSaveModel(*md);
         } else {
             md->ExportXlightsModel();
         }
@@ -7449,7 +7449,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             return;
         if (md->SupportsVisitors()) {
             XmlSerializer serializer;
-            serializer.SerializeModel(*md);
+            serializer.SerializeAndSaveModel(*md);
         } else {
             md->ExportXlightsModel();
         }
