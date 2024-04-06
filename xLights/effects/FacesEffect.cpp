@@ -1148,9 +1148,11 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     std::vector<xlColor> colors;
     if (p != "(off)") {
         todo.push_back("Mouth-" + p);
+        todo.push_back("Mouth-" + p + "2");
         colorOffset = 1;
         if (customColor) {
             std::string cname = model_info->faceInfo[definition]["Mouth-" + p + "-Color"];
+            std::string cname2 = model_info->faceInfo[definition]["Mouth-" + p + "2-Color"];
             if (cname == "") {
                 colors.push_back(xlWHITE);
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
@@ -1158,7 +1160,16 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 colors.push_back(xlColor(cname));
                 colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             }
+            if (cname2 == "") {
+                colors.push_back(xlWHITE);
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
+            } else {
+                colors.push_back(xlColor(cname2));
+                colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
+            }
         } else {
+            colors.push_back(color);
+            colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
             colors.push_back(color);
             colors.back().alpha = ((int)alpha * colors.back().alpha) / 255;
         }
@@ -1400,11 +1411,11 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             }
         }
 
-        if (todo[t] == "FaceOutline" && outlineState != "") {
+        if (todo[t] == "FaceOutline" && !outlineState.empty()) {
             auto sts = model_info->stateInfo[outlineState];
             if (sts["CustomColors"] == "1") {
                 if (sts["Type"] == "NodeRange") {
-                    for (size_t i = 1; i <= 40; i++) {
+                    for (size_t i = 1; i <= 200; i++) {
                         auto r = sts[wxString::Format("s%d", (int)i)];
                         auto c = sts[wxString::Format("s%d-Color", (int)i)];
                         if (r != "") {
