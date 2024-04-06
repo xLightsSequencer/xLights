@@ -779,13 +779,13 @@ std::list<std::string> Model::GetAliases() const
 {
     std::list<std::string> aliases;
 
-    for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
-        if (x->GetName() == "Aliases") {
-            for (auto xx = x->GetChildren(); xx != nullptr; xx = xx->GetNext()) {
-                aliases.push_back(xx->GetAttribute("name"));
+        for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
+            if (x->GetName() == "Aliases") {
+                for (auto xx = x->GetChildren(); xx != nullptr; xx = xx->GetNext()) {
+                    aliases.push_back(xx->GetAttribute("name"));
+                }
             }
         }
-    }
 
     return aliases;
 }
