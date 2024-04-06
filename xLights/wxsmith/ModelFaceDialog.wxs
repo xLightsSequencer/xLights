@@ -195,7 +195,7 @@
 														<object class="sizeritem">
 															<object class="wxGrid" name="ID_GRID3" variable="NodeRangeGrid" member="yes">
 																<cols>2</cols>
-																<rows>18</rows>
+																<rows>28</rows>
 																<labelrowheight>20</labelrowheight>
 																<labelcolwidth>150</labelcolwidth>
 																<defaultcolsize>200</defaultcolsize>
@@ -222,6 +222,16 @@
 																	<item>Eyes - Closed</item>
 																	<item>Eyes - Closed 2</item>
 																	<item>Eyes - Closed 3</item>
+																	<item>Mouth - AI 2</item>
+																	<item>Mouth - E 2</item>
+																	<item>Mouth - etc 2</item>
+																	<item>Mouth - FV 2</item>
+																	<item>Mouth - L 2</item>
+																	<item>Mouth - MBP 2</item>
+																	<item>Mouth - O 2</item>
+																	<item>Mouth - rest 2</item>
+																	<item>Mouth - U 2</item>
+																	<item>Mouth - WQ 2</item>
 																</rowlabels>
 																<minsize>-1,200d</minsize>
 																<handler function="OnNodeRangeGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />

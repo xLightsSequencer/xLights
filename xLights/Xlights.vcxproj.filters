@@ -2142,48 +2142,6 @@
     </ClInclude>
     <ClInclude Include="TempFileManager.h" />
     <ClInclude Include="xlColourData.h" />
-    <ClInclude Include="effects\MovingHeadEffect.h">
-      <Filter>Effects</Filter>
-    </ClInclude>
-    <ClInclude Include="effects\MovingHeadPanel.h">
-      <Filter>Effects</Filter>
-    </ClInclude>
-    <ClInclude Include="effects\MovingHeadPanels\MovingHeadCanvasPanel.h">
-      <Filter>Effects</Filter>
-    </ClInclude>
-    <ClInclude Include="models\DMX\MovingHeads\MhChannel.h">
-      <Filter>Models\DMX</Filter>
-    </ClInclude>
-    <ClInclude Include="models\DMX\MovingHeads\MhChannelDialog.h">
-      <Filter>Models\DMX</Filter>
-    </ClInclude>
-    <ClInclude Include="models\DMX\MovingHeads\MhFeature.h">
-      <Filter>Models\DMX</Filter>
-    </ClInclude>
-    <ClInclude Include="models\DMX\MovingHeads\MhFeatureDialog.h">
-      <Filter>Models\DMX</Filter>
-    </ClInclude>
-    <ClInclude Include="effects\MovingHeadPanels\MHColorPanel.h">
-      <Filter>Effects\MovingHeadPanels</Filter>
-    </ClInclude>
-    <ClInclude Include="effects\MovingHeadPanels\MHRgbPickerPanel.h">
-      <Filter>Effects\MovingHeadPanels</Filter>
-    </ClInclude>
-    <ClInclude Include="effects\MovingHeadPanels\MHPresetBitmapButton.h">
-      <Filter>Effects\MovingHeadPanels</Filter>
-    </ClInclude>
-    <ClInclude Include="effects\MovingHeadPanels\MHPathPresetBitmapButton.h">
-      <Filter>Effects\MovingHeadPanels</Filter>
-    </ClInclude>
-    <ClInclude Include="effects\MovingHeadPanels\MHColorWheelPanel.h">
-      <Filter>Effects\MovingHeadPanels</Filter>
-    </ClInclude>
-    <ClInclude Include="models\DMX\DmxMotor.h">
-      <Filter>Models\DMX</Filter>
-    </ClInclude>
-    <ClInclude Include="models\DMX\DmxMovingHeadAdv.h">
-      <Filter>Models\DMX</Filter>
-    </ClInclude>
     <ClInclude Include="EditSubmodelAliasesDialog.h" />
   </ItemGroup>
   <ItemGroup>

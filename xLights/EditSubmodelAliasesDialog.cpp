@@ -70,9 +70,15 @@ EditSubmodelAliasesDialog::EditSubmodelAliasesDialog(wxWindow* parent, Model* m,
     //*)
 
     _sm = _m->GetSubModel(submodelname);
+    if (_sm != nullptr) {
+        for (const auto& it : _sm->GetAliases()) {
+            ListBoxAliases->Append(it);
+        }
+    }
+    else
+    {
 
-    for (const auto& it : _sm->GetAliases()) {
-        ListBoxAliases->Append(it);
+        EndDialog(wxCANCEL);
     }
 
     SetSizerAndFit(FlexGridSizer1);
@@ -130,7 +136,7 @@ void EditSubmodelAliasesDialog::OnButtonOkClick(wxCommandEvent& event)
     for (int i = 0; i < ListBoxAliases->GetCount(); ++i) {
         aliases.push_back(ListBoxAliases->GetString(i));
     }
-    _sm->SetAliases(aliases);
+    if (_sm != nullptr) _sm->SetAliases(aliases);
     EndDialog(wxID_OK);
 }
 

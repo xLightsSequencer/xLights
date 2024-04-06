@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.08 Apr 6, 2024
+   - enh (scott)        Ability to set type of Video Hardware Decoder on Windows
+   - enh (dkulp)        Optimize faces effect initialization on large models
+   - enh (scott)        Support two mouth colors if using Force Custom Colors
+   - bug (dkulp)        Fix crash with sparkles
+   - bug (dkulp)        Fix some crashes when deleting layers while rendering
+   - bug (dkulp)        Fix issues with model blending not working
+   - bug (derwin12)     Fix handling of custom models from base folders
+   - bug (keith)        Fix crash when adding aliases to newly created submodels
+   - bug (dkulp)        Fix saving zstd fseq files with massive channel counts
 2024.07 Apr 2, 2024
    - enh (joero4)       Update ColorCurve dialog to make it easier to adjust near edges
    - enh (dkulp)        MacOS - Add Shockwave to GPU rendered effects

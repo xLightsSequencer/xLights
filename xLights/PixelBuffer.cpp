@@ -909,6 +909,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
     for (int x = 0; x < numLayers; x++) {
         layers[x] = new LayerInfo(frame);
         layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
+        layers[x]->buffer.cur_model = model->GetFullName();
         if (x == (numLayers - 1)) {
             // for the model "blend" layer, use the "Single Line" style so none of the nodes will overlap with others
             // in the renderbuff which can occur if the group defaults to per-preview or similar
@@ -949,7 +950,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
         layers[x]->BufferOffsetY = 0;
         layers[x]->stagger = 0;
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->bufferTransform, isNode);
-        GPURenderUtils::setupRenderBuffer(this, &layers[x]->buffer);
+        GPURenderUtils::setupRenderBuffer(this, &layers[x]->buffer, x);
     }
 }
 
@@ -961,7 +962,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
-        GPURenderUtils::setupRenderBuffer(this, buf);
+        GPURenderUtils::setupRenderBuffer(this, buf, layer);
         layers[layer]->shallowModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
@@ -974,7 +975,7 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
-        GPURenderUtils::setupRenderBuffer(this, buf);
+        GPURenderUtils::setupRenderBuffer(this, buf, layer);
         layers[layer]->deepModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
@@ -2419,7 +2420,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
 
         // we create the buffer oversized to prevent issues
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->bufferTransform);
-        GPURenderUtils::setupRenderBuffer(this, &inf->buffer);
+        GPURenderUtils::setupRenderBuffer(this, &inf->buffer, layer);
 
         if (type.compare(0, 9, "Per Model") == 0 && model->GetDisplayAs() == "ModelGroup") {
             if (type.compare(type.length() - 4, 4, "Deep") == 0) {
@@ -2439,7 +2440,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
                             bh = 1;
                         it->InitBuffer(bh, bw, transform);
                         it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
-                        GPURenderUtils::setupRenderBuffer(this, it.get());
+                        GPURenderUtils::setupRenderBuffer(this, it.get(), layer);
                         ++it_m;
                     }
                 }
@@ -2459,7 +2460,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
                             bh = 1;
                         it->InitBuffer(bh, bw, transform);
                         it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
-                        GPURenderUtils::setupRenderBuffer(this, it.get());
+                        GPURenderUtils::setupRenderBuffer(this, it.get(), layer);
                         ++cnt;
                     }
                 }
@@ -2542,6 +2543,9 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
         // get all the data
         xlColor color;
         int nc = 0;
+        for (auto& modelBuffer : *(layers[layer]->modelBuffers)) {
+            GPURenderUtils::commitRenderBuffer(modelBuffer.get());
+        }
         for (auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             GPURenderUtils::waitForRenderCompletion(modelBuffer.get());
         }
@@ -2957,7 +2961,7 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer) {
         layers[layer]->buffer.BufferHt = 1;
 
     layers[layer]->buffer.InitBuffer(layers[layer]->BufferHt, layers[layer]->BufferWi, transform);
-    GPURenderUtils::setupRenderBuffer(this, &layers[layer]->buffer);
+    GPURenderUtils::setupRenderBuffer(this, &layers[layer]->buffer, layer);
 }
 
 void PixelBufferClass::HandleLayerBlurZoom(int EffectPeriod, int layer) {
@@ -3042,8 +3046,12 @@ void PixelBufferClass::HandleLayerTransitions(int EffectPeriod, int ii) {
     }
     layers[ii]->calculateNodeOutputParams(EffectPeriod);
 
-    // All rendering is encoded, commit it so the GPU can start
-    GPURenderUtils::commitRenderBuffer(&layers[ii]->buffer);
+    if (ii != 0) {
+        // All rendering is encoded, commit it so the GPU can start
+        // But not on layer 0 as we'll use that command queue for blending as
+        // well so we won't commit it yet
+        GPURenderUtils::commitRenderBuffer(&layers[ii]->buffer);
+    }
 }
 
 void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& validLayers, int saveLayer) {
@@ -3057,7 +3065,6 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& val
             continue;
         }
         ++countValid;
-        GPURenderUtils::waitForRenderCompletion(&layers[ii]->buffer);
         
         if (!hasSparkles &&
             (layers[ii]->use_music_sparkle_count ||
@@ -3067,58 +3074,66 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& val
         }
     }
 
-    if (hasSparkles && sparkles.size() < layers[0]->buffer.Nodes.size()) {
+    if (hasSparkles && sparklesVector.size() < layers[0]->buffer.Nodes.size()) {
         // initialize the sparkle info
-        size_t sz = sparkles.size();
+        size_t sz = sparklesVector.size();
         size_t nc = layers[0]->buffer.Nodes.size();
-        sparkles.resize(nc);
+        sparklesVector.resize(nc);
         while (sz < nc) {
-            sparkles[sz++] = rand() % 10000;
+            sparklesVector[sz++] = rand() % 10000;
         }
+        sparkles = &sparklesVector[0];
     }
-    
-    
-    int blockSize = std::max(5000 / std::max(countValid, 1), 500);
-    /*
-    //bunch of test code to test the timing of various block sizes to see what impact
-    //the block size has
-    static int test = 2;
-    if (countValid == test) {
-        for (int vvv = 1000; vvv < (NodeCount + 1000); vvv += 1000) {
-            wxStopWatch timer;
-            parallel_for(0, NodeCount, [this, saveLayer, &validLayers, EffectPeriod] (int i) {
-                if (!layers[saveLayer]->buffer.Nodes[i]->IsVisible()) {
+    if (true) { //}!GPURenderUtils::BlendLayers(this, EffectPeriod, validLayers, saveLayer)) {
+        for (int ii = (numLayers - 1); ii >= 0; --ii) {
+            if (!validLayers[ii]) {
+                continue;
+            }
+            GPURenderUtils::waitForRenderCompletion(&layers[ii]->buffer);
+        }
+        
+        int blockSize = std::max(5000 / std::max(countValid, 1), 500);
+        /*
+        //bunch of test code to test the timing of various block sizes to see what impact
+        //the block size has
+        static int test = 2;
+        if (countValid == test) {
+            for (int vvv = 1000; vvv < (NodeCount + 1000); vvv += 1000) {
+                wxStopWatch timer;
+                parallel_for(0, NodeCount, [this, saveLayer, &validLayers, EffectPeriod] (int i) {
+                    if (!layers[saveLayer]->buffer.Nodes[i]->IsVisible()) {
+                        // unmapped pixel - set to black
+                        layers[saveLayer]->buffer.Nodes[i]->SetColor(xlBLACK);
+                    } else {
+                        // get blend of two effects
+                        xlColor color;
+                        GetMixedColor(i,
+                                      color,
+                                      validLayers, EffectPeriod);
+
+                        // set color for physical output
+                        layers[saveLayer]->buffer.Nodes[i]->SetColor(color);
+                    }
+                }, vvv);
+                printf("%d\t%d\t%lld\n", test, vvv, timer.TimeInMicro());
+            }
+            test++;
+        }
+        */
+
+        std::vector<NodeBaseClassPtr>& Nodes = layers[saveLayer]->buffer.Nodes;
+        parallel_for(
+            0, NodeCount, [this, &Nodes, &validLayers, saveLayer, EffectPeriod](int i) {
+                if (!Nodes[i]->IsVisible()) {
                     // unmapped pixel - set to black
-                    layers[saveLayer]->buffer.Nodes[i]->SetColor(xlBLACK);
+                    Nodes[i]->SetColor(xlBLACK);
                 } else {
                     // get blend of two effects
-                    xlColor color;
-                    GetMixedColor(i,
-                                  color,
-                                  validLayers, EffectPeriod);
-
-                    // set color for physical output
-                    layers[saveLayer]->buffer.Nodes[i]->SetColor(color);
+                    GetMixedColor(i, validLayers, EffectPeriod, saveLayer);
                 }
-            }, vvv);
-            printf("%d\t%d\t%lld\n", test, vvv, timer.TimeInMicro());
-        }
-        test++;
+            },
+            blockSize);
     }
-    */
-
-    std::vector<NodeBaseClassPtr>& Nodes = layers[saveLayer]->buffer.Nodes;
-    parallel_for(
-        0, NodeCount, [this, &Nodes, &validLayers, saveLayer, EffectPeriod](int i) {
-            if (!Nodes[i]->IsVisible()) {
-                // unmapped pixel - set to black
-                Nodes[i]->SetColor(xlBLACK);
-            } else {
-                // get blend of two effects
-                GetMixedColor(i, validLayers, EffectPeriod, saveLayer);
-            }
-        },
-        blockSize);
 }
 
 static int DecodeType(const std::string& type) {

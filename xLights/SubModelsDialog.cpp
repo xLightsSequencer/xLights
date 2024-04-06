@@ -2463,6 +2463,9 @@ void SubModelsDialog::Aliases()
     if (submodelname.empty()) {
         return;
     }
+    if (model->GetSubModel(submodelname) == nullptr)
+        return;
+
     EditSubmodelAliasesDialog dlg(GetParent(), model, submodelname);
     
     dlg.ShowModal();

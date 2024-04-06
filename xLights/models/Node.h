@@ -40,7 +40,7 @@ public:
     // buffer and screen coordinates for displayed nodes
     struct CoordStruct
     {
-        int bufX, bufY, bufZ;
+        int bufX, bufY;
         float screenX, screenY, screenZ;
     };
 
@@ -107,7 +107,6 @@ public:
         CoordStruct c;
         c.bufX = x;
         c.bufY = y;
-        c.bufZ = 0;
         c.screenZ = 0;
         Coords.push_back(c);
     }
