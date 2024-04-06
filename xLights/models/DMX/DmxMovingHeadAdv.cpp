@@ -64,6 +64,7 @@ public:
     }
 };
 
+// These recreate the DMX color types from DmxModel so that the "Unused" option could be added
 static const char* DMX_COLOR_TYPES_ADV_VALUES[] = {
     "RGBW",
     "ColorWheel",

@@ -40,10 +40,16 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility
         int GetNumMotors() const { return NUM_MOTORS; }
         DmxMotor* GetAxis(int num) { return num == 1 ? tilt_motor.get() : pan_motor.get(); }
 
-        DmxMotorBase* GetPanMotor() override { return pan_motor.get(); }
-        DmxMotorBase* GetTiltMotor() override { return tilt_motor.get(); }
+        DmxMotorBase* GetPanMotor() const override { return pan_motor.get(); }
+        DmxMotorBase* GetTiltMotor() const override { return tilt_motor.get(); }
         void UpdateNodeNames() { update_node_names = true; }
         void UpdateBits() { update_bits = true; }
+        float GetBeamYOffset() const { return beam_y_offset; }
+        float GetBeamLength() const { return beam_length; }
+    
+        Mesh* GetBaseMesh() const { return base_mesh; }
+        Mesh* GetYokeMesh() const { return yoke_mesh; }
+        Mesh* GetHeadMesh() const { return head_mesh; }
 
         virtual bool SupportsVisitors() override {return true;}
         void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }

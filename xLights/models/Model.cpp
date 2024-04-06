@@ -2986,6 +2986,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     tempstr = ModelNode->GetAttribute("parm3");
     tempstr.ToLong(&parm3);
     tempstr = ModelNode->GetAttribute("StrandNames");
+    _strandNamesString = tempstr;
     strandNames.clear();
     while (tempstr.size() > 0) {
         std::string t2 = tempstr.ToStdString();
@@ -3001,6 +3002,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
         strandNames.push_back(t2);
     }
     tempstr = ModelNode->GetAttribute("NodeNames");
+    _nodeNamesString = tempstr;
     nodeNames.clear();
     while (tempstr.size() > 0) {
         std::string t2 = tempstr.ToStdString();

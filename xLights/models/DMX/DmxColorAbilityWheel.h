@@ -53,7 +53,10 @@ class DmxColorAbilityWheel : public DmxColorAbility
         void ImportParameters(wxXmlNode* ImportXml, Model* m) const override;
         void SetNodeNames(std::vector<std::string> & names) const override;
         int GetNumChannels() const override;
+        [[nodiscard]] uint32_t GetWheelChannel() const { return wheel_channel; }
+        [[nodiscard]] uint32_t GetDimmerChannel() const { return dimmer_channel; }
         [[nodiscard]] xlColorVector GetColors() const override;
+        [[nodiscard]] std::vector<WheelColor> GetWheelColorSettings() const { return colors; };
 
     private:
         uint32_t wheel_channel;

@@ -35,11 +35,14 @@ class DmxMovingHeadComm : public DmxModel
         }
         virtual ~DmxMovingHeadComm(){};
 
-        virtual DmxMotorBase* GetPanMotor() = 0;
-        virtual DmxMotorBase* GetTiltMotor() = 0;
+        virtual DmxMotorBase* GetPanMotor() const = 0;
+        virtual DmxMotorBase* GetTiltMotor() const = 0;
         virtual int GetFixtureVal() const {
             return fixture_val + 1;
         };
+        std::string GetFixture() const {
+            return FixtureIDtoString(fixture_val);
+        }
 
         static std::string FixtureIDtoString(int fixture_val) {
             if (fixture_val == DMX_MOVING_HEAD_1) {

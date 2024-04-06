@@ -344,6 +344,7 @@ void DmxColorAbilityWheel::ReadColorSettings(wxXmlNode* ModelXml)
         }
         uint8_t dmxVal = wxAtoi(ModelXml->GetAttribute(dmxkey, "1"));
         wxString dmxcolor = ModelXml->GetAttribute(colorkey);
+        
         colors.emplace_back(xlColor(dmxcolor), dmxVal);
     }
 }

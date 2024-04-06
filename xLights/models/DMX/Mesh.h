@@ -56,10 +56,24 @@ public:
     void SetLink(Mesh* val) { link = val; }
     Mesh* GetLink() { return link; }
 
-    float GetWidth() { return width; }
-    float GetHeight() { return height; }
-    float GetDepth() { return depth; }
+    float GetWidth() const { return width; }
+    float GetHeight() const { return height; }
+    float GetDepth() const { return depth; }
     void SetHalfHeight() { half_height = 0.5f; }
+
+    std::string GetName() const { return base_name; }
+    std::string GetObjFile() const { return _objFile; }
+    float GetBrightness() const { return brightness; }
+    bool GetMeshOnly() const { return mesh_only; }
+    float GetOffsetX() const { return offset_x; }
+    float GetOffsetY() const { return offset_y; }
+    float GetOffsetZ() const { return offset_z; }
+    float GetScaleX() const { return scalex; }
+    float GetScaleY() const { return scaley; }
+    float GetScaleZ() const { return scalez; }
+    float GetRotateX() const { return rotatex; }
+    float GetRotateY() const { return rotatey; }
+    float GetRotateZ() const { return rotatez; }
 
     void SetRenderScaling(float s);
     void SetMeshOnly(bool val) { mesh_only = val; }

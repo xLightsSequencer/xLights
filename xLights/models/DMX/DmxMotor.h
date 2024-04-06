@@ -38,6 +38,7 @@ protected:
         void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
         void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
 
+        std::string GetName() const { return base_name; }
         int GetChannelCoarse() const override { return channel_coarse; }
         int GetChannelFine() const override { return channel_fine; }
         int GetMinLimit() const { return min_limit; }
@@ -48,6 +49,9 @@ protected:
         int GetOrientZero() const { return orient_zero; }
         int GetOrientHome() const { return orient_home; }
         float GetSlewLimit() const { return slew_limit; }
+        bool GetReverse() const { return reverse; }
+        bool GetUpsideDown() const { return upside_down; }
+
         int ConvertPostoCmd(float position) override;
         float GetPosition(int channel_value) override;
         bool Is16Bit() { return channel_fine > 0; }

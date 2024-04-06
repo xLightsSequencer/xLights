@@ -36,8 +36,8 @@ class DmxMovingHead : public DmxMovingHeadComm, public DmxPanTiltAbility, public
         void EnableFixedChannels(xlColorVector& pixelVector) override;
         [[nodiscard]] std::vector<std::string> GenerateNodeNames() const override;
 
-        DmxMotorBase* GetPanMotor() override { return pan_motor.get(); }
-        DmxMotorBase* GetTiltMotor() override { return tilt_motor.get(); }
+        DmxMotorBase* GetPanMotor() const override { return pan_motor.get(); }
+        DmxMotorBase* GetTiltMotor() const override { return tilt_motor.get(); }
 
     protected:
         void Draw3DDMXBaseLeft(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle);

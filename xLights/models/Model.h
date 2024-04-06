@@ -133,12 +133,14 @@ public:
     Controller* GetController() const;
 
     std::string GetModelStartChannel() const { return ModelStartChannel; }
-    std::string GetStartSide() const { return _startSide; }
-    std::string GetDirection() const { return _dir; }
+    const std::string GetStartSide() const { return _startSide; }
+    const std::string GetDirection() const { return _dir; }
     long GetParm1() const { return parm1; }
     long GetParm2() const { return parm2; }
     long GetParm3() const { return parm3; }
     int GetTransparency() const { return transparency; }
+    const std::string GetNodeNames() const { return _nodeNamesString; }
+    const std::string GetStrandNames() const { return _strandNamesString; }
 
     virtual bool SupportsChangingStringCount() const { return false; };
     virtual bool ChangeStringCount(long count,  std::string& message) { return false; };
@@ -298,6 +300,8 @@ protected:
 
     std::vector<std::string> strandNames;
     std::vector<std::string> nodeNames;
+    std::string _nodeNamesString;
+    std::string _strandNamesString;
     long parm1 = 0;         /* Number of strings in the model or number of arches or canes (except for frames & custom) */
     long parm2 = 0;         /* Number of nodes per string in the model or number of segments per arch or cane (except for frames & custom) */
     long parm3 = 0;         /* Number of strands per string in the model or number of lights per arch or cane segment (except for frames & custom) */

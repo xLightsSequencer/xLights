@@ -17,6 +17,12 @@ class DmxColorAbility;
 class DmxPresetAbility;
 class wxFile;
 
+enum DMX_COLOR_TYPES {
+    DMX_COLOR_TYPE_RGBW,
+    DMX_COLOR_TYPE_WHEEL,
+    DMX_COLOR_TYPE_CMYW
+};
+
 static const char* DMX_COLOR_TYPES_VALUES[] = {
     "RGBW",
     "ColorWheel",
@@ -44,8 +50,8 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual std::string GetDimension() const override { return ""; }
 
-        bool HasColorAbility() { return nullptr != color_ability ; }
-        DmxColorAbility* GetColorAbility() { return color_ability.get(); }
+        bool HasColorAbility() const { return nullptr != color_ability ; }
+        DmxColorAbility* GetColorAbility() const { return color_ability.get(); }
         virtual void EnableFixedChannels(xlColorVector& pixelVector);
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return false; }
@@ -57,6 +63,19 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual std::list<std::string> CheckModelSettings() override;
 
         [[nodiscard]] virtual std::vector<std::string> GenerateNodeNames() const;
+
+        static int DmxColorTypetoID(std::string const& color_type) {
+            if (color_type == "RGBW") {
+                return DMX_COLOR_TYPE_RGBW;
+            }
+            if (color_type == "ColorWheel") {
+                return DMX_COLOR_TYPE_WHEEL;
+            }
+            if (color_type == "CMYW") {
+                return DMX_COLOR_TYPE_CMYW;
+            }
+            return DMX_COLOR_TYPE_RGBW;
+        }
 
     protected:
         virtual void InitModel() override;
