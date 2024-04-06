@@ -52,6 +52,7 @@
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsVersion.h"
 #include "../xLightsXmlFile.h"
+#include "XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 
@@ -6308,6 +6309,24 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
     }
     if (doc.IsOk()) {
         wxXmlNode* root = doc.GetRoot();
+
+        // check for XmlSerializer format
+        if (root->GetAttribute(XmlNodeKeys::TypeAttribute, "") == XmlNodeKeys::ExportedAttribute) {
+            // grab the attributes I want to keep
+            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
+            auto lg = model->GetLayoutGroup();
+
+            XmlSerializer serializer;
+            model = serializer.DeserializeModel(doc, xlights->AllModels);
+
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
+            model->SetLayoutGroup(lg);
+            model->Selected = true;
+            return model;
+        }
 
         if (root->GetName() == "custommodel") {
             return model;

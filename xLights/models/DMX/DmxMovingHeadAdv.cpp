@@ -975,49 +975,45 @@ void DmxMovingHeadAdv::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_c
 
 void DmxMovingHeadAdv::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
-    if (root->GetName() == "DmxMovingHeadAdv") {
-        ImportBaseParameters(root);
+    // this model uses a new format...this import is temporary until final deserialization can be worked out
+    wxXmlNode *model_node = root->GetChildren();
 
-        wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
-        wxString bits = root->GetAttribute("Bits16", "1");
-        wxString dct = root->GetAttribute("DmxColorType", "0");
+    ImportBaseParameters(model_node);
 
-        // Add any model version conversion logic here
-        // Source version will be the program version that created the custom model
-        SetProperty("DmxColorType", dct);
+    wxString name = model_node->GetAttribute("name");
+    wxString dct = model_node->GetAttribute("DmxColorType", "0");
 
-        int color_type = wxAtoi(dct);
-        if (color_type == 0) {
-            color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
-        } else if (color_type == 1) {
-            color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
-        } else if (color_type == 2) {
-            color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
-        }
-        else {
-            color_ability = nullptr;
-        }
-        if (nullptr != color_ability) {
-            color_ability->ImportParameters(root, this);
-        }
+    // Add any model version conversion logic here
+    // Source version will be the program version that created the custom model
+    SetProperty("DmxColorType", dct);
 
-        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        GetModelScreenLocation().Write(ModelXml);
-        SetProperty("name", newname, true);
-        SetProperty("Bits16", bits);
-
-        wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
-        
-        base_mesh->Serialise(root, ModelXml, show_dir);
-        yoke_mesh->Serialise(root, ModelXml, show_dir);
-        head_mesh->Serialise(root, ModelXml, show_dir);
-
-        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
-
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::ImportXlightsModel");
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHeadAdv::ImportXlightsModel");
-    } else {
-        DisplayError("Failure loading DmxMovingHeadAdv model file.");
+    int color_type = wxAtoi(dct);
+    if (color_type == 0) {
+        color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+    } else if (color_type == 1) {
+        color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+    } else if (color_type == 2) {
+        color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
     }
+    else {
+        color_ability = nullptr;
+    }
+    if (nullptr != color_ability) {
+        color_ability->ImportParameters(model_node, this);
+    }
+
+    wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+    GetModelScreenLocation().Write(ModelXml);
+    SetProperty("name", newname, true);
+
+    wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
+
+    base_mesh->Serialise(model_node, ModelXml, show_dir);
+    yoke_mesh->Serialise(model_node, ModelXml, show_dir);
+    head_mesh->Serialise(model_node, ModelXml, show_dir);
+
+    ImportModelChildren(model_node, xlights, newname, min_x, max_x, min_y, max_y);
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::ImportXlightsModel");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHeadAdv::ImportXlightsModel");
 }

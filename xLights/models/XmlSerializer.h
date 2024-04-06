@@ -26,6 +26,8 @@ namespace XmlNodeKeys
 // Model Node Names
 constexpr auto ModelsNodeName = "models";
 constexpr auto ModelNodeName = "model";
+constexpr auto TypeAttribute = "type";
+constexpr auto ExportedAttribute = "exported";
 
 // Common BaseObject Attributes
 constexpr auto NameAttribute        = "name";
@@ -106,6 +108,9 @@ constexpr auto UpsideDownAttribute    = "UpsideDown";
 constexpr auto ObjFileAttribute    = "ObjFile";
 constexpr auto MeshOnlyAttribute   = "MeshOnly";
 constexpr auto BrightnessAttribute = "Brightness";
+
+// Model Types
+constexpr auto DmxMovingHeadAdvType    = "DmxMovingHeadAdv";
 
 };
 
@@ -257,12 +262,46 @@ struct XmlSerializingVisitor : BaseObjectVisitor
     }
 };
 
+struct XmlDeserializingObjectFactory
+{
+    Model* Deserialize(wxXmlNode *node, const ModelManager &manager)
+    {
+        auto type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute);
+
+        if (type == XmlNodeKeys::DmxMovingHeadAdvType)
+        {
+            return DeserializeDmxMovingHeadAdv(new wxXmlNode(*node), manager);
+        }
+
+        throw std::runtime_error("Unknown object type: " + type);
+    }
+
+private:
+    //void RetrieveBaseObjectAttributes(BaseObject &base, wxXmlNode *node)
+    //{
+    //    base.name = node->GetAttribute(XmlNodeKeys::NameAttribute);
+    //    base.SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute));
+    //    node->AddAttribute(XmlNodeKeys::LayoutGroupAttribute, base.GetLayoutGroup());
+    //}
+
+    Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, const ModelManager &manager)
+    {
+        Model *model;
+        model = new DmxMovingHeadAdv(node, manager, false);
+
+        //RetrieveBaseObjectAttributes(object, node);
+
+        return model;
+    }
+};
+
 struct XmlSerializer
 {
     XmlSerializer()
     {
     }
 
+    // Serializes and Saves a single model into an XML document
     void SerializeAndSaveModel(const BaseObject &object)
     {
         wxString name = object.GetModelXml()->GetAttribute("name");
@@ -273,12 +312,14 @@ struct XmlSerializer
         doc.Save(filename);
     }
 
+    // Serialize a single model into an XML document
     wxXmlDocument SerializeModel(const BaseObject &object)
     {
         wxXmlDocument doc;
         
         wxXmlNode *docNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelsNodeName);
-        
+        docNode->AddAttribute(XmlNodeKeys::TypeAttribute, XmlNodeKeys::ExportedAttribute);
+
         XmlSerializingVisitor visitor{docNode};
         
         object.Accept(visitor);
@@ -287,4 +328,17 @@ struct XmlSerializer
         
         return doc;
     }
+
+    // Deserialize a single model from an XML document
+    Model* DeserializeModel(const wxXmlDocument &doc, const ModelManager &manager)
+    {
+        wxXmlNode *root = doc.GetRoot();
+
+        wxXmlNode *model_node = root->GetChildren();
+
+        XmlDeserializingObjectFactory factory{};
+
+        return factory.Deserialize(model_node, manager);
+    }
+
 };

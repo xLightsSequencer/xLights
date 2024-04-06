@@ -94,6 +94,8 @@ public:
     const std::string &GetName() const { return name;}
     const std::string& GetDisplayAs() const { return DisplayAs; }
 
+    void SetDisplayAs(const std::string& type) { DisplayAs = type; }
+
     wxXmlNode* GetModelXml() const;
     virtual void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false) = 0;
 
