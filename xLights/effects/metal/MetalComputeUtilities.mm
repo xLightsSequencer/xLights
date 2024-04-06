@@ -539,7 +539,7 @@ void MetalRenderBufferComputeData::bufferResized() {
     int extraIdx = renderBuffer->Nodes.size();
     for (auto &n : renderBuffer->Nodes) {
         if (n->Coords.size() > 1) {
-            indexes[idx] = extraIdx | 0x10000000;
+            indexes[idx] = extraIdx | 0x80000000;
             int countIdx = extraIdx++;
             indexes[countIdx] = n->Coords.size();
             for (auto &c : n->Coords) {

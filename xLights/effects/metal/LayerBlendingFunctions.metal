@@ -119,7 +119,7 @@ kernel void GetColorsForNodes(constant LayerBlendingData &data,
     
     if (idx == -1) {
         result[index] = {0, 0, 0, 0};
-    } else if (idx & 0x10000000) {
+    } else if (idx & 0x80000000) {
         result[index] = {0, 0, 0, 0};
         idx &= 0x7FFFFFFF;
         int cnt = indexes[idx++];
@@ -154,7 +154,7 @@ kernel void PutColorsForNodes(constant LayerBlendingData &data,
     int32_t idx = indexes[index];
     if (idx == -1) {
         result[idx] = {0, 0, 0, 0};
-    } else if (idx & 0x10000000) {
+    } else if (idx & 0x80000000) {
         idx &= 0x7FFFFFFF;
         int cnt = indexes[idx++];
         for (int x = 0; x < cnt; x++) {
@@ -355,7 +355,7 @@ bool applyChroma(constant LayerBlendingData &data,
 uchar4 AlphaBlendForgroundOnto(const uchar4 bg, const uchar4 fc) {
     if (fc.a == 0) return bg;
     if (fc.a == 255) {
-        return {fc.r, fc.b, fc.g, 255};
+        return fc;
     }
     float a = fc.a;
     a /= 255; // 0 (transparent) - 1.0 (opague)
@@ -750,14 +750,18 @@ kernel void BottomTopFunction(constant LayerBlendingData &data,
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         int32_t idx = indexes[index];
-        if (idx & 0x10000000) {
-            idx &= 0x7FFFFFFF;
-            idx = indexes[idx += 2];
-        }
-        //uint x = idx % data.bufferWi;
-        uint y = idx / data.bufferWi;
-        if (y < (data.bufferHi / 2)) {
-            result[index] = fg;
+        if (idx == -1) {
+            result[index] = {0, 0, 0, 0};
+        } else {
+            if (idx & 0x80000000) {
+                idx &= 0x7FFFFFFF;
+                idx = indexes[idx += 2];
+            }
+            //uint x = idx % data.bufferWi;
+            uint y = idx / data.bufferWi;
+            if (y < (data.bufferHi / 2)) {
+                result[index] = fg;
+            }
         }
     }
 }
@@ -770,14 +774,18 @@ kernel void LeftRightFunction(constant LayerBlendingData &data,
     uchar4 fg = src[index];
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         int32_t idx = indexes[index];
-        if (idx & 0x10000000) {
-            idx &= 0x7FFFFFFF;
-            idx = indexes[idx += 2];
-        }
-        uint x = idx % data.bufferWi;
-        //uint y = idx / data.bufferWi;
-        if (x < data.bufferWi / 2) {
-            result[index] = fg;
+        if (idx == -1) {
+            result[index] = {0, 0, 0, 0};
+        } else {
+            if (idx & 0x80000000) {
+                idx &= 0x7FFFFFFF;
+                idx = indexes[idx += 2];
+            }
+            uint x = idx % data.bufferWi;
+            //uint y = idx / data.bufferWi;
+            if (x < data.bufferWi / 2) {
+                result[index] = fg;
+            }
         }
     }
 }
