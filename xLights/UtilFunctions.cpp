@@ -1401,6 +1401,7 @@ wxColor CyanOrBlue()
         return *wxBLUE;
     }
 }
+
 wxColor LightOrMediumGrey()
 {
     if (IsDarkMode()) {
@@ -1410,6 +1411,7 @@ wxColor LightOrMediumGrey()
         return *wxLIGHT_GREY;
     }
 }
+
 void CleanupIpAddress(wxString& IpAddr)
 {
     static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
