@@ -651,7 +651,7 @@ public:
 
             if (!freeze) {
                 // Mix canvas pre-loads the buffer with data from underlying layers
-                if (buffer->IsCanvasMix(layer) && layer < numLayers - 1) {
+                if (buffer->IsCanvasMix(layer) && layer < numLayers - 1 && !buffer->IsRenderingDisabled(layer)) {
                     maybeWaitForFrame(frame);
 
                     auto vl = info.validLayers;
@@ -928,6 +928,7 @@ private:
         bool layerEnabled = true;
         if (el == nullptr || el->GetEffectIndex() == -1) {
             settingsMap.clear();
+            layerEnabled = false;
         } else {
             auto e = el->GetParentEffectLayer()->GetParentElement();
             if (e != nullptr) {
