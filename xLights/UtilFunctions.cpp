@@ -24,6 +24,7 @@
 #include <time.h>
 #include <thread>
 
+#include "ColorManager.h"
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
 #include "ExternalHooks.h"
@@ -1394,22 +1395,35 @@ void DumpBinary(uint8_t* buffer, size_t sz)
 
 wxColor CyanOrBlue()
 {
-    if (IsDarkMode()) {
-        // In Dark Mode blue is hard to read
-        return *wxCYAN;
+    // if the color is set use that .. otherwise default to the usual
+    auto color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_TEXT_HIGHLIGHTED);
+    if (color->asWxColor() == *wxBLACK) {
+        if (IsDarkMode()) {
+            // In Dark Mode blue is hard to read
+            return *wxCYAN;
+        } else {
+            return *wxBLUE;
+        }
     } else {
-        return *wxBLUE;
+        return color->asWxColor();
     }
 }
+
 wxColor LightOrMediumGrey()
 {
-    if (IsDarkMode()) {
-        static const wxColor medGray(128, 128, 128);
-        return medGray;
+    auto color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_TEXT_UNSELECTED);
+    if (color->asWxColor() == *wxBLACK) {
+        if (IsDarkMode()) {
+            static const wxColor medGray(128, 128, 128);
+            return medGray;
+        } else {
+            return *wxLIGHT_GREY;
+        }
     } else {
-        return *wxLIGHT_GREY;
+        return color->asWxColor();
     }
 }
+
 void CleanupIpAddress(wxString& IpAddr)
 {
     static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);

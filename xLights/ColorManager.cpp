@@ -208,7 +208,7 @@ void ColorManager::Load(wxXmlNode* colors_node)
 {
 	if (colors_node != nullptr)
 	{
-        colors.clear();
+        ResetDefaults();
         for (wxXmlNode* c = colors_node->GetChildren(); c != nullptr; c = c->GetNext())
         {
             std::string name = c->GetName().ToStdString();
