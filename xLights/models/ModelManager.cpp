@@ -1703,6 +1703,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
             if (curr == nullptr) {
                 // model does not exist
                 changed = true;
+                if (m->HasAttribute("FromBase")) m->DeleteAttribute("FromBase");
                 m->AddAttribute("FromBase", "1");
                 createAndAddModel(new wxXmlNode(*m), xlights->modelPreview->getWidth(), xlights->modelPreview->getHeight());
                 logger_base.debug("Adding model from base show folder: '%s'.", (const char*)name.c_str());
@@ -1715,6 +1716,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                 if (force || curr->IsFromBase()) {
                     // model does exist ... update it
                     if (force || curr->IsXmlChanged(m)) {
+                        if (m->HasAttribute("FromBase")) m->DeleteAttribute("FromBase");
                         m->AddAttribute("FromBase", "1");
                         changed = true;
                         Model  *newm = CreateModel(new wxXmlNode(*m));
@@ -1737,6 +1739,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
 
             if (curr == nullptr) {
                 changed = true;
+                if (m->HasAttribute("FromBase")) m->DeleteAttribute("FromBase");
                 m->AddAttribute("FromBase", "1");
                 createAndAddModel(new wxXmlNode(*m), xlights->modelPreview->getWidth(), xlights->modelPreview->getHeight());
                 logger_base.debug("Adding model group from base show folder: '%s'.", (const char*)name.c_str());
@@ -1764,6 +1767,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                         m->DeleteAttribute("models");
                         m->AddAttribute("models", MergeModels(models1, mm2));
                         if (force || curr->IsXmlChanged(m)) {
+                            if (m->HasAttribute("FromBase")) m->DeleteAttribute("FromBase");
                             m->AddAttribute("FromBase", "1");
                             m->AddAttribute("BaseModels", models1); // keep a copy of the models from the base show folder as we may want to prevent these being removed
                             changed = true;                            
