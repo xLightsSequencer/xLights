@@ -13,6 +13,7 @@
 #include <wx/utils.h>
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
+#include <wx/display.h>
 #include <wx/filename.h>
 #include <wx/filepicker.h>
 #include <wx/fontpicker.h>
@@ -89,15 +90,21 @@ void xLightsFrame::CreateSequencer()
     logger_base.debug("                Set dock size constraints.");
     m_mgr->SetDockSizeConstraint(0.25, 0.15);
 
+    const auto maxHeight = std::max(1, wxDisplay().GetGeometry().GetHeight() - 100);
+    const auto maxWidth = std::max(1, wxDisplay().GetGeometry().GetWidth());
     logger_base.debug("        Model preview.");
     _modelPreviewPanel = new ModelPreview(PanelSequencer, this);
     m_mgr->AddPane(_modelPreviewPanel, wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
-                   Left().Layer(1).PaneBorder(true).BestSize(250,250).MaximizeButton(true).Dockable(IsDockable("MP")));
+                    Left().Layer(1).PaneBorder(true).MaxSize(wxSize(-1, maxHeight)).
+                    BestSize(maxWidth*.5, maxHeight*.5).MaximizeButton(true).
+                    Dockable(IsDockable("MP")));
 
     logger_base.debug("        House preview.");
     _housePreviewPanel = new HousePreviewPanel(PanelSequencer, this, _playControlsOnPreview, PreviewModels, LayoutGroups, false, 0, true);
     m_mgr->AddPane(_housePreviewPanel, wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
-        Left().Layer(1).BestSize(250, 250).MaximizeButton(true).Dockable(IsDockable("HP")));
+                    Left().Layer(1).MaxSize(wxSize(-1, maxHeight)).
+                    BestSize(maxWidth*.5, maxHeight*.5).MaximizeButton(true).
+                    Dockable(IsDockable("HP")));
 
     logger_base.debug("        Effects.");
     effectsPnl = new TopEffectsPanel(PanelSequencer);
@@ -159,10 +166,10 @@ void xLightsFrame::CreateSequencer()
                    .Float().MaximizeButton(true));
     // Hide the panel on start.
     wxAuiPaneInfo & info = m_mgr->GetPane("DisplayElements");
-    info.BestSize(wxSize(750, 1050));
+    info.BestSize(wxSize(750, maxHeight));
     int w, h;
     displayElementsPanel->GetSize(&w, &h);
-    info.FloatingSize(std::max(750, w), std::max(1050, h));
+    info.FloatingSize(std::max(750, w), std::max(maxHeight, h));
     info.Hide();
 
     m_mgr->AddPane(perspectivePanel,wxAuiPaneInfo().Name(wxT("Perspectives")).Caption(wxT("Perspectives")).Left().Layer(1).Hide());
@@ -3086,10 +3093,11 @@ void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
     if (visible) {
         info.Hide();
     } else {
-        info.BestSize(wxSize(750, 1050));
+        const auto maxHeight = std::max(1, wxDisplay().GetGeometry().GetHeight() - 100);
+        info.BestSize(wxSize(750, maxHeight));
         int w, h;
         displayElementsPanel->GetSize(&w, &h);
-        info.FloatingSize(std::max(750, w), std::max(1050, h));
+        info.FloatingSize(std::max(750, w), std::max(maxHeight, h));
         info.Show();
     }
     m_mgr->Update();
