@@ -6319,7 +6319,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             auto lg = model->GetLayoutGroup();
 
             XmlSerializer serializer;
-            model = serializer.DeserializeModel(doc, xlights->AllModels);
+            model = serializer.DeserializeModel(doc, xlights);
 
             model->SetHcenterPos(x);
             model->SetVcenterPos(y);

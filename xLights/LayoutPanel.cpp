@@ -3670,10 +3670,15 @@ void LayoutPanel::FinalizeModel()
                 return;
             }
 
-            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import. " + _lastXlightsModel);
-            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Model type " + _newModel->GetDisplayAs());
-            _newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
-            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Import done.");
+            // Models that support visitors don't use the ImportXlightsModel method
+            // If there are import issues we need to try to fix them inside the XmlSerializer
+            if (!_newModel->SupportsVisitors()) {
+                xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import. " + _lastXlightsModel);
+                xlights->AddTraceMessage("LayoutPanel::FinalizeModel Model type " + _newModel->GetDisplayAs());
+                _newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
+                xlights->AddTraceMessage("LayoutPanel::FinalizeModel Import done.");
+            }
+
             if (_newModel->GetDisplayAs() == "Poly Line")
             {
                 _newModel->SetPosition(pos.x, pos.y);

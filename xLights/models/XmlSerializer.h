@@ -264,32 +264,35 @@ struct XmlSerializingVisitor : BaseObjectVisitor
 
 struct XmlDeserializingObjectFactory
 {
-    Model* Deserialize(wxXmlNode *node, const ModelManager &manager)
+    Model* Deserialize(wxXmlNode *node, xLightsFrame* xlights)
     {
         auto type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute);
 
         if (type == XmlNodeKeys::DmxMovingHeadAdvType)
         {
-            return DeserializeDmxMovingHeadAdv(new wxXmlNode(*node), manager);
+            return DeserializeDmxMovingHeadAdv(new wxXmlNode(*node), xlights);
         }
 
         throw std::runtime_error("Unknown object type: " + type);
     }
 
 private:
-    //void RetrieveBaseObjectAttributes(BaseObject &base, wxXmlNode *node)
-    //{
-    //    base.name = node->GetAttribute(XmlNodeKeys::NameAttribute);
-    //    base.SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute));
-    //    node->AddAttribute(XmlNodeKeys::LayoutGroupAttribute, base.GetLayoutGroup());
-    //}
 
-    Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, const ModelManager &manager)
+    Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights)
     {
         Model *model;
-        model = new DmxMovingHeadAdv(node, manager, false);
+        model = new DmxMovingHeadAdv(node, xlights->AllModels, false);
 
-        //RetrieveBaseObjectAttributes(object, node);
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        // TODO: I'd like to get rid of this whole ImportModelChildren call but left it in the flow for now
+        float min_x = (float)(model->GetBaseObjectScreenLocation().GetLeft());
+        float max_x = (float)(model->GetBaseObjectScreenLocation().GetRight());
+        float min_y = (float)(model->GetBaseObjectScreenLocation().GetBottom());
+        float max_y = (float)(model->GetBaseObjectScreenLocation().GetTop());
+        model->ImportModelChildren(node, xlights, newname, min_x, max_x, min_y, max_y);
 
         return model;
     }
@@ -330,7 +333,7 @@ struct XmlSerializer
     }
 
     // Deserialize a single model from an XML document
-    Model* DeserializeModel(const wxXmlDocument &doc, const ModelManager &manager)
+    Model* DeserializeModel(const wxXmlDocument &doc, xLightsFrame* xlights)
     {
         wxXmlNode *root = doc.GetRoot();
 
@@ -338,7 +341,7 @@ struct XmlSerializer
 
         XmlDeserializingObjectFactory factory{};
 
-        return factory.Deserialize(model_node, manager);
+        return factory.Deserialize(model_node, xlights);
     }
 
 };
