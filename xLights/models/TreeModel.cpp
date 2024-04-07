@@ -603,7 +603,7 @@ void TreeModel::ExportAsCustomXModel3D() const
     for (auto& n : Nodes) {
         int xx = SCALE_FACTOR_3D * w * (n->Coords[0].screenX - minx) / w;
         int yy = (SCALE_FACTOR_3D * h) - (SCALE_FACTOR_3D * h * (n->Coords[0].screenY - miny) / h);
-        int zz = SCALE_FACTOR_3D * d * (n->Coords[0].screenZ - minz) / d;
+        int zz = SCALE_FACTOR_3D * d * (maxz - n->Coords[0].screenZ) / d;
         wxASSERT(xx >= 0 && xx < SCALE_FACTOR_3D * w + 1);
         wxASSERT(yy >= 0 && yy < SCALE_FACTOR_3D * h + 1);
         wxASSERT(zz >= 0 && zz < SCALE_FACTOR_3D * d + 1);
