@@ -1048,6 +1048,7 @@
     <ClCompile Include="TempFileManager.cpp" />
     <ClCompile Include="xlColourData.cpp" />
     <ClCompile Include="SpecialOptions.cpp" />
+    <ClCompile Include="controllers\ILightThat.cpp" />
     <ClCompile Include="EditSubmodelAliasesDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -2109,6 +2110,7 @@
     </ClInclude>
     <ClInclude Include="TempFileManager.h" />
     <ClInclude Include="xlColourData.h" />
+    <ClInclude Include="controllers\ILightThat.h" />
     <ClInclude Include="EditSubmodelAliasesDialog.h" />
   </ItemGroup>
   <ItemGroup>
