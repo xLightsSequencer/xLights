@@ -3084,7 +3084,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& val
         }
         sparkles = &sparklesVector[0];
     }
-    if (true) { //}!GPURenderUtils::BlendLayers(this, EffectPeriod, validLayers, saveLayer)) {
+    if (!GPURenderUtils::BlendLayers(this, EffectPeriod, validLayers, saveLayer)) {
         for (int ii = (numLayers - 1); ii >= 0; --ii) {
             if (!validLayers[ii]) {
                 continue;

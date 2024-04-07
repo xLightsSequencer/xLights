@@ -123,8 +123,8 @@ kernel void GetColorsForNodes(constant LayerBlendingData &data,
         result[index] = {0, 0, 0, 0};
         idx &= 0x7FFFFFFF;
         int cnt = indexes[idx++];
-        for (int x = 0; x < cnt; x++) {
-            int nidx = indexes[idx + x];
+        for (int nc = 0; nc < cnt; nc++) {
+            int nidx = indexes[idx + nc];
             uchar4 c = src[nidx];
             
             x = nidx % data.bufferWi;
@@ -133,7 +133,7 @@ kernel void GetColorsForNodes(constant LayerBlendingData &data,
             
             if (c.a > 0 && (!data.useMask || mask[midx] == 0)) {
                 result[index] = c;
-                x = cnt;
+                nc = cnt;
             }
         }
     } else if (data.useMask && mask[midx] > 0) {

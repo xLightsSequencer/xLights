@@ -24,7 +24,6 @@ public:
     bool doTransition(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer, id<MTLBuffer> &prev);
     
     id<MTLBuffer> sparkleBuffer;
-    id<MTLBuffer> tmpBufferLayer;
     id<MTLBuffer> tmpBufferBlend;
 };
 
@@ -52,7 +51,8 @@ public:
     id<MTLTexture> getPixelTexture();
     id<MTLBuffer> getPixelBufferCopy();
     id<MTLBuffer> getIndexBuffer();
-    
+    id<MTLBuffer> getBlendBuffer();
+
 
     void commit();
     bool isCommitted() { return committed; }
@@ -69,6 +69,7 @@ private:
     RenderBuffer *renderBuffer;
     int layer;
     id<MTLCommandBuffer> commandBuffer;
+    id<MTLBuffer> blendBuffer;
     id<MTLBuffer> pixelBuffer;
     id<MTLBuffer> pixelBufferCopy;
     id<MTLTexture> pixelTexture;

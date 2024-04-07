@@ -11,9 +11,14 @@
 MetalComputeUtilities MetalComputeUtilities::INSTANCE;
 
 
-inline void setLabel(id<MTLComputeCommandEncoder> enc, const std::string &s) {
+inline void setLabel(id<MTLComputeCommandEncoder> enc, const std::string &s, int layer = -1) {
 #ifdef DEBUG
-    NSString* mn = [NSString stringWithUTF8String:s.c_str()];
+    std::string s2 = s;
+    if (layer != -1) {
+        s2 += "-";
+        s2 += std::to_string(layer);
+    }
+    NSString* mn = [NSString stringWithUTF8String:s2.c_str()];
     [enc setLabel:mn];
 #endif
 }
@@ -26,20 +31,17 @@ inline void setLabel(id<MTLBuffer> buf, const std::string &s) {
 
 MetalPixelBufferComputeData::MetalPixelBufferComputeData() {
     sparkleBuffer = nil;
-    tmpBufferLayer = nil;
     tmpBufferBlend = nil;
 }
 MetalPixelBufferComputeData::~MetalPixelBufferComputeData() {
     if (sparkleBuffer != nil) {
         [sparkleBuffer release];
     }
-    if (tmpBufferLayer != nil) {
-        [tmpBufferLayer release];
-    }
     if (tmpBufferBlend != nil) {
         [tmpBufferBlend release];
     }
 }
+
 bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer) {
     if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < 1024) {
         return false;
@@ -65,11 +67,9 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
             pixelBuffer->sparkles = static_cast<uint16_t*>(sparkleBuffer.contents);
         }
     }
-    if (tmpBufferLayer == nil) {
+    if (tmpBufferBlend == nil) {
         int len = pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() * sizeof(uint32_t);
-        tmpBufferLayer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModePrivate] retain];
         tmpBufferBlend = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared] retain];
-        setLabel(tmpBufferLayer, pixelBuffer->GetModelName() + "-WorkBuffer");
         setLabel(tmpBufferBlend, pixelBuffer->GetModelName() + "-BlendBuffer");
     }
     MetalRenderBufferComputeData *slRMRB = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&pixelBuffer->layers[saveLayer]->buffer);
@@ -80,11 +80,13 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
     if (commandBuffer == nil) {
         return false;
     }
-    bool first = true;
+    
+    // first load the pixel data into the buffers for blending on each layer
     for (int l = validLayers.size() - 1; l >= 0; --l) {
         if (validLayers[l]) {
             auto layer = pixelBuffer->layers[l];
             MetalRenderBufferComputeData *layerCD = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&layer->buffer);
+            id<MTLBuffer> tmpBufferLayer = layerCD->getBlendBuffer();
             
             LayerBlendingData data;
             data.nodeCount = layer->buffer.GetNodeCount();
@@ -102,22 +104,21 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
             data.chromaColor = layer->chromaKeyColour.asChar4();
             data.effectMixThreshold = layer->outputEffectMixThreshold;
             data.effectMixVaries = layer->effectMixVaries;
-
+            data.fadeFactor = layer->fadeFactor;
+            
             // first, we grab the color for the node from the buffer for the layer
             id<MTLBuffer> lcdPixelBuffer = layerCD->getPixelBuffer();
             id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
             [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.getColorsFunction];
-            setLabel(computeEncoder, "GetColors");
+            setLabel(computeEncoder, "GetColors", l);
             int dataSize = sizeof(data);
             [computeEncoder setBytes:&data length:dataSize atIndex:0];
             [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:1];
             [computeEncoder setBuffer:lcdPixelBuffer offset:0 atIndex:2];
-            
             if (layerCD->maskBuffer == nil) {
                 //layerCD->maskMaxSize = 2;
                 layerCD->maskBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:2 options:MTLResourceStorageModeShared] retain];
             }
-            
             [computeEncoder setBuffer:layerCD->maskBuffer offset:0 atIndex:3];
             [computeEncoder setBuffer:layerCD->getIndexBuffer() offset:0 atIndex:4];
             NSInteger maxThreads = MetalComputeUtilities::INSTANCE.getColorsFunction.maxTotalThreadsPerThreadgroup;
@@ -131,7 +132,7 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
             if (layer->needsHSVAdjust) {
                 id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
                 [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.adjustHSVFunction];
-                setLabel(computeEncoder, "AdjustHSV");
+                setLabel(computeEncoder, "AdjustHSV", l);
                 int dataSize = sizeof(data);
                 [computeEncoder setBytes:&data length:dataSize atIndex:0];
                 [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:1];
@@ -151,7 +152,7 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                 
                 id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
                 [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.applySparklesFunction];
-                setLabel(computeEncoder, "ApplySparkles");
+                setLabel(computeEncoder, "ApplySparkles", l);
                 int dataSize = sizeof(data);
                 [computeEncoder setBytes:&data length:dataSize atIndex:0];
                 [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:1];
@@ -165,10 +166,9 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                 [computeEncoder endEncoding];
             }
             if (layer->contrast != 0 || layer->outputBrightnessAdjust != 100) {
-                
                 id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
                 [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.brightnessContrastFunction];
-                setLabel(computeEncoder, "ApplyBrightnessContrast");
+                setLabel(computeEncoder, "ApplyBrightnessContrast", l);
                 int dataSize = sizeof(data);
                 [computeEncoder setBytes:&data length:dataSize atIndex:0];
                 [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:1];
@@ -180,12 +180,40 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                           threadsPerThreadgroup:threadsPerThreadgroup];
                 [computeEncoder endEncoding];
             }
+        }
+    }
+    
+    // not all the pixels are loaded and adjusted, not start the blending
+    bool first = true;
+    for (int l = validLayers.size() - 1; l >= 0; --l) {
+        if (validLayers[l]) {
+            auto layer = pixelBuffer->layers[l];
+            MetalRenderBufferComputeData *layerCD = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&layer->buffer);
+            id<MTLBuffer> tmpBufferLayer = layerCD->getBlendBuffer();
+
+            LayerBlendingData data;
+            data.nodeCount = layer->buffer.GetNodeCount();
+            data.bufferHi = layer->buffer.BufferHt;
+            data.bufferWi = layer->buffer.BufferWi;
+            data.useMask = layer->maskSize > 0;
+            data.hueAdjust = layer->outputHueAdjust;
+            data.valueAdjust = layer->outputValueAdjust;
+            data.saturationAdjust = layer->outputSaturationAdjust;
+            data.outputSparkleCount = layer->outputSparkleCount;
+            data.contrast = layer->contrast;
+            data.brightness = layer->outputBrightnessAdjust;
+            data.isChromaKey = layer->isChromaKey;
+            data.chromaSensitivity = layer->chromaSensitivity;
+            data.chromaColor = layer->chromaKeyColour.asChar4();
+            data.effectMixThreshold = layer->outputEffectMixThreshold;
+            data.effectMixVaries = layer->effectMixVaries;
             data.fadeFactor = layer->fadeFactor;
+
             if (first) {
                 first = false;
                 id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
                 [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.firstLayerFadeFunction];
-                setLabel(computeEncoder, "ApplyFadeBottomLayer");
+                setLabel(computeEncoder, "ApplyFadeBottomLayer", l);
                 int dataSize = sizeof(data);
                 [computeEncoder setBytes:&data length:dataSize atIndex:0];
                 [computeEncoder setBuffer:tmpBufferBlend offset:0 atIndex:1];
@@ -202,7 +230,7 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                     // need to fade the first here as we're not mixing anything
                     id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
                     [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.nonAlphaFadeFunction];
-                    setLabel(computeEncoder, "ApplyNonAlphaFade");
+                    setLabel(computeEncoder, "ApplyNonAlphaFade", l);
                     int dataSize = sizeof(data);
                     [computeEncoder setBytes:&data length:dataSize atIndex:0];
                     [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:1];
@@ -220,7 +248,7 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                 data.mixTypeData = f->mixTypeData;
 
                 [computeEncoder setComputePipelineState:f->function];
-                setLabel(computeEncoder, f->name);
+                setLabel(computeEncoder, f->name, l);
                 int dataSize = sizeof(data);
                 [computeEncoder setBytes:&data length:dataSize atIndex:0];
                 [computeEncoder setBuffer:tmpBufferBlend offset:0 atIndex:1];
@@ -432,6 +460,7 @@ MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, Met
     pixelBufferCopy = nil;
     pixelTexture = nil;
     maskBuffer = nil;
+    blendBuffer = nil;
     pixelBufferSize = 0;
     pixelTextureSize = {0, 0};
     indexBuffer = nil;
@@ -460,6 +489,9 @@ MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
         if (indexBuffer != nil)  {
             [indexBuffer release];
         }
+        if (blendBuffer != nil) {
+            [blendBuffer release];
+        }
     }
 }
 
@@ -483,7 +515,18 @@ id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer(const std::s
             return nil;
         }
         std::unique_lock<std::mutex> lock(commandBufferMutex);
+#ifdef DEBUG
+        if (@available(macOS 11.0, *)) {
+            MTLCommandBufferDescriptor *descriptor = [MTLCommandBufferDescriptor new];
+            descriptor.errorOptions = MTLCommandBufferErrorOptionEncoderExecutionStatus;
+            commandBuffer = [[MetalComputeUtilities::INSTANCE.commandQueue commandBufferWithDescriptor:descriptor] retain];
+            [descriptor release];
+        } else {
+            commandBuffer = [[MetalComputeUtilities::INSTANCE.commandQueue commandBuffer] retain];
+        }
+#else
         commandBuffer = [[MetalComputeUtilities::INSTANCE.commandQueue commandBuffer] retain];
+#endif
         std::string modelName = renderBuffer->GetModelName() + "-" + std::to_string(layer);
         if (!postfix.empty()) {
             modelName += postfix;
@@ -500,6 +543,15 @@ void MetalRenderBufferComputeData::abortCommandBuffer() {
         --commandBufferCount;
     }
 }
+id<MTLBuffer> MetalRenderBufferComputeData::getBlendBuffer() {
+    if (blendBuffer == nil) {
+        int len = renderBuffer->GetNodeCount() * sizeof(uint32_t);
+        blendBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared] retain];
+        setLabel(blendBuffer, renderBuffer->GetModelName() + "-WorkBuffer" + std::to_string(layer));
+    }
+    return blendBuffer;
+}
+
 id<MTLBuffer> MetalRenderBufferComputeData::getIndexBuffer() {
     return indexBuffer;
 }
@@ -514,6 +566,9 @@ id<MTLBuffer> MetalRenderBufferComputeData::getPixelBufferCopy() {
     }
     return pixelBufferCopy;
 }
+
+
+
 void MetalRenderBufferComputeData::bufferResized() {
     if (pixelBuffer && pixelBufferSize < renderBuffer->GetPixelCount()) {
         //buffer needs to get bigger
@@ -689,7 +744,26 @@ void MetalRenderBufferComputeData::waitForCompletion() {
     if (commandBuffer != nil) {
         @autoreleasepool {
             commit();
+#ifdef DEBUG
+            [commandBuffer waitUntilScheduled];
+            MTLCommandBufferStatus status = [commandBuffer status];
+            int cnt = 0;
+            while (status < MTLCommandBufferStatusCompleted && cnt++ < 250) {
+                std::this_thread::sleep_for(std::chrono::microseconds(10));
+                status = [commandBuffer status];
+            }
+            if (@available(macOS 11.0, *)) {
+                NSError *error = [commandBuffer error];
+                if (error != nil) {
+                    int ec = error.code;
+                    //id info = error.userInfo[MTLCommandBufferEncoderInfoErrorKey];
+                    printf("ERROR!!  ec: %d  \n", ec);
+                }
+            }
             [commandBuffer waitUntilCompleted];
+#else
+            [commandBuffer waitUntilCompleted];
+#endif
             [commandBuffer release];
             commandBuffer = nil;
             committed = false;
