@@ -104,7 +104,7 @@ class ColorManager
         void SetNewColor(std::string name, xlColor& color);
         xlColor GetColor(ColorNames name);
         const xlColor* GetColorPtr(ColorNames name);
-  
+ 
         void Snapshot();
         void RestoreSnapshot();
 
