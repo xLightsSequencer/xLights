@@ -1290,26 +1290,21 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
         wxASSERT(false);
     }
 
-    //logger_base.debug("Adding model %s", (const char *)model->GetFullName().c_str());
-
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, TreeModelName(model, fullName),
                                                          LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Closed),
                                                          LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Opened),
                                                          new ModelTreeData(model, nativeOrder, fullName));
 
-    if( model->GetDisplayAs() != "ModelGroup" ) {
+    if (model->GetDisplayAs() != "ModelGroup") {
         wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
         wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
-        if (model->GetDisplayAs() == "SubModel" || (model->CouldComputeStartChannel && model->IsValidStartChannelString()))
-        {
+        if (model->GetDisplayAs() != "SubModel" && (model->CouldComputeStartChannel && model->IsValidStartChannelString())) {
             SetTreeListViewItemText(item, Col_StartChan, startStr);
-        }
-        else
-        {
+            SetTreeListViewItemText(item, Col_EndChan, endStr);
+        } else if (model->GetDisplayAs() != "SubModel") {
             SetTreeListViewItemText(item, Col_StartChan, "*** " + model->ModelStartChannel);
+            SetTreeListViewItemText(item, Col_EndChan, endStr);
         }
-        SetTreeListViewItemText(item, Col_EndChan, endStr);
-
         std::string cc = model->GetControllerConnectionRangeString();
         SetTreeListViewItemText(item, Col_ControllerConnection, cc);
     }
@@ -1317,23 +1312,17 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
     for (int x = 0; x < model->GetNumSubModels(); x++) {
         AddModelToTree(model->GetSubModel(x), &item, false, x);
     }
+
     if( model->GetDisplayAs() == "ModelGroup" ) {
         ModelGroup *grp = (ModelGroup*)model;
         int i = 0;
         for (const auto& it : grp->ModelNames()) {
             Model *m = xlights->AllModels[it];
-
-            if (m == nullptr)
-            {
+            if (m == nullptr) {
                 logger_base.error("Model group %s thought it contained model. '%s' but it didnt. This would have crashed.", (const char *)grp->GetName().c_str(), (const char *)it.c_str());
-            }
-            else if (m == grp)
-            {
-                // This is bad ... a model group contains itself
+            } else if (m == grp) {
                 logger_base.error("Model group contains itself. '%s'", (const char *)grp->GetName().c_str());
-            }
-            else
-            {
+            } else {
                 AddModelToTree(m, &item, false, i, true);
                 i++;
             }
