@@ -24,6 +24,7 @@
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
+#include "ColorManager.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 #include "MediaImportOptionsDialog.h"
@@ -181,7 +182,7 @@ bool xLightsImportTreeModel::GetAttr(const wxDataViewItem &item, unsigned int co
     }
 
     if (node->IsGroup()) {
-            attr.SetColour(CyanOrBlue());
+        attr.SetColour(ColorManager::instance()->CyanOrBlueOverride());
         set = true;
     }
 
@@ -923,7 +924,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
 
             // If importing from xsqPkg flag known groups by color like is currently done in mapped list
             if (m->type == "ModelGroup") {
-                ListCtrl_Available->SetItemTextColour(j, CyanOrBlue());
+                ListCtrl_Available->SetItemTextColour(j, ColorManager::instance()->CyanOrBlueOverride());
             }
             j++;
         }
@@ -2235,13 +2236,13 @@ void xLightsImportChannelMapDialog::MarkUsed()
             // not used
             ImportChannel* im = GetImportChannel(ListCtrl_Available->GetItemText(i).ToStdString());
             if (im != nullptr && im->type == "ModelGroup") {
-                ListCtrl_Available->SetItemTextColour(i, CyanOrBlue());
+                ListCtrl_Available->SetItemTextColour(i, ColorManager::instance()->CyanOrBlueOverride());
             } else {
                 ListCtrl_Available->SetItemTextColour(i, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT));
             }
         } else {
             //used
-            ListCtrl_Available->SetItemTextColour(i, LightOrMediumGrey());
+            ListCtrl_Available->SetItemTextColour(i, ColorManager::instance()->LightOrMediumGreyOverride());
         }
     }
     ListCtrl_Available->Thaw();
