@@ -1396,7 +1396,7 @@ void DumpBinary(uint8_t* buffer, size_t sz)
 wxColor CyanOrBlue()
 {
     // if the color is set use that .. otherwise default to the usual
-    auto color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_TEXT_HIGHLIGHTED);
+    const xlColor* color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_TEXT_HIGHLIGHTED);
     if (color->asWxColor() == *wxBLACK) {
         if (IsDarkMode()) {
             // In Dark Mode blue is hard to read
@@ -1411,7 +1411,7 @@ wxColor CyanOrBlue()
 
 wxColor LightOrMediumGrey()
 {
-    auto color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_TEXT_UNSELECTED);
+    const xlColor* color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_TEXT_UNSELECTED);
     if (color->asWxColor() == *wxBLACK) {
         if (IsDarkMode()) {
             static const wxColor medGray(128, 128, 128);
