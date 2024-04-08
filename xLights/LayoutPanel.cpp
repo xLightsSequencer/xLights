@@ -1298,11 +1298,12 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
     if (model->GetDisplayAs() != "ModelGroup") {
         wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
         wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
-        if (model->GetDisplayAs() != "SubModel" && (model->CouldComputeStartChannel && model->IsValidStartChannelString())) {
-            SetTreeListViewItemText(item, Col_StartChan, startStr);
-            SetTreeListViewItemText(item, Col_EndChan, endStr);
-        } else if (model->GetDisplayAs() != "SubModel") {
-            SetTreeListViewItemText(item, Col_StartChan, "*** " + model->ModelStartChannel);
+        if (model->GetDisplayAs() != "SubModel") {
+            if (model->CouldComputeStartChannel && model->IsValidStartChannelString()) {
+                SetTreeListViewItemText(item, Col_StartChan, startStr);
+            } else {
+                SetTreeListViewItemText(item, Col_StartChan, "*** " + model->ModelStartChannel);
+            }
             SetTreeListViewItemText(item, Col_EndChan, endStr);
         }
         std::string cc = model->GetControllerConnectionRangeString();
