@@ -51,7 +51,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
     _layout(n->GetAttribute("layout")),
     _type(n->GetAttribute("type", "ranges")),
     _bufferStyle(n->GetAttribute("bufferstyle", DEFAULT))
-{
+ {
 
     // copy change count from owning model ... otherwise we lose track of changes when the model is recreated
     changeCount = p->changeCount;
@@ -364,6 +364,24 @@ void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outpu
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
         p->ChangeFlag(wxPG_PROP_READONLY, true);
     }
+    auto smaliases = parent->GetSubModel(this->GetName())->GetAliases();
+    if (smaliases.size() > 0) {
+        std::string sma;
+        std::string smacr;
+        for (const auto& it : smaliases) {
+            if (sma != "") {
+                sma += ", ";
+                smacr += "\n";
+            }
+            sma += it;
+            smacr += it;
+        }
+        p = grid->Append(new wxStringProperty("Sub-model Aliases", "SMA", sma));
+        p->SetHelpString(smacr);
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPG_PROP_READONLY, true);
+    }
+  
 }
 
 static const std::string VERT_PER_STRAND("Vertical Per Strand");

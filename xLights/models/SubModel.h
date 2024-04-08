@@ -59,6 +59,7 @@ public:
         std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
 
     std::string GetDuplicateNodes() const { return _duplicateNodes; }
+    std::list<std::string> GetAliases() const { return _aliases; }
 
 private:
     void CheckDuplicates(const std::vector<int>& nodeIndexes);
@@ -70,6 +71,7 @@ private:
     const std::string _bufferStyle;
     std::string _properyGridDisplay;
     std::string _duplicateNodes;
+    std::list<std::string> _aliases;
     
     static std::vector<std::string> SUBMODEL_BUFFER_STYLES;
 };
