@@ -90,7 +90,11 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
             std::set<int> nodeIdx;
             while (n->HasAttribute(wxString::Format("line%d", line))) {
                 wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
-                _properyGridDisplay = nodes + "," + _properyGridDisplay;
+                if (_properyGridDisplay == "") {
+                    _properyGridDisplay = nodes;
+                } else {
+                    _properyGridDisplay = _properyGridDisplay + "," + nodes;
+                }
                 wxStringTokenizer wtkz(nodes, ",");
                 while (wtkz.HasMoreTokens()) {
                     wxString valstr = wtkz.GetNextToken();
@@ -163,8 +167,11 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
             std::vector<int> nodeIndexes;
             while (n->HasAttribute(wxString::Format("line%d", line))) {
                 wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
-                //logger_base.debug("    Line %d: %s", line, (const char*)nodes.c_str());
-                _properyGridDisplay = nodes + "," + _properyGridDisplay;
+                if (_properyGridDisplay == "") {
+                    _properyGridDisplay = nodes;
+                } else {
+                    _properyGridDisplay = _properyGridDisplay + "," + nodes;
+                }
                 wxStringTokenizer wtkz(nodes, ",");
                 while (wtkz.HasMoreTokens()) {
                     wxString valstr = wtkz.GetNextToken();
