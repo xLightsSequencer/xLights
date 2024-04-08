@@ -1261,7 +1261,7 @@ void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius,
     context->GetTextExtent(text, &width, &height);
 
     context->SetOverlayMode(true);
-    context->DrawText(text, std::round((float)xc - width / 2.0), std::round((float)(50.0 - yc) - height / 2.0));
+    context->DrawText(text, std::round((float)xc - width / 2.0), std::round((float)(buffer.BufferHt - yc) - height / 2.0));
     context->SetOverlayMode(false);
 }
 
