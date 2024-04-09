@@ -158,64 +158,72 @@ int DmxMotor::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     std::string name = event.GetPropertyName().ToStdString();
 
     if (base_name + "ChannelCoarse" == name) {
+        channel_coarse = (int)event.GetPropertyValue().GetLong();
         node_xml->DeleteAttribute("ChannelCoarse");
-        node_xml->AddAttribute("ChannelCoarse", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        node_xml->AddAttribute("ChannelCoarse", wxString::Format("%d", channel_coarse));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::ChannelCoarse");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::ChannelCoarse");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMotor::OnPropertyGridChange::ChannelCoarse");
         return 0;
     }
     else if (base_name + "ChannelFine" == name) {
+        channel_fine = (int)event.GetPropertyValue().GetLong();
         node_xml->DeleteAttribute("ChannelFine");
-        node_xml->AddAttribute("ChannelFine", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        node_xml->AddAttribute("ChannelFine", wxString::Format("%d", channel_fine));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::ChannelFine");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::ChannelFine");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMotor::OnPropertyGridChange::ChannelFine");
         return 0;
     }
     else if (base_name + "MinLimit" == name) {
+        min_limit = (int)event.GetPropertyValue().GetLong();
         node_xml->DeleteAttribute("MinLimit");
-        node_xml->AddAttribute("MinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        node_xml->AddAttribute("MinLimit", wxString::Format("%d", min_limit));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::MinLimit");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::MinLimit");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::MinLimit");
         return 0;
     }
     else if (base_name + "MaxLimit" == name) {
+        max_limit = (int)event.GetPropertyValue().GetLong();
         node_xml->DeleteAttribute("MaxLimit");
-        node_xml->AddAttribute("MaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        node_xml->AddAttribute("MaxLimit", wxString::Format("%d", max_limit));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::MaxLimit");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::MaxLimit");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::MaxLimit");
         return 0;
     }
     else if (base_name + "RangeOfMotion" == name) {
+        range_of_motion = (float)event.GetPropertyValue().GetDouble();
         node_xml->DeleteAttribute("RangeOfMotion");
-        node_xml->AddAttribute("RangeOfMotion", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
+        node_xml->AddAttribute("RangeOfMotion", wxString::Format("%6.4f", range_of_motion));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::RangeOfMotion");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::RangeOfMotion");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::RangeOfMotion");
         return 0;
     }
     else if (base_name + "OrientZero" == name) {
+        orient_zero = (int)event.GetPropertyValue().GetLong();
         node_xml->DeleteAttribute("OrientZero");
-        node_xml->AddAttribute("OrientZero", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        node_xml->AddAttribute("OrientZero", wxString::Format("%d", orient_zero));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::OrientZero");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::OrientZero");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::OrientZero");
         return 0;
     }
     else if (base_name + "OrientHome" == name) {
+        orient_home = (int)event.GetPropertyValue().GetLong();
         node_xml->DeleteAttribute("OrientHome");
-        node_xml->AddAttribute("OrientHome", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        node_xml->AddAttribute("OrientHome", wxString::Format("%d", orient_home));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::OrientHome");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::OrientHome");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::OrientHome");
         return 0;
     }
     else if (base_name + "SlewLimit" == name) {
+        slew_limit = (float)event.GetPropertyValue().GetDouble();
         node_xml->DeleteAttribute("SlewLimit");
-        node_xml->AddAttribute("SlewLimit", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
+        node_xml->AddAttribute("SlewLimit", wxString::Format("%6.4f", slew_limit));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::SlewLimit");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::SlewLimit");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::SlewLimit");

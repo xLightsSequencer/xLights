@@ -13,10 +13,11 @@
 #include "DmxMovingHeadComm.h"
 #include "DmxPanTiltAbility.h"
 #include "DmxShutterAbility.h"
+#include "DmxMotor.h"
 
 class DmxMotorBase;
 
-class DmxMovingHead : public DmxMovingHeadComm, public DmxPanTiltAbility, public DmxShutterAbility
+class DmxMovingHead : public DmxMovingHeadComm, public DmxShutterAbility
 {
     public:
         DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
@@ -52,6 +53,9 @@ class DmxMovingHead : public DmxMovingHeadComm, public DmxPanTiltAbility, public
 
         virtual float GetDefaultBeamWidth() const { return 30; }
 
+        std::unique_ptr<DmxMotor> pan_motor = nullptr;
+        std::unique_ptr<DmxMotor> tilt_motor = nullptr;
+        std::map<std::string, PanTiltState> panTiltStates;
 
         bool hide_body = false;
         bool style_changed;

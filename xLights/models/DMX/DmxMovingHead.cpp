@@ -140,7 +140,8 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
     wxPGProperty* p = grid->Append(new wxBoolProperty("Hide Body", "HideBody", hide_body));
     p->SetAttribute("UseCheckbox", true);
 
-    AddPanTiltTypeProperties(grid);
+    pan_motor->AddTypeProperties(grid);
+    tilt_motor->AddTypeProperties(grid);
 
     if (nullptr != color_ability) {
         grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
@@ -175,7 +176,11 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         return 0;
     }
 
-    if (OnPanTiltPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (pan_motor->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        return 0;
+    }
+
+    if (tilt_motor->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
         return 0;
     }
 
@@ -289,18 +294,47 @@ void DmxMovingHead::InitModel() {
         color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
     }
 
-    pan_motor = std::make_unique<DmxMotorPanTilt>();
-    tilt_motor = std::make_unique<DmxMotorPanTilt>();
+    wxXmlNode* n = ModelXml->GetChildren();
+    while (n != nullptr) {
+        std::string name = n->GetName();
 
-    pan_motor->channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "0"));
-    pan_motor->orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "0"));
-    pan_motor->deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxPanDegOfRot", "540"));
-    pan_motor->slew_limit = wxAtof(ModelXml->GetAttribute("DmxPanSlewLimit", "0"));
+        if ("PanMotor" == name) {
+             if (pan_motor == nullptr) {
+                pan_motor = std::make_unique<DmxMotor>(n, name);
+             }
+        } else if ("TiltMotor" == name) {
+            if (tilt_motor == nullptr) {
+                tilt_motor = std::make_unique<DmxMotor>(n, name);
+            }
+        }
+        n = n->GetNext();
+    }
 
-	tilt_motor->channel = wxAtoi(ModelXml->GetAttribute("DmxTiltChannel", "0"));
-    tilt_motor->orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "0"));
-    tilt_motor->deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxTiltDegOfRot", "180"));
-    tilt_motor->slew_limit = wxAtof(ModelXml->GetAttribute("DmxTiltSlewLimit", "0"));
+    // create pan motor
+    if (pan_motor == nullptr) {
+        std::string new_name = "PanMotor";
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+        ModelXml->AddChild(new_node);
+        pan_motor = std::make_unique<DmxMotor>(new_node, new_name);
+        pan_motor->SetChannelCoarse(1);
+        new_node->AddAttribute("RangeOfMotion", "540");
+        new_node->AddAttribute("OrientHome", "90");
+        new_node->AddAttribute("SlewLimit", "180");
+    }
+
+    // create tilt motor
+    if (tilt_motor == nullptr) {
+        std::string new_name = "TiltMotor";
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+        ModelXml->AddChild(new_node);
+        new_node->AddAttribute("OrientHome", "90");
+        new_node->AddAttribute("SlewLimit", "180");
+        tilt_motor = std::make_unique<DmxMotor>(new_node, new_name);
+        tilt_motor->SetChannelCoarse(3);
+    }
+
+    pan_motor->Init(this);
+    tilt_motor->Init(this);
 
 	shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
 	shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
@@ -457,11 +491,20 @@ std::list<std::string> DmxMovingHead::CheckModelSettings()
 
     int nodeCount = Nodes.size();
 
-    if (pan_motor->channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s pan channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), pan_motor->channel, nodeCount));
+    if (pan_motor->GetChannelCoarse() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s pan motor coarse is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannelCoarse(), nodeCount));
     }
-    if (tilt_motor->channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s tilt channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), tilt_motor->channel, nodeCount));
+
+    if (pan_motor->GetChannelFine() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s pan motor fine is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannelFine(), nodeCount));
+    }
+
+    if (tilt_motor->GetChannelCoarse() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s tilt motor coarse is assigned to channel %d but the model only has %d channels.", GetName(), tilt_motor->GetChannelCoarse(), nodeCount));
+    }
+
+    if (tilt_motor->GetChannelFine() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s tilt motor fine is assigned to channel %d but the model only has %d channels.", GetName(), tilt_motor->GetChannelFine(), nodeCount));
     }
 
     res.splice(res.end(), DmxModel::CheckModelSettings());
@@ -470,12 +513,28 @@ std::list<std::string> DmxMovingHead::CheckModelSettings()
 
 void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
 {
-    size_t NodeCount = Nodes.size();
+    if (pan_motor->GetChannelCoarse() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (pan_motor->GetChannelFine() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (tilt_motor->GetChannelCoarse() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (tilt_motor->GetChannelFine() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
 
-    if (pan_motor->channel > NodeCount ||
-        tilt_motor->channel > NodeCount ||
-        !color_ability->IsValidModelSettings(this) ||
-        !preset_ability->IsValidModelSettings(this)) {
+    size_t NodeCount = Nodes.size();
+    if ((( nullptr != color_ability ) && !color_ability->IsValidModelSettings(this)) ||
+        !preset_ability->IsValidModelSettings(this) ||
+        shutter_channel > NodeCount)
+    {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
@@ -521,20 +580,16 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     }
 
     float pan_angle = 0;
-    if (pan_motor->channel > 0 && pan_motor->channel <= NodeCount && active) {
-        Nodes[pan_motor->channel - 1]->GetColor(color_angle);
-        pan_angle = (color_angle.red / 255.0f) * pan_motor->deg_of_rot + pan_motor->orient;
-    } else {
-        pan_angle = pan_motor->orient;
+    if (pan_motor->GetChannelCoarse() > 0 && active) {
+        pan_angle = -1.0f * pan_motor->GetPosition(GetChannelValue(pan_motor->GetChannelCoarse() - 1, pan_motor->GetChannelFine() - 1));
     }
+    pan_angle += pan_motor->GetOrientZero();
 
     float tilt_angle = 0;
-    if (tilt_motor->channel > 0 && tilt_motor->channel <= NodeCount && active) {
-        Nodes[tilt_motor->channel - 1]->GetColor(color_angle);
-        tilt_angle = (color_angle.red / 255.0f) * tilt_motor->deg_of_rot + tilt_motor->orient;
-    } else {
-        tilt_angle = tilt_motor->orient;
+    if (tilt_motor->GetChannelCoarse() > 0 && active) {
+        tilt_angle = -1.0f * tilt_motor->GetPosition(GetChannelValue(tilt_motor->GetChannelCoarse() - 1, tilt_motor->GetChannelFine() - 1));
     }
+    tilt_angle += tilt_motor->GetOrientZero();
 
     uint32_t ms = preview->getCurrentFrameTime();
     uint32_t time_delta = 0;
@@ -551,8 +606,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
 
     if (time_delta != 0 && active) {
         // pan slew limiting
-        if (pan_motor->slew_limit > 0.0f) {
-            float slew_limit = pan_motor->slew_limit * (float)time_delta / 1000.0f;
+        if (pan_motor->GetSlewLimit() > 0.0f) {
+            float slew_limit = pan_motor->GetSlewLimit() * (float)time_delta / 1000.0f;
             float pan_delta = pan_angle - old_pan_angle;
             if (std::abs(pan_delta) > slew_limit) {
                 if (pan_delta < 0) {
@@ -567,8 +622,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
 
     if (time_delta != 0 && active) {
         // tilt slew limiting
-        if (tilt_motor->slew_limit > 0.0f) {
-            float slew_limit = tilt_motor->slew_limit * (float)time_delta / 1000.0f;
+        if (tilt_motor->GetSlewLimit() > 0.0f) {
+            float slew_limit = tilt_motor->GetSlewLimit() * (float)time_delta / 1000.0f;
             float tilt_delta = tilt_angle - old_tilt_angle;
             if (std::abs(tilt_delta) > slew_limit) {
                 if (tilt_delta < 0) {
@@ -580,14 +635,14 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     }
 
     // Determine if we need to flip the beam
-    float tilt_pos = RenderBuffer::cos(ToRadians(tilt_angle)) * 0.9f;
-    if (tilt_pos < 0) {
+    float tilt_pos = RenderBuffer::cos(ToRadians(tilt_angle));
+    if (tilt_pos < 0.0f) {
         if (pan_angle >= 180.0f) {
             pan_angle -= 180.0f;
         } else {
             pan_angle += 180.0f;
         }
-        tilt_pos *= -1;
+        tilt_pos *= -1.0f;
     }
 
     float angle;
@@ -739,9 +794,9 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
             float val = (float)proxy.red;
             float offsetx = val / 255.0f * 0.8f;
             if (color_ability->ApplyChannelTransparency(proxy, trans, i)) {
-            } else if (i == pan_motor->channel) {
+            } else if (i == pan_motor->GetChannelCoarse()) {
                 proxy = pink;
-            } else if (i == tilt_motor->channel) {
+            } else if (i == tilt_motor->GetChannelCoarse()) {
                 proxy = turqoise;
             } else {
                 proxy = ccolor;
@@ -1262,11 +1317,17 @@ std::vector<std::string> DmxMovingHead::GenerateNodeNames() const
     if (0 != shutter_channel && shutter_channel < names.size()) {
         names[shutter_channel - 1] = "Shutter";
     }
-    if (0 != pan_motor->channel && pan_motor->channel < names.size()) {
-        names[pan_motor->channel - 1] = "Pan";
+    if (0 != pan_motor->GetChannelCoarse() && pan_motor->GetChannelCoarse() < names.size()) {
+        names[pan_motor->GetChannelCoarse() - 1] = "Pan";
     }
-    if (0 != tilt_motor->channel && tilt_motor->channel < names.size()) {
-        names[tilt_motor->channel - 1] = "Tilt";
+    if (0 != tilt_motor->GetChannelCoarse() && tilt_motor->GetChannelCoarse() < names.size()) {
+        names[tilt_motor->GetChannelCoarse() - 1] = "Tilt";
+    }
+    if (0 != pan_motor->GetChannelFine() && pan_motor->GetChannelFine() < names.size()) {
+        names[pan_motor->GetChannelFine() - 1] = "Pan Fine";
+    }
+    if (0 != tilt_motor->GetChannelFine() && tilt_motor->GetChannelFine() < names.size()) {
+        names[tilt_motor->GetChannelFine() - 1] = "Tilt Fine";
     }
 
     if (nullptr != color_ability) {

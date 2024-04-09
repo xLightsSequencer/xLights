@@ -635,6 +635,7 @@ void MovingHeadPanel::PopulatePresets()
 
     wxStandardPaths stdp = wxStandardPaths::Get();
 
+
 #ifndef __WXMSW__
     d = wxStandardPaths::Get().GetResourcesDir() + "/mhpresets";
 #else
@@ -915,7 +916,7 @@ void MovingHeadPanel::UpdateColorPanel()
     for (const auto& it : models) {
         if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
-            bool active = IsHeadActive(mhead->GetFixtureVal());
+            bool active = IsHeadActive(mhead->GetFixtureVal()) || (models.size() == 1);
             if( active ) {
                 if( mhead->HasColorAbility() ) {
                     DmxColorAbility* ptrColorAbility = mhead->GetColorAbility();

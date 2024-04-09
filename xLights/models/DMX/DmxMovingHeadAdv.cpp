@@ -264,7 +264,7 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
 
 void DmxMovingHeadAdv::DisableUnusedProperties(wxPropertyGridInterface* grid)
 {
-    auto p = grid->GetPropertyByName("DmxPanChannel");
+    /*auto p = grid->GetPropertyByName("DmxPanChannel");
     if (p != nullptr) {
         p->Hide(true);
     }
@@ -279,11 +279,11 @@ void DmxMovingHeadAdv::DisableUnusedProperties(wxPropertyGridInterface* grid)
     p = grid->GetPropertyByName("DmxTiltDegOfRot");
     if (p != nullptr) {
         p->Hide(true);
-    }
+    }*/
     
     // rotation around the Z axis causes issues when the pan and tilt rotations are applied
     // users should be able to achieve any desired position with only X and Y rotations
-    p = grid->GetPropertyByName("c");
+    auto p = grid->GetPropertyByName("c");
     if (p != nullptr) {
         p->Hide(true);
     }
