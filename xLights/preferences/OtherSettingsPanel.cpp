@@ -280,6 +280,12 @@ void OtherSettingsPanel::OnControlChanged(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
+    } else {
+#ifdef __WXMSW__
+        frame->SetHardwareVideoRenderer(HardwareVideoRenderChoice->GetSelection());
+        HardwareVideoRenderChoice->Enable(HardwareVideoDecodingCheckBox->IsChecked());
+#endif
+        return;
     }
 }
 
