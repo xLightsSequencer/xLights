@@ -103,7 +103,7 @@ public:
     void reversePath(int pathIndex);
     void deletePath(int pathIndex);
     void swapPaths(int pathIndex0, int pathIndex1);
-
+    
     void getProgressPosition( double progress, double& x, double& y );
     [[nodiscard]] double getLength();
 

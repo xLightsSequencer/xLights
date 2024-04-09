@@ -16,7 +16,7 @@
 #include "../BaseObject.h"
 #include "../Model.h"
 
-#include "../../Color.h"
+
 #include "../Node.h"
 
 void DmxColorAbilityRGB::InitColor( wxXmlNode* ModelXml)
@@ -30,6 +30,16 @@ void DmxColorAbilityRGB::InitColor( wxXmlNode* ModelXml)
 bool DmxColorAbilityRGB::IsColorChannel(uint32_t channel) const
 {
     return (red_channel == channel || green_channel == channel || blue_channel == channel || white_channel == channel);
+}
+
+int DmxColorAbilityRGB::GetNumChannels() const
+{
+    int num_channels = 0;
+    num_channels += red_channel > 0 ? 1 : 0;
+    num_channels += green_channel > 0 ? 1 : 0;
+    num_channels += blue_channel > 0 ? 1 : 0;
+    num_channels += white_channel > 0 ? 1 : 0;
+    return num_channels;
 }
 
 void DmxColorAbilityRGB::SetColorPixels(const xlColor& color, xlColorVector& pixelVector) const
@@ -95,7 +105,7 @@ bool DmxColorAbilityRGB::IsValidModelSettings(Model* m) const
 
 void DmxColorAbilityRGB::AddColorTypeProperties(wxPropertyGridInterface *grid) const {
 
-    wxPGProperty* p = grid->Append(new wxUIntProperty("Red Channel", "DmxRedChannel", red_channel));
+    auto p = grid->Append(new wxUIntProperty("Red Channel", "DmxRedChannel", red_channel));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");

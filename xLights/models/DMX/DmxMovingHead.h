@@ -10,12 +10,14 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "DmxModel.h"
-#include "DmxColorAbility.h"
+#include "DmxMovingHeadComm.h"
 #include "DmxPanTiltAbility.h"
 #include "DmxShutterAbility.h"
+#include "DmxMotor.h"
 
-class DmxMovingHead : public DmxModel, public DmxPanTiltAbility, public DmxShutterAbility
+class DmxMotorBase;
+
+class DmxMovingHead : public DmxMovingHeadComm, public DmxShutterAbility
 {
     public:
         DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
@@ -35,6 +37,9 @@ class DmxMovingHead : public DmxModel, public DmxPanTiltAbility, public DmxShutt
         void EnableFixedChannels(xlColorVector& pixelVector) override;
         [[nodiscard]] std::vector<std::string> GenerateNodeNames() const override;
 
+        DmxMotorBase* GetPanMotor() const override { return pan_motor.get(); }
+        DmxMotorBase* GetTiltMotor() const override { return tilt_motor.get(); }
+
     protected:
         void Draw3DDMXBaseLeft(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle);
         void Draw3DDMXBaseRight(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle);
@@ -48,6 +53,9 @@ class DmxMovingHead : public DmxModel, public DmxPanTiltAbility, public DmxShutt
 
         virtual float GetDefaultBeamWidth() const { return 30; }
 
+        std::unique_ptr<DmxMotor> pan_motor = nullptr;
+        std::unique_ptr<DmxMotor> tilt_motor = nullptr;
+        std::map<std::string, PanTiltState> panTiltStates;
 
         bool hide_body = false;
         bool style_changed;
@@ -55,6 +63,4 @@ class DmxMovingHead : public DmxModel, public DmxPanTiltAbility, public DmxShutt
         int dmx_style_val;
         float beam_length;
         float beam_width;
-
-    private:
 };

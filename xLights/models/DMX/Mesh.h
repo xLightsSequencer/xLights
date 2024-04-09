@@ -42,8 +42,13 @@ public:
     int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
     void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram,
-              glm::mat4& base_matrix, glm::mat4& motion_matrix,
-              bool show_empty, float pivot_offset_x = 0, float pivot_offset_y = 0, float pivot_offset_z = 0, bool rotation = false, bool use_pivot = false);
+            glm::mat4& base_matrix, glm::mat4& motion_matrix,
+            bool show_empty, float pivot_offset_x = 0, float pivot_offset_y = 0, float pivot_offset_z = 0,
+            bool rotation = false, bool use_pivot = false);
+
+    void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram,     glm::mat4& base_matrix, glm::mat4& trans_matrix, float xrot, float yrot, float zrot,
+            bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z,
+            bool rotation, bool use_pivot);
 
     void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
     void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
@@ -51,10 +56,24 @@ public:
     void SetLink(Mesh* val) { link = val; }
     Mesh* GetLink() { return link; }
 
-    float GetWidth() { return width; }
-    float GetHeight() { return height; }
-    float GetDepth() { return depth; }
+    float GetWidth() const { return width; }
+    float GetHeight() const { return height; }
+    float GetDepth() const { return depth; }
     void SetHalfHeight() { half_height = 0.5f; }
+
+    std::string GetName() const { return base_name; }
+    std::string GetObjFile() const { return _objFile; }
+    float GetBrightness() const { return brightness; }
+    bool GetMeshOnly() const { return mesh_only; }
+    float GetOffsetX() const { return offset_x; }
+    float GetOffsetY() const { return offset_y; }
+    float GetOffsetZ() const { return offset_z; }
+    float GetScaleX() const { return scalex; }
+    float GetScaleY() const { return scaley; }
+    float GetScaleZ() const { return scalez; }
+    float GetRotateX() const { return rotatex; }
+    float GetRotateY() const { return rotatey; }
+    float GetRotateZ() const { return rotatez; }
 
     void SetRenderScaling(float s);
     void SetMeshOnly(bool val) { mesh_only = val; }

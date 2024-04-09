@@ -11,8 +11,7 @@
  **************************************************************/
 
 #include "DmxColorAbility.h"
-
-
+#include "../../Color.h"
 
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
@@ -45,6 +44,7 @@ class DmxColorAbilityRGB : public DmxColorAbility
         void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const override;
         void ImportParameters(wxXmlNode* ImportXml, Model* m) const override;
         void SetNodeNames(std::vector<std::string> & names) const override;
+        int GetNumChannels() const override;
 
         [[nodiscard]] uint32_t GetRedChannel() const { return red_channel; }
         [[nodiscard]] uint32_t GetGreenChannel() const { return green_channel; }

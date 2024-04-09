@@ -653,6 +653,21 @@
 		<Unit filename="effects/MorphEffect.h" />
 		<Unit filename="effects/MorphPanel.cpp" />
 		<Unit filename="effects/MorphPanel.h" />
+		<Unit filename="effects/MovingHeadEffect.cpp" />
+		<Unit filename="effects/MovingHeadEffect.h" />
+		<Unit filename="effects/MovingHeadPanel.cpp" />
+		<Unit filename="effects/MovingHeadPanel.h" />
+		<Unit filename="effects/MovingHeadPanels/MHColorPanel.h" />
+		<Unit filename="effects/MovingHeadPanels/MHColorWheelPanel.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MHColorWheelPanel.h" />
+		<Unit filename="effects/MovingHeadPanels/MHPathPresetBitmapButton.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MHPathPresetBitmapButton.h" />
+		<Unit filename="effects/MovingHeadPanels/MHPresetBitmapButton.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MHPresetBitmapButton.h" />
+		<Unit filename="effects/MovingHeadPanels/MHRgbPickerPanel.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MHRgbPickerPanel.h" />
+		<Unit filename="effects/MovingHeadPanels/MovingHeadCanvasPanel.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MovingHeadCanvasPanel.h" />
 		<Unit filename="effects/MusicEffect.cpp" />
 		<Unit filename="effects/MusicEffect.h" />
 		<Unit filename="effects/MusicPanel.cpp" />
@@ -811,6 +826,7 @@
 		<Unit filename="models/ArchesModel.h" />
 		<Unit filename="models/BaseObject.cpp" />
 		<Unit filename="models/BaseObject.h" />
+		<Unit filename="models/BaseObjectVisitor.h" />
 		<Unit filename="models/BoxedScreenLocation.cpp" />
 		<Unit filename="models/BoxedScreenLocation.h" />
 		<Unit filename="models/CandyCaneModel.cpp" />
@@ -840,10 +856,15 @@
 		<Unit filename="models/DMX/DmxImage.h" />
 		<Unit filename="models/DMX/DmxModel.cpp" />
 		<Unit filename="models/DMX/DmxModel.h" />
+		<Unit filename="models/DMX/DmxMotor.cpp" />
+		<Unit filename="models/DMX/DmxMotor.h" />
+		<Unit filename="models/DMX/DmxMotorBase.h" />
+		<Unit filename="models/DMX/DmxMotorPanTilt.h" />
 		<Unit filename="models/DMX/DmxMovingHead.cpp" />
 		<Unit filename="models/DMX/DmxMovingHead.h" />
-		<Unit filename="models/DMX/DmxMovingHead3D.cpp" />
-		<Unit filename="models/DMX/DmxMovingHead3D.h" />
+		<Unit filename="models/DMX/DmxMovingHeadAdv.cpp" />
+		<Unit filename="models/DMX/DmxMovingHeadAdv.h" />
+		<Unit filename="models/DMX/DmxMovingHeadComm.h" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.cpp" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.h" />
 		<Unit filename="models/DMX/DmxPresetAbility.cpp" />
@@ -860,6 +881,14 @@
 		<Unit filename="models/DMX/DmxSkulltronix.h" />
 		<Unit filename="models/DMX/Mesh.cpp" />
 		<Unit filename="models/DMX/Mesh.h" />
+		<Unit filename="models/DMX/MovingHeads/MhChannel.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhChannel.h" />
+		<Unit filename="models/DMX/MovingHeads/MhChannelDialog.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhChannelDialog.h" />
+		<Unit filename="models/DMX/MovingHeads/MhFeature.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhFeature.h" />
+		<Unit filename="models/DMX/MovingHeads/MhFeatureDialog.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhFeatureDialog.h" />
 		<Unit filename="models/DMX/Servo.cpp" />
 		<Unit filename="models/DMX/Servo.h" />
 		<Unit filename="models/DMX/ServoConfigDialog.cpp" />
@@ -933,6 +962,7 @@
 		<Unit filename="models/WindowFrameModel.h" />
 		<Unit filename="models/WreathModel.cpp" />
 		<Unit filename="models/WreathModel.h" />
+		<Unit filename="models/XmlSerializer.h" />
 		<Unit filename="outputs/ArtNetOutput.cpp" />
 		<Unit filename="outputs/ArtNetOutput.h" />
 		<Unit filename="outputs/Controller.cpp" />
@@ -1190,6 +1220,8 @@
 		<Unit filename="wxsmith/MediaImportOptionsDialog.wxs" />
 		<Unit filename="wxsmith/MeteorsPanel.wxs" />
 		<Unit filename="wxsmith/MetronomeLabelDialog.wxs" />
+		<Unit filename="wxsmith/MhChannelDialog.wxs" />
+		<Unit filename="wxsmith/MhFeatureDialog.wxs" />
 		<Unit filename="wxsmith/ModelChainDialog.wxs" />
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
@@ -1198,6 +1230,7 @@
 		<Unit filename="wxsmith/ModelRemap.wxs" />
 		<Unit filename="wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
+		<Unit filename="wxsmith/MovingHeadPanel.wxs" />
 		<Unit filename="wxsmith/MultiControllerUploadDialog.wxs" />
 		<Unit filename="wxsmith/MusicPanel.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
@@ -1489,6 +1522,7 @@
 					<wxPanel wxs="wxsmith/RandomEffectsSettingsPanel.wxs" src="preferences/RandomEffectsSettingsPanel.cpp" hdr="preferences/RandomEffectsSettingsPanel.h" fwddecl="1" i18n="1" name="RandomEffectsSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ColorManagerSettingsPanel.wxs" src="preferences/ColorManagerSettingsPanel.cpp" hdr="preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SearchPanel.wxs" src="SearchPanel.cpp" hdr="SearchPanel.h" fwddecl="0" i18n="1" name="SearchPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/MovingHeadPanel.wxs" src="effects/MovingHeadPanel.cpp" hdr="effects/MovingHeadPanel.h" fwddecl="0" i18n="1" name="MovingHeadPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditColourPickerDialog.wxs" src="BulkEditColourPickerDialog.cpp" hdr="BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
@@ -1507,6 +1541,9 @@
 					<wxDialog wxs="wxsmith/EditSubmodelAliasesDialog.wxs" src="EditSubmodelAliasesDialog.cpp" hdr="EditSubmodelAliasesDialog.h" fwddecl="0" i18n="1" name="EditSubmodelAliasesDialog" language="CPP" />
 				</resources>
 			</wxsmith>
+			<code_completion />
+			<envvars />
+			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

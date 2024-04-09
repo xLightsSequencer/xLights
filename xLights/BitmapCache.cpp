@@ -463,7 +463,7 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
         return CreateBitmapBundleFromXPMs(sz, id, {cube_icon_16_xpm, cube_icon_16_xpm, cube_icon_64_xpm, cube_icon_64_xpm, cube_icon_64_xpm});
     } else if ("xlART_CUSTOM_ICON" == id || "xlART_Custom_ICON" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {custom_icon_16_xpm, custom_icon_16_xpm, custom_icon_64_xpm, custom_icon_64_xpm, custom_icon_64_xpm});
-    } else if ("xlART_DMX_ICON" == id || "xlART_DMXFloodlight_ICON" == id || "xlART_DMXMovingHead_ICON" == id || "xlART_DMXMovingHead3D_ICON" == id || "xlART_DMXSkull_ICON" == id) {
+    } else if ("xlART_DMX_ICON" == id || "xlART_DMXFloodlight_ICON" == id || "xlART_DMXMovingHead_ICON" == id || "xlART_DMXMovingHeadAdv_ICON" == id || "xlART_DMXSkull_ICON" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {dmx_icon_16_xpm, dmx_icon_16_xpm, dmx_icon_64_xpm, dmx_icon_64_xpm, dmx_icon_64_xpm});
     } else if ("xlART_ICICLE_ICON" == id || "xlART_Icicles_ICON" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {icicle_icon_16_xpm, icicle_icon_16_xpm, icicle_icon_64_xpm, icicle_icon_64_xpm, icicle_icon_64_xpm});

@@ -1298,6 +1298,25 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                                        _sequenceElements.GetSelectedRange(i)->EndTime,
                                        EFFECT_SELECTED,false);
 
+        // Change render buffer to Per Model for models that need it
+        Model* m = AllModels[el->GetParentElement()->GetModelName()];
+        if( m->GetDisplayAs() == "ModelGroup" ) {
+            auto mg = dynamic_cast<ModelGroup*>(m);
+            if (mg != nullptr) {
+                // see if all models in the group match the desired model types
+                bool all_good = true;
+                for (const auto& it : mg->GetFlatModels(true, false)) {
+                    if (it->GetDisplayAs() != "DmxMovingHeadAdv" && it->GetDisplayAs() != "DmxMovingHead") {
+                        all_good = false;
+                        break;
+                    }
+                }
+                if( all_good ) {
+                    effect->GetSettings()["B_CHOICE_BufferStyle"] = "Per Model Default";
+                }
+            }
+        }
+
         last_effect_created = effect;
 
         _sequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetFullName(), el->GetIndex(), effect->GetID() );

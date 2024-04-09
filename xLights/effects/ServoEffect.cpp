@@ -23,6 +23,8 @@
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
 #include "../models/DMX/DmxModel.h"
+#include "../models/DMX/DmxMotor.h"
+#include "../models/DMX/DmxMovingHeadAdv.h"
 #include "../models/DMX/DmxSkull.h"
 #include "../models/DMX/DmxSkulltronix.h"
 #include "../models/DMX/DmxServo.h"
@@ -101,13 +103,17 @@ void ServoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         return;
     }
 
-   uint32_t num_channels = model_info->GetNumChannels();
+    uint32_t num_channels = model_info->GetNumChannels();
 
     const std::string& string_type = model_info->GetStringType();
 
     if (StartsWith(string_type, "Single Color")) {
         // handle channels for single color nodes
+        int channel_coarse = 0;
+        int channel_fine = 0;
         for(uint32_t i = 0; i <= num_channels; ++i) {
+            channel_coarse = i;
+            channel_fine = i + 1;
             std::string name = model_info->GetNodeName(i);
             if( name == sel_chan ) {
                 int min_limit = 0;
@@ -133,6 +139,20 @@ void ServoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                             if (axis_channel == (i + 1)) {
                                 min_limit = servo->GetAxis(k)->GetMinLimit();
                                 max_limit = servo->GetAxis(k)->GetMaxLimit();
+                                break;
+                            }
+                        }
+                    }
+                    else if (model_info->GetDisplayAs() == "DmxMovingHeadAdv") {
+                        DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)model_info;
+                        for (int k = 0; k < mhead->GetNumMotors(); ++k) {
+                            int axis_channel = mhead->GetAxis(k)->GetChannelCoarse();
+                            if (axis_channel == (i + 1)) {
+                                min_limit = mhead->GetAxis(k)->GetMinValue();
+                                max_limit = mhead->GetAxis(k)->GetMaxValue();
+                                channel_coarse = mhead->GetAxis(k)->GetChannelCoarse() - 1;
+                                channel_fine = mhead->GetAxis(k)->GetChannelFine() - 1;
+                                is_16bit = true;
                                 break;
                             }
                         }
@@ -247,10 +267,12 @@ void ServoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                     msb_c.red = msb;
                     msb_c.green = msb;
                     msb_c.blue = msb;
-                    buffer.SetPixel(i, 0, msb_c, false, false, true);
-                    buffer.SetPixel(i+1, 0, lsb_c, false, false, true);
+                    buffer.SetPixel(channel_coarse, 0, msb_c, false, false, true);
+                    if( channel_fine >= 0 ) {
+                        buffer.SetPixel(channel_fine, 0, lsb_c, false, false, true);
+                    }
                 } else {
-                    buffer.SetPixel(i, 0, lsb_c, false, false, true);
+                    buffer.SetPixel(channel_coarse, 0, lsb_c, false, false, true);
                 }
                 break;
             }

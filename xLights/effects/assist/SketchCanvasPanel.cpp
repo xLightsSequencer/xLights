@@ -33,14 +33,15 @@ namespace
 }
 
 BEGIN_EVENT_TABLE(SketchCanvasPanel, wxPanel)
-EVT_PAINT(SketchCanvasPanel::OnSketchPaint)
-EVT_KEY_DOWN(SketchCanvasPanel::OnSketchKeyDown)
-EVT_LEFT_DOWN(SketchCanvasPanel::OnSketchLeftDown)
-EVT_LEFT_UP(SketchCanvasPanel::OnSketchLeftUp)
-EVT_MOTION(SketchCanvasPanel::OnSketchMouseMove)
-EVT_ENTER_WINDOW(SketchCanvasPanel::OnSketchEntered)
-EVT_MOUSEWHEEL(SketchCanvasPanel::OnSketchMouseWheel)
-EVT_MIDDLE_DOWN(SketchCanvasPanel::OnSketchMidDown)
+    EVT_PAINT(SketchCanvasPanel::OnSketchPaint)
+    EVT_KEY_DOWN(SketchCanvasPanel::OnSketchKeyDown)
+    EVT_LEFT_DOWN(SketchCanvasPanel::OnSketchLeftDown)
+    EVT_LEFT_UP(SketchCanvasPanel::OnSketchLeftUp)
+    EVT_MOTION(SketchCanvasPanel::OnSketchMouseMove)
+    EVT_ENTER_WINDOW(SketchCanvasPanel::OnSketchEntered)
+    EVT_MOUSEWHEEL(SketchCanvasPanel::OnSketchMouseWheel)
+    EVT_MIDDLE_DOWN(SketchCanvasPanel::OnSketchMidDown)
+    EVT_SIZE(SketchCanvasPanel::OnSize)
 END_EVENT_TABLE()
 
 SketchCanvasPanel::SketchCanvasPanel(ISketchCanvasParent* sketchCanvasParent, wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*=wxDefaultSize*/) :
@@ -48,6 +49,20 @@ SketchCanvasPanel::SketchCanvasPanel(ISketchCanvasParent* sketchCanvasParent, wx
     m_sketchCanvasParent(sketchCanvasParent)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
+}
+
+void SketchCanvasPanel::OnSize(wxSizeEvent& event){
+    wxSize old_sz = GetSize();
+    if( old_sz.GetWidth() != old_sz.GetHeight() ) {
+        if( old_sz.GetWidth() > 270 ) {
+            wxSize new_size = old_sz;
+            new_size.SetHeight(new_size.GetWidth());
+            SetMinSize(new_size);
+        }
+    }
+    Refresh();
+    //skip the event.
+    event.Skip();
 }
 
 void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
@@ -63,7 +78,7 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
 
     pdc.SetPen(*wxLIGHT_GREY_PEN);
     pdc.DrawRectangle(borderRect);
-
+    
     if (m_drawGrid) {
         for (int i = 0; i < 9; ++i) {
             wxPoint2DDouble start_x(0.1 * (float)i + 0.1, 0);
@@ -75,6 +90,7 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
             } else {
                 pdc.SetPen(*wxLIGHT_GREY_PEN);
             }
+            
             pdc.DrawLine(NormalizedToUI2(start_x), NormalizedToUI2(end_x));
             pdc.DrawLine(NormalizedToUI2(start_y), NormalizedToUI2(end_y));
         }

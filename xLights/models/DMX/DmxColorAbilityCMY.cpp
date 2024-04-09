@@ -32,6 +32,16 @@ bool DmxColorAbilityCMY::IsColorChannel(uint32_t channel) const
     return (cyan_channel == channel || magenta_channel == channel || yellow_channel == channel || white_channel == channel);
 }
 
+int DmxColorAbilityCMY::GetNumChannels() const
+{
+    int num_channels = 0;
+    num_channels += cyan_channel > 0 ? 1 : 0;
+    num_channels += magenta_channel > 0 ? 1 : 0;
+    num_channels += yellow_channel > 0 ? 1 : 0;
+    num_channels += white_channel > 0 ? 1 : 0;
+    return num_channels;
+}
+
 float DmxColorAbilityCMY::GetK(xlColor c) const
 {
     return 1.0 - std::max((float)c.Red() / 255.0, std::max((float)c.Green() / 255.0, (float)c.Blue() / 255.0));

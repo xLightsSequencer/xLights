@@ -28,7 +28,9 @@ DmxShutterAbility::~DmxShutterAbility()
 
 void DmxShutterAbility::AddShutterTypeProperties(wxPropertyGridInterface *grid) {
 
-    wxPGProperty* p = grid->Append(new wxUIntProperty("Shutter Channel", "DmxShutterChannel", shutter_channel));
+    auto p = grid->Append(new wxPropertyCategory("Shutter Properties", "DmxShutterProperties"));
+    
+    p = grid->Append(new wxUIntProperty("Shutter Channel", "DmxShutterChannel", shutter_channel));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");

@@ -351,15 +351,17 @@ void DmxSkulltronix::InitModel()
     screenLocation.SetRenderSize(1, 1);
 
     color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+    pan_motor = std::make_unique<DmxMotorPanTilt>();
+    tilt_motor = std::make_unique<DmxMotorPanTilt>();
 
-    pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "13"));
-    pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "90"));
-    pan_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxPanDegOfRot", "180"));
-    pan_slew_limit = wxAtof(ModelXml->GetAttribute("DmxPanSlewLimit", "0"));
-    tilt_channel = wxAtoi(ModelXml->GetAttribute("DmxTiltChannel", "19"));
-    tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "315"));
-    tilt_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxTiltDegOfRot", "90"));
-    tilt_slew_limit = wxAtof(ModelXml->GetAttribute("DmxTiltSlewLimit", "0"));
+    pan_motor->channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "13"));
+    pan_motor->orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "90"));
+    pan_motor->deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxPanDegOfRot", "180"));
+    pan_motor->slew_limit = wxAtof(ModelXml->GetAttribute("DmxPanSlewLimit", "0"));
+    tilt_motor->channel = wxAtoi(ModelXml->GetAttribute("DmxTiltChannel", "19"));
+    tilt_motor->orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "315"));
+    tilt_motor->deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxTiltDegOfRot", "90"));
+    tilt_motor->slew_limit = wxAtof(ModelXml->GetAttribute("DmxTiltSlewLimit", "0"));
     tilt_min_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMinLimit", "442"));
     tilt_max_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMaxLimit", "836"));
     pan_min_limit = wxAtoi(ModelXml->GetAttribute("DmxPanMinLimit", "250"));

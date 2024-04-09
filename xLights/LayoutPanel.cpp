@@ -50,6 +50,7 @@
 #include "models/ViewObject.h"
 #include "models/RulerObject.h"
 #include "models/CustomModel.h"
+#include "models/XmlSerializer.h"
 #include "WiringDialog.h"
 #include "ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
@@ -220,7 +221,7 @@ const long LayoutPanel::ID_ADD_OBJECT_TERRIAN = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_RULER = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD = wxNewId();
-const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD_3D = wxNewId();
+const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD_ADV = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_GENERAL = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_SKULL = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_SERVO = wxNewId();
@@ -1280,7 +1281,6 @@ void LayoutPanel::RenameModelInTree(Model *model, const std::string& new_name)
         }
     }
 }
-
 
 int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -3660,10 +3660,15 @@ void LayoutPanel::FinalizeModel()
                 return;
             }
 
-            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import. " + _lastXlightsModel);
-            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Model type " + _newModel->GetDisplayAs());
-            _newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
-            xlights->AddTraceMessage("LayoutPanel::FinalizeModel Import done.");
+            // Models that support visitors don't use the ImportXlightsModel method
+            // If there are import issues we need to try to fix them inside the XmlSerializer
+            if (!_newModel->SupportsVisitors()) {
+                xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import. " + _lastXlightsModel);
+                xlights->AddTraceMessage("LayoutPanel::FinalizeModel Model type " + _newModel->GetDisplayAs());
+                _newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
+                xlights->AddTraceMessage("LayoutPanel::FinalizeModel Import done.");
+            }
+
             if (_newModel->GetDisplayAs() == "Poly Line")
             {
                 _newModel->SetPosition(pos.x, pos.y);
@@ -4943,7 +4948,12 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
             return;
-        md->ExportXlightsModel();
+        if (md->SupportsVisitors()) {
+            XmlSerializer serializer;
+            serializer.SerializeAndSaveModel(*md);
+        } else {
+            md->ExportXlightsModel();
+        }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
     } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {
@@ -6188,7 +6198,7 @@ void LayoutPanel::DisplayAddDmxPopup() {
     AddObjectButton(mnuObjects, ID_ADD_DMX_GENERAL, "General", add_dmx_general_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_FLOODLIGHT, "Floodlight", add_dmx_floodlight_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_FLOODAREA, "Area Flood", add_dmx_floodlight_xpm);
-    AddObjectButton(mnuObjects, ID_ADD_DMX_MOVING_HEAD_3D, "Moving Head 3D", dmx_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_DMX_MOVING_HEAD_ADV, "Moving Head Adv", dmx_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_MOVING_HEAD, "Moving Head", add_dmx_moving_head_xpm);
     AddObjectButton(mnuObjects, ID_ADD_DMX_SERVO, "Servo", add_dmx_servo_xpm);
     if (is_3d) {
@@ -6225,9 +6235,9 @@ void LayoutPanel::OnAddDmxPopup(wxCommandEvent& event)
         selectedDmxModelType = "DmxMovingHead";
         object_created = true;
     }
-    else if (id == ID_ADD_DMX_MOVING_HEAD_3D) {
-        logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_MOVING_HEAD_3D");
-        selectedDmxModelType = "DmxMovingHead3D";
+    else if (id == ID_ADD_DMX_MOVING_HEAD_ADV) {
+        logger_base.debug("OnAddDmxPopup - ID_ADD_DMX_MOVING_HEAD_ADV");
+        selectedDmxModelType = "DmxMovingHeadAdv";
         object_created = true;
     }
     else if (id == ID_ADD_DMX_SERVO) {
@@ -6981,11 +6991,12 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                                     nz == z)
                                 {
                                     nx += 40;
-                                    ny -= 40;
+                                    // gjones: removed Y offset...almost always want same height when pasting
+                                    //ny -= 40;
                                     nd->DeleteAttribute("WorldPosX");
-                                    nd->DeleteAttribute("WorldPosY");
+                                    //nd->DeleteAttribute("WorldPosY");
                                     nd->AddAttribute("WorldPosX", wxString::Format("%6.4f", (float)nx));
-                                    nd->AddAttribute("WorldPosY", wxString::Format("%6.4f", (float)ny));
+                                    //nd->AddAttribute("WorldPosY", wxString::Format("%6.4f", (float)ny));
                                     moved = true;
                                     break;
                                 }
@@ -7432,7 +7443,12 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
             return;
-        md->ExportXlightsModel();
+        if (md->SupportsVisitors()) {
+            XmlSerializer serializer;
+            serializer.SerializeAndSaveModel(*md);
+        } else {
+            md->ExportXlightsModel();
+        }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
     } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {

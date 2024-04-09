@@ -45,7 +45,7 @@
 #include "DMX/DmxFloodlight.h"
 #include "DMX/DmxGeneral.h"
 #include "DMX/DmxMovingHead.h"
-#include "DMX/DmxMovingHead3D.h"
+#include "DMX/DmxMovingHeadAdv.h"
 #include "DMX/DmxServo.h"
 #include "DMX/DmxServo3D.h"
 #include "DMX/DmxSkull.h"
@@ -1200,7 +1200,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxGeneral(node, *this, false);
-    } else if (type == "DmxMovingHead3D") {
+    } else if (type == "DmxMovingHeadAdv") {
         protocol = "";
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "8");
@@ -1208,7 +1208,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         node->AddAttribute("parm2", "1");
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
-        model = new DmxMovingHead3D(node, *this, false);
+        model = new DmxMovingHeadAdv(node, *this, false);
     } else if (type == "DmxFloodlight") {
         protocol = "";
         node->DeleteAttribute("parm1");
@@ -1355,6 +1355,44 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     return model;
 }
 
+void ModelManager::MigrateDmxMotors(wxXmlNode *node) const
+{
+    // Migrate PanMotor settings
+    std::string new_name = "PanMotor";
+    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+    node->AddChild(new_node);
+    int channel = wxAtoi(node->GetAttribute("DmxPanChannel", "1"));
+    node->DeleteAttribute("DmxPanChannel");
+    new_node->AddAttribute("ChannelCoarse", wxString::Format("%d", channel));
+    int slew_limit = wxAtoi(node->GetAttribute("DmxPanSlewLimit", "180"));
+    node->DeleteAttribute("DmxPanSlewLimit");
+    new_node->AddAttribute("SlewLimit", wxString::Format("%d", slew_limit));
+    int range_of_motion = wxAtoi(node->GetAttribute("DmxPanDegOfRot", "540"));
+    node->DeleteAttribute("DmxPanDegOfRot");
+    new_node->AddAttribute("RangeOfMotion", wxString::Format("%d", range_of_motion));
+    int orientation = 360 - wxAtoi(node->GetAttribute("DmxPanOrient", "0"));
+    if (orientation == 360) orientation = 0;
+    node->DeleteAttribute("DmxPanOrient");
+    new_node->AddAttribute("OrientZero", wxString::Format("%d", orientation));
+    // Migrate TiltMotor settings
+    new_name = "TiltMotor";
+    new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+    node->AddChild(new_node);
+    channel = wxAtoi(node->GetAttribute("DmxTiltChannel", "1"));
+    node->DeleteAttribute("DmxTiltChannel");
+    new_node->AddAttribute("ChannelCoarse", wxString::Format("%d", channel));
+    slew_limit = wxAtoi(node->GetAttribute("DmxTiltSlewLimit", "180"));
+    node->DeleteAttribute("DmxPanSlewLimit");
+    new_node->AddAttribute("SlewLimit", wxString::Format("%d", slew_limit));
+    range_of_motion = wxAtoi(node->GetAttribute("DmxTiltDegOfRot", "180"));
+    node->DeleteAttribute("DmxTiltDegOfRot");
+    new_node->AddAttribute("RangeOfMotion", wxString::Format("%d", range_of_motion));
+    orientation = 360 - wxAtoi(node->GetAttribute("DmxTiltOrient", "0"));
+    if (orientation == 360) orientation = 0;
+    node->DeleteAttribute("DmxTiltOrient");
+    new_node->AddAttribute("OrientZero", wxString::Format("%d", orientation));
+}
+
 Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bool zeroBased) const
 {
     if (node->GetName() == "modelGroup") {
@@ -1374,29 +1412,62 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
             style == "Moving Head Side" ||
             style == "Moving Head Bars" ||
             style == "Moving Head TopBars" ||
-            style == "Moving Head SideBars") {
+            style == "Moving Head SideBars" ||
+            style == "Moving Head 3D") {
             type = "DmxMovingHead";
-        } else if (style == "Moving Head 3D") {
-            type = "DmxMovingHead3D";
+            MigrateDmxMotors(node);
         } else if (style == "Flood Light") {
             type = "DmxFloodlight";
         } else if (style == "Skulltronix Skull") {
             type = "DmxSkulltronix";
         } else {
             type = "DmxMovingHead";
+            MigrateDmxMotors(node);
         }
         node->DeleteAttribute("DisplayAs");
         node->AddAttribute("DisplayAs", type);
-    } else if (type == "DmxMovingHead3D") {
+    } else if (type == "DmxMovingHead") {
         std::string version = node->GetAttribute("versionNumber").ToStdString();
-        // After version 2020.3 the DmxMovingHead3D is being moved back to the DmxMovingHead class so the 3D version is mesh only
-        if (version == "4") {
-            type = "DmxMovingHead";
-            node->DeleteAttribute("DisplayAs");
-            node->AddAttribute("DisplayAs", type);
-            node->DeleteAttribute("DmxStyle");
-            node->AddAttribute("DmxStyle", "Moving Head 3D");
+        if (version <= "5") {
+            MigrateDmxMotors(node);
         }
+    } else if (type == "DmxMovingHead3D") {
+        // After version 2024.5 the DmxMovingHead3D is being converted to the DmxMovingHeadAdv
+        type = "DmxMovingHeadAdv";
+        node->DeleteAttribute("DisplayAs");
+        node->AddAttribute("DisplayAs", type);
+        node->DeleteAttribute("DmxStyle");
+        float beam_length = wxAtof(node->GetAttribute("DmxBeamLength", "4.0"));
+        node->DeleteAttribute("DmxBeamLength");
+        node->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)(beam_length * 1.275f)));  // try to match old beam length
+        node->AddAttribute("DmxBeamYOffset", "0");
+        // Migrate Mesh settings
+        wxXmlNode* n = node->GetChildren();
+        while (n != nullptr) {
+            std::string name = n->GetName();
+            if ("BaseMesh" == name) {
+                n->SetName("YokeMesh");
+                std::string new_name = "BaseMesh";
+                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+                new_node->AddAttribute("ObjFile", wxEmptyString);
+                node->AddChild(new_node);
+                break;
+            }
+            n = n->GetNext();
+        }
+        n = node->GetChildren();
+        while (n != nullptr) {
+            std::string name = n->GetName();
+            if ("HeadMesh" == name) {
+                n->DeleteAttribute("ObjFile");
+                n->AddAttribute("ObjFile", "MovingHead3DX_Head.obj");
+                n->DeleteAttribute("RotateY");
+                n->AddAttribute("RotateY", "90");
+                break;
+            }
+            n = n->GetNext();
+        }
+        MigrateDmxMotors(node);
     } else if (type == "DmxServo3Axis") {
         type = "DmxServo3d";
         node->DeleteAttribute("DisplayAs");
@@ -1422,8 +1493,8 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
         model = new DmxMovingHead(node, *this, zeroBased);
     } else if (type == "DmxGeneral") {
         model = new DmxGeneral(node, *this, zeroBased);
-    } else if (type == "DmxMovingHead3D") {
-        model = new DmxMovingHead3D(node, *this, zeroBased);
+    } else if (type == "DmxMovingHeadAdv") {
+        model = new DmxMovingHeadAdv(node, *this, zeroBased);
     } else if (type == "DmxFloodlight") {
         model = new DmxFloodlight(node, *this, zeroBased);
     } else if (type == "DmxFloodArea") {

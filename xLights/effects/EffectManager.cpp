@@ -37,6 +37,7 @@
 #include "MarqueeEffect.h"
 #include "MeteorsEffect.h"
 #include "MorphEffect.h"
+#include "MovingHeadEffect.h"
 #include "MusicEffect.h"
 #include "PianoEffect.h"
 #include "PicturesEffect.h"
@@ -107,6 +108,7 @@ EffectManager::EffectManager()
     add(createEffect(eff_LIQUID));
     add(createEffect(eff_MARQUEE));
     add(createEffect(eff_METEORS));
+    add(createEffect(eff_MOVINGHEAD));
     add(createEffect(eff_MUSIC));
     add(createEffect(eff_MORPH));
     add(createEffect(eff_PIANO));
@@ -182,8 +184,9 @@ RenderableEffect *EffectManager::createEffect(RGB_EFFECTS_e eff) {
         case eff_LIQUID: return new LiquidEffect(eff_LIQUID);
         case eff_MARQUEE: return new MarqueeEffect(eff_MARQUEE);
         case eff_METEORS: return new MeteorsEffect(eff_METEORS);
-        case eff_MUSIC: return new MusicEffect(eff_MUSIC);
         case eff_MORPH: return new MorphEffect(eff_MORPH);
+        case eff_MOVINGHEAD: return new MovingHeadEffect(eff_MOVINGHEAD);
+        case eff_MUSIC: return new MusicEffect(eff_MUSIC);
         case eff_PIANO: return new PianoEffect(eff_PIANO);
         case eff_PICTURES: return new PicturesEffect(eff_PICTURES);
         case eff_PINWHEEL: return new PinwheelEffect(eff_PINWHEEL);

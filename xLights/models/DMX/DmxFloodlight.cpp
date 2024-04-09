@@ -40,7 +40,9 @@ void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
     }
     AddShutterTypeProperties(grid);
 
-    auto p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
+    auto p = grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
+
+    p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 100);
     p->SetAttribute("Precision", 2);
