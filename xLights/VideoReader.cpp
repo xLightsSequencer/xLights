@@ -348,8 +348,8 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
     }
+#if LIBAVFORMAT_VERSION_MAJOR > 57
     logger_base.error("VideoReader: LIBAVDEVICE Version: %s", LIBAVDEVICE_IDENT);
-    #if LIBAVFORMAT_VERSION_MAJOR > 57
     enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
 #if defined(__WXMSW__)
@@ -401,7 +401,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
             }
         }
     }
-    #endif
+#endif
 
     _codecContext = avcodec_alloc_context3(_decoder);
     if (!_codecContext) {
