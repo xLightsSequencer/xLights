@@ -116,10 +116,11 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
             [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:1];
             [computeEncoder setBuffer:lcdPixelBuffer offset:0 atIndex:2];
             if (layerCD->maskBuffer == nil) {
-                //layerCD->maskMaxSize = 2;
-                layerCD->maskBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:2 options:MTLResourceStorageModeShared] retain];
+                uint8_t tmp[4] = {0, 0, 0, 0};
+                [computeEncoder setBytes:tmp length:sizeof(tmp) atIndex:3];
+            } else {
+                [computeEncoder setBuffer:layerCD->maskBuffer offset:0 atIndex:3];
             }
-            [computeEncoder setBuffer:layerCD->maskBuffer offset:0 atIndex:3];
             [computeEncoder setBuffer:layerCD->getIndexBuffer() offset:0 atIndex:4];
             NSInteger maxThreads = MetalComputeUtilities::INSTANCE.getColorsFunction.maxTotalThreadsPerThreadgroup;
             NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);

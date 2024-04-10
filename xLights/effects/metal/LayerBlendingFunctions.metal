@@ -219,32 +219,34 @@ kernel void ApplySparkles(constant LayerBlendingData &data,
                           uint index [[thread_position_in_grid]])
 {
     if (index > (uint)data.nodeCount) return;
-    uchar4 color = result[index];
     
-    int sc = data.outputSparkleCount;
-    uint16_t sparkle = sparkles[index];
-    
-    switch (sparkle % (208 - sc)) {
-    case 1:
-    case 7:
-        // too dim
-        // color.Set("#444444");
-        break;
-    case 2:
-    case 6:
-        color = ApplyBrightness(data.sparkleColor, 0.53f);
-        break;
-    case 3:
-    case 5:
-        color = ApplyBrightness(data.sparkleColor, 0.75f);
-        break;
-    case 4:
-        color = data.sparkleColor;
-        break;
-    default:
-        break;
+    uchar4 c = result[index];
+    if (c.r != 0 || c.g != 0 || c.b != 0) {
+        int sc = data.outputSparkleCount;
+        uint16_t sparkle = sparkles[index];
+        
+        switch (sparkle % (208 - sc)) {
+            case 1:
+            case 7:
+                // too dim
+                // color.Set("#444444");
+                break;
+            case 2:
+            case 6:
+                result[index] = ApplyBrightness(data.sparkleColor, 0.53f);
+                break;
+            case 3:
+            case 5:
+                result[index] = ApplyBrightness(data.sparkleColor, 0.75f);
+                break;
+            case 4:
+                result[index] = data.sparkleColor;
+                break;
+            default:
+                break;
+        }
+        sparkles[index] = sparkle + 1;
     }
-    sparkles[index] = sparkle + 1;
 }
 
 kernel void AdjustBrightnessContrast(constant LayerBlendingData &data,
