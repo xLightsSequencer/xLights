@@ -4855,6 +4855,7 @@ void Model::ExportAsCustomXModel() const
     wxString pc = ModelXml->GetAttribute("PixelCount");
     wxString pt = ModelXml->GetAttribute("PixelType");
     wxString psp = ModelXml->GetAttribute("PixelSpacing");
+    wxString lg = ModelXml->GetAttribute("LayoutGroup");
 
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
@@ -4875,6 +4876,7 @@ void Model::ExportAsCustomXModel() const
         f.Write(wxString::Format("PixelType=\"%s\" ", pt));
     if (psp != "")
         f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
+    f.Write(wxString::Format("LayoutGroup=\"%s\" ", lg));
     f.Write("CustomModel=\"");
     f.Write(cm);
     f.Write("\" ");

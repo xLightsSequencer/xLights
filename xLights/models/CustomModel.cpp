@@ -1129,6 +1129,7 @@ void CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         wxString pc = root->GetAttribute("PixelCount");
         wxString pt = root->GetAttribute("PixelType");
         wxString psp = root->GetAttribute("PixelSpacing");
+        wxString lg = root->GetAttribute("LayoutGroup");
 
         // generally xmodels dont have these ... but there are some cases where we do where it would point to a shadow model ... in those cases we want to bring it in
         wxString smf = root->GetAttribute("ShadowModelFor");
@@ -1151,6 +1152,7 @@ void CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         SetProperty("PixelCount", pc);
         SetProperty("PixelType", pt);
         SetProperty("PixelSpacing", psp);
+        SetProperty("LayoutGroup", lg);
         if (smf != "") {
             SetProperty("ShadowModelFor", smf);
         }
@@ -1429,6 +1431,7 @@ void CustomModel::ExportXlightsModel()
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
+    wxString lg = ModelXml->GetAttribute("LayoutGroup");
     wxString v = xlights_version_string;
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
@@ -1443,6 +1446,7 @@ void CustomModel::ExportXlightsModel()
     f.Write(wxString::Format("Antialias=\"%s\" ", a));
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    f.Write(wxString::Format("LayoutGroup=\"%s\" ", lg));
     f.Write("CustomModel=\"");
     f.Write(cm);
     f.Write("\" ");
