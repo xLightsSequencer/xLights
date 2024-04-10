@@ -20,7 +20,9 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/hwcontext.h>
+#if __has_include(<libavdevice/avdevice.h>)
 #include <libavdevice/avdevice.h>
+#endif
 }
 
 #include "SpecialOptions.h"
@@ -435,7 +437,11 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
             {
                 _codecContext->hw_device_ctx = av_buffer_ref(_hw_device_ctx);
                 _codecContext->get_format = get_hw_format;
-                logger_base.debug("Hardware decoding('%s') enabled for codec '%s'", av_hwdevice_get_type_name(type), _codecContext->codec->long_name);
+                const char *devName = "";
+#if __has_include(<libavdevice/avdevice.h>)
+                devName = av_hwdevice_get_type_name(type);
+#endif
+                logger_base.debug("Hardware decoding('%s') enabled for codec '%s'", devName, _codecContext->codec->long_name);
             }
         }
         else
