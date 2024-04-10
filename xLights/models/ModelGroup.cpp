@@ -1392,7 +1392,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
             } else if (m != nullptr && m->IsActive()) {
                 int bw, bh;
                 bw = bh = 0;
-                m->InitRenderBufferNodes(horiz ? "Horizontal Per Strand" : "Vertical Per Strand", "2D", "None", Nodes, bw, bh, stagger);
+                m->InitRenderBufferNodes(type, "2D", "None", Nodes, bw, bh, stagger);
                 for (int x = startBM; x < Nodes.size(); x++) {
                     for (auto& it2 : Nodes[x]->Coords) {
                         if (horiz) {

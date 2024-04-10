@@ -567,13 +567,13 @@ void CubeModel::GetBufferSize(const std::string& type, const std::string& camera
     {
         Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
     }
-    else if (type == "Horizontal Per Strand")
+    else if (type == "Horizontal Per Strand" || type == "Per Model Horizontal Per Strand" || type == "Horizontal Per Model/Strand" )
     {
         // FIXME Pretty sure this isnt right
         BufferHi = GetStrandLength(0);
         BufferWi = GetNumStrands();
     }
-    else if (type == "Vertical Per Strand")
+    else if (type == "Vertical Per Strand" || type == "Per Model Vertical Per Strand" || type == "Vertical Per Model/Strand")
     {
         // FIXME Pretty sure this isnt right
         BufferWi = GetStrandLength(0);
@@ -728,7 +728,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string
     {
         // dont need to do anything
     }
-    else if (type == "Horizontal Per Strand")
+    else if (type == "Horizontal Per Strand" || type == "Per Model Horizontal Per Strand" || type == "Horizontal Per Model/Strand")
     {
         int sl = BufferHi;
         for (auto n = oldNodes; n < Nodes.size(); n++)
@@ -737,7 +737,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string
             Nodes[n]->Coords[0].bufY = (n - oldNodes) % sl;
         }
     }
-    else if (type == "Vertical Per Strand")
+    else if (type == "Vertical Per Strand" || type == "Per Model Vertical Per Strand" || type == "Vertical Per Model/Strand")
     {
         int sl = BufferWi;
         for (auto n = oldNodes; n < Nodes.size(); n++)

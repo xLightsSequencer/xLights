@@ -2112,7 +2112,7 @@ void ComputeSubBuffer(const std::string& subBuffer, std::vector<NodeBaseClassPtr
                       int& bufferWi, int& bufferHi,
                       int& buffOffsetX, int& buffOffsetY,
                       float progress, long startMS, long endMS) {
-    if (subBuffer == STR_EMPTY) {
+    if (subBuffer.empty()) {
         return;
     }
     wxString sb = subBuffer;
@@ -2451,10 +2451,9 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
                 if (gp != nullptr) {
                     int cnt = 0;
                     for (const auto& it : inf->shallowModelBuffers) {
-                        std::string ntype = type.substr(10, type.length() - 10);
                         int bw, bh;
                         it->Nodes.clear();
-                        gp->ActiveModels()[cnt]->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh, 0);
+                        gp->ActiveModels()[cnt]->InitRenderBufferNodes(type, camera, transform, it->Nodes, bw, bh, 0);
                         if (bw == 0)
                             bw = 1; // zero sized buffers are a problem
                         if (bh == 0)
