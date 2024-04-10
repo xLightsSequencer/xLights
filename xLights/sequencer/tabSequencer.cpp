@@ -1221,9 +1221,15 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                     effect->SetEffectIndex(effectManager.GetEffectIndex(effectName));
                     resetStrings = true;
                 }
-                SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetFullName(),
-                    effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
-                    !event.isNew);
+                if (effect->GetEffectName() == "State") { // special case to allow States to function at submodel level
+                    SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+                                      effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
+                                      !event.isNew);
+                } else {
+                    SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetFullName(),
+                                      effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
+                                      !event.isNew);
+                }
                 selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
                 selectedEffect = effect;
 
