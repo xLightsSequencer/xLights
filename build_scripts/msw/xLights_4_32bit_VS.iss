@@ -118,6 +118,9 @@ Source: "../../valuecurves/*.*"; DestDir: "{app}/valuecurves"   ; Flags: ignorev
 ; Mesh Objects
 Source: "../../meshobjects/*.*"; DestDir: "{app}/meshobjects"   ; Flags: ignoreversion recursesubdirs
 
+; MHPreset Objects
+Source: "../../mhpresets/*.*"; DestDir: "{app}/mhpresets"   ; Flags: ignoreversion recursesubdirs
+
 ; Controllers
 Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: ignoreversion recursesubdirs
 
