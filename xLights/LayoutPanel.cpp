@@ -41,6 +41,7 @@
 #include "ChannelLayoutDialog.h"
 #include "ControllerConnectionDialog.h"
 #include "ModelGroupPanel.h"
+#include "EditSubmodelAliasesDialog.h"
 #include "ViewObjectPanel.h"
 #include "LayoutGroup.h"
 #include "models/ModelImages.h"
@@ -186,6 +187,7 @@ const long LayoutPanel::ID_PREVIEW_H_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_D_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_MNU_REMOVE_MODEL_FROM_GROUP = wxNewId();
+const long LayoutPanel::ID_MNU_EDIT_SUBMODEL_ALIAS = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_EMPTY_MODEL_GROUPS = wxNewId();
@@ -6788,6 +6790,19 @@ void LayoutPanel::DeleteSelectedGroups()
 	}
 }
 
+void LayoutPanel::EditSubModelAlias() {
+    Model* subModel = GetModelFromTreeItem(selectedTreeSubModels[0]);
+    Model* parent_info = dynamic_cast<SubModel*>(subModel)->GetParent();
+    if (subModel == nullptr || parent_info == nullptr)
+        return;
+
+    EditSubmodelAliasesDialog dlg(this, parent_info, subModel->GetName());
+
+    if (dlg.ShowModal() == wxID_OK) {
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ReplaceModel");
+    }
+}
+
 void LayoutPanel::ReplaceModel()
 {
     if (selectedBaseObject == nullptr) return;
@@ -7374,6 +7389,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
     } else if (id == ID_MNU_REMOVE_MODEL_FROM_GROUP) {
         logger_base.debug("LayoutPanel::OnModelsPopup REMOVE_MODEL_FROM_GROUP");
         RemoveSelectedModelsFromGroup();
+    } else if (id == ID_MNU_EDIT_SUBMODEL_ALIAS) {
+        EditSubModelAlias();
     } else if (event.GetId() == ID_PREVIEW_REPLACEMODEL) {
         ReplaceModel();
     } else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT) {
@@ -8381,6 +8398,10 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                     mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Group");
                 }
                 mnuContext.AppendSeparator();
+                if (selectedTreeSubModels.size() == 1) {
+                    mnuContext.Append(ID_MNU_EDIT_SUBMODEL_ALIAS, "Add/Edit SubModel Alias");
+                    mnuContext.AppendSeparator();
+                }
             }
         }
     }
