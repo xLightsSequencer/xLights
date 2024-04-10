@@ -349,7 +349,6 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
         _codecContext = nullptr;
     }
 #if LIBAVFORMAT_VERSION_MAJOR > 57
-    logger_base.error("VideoReader: LIBAVDEVICE Version: %s", LIBAVDEVICE_IDENT);
     enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
 #if defined(__WXMSW__)
