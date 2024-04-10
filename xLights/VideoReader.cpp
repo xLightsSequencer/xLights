@@ -20,6 +20,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/hwcontext.h>
+#include <libavdevice/avdevice.h>
 }
 
 #include "SpecialOptions.h"
@@ -345,12 +346,12 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
     }
-
+    logger_base.error("VideoReader: LIBAVDEVICE Version: %s", LIBAVDEVICE_IDENT);
     #if LIBAVFORMAT_VERSION_MAJOR > 57
     enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
 #if defined(__WXMSW__)
-        std::list<std::string> hwdecoders = { "cuda", "qsv", "vulkan" };
+        std::list<std::string> hwdecoders = { "cuda", "amf", "qsv", "vulkan" };
 
         switch (HW_ACCELERATION_TYPE) {
             case WINHARDWARERENDERTYPE::FFMPEG_CUDA:
@@ -361,6 +362,9 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
                 break;
             case WINHARDWARERENDERTYPE::FFMPEG_VULKAN:
                 hwdecoders = { "vulkan" };
+                break;
+            case WINHARDWARERENDERTYPE::FFMPEG_AMF:
+                hwdecoders = { "amf" };
                 break;
             case WINHARDWARERENDERTYPE::FFMPEG_AUTO:
             case WINHARDWARERENDERTYPE::DIRECX11_API:
