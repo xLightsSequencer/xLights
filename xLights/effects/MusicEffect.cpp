@@ -41,9 +41,8 @@ std::list<std::string> MusicEffect::CheckEffectSettings(const SettingsMap& setti
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    if (media == nullptr)
-    {
-        res.push_back(wxString::Format("    ERR: Music effect is pointless if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (media == nullptr) {
+        res.push_back(wxString::Format("    ERR: Music effect is pointless if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

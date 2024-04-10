@@ -42,7 +42,7 @@ std::list<std::string> MeteorsEffect::CheckEffectSettings(const SettingsMap& set
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Meteors_UseMusic", false)) {
-        res.push_back(wxString::Format("    WARN: Meteors effect cant follow music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    WARN: Meteors effect cant follow music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

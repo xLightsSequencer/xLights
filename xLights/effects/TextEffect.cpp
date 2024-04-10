@@ -56,24 +56,17 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
     wxString text = ToWXString(settings.Get("E_TEXTCTRL_Text", ""));
     wxString lyricTrack = settings.Get("E_CHOICE_Text_LyricTrack", "");
 
-    if (text == "" && textFilename == "" && lyricTrack == "")
-    {
-        res.push_back(wxString::Format("    ERR: Text effect has no actual text. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    }
-    else if (textFilename != "" && !FileExists(textFilename))
-    {
-        res.push_back(wxString::Format("    ERR: Text effect cant find file '%s'. Model '%s', Start %s", textFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    }
-    else if (textFilename != "" && !IsFileInShowDir(xLightsFrame::CurrentDir, textFilename.ToStdString()))
-    {
-        res.push_back(wxString::Format("    WARN: Text effect file '%s' not under show directory. Model '%s', Start %s", textFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (text == "" && textFilename == "" && lyricTrack == "") {
+        res.push_back(wxString::Format("    ERR: Text effect has no actual text. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    } else if (textFilename != "" && !FileExists(textFilename)) {
+        res.push_back(wxString::Format("    ERR: Text effect cant find file '%s'. Model '%s', Start %s", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    } else if (textFilename != "" && !IsFileInShowDir(xLightsFrame::CurrentDir, textFilename.ToStdString())) {
+        res.push_back(wxString::Format("    WARN: Text effect file '%s' not under show directory. Model '%s', Start %s", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
-    if (model->GetDisplayAs() == "ModelGroup")
-    {
-        res.push_back(wxString::Format("    WARN: Text effect generally does not work well on a model group. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (model->GetDisplayAs() == "ModelGroup") {
+        res.push_back(wxString::Format("    WARN: Text effect generally does not work well on a model group. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
-
     return res;
 }
 
