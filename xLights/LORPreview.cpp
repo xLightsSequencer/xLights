@@ -386,7 +386,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
             m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", world_pt.x ) );
             m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", world_pt.y ) );
             m->SetProperty( "WorldPosZ", "0.0" );
-            m->SetProperty( "versionNumber", "5" );
+            m->SetProperty( "versionNumber", CUR_MODEL_POS_VER );
         } else if( model.shapeName.Contains( "-Unconnected" ) ) {
             //TODO skip middle sections
             wxString point_data;
@@ -410,7 +410,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
             m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", world_pt.x ) );
             m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", world_pt.y ) );
             m->SetProperty( "WorldPosZ", "0.0" );
-            m->SetProperty( "versionNumber", "5" );
+            m->SetProperty( "versionNumber", CUR_MODEL_POS_VER );
         } else if( model.shapeName.Contains( "-Closed Shape" ) ) {
             wxString point_data;
 
@@ -433,7 +433,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
             m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", world_pt.x ) );
             m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", world_pt.y ) );
             m->SetProperty( "WorldPosZ", "0.0" );
-            m->SetProperty( "versionNumber", "5" );
+            m->SetProperty( "versionNumber", CUR_MODEL_POS_VER );
         }
 
         m->SetProperty( "ScaleX", "1.0000" );
@@ -725,7 +725,7 @@ bool LORPreview::GetStartUniverseChan( wxString const& value, int& unv, int& cha
 }
 
 void LORPreview::ScaleToPreview( S5Model const& model, Model* m, int pvwW, int pvwH ) const {
-    m->SetProperty( "versionNumber", "5", true );
+    m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
     int const bwidth  = m->GetWidth();
     int const bheight = m->GetHeight();
 
@@ -761,7 +761,7 @@ void LORPreview::ScalePointsToSingleLine( S5Model const& model, Model* m, int pv
     if( model.points.empty() ) {
         return;
     }
-    m->SetProperty( "versionNumber", "5", true );
+    m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
 
     auto xModelFirst = ScalePointToXLights( model.points.front(), pvwW, pvwH );
 
@@ -822,7 +822,7 @@ void LORPreview::ScaleModelToSingleLine( S5Model const& model, Model* m, int pvw
     m->SetProperty( "ScaleX", "1.0000" );
     m->SetProperty( "ScaleY", "1.0000" );
     m->SetProperty( "ScaleZ", "1.0000" );
-    m->SetProperty( "versionNumber", "5", true );
+    m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
 }
 
 void LORPreview::ScaleIcicleToSingleLine( S5Model const& model, int maxdrop, Model* m, int pvwW, int pvwH ) const {
@@ -838,7 +838,7 @@ void LORPreview::ScaleIcicleToSingleLine( S5Model const& model, int maxdrop, Mod
      *    3              2
      */
 
-    m->SetProperty( "versionNumber", "5", true );
+    m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
 
     auto xModelFirst = ScalePointToXLights( model.points.at( 0 ), pvwW, pvwH );
     auto xModelSecond = ScalePointToXLights( model.points.at( 1 ), pvwW, pvwH );
@@ -1017,7 +1017,7 @@ void LORPreview::BulbToCustomModel(S5Model const& model, Model* m, int pvwW, int
 
 void LORPreview::ScaleBulbToXLights(S5Point center, S5Point size, int scale, Model* m, int pvwW, int pvwH) const
 {
-    m->SetProperty("versionNumber", "5", true);
+    m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
 
     auto xModelCenter = ScalePointToXLights(center, pvwW, pvwH);
     auto xSize = GetXLightsSizeFromScale(size, pvwW, pvwH);

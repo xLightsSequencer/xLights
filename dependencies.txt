@@ -7,8 +7,7 @@ Usage:       Platform independence
 Link:        https://www.wxwidgets.org/
 Source:      https://github.com/wxWidgets/wxWidgets
 We use a fork with patches from: https://github.com/xLightsSequencer/wxWidgets
-Last Pulled: Sep 21, 2021
-Version:     xlights_2021.30 [wxWidgets 3.1.5 plus a few patches]
+Version:     Latest Tag [wxWidgets 3.2.x plus a few patches]
 License:     wxWindows Library License
 Strategy:    Windows: wxWidgets source is not included in the xLights repository. Builders are expected to grab the appropriate version from Git and build it.
 
@@ -43,8 +42,8 @@ Library:     libavcodec/ffmpeg
 Usage:       Audio and Video processing
 Link:        https://www.ffmpeg.org/
 Source:      https://github.com/FFmpeg/FFmpeg
-Last Pulled: Feb 6, 2022 - Windows binaries directly from https://github.com/BtbN/FFmpeg-Builds/releases
-Version:     5.0
+Last Pulled: April 10, 2024 - Windows binaries directly from https://www.gyan.dev/ffmpeg/builds/
+Version:     6.1.1
 License:     LGPL
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 
@@ -231,9 +230,9 @@ Strategy:    Header added to repository. static libraries added for windows
 
 Library:     nanosvg
 Usage:       SVG Parser
-Link:        https://github.com/memononen/nanosvg
-Source:      https://github.com/memononen/nanosvg
-Last Pulled: 5/20/22
-Version:     [latest version available as at May 2022]
+Link:        https://github.com/wxWidgets/nanosvg
+Source:      https://github.com/wxWidgets/nanosvg
+Last Pulled: 
+Version:     [latest version available as at April 2024]
 License:     zlib License
-Strategy:    Header added to repository. Header only library
+Strategy:    Use WXs version to match their dependency, Header added to repository. Header only library
