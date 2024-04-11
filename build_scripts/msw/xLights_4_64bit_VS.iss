@@ -111,9 +111,9 @@ Source: "../../bin64/avdevice-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin64/avfilter-9.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin64/avformat-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin64/avutil-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/postproc-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+; Source: "../../bin64/postproc-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin64/swresample-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/swscale-7.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+;  Source: "../../bin64/swscale-7.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; SDL - audio playing
 Source: "../../bin64/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
