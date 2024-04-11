@@ -58,7 +58,7 @@ wxDateTime Schedule::GetNextFireTime() const
         while (res <= now) {
             res.Add(wxTimeSpan(1));
         }
-    } 
+    }
     else if (_fireFrequency == "Fire every 30 minutes")
     {
         while (res <= now)
