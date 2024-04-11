@@ -39,7 +39,7 @@ std::list<std::string> FireEffect::CheckEffectSettings(const SettingsMap& settin
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Fire_GrowWithMusic", false)) {
-        res.push_back(wxString::Format("    WARN: Fire effect cant grow to music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    WARN: Fire effect cant grow to music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

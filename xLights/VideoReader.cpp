@@ -20,7 +20,9 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/hwcontext.h>
+#if __has_include(<libavdevice/avdevice.h>)
 #include <libavdevice/avdevice.h>
+#endif
 }
 
 #include "SpecialOptions.h"
@@ -346,8 +348,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
     }
-    logger_base.error("VideoReader: LIBAVDEVICE Version: %s", LIBAVDEVICE_IDENT);
-    #if LIBAVFORMAT_VERSION_MAJOR > 57
+#if LIBAVFORMAT_VERSION_MAJOR > 57
     enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
 #if defined(__WXMSW__)
@@ -399,7 +400,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
             }
         }
     }
-    #endif
+#endif
 
     _codecContext = avcodec_alloc_context3(_decoder);
     if (!_codecContext) {
@@ -435,7 +436,11 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
             {
                 _codecContext->hw_device_ctx = av_buffer_ref(_hw_device_ctx);
                 _codecContext->get_format = get_hw_format;
-                logger_base.debug("Hardware decoding('%s') enabled for codec '%s'", av_hwdevice_get_type_name(type), _codecContext->codec->long_name);
+                const char *devName = "";
+#if __has_include(<libavdevice/avdevice.h>)
+                devName = av_hwdevice_get_type_name(type);
+#endif
+                logger_base.debug("Hardware decoding('%s') enabled for codec '%s'", devName, _codecContext->codec->long_name);
             }
         }
         else

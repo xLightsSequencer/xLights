@@ -216,13 +216,10 @@ std::list<std::string> ShaderEffect::CheckEffectSettings(const SettingsMap& sett
 
     wxString ifsFilename = settings.Get("E_0FILEPICKERCTRL_IFS", "");
 
-    if (ifsFilename == "" || !FileExists(ifsFilename))
-    {
-        res.push_back(wxString::Format("    ERR: Shader effect cant find file '%s'. Model '%s', Start %s", ifsFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    }
-    else if (!IsFileInShowDir(xLightsFrame::CurrentDir, ifsFilename.ToStdString()))
-    {
-        res.push_back(wxString::Format("    WARN: Shader effect file '%s' not under show directory. Model '%s', Start %s", ifsFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (ifsFilename == "" || !FileExists(ifsFilename)) {
+        res.push_back(wxString::Format("    ERR: Shader effect cant find file '%s'. Model '%s', Start %s", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    } else if (!IsFileInShowDir(xLightsFrame::CurrentDir, ifsFilename.ToStdString())) {
+        res.push_back(wxString::Format("    WARN: Shader effect file '%s' not under show directory. Model '%s', Start %s", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

@@ -485,7 +485,9 @@ void CustomModel::GetBufferSize(const std::string& type, const std::string& came
         BufferHi = 1;
     }
     else if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel" ||
-        type == "Horizontal Per Strand" || type == "Vertical Per Strand") {
+        type == "Horizontal Per Strand" || type == "Vertical Per Strand" ||
+        type == "Per Model Horizontal Per Strand" || type == "Per Model Vertical Per Strand" ||
+        type == "Horizontal Per Model/Strand" || type == "Vertical Per Model/Strand") {
         Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
     }
     else if (type == "Stacked X Horizontally") {

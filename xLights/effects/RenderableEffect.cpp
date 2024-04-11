@@ -453,7 +453,7 @@ std::list<std::string> RenderableEffect::CheckEffectSettings(const SettingsMap& 
     std::list<std::string> res;
     if (settings.Get("B_CHOICE_BufferStyle", "").starts_with("** ")) {
         res.push_back(wxString::Format("    WARN: Effect using legacy buffer format '%s' which will be removed in the future. Model '%s', Start %s", 
-                                       settings.Get("B_CHOICE_BufferStyle", ""), model->GetName(),
+                                       settings.Get("B_CHOICE_BufferStyle", ""), model->GetFullName(),
                                        FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
     return res;

@@ -159,7 +159,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
     // check the face exists on the model
     if (definition != "Rendered") {
         if (model->faceInfo.find(definition) == model->faceInfo.end()) {
-            res.push_back(wxString::Format("    ERR: Face effect face '%s' does not exist on model '%s'. Start %s", definition, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    ERR: Face effect face '%s' does not exist on model '%s'. Start %s", definition, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
     }
 
@@ -173,7 +173,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
         wxString bufferTransform = settings.Get("B_CHOICE_BufferTransform", "None");
 
         if (bufferTransform != "None") {
-            res.push_back(wxString::Format("    WARN: Face effect with transformed buffer '%s' may not render correctly. Model '%s', Start %s", model->GetName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    WARN: Face effect with transformed buffer '%s' may not render correctly. Model '%s', Start %s", model->GetFullName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
 
         if (settings.GetInt("B_SLIDER_Rotation", 0) != 0 ||
@@ -186,11 +186,11 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
             settings.Get("B_VALUECURVE_YRotation", "").find("Active=TRUE") != std::string::npos ||
             settings.Get("B_VALUECURVE_Rotations", "").find("Active=TRUE") != std::string::npos ||
             settings.Get("B_VALUECURVE_Zoom", "").find("Active=TRUE") != std::string::npos) {
-            res.push_back(wxString::Format("    WARN: Face effect with rotozoom active may not render correctly. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    WARN: Face effect with rotozoom active may not render correctly. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
 
         if (settings.Get("B_CUSTOM_SubBuffer", "") != "") {
-            res.push_back(wxString::Format("    WARN: Face effect with subbuffer defined '%s' may not render correctly. Model '%s', Start %s", settings.Get("B_CUSTOM_SubBuffer", ""), model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    WARN: Face effect with subbuffer defined '%s' may not render correctly. Model '%s', Start %s", settings.Get("B_CUSTOM_SubBuffer", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
     }
 
@@ -202,9 +202,9 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 
                 if (picture != "") {
                     if (!FileExists(picture)) {
-                        res.push_back(wxString::Format("    ERR: Face effect image file not found '%s'. Model '%s', Start %s", picture, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                        res.push_back(wxString::Format("    ERR: Face effect image file not found '%s'. Model '%s', Start %s", picture, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                     } else if (!IsFileInShowDir(xLightsFrame::CurrentDir, picture)) {
-                        res.push_back(wxString::Format("    WARN: Faces effect image file '%s' not under show directory. Model '%s', Start %s", picture, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                        res.push_back(wxString::Format("    WARN: Faces effect image file '%s' not under show directory. Model '%s', Start %s", picture, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                     }
 
                     if (FileExists(picture)) {
@@ -217,7 +217,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 #define IMAGESIZETHRESHOLD 10
                             if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi()) {
                                 float scale = std::max((float)ih / model->GetDefaultBufferHt(), (float)iw / model->GetDefaultBufferWi());
-                                res.push_back(wxString::Format("    WARN: Faces effect image file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '%s', Start %s", picture, scale, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                                res.push_back(wxString::Format("    WARN: Faces effect image file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '%s', Start %s", picture, scale, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                             }
                         }
                     }
@@ -231,9 +231,9 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 
     // - Face chosen or specific phoneme
     if (phoneme == "" && timing == "") {
-        res.push_back(wxString::Format("    ERR: Face effect with no timing selected. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    ERR: Face effect with no timing selected. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     } else if (timing != "" && GetTiming(timing) == nullptr) {
-        res.push_back(wxString::Format("    ERR: Face effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    ERR: Face effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

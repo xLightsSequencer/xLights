@@ -97,7 +97,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;../include/ffmpeg-6/include;..\include\zlib;..\xLights</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;</LibraryPath>
     <DefineConstants>
     </DefineConstants>
   </PropertyGroup>
@@ -132,7 +132,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;__MSVC__;_CRT_SECURE_NO_WARNINGS;EXCLUDENETWORKUI;DISCOVERYONLY;NOMINMAX;$(DefineConstants);</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;__MSVC__;_CRT_SECURE_NO_WARNINGS;EXCLUDENETWORKUI;DISCOVERYONLY;NOMINMAX;$(DefineConstants)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>Async</ExceptionHandling>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -147,6 +147,12 @@
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
     </Manifest>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -198,6 +204,12 @@
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
     </Manifest>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\xlBaseApp.cpp" />

@@ -256,7 +256,7 @@ protected:
     std::string ComputeStringStartChannel(int x);
     void ApplyTransform(const std::string& transform,
         std::vector<NodeBaseClassPtr>& Nodes,
-        int& bufferWi, int& bufferHi) const;
+        int& bufferWi, int& bufferHi, int startNode = 0) const;
     void AdjustForTransform(const std::string& transform,
         int& bufferWi, int& bufferHi) const;
     void DumpBuffer(std::vector<NodeBaseClassPtr>& newNodes, int bufferWi, int bufferHi) const;

@@ -369,6 +369,13 @@ void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outpu
 static const std::string VERT_PER_STRAND("Vertical Per Strand");
 static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");
 static const std::string LEGACY_SINGLE_LINE("** Single Line Legacy");
+
+// When in a ModelGroup, it may get these and we can optimize these as well
+static const std::string HORIZ_PER_MODELSTRAND("Horizontal Per Model/Strand");
+static const std::string VERT_PER_MODELSTRAND("Vertical Per Model/Strand");
+static const std::string PERMODEL_VERT_PER_STRAND("Per Model Vertical Per Strand");
+static const std::string PERMODEL_HORIZ_PER_STRAND("Per Model Horizontal Per Strand");
+
 std::vector<std::string> SubModel::SUBMODEL_BUFFER_STYLES;
 const std::vector<std::string>& SubModel::GetBufferStyles() const {
     struct Initializer {
@@ -397,6 +404,17 @@ void SubModel::GetBufferSize(const std::string &type, const std::string &camera,
             Model::GetBufferSize("Default", camera, "Rotate CW 90", BufferWi, BufferHi, stagger);
             AdjustForTransform(transform, BufferWi, BufferHi);
         } else if (!vert && (type == VERT_PER_STRAND)) {
+            Model::GetBufferSize("Default", camera, "Rotate CC 90", BufferWi, BufferHi, stagger);
+            AdjustForTransform(transform, BufferWi, BufferHi);
+        } else {
+            Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+        }
+    } else if (isRanges && (type == HORIZ_PER_MODELSTRAND || type == VERT_PER_MODELSTRAND || type == PERMODEL_HORIZ_PER_STRAND || type == PERMODEL_VERT_PER_STRAND)) {
+        bool vert = _layout == "vertical";
+        if (!vert && (type == HORIZ_PER_MODELSTRAND || type == PERMODEL_HORIZ_PER_STRAND)) {
+            Model::GetBufferSize("Default", camera, "Rotate CW 90", BufferWi, BufferHi, stagger);
+            AdjustForTransform(transform, BufferWi, BufferHi);
+        } else if (vert && (type == VERT_PER_MODELSTRAND || type == PERMODEL_VERT_PER_STRAND)) {
             Model::GetBufferSize("Default", camera, "Rotate CC 90", BufferWi, BufferHi, stagger);
             AdjustForTransform(transform, BufferWi, BufferHi);
         } else {
@@ -439,21 +457,36 @@ void SubModel::InitRenderBufferNodes(const std::string &type, const std::string 
                                      std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, int stagger, bool deep) const {
     std::string ntype = type;
     bool isRanges = _type == "ranges";
+    int firstNode = newNodes.size();
     if (isRanges && (type == VERT_PER_STRAND || type == HORIZ_PER_STRAND)) {
         bool vert = _layout == "vertical";
         // these can be optimized as the default for "isRanges" is per strand.  We can use "default" or a simple rotate
         // to avoid re-calculating everything
         if (vert && (type == HORIZ_PER_STRAND)) {
-            Model::InitRenderBufferNodes("Dafault", camera, "Rotate CW 90", newNodes, BufferWi, BufferHi, stagger, deep);
+            Model::InitRenderBufferNodes("Dafault", camera, "None", newNodes, BufferWi, BufferHi, stagger, deep);
+            ApplyTransform("Rotate CW 90", newNodes, BufferWi, BufferHi, firstNode);
             ApplyTransform(transform, newNodes, BufferWi, BufferHi);
         } else if (!vert && (type == VERT_PER_STRAND)) {
-            Model::InitRenderBufferNodes("Dafault", camera, "Rotate CC 90", newNodes, BufferWi, BufferHi, stagger, deep);
+            Model::InitRenderBufferNodes("Dafault", camera, "None", newNodes, BufferWi, BufferHi, stagger, deep);
+            ApplyTransform("Rotate CC 90", newNodes, BufferWi, BufferHi, firstNode);
+            ApplyTransform(transform, newNodes, BufferWi, BufferHi);
+        } else {
+            Model::InitRenderBufferNodes("Default", camera, transform, newNodes, BufferWi, BufferHi, stagger, deep);
+        }
+    } else if (isRanges && (type == HORIZ_PER_MODELSTRAND || type == VERT_PER_MODELSTRAND || type == PERMODEL_HORIZ_PER_STRAND || type == PERMODEL_VERT_PER_STRAND)) {
+        bool vert = _layout == "vertical";
+        if (!vert && (type == HORIZ_PER_MODELSTRAND || type == PERMODEL_HORIZ_PER_STRAND)) {
+            Model::InitRenderBufferNodes("Dafault", camera, "None", newNodes, BufferWi, BufferHi, stagger, deep);
+            ApplyTransform("Rotate CW 90", newNodes, BufferWi, BufferHi, firstNode);
+            ApplyTransform(transform, newNodes, BufferWi, BufferHi);
+        } else if (vert && (type == VERT_PER_MODELSTRAND || type == PERMODEL_VERT_PER_STRAND)) {
+            Model::InitRenderBufferNodes("Dafault", camera, "None", newNodes, BufferWi, BufferHi, stagger, deep);
+            ApplyTransform("Rotate CC 90", newNodes, BufferWi, BufferHi, firstNode);
             ApplyTransform(transform, newNodes, BufferWi, BufferHi);
         } else {
             Model::InitRenderBufferNodes("Default", camera, transform, newNodes, BufferWi, BufferHi, stagger, deep);
         }
     } else if (type == LEGACY_SINGLE_LINE) {
-        int firstNode = newNodes.size();
         Model::InitRenderBufferNodes("Default", camera, "None", newNodes, BufferWi, BufferHi, stagger, deep);
         std::vector<int> vsizes;
         std::vector<int> hsizes;

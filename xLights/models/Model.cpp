@@ -104,6 +104,10 @@ static const std::string SINGLE_LINE("Single Line");
 static const std::string AS_PIXEL("As Pixel");
 static const std::string VERT_PER_STRAND("Vertical Per Strand");
 static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");
+static const std::string HORIZ_PER_MODELSTRAND("Horizontal Per Model/Strand");
+static const std::string VERT_PER_MODELSTRAND("Vertical Per Model/Strand");
+static const std::string PERMODEL_VERT_PER_STRAND("Per Model Vertical Per Strand");
+static const std::string PERMODEL_HORIZ_PER_STRAND("Per Model Horizontal Per Strand");
 
 static const std::string PER_PREVIEW_NO_OFFSET("Per Preview No Offset");
 
@@ -3653,13 +3657,13 @@ void Model::GetBufferSize(const std::string& type, const std::string& camera, co
     } else if (type == AS_PIXEL) {
         bufferHi = 1;
         bufferWi = 1;
-    } else if (type == VERT_PER_STRAND) {
+    } else if (type == VERT_PER_STRAND || type == PERMODEL_VERT_PER_STRAND || type == VERT_PER_MODELSTRAND) {
         bufferHi = GetNumStrands();
         bufferWi = 1;
         for (int x = 0; x < bufferHi; ++x) {
             bufferWi = std::max(bufferWi, GetStrandLength(x));
         }
-    } else if (type == HORIZ_PER_STRAND) {
+    } else if (type == HORIZ_PER_STRAND || type == PERMODEL_HORIZ_PER_STRAND || type == HORIZ_PER_MODELSTRAND) {
         bufferWi = GetNumStrands();
         bufferHi = 1;
         for (int x = 0; x < bufferWi; ++x) {
@@ -3735,58 +3739,58 @@ void Model::DumpBuffer(std::vector<NodeBaseClassPtr>& newNodes,
 
 void Model::ApplyTransform(const std::string& type,
                            std::vector<NodeBaseClassPtr>& newNodes,
-                           int& bufferWi, int& bufferHi) const
+                           int& bufferWi, int& bufferHi, int startNode) const
 {
     //"Rotate CC 90", "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal", "Rotate CC 90 Flip Horizontal", "Rotate CW 90 Flip Horizontal"
     if (type == "None") {
         return;
     } else if (type == "Rotate 180") {
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, bufferWi - it2.bufX - 1, bufferHi - it2.bufY - 1);
             }
         }
     } else if (type == "Flip Vertical") {
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1);
             }
         }
     } else if (type == "Flip Horizontal") {
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, bufferWi - it2.bufX - 1, it2.bufY);
             }
         }
     } else if (type == "Rotate CW 90") {
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, bufferHi - it2.bufY - 1, it2.bufX);
             }
         }
         std::swap(bufferWi, bufferHi);
     } else if (type == "Rotate CC 90") {
-        for (int x = 0; x < newNodes.size(); ++x) {
+        for (int x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, it2.bufY, bufferWi - it2.bufX - 1);
             }
         }
         std::swap(bufferWi, bufferHi);
     } else if (type == "Rotate CC 90 Flip Horizontal") {
-        for (int x = 0; x < newNodes.size(); ++x) {
+        for (int x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, it2.bufY, bufferWi - it2.bufX - 1);
             }
         }
         std::swap(bufferWi, bufferHi);
 
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1);
             }
         }
     } else if (type == "Rotate CW 90 Flip Horizontal") {
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, bufferHi - it2.bufY - 1, it2.bufX);
             }
@@ -3866,7 +3870,7 @@ void Model::InitRenderBufferNodes(const std::string& type, const std::string& ca
                 SetCoords(it2, 0, 0);
             }
         }
-    } else if (type == HORIZ_PER_STRAND) {
+    } else if (type == HORIZ_PER_STRAND || type == PERMODEL_HORIZ_PER_STRAND || type == HORIZ_PER_MODELSTRAND) {
         bufferWi = GetNumStrands();
         bufferHt = 1;
         for (int x = 0; x < bufferWi; ++x) {
@@ -3898,7 +3902,7 @@ void Model::InitRenderBufferNodes(const std::string& type, const std::string& ca
                 x++;
             }
         }
-    } else if (type == VERT_PER_STRAND) {
+    } else if (type == VERT_PER_STRAND || type == PERMODEL_VERT_PER_STRAND || type == VERT_PER_MODELSTRAND) {
         bufferHt = GetNumStrands();
         bufferWi = 1;
         for (int x = 0; x < bufferHt; ++x) {

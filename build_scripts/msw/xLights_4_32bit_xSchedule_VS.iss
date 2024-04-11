@@ -59,11 +59,14 @@ Source: "../../xSchedule/RemoteFalcon/Release/RemoteFalcon.dll"; DestDir: "{app}
 ; Statically linked
 
 ; avlib - video and audio
-Source: "../../bin/avcodec-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin/avformat-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin/avutil-56.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin/swresample-3.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin/swscale-5.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avcodec-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avdevice-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avfilter-9.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avformat-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avutil-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/postproc-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/swresample-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/swscale-7.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; Controllers
 Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: ignoreversion recursesubdirs

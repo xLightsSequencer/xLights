@@ -702,7 +702,8 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
     }
     else if (id == ID_MNU_PRINT)
     {
-        static wxPrintDialogData printDialogData;
+        wxPrintData printdata;
+        static wxPrintDialogData printDialogData(printdata);
         wxPrinter printer(&printDialogData);
 
         ColorTheme _prePrintTheme = _selectedTheme;
