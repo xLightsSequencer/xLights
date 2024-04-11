@@ -39,14 +39,11 @@ std::list<std::string> FireworksEffect::CheckEffectSettings(const SettingsMap& s
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    if (media == nullptr && settings.GetBool("E_CHECKBOX_Fireworks_UseMusic", false))
-    {
-        res.push_back(wxString::Format("    ERR: Fireworks effect cant grow to music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (media == nullptr && settings.GetBool("E_CHECKBOX_Fireworks_UseMusic", false)) {
+        res.push_back(wxString::Format("    ERR: Fireworks effect cant grow to music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
-
-    if (settings.GetBool("E_CHECKBOX_FIRETIMING", false) && settings.Get("E_CHOICE_FIRETIMINGTRACK","") == "")
-    {
-        res.push_back(wxString::Format("    ERR: Fireworks effect is meant to fire with timing track but no timing track selected. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (settings.GetBool("E_CHECKBOX_FIRETIMING", false) && settings.Get("E_CHOICE_FIRETIMINGTRACK","") == "") {
+        res.push_back(wxString::Format("    ERR: Fireworks effect is meant to fire with timing track but no timing track selected. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

@@ -8109,7 +8109,8 @@ void LayoutPanel::PreviewPrintImage()
 
 	Printout printout(modelPreview, true);
 
-	static wxPrintDialogData printDialogData;
+	wxPrintData printdata;
+    static wxPrintDialogData printDialogData(printdata);
 	wxPrinter printer(&printDialogData);
 
 	if (!printer.Print(this, &printout, true)) {

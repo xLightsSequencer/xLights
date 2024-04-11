@@ -52,13 +52,10 @@ std::list<std::string> ServoEffect::CheckEffectSettings(const SettingsMap& setti
 
     wxString timing = settings.Get("E_CHOICE_Servo_TimingTrack", "");
 
-    if (timing == "")
-    {
-        res.push_back(wxString::Format("    ERR: Face effect with no timing selected. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    }
-    else if (timing != "" && GetTiming(timing) == nullptr)
-    {
-        res.push_back(wxString::Format("    ERR: Face effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (timing == "") {
+        res.push_back(wxString::Format("    ERR: Face effect with no timing selected. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    } else if (timing != "" && GetTiming(timing) == nullptr) {
+        res.push_back(wxString::Format("    ERR: Face effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

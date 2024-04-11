@@ -6531,7 +6531,11 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& 
         }
 
         bool renderCache = _enableRenderCache == "Enabled" || (_enableRenderCache == "Locked Only" && ef->IsLocked());
-        std::list<std::string> warnings = re->CheckEffectSettings(sm, CurrentSeqXmlFile->GetMedia(), AllModels.GetModel(modelName), ef, renderCache);
+        Model *m = AllModels.GetModel(name);
+        if (m == nullptr) {
+            m = AllModels.GetModel(modelName);
+        }
+        std::list<std::string> warnings = re->CheckEffectSettings(sm, CurrentSeqXmlFile->GetMedia(), m, ef, renderCache);
         for (const auto& s : warnings) {
             LogAndWrite(f, s);
             if (s.find("WARN:") != std::string::npos) {

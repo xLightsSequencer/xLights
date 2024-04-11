@@ -51,7 +51,7 @@ std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& sett
                              settings.GetBool("E_CHECKBOX_FlowMusic2", false) ||
                              settings.GetBool("E_CHECKBOX_FlowMusic3", false) ||
                              settings.GetBool("E_CHECKBOX_FlowMusic4", false))) {
-        res.push_back(wxString::Format("    WARN: Liquid effect cant change flow to music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    WARN: Liquid effect cant change flow to music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     int frameInterval = 50;
@@ -69,11 +69,11 @@ std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& sett
     int count = lifetimeFrames * (flow1 + flow2 + flow3 + flow4);
 
     if (count > MAX_PARTICLES) {
-        res.push_back(wxString::Format("    WARN: Liquid effect lifetime * (flow 1 + flow 2 + flow 3 + flow 4) = %d exceeds %d. Particle count will be limited. Model '%s', Start %s", count, MAX_PARTICLES, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    WARN: Liquid effect lifetime * (flow 1 + flow 2 + flow 3 + flow 4) = %d exceeds %d. Particle count will be limited. Model '%s', Start %s", count, MAX_PARTICLES, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     if (settings.GetInt("E_TEXTCTRL_Size", 500) > 1000) {
-        res.push_back(wxString::Format("    WARN: Liquid effect particle size > 1000 can slow render times significantly. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    WARN: Liquid effect particle size > 1000 can slow render times significantly. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

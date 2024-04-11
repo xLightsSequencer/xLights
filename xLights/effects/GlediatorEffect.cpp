@@ -151,13 +151,10 @@ std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& s
 
     wxString GledFilename = settings.Get("E_FILEPICKERCTRL_Glediator_Filename", "");
 
-    if (GledFilename == "" || !FileExists(GledFilename))
-    {
-        res.push_back(wxString::Format("    ERR: Glediator effect cant find file '%s'. Model '%s', Start %s", GledFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    }
-    else if (!IsFileInShowDir(xLightsFrame::CurrentDir, GledFilename.ToStdString()))
-    {
-        res.push_back(wxString::Format("    WARN: Glediator effect file '%s' not under show directory. Model '%s', Start %s", GledFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (GledFilename == "" || !FileExists(GledFilename)) {
+        res.push_back(wxString::Format("    ERR: Glediator effect cant find file '%s'. Model '%s', Start %s", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    } else if (!IsFileInShowDir(xLightsFrame::CurrentDir, GledFilename.ToStdString())) {
+        res.push_back(wxString::Format("    WARN: Glediator effect file '%s' not under show directory. Model '%s', Start %s", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;

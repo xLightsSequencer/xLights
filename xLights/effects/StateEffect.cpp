@@ -13,6 +13,7 @@
 #include "StateEffect.h"
 #include "StatePanel.h"
 #include "../models/Model.h"
+#include "../models/SubModel.h"
 #include "../sequencer/SequenceElements.h"
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
@@ -39,25 +40,27 @@ std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& setti
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
+    SubModel *sm = dynamic_cast<SubModel *>(model);
+    if (sm != nullptr) {
+        res.push_back(wxString::Format("    ERR: State effect on SubModel will not render properly. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+
+    
     // -Buffer not rotated
     wxString bufferTransform = settings.Get("B_CHOICE_BufferTransform", "None");
 
-    if (bufferTransform != "None")
-    {
-        res.push_back(wxString::Format("    WARN: State effect with transformed buffer '%s' may not render correctly. Model '%s', Start %s", model->GetName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (bufferTransform != "None") {
+        res.push_back(wxString::Format("    WARN: State effect with transformed buffer '%s' may not render correctly. Model '%s', Start %s", model->GetFullName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     wxString timing = settings.Get("E_CHOICE_State_TimingTrack", "");
     wxString state = settings.Get("E_CHOICE_State_State", "");
 
     // - Face chosen or specific phoneme
-    if (state == "" && timing == "")
-    {
-        res.push_back(wxString::Format("    ERR: State effect with no timing selected. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    }
-    else if (timing != "" && GetTiming(timing.ToStdString()) == nullptr)
-    {
-        res.push_back(wxString::Format("    ERR: State effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (state == "" && timing == "") {
+        res.push_back(wxString::Format("    ERR: State effect with no timing selected. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    } else if (timing != "" && GetTiming(timing.ToStdString()) == nullptr) {
+        res.push_back(wxString::Format("    ERR: State effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
     return res;
 }

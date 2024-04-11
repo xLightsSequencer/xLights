@@ -48,9 +48,8 @@ std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& setti
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    if (media == nullptr && settings.GetBool("E_CHECKBOX_Shape_UseMusic", false))
-    {
-        res.push_back(wxString::Format("    WARN: Shape effect cant grow to music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (media == nullptr && settings.GetBool("E_CHECKBOX_Shape_UseMusic", false)) {
+        res.push_back(wxString::Format("    WARN: Shape effect cant grow to music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     std::string object = settings["E_CHOICE_Shape_ObjectToDraw"];
@@ -58,10 +57,10 @@ std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& setti
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_SVG", "");
 
         if (svgFilename == "" || !FileExists(svgFilename)) {
-            res.push_back(wxString::Format("    ERR: Shape effect cant find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    ERR: Shape effect cant find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         } else {
             if (!IsFileInShowDir(xLightsFrame::CurrentDir, svgFilename)) {
-                res.push_back(wxString::Format("    WARN: Shape effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                res.push_back(wxString::Format("    WARN: Shape effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
             }
         }
     }

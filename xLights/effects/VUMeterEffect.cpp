@@ -150,7 +150,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
          type == "Dominant Frequency Colour Gradient"
        ))
     {
-        res.push_back(wxString::Format("    ERR: VU Meter effect '%s' is pointless if there is no music. Model '%s', Start %s", type, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    ERR: VU Meter effect '%s' is pointless if there is no music. Model '%s', Start %s", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     wxString timing = settings.Get("E_CHOICE_VUMeter_TimingTrack", "");
@@ -159,11 +159,11 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
     {
         if (timing == "")
         {
-            res.push_back(wxString::Format("    ERR: VU Meter effect '%s' needs a timing track. Model '%s', Start %s", type, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    ERR: VU Meter effect '%s' needs a timing track. Model '%s', Start %s", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
         else if (GetTiming(timing) == nullptr)
         {
-            res.push_back(wxString::Format("    ERR: VU Meter effect '%s' has unknown timing track (%s). Model '%s', Start %s", type, timing, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    ERR: VU Meter effect '%s' has unknown timing track (%s). Model '%s', Start %s", type, timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
     }
 
@@ -172,10 +172,10 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_SVGFile", "");
 
         if (svgFilename == "" || !FileExists(svgFilename)) {
-            res.push_back(wxString::Format("    ERR: VUMeter effect cant find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    ERR: VUMeter effect cant find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         } else {
             if (!IsFileInShowDir(xLightsFrame::CurrentDir, svgFilename)) {
-                res.push_back(wxString::Format("    WARN: VUMeter effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                res.push_back(wxString::Format("    WARN: VUMeter effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
             }
         }
     }

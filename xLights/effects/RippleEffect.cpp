@@ -1689,12 +1689,11 @@ std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& sett
     std::string object = settings["E_CHOICE_Ripple_Object_To_Draw"];
     if (object == "SVG") {
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_Ripple_SVG", "");
-
         if (svgFilename == "" || !FileExists(svgFilename)) {
-            res.push_back(wxString::Format("    ERR: Ripple effect can't find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    ERR: Ripple effect can't find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         } else {
             if (!IsFileInShowDir(xLightsFrame::CurrentDir, svgFilename)) {
-                res.push_back(wxString::Format("    WARN: Ripple effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                res.push_back(wxString::Format("    WARN: Ripple effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
             }
         }
     }
