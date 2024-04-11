@@ -91,8 +91,8 @@ class ModelFaceDialog : public wxDialog
     static const long FACES_DIALOG_SHIFT;
     static const long FACES_DIALOG_REVERSE;
 
-    void SetFaceInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>>& info);
-    void GetFaceInfo(std::map<std::string, std::map<std::string, std::string>>& info);
+    void SetFaceInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>> const& info);
+    [[nodiscard]] std::map<std::string, std::map<std::string, std::string>> GetFaceInfo() const;
 
 protected:
     //(*Identifiers(ModelFaceDialog)

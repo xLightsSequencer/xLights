@@ -3651,7 +3651,7 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
                                 auto basefname = fname;
 
                                 int suffix = 1;
-                                while (model->faceInfo.find(fname) != model->faceInfo.end())
+                                while (model->GetFaceInfo().find(fname) != model->GetFaceInfo().end())
                                 {
                                     fname = wxString::Format("%s-%d", basefname, suffix);
                                     suffix++;
@@ -3679,7 +3679,7 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
                                 auto basesname = sname;
 
                                 int suffix = 1;
-                                while (model->stateInfo.find(sname) != model->stateInfo.end())
+                                while (model->GetStateInfo().find(sname) != model->GetStateInfo().end())
                                 {
                                     sname = wxString::Format("%s-%d", basesname, suffix);
                                     suffix++;

@@ -283,7 +283,7 @@ ModelStateDialog::~ModelStateDialog()
     }
 }
 
-void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>>& finfo)
+void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>> const& finfo)
 {
     NodeRangeGrid->SetColSize(COLOUR_COL, 50);
     SingleNodeGrid->SetColSize(COLOUR_COL, 50);
@@ -293,9 +293,9 @@ void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<s
 
     SetTitle(GetTitle() + " - " + cls->GetName());
 
-    for (auto it = finfo.begin(); it != finfo.end(); ++it) {
-        std::string name = it->first;
-        std::map<std::string, std::string>& info = it->second;
+    for (auto [name, info] : finfo)  {
+        //std::string name = it->first;
+        //std::map<std::string, std::string>& info = it->second;
 
         NameChoice->Append(name);
 
@@ -371,13 +371,14 @@ void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<s
     SelectRow(grid, -1);
 }
 
-void ModelStateDialog::GetStateInfo(std::map< std::string, std::map<std::string, std::string> > &finfo) {
-    finfo.clear();
+std::map<std::string, std::map<std::string, std::string>> ModelStateDialog::GetStateInfo() const {
+    std::map<std::string, std::map<std::string, std::string>> finfo;
     for (const auto& it : stateData) {
         if (!it.second.empty()) {
             finfo[it.first] = it.second;
         }
     }
+    return finfo;
 }
 
 static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
@@ -1092,13 +1093,13 @@ void ModelStateDialog::ImportStatesFromModel()
     if (dlg.ShowModal() == wxID_OK)
     {
         Model* m = xlights->GetModel(dlg.GetStringSelection());
-        if (m->stateInfo.size() == 0)
+        if (m->GetStateInfo().size() == 0)
         {
             wxMessageBox(dlg.GetStringSelection() + " contains no states, skipping");
             return;
         }
 
-        AddStates(m->stateInfo);
+        AddStates(m->GetStateInfo());
 
         NameChoice->Enable();
         StateTypeChoice->Enable();

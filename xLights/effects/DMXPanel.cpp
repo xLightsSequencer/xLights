@@ -1276,7 +1276,7 @@ void DMXPanel::OnButton_Load_StateClick(wxCommandEvent& event)
     }
     maxChannels = std::min(maxChannels, m->GetChanCount());
     wxArrayString choices;
-    std::transform(m->stateInfo.begin(), m->stateInfo.end(), std::back_inserter(choices),
+    std::transform(m->GetStateInfo().begin(), m->GetStateInfo().end(), std::back_inserter(choices),
                    [](auto const& key) { return key.first; });
     wxSingleChoiceDialog dlg(this, "Select State", "Select State", choices);
 
@@ -1284,7 +1284,7 @@ void DMXPanel::OnButton_Load_StateClick(wxCommandEvent& event)
         return;
     }
     std::string stateName = dlg.GetStringSelection();
-    auto states = m->stateInfo.at(stateName);
+    auto states = m->GetStateInfo().at(stateName);
 
     if (states["CustomColors"] != "1" || states["Type"] != "SingleNode") {
         DisplayError("State does not have Force Custom Colors or Single Node Type");

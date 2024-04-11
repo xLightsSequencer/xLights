@@ -200,10 +200,9 @@ public:
                               wxPGProperty* WXUNUSED(property)) override
     {
         ModelFaceDialog dlg(propGrid, _outputManager);
-        dlg.SetFaceInfo(m_model, m_model->faceInfo);
+        dlg.SetFaceInfo(m_model, m_model->GetFaceInfo());
         if (dlg.ShowModal() == wxID_OK) {
-            m_model->faceInfo.clear();
-            dlg.GetFaceInfo(m_model->faceInfo);
+            m_model->SetFaceInfo(dlg.GetFaceInfo());
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
@@ -250,10 +249,9 @@ public:
                               wxPGProperty* WXUNUSED(property)) override
     {
         ModelStateDialog dlg(propGrid, _outputManager);
-        dlg.SetStateInfo(m_model, m_model->stateInfo);
+        dlg.SetStateInfo(m_model, m_model->GetStateInfo());
         if (dlg.ShowModal() == wxID_OK) {
-            m_model->stateInfo.clear();
-            dlg.GetStateInfo(m_model->stateInfo);
+            m_model->SetStateInfo(dlg.GetStateInfo());
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;

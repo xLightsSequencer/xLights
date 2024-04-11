@@ -107,7 +107,7 @@ void StateEffect::SetPanelStatus(Model *cls) {
         std::list<std::string> used;
         if (m != nullptr)
         {
-            for (const auto& it : m->stateInfo) {
+            for (const auto& it : m->GetStateInfo()) {
                 if (std::find(begin(used), end(used), it.first) == end(used)) 
                 {
                     fp->Choice_StateDefinitonChoice->Append(it.first);
@@ -144,7 +144,7 @@ std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
 
         if (m != nullptr)
         {
-            for (const auto& it : m->stateInfo)
+            for (const auto& it : m->GetStateInfo())
             {
                 if (model == it.first)
                 {
@@ -246,16 +246,16 @@ void StateEffect::RenderState(RenderBuffer &buffer,
 
     std::string definition = faceDefinition;
     bool found = true;
-    std::map<std::string, std::map<std::string, std::string> >::iterator it = model_info->stateInfo.find(definition);
-    if (it == model_info->stateInfo.end()) {
+    auto it = model_info->GetStateInfo().find(definition);
+    if (it == model_info->GetStateInfo().end()) {
         //not found
         found = false;
     }
     if (!found) {
-        if ("Coro" == definition && model_info->stateInfo.find("SingleNode") != model_info->stateInfo.end()) {
+        if ("Coro" == definition && model_info->GetStateInfo().find("SingleNode") != model_info->GetStateInfo().end()) {
             definition = "SingleNode";
             found = true;
-        } else if ("SingleNode" == definition && model_info->stateInfo.find("Coro") != model_info->stateInfo.end()) {
+        } else if ("SingleNode" == definition && model_info->GetStateInfo().find("Coro") != model_info->GetStateInfo().end()) {
             definition = "Coro";
             found = true;
         }
@@ -266,9 +266,9 @@ void StateEffect::RenderState(RenderBuffer &buffer,
         return;
     }
 
-    std::string modelType = found ? model_info->stateInfo[definition]["Type"] : definition;
-    if (modelType == "") {
-        modelType = definition;
+     wxString modelType = definition;
+    if (model_info->GetStateInfo().at(definition).contains("Type") && !model_info->GetStateInfo().at(definition).at("Type").empty()) {
+         modelType = model_info->GetStateInfo().at(definition).at("Type");
     }
 
     int type = 1;
@@ -336,7 +336,7 @@ void StateEffect::RenderState(RenderBuffer &buffer,
             wxString token = tkz.GetNextToken();
             if (token == "*" || token == "<ALL>")
             {
-                for (auto it2 : model_info->stateInfo[definition])
+                for (auto it2 : model_info->GetStateInfo().at(definition))
                 {
                     if (EndsWith(it2.first, "-Name") && it2.second != "")
                     {
@@ -489,7 +489,7 @@ void StateEffect::RenderState(RenderBuffer &buffer,
             wxString token = tkz.GetNextToken();
             if (token == "*" || token == "<ALL>")
             {
-                for (auto it2 : model_info->stateInfo[definition])
+                for (auto it2 : model_info->GetStateInfo().at(definition))
                 {
                     if (EndsWith(it2.first, "-Name") && it2.second != "")
                     {
@@ -511,18 +511,23 @@ void StateEffect::RenderState(RenderBuffer &buffer,
         }
     }
 
-    bool customColor = found ? model_info->stateInfo[definition]["CustomColors"] == "1" : false;
+    bool customColor = false;
+
+    if (found && model_info->GetStateInfo().at(definition).contains("CustomColors") &&
+        model_info->GetStateInfo().at(definition).at("CustomColors") == "1") {
+        customColor = true;
+    }
 
     // process each token
     for (size_t i = 0; i < sstates.size(); i++)
     {
-        for (const auto& it : model_info->stateInfo[definition])
+        for (const auto& it : model_info->GetStateInfo().at(definition))
         {
             if (it.second == sstates[i] && EndsWith(it.first, "-Name"))
             {
                 // get the channels
                 std::string statename = BeforeFirst(it.first, '-');// FindState(model_info->stateInfo[definition], sstates[i]);
-                std::string channels = model_info->stateInfo[definition][statename];
+                std::string channels = model_info->GetStateInfo().at(definition).at(statename);
 
                 if (statename != "" && channels != "")
                 {
@@ -542,18 +547,20 @@ void StateEffect::RenderState(RenderBuffer &buffer,
                         buffer.palette.GetColor((statenum - 1) % buffer.GetColorCount(), color);
                     }
                     if (customColor) {
-                        std::string cname = model_info->stateInfo[definition][statename + "-Color"];
-                        if (cname == "") {
-                            color = xlWHITE;
+                        if (model_info->GetStateInfo().at(definition).contains(statename + "-Color") &&
+                            !model_info->GetStateInfo().at(definition).at(statename + "-Color").empty()) {
+                            color = xlColor(model_info->GetStateInfo().at(definition).at(statename + "-Color"));
                         }
                         else {
-                            color = xlColor(cname);
+                            color = xlWHITE;
                         }
                     }
 
                     if (type == 1) {
-                        for (const auto it : model_info->stateInfoNodes[definition][statename]) {
-                            buffer.SetNodePixel(it, color, true);
+                        if (model_info->GetStateInfoNodes().at(definition).contains(statename)){
+                            for (const auto it : model_info->GetStateInfoNodes().at(definition).at(statename)) {
+                                buffer.SetNodePixel(it, color, true);
+                            }
                         }
                     } else {
                         wxStringTokenizer wtkz(channels, ",");
