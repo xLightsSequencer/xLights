@@ -650,7 +650,7 @@ std::string PlayListStep::GetFSEQTimeStamp() const
         if (fsf != nullptr) {
             auto ch = fsf->getChannelCount();
             delete fsf;
-            return wxString::Format("%s (%d)", fi.GetModificationTime().Format("%F %H:%M"), ch);
+            return wxString::Format("%s (%llu)", fi.GetModificationTime().Format("%F %H:%M"), ch);
         }
         else             {
             return "FSEQ Invalid";
