@@ -10,6 +10,7 @@
 
 #include <wx/msgdlg.h>
 #include <wx/xml/xml.h>
+#include <wx/stdpaths.h>
 
 #include "ArchesModel.h"
 #include "CandyCaneModel.h"
@@ -1459,8 +1460,15 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
         while (n != nullptr) {
             std::string name = n->GetName();
             if ("HeadMesh" == name) {
+                wxString obj_path = "";
+                wxStandardPaths stdp = wxStandardPaths::Get();
+            #ifndef __WXMSW__
+                obj_path = wxStandardPaths::Get().GetResourcesDir() + "/meshobjects/SimpleMovingHead/" + "MovingHead3DX_Head.obj";
+            #else
+                obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/SimpleMovingHead/" + "MovingHead3DX_Head.obj";
+            #endif
                 n->DeleteAttribute("ObjFile");
-                n->AddAttribute("ObjFile", "MovingHead3DX_Head.obj");
+                n->AddAttribute("ObjFile", obj_path);
                 n->DeleteAttribute("RotateY");
                 n->AddAttribute("RotateY", "90");
                 break;
