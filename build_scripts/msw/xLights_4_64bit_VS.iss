@@ -106,11 +106,14 @@ Source: "../../xSchedule/RemoteFalcon/x64/Release/RemoteFalcon.dll"; DestDir: "{
 Source: "../../bin64/libgcc_s_seh-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
 
 ; avlib - video and audio
-Source: "../../bin64/avcodec-59.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/avformat-59.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/avutil-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avcodec-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avdevice-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avfilter-9.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avformat-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avutil-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/postproc-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "../../bin64/swresample-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/swscale-6.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/swscale-7.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; SDL - audio playing
 Source: "../../bin64/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
