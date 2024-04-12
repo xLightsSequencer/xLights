@@ -1869,10 +1869,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     }
 #endif
 
-    if (IsFromAppStore()) {
-        MenuItem_Update->GetMenu()->Remove(MenuItem_Update);
-        MenuItem_Update = nullptr;
-    }
+#ifdef __WXOSX__
+    MenuItem_Update->GetMenu()->Remove(MenuItem_Update);
+    MenuItem_Update = nullptr;
+#endif
 
     _valueCurvesPanel->UpdateValueCurveButtons(false);
     _coloursPanel->UpdateColourButtons(false, this);
@@ -2232,9 +2232,9 @@ void xLightsFrame::DoPostStartupCommands()
     if (!_renderMode && !_checkSequenceMode) {
 // Don't bother checking for updates when debugging.
 #if !defined(_DEBUG) || defined(SIMULATE_UPGRADE)
-        if (!IsFromAppStore()) {
-            CheckForUpdate(1, true, false);
-        }
+#ifndef __WXOSX__
+        CheckForUpdate(1, true, false);
+#endif
 #endif
         if (_userEmail == "")
             CollectUserEmail();
@@ -7781,11 +7781,12 @@ void xLightsFrame::DoDonate()
 void xLightsFrame::OnMenuItem_DonateSelected(wxCommandEvent& event)
 {
 #ifdef __WXOSX__
-    DoInAppPurchases(this);
-    //DoDonate();
-#else
-    DoDonate();
+    if (IsFromAppStore()) {
+        DoInAppPurchases(this);
+        return;
+    }
 #endif
+    DoDonate();
 }
 
 #pragma endregion Help Menu

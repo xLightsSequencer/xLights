@@ -1136,6 +1136,9 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         if (s_audioTex == 0)
             s_audioTex = FFTAudioTexture();
 
+        LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
+        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, s_audioTex));
+
         AudioManager* audioManager = buffer.GetMedia();
         if (audioManager != nullptr) {
             FRAMEDATATYPE datatype = ( _shaderConfig->IsAudioFFTShader() ) ? FRAMEDATA_VU : FRAMEDATA_HIGH;
@@ -1148,8 +1151,6 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
                fft128.insert( fft128.begin(), 127, *(fftData->cbegin()) );
             fft128.push_back( 0.f );
 
-            LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
-            LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, s_audioTex));
             LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, fft128.size(),1, GL_RED, GL_FLOAT, fft128.data()));
         }
     } else {
