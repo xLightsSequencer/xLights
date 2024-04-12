@@ -5843,14 +5843,14 @@ std::vector<Model *> LayoutPanel::GetSelectedModelsFromGroup(wxTreeListItem grou
 }
 
 // The will return unique selected models for edit, useful when groups are also selected in model tree
-std::vector<Model*> LayoutPanel::GetSelectedModelsForEdit() {
+std::vector<Model*> LayoutPanel::GetSelectedModelsForEdit(bool incSubModels) {
     std::vector<Model*> modelsForEdit;
 
     for (const auto& groupItem : selectedTreeGroups) {
         std::vector<Model*> groupModels = GetSelectedModelsFromGroup(groupItem);
         for (Model* model: groupModels) {
             if (std::find(modelsForEdit.begin(), modelsForEdit.end(), model) == modelsForEdit.end()) {
-                if (model->GetDisplayAs() != "SubModel") {
+                if (model->GetDisplayAs() != "SubModel" || incSubModels) {
                     modelsForEdit.push_back(model);
                 }
             }
@@ -9070,7 +9070,6 @@ int LayoutPanel::calculateNodeCountOfSelected()
     int totalNodeCount = 0;
     std::vector<Model*> modelsProcessed;
     //We can break the selected groups into their components for processing. GetSelectedModelsForEdit already does this, even though we aren't editing. We can reuse that logic. This gives us all models, so I want to split this back up into models and submodels
-    std::vector<Model*> modelsToProcess = GetSelectedModelsForEdit();
     std::vector<Model*> selectedModels;
     std::vector<Model*> selectedSubModels;
     
@@ -9082,7 +9081,7 @@ int LayoutPanel::calculateNodeCountOfSelected()
     }
     
     //Now parse the group elements into their perspective groups for processing
-    std::vector<Model*> sgModels = GetSelectedModelsForEdit();
+    std::vector<Model*> sgModels = GetSelectedModelsForEdit(true);
     for (const auto& item : sgModels){
         if (item->GetDisplayAs() == "SubModel") {
             selectedSubModels.push_back(item);

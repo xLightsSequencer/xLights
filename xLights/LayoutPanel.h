@@ -384,7 +384,7 @@ class LayoutPanel: public wxPanel
         Model* GetModelFromTreeItem(wxTreeListItem treeItem);
         wxTreeListItem GetTreeItemFromModel(Model* model);
         std::vector<Model*> GetSelectedModelsFromGroup(wxTreeListItem groupItem, bool nested = true);
-        std::vector<Model*> GetSelectedModelsForEdit();
+        std::vector<Model*> GetSelectedModelsForEdit(bool incSubModels = false);
         void SetTreeModelSelected(Model* model, bool isPrimary);
         void SetTreeGroupModelsSelected(Model* model, bool isPrimary);
         void SetTreeSubModelSelected(Model* model, bool isPrimary);
