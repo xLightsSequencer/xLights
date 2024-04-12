@@ -1463,9 +1463,9 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
                 wxString obj_path = "";
                 wxStandardPaths stdp = wxStandardPaths::Get();
             #ifndef __WXMSW__
-                obj_path = wxStandardPaths::Get().GetResourcesDir() + "/meshobjects/SimpleMovingHead/" + "MovingHead3DX_Head.obj";
+                obj_path = wxStandardPaths::Get().GetResourcesDir() + "/meshobjects/MovingHead3D/" + "MovingHead3DX_Head.obj";
             #else
-                obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/SimpleMovingHead/" + "MovingHead3DX_Head.obj";
+                obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/MovingHead3D/" + "MovingHead3DX_Head.obj";
             #endif
                 n->DeleteAttribute("ObjFile");
                 n->AddAttribute("ObjFile", obj_path);
