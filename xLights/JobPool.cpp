@@ -400,7 +400,7 @@ void JobPool::PushJob(Job *job)
     }
     signal.notify_one();
 }
-void JobPool::PushJobs(std::list<Job *> jobs) {
+void JobPool::PushJobs(const std::list<Job *> &jobs) {
     std::unique_lock<std::mutex> locker(queueLock);
     for (auto job : jobs) {
         queue.push_back(job);

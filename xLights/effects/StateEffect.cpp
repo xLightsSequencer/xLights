@@ -203,7 +203,8 @@ static const std::string &findKey(const std::map<std::string, std::string> &m, c
 static std::list<int> const& findNodeKey(std::map<std::string, std::list<int>> const& m, std::string const& k) {
     const auto& v = m.find(k);
     if (v == m.end()) {
-        return {};
+        static std::list<int> emptyList;
+        return emptyList;
     }
     return v->second;
 }

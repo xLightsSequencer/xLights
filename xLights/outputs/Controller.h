@@ -100,7 +100,7 @@ public:
     #pragma region Getters and Setters
     Output* GetOutput(int outputNumber) const; // output number is zero based
     Output* GetOutput(int32_t absoluteChannel, int32_t& startChannel) const;
-    std::list<Output*> GetOutputs() const { return _outputs; }
+    const std::list<Output*> &GetOutputs() const { return _outputs; }
     int GetOutputCount() const { return _outputs.size(); }
     Output* GetFirstOutput() const { wxASSERT(_outputs.size() > 0); return _outputs.front(); }
 
