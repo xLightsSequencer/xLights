@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxDialog" name="EditSubmodelAliasesDialog">
-		<title>Submodel Aliases</title>
+		<title>SubModel Aliases</title>
 		<id_arg>0</id_arg>
 		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
