@@ -98,7 +98,7 @@ void StateEffect::SetPanelStatus(Model* cls) {
 
         std::list<std::string> used;
         if (m != nullptr) {
-            for (const auto& it : m->stateInfo) {
+            for (const auto& it : m->GetStateInfo()) {
                 if (std::find(begin(used), end(used), it.first) == end(used)) {
                     fp->Choice_StateDefinitonChoice->Append(it.first);
                     used.push_back(it.first);
@@ -130,7 +130,7 @@ std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
         }
 
         if (m != nullptr) {
-            for (const auto& it : m->stateInfo) {
+            for (const auto& it : m->GetStateInfo()) {
                 if (model == it.first) {
                     for (const auto& it2 : it.second) {
                         wxString f(it2.first);
@@ -220,16 +220,16 @@ void StateEffect::RenderState(RenderBuffer& buffer,
     const Model* model_info = buffer.GetModel();
     std::string definition = faceDefinition;
     bool found = true;
-    std::map<std::string, std::map<std::string, std::string>>::const_iterator it = model_info->stateInfo.find(definition);
-    if (it == model_info->stateInfo.end()) {
+    std::map<std::string, std::map<std::string, std::string>>::const_iterator it = model_info->GetStateInfo().find(definition);
+    if (it == model_info->GetStateInfo().end()) {
         // not found
         found = false;
     }
     if (!found) {
-        if ("Coro" == definition && model_info->stateInfo.find("SingleNode") != model_info->stateInfo.end()) {
+        if ("Coro" == definition && model_info->GetStateInfo().find("SingleNode") != model_info->GetStateInfo().end()) {
             definition = "SingleNode";
             found = true;
-        } else if ("SingleNode" == definition && model_info->stateInfo.find("Coro") != model_info->stateInfo.end()) {
+        } else if ("SingleNode" == definition && model_info->GetStateInfo().find("Coro") != model_info->GetStateInfo().end()) {
             definition = "Coro";
             found = true;
         }
@@ -239,7 +239,7 @@ void StateEffect::RenderState(RenderBuffer& buffer,
         return;
     }
     std::map<std::string, std::string> emptyMap;
-    const std::map<std::string, std::string> &definitionSi = found ? model_info->stateInfo.find(definition)->second : emptyMap;
+    const std::map<std::string, std::string>& definitionSi = found ? model_info->GetStateInfo().find(definition)->second : emptyMap;
     std::string modelType = findKey(definitionSi, "Type", definition);
     if (modelType == "") {
         modelType = definition;

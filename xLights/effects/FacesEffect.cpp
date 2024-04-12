@@ -136,21 +136,21 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
     wxLogNull logNo; // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    wxString definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
-    if (definition == "Default" && !model->faceInfo.empty() && model->faceInfo.begin()->first != "") {
-        definition = model->faceInfo.begin()->first;
+    std::string definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
+    if (definition == "Default" && !model->GetFaceInfo().empty() && model->GetFaceInfo().begin()->first != "") {
+        definition = model->GetFaceInfo().begin()->first;
     }
     bool found = true;
-    std::map<std::string, std::map<std::string, std::string>>::iterator it = model->faceInfo.find(definition.ToStdString());
-    if (it == model->faceInfo.end()) {
+    auto it = model->GetFaceInfo().find(definition);
+    if (it == model->GetFaceInfo().end()) {
         //not found
         found = false;
     }
     if (!found) {
-        if ("Coro" == definition && model->faceInfo.find("SingleNode") != model->faceInfo.end()) {
+        if ("Coro" == definition && model->GetFaceInfo().find("SingleNode") != model->GetFaceInfo().end()) {
             definition = "SingleNode";
             found = true;
-        } else if ("SingleNode" == definition && model->faceInfo.find("Coro") != model->faceInfo.end()) {
+        } else if ("SingleNode" == definition && model->GetFaceInfo().find("Coro") != model->GetFaceInfo().end()) {
             definition = "Coro";
             found = true;
         }
@@ -158,14 +158,14 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 
     // check the face exists on the model
     if (definition != "Rendered") {
-        if (model->faceInfo.find(definition) == model->faceInfo.end()) {
+        if (model->GetFaceInfo().find(definition) == model->GetFaceInfo().end()) {
             res.push_back(wxString::Format("    ERR: Face effect face '%s' does not exist on model '%s'. Start %s", definition, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
     }
 
-    wxString modelType = found ? wxString(model->faceInfo[definition.ToStdString()]["Type"].c_str()) : definition;
-    if (modelType == "") {
-        modelType = definition;
+    std::string modelType = definition;
+    if (found && model->GetFaceInfo().at(definition).contains("Type") && !model->GetFaceInfo().at(definition).at("Type").empty()) {
+        modelType = model->GetFaceInfo().at(definition).at("Type");
     }
 
     if (modelType != "Matrix" && modelType != "Rendered") {
@@ -194,8 +194,8 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
         }
     }
 
-    if (modelType == "Matrix") {
-        auto images = model->faceInfo[definition.ToStdString()];
+    if (modelType == "Matrix" && model->GetFaceInfo().contains(definition)) {
+        auto images = model->GetFaceInfo().at(definition);
         for (const auto& it2 : images) {
             if (it2.first.find("Mouth") == 0) {
                 std::string picture = it2.second;
@@ -277,7 +277,7 @@ void FacesEffect::SetPanelStatus(Model* cls) {
         }
 
         if (m != nullptr) {
-            for (auto& it : m->faceInfo) {
+            for (auto it : m->GetFaceInfo()) {
                 if (it.first != "") {
                     fp->Face_FaceDefinitonChoice->Append(it.first);
                     if (it.second["Type"] == "Coro" || it.second["Type"] == "SingleNode" || it.second["Type"] == "NodeRange") {
@@ -287,7 +287,7 @@ void FacesEffect::SetPanelStatus(Model* cls) {
             }
 
             std::list<std::string> used;
-            for (const auto& it : m->stateInfo) {
+            for (const auto& it : m->GetFaceInfo()) {
                 if (std::find(begin(used), end(used), it.first) == end(used) )
                 {
                     fp->Choice1->Append(it.first);
@@ -319,33 +319,33 @@ std::list<std::string> FacesEffect::GetFileReferences(Model* model, const Settin
     std::list<std::string> res;
 
     if (model != nullptr) {
-        wxString definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
-        if (definition == "Default" && !model->faceInfo.empty() && model->faceInfo.begin()->first != "") {
-            definition = model->faceInfo.begin()->first;
+        std::string definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
+        if (definition == "Default" && !model->GetFaceInfo().empty() && model->GetFaceInfo().begin()->first != "") {
+            definition = model->GetFaceInfo().begin()->first;
         }
         bool found = true;
-        std::map<std::string, std::map<std::string, std::string>>::iterator it = model->faceInfo.find(definition.ToStdString());
-        if (it == model->faceInfo.end()) {
+        auto it = model->GetFaceInfo().find(definition);
+        if (it == model->GetFaceInfo().end()) {
             //not found
             found = false;
         }
         if (!found) {
-            if ("Coro" == definition && model->faceInfo.find("SingleNode") != model->faceInfo.end()) {
+            if ("Coro" == definition && model->GetFaceInfo().find("SingleNode") != model->GetFaceInfo().end()) {
                 definition = "SingleNode";
                 found = true;
-            } else if ("SingleNode" == definition && model->faceInfo.find("Coro") != model->faceInfo.end()) {
+            } else if ("SingleNode" == definition && model->GetFaceInfo().find("Coro") != model->GetFaceInfo().end()) {
                 definition = "Coro";
                 found = true;
             }
         }
 
-        wxString modelType = found ? wxString(model->faceInfo[definition.ToStdString()]["Type"].c_str()) : definition;
-        if (modelType == "") {
-            modelType = definition;
+        std::string modelType = definition;
+        if (found && model->GetFaceInfo().at(definition).contains("Type") && !model->GetFaceInfo().at(definition).at("Type").empty()) {
+            modelType = model->GetFaceInfo().at(definition).at("Type");
         }
 
-        if (modelType == "Matrix") {
-            auto images = model->faceInfo[definition.ToStdString()];
+        if (modelType == "Matrix" && model->GetFaceInfo().contains(definition)) {
+            auto images = model->GetFaceInfo().at(definition);
             for (const auto& it2 : images) {
                 if (it2.first.find("Mouth") == 0) {
                     if (it2.second != "" && std::find(begin(res), end(res), it2.second) == end(res)) {
@@ -981,26 +981,26 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     }
 
     std::string definition = faceDef;
-    if ((definition == "Default" || definition == "") && !model_info->faceInfo.empty() && model_info->faceInfo.begin()->first != "") {
-        definition = model_info->faceInfo.begin()->first;
+    if ((definition == "Default" || definition == "") && !model_info->GetFaceInfo().empty() && model_info->GetFaceInfo().begin()->first != "") {
+        definition = model_info->GetFaceInfo().begin()->first;
     }
 
     bool found = true;
-    auto it = model_info->faceInfo.find(definition);
-    if (it == model_info->faceInfo.end()) {
+    auto it = model_info->GetFaceInfo().find(definition);
+    if (it == model_info->GetFaceInfo().end()) {
         //not found
         found = false;
     }
     if (!found) {
-        if ("Coro" == definition && model_info->faceInfo.find("SingleNode") != model_info->faceInfo.end()) {
+        if ("Coro" == definition && model_info->GetFaceInfo().find("SingleNode") != model_info->GetFaceInfo().end()) {
             definition = "SingleNode";
             found = true;
-        } else if ("SingleNode" == definition && model_info->faceInfo.find("Coro") != model_info->faceInfo.end()) {
+        } else if ("SingleNode" == definition && model_info->GetFaceInfo().find("Coro") != model_info->GetFaceInfo().end()) {
             definition = "Coro";
             found = true;
         } else if (definition != "Default" && definition != "Rendered" && definition != "" && definition != "Matrix") {
             std::string firstFace = "";
-            for (const auto& it2 : model_info->faceInfo) {
+            for (const auto& it2 : model_info->GetFaceInfo()) {
                 if (it2.first != "") {
                     firstFace = it2.first;
                     break;
@@ -1014,7 +1014,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     }
 
     std::map<std::string, std::string> emptyMap;
-    const std::map<std::string, std::string> &faceInfoDef = found ? model_info->faceInfo.find(definition)->second : emptyMap;
+    const std::map<std::string, std::string>& faceInfoDef = found ? model_info->GetFaceInfo().find(definition)->second : emptyMap;
     std::string modelType = found ? findKey(faceInfoDef, "Type") : definition;
     if (modelType == "") {
         modelType = definition;
@@ -1406,8 +1406,8 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 continue;
         }
         if (type == 1) {
-            const auto &nodeInfo = model_info->faceInfoNodes.find(definition);
-            if (nodeInfo != model_info->faceInfoNodes.end() && nodeInfo->second.find(todo[t]) != nodeInfo->second.end()) {
+            const auto& nodeInfo = model_info->GetFaceInfoNodes().find(definition);
+            if (nodeInfo != model_info->GetFaceInfoNodes().end() && nodeInfo->second.find(todo[t]) != nodeInfo->second.end()) {
                 for (const auto it : nodeInfo->second.find(todo[t])->second) {
                     buffer.SetNodePixel(it, colors[t], true);
                 }
@@ -1428,8 +1428,8 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
         }
 
         if (todo[t] == "FaceOutline" && !outlineState.empty()) {
-            if (model_info->stateInfo.find(outlineState) != model_info->stateInfo.end()) {
-                const auto &sts = model_info->stateInfo.find(outlineState)->second;
+            if (model_info->GetStateInfo().find(outlineState) != model_info->GetStateInfo().end()) {
+                const auto& sts = model_info->GetStateInfo().find(outlineState)->second;
                 if (findKey(sts, "CustomColors") == "1") {
                     if (findKey(sts, "Type") == "NodeRange") {
                         for (size_t i = 1; i <= 200; i++) {
@@ -1443,9 +1443,9 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                                 colour.alpha = ((int)alpha * colour.alpha) / 255;
                                 
                                 // use the nodes as it is faster
-                                if (model_info->stateInfoNodes.find(outlineState) != model_info->stateInfoNodes.end()) {
+                                if (model_info->GetStateInfoNodes().find(outlineState) != model_info->GetStateInfoNodes().end()) {
                                     const std::string k2 = wxString::Format("s%d", (int)i).ToStdString();
-                                    for (const auto it : model_info->stateInfoNodes.find(outlineState)->second.find(k2)->second) {
+                                    for (const auto it : model_info->GetStateInfoNodes().find(outlineState)->second.find(k2)->second) {
                                         buffer.SetNodePixel(it, colour, true);
                                     }
                                 }

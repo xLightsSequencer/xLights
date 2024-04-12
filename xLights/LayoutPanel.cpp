@@ -5103,10 +5103,9 @@ void LayoutPanel::EditFaces()
         return;
 
     ModelFaceDialog dlg(this, &xlights->_outputManager);
-    dlg.SetFaceInfo(md, md->faceInfo);
+    dlg.SetFaceInfo(md, md->GetFaceInfo());
     if (dlg.ShowModal() == wxID_OK) {
-        md->faceInfo.clear();
-        dlg.GetFaceInfo(md->faceInfo);
+        md->SetFaceInfo(dlg.GetFaceInfo());
         md->IncrementChangeCount();
         md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditFaces");
     }
@@ -5119,10 +5118,9 @@ void LayoutPanel::EditStates()
         return;
 
     ModelStateDialog dlg(this, &xlights->_outputManager);
-    dlg.SetStateInfo(md, md->stateInfo);
+    dlg.SetStateInfo(md, md->GetStateInfo());
     if (dlg.ShowModal() == wxID_OK) {
-        md->stateInfo.clear();
-        dlg.GetStateInfo(md->stateInfo);
+        md->SetStateInfo(dlg.GetStateInfo());
         md->IncrementChangeCount();
         md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditStates");
     }

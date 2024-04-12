@@ -403,8 +403,8 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, 
     auto srcModelName = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetModelName();
     Model* targetModel = _xlights->AllModels[targetModelName];
 
-    const auto& faceInfo = targetModel->faceInfo.find(faceName);
-    if (faceInfo != targetModel->faceInfo.end()) {
+    const auto& faceInfo = targetModel->GetFaceInfo().find(faceName);
+    if (faceInfo != targetModel->GetFaceInfo().end()) {
         // face already defined don't overwrite it
         return;
     }

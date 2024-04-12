@@ -200,10 +200,9 @@ public:
                               wxPGProperty* WXUNUSED(property)) override
     {
         ModelFaceDialog dlg(propGrid, _outputManager);
-        dlg.SetFaceInfo(m_model, m_model->faceInfo);
+        dlg.SetFaceInfo(m_model, m_model->GetFaceInfo());
         if (dlg.ShowModal() == wxID_OK) {
-            m_model->faceInfo.clear();
-            dlg.GetFaceInfo(m_model->faceInfo);
+            m_model->SetFaceInfo(dlg.GetFaceInfo());
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
@@ -250,10 +249,9 @@ public:
                               wxPGProperty* WXUNUSED(property)) override
     {
         ModelStateDialog dlg(propGrid, _outputManager);
-        dlg.SetStateInfo(m_model, m_model->stateInfo);
+        dlg.SetStateInfo(m_model, m_model->GetStateInfo());
         if (dlg.ShowModal() == wxID_OK) {
-            m_model->stateInfo.clear();
-            dlg.GetStateInfo(m_model->stateInfo);
+            m_model->SetStateInfo(dlg.GetStateInfo());
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
@@ -2273,8 +2271,7 @@ void Model::AdjustStringProperties(wxPropertyGridInterface* grid, int newNum)
     }
 }
 
-void Model::ParseFaceInfo(wxXmlNode* f, std::map<std::string, std::map<std::string, std::string>>& faceInfo)
-{
+void Model::ParseFaceInfo(wxXmlNode* f, FaceStateData& faceInfo) {
     std::string name = f->GetAttribute("Name", "SingleNode").ToStdString();
     std::string type = f->GetAttribute("Type", "SingleNode").ToStdString();
     if (name == "") {
@@ -2310,8 +2307,7 @@ void Model::ParseFaceInfo(wxXmlNode* f, std::map<std::string, std::map<std::stri
     }
 }
 
-void Model::WriteFaceInfo(wxXmlNode* rootXml, const std::map<std::string, std::map<std::string, std::string>>& faceInfo)
-{
+void Model::WriteFaceInfo(wxXmlNode* rootXml, const FaceStateData& faceInfo) {
     if (!faceInfo.empty()) {
         for (const auto& it : faceInfo) {
             wxXmlNode* f = new wxXmlNode(rootXml, wxXML_ELEMENT_NODE, "faceInfo");
@@ -2496,8 +2492,7 @@ void Model::UpdateStateInfoNodes()
     }
 }
 
-void Model::ParseStateInfo(wxXmlNode* f, std::map<std::string, std::map<std::string, std::string>>& stateInfo)
-{
+void Model::ParseStateInfo(wxXmlNode* f, FaceStateData& stateInfo) {
     std::string name = f->GetAttribute("Name", "SingleNode").ToStdString();
     std::string type = f->GetAttribute("Type", "SingleNode").ToStdString();
     if (name == "") {
@@ -2523,8 +2518,7 @@ void Model::ParseStateInfo(wxXmlNode* f, std::map<std::string, std::map<std::str
     }
 }
 
-void Model::WriteStateInfo(wxXmlNode* rootXml, const std::map<std::string, std::map<std::string, std::string>>& stateInfo, bool forceCustom)
-{
+void Model::WriteStateInfo(wxXmlNode* rootXml, const FaceStateData& stateInfo, bool forceCustom) {
     if (!stateInfo.empty()) {
         for (const auto& it : stateInfo) {
             std::string name = it.first;

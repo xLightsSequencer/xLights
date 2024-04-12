@@ -50,6 +50,10 @@ class xlVertexAccumulator;
 class xlGraphicsContext;
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
 
+//convert to Structs someday
+using FaceStateData = std::map<std::string, std::map<std::string, std::string>>;
+using FaceStateNodes = std::map<std::string, std::map<std::string, std::list<int>>>;
+
 #define NO_CONTROLLER "No Controller"
 #define USE_START_CHANNEL "Use Start Channel"
 
@@ -158,23 +162,30 @@ public:
     void ExportDimensions(wxFile& f) const;
 
     virtual bool AllNodesAllocated() const { return true; }
-    static void ParseFaceInfo(wxXmlNode* fiNode, std::map<std::string, std::map<std::string, std::string> >& faceInfo);
-    static void WriteFaceInfo(wxXmlNode* fiNode, const std::map<std::string, std::map<std::string, std::string> >& faceInfo);
+    static void ParseFaceInfo(wxXmlNode* fiNode, FaceStateData& faceInfo);
+    static void WriteFaceInfo(wxXmlNode* fiNode, const FaceStateData& faceInfo);
     wxString SerialiseFace() const;
     wxString SerialiseState() const;
     wxString SerialiseGroups() const;
     wxString SerialiseConnection() const;
     void AddModelGroups(wxXmlNode* n, int w, int h, const wxString& name, bool& merge, bool& ask);
-    std::map<std::string, std::map<std::string, std::string> > faceInfo;
-    std::map<std::string, std::map<std::string, std::list<int> > > faceInfoNodes;
 
     void UpdateFaceInfoNodes();
     void UpdateStateInfoNodes();
 
-    static void ParseStateInfo(wxXmlNode* fiNode, std::map<std::string, std::map<std::string, std::string> >& stateInfo);
-    static void WriteStateInfo(wxXmlNode* fiNode, const std::map<std::string, std::map<std::string, std::string> >& stateInfo, bool customColours = false);
-    std::map<std::string, std::map<std::string, std::string> > stateInfo;
-    std::map<std::string, std::map<std::string, std::list<int>>> stateInfoNodes;
+    static void ParseStateInfo(wxXmlNode* fiNode, FaceStateData& stateInfo);
+    static void WriteStateInfo(wxXmlNode* fiNode, const FaceStateData& stateInfo, bool customColours = false);
+
+    [[nodiscard]] virtual FaceStateData const& GetFaceInfo() const { return faceInfo; };
+    [[nodiscard]] virtual FaceStateNodes const& GetFaceInfoNodes() const { return faceInfoNodes; };
+    [[nodiscard]] virtual FaceStateData const& GetStateInfo() const { return stateInfo; };
+    [[nodiscard]] virtual FaceStateNodes const& GetStateInfoNodes() const { return stateInfoNodes; };
+
+    virtual void SetFaceInfo(FaceStateData const& info) { faceInfo = info; };
+    virtual void SetFaceInfoNodes(FaceStateNodes const& nodes) { faceInfoNodes = nodes; };
+    virtual void SetStateInfo(FaceStateData const& info) { stateInfo = info; };
+    virtual void SetStateInfoNodes(FaceStateNodes const& nodes) { stateInfoNodes = nodes; };
+
     void AddFace(wxXmlNode* n);
     void AddState(wxXmlNode* n);
     void AddSubmodel(wxXmlNode* n);
@@ -316,6 +327,11 @@ protected:
     void ParseSubModel(wxXmlNode* subModelNode);
     void ColourClashingChains(wxPGProperty* p);
     uint32_t ApplyLowDefinition(uint32_t val) const;
+
+    FaceStateData faceInfo;
+    FaceStateNodes faceInfoNodes;
+    FaceStateData stateInfo;
+    FaceStateNodes stateInfoNodes;
 
 public:
     bool IsControllerConnectionValid() const;

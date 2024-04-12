@@ -60,8 +60,11 @@ public:
 
     std::string GetDuplicateNodes() const { return _duplicateNodes; }
 
-    
-    
+    [[nodiscard]] FaceStateData const& GetFaceInfo() const override { return parent->faceInfo; };
+    [[nodiscard]] FaceStateNodes const& GetFaceInfoNodes() const override { return parent->faceInfoNodes; };
+    [[nodiscard]] FaceStateData const& GetStateInfo() const override { return parent->stateInfo; };
+    [[nodiscard]] FaceStateNodes const& GetStateInfoNodes() const override { return parent->stateInfoNodes; };
+
 private:
     void CheckDuplicates(const std::vector<int>& nodeIndexes);
 

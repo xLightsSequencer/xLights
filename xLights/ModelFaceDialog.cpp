@@ -407,7 +407,7 @@ ModelFaceDialog::~ModelFaceDialog()
     }
 }
 
-void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<std::string, std::string> > &finfo) {
+void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<std::string, std::string> > const&finfo) {
     NodeRangeGrid->SetColSize(1, 50);
     NodeRangeGrid->SetColSize(0, NodeRangeGrid->GetSize().x - 50 - NodeRangeGrid->GetRowLabelSize());
     SingleNodeGrid->SetColSize(1, 50);
@@ -418,11 +418,7 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
     model = cls;
     modelPreview->SetModel(cls);
 
-    for (std::map< std::string, std::map<std::string, std::string> >::iterator it = finfo.begin();
-         it != finfo.end(); ++it) {
-
-        std::string name = it->first;
-        std::map<std::string, std::string> &info = it->second;
+    for (auto [name, info] : finfo) {
 
         NameChoice->Append(name);
 
@@ -492,7 +488,7 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
     }
 }
 
-void ModelFaceDialog::GetFaceInfo(std::map< std::string, std::map<std::string, std::string> > &finfo) {
+std::map<std::string, std::map<std::string, std::string>> ModelFaceDialog::GetFaceInfo() const {
     if (SingleNodeGrid->IsCellEditControlShown()) {
         SingleNodeGrid->SaveEditControlValue();
         SingleNodeGrid->HideCellEditControl();
@@ -501,14 +497,15 @@ void ModelFaceDialog::GetFaceInfo(std::map< std::string, std::map<std::string, s
         NodeRangeGrid->SaveEditControlValue();
         NodeRangeGrid->HideCellEditControl();
     }
-    finfo.clear();
+    std::map<std::string, std::map<std::string, std::string>> finfo;
 
-    for (std::map<std::string, std::map<std::string, std::string> >::iterator it = faceData.begin();
+    for (auto it = faceData.begin();
          it != faceData.end(); ++it) {
         if (!it->second.empty()) {
             finfo[it->first] = it->second;
         }
     }
+    return finfo;
 }
 
 static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
@@ -1544,13 +1541,13 @@ void ModelFaceDialog::ImportFacesFromModel()
     if (dlg.ShowModal() == wxID_OK)
     {
         Model* m = xlights->GetModel(dlg.GetStringSelection());
-        if (m->faceInfo.size() == 0)
+        if (m->GetFaceInfo().size() == 0)
         {
             wxMessageBox(dlg.GetStringSelection() + " contains no signing faces, skipping");
             return;
         }
 
-        AddFaces(m->faceInfo);
+        AddFaces(m->GetFaceInfo());
 
         NameChoice->Enable();
         FaceTypeChoice->Enable();
@@ -1608,8 +1605,7 @@ void ModelFaceDialog::ImportFaces(const wxString& filename)
     }
 }
 
-void ModelFaceDialog::AddFaces(std::map<std::string, std::map<std::string, std::string> > faces)
-{
+void ModelFaceDialog::AddFaces(std::map<std::string, std::map<std::string, std::string>> const& faces) {
     bool overRide = false;
     bool showDialog = true;
 

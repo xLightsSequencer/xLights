@@ -62,8 +62,8 @@ public:
     wxStaticText* StaticText3;
     //*)
 
-    void SetStateInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>>& info);
-    void GetStateInfo(std::map<std::string, std::map<std::string, std::string>>& info);
+    void SetStateInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>> const& info);
+    [[nodiscard]] std::map<std::string, std::map<std::string, std::string>> GetStateInfo() const;
     void StartOutputToLights();
     bool StopOutputToLights();
 
@@ -167,7 +167,7 @@ private:
     void ImportStatesFromModel();
     void ImportStatesFromSubModels();
     std::string cleanSubName(std::string name);
-    void AddStates(std::map<std::string, std::map<std::string, std::string>> states);
+    void AddStates(std::map<std::string, std::map<std::string, std::string>> const& states);
     wxArrayString getModelList(ModelManager* modelManager);
 
     void CopyStates(wxGridEvent& event);
