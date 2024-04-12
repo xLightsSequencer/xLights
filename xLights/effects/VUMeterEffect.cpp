@@ -360,8 +360,8 @@ public:
 
 	std::list<int> _timingmarks; // collection of recent timing marks ... used for sweep
 	int _lasttimingmark; // last time we saw a timing mark ... used for pulse
-	std::list<float> _lastvalues;
-	std::list<float> _lastpeaks;
+	std::vector<float> _lastvalues;
+	std::vector<float> _lastpeaks;
     std::list<int> _pausepeakfall;
     std::list<std::vector<wxPoint>> _lineHistory;
 	float _lastsize = 0.0f;
@@ -615,8 +615,8 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	}
 	std::list<int>& _timingmarks = cache->_timingmarks;
 	int &_lasttimingmark = cache->_lasttimingmark;
-	std::list<float>& _lastvalues = cache->_lastvalues;
-	std::list<float>& _lastpeaks = cache->_lastpeaks;
+	std::vector<float>& _lastvalues = cache->_lastvalues;
+	std::vector<float>& _lastpeaks = cache->_lastpeaks;
 	std::list<int>& _pausepeakfall = cache->_pausepeakfall;
     int& _nCount = cache->_nCount;
 	float& _lastsize = cache->_lastsize;
@@ -797,27 +797,27 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	}
 }
 
-void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, std::list<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain, int sensitivity, std::list<std::vector<wxPoint>>& lineHistory) const
+void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::vector<float>& lastvalues, std::vector<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain, int sensitivity, std::list<std::vector<wxPoint>>& lineHistory) const
 {
     if (buffer.GetMedia() == nullptr) return;
 
     int truexoffset = xoffset * buffer.BufferWi / 100;
     int trueyoffset = yoffset * buffer.BufferHt / 100;
-	std::list<float> const * const pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+	auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
 
     while (lineHistory.size() > sensitivity / 10)
     {
         lineHistory.pop_front();
     }
 
-	if (pdata != nullptr && pdata->size() != 0)
+	if (pdata != nullptr && pdata->vu.size() != 0)
 	{
         if (peak)
         {
             if (lastvalues.size() == 0)
             {
-                lastvalues = *pdata;
-                lastpeaks = *pdata;
+                lastvalues = pdata->vu;
+                lastpeaks = pdata->vu;
                 for (auto it = lastvalues.begin(); it != lastvalues.end(); ++it)
                 {
                     pauseuntilpeakfall.push_back(0);
@@ -825,8 +825,8 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
             }
             else
             {
-                std::list<float>::const_iterator newdata = pdata->cbegin();
-                std::list<float>::iterator olddata = lastpeaks.begin();
+                std::vector<float>::const_iterator newdata = pdata->vu.cbegin();
+                std::vector<float>::iterator olddata = lastpeaks.begin();
                 auto pause = pauseuntilpeakfall.begin();
 
                 while (olddata != lastpeaks.end())
@@ -858,14 +858,11 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 
 		if (slowdownfalls)
 		{
-			if (lastvalues.size() == 0)
-			{
-				lastvalues = *pdata;
-			}
-			else
-			{
-				std::list<float>::const_iterator newdata = pdata->cbegin();
-				std::list<float>::iterator olddata = lastvalues.begin();
+			if (lastvalues.size() == 0) {
+				lastvalues = pdata->vu;
+            } else {
+				std::vector<float>::const_iterator newdata = pdata->vu.cbegin();
+				std::vector<float>::iterator olddata = lastvalues.begin();
 
 				while (olddata != lastvalues.end())
 				{
@@ -889,10 +886,10 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 		}
 		else
 		{
-			lastvalues = *pdata;
+			lastvalues = pdata->vu;
 		}
 
-        int datapoints = std::min((int)pdata->size(), endNote - startNote + 1);
+        int datapoints = std::min((int)pdata->vu.size(), endNote - startNote + 1);
 
 		if (usebars > datapoints)
 		{
@@ -909,8 +906,8 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
         {
             cols = 1;
         }
-		std::list<float>::iterator it = lastvalues.begin();
-		std::list<float>::iterator itpeak = lastpeaks.begin();
+		std::vector<float>::iterator it = lastvalues.begin();
+		std::vector<float>::iterator itpeak = lastpeaks.begin();
         //int midiNote = 0;
         // skip to our start note
         for (int i = 0; i < startNote; i++)
@@ -1109,9 +1106,9 @@ void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars, int
         int i = start + (int)((float)x / cols);
         if (i > 0) {
             float f = 0.0;
-            std::list<float> const* const pf = buffer.GetMedia()->GetFrameData(i, FRAMEDATA_HIGH, "");
+            auto pf = buffer.GetMedia()->GetFrameData(i, "");
             if (pf != nullptr) {
-                f = ApplyGain(*pf->cbegin(), gain);
+                f = ApplyGain(pf->max, gain);
             }
             int colheight = buffer.BufferHt * f;
             for (int y = 0; y < colheight; y++) {
@@ -1177,36 +1174,25 @@ void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars, int y
     {
         int start = buffer.curPeriod - usebars;
         int x = 0;
-        for (int i = 0; i < usebars; i++)
-        {
-            if (start + i >= 0)
-            {
+        for (int i = 0; i < usebars; i++) {
+            if (start + i >= 0) {
                 float fh = 0.0;
-                std::list<float> const * pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_HIGH, "");
-                if (pf != nullptr)
-                {
-                    fh = ApplyGain(*pf->cbegin(), gain);
-                }
+                auto pf = buffer.GetMedia()->GetFrameData(start + i, "");
                 float fl = 0.0;
-                pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_LOW, "");
-                if (pf != nullptr)
-                {
-                    fl = ApplyGain(*pf->cbegin(), gain);
+                if (pf != nullptr) {
+                    fh = ApplyGain(pf->max, gain);
+                    fl = ApplyGain(pf->min, gain);
                 }
                 int s = (1.0 - fl) * buffer.BufferHt / 2;
                 int e = (1.0 + fh) * buffer.BufferHt / 2;
-                if (e < s)
-                {
+                if (e < s) {
                     e = s;
                 }
-                if (e > buffer.BufferHt)
-                {
+                if (e > buffer.BufferHt) {
                     e = buffer.BufferHt;
                 }
-                for (int j = 0; j < cols; j++)
-                {
-                    for (int y = s; y < e; y++)
-                    {
+                for (int j = 0; j < cols; j++) {
+                    for (int y = s; y < e; y++) {
                         xlColor color1;
                         //buffer.GetMultiColorBlend((double)y / (double)e, false, color1);
                         buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
@@ -1214,9 +1200,7 @@ void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars, int y
                     }
                     x++;
                 }
-            }
-            else
-            {
+            } else {
                 x += cols;
             }
         }
@@ -1404,10 +1388,9 @@ void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer, int gain)
     if (buffer.GetMedia() == nullptr) return;
 
     float f = 0.0;
-	std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-	if (pf != nullptr)
-	{
-		f = ApplyGain(*pf->cbegin(), gain);
+	auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    if (pf != nullptr) {
+		f = ApplyGain(pf->max, gain);
 	}
 	xlColor color1;
 	buffer.palette.GetColor(0, color1);
@@ -1428,14 +1411,14 @@ void VUMeterEffect::RenderDominantFrequencyColour(RenderBuffer& buffer, int sens
 
     float sns = (float)sensitivity / 100.0;
 
-    std::list<float> const * const pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+    auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
 
-    if (pdata != nullptr && pdata->size() != 0)
+    if (pdata != nullptr && pdata->vu.size() != 0)
     {
         int note = -1;
         float max = -1000;
-        auto it = pdata->cbegin();
-        for (int i = 0; i < std::min((int)pdata->size(), endnote+1); i++)
+        auto it = pdata->vu.cbegin();
+        for (int i = 0; i < std::min((int)pdata->vu.size(), endnote+1); i++)
         {
             if (i >= startnote)
             {
@@ -1478,10 +1461,9 @@ void VUMeterEffect::RenderOnColourFrame(RenderBuffer& buffer, int gain)
     if (buffer.GetMedia() == nullptr) return;
 
     float f = 0.0;
-    std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-    if (pf != nullptr)
-    {
-        f = ApplyGain(*pf->cbegin(), gain);
+    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    if (pf != nullptr) {
+        f = ApplyGain(pf->max, gain);
     }
 
     xlColor color1;
@@ -1557,10 +1539,9 @@ void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer &buffer, int usebars, 
 		if (start + i >= 0)
 		{
 			float f = 0.0;
-			std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_HIGH, "");
-			if (pf != nullptr)
-			{
-				f = ApplyGain(*pf->begin(), gain);
+			auto pf = buffer.GetMedia()->GetFrameData(start + i, "");
+			if (pf != nullptr) {
+				f = ApplyGain(pf->max, gain);
 			}
 			xlColor color1;
 			if (buffer.palette.Size() < 2)
@@ -1593,10 +1574,9 @@ void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, 
     if (buffer.GetMedia() == nullptr) return;
 
     float f = 0.0;
-	std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-	if (pf != nullptr)
-	{
-		f = ApplyGain(*pf->cbegin(), gain);
+	auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+	if (pf != nullptr) {
+		f = ApplyGain(pf->max, gain);
 	}
 
 	if (f > (float)sensitivity / 100.0)
@@ -1634,10 +1614,9 @@ void VUMeterEffect::RenderLevelJumpFrame(RenderBuffer& buffer, int fadeframes, i
     if (buffer.GetMedia() == nullptr) return;
 
     float f = 0.0;
-    std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-    if (pf != nullptr)
-    {
-        f = ApplyGain(*pf->cbegin(), gain);
+    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    if (pf != nullptr) {
+        f = ApplyGain(pf->max, gain);
     }
 
     if (f > (float)sensitivity / 100.0)
@@ -1682,10 +1661,9 @@ void VUMeterEffect::RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadefr
     if (buffer.GetMedia() == nullptr) return;
 
     float f = 0.0;
-    std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-    if (pf != nullptr)
-    {
-        f = ApplyGain(*pf->begin(), gain);
+    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    if (pf != nullptr) {
+        f = ApplyGain(pf->max, gain);
     }
 
     if (f > (float)sensitivity / 100.0)
@@ -1732,10 +1710,9 @@ void VUMeterEffect::RenderLevelColourFrame(RenderBuffer &buffer, int& colourinde
     if (buffer.GetMedia() == nullptr) return;
 
     float f = 0.0;
-    std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-    if (pf != nullptr)
-    {
-        f = ApplyGain(*pf->begin(), gain);
+    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    if (pf != nullptr) {
+        f = ApplyGain(pf->max, gain);
     }
 
     if (f > (float)sensitivity / 100.0)
@@ -2346,10 +2323,9 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
     float scaling = (float)scale / 100.0 * 7.0;
 
 	float f = 0.0;
-	std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-	if (pf != nullptr)
-	{
-		f = ApplyGain(*pf->begin(), gain);
+    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+	if (pf != nullptr) {
+		f = ApplyGain(pf->max, gain);
 	}
 
 	int centerx = (buffer.BufferWi / 2.0) + truexoffset;
@@ -2681,9 +2657,9 @@ void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer& buffer, int fallfra
         {
             if (useAudioLevel) {
                 float f = 0.0;
-                std::list<float> const* const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+                auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
                 if (pf != nullptr) {
-                    f = ApplyGain(*pf->cbegin(), gain);
+                    f = ApplyGain(pf->max, gain);
                 }
                 lastsize = f;
             } else {
@@ -2809,13 +2785,13 @@ void VUMeterEffect::RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int e
 {
     if (buffer.GetMedia() == nullptr) return;
 
-    std::list<float> const * const pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+    auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
 
-    if (pdata != nullptr && pdata->size() != 0)
+    if (pdata != nullptr && pdata->vu.size() != 0)
     {
         int i = 0;
         float level = 0.0;
-        for (const auto& it : *pdata)
+        for (const auto& it : pdata->vu)
         {
             if (i > startNote && i <= endNote)
             {
@@ -2844,13 +2820,13 @@ void VUMeterEffect::RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadefram
 {
     if (buffer.GetMedia() == nullptr) return;
 
-    std::list<float>const * const pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+    auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
 
-    if (pdata != nullptr && pdata->size() != 0)
+    if (pdata != nullptr && pdata->vu.size() != 0)
     {
         int i = 0;
         float level = 0.0;
-        for (const auto& it : *pdata)
+        for (const auto& it : pdata->vu)
         {
             if (i > startNote && i <= endNote)
             {
@@ -2896,13 +2872,13 @@ void VUMeterEffect::RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframe
 {
     if (buffer.GetMedia() == nullptr) return;
 
-    std::list<float> const * const pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+    auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
 
-    if (pdata != nullptr && pdata->size() != 0)
+    if (pdata != nullptr && pdata->vu.size() != 0)
     {
         int i = 0;
         float level = 0.0;
-        for (const auto& it : *pdata)
+        for (const auto& it : pdata->vu)
         {
             if (i > startNote && i <= endNote)
             {
@@ -2954,11 +2930,10 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
 {
     if (buffer.GetMedia() == nullptr) return;
 
-    std::list<float> const * const pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+    auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
 
-    if (pdata != nullptr && pdata->size() != 0)
-    {
-        float level = ApplyGain(pdata->front(), gain);
+    if (pdata != nullptr) {
+        float level = ApplyGain(pdata->max, gain);
 
         xlColor color1;
         if (level > (float)sensitivity / 100.0)
@@ -3075,12 +3050,12 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer& buffer, int bars, int 
     if (buffer.GetMedia() == nullptr)
         return;
 
-    std::list<float> const* const pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+    auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
 
-    if (pdata != nullptr && pdata->size() != 0) {
+    if (pdata != nullptr && pdata->vu.size() != 0) {
         int i = 0;
         float level = 0.0;
-        for (const auto& it : *pdata) {
+        for (const auto& it : pdata->vu) {
             if (i > startNote && i <= endNote) {
                 level = std::max(it, level);
             }

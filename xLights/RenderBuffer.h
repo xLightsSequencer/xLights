@@ -67,6 +67,7 @@ class Effect;
 class SettingsMap;
 class SequenceElements;
 class MetalRenderBufferComputeData;
+class PixelBufferClass;
 
 
 class DrawingContext {
@@ -442,14 +443,13 @@ public:
 
 class /*NCCDLLEXPORT*/ RenderBuffer {
 public:
-    RenderBuffer(xLightsFrame *frame);
+    RenderBuffer(xLightsFrame *frame, PixelBufferClass *pbc, const Model *m = nullptr);
     ~RenderBuffer();
     RenderBuffer(RenderBuffer& buffer);
     void InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform, bool nodeBuffer = false);
     AudioManager* GetMedia() const;
-    Model* GetModel() const;
-    Model* GetPermissiveModel() const; // gets the model even if it is a submodel/strand
-    std::string GetModelName() const;
+    const Model* GetModel() const;
+    const std::string &GetModelName() const;
     const wxString &GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const;
 
     void AlphaBlend(const RenderBuffer& src);
@@ -460,7 +460,7 @@ public:
     void SetAllowAlphaChannel(bool a);
     bool IsDmxBuffer() const { return dmx_buffer; }
 
-    void SetState(int period, bool reset, const std::string& model_name);
+    void SetState(int period, bool reset);
 
     void SetEffectDuration(int startMsec, int endMsec);
     void GetEffectPeriods(int& curEffStartPer, int& curEffEndPer) const;  // nobody wants endPer?
@@ -587,6 +587,8 @@ public:
     void *gpuRenderData = nullptr;
 
 private:
+    PixelBufferClass *parent;
+    const Model *model;
     friend class PixelBufferClass;
     std::vector<NodeBaseClassPtr> Nodes;
     PathDrawingContext *_pathDrawingContext = nullptr;

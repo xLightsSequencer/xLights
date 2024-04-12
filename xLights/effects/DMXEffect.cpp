@@ -388,7 +388,7 @@ void DMXEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
     if (buffer.cur_model == "") {
         return;
     }
-    Model* model_info = buffer.GetModel();
+    const Model* model_info = buffer.GetModel();
     if (model_info == nullptr) {
         return;
     }
@@ -400,10 +400,8 @@ void DMXEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
     xlColor color = xlBLACK;
 
     if (StartsWith(string_type, "Single Color")) {
-
         // handle channels for single color nodes
-        for (uint32_t i = 1; i <= 40; ++i)
-        {
+        for (uint32_t i = 1; i <= 40; ++i) {
             if (SetDMXSinglColorPixel(i, num_channels, SettingsMap, eff_pos, color, buffer))
                 return;
         }
@@ -433,7 +431,7 @@ void DMXEffect::SetPanelStatus(Model *cls) {
 
     int num_channels = m->GetNumChannels();
 
-    for(int i = 1; i <= DMX_CHANNELS; ++i) {
+    for (int i = 1; i <= DMX_CHANNELS; ++i) {
         wxString label_ctrl = wxString::Format("ID_STATICTEXT_DMX%d", i);
         std::string name = m->GetNodeName(i-1);
         wxStaticText* label = (wxStaticText*)(p->FindWindowByName(label_ctrl));

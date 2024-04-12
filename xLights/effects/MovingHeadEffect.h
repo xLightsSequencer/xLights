@@ -116,9 +116,9 @@ protected:
         return false;
     }
     void WriteCmdToPixel(DmxMotorBase* motor, int value, RenderBuffer& buffer);
-    std::list<Model*> GetModels(Model* model);
-    void UpdateFixturePositions(Model* cls){};//missing function body
-    void RenderPositions(MovingHeadPanel *p, Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer);
+    std::list<const Model*> GetModels(const Model* model);
+    void UpdateFixturePositions(const Model* cls){};//missing function body
+    void RenderPositions(MovingHeadPanel *p, const Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer);
     xlColor GetMultiColorBlend(double eff_pos, const wxArrayString& colors, RenderBuffer &buffer);
     xlColor GetWheelColor(double eff_pos, const wxArrayString& colors);
     void GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer);

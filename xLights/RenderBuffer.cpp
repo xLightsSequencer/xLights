@@ -162,30 +162,13 @@ AudioManager* RenderBuffer::GetMedia() const
 	return xLightsFrame::CurrentSeqXmlFile->GetMedia();
 }
 
-Model* RenderBuffer::GetModel() const
+const Model* RenderBuffer::GetModel() const
 {
-    // this only returns a model or model group
-    if (cur_model.find("/") != std::string::npos) {
-        return nullptr;
-    }
-    return frame->AllModels[cur_model];
+    return model;
 }
 
-Model* RenderBuffer::GetPermissiveModel() const
+const std::string &RenderBuffer::GetModelName() const
 {
-    // This will return models, model groups or submodels and strands
-    return frame->AllModels.GetModel(cur_model);
-}
-
-std::string RenderBuffer::GetModelName() const
-{
-    Model* m = GetPermissiveModel();
-
-    if (m != nullptr)
-    {
-        return m->GetFullName();
-    }
-
     return cur_model;
 }
 
@@ -714,8 +697,11 @@ void TextDrawingContext::GetTextExtents(const wxString &msg, wxArrayDouble &exte
 }
 
 
-RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
+RenderBuffer::RenderBuffer(xLightsFrame *f, PixelBufferClass *p, const Model *m) : frame(f), parent(p)
 {
+    model = m == nullptr ? p->GetModel() : m;
+    cur_model = model->GetFullName();
+    dmx_buffer = model->GetDisplayAs().rfind("Dmx", 0) == 0;
     BufferHt = 0;
     BufferWi = 0;
     curPeriod = 0;
@@ -1524,7 +1510,7 @@ const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
     return this->allowAlpha ? xlCLEAR : xlBLACK;
 }
 
-void RenderBuffer::SetState(int period, bool ResetState, const std::string& model_name)
+void RenderBuffer::SetState(int period, bool ResetState)
 {
     if (ResetState) {
         needToInit = true;
@@ -1532,16 +1518,6 @@ void RenderBuffer::SetState(int period, bool ResetState, const std::string& mode
     curPeriod = period;
     curPeriod = period;
     palette.UpdateForProgress(GetEffectTimeIntervalPosition());
-    if (cur_model != model_name) {
-        cur_model = model_name;
-        dmx_buffer = false;
-        Model* m = GetModel();
-        if (m != nullptr) {
-            if (m->GetDisplayAs().rfind("Dmx", 0) == 0) {
-                dmx_buffer = true;
-            }
-        }
-    }
 }
 
 void RenderBuffer::ClearTempBuf()
@@ -1696,12 +1672,9 @@ double RenderBuffer::calcAccel(double ratio, double accel)
     double new_accel2 = 1.5 + (ratio * new_accel1);
     double final_accel = pct_accel * new_accel2 + (1.0 - pct_accel) * new_accel1;
 
-    if( accel > 0 )
-    {
+    if( accel > 0 ) {
         return std::pow(ratio, final_accel);
-    }
-    else
-    {
+    } else {
         return (1.0 - std::pow(1.0 - ratio, new_accel1));
     }
 }
@@ -1710,6 +1683,8 @@ double RenderBuffer::calcAccel(double ratio, double accel)
 RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &buffer.pixels[buffer.pixelVector.size()])
 {
     _isCopy = true;
+    parent = buffer.parent;
+    model = buffer.model;
     frame = buffer.frame;
     curPeriod = buffer.curPeriod;
     curEffStartPer = buffer.curEffStartPer;
@@ -1741,7 +1716,7 @@ void RenderBuffer::Forget()
 
 void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
 {
-    Model* model_info = GetModel();
+    const Model* model_info = GetModel();
     if (model_info != nullptr) {
         if (x != 0 || y != 0) return;  //Only render colors for the first pixel
 
@@ -1749,11 +1724,13 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
             pixels[0] = color;
             return;
         }
-        DmxModel* dmx = (DmxModel*)model_info;
-        if (dmx->HasColorAbility()) {
-            DmxColorAbility* dmx_color = dmx->GetColorAbility();
-            dmx_color->SetColorPixels(color,pixelVector);
+        const DmxModel* dmx = dynamic_cast<const DmxModel*>(model_info);
+        if (dmx != nullptr)  {
+            if (dmx->HasColorAbility()) {
+                DmxColorAbility* dmx_color = dmx->GetColorAbility();
+                dmx_color->SetColorPixels(color,pixelVector);
+            }
+            dmx->EnableFixedChannels(pixelVector);
         }
-        dmx->EnableFixedChannels(pixelVector);
     }
 }

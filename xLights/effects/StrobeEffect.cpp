@@ -96,9 +96,9 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     if (reactToMusic) {
         float f = 0.0;
         if (buffer.GetMedia() != nullptr) {
-            std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
             if (pf != nullptr) {
-                f = *pf->cbegin();
+                f = pf->max;
             }
         }
         Number_Strobes *= f;

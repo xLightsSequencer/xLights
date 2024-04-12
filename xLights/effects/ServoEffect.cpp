@@ -95,7 +95,7 @@ void ServoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     if (buffer.cur_model == "") {
         return;
     }
-    Model* model_info = buffer.GetModel();
+    const Model* model_info = buffer.GetModel();
     if (model_info == nullptr) {
         return;
     }

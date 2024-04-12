@@ -77,7 +77,7 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     if (buffer.cur_model == "") {
         return;
     }
-    Model* model_info = buffer.GetModel();
+    const Model* model_info = buffer.GetModel();
     if (model_info == nullptr) {
         return;
     }
@@ -96,7 +96,7 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     }
 }
 
-void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer)
+void MovingHeadEffect::RenderPositions(MovingHeadPanel *p, const Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     //head count is never used?
     int head_count = 0;
@@ -443,12 +443,12 @@ void MovingHeadEffect::WriteCmdToPixel(DmxMotorBase* motor, int value, RenderBuf
     }
 }
 
-std::list<Model*> MovingHeadEffect::GetModels(Model* model)
+std::list<const Model*> MovingHeadEffect::GetModels(const Model* model)
 {
-    std::list<Model*> model_list;
+    std::list<const Model*> model_list;
     if (model != nullptr) {
         if (model->GetDisplayAs() == "ModelGroup") {
-            auto mg = dynamic_cast<ModelGroup*>(model);
+            auto mg = dynamic_cast<const ModelGroup*>(model);
             if (mg != nullptr) {
                 for (const auto& it : mg->GetFlatModels(true, false)) {
                     if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {

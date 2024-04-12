@@ -1803,12 +1803,12 @@ private:
     void ExportEffects(wxString const& filename);
     int ExportElement(wxFile& f, Element* e, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
     int ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
-    std::map<int, std::list<float>> LoadPolyphonicTranscription(AudioManager* audio, int intervalMS);
-    std::map<int, std::list<float>> LoadAudacityFile(std::string file, int intervalMS);
-    std::map<int, std::list<float>> LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track);
-    std::map<int, std::list<float>> LoadMusicXMLFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track);
-    void CreateNotes(EffectLayer* el, std::map<int, std::list<float>>& notes, int interval, int frames);
-    std::string CreateNotesLabel(const std::list<float>& notes) const;
+    std::map<int, std::vector<float>> LoadPolyphonicTranscription(AudioManager* audio, int intervalMS);
+    std::map<int, std::vector<float>> LoadAudacityFile(std::string file, int intervalMS);
+    std::map<int, std::vector<float>> LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track);
+    std::map<int, std::vector<float>> LoadMusicXMLFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track);
+    void CreateNotes(EffectLayer* el, std::map<int, std::vector<float>>& notes, int interval, int frames);
+    std::string CreateNotesLabel(const std::vector<float>& notes) const;
     std::string CheckSequence(bool displayInEditor, bool writeToFile);
     void ValidateEffectAssets();
     bool CleanupRGBEffectsFileLocations();

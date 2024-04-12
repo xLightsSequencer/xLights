@@ -3293,25 +3293,20 @@ void PTProgress(wxProgressDialog* pd, int p)
     }
 }
 
-std::map<int, std::list<float>> xLightsFrame::LoadPolyphonicTranscription(AudioManager* audio, int intervalMS)
+std::map<int, std::vector<float>> xLightsFrame::LoadPolyphonicTranscription(AudioManager* audio, int intervalMS)
 {
     static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
-    std::map<int, std::list<float>> res;
+    std::map<int, std::vector<float>> res;
 
-    if (audio != nullptr)
-    {
-        try
-        {
-            if (!audio->IsPolyphonicTranscriptionDone())
-            {
+    if (audio != nullptr) {
+        try {
+            if (!audio->IsPolyphonicTranscriptionDone()) {
                 wxProgressDialog pd("Processing Audio", "");
                 logger_pianodata.info("Processing Polyphonic Transcription to produce notes");
                 audio->DoPolyphonicTranscription(&pd, &PTProgress);
                 logger_pianodata.info("Processing Polyphonic Transcription - DONE");
             }
-        }
-        catch (...)
-        {
+        } catch (...) {
             logger_pianodata.warn("Exception caught processing Polyphonic Transcription");
         }
 
@@ -3319,17 +3314,14 @@ std::map<int, std::list<float>> xLightsFrame::LoadPolyphonicTranscription(AudioM
 
         int frames = audio->LengthMS() / intervalMS;
 
-        for (size_t i = 0; i < frames; i++)
-        {
-            std::list<float> const * const pdata = audio->GetFrameData(i, FRAMEDATA_NOTES, "");
-            if (pdata != nullptr)
-            {
-                res[i*intervalMS] = *pdata;
+        for (size_t i = 0; i < frames; i++) {
+            auto pdata = audio->GetFrameData(i, "", true);
+            if (pdata != nullptr) {
+                res[i*intervalMS] = pdata->notes;
             }
         }
 
-        if (logger_pianodata.isDebugEnabled())
-        {
+        if (logger_pianodata.isDebugEnabled()) {
             logger_pianodata.debug("Note data calculated:");
             logger_pianodata.debug("Time MS, Keys");
             for (auto it = res.begin(); it != res.end(); ++it)
@@ -3352,10 +3344,10 @@ std::map<int, std::list<float>> xLightsFrame::LoadPolyphonicTranscription(AudioM
     return res;
 }
 
-std::map<int, std::list<float>> xLightsFrame::LoadAudacityFile(std::string file, int intervalMS)
+std::map<int, std::vector<float>> xLightsFrame::LoadAudacityFile(std::string file, int intervalMS)
 {
     static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
-    std::map<int, std::list<float>> res;
+    std::map<int, std::vector<float>> res;
 
     logger_pianodata.debug("Processing audacity file " + file);
     logger_pianodata.debug("Interval %d.", intervalMS);
@@ -3386,7 +3378,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadAudacityFile(std::string file,
                     {
                         if (res.find(i) == res.end())
                         {
-                            std::list<float> ff;
+                            std::vector<float> ff;
                             ff.push_back(components[2]);
                             res[i] = ff;
                         }
@@ -3431,10 +3423,10 @@ std::map<int, std::list<float>> xLightsFrame::LoadAudacityFile(std::string file,
     return res;
 }
 
-std::map<int, std::list<float>> xLightsFrame::LoadMusicXMLFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track)
+std::map<int, std::vector<float>> xLightsFrame::LoadMusicXMLFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track)
 {
     static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
-    std::map<int, std::list<float>> res;
+    std::map<int, std::vector<float>> res;
 
     float speedadjust = speedAdjust / 100.0;
 
@@ -3459,7 +3451,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadMusicXMLFile(std::string file,
                     {
                         if (res.find(i) == res.end())
                         {
-                            std::list<float> ff;
+                            std::vector<float> ff;
                             ff.push_back(it->midi);
                             res[i] = ff;
                         }
@@ -3507,10 +3499,10 @@ std::map<int, std::list<float>> xLightsFrame::LoadMusicXMLFile(std::string file,
     return res;
 }
 
-std::map<int, std::list<float>> xLightsFrame::LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track)
+std::map<int, std::vector<float>> xLightsFrame::LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track)
 {
     static log4cpp::Category& logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
-    std::map<int, std::list<float>> res;
+    std::map<int, std::vector<float>> res;
 
     float speedadjust = speedAdjust / 100.0;
 
@@ -3558,7 +3550,7 @@ std::map<int, std::list<float>> xLightsFrame::LoadMIDIFile(std::string file, int
                         int end = UpperTS(time, intervalMS);
 
                         for (int j = start; j < end; j += intervalMS) {
-                            std::list<float> f;
+                            std::vector<float> f;
                             for (int k = 0; k <= 127; ++k) {
                                 if (notestate[k] > 0) {
                                     f.push_back(k);
@@ -3613,7 +3605,7 @@ void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
 
         int interval = CurrentSeqXmlFile->GetFrameMS();
         wxString type = dlgNoteImport.Choice_Piano_Notes_Source->GetStringSelection();
-        std::map<int, std::list<float>> notes;
+        std::map<int, std::vector<float>> notes;
         if (type == "Audacity Timing File") {
             notes = LoadAudacityFile(dlgNoteImport.TextCtrl_Piano_File->GetValue().ToStdString(), interval);
         } else if (type == "Music XML File") {
@@ -3631,21 +3623,21 @@ void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
     }
 }
 
-std::string xLightsFrame::CreateNotesLabel(const std::list<float>& notes) const
+std::string xLightsFrame::CreateNotesLabel(const std::vector<float>& notes) const
 {
     std::string res;
 
-    for (auto it = notes.begin(); it != notes.end(); ++it) {
+    for (auto f : notes) {
         if (res != "") {
             res += ",";
         }
-        res += DecodeMidi((int)*it);
+        res += DecodeMidi(f);
     }
 
     return res;
 }
 
-void xLightsFrame::CreateNotes(EffectLayer* el, std::map<int, std::list<float>>& notes, int interval, int frames)
+void xLightsFrame::CreateNotes(EffectLayer* el, std::map<int, std::vector<float>>& notes, int interval, int frames)
 {
     size_t last = 0;
     std::string lastLabel = "";

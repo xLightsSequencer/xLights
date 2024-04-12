@@ -201,9 +201,9 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         HeightPct = 10;
         if (buffer.GetMedia() != nullptr) {
             float f = 0.0;
-            std::list<float> const* const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
             if (pf != nullptr) {
-                f = *pf->cbegin();
+                f = pf->max;
             }
             HeightPct += 90 * f;
         }

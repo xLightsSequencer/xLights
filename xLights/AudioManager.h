@@ -77,15 +77,6 @@ public:
 	Vamp::Plugin* GetPlugin(std::string name);
 };
 
-typedef enum FRAMEDATATYPE {
-	FRAMEDATA_HIGH,
-	FRAMEDATA_LOW,
-	FRAMEDATA_SPREAD,
-	FRAMEDATA_VU,
-	FRAMEDATA_ISTIMINGMARK,
-	FRAMEDATA_NOTES
-} FRAMEDATATYPE;
-
 typedef enum MEDIAPLAYINGSTATE {
 	PLAYING,
 	PAUSED,
@@ -249,12 +240,22 @@ typedef struct FilteredAudioData
     int16_t* pcmdata = nullptr;
 } FilteredAudioData;
 
+class FrameData {
+public:
+    float max = 0;
+    float min = 0;
+    float spread = 0;
+    std::vector<float> vu;
+    std::vector<float> notes;
+};
+
+
 class AudioManager
 {
     std::shared_timed_mutex _mutex;
     std::shared_timed_mutex _mutexAudioLoad;
     long _loadedData = 0;
-    std::vector<std::vector<std::list<float>>> _frameData;
+    std::vector<FrameData> _frameData;
 	std::string _audio_file;
 	xLightsVamp _vamp;
 	long _rate = 44100;
@@ -299,7 +300,7 @@ class AudioManager
     static int decodebitrateindex(int bitrateindex, int version, int layertype);
 	int decodesamplerateindex(int samplerateindex, int version) const;
     static int decodesideinfosize(int version, int mono);
-	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max, int id) const;
+	void CalculateSpectrumAnalysis(const float* in, int n, float& max, int id, std::vector<float> &d) const;
 
     void LoadAudioFromFrame( AVFormatContext* formatContext, AVCodecContext* codecContext, AVPacket* decodingPacket, AVFrame* frame, SwrContext* au_convert_ctx,
                              bool receivedEOF, int out_channels, uint8_t* out_buffer, long& read, int& lastpct );
@@ -362,8 +363,8 @@ public:
     void SetStepBlock(int step, int block);
 	void SetFrameInterval(int intervalMS);
 	int GetFrameInterval() const { return _intervalMS; }
-	const std::list<float>* GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing);
-	const std::list<float>* GetFrameData(FRAMEDATATYPE fdt, std::string timing, long ms);
+    const FrameData* GetFrameData(int frame, const std::string &timing, bool needNotes = false);
+	const FrameData* GetFrameData(const std::string &timing, long ms, bool needNotes = false);
 	void DoPrepareFrameData();
 	void DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback progresscallback);
 	bool IsPolyphonicTranscriptionDone() const { return _polyphonicTranscriptionDone; };

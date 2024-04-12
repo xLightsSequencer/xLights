@@ -1141,17 +1141,17 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
 
         AudioManager* audioManager = buffer.GetMedia();
         if (audioManager != nullptr) {
-            FRAMEDATATYPE datatype = ( _shaderConfig->IsAudioFFTShader() ) ? FRAMEDATA_VU : FRAMEDATA_HIGH;
-            auto fftData = audioManager->GetFrameData(buffer.curPeriod, datatype, "");
-
-            std::vector<float> fft128;
-            if ( _shaderConfig->IsAudioFFTShader() )
-               fft128.insert( fft128.begin(), fftData->cbegin(), fftData->cend()  );
-            else
-               fft128.insert( fft128.begin(), 127, *(fftData->cbegin()) );
-            fft128.push_back( 0.f );
-
-            LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, fft128.size(),1, GL_RED, GL_FLOAT, fft128.data()));
+            auto fftData = audioManager->GetFrameData(buffer.curPeriod, "");
+            if (fftData) {
+                std::vector<float> fft128;
+                if ( _shaderConfig->IsAudioFFTShader() )
+                    fft128.insert( fft128.begin(), fftData->vu.cbegin(), fftData->vu.cend()  );
+                else
+                    fft128.insert( fft128.begin(), 127, fftData->max );
+                fft128.push_back( 0.f );
+                
+                LOG_GL_ERRORV(glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, fft128.size(),1, GL_RED, GL_FLOAT, fft128.data()));
+            }
         }
     } else {
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));

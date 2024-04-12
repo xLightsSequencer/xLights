@@ -157,8 +157,8 @@ void AdjustEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     int num_channels = 0;
     std::string string_type = "";
 
-    Model* model_info = buffer.GetModel();
-    if (model_info == nullptr)
+    const Model* model_info = buffer.GetModel();
+    if (model_info == nullptr || !buffer.dmx_buffer)
         num_channels = buffer.BufferWi * buffer.BufferHt * 3;
     else {
         num_channels = model_info->GetNumChannels();

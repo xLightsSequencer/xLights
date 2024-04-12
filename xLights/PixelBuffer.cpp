@@ -907,9 +907,12 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
     layers.resize(nlayers);
 
     for (int x = 0; x < numLayers; x++) {
-        layers[x] = new LayerInfo(frame);
+        layers[x] = new LayerInfo(frame, this);
         layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
         layers[x]->buffer.cur_model = model->GetFullName();
+        if (layers[x]->buffer.cur_model.empty()) {
+            printf("foo\n");
+        }
         layers[x]->buffer.dmx_buffer = model->GetDisplayAs().rfind("Dmx", 0) == 0;
         if (x == (numLayers - 1)) {
             // for the model "blend" layer, use the "Single Line" style so none of the nodes will overlap with others
@@ -959,7 +962,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
     for (const auto& it : model.ActiveModels()) {
         Model* m = it;
         wxASSERT(m != nullptr);
-        RenderBuffer* buf = new RenderBuffer(frame);
+        RenderBuffer* buf = new RenderBuffer(frame, this, m);
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
@@ -972,7 +975,7 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
     for (const auto& it : model.GetFlatModels(false, true)) {
         Model* m = it;
         wxASSERT(m != nullptr);
-        RenderBuffer* buf = new RenderBuffer(frame);
+        RenderBuffer* buf = new RenderBuffer(frame, this, m);
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
@@ -2579,27 +2582,10 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
 }
 
 void PixelBufferClass::SetLayer(int layer, int period, bool resetState) {
-    layers[layer]->buffer.SetState(period, resetState, modelName);
-    if (layers[layer]->modelBuffers == &layers[layer]->deepModelBuffers) {
-        const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
-        std::list<Model*> flat_models = grp->GetFlatModels(false, true);
-        std::list<Model*>::iterator it_m = flat_models.begin();
-        for (auto it = layers[layer]->modelBuffers->begin(); it != layers[layer]->modelBuffers->end(); ++it, it_m++) {
-            if (frame->AllModels[(*it_m)->Name()] == nullptr) {
-                (*it)->SetState(period, resetState, (*it_m)->GetFullName());
-            } else {
-                (*it)->SetState(period, resetState, (*it_m)->Name());
-            }
-        }
-    } else if (layers[layer]->modelBuffers) {
-        int cnt = 0;
-        const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
-        for (auto it = layers[layer]->modelBuffers->begin(); it != layers[layer]->modelBuffers->end(); ++it, cnt++) {
-            if (frame->AllModels[grp->ActiveModels()[cnt]->Name()] == nullptr) {
-                (*it)->SetState(period, resetState, grp->ActiveModels()[cnt]->GetFullName());
-            } else {
-                (*it)->SetState(period, resetState, grp->ActiveModels()[cnt]->Name());
-            }
+    layers[layer]->buffer.SetState(period, resetState);
+    if (layers[layer]->modelBuffers) {
+        for (auto it = layers[layer]->modelBuffers->begin(); it != layers[layer]->modelBuffers->end(); ++it) {
+            (*it)->SetState(period, resetState);
         }
     }
 }
@@ -2988,9 +2974,9 @@ void PixelBufferClass::HandleLayerTransitions(int EffectPeriod, int ii) {
     if (layers[ii]->use_music_sparkle_count &&
         layers[ii]->buffer.GetMedia() != nullptr) {
         float f = 0.0;
-        std::list<float> const* const pf = layers[ii]->buffer.GetMedia()->GetFrameData(layers[ii]->buffer.curPeriod, FRAMEDATA_HIGH, "");
+        auto pf = layers[ii]->buffer.GetMedia()->GetFrameData(layers[ii]->buffer.curPeriod, "");
         if (pf != nullptr) {
-            f = *pf->cbegin();
+            f = pf->max;
         }
         layers[ii]->music_sparkle_count_factor = f;
     } else {
