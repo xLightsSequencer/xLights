@@ -200,6 +200,14 @@ static const std::string &findKey(const std::map<std::string, std::string> &m, c
     return v->second;
 }
 
+static std::list<int> const& findNodeKey(std::map<std::string, std::list<int>> const& m, std::string const& k) {
+    const auto& v = m.find(k);
+    if (v == m.end()) {
+        return {};
+    }
+    return v->second;
+}
+
 void StateEffect::RenderState(RenderBuffer& buffer,
                               SequenceElements* elements, const std::string& faceDefinition,
                               const std::string& Phoneme, const std::string& trackName, const std::string& mode, const std::string& colourmode) {
@@ -460,9 +468,8 @@ void StateEffect::RenderState(RenderBuffer& buffer,
                             color = xlColor(cname);
                         }
                     }
-
                     if (type == 1) {
-                        for (const auto it : findKey(definitionSi, statename)) {
+                        for (const auto it : findNodeKey(model_info->GetStateInfoNodes().at(definition), statename)) {
                             buffer.SetNodePixel(it, color, true);
                         }
                     } else {
