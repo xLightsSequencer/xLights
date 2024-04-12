@@ -183,16 +183,6 @@ namespace
 
 bool ShaderEffect::useBackgroundRender = false;
 
-ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm, shader_24_xpm, shader_32_xpm, shader_48_xpm, shader_64_xpm)
-{
-
-}
-
-ShaderEffect::~ShaderEffect()
-{
-
-}
-
 bool ShaderEffect::IsShaderFile(std::string filename)
 {
     wxFileName fn(filename);
@@ -547,12 +537,13 @@ private:
 
 
 #if defined(__WXOSX__)
-constexpr int osxSharedContextCount = 24;
-constexpr int COMPILED_PROGRAM_RETAIN_COUNT = osxSharedContextCount;
+constexpr int osxMaxSharedContextCount = 24;
+constexpr int COMPILED_PROGRAM_RETAIN_COUNT = 24;
 static WXGLContext sharedContext = 0;
 static std::list<WXGLContext> sharedContexts;
 static std::mutex sharedContextsLock;
 static std::condition_variable sharedContextsNotifier;
+static int osxSharedContextCount = 0;
 #else
 constexpr int COMPILED_PROGRAM_RETAIN_COUNT = 10;
 #endif
@@ -808,6 +799,17 @@ std::map<std::string, ShaderRenderCache::ShaderInfo*> ShaderRenderCache::shaderM
 std::set<std::string> ShaderRenderCache::failedShaders;
 std::mutex ShaderRenderCache::shaderMapMutex;
 
+
+ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm, shader_24_xpm, shader_32_xpm, shader_48_xpm, shader_64_xpm)
+{
+}
+
+ShaderEffect::~ShaderEffect()
+{
+
+}
+
+
 bool ShaderEffect::CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
 {
 
@@ -942,6 +944,36 @@ void adjustWGLContext(WXGLContext ctx) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info(configs);
+    WXGLUnsetCurrentContext();
+}
+WXGLContext createContext() {
+    wxGLAttributes attributes;
+    attributes.AddAttribute(51 /* NSOpenGLPFAMinimumPolicy */ );
+    attributes.AddAttribute(96 /* NSOpenGLPFAAcceleratedCompute */ );
+    attributes.AddAttribute(97 /* NSOpenGLPFAAllowOfflineRenderers */ );
+    attributes.MinRGBA(8, 8, 8, 8).EndList();
+    wxGLContextAttrs cxtAttrs;
+    cxtAttrs.CoreProfile().EndList();
+
+    
+    WXGLPixelFormat pixelFormat = WXGLChoosePixelFormat(attributes.GetGLAttrs(),
+                                                        attributes.GetSize(),
+                                                        cxtAttrs.GetGLAttrs(),
+                                                        cxtAttrs.GetSize());
+    if (!pixelFormat) {
+        // couldn't get an AcceleratedCompute format, let's at least try defaults
+        wxGLAttributes attributes2;
+        attributes2.PlatformDefaults().MinRGBA(8, 8, 8, 8).EndList();
+        pixelFormat = WXGLChoosePixelFormat(attributes2.GetGLAttrs(),
+                                            attributes2.GetSize(),
+                                            cxtAttrs.GetGLAttrs(),
+                                            cxtAttrs.GetSize());
+    }
+    WXGLContext ctx = WXGLCreateContext(pixelFormat, sharedContext);
+    adjustWGLContext(ctx);
+    WXGLDestroyPixelFormat(pixelFormat);
+
+    return ctx;
 }
 #endif
 
@@ -951,38 +983,11 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     if (cache->s_glContext == nullptr) {
         std::unique_lock<std::mutex> lock(sharedContextsLock);
         if (sharedContext == 0) {
-            wxGLAttributes attributes;
-            attributes.AddAttribute(51 /* NSOpenGLPFAMinimumPolicy */ );
-            attributes.AddAttribute(96 /* NSOpenGLPFAAcceleratedCompute */ );
-            attributes.AddAttribute(97 /* NSOpenGLPFAAllowOfflineRenderers */ );
-            attributes.MinRGBA(8, 8, 8, 8).EndList();
-            wxGLContextAttrs cxtAttrs;
-            cxtAttrs.CoreProfile().EndList();
-
-            
-            WXGLPixelFormat pixelFormat = WXGLChoosePixelFormat(attributes.GetGLAttrs(),
-                                                                attributes.GetSize(),
-                                                                cxtAttrs.GetGLAttrs(),
-                                                                cxtAttrs.GetSize());
-            if (!pixelFormat) {
-                // couldn't get an AcceleratedCompute format, let's at least try defaults
-                wxGLAttributes attributes2;
-                attributes2.PlatformDefaults().MinRGBA(8, 8, 8, 8).EndList();
-                pixelFormat = WXGLChoosePixelFormat(attributes2.GetGLAttrs(),
-                                                    attributes2.GetSize(),
-                                                    cxtAttrs.GetGLAttrs(),
-                                                    cxtAttrs.GetSize());
-            }
-            
-            sharedContext = WXGLCreateContext(pixelFormat, 0);
-            adjustWGLContext(sharedContext);
-            for (int x = 0; x < osxSharedContextCount; x++) {
-                // create some shared contexts to use if we run out
-                WXGLContext sc = WXGLCreateContext(pixelFormat, sharedContext);
-                adjustWGLContext(sc);
-                sharedContexts.push_front(sc);
-            }
-            WXGLDestroyPixelFormat(pixelFormat);
+            sharedContext = createContext();
+        }
+        if (sharedContexts.empty() && osxSharedContextCount < osxMaxSharedContextCount) {
+            sharedContexts.push_front(createContext());
+            ++osxSharedContextCount;
         }
         while (sharedContexts.empty()) {
             sharedContextsNotifier.wait(lock);
