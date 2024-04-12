@@ -52,7 +52,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         bool HasColorAbility() const { return nullptr != color_ability ; }
         DmxColorAbility* GetColorAbility() const { return color_ability.get(); }
-        virtual void EnableFixedChannels(xlColorVector& pixelVector);
+        virtual void EnableFixedChannels(xlColorVector& pixelVector) const;
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }

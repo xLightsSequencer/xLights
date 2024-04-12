@@ -19,7 +19,7 @@ public:
     DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
     virtual ~DmxFloodlight();
 
-    void EnableFixedChannels(xlColorVector& pixelVector) override;
+    void EnableFixedChannels(xlColorVector& pixelVector) const override;
     [[nodiscard]] std::vector<std::string> GenerateNodeNames() const override;
 
 protected:

@@ -1299,7 +1299,7 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
     }
 }
 
-void DmxMovingHead::EnableFixedChannels(xlColorVector& pixelVector)
+void DmxMovingHead::EnableFixedChannels(xlColorVector& pixelVector) const
 {
     if (shutter_channel != 0 && shutter_on_value != 0) {
         if (Nodes.size() > shutter_channel - 1) {

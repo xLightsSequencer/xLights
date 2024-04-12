@@ -60,6 +60,8 @@ public:
 
     std::string GetDuplicateNodes() const { return _duplicateNodes; }
 
+    
+    
 private:
     void CheckDuplicates(const std::vector<int>& nodeIndexes);
 

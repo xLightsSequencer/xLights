@@ -387,8 +387,9 @@ void SpinnerModel::InitModel() {
     DisplayAs = "Spinner";
 }
 
-void SpinnerModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
+void SpinnerModel::InitRenderBufferNodes(const std::string &tp, const std::string &camera, const std::string &transform,
     std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, int stagger, bool deep) const {
+    std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     if (type == "Single Line") {
         BufferHi = 1;
         BufferWi = GetNodeCount();

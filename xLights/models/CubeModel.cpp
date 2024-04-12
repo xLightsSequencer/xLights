@@ -552,8 +552,9 @@ const std::vector<std::string> &CubeModel::GetBufferStyles() const {
     return CUBE_BUFFERSTYLES;
 }
 
-void CubeModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
+void CubeModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
 {
+    std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     int width = parm1;
     int height = parm2;
     int depth = parm3;
@@ -675,8 +676,10 @@ int CubeModel::GetNumPhysicalStrings() const
     }
 }
 
-void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
+void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
 {
+    std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
+
     int width = parm1;
     int height = parm2;
     int depth = parm3;

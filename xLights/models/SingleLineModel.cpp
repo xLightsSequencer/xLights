@@ -40,6 +40,7 @@ bool SingleLineModel::IsNodeFirst(int n) const
 
 void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node, bool forceDirection)
 {
+    parent = &pbc;
     Nodes.clear();
     parm1 = lights;
     parm2 = 1;
@@ -65,11 +66,14 @@ void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node, 
     }
     stringStartChan.resize(lights);
     if (node == -1) {
+        name = pbc.GetFullName() + "-" + pbc.GetStrandName(strand, true);
         for (int x = 0; x < lights; x++) {
             stringStartChan[x] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, x));
         }
     } else {
-        stringStartChan[0] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, node));
+        int idx = pbc.MapToNodeIndex(strand, node);
+        name = pbc.GetFullName() + "-" + pbc.GetNodeName(idx, true);
+        stringStartChan[0] = pbc.NodeStartChannel(idx);
     }
     InitModel();
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {

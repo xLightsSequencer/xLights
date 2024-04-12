@@ -3571,7 +3571,7 @@ uint32_t Model::GetFirstChannel() const
     return FirstChan;
 }
 
-unsigned int Model::GetNumChannels()
+unsigned int Model::GetNumChannels() const
 {
     return GetLastChannel() - GetFirstChannel() + 1;
 }

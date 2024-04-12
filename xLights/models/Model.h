@@ -431,7 +431,7 @@ public:
     bool IsValidStartChannelString() const;
     virtual uint32_t GetFirstChannel() const;
     virtual uint32_t GetLastChannel() const;
-    uint32_t GetNumChannels();
+    uint32_t GetNumChannels() const;
     uint32_t GetNodeNumber(size_t nodenum) const;
     uint32_t GetNodeNumber(int bufY, int bufX) const;
     bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);

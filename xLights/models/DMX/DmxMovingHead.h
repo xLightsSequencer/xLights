@@ -34,7 +34,7 @@ class DmxMovingHead : public DmxMovingHeadComm, public DmxShutterAbility
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
         virtual void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
         virtual std::list<std::string> CheckModelSettings() override;
-        void EnableFixedChannels(xlColorVector& pixelVector) override;
+        void EnableFixedChannels(xlColorVector& pixelVector) const override;
         [[nodiscard]] std::vector<std::string> GenerateNodeNames() const override;
 
         DmxMotorBase* GetPanMotor() const override { return pan_motor.get(); }

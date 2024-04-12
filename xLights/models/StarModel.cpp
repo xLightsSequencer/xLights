@@ -83,8 +83,9 @@ const std::vector<std::string> &StarModel::GetBufferStyles() const {
     return STAR_BUFFER_STYLES;
 }
 
-void StarModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
+void StarModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
 {
+    std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     if (type == "Layer Star") {
         BufferHi = GetNumStrands();
         BufferWi = 0;
@@ -106,11 +107,12 @@ void StarModel::GetBufferSize(const std::string& type, const std::string& camera
     }
 }
 
-void StarModel::InitRenderBufferNodes(const std::string& type,
+void StarModel::InitRenderBufferNodes(const std::string& tp,
     const std::string& camera,
     const std::string& transform,
     std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
 {
+    std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     if (type == "Layer Star") {
         BufferHi = GetNumStrands();
         BufferWi = 0;

@@ -398,7 +398,7 @@ std::vector<std::string> DmxModel::GenerateNodeNames() const
     return names;
 }
 
-void DmxModel::EnableFixedChannels(xlColorVector& pixelVector)
+void DmxModel::EnableFixedChannels(xlColorVector& pixelVector) const
 {
     if (nullptr != preset_ability) {
          preset_ability->SetPresetValues(pixelVector);

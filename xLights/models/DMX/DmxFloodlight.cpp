@@ -307,7 +307,7 @@ void DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
     }
 }
 
-void DmxFloodlight::EnableFixedChannels(xlColorVector& pixelVector)
+void DmxFloodlight::EnableFixedChannels(xlColorVector& pixelVector) const
 {
     if (shutter_channel != 0 && shutter_on_value != 0) {
         if (Nodes.size() > shutter_channel - 1) {

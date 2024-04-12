@@ -66,6 +66,8 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
     parm1 = 1;
     parm2 = 1;
     parm3 = 1;
+    
+    StringType = p->StringType;
 
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("Submodel init %s:%s", (const char*)p->GetFullName().c_str(), (const char*)name.c_str());
