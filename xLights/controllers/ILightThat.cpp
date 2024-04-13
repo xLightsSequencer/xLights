@@ -80,10 +80,6 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         for (int x = 0; x < cud.GetMaxPixelPort(); x++) {
             UDControllerPort* port = cud.GetControllerPixelPort(x + 1);
             std::string const proto = port->GetProtocol();
-            if (port->Pixels() > 750) {
-                DisplayError("Max 750 pixels per port for Baldrick Board", parent);
-                return false;
-            }
             outputConfig["ports"][x]["num_pixels"] = port->Pixels();
 
             int i = 0;
@@ -111,19 +107,11 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             outputConfig["ports"][i]["num_pixels"] = 0;
         }
 
-        std::string url = "http://" + _ip + "/settings";
         wxJSONWriter writer;
         wxString Data;
         writer.Write(outputConfig, Data);
-        logger_base.debug(std::string("SetHttpConfig: Data: '") + Data + "'");
-
-        std::string contentType = "application/json";
-        int ReturnCode = -1;
-        std::vector<unsigned char> value(Data.begin(), Data.end());
-        CurlManager::INSTANCE.doPost(url, contentType, value, ReturnCode);
-
-        // logger_base.debug(std::string("SetHttpConfig: ReturnCode: '") + std::to_string(ReturnCode) + "'");
-        return (200 == ReturnCode);
+        std::string response = PutURL("/settings", Data, "", "", "application/json");
+        return (response == "OK");
     }
     return false;
 }
