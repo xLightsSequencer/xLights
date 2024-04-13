@@ -99,6 +99,10 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 outputConfig["ports"][x]["models"][i]["start"] = (model->GetStartChannel() - port->GetFirstModel()->GetStartChannel()) / 3;
                 outputConfig["ports"][x]["models"][i]["num_pixels"] = ((model->GetEndChannel() - model->GetStartChannel()) + 1) / 3;
 
+                const std::string colorOrder = model->GetColourOrder("unknown");
+                if (colorOrder != "unknown") {
+                    outputConfig["ports"][x]["models"][i]["colour_order"] = colorOrder;
+                }
                 i++;
             }
         }

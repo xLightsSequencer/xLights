@@ -1,6 +1,7 @@
 <Vendor Name="ILightThat">
     <AbstractVariant Name="BaseBaldrickSettings">
 		<SupportsPixelPortBrightness/>
+		<SupportsPixelPortColourOrder/>
         <SupportsUpload/>
         <MaxInputUniverses>9</MaxInputUniverses>
         <MaxSerialPortChannels>0</MaxSerialPortChannels>
