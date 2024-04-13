@@ -106,8 +106,6 @@ static const std::string VERT_PER_STRAND("Vertical Per Strand");
 static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");
 static const std::string HORIZ_PER_MODELSTRAND("Horizontal Per Model/Strand");
 static const std::string VERT_PER_MODELSTRAND("Vertical Per Model/Strand");
-static const std::string PERMODEL_VERT_PER_STRAND("Per Model Vertical Per Strand");
-static const std::string PERMODEL_HORIZ_PER_STRAND("Per Model Horizontal Per Strand");
 
 static const std::string PER_PREVIEW_NO_OFFSET("Per Preview No Offset");
 
@@ -3640,8 +3638,9 @@ const std::string& Model::NodeType(size_t nodenum) const
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->GetNodeType() : NodeBaseClass::RGB; // avoid memory access error if no nods -DJ
 }
 
-void Model::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& bufferWi, int& bufferHi, int stagger) const
+void Model::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& bufferWi, int& bufferHi, int stagger) const
 {
+    std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     if (type == DEFAULT) {
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
@@ -3651,13 +3650,13 @@ void Model::GetBufferSize(const std::string& type, const std::string& camera, co
     } else if (type == AS_PIXEL) {
         bufferHi = 1;
         bufferWi = 1;
-    } else if (type == VERT_PER_STRAND || type == PERMODEL_VERT_PER_STRAND || type == VERT_PER_MODELSTRAND) {
+    } else if (type == VERT_PER_STRAND || type == VERT_PER_MODELSTRAND) {
         bufferHi = GetNumStrands();
         bufferWi = 1;
         for (int x = 0; x < bufferHi; ++x) {
             bufferWi = std::max(bufferWi, GetStrandLength(x));
         }
-    } else if (type == HORIZ_PER_STRAND || type == PERMODEL_HORIZ_PER_STRAND || type == HORIZ_PER_MODELSTRAND) {
+    } else if (type == HORIZ_PER_STRAND || type == HORIZ_PER_MODELSTRAND) {
         bufferWi = GetNumStrands();
         bufferHi = 1;
         for (int x = 0; x < bufferWi; ++x) {
@@ -3812,12 +3811,12 @@ const std::string Model::AdjustBufferStyle(const std::string &style) const {
 }
 
 
-void Model::InitRenderBufferNodes(const std::string& type, const std::string& camera,
+void Model::InitRenderBufferNodes(const std::string& tp, const std::string& camera,
                                   const std::string& transform,
                                   std::vector<NodeBaseClassPtr>& newNodes, int& bufferWi, int& bufferHt, int stagger, bool deep) const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+    std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     int firstNode = newNodes.size();
 
     // want to see if i can catch something that causes this to crash
@@ -3864,7 +3863,7 @@ void Model::InitRenderBufferNodes(const std::string& type, const std::string& ca
                 SetCoords(it2, 0, 0);
             }
         }
-    } else if (type == HORIZ_PER_STRAND || type == PERMODEL_HORIZ_PER_STRAND || type == HORIZ_PER_MODELSTRAND) {
+    } else if (type == HORIZ_PER_STRAND || type == HORIZ_PER_MODELSTRAND) {
         bufferWi = GetNumStrands();
         bufferHt = 1;
         for (int x = 0; x < bufferWi; ++x) {
@@ -3896,7 +3895,7 @@ void Model::InitRenderBufferNodes(const std::string& type, const std::string& ca
                 x++;
             }
         }
-    } else if (type == VERT_PER_STRAND || type == PERMODEL_VERT_PER_STRAND || type == VERT_PER_MODELSTRAND) {
+    } else if (type == VERT_PER_STRAND || type == VERT_PER_MODELSTRAND) {
         bufferHt = GetNumStrands();
         bufferWi = 1;
         for (int x = 0; x < bufferHt; ++x) {
