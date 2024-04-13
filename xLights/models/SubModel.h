@@ -59,7 +59,6 @@ public:
         std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
 
     std::string GetDuplicateNodes() const { return _duplicateNodes; }
-    std::list<std::string> GetAliases() const {}
 
 private:
     void CheckDuplicates(const std::vector<int>& nodeIndexes);
