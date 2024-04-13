@@ -42,6 +42,7 @@ class TimingPanel: public xlEffectPanel
     std::string _layersSelected;
     int _startLayer;
     int _endLayer;
+    bool _modelBlending;
     std::vector<int> _layerWithEffect;
 
 	public:
@@ -49,7 +50,7 @@ class TimingPanel: public xlEffectPanel
 		TimingPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~TimingPanel();
 
-        void SetLayersBelow(int start, int end, std::vector<int> effects) { _startLayer = start; _endLayer = end; _layerWithEffect = effects; }
+        void SetLayersBelow(int start, int end, std::vector<int> effects, bool blending) { _startLayer = start; _endLayer = end; _layerWithEffect = effects; _modelBlending = blending;}
         wxString GetTimingString();
         void SetDefaultControls(const Model *model, bool optionbased = false);
         void ValidateWindow();

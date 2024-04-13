@@ -20,16 +20,17 @@
 class LayerSelectDialog: public wxDialog
 {
     int _start;
+    bool _blending;
 	std::vector<int> _layerWithEffect;
     void ValidateWindow();
 
 	public:
 
-		LayerSelectDialog(wxWindow* parent, int startLayer, int endLayer, std::string layersSelected, std::vector<int> layerWithEffect, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		LayerSelectDialog(wxWindow* parent, int startLayer, int endLayer, bool blendLayer, const std::string &layersSelected, const std::vector<int> &layerWithEffect, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~LayerSelectDialog();
         void SelectLayer(wxString layer);
         std::string GetSelectedLayers() const;
-        void SelectAllLayers();
+        void SelectAllLayers(bool incBlendingLayer = false);
 
 		//(*Declarations(LayerSelectDialog)
 		wxButton* Button_Cancel;

@@ -565,7 +565,7 @@ void TimingPanel::OnCheckBox_ResetTimingPanelClick(wxCommandEvent& event)
 void TimingPanel::OnButton_LayersClick(wxCommandEvent& event)
 {
     wxASSERT(_startLayer <= _endLayer);
-    LayerSelectDialog dlg(this, _startLayer, _endLayer, _layersSelected, _layerWithEffect);
+    LayerSelectDialog dlg(this, _startLayer, _endLayer, _modelBlending, _layersSelected, _layerWithEffect);
     OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK) {

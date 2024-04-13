@@ -655,14 +655,20 @@ public:
                     maybeWaitForFrame(frame);
 
                     auto vl = info.validLayers;
+                    bool doBlendLayer = false;
                     if (info.settingsMaps[layer].Get("LayersSelected", "") != "") {
                         // remove from valid layers any layers we dont need to include
-                        wxArrayString ls = wxSplit(info.settingsMaps[layer].Get("LayersSelected", ""), '|');
+                        std::vector<std::string> ls;
+                        Split(info.settingsMaps[layer].Get("LayersSelected", ""), '|', ls);
+                        if (!ls.empty() && ls.back() == "Blend") {
+                            doBlendLayer = true;
+                            ls.pop_back();
+                        }
                         for (int i = layer + 1; i < vl.size(); i++) {
                             if (vl[i]) {
                                 bool found = false;
                                 for (auto it = ls.begin(); !found && it != ls.end(); ++it) {
-                                    if (wxAtoi(*it) + layer + 1 == i) {
+                                    if (std::atoi((*it).c_str()) + layer + 1 == i) {
                                         found = true;
                                     }
                                 }
@@ -670,6 +676,11 @@ public:
                                     vl[i] = false;
                                 }
                             }
+                        }
+                        if (doBlendLayer) {
+                            buffer->SetColors(numLayers, &((*seqData)[frame][0]));
+                            vl[numLayers] = true;
+                            blend = false;
                         }
                     }
 

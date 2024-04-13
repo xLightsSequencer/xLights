@@ -1115,14 +1115,13 @@ void xLightsFrame::EffectChanged(wxCommandEvent& event)
 // flags something has changed in an effect but does not send the effect
 void xLightsFrame::EffectUpdated(wxCommandEvent& event)
 {
-    if (selectedEffect != nullptr)
-    {
+    if (selectedEffect != nullptr) {
         // For canvas mode the timing panel needs to know how many layers are under this effect
         int layers = selectedEffect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount();
         int start = selectedEffect->GetParentEffectLayer()->GetLayerNumber() + 1;
 		std::vector<int> effectLayers = selectedEffect->GetParentEffectLayer()->GetParentElement()->GetLayersWithEffectsByTime(selectedEffect->GetStartTimeMS(), selectedEffect->GetEndTimeMS());
         if (start > layers) start = -1;
-        timingPanel->SetLayersBelow(start, layers, effectLayers);
+        timingPanel->SetLayersBelow(start, layers, effectLayers, _sequenceElements.SupportsModelBlending());
     }
 }
 
@@ -1209,7 +1208,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                 int start = effect->GetParentEffectLayer()->GetLayerNumber() + 1;
                 std::vector<int> effectLayers = effect->GetParentEffectLayer()->GetParentElement()->GetLayersWithEffectsByTime(effect->GetStartTimeMS(), effect->GetEndTimeMS());
                 if (start > layers) start = -1;
-                timingPanel->SetLayersBelow(start, layers, effectLayers);
+                timingPanel->SetLayersBelow(start, layers, effectLayers, _sequenceElements.SupportsModelBlending());
 
                 bool resetStrings = false;
                 if ("Random" == effect->GetEffectName()) {
