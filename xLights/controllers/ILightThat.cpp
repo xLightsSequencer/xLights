@@ -39,10 +39,7 @@ ILightThat::ILightThat(const std::string& ip, const std::string& proxy) :
 
         reader.Parse(json, &jsonVal);
         _connected = true;
-        
-        if (_connected) {
-            logger_base.debug("Connected to ILightThat controller model %s.", (const char*)GetFullName().c_str());
-        }
+        logger_base.debug("Connected to ILightThat controller model %s.", (const char*)GetFullName().c_str());
     } else {
         _connected = false;
         logger_base.error("Error connecting to ILightThat controller on %s.", (const char*)_ip.c_str());
