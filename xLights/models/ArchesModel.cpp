@@ -545,8 +545,8 @@ void ArchesModel::SetArchCoord()
     if (minY > 1) {
         renderHt -= minY;
         for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
-            for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); ++coord) {
-                coord->screenY -= minY;
+            for (auto &coord : (*it)->Coords) {
+                coord.screenY -= minY;
             }
         }
     }

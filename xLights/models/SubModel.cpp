@@ -207,7 +207,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                                     }
                                 } else {
                                     node = Nodes[nodeIndexMap[nn]].get();
-                                    node->Coords.insert(node->Coords.begin(), node->Coords[0]);
+                                    node->Coords.push_front(node->Coords[0]);
                                     node->Coords[0].bufX = col;
                                     node->Coords[0].bufY = row;
                                 }

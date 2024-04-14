@@ -3365,8 +3365,8 @@ void Model::SetNodeColor(size_t nodenum, const xlColor& c)
 bool Model::IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2)
 {
     if (nodeNum < Nodes.size()) {
-        for (auto a = Nodes[nodeNum]->Coords.begin(); a != Nodes[nodeNum]->Coords.end(); ++a) {
-            if (a->bufX >= x1 && a->bufX <= x2 && a->bufY >= y1 && a->bufY <= y2) {
+        for (auto &a : Nodes[nodeNum]->Coords) {
+            if (a.bufX >= x1 && a.bufX <= x2 && a.bufY >= y1 && a.bufY <= y2) {
                 return true;
             }
         }
@@ -3703,8 +3703,8 @@ static inline void SetCoords(NodeBaseClass::CoordStruct& it2, int x, int y, int 
 char GetPixelDump(int x, int y, std::vector<NodeBaseClassPtr>& newNodes)
 {
     for (auto n = newNodes.begin(); n != newNodes.end(); ++n) {
-        for (auto c = (*n)->Coords.begin(); c != (*n)->Coords.end(); ++c) {
-            if (c->bufX == x && c->bufY == y) {
+        for (auto &c : (*n)->Coords) {
+            if (c.bufX == x && c.bufY == y) {
                 return '*';
             }
         }

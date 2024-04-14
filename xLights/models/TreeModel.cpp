@@ -218,18 +218,20 @@ void TreeModel::SetTreeCoord(long degrees)
                     }
 
                     newh = RenderHt * posOnString;
-                    Nodes[n]->Coords.push_back(Nodes[n]->Coords[c]);
-                    Nodes[n]->Coords.back().screenX = xb + (xt - xb) * posOnString;
-                    Nodes[n]->Coords.back().screenY = RenderHt * newh / h - ((double)RenderHt) / 2.0;
+                    NodeBaseClass::CoordStruct cs = Nodes[n]->Coords[c];
+                    cs.screenX = xb + (xt - xb) * posOnString;
+                    cs.screenY = RenderHt * newh / h - ((double)RenderHt) / 2.0;
+                    Nodes[n]->Coords.push_back(cs);
 
                     posOnString = 1;
                     if (BufferHt > 1) {
                         posOnString = ((bufferY + 0.33) / (double)(BufferHt - 1.0));
                     }
                     newh = RenderHt * posOnString;
-                    Nodes[n]->Coords.push_back(Nodes[n]->Coords[c]);
-                    Nodes[n]->Coords.back().screenX = xb + (xt - xb) * posOnString;
-                    Nodes[n]->Coords.back().screenY = RenderHt * newh / h - ((double)RenderHt) / 2.0;
+                    cs = Nodes[n]->Coords[c];
+                    cs.screenX = xb + (xt - xb) * posOnString;
+                    cs.screenY = RenderHt * newh / h - ((double)RenderHt) / 2.0;
+                    Nodes[n]->Coords.push_back(cs);
                 }
 
             } else {

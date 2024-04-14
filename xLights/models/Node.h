@@ -40,10 +40,144 @@ public:
         int bufX, bufY;
         float screenX, screenY, screenZ;
     };
+    
+    class CoordVec {
+    public:
+        class CoordIterator {
+        private:
+            CoordVec &coords;
+            uint32_t pos;
+        public:
+            explicit CoordIterator(CoordVec &c, int p) : coords(c), pos(p) {}
+            CoordStruct& operator*() const {
+                return coords[pos];
+            }
+            //overload pre increment operator
+            CoordIterator& operator++() {
+                pos++;
+                return *this;
+            }
+            // overload post increment operator
+            CoordIterator operator++(int) {
+                CoordIterator ret(coords, pos);
+                ++pos;
+                return ret;
+            }
+            bool operator==(const CoordIterator& iter) const {
+                return this->pos == iter.pos;
+            }
+            bool operator!=(const CoordIterator& iter) const {
+                return this->pos != iter.pos;
+            }
+        };
+
+        
+        CoordVec() {}
+        CoordVec(const CoordVec &c) {
+            if (c._size <= 1) {
+                coords = &first;
+                first = c.first;
+                _size = c._size;
+            } else {
+                _size = 0;
+                coords = &first;
+                resize(c._size);
+                memcpy(coords, c.coords, _size * sizeof(CoordStruct));
+            }
+        }
+        CoordVec(CoordVec &&c) : _size(c._size) {
+            if (_size <= 1) {
+                coords = &first;
+                first = c.first;
+            } else {
+                coords = c.coords;
+                c.coords = &c.first;
+                c._size = 0;
+            }
+        }
+        ~CoordVec() {
+            if (coords != &first) {
+                free(coords);
+            }
+        }
+        
+        bool empty() const { return _size == 0; }
+        uint32_t size() const { return _size; }
+        
+        void resize(uint32_t i) {
+            if (i <= 1 && (coords != &first)) {
+                first = coords[0];
+                free(coords);
+                coords = &first;
+            } else if (i > 1) {
+                if (_size <= 1) {
+                    coords = (CoordStruct*)malloc(i * sizeof(CoordStruct));
+                    coords[0] = first;
+                } else {
+                    // need to expand
+                    coords = (CoordStruct*)realloc(coords, i * sizeof(CoordStruct));
+                }
+            }
+            _size = i;
+        }
+        void push_back(const CoordStruct &c) {
+            uint32_t sz = _size;
+            if (sz == 0) {
+                _size = 1;
+            } else {
+                resize(sz + 1);
+            }
+            coords[sz] = c;
+        }
+        void push_front(CoordStruct c) {
+            uint32_t sz = _size;
+            if (sz == 0) {
+                _size = 1;
+            } else {
+                resize(sz + 1);
+                while (sz > 0) {
+                    coords[sz] = coords[sz - 1];
+                    --sz;
+                }
+            }
+            coords[0] = c;
+        }
+        CoordStruct &back() {
+            return coords[_size - 1];
+        }
+        CoordStruct &front() {
+            return coords[0];
+        }
+
+        const CoordStruct& operator[](uint32_t idx) const {
+            if (_size == 1) {
+                return first;
+            }
+            return coords[idx];
+        }
+        CoordStruct& operator[](uint32_t idx) {
+            if (_size == 1) {
+                return first;
+            }
+            return coords[idx];
+        }
+        
+        CoordIterator begin() {
+            return CoordIterator(*this, 0);
+        }
+        CoordIterator end() {
+            return CoordIterator(*this, _size);
+        }
+
+    private:
+        uint32_t _size = 0;
+        CoordStruct first;
+        CoordStruct *coords = &first;
+    };
 
     uint32_t ActChan = 0;   // 0 is the first channel
     uint32_t StringNum = 0; // node is part of this string (0 is the first string)
-    std::vector<CoordStruct> Coords;
+    CoordVec Coords;
     std::string* name = nullptr;
     const Model* model = nullptr;
 

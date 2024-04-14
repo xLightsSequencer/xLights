@@ -62,9 +62,7 @@ void ImageModel::InitRenderBufferNodes(const std::string &type, const std::strin
 
     //newNodes.push_back(NodeBaseClassPtr(Nodes[0]->clone()));
     NodeBaseClass* node = Nodes[0]->clone();
-
-    // remove one of the coordinates
-    node->Coords.erase(node->Coords.begin());
+    node->Coords.resize(1);
 
     // set it to zero zero
     node->Coords[0].bufX = 0;
