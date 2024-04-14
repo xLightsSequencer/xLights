@@ -228,8 +228,8 @@ void ChannelBlockModel::InitChannelBlock() {
         wxString nm = ChanColorAttrName(n);
         std::string val = ModelXml->GetAttribute("ChannelProperties." + nm).ToStdString();
         xlColor c = xlColor(val);
-        Nodes[n]->SetMaskColor(c);
         NodeClassCustom* ncc = dynamic_cast<NodeClassCustom*>(Nodes[n].get());
+        ncc->SetMaskColor(c);
         ncc->SetCustomColor(c);
     }
 }

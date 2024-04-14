@@ -3347,13 +3347,11 @@ xlColor Model::GetNodeColor(size_t nodenum) const
     return color;
 }
 
-xlColor Model::GetNodeMaskColor(size_t nodenum) const
+const xlColor &Model::GetNodeMaskColor(size_t nodenum) const
 {
     if (nodenum >= Nodes.size())
         return xlWHITE; // this shouldnt happen but it does if you have a custom model with no nodes in it
-    xlColor color;
-    Nodes[nodenum]->GetMaskColor(color);
-    return color;
+    return Nodes[nodenum]->GetMaskColor();
 }
 
 void Model::SetNodeColor(size_t nodenum, const xlColor& c)

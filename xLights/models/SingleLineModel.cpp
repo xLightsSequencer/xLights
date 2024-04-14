@@ -78,8 +78,11 @@ void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node, 
     InitModel();
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
         (*it)->model = &pbc;
-        xlColor c = (*it)->model->GetNodeMaskColor(strand);
-        (*it)->SetMaskColor(c);
+        MaskedNodeBaseClass *mn = dynamic_cast<MaskedNodeBaseClass*>(it->get());
+        if (mn) {
+            xlColor c = (*it)->model->GetNodeMaskColor(strand);
+            mn->SetMaskColor(c);
+        }
     }
     if (flip) {
         int l = 0;

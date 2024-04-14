@@ -263,7 +263,7 @@ public:
     void GetNodeChannelValues(size_t nodenum, unsigned char* buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char* buf);
     xlColor GetNodeColor(size_t nodenum) const;
-    xlColor GetNodeMaskColor(size_t nodenum) const;
+    const xlColor &GetNodeMaskColor(size_t nodenum) const;
     uint32_t NodeStartChannel(size_t nodenum) const;
     uint32_t GetNodeCount() const;
     uint32_t GetChanCountPerNode() const;
