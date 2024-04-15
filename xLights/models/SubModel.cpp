@@ -371,7 +371,7 @@ void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outpu
         p = grid->Append(new wxStringProperty("In Model Groups", "MGS", mgs));
         p->SetHelpString(mgscr);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPG_PROP_READONLY, true);
+        p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
     }
     auto smaliases = parent->GetSubModel(this->GetName())->GetAliases();
     if (smaliases.size() > 0) {
