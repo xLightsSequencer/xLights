@@ -910,9 +910,6 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
         layers[x] = new LayerInfo(frame, this);
         layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
         layers[x]->buffer.cur_model = model->GetFullName();
-        if (layers[x]->buffer.cur_model.empty()) {
-            printf("foo\n");
-        }
         layers[x]->buffer.dmx_buffer = model->GetDisplayAs().rfind("Dmx", 0) == 0;
         if (x == (numLayers - 1)) {
             // for the model "blend" layer, use the "Single Line" style so none of the nodes will overlap with others
