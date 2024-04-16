@@ -38,7 +38,7 @@ public:
     // buffer and screen coordinates for displayed nodes
     struct CoordStruct {
         int bufX, bufY;
-        float screenX, screenY, screenZ;
+        float screenX = 0, screenY = 0, screenZ = 0;
     };
     
     class CoordVec {
@@ -117,6 +117,9 @@ public:
                     // need to expand
                     coords = (CoordStruct*)realloc(coords, i * sizeof(CoordStruct));
                 }
+                for (int x = _size; x < i; ++x) {
+                    coords[x].screenX = coords[x].screenY = coords[x].screenZ = 0;
+                }
             }
             _size = i;
         }
@@ -150,15 +153,9 @@ public:
         }
 
         const CoordStruct& operator[](uint32_t idx) const {
-            if (_size == 1) {
-                return first;
-            }
             return coords[idx];
         }
         CoordStruct& operator[](uint32_t idx) {
-            if (_size == 1) {
-                return first;
-            }
             return coords[idx];
         }
         
