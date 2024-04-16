@@ -710,7 +710,6 @@ RenderBuffer::RenderBuffer(xLightsFrame *f, PixelBufferClass *p, const Model *m)
     fadeinsteps = 0;
     fadeoutsteps = 0;
     allowAlpha = false;
-    dmx_buffer = false;
     needToInit = true;
     _nodeBuffer = false;
     frameTimeInMs = 50;

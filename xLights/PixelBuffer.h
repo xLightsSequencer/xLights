@@ -62,8 +62,8 @@ class PixelBufferClass {
 private:
     class LayerInfo {
     public:
-        LayerInfo(xLightsFrame* frame, PixelBufferClass *p) :
-            buffer(frame, p) {
+        LayerInfo(xLightsFrame* frame, PixelBufferClass *p, const Model *m) :
+            buffer(frame, p, m) {
             inMaskFactor = 1.0;
             outMaskFactor = 1.0;
             blur = 0;

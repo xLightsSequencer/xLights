@@ -443,7 +443,7 @@ public:
 
 class /*NCCDLLEXPORT*/ RenderBuffer {
 public:
-    RenderBuffer(xLightsFrame *frame, PixelBufferClass *pbc, const Model *m = nullptr);
+    RenderBuffer(xLightsFrame *frame, PixelBufferClass *pbc, const Model *m);
     ~RenderBuffer();
     RenderBuffer(RenderBuffer& buffer);
     void InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform, bool nodeBuffer = false);
