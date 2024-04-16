@@ -1449,7 +1449,6 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         Connect(ID_List_Controllers, wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&xLightsFrame::OnListControllersRClick);
         Connect(ID_List_Controllers, wxEVT_LIST_COL_CLICK, (wxObjectEventFunction)&xLightsFrame::OnListControllersColClick);
         Connect(ID_List_Controllers, wxEVT_LIST_ITEM_RIGHT_CLICK, (wxObjectEventFunction)&xLightsFrame::OnListControllersItemRClick);
-        Connect(ID_List_Controllers, wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemSelectedControllers);
         Connect(ID_List_Controllers, wxEVT_LIST_ITEM_DESELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemDeselectedControllers);
         Connect(ID_List_Controllers, wxEVT_LIST_BEGIN_DRAG, (wxObjectEventFunction)&xLightsFrame::OnListItemBeginDragControllers);
         Connect(ID_List_Controllers, wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemSelectedControllers);
@@ -1942,7 +1941,7 @@ int xLightsFrame::GetSelectedControllerCount() const {
 
 void xLightsFrame::OnListItemSelectedControllers(wxListEvent& event)
 {
-    if (!inInitialize) {
+    if (!inInitialize) { // dwe
         SetControllersProperties();
     }
 

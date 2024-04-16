@@ -937,6 +937,10 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    if (!shouldProcessGridCellChanged) {
+        shouldProcessGridCellChanged = true;
+        return;
+    }
     int r = event.GetRow();
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
     if (sm != nullptr)
@@ -963,6 +967,7 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
 
 void SubModelsDialog::OnNodesGridCellSelect(wxGridEvent& event)
 {
+    shouldProcessGridCellChanged = true;
     SelectRow(event.GetRow());
     ValidateWindow();
 }
@@ -1163,6 +1168,7 @@ void SubModelsDialog::OnButton_ReverseNodesClick(wxCommandEvent& event)
 
 void SubModelsDialog::OnListCtrl_SubModelsItemSelect(wxListEvent& event)
 {
+    shouldProcessGridCellChanged = false;
     if (ListCtrl_SubModels->GetSelectedItemCount() == 1)
     {
         Select(GetSelectedName());
