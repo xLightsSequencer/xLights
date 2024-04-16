@@ -11,6 +11,35 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.09 Apr 16, 2024
+   - enh (dkulp)        MacOS - Use GPU for  layer blending
+   - enh (derwin12)     Add preference to override the highlight color for lists
+   - enh (cybercop23)   Remove start/end channels from groups and sub-models in Model list
+   - enh (cybercop23)   Add LayoutGroup to Import/Export for CustomModel
+   - enh (gil)          New Moving Head effect - see https://github.com/xLightsSequencer/xLights/discussions/4260
+   - enh (scott)        Windows - Update to FFMpeg 6.1.1, fixes Vulkan, add AMD AMF decoders
+   - enh (dkulp)        Check Sequence - check effects against proper model/submodel and log SubModel the effect is on
+   - enh (cybercop23)   Add SubModel alias to info panel
+   - enh (derwin12)     Add SubModel alias editing to Layout Panel
+   - enh (cybercop23)   Add option to add new models to the same groups during copy/paste
+   - enh (dkulp)        Add the "Model Blending" layer to the list of layers selectable for Canvas mode effects
+   - enh (dkulp)        Faster audio processing/loading using far less memory
+   - enh (dkulp)        Optimize internal "Node" creation/memory for faster loading and reduced overhead
+   - bug (dkulp)        Disabling model from rendering should also disable strands/nodes/submodels
+   - bug (dkulp)        Disabled Canvas effects shouldn't render or blend
+   - bug (gil)          Fix - 3D export of tree model is Z-Order backwords
+   - bug (gil)          Fix - "FromBase" XML attribue being set multiple times can corrupt the xlights_rgbeffects.xml file
+   - bug (cybercop23)   Remove duplicate Models/SubModels from groups when replacing a model
+   - bug (derwin12)     Shape Effect Emoji cannot be Y centered
+   - bug (gil)          Fix DMX Model color issues
+   - bug (derwin12)     Window - Enable/Disable HW Video Decoding dropdown without having to close/re-enter preferences
+   - bug (dkulp)        Fix sparkles with GPU rendering
+   - bug (dkulp)        Fix some renderings of SubModels in groups
+   - bug (derwin12)     Fix print dialog in Layout and Wiring views
+   - bug (dkulp)        Fix potential memory corruption with states/faces effects in groups
+   - bug (dkulp)        ShaderEffect - fix shaders that ask for AudioFFT on sequences with no audio
+   - bug (derwin12)     Fix Total Nodes tooltip on groups containing submodels
+   - bug (scott)        Increase ValueCurve text field sizes to account for negative sign on values
 2024.08 Apr 6, 2024
    - enh (scott)        Ability to set type of Video Hardware Decoder on Windows
    - enh (dkulp)        Optimize faces effect initialization on large models
