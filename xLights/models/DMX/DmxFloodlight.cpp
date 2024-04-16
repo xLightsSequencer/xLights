@@ -158,7 +158,7 @@ void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
             int start = vac->getCount();
             DrawModel(vac, center, edge, is_3d ? beam_length * min_size : 0);
             int end = vac->getCount();
-            transparentProgram->addStep([=](xlGraphicsContext* ctx) {
+            transparentProgram->addStep([=, this](xlGraphicsContext* ctx) {
                 ctx->PushMatrix();
                 if (!is_3d) {
                     //not 3d, flatten to the 0 plane

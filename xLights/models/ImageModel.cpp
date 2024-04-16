@@ -399,7 +399,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
             brightness /= 2.55f;
         }
 
-        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+        preview->getCurrentSolidProgram()->addStep([=, this](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
             if (!is_3d) {
                 //not 3d, flatten to the 0 plane
@@ -432,7 +432,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
         vac->AddVertex(-0.5, 0.5, 0, xlRED);
 
         int count = vac->getCount();
-        program->addStep([=](xlGraphicsContext *ctx) {
+        program->addStep([=, this](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
             GetModelScreenLocation().ApplyModelViewMatrices(ctx);
             ctx->drawLines(vac, start, count - start);

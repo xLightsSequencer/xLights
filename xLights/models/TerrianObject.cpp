@@ -395,18 +395,18 @@ bool TerrianObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
         }
     }
     if (grid) {
-        solid->addStep([=](xlGraphicsContext *ctx) {
+        solid->addStep([=, this](xlGraphicsContext *ctx) {
             ctx->drawLines(grid, gridColor);
         });
     }
     if (texture) {
         xlTexture *image = _images[preview->GetName().ToStdString()];
         if (transparency == 0) {
-            solid->addStep([=](xlGraphicsContext *ctx) {
+            solid->addStep([=, this](xlGraphicsContext *ctx) {
                 ctx->drawTexture(texture, image, brightness, 255, 0, texture->getCount());
             });
         } else {
-            transparent->addStep([=](xlGraphicsContext *ctx) {
+            transparent->addStep([=, this](xlGraphicsContext *ctx) {
                 int alpha = (100.0 - transparency) * 255.0 / 100.0;
                 ctx->drawTexture(texture, image, brightness, alpha, 0, texture->getCount());
             });

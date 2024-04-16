@@ -610,7 +610,7 @@ void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsCon
         boundingBox[4] = 0.5;
         boundingBox[5] = 0.5;
     }
-    sprogram->addStep([=](xlGraphicsContext* ctx) {
+    sprogram->addStep([=, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane
@@ -619,7 +619,7 @@ void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsCon
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
-    tprogram->addStep([=](xlGraphicsContext* ctx) {
+    tprogram->addStep([=, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane
@@ -629,10 +629,10 @@ void DmxMovingHeadAdv::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsCon
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
     DrawModel(preview, ctx, sprogram, tprogram, !allowSelected, c);
-    sprogram->addStep([=](xlGraphicsContext* ctx) {
+    sprogram->addStep([=, this](xlGraphicsContext* ctx) {
         ctx->PopMatrix();
     });
-    tprogram->addStep([=](xlGraphicsContext* ctx) {
+    tprogram->addStep([=, this](xlGraphicsContext* ctx) {
         ctx->PopMatrix();
     });
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {

@@ -274,7 +274,7 @@ void DmxGeneral::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* 
         boundingBox[5] = 0.5;
     }
 
-    sprogram->addStep([=](xlGraphicsContext* ctx) {
+    sprogram->addStep([=, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane
@@ -283,7 +283,7 @@ void DmxGeneral::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* 
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
-    tprogram->addStep([=](xlGraphicsContext* ctx) {
+    tprogram->addStep([=, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane

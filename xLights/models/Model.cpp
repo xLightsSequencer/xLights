@@ -5258,7 +5258,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
 
             // lastChan = Nodes[n]->ActChan;
         }
-        cache->program->addStep([=](xlGraphicsContext* ctx) {
+        cache->program->addStep([=, this](xlGraphicsContext* ctx) {
             if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                 ctx->drawTriangles(cache->vica, 0, cache->vica->getCount());
             } else {
@@ -5324,7 +5324,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
         cache->va->Finalize(false);
     }
 
-    p->addStep([=](xlGraphicsContext* ctx) {
+    p->addStep([=, this](xlGraphicsContext* ctx) {
         // cache has the model in model coordinates
         // we need to scale/translate/etc.... to world
         ctx->PushMatrix();
@@ -5613,7 +5613,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                                                         Nodes[n]->model->_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE ||
                                                         Nodes[n]->model->_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH)) {
                             int count = cache->vica->getCount();
-                            cache->program->addStep([=](xlGraphicsContext* ctx) {
+                            cache->program->addStep([=, this](xlGraphicsContext* ctx) {
                                 if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                                     ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                                 } else {
@@ -5642,7 +5642,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
             }
             if (int(cache->vica->getCount()) > startVertex) {
                 int count = cache->vica->getCount();
-                cache->program->addStep([=](xlGraphicsContext* ctx) {
+                cache->program->addStep([=, this](xlGraphicsContext* ctx) {
                     if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                         ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                     } else {
@@ -5681,7 +5681,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
             cache->vica->FlushColors(0, maxFlush);
         }
 
-        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
+        preview->getCurrentSolidProgram()->addStep([=, this](xlGraphicsContext* ctx) {
             // cache has the model in model coordinates
             // we need to scale/translate/etc.... to world
             ctx->PushMatrix();

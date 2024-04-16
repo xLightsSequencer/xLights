@@ -128,6 +128,8 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
             }
         }
     }
+    // Flip to sequencer tab
+    Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
 
     // load media if available
     if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->HasAudioMedia()) {
@@ -139,7 +141,6 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("New sequence created Type %s Timing %dms.", (const char*)(CurrentSeqXmlFile->GetSequenceType().c_str()), ms);
-
     LoadSequencer(*CurrentSeqXmlFile);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
     if (_sequenceElements.GetNumberOfTimingElements() == 0) {

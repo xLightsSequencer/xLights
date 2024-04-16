@@ -404,7 +404,7 @@ void DmxSkulltronix::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsConte
         boundingBox[4] = 0.5;
         boundingBox[5] = 0.5;
     }
-    sprogram->addStep([=](xlGraphicsContext* ctx) {
+    sprogram->addStep([=, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
@@ -412,7 +412,7 @@ void DmxSkulltronix::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsConte
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
-    tprogram->addStep([=](xlGraphicsContext* ctx) {
+    tprogram->addStep([=, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane

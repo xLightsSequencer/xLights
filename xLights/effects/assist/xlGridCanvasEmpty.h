@@ -22,7 +22,7 @@ class xlGridCanvasEmpty : public xlGridCanvas
                           const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
         virtual ~xlGridCanvasEmpty();
 
-        virtual void SetEffect(Effect* effect_);
+        virtual void SetEffect(Effect* effect_) override;
 
     protected:
 

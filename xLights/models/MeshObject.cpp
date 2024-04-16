@@ -316,7 +316,7 @@ bool MeshObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsP
         glm::vec3 rotations = GetObjectScreenLocation().GetRotation();
 
         
-        solid->addStep([=](xlGraphicsContext *ctx) {
+        solid->addStep([=, this](xlGraphicsContext *ctx) {
             ctx->PushMatrix()
                 ->Translate(GetObjectScreenLocation().GetHcenterPos(),
                                                    GetObjectScreenLocation().GetVcenterPos(),
@@ -333,7 +333,7 @@ bool MeshObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsP
             ctx->PopMatrix();
         });
         if (!mesh_only) {
-            transparent->addStep([=](xlGraphicsContext *ctx) {
+            transparent->addStep([=, this](xlGraphicsContext *ctx) {
                 ctx ->PushMatrix()
                     ->Translate(GetObjectScreenLocation().GetHcenterPos(),
                                                        GetObjectScreenLocation().GetVcenterPos(),
