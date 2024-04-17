@@ -2681,7 +2681,7 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata) {
                 curve->reverse(color);
             }
             for (const auto& a : n->Coords) {
-                layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color);
+                layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
             }
         }
     } else {
@@ -2698,7 +2698,7 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata) {
                     curve->reverse(color);
                 }
                 for (const auto& a : n->Coords) {
-                    layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color);
+                    layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
                 }
             },
             500);
