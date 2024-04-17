@@ -1106,7 +1106,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         if (GetURLAsJSON("/api/sequence/" + URLEncode(baseName) + "/meta", currentMeta, false)) {
             doSeqUpload = false;
             char buf[24];
-            sprintf(buf, "%" PRIu64, file->getUniqueId());
+            snprintf(buf, sizeof(buf), "%" PRIu64, file->getUniqueId());
             wxString version = currentMeta["Version"].AsString();
             if (type == 0 && version[0] != '1') doSeqUpload = true;
             if (type != 0 && version[0] == '1') doSeqUpload = true;
@@ -2579,7 +2579,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 }
                 if (pvs->_gammaSet) {
                     char buf[16];
-                    sprintf(buf, "%g", pvs->_gamma);
+                    snprintf(buf, sizeof(buf), "%g", pvs->_gamma);
                     std::string gam = buf;
                     vs["gamma"] = gam;
                 }
@@ -3373,7 +3373,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
 static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) {
     if (buffer[0] == 'F' && buffer[1] == 'P' && buffer[2] == 'P' && buffer[3] == 'D' && buffer[4] == 0x04) {
         char ip[64];
-        sprintf(ip, "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
+        snprintf(ip, sizeof(ip), "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
         //printf("Ping %s\n", ip);
         if (strcmp(ip, "0.0.0.0")) {
             static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));

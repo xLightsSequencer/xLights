@@ -646,7 +646,7 @@ void ControllerSerial::AddProperties(wxPropertyGrid* propertyGrid, ModelManager*
             wxPGChoices i2cDevices;
             for (int x = 0; x < 128; x++) {
                 char buf[12];
-                sprintf(buf, "0x%02X", x);
+                snprintf(buf, sizeof(buf), "0x%02X", x);
                 i2cDevices.Add(buf);
             }
             p = propertyGrid->Append(new wxEnumProperty("I2C Device", "I2CDevice", i2cDevices, Controller::EncodeChoices(i2cDevices, wxString::Format("0x%02X", _speed))));

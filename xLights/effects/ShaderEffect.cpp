@@ -62,6 +62,10 @@
     #include "OpenGL/gl3.h"
     #define __gl_h_
     #include <OpenGL/OpenGL.h>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 #endif
 
 #include "ShaderEffect.h"
@@ -87,6 +91,8 @@
 #include <set>
 #include <mutex>
 #include <string>
+
+
 
 namespace
 {
@@ -1788,3 +1794,8 @@ bool ShaderConfig::UsesEvents() const
     }
     return false;
 }
+
+
+#ifdef __WXOSX__
+#pragma clang diagnostic push
+#endif

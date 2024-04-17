@@ -1448,7 +1448,6 @@ private:
     void CreateDefaultEffectsXml();
     bool TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
-    wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue) const;
     void SetPanelSequencerLabel(const std::string& sequence);
 
     void DisplayXlightsFilename(const wxString& filename) const;
@@ -1515,6 +1514,7 @@ public:
     void RenderAll();
 
     void SetXmlSetting(const wxString& settingName,const wxString& value);
+    wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue) const;
     uint32_t GetMaxNumChannels();
 
     void UpdateSequenceVideoPanel( const wxString& path );

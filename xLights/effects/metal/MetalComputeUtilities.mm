@@ -961,7 +961,9 @@ MetalComputeUtilities::MetalComputeUtilities() {
         NSLog(@"Library file error");
         return;
     }
-    library = [device newLibraryWithFile:libraryFile error:&libraryError];
+    
+    NSURL *libraryURL = [NSURL fileURLWithPath:libraryFile];
+    library = [device newLibraryWithURL:libraryURL error:&libraryError];
     if (!library) {
         NSLog(@"Library error: %@", libraryError);
         return;

@@ -76,6 +76,11 @@ static bool canUseFramebufferObjects()
 		&& glFramebufferRenderbuffer != nullptr;
 }
 #else
+// OpenGL is marked deprecated in OSX so we'll turn off the deprecation warnings for this file
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
+
 #include "OpenGL/gl.h"
 
 static bool canUseShaders()
@@ -228,3 +233,8 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
 
     return linkSuccess ? program : 0;
 }
+
+#ifdef __WXOSX__
+// OpenGL is marked deprecated in OSX so we'll turn off the deprecation warnings for this file
+#pragma clang diagnostic pop
+#endif

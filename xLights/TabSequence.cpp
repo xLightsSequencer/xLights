@@ -380,7 +380,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     bool is_3d = config->ReadBool("LayoutMode3D", false);
     is_3d = GetXmlSetting("LayoutMode3D", is_3d ? "1" : "0") == "1";
     modelPreview->Set3D(is_3d);
-    layoutPanel->CheckBox_3D->SetValue(is_3d);
+    layoutPanel->Set3d(is_3d);
 
     UpdateLayoutSave();
     UpdateControllerSave();
