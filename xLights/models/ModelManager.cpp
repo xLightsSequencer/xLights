@@ -1370,7 +1370,11 @@ void ModelManager::MigrateDmxMotors(wxXmlNode *node) const
     new_node->AddAttribute("SlewLimit", wxString::Format("%d", slew_limit));
     int range_of_motion = wxAtoi(node->GetAttribute("DmxPanDegOfRot", "540"));
     node->DeleteAttribute("DmxPanDegOfRot");
-    new_node->AddAttribute("RangeOfMotion", wxString::Format("%d", range_of_motion));
+    new_node->AddAttribute("RangeOfMotion", wxString::Format("%d", std::abs(range_of_motion)));
+    if (range_of_motion < 0) {
+        node->DeleteAttribute("Reverse");
+        new_node->AddAttribute("Reverse", "1");
+    }
     int orientation = 360 - wxAtoi(node->GetAttribute("DmxPanOrient", "0"));
     if (orientation == 360) orientation = 0;
     node->DeleteAttribute("DmxPanOrient");
@@ -1387,7 +1391,11 @@ void ModelManager::MigrateDmxMotors(wxXmlNode *node) const
     new_node->AddAttribute("SlewLimit", wxString::Format("%d", slew_limit));
     range_of_motion = wxAtoi(node->GetAttribute("DmxTiltDegOfRot", "180"));
     node->DeleteAttribute("DmxTiltDegOfRot");
-    new_node->AddAttribute("RangeOfMotion", wxString::Format("%d", range_of_motion));
+    new_node->AddAttribute("RangeOfMotion", wxString::Format("%d", std::abs(range_of_motion)));
+    if (range_of_motion < 0) {
+        node->DeleteAttribute("Reverse");
+        new_node->AddAttribute("Reverse", "1");
+    }
     orientation = 360 - wxAtoi(node->GetAttribute("DmxTiltOrient", "0"));
     if (orientation == 360) orientation = 0;
     node->DeleteAttribute("DmxTiltOrient");
