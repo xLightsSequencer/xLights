@@ -216,13 +216,17 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
     pan_motor->AddTypeProperties(grid);
     tilt_motor->AddTypeProperties(grid);
 
+    grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
+    int selected = 3; // show Unused if not selected
     if (nullptr != color_ability) {
-        grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
-        int selected = DMX_COLOR_TYPES_ADV.Index(color_ability->GetTypeName());
-        grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES_ADV, selected));
-        color_ability->AddColorTypeProperties(grid);
-        grid->Collapse("DmxColorAbility");
+        selected = DMX_COLOR_TYPES_ADV.Index(color_ability->GetTypeName());
     }
+    grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES_ADV, selected));
+    if (nullptr != color_ability) {
+        color_ability->AddColorTypeProperties(grid);
+    }
+    grid->Collapse("DmxColorAbility");
+
     AddShutterTypeProperties(grid);
     grid->Collapse("DmxShutterProperties");
 
@@ -265,23 +269,6 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
 
 void DmxMovingHeadAdv::DisableUnusedProperties(wxPropertyGridInterface* grid)
 {
-    /*auto p = grid->GetPropertyByName("DmxPanChannel");
-    if (p != nullptr) {
-        p->Hide(true);
-    }
-    p = grid->GetPropertyByName("DmxPanDegOfRot");
-    if (p != nullptr) {
-        p->Hide(true);
-    }
-    p = grid->GetPropertyByName("DmxTiltChannel");
-    if (p != nullptr) {
-        p->Hide(true);
-    }
-    p = grid->GetPropertyByName("DmxTiltDegOfRot");
-    if (p != nullptr) {
-        p->Hide(true);
-    }*/
-    
     // rotation around the Z axis causes issues when the pan and tilt rotations are applied
     // users should be able to achieve any desired position with only X and Y rotations
     auto p = grid->GetPropertyByName("c");
