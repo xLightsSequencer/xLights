@@ -117,7 +117,7 @@ public:
                     // need to expand
                     coords = (CoordStruct*)realloc(coords, i * sizeof(CoordStruct));
                 }
-                for (int x = _size; x < i; ++x) {
+                for (size_t x = _size; x < i; ++x) {
                     coords[x].screenX = coords[x].screenY = coords[x].screenZ = 0;
                 }
             }

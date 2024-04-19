@@ -434,7 +434,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
         SubModel * m = dynamic_cast<SubModel*>(xLightsApp::GetFrame()->GetModel(mn));
         if (m != nullptr) {
             uint32_t mx = 0;
-            for (int x = 0; x < m->GetNodeCount(); x++) {
+            for (size_t x = 0; x < m->GetNodeCount(); ++x) {
                 mx = std::max(m->GetNode(x)->Coords.size(), mx);
             }
             if (mx > 1) {

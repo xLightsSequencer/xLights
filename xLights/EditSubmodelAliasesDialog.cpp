@@ -110,7 +110,7 @@ void EditSubmodelAliasesDialog::OnButtonAddClick(wxCommandEvent& event)
         auto add = te.GetValue().Lower();
 
         bool found = false;
-        for (int i = 0; !found && i < ListBoxAliases->GetCount(); ++i) {
+        for (size_t i = 0; !found && i < ListBoxAliases->GetCount(); ++i) {
             if (ListBoxAliases->GetString(i) == add)
                 found = true;
         }
@@ -133,7 +133,7 @@ void EditSubmodelAliasesDialog::OnButtonDeleteClick(wxCommandEvent& event)
 void EditSubmodelAliasesDialog::OnButtonOkClick(wxCommandEvent& event)
 {
     std::list<std::string> aliases;
-    for (int i = 0; i < ListBoxAliases->GetCount(); ++i) {
+    for (size_t i = 0; i < ListBoxAliases->GetCount(); ++i) {
         aliases.push_back(ListBoxAliases->GetString(i));
     }
     if (_sm != nullptr) _sm->SetAliases(aliases);

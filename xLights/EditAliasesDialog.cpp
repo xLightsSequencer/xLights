@@ -94,7 +94,7 @@ void EditAliasesDialog::OnButtonAddClick(wxCommandEvent& event)
         auto add = te.GetValue().Lower();
 
         bool found = false;
-        for (int i = 0; !found && i < ListBoxAliases->GetCount(); ++i) {
+        for (size_t i = 0; !found && i < ListBoxAliases->GetCount(); ++i) {
             if (ListBoxAliases->GetString(i) == add)
                 found = true;
         }
@@ -117,7 +117,7 @@ void EditAliasesDialog::OnButtonDeleteClick(wxCommandEvent& event)
 void EditAliasesDialog::OnButtonOkClick(wxCommandEvent& event)
 {
     std::list<std::string> aliases;
-    for (int i = 0; i < ListBoxAliases->GetCount(); ++i)
+    for (size_t i = 0; i < ListBoxAliases->GetCount(); ++i)
 	{
         aliases.push_back(ListBoxAliases->GetString(i));
 	}
