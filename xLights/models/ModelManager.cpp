@@ -1440,6 +1440,46 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
         if (version <= "5") {
             MigrateDmxMotors(node);
         }
+        else if (version == "6") {
+            // Reverse 2024.09 OrientZero settings
+            wxXmlNode* n = node->GetChildren();
+            while (n != nullptr) {
+                std::string name = n->GetName();
+                if ("PanMotor" == name || "TiltMotor" == name) {
+                    int orientation = 360 - wxAtoi(n->GetAttribute("OrientZero", "0"));
+                    if (orientation == 360) orientation = 0;
+                    n->DeleteAttribute("OrientZero");
+                    n->AddAttribute("OrientZero", wxString::Format("%d", orientation));
+                    int range_of_motion = wxAtoi(n->GetAttribute("RangeOfMotion", "540"));
+                    if (range_of_motion < 0) {
+                        n->DeleteAttribute("RangeOfMotion");
+                        n->AddAttribute("RangeOfMotion", wxString::Format("%d", std::abs(range_of_motion)));
+                        n->DeleteAttribute("Reverse");
+                        n->AddAttribute("Reverse", "1");
+                    }
+                }
+                n = n->GetNext();
+            }
+        }
+    } else if (type == "DmxMovingHeadAdv") {
+        std::string version = node->GetAttribute("versionNumber").ToStdString();
+        if (version == "6") {
+            // Fix 2024.09 negative range of motions
+            wxXmlNode* n = node->GetChildren();
+            while (n != nullptr) {
+                std::string name = n->GetName();
+                if ("PanMotor" == name || "TiltMotor" == name) {
+                    int range_of_motion = wxAtoi(n->GetAttribute("RangeOfMotion", "540"));
+                    if (range_of_motion < 0) {
+                        n->DeleteAttribute("RangeOfMotion");
+                        n->AddAttribute("RangeOfMotion", wxString::Format("%d", std::abs(range_of_motion)));
+                        n->DeleteAttribute("Reverse");
+                        n->AddAttribute("Reverse", "1");
+                    }
+                }
+                n = n->GetNext();
+            }
+        }
     } else if (type == "DmxMovingHead3D") {
         // After version 2024.5 the DmxMovingHead3D is being converted to the DmxMovingHeadAdv
         type = "DmxMovingHeadAdv";

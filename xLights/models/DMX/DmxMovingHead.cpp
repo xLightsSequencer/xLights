@@ -583,13 +583,13 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     if (pan_motor->GetChannelCoarse() > 0 && active) {
         pan_angle = -1.0f * pan_motor->GetPosition(GetChannelValue(pan_motor->GetChannelCoarse() - 1, pan_motor->GetChannelFine() - 1));
     }
-    pan_angle += pan_motor->GetOrientZero();
+    pan_angle -= pan_motor->GetOrientZero();
 
     float tilt_angle = 0;
     if (tilt_motor->GetChannelCoarse() > 0 && active) {
         tilt_angle = -1.0f * tilt_motor->GetPosition(GetChannelValue(tilt_motor->GetChannelCoarse() - 1, tilt_motor->GetChannelFine() - 1));
     }
-    tilt_angle += tilt_motor->GetOrientZero();
+    tilt_angle -= tilt_motor->GetOrientZero();
 
     uint32_t ms = preview->getCurrentFrameTime();
     uint32_t time_delta = 0;

@@ -194,8 +194,9 @@ protected:
 
 void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    auto p = grid->Append(new MhPopupDialogProperty(this, features, features_xml_node, "Moving Head Config", "MHConfig", CLICK_TO_EDIT, 1));
-    grid->LimitPropertyEditing(p);
+    // Disable until features are active
+    //auto p = grid->Append(new MhPopupDialogProperty(this, features, features_xml_node, "Moving Head Config", "MHConfig", CLICK_TO_EDIT, 1));
+    //grid->LimitPropertyEditing(p);
 
     if (DMX_FIXTURES.GetCount() == 0) {
         DMX_FIXTURES.Add("MH1");
@@ -208,7 +209,7 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
         DMX_FIXTURES.Add("MH8");
     }
 
-    grid->Append(new wxEnumProperty("Fixture", "DmxFixture", DMX_FIXTURES, fixture_val));
+    auto p = grid->Append(new wxEnumProperty("Fixture", "DmxFixture", DMX_FIXTURES, fixture_val));
 
     DmxModel::AddTypeProperties(grid, outputManager);
 
