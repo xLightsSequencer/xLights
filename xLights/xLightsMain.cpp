@@ -1467,6 +1467,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     mBackupOnSave = false;
     mBackupOnLaunch = true;
     mSuppressFadeHints = false;
+    mSuppressColorWarn = false;
     me131Sync = false;
     mAltBackupDir = "";
     mIconSize = 16;
@@ -1725,6 +1726,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     config->Read("xLightsSuppressFadeHints", &mSuppressFadeHints, false);
     logger_base.debug("Suppress Transition Hints: %s.", toStr(mSuppressFadeHints));
+
+    config->Read("xLightsSuppressColorWarn", &mSuppressColorWarn, false);
+    logger_base.debug("Suppress Color Warning: %s.", toStr(mSuppressColorWarn));
 
     config->Read(_("xLightsAltBackupDir"), &mAltBackupDir);
     logger_base.debug("Alternate Backup Dir: '%s'.", (const char*)mAltBackupDir.c_str());
@@ -2114,6 +2118,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
     config->Write("xLightsSuppressFadeHints", mSuppressFadeHints);
+    config->Write("xLightsSuppressColorWarn", mSuppressColorWarn);
     config->Write("xLightse131Sync", me131Sync);
     config->Write("xLightsEffectAssistMode", mEffectAssistMode);
     config->Write("xLightsAltBackupDir", mAltBackupDir);
