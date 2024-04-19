@@ -498,6 +498,7 @@ void DmxMovingHeadAdv::InitModel()
         ModelXml->AddChild(new_node);
         wxString f = obj_path + "MovingHeadBase.obj";
         new_node->AddAttribute("ObjFile", f);
+        new_node->AddAttribute("Brightness", "40");
         base_mesh = new Mesh(new_node, new_name);
     }
 
@@ -509,6 +510,7 @@ void DmxMovingHeadAdv::InitModel()
         wxString f = obj_path + "MovingHeadYoke.obj";
         new_node->AddAttribute("ObjFile", f);
         new_node->AddAttribute("RotateY", "90");
+        new_node->AddAttribute("Brightness", "50");
         yoke_mesh = new Mesh(new_node, new_name);
     }
 
@@ -522,6 +524,7 @@ void DmxMovingHeadAdv::InitModel()
         new_node->AddAttribute("RotateX", "90");
         new_node->AddAttribute("RotateY", "90");
         new_node->AddAttribute("OffsetY", "17");
+        new_node->AddAttribute("Brightness", "80");
         head_mesh = new Mesh(new_node, new_name);
     }
 
