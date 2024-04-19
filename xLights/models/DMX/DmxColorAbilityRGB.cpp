@@ -27,6 +27,34 @@ void DmxColorAbilityRGB::InitColor( wxXmlNode* ModelXml)
     white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
 }
 
+void DmxColorAbilityRGB::SetRedChannel( wxXmlNode* ModelXml, int chan )
+{
+    red_channel = chan;
+    ModelXml->DeleteAttribute("DmxRedChannel");
+    ModelXml->AddAttribute("DmxRedChannel", wxString::Format("%d", red_channel));
+}
+
+void DmxColorAbilityRGB::SetGreenChannel( wxXmlNode* ModelXml, int chan )
+{
+    green_channel = chan;
+    ModelXml->DeleteAttribute("DmxGreenChannel");
+    ModelXml->AddAttribute("DmxGreenChannel", wxString::Format("%d", green_channel));
+}
+
+void DmxColorAbilityRGB::SetBlueChannel( wxXmlNode* ModelXml, int chan )
+{
+    blue_channel = chan;
+    ModelXml->DeleteAttribute("DmxBlueChannel");
+    ModelXml->AddAttribute("DmxBlueChannel", wxString::Format("%d", blue_channel));
+}
+
+void DmxColorAbilityRGB::SetWhiteChannel( wxXmlNode* ModelXml, int chan )
+{
+    white_channel = chan;
+    ModelXml->DeleteAttribute("DmxWhiteChannel");
+    ModelXml->AddAttribute("DmxWhiteChannel", wxString::Format("%d", white_channel));
+}
+
 bool DmxColorAbilityRGB::IsColorChannel(uint32_t channel) const
 {
     return (red_channel == channel || green_channel == channel || blue_channel == channel || white_channel == channel);

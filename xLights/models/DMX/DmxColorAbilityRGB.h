@@ -50,7 +50,13 @@ class DmxColorAbilityRGB : public DmxColorAbility
         [[nodiscard]] uint32_t GetGreenChannel() const { return green_channel; }
         [[nodiscard]] uint32_t GetBlueChannel() const { return blue_channel; }
         [[nodiscard]] uint32_t GetWhiteChannel() const { return white_channel; }
-    private:
+    
+        void SetRedChannel( wxXmlNode* ModelXml, int chan );
+        void SetGreenChannel( wxXmlNode* ModelXml, int chan );
+        void SetBlueChannel( wxXmlNode* ModelXml, int chan );
+        void SetWhiteChannel( wxXmlNode* ModelXml, int chan );
+
+private:
         uint32_t red_channel;
         uint32_t green_channel;
         uint32_t blue_channel;

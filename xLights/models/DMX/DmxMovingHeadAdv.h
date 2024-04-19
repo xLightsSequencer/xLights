@@ -67,6 +67,9 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility
         virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
         virtual float GetDefaultBeamWidth() const { return 1.5f; }
 
+        void CorrectDefaultColorChannels();
+        void MapChannelName(wxArrayString& array, int chan, std::string name);
+
         int GetMinChannels();
 
         float brightness = 100.0f;

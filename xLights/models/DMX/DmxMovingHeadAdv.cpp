@@ -385,6 +385,13 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
     return DmxModel::OnPropertyGridChange(grid, event);
 }
 
+void DmxMovingHeadAdv::MapChannelName(wxArrayString& array, int chan, std::string name)
+{
+    if (chan > 0) {
+        array[chan-1] = name;
+    }
+}
+
 void DmxMovingHeadAdv::InitModel()
 {
     DmxModel::InitModel();
@@ -530,20 +537,55 @@ void DmxMovingHeadAdv::InitModel()
     yoke_mesh->Init(this, head_defined ? false : (base_defined ? (yoke_defined ? true : false) : true));
     head_mesh->Init(this, head_defined ? true : (yoke_defined ? true : false));
 
+    // I'd really like a better way to do this...colors are defaulting to
+    // channels 1, 2, 3 and conflicting with Pan and Tilt defaults of 1 and 3
+    CorrectDefaultColorChannels();
+
     // create node names
     std::string names = "";
-    if (pan_motor->Is16Bit()) {
-        names += "Pan,Pan Fine";
-    } else {
-        names = "Pan";
-    }
-    if (tilt_motor->Is16Bit()) {
-        names += ",Tilt,Tilt Fine";
-    } else {
-        names = ",Tilt";
+    wxString nn = ModelXml->GetAttribute("NodeNames", "");
+    wxArrayString nodestrings;
+    nodestrings.resize(GetNumChannels());
+    if (nn == "") {
+        int chan = pan_motor->GetChannelCoarse();
+        MapChannelName(nodestrings, chan, "Pan");
+        if (pan_motor->Is16Bit()) {
+            chan = pan_motor->GetChannelFine();
+            MapChannelName(nodestrings, chan, "Pan Fine");
+        }
+        chan = tilt_motor->GetChannelCoarse();
+        MapChannelName(nodestrings, chan, "Tilt");
+        if (tilt_motor->Is16Bit()) {
+            chan = tilt_motor->GetChannelFine();
+            nodestrings[chan] = "Tilt Fine";
+        }
+        if (nullptr != color_ability) {
+            if (color_ability->GetTypeName() == "RGBW") {
+                DmxColorAbilityRGB* crgb = dynamic_cast<DmxColorAbilityRGB*>(color_ability.get());
+                chan = crgb->GetRedChannel();
+                MapChannelName(nodestrings, chan, "Red");
+                chan = crgb->GetGreenChannel();
+                MapChannelName(nodestrings, chan, "Green");
+                chan = crgb->GetBlueChannel();
+                MapChannelName(nodestrings, chan, "Blue");
+                chan = crgb->GetWhiteChannel();
+                MapChannelName(nodestrings, chan, "White");
+            }
+            else if (color_ability->GetTypeName() == "CMYW") {
+                DmxColorAbilityCMY* ccmy = dynamic_cast<DmxColorAbilityCMY*>(color_ability.get());
+                chan = ccmy->GetCyanChannel();
+                MapChannelName(nodestrings, chan, "Cyan");
+                chan = ccmy->GetMagentaChannel();
+                MapChannelName(nodestrings, chan, "Magenta");
+                chan = ccmy->GetYellowChannel();
+                MapChannelName(nodestrings, chan, "Yellow");
+                chan = ccmy->GetWhiteChannel();
+                MapChannelName(nodestrings, chan, "White");
+            }
+        }
+        names = wxJoin( nodestrings, ',');
     }
     SetNodeNames(names, update_node_names);
-    update_node_names = false;
     
     dmx_fixture = ModelXml->GetAttribute("DmxFixture", "MH1");
     fixture_val = FixtureStringtoID(dmx_fixture);
@@ -575,6 +617,20 @@ void DmxMovingHeadAdv::InitModel()
                 features.push_back(std::move(newFeature));
             }
             n = n->GetNext();
+        }
+    }
+}
+
+void DmxMovingHeadAdv::CorrectDefaultColorChannels()
+{
+    if (nullptr != color_ability) {
+        if (color_ability->GetTypeName() == "RGBW") {
+            DmxColorAbilityRGB* crgb = dynamic_cast<DmxColorAbilityRGB*>(color_ability.get());
+            if (pan_motor->GetChannelCoarse() == crgb->GetRedChannel() && crgb->GetRedChannel() == 1) {
+                crgb->SetRedChannel(ModelXml, 5);
+                crgb->SetGreenChannel(ModelXml, 6);
+                crgb->SetBlueChannel(ModelXml, 7);
+            }
         }
     }
 }
