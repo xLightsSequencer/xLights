@@ -801,7 +801,66 @@ void MovingHeadPanel::OnNotebook1PageChanged(wxNotebookEvent& event)
 
 void MovingHeadPanel::ValidateWindow()
 {
-    UpdateStatusPanel();  // currently only way I found to update the status panel if its already active and a new effect is selected
+    // Lets fix moving head fixture assignments
+    auto models = GetActiveModels();
+    bool single_model = models.size() == 1;
+
+    // if single model make sure the effect setting is on correct head...if not move it
+    if (single_model) {
+        auto mh = dynamic_cast<const DmxMovingHeadComm*>(models.front());
+        int fixture = mh->GetFixtureVal();
+        wxString fixture_textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", fixture);
+        wxTextCtrl* fixture_mh_textbox = (wxTextCtrl*)(this->FindWindowByName(fixture_textbox_ctrl));
+        if( fixture_mh_textbox != nullptr ) {
+            std::string mh_settings = fixture_mh_textbox->GetValue();
+            if( mh_settings == xlEMPTY_STRING ) {
+                // need to search for settings
+                for( int i = 1; i <= 8; ++i ) {
+                    if (i == fixture) {
+                        continue;
+                    }
+                    wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+                    wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                    if( mh_textbox != nullptr ) {
+                        mh_settings = mh_textbox->GetValue();
+                        if( mh_settings != xlEMPTY_STRING ) {
+                            for( int j = 1; j <= 8; ++j ) {
+                                textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", j);
+                                mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                                if( mh_textbox != nullptr ) {
+                                    if (j == fixture) {
+                                        wxArrayString all_cmds = wxSplit(mh_settings, ';');
+                                        wxArrayString new_cmds;
+                                        for (size_t k = 0; k < all_cmds.size(); ++k )
+                                        {
+                                            std::string cmd = all_cmds[k];
+                                            if( cmd == xlEMPTY_STRING ) continue;
+                                            int pos = cmd.find(":");
+                                            std::string cmd_type = cmd.substr(0, pos);
+                                            if( cmd_type == "Heads") {
+                                                std::string headset = "Heads: ";
+                                                headset += wxString::Format("%d", fixture);
+                                                new_cmds.push_back(headset);
+                                            } else {
+                                                new_cmds.push_back(all_cmds[k]);
+                                            }
+                                        }
+                                        std::string final_cmd = wxJoin(new_cmds, ';');
+                                        fixture_mh_textbox->SetValue(final_cmd);
+                                    } else {
+                                        mh_textbox->SetValue(xlEMPTY_STRING);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // updates the status panel if its already active and a new effect is selected
+    UpdateStatusPanel();
 }
 
 static std::list<std::string> vcurves_pos = {"ID_VALUECURVE_MHPan", "ID_VALUECURVE_MHTilt", "ID_VALUECURVE_MHPanOffset",
@@ -1166,7 +1225,7 @@ void MovingHeadPanel::UpdateStatusPanel()
                     if( cmd == xlEMPTY_STRING ) continue;
                     int pos = cmd.find(":");
                     std::string cmd_type = cmd.substr(0, pos);
-                    if( cmd_type == "Pan" ) {
+                    if( cmd_type == "Pan" || cmd_type == "Pan VC" || cmd_type == "Tilt" || cmd_type == "Tilt VC") {
                         pos_set = true;
                     } else if (cmd_type == "Path") {
                         path_set = true;
@@ -1182,9 +1241,14 @@ void MovingHeadPanel::UpdateStatusPanel()
                         if( cmd == xlEMPTY_STRING ) continue;
                         int pos = cmd.find(":");
                         std::string cmd_type = cmd.substr(0, pos);
-                        bool found = (std::find(possettings.begin(), possettings.end(), cmd_type) != possettings.end());
-                        if( found ) {
-                            all_settings += (all_cmds[j]) + " ";
+                        int vc_pos = cmd_type.find("VC");
+                        if (vc_pos >= 0) {
+                            all_settings += cmd_type + " ";
+                        } else {
+                            bool found = (std::find(possettings.begin(), possettings.end(), cmd_type) != possettings.end());
+                            if( found ) {
+                                all_settings += (all_cmds[j]) + " ";
+                            }
                         }
                     }
                     all_settings += "\n";
