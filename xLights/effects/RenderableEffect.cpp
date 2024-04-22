@@ -264,7 +264,6 @@ static wxString GetEffectStringFromWindow(wxWindow *ParentWin)
             wxColour selectedColor = ctrl->GetColour();
             wxString colorStr = selectedColor.GetAsString(wxC2S_HTML_SYNTAX);
             s += AttrName + "=" + colorStr + ",";
-
         }
     }
     return s.Mid(0,s.size()-1);

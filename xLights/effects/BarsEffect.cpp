@@ -37,10 +37,29 @@ xlEffectPanel* BarsEffect::CreatePanel(wxWindow* parent)
     return new BarsPanel(parent);
 }
 
-static inline int GetHighlightColour(const std::string& HighlightColourString)
-{
-    return 0;
+static inline xlColor GetHighlightColour(const std::string& HighlightColourString) {
+
+    xlColor defaultColour = xlWHITE;
+
+    try 
+    {
+        if (HighlightColourString.size() != 7 || HighlightColourString[0] != '#') {
+            throw std::invalid_argument("Invalid color string format");
+        }
+
+        int red = std::stoi(HighlightColourString.substr(1, 2), nullptr, 16);
+        int green = std::stoi(HighlightColourString.substr(3, 2), nullptr, 16);
+        int blue = std::stoi(HighlightColourString.substr(5, 2), nullptr, 16);
+
+        return xlColor(static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue));
+    } 
+    catch (const std::exception&) 
+    {
+        return defaultColour;
+    }
 }
+
+
 
 static inline int GetDirection(const std::string& DirectionString)
 {
@@ -100,7 +119,7 @@ void BarsEffect::SetDefaultParameters()
     bp->ColourPickerCtrl_HighlightColour->SetColour(xlWHITE);
 }
 
-void BarsEffect::GetSpatialColor(xlColor& color, size_t colorIndex, float x, float y, RenderBuffer& buffer, bool gradient, bool highlight, bool show3d, int BarHt, int n, float pct, int color2Index)
+void BarsEffect::GetSpatialColor(xlColor& color, size_t colorIndex, float x, float y, RenderBuffer& buffer, bool gradient, const xlColor& highlightColour, bool highlight, bool show3d, int BarHt, int n, float pct, int color2Index)
 {
     if (buffer.palette.IsSpatial(colorIndex)) {
         buffer.palette.GetSpatialColor(colorIndex, x, y, color);
@@ -111,7 +130,7 @@ void BarsEffect::GetSpatialColor(xlColor& color, size_t colorIndex, float x, flo
             if (gradient)
                 buffer.Get2ColorBlend(color, color2, pct);
             if (highlight && n % BarHt == 0)
-                color = xlWHITE;
+                color = highlightColour;
             if (show3d)
                 color.alpha = 255.0 * double(BarHt - n % BarHt - 1) / BarHt;
         } else {
@@ -138,10 +157,8 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
     bool highlight = SettingsMap.GetBool("CHECKBOX_Bars_Highlight", false);
     bool show3D = SettingsMap.GetBool("CHECKBOX_Bars_3D", false);
     bool gradient = SettingsMap.GetBool("CHECKBOX_Bars_Gradient", false);
-    int highlightColour = GetHighlightColour(SettingsMap["COLOURPICKERCTRL_HighlightColour"]);
+    xlColor highlightColour = GetHighlightColour(SettingsMap["COLOURPICKERCTRL_HighlightColour"]);
     
-    std::string highlightColorStr = SettingsMap.Get("COLOURPICKERCTRL_HighlightColour", "xlWHITE");
-
     size_t colorcnt = buffer.GetColorCount();
     if (colorcnt == 0) {
         colorcnt = 1;
@@ -180,7 +197,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 if (gradient)
                     buffer.Get2ColorBlend(colorIdx, color2, pct, color);
                 if (highlight && n % barHt == 0)
-                    color = xlWHITE;
+                    color = highlightColour;
                 if (show3D) {
                     int numerator = barHt - std::abs(n % barHt) - 1;
                     color.alpha = 255.0 * double(numerator) / double(barHt);
@@ -202,7 +219,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
             case 1:
                 // down
                 for (int x = 0; x < buffer.BufferWi; ++x) {
-                    GetSpatialColor(color, colorIdx, (float)x / (float)buffer.BufferWi, (float)(n % barHt) / (float)barHt, buffer, gradient, highlight, show3D, barHt, n, pct, color2);
+                    GetSpatialColor(color, colorIdx, (float)x / (float)buffer.BufferWi, (float)(n % barHt) / (float)barHt, buffer, gradient, highlightColour, highlight, show3D, barHt, n, pct, color2);
                     buffer.SetPixel(x, y, color);
                 }
                 break;
@@ -210,7 +227,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 // expand
                 if (y <= newCenter) {
                     for (int x = 0; x < buffer.BufferWi; ++x) {
-                        GetSpatialColor(color, colorIdx, (float)x / (float)buffer.BufferWi, (float)(n % barHt) / (float)barHt, buffer, gradient, highlight, show3D, barHt, n, pct, color2);
+                        GetSpatialColor(color, colorIdx, (float)x / (float)buffer.BufferWi, (float)(n % barHt) / (float)barHt, buffer, gradient, highlightColour, highlight, show3D, barHt, n, pct, color2);
                         buffer.SetPixel(x, y, color);
                         buffer.SetPixel(x, newCenter + (newCenter - y), color);
                     }
@@ -220,7 +237,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 // compress
                 if (y >= newCenter) {
                     for (int x = 0; x < buffer.BufferWi; ++x) {
-                        GetSpatialColor(color, colorIdx, (float)x / (float)buffer.BufferWi, (float)(n % barHt) / (float)barHt, buffer, gradient, highlight, show3D, barHt, n, pct, color2);
+                        GetSpatialColor(color, colorIdx, (float)x / (float)buffer.BufferWi, (float)(n % barHt) / (float)barHt, buffer, gradient, highlightColour, highlight, show3D, barHt, n, pct, color2);
                         buffer.SetPixel(x, y, color);
                         buffer.SetPixel(x, newCenter + (newCenter - y), color);
                     }
@@ -229,7 +246,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
             default:
                 // up
                 for (int x = 0; x < buffer.BufferWi; ++x) {
-                    GetSpatialColor(color, colorIdx, (float)x / (float)buffer.BufferWi, 1.0 - (float)(n % barHt) / (float)barHt, buffer, gradient, highlight, show3D, barHt, n, pct, color2);
+                    GetSpatialColor(color, colorIdx, (float)x / (float)buffer.BufferWi, 1.0 - (float)(n % barHt) / (float)barHt, buffer, gradient, highlightColour, highlight, show3D, barHt, n, pct, color2);
                     buffer.SetPixel(x, buffer.BufferHt - y - 1, color);
                 }
                 break;
@@ -259,7 +276,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 if (gradient)
                     buffer.Get2ColorBlend(colorIdx, color2, pct, color);
                 if (highlight && n % BarWi == 0)
-                    color = xlWHITE;
+                    color = highlightColour;
                 if (show3D)
                     color.alpha = 255.0 * double(BarWi - n % BarWi - 1) / BarWi;
 
@@ -277,7 +294,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
 
             int position_x = width - x - 1 + NewCenter;
             for (int y = 0; y < height; ++y) {
-                GetSpatialColor(color, colorIdx, 1.0 - pct, (float)y / (float)height, buffer, gradient, highlight, show3D, BarWi, n, pct, color2);
+                GetSpatialColor(color, colorIdx, 1.0 - pct, (float)y / (float)height, buffer, gradient, highlightColour, highlight, show3D, BarWi, n, pct, color2);
                 if (direction == 12) {
                     buffer.SetPixel(position_x, y, color);
                 } else {
@@ -309,7 +326,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 if (gradient)
                     buffer.Get2ColorBlend(colorIdx, color2, pct, color);
                 if (highlight && n % barWi == 0)
-                    color = xlWHITE;
+                    color = highlightColour;
                 if (show3D)
                     color.alpha = 255.0 * double(barWi - n % barWi - 1) / (double)barWi;
 
@@ -328,7 +345,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
             case 5:
                 // right
                 for (int y = 0; y < buffer.BufferHt; ++y) {
-                    GetSpatialColor(color, colorIdx, 1.0 - pct, (double)y / (double)buffer.BufferHt, buffer, gradient, highlight, show3D, barWi, n, pct, color2);
+                    GetSpatialColor(color, colorIdx, 1.0 - pct, (double)y / (double)buffer.BufferHt, buffer, gradient, highlightColour, highlight, show3D, barWi, n, pct, color2);
                     buffer.SetPixel(buffer.BufferWi - x - 1, y, color);
                 }
                 break;
@@ -336,7 +353,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 // H-expand
                 if (x <= newCenter) {
                     for (int y = 0; y < buffer.BufferHt; ++y) {
-                        GetSpatialColor(color, colorIdx, pct, (double)y / (double)buffer.BufferHt, buffer, gradient, highlight, show3D, barWi, n, pct, color2);
+                        GetSpatialColor(color, colorIdx, pct, (double)y / (double)buffer.BufferHt, buffer, gradient, highlightColour, highlight, show3D, barWi, n, pct, color2);
                         buffer.SetPixel(x, y, color);
                         buffer.SetPixel(newCenter + (newCenter - x), y, color);
                     }
@@ -346,7 +363,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 // H-compress
                 if (x >= newCenter) {
                     for (int y = 0; y < buffer.BufferHt; ++y) {
-                        GetSpatialColor(color, colorIdx, pct, (double)y / (double)buffer.BufferHt, buffer, gradient, highlight, show3D, barWi, n, pct, color2);
+                        GetSpatialColor(color, colorIdx, pct, (double)y / (double)buffer.BufferHt, buffer, gradient, highlightColour, highlight, show3D, barWi, n, pct, color2);
                         buffer.SetPixel(x, y, color);
                         buffer.SetPixel(newCenter + (newCenter - x), y, color);
                     }
@@ -355,7 +372,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
             default:
                 // left
                 for (int y = 0; y < buffer.BufferHt; ++y) {
-                    GetSpatialColor(color, colorIdx, pct, (double)y / (double)buffer.BufferHt, buffer, gradient, highlight, show3D, barWi, n, pct, color2);
+                    GetSpatialColor(color, colorIdx, pct, (double)y / (double)buffer.BufferHt, buffer, gradient, highlightColour, highlight, show3D, barWi, n, pct, color2);
                     buffer.SetPixel(x, y, color);
                 }
                 break;
