@@ -15,6 +15,7 @@
  class wxBitmapButton;
  class wxCheckBox;
  class wxChoice;
+ class wxColourPickerCtrl;
  class wxFlexGridSizer;
  class wxSlider;
  class wxStaticText;
@@ -44,6 +45,7 @@ class BarsPanel: public xlEffectPanel
 		BulkEditValueCurveButton* BitmapButton_Bars_BarCount;
 		BulkEditValueCurveButton* BitmapButton_Bars_Center;
 		BulkEditValueCurveButton* BitmapButton_Bars_Cycles;
+		wxColourPickerCtrl* ColourPickerCtrl_HighlightColour;
 		wxStaticText* StaticText177;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText23;
@@ -71,6 +73,7 @@ class BarsPanel: public xlEffectPanel
 		static const long ID_TEXTCTRL_Bars_Center;
 		static const long ID_CHECKBOX_Bars_Highlight;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight;
+		static const long ID_COLOURPICKERCTRL_HighlightColour;
 		static const long ID_CHECKBOX_Bars_3D;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Bars_3D;
 		static const long ID_CHECKBOX_Bars_Gradient;

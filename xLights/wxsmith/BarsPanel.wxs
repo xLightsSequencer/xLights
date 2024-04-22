@@ -209,7 +209,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_Bars_Highlight" subclass="BulkEditCheckBox" variable="CheckBox_Bars_Highlight" member="yes">
 							<label>Highlight</label>
@@ -227,6 +227,14 @@
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxColourPickerCtrl" name="ID_COLOURPICKERCTRL_HighlightColour" variable="ColourPickerCtrl_HighlightColour" member="yes">
+							<colour>wxSYS_COLOUR_BTNHIGHLIGHT</colour>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -248,6 +256,11 @@
 						<border>1</border>
 						<option>1</option>
 					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_Bars_Gradient" subclass="BulkEditCheckBox" variable="CheckBox_Bars_Gradient" member="yes">
 							<label>Gradient</label>
@@ -265,6 +278,11 @@
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>

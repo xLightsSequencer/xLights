@@ -258,6 +258,14 @@ static wxString GetEffectStringFromWindow(wxWindow *ParentWin)
                 }
             }
         }
+        else if (ChildName.StartsWith("ID_COLOURPICKERCTRL_"))
+        {
+            wxColourPickerCtrl* ctrl = (wxColourPickerCtrl*)ChildWin;
+            wxColour selectedColor = ctrl->GetColour();
+            wxString colorStr = selectedColor.GetAsString(wxC2S_HTML_SYNTAX);
+            s += AttrName + "=" + colorStr + ",";
+
+        }
     }
     return s.Mid(0,s.size()-1);
 }

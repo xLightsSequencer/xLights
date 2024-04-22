@@ -37,6 +37,11 @@ xlEffectPanel* BarsEffect::CreatePanel(wxWindow* parent)
     return new BarsPanel(parent);
 }
 
+static inline int GetHighlightColour(const std::string& HighlightColourString)
+{
+    return 0;
+}
+
 static inline int GetDirection(const std::string& DirectionString)
 {
     if ("up" == DirectionString) {
@@ -91,6 +96,8 @@ void BarsEffect::SetDefaultParameters()
     SetCheckBoxValue(bp->CheckBox_Bars_Highlight, false);
     SetCheckBoxValue(bp->CheckBox_Bars_3D, false);
     SetCheckBoxValue(bp->CheckBox_Bars_Gradient, false);
+
+    bp->ColourPickerCtrl_HighlightColour->SetColour(xlWHITE);
 }
 
 void BarsEffect::GetSpatialColor(xlColor& color, size_t colorIndex, float x, float y, RenderBuffer& buffer, bool gradient, bool highlight, bool show3d, int BarHt, int n, float pct, int color2Index)
@@ -131,6 +138,9 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
     bool highlight = SettingsMap.GetBool("CHECKBOX_Bars_Highlight", false);
     bool show3D = SettingsMap.GetBool("CHECKBOX_Bars_3D", false);
     bool gradient = SettingsMap.GetBool("CHECKBOX_Bars_Gradient", false);
+    int highlightColour = GetHighlightColour(SettingsMap["COLOURPICKERCTRL_HighlightColour"]);
+    
+    std::string highlightColorStr = SettingsMap.Get("COLOURPICKERCTRL_HighlightColour", "xlWHITE");
 
     size_t colorcnt = buffer.GetColorCount();
     if (colorcnt == 0) {
