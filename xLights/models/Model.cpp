@@ -6682,6 +6682,7 @@ wxString Model::SerialiseAliases() const {
             wxString s = stream.GetString();
             s = s.SubString(s.Find("\n") + 1, s.Length()); // skip over xml format header
             alias += s;
+            break;
         }
         child = child->GetNext();
     }
