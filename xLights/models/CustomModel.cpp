@@ -1456,6 +1456,10 @@ void CustomModel::ExportXlightsModel()
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
+    wxString aliases = SerialiseAliases();
+    if (aliases != "") {
+        f.Write(aliases);
+    }
     wxString face = SerialiseFace();
     if (face != "") {
         f.Write(face);

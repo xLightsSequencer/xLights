@@ -2332,6 +2332,27 @@ void Model::AddState(wxXmlNode* n)
     UpdateStateInfoNodes();
 }
 
+void Model::AddModelAliases(wxXmlNode* n) {
+    // can't be sure of the order of tags in xml and we don't want to ask twice, so setup breadcrumbs to ensure a single prompt
+    if (importAliases == false) {
+        if (skipImportAliases != true) {
+            if (wxMessageBox("Should I import aliases from the base model?", "Import Aliases?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+                importAliases = true;
+            } else {
+                skipImportAliases = true;
+            }
+        }
+    }
+    if (importAliases == true) {
+        std::list<std::string> aliases;
+        for (auto a = n->GetChildren(); a != nullptr; a = a->GetNext()) {
+            aliases.push_back(a->GetAttribute("name"));
+        }
+        SetAliases(aliases);
+    }
+}
+
+
 void Model::ImportShadowModels(wxXmlNode* n, xLightsFrame* xlights)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2393,7 +2414,35 @@ void Model::AddSubmodel(wxXmlNode* n)
     for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
         f->AddAttribute(a->GetName(), a->GetValue());
     }
-}
+
+    // can't be sure of the order of tags in xml and we don't want to ask twice, so setup breadcrumbs to ensure a single prompt
+    if (importAliases == false) {
+        if (skipImportAliases != true) {
+            if (wxMessageBox("Should I import aliases from the base model?", "Import Aliases?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+                importAliases = true;
+            } else {
+                skipImportAliases = true;
+            }
+        }
+    }
+    if (importAliases == true) {
+        std::list<std::string> smaliases;
+        for (auto a = n->GetChildren(); a != nullptr; a = a->GetNext()) {
+             if (a->GetName() == "Aliases") {
+                 for (auto sma = a->GetChildren(); sma != nullptr; sma = sma->GetNext()) {
+                     smaliases.push_back(sma->GetAttribute("name"));
+                 }
+                 wxXmlNode* smf = new wxXmlNode(wxXML_ELEMENT_NODE, "Aliases");
+                 for (const auto& it : smaliases) {
+                     auto smn = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
+                     smn->AddAttribute("name", Lower(it));
+                     smf->AddChild(smn);
+                 }
+                 f->AddChild(smf);
+             }
+         }
+     }
+ }
 
 wxString Model::SerialiseFace() const
 {
@@ -5853,11 +5902,14 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
 {
     bool merge = false;
     bool showPopup = true;
+    importAliases = 0;
     for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext()) {
         if (n->GetName() == "stateInfo") {
             AddState(n);
         } else if (n->GetName() == "subModel") {
             AddSubmodel(n);
+        } else if (n->GetName() == "Aliases") {
+            AddModelAliases(n);
         } else if (n->GetName() == "faceInfo") {
             AddFace(n);
         } else if (n->GetName() == "ControllerConnection") {
@@ -6617,6 +6669,27 @@ wxString Model::SerialiseSubmodel() const
     }
 
     return res;
+}
+
+wxString Model::SerialiseAliases() const {
+    wxString alias = "";
+
+    wxXmlNode* root = GetModelXml();
+    wxXmlNode* child = root->GetChildren();
+    while (child != nullptr) {
+        if (child->GetName() == "Aliases") {
+            wxXmlDocument new_doc;
+            new_doc.SetRoot(new wxXmlNode(*child));
+            wxStringOutputStream stream;
+            new_doc.Save(stream);
+            wxString s = stream.GetString();
+            s = s.SubString(s.Find("\n") + 1, s.Length()); // skip over xml format header
+            alias += s;
+        }
+        child = child->GetNext();
+    }
+
+    return alias;
 }
 
 wxString Model::CreateBufferAsSubmodel() const

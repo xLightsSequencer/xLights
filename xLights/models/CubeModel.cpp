@@ -1035,6 +1035,10 @@ void CubeModel::ExportXlightsModel()
     f.Write(wxString::Format("StrandsPerLayer=\"%s\" ", s4));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
+    wxString aliases = SerialiseAliases();
+    if (aliases != "") {
+        f.Write(aliases);
+    }
     wxString groups = SerialiseGroups();
     if (groups != "") {
         f.Write(groups);
