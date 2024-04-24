@@ -1001,10 +1001,9 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
             wxString nm = wxString::Format("Segment %d", x + 1);
             grid->AppendIn(p, new wxUIntProperty(nm, SegAttrName(x), wxAtoi(ModelXml->GetAttribute(SegAttrName(x), ""))));
         }
-        if (segs_collapsed) {
-            grid->Collapse(p);
-        }
-        
+
+        if (segs_collapsed) { grid->Collapse(p); }
+
         p = grid->Append(new wxStringProperty("Corner Settings", "PolyCornerProperties", ""));
         for (int x = 0; x < num_segments + 1; x++) {
             std::string val = ModelXml->GetAttribute(CornerAttrName(x)).ToStdString();
@@ -1016,6 +1015,8 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
             wxString nm = wxString::Format("Corner %d", x + 1);
             grid->AppendIn(p, new wxEnumProperty(nm, CornerAttrName(x), POLY_CORNERS, val == "Leading Segment" ? 0 : val == "Trailing Segment" ? 1 : 2 ));
        }
+
+        if (segs_collapsed) { grid->Collapse(p); }
     }
     else {
         for (int x = 0; x < 100; x++) {
