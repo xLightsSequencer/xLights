@@ -385,7 +385,7 @@ void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outpu
             sma += it;
             smacr += it;
         }
-        p = grid->Append(new wxStringProperty("Sub-model Aliases", "SMA", sma));
+        p = grid->Append(new wxStringProperty("SubModel Aliases", "SMA", sma));
         p->SetHelpString(smacr);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
         p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);

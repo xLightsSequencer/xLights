@@ -641,6 +641,10 @@ void MatrixModel::ExportXlightsModel()
     f.Write(wxString::Format("LowDefinition=\"%s\" ", ld));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
+    wxString aliases = SerialiseAliases();
+    if (aliases != "") {
+        f.Write(aliases);
+    }
     wxString state = SerialiseState();
     if (state != "")
     {

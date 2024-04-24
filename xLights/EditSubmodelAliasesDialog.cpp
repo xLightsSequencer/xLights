@@ -43,7 +43,7 @@ EditSubmodelAliasesDialog::EditSubmodelAliasesDialog(wxWindow* parent, Model* m,
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
-    ListBoxAliases = new wxListBox(this, ID_LISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SINGLE|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX1"));
+    ListBoxAliases = new wxListBox(this, ID_LISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SINGLE, wxDefaultValidator, _T("ID_LISTBOX1"));
     FlexGridSizer1->Add(ListBoxAliases, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     ButtonAdd = new wxButton(this, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));

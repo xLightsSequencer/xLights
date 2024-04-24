@@ -189,10 +189,14 @@ public:
     void AddFace(wxXmlNode* n);
     void AddState(wxXmlNode* n);
     void AddSubmodel(wxXmlNode* n);
+    void AddModelAliases(wxXmlNode* n);
     void ImportShadowModels(wxXmlNode* n, xLightsFrame* xlights);
 
     wxString SerialiseSubmodel() const;
+    wxString SerialiseAliases() const;
     virtual wxString CreateBufferAsSubmodel() const;
+    bool importAliases = false;
+    bool skipImportAliases = false;
 
     std::map<std::string, std::map<std::string, std::string>> GetDimmingInfo() const;
     virtual std::list<std::string> CheckModelSettings() override;
