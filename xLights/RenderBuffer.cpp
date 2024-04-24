@@ -782,7 +782,7 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     // This is an absurdly high number but there are circumstances right now when creating a buffer based on a zoomed in camera when these can be hit.
     //wxASSERT(NumPixels < 500000);
 
-    if (NumPixels != pixelVector.size()) {
+    if (NumPixels > 0 && NumPixels != pixelVector.size()) {
         bool resetPtr = pixelVector.size() == 0 || pixels == &pixelVector[0];
         bool resetTPtr = tempbufVector.size() == 0 || tempbuf == &tempbufVector[0];
         pixelVector.resize(NumPixels);
