@@ -528,6 +528,8 @@
 		<Unit filename="controllers/HinksPix.h" />
 		<Unit filename="controllers/HinksPixExportDialog.cpp" />
 		<Unit filename="controllers/HinksPixExportDialog.h" />
+		<Unit filename="controllers/ILightThat.cpp" />
+                <Unit filename="controllers/ILightThat.h" />
 		<Unit filename="controllers/J1Sys.cpp" />
 		<Unit filename="controllers/J1Sys.h" />
 		<Unit filename="controllers/Minleon.cpp" />
