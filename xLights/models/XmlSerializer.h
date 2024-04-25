@@ -25,9 +25,9 @@
 namespace XmlNodeKeys
 {
 // Model Node Names
-constexpr auto ModelsNodeName = "models";
-constexpr auto ModelNodeName = "model";
-constexpr auto TypeAttribute = "type";
+constexpr auto ModelsNodeName    = "models";
+constexpr auto ModelNodeName     = "model";
+constexpr auto TypeAttribute     = "type";
 constexpr auto ExportedAttribute = "exported";
 
 // Common BaseObject Attributes
@@ -45,11 +45,24 @@ constexpr auto AntialiasAttribute     = "Antialias";
 constexpr auto PixelSizeAttribute     = "PixelSize";
 constexpr auto StringTypeAttribute    = "StringType";
 constexpr auto TransparencyAttribute  = "Transparency";
+constexpr auto BTransparencyAttribute = "BlackTransparency";
 constexpr auto StartChannelAttribute  = "StartChannel";
 constexpr auto NodeNamesAttribute     = "NodeNames";
 constexpr auto StrandNamesAttribute   = "StrandNames";
-constexpr auto ControllerAttribute   = "Controller";
+constexpr auto ControllerAttribute    = "Controller";
 constexpr auto versionNumberAttribute = "versionNumber";
+constexpr auto ActiveAttribute        = "Active";
+constexpr auto FromBaaseAttribute     = "FromBase";
+constexpr auto DescriptionAttribute   = "Description";
+
+// Common SubModel Attributes
+constexpr auto SubModelNodeName        = "subModel";
+constexpr auto SubModelNameAttribute   = "name";
+constexpr auto LayoutAttribute         = "layout";
+constexpr auto SMTypeAttribute         = "type";
+constexpr auto BufferStyleAttribute    = "bufferstyle";
+constexpr auto SubBufferStyleAttribute = "subBuffer";
+constexpr auto Line0Attribute          = "line0";
 
 // Size/Position Attributes
 constexpr auto WorldPosXAttribute = "WorldPosX";
@@ -67,6 +80,12 @@ constexpr auto DepthAttribute     = "Depth";
 constexpr auto OffsetXAttribute   = "OffsetX";
 constexpr auto OffsetYAttribute   = "OffsetY";
 constexpr auto OffsetZAttribute   = "OffsetZ";
+
+//Dimentions Attributes
+constexpr auto DimUnitsAttribute  = "units";
+constexpr auto DimWidthAttribute  = "width";
+constexpr auto DimHeightAttribute = "height";
+constexpr auto DimDepthAttribute  = "depth";
 
 // Model Screen Location Attributes
 constexpr auto LockedAttribute    = "Locked";
@@ -101,9 +120,9 @@ constexpr auto DmxYellowChannelAttribute  = "DmxYellowChannel";
 constexpr auto DmxFixturelAttribute = "DmxFixture";
 
 // DMX Moving Head Attributes
-constexpr auto DmxColorTypeAttribute = "DmxColorType";
+constexpr auto DmxColorTypeAttribute   = "DmxColorType";
 constexpr auto DmxBeamYOffsetAttribute = "DmxBeamYOffset";
-constexpr auto DmxBeamLengthAttribute = "DmxBeamLength";
+constexpr auto DmxBeamLengthAttribute  = "DmxBeamLength";
 
 // DmxMotor Attributes
 constexpr auto ChannelCoarseAttribute = "ChannelCoarse";
@@ -117,6 +136,16 @@ constexpr auto SlewLimitAttribute     = "SlewLimit";
 constexpr auto ReverseAttribute       = "Reverse";
 constexpr auto UpsideDownAttribute    = "UpsideDown";
 
+// Servo Model
+//  TBC
+
+// Controller
+constexpr auto ConnectionAttribute = "Connection";
+constexpr auto ProtocolAttribute   = "Protocol";
+constexpr auto PortAttribute       = "Port";
+constexpr auto StartNullAttribute  = "startNull";
+constexpr auto EndNullAttribute    = "endNull";
+
 // Arch Attributes
 constexpr auto ZigZagAttribute = "ZigZag";
 constexpr auto HollowAttribute = "Hollow";
@@ -126,6 +155,136 @@ constexpr auto GapAttribute    = "Gap";
 constexpr auto ObjFileAttribute    = "ObjFile";
 constexpr auto MeshOnlyAttribute   = "MeshOnly";
 constexpr auto BrightnessAttribute = "Brightness";
+
+// Arch, CandyCane, Icicles, Single Line Models
+
+// Channel Block Model
+constexpr auto ChannelPropertiesCC1Attribute  = "ChannelProperties.ChannelColor1";
+constexpr auto ChannelPropertiesCC2Attribute  = "ChannelProperties.ChannelColor2";
+constexpr auto ChannelPropertiesCC3Attribute  = "ChannelProperties.ChannelColor3";
+constexpr auto ChannelPropertiesCC4Attribute  = "ChannelProperties.ChannelColor4";
+constexpr auto ChannelPropertiesCC5Attribute  = "ChannelProperties.ChannelColor5";
+constexpr auto ChannelPropertiesCC6Attribute  = "ChannelProperties.ChannelColor6";
+constexpr auto ChannelPropertiesCC7Attribute  = "ChannelProperties.ChannelColor7";
+constexpr auto ChannelPropertiesCC8Attribute  = "ChannelProperties.ChannelColor8";
+constexpr auto ChannelPropertiesCC9Attribute  = "ChannelProperties.ChannelColor9";
+constexpr auto ChannelPropertiesCC10Attribute = "ChannelProperties.ChannelColor10";
+constexpr auto ChannelPropertiesCC11Attribute = "ChannelProperties.ChannelColor11";
+constexpr auto ChannelPropertiesCC12Attribute = "ChannelProperties.ChannelColor12";
+constexpr auto ChannelPropertiesCC13Attribute = "ChannelProperties.ChannelColor13";
+constexpr auto ChannelPropertiesCC14Attribute = "ChannelProperties.ChannelColor14";
+constexpr auto ChannelPropertiesCC15Attribute = "ChannelProperties.ChannelColor15";
+constexpr auto ChannelPropertiesCC16Attribute = "ChannelProperties.ChannelColor16";
+
+// Circle Model
+constexpr auto InsideOutAttribute = "InsideOut";
+
+// Cube
+constexpr auto StyleAttribute         = "Style";
+constexpr auto StrandPerLineAttribute = "SrtrandPerLine";
+
+// Custom Model
+constexpr auto CustomModel           = "Custom";
+constexpr auto CMBrightnessAttribute = "Brightness";
+constexpr auto StrandsAttribute      = "Strands";
+constexpr auto NodesAttribute        = "Nodes";
+constexpr auto PixelCountAttribute   = "PixelCount";
+constexpr auto PixelTypeAttribute    = "PixelType";
+constexpr auto PixelSpacingAttribute = "PixelSpacing";
+constexpr auto PixelAttribute        = "Pixel";
+constexpr auto BkgLightnessAttribute = "BkgLightness";
+constexpr auto BkgAttribute          = "Bkg";
+
+// Image Model
+constexpr auto ImageAttribute  = "Image";
+constexpr auto BlackAttribute  = "Black";
+constexpr auto ChainAttribute  = "Chain";
+
+// Icicles Model
+constexpr auto DropPatternAttribute = "DropPattern";
+
+// Poly Line Model
+constexpr auto NumPointsAttribute   = "NumPoints";
+constexpr auto PointDataAttribute   = "PointData";
+constexpr auto cPointDataAttribute  = "cPointData";
+constexpr auto IndivegAttribute     = "Indiveg";
+constexpr auto SegExpandedAttribute = "SegExpanded";
+constexpr auto SegAttribute         = "Seg";       // needs fix Seg1, Seg2, Seg3
+constexpr auto CornerAttribute      = "Corner"; // needs fix Corner1, Corner2, Corner3
+
+// Spinner Model
+constexpr auto ArcAttribute       = "Arc";
+constexpr auto StringAttribute    = "String";
+constexpr auto AlternateAttribute = "Alternate";
+constexpr auto StartAttribute     = "Start";
+
+// Star Model
+constexpr auto StarStartLocationAttribute = "StarStartLocation";
+constexpr auto LayerSizesAttribute        = "LayerSizes";
+constexpr auto TagColourAttribute         = "TagColour";
+
+// Tree Model
+constexpr auto TreeBottomTopRatioAttribute = "TreeBottomTopRatio";
+constexpr auto TreePerspectiveAttribute    = "TreePerspective";
+constexpr auto TreeAttribute               = "Tree";
+constexpr auto TreeSpiralsAttribute        = "TreeSpirals";
+
+// Window Frame Model
+constexpr auto RotationAttribute = "Rotation";
+
+// States
+constexpr auto StateAttribute  = "stateInfo";
+constexpr auto ColorsAttribute = "Colors";
+constexpr auto sAttribute      = "s";           // needs enumeration s1, s2, s3 etc
+constexpr auto sColorAttribute = "sColor"; // needs enumeration s1-Color s2-Color, s3-Color etc
+constexpr auto sNameAttribute  = "sName";   // needs enumeration s1-Name s2-Name, s3-Name etc
+
+// Faces
+constexpr auto EyeCloedAttribute         = "Eye - Cloed";
+constexpr auto EyeCloedColorAttribute    = "Eye - Cloed - Color";
+constexpr auto EyeOpenAttribute          = "Eye - Open";
+constexpr auto EyeOpenColorAttribute     = "Eye - Open - Color";
+constexpr auto FaceOutlineAttribute      = "FaceOutline";
+constexpr auto FaceOutlineColorAttribute = "FaceOutline - Color";
+constexpr auto MouthAIAttribute          = "Mouth - AI";
+constexpr auto MouthEAttribute           = "Mouth - E";
+constexpr auto MouthFVAttribute          = "Mouth - FV";
+constexpr auto MouthLAttribute           = "Mouth - L";
+constexpr auto MouthMBPAttribute         = "Mouth - MBP";
+constexpr auto MouthOAttribute           = "Mouth - O";
+constexpr auto MouthUAttribute           = "Mouth - U";
+constexpr auto MouthWQAttribute          = "Mouth - WQ";
+constexpr auto MouthetcAttribute         = "Mouth - etc";
+constexpr auto MouthretAttribute         = "Mouth - ret";
+constexpr auto MouthAIColorAttribute     = "Mouth - AI-Color";
+constexpr auto MouthEColorAttribute      = "Mouth - E-Color";
+constexpr auto MouthFVColorAttribute     = "Mouth - FV-Color";
+constexpr auto MouthLColorAttribute      = "Mouth - L-Color";
+constexpr auto MouthMBPColorAttribute    = "Mouth - MBP-Color";
+constexpr auto MouthOColorAttribute      = "Mouth - O-Color";
+constexpr auto MouthUColorAttribute      = "Mouth - U-Color";
+constexpr auto MouthWQColorAttribute     = "Mouth - WQ-Color";
+constexpr auto MouthetcColorAttribute    = "Mouth - etc-Color";
+constexpr auto MouthretColorAttribute    = "Mouth - ret-Color";
+
+// WIP
+// constexpr auto Attribute = "";
+
+// View_Object
+
+// Effect Version
+
+// Effect Group
+
+// View
+
+// Group
+
+// Perspectives
+
+// Settings
+
+// ViewPoint
 
 // Model Types
 constexpr auto ArchesType           = "Arches";
@@ -280,6 +439,16 @@ struct XmlSerializingVisitor : BaseObjectVisitor
         node->AddChild(mesh_node);
     }
 
+    wxString vectorToString(const std::vector<int>& v, const std::string& separator = ",") {
+        std::ostringstream oss;
+        for (size_t i = 0; i < v.size(); ++i) {
+            oss << v[i];
+            if (i < v.size() - 1) {
+                oss << separator;
+            }
+        }
+        return oss.str();
+    }
     void Visit(const ArchesModel &arch) override
     {
         wxXmlNode *archNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
@@ -290,6 +459,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor
         archNode->AddAttribute(XmlNodeKeys::ZigZagAttribute, std::to_string(arch.GetZigZag()));
         archNode->AddAttribute(XmlNodeKeys::HollowAttribute, std::to_string(arch.GetHollow()));
         archNode->AddAttribute(XmlNodeKeys::GapAttribute, std::to_string(arch.GetGap()));
+        archNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(arch.GetLayerSizes()));
         parentNode->AddChild(archNode);
     }
 
