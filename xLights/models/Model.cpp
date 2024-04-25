@@ -6393,7 +6393,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetRight(r);
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetLeft(l);
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetBottom(b);
-            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetHeight(2 * (float)std::abs(t - b) / (float)std::abs(r - l));
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMHeight(2 * (float)std::abs(t - b) / (float)std::abs(r - l));
             model->SetLayoutGroup(lg);
             model->Selected = true;
             return model;

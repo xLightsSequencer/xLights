@@ -117,7 +117,6 @@ void TwoPointScreenLocation::Write(wxXmlNode *ModelXml) {
     ModelXml->DeleteAttribute("X2");
     ModelXml->DeleteAttribute("Y2");
     ModelXml->DeleteAttribute("Z2");
-    ModelXml->DeleteAttribute("Locked");
     ModelXml->AddAttribute("X2", std::to_string(x2));
     ModelXml->AddAttribute("Y2", std::to_string(y2));
     ModelXml->AddAttribute("Z2", std::to_string(z2));

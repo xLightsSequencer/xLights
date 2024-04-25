@@ -146,6 +146,9 @@ public:
     const std::string GetNodeNames() const { return _nodeNamesString; }
     const std::string GetStrandNames() const { return _strandNamesString; }
 
+    void SetDirection( const std::string dir ) { _dir = dir; }
+    void SetStartSide( const std::string start_side ) { _startSide = start_side; }
+
     virtual bool SupportsChangingStringCount() const { return false; };
     virtual bool ChangeStringCount(long count,  std::string& message) { return false; };
 

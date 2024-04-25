@@ -487,7 +487,7 @@ void ArchesModel::SetLayerdArchCoord(int arches, int maxLen)
             x = midpt * sin(angle2) * 2.0 * adj + maxLen * parm3;
             double y = (maxLen * parm3) * cos(angle2);
             Nodes[n]->Coords[c].screenX = x;
-            Nodes[n]->Coords[c].screenY = y * screenLocation.GetHeight() * adj;
+            Nodes[n]->Coords[c].screenY = y * screenLocation.GetMHeight() * adj;
             rotate_point(x, 0, skew_angle,
                 Nodes[n]->Coords[c].screenX,
                 Nodes[n]->Coords[c].screenY);
@@ -531,7 +531,7 @@ void ArchesModel::SetArchCoord()
             x = xoffset + midpt * sin(angle2) * 2.0 + parm2 * parm3 + gaps * _gap;
             double y = (parm2 * parm3) * cos(angle2);
             Nodes[n]->Coords[c].screenX = x;
-            Nodes[n]->Coords[c].screenY = y * screenLocation.GetHeight();
+            Nodes[n]->Coords[c].screenY = y * screenLocation.GetMHeight();
             rotate_point(x, 0, skew_angle,
                 Nodes[n]->Coords[c].screenX,
                 Nodes[n]->Coords[c].screenY);

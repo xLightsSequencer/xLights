@@ -12,6 +12,7 @@
 
 #include <wx/xml/xml.h>
 
+#include "ArchesModel.h"
 #include "BaseObject.h"
 #include "BaseObjectVisitor.h"
 #include "DMX/DmxColorAbilityCMY.h"
@@ -19,7 +20,7 @@
 #include "DMX/DmxColorAbilityWheel.h"
 #include "DMX/DmxMovingHeadAdv.h"
 #include "DMX/Mesh.h"
-
+#include "ThreePointScreenLocation.h"
 
 namespace XmlNodeKeys
 {
@@ -67,6 +68,18 @@ constexpr auto OffsetXAttribute   = "OffsetX";
 constexpr auto OffsetYAttribute   = "OffsetY";
 constexpr auto OffsetZAttribute   = "OffsetZ";
 
+// Model Screen Location Attributes
+constexpr auto LockedAttribute    = "Locked";
+
+// TwoPoint Screen Location Attributes
+constexpr auto X2Attribute    = "X2";
+constexpr auto Y2Attribute    = "Y2";
+constexpr auto Z2Attribute    = "Z2";
+
+// ThreePoint Screen Location Attributes
+constexpr auto AngleAttribute    = "Angle";
+constexpr auto ShearAttribute    = "Shear";
+
 // DmxColorAbilityRGB Attributes
 constexpr auto DmxRedChannelAttribute   = "DmxRedChannel";
 constexpr auto DmxGreenChannelAttribute = "DmxGreenChannel";
@@ -104,13 +117,19 @@ constexpr auto SlewLimitAttribute     = "SlewLimit";
 constexpr auto ReverseAttribute       = "Reverse";
 constexpr auto UpsideDownAttribute    = "UpsideDown";
 
+// Arch Attributes
+constexpr auto ZigZagAttribute = "ZigZag";
+constexpr auto HollowAttribute = "Hollow";
+constexpr auto GapAttribute    = "Gap";
+
 // Mesh Attributes
 constexpr auto ObjFileAttribute    = "ObjFile";
 constexpr auto MeshOnlyAttribute   = "MeshOnly";
 constexpr auto BrightnessAttribute = "Brightness";
 
 // Model Types
-constexpr auto DmxMovingHeadAdvType    = "DmxMovingHeadAdv";
+constexpr auto ArchesType           = "Arches";
+constexpr auto DmxMovingHeadAdvType = "DmxMovingHeadAdv";
 
 };
 
@@ -161,6 +180,24 @@ struct XmlSerializingVisitor : BaseObjectVisitor
         node->AddAttribute(XmlNodeKeys::RotateXAttribute, std::to_string(rotate.x));
         node->AddAttribute(XmlNodeKeys::RotateYAttribute, std::to_string(rotate.y));
         node->AddAttribute(XmlNodeKeys::RotateZAttribute, std::to_string(rotate.z));
+        bool locked = base.GetBaseObjectScreenLocation().IsLocked();
+        node->AddAttribute(XmlNodeKeys::LockedAttribute, std::to_string(locked));
+    }
+
+    void AddThreePointScreenLocationAttributes(const BaseObject &base, wxXmlNode *node)
+    {
+        const ThreePointScreenLocation& screenLoc = dynamic_cast<const ThreePointScreenLocation&>(base.GetBaseObjectScreenLocation());
+        float x2 = screenLoc.GetX2();
+        float y2 = screenLoc.GetY2();
+        float z2 = screenLoc.GetZ2();
+        node->AddAttribute(XmlNodeKeys::X2Attribute, std::to_string(x2));
+        node->AddAttribute(XmlNodeKeys::Y2Attribute, std::to_string(y2));
+        node->AddAttribute(XmlNodeKeys::Z2Attribute, std::to_string(z2));
+        int angle = screenLoc.GetAngle();
+        node->AddAttribute(XmlNodeKeys::AngleAttribute, std::to_string(angle));
+        float shear = screenLoc.GetYShear();
+        node->AddAttribute(XmlNodeKeys::ShearAttribute, std::to_string(shear));
+        node->AddAttribute(XmlNodeKeys::HeightAttribute, std::to_string(base.GetHeight()));
     }
 
     void AddColorAbilityRGBAttributes(const DmxColorAbilityRGB *colors, wxXmlNode *node)
@@ -243,6 +280,19 @@ struct XmlSerializingVisitor : BaseObjectVisitor
         node->AddChild(mesh_node);
     }
 
+    void Visit(const ArchesModel &arch) override
+    {
+        wxXmlNode *archNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(arch, archNode);
+        AddCommonModelAttributes(arch, archNode);
+        AddModelScreenLocationAttributes(arch, archNode);
+        AddThreePointScreenLocationAttributes(arch, archNode);
+        archNode->AddAttribute(XmlNodeKeys::ZigZagAttribute, std::to_string(arch.GetZigZag()));
+        archNode->AddAttribute(XmlNodeKeys::HollowAttribute, std::to_string(arch.GetHollow()));
+        archNode->AddAttribute(XmlNodeKeys::GapAttribute, std::to_string(arch.GetGap()));
+        parentNode->AddChild(archNode);
+    }
+
     void Visit(const DmxMovingHeadAdv &moving_head) override
     {
         wxXmlNode *mhNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
@@ -268,7 +318,11 @@ struct XmlDeserializingObjectFactory
     {
         auto type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute);
 
-        if (type == XmlNodeKeys::DmxMovingHeadAdvType)
+        if (type == XmlNodeKeys::ArchesType)
+        {
+            return DeserializeArches(new wxXmlNode(*node), xlights);
+        }
+        else if (type == XmlNodeKeys::DmxMovingHeadAdvType)
         {
             return DeserializeDmxMovingHeadAdv(new wxXmlNode(*node), xlights);
         }
@@ -277,6 +331,18 @@ struct XmlDeserializingObjectFactory
     }
 
 private:
+
+    Model* DeserializeArches(wxXmlNode *node, xLightsFrame* xlights)
+    {
+        Model *model;
+        model = new ArchesModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
 
     Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights)
     {
@@ -336,12 +402,24 @@ struct XmlSerializer
     Model* DeserializeModel(const wxXmlDocument &doc, xLightsFrame* xlights)
     {
         wxXmlNode *root = doc.GetRoot();
-
         wxXmlNode *model_node = root->GetChildren();
+        return DeserializeModel(model_node, xlights);
+    }
 
+    // Deserialize a single model XML node
+    Model* DeserializeModel(wxXmlNode *model_node, xLightsFrame* xlights)
+    {
         XmlDeserializingObjectFactory factory{};
+        Model* model = factory.Deserialize(model_node, xlights);
 
-        return factory.Deserialize(model_node, xlights);
+        // TODO: I'd like to get rid of this whole ImportModelChildren call but left it in the flow for now
+        float min_x = (float)(model->GetBaseObjectScreenLocation().GetLeft());
+        float max_x = (float)(model->GetBaseObjectScreenLocation().GetRight());
+        float min_y = (float)(model->GetBaseObjectScreenLocation().GetBottom());
+        float max_y = (float)(model->GetBaseObjectScreenLocation().GetTop());
+        model->ImportModelChildren(model->GetModelXml(), xlights, model->GetName(), min_x, max_x, min_y, max_y);
+        
+        return model;
     }
 
 };

@@ -218,7 +218,7 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
 
     glm::mat4 scalingMatrix;
-    if (modelHandlesHeight) {
+    if (modelHandleHeight) {
         scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
     } else {
         scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley * height, scalez));
@@ -282,19 +282,9 @@ void ThreePointScreenLocation::SetMWidth(float w)
     TwoPointScreenLocation::SetMWidth(w);
 }
 
-void ThreePointScreenLocation::SetMHeight(float h)
-{
-    height = h;
-}
-
 float ThreePointScreenLocation::GetMWidth() const
 {
     return TwoPointScreenLocation::GetMWidth();
-}
-
-float ThreePointScreenLocation::GetMHeight() const
-{
-    return height;
 }
 
 void ThreePointScreenLocation::SetActiveHandle(int handle)
@@ -658,17 +648,10 @@ int ThreePointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &r
     return TwoPointScreenLocation::MoveHandle3D(scale, handle, rot, mov);
 }
 float ThreePointScreenLocation::GetVScaleFactor() const {
-    if (modelHandlesHeight) {
+    if (modelHandleHeight) {
         return 1.0;
     }
     return height;
-}
-
-float ThreePointScreenLocation::GetYShear() const {
-    if (supportsShear) {
-        return shear;
-    }
-    return 0.0;
 }
 
 void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
@@ -680,7 +663,7 @@ void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClass
         if (draw_3d) {
             shearMatrix = glm::mat4(glm::shearY(glm::mat3(1.0f), GetYShear()));
             glm::mat4 scalingMatrix;
-            if (modelHandlesHeight) {
+            if (modelHandleHeight) {
                 scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
             }
             else {

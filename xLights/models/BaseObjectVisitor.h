@@ -10,11 +10,13 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+class ArchesModel;
 class DmxMovingHeadAdv;
 
 struct BaseObjectVisitor
 {
+    virtual void Visit(const ArchesModel &arch) = 0;
     virtual void Visit(const DmxMovingHeadAdv &moving_head) = 0;
-    
+
     virtual ~BaseObjectVisitor() {}
 };
