@@ -470,14 +470,14 @@ struct XmlSerializingVisitor : BaseObjectVisitor
     }
 
     wxString vectorToString(const std::vector<int>& v, const std::string& separator = ",") {
-        std::ostringstream oss;
+       wxString oss;
         for (size_t i = 0; i < v.size(); ++i) {
             oss << v[i];
             if (i < v.size() - 1) {
                 oss << separator;
             }
         }
-        return oss.str();
+        return oss;
     }
     void Visit(const ArchesModel &arch) override
     {
