@@ -1498,7 +1498,15 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         }
         Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHt, stagger);
     }
-
-    //wxASSERT(BufferWi != 0);
-    //wxASSERT(BufferHt != 0);
+    // Buffer needs at least one pixel as several effects will divide by the Width/Height and such
+    // which can result in divide by 0.
+    // Some of the buffer styles above (several of the PerModel) will result in one of these
+    // being 0 as there aren't models to iterate over.   We'll set to the default 1x1 buffer.
+    // Note:  this also matches the behavior of GetBufferSize(...) above
+    if (BufferWi == 0) {
+        BufferWi = 1;
+    }
+    if (BufferHt == 0) {
+        BufferHt = 1;
+    }
 }
