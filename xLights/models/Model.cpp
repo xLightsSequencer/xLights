@@ -5198,13 +5198,14 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
         int buffFirst = -1;
         int buffLast = -1;
         bool left = true;
+        int nodeRenderOrder = NodeRenderOrder();
         // int lastChan = -999;
         while (first < last) {
             int n;
             if (left) {
                 n = first;
                 first++;
-                if (NodeRenderOrder() == 1) {
+                if (nodeRenderOrder == 1) {
                     if (buffFirst == -1) {
                         buffFirst = Nodes[n]->Coords[0].bufX;
                     }
@@ -5218,7 +5219,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
                 if (buffLast == -1) {
                     buffLast = Nodes[n]->Coords[0].bufX;
                 }
-                if (last > 0 && buffFirst != Nodes[last - 1]->Coords[0].bufX) {
+                if (last > 0 && buffLast != Nodes[last - 1]->Coords[0].bufX) {
                     left = true;
                 }
             }
@@ -5577,12 +5578,14 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
             int buffFirst = -1;
             int buffLast = -1;
             bool left = true;
+            
+            int nodeRenderOrder = NodeRenderOrder();
             while (first < last) {
                 int n;
                 if (left) {
                     n = first;
                     ++first;
-                    if (NodeRenderOrder() == 1) {
+                    if (nodeRenderOrder == 1) {
                         if (buffFirst == -1) {
                             buffFirst = Nodes[n]->Coords[0].bufX;
                         }
@@ -5596,7 +5599,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                     if (buffLast == -1) {
                         buffLast = Nodes[n]->Coords[0].bufX;
                     }
-                    if (last > 0 && buffFirst != Nodes[last - 1]->Coords[0].bufX) {
+                    if (last > 0 && buffLast != Nodes[last - 1]->Coords[0].bufX) {
                         left = true;
                     }
                 }
