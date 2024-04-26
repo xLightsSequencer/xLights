@@ -121,6 +121,7 @@ const long ViewsModelsPanel::ID_MODELS_SORTBYTYPE = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTMODELSUNDERTHISGROUP = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_BUBBLEUPGROUPS = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGMSIZE = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGMCOUNT = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYSCGMSIZE = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYCPGMSIZE = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYMASTERVIEW = wxNewId();
@@ -480,6 +481,26 @@ bool ViewsModelsPanel::IsModelAGroup(const std::string& modelname) const
         }
     }
     return false;
+}
+
+int ViewsModelsPanel::GetPixelCount(const std::string& modelname) {
+    int pixelCount = 0;
+
+    if (IsModelAGroup(modelname)) {
+        wxArrayString groupModels;
+        groupModels = GetGroupModels(modelname);
+        for (const auto& m : groupModels) {
+            pixelCount += GetPixelCount(m);
+        }
+    } else {
+        int modelPixels = 0;
+        auto model = _xlFrame->AllModels.GetModel(modelname);
+        if (model != nullptr) {
+            modelPixels += model->GetNodeCount();
+        }
+        pixelCount += modelPixels;
+    }
+    return pixelCount;
 }
 
 wxArrayString ViewsModelsPanel::GetGroupModels(const std::string& group) const
@@ -1395,6 +1416,7 @@ void ViewsModelsPanel::OnListCtrlModelsItemRClick(wxListEvent& event)
     mnuSort->Append(ID_MODELS_SORTBYNAME, "By Name")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYNAMEGM, "By Name But Groups At Top")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYNAMEGMSIZE, "By Name But Groups At Top by Size")->Enable(models > 0);
+    mnuSort->Append(ID_MODELS_SORTBYNAMEGMCOUNT, "By Name But Groups At Top by Node Count")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYCPGM, "By Controller/Port But Groups At Top")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYCPGMSIZE, "By Controller/Port But Groups At Top by Size")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYSCGM, "By Start Channel But Groups At Top")->Enable(models > 0);
@@ -1466,7 +1488,10 @@ void ViewsModelsPanel::OnModelsPopup(wxCommandEvent& event)
         SortModelsBubbleUpGroups();
     }
     else if (id == ID_MODELS_SORTBYNAMEGMSIZE) {
-        SortModelsByNameGM(true);
+        SortModelsByNameGM(true, false);
+    }
+    else if (id == ID_MODELS_SORTBYNAMEGMCOUNT) {
+        SortModelsByNameGM(false, true);
     }
     else if (id == ID_MODELS_SORTBYCPGMSIZE) {
         SortModelsByCPGM(true);
@@ -1596,7 +1621,7 @@ void ViewsModelsPanel::SetMasterViewModels(const wxArrayString& models)
     }
 }
 
-void ViewsModelsPanel::SortModelsByNameGM(bool sortGroupsBySize)
+void ViewsModelsPanel::SortModelsByNameGM(bool sortGroupsBySize, bool sortGroupsByCount)
 {
     SaveUndo();
 
@@ -1614,26 +1639,41 @@ void ViewsModelsPanel::SortModelsByNameGM(bool sortGroupsBySize)
 
     wxArrayString groups;
     wxArrayString modelsOnly;
+    std::vector<std::pair<std::string, int>> nodeCounts;
 
     for (const auto& it : modelArray) {
         if (IsModelAGroup(it.ToStdString())) {
             groups.push_back(it);
+            if (sortGroupsByCount) {
+                int res = GetPixelCount(it.ToStdString());
+                nodeCounts.push_back(std::make_pair(it, res));
+            }
         }
         else {
             modelsOnly.push_back(it);
         }
     }
 
-    if (!sortGroupsBySize) {
+    if (!sortGroupsBySize && !sortGroupsByCount) {
         groups.Sort(wxStringNumberAwareStringCompare);
-    }
-    else {
-        //groups with more models to the top, i.e whole house models
-        auto sortRuleLambda = [this](wxString const& s1, wxString const& s2) -> bool {
-            return GetGroupModels(s1).GetCount() > GetGroupModels(s2).GetCount();
-        };
+    } else {
+        if (sortGroupsBySize) {
+            // groups with more models to the top, i.e whole house models
+            auto sortRuleLambda = [this](wxString const& s1, wxString const& s2) -> bool {
+                return GetGroupModels(s1).GetCount() > GetGroupModels(s2).GetCount();
+            };
 
-        std::sort(groups.begin(), groups.end(), sortRuleLambda);
+            std::sort(groups.begin(), groups.end(), sortRuleLambda);
+        } else {
+            // groups with more pixels to the top, i.e whole house models regardless of groups in groups
+            std::sort(nodeCounts.begin(), nodeCounts.end(), [](const auto& a, const auto& b) {
+                return a.second > b.second;
+            });
+            groups.Clear();
+            for (const auto& pair : nodeCounts) {
+                groups.Add(pair.first);
+            }
+        }
     }
     modelsOnly.Sort(wxStringNumberAwareStringCompare);
 
