@@ -82,6 +82,7 @@ class ViewsModelsPanel : public wxPanel
     void MarkViewsChanged();
     void AddViewToList(const wxString& viewName, bool isChecked);
     bool IsModelAGroup(const std::string& modelname) const;
+    int GetPixelCount(const std::string& modelname);
     void DeleteSelectedView();
     int GetTimingCount();
     static bool IsItemSelected(wxListCtrl* ctrl, int item);
@@ -94,7 +95,7 @@ class ViewsModelsPanel : public wxPanel
     void SelectUsedModels();
     void SelectAllModels();
     void SortModelsByName();
-    void SortModelsByNameGM(bool sortGroupsBySize = false);
+    void SortModelsByNameGM(bool sortGroupsBySize = false, bool sortGroupsByCount = false);
     void SortModelsByCPGM(bool sortGroupsBySize = false);
     void SortModelsBySCGM(bool sortGroupsBySize = false);
     void SortModelsByMasterView();
@@ -205,6 +206,7 @@ protected:
     static const long ID_MODELS_SORTMODELSUNDERTHISGROUP;
     static const long ID_MODELS_BUBBLEUPGROUPS;
     static const long ID_MODELS_SORTBYNAMEGMSIZE;
+    static const long ID_MODELS_SORTBYNAMEGMCOUNT;
     static const long ID_MODELS_SORTBYCPGMSIZE;
     static const long ID_MODELS_SORTBYSCGMSIZE;
     static const long ID_MODELS_SORTBYMASTERVIEW;
