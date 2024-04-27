@@ -89,6 +89,7 @@ void BarsEffect::SetDefaultParameters()
     SetChoiceValue(bp->Choice_Bars_Direction, "up");
 
     SetCheckBoxValue(bp->CheckBox_Bars_Highlight, false);
+    SetCheckBoxValue(bp->CheckBox_UseFirstColorForHighlight, false);
     SetCheckBoxValue(bp->CheckBox_Bars_3D, false);
     SetCheckBoxValue(bp->CheckBox_Bars_Gradient, false);
 }
