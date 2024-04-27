@@ -827,7 +827,8 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     size_t NodeCount = Nodes.size();
     if ((( nullptr != color_ability ) && !color_ability->IsValidModelSettings(this)) ||
         !preset_ability->IsValidModelSettings(this) ||
-        shutter_channel > NodeCount)
+        shutter_channel > NodeCount ||
+        dimmer_channel > NodeCount)
     {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
@@ -953,6 +954,17 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     if (!active) {
         beam_color = xlWHITE;
     }
+
+    // apply dimmer to beam
+    if (dimmer_channel > 0 && active) {
+        xlColor proxy;
+        Nodes[dimmer_channel - 1]->GetColor(proxy);
+        HSVValue hsv = proxy.asHSV();
+        beam_color.red = (beam_color.red * hsv.value);
+        beam_color.blue = (beam_color.blue * hsv.value);
+        beam_color.green = (beam_color.green * hsv.value);
+    }
+
     ApplyTransparency(beam_color, trans, trans);
 
     pan_angle_raw += beam_orient;

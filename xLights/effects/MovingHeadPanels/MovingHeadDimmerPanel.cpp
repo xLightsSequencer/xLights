@@ -25,6 +25,7 @@ namespace
     const float hline_gap = 1.0f / num_hlines;
     const float vline_gap = 1.0f / num_vlines;
     const float marker_length = 0.04f;
+    const float pt_tol = 0.001f;  // can't let points be too close or Value Curve deletes them
 }
 
 BEGIN_EVENT_TABLE(MovingHeadDimmerPanel, wxPanel)
@@ -273,8 +274,12 @@ void MovingHeadDimmerPanel::OnMovingHeadMouseMove(wxMouseEvent& event)
                 // check if inside surrounding handles
                 if (active_handle != 0 &&
                     active_handle != m_handles.size()-1) {
-                    if (m_mousePos.m_x < m_handles[active_handle+1].m_x &&
-                        m_mousePos.m_x > m_handles[active_handle-1].m_x) {
+                    if (m_mousePos.m_x < m_handles[active_handle-1].m_x + pt_tol) {
+                        m_handles[active_handle].m_x = m_handles[active_handle-1].m_x + pt_tol;
+                    }
+                    else if (m_mousePos.m_x > m_handles[active_handle+1].m_x - pt_tol) {
+                        m_handles[active_handle].m_x = m_handles[active_handle+1].m_x - pt_tol;
+                    } else {
                         m_handles[active_handle].m_x = m_mousePos.m_x;
                     }
                 }
