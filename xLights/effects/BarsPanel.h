@@ -36,6 +36,7 @@ class BarsPanel: public xlEffectPanel
 		BulkEditCheckBox* CheckBox_Bars_3D;
 		BulkEditCheckBox* CheckBox_Bars_Gradient;
 		BulkEditCheckBox* CheckBox_Bars_Highlight;
+		BulkEditCheckBox* CheckBox_UseFirstColorForHighlight;
 		BulkEditChoice* Choice_Bars_Direction;
 		BulkEditSlider* Slider_Bars_BarCount;
 		BulkEditSlider* Slider_Bars_Center;
@@ -71,6 +72,8 @@ class BarsPanel: public xlEffectPanel
 		static const long ID_TEXTCTRL_Bars_Center;
 		static const long ID_CHECKBOX_Bars_Highlight;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight;
+		static const long ID_CHECKBOX_Bars_UseFirstColorForHighlight;
+		static const long ID_BITMAPBUTTON_CHECKBOX_Bars_UseFirstColorForHighlight;
 		static const long ID_CHECKBOX_Bars_3D;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Bars_3D;
 		static const long ID_CHECKBOX_Bars_Gradient;
