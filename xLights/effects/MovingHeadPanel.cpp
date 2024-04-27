@@ -75,6 +75,7 @@ const long MovingHeadPanel::ID_SLIDER_MHCycles = wxNewId();
 const long MovingHeadPanel::IDD_TEXTCTRL_MHCycles = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_SavePreset = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Position = wxNewId();
+const long MovingHeadPanel::ID_PANEL_Dimmer = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_MHPathContinue = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_MHPathClear = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_MHPathClose = wxNewId();
@@ -132,6 +133,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     wxFlexGridSizer* FlexGridSizerColorWheelSliders;
     wxFlexGridSizer* FlexGridSizerControl;
     wxFlexGridSizer* FlexGridSizerCycles;
+    wxFlexGridSizer* FlexGridSizerDimmer;
     wxFlexGridSizer* FlexGridSizerFixtures;
     wxFlexGridSizer* FlexGridSizerFixturesLabel;
     wxFlexGridSizer* FlexGridSizerFixturesSelection;
@@ -273,6 +275,16 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     PanelPosition->SetSizer(FlexGridSizerPosition);
     FlexGridSizerPosition->Fit(PanelPosition);
     FlexGridSizerPosition->SetSizeHints(PanelPosition);
+    PanelDimmer = new wxPanel(Notebook1, ID_PANEL_Dimmer, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Dimmer"));
+    FlexGridSizerDimmer = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizerDimmer->AddGrowableCol(0);
+    FlexGridSizerDimmerCanvas = new wxFlexGridSizer(1, 1, 0, 0);
+    FlexGridSizerDimmerCanvas->AddGrowableCol(0);
+    FlexGridSizerDimmerCanvas->AddGrowableRow(0);
+    FlexGridSizerDimmer->Add(FlexGridSizerDimmerCanvas, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 5);
+    PanelDimmer->SetSizer(FlexGridSizerDimmer);
+    FlexGridSizerDimmer->Fit(PanelDimmer);
+    FlexGridSizerDimmer->SetSizeHints(PanelDimmer);
     PanelPathing = new wxPanel(Notebook1, ID_PANEL_Pathing, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Pathing"));
     FlexGridSizerPathing = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerPathing->AddGrowableCol(0);
@@ -378,6 +390,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizer1->Fit(PanelStatus);
     FlexGridSizer1->SetSizeHints(PanelStatus);
     Notebook1->AddPage(PanelPosition, _("Position"), false);
+    Notebook1->AddPage(PanelDimmer, _("Dimmer"), false);
     Notebook1->AddPage(PanelPathing, _("Pathing"), false);
     Notebook1->AddPage(PanelControl, _("Control"), false);
     Notebook1->AddPage(PanelStatus, _("Status"), false);
@@ -440,6 +453,8 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     // canvas
     m_movingHeadCanvasPanel = new MovingHeadCanvasPanel(this, PanelPosition, wxID_ANY, wxDefaultPosition, wxSize(250, 250));
     FlexGridSizerPositionCanvas->Add(m_movingHeadCanvasPanel, 0, wxALL | wxEXPAND);
+    m_movingHeadDimmerPanel = new MovingHeadDimmerPanel(this, PanelDimmer, wxID_ANY, wxDefaultPosition, wxSize(250, 125));
+    FlexGridSizerDimmerCanvas->Add(m_movingHeadDimmerPanel, 0, wxALL | wxEXPAND);
     m_sketchCanvasPanel = new SketchCanvasPanel(this, PanelPathing, wxID_ANY, wxDefaultPosition, wxSize(250, 250));
     FlexGridSizerPathCanvas->Add(m_sketchCanvasPanel, 0, wxALL | wxEXPAND);
 
@@ -1035,6 +1050,7 @@ static std::list<std::string> possettings = {"Heads", "Pan", "Tilt", "PanOffset"
                                              "Pan VC", "Tilt VC", "PanOffset VC", "TiltOffset VC", "Groupings VC"};
 static std::list<std::string> pathsettings = {"Path", "PathScale", "TimeOffset", "IgnorePan", "IgnoreTilt", "PathScale VC", "TimeOffset VC" };
 static std::list<std::string> colorsettings = {"Color", "Wheel" };
+static std::list<std::string> dimmersettings = {"Dimmer" };
 
 void MovingHeadPanel::UpdateMHSettings()
 {
@@ -1204,6 +1220,38 @@ void MovingHeadPanel::UpdatePathSettings()
     }
 }
 
+void MovingHeadPanel::UpdateDimmerSettings()
+{
+    if( recall ) return;
+
+    std::string dimmer_text{xlEMPTY_STRING};
+
+    RemoveSettings(dimmersettings);
+
+    if( m_movingHeadDimmerPanel != nullptr ) {
+        dimmer_text = m_movingHeadDimmerPanel->GetDimmerCommands();
+    }
+
+    if( dimmer_text != xlEMPTY_STRING ) {
+        for( int i = 1; i <= 8; ++i ) {
+            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+            if( checkbox != nullptr ) {
+                if( checkbox->IsChecked() ) {
+                    wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+                    wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                    if( mh_textbox != nullptr ) {
+                        std::string mh_settings = mh_textbox->GetValue();
+                        mh_settings += ";";
+                        mh_settings += dimmer_text;
+                        mh_textbox->SetValue(mh_settings);
+                    }
+                }
+            }
+        }
+    }
+}
+
 void MovingHeadPanel::UpdateStatusPanel()
 {
     std::string all_settings = xlEMPTY_STRING;
@@ -1219,6 +1267,7 @@ void MovingHeadPanel::UpdateStatusPanel()
                 bool pos_set = false;
                 bool path_set = false;
                 bool color_set = false;
+                bool dimmer_set = false;
                 for (size_t j = 0; j < all_cmds.size(); ++j )
                 {
                     std::string cmd = all_cmds[j];
@@ -1231,6 +1280,8 @@ void MovingHeadPanel::UpdateStatusPanel()
                         path_set = true;
                     } else if (cmd_type == "Color") {
                         color_set = true;
+                    } else if (cmd_type == "Dimmer") {
+                        dimmer_set = true;
                     }
                 }
                 if (pos_set) {
@@ -1258,6 +1309,9 @@ void MovingHeadPanel::UpdateStatusPanel()
                 }
                 if (color_set) {
                     all_settings += "Color: Active\n";
+                }
+                if (dimmer_set) {
+                    all_settings += "Dimmer: Active\n";
                 }
                 all_settings += "\n";
             }
@@ -1658,6 +1712,12 @@ void MovingHeadPanel::NotifyColorUpdated()
     FireChangeEvent();
 }
 
+void MovingHeadPanel::NotifyDimmerUpdated()
+{
+    UpdateDimmerSettings();
+    FireChangeEvent();
+}
+
 void MovingHeadPanel::OnCheckBox_MHClick(wxCommandEvent& event)
 {
     // update color panels since selected heads changed
@@ -1774,6 +1834,10 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
         } else if( cmd_type == "Wheel" ) {
             if( m_wheelColorPanel != nullptr ) {
                 m_wheelColorPanel->SetColours(settings);
+            }
+        } else if( cmd_type == "Dimmer" ) {
+            if( m_movingHeadDimmerPanel != nullptr ) {
+                m_movingHeadDimmerPanel->SetDimmerCommands(settings);
             }
         }
     }

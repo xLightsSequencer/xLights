@@ -11,13 +11,14 @@
  **************************************************************/
 
 #include "DmxMovingHeadComm.h"
+#include "DmxDimmerAbility.h"
 #include "DmxPanTiltAbility.h"
 #include "DmxShutterAbility.h"
 #include "DmxMotor.h"
 
 class DmxMotorBase;
 
-class DmxMovingHead : public DmxMovingHeadComm, public DmxShutterAbility
+class DmxMovingHead : public DmxMovingHeadComm, public DmxShutterAbility, public DmxDimmerAbility
 {
     public:
         DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
@@ -39,6 +40,8 @@ class DmxMovingHead : public DmxMovingHeadComm, public DmxShutterAbility
 
         DmxMotorBase* GetPanMotor() const override { return pan_motor.get(); }
         DmxMotorBase* GetTiltMotor() const override { return tilt_motor.get(); }
+    
+        uint32_t GetMHDimmerChannel() const override {return GetDimmerChannel();}
 
     protected:
         void Draw3DDMXBaseLeft(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle);

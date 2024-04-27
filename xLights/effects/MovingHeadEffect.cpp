@@ -150,9 +150,11 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
     bool pan_path_active = true;
     bool tilt_path_active = true;
     bool has_color_wheel = false;
+    bool has_dimmers = false;
     std::string path_setting = "";
     wxArrayString heads;
     wxArrayString colors;
+    wxArrayString dimmers;
     int groupings = 1;
     wxArrayString all_cmds = wxSplit(mh_settings, ';');
 
@@ -231,6 +233,9 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
         } else if( cmd_type == "Wheel" ) {
             colors = wxSplit(settings, ',');
             has_color_wheel = true;
+        } else if( cmd_type == "Dimmer" ) {
+            dimmers = wxSplit(settings, ',');
+            has_dimmers = true;
         }
     }
 
@@ -252,6 +257,11 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
             WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
             WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
             
+            if (has_dimmers && mhead->HasDimmerChannel()) {
+                uint32_t dimmer_channel = mhead->GetMHDimmerChannel();
+                CalculateDimmer(eff_pos, dimmers, dimmer_channel, buffer);
+            }
+
             if( mhead->HasColorAbility() ) {
                 DmxColorAbility* mh_color = mhead->GetColorAbility();
                 if (mh_color != nullptr) {
@@ -331,6 +341,28 @@ xlColor MovingHeadEffect::GetWheelColor(double eff_pos, const wxArrayString& col
     return c1;
 }
 
+void MovingHeadEffect::CalculateDimmer(double eff_pos, wxArrayString& dimmers, uint32_t dimmer_channel, RenderBuffer &buffer)
+{
+    ValueCurve vc;
+    unsigned long num_pts = dimmers.size() / 2;
+    for( int i = 0; i < num_pts; ++i ) {
+        double x { wxAtof(dimmers[i*2]) };
+        double y { wxAtof(dimmers[i*2+1]) };
+        vc.SetValueAt( x, y );
+    }
+    vc.SetType("Custom");
+    vc.SetLimits(0, 255);
+    vc.SetActive(true);
+    
+    uint8_t value = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+
+    xlColor msb_c = xlBLACK;
+    msb_c.red = value;
+    msb_c.green = value;
+    msb_c.blue = value;
+
+    buffer.SetPixel(dimmer_channel - 1, 0, msb_c, false, false, true);
+}
 
 void MovingHeadEffect::GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer)
 {

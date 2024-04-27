@@ -29,6 +29,7 @@
 #include "EffectPanelUtils.h"
 #include "MovingHeadPanels/MHColorPanel.h"
 #include "MovingHeadPanels/MovingHeadCanvasPanel.h"
+#include "MovingHeadPanels/MovingHeadDimmerPanel.h"
 #include "MovingHeadPanels/MHRgbPickerPanel.h"
 #include "MovingHeadPanels/MHColorWheelPanel.h"
 #include "assist/SketchCanvasPanel.h"
@@ -41,8 +42,12 @@ class Model;
 class MHPresetBitmapButton;
 class MHPathPresetBitmapButton;
 
-class MovingHeadPanel: public xlEffectPanel, public IMovingHeadCanvasParent, public ISketchCanvasParent,
-    public IMHRgbPickerPanelParent, public IMHColorWheelPanelParent
+class MovingHeadPanel: public xlEffectPanel,
+                       public IMovingHeadCanvasParent,
+                       public IMovingHeadDimmerParent,
+                       public ISketchCanvasParent,
+                       public IMHRgbPickerPanelParent,
+                       public IMHColorWheelPanelParent
 {
 public:
     
@@ -90,6 +95,7 @@ public:
     wxCheckBox* CheckBox_MH8;
     wxFlexGridSizer* FlexGridSizerColor;
     wxFlexGridSizer* FlexGridSizerColorWheel;
+    wxFlexGridSizer* FlexGridSizerDimmerCanvas;
     wxFlexGridSizer* FlexGridSizerPathCanvas;
     wxFlexGridSizer* FlexGridSizerPathPresets;
     wxFlexGridSizer* FlexGridSizerPathing;
@@ -102,6 +108,7 @@ public:
     wxPanel* PanelColor;
     wxPanel* PanelColorWheel;
     wxPanel* PanelControl;
+    wxPanel* PanelDimmer;
     wxPanel* PanelPathing;
     wxPanel* PanelPosition;
     wxPanel* PanelStatus;
@@ -167,6 +174,7 @@ protected:
     static const long IDD_TEXTCTRL_MHCycles;
     static const long ID_BUTTON_SavePreset;
     static const long ID_PANEL_Position;
+    static const long ID_PANEL_Dimmer;
     static const long ID_BUTTON_MHPathContinue;
     static const long ID_BUTTON_MHPathClear;
     static const long ID_BUTTON_MHPathClose;
@@ -231,6 +239,7 @@ private:
     void UpdateMHSettings();
     void UpdateColorSettings();
     void UpdatePathSettings();
+    void UpdateDimmerSettings();
     void UpdateStatusPanel();
     void RemoveSettings(std::list<std::string>& settings);
     void AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings);
@@ -267,6 +276,7 @@ private:
     std::vector<MHPathPresetBitmapButton*> path_presets;
 
     MovingHeadCanvasPanel* m_movingHeadCanvasPanel = nullptr;
+    MovingHeadDimmerPanel* m_movingHeadDimmerPanel = nullptr;
     MHRgbPickerPanel* m_rgbColorPanel = nullptr;
     MHColorWheelPanel* m_wheelColorPanel = nullptr;
 
@@ -286,6 +296,7 @@ public:
     
     void NotifyPositionUpdated() override;
     void NotifyColorUpdated() override;
+    void NotifyDimmerUpdated() override;
 
 private:
     bool canContinuePath() const;

@@ -149,7 +149,9 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
         grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES, selected));
         color_ability->AddColorTypeProperties(grid);
     }
+    AddDimmerTypeProperties(grid);
     AddShutterTypeProperties(grid);
+    grid->Collapse("DmxDimmerProperties");
 
     p = grid->Append(new wxPropertyCategory("Beam Properties", "BeamProperties"));
 
@@ -185,6 +187,10 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
     }
 
     if (OnShutterPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        return 0;
+    }
+
+    if (OnDimmerPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
     }
 
@@ -336,6 +342,7 @@ void DmxMovingHead::InitModel() {
     pan_motor->Init(this);
     tilt_motor->Init(this);
 
+    dimmer_channel = wxAtoi(ModelXml->GetAttribute("MhDimmerChannel", "0"));
 	shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
 	shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
     shutter_on_value = wxAtoi(ModelXml->GetAttribute("DmxShutterOnValue", "0"));

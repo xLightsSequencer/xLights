@@ -22,8 +22,8 @@ constexpr int MAX_COLORS{25};
 
 void DmxColorAbilityWheel::InitColor( wxXmlNode* ModelXml)
 {
-    wheel_channel = wxAtoi(ModelXml->GetAttribute("DmxColorWheelChannel", "1"));
-    dimmer_channel = wxAtoi(ModelXml->GetAttribute("DmxDimmerChannel", "2"));
+    wheel_channel = wxAtoi(ModelXml->GetAttribute("DmxColorWheelChannel", "0"));
+    dimmer_channel = wxAtoi(ModelXml->GetAttribute("DmxDimmerChannel", "0"));
 
     ReadColorSettings(ModelXml);
 
