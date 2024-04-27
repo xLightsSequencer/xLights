@@ -662,6 +662,8 @@
 		<Unit filename="effects/MovingHeadPanels/MHColorPanel.h" />
 		<Unit filename="effects/MovingHeadPanels/MHColorWheelPanel.cpp" />
 		<Unit filename="effects/MovingHeadPanels/MHColorWheelPanel.h" />
+		<Unit filename="effects/MovingHeadPanels/MHDimmerPresetBitmapButton.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MHDimmerPresetBitmapButton.h" />
 		<Unit filename="effects/MovingHeadPanels/MHPathPresetBitmapButton.cpp" />
 		<Unit filename="effects/MovingHeadPanels/MHPathPresetBitmapButton.h" />
 		<Unit filename="effects/MovingHeadPanels/MHPresetBitmapButton.cpp" />

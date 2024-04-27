@@ -41,6 +41,7 @@
 class Model;
 class MHPresetBitmapButton;
 class MHPathPresetBitmapButton;
+class MHDimmerPresetBitmapButton;
 
 class MovingHeadPanel: public xlEffectPanel,
                        public IMovingHeadCanvasParent,
@@ -75,6 +76,9 @@ public:
     BulkEditValueCurveButton* ValueCurve_MHTilt;
     BulkEditValueCurveButton* ValueCurve_MHTiltOffset;
     BulkEditValueCurveButton* ValueCurve_MHTimeOffset;
+    wxButton* ButtonDimmerOff;
+    wxButton* ButtonDimmerOn;
+    wxButton* ButtonSaveDimmerPreset;
     wxButton* ButtonSavePathPreset;
     wxButton* ButtonSavePreset;
     wxButton* Button_All;
@@ -96,6 +100,7 @@ public:
     wxFlexGridSizer* FlexGridSizerColor;
     wxFlexGridSizer* FlexGridSizerColorWheel;
     wxFlexGridSizer* FlexGridSizerDimmerCanvas;
+    wxFlexGridSizer* FlexGridSizerDimmerPresets;
     wxFlexGridSizer* FlexGridSizerPathCanvas;
     wxFlexGridSizer* FlexGridSizerPathPresets;
     wxFlexGridSizer* FlexGridSizerPathing;
@@ -174,6 +179,9 @@ protected:
     static const long IDD_TEXTCTRL_MHCycles;
     static const long ID_BUTTON_SavePreset;
     static const long ID_PANEL_Position;
+    static const long ID_BUTTON_DimmerOn;
+    static const long ID_BUTTON_DimmerOff;
+    static const long ID_BUTTON_SaveDimmerPreset;
     static const long ID_PANEL_Dimmer;
     static const long ID_BUTTON_MHPathContinue;
     static const long ID_BUTTON_MHPathClear;
@@ -230,6 +238,9 @@ private:
     void OnButtonSavePresetClick(wxCommandEvent& event);
     void OnButtonSavePathPresetClick(wxCommandEvent& event);
     void OnButton_ResetToDefaultClick(wxCommandEvent& event);
+    void OnButtonSaveDimmerPresetClick(wxCommandEvent& event);
+    void OnButtonDimmerOnClick(wxCommandEvent& event);
+    void OnButtonDimmerOffClick(wxCommandEvent& event);
     //*)
     
     DECLARE_EVENT_TABLE()
@@ -263,7 +274,8 @@ private:
     std::string GetMHPresetFolder(const std::string& showFolder);
     void OnButtonPresetClick(wxCommandEvent& event);
     void OnButtonPathPresetClick(wxCommandEvent& event);
-    void SavePreset(const wxArrayString& preset, bool is_path = false);
+    void OnButtonDimmerPresetClick(wxCommandEvent& event);
+    void SavePreset(const wxArrayString& preset, bool is_path = false, bool is_dimmer = false);
     void LoadMHPreset(const wxFileName& fn);
     void LoadMHPreset(const std::string& fn);
     void UpdateColorPanel();
@@ -274,6 +286,7 @@ private:
     bool presets_loaded {false};
     std::vector<MHPresetBitmapButton*> presets;
     std::vector<MHPathPresetBitmapButton*> path_presets;
+    std::vector<MHDimmerPresetBitmapButton*> dimmer_presets;
 
     MovingHeadCanvasPanel* m_movingHeadCanvasPanel = nullptr;
     MovingHeadDimmerPanel* m_movingHeadDimmerPanel = nullptr;
