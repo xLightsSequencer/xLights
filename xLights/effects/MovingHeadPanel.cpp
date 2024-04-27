@@ -75,6 +75,9 @@ const long MovingHeadPanel::ID_SLIDER_MHCycles = wxNewId();
 const long MovingHeadPanel::IDD_TEXTCTRL_MHCycles = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_SavePreset = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Position = wxNewId();
+const long MovingHeadPanel::ID_BUTTON_DimmerOn = wxNewId();
+const long MovingHeadPanel::ID_BUTTON_DimmerOff = wxNewId();
+const long MovingHeadPanel::ID_BUTTON_DimmerSavePreset = wxNewId();
 const long MovingHeadPanel::ID_PANEL_Dimmer = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_MHPathContinue = wxNewId();
 const long MovingHeadPanel::ID_BUTTON_MHPathClear = wxNewId();
@@ -126,6 +129,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     BulkEditTextCtrlF1* TextCtrl_MHTiltOffset;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizerColorMain;
     wxFlexGridSizer* FlexGridSizerColorSliders;
@@ -282,6 +286,16 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerDimmerCanvas->AddGrowableCol(0);
     FlexGridSizerDimmerCanvas->AddGrowableRow(0);
     FlexGridSizerDimmer->Add(FlexGridSizerDimmerCanvas, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 5);
+    FlexGridSizer3 = new wxFlexGridSizer(0, 4, 0, 0);
+    ButtonDimmerOn = new wxButton(PanelDimmer, ID_BUTTON_DimmerOn, _("On"), wxDefaultPosition, wxSize(45,23), 0, wxDefaultValidator, _T("ID_BUTTON_DimmerOn"));
+    FlexGridSizer3->Add(ButtonDimmerOn, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonDimmerOff = new wxButton(PanelDimmer, ID_BUTTON_DimmerOff, _("Off"), wxDefaultPosition, wxSize(45,23), 0, wxDefaultValidator, _T("ID_BUTTON_DimmerOff"));
+    FlexGridSizer3->Add(ButtonDimmerOff, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerDimmer->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerDimmerPresets = new wxFlexGridSizer(0, 4, 0, 0);
+    FlexGridSizerDimmer->Add(FlexGridSizerDimmerPresets, 1, wxALL|wxEXPAND, 5);
+    ButtonDimmerSavePreset = new wxButton(PanelDimmer, ID_BUTTON_DimmerSavePreset, _("Save Preset"), wxDefaultPosition, wxSize(100,23), 0, wxDefaultValidator, _T("ID_BUTTON_DimmerSavePreset"));
+    FlexGridSizerDimmer->Add(ButtonDimmerSavePreset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     PanelDimmer->SetSizer(FlexGridSizerDimmer);
     FlexGridSizerDimmer->Fit(PanelDimmer);
     FlexGridSizerDimmer->SetSizeHints(PanelDimmer);
@@ -438,6 +452,9 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_BUTTON_Evens,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_EvensClick);
     Connect(ID_BUTTON_Odds,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_OddsClick);
     Connect(ID_BUTTON_SavePreset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButtonSavePresetClick);
+    Connect(ID_BUTTON_DimmerOn,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButtonDimmerOnClick);
+    Connect(ID_BUTTON_DimmerOff,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButtonDimmerOffClick);
+    Connect(ID_BUTTON_DimmerSavePreset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButtonDimmerSavePresetClick);
     Connect(ID_BUTTON_MHPathContinue,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_MHPathContinueClick);
     Connect(ID_BUTTON_MHPathClear,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_MHPathClearClick);
     Connect(ID_BUTTON_MHPathClose,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_MHPathCloseClick);
@@ -1873,4 +1890,17 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
     }
     FireChangeEvent();
     UpdateStatusPanel();
+}
+
+void MovingHeadPanel::OnButtonDimmerSavePresetClick(wxCommandEvent& event)
+{
+}
+
+
+void MovingHeadPanel::OnButtonDimmerOnClick(wxCommandEvent& event)
+{
+}
+
+void MovingHeadPanel::OnButtonDimmerOffClick(wxCommandEvent& event)
+{
 }

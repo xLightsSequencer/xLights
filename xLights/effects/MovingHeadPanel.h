@@ -75,6 +75,9 @@ public:
     BulkEditValueCurveButton* ValueCurve_MHTilt;
     BulkEditValueCurveButton* ValueCurve_MHTiltOffset;
     BulkEditValueCurveButton* ValueCurve_MHTimeOffset;
+    wxButton* ButtonDimmerOff;
+    wxButton* ButtonDimmerOn;
+    wxButton* ButtonDimmerSavePreset;
     wxButton* ButtonSavePathPreset;
     wxButton* ButtonSavePreset;
     wxButton* Button_All;
@@ -96,6 +99,7 @@ public:
     wxFlexGridSizer* FlexGridSizerColor;
     wxFlexGridSizer* FlexGridSizerColorWheel;
     wxFlexGridSizer* FlexGridSizerDimmerCanvas;
+    wxFlexGridSizer* FlexGridSizerDimmerPresets;
     wxFlexGridSizer* FlexGridSizerPathCanvas;
     wxFlexGridSizer* FlexGridSizerPathPresets;
     wxFlexGridSizer* FlexGridSizerPathing;
@@ -174,6 +178,9 @@ protected:
     static const long IDD_TEXTCTRL_MHCycles;
     static const long ID_BUTTON_SavePreset;
     static const long ID_PANEL_Position;
+    static const long ID_BUTTON_DimmerOn;
+    static const long ID_BUTTON_DimmerOff;
+    static const long ID_BUTTON_DimmerSavePreset;
     static const long ID_PANEL_Dimmer;
     static const long ID_BUTTON_MHPathContinue;
     static const long ID_BUTTON_MHPathClear;
@@ -230,6 +237,10 @@ private:
     void OnButtonSavePresetClick(wxCommandEvent& event);
     void OnButtonSavePathPresetClick(wxCommandEvent& event);
     void OnButton_ResetToDefaultClick(wxCommandEvent& event);
+    void OnButtonDimmerSavePresetClick(wxCommandEvent& event);
+    void OnButtonDimmerSavePresetClick1(wxCommandEvent& event);
+    void OnButtonDimmerOnClick(wxCommandEvent& event);
+    void OnButtonDimmerOffClick(wxCommandEvent& event);
     //*)
     
     DECLARE_EVENT_TABLE()
