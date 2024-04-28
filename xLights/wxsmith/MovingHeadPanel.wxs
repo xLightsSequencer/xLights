@@ -521,10 +521,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxButton" name="ID_BUTTON_DimmerSavePreset" variable="ButtonDimmerSavePreset" member="yes">
+									<object class="wxButton" name="ID_BUTTON_SaveDimmerPreset" variable="ButtonSaveDimmerPreset" member="yes">
 										<label>Save Preset</label>
 										<size>100,23</size>
-										<handler function="OnButtonDimmerSavePresetClick" entry="EVT_BUTTON" />
+										<handler function="OnButtonSaveDimmerPresetClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
