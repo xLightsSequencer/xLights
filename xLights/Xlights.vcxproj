@@ -310,6 +310,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="effects\MovingHeadEffect.cpp" />
     <ClCompile Include="effects\MovingHeadPanel.cpp" />
     <ClCompile Include="effects\MovingHeadPanels\MHColorWheelPanel.cpp" />
+    <ClCompile Include="effects\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp" />
     <ClCompile Include="effects\MovingHeadPanels\MHPathPresetBitmapButton.cpp" />
     <ClCompile Include="effects\MovingHeadPanels\MHPresetBitmapButton.cpp" />
     <ClCompile Include="effects\MovingHeadPanels\MHRgbPickerPanel.cpp" />

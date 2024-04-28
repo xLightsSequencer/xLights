@@ -1092,6 +1092,9 @@
     <ClCompile Include="models\DMX\DmxDimmerAbility.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
