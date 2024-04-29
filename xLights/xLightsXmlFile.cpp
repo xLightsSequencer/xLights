@@ -1089,7 +1089,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, co
         root->AddAttribute("FixedPointTiming", "1");
     }
 
-    std::string mediaFileName = "";
+    std::string mediaFileName;
     for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "head") {
             for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
@@ -1141,7 +1141,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, co
                             audio = nullptr;
                         }
                         if (::FileExists(mf) && mf.IsFileReadable()) {
-                            mediaFileName = media_file.ToStdString();
+                            mediaFileName = ToUTF8(media_file);
                         }
                         else {
                             if (!::FileExists(mf)) {
