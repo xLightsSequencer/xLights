@@ -1141,7 +1141,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, co
                             audio = nullptr;
                         }
                         if (::FileExists(mf) && mf.IsFileReadable()) {
-                            mediaFileName = ToUTF8(media_file);
+                            mediaFileName = media_file.ToStdString();
                         }
                         else {
                             if (!::FileExists(mf)) {
