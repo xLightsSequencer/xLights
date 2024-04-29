@@ -658,7 +658,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                         case SP_XmlPullEvent::eCData:
                             if (isMedia) {
                                 SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
-                                mediaName = wxString::FromAscii(stagEvent->getText()).ToStdString();
+                                mediaName = FromUTF8(stagEvent->getText());
                                 done = true;
                             }
                             break;
