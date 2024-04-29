@@ -15,6 +15,22 @@
 #include "ArchesModel.h"
 #include "BaseObject.h"
 #include "BaseObjectVisitor.h"
+#include "CandyCaneModel.h"
+#include "ChannelBlockModel.h"
+#include "CircleModel.h"
+#include "CubeModel.h"
+#include "CustomModel.h"
+#include "IciclesModel.h"
+#include "ImageModel.h"
+#include "MatrixModel.h"
+#include "PolyLineModel.h"
+#include "SingleLineModel.h"
+#include "SphereModel.h"
+#include "SpinnerModel.h"
+#include "StarModel.h"
+#include "TreeModel.h"
+#include "WindowFrameModel.h"
+#include "WreathModel.h"
 #include "DMX/DmxColorAbilityCMY.h"
 #include "DMX/DmxColorAbilityRGB.h"
 #include "DMX/DmxColorAbilityWheel.h"
@@ -63,6 +79,26 @@ constexpr auto SMTypeAttribute         = "type";
 constexpr auto BufferStyleAttribute    = "bufferstyle";
 constexpr auto SubBufferStyleAttribute = "subBuffer";
 constexpr auto Line0Attribute          = "line0";
+
+//<ModelGroup
+constexpr auto GroupNodeName            = "modelGroup";
+constexpr auto mgSelectedAttribute      = "selected";
+constexpr auto mgLayoutAttribute        = "layout";
+constexpr auto mgGridSizeAttribute      = "GridSize";
+constexpr auto mgLayoutGroupAttribute   = "LayoutGroup";
+constexpr auto mgNameAttribute          = "name";
+constexpr auto mgCentreMinxAttribute    = "centreMinx";
+constexpr auto mgCentreMinyAttribute    = "centreMiny";
+constexpr auto mgCentreMaxxAttribute    = "centreMaxx";
+constexpr auto mgCentreMaxyAttribute    = "centreMaxy";
+constexpr auto mgModelsAttribute        = "models";
+constexpr auto mgCentrexAttribute       = "centrex";
+constexpr auto mgCentreyAttribute       = "centrey";
+constexpr auto mgCentreDefinedAttribute = "centreDefined";
+constexpr auto mgxCentreOffsetAttribute = "XCentreOffset";
+constexpr auto mgyCentreOffsetAttribute = "YCentreOffset";
+constexpr auto mgDefaultCameraAttribute = "DefaultCamera";
+constexpr auto mgTagColourAttribute     = "TagColour";
 
 // Size/Position Attributes
 constexpr auto WorldPosXAttribute = "WorldPosX";
@@ -318,8 +354,25 @@ constexpr auto MouthrestColor2Attribute    = "Mouth - rest2-Color";
 
 // Model Types
 constexpr auto ArchesType           = "Arches";
+constexpr auto CandyCaneType        = "Candy Canes";
+constexpr auto ChannelBlockType     = "Channel Block";
+constexpr auto CircleType           = "Circle";
+constexpr auto CubeType             = "Cube";
+constexpr auto CustomType           = "Custom";
 constexpr auto DmxMovingHeadAdvType = "DmxMovingHeadAdv";
-
+constexpr auto IciclesType          = "Icicles";
+constexpr auto ImageType            = "Image";
+constexpr auto MatrixType           = "Matrix";
+constexpr auto SingleLineType       = "Single Line";
+constexpr auto PolyLineType         = "Poly Line";
+constexpr auto SphereType           = "Sphere";
+constexpr auto SpinnerType          = "Spinner";
+constexpr auto StarType             = "Star";
+constexpr auto Tree360Type          = "Tree 360";
+constexpr auto TreeFlatType         = "Tree Flat";
+constexpr auto TreeRibbonType       = "Tree Ribbon";
+constexpr auto WindowType           = "Window Frame";
+constexpr auto WreathType           = "Wreath";
 };
 
 struct XmlSerializingVisitor : BaseObjectVisitor
@@ -479,9 +532,74 @@ struct XmlSerializingVisitor : BaseObjectVisitor
         }
         return oss;
     }
-    void Visit(const ArchesModel &arch) override
-    {
+
+    void AddSubmodels(wxXmlNode* node, Model* sm) {
+        
+        wxXmlNode* submodels = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::SubModelNodeName);
+        submodels->AddAttribute(XmlNodeKeys::SubModelNameAttribute, sm->GetName());
+        const std::list<std::string>& aliases = sm->GetAliases();
+        
+        //const Model* m = dynamic_cast<const Model*>(sm);
+        //const ModelManager& mgr = m->GetModelManager();
+
+        submodels->AddAttribute(XmlNodeKeys::LayoutAttribute, "foo");
+        submodels->AddAttribute(XmlNodeKeys::SMTypeAttribute, "bar");
+        submodels->AddAttribute(XmlNodeKeys::BufferStyleAttribute, "baz");
+        submodels->AddAttribute(XmlNodeKeys::SubBufferStyleAttribute, "foobarbaz");
+        submodels->AddAttribute(XmlNodeKeys::Line0Attribute, "foobarbaz");
+        AddAliases(submodels,aliases);
+        node->AddChild(submodels);
+    }
+
+    void AddGroups(wxXmlNode* node, std::vector<std::string> groups, const std::string name) {
+
+        for (const auto& g : groups) {
+            wxXmlNode* groups = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::GroupNodeName);
+            groups->AddAttribute(XmlNodeKeys::mgNameAttribute, g);
+            groups->AddAttribute(XmlNodeKeys::mgModelsAttribute, name);
+            groups->AddAttribute(XmlNodeKeys::mgLayoutGroupAttribute, "foobarbaz");
+            groups->AddAttribute(XmlNodeKeys::mgSelectedAttribute, "foo");
+            groups->AddAttribute(XmlNodeKeys::mgLayoutAttribute, "foobarbaz");
+            groups->AddAttribute(XmlNodeKeys::mgGridSizeAttribute, "foobarbaz");
+            groups->AddAttribute(XmlNodeKeys::mgTagColourAttribute, "foobarbaz");
+            groups->AddAttribute(XmlNodeKeys::mgCentreMinxAttribute, "foobarbaz");
+            groups->AddAttribute(XmlNodeKeys::mgCentreMinyAttribute, "foobarbaz");
+            groups->AddAttribute(XmlNodeKeys::mgCentreMaxxAttribute, "foobarbaz");
+            groups->AddAttribute(XmlNodeKeys::mgCentreMaxyAttribute, "foobarbaz");
+            groups->AddAttribute(XmlNodeKeys::mgCentrexAttribute, "foobarbaz");
+            groups->AddAttribute(XmlNodeKeys::mgCentreyAttribute, "foobarbaz");
+            groups->AddAttribute(XmlNodeKeys::mgCentreDefinedAttribute, "foobarbaz");
+            groups->AddAttribute(XmlNodeKeys::mgDefaultCameraAttribute, "foobarbaz");
+            groups->AddAttribute(XmlNodeKeys::mgxCentreOffsetAttribute, "foobarbaz");
+            groups->AddAttribute(XmlNodeKeys::mgyCentreOffsetAttribute, "foobarbaz");
+            //AddAliases(groups,aliases);
+            node->AddChild(groups);
+        }
+    }
+
+    void AddAliases(wxXmlNode* node, const std::list<std::string> aliases) {
+        wxXmlNode* aliashdr = new wxXmlNode(wxXML_ELEMENT_NODE, "Aliases");
+
+        for (const auto& a : aliases) {
+            wxXmlNode* alias = new wxXmlNode(wxXML_ELEMENT_NODE, "alias");
+            alias->AddAttribute("name", a);
+            aliashdr->AddChild(alias);
+        }
+        node->AddChild(aliashdr);
+    }
+
+    void Visit(const ArchesModel &arch) override {
         wxXmlNode *archNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+
+        const std::vector<Model*>& submodels = arch.GetSubModels();
+        const std::list<std::string>& aliases = arch.GetAliases();
+        const std::string name = arch.GetName();
+
+        const Model* m = dynamic_cast<const Model*>(&arch);
+        const ModelManager& mgr = m->GetModelManager();
+        std::vector<std::string> groups = mgr.GetGroupsContainingModel(m);
+        std::vector<Model*> modelGroups = mgr.GetModelGroups(m);
+
         AddBaseObjectAttributes(arch, archNode);
         AddCommonModelAttributes(arch, archNode);
         AddModelScreenLocationAttributes(arch, archNode);
@@ -490,8 +608,79 @@ struct XmlSerializingVisitor : BaseObjectVisitor
         archNode->AddAttribute(XmlNodeKeys::HollowAttribute, std::to_string(arch.GetHollow()));
         archNode->AddAttribute(XmlNodeKeys::GapAttribute, std::to_string(arch.GetGap()));
         archNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(arch.GetLayerSizes()));
+        AddAliases(archNode, aliases);
+        for (Model* submodel : submodels) {
+            Model* sm = arch.GetSubModel(submodel->GetName());
+            AddSubmodels(archNode, sm);
+        }
+        AddGroups(archNode,groups,name);
         parentNode->AddChild(archNode);
     }
+
+    void Visit(const CandyCaneModel &cc) override {
+        wxXmlNode* ccNode= new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+
+        const std::vector<Model*>& submodels = cc.GetSubModels();
+        const std::list<std::string>& aliases = cc.GetAliases();
+        const std::string name = cc.GetName();
+
+        const Model* m = dynamic_cast<const Model*>(&cc);
+        const ModelManager& mgr = m->GetModelManager();
+        std::vector<std::string> groups = mgr.GetGroupsContainingModel(m);
+
+        AddBaseObjectAttributes(cc, ccNode);
+        AddCommonModelAttributes(cc, ccNode);
+        AddModelScreenLocationAttributes(cc, ccNode);
+        AddThreePointScreenLocationAttributes(cc, ccNode);
+        AddAliases(ccNode,aliases);
+        for (Model* submodel : submodels) {
+            Model* sm = cc.GetSubModel(submodel->GetName());
+            AddSubmodels(ccNode, sm);
+        }
+        AddGroups(ccNode,groups,name);
+        parentNode->AddChild(ccNode);
+    }
+
+    void Visit(const CircleModel &circle) override {
+        wxXmlNode* circleNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+
+        const std::vector<Model*>& submodels = circle.GetSubModels();
+        const std::list<std::string>& aliases = circle.GetAliases();
+        const std::string name = circle.GetName();
+
+        const Model* m = dynamic_cast<const Model*>(&circle);
+        const ModelManager& mgr = m->GetModelManager();
+        std::vector<std::string> groups = mgr.GetGroupsContainingModel(m);
+
+        AddBaseObjectAttributes(circle, circleNode);
+        AddCommonModelAttributes(circle, circleNode);
+        AddModelScreenLocationAttributes(circle, circleNode);
+        //AddThreePointScreenLocationAttributes(circle, circleNode);  //export crashes, most likely an attribute that doesn't exist - need to look into
+        AddAliases(circleNode,aliases);
+        for (Model* submodel : submodels) {
+            Model* sm = circle.GetSubModel(submodel->GetName());
+            AddSubmodels(circleNode, sm);
+        }
+        AddGroups(circleNode, groups,name);
+        parentNode->AddChild(circleNode);
+    }
+
+    void Visit(const ChannelBlockModel &channelblock) override {}
+    void Visit(const CubeModel &cube) override {}
+    void Visit(const CustomModel &custom) override {}
+    void Visit(const IciclesModel &icicles) override {}
+    void Visit(const ImageModel &image) override {}
+    void Visit(const MatrixModel &matricx) override {}
+    void Visit(const SingleLineModel &singleline) override {}
+    void Visit(const PolyLineModel &polyline) override {}
+    void Visit(const SphereModel &sphere) override {}
+    void Visit(const SpinnerModel &spinner) override {}
+    void Visit(const StarModel &star) override {}
+    void Visit(const TreeModel &tree) override {}
+    // void Visit(const TreeModel &treeflat) override {}
+    // void Visit(const TreeModel &treeribbon) override {}
+    void Visit(const WindowFrameModel &window) override {}
+    void Visit(const WreathModel &wreath) override {}
 
     void Visit(const DmxMovingHeadAdv &moving_head) override
     {
@@ -518,12 +707,13 @@ struct XmlDeserializingObjectFactory
     {
         auto type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute);
 
-        if (type == XmlNodeKeys::ArchesType)
-        {
+        if (type == XmlNodeKeys::ArchesType) {
             return DeserializeArches(new wxXmlNode(*node), xlights);
-        }
-        else if (type == XmlNodeKeys::DmxMovingHeadAdvType)
-        {
+        } else if (type == XmlNodeKeys::CandyCaneType) {
+            return DeserializeCandyCane(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::CircleType) {
+            return DeserializeCircle(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::DmxMovingHeadAdvType) {
             return DeserializeDmxMovingHeadAdv(new wxXmlNode(*node), xlights);
         }
 
@@ -536,6 +726,28 @@ private:
     {
         Model *model;
         model = new ArchesModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeCandyCane(wxXmlNode *node, xLightsFrame* xlights) {
+        Model *model;
+        model = new CandyCaneModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeCircle(wxXmlNode *node, xLightsFrame* xlights) {
+        Model *model;
+        model = new CircleModel(node, xlights->AllModels, false);
 
         std::string name = node->GetAttribute("name");
         wxString newname = xlights->AllModels.GenerateModelName(name);

@@ -82,8 +82,9 @@ class ModelManager : public ObjectManager
         bool IsValidControllerModelChain(Model* m, std::string& tip) const;
         Model *createAndAddModel(wxXmlNode *node, int previewW, int previewH);
         std::string GetModelsOnChannels(uint32_t start, uint32_t end, int perLine) const;
-        std::vector<std::string> GetGroupsContainingModel(Model* model) const;
+        std::vector<std::string> GetGroupsContainingModel(const Model* model) const;
         std::vector<std::string> GetGroupsContainingModelOrSubmodel(Model* model) const;
+        std::vector<Model*> GetModelGroups(const Model* model) const;
         std::string GenerateNewStartChannel(const std::string& lastModel = "") const;
 
         int GetPreviewWidth() const { return previewWidth; }
