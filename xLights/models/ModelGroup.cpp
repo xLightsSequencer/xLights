@@ -194,7 +194,7 @@ bool ModelGroup::ContainsModelOrSubmodel(Model* m) const
     return found;
 }
 
-bool ModelGroup::ContainsModel(Model* m) const
+bool ModelGroup::ContainsModel(const Model* m) const
 {
     wxASSERT(m->GetDisplayAs() != "ModelGroup");
 
@@ -227,7 +227,7 @@ bool ModelGroup::ContainsModel(Model* m) const
     return found;
 }
 
-bool ModelGroup::ContainsModel(Model* m, std::list<const Model*>& visited) const
+bool ModelGroup::ContainsModel(const Model* m, std::list<const Model*>& visited) const
 {
     visited.push_back(this);
 

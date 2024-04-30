@@ -42,8 +42,8 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         int GetHollow() const { return _hollow; }
         int GetGap() const { return _gap; }
 
-        //virtual bool SupportsVisitors() override {return true;}
-        //void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
+        virtual bool SupportsVisitors() override {return true;}
+        void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
     protected:
         virtual void InitModel() override;

@@ -27,10 +27,15 @@ class CandyCaneModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        virtual bool SupportsXlightsModel() override { return true; }
+        virtual void ExportXlightsModel() override;
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
         virtual std::string GetDimension() const override;
         virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
+
+        virtual bool SupportsVisitors() override { return true; }
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:
         virtual void InitModel() override;
