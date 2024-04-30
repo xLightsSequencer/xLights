@@ -11,6 +11,28 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.10 Apr 30, 2024
+   - enh (MrPierreB)    Add ability to control the highlight color for the Bars effect
+   - enh (gil)          Add Preset support for Dimmers
+   - enh (gil)          Adjust Moving Head mesh materials and allow user to control brightness
+   - enh (PeteMathews)  Support controller from ILightThat
+   - enh (gil)          Preview Moving Head beam brightness uses dimmer
+   - enh (gil)          Add "Dimmer" tab to new moving head effect
+   - enh (cybercop23)   Allow export/import of aliases for all model types
+   - enh (derwin12)     Add option to Display Elements to sort bases on node counts
+   - bug (derwin12)     Fix submodel node updates when changing to new submodel choice
+   - bug (cybercop23)   Suppress "Add To groups" if source model doesn't belong to any groups
+   - bug (gil)          Fix crash in MovingHeadPanel with non-moving head models
+   - bug (gil)          Fix migration of moving heads with negative range or motion
+   - bug (gil)          Fix DmxMovingHead orientations ot match new model
+   - bug (gil)          Fix Moving Head default node names
+   - bug (gil)          Fix Moving Head Copy/Paste and presets
+   - bug (derwin12/scott) Fix some issues with UTF-8 characters in media filenames
+   - bug (scott)        Fix State effect panel using Faces intead of states
+   - bug (dkulp)        Fix various layer blending issues with Moving Heads/DMX models
+   - bug (dkulp)        Fix some crashes with effects on empty groups
+   - bug (dkulp)        Fix Model Preview of Tree/Cube/Sphere in some unusual circumstances
+   - bug (derwin12)
 2024.09 Apr 16, 2024
    - enh (dkulp)        MacOS - Use GPU for  layer blending
    - enh (derwin12)     Add preference to override the highlight color for lists
