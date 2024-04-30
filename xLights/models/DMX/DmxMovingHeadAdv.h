@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "DmxMovingHeadComm.h"
+#include "DmxDimmerAbility.h"
 #include "DmxPanTiltAbility.h"
 #include "DmxShutterAbility.h"
 #include "DmxMotorBase.h"
@@ -20,7 +21,7 @@
 class Mesh;
 class MhFeature;
 
-class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility
+class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility, public DmxDimmerAbility
 {
     public:
     DmxMovingHeadAdv(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
@@ -50,6 +51,8 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility
         Mesh* GetBaseMesh() const { return base_mesh; }
         Mesh* GetYokeMesh() const { return yoke_mesh; }
         Mesh* GetHeadMesh() const { return head_mesh; }
+
+        uint32_t GetMHDimmerChannel() const override {return GetDimmerChannel();}
 
         virtual bool SupportsVisitors() override {return true;}
         void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }

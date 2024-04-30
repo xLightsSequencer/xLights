@@ -1086,6 +1086,15 @@
     <ClCompile Include="SpecialOptions.cpp" />
     <ClCompile Include="controllers\ILightThat.cpp" />
     <ClCompile Include="EditSubmodelAliasesDialog.cpp" />
+    <ClCompile Include="effects\MovingHeadPanels\MovingHeadDimmerPanel.cpp">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxDimmerAbility.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2145,6 +2154,28 @@
     <ClInclude Include="xlColourData.h" />
     <ClInclude Include="controllers\ILightThat.h" />
     <ClInclude Include="EditSubmodelAliasesDialog.h" />
+    <ClInclude Include="effects\MovingHeadEffect.h" />
+    <ClInclude Include="effects\MovingHeadPanel.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHColorPanel.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHColorWheelPanel.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHPathPresetBitmapButton.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHPresetBitmapButton.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHRgbPickerPanel.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MovingHeadCanvasPanel.h" />
+    <ClInclude Include="models\BaseObjectVisitor.h" />
+    <ClInclude Include="models\DMX\DmxMotor.h" />
+    <ClInclude Include="models\DMX\DmxMotorBase.h" />
+    <ClInclude Include="models\DMX\DmxMotorPanTilt.h" />
+    <ClInclude Include="models\DMX\DmxMovingHeadAdv.h" />
+    <ClInclude Include="models\DMX\DmxMovingHeadComm.h" />
+    <ClInclude Include="models\DMX\MovingHeads\MhChannel.h" />
+    <ClInclude Include="models\DMX\MovingHeads\MhChannelDialog.h" />
+    <ClInclude Include="models\DMX\MovingHeads\MhFeature.h" />
+    <ClInclude Include="models\DMX\MovingHeads\MhFeatureDialog.h" />
+    <ClInclude Include="models\XmlSerializer.h" />
+    <ClInclude Include="models\DMX\DmxDimmerAbility.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

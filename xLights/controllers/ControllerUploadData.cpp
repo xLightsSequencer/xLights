@@ -851,6 +851,25 @@ int32_t UDControllerPort::Channels() const {
     }
 }
 
+int32_t UDControllerPort::EffectiveChannels(std::string vendor) const {
+    int c = 0;
+    int groupCount = 1;
+    for (const auto& it : _virtualStrings) {
+        if (it->_groupCountSet) {
+            c += it->Channels() * it->_groupCount;
+            if (vendor == "Falcon")
+                groupCount = it->_groupCount; // all subsequent models unless reset
+        } else {
+            if (groupCount > 1) {
+                c += it->Channels() * groupCount;
+            } else {
+                c += it->Channels();
+            }
+        }
+    }
+    return c;
+}
+
 int UDControllerPort::GetUniverse() const {
 
     if (_models.size() == 0) {
@@ -1042,6 +1061,13 @@ bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* ru
         if (Channels() > rules->GetMaxPixelPortChannels()) {
             res += wxString::Format("ERR: Pixel port %d has %d nodes allocated but maximum is %d.\n", _port, (int)Channels() / 3, rules->GetMaxPixelPortChannels() / 3).ToStdString();
             success = false;
+        } else {
+            if (rules->SupportsPixelPortGrouping() && rules->SupportsVirtualStrings()) {
+                if (EffectiveChannels(rules->GetVendor()) > rules->GetMaxPixelPortChannels()) {
+                    res += wxString::Format("ERR: Pixel port %d has %d nodes allocated (as a result of grouping) but maximum is %d.\n", _port, (int)EffectiveChannels(rules->GetVendor()) / 3, rules->GetMaxPixelPortChannels() / 3).ToStdString();
+                    success = false;
+                }
+            }
         }
 
         for (int i = 0; i < rules->GetSmartRemoteCount(); ++i) {

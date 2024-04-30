@@ -529,7 +529,7 @@
 		<Unit filename="controllers/HinksPixExportDialog.cpp" />
 		<Unit filename="controllers/HinksPixExportDialog.h" />
 		<Unit filename="controllers/ILightThat.cpp" />
-                <Unit filename="controllers/ILightThat.h" />
+		<Unit filename="controllers/ILightThat.h" />
 		<Unit filename="controllers/J1Sys.cpp" />
 		<Unit filename="controllers/J1Sys.h" />
 		<Unit filename="controllers/Minleon.cpp" />
@@ -662,6 +662,8 @@
 		<Unit filename="effects/MovingHeadPanels/MHColorPanel.h" />
 		<Unit filename="effects/MovingHeadPanels/MHColorWheelPanel.cpp" />
 		<Unit filename="effects/MovingHeadPanels/MHColorWheelPanel.h" />
+		<Unit filename="effects/MovingHeadPanels/MHDimmerPresetBitmapButton.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MHDimmerPresetBitmapButton.h" />
 		<Unit filename="effects/MovingHeadPanels/MHPathPresetBitmapButton.cpp" />
 		<Unit filename="effects/MovingHeadPanels/MHPathPresetBitmapButton.h" />
 		<Unit filename="effects/MovingHeadPanels/MHPresetBitmapButton.cpp" />
@@ -670,6 +672,8 @@
 		<Unit filename="effects/MovingHeadPanels/MHRgbPickerPanel.h" />
 		<Unit filename="effects/MovingHeadPanels/MovingHeadCanvasPanel.cpp" />
 		<Unit filename="effects/MovingHeadPanels/MovingHeadCanvasPanel.h" />
+		<Unit filename="effects/MovingHeadPanels/MovingHeadDimmerPanel.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MovingHeadDimmerPanel.h" />
 		<Unit filename="effects/MusicEffect.cpp" />
 		<Unit filename="effects/MusicEffect.h" />
 		<Unit filename="effects/MusicPanel.cpp" />
@@ -848,6 +852,8 @@
 		<Unit filename="models/DMX/DmxColorAbilityRGB.h" />
 		<Unit filename="models/DMX/DmxColorAbilityWheel.cpp" />
 		<Unit filename="models/DMX/DmxColorAbilityWheel.h" />
+		<Unit filename="models/DMX/DmxDimmerAbility.cpp" />
+		<Unit filename="models/DMX/DmxDimmerAbility.h" />
 		<Unit filename="models/DMX/DmxFloodArea.cpp" />
 		<Unit filename="models/DMX/DmxFloodArea.h" />
 		<Unit filename="models/DMX/DmxFloodlight.cpp" />

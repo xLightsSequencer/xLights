@@ -36,6 +36,8 @@ class DmxMovingHeadComm : public DmxModel
         virtual ~DmxMovingHeadComm(){};
 
         virtual DmxMotorBase* GetPanMotor() const = 0;
+        virtual uint32_t GetMHDimmerChannel() const = 0;
+        bool HasDimmerChannel() const { return GetMHDimmerChannel() > 0;}
         virtual DmxMotorBase* GetTiltMotor() const = 0;
         virtual int GetFixtureVal() const {
             return fixture_val + 1;

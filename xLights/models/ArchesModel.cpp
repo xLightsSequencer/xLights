@@ -603,7 +603,10 @@ void ArchesModel::ExportXlightsModel()
     f.Write(wxString::Format("ZigZag=\"%s\" ", zz));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
-
+    wxString aliases = SerialiseAliases();
+    if (aliases != "") {
+        f.Write(aliases);
+    }
     wxString groups = SerialiseGroups();
     if (groups != "") {
         f.Write(groups);

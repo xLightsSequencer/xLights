@@ -236,6 +236,7 @@ class UDControllerPort
     int32_t GetStartChannel() const;
 	int32_t GetEndChannel() const;
 	int32_t Channels() const;
+    int32_t EffectiveChannels(std::string vendor) const;
 
     int GetUniverse() const;
     int GetUniverseStartChannel() const;

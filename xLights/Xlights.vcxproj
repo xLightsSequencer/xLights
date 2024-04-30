@@ -310,10 +310,12 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="effects\MovingHeadEffect.cpp" />
     <ClCompile Include="effects\MovingHeadPanel.cpp" />
     <ClCompile Include="effects\MovingHeadPanels\MHColorWheelPanel.cpp" />
+    <ClCompile Include="effects\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp" />
     <ClCompile Include="effects\MovingHeadPanels\MHPathPresetBitmapButton.cpp" />
     <ClCompile Include="effects\MovingHeadPanels\MHPresetBitmapButton.cpp" />
     <ClCompile Include="effects\MovingHeadPanels\MHRgbPickerPanel.cpp" />
     <ClCompile Include="effects\MovingHeadPanels\MovingHeadCanvasPanel.cpp" />
+    <ClCompile Include="effects\MovingHeadPanels\MovingHeadDimmerPanel.cpp" />
     <ClCompile Include="effects\ShaderEffect.cpp" />
     <ClCompile Include="effects\ShaderPanel.cpp" />
     <ClCompile Include="effects\ShapeEffect.cpp" />
@@ -350,6 +352,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="IPEntryDialog.cpp" />
     <ClCompile Include="MetronomeLabelDialog.cpp" />
     <ClCompile Include="models\DMX\DmxColorAbilityCMY.cpp" />
+    <ClCompile Include="models\DMX\DmxDimmerAbility.cpp" />
     <ClCompile Include="models\DMX\DmxMotor.cpp" />
     <ClCompile Include="models\DMX\DmxMovingHeadAdv.cpp" />
     <ClCompile Include="models\DMX\MovingHeads\MhChannel.cpp" />
@@ -861,6 +864,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="MetronomeLabelDialog.h" />
     <ClInclude Include="models\BaseObjectVisitor.h" />
     <ClInclude Include="models\DMX\DmxColorAbilityCMY.h" />
+    <ClInclude Include="models\DMX\DmxDimmerAbility.h" />
     <ClInclude Include="models\DMX\DmxMotor.h" />
     <ClInclude Include="models\DMX\DmxMotorBase.h" />
     <ClInclude Include="models\DMX\DmxMotorPanTilt.h" />

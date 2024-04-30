@@ -69,7 +69,6 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     bool success = cud.Check(rules, check);
 
     if (success) {
-        bool changed = false;
         wxJSONValue outputConfig = new wxJSONValue();
         int first_channel = cud.GetFirstOutput()->GetStartChannel();
         outputConfig["start_address"] = first_channel;

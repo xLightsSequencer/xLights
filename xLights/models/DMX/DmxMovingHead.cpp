@@ -149,7 +149,9 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
         grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES, selected));
         color_ability->AddColorTypeProperties(grid);
     }
+    AddDimmerTypeProperties(grid);
     AddShutterTypeProperties(grid);
+    grid->Collapse("DmxDimmerProperties");
 
     p = grid->Append(new wxPropertyCategory("Beam Properties", "BeamProperties"));
 
@@ -185,6 +187,10 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
     }
 
     if (OnShutterPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        return 0;
+    }
+
+    if (OnDimmerPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
     }
 
@@ -336,6 +342,7 @@ void DmxMovingHead::InitModel() {
     pan_motor->Init(this);
     tilt_motor->Init(this);
 
+    dimmer_channel = wxAtoi(ModelXml->GetAttribute("MhDimmerChannel", "0"));
 	shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
 	shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
     shutter_on_value = wxAtoi(ModelXml->GetAttribute("DmxShutterOnValue", "0"));
@@ -533,7 +540,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     size_t NodeCount = Nodes.size();
     if ((( nullptr != color_ability ) && !color_ability->IsValidModelSettings(this)) ||
         !preset_ability->IsValidModelSettings(this) ||
-        shutter_channel > NodeCount)
+        shutter_channel > NodeCount ||
+        dimmer_channel > NodeCount )
     {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
@@ -555,6 +563,16 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     int trans = color == xlBLACK ? blackTransparency : transparency;
 
     xlColor beam_color = color_ability->GetBeamColor(Nodes);
+
+    // apply dimmer to beam
+    if (dimmer_channel > 0 && active) {
+        xlColor proxy;
+        Nodes[dimmer_channel - 1]->GetColor(proxy);
+        HSVValue hsv = proxy.asHSV();
+        beam_color.red = (beam_color.red * hsv.value);
+        beam_color.blue = (beam_color.blue * hsv.value);
+        beam_color.green = (beam_color.green * hsv.value);
+    }
 
     if (!active) {
         beam_color = xlWHITE;

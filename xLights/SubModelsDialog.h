@@ -378,6 +378,7 @@ private:
 
     void OnDrop(wxCommandEvent& event);
     //void OnGridChar(wxKeyEvent& event);
+    bool shouldProcessGridCellChanged = true;
 
     DECLARE_EVENT_TABLE()
 };
