@@ -1941,7 +1941,7 @@ int xLightsFrame::GetSelectedControllerCount() const {
 
 void xLightsFrame::OnListItemSelectedControllers(wxListEvent& event)
 {
-    if (!inInitialize) { // dwe
+    if (!inInitialize) {
         SetControllersProperties();
     }
 

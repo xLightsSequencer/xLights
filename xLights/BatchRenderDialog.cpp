@@ -136,6 +136,7 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
     FlexGridSizer1->SetSizeHints(this);
 
     SetEscapeId(Button_Cancel->GetId());
+    Button_Ok->SetDefault();
     ValidateWindow();
 }
 
