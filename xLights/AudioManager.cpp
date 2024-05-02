@@ -26,6 +26,7 @@
 #include "../xSchedule/md5.h"
 #include "ExternalHooks.h"
 #include "Parallel.h"
+#include "UtilFunctions.h"
 
 extern "C"
 {
@@ -2096,7 +2097,7 @@ int AudioManager::OpenMediaFile()
     #endif
 
 	AVFormatContext* formatContext = nullptr;
-	int res = avformat_open_input(&formatContext, _audio_file.c_str(), nullptr, nullptr);
+	int res = avformat_open_input(&formatContext, ToUTF8(_audio_file).c_str(), nullptr, nullptr);
 	if (res != 0)
 	{
 		logger_base.error("avformat_open_input Error opening the file %s => %d.", (const char *) _audio_file.c_str(), res);
