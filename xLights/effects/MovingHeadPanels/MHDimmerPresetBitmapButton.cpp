@@ -76,8 +76,8 @@ wxBitmap MHDimmerPresetBitmapButton::CreateImage( int w, int h, double scaleFact
         wxPoint2DDouble pt(wxAtof(dimmers[0]), wxAtof(dimmers[1]));
         wxPoint2DDouble startPt(NormalizedToUI(pt, scaleFactor));
         graphicsPath.MoveToPoint(startPt);
-        unsigned long num_pts = dimmers.size() / 2;
-        for( int i = 1; i < num_pts; ++i ) {
+        size_t num_pts = dimmers.size() / 2;
+        for( size_t i = 1; i < num_pts; ++i ) {
             double x { wxAtof(dimmers[i*2]) };
             double y { wxAtof(dimmers[i*2+1]) };
             wxPoint2DDouble pt(x , y);

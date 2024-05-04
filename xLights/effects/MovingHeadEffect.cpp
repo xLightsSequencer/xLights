@@ -344,8 +344,8 @@ xlColor MovingHeadEffect::GetWheelColor(double eff_pos, const wxArrayString& col
 void MovingHeadEffect::CalculateDimmer(double eff_pos, wxArrayString& dimmers, uint32_t dimmer_channel, RenderBuffer &buffer)
 {
     ValueCurve vc;
-    unsigned long num_pts = dimmers.size() / 2;
-    for( int i = 0; i < num_pts; ++i ) {
+    size_t num_pts = dimmers.size() / 2;
+    for (size_t i = 0; i < num_pts; ++i) {
         double x { wxAtof(dimmers[i*2]) };
         double y { wxAtof(dimmers[i*2+1]) };
         vc.SetValueAt( x, y );

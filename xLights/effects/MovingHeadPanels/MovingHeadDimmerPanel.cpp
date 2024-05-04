@@ -187,8 +187,8 @@ void MovingHeadDimmerPanel::SetDimmerCommands( const std::string& _dimmerCmds )
     selected_handle = -1;
     active_handle = -1;
     wxArrayString points = wxSplit(_dimmerCmds, ',');
-    unsigned long num_pts = points.size() / 2;
-    for( int i = 0; i < num_pts; ++i ) {
+    size_t num_pts = points.size() / 2;
+    for (size_t i = 0; i < num_pts; ++i) {
         double x { wxAtof(points[i*2]) };
         double y { wxAtof(points[i*2+1]) };
         wxPoint2DDouble pt(x, y);

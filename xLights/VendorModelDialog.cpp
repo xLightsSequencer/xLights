@@ -837,6 +837,8 @@ wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename
 
 bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     const std::string vendorlink = "https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/xlights_vendors.xml";
     const std::string vendorlinkbackup = "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
     //const std::string vendorlink = "http://localhost/xlights_vendors.xml";
@@ -883,23 +885,30 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
                 {
                     MVendor* mv = new MVendor(name);
                     _vendors.push_back(mv);
+
+                    logger_base.debug("Vendor %s not downloaded as suppressed.", (const char*)name.c_str());
                 }
                 else
                 {
-                    if (url != "")
-                    {
+                    if (url != "") {
                         std::string vfilename;
-                        if (prog != nullptr) 
+                        if (prog != nullptr)
                             prog->Update(low, "Downloading " + name + " data.");
                         wxXmlDocument* d = GetXMLFromURL(wxURI(url), vfilename, prog, low, high, true);
-                        if (d != nullptr && d->IsOk())
-                        {
-                            if (prog != nullptr) 
+                        if (d != nullptr && d->IsOk()) {
+                            if (prog != nullptr)
                                 prog->Update(high, "Parsing " + name + " data.");
                             MVendor* mv = new MVendor(d, maxModels);
                             _vendors.push_back(mv);
                             delete d;
+                            logger_base.debug("Vendor %s downloaded.", (const char*)name.c_str());
+                        } else {
+                            logger_base.debug("Vendor %s failed to download or validate.", (const char*)name.c_str());
                         }
+                    }
+                    else
+                    {
+                        logger_base.debug("Vendor %s has no url for its models.", (const char*)name.c_str());
                     }
                 }
             }
