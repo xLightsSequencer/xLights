@@ -731,8 +731,16 @@ bool ModelGroup::Reset(bool zeroBased) {
         if( GetCentreDefined()) {
             float cx = GetCentreX();
             float cy = GetCentreY();
-            offsetX = ((cx - ((xminx + xmaxx) / 2.0)) * 2000.0) / (xmaxx - xminx);
-            offsetY = ((cy - ((xminy + xmaxy) / 2.0)) * 2000.0) / (xmaxy - xminy);
+            if (xmaxx == xminx) {
+                offsetX = 0;
+            } else {
+                offsetX = ((cx - ((xminx + xmaxx) / 2.0)) * 2000.0) / (xmaxx - xminx);
+            }
+            if (xmaxy == xminy) {
+                offsetY = 0;
+            } else {
+                offsetY = ((cy - ((xminy + xmaxy) / 2.0)) * 2000.0) / (xmaxy - xminy);
+            }
         } else {
             offsetX = GetXCentreOffset();
             offsetY = GetYCentreOffset();
