@@ -352,7 +352,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                     buffer.Get2ColorBlend(colorIdx, color2, pct, color);
                 HSVValue hsv = color.asHSV();
                 if (highlight && n % barWi == 0)
-                    hsv.saturation = 0.0;
+                    hsv = highlightColor.asHSV();
                 if (show3D)
                     hsv.value *= double(barWi - n % barWi - 1) / barWi;
                 color = hsv;
