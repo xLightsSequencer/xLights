@@ -29,9 +29,7 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int MapToNodeIndex(int strand, int node) const override;
         virtual int GetMappedStrand(int strand) const override;
 
-        int GetStarSize(int starLayer) const {
-            return GetLayerSize(starLayer);
-        }
+        int GetStarSize(int starLayer) const { return GetLayerSize(starLayer); }
         virtual int GetNumStrands() const override;
         virtual bool AllNodesAllocated() const override;
 
@@ -44,6 +42,9 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;
+
+        virtual int NodesPerString() const override;
+        bool SupportsChangingStringCount() const override { return true; };
 
     protected:
         static std::vector<std::string> STAR_BUFFER_STYLES;
@@ -59,4 +60,7 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         // The ratio between the inner start and outer star radius (if more than 1 layer)
         int innerPercent = -1;
         std::string _starStartLocation = "Bottom Ctr-CW";
+        int totalNodes = 0;
+        static std::string StartNodeAttrName(int idx) { return wxString::Format(wxT("Strings%i"), idx + 1).ToStdString(); }
+        std::string ComputeStringStartNode(int x) const;
 };
