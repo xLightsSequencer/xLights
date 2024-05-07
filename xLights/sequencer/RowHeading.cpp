@@ -1510,13 +1510,17 @@ void RowHeading::render( wxPaintEvent& event )
     }
     wxPen effectNoticePen(effectNoticeColor);
     wxBrush effectNoticeBrush(effectNoticeColor);
-    
+
+    wxString groupPrefix = "";
+    wxString modelPrefix = "";
+    wxString submodelPrefix = "";
+    wxString strandPrefix = "";
+    bool isExpanded = false;
     for (int i = 0; i < mSequenceElements->GetVisibleRowInformationSize(); i++) {
-        Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(i);
-        wxString prefix;
         wxString layers;
-        if (rowInfo->submodel) {
-            prefix = "  ";
+        Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(i);
+        if (rowInfo->element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            strandPrefix = "";
         }
         if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING && rowInfo->element->GetEffectLayerCount() > 1) {
             layers = wxString::Format(" [%d]", (int)rowInfo->element->GetEffectLayerCount());
@@ -1563,29 +1567,47 @@ void RowHeading::render( wxPaintEvent& event )
             dc.DrawLine(1,startY-1,w-1,startY-1);
             dc.SetPen(*wxBLACK_PEN);
             if (rowInfo->strandIndex >= 0) {
+                if (rowInfo->strandIndex == 0) {
+                    strandPrefix = "";
+                }
                 wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
                 wxString name = rowInfo->displayName;
                 if (name == "") {
                     if (rowInfo->nodeIndex >= 0) {
                         name = wxString::Format("Node %d", rowInfo->nodeIndex + 1);
                         layers = "";
+                        strandPrefix = "      ";
                     } else {
                         name = wxString::Format("Strand %d", rowInfo->strandIndex + 1);
+                        if (submodelPrefix == "") {
+                            strandPrefix = "  ";
+                        } else {
+                            strandPrefix = "    ";
+                        }
                     }
+                } else {
+                    if(name.StartsWith("Node")) {
+                        strandPrefix = "    ";
+                    } else {
+                        strandPrefix = "  ";
+                    }
+                    
                 }
+
                 if (rowInfo->nodeIndex >= 0) {
-                    dc.DrawLabel(prefix + "     " + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                    dc.DrawLabel(groupPrefix + strandPrefix + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 } else if (rowInfo->layerIndex == 0) {
-                    dc.DrawLabel(prefix + "  " + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                    dc.DrawLabel(groupPrefix + strandPrefix + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 } else {
                     dc.SetPen(*wxBLUE_PEN);
-                    wxString lay = wxString::Format("   [%d]", rowInfo->layerIndex + 1);
+                    wxString lay = wxString::Format(groupPrefix + strandPrefix  + " [%d]", rowInfo->layerIndex + 1);
                     dc.DrawLabel(lay, r, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
                 }
             } else {
                 wxRect r(DEFAULT_ROW_HEADING_MARGIN, startY, w - DEFAULT_ROW_HEADING_MARGIN, DEFAULT_ROW_HEADING_HEIGHT);
                 dc.SetPen(*wxBLUE_PEN);
-                wxString lay = wxString::Format("   [%d]", rowInfo->layerIndex + 1);
+                strandPrefix = "";
+                wxString lay = wxString::Format(groupPrefix.substr(0, groupPrefix.size() - 2) + "   [%d]", rowInfo->layerIndex + 1);
                 dc.DrawLabel(lay, r, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
             }
             dc.SetPen(penOutline);
@@ -1594,8 +1616,6 @@ void RowHeading::render( wxPaintEvent& event )
             // Draw label
             auto name = rowInfo->element->GetName();
             if (rowInfo->element->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
-                prefix += "  ";
-
                 // find the parent row so we can work out its type
                 int toprow = mSequenceElements->GetFirstVisibleModelRow();
                 int parent = toprow + rowInfo->RowNumber;
@@ -1619,15 +1639,14 @@ void RowHeading::render( wxPaintEvent& event )
                     if (pm != nullptr && pm->GetDisplayAs() == "ModelGroup")
                     {
                         name = rowInfo->element->GetFullName();
-                        if (prefix.size() >= 3)
-                        {
-                            prefix = prefix.substr(3);
-                        }
+                        submodelPrefix = "";
                     }
                 }
+            } else {
+                submodelPrefix = "";
             }
             wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
-            dc.DrawLabel(prefix + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+            dc.DrawLabel(groupPrefix + modelPrefix + submodelPrefix + strandPrefix + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
 
         if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
@@ -1724,6 +1743,35 @@ void RowHeading::render( wxPaintEvent& event )
                     dc.DrawBitmap(papagayo_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
                 }
             }
+        }
+        if (rowInfo->element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* me = dynamic_cast<ModelElement*>(rowInfo->element);
+            if (me != nullptr) {
+                Model* m = mSequenceElements->GetXLightsFrame()->AllModels[me->GetModelName()];
+                if (m != nullptr && m->GetDisplayAs() == "ModelGroup") {
+                    if (me->ShowStrands()) {
+                        isExpanded = true;
+                        if (rowInfo->layerIndex == 0) {
+                            groupPrefix = groupPrefix + "  ";
+                        }
+                    } else {
+                        if (rowInfo->layerIndex == 0) {
+                            groupPrefix = groupPrefix.substr(0, groupPrefix.size() - 2);
+                        }
+                    }
+                    submodelPrefix = "";
+                } else {
+                    submodelPrefix = "  ";
+                }
+
+                modelPrefix = "";
+                if (me->ShowStrands()) {
+                    isExpanded = true;
+                }
+            }
+        }
+        if (rowInfo->element->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+            strandPrefix = "  ";
         }
         row++;
     }
