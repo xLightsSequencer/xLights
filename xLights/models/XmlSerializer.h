@@ -42,88 +42,88 @@
 
 namespace XmlNodeKeys {
     // Model Node Names
-    constexpr auto ModelsNodeName = "models";
-    constexpr auto ModelNodeName = "model";
-    constexpr auto TypeAttribute = "type";
+    constexpr auto ModelsNodeName    = "models";
+    constexpr auto ModelNodeName     = "model";
+    constexpr auto TypeAttribute     = "type";
     constexpr auto ExportedAttribute = "exported";
 
     // Common BaseObject Attributes
-    constexpr auto NameAttribute = "name";
-    constexpr auto DisplayAsAttribute = "DisplayAs";
+    constexpr auto NameAttribute        = "name";
+    constexpr auto DisplayAsAttribute   = "DisplayAs";
     constexpr auto LayoutGroupAttribute = "LayoutGroup";
 
     // Common Model Attributes
-    constexpr auto StartSideAttribute = "StartSide";
-    constexpr auto DirAttribute = "Dir";
-    constexpr auto Parm1Attribute = "parm1";
-    constexpr auto Parm2Attribute = "parm2";
-    constexpr auto Parm3Attribute = "parm3";
-    constexpr auto AntialiasAttribute = "Antialias";
-    constexpr auto PixelSizeAttribute = "PixelSize";
-    constexpr auto StringTypeAttribute = "StringType";
-    constexpr auto TransparencyAttribute = "Transparency";
+    constexpr auto StartSideAttribute     = "StartSide";
+    constexpr auto DirAttribute           = "Dir";
+    constexpr auto Parm1Attribute         = "parm1";
+    constexpr auto Parm2Attribute         = "parm2";
+    constexpr auto Parm3Attribute         = "parm3";
+    constexpr auto AntialiasAttribute     = "Antialias";
+    constexpr auto PixelSizeAttribute     = "PixelSize";
+    constexpr auto StringTypeAttribute    = "StringType";
+    constexpr auto TransparencyAttribute  = "Transparency";
     constexpr auto BTransparencyAttribute = "BlackTransparency";
-    constexpr auto StartChannelAttribute = "StartChannel";
-    constexpr auto NodeNamesAttribute = "NodeNames";
-    constexpr auto StrandNamesAttribute = "StrandNames";
-    constexpr auto ControllerAttribute = "Controller";
+    constexpr auto StartChannelAttribute  = "StartChannel";
+    constexpr auto NodeNamesAttribute     = "NodeNames";
+    constexpr auto StrandNamesAttribute   = "StrandNames";
+    constexpr auto ControllerAttribute    = "Controller";
     constexpr auto versionNumberAttribute = "versionNumber";
-    constexpr auto ActiveAttribute = "Active";
-    constexpr auto FromBaaseAttribute = "FromBase";
-    constexpr auto DescriptionAttribute = "Description";
+    constexpr auto ActiveAttribute        = "Active";
+    constexpr auto FromBaaseAttribute     = "FromBase";
+    constexpr auto DescriptionAttribute   = "Description";
     constexpr auto CustomStringsAttribute = "String";
 
     // Common SubModel Attributes
-    constexpr auto SubModelNodeName = "subModel";
-    constexpr auto SubModelNameAttribute = "name";
-    constexpr auto LayoutAttribute = "layout";
-    constexpr auto SMTypeAttribute = "type";
-    constexpr auto BufferStyleAttribute = "bufferstyle";
+    constexpr auto SubModelNodeName        = "subModel";
+    constexpr auto SubModelNameAttribute   = "name";
+    constexpr auto LayoutAttribute         = "layout";
+    constexpr auto SMTypeAttribute         = "type";
+    constexpr auto BufferStyleAttribute    = "bufferstyle";
     constexpr auto SubBufferStyleAttribute = "subBuffer";
-    constexpr auto LineAttribute = "line";
+    constexpr auto LineAttribute           = "line";
 
     // ModelGroup
-    constexpr auto GroupNodeName = "modelGroup";
-    constexpr auto mgSelectedAttribute = "selected";
-    constexpr auto mgLayoutAttribute = "layout";
-    constexpr auto mgGridSizeAttribute = "GridSize";
-    constexpr auto mgLayoutGroupAttribute = "LayoutGroup";
-    constexpr auto mgNameAttribute = "name";
-    constexpr auto mgCentreMinxAttribute = "centreMinx";
-    constexpr auto mgCentreMinyAttribute = "centreMiny";
-    constexpr auto mgCentreMaxxAttribute = "centreMaxx";
-    constexpr auto mgCentreMaxyAttribute = "centreMaxy";
-    constexpr auto mgModelsAttribute = "models";
-    constexpr auto mgCentrexAttribute = "centrex";
-    constexpr auto mgCentreyAttribute = "centrey";
+    constexpr auto GroupNodeName            = "modelGroup";
+    constexpr auto mgSelectedAttribute      = "selected";
+    constexpr auto mgLayoutAttribute        = "layout";
+    constexpr auto mgGridSizeAttribute      = "GridSize";
+    constexpr auto mgLayoutGroupAttribute   = "LayoutGroup";
+    constexpr auto mgNameAttribute          = "name";
+    constexpr auto mgCentreMinxAttribute    = "centreMinx";
+    constexpr auto mgCentreMinyAttribute    = "centreMiny";
+    constexpr auto mgCentreMaxxAttribute    = "centreMaxx";
+    constexpr auto mgCentreMaxyAttribute    = "centreMaxy";
+    constexpr auto mgModelsAttribute        = "models";
+    constexpr auto mgCentrexAttribute       = "centrex";
+    constexpr auto mgCentreyAttribute       = "centrey";
     constexpr auto mgCentreDefinedAttribute = "centreDefined";
     constexpr auto mgxCentreOffsetAttribute = "XCentreOffset";
     constexpr auto mgyCentreOffsetAttribute = "YCentreOffset";
     constexpr auto mgDefaultCameraAttribute = "DefaultCamera";
-    constexpr auto mgTagColourAttribute = "TagColour";
+    constexpr auto mgTagColourAttribute     = "TagColour";
 
     // Size/Position Attributes
     constexpr auto WorldPosXAttribute = "WorldPosX";
     constexpr auto WorldPosYAttribute = "WorldPosY";
     constexpr auto WorldPosZAttribute = "WorldPosZ";
-    constexpr auto ScaleXAttribute = "ScaleX";
-    constexpr auto ScaleYAttribute = "ScaleY";
-    constexpr auto ScaleZAttribute = "ScaleZ";
-    constexpr auto RotateXAttribute = "RotateX";
-    constexpr auto RotateYAttribute = "RotateY";
-    constexpr auto RotateZAttribute = "RotateZ";
-    constexpr auto WidthAttribute = "Width";
-    constexpr auto HeightAttribute = "Height";
-    constexpr auto DepthAttribute = "Depth";
-    constexpr auto OffsetXAttribute = "OffsetX";
-    constexpr auto OffsetYAttribute = "OffsetY";
-    constexpr auto OffsetZAttribute = "OffsetZ";
+    constexpr auto ScaleXAttribute    = "ScaleX";
+    constexpr auto ScaleYAttribute    = "ScaleY";
+    constexpr auto ScaleZAttribute    = "ScaleZ";
+    constexpr auto RotateXAttribute   = "RotateX";
+    constexpr auto RotateYAttribute   = "RotateY";
+    constexpr auto RotateZAttribute   = "RotateZ";
+    constexpr auto WidthAttribute     = "Width";
+    constexpr auto HeightAttribute    = "Height";
+    constexpr auto DepthAttribute     = "Depth";
+    constexpr auto OffsetXAttribute   = "OffsetX";
+    constexpr auto OffsetYAttribute   = "OffsetY";
+    constexpr auto OffsetZAttribute   = "OffsetZ";
 
     // Dimentions Attributes
-    constexpr auto DimUnitsAttribute = "units";
-    constexpr auto DimWidthAttribute = "width";
+    constexpr auto DimUnitsAttribute  = "units";
+    constexpr auto DimWidthAttribute  = "width";
     constexpr auto DimHeightAttribute = "height";
-    constexpr auto DimDepthAttribute = "depth";
+    constexpr auto DimDepthAttribute  = "depth";
 
     // Model Screen Location Attributes
     constexpr auto LockedAttribute = "Locked";
@@ -138,74 +138,74 @@ namespace XmlNodeKeys {
     constexpr auto ShearAttribute = "Shear";
 
     // DmxColorAbilityRGB Attributes
-    constexpr auto DmxRedChannelAttribute = "DmxRedChannel";
+    constexpr auto DmxRedChannelAttribute   = "DmxRedChannel";
     constexpr auto DmxGreenChannelAttribute = "DmxGreenChannel";
-    constexpr auto DmxBlueChannelAttribute = "DmxBlueChannel";
+    constexpr auto DmxBlueChannelAttribute  = "DmxBlueChannel";
     constexpr auto DmxWhiteChannelAttribute = "DmxWhiteChannel";
 
     // DmxColorAbilityWheel Attributes
     constexpr auto DmxColorWheelChannelAttribute = "DmxColorWheelChannel";
-    constexpr auto DmxDimmerChannelAttribute = "DmxDimmerChannel";
-    constexpr auto DmxColorWheelColorAttribute = "DmxColorWheelColor";
-    constexpr auto DmxColorWheelDMXAttribute = "DmxColorWheelDMX";
+    constexpr auto DmxDimmerChannelAttribute     = "DmxDimmerChannel";
+    constexpr auto DmxColorWheelColorAttribute   = "DmxColorWheelColor";
+    constexpr auto DmxColorWheelDMXAttribute     = "DmxColorWheelDMX";
 
     // DmxColorAbilityCMY Attributes
-    constexpr auto DmxCyanChannelAttribute = "DmxCyanChannel";
+    constexpr auto DmxCyanChannelAttribute    = "DmxCyanChannel";
     constexpr auto DmxMagentaChannelAttribute = "DmxMagentaChannel";
-    constexpr auto DmxYellowChannelAttribute = "DmxYellowChannel";
+    constexpr auto DmxYellowChannelAttribute  = "DmxYellowChannel";
 
     // DmxMovingHeadComm Attributes
     constexpr auto DmxFixturelAttribute = "DmxFixture";
 
     // DMX Moving Head Attributes
-    constexpr auto DmxColorTypeAttribute = "DmxColorType";
+    constexpr auto DmxColorTypeAttribute   = "DmxColorType";
     constexpr auto DmxBeamYOffsetAttribute = "DmxBeamYOffset";
-    constexpr auto DmxBeamLengthAttribute = "DmxBeamLength";
+    constexpr auto DmxBeamLengthAttribute  = "DmxBeamLength";
 
     // DmxMotor Attributes
     constexpr auto ChannelCoarseAttribute = "ChannelCoarse";
-    constexpr auto ChannelFineAttribute = "ChannelFine";
-    constexpr auto MinLimitAttribute = "MinLimit";
-    constexpr auto MaxLimitAttribute = "MaxLimit";
+    constexpr auto ChannelFineAttribute   = "ChannelFine";
+    constexpr auto MinLimitAttribute      = "MinLimit";
+    constexpr auto MaxLimitAttribute      = "MaxLimit";
     constexpr auto RangeOfMotionAttribute = "RangeOfMotion";
-    constexpr auto OrientZeroAttribute = "OrientZero";
-    constexpr auto OrientHomeAttribute = "OrientHome";
-    constexpr auto SlewLimitAttribute = "SlewLimit";
-    constexpr auto ReverseAttribute = "Reverse";
-    constexpr auto UpsideDownAttribute = "UpsideDown";
+    constexpr auto OrientZeroAttribute    = "OrientZero";
+    constexpr auto OrientHomeAttribute    = "OrientHome";
+    constexpr auto SlewLimitAttribute     = "SlewLimit";
+    constexpr auto ReverseAttribute       = "Reverse";
+    constexpr auto UpsideDownAttribute    = "UpsideDown";
 
     // Servo Model
     //  TBC
 
     // Controller
     constexpr auto ConnectionAttribute = "Connection";
-    constexpr auto ProtocolAttribute = "Protocol";
-    constexpr auto PortAttribute = "Port";
-    constexpr auto StartNullAttribute = "startNull";
-    constexpr auto EndNullAttribute = "endNull";
+    constexpr auto ProtocolAttribute   = "Protocol";
+    constexpr auto PortAttribute       = "Port";
+    constexpr auto StartNullAttribute  = "startNull";
+    constexpr auto EndNullAttribute    = "endNull";
 
     // Arch Attributes
     constexpr auto ZigZagAttribute = "ZigZag";
     constexpr auto HollowAttribute = "Hollow";
-    constexpr auto GapAttribute = "Gap";
+    constexpr auto GapAttribute    = "Gap";
 
     // Mesh Attributes
-    constexpr auto ObjFileAttribute = "ObjFile";
-    constexpr auto MeshOnlyAttribute = "MeshOnly";
+    constexpr auto ObjFileAttribute    = "ObjFile";
+    constexpr auto MeshOnlyAttribute   = "MeshOnly";
     constexpr auto BrightnessAttribute = "Brightness";
 
     // Arch, CandyCane, Icicles, Single Line Models
 
     // Channel Block Model
-    constexpr auto ChannelPropertiesCC1Attribute = "ChannelProperties.ChannelColor1";
-    constexpr auto ChannelPropertiesCC2Attribute = "ChannelProperties.ChannelColor2";
-    constexpr auto ChannelPropertiesCC3Attribute = "ChannelProperties.ChannelColor3";
-    constexpr auto ChannelPropertiesCC4Attribute = "ChannelProperties.ChannelColor4";
-    constexpr auto ChannelPropertiesCC5Attribute = "ChannelProperties.ChannelColor5";
-    constexpr auto ChannelPropertiesCC6Attribute = "ChannelProperties.ChannelColor6";
-    constexpr auto ChannelPropertiesCC7Attribute = "ChannelProperties.ChannelColor7";
-    constexpr auto ChannelPropertiesCC8Attribute = "ChannelProperties.ChannelColor8";
-    constexpr auto ChannelPropertiesCC9Attribute = "ChannelProperties.ChannelColor9";
+    constexpr auto ChannelPropertiesCC1Attribute  = "ChannelProperties.ChannelColor1";
+    constexpr auto ChannelPropertiesCC2Attribute  = "ChannelProperties.ChannelColor2";
+    constexpr auto ChannelPropertiesCC3Attribute  = "ChannelProperties.ChannelColor3";
+    constexpr auto ChannelPropertiesCC4Attribute  = "ChannelProperties.ChannelColor4";
+    constexpr auto ChannelPropertiesCC5Attribute  = "ChannelProperties.ChannelColor5";
+    constexpr auto ChannelPropertiesCC6Attribute  = "ChannelProperties.ChannelColor6";
+    constexpr auto ChannelPropertiesCC7Attribute  = "ChannelProperties.ChannelColor7";
+    constexpr auto ChannelPropertiesCC8Attribute  = "ChannelProperties.ChannelColor8";
+    constexpr auto ChannelPropertiesCC9Attribute  = "ChannelProperties.ChannelColor9";
     constexpr auto ChannelPropertiesCC10Attribute = "ChannelProperties.ChannelColor10";
     constexpr auto ChannelPropertiesCC11Attribute = "ChannelProperties.ChannelColor11";
     constexpr auto ChannelPropertiesCC12Attribute = "ChannelProperties.ChannelColor12";
@@ -218,20 +218,20 @@ namespace XmlNodeKeys {
     constexpr auto InsideOutAttribute = "InsideOut";
 
     // Cube
-    constexpr auto StyleAttribute = "Style";
+    constexpr auto StyleAttribute         = "Style";
     constexpr auto StrandPerLineAttribute = "SrtrandPerLine";
 
     // Custom Model
-    constexpr auto CustomModel = "Custom";
+    constexpr auto CustomModel           = "Custom";
     constexpr auto CMBrightnessAttribute = "Brightness";
-    constexpr auto StrandsAttribute = "Strands";
-    constexpr auto NodesAttribute = "Nodes";
-    constexpr auto PixelCountAttribute = "PixelCount";
-    constexpr auto PixelTypeAttribute = "PixelType";
+    constexpr auto StrandsAttribute      = "Strands";
+    constexpr auto NodesAttribute        = "Nodes";
+    constexpr auto PixelCountAttribute   = "PixelCount";
+    constexpr auto PixelTypeAttribute    = "PixelType";
     constexpr auto PixelSpacingAttribute = "PixelSpacing";
-    constexpr auto PixelAttribute = "Pixel";
+    constexpr auto PixelAttribute        = "Pixel";
     constexpr auto BkgLightnessAttribute = "BkgLightness";
-    constexpr auto BkgAttribute = "Bkg";
+    constexpr auto BkgAttribute          = "Bkg";
 
     // Image Model
     constexpr auto ImageAttribute = "Image";
@@ -242,98 +242,98 @@ namespace XmlNodeKeys {
     constexpr auto DropPatternAttribute = "DropPattern";
 
     // Poly Line Model
-    constexpr auto NumPointsAttribute = "NumPoints";
-    constexpr auto PointDataAttribute = "PointData";
-    constexpr auto cPointDataAttribute = "cPointData";
-    constexpr auto IndivegAttribute = "Indiveg";
+    constexpr auto NumPointsAttribute   = "NumPoints";
+    constexpr auto PointDataAttribute   = "PointData";
+    constexpr auto cPointDataAttribute  = "cPointData";
+    constexpr auto IndivegAttribute     = "Indiveg";
     constexpr auto SegExpandedAttribute = "SegExpanded";
-    constexpr auto SegAttribute = "Seg";       // needs fix Seg1, Seg2, Seg3
-    constexpr auto CornerAttribute = "Corner"; // needs fix Corner1, Corner2, Corner3
+    constexpr auto SegAttribute         = "Seg";        // needs fix Seg1, Seg2, Seg3
+    constexpr auto CornerAttribute      = "Corner";     // needs fix Corner1, Corner2, Corner3
 
     // Spinner Model
-    constexpr auto ArcAttribute = "Arc";
-    constexpr auto StringAttribute = "String";
+    constexpr auto ArcAttribute       = "Arc";
+    constexpr auto StringAttribute    = "String";
     constexpr auto AlternateAttribute = "Alternate";
-    constexpr auto StartAttribute = "Start";
+    constexpr auto StartAttribute     = "Start";
 
     // Star Model
     constexpr auto StarStartLocationAttribute = "StarStartLocation";
-    constexpr auto LayerSizesAttribute = "LayerSizes";
-    constexpr auto TagColourAttribute = "TagColour";
+    constexpr auto LayerSizesAttribute        = "LayerSizes";
+    constexpr auto TagColourAttribute         = "TagColour";
 
     // Tree Model
     constexpr auto TreeBottomTopRatioAttribute = "TreeBottomTopRatio";
-    constexpr auto TreePerspectiveAttribute = "TreePerspective";
-    constexpr auto TreeAttribute = "Tree";
-    constexpr auto TreeSpiralsAttribute = "TreeSpirals";
+    constexpr auto TreePerspectiveAttribute    = "TreePerspective";
+    constexpr auto TreeAttribute               = "Tree";
+    constexpr auto TreeSpiralsAttribute        = "TreeSpirals";
 
     // Window Frame Model
     constexpr auto RotationAttribute = "Rotation";
 
     // States
-    constexpr auto StateAttribute = "stateInfo";
+    constexpr auto StateAttribute  = "stateInfo";
     constexpr auto ColorsAttribute = "Colors";
-    constexpr auto sAttribute = "s";           // needs enumeration s1, s2, s3 etc
-    constexpr auto sColorAttribute = "sColor"; // needs enumeration s1-Color s2-Color, s3-Color etc
-    constexpr auto sNameAttribute = "sName";   // needs enumeration s1-Name s2-Name, s3-Name etc
+    constexpr auto sAttribute      = "s";           // needs enumeration s1, s2, s3 etc
+    constexpr auto sColorAttribute = "sColor";      // needs enumeration s1-Color s2-Color, s3-Color etc
+    constexpr auto sNameAttribute  = "sName";       // needs enumeration s1-Name s2-Name, s3-Name etc
 
     // Faces
-    constexpr auto EyesClosedAttribute = "Eyes - Closed";
-    constexpr auto EyesClosedColorAttribute = "Eyes - Closed - Color";
-    constexpr auto EyesClosed2Attribute = "Eyes - Closed2";
-    constexpr auto EyesClosed2ColorAttribute = "Eyes - Closed2 - Color";
-    constexpr auto EyesClosed3Attribute = "Eyes - Closed3";
-    constexpr auto EyesClosed3ColorAttribute = "Eyes - Closed3 - Color";
-    constexpr auto EyesOpenAttribute = "Eyes - Open";
-    constexpr auto EyesOpenColorAttribute = "Eyes - Open - Color";
-    constexpr auto EyesOpen2Attribute = "Eyes - Open2";
-    constexpr auto EyesOpen2ColorAttribute = "Eyes - Open2 - Color";
-    constexpr auto EyesOpen3Attribute = "Eyes - Open3";
-    constexpr auto EyesOpen3ColorAttribute = "Eyes - Open3 - Color";
-    constexpr auto FaceOutlineAttribute = "FaceOutline";
-    constexpr auto FaceOutlineColorAttribute = "FaceOutline - Color";
-    constexpr auto FaceOutline2Attribute = "FaceOutline2";
+    constexpr auto EyesClosedAttribute        = "Eyes - Closed";
+    constexpr auto EyesClosedColorAttribute   = "Eyes - Closed - Color";
+    constexpr auto EyesClosed2Attribute       = "Eyes - Closed2";
+    constexpr auto EyesClosed2ColorAttribute  = "Eyes - Closed2 - Color";
+    constexpr auto EyesClosed3Attribute       = "Eyes - Closed3";
+    constexpr auto EyesClosed3ColorAttribute  = "Eyes - Closed3 - Color";
+    constexpr auto EyesOpenAttribute          = "Eyes - Open";
+    constexpr auto EyesOpenColorAttribute     = "Eyes - Open - Color";
+    constexpr auto EyesOpen2Attribute         = "Eyes - Open2";
+    constexpr auto EyesOpen2ColorAttribute    = "Eyes - Open2 - Color";
+    constexpr auto EyesOpen3Attribute         = "Eyes - Open3";
+    constexpr auto EyesOpen3ColorAttribute    = "Eyes - Open3 - Color";
+    constexpr auto FaceOutlineAttribute       = "FaceOutline";
+    constexpr auto FaceOutlineColorAttribute  = "FaceOutline - Color";
+    constexpr auto FaceOutline2Attribute      = "FaceOutline2";
     constexpr auto FaceOutline2ColorAttribute = "FaceOutline2 - Color";
-    constexpr auto MouthAIAttribute = "Mouth - AI";
-    constexpr auto MouthEAttribute = "Mouth - E";
-    constexpr auto MouthFVAttribute = "Mouth - FV";
-    constexpr auto MouthLAttribute = "Mouth - L";
-    constexpr auto MouthMBPAttribute = "Mouth - MBP";
-    constexpr auto MouthOAttribute = "Mouth - O";
-    constexpr auto MouthUAttribute = "Mouth - U";
-    constexpr auto MouthWQAttribute = "Mouth - WQ";
-    constexpr auto MouthetcAttribute = "Mouth - etc";
-    constexpr auto MouthretAttribute = "Mouth - rest";
-    constexpr auto MouthAIColorAttribute = "Mouth - AI-Color";
-    constexpr auto MouthEColorAttribute = "Mouth - E-Color";
-    constexpr auto MouthFVColorAttribute = "Mouth - FV-Color";
-    constexpr auto MouthLColorAttribute = "Mouth - L-Color";
-    constexpr auto MouthMBPColorAttribute = "Mouth - MBP-Color";
-    constexpr auto MouthOColorAttribute = "Mouth - O-Color";
-    constexpr auto MouthUColorAttribute = "Mouth - U-Color";
-    constexpr auto MouthWQColorAttribute = "Mouth - WQ-Color";
-    constexpr auto MouthetcColorAttribute = "Mouth - etc-Color";
-    constexpr auto MouthrestColorAttribute = "Mouth - rest-Color";
-    constexpr auto MouthAI2Attribute = "Mouth - AI2";
-    constexpr auto MouthE2Attribute = "Mouth - E2";
-    constexpr auto MouthFV2Attribute = "Mouth - FV2";
-    constexpr auto MouthL2Attribute = "Mouth - L2";
-    constexpr auto MouthMBP2Attribute = "Mouth - MBP2";
-    constexpr auto MouthO2Attribute = "Mouth - O2";
-    constexpr auto MouthU2Attribute = "Mouth - U2";
-    constexpr auto MouthWQ2Attribute = "Mouth - WQ2";
-    constexpr auto Mouthetc2Attribute = "Mouth - etc2";
-    constexpr auto Mouthret2Attribute = "Mouth - rest2";
-    constexpr auto MouthAIColor2Attribute = "Mouth - AI2-Color";
-    constexpr auto MouthEColor2Attribute = "Mouth - E2-Color";
-    constexpr auto MouthFVColor2Attribute = "Mouth - FV2-Color";
-    constexpr auto MouthLColor2Attribute = "Mouth - L2-Color";
-    constexpr auto MouthMBPColor2Attribute = "Mouth - MBP2-Color";
-    constexpr auto MouthOColor2Attribute = "Mouth - O2-Color";
-    constexpr auto MouthUColor2Attribute = "Mouth - U2-Color";
-    constexpr auto MouthWQColor2Attribute = "Mouth - WQ2-Color";
-    constexpr auto MouthetcColor2Attribute = "Mouth - etc2-Color";
-    constexpr auto MouthrestColor2Attribute = "Mouth - rest2-Color";
+    constexpr auto MouthAIAttribute           = "Mouth - AI";
+    constexpr auto MouthEAttribute            = "Mouth - E";
+    constexpr auto MouthFVAttribute           = "Mouth - FV";
+    constexpr auto MouthLAttribute            = "Mouth - L";
+    constexpr auto MouthMBPAttribute          = "Mouth - MBP";
+    constexpr auto MouthOAttribute            = "Mouth - O";
+    constexpr auto MouthUAttribute            = "Mouth - U";
+    constexpr auto MouthWQAttribute           = "Mouth - WQ";
+    constexpr auto MouthetcAttribute          = "Mouth - etc";
+    constexpr auto MouthretAttribute          = "Mouth - rest";
+    constexpr auto MouthAIColorAttribute      = "Mouth - AI-Color";
+    constexpr auto MouthEColorAttribute       = "Mouth - E-Color";
+    constexpr auto MouthFVColorAttribute      = "Mouth - FV-Color";
+    constexpr auto MouthLColorAttribute       = "Mouth - L-Color";
+    constexpr auto MouthMBPColorAttribute     = "Mouth - MBP-Color";
+    constexpr auto MouthOColorAttribute       = "Mouth - O-Color";
+    constexpr auto MouthUColorAttribute       = "Mouth - U-Color";
+    constexpr auto MouthWQColorAttribute      = "Mouth - WQ-Color";
+    constexpr auto MouthetcColorAttribute     = "Mouth - etc-Color";
+    constexpr auto MouthrestColorAttribute    = "Mouth - rest-Color";
+    constexpr auto MouthAI2Attribute          = "Mouth - AI2";
+    constexpr auto MouthE2Attribute           = "Mouth - E2";
+    constexpr auto MouthFV2Attribute          = "Mouth - FV2";
+    constexpr auto MouthL2Attribute           = "Mouth - L2";
+    constexpr auto MouthMBP2Attribute         = "Mouth - MBP2";
+    constexpr auto MouthO2Attribute           = "Mouth - O2";
+    constexpr auto MouthU2Attribute           = "Mouth - U2";
+    constexpr auto MouthWQ2Attribute          = "Mouth - WQ2";
+    constexpr auto Mouthetc2Attribute         = "Mouth - etc2";
+    constexpr auto Mouthret2Attribute         = "Mouth - rest2";
+    constexpr auto MouthAIColor2Attribute     = "Mouth - AI2-Color";
+    constexpr auto MouthEColor2Attribute      = "Mouth - E2-Color";
+    constexpr auto MouthFVColor2Attribute     = "Mouth - FV2-Color";
+    constexpr auto MouthLColor2Attribute      = "Mouth - L2-Color";
+    constexpr auto MouthMBPColor2Attribute    = "Mouth - MBP2-Color";
+    constexpr auto MouthOColor2Attribute      = "Mouth - O2-Color";
+    constexpr auto MouthUColor2Attribute      = "Mouth - U2-Color";
+    constexpr auto MouthWQColor2Attribute     = "Mouth - WQ2-Color";
+    constexpr auto MouthetcColor2Attribute    = "Mouth - etc2-Color";
+    constexpr auto MouthrestColor2Attribute   = "Mouth - rest2-Color";
 
     // WIP
     // constexpr auto Attribute = "";
@@ -355,26 +355,26 @@ namespace XmlNodeKeys {
     // ViewPoint
 
     // Model Types
-    constexpr auto ArchesType = "Arches";
-    constexpr auto CandyCaneType = "Candy Canes";
-    constexpr auto ChannelBlockType = "Channel Block";
-    constexpr auto CircleType = "Circle";
-    constexpr auto CubeType = "Cube";
-    constexpr auto CustomType = "Custom";
+    constexpr auto ArchesType           = "Arches";
+    constexpr auto CandyCaneType        = "Candy Canes";
+    constexpr auto ChannelBlockType     = "Channel Block";
+    constexpr auto CircleType           = "Circle";
+    constexpr auto CubeType             = "Cube";
+    constexpr auto CustomType           = "Custom";
     constexpr auto DmxMovingHeadAdvType = "DmxMovingHeadAdv";
-    constexpr auto IciclesType = "Icicles";
-    constexpr auto ImageType = "Image";
-    constexpr auto MatrixType = "Matrix";
-    constexpr auto SingleLineType = "Single Line";
-    constexpr auto PolyLineType = "Poly Line";
-    constexpr auto SphereType = "Sphere";
-    constexpr auto SpinnerType = "Spinner";
-    constexpr auto StarType = "Star";
-    constexpr auto Tree360Type = "Tree 360";
-    constexpr auto TreeFlatType = "Tree Flat";
-    constexpr auto TreeRibbonType = "Tree Ribbon";
-    constexpr auto WindowType = "Window Frame";
-    constexpr auto WreathType = "Wreath";
+    constexpr auto IciclesType          = "Icicles";
+    constexpr auto ImageType            = "Image";
+    constexpr auto MatrixType           = "Matrix";
+    constexpr auto SingleLineType       = "Single Line";
+    constexpr auto PolyLineType         = "Poly Line";
+    constexpr auto SphereType           = "Sphere";
+    constexpr auto SpinnerType          = "Spinner";
+    constexpr auto StarType             = "Star";
+    constexpr auto Tree360Type          = "Tree 360";
+    constexpr auto TreeFlatType         = "Tree Flat";
+    constexpr auto TreeRibbonType       = "Tree Ribbon";
+    constexpr auto WindowType           = "Window Frame";
+    constexpr auto WreathType           = "Wreath";
 };
 
 struct XmlSerializingVisitor : BaseObjectVisitor {
@@ -583,7 +583,8 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
             groups->AddAttribute(XmlNodeKeys::mgDefaultCameraAttribute, mg1->GetDefaultCamera());
             groups->AddAttribute(XmlNodeKeys::mgxCentreOffsetAttribute, std::to_string(mg1->GetXCentreOffset()));
             groups->AddAttribute(XmlNodeKeys::mgyCentreOffsetAttribute, std::to_string(mg1->GetYCentreOffset()));
-            // AddAliases(groups,aliases);
+            const std::list<std::string>& aliases = mg1->GetAliases();
+            AddAliases(groups,aliases);
             node->AddChild(groups);
         }
     }
