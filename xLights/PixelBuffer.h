@@ -26,7 +26,6 @@
 
 enum class MixTypes {
     Mix_Normal,      /** Layered with Alpha channel considered **/
-    Mix_Normal_Rev,  /** Layered with Alpha channel considered, bg onto fg **/
     Mix_Effect1,     /**<  Effect 1 only */
     Mix_Effect2,     /**<  Effect 2 only */
     Mix_Mask1,       /**<  Effect 2 color shows where Effect 1 is black */
