@@ -143,6 +143,8 @@ public:
     long GetParm2() const { return parm2; }
     long GetParm3() const { return parm3; }
     int GetTransparency() const { return transparency; }
+    int GetBlackTransparency() const { return blackTransparency; }
+    std::string GetDescription() const { return description; }
     const std::string GetNodeNames() const { return _nodeNamesString; }
     const std::string GetStrandNames() const { return _strandNamesString; }
 

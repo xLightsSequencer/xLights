@@ -36,6 +36,10 @@ class CandyCaneModel : public ModelWithScreenLocation<ThreePointScreenLocation>
 
         virtual bool SupportsVisitors() override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+        bool IsReverse() const { return _reverse; }
+        bool IsSticks() const { return _sticks; }
+        bool HasAlternateNodes() const { return _alternateNodes; }
+        float GetCandyCaneHeight() const { return _caneheight; }
 
     protected:
         virtual void InitModel() override;

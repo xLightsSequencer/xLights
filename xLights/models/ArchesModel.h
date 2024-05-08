@@ -41,6 +41,7 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         bool GetZigZag() const { return zigzag; }
         int GetHollow() const { return _hollow; }
         int GetGap() const { return _gap; }
+        int GetArc() const { return arc; }
 
         virtual bool SupportsVisitors() override {return true;}
         void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }

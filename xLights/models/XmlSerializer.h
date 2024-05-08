@@ -73,6 +73,8 @@ namespace XmlNodeKeys {
     constexpr auto FromBaaseAttribute     = "FromBase";
     constexpr auto DescriptionAttribute   = "Description";
     constexpr auto CustomStringsAttribute = "String";
+    constexpr auto TagColourAttribute     = "TagColour";
+
 
     // Common SubModel Attributes
     constexpr auto SubModelNodeName        = "subModel";
@@ -185,6 +187,11 @@ namespace XmlNodeKeys {
     constexpr auto StartNullAttribute  = "startNull";
     constexpr auto EndNullAttribute    = "endNull";
 
+    // Shared (by some) Attributes
+    constexpr auto ArcAttribute = "Arc";
+    constexpr auto arcAttribute = "arc";    //Arches is lowercase - maybe should be fixed
+    constexpr auto AlternateNodesAttribute = "AlternateNodes";
+
     // Arch Attributes
     constexpr auto ZigZagAttribute = "ZigZag";
     constexpr auto HollowAttribute = "Hollow";
@@ -196,6 +203,11 @@ namespace XmlNodeKeys {
     constexpr auto BrightnessAttribute = "Brightness";
 
     // Arch, CandyCane, Icicles, Single Line Models
+
+    // Candy Canes
+    constexpr auto CCHeightAttribute  = "CandyCaneHeight";
+    constexpr auto CCReverseAttribute = "CandyCaneReverse";
+    constexpr auto CCSticksAttribute  = "CandyCaneSticks";
 
     // Channel Block Model
     constexpr auto ChannelPropertiesCC1Attribute  = "ChannelProperties.ChannelColor1";
@@ -252,7 +264,6 @@ namespace XmlNodeKeys {
     constexpr auto CornerAttribute      = "Corner";     // needs fix Corner1, Corner2, Corner3
 
     // Spinner Model
-    constexpr auto ArcAttribute       = "Arc";
     constexpr auto StringAttribute    = "String";
     constexpr auto AlternateAttribute = "Alternate";
     constexpr auto StartAttribute     = "Start";
@@ -260,7 +271,6 @@ namespace XmlNodeKeys {
     // Star Model
     constexpr auto StarStartLocationAttribute = "StarStartLocation";
     constexpr auto LayerSizesAttribute        = "LayerSizes";
-    constexpr auto TagColourAttribute         = "TagColour";
 
     // Tree Model
     constexpr auto TreeBottomTopRatioAttribute = "TreeBottomTopRatio";
@@ -401,6 +411,9 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         node->AddAttribute(XmlNodeKeys::PixelSizeAttribute, std::to_string(model.GetPixelSize()));
         node->AddAttribute(XmlNodeKeys::StringTypeAttribute, model.GetStringType());
         node->AddAttribute(XmlNodeKeys::TransparencyAttribute, std::to_string(model.GetTransparency()));
+        node->AddAttribute(XmlNodeKeys::BTransparencyAttribute, std::to_string(model.GetBlackTransparency()));
+        node->AddAttribute(XmlNodeKeys::DescriptionAttribute, model.GetDescription());
+        node->AddAttribute(XmlNodeKeys::TagColourAttribute, model.GetTagColour().GetAsString(wxC2S_HTML_SYNTAX));
         node->AddAttribute(XmlNodeKeys::StartChannelAttribute, model.GetModelStartChannel());
         node->AddAttribute(XmlNodeKeys::NodeNamesAttribute, model.GetNodeNames());
         node->AddAttribute(XmlNodeKeys::StrandNamesAttribute, model.GetStrandNames());
@@ -550,9 +563,10 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
             submodels->AddAttribute(XmlNodeKeys::SubModelNameAttribute, s->GetName());
             submodels->AddAttribute(XmlNodeKeys::LayoutAttribute, submodel->GetSubModelLayout());
             submodels->AddAttribute(XmlNodeKeys::SMTypeAttribute, submodel->GetSubModelType());
-            const std::string submodelBufferStyle = submodel->GetSubModelBufferStyle();
-            if (submodelBufferStyle == "bufferstyle") {
-                submodels->AddAttribute(XmlNodeKeys::BufferStyleAttribute, submodelBufferStyle);
+            submodels->AddAttribute(XmlNodeKeys::BufferStyleAttribute, submodel->GetSubModelBufferStyle());
+            const std::string submodelType = submodel->GetSubModelType();
+            if (submodelType == "subbuffer") {
+                submodels->AddAttribute(XmlNodeKeys::SubBufferStyleAttribute, submodel->GetSubModelNodeRanges());
             } else {
                 wxArrayString nodeInfo = wxSplit(submodel->GetSubModelNodeRanges(), ',');
                 for (auto i = 0; i < nodeInfo.size(); i++) {
@@ -595,15 +609,18 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         }
     }
 
+    //xmlNode->AddAttribute(XmlNodeKeys::#, std::to_string(#()));
+
     void Visit(const ArchesModel& model) override {
         wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         AddThreePointScreenLocationAttributes(model, xmlNode);
-        xmlNode->AddAttribute(XmlNodeKeys::ZigZagAttribute, std::to_string(model.GetZigZag()));
+        xmlNode->AddAttribute(XmlNodeKeys::ZigZagAttribute, model.GetZigZag() ? "true": "false");
         xmlNode->AddAttribute(XmlNodeKeys::HollowAttribute, std::to_string(model.GetHollow()));
         xmlNode->AddAttribute(XmlNodeKeys::GapAttribute, std::to_string(model.GetGap()));
+        xmlNode->AddAttribute(XmlNodeKeys::arcAttribute, std::to_string(model.GetArc()));
         xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(model.GetLayerSizes()));
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
@@ -618,6 +635,10 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         //AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::CCHeightAttribute, std::to_string(model.GetCandyCaneHeight()));
+        xmlNode->AddAttribute(XmlNodeKeys::CCReverseAttribute, model.IsReverse() ? "true" : "false");
+        xmlNode->AddAttribute(XmlNodeKeys::CCSticksAttribute, model.IsSticks() ? "true": "false");
+        xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
