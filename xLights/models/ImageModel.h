@@ -44,6 +44,9 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool CleanupFileLocations(xLightsFrame* frame) override;
         virtual std::list<std::string> CheckModelSettings() override;
 
+        virtual bool SupportsVisitors() override { return true; }
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+
     protected:
         int GetChannelValue(int channel);
 

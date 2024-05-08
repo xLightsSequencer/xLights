@@ -493,3 +493,4 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
 
     return Model::OnPropertyGridChange(grid, event);
 }
+void WindowFrameModel::ExportXlightsModel() {}

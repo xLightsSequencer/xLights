@@ -50,6 +50,9 @@ public:
     virtual int NodesPerString(int string) const override;
     virtual int MapPhysicalStringToLogicalString(int string) const override;
 
+    virtual bool SupportsVisitors() override { return true; }
+    void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+
 protected:
     static std::vector<std::string> POLYLINE_BUFFER_STYLES;
     virtual void InitModel() override;

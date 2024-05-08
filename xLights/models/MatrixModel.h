@@ -30,12 +30,14 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual std::list<std::string> CheckModelSettings() override;
-        virtual bool SupportsLowDefinitionRender() const override
-        {
-            return SingleNode != true; // we cant do low def on single node matrices
-        }
 
+        // we cant do low def on single node matrices
+        virtual bool SupportsLowDefinitionRender() const override { return SingleNode != true; }
         bool isVerticalMatrix() const { return vMatrix; }
+
+        virtual bool SupportsVisitors() override { return true; }
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+
     protected:
         virtual void AddStyleProperties(wxPropertyGridInterface *grid);
     

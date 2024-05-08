@@ -70,6 +70,9 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual std::list<std::string> CheckModelSettings() override;
         virtual int NodesPerString(int string) const override;
 
+        virtual bool SupportsVisitors() override { return true; }
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+
     protected:
         virtual void InitModel() override;
         virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;

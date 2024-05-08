@@ -30,6 +30,11 @@ class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return false; }
+        virtual bool SupportsXlightsModel() override { return true; }
+        virtual void ExportXlightsModel() override;
+
+        virtual bool SupportsVisitors() override { return true;}
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
         const Model *GetParent() { return parent; }
     protected:

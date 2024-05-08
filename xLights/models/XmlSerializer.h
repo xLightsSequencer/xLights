@@ -30,6 +30,7 @@
 #include "SphereModel.h"
 #include "SpinnerModel.h"
 #include "StarModel.h"
+#include "SubModel.h"
 #include "ThreePointScreenLocation.h"
 #include "TreeModel.h"
 #include "WindowFrameModel.h"
@@ -529,45 +530,50 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
     void AddAliases(wxXmlNode* node, const std::list<std::string> aliases) {
         wxXmlNode* aliashdr = new wxXmlNode(wxXML_ELEMENT_NODE, "Aliases");
 
-        for (const auto& a : aliases) {
-            wxXmlNode* alias = new wxXmlNode(wxXML_ELEMENT_NODE, "alias");
-            alias->AddAttribute("name", a);
-            aliashdr->AddChild(alias);
-        }
-        node->AddChild(aliashdr);
-    }
-
-    void AddSubmodels(wxXmlNode* node, const std::string name, const Model* sm) {
-        const SubModel* sm0 = dynamic_cast<const SubModel*>(sm);
-        wxXmlNode* submodels = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::SubModelNodeName);
-        submodels->AddAttribute(XmlNodeKeys::SubModelNameAttribute, sm->GetName());
-        const std::list<std::string>& aliases = sm->GetAliases();
-
-        submodels->AddAttribute(XmlNodeKeys::LayoutAttribute, sm0->GetSubModelLayout());
-        submodels->AddAttribute(XmlNodeKeys::SMTypeAttribute, sm0->GetSubModelType());
-        
-        const std::string submodelBufferStyle = sm0->GetSubModelBufferStyle();
-        if (submodelBufferStyle == "bufferstyle") {
-            submodels->AddAttribute(XmlNodeKeys::BufferStyleAttribute, submodelBufferStyle);
-        } else {
-            wxArrayString nodeInfo = wxSplit(sm0->GetSubModelNodeRanges(), ',');
-            for (auto i = 0; i < nodeInfo.size(); i++) {
-                submodels->AddAttribute("line" + std::to_string(i), nodeInfo[i]);
+        if (aliases.size() > 0) {
+            for (const auto& a : aliases) {
+                wxXmlNode* alias = new wxXmlNode(wxXML_ELEMENT_NODE, "alias");
+                alias->AddAttribute("name", a);
+                aliashdr->AddChild(alias);
             }
+            node->AddChild(aliashdr);
         }
-        AddAliases(submodels, aliases);
-        node->AddChild(submodels);
     }
 
-    void AddGroups(wxXmlNode* node, const std::string name, const Model* m) {
+    void AddSubmodels(wxXmlNode* node, const Model* m) {
+        const std::vector<Model*>& submodelList = m->GetSubModels();
+       
+        for (Model* s : submodelList) {
+            wxXmlNode* submodels = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::SubModelNodeName);
+            const SubModel* submodel = dynamic_cast<const SubModel*>(s);
+            if (submodel == nullptr) return;
+            submodels->AddAttribute(XmlNodeKeys::SubModelNameAttribute, s->GetName());
+            submodels->AddAttribute(XmlNodeKeys::LayoutAttribute, submodel->GetSubModelLayout());
+            submodels->AddAttribute(XmlNodeKeys::SMTypeAttribute, submodel->GetSubModelType());
+            const std::string submodelBufferStyle = submodel->GetSubModelBufferStyle();
+            if (submodelBufferStyle == "bufferstyle") {
+                submodels->AddAttribute(XmlNodeKeys::BufferStyleAttribute, submodelBufferStyle);
+            } else {
+                wxArrayString nodeInfo = wxSplit(submodel->GetSubModelNodeRanges(), ',');
+                for (auto i = 0; i < nodeInfo.size(); i++) {
+                    submodels->AddAttribute("line" + std::to_string(i), nodeInfo[i]);
+                }
+            }
+            AddAliases(submodels, s->GetAliases());
+            node->AddChild(submodels);
+        }
+    }
+
+    void AddGroups(wxXmlNode* node, const Model* m) {
         const ModelManager& mgr = m->GetModelManager();
         std::vector<Model*> mg = mgr.GetModelGroups(m);
 
         for (const Model* g : mg) {
             const ModelGroup* mg1 = dynamic_cast<const ModelGroup*>(g);
+            if (mg1 == nullptr) return;
             wxXmlNode* groups = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::GroupNodeName);
             groups->AddAttribute(XmlNodeKeys::mgNameAttribute, g->GetName());
-            groups->AddAttribute(XmlNodeKeys::mgModelsAttribute, name);
+            groups->AddAttribute(XmlNodeKeys::mgModelsAttribute, m->GetName());
             groups->AddAttribute(XmlNodeKeys::mgLayoutGroupAttribute, g->GetLayoutGroup());
             groups->AddAttribute(XmlNodeKeys::mgSelectedAttribute, std::to_string(mg1->IsSelected()));
             groups->AddAttribute(XmlNodeKeys::mgLayoutAttribute, mg1->GetLayout());
@@ -589,105 +595,247 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         }
     }
 
-    void Visit(const ArchesModel& arch) override {
-        wxXmlNode* archNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
-
-        const std::vector<Model*>& submodels = arch.GetSubModels();
-        const std::list<std::string>& aliases = arch.GetAliases();
-        const std::string name = arch.GetName();
-
-        const Model* m = dynamic_cast<const Model*>(&arch);
-
-        AddBaseObjectAttributes(arch, archNode);
-        AddCommonModelAttributes(arch, archNode);
-        AddModelScreenLocationAttributes(arch, archNode);
-        AddThreePointScreenLocationAttributes(arch, archNode);
-        archNode->AddAttribute(XmlNodeKeys::ZigZagAttribute, std::to_string(arch.GetZigZag()));
-        archNode->AddAttribute(XmlNodeKeys::HollowAttribute, std::to_string(arch.GetHollow()));
-        archNode->AddAttribute(XmlNodeKeys::GapAttribute, std::to_string(arch.GetGap()));
-        archNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(arch.GetLayerSizes()));
-        AddAliases(archNode, aliases);
-        for (Model* submodel : submodels) {
-            Model* sm = arch.GetSubModel(submodel->GetName());
-            AddSubmodels(archNode, name, sm);
-        }
-        AddGroups(archNode, name, m);
-        parentNode->AddChild(archNode);
+    void Visit(const ArchesModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::ZigZagAttribute, std::to_string(model.GetZigZag()));
+        xmlNode->AddAttribute(XmlNodeKeys::HollowAttribute, std::to_string(model.GetHollow()));
+        xmlNode->AddAttribute(XmlNodeKeys::GapAttribute, std::to_string(model.GetGap()));
+        xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(model.GetLayerSizes()));
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
 
-    void Visit(const CandyCaneModel& cc) override {
-        wxXmlNode* ccNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
-
-        const std::vector<Model*>& submodels = cc.GetSubModels();
-        const std::list<std::string>& aliases = cc.GetAliases();
-        const std::string name = cc.GetName();
-
-        const Model* m = dynamic_cast<const Model*>(&cc);
-
-        AddBaseObjectAttributes(cc, ccNode);
-        AddCommonModelAttributes(cc, ccNode);
-        AddModelScreenLocationAttributes(cc, ccNode);
-        AddThreePointScreenLocationAttributes(cc, ccNode);
-        AddAliases(ccNode, aliases);
-        for (Model* submodel : submodels) {
-            Model* sm = cc.GetSubModel(submodel->GetName());
-            AddSubmodels(ccNode, name, sm);
-        }
-        AddGroups(ccNode, name, m);
-        parentNode->AddChild(ccNode);
+    void Visit(const CandyCaneModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
 
-    void Visit(const CircleModel& circle) override {
-        wxXmlNode* circleNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
-
-        const std::vector<Model*>& submodels = circle.GetSubModels();
-        const std::list<std::string>& aliases = circle.GetAliases();
-        const std::string name = circle.GetName();
-
-        const Model* m = dynamic_cast<const Model*>(&circle);
-
-        AddBaseObjectAttributes(circle, circleNode);
-        AddCommonModelAttributes(circle, circleNode);
-        AddModelScreenLocationAttributes(circle, circleNode);
-        // AddThreePointScreenLocationAttributes(circle, circleNode);  //export crashes, most likely an attribute that doesn't exist - need to look into
-        AddAliases(circleNode, aliases);
-        for (Model* submodel : submodels) {
-            Model* sm = circle.GetSubModel(submodel->GetName());
-            AddSubmodels(circleNode, name, sm);
-        }
-        AddGroups(circleNode, name, m);
-        parentNode->AddChild(circleNode);
+    void Visit(const CircleModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);        
     }
 
-    void Visit(const ChannelBlockModel& channelblock) override {
+    void Visit(const ChannelBlockModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
-    void Visit(const CubeModel& cube) override {
+
+    void Visit(const CubeModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
-    void Visit(const CustomModel& custom) override {
+
+    void Visit(const CustomModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
-    void Visit(const IciclesModel& icicles) override {
+    void Visit(const IciclesModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
-    void Visit(const ImageModel& image) override {
+
+    void Visit(const ImageModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
-    void Visit(const MatrixModel& matricx) override {
+
+    void Visit(const MatrixModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
-    void Visit(const SingleLineModel& singleline) override {
+
+    void Visit(const SingleLineModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
-    void Visit(const PolyLineModel& polyline) override {
+
+    void Visit(const PolyLineModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
-    void Visit(const SphereModel& sphere) override {
+
+    void Visit(const SphereModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
-    void Visit(const SpinnerModel& spinner) override {
+
+    void Visit(const SpinnerModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
-    void Visit(const StarModel& star) override {
+
+    void Visit(const StarModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
-    void Visit(const TreeModel& tree) override {
+
+    void Visit(const TreeModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
+
     // void Visit(const TreeModel &treeflat) override {}
     // void Visit(const TreeModel &treeribbon) override {}
-    void Visit(const WindowFrameModel& window) override {
+
+    void Visit(const WindowFrameModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
-    void Visit(const WreathModel& wreath) override {
+
+    void Visit(const WreathModel& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddAliases(xmlNode, model.GetAliases());
+        const Model* m = dynamic_cast<const Model*>(&model);
+        if (m == nullptr) return;
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
     }
 
     void Visit(const DmxMovingHeadAdv& moving_head) override {
@@ -704,6 +852,11 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddMeshAttributes(reinterpret_cast<Mesh*>(moving_head.GetBaseMesh()), mhNode);
         AddMeshAttributes(reinterpret_cast<Mesh*>(moving_head.GetYokeMesh()), mhNode);
         AddMeshAttributes(reinterpret_cast<Mesh*>(moving_head.GetHeadMesh()), mhNode);
+        const Model* m = dynamic_cast<const Model*>(&moving_head);
+        if (m == nullptr)
+            return;
+        AddSubmodels(mhNode, m);
+        AddGroups(mhNode, m);
         parentNode->AddChild(mhNode);
     }
 };
@@ -716,10 +869,42 @@ struct XmlDeserializingObjectFactory {
             return DeserializeArches(new wxXmlNode(*node), xlights);
         } else if (type == XmlNodeKeys::CandyCaneType) {
             return DeserializeCandyCane(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::ChannelBlockType) {
+            return DeserializeChannelBlock(new wxXmlNode(*node), xlights);
         } else if (type == XmlNodeKeys::CircleType) {
             return DeserializeCircle(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::CubeType) {
+            return DeserializeCube(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::CustomType) {
+            return DeserializeCustom(new wxXmlNode(*node), xlights);
         } else if (type == XmlNodeKeys::DmxMovingHeadAdvType) {
             return DeserializeDmxMovingHeadAdv(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::IciclesType) {
+            return DeserializeIcicles(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::ImageType) {
+            return DeserializeImage(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::MatrixType) {
+            return DeserializeMatrix(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::SingleLineType) {
+            return DeserializeSingleLine(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::PolyLineType) {
+            return DeserializePolyLine(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::SphereType) {
+            return DeserializeSphere(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::SpinnerType) {
+            return DeserializeSpinner(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::StarType) {
+            return DeserializeStar(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::Tree360Type) {
+            return DeserializeTree360(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::TreeFlatType) {
+            return DeserializeTreeFlat(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::TreeRibbonType) {
+            return DeserializeTreeRibbon(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::WindowType) {
+            return DeserializeWindow(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::WreathType) {
+            return DeserializeWreath(new wxXmlNode(*node), xlights);
         }
 
         throw std::runtime_error("Unknown object type: " + type);
@@ -748,9 +933,42 @@ private:
         return model;
     }
 
+     Model* DeserializeChannelBlock(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new ChannelBlockModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
     Model* DeserializeCircle(wxXmlNode* node, xLightsFrame* xlights) {
         Model* model;
         model = new CircleModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeCube(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new CubeModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeCustom(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new CustomModel(node, xlights->AllModels, false);
 
         std::string name = node->GetAttribute("name");
         wxString newname = xlights->AllModels.GenerateModelName(name);
@@ -773,6 +991,149 @@ private:
         float min_y = (float)(model->GetBaseObjectScreenLocation().GetBottom());
         float max_y = (float)(model->GetBaseObjectScreenLocation().GetTop());
         model->ImportModelChildren(node, xlights, newname, min_x, max_x, min_y, max_y);
+
+        return model;
+    }
+
+    Model* DeserializeIcicles(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new IciclesModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeImage(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new ImageModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeMatrix(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new MatrixModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeSingleLine(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new SingleLineModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializePolyLine(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new PolyLineModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeSphere(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new SphereModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeSpinner(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new SpinnerModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeStar(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new StarModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeTree360(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new TreeModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeTreeFlat(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new TreeModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeTreeRibbon(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new TreeModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeWindow(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new WindowFrameModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
+
+        return model;
+    }
+
+    Model* DeserializeWreath(wxXmlNode* node, xLightsFrame* xlights) {
+        Model* model;
+        model = new WreathModel(node, xlights->AllModels, false);
+
+        std::string name = node->GetAttribute("name");
+        wxString newname = xlights->AllModels.GenerateModelName(name);
+        model->SetProperty("name", newname, true);
 
         return model;
     }

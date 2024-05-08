@@ -33,20 +33,17 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int GetNumStrands() const override { return _strands; };
         virtual int MapToNodeIndex(int strand, int node) const override;
         virtual void ExportAsCustomXModel3D() const override;
-        virtual bool SupportsExportAsCustom3D() const override
-        {
-            return true;
-        }
-        virtual bool SupportsExportAsCustom() const override
-        {
-            return false;
-        }
+        virtual bool SupportsExportAsCustom3D() const override { return true; }
+        virtual bool SupportsExportAsCustom() const override { return false; }
         virtual int NodesPerString() const override;
 
         virtual std::string ChannelLayoutHtml(OutputManager * outputManager) override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+
+        virtual bool SupportsVisitors() override { return true; }
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:
         int GetStartIndex() const;

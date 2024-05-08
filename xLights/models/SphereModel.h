@@ -26,10 +26,10 @@ public:
     virtual int NodeRenderOrder() override { return 1; }
     virtual void ExportAsCustomXModel3D() const override;
     bool Find3DCustomModelScale(int scale, float minx, float miny, float minz, float w, float h, float d) const;
-    virtual bool SupportsExportAsCustom3D() const override
-    {
-        return true;
-    }
+    virtual bool SupportsExportAsCustom3D() const override { return true; }
+
+    virtual bool SupportsVisitors() override { return true; }
+    void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
 protected:
     virtual void AddStyleProperties(wxPropertyGridInterface *grid) override;

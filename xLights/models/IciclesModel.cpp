@@ -217,3 +217,5 @@ void IciclesModel::AddDimensionProperties(wxPropertyGridInterface* grid)
     // the height does not make sense for icicles
     static_cast<TwoPointScreenLocation>(screenLocation).AddDimensionProperties(grid, 1.0);
 }
+
+void IciclesModel::ExportXlightsModel() {}

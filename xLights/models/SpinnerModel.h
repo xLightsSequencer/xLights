@@ -30,6 +30,11 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
             int &BufferWi, int &BufferHi, int stagger) const override;
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
+        virtual bool SupportsXlightsModel() override { return true; }
+        virtual void ExportXlightsModel() override;
+
+        virtual bool SupportsVisitors() override { return true; }
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:
         SpinnerModel(const ModelManager &manager);

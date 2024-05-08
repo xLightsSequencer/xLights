@@ -129,3 +129,4 @@ int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
 
     return Model::OnPropertyGridChange(grid, event);
 }
+void WreathModel::ExportXlightsModel() {}
