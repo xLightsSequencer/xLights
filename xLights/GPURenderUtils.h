@@ -90,9 +90,9 @@ public:
         return false;
     }
     
-    static bool BlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer) {
+    static bool BlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
         if (INSTANCE) {
-            return INSTANCE->doBlendLayers(pixelBuffer, effectPeriod, validLayers, saveLayer);
+            return INSTANCE->doBlendLayers(pixelBuffer, effectPeriod, validLayers, saveLayer, saveToPixels);
         }
         return false;
     }
@@ -110,7 +110,7 @@ protected:
     virtual bool doBlur(RenderBuffer *buffer, int radius) = 0;
     virtual bool doRotoZoom(RenderBuffer *buffer, RotoZoomSettings &settings) = 0;
     virtual bool doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) = 0;
-    virtual bool doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer) = 0;
+    virtual bool doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) = 0;
 
     virtual void setPrioritizeGraphics(bool p) = 0;
 

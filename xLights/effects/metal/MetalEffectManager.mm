@@ -88,10 +88,10 @@ public:
         }
         return false;
     }
-    virtual bool doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer) override {
+    virtual bool doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) override {
         if (enabled() && pixelBuffer) {
             MetalPixelBufferComputeData *d = static_cast<MetalPixelBufferComputeData*>(pixelBuffer->gpuRenderData);
-            return d ? d->doBlendLayers(pixelBuffer, effectPeriod, validLayers, saveLayer) : false;
+            return d ? d->doBlendLayers(pixelBuffer, effectPeriod, validLayers, saveLayer, saveToPixels) : false;
         }
         return false;
     }

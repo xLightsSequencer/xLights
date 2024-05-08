@@ -42,7 +42,7 @@ MetalPixelBufferComputeData::~MetalPixelBufferComputeData() {
     }
 }
 
-bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer) {
+bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
     if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < 1024) {
         return false;
     }
@@ -184,7 +184,7 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
         }
     }
     
-    // not all the pixels are loaded and adjusted, not start the blending
+    // not all the pixels are loaded and adjusted, now start the blending
     bool first = true;
     for (int l = validLayers.size() - 1; l >= 0; --l) {
         if (validLayers[l]) {
@@ -266,6 +266,46 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                 [computeEncoder endEncoding];
             }
         }
+    }
+    if (saveToPixels) {
+        auto layer = pixelBuffer->layers[saveLayer];
+        MetalRenderBufferComputeData *layerCD = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&layer->buffer);
+        LayerBlendingData data;
+        data.nodeCount = layer->buffer.GetNodeCount();
+        data.bufferHi = layer->buffer.BufferHt;
+        data.bufferWi = layer->buffer.BufferWi;
+        data.useMask = false;
+        data.hueAdjust = layer->outputHueAdjust;
+        data.valueAdjust = layer->outputValueAdjust;
+        data.saturationAdjust = layer->outputSaturationAdjust;
+        data.outputSparkleCount = layer->outputSparkleCount;
+        data.contrast = layer->contrast;
+        data.brightness = layer->outputBrightnessAdjust;
+        data.isChromaKey = layer->isChromaKey;
+        data.chromaSensitivity = layer->chromaSensitivity;
+        data.chromaColor = layer->chromaKeyColour.asChar4();
+        data.effectMixThreshold = layer->outputEffectMixThreshold;
+        data.effectMixVaries = layer->effectMixVaries;
+        data.fadeFactor = layer->fadeFactor;
+        
+        id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+        [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.putColorsFunction];
+        setLabel(computeEncoder, "PutColors", saveLayer);
+        int dataSize = sizeof(data);
+        [computeEncoder setBytes:&data length:dataSize atIndex:0];
+        [computeEncoder setBuffer:layerCD->getPixelBuffer() offset:0 atIndex:1];
+        [computeEncoder setBuffer:tmpBufferBlend offset:0 atIndex:2];
+        uint8_t tmp[4] = {0, 0, 0, 0};
+        [computeEncoder setBytes:tmp length:sizeof(tmp) atIndex:3];
+        [computeEncoder setBuffer:layerCD->getIndexBuffer() offset:0 atIndex:4];
+        
+        NSInteger maxThreads = MetalComputeUtilities::INSTANCE.putColorsFunction.maxTotalThreadsPerThreadgroup;
+        NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);
+        MTLSize gridSize = MTLSizeMake(data.nodeCount, 1, 1);
+        MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
+        [computeEncoder dispatchThreads:gridSize
+                  threadsPerThreadgroup:threadsPerThreadgroup];
+        [computeEncoder endEncoding];
     }
     slRMRB->commit();
     

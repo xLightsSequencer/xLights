@@ -26,6 +26,7 @@
 
 enum class MixTypes {
     Mix_Normal,      /** Layered with Alpha channel considered **/
+    Mix_Normal_Rev,  /** Layered with Alpha channel considered, bg onto fg **/
     Mix_Effect1,     /**<  Effect 1 only */
     Mix_Effect2,     /**<  Effect 2 only */
     Mix_Mask1,       /**<  Effect 2 color shows where Effect 1 is black */
@@ -246,7 +247,7 @@ private:
     void RotateY(RenderBuffer& buffer, GPURenderUtils::RotoZoomSettings& settings);
     void RotateZAndZoom(RenderBuffer& buffer, GPURenderUtils::RotoZoomSettings& settings);
 
-    void GetMixedColor(int node, const std::vector<bool>& validLayers, int EffectPeriod, int saveLayer);
+    void GetMixedColor(int node, const std::vector<bool>& validLayers, int EffectPeriod, int saveLayer, bool saveToPixels);
 
     std::string modelName;
     std::string lastBufferType;
@@ -313,7 +314,7 @@ public:
 
     void HandleLayerBlurZoom(int EffectPeriod, int layer);
     void HandleLayerTransitions(int EffectPeriod, int layer);
-    void CalcOutput(int EffectPeriod, const std::vector<bool>& validLayers, int saveLayer = 0);
+    void CalcOutput(int EffectPeriod, const std::vector<bool>& validLayers, int saveLayer = 0, bool saveToPixels = false);
     void SetColors(int layer, const unsigned char* fdata);
     void GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange);
 

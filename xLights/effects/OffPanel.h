@@ -12,7 +12,7 @@
 
 //(*Headers(OffPanel)
 #include <wx/panel.h>
-class wxCheckBox;
+class wxChoice;
 class wxFlexGridSizer;
 class wxStaticText;
 //*)
@@ -29,14 +29,14 @@ class OffPanel: public xlEffectPanel
 		virtual void ValidateWindow() override;
 
 		//(*Declarations(OffPanel)
-		BulkEditCheckBox* CheckBox_Transparent;
+		wxChoice* OffStyleChoice;
 		//*)
 
 	protected:
 
 		//(*Identifiers(OffPanel)
 		static const long ID_STATICTEXT_Off_Text;
-		static const long ID_CHECKBOX_Off_Transparent;
+		static const long ID_CHOICE_Off_Style;
 		//*)
 
 	private:
