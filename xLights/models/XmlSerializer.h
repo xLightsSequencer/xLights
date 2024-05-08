@@ -23,6 +23,8 @@
 #include "IciclesModel.h"
 #include "ImageModel.h"
 #include "MatrixModel.h"
+#include "Model.h"
+#include "ModelGroup.h"
 #include "PolyLineModel.h"
 #include "SingleLineModel.h"
 #include "SphereModel.h"
@@ -69,6 +71,7 @@ namespace XmlNodeKeys {
     constexpr auto ActiveAttribute = "Active";
     constexpr auto FromBaaseAttribute = "FromBase";
     constexpr auto DescriptionAttribute = "Description";
+    constexpr auto CustomStringsAttribute = "String";
 
     // Common SubModel Attributes
     constexpr auto SubModelNodeName = "subModel";
@@ -77,9 +80,9 @@ namespace XmlNodeKeys {
     constexpr auto SMTypeAttribute = "type";
     constexpr auto BufferStyleAttribute = "bufferstyle";
     constexpr auto SubBufferStyleAttribute = "subBuffer";
-    constexpr auto Line0Attribute = "line0";
+    constexpr auto LineAttribute = "line";
 
-    //<ModelGroup
+    // ModelGroup
     constexpr auto GroupNodeName = "modelGroup";
     constexpr auto mgSelectedAttribute = "selected";
     constexpr auto mgLayoutAttribute = "layout";
@@ -343,7 +346,7 @@ namespace XmlNodeKeys {
 
     // View
 
-    // Group
+    // Group - already done
 
     // Perspectives
 
@@ -523,48 +526,6 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         return oss;
     }
 
-    void AddSubmodels(wxXmlNode* node, Model* sm) {
-        wxXmlNode* submodels = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::SubModelNodeName);
-        submodels->AddAttribute(XmlNodeKeys::SubModelNameAttribute, sm->GetName());
-        const std::list<std::string>& aliases = sm->GetAliases();
-
-        // const Model* m = dynamic_cast<const Model*>(sm);
-        // const ModelManager& mgr = m->GetModelManager();
-
-        submodels->AddAttribute(XmlNodeKeys::LayoutAttribute, "foo");
-        submodels->AddAttribute(XmlNodeKeys::SMTypeAttribute, "bar");
-        submodels->AddAttribute(XmlNodeKeys::BufferStyleAttribute, "baz");
-        submodels->AddAttribute(XmlNodeKeys::SubBufferStyleAttribute, "foobarbaz");
-        submodels->AddAttribute(XmlNodeKeys::Line0Attribute, "foobarbaz");
-        AddAliases(submodels, aliases);
-        node->AddChild(submodels);
-    }
-
-    void AddGroups(wxXmlNode* node, std::vector<std::string> groups, const std::string name) {
-        for (const auto& g : groups) {
-            wxXmlNode* groups = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::GroupNodeName);
-            groups->AddAttribute(XmlNodeKeys::mgNameAttribute, g);
-            groups->AddAttribute(XmlNodeKeys::mgModelsAttribute, name);
-            groups->AddAttribute(XmlNodeKeys::mgLayoutGroupAttribute, "foobarbaz");
-            groups->AddAttribute(XmlNodeKeys::mgSelectedAttribute, "foo");
-            groups->AddAttribute(XmlNodeKeys::mgLayoutAttribute, "foobarbaz");
-            groups->AddAttribute(XmlNodeKeys::mgGridSizeAttribute, "foobarbaz");
-            groups->AddAttribute(XmlNodeKeys::mgTagColourAttribute, "foobarbaz");
-            groups->AddAttribute(XmlNodeKeys::mgCentreMinxAttribute, "foobarbaz");
-            groups->AddAttribute(XmlNodeKeys::mgCentreMinyAttribute, "foobarbaz");
-            groups->AddAttribute(XmlNodeKeys::mgCentreMaxxAttribute, "foobarbaz");
-            groups->AddAttribute(XmlNodeKeys::mgCentreMaxyAttribute, "foobarbaz");
-            groups->AddAttribute(XmlNodeKeys::mgCentrexAttribute, "foobarbaz");
-            groups->AddAttribute(XmlNodeKeys::mgCentreyAttribute, "foobarbaz");
-            groups->AddAttribute(XmlNodeKeys::mgCentreDefinedAttribute, "foobarbaz");
-            groups->AddAttribute(XmlNodeKeys::mgDefaultCameraAttribute, "foobarbaz");
-            groups->AddAttribute(XmlNodeKeys::mgxCentreOffsetAttribute, "foobarbaz");
-            groups->AddAttribute(XmlNodeKeys::mgyCentreOffsetAttribute, "foobarbaz");
-            // AddAliases(groups,aliases);
-            node->AddChild(groups);
-        }
-    }
-
     void AddAliases(wxXmlNode* node, const std::list<std::string> aliases) {
         wxXmlNode* aliashdr = new wxXmlNode(wxXML_ELEMENT_NODE, "Aliases");
 
@@ -576,6 +537,57 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         node->AddChild(aliashdr);
     }
 
+    void AddSubmodels(wxXmlNode* node, const std::string name, const Model* sm) {
+        const SubModel* sm0 = dynamic_cast<const SubModel*>(sm);
+        wxXmlNode* submodels = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::SubModelNodeName);
+        submodels->AddAttribute(XmlNodeKeys::SubModelNameAttribute, sm->GetName());
+        const std::list<std::string>& aliases = sm->GetAliases();
+
+        submodels->AddAttribute(XmlNodeKeys::LayoutAttribute, sm0->GetSubModelLayout());
+        submodels->AddAttribute(XmlNodeKeys::SMTypeAttribute, sm0->GetSubModelType());
+        
+        const std::string submodelBufferStyle = sm0->GetSubModelBufferStyle();
+        if (submodelBufferStyle == "bufferstyle") {
+            submodels->AddAttribute(XmlNodeKeys::BufferStyleAttribute, submodelBufferStyle);
+        } else {
+            wxArrayString nodeInfo = wxSplit(sm0->GetSubModelNodeRanges(), ',');
+            for (auto i = 0; i < nodeInfo.size(); i++) {
+                submodels->AddAttribute("line" + std::to_string(i), nodeInfo[i]);
+            }
+        }
+        AddAliases(submodels, aliases);
+        node->AddChild(submodels);
+    }
+
+    void AddGroups(wxXmlNode* node, const std::string name, const Model* m) {
+        const ModelManager& mgr = m->GetModelManager();
+        std::vector<Model*> mg = mgr.GetModelGroups(m);
+
+        for (const Model* g : mg) {
+            const ModelGroup* mg1 = dynamic_cast<const ModelGroup*>(g);
+            wxXmlNode* groups = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::GroupNodeName);
+            groups->AddAttribute(XmlNodeKeys::mgNameAttribute, g->GetName());
+            groups->AddAttribute(XmlNodeKeys::mgModelsAttribute, name);
+            groups->AddAttribute(XmlNodeKeys::mgLayoutGroupAttribute, g->GetLayoutGroup());
+            groups->AddAttribute(XmlNodeKeys::mgSelectedAttribute, std::to_string(mg1->IsSelected()));
+            groups->AddAttribute(XmlNodeKeys::mgLayoutAttribute, mg1->GetLayout());
+            groups->AddAttribute(XmlNodeKeys::mgGridSizeAttribute, std::to_string(mg1->GetGridSize()));
+            groups->AddAttribute(XmlNodeKeys::mgTagColourAttribute, mg1->GetTagColour().GetAsString(wxC2S_HTML_SYNTAX));
+            groups->AddAttribute(XmlNodeKeys::mgCentreMinxAttribute, std::to_string(mg1->GetCentreMinx()));
+            groups->AddAttribute(XmlNodeKeys::mgCentreMinyAttribute, std::to_string(mg1->GetCentreMiny()));
+            groups->AddAttribute(XmlNodeKeys::mgCentreMaxxAttribute, std::to_string(mg1->GetCentreMaxx()));
+            groups->AddAttribute(XmlNodeKeys::mgCentreMaxyAttribute, std::to_string(mg1->GetCentreMaxy()));
+            groups->AddAttribute(XmlNodeKeys::mgCentrexAttribute, std::to_string(mg1->GetCentreX()));
+            groups->AddAttribute(XmlNodeKeys::mgCentreyAttribute, std::to_string(mg1->GetCentreY()));
+            groups->AddAttribute(XmlNodeKeys::mgCentreDefinedAttribute, std::to_string(mg1->GetCentreDefined()));
+            groups->AddAttribute(XmlNodeKeys::mgDefaultCameraAttribute, mg1->GetDefaultCamera());
+            groups->AddAttribute(XmlNodeKeys::mgxCentreOffsetAttribute, std::to_string(mg1->GetXCentreOffset()));
+            groups->AddAttribute(XmlNodeKeys::mgyCentreOffsetAttribute, std::to_string(mg1->GetYCentreOffset()));
+            // AddAliases(groups,aliases);
+            node->AddChild(groups);
+        }
+    }
+
     void Visit(const ArchesModel& arch) override {
         wxXmlNode* archNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
 
@@ -584,9 +596,6 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         const std::string name = arch.GetName();
 
         const Model* m = dynamic_cast<const Model*>(&arch);
-        const ModelManager& mgr = m->GetModelManager();
-        std::vector<std::string> groups = mgr.GetGroupsContainingModel(m);
-        std::vector<Model*> modelGroups = mgr.GetModelGroups(m);
 
         AddBaseObjectAttributes(arch, archNode);
         AddCommonModelAttributes(arch, archNode);
@@ -599,9 +608,9 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddAliases(archNode, aliases);
         for (Model* submodel : submodels) {
             Model* sm = arch.GetSubModel(submodel->GetName());
-            AddSubmodels(archNode, sm);
+            AddSubmodels(archNode, name, sm);
         }
-        AddGroups(archNode, groups, name);
+        AddGroups(archNode, name, m);
         parentNode->AddChild(archNode);
     }
 
@@ -613,8 +622,6 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         const std::string name = cc.GetName();
 
         const Model* m = dynamic_cast<const Model*>(&cc);
-        const ModelManager& mgr = m->GetModelManager();
-        std::vector<std::string> groups = mgr.GetGroupsContainingModel(m);
 
         AddBaseObjectAttributes(cc, ccNode);
         AddCommonModelAttributes(cc, ccNode);
@@ -623,9 +630,9 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddAliases(ccNode, aliases);
         for (Model* submodel : submodels) {
             Model* sm = cc.GetSubModel(submodel->GetName());
-            AddSubmodels(ccNode, sm);
+            AddSubmodels(ccNode, name, sm);
         }
-        AddGroups(ccNode, groups, name);
+        AddGroups(ccNode, name, m);
         parentNode->AddChild(ccNode);
     }
 
@@ -637,8 +644,6 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         const std::string name = circle.GetName();
 
         const Model* m = dynamic_cast<const Model*>(&circle);
-        const ModelManager& mgr = m->GetModelManager();
-        std::vector<std::string> groups = mgr.GetGroupsContainingModel(m);
 
         AddBaseObjectAttributes(circle, circleNode);
         AddCommonModelAttributes(circle, circleNode);
@@ -647,9 +652,9 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddAliases(circleNode, aliases);
         for (Model* submodel : submodels) {
             Model* sm = circle.GetSubModel(submodel->GetName());
-            AddSubmodels(circleNode, sm);
+            AddSubmodels(circleNode, name, sm);
         }
-        AddGroups(circleNode, groups, name);
+        AddGroups(circleNode, name, m);
         parentNode->AddChild(circleNode);
     }
 

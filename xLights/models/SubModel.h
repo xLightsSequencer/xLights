@@ -63,7 +63,12 @@ public:
     [[nodiscard]] FaceStateData const& GetFaceInfo() const override { return parent->faceInfo; };
     [[nodiscard]] FaceStateNodes const& GetFaceInfoNodes() const override { return parent->faceInfoNodes; };
 
-private:
+    std::string GetSubModelLayout() const { return _layout; }
+    std::string GetSubModelType() const { return _type; }
+    std::string GetSubModelBufferStyle() const { return _bufferStyle; }
+    std::string GetSubModelNodeRanges() const { return _properyGridDisplay; }
+
+    private:
     void CheckDuplicates(const std::vector<int>& nodeIndexes);
 
     Model *parent = nullptr;
