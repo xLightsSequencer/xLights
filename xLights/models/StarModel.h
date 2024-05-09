@@ -42,6 +42,9 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;
+        float GetStarRatio() const { return starRatio; }
+        int GetInnerPercent() const { return innerPercent; }
+        std::string GetStartLocation() const { return _starStartLocation; }
 
         virtual bool SupportsVisitors() override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }

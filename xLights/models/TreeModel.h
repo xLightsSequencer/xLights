@@ -29,6 +29,13 @@ class TreeModel : public MatrixModel
         virtual int NodeRenderOrder() override {return 1;}
         // we need to override this as the matrix model can set it to true
         virtual bool SupportsLowDefinitionRender() const override { return false; }
+        int GetTreeType() const { return treeType; }
+        float GetTreeDegrees() const { return degrees; }
+        float GetTreeRotation() const { return rotation; }
+        float GetSpiralRotations() const { return spiralRotations; }
+        float GetBottomTopRatio() const { return botTopRatio; }
+        float GetTreePerspective() const { return perspective; }
+        std::string GetTreeDescription() const { return _displayAs; }
 
         virtual bool SupportsVisitors() override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
@@ -43,5 +50,6 @@ class TreeModel : public MatrixModel
         float spiralRotations;
         float botTopRatio;
         float perspective;
+        std::string _displayAs;
         void SetTreeCoord(long degrees);
 };

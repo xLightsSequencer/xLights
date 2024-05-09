@@ -43,6 +43,8 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual std::list<std::string> GetFileReferences() override;
         virtual bool CleanupFileLocations(xLightsFrame* frame) override;
         virtual std::list<std::string> CheckModelSettings() override;
+        virtual void ExportXlightsModel() override;
+        std::string GetImageFile() const { return _imageFile; }
 
         virtual bool SupportsVisitors() override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }

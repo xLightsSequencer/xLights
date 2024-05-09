@@ -23,6 +23,7 @@ class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int NodesPerString() const override;
         virtual bool SupportsXlightsModel() override { return true; }
         virtual void ExportXlightsModel() override;
+        int GetRotation() const { return rotation; }
 
         virtual bool SupportsVisitors() override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }

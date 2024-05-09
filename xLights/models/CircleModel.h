@@ -37,6 +37,7 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual bool SupportsVisitors() override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+        bool IsInsideOut() const { return insideOut; }
 
     protected:
         virtual void InitModel() override;

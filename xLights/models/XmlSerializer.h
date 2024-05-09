@@ -1,4 +1,5 @@
 #pragma once
+#pragma once
 
 /***************************************************************
  * This source files comes from the xLights project
@@ -187,22 +188,21 @@ namespace XmlNodeKeys {
     constexpr auto StartNullAttribute  = "startNull";
     constexpr auto EndNullAttribute    = "endNull";
 
-    // Shared (by some) Attributes
-    constexpr auto ArcAttribute = "Arc";
-    constexpr auto arcAttribute = "arc";    //Arches is lowercase - maybe should be fixed
-    constexpr auto AlternateNodesAttribute = "AlternateNodes";
-
-    // Arch Attributes
-    constexpr auto ZigZagAttribute = "ZigZag";
-    constexpr auto HollowAttribute = "Hollow";
-    constexpr auto GapAttribute    = "Gap";
-
     // Mesh Attributes
     constexpr auto ObjFileAttribute    = "ObjFile";
     constexpr auto MeshOnlyAttribute   = "MeshOnly";
     constexpr auto BrightnessAttribute = "Brightness";
 
-    // Arch, CandyCane, Icicles, Single Line Models
+    // Shared (by some) Attributes
+    constexpr auto ArcAttribute            = "Arc";
+    constexpr auto arcAttribute            = "arc";    //Arches is lowercase - maybe should be fixed
+    constexpr auto AlternateNodesAttribute = "AlternateNodes";
+    constexpr auto LayerSizesAttribute     = "LayerSizes";
+    constexpr auto ZigZagAttribute         = "ZigZag";
+
+    // Arch Attributes
+    constexpr auto HollowAttribute = "Hollow";
+    constexpr auto GapAttribute    = "Gap";
 
     // Candy Canes
     constexpr auto CCHeightAttribute  = "CandyCaneHeight";
@@ -210,32 +210,19 @@ namespace XmlNodeKeys {
     constexpr auto CCSticksAttribute  = "CandyCaneSticks";
 
     // Channel Block Model
-    constexpr auto ChannelPropertiesCC1Attribute  = "ChannelProperties.ChannelColor1";
-    constexpr auto ChannelPropertiesCC2Attribute  = "ChannelProperties.ChannelColor2";
-    constexpr auto ChannelPropertiesCC3Attribute  = "ChannelProperties.ChannelColor3";
-    constexpr auto ChannelPropertiesCC4Attribute  = "ChannelProperties.ChannelColor4";
-    constexpr auto ChannelPropertiesCC5Attribute  = "ChannelProperties.ChannelColor5";
-    constexpr auto ChannelPropertiesCC6Attribute  = "ChannelProperties.ChannelColor6";
-    constexpr auto ChannelPropertiesCC7Attribute  = "ChannelProperties.ChannelColor7";
-    constexpr auto ChannelPropertiesCC8Attribute  = "ChannelProperties.ChannelColor8";
-    constexpr auto ChannelPropertiesCC9Attribute  = "ChannelProperties.ChannelColor9";
-    constexpr auto ChannelPropertiesCC10Attribute = "ChannelProperties.ChannelColor10";
-    constexpr auto ChannelPropertiesCC11Attribute = "ChannelProperties.ChannelColor11";
-    constexpr auto ChannelPropertiesCC12Attribute = "ChannelProperties.ChannelColor12";
-    constexpr auto ChannelPropertiesCC13Attribute = "ChannelProperties.ChannelColor13";
-    constexpr auto ChannelPropertiesCC14Attribute = "ChannelProperties.ChannelColor14";
-    constexpr auto ChannelPropertiesCC15Attribute = "ChannelProperties.ChannelColor15";
-    constexpr auto ChannelPropertiesCC16Attribute = "ChannelProperties.ChannelColor16";
+    // Since this is dynamic it all gets done by the visitor
 
     // Circle Model
     constexpr auto InsideOutAttribute = "InsideOut";
 
     // Cube
-    constexpr auto StyleAttribute         = "Style";
-    constexpr auto StrandPerLineAttribute = "SrtrandPerLine";
+    constexpr auto StyleAttribute          = "Style";
+    constexpr auto CubeStartAttribute      = "Start";
+    constexpr auto StrandPerLineAttribute  = "StrandPerLine";
+    constexpr auto StrandPerLayerAttribute = "StrandPerLayer";
 
     // Custom Model
-    constexpr auto CustomModel           = "Custom";
+    constexpr auto CustomModelAttribute  = "CustomModel";
     constexpr auto CMBrightnessAttribute = "Brightness";
     constexpr auto StrandsAttribute      = "Strands";
     constexpr auto NodesAttribute        = "Nodes";
@@ -243,8 +230,10 @@ namespace XmlNodeKeys {
     constexpr auto PixelTypeAttribute    = "PixelType";
     constexpr auto PixelSpacingAttribute = "PixelSpacing";
     constexpr auto PixelAttribute        = "Pixel";
-    constexpr auto BkgLightnessAttribute = "BkgLightness";
+    constexpr auto BkgLightnessAttribute = "CustomBkgLightness";
+    constexpr auto BkgImageAttribute     = "CustomBkgImage";
     constexpr auto BkgAttribute          = "Bkg";
+    constexpr auto CMDepthAttribute      = "Depth";
 
     // Image Model
     constexpr auto ImageAttribute = "Image";
@@ -254,30 +243,41 @@ namespace XmlNodeKeys {
     // Icicles Model
     constexpr auto DropPatternAttribute = "DropPattern";
 
+    // Matrix
+    constexpr auto LowDefinitionAttribute = "LowDefinition";
+    constexpr auto NoZigZagAttribute      = "NoZig";
+
     // Poly Line Model
-    constexpr auto NumPointsAttribute   = "NumPoints";
-    constexpr auto PointDataAttribute   = "PointData";
-    constexpr auto cPointDataAttribute  = "cPointData";
-    constexpr auto IndivegAttribute     = "Indiveg";
-    constexpr auto SegExpandedAttribute = "SegExpanded";
-    constexpr auto SegAttribute         = "Seg";        // needs fix Seg1, Seg2, Seg3
-    constexpr auto CornerAttribute      = "Corner";     // needs fix Corner1, Corner2, Corner3
+    constexpr auto NumPointsAttribute    = "NumPoints";
+    constexpr auto PointDataAttribute    = "PointData";
+    constexpr auto cPointDataAttribute   = "cPointData";
+    constexpr auto IndivSegAttribute     = "IndivSegs";
+    constexpr auto SegsExpandedAttribute = "SegsExpanded";
+    constexpr auto ModelHeightAttribute  = "ModelHeight";
+
+    // Sphere
+    constexpr auto DegreesAttribute  = "Degrees";
+    constexpr auto StartLatAttribute = "StartLatitude";
+    constexpr auto EndLatAttribute   = "EndLatitude";
 
     // Spinner Model
-    constexpr auto StringAttribute    = "String";
-    constexpr auto AlternateAttribute = "Alternate";
-    constexpr auto StartAttribute     = "Start";
+    constexpr auto StartAngleAttribute = "StartAngle";
+    constexpr auto HallowAttribute     = "Hollow";
+    constexpr auto ArcAngleAttribute   = "Arc";
+    constexpr auto AlternateAttribute  = "Alternate";
 
     // Star Model
-    constexpr auto StarStartLocationAttribute = "StarStartLocation";
-    constexpr auto LayerSizesAttribute        = "LayerSizes";
+    constexpr auto StarStartLocationAttribute  = "StarStartLocation";
+    constexpr auto StarRatioAttribute          = "starRatio";
+    constexpr auto StarCenterPercentAttribute  = "starCenterPercent";
+
 
     // Tree Model
-    constexpr auto TreeBottomTopRatioAttribute = "TreeBottomTopRatio";
-    constexpr auto TreePerspectiveAttribute    = "TreePerspective";
-    constexpr auto TreeAttribute               = "Tree";
-    constexpr auto TreeSpiralsAttribute        = "TreeSpirals";
-
+    constexpr auto BottomTopRatioAttribute  = "TreeBottomTopRatio";
+    constexpr auto PerspectiveAttribute     = "TreePerspective";
+    constexpr auto SpiralRotationsAttribute = "TreeSpirals";
+    constexpr auto TreeRotationAttribute    = "TreeSpiralRotations";
+    
     // Window Frame Model
     constexpr auto RotationAttribute = "Rotation";
 
@@ -381,9 +381,7 @@ namespace XmlNodeKeys {
     constexpr auto SphereType           = "Sphere";
     constexpr auto SpinnerType          = "Spinner";
     constexpr auto StarType             = "Star";
-    constexpr auto Tree360Type          = "Tree 360";
-    constexpr auto TreeFlatType         = "Tree Flat";
-    constexpr auto TreeRibbonType       = "Tree Ribbon";
+    constexpr auto TreeType             = "Tree";
     constexpr auto WindowType           = "Window Frame";
     constexpr auto WreathType           = "Wreath";
 };
@@ -653,6 +651,8 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         //AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::InsideOutAttribute, model.IsInsideOut() ? "1" : "0");
+        xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(model.GetLayerSizes()));
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
@@ -667,6 +667,10 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         //AddThreePointScreenLocationAttributes(model, xmlNode);
+        std::vector<std::string> cp = model.GetChannelProperies();
+        for (auto i = 0; i < cp.size();  i++) {
+            xmlNode->AddAttribute("ChannelProperties.ChannelColor" + std::to_string(i+1), cp[i]);
+        }
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
@@ -681,6 +685,10 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         //AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::StyleAttribute, model.GetStrandStyle());
+        xmlNode->AddAttribute(XmlNodeKeys::CubeStartAttribute, model.GetStrandStart());
+        xmlNode->AddAttribute(XmlNodeKeys::StrandPerLineAttribute, model.GetStrandPerLine());
+        xmlNode->AddAttribute(XmlNodeKeys::StrandPerLayerAttribute, model.GetStrandPerLayer());
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
@@ -695,6 +703,10 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         //AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::CMDepthAttribute, std::to_string(model.GetCustomDepth()));
+        xmlNode->AddAttribute(XmlNodeKeys::CustomModelAttribute, model.GetCustomData());
+        xmlNode->AddAttribute(XmlNodeKeys::BkgImageAttribute, model.GetCustomBackground());
+        xmlNode->AddAttribute(XmlNodeKeys::BkgLightnessAttribute, std::to_string(model.GetCustomLightness()));
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
@@ -707,7 +719,9 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
+        xmlNode->AddAttribute(XmlNodeKeys::DropPatternAttribute, model.GetDropPattern());
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
@@ -722,6 +736,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         //AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::ImageAttribute, model.GetImageFile());
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
@@ -736,6 +751,15 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         //AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->DeleteAttribute(XmlNodeKeys::DisplayAsAttribute);
+        if (model.isVerticalMatrix()) {
+            xmlNode->AddAttribute(XmlNodeKeys::DisplayAsAttribute, "Vert Matrix");
+        } else {
+            xmlNode->AddAttribute(XmlNodeKeys::DisplayAsAttribute, "Horiz Matrix");
+        }
+        xmlNode->AddAttribute(XmlNodeKeys::LowDefinitionAttribute, std::to_string(model.GetLowDefFactor()));
+        xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
+        xmlNode->AddAttribute(XmlNodeKeys::NoZigZagAttribute, model.IsNoZigZag() ? "true" : "false");
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
@@ -764,6 +788,22 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         //AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
+        xmlNode->AddAttribute(XmlNodeKeys::IndivSegAttribute, model.HasIndivSegs() ? "1" : "0");
+        xmlNode->AddAttribute(XmlNodeKeys::DropPatternAttribute, model.GetDropPattern());
+        xmlNode->AddAttribute(XmlNodeKeys::NumPointsAttribute, model.GetNumPoints());
+        std::vector<int> segSize = model.GetSegmentsSizes();
+        for (auto i = 0; i < segSize.size(); i++) {
+            xmlNode->AddAttribute("Seg" + std::to_string(i + 1), std::to_string(segSize[i] / (segSize.size()+1)));
+        }
+        std::vector<std::string> cSize = model.GetCorners();
+        for (auto i = 0; i < cSize.size(); i++) {
+            xmlNode->AddAttribute("Corner" + std::to_string(i + 1), cSize[i]);
+        }
+        xmlNode->AddAttribute(XmlNodeKeys::PointDataAttribute, model.GetPointData());
+        xmlNode->AddAttribute(XmlNodeKeys::cPointDataAttribute, model.GetcPointData());
+        xmlNode->AddAttribute(XmlNodeKeys::SegsExpandedAttribute, model.AreSegsExpanded() ? "TRUE" : "FALSE");
+        xmlNode->AddAttribute(XmlNodeKeys::ModelHeightAttribute, std::to_string(model.GetHeight()));
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
@@ -778,6 +818,10 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         //AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::DegreesAttribute, std::to_string(model.GetSphereDegrees()));
+        xmlNode->AddAttribute(XmlNodeKeys::StartLatAttribute, std::to_string(model.GetStartLatitude()));
+        xmlNode->AddAttribute(XmlNodeKeys::EndLatAttribute, std::to_string(model.GetEndLatitude()));
+        xmlNode->AddAttribute(XmlNodeKeys::LowDefinitionAttribute, std::to_string(model.GetLowDefFactor()));
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
@@ -792,6 +836,11 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         //AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::AlternateAttribute, model.HasAlternateNodes() ? "true" : "false");
+        xmlNode->AddAttribute(XmlNodeKeys::ZigZagAttribute, model.HasZigZag() ? "true" : "false");
+        xmlNode->AddAttribute(XmlNodeKeys::HallowAttribute, std::to_string(model.GetHollowPercent()));
+        xmlNode->AddAttribute(XmlNodeKeys::ArcAngleAttribute, std::to_string(model.GetArcAngle()));
+        xmlNode->AddAttribute(XmlNodeKeys::StartAngleAttribute, std::to_string(model.GetStartAngle()));
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
@@ -806,6 +855,10 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         //AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(model.GetLayerSizes()));
+        xmlNode->AddAttribute(XmlNodeKeys::StarStartLocationAttribute, model.GetStartLocation());
+        xmlNode->AddAttribute(XmlNodeKeys::StarRatioAttribute, std::to_string(model.GetStarRatio()));
+        xmlNode->AddAttribute(XmlNodeKeys::StarCenterPercentAttribute, std::to_string(model.GetInnerPercent()));
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
@@ -820,6 +873,14 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         //AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->DeleteAttribute(XmlNodeKeys::DisplayAsAttribute);
+        xmlNode->AddAttribute(XmlNodeKeys::DisplayAsAttribute, model.GetTreeDescription());
+        xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
+        xmlNode->AddAttribute(XmlNodeKeys::NoZigZagAttribute, model.IsNoZigZag() ? "true" : "false");
+        xmlNode->AddAttribute(XmlNodeKeys::BottomTopRatioAttribute, std::to_string(model.GetBottomTopRatio()));
+        xmlNode->AddAttribute(XmlNodeKeys::PerspectiveAttribute, std::to_string(model.GetTreePerspective()));
+        xmlNode->AddAttribute(XmlNodeKeys::SpiralRotationsAttribute, std::to_string(model.GetSpiralRotations()));
+        xmlNode->AddAttribute(XmlNodeKeys::TreeRotationAttribute, std::to_string(model.GetTreeRotation()));
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
@@ -828,15 +889,13 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         parentNode->AddChild(xmlNode);
     }
 
-    // void Visit(const TreeModel &treeflat) override {}
-    // void Visit(const TreeModel &treeribbon) override {}
-
     void Visit(const WindowFrameModel& model) override {
         wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         //AddThreePointScreenLocationAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::RotationAttribute, model.GetRotation() ? "Counter Clockwise" : "Clockwise");
         AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
         if (m == nullptr) return;
@@ -916,12 +975,8 @@ struct XmlDeserializingObjectFactory {
             return DeserializeSpinner(new wxXmlNode(*node), xlights);
         } else if (type == XmlNodeKeys::StarType) {
             return DeserializeStar(new wxXmlNode(*node), xlights);
-        } else if (type == XmlNodeKeys::Tree360Type) {
-            return DeserializeTree360(new wxXmlNode(*node), xlights);
-        } else if (type == XmlNodeKeys::TreeFlatType) {
-            return DeserializeTreeFlat(new wxXmlNode(*node), xlights);
-        } else if (type == XmlNodeKeys::TreeRibbonType) {
-            return DeserializeTreeRibbon(new wxXmlNode(*node), xlights);
+        } else if (type == XmlNodeKeys::TreeType) {
+            return DeserializeTree(new wxXmlNode(*node), xlights);
         } else if (type == XmlNodeKeys::WindowType) {
             return DeserializeWindow(new wxXmlNode(*node), xlights);
         } else if (type == XmlNodeKeys::WreathType) {
@@ -1104,29 +1159,7 @@ private:
         return model;
     }
 
-    Model* DeserializeTree360(wxXmlNode* node, xLightsFrame* xlights) {
-        Model* model;
-        model = new TreeModel(node, xlights->AllModels, false);
-
-        std::string name = node->GetAttribute("name");
-        wxString newname = xlights->AllModels.GenerateModelName(name);
-        model->SetProperty("name", newname, true);
-
-        return model;
-    }
-
-    Model* DeserializeTreeFlat(wxXmlNode* node, xLightsFrame* xlights) {
-        Model* model;
-        model = new TreeModel(node, xlights->AllModels, false);
-
-        std::string name = node->GetAttribute("name");
-        wxString newname = xlights->AllModels.GenerateModelName(name);
-        model->SetProperty("name", newname, true);
-
-        return model;
-    }
-
-    Model* DeserializeTreeRibbon(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeTree(wxXmlNode* node, xLightsFrame* xlights) {
         Model* model;
         model = new TreeModel(node, xlights->AllModels, false);
 

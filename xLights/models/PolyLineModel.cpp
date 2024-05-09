@@ -1667,6 +1667,33 @@ void PolyLineModel::NormalizePointData()
     ModelXml->AddAttribute("cPointData", cpoint_data);
 }
 
+std::string PolyLineModel::GetPointData() const {
+    return ModelXml->GetAttribute("PointData", "");
+}
+
+std::string PolyLineModel::GetcPointData() const {
+    return ModelXml->GetAttribute("cPointData", "");
+}
+
+std::string PolyLineModel::GetNumPoints() const {
+    return ModelXml->GetAttribute("NumPoints", "");
+}
+
+std::string PolyLineModel::GetDropPattern() const {
+    return ModelXml->GetAttribute("DropPattern", "1");
+}
+
+std::vector<std::string> PolyLineModel::GetCorners() const {
+    std::vector<std::string> c;
+    wxString pts = ModelXml->GetAttribute("NumPoints");
+    int count = wxAtoi(pts);
+    for (int x = 0; x < count; x++) {
+        wxString corner = ModelXml->GetAttribute(CornerAttrName(x), "Neither");
+        c.push_back(corner);
+    }
+    return c;
+}
+
 // This is required because users dont need to have their start nodes for each string in ascending
 // order ... this helps us name the strings correctly
 int PolyLineModel::MapPhysicalStringToLogicalString(int string) const

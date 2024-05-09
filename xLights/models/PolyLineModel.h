@@ -49,6 +49,19 @@ public:
     virtual bool IsNodeFirst(int node) const override;
     virtual int NodesPerString(int string) const override;
     virtual int MapPhysicalStringToLogicalString(int string) const override;
+    bool HasAlternateNodes() const { return _alternateNodes; }
+    bool HasIndivSegs() const { return hasIndivSeg; }
+    int GetDropPoints() const { return numDropPoints; }
+    int GetNumSegments() const { return num_segments; }
+    std::vector<int> GetSegmentsSizes() const { return polyLineSegDropSizes;}
+    std::vector<std::string> GetCorners() const;
+    std::string GetPointData() const;
+    std::string GetcPointData() const;
+    std::string GetNumPoints() const;
+    std::string GetDropPattern() const;
+
+    bool AreSegsExpanded() const { return segs_collapsed; }
+    float GetHeight() const { return height; }
 
     virtual bool SupportsVisitors() override { return true; }
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }

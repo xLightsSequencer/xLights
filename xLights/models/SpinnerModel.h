@@ -32,6 +32,11 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsWiringView() const override { return true; }
         virtual bool SupportsXlightsModel() override { return true; }
         virtual void ExportXlightsModel() override;
+        int GetHollowPercent() const { return hollow; }
+        int GetArcAngle () const { return arc; }
+        bool HasZigZag() const { return zigzag; }
+        bool HasAlternateNodes() const { return alternate; }
+        int GetStartAngle() const { return startangle; }
 
         virtual bool SupportsVisitors() override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }

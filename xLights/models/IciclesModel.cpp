@@ -30,6 +30,7 @@ void IciclesModel::InitModel()
 {
     wxString dropPattern = GetModelXml()->GetAttribute("DropPattern", "3,4,5,4");
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
+    _dropPattern = ModelXml->GetAttribute("DropPattern", "");
     wxArrayString pat = wxSplit(dropPattern, ',');
     int numStrings = parm1;
     int lightsPerString = parm2;

@@ -45,6 +45,11 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsVisitors() override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
+        std::string GetStrandStyle() const;
+        std::string GetStrandPerLine() const;
+        std::string GetStrandPerLayer() const;
+        std::string GetStrandStart() const;
+
     protected:
         int GetStartIndex() const;
         int GetStyleIndex() const;

@@ -32,6 +32,12 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         virtual int GetNumPhysicalStrings() const override { return 1; }
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
+        virtual bool SupportsXlightsModel() override { return true; }
+        virtual void ExportXlightsModel() override;
+        std::vector<std::string> GetChannelProperies() const;
+
+        virtual bool SupportsVisitors() override { return true; }
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:
         virtual void InitModel() override;
