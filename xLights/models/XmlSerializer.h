@@ -46,11 +46,12 @@ namespace XmlNodeKeys {
     // Model Node Names
     constexpr auto ModelsNodeName    = "models";
     constexpr auto ModelNodeName     = "model";
-    constexpr auto TypeAttribute     = "type";
     constexpr auto ExportedAttribute = "exported";
 
     // Common BaseObject Attributes
     constexpr auto NameAttribute        = "name";
+    constexpr auto StateNameAttribute   = "Name";  //should fix this
+    constexpr auto FaceNameAttribute    = "Name";  //should fix this
     constexpr auto DisplayAsAttribute   = "DisplayAs";
     constexpr auto LayoutGroupAttribute = "LayoutGroup";
 
@@ -76,10 +77,8 @@ namespace XmlNodeKeys {
     constexpr auto CustomStringsAttribute = "String";
     constexpr auto TagColourAttribute     = "TagColour";
 
-
     // Common SubModel Attributes
     constexpr auto SubModelNodeName        = "subModel";
-    constexpr auto SubModelNameAttribute   = "name";
     constexpr auto LayoutAttribute         = "layout";
     constexpr auto SMTypeAttribute         = "type";
     constexpr auto BufferStyleAttribute    = "bufferstyle";
@@ -199,6 +198,8 @@ namespace XmlNodeKeys {
     constexpr auto AlternateNodesAttribute = "AlternateNodes";
     constexpr auto LayerSizesAttribute     = "LayerSizes";
     constexpr auto ZigZagAttribute         = "ZigZag";
+    constexpr auto CustomColorsAttribute   = "CustomColors";
+    constexpr auto TypeAttribute           = "type";
 
     // Arch Attributes
     constexpr auto HollowAttribute = "Hollow";
@@ -267,10 +268,9 @@ namespace XmlNodeKeys {
     constexpr auto AlternateAttribute  = "Alternate";
 
     // Star Model
-    constexpr auto StarStartLocationAttribute  = "StarStartLocation";
-    constexpr auto StarRatioAttribute          = "starRatio";
-    constexpr auto StarCenterPercentAttribute  = "starCenterPercent";
-
+    constexpr auto StarStartLocationAttribute = "StarStartLocation";
+    constexpr auto StarRatioAttribute         = "starRatio";
+    constexpr auto StarCenterPercentAttribute = "starCenterPercent";
 
     // Tree Model
     constexpr auto BottomTopRatioAttribute  = "TreeBottomTopRatio";
@@ -282,69 +282,10 @@ namespace XmlNodeKeys {
     constexpr auto RotationAttribute = "Rotation";
 
     // States
-    constexpr auto StateAttribute  = "stateInfo";
-    constexpr auto ColorsAttribute = "Colors";
-    constexpr auto sAttribute      = "s";           // needs enumeration s1, s2, s3 etc
-    constexpr auto sColorAttribute = "sColor";      // needs enumeration s1-Color s2-Color, s3-Color etc
-    constexpr auto sNameAttribute  = "sName";       // needs enumeration s1-Name s2-Name, s3-Name etc
-
+    constexpr auto StateNodeName = "stateInfo";
+    
     // Faces
-    constexpr auto EyesClosedAttribute        = "Eyes - Closed";
-    constexpr auto EyesClosedColorAttribute   = "Eyes - Closed - Color";
-    constexpr auto EyesClosed2Attribute       = "Eyes - Closed2";
-    constexpr auto EyesClosed2ColorAttribute  = "Eyes - Closed2 - Color";
-    constexpr auto EyesClosed3Attribute       = "Eyes - Closed3";
-    constexpr auto EyesClosed3ColorAttribute  = "Eyes - Closed3 - Color";
-    constexpr auto EyesOpenAttribute          = "Eyes - Open";
-    constexpr auto EyesOpenColorAttribute     = "Eyes - Open - Color";
-    constexpr auto EyesOpen2Attribute         = "Eyes - Open2";
-    constexpr auto EyesOpen2ColorAttribute    = "Eyes - Open2 - Color";
-    constexpr auto EyesOpen3Attribute         = "Eyes - Open3";
-    constexpr auto EyesOpen3ColorAttribute    = "Eyes - Open3 - Color";
-    constexpr auto FaceOutlineAttribute       = "FaceOutline";
-    constexpr auto FaceOutlineColorAttribute  = "FaceOutline - Color";
-    constexpr auto FaceOutline2Attribute      = "FaceOutline2";
-    constexpr auto FaceOutline2ColorAttribute = "FaceOutline2 - Color";
-    constexpr auto MouthAIAttribute           = "Mouth - AI";
-    constexpr auto MouthEAttribute            = "Mouth - E";
-    constexpr auto MouthFVAttribute           = "Mouth - FV";
-    constexpr auto MouthLAttribute            = "Mouth - L";
-    constexpr auto MouthMBPAttribute          = "Mouth - MBP";
-    constexpr auto MouthOAttribute            = "Mouth - O";
-    constexpr auto MouthUAttribute            = "Mouth - U";
-    constexpr auto MouthWQAttribute           = "Mouth - WQ";
-    constexpr auto MouthetcAttribute          = "Mouth - etc";
-    constexpr auto MouthretAttribute          = "Mouth - rest";
-    constexpr auto MouthAIColorAttribute      = "Mouth - AI-Color";
-    constexpr auto MouthEColorAttribute       = "Mouth - E-Color";
-    constexpr auto MouthFVColorAttribute      = "Mouth - FV-Color";
-    constexpr auto MouthLColorAttribute       = "Mouth - L-Color";
-    constexpr auto MouthMBPColorAttribute     = "Mouth - MBP-Color";
-    constexpr auto MouthOColorAttribute       = "Mouth - O-Color";
-    constexpr auto MouthUColorAttribute       = "Mouth - U-Color";
-    constexpr auto MouthWQColorAttribute      = "Mouth - WQ-Color";
-    constexpr auto MouthetcColorAttribute     = "Mouth - etc-Color";
-    constexpr auto MouthrestColorAttribute    = "Mouth - rest-Color";
-    constexpr auto MouthAI2Attribute          = "Mouth - AI2";
-    constexpr auto MouthE2Attribute           = "Mouth - E2";
-    constexpr auto MouthFV2Attribute          = "Mouth - FV2";
-    constexpr auto MouthL2Attribute           = "Mouth - L2";
-    constexpr auto MouthMBP2Attribute         = "Mouth - MBP2";
-    constexpr auto MouthO2Attribute           = "Mouth - O2";
-    constexpr auto MouthU2Attribute           = "Mouth - U2";
-    constexpr auto MouthWQ2Attribute          = "Mouth - WQ2";
-    constexpr auto Mouthetc2Attribute         = "Mouth - etc2";
-    constexpr auto Mouthret2Attribute         = "Mouth - rest2";
-    constexpr auto MouthAIColor2Attribute     = "Mouth - AI2-Color";
-    constexpr auto MouthEColor2Attribute      = "Mouth - E2-Color";
-    constexpr auto MouthFVColor2Attribute     = "Mouth - FV2-Color";
-    constexpr auto MouthLColor2Attribute      = "Mouth - L2-Color";
-    constexpr auto MouthMBPColor2Attribute    = "Mouth - MBP2-Color";
-    constexpr auto MouthOColor2Attribute      = "Mouth - O2-Color";
-    constexpr auto MouthUColor2Attribute      = "Mouth - U2-Color";
-    constexpr auto MouthWQColor2Attribute     = "Mouth - WQ2-Color";
-    constexpr auto MouthetcColor2Attribute    = "Mouth - etc2-Color";
-    constexpr auto MouthrestColor2Attribute   = "Mouth - rest2-Color";
+    constexpr auto FaceNodeName = "faceInfo";
 
     // WIP
     // constexpr auto Attribute = "";
@@ -538,6 +479,71 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         return oss;
     }
 
+    void SortAttributes(wxXmlNode* input) {
+        const wxString attributeToPrioritize = "name";
+        std::vector<std::pair<std::string, std::string>> attributes;
+        for (wxXmlAttribute* attr = input->GetAttributes(); attr != nullptr; attr = attr->GetNext()) {
+            attributes.push_back({ std::string(attr->GetName()), std::string(attr->GetValue()) });
+        }
+        /*std::sort(attributes.begin(), attributes.end(), [](const std::pair<std::string, std::string>& a, const std::pair<std::string, std::string>& b) {
+            return Lower(a.first) < Lower(b.first);
+        });*/
+        auto custom_comparator = [&attributeToPrioritize](const std::pair<wxString, wxString>& a, const std::pair<wxString, wxString>& b) {
+            if (a.first == attributeToPrioritize) return true;
+            if (b.first == attributeToPrioritize) return false;
+            return Lower(a.first) < Lower(b.first);
+        };
+        std::sort(attributes.begin(), attributes.end(), custom_comparator);
+        wxXmlAttribute* currentAttr = input->GetAttributes();
+        while (currentAttr != nullptr) {
+            wxXmlAttribute* toRemove = currentAttr;
+            currentAttr = currentAttr->GetNext();
+            input->DeleteAttribute(toRemove->GetName());
+        }
+        for (const auto& attr : attributes) {
+            input->AddAttribute(attr.first, attr.second);
+        }
+    }
+
+    void AddFacesandStates(wxXmlNode* node, const Model* m) {
+
+        FaceStateData faces = m->GetFaceInfo();
+        for (const auto& f : faces) {
+            wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::FaceNodeName);
+            xmlNode->AddAttribute(XmlNodeKeys::FaceNameAttribute, f.first);
+            for (const auto& f2 : f.second) {
+                /*if (f2.first == "CustomColors") {
+                    xmlNode->AddAttribute(XmlNodeKeys::CustomColorsAttribute, f2.second);
+                } else if (f2.first == "Type") {
+                    xmlNode->AddAttribute(XmlNodeKeys::TypeAttribute, f2.second);
+                } else if (f2.first != "") {
+                    xmlNode->AddAttribute(f2.first, f2.second);
+                }*/
+                if (f2.first != "") xmlNode->AddAttribute(f2.first, f2.second);
+            }
+            SortAttributes(xmlNode);
+            node->AddChild(xmlNode);
+        }
+
+        FaceStateData states = m->GetStateInfo();
+        for (const auto& s : states) {
+            wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::StateNodeName);
+            xmlNode->AddAttribute(XmlNodeKeys::StateNameAttribute, s.first);
+            for (const auto& s2 : s.second) {
+                /*if (s2.first == "CustomColors") {
+                    xmlNode->AddAttribute(XmlNodeKeys::CustomColorsAttribute, s2.second);
+                } else if (s2.first == "Type") {
+                    xmlNode->AddAttribute(XmlNodeKeys::TypeAttribute, s2.second);
+                } else if (s2.first != "") {
+                    xmlNode->AddAttribute(s2.first, s2.second);
+                }*/
+                if (s2.first != "") xmlNode->AddAttribute(s2.first, s2.second);
+            }
+            SortAttributes(xmlNode);
+            node->AddChild(xmlNode);
+        }
+    }
+
     void AddAliases(wxXmlNode* node, const std::list<std::string> aliases) {
         wxXmlNode* aliashdr = new wxXmlNode(wxXML_ELEMENT_NODE, "Aliases");
 
@@ -558,7 +564,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
             wxXmlNode* submodels = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::SubModelNodeName);
             const SubModel* submodel = dynamic_cast<const SubModel*>(s);
             if (submodel == nullptr) return;
-            submodels->AddAttribute(XmlNodeKeys::SubModelNameAttribute, s->GetName());
+            submodels->AddAttribute(XmlNodeKeys::NameAttribute, s->GetName());
             submodels->AddAttribute(XmlNodeKeys::LayoutAttribute, submodel->GetSubModelLayout());
             submodels->AddAttribute(XmlNodeKeys::SMTypeAttribute, submodel->GetSubModelType());
             submodels->AddAttribute(XmlNodeKeys::BufferStyleAttribute, submodel->GetSubModelBufferStyle());
@@ -571,6 +577,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
                     submodels->AddAttribute("line" + std::to_string(i), nodeInfo[i]);
                 }
             }
+            SortAttributes(submodels);
             AddAliases(submodels, s->GetAliases());
             node->AddChild(submodels);
         }
@@ -603,6 +610,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
             groups->AddAttribute(XmlNodeKeys::mgyCentreOffsetAttribute, std::to_string(mg1->GetYCentreOffset()));
             const std::list<std::string>& aliases = mg1->GetAliases();
             AddAliases(groups,aliases);
+            SortAttributes(groups);
             node->AddChild(groups);
         }
     }
@@ -624,6 +632,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         const Model* m = dynamic_cast<const Model*>(&model);
         AddSubmodels(xmlNode, m);
         AddGroups(xmlNode, m);
+        SortAttributes(xmlNode);
         parentNode->AddChild(xmlNode);
     }
 
@@ -712,6 +721,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         if (m == nullptr) return;
         AddSubmodels(xmlNode, m);
         AddGroups(xmlNode, m);
+        AddFacesandStates(xmlNode, m);
         parentNode->AddChild(xmlNode);
     }
     void Visit(const IciclesModel& model) override {
