@@ -55,6 +55,15 @@ namespace XmlNodeKeys {
     constexpr auto DisplayAsAttribute   = "DisplayAs";
     constexpr auto LayoutGroupAttribute = "LayoutGroup";
 
+    // Shared (by some) Attributes
+    constexpr auto ArcAttribute            = "Arc";
+    constexpr auto arcAttribute            = "arc"; // Arches is lowercase - maybe should be fixed
+    constexpr auto AlternateNodesAttribute = "AlternateNodes";
+    constexpr auto LayerSizesAttribute     = "LayerSizes";
+    constexpr auto ZigZagAttribute         = "ZigZag";
+    constexpr auto CustomColorsAttribute   = "CustomColors";
+    constexpr auto TypeAttribute           = "type";
+
     // Common Model Attributes
     constexpr auto StartSideAttribute     = "StartSide";
     constexpr auto DirAttribute           = "Dir";
@@ -88,10 +97,7 @@ namespace XmlNodeKeys {
     // ModelGroup
     constexpr auto GroupNodeName            = "modelGroup";
     constexpr auto mgSelectedAttribute      = "selected";
-    constexpr auto mgLayoutAttribute        = "layout";
     constexpr auto mgGridSizeAttribute      = "GridSize";
-    constexpr auto mgLayoutGroupAttribute   = "LayoutGroup";
-    constexpr auto mgNameAttribute          = "name";
     constexpr auto mgCentreMinxAttribute    = "centreMinx";
     constexpr auto mgCentreMinyAttribute    = "centreMiny";
     constexpr auto mgCentreMaxxAttribute    = "centreMaxx";
@@ -103,7 +109,6 @@ namespace XmlNodeKeys {
     constexpr auto mgxCentreOffsetAttribute = "XCentreOffset";
     constexpr auto mgyCentreOffsetAttribute = "YCentreOffset";
     constexpr auto mgDefaultCameraAttribute = "DefaultCamera";
-    constexpr auto mgTagColourAttribute     = "TagColour";
 
     // Size/Position Attributes
     constexpr auto WorldPosXAttribute = "WorldPosX";
@@ -192,15 +197,6 @@ namespace XmlNodeKeys {
     constexpr auto MeshOnlyAttribute   = "MeshOnly";
     constexpr auto BrightnessAttribute = "Brightness";
 
-    // Shared (by some) Attributes
-    constexpr auto ArcAttribute            = "Arc";
-    constexpr auto arcAttribute            = "arc";    //Arches is lowercase - maybe should be fixed
-    constexpr auto AlternateNodesAttribute = "AlternateNodes";
-    constexpr auto LayerSizesAttribute     = "LayerSizes";
-    constexpr auto ZigZagAttribute         = "ZigZag";
-    constexpr auto CustomColorsAttribute   = "CustomColors";
-    constexpr auto TypeAttribute           = "type";
-
     // Arch Attributes
     constexpr auto HollowAttribute = "Hollow";
     constexpr auto GapAttribute    = "Gap";
@@ -209,6 +205,7 @@ namespace XmlNodeKeys {
     constexpr auto CCHeightAttribute  = "CandyCaneHeight";
     constexpr auto CCReverseAttribute = "CandyCaneReverse";
     constexpr auto CCSticksAttribute  = "CandyCaneSticks";
+    constexpr auto CCAngleAttribute   = "CandyCaneSticks";
 
     // Channel Block Model
     // Since this is dynamic it all gets done by the visitor
@@ -512,13 +509,6 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
             wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::FaceNodeName);
             xmlNode->AddAttribute(XmlNodeKeys::FaceNameAttribute, f.first);
             for (const auto& f2 : f.second) {
-                /*if (f2.first == "CustomColors") {
-                    xmlNode->AddAttribute(XmlNodeKeys::CustomColorsAttribute, f2.second);
-                } else if (f2.first == "Type") {
-                    xmlNode->AddAttribute(XmlNodeKeys::TypeAttribute, f2.second);
-                } else if (f2.first != "") {
-                    xmlNode->AddAttribute(f2.first, f2.second);
-                }*/
                 if (f2.first != "") xmlNode->AddAttribute(f2.first, f2.second);
             }
             SortAttributes(xmlNode);
@@ -530,13 +520,6 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
             wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::StateNodeName);
             xmlNode->AddAttribute(XmlNodeKeys::StateNameAttribute, s.first);
             for (const auto& s2 : s.second) {
-                /*if (s2.first == "CustomColors") {
-                    xmlNode->AddAttribute(XmlNodeKeys::CustomColorsAttribute, s2.second);
-                } else if (s2.first == "Type") {
-                    xmlNode->AddAttribute(XmlNodeKeys::TypeAttribute, s2.second);
-                } else if (s2.first != "") {
-                    xmlNode->AddAttribute(s2.first, s2.second);
-                }*/
                 if (s2.first != "") xmlNode->AddAttribute(s2.first, s2.second);
             }
             SortAttributes(xmlNode);
@@ -591,13 +574,13 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
             const ModelGroup* mg1 = dynamic_cast<const ModelGroup*>(g);
             if (mg1 == nullptr) return;
             wxXmlNode* groups = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::GroupNodeName);
-            groups->AddAttribute(XmlNodeKeys::mgNameAttribute, g->GetName());
+            groups->AddAttribute(XmlNodeKeys::NameAttribute, g->GetName());
             groups->AddAttribute(XmlNodeKeys::mgModelsAttribute, m->GetName());
-            groups->AddAttribute(XmlNodeKeys::mgLayoutGroupAttribute, g->GetLayoutGroup());
+            groups->AddAttribute(XmlNodeKeys::LayoutGroupAttribute, g->GetLayoutGroup());
             groups->AddAttribute(XmlNodeKeys::mgSelectedAttribute, std::to_string(mg1->IsSelected()));
-            groups->AddAttribute(XmlNodeKeys::mgLayoutAttribute, mg1->GetLayout());
+            groups->AddAttribute(XmlNodeKeys::LayoutAttribute, mg1->GetLayout());
             groups->AddAttribute(XmlNodeKeys::mgGridSizeAttribute, std::to_string(mg1->GetGridSize()));
-            groups->AddAttribute(XmlNodeKeys::mgTagColourAttribute, mg1->GetTagColour().GetAsString(wxC2S_HTML_SYNTAX));
+            groups->AddAttribute(XmlNodeKeys::TagColourAttribute, mg1->GetTagColour().GetAsString(wxC2S_HTML_SYNTAX));
             groups->AddAttribute(XmlNodeKeys::mgCentreMinxAttribute, std::to_string(mg1->GetCentreMinx()));
             groups->AddAttribute(XmlNodeKeys::mgCentreMinyAttribute, std::to_string(mg1->GetCentreMiny()));
             groups->AddAttribute(XmlNodeKeys::mgCentreMaxxAttribute, std::to_string(mg1->GetCentreMaxx()));
@@ -617,6 +600,17 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
 
     //xmlNode->AddAttribute(XmlNodeKeys::#, std::to_string(#()));
 
+    void AddOtherElements(wxXmlNode* xmlNode, const Model* m)
+    {
+        SortAttributes(xmlNode);
+        AddAliases(xmlNode, m->GetAliases());
+        AddFacesandStates(xmlNode, m);
+        AddSubmodels(xmlNode, m);
+        AddGroups(xmlNode, m);
+        parentNode->AddChild(xmlNode);
+    }
+
+
     void Visit(const ArchesModel& model) override {
         wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
         AddBaseObjectAttributes(model, xmlNode);
@@ -628,12 +622,8 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         xmlNode->AddAttribute(XmlNodeKeys::GapAttribute, std::to_string(model.GetGap()));
         xmlNode->AddAttribute(XmlNodeKeys::arcAttribute, std::to_string(model.GetArc()));
         xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(model.GetLayerSizes()));
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        SortAttributes(xmlNode);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const CandyCaneModel& model) override {
@@ -641,17 +631,13 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::CCHeightAttribute, std::to_string(model.GetCandyCaneHeight()));
         xmlNode->AddAttribute(XmlNodeKeys::CCReverseAttribute, model.IsReverse() ? "true" : "false");
         xmlNode->AddAttribute(XmlNodeKeys::CCSticksAttribute, model.IsSticks() ? "true": "false");
         xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const CircleModel& model) override {
@@ -659,15 +645,11 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::InsideOutAttribute, model.IsInsideOut() ? "1" : "0");
         xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(model.GetLayerSizes()));
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);        
+        AddOtherElements(xmlNode, m);     
     }
 
     void Visit(const ChannelBlockModel& model) override {
@@ -675,17 +657,13 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         std::vector<std::string> cp = model.GetChannelProperies();
         for (auto i = 0; i < cp.size();  i++) {
             xmlNode->AddAttribute("ChannelProperties.ChannelColor" + std::to_string(i+1), cp[i]);
         }
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const CubeModel& model) override {
@@ -693,17 +671,13 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::StyleAttribute, model.GetStrandStyle());
         xmlNode->AddAttribute(XmlNodeKeys::CubeStartAttribute, model.GetStrandStart());
         xmlNode->AddAttribute(XmlNodeKeys::StrandPerLineAttribute, model.GetStrandPerLine());
         xmlNode->AddAttribute(XmlNodeKeys::StrandPerLayerAttribute, model.GetStrandPerLayer());
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const CustomModel& model) override {
@@ -711,18 +685,13 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::CMDepthAttribute, std::to_string(model.GetCustomDepth()));
         xmlNode->AddAttribute(XmlNodeKeys::CustomModelAttribute, model.GetCustomData());
         xmlNode->AddAttribute(XmlNodeKeys::BkgImageAttribute, model.GetCustomBackground());
         xmlNode->AddAttribute(XmlNodeKeys::BkgLightnessAttribute, std::to_string(model.GetCustomLightness()));
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        AddFacesandStates(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
     void Visit(const IciclesModel& model) override {
         wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
@@ -732,12 +701,8 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddThreePointScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
         xmlNode->AddAttribute(XmlNodeKeys::DropPatternAttribute, model.GetDropPattern());
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const ImageModel& model) override {
@@ -745,14 +710,10 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::ImageAttribute, model.GetImageFile());
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const MatrixModel& model) override {
@@ -760,7 +721,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         xmlNode->DeleteAttribute(XmlNodeKeys::DisplayAsAttribute);
         if (model.isVerticalMatrix()) {
             xmlNode->AddAttribute(XmlNodeKeys::DisplayAsAttribute, "Vert Matrix");
@@ -770,12 +731,8 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         xmlNode->AddAttribute(XmlNodeKeys::LowDefinitionAttribute, std::to_string(model.GetLowDefFactor()));
         xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
         xmlNode->AddAttribute(XmlNodeKeys::NoZigZagAttribute, model.IsNoZigZag() ? "true" : "false");
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const SingleLineModel& model) override {
@@ -783,13 +740,9 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
-        AddAliases(xmlNode, model.GetAliases());
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const PolyLineModel& model) override {
@@ -797,7 +750,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
         xmlNode->AddAttribute(XmlNodeKeys::IndivSegAttribute, model.HasIndivSegs() ? "1" : "0");
         xmlNode->AddAttribute(XmlNodeKeys::DropPatternAttribute, model.GetDropPattern());
@@ -814,12 +767,8 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         xmlNode->AddAttribute(XmlNodeKeys::cPointDataAttribute, model.GetcPointData());
         xmlNode->AddAttribute(XmlNodeKeys::SegsExpandedAttribute, model.AreSegsExpanded() ? "TRUE" : "FALSE");
         xmlNode->AddAttribute(XmlNodeKeys::ModelHeightAttribute, std::to_string(model.GetHeight()));
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const SphereModel& model) override {
@@ -827,17 +776,13 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::DegreesAttribute, std::to_string(model.GetSphereDegrees()));
         xmlNode->AddAttribute(XmlNodeKeys::StartLatAttribute, std::to_string(model.GetStartLatitude()));
         xmlNode->AddAttribute(XmlNodeKeys::EndLatAttribute, std::to_string(model.GetEndLatitude()));
         xmlNode->AddAttribute(XmlNodeKeys::LowDefinitionAttribute, std::to_string(model.GetLowDefFactor()));
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const SpinnerModel& model) override {
@@ -845,18 +790,14 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::AlternateAttribute, model.HasAlternateNodes() ? "true" : "false");
         xmlNode->AddAttribute(XmlNodeKeys::ZigZagAttribute, model.HasZigZag() ? "true" : "false");
         xmlNode->AddAttribute(XmlNodeKeys::HallowAttribute, std::to_string(model.GetHollowPercent()));
         xmlNode->AddAttribute(XmlNodeKeys::ArcAngleAttribute, std::to_string(model.GetArcAngle()));
         xmlNode->AddAttribute(XmlNodeKeys::StartAngleAttribute, std::to_string(model.GetStartAngle()));
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const StarModel& model) override {
@@ -864,17 +805,13 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(model.GetLayerSizes()));
         xmlNode->AddAttribute(XmlNodeKeys::StarStartLocationAttribute, model.GetStartLocation());
         xmlNode->AddAttribute(XmlNodeKeys::StarRatioAttribute, std::to_string(model.GetStarRatio()));
         xmlNode->AddAttribute(XmlNodeKeys::StarCenterPercentAttribute, std::to_string(model.GetInnerPercent()));
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const TreeModel& model) override {
@@ -882,7 +819,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         xmlNode->DeleteAttribute(XmlNodeKeys::DisplayAsAttribute);
         xmlNode->AddAttribute(XmlNodeKeys::DisplayAsAttribute, model.GetTreeDescription());
         xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
@@ -891,12 +828,8 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         xmlNode->AddAttribute(XmlNodeKeys::PerspectiveAttribute, std::to_string(model.GetTreePerspective()));
         xmlNode->AddAttribute(XmlNodeKeys::SpiralRotationsAttribute, std::to_string(model.GetSpiralRotations()));
         xmlNode->AddAttribute(XmlNodeKeys::TreeRotationAttribute, std::to_string(model.GetTreeRotation()));
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const WindowFrameModel& model) override {
@@ -904,14 +837,10 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::RotationAttribute, model.GetRotation() ? "Counter Clockwise" : "Clockwise");
-        AddAliases(xmlNode, model.GetAliases());
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
     void Visit(const WreathModel& model) override {
@@ -919,35 +848,27 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
-        //AddThreePointScreenLocationAttributes(model, xmlNode);
-        AddAliases(xmlNode, model.GetAliases());
+        AddThreePointScreenLocationAttributes(model, xmlNode);
         const Model* m = dynamic_cast<const Model*>(&model);
-        if (m == nullptr) return;
-        AddSubmodels(xmlNode, m);
-        AddGroups(xmlNode, m);
-        parentNode->AddChild(xmlNode);
+        AddOtherElements(xmlNode, m);
     }
 
-    void Visit(const DmxMovingHeadAdv& moving_head) override {
-        wxXmlNode* mhNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
-        AddBaseObjectAttributes(moving_head, mhNode);
-        AddCommonModelAttributes(moving_head, mhNode);
-        AddModelScreenLocationAttributes(moving_head, mhNode);
-        AddColorAttributes(moving_head, mhNode);
-        mhNode->AddAttribute(XmlNodeKeys::DmxFixturelAttribute, moving_head.GetFixture());
-        mhNode->AddAttribute(XmlNodeKeys::DmxBeamYOffsetAttribute, std::to_string(moving_head.GetBeamYOffset()));
-        mhNode->AddAttribute(XmlNodeKeys::DmxBeamLengthAttribute, std::to_string(moving_head.GetBeamLength()));
-        AddDmxMotorAttributes(reinterpret_cast<DmxMotor*>(moving_head.GetPanMotor()), mhNode);
-        AddDmxMotorAttributes(reinterpret_cast<DmxMotor*>(moving_head.GetTiltMotor()), mhNode);
-        AddMeshAttributes(reinterpret_cast<Mesh*>(moving_head.GetBaseMesh()), mhNode);
-        AddMeshAttributes(reinterpret_cast<Mesh*>(moving_head.GetYokeMesh()), mhNode);
-        AddMeshAttributes(reinterpret_cast<Mesh*>(moving_head.GetHeadMesh()), mhNode);
-        const Model* m = dynamic_cast<const Model*>(&moving_head);
-        if (m == nullptr)
-            return;
-        AddSubmodels(mhNode, m);
-        AddGroups(mhNode, m);
-        parentNode->AddChild(mhNode);
+    void Visit(const DmxMovingHeadAdv& model) override {
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
+        AddBaseObjectAttributes(model, xmlNode);
+        AddCommonModelAttributes(model, xmlNode);
+        AddModelScreenLocationAttributes(model, xmlNode);
+        AddColorAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::DmxFixturelAttribute, model.GetFixture());
+        xmlNode->AddAttribute(XmlNodeKeys::DmxBeamYOffsetAttribute, std::to_string(model.GetBeamYOffset()));
+        xmlNode->AddAttribute(XmlNodeKeys::DmxBeamLengthAttribute, std::to_string(model.GetBeamLength()));
+        AddDmxMotorAttributes(reinterpret_cast<DmxMotor*>(model.GetPanMotor()), xmlNode);
+        AddDmxMotorAttributes(reinterpret_cast<DmxMotor*>(model.GetTiltMotor()), xmlNode);
+        AddMeshAttributes(reinterpret_cast<Mesh*>(model.GetBaseMesh()), xmlNode);
+        AddMeshAttributes(reinterpret_cast<Mesh*>(model.GetYokeMesh()), xmlNode);
+        AddMeshAttributes(reinterpret_cast<Mesh*>(model.GetHeadMesh()), xmlNode);
+        const Model* m = dynamic_cast<const Model*>(&model);
+        AddOtherElements(xmlNode, m);
     }
 };
 
