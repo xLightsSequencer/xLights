@@ -2023,12 +2023,12 @@ void ValueCurve::RemoveExcessCustomPoints()
     }
 }
 
-void ValueCurve::SetValueAt(float offset, float value)
+void ValueCurve::SetValueAt(float offset, float value, bool force)
 {
     auto it = _values.begin();
     while (it != _values.end() && *it <= offset)
     {
-        if (*it == offset)
+        if (*it == offset && !force)
         {
             _values.remove(*it);
             break;

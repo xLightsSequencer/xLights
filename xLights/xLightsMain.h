@@ -337,7 +337,7 @@ public:
     bool IsExiting() const { return _exiting; }
     void SetEffectControls(const std::string &modelName, const std::string &name,
                            const SettingsMap &settings, const SettingsMap &palette,
-                           bool setDefaults);
+                           int startTimeMs, int endTimeMs, bool setDefaults);
     void SetEffectControls(const SettingsMap &settings);
     void ApplyLast(wxCommandEvent& event);
     void SetEffectControlsApplyLast(const SettingsMap &settings);
