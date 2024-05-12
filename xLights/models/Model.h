@@ -384,6 +384,11 @@ public:
     [[nodiscard]] int GetControllerEndNulls() const;
     [[nodiscard]] wxString GetControllerColorOrder() const;
     [[nodiscard]] int GetControllerGroupCount() const;
+    [[nodiscard]] std::string GetControllerGamma() const;
+    [[nodiscard]] int GetControllerZigZag() const;
+    [[nodiscard]] int GetControllerReverse() const;
+    [[nodiscard]] std::string GetRGBWHandling() const;
+
     void SetControllerStartNulls(int nulls);
     void SetControllerEndNulls(int nulls);
     void SetControllerColorOrder(wxString const& color);

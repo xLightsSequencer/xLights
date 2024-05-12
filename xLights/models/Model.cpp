@@ -6363,7 +6363,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
         wxXmlNode* root = doc.GetRoot();
 
         // check for XmlSerializer format
-        if (root->GetAttribute(XmlNodeKeys::TypeAttribute, "") == XmlNodeKeys::ExportedAttribute) {
+        if (XmlSerializer::IsXmlSerializerFormat(root)) {
             // grab the attributes I want to keep
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
             auto x = model->GetHcenterPos();
@@ -7308,6 +7308,23 @@ std::string Model::GetControllerName() const
 {
     return ModelXml->GetAttribute("Controller", "").Trim(true).Trim(false).ToStdString();
 }
+
+std::string Model::GetControllerGamma() const {
+    return GetControllerConnection()->GetAttribute("gamma", "0.0").ToStdString();
+}
+
+int Model::GetControllerReverse() const {
+    return wxAtoi(GetControllerConnection()->GetAttribute("reverse", "0"));
+}
+
+int Model::GetControllerZigZag() const {
+    return wxAtoi(GetControllerConnection()->GetAttribute("zigZag", "0"));
+}
+
+std::string Model::GetRGBWHandling() const {
+    return ModelXml->GetAttribute("RGBWHandling", "").ToStdString();
+}
+
 
 // std::list<std::string> Model::GetProtocols()
 //{

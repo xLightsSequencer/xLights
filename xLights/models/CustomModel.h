@@ -69,6 +69,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual std::string GetNodeName(size_t x, bool def = false) const override;
         virtual std::list<std::string> CheckModelSettings() override;
         virtual int NodesPerString(int string) const override;
+        std::vector<std::vector<std::vector<int>>> GetLocations() const { return locations; }
 
         virtual bool SupportsVisitors() override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
