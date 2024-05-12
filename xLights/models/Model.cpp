@@ -6363,7 +6363,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
         wxXmlNode* root = doc.GetRoot();
 
         // check for XmlSerializer format
-        if (root->GetAttribute(XmlNodeKeys::TypeAttribute, "") == XmlNodeKeys::ExportedAttribute) {
+        if (XmlSerializer::IsXmlSerializerFormat(root)) {
             // grab the attributes I want to keep
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
             auto x = model->GetHcenterPos();

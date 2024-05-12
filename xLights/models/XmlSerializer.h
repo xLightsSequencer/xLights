@@ -370,6 +370,14 @@ struct XmlSerializer
     {
     }
 
+    static bool IsXmlSerializerFormat(const wxXmlNode *node)
+    {
+        if (node->GetAttribute(XmlNodeKeys::TypeAttribute, "") == XmlNodeKeys::ExportedAttribute) {
+            return true;
+        }
+        return false;
+    }
+
     // Serializes and Saves a single model into an XML document
     void SerializeAndSaveModel(const BaseObject &object)
     {
