@@ -165,6 +165,7 @@ public:
     void SetBlackTransparency(int t);
     void ApplyDimensions(const std::string& units, float width, float height, float depth, float& min_x, float& max_x, float& min_y, float& max_y);
     void ExportDimensions(wxFile& f) const;
+    std::string GetRulerDim() const;
 
     virtual bool AllNodesAllocated() const { return true; }
     static void ParseFaceInfo(wxXmlNode* fiNode, FaceStateData& faceInfo);

@@ -137,7 +137,8 @@ namespace XmlNodeKeys {
     constexpr auto OffsetYAttribute   = "OffsetY";
     constexpr auto OffsetZAttribute   = "OffsetZ";
 
-    // Dimentions Attributes
+    // Dimensions Attributes
+    constexpr auto DimNodeName        = "dimensions";
     constexpr auto DimUnitsAttribute  = "units";
     constexpr auto DimWidthAttribute  = "width";
     constexpr auto DimHeightAttribute = "height";
@@ -679,6 +680,18 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         }
     }
 
+    void AddDimensions(wxXmlNode* node, const Model* m) {
+        std::string rdu = m->GetRulerDim();
+        if (rdu != "") {
+            wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::DimNodeName);
+            xmlNode->AddAttribute(XmlNodeKeys::DimDepthAttribute, std::to_string(m->GetModelScreenLocation().GetRealDepth()));
+            xmlNode->AddAttribute(XmlNodeKeys::DimHeightAttribute, std::to_string(m->GetModelScreenLocation().GetRealHeight()));
+            xmlNode->AddAttribute(XmlNodeKeys::DimUnitsAttribute, rdu);
+            xmlNode->AddAttribute(XmlNodeKeys::DimWidthAttribute, std::to_string(m->GetModelScreenLocation().GetRealWidth()));
+            node->AddChild(xmlNode);
+        }
+    }
+
     //xmlNode->AddAttribute(XmlNodeKeys::#, std::to_string(#()));
 
     void AddOtherElements(wxXmlNode* xmlNode, const Model* m)
@@ -690,6 +703,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddSubmodels(xmlNode, m);
         AddGroups(xmlNode, m);
         AddControllerConnection(xmlNode, m);
+        AddDimensions(xmlNode, m);
         parentNode->AddChild(xmlNode);
     }
 

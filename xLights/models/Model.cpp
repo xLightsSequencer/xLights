@@ -7571,6 +7571,33 @@ void Model::ExportDimensions(wxFile& f) const
     }
 }
 
+std::string Model::GetRulerDim() const {
+    auto ruler = RulerObject::GetRuler();
+    std::string u = "";
+    if (ruler != nullptr) {
+        switch (ruler->GetUnits()) {
+        case RULER_UNITS_INCHES:
+            u = "i";
+            break;
+        case RULER_UNITS_FEET:
+            u = "f";
+            break;
+        case RULER_UNITS_YARDS:
+            u = "y";
+            break;
+        case RULER_UNITS_MM:
+            u = "mm";
+            break;
+        case RULER_UNITS_CM:
+            u = "cm";
+            break;
+        case RULER_UNITS_M:
+            u = "m";
+            break;
+        }
+        return u;
+    }
+}
 void Model::SaveDisplayDimensions()
 {
     _savedWidth = GetModelScreenLocation().GetRestorableMWidth();
