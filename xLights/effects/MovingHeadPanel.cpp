@@ -886,6 +886,7 @@ void MovingHeadPanel::ValidateWindow()
 {
     // Lets fix moving head fixture assignments
     auto models = GetActiveModels();
+    if (models.empty()) return;
     bool single_model = models.size() == 1;
 
     // if single model make sure the effect setting is on correct head...if not move it
@@ -950,11 +951,9 @@ void MovingHeadPanel::ValidateWindow()
     UpdateStatusPanel();
     
     // Set current timing track in Dimmer window
-    if (model == nullptr) return;
     const ModelManager& mgr = model->GetModelManager();
     xLightsFrame* xlights = mgr.GetXLightsFrame();
     if (xlights == nullptr) return;
-    SequenceElements& se = xlights->GetSequenceElements();
     Element* active_timing = xlights->GetMainSequencer()->PanelEffectGrid->GetActiveTimingElement();
     if (active_timing == nullptr) return;
     m_movingHeadDimmerPanel->SetEffectTimeRange(startTimeMs_, endTimeMs_);
