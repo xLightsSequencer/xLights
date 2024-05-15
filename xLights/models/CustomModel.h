@@ -81,6 +81,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
     private:
         int GetCustomMaxChannel(const std::string& customModel) const;
         void InitCustomMatrix(const std::string& customModel);
+        void InitCustomMatrix(const std::string& customModel, const bool& isCompressed);
+
         static std::string StartNodeAttrName(int idx)
         {
             return wxString::Format(wxT("String%i"), idx + 1).ToStdString();  // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans

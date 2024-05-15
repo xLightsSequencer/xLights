@@ -68,7 +68,7 @@ namespace XmlNodeKeys {
     constexpr auto CZigZagAttribute        = "zigZag";      //fix it
     constexpr auto CustomColorsAttribute   = "CustomColors";
     constexpr auto TypeAttribute           = "type";
-    constexpr auto CReverseAttribute        = "reverse";     //fix it
+    constexpr auto CReverseAttribute       = "reverse";     //fix it
     constexpr auto ReverseAttribute        = "Reverse";     //fix it
 
     // Common Model Attributes
@@ -706,7 +706,51 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddDimensions(xmlNode, m);
         parentNode->AddChild(xmlNode);
     }
-
+    
+    void AddCustomModel(wxXmlNode* xmlNode, const CustomModel& m) {
+        std::vector<std::vector<std::vector<int>>> locations = m.GetLocations();
+        std::vector<std::vector<int>> customModel;
+        std::string type1 = "";
+        std::string type2 = "";
+        bool hasInfo = false;
+        uint16_t maxNode = 0;
+        auto custom_comparator = [](const std::vector<int>& a, const std::vector<int>& b) { return a[2] < b[2]; };
+        for (auto l = 0; l < locations.size(); l++) {
+            type2 += (l > 0 ? "|" : "");
+            hasInfo = false;
+            bool newRow = true;
+            for (auto h = 0; h < locations[l].size(); h++) {
+                for (auto w = 0; w < locations[l][h].size(); w++) {
+                    if (locations[l][h][w] != -1) {
+                        type2 +=  (hasInfo && !newRow ? "," : "") + std::to_string(h) + "," + std::to_string(w) + "," + std::to_string(locations[l][h][w]);
+                        if (locations[l][h][w] > maxNode) maxNode = locations[l][h][w];
+                        newRow = false;
+                        hasInfo = true;
+                        if (m.IsAllNodesUnique()) {
+                            std::vector<int> row;
+                            row.push_back(h);
+                            row.push_back(w);
+                            row.push_back(locations[l][h][w]);
+                            customModel.push_back(row);
+                        }
+                    }
+                }
+            }
+        }
+        std::string stats = std::to_string(maxNode) + "," + std::to_string(m.GetCustomWidth()) + "," + std::to_string(m.GetCustomHeight()) + "," + std::to_string(m.GetCustomDepth());
+        if (m.IsAllNodesUnique() && locations.size() == 1) {
+            std::sort(customModel.begin(), customModel.end(), custom_comparator);
+            if (customModel.back()[2] == customModel.size()) {
+                for (auto r = 0; r < customModel.size(); r++)
+                    type1 += (r > 0 ? "," : "") + std::to_string(customModel[r][0]) + "," + std::to_string(customModel[r][1]);
+                xmlNode->AddAttribute("CustomModel2.0", "1," + stats + ",0,0|" + type1);
+            } else {
+                xmlNode->AddAttribute("CustomModel2.0", "2," + stats + ",0,0|" + type2);
+            }
+        } else {
+            xmlNode->AddAttribute("CustomModel2.0", "2," + stats + ",0,0|" + type2);
+        }
+    }
 
     void Visit(const ArchesModel& model) override {
         wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
@@ -781,29 +825,12 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::CMDepthAttribute, std::to_string(model.GetCustomDepth()));
-        xmlNode->AddAttribute(XmlNodeKeys::CustomModelAttribute, model.GetCustomData());
+        //xmlNode->AddAttribute(XmlNodeKeys::CustomModelAttribute, model.GetCustomData());
         xmlNode->AddAttribute(XmlNodeKeys::BkgImageAttribute, model.GetCustomBackground());
         xmlNode->AddAttribute(XmlNodeKeys::BkgLightnessAttribute, std::to_string(model.GetCustomLightness()));
-        std::vector<std::vector<std::vector<int>>> locations = model.GetLocations();
-        std::string cm2 = "";
-        for (auto l = 0; l < locations.size(); l++) {
-            for (auto h = 0; h < locations[l].size(); h++) {
-                for (auto w = 0; w < locations[l][h].size(); w++) {
-                    if (locations.size() == 1) {
-                        if (locations[l][h][w] != -1)
-                            cm2 += std::to_string(h) + "," + std::to_string(w) + "," + std::to_string(locations[l][h][w]) + ",";
-                    } else {
-                        if (locations[l][h][w] != -1)
-                            cm2 += std::to_string(l) + "," + std::to_string(h) + "," + std::to_string(w) + "," + std::to_string(locations[l][h][w]) + ",";
-                    }
-                }
-            }
-        }
-        xmlNode->AddAttribute("CustomModel2.0", cm2);
         const Model* m = dynamic_cast<const Model*>(&model);
+        AddCustomModel(xmlNode, model);
         AddOtherElements(xmlNode, m);
-
-
     }
     void Visit(const IciclesModel& model) override {
         wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);

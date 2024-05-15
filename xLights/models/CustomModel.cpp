@@ -24,7 +24,7 @@
 #include "../ExternalHooks.h"
 #include "outputs/OutputManager.h"
 #include "../ModelPreview.h"
-
+#include "XmlSerializer.h"
 #include <log4cpp/Category.hh>
 
 CustomModel::CustomModel(wxXmlNode *node, const ModelManager &manager,  bool zeroBased) : ModelWithScreenLocation(manager)
@@ -294,8 +294,13 @@ void CustomModel::InitModel()
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStopWatch sw;
 
-    std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
-    InitCustomMatrix(customModel);
+    std::string customModel = ModelXml->GetAttribute("CustomModel2.0");
+    if (customModel != "") {
+        InitCustomMatrix(customModel, true);
+    } else {
+        std::string customModel = ModelXml->GetAttribute("CustomModel");
+        InitCustomMatrix(customModel);
+    }
     //CopyBufCoord2ScreenCoord();
     custom_background = ModelXml->GetAttribute("CustomBkgImage").ToStdString();
     _strings = wxAtoi(ModelXml->GetAttribute("CustomStrings", "1"));
@@ -405,7 +410,8 @@ std::list<std::string> CustomModel::GetFileReferences()
 
 void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString)
 {
-    std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
+    std::string customModel = ModelXml->GetAttribute("CustomModel2.0");
+    if (customModel == "") std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
     _strings = wxAtoi(ModelXml->GetAttribute("CustomStrings", "1").ToStdString());
     int maxval = GetCustomMaxChannel(customModel);
     // fix NumberOfStrings
@@ -691,6 +697,100 @@ int CustomModel::GetCustomMaxChannel(const std::string& customModel) const
         }
     }
     return maxval;
+}
+
+void CustomModel::InitCustomMatrix(const std::string& customModel, const bool& isCompressed) {
+
+    locations.clear();
+    std::vector<std::string> layers;
+    Split(customModel, '|', layers);
+    std::vector<std::string> header;
+    Split(layers[0], ',', header);
+
+    uint16_t width = wxAtoi(header[2]);
+    uint16_t height = wxAtoi(header[3]);
+    uint16_t depth = wxAtoi(header[4]);
+    std::vector<int> nodemap(wxAtoi(header[1]), -1);
+    int cpn = -1;
+
+    int32_t firstStartChan = 999999999;
+    for (auto it : stringStartChan) {
+        firstStartChan = std::min(it, firstStartChan);
+    }
+
+    locations = std::vector < std::vector<std::vector<int>>>(depth, std::vector<std::vector<int>>(height, std::vector<int>(width, -1)));
+
+    int step = (header[0] == "1" ? 2 : 3);
+
+    for (auto l = 1; l < layers.size(); l++) {
+        int layer = l - 1;
+        std::vector<std::string> cm;
+        Split(layers[l], ',', cm);
+
+        for (auto n = 0; n < cm.size()/step; n++) {
+            const int h = wxAtoi(cm[n * step]);
+            const int w = wxAtoi(cm[n * step + 1]);
+            if (header[0] == "1")
+                locations[layer][h][w] = n + 1;
+            else
+                locations[layer][h][w] = wxAtoi(cm[n * 3 + 2]);
+            int idx = locations[layer][h][w]-1;
+
+            // is node already defined in map?
+            if (nodemap[idx] < 0) {
+                // unmapped - so add a node
+                nodemap[idx] = Nodes.size();
+                SetNodeCount(1, 0, rgbOrder); // this creates a node of the correct class
+                Nodes.back()->StringNum = idx;
+                if (cpn == -1) {
+                    cpn = GetChanCountPerNode();
+                }
+                Nodes.back()->ActChan = firstStartChan + idx * cpn;
+                if (idx < nodeNames.size() && !nodeNames[idx].empty()) {
+                    Nodes.back()->SetName(nodeNames[idx]);
+                } else {
+                    Nodes.back()->SetName("Node " + std::to_string(idx + 1));
+                }
+                Nodes.back()->AddBufCoord(layer * ((float)width) + w, ((float)height) - h - 1);
+                auto& c = Nodes[nodemap[idx]]->Coords.back();
+                c.screenX = (float)w - ((float)width) / 2.0f;
+                c.screenY = ((float)height) - (float)h - 1.0f - ((float)height) / 2.0f;
+                c.screenZ = depth - (float)layer - 1.0f - depth / 2.0f;
+            } else {
+                // mapped - so add a coord to existing node
+                Nodes[nodemap[idx]]->AddBufCoord(layer * ((float)width) + w, ((float)height) - h - 1);
+                auto& c = Nodes[nodemap[idx]]->Coords.back();
+                c.screenX = (float)w - ((float)width) / 2.0f;
+                c.screenY = ((float)height) - (float)h - 1.0f - ((float)height) / 2.0f;
+                c.screenZ = depth - (float)layer - 1.0f - depth / 2.0f;
+            }
+        }
+    }
+
+    for (auto& lyr : locations) {
+        lyr.resize(height);
+        for (auto& rw : lyr) {
+            rw.resize(width, -1);
+        }
+    }
+    for (int x = 0; x < Nodes.size(); x++) {
+        for (int y = x + 1; y < Nodes.size(); y++) {
+            if (Nodes[y]->StringNum < Nodes[x]->StringNum) {
+                Nodes[x].swap(Nodes[y]);
+            }
+        }
+    }
+    for (int x = 0; x < Nodes.size(); x++) {
+        if (Nodes[x]->GetName().empty()) {
+            Nodes[x]->SetName(GetNodeName(Nodes[x]->StringNum));
+        }
+    }
+    // we have 2 sources of truth for the width, height and depth but we take the parm settings rather than the data
+    // SetBufferSize(height, width * depth);
+    SetBufferSize(parm2, parm1 * _depth);
+    if (screenLocation.RenderDp < 10.0f) {
+        screenLocation.RenderDp = 10.0f; // give the bounding box a little depth
+    }
 }
 
 void CustomModel::InitCustomMatrix(const std::string& customModel) {
@@ -1176,7 +1276,7 @@ void CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportXlightsModel");
-    } else {
+    } else if (!XmlSerializer::IsXmlSerializerFormat(root)) {
         DisplayError("Failure loading custom model file.");
     }
 }
