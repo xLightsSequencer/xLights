@@ -1370,15 +1370,7 @@ private:
 };
 
 struct XmlSerializer {
-    XmlSerializer() {
-    }
-
-    static bool IsXmlSerializerFormat(const wxXmlNode* node) {
-        if (node->GetAttribute(XmlNodeKeys::TypeAttribute, "") == XmlNodeKeys::ExportedAttribute) {
-            return true;
-        }
-        return false;
-    }
+    XmlSerializer() {}
 
     // Serializes and Saves a single model into an XML document
     void SerializeAndSaveModel(const BaseObject& object) {
@@ -1388,6 +1380,13 @@ struct XmlSerializer {
             return;
         wxXmlDocument doc = SerializeModel(object);
         doc.Save(filename);
+    }
+
+    static bool IsXmlSerializerFormat(const wxXmlNode* node) {
+        if (node->GetAttribute(XmlNodeKeys::TypeAttribute, "") == XmlNodeKeys::ExportedAttribute) {
+            return true;
+        }
+        return false;
     }
 
     // Serialize a single model into an XML document
