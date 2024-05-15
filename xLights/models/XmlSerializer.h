@@ -1382,13 +1382,6 @@ struct XmlSerializer {
         doc.Save(filename);
     }
 
-    static bool IsXmlSerializerFormat(const wxXmlNode* node) {
-        if (node->GetAttribute(XmlNodeKeys::TypeAttribute, "") == XmlNodeKeys::ExportedAttribute) {
-            return true;
-        }
-        return false;
-    }
-
     // Serialize a single model into an XML document
     wxXmlDocument SerializeModel(const BaseObject& object) {
         wxXmlDocument doc;
