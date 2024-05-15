@@ -1264,9 +1264,9 @@ void PixelBufferClass::mixColors(const wxCoord& x, const wxCoord& y, xlColor& fg
     }
     case MixTypes::Mix_Average:
         // only average when both colors are non-black
-        if (bg == xlBLACK) {
+        if (bg == xlBLACK || bg.alpha == 0) {
             bg = fg;
-        } else if (fg != xlBLACK) {
+        } else if (fg != xlBLACK && fg.alpha != 0) {
             bg.Set((fg.Red() + bg.Red()) / 2, (fg.Green() + bg.Green()) / 2, (fg.Blue() + bg.Blue()) / 2, (fg.alpha + bg.alpha) / 2);
         }
         break;
@@ -1361,7 +1361,7 @@ void PixelBufferClass::mixColors(const wxCoord& x, const wxCoord& y, xlColor& fg
     }
 }
 
-void PixelBufferClass::GetMixedColor(int node, const std::vector<bool>& validLayers, int EffectPeriod, int saveLayer) {
+void PixelBufferClass::GetMixedColor(int node, const std::vector<bool>& validLayers, int EffectPeriod, int saveLayer, bool saveToPixels) {
     int cnt = 0;
     xlColor c(xlBLACK);
     xlColor color;
@@ -1532,6 +1532,11 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool>& validLay
     }
     // set color for physical output
     layers[saveLayer]->buffer.Nodes[node]->SetColor(c);
+    if (saveToPixels) {
+        for (auto &n : layers[saveLayer]->buffer.Nodes[node]->Coords) {
+            layers[saveLayer]->buffer.SetPixel(n.bufX, n.bufY, c);
+        }
+    }
 }
 
 void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vector<bool>& validLayers, int EffectPeriod) {
@@ -3033,7 +3038,7 @@ void PixelBufferClass::HandleLayerTransitions(int EffectPeriod, int ii) {
     }
 }
 
-void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& validLayers, int saveLayer) {
+void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels ) {
 
     // layer calculation and map to output
     size_t NodeCount = layers[0]->buffer.Nodes.size();
@@ -3063,7 +3068,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& val
         }
         sparkles = &sparklesVector[0];
     }
-    if (!GPURenderUtils::BlendLayers(this, EffectPeriod, validLayers, saveLayer)) {
+    if (!GPURenderUtils::BlendLayers(this, EffectPeriod, validLayers, saveLayer, saveToPixels)) {
         for (int ii = (numLayers - 1); ii >= 0; --ii) {
             if (!validLayers[ii]) {
                 continue;
@@ -3102,13 +3107,13 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& val
 
         std::vector<NodeBaseClassPtr>& Nodes = layers[saveLayer]->buffer.Nodes;
         parallel_for(
-            0, NodeCount, [this, &Nodes, &validLayers, saveLayer, EffectPeriod](int i) {
+            0, NodeCount, [this, &Nodes, &validLayers, saveLayer, saveToPixels, EffectPeriod](int i) {
                 if (!Nodes[i]->IsVisible()) {
                     // unmapped pixel - set to black
                     Nodes[i]->SetColor(xlBLACK);
                 } else {
                     // get blend of two effects
-                    GetMixedColor(i, validLayers, EffectPeriod, saveLayer);
+                    GetMixedColor(i, validLayers, EffectPeriod, saveLayer, saveToPixels);
                 }
             },
             blockSize);

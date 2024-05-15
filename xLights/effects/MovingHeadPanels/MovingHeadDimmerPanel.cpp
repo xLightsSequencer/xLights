@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "MovingHeadDimmerPanel.h"
+#include "../../sequencer/Element.h"
 
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
@@ -95,6 +96,28 @@ void MovingHeadDimmerPanel::OnMovingHeadPaint(wxPaintEvent& /*event*/)
     pdc.DrawLine(NormalizedToUI2(wxPoint2DDouble(0.0f,1.0f)), NormalizedToUI2(wxPoint2DDouble(1.0f,1.0f)));
     pdc.DrawLine(NormalizedToUI2(wxPoint2DDouble(1.0f,1.0f)), NormalizedToUI2(wxPoint2DDouble(1.0f,0.0f)));
     pdc.DrawLine(NormalizedToUI2(wxPoint2DDouble(1.0f,0.0f)), NormalizedToUI2(wxPoint2DDouble(0.0f,0.0f)));
+
+    if (timingTrack_ != nullptr) {
+        pdc.SetPen(*wxBLUE_PEN);
+        if (timingTrack_->GetEffectLayerCount() > 0 ) {
+            EffectLayer* el = timingTrack_->GetEffectLayer(0);
+            for (int i = 0; i < el->GetEffectCount(); i++) {
+                Effect* e = el->GetEffect(i);
+                if (e->GetStartTimeMS() >= startTimeMs_ && e->GetStartTimeMS() <= endTimeMs_) {
+                    double xpos = (double)(e->GetStartTimeMS() - startTimeMs_) / (double)(endTimeMs_ - startTimeMs_);
+                    wxPoint2DDouble start_x1(xpos, 0);
+                    wxPoint2DDouble end_x1(xpos, 1);
+                    pdc.DrawLine(NormalizedToUI2(start_x1), NormalizedToUI2(end_x1));
+                }
+                if (e->GetEndTimeMS() >= startTimeMs_ && e->GetEndTimeMS() <= endTimeMs_) {
+                    double xpos = (double)(e->GetEndTimeMS() - startTimeMs_) / (double)(endTimeMs_ - startTimeMs_);
+                    wxPoint2DDouble start_x1(xpos, 0);
+                    wxPoint2DDouble end_x1(xpos, 1);
+                    pdc.DrawLine(NormalizedToUI2(start_x1), NormalizedToUI2(end_x1));
+                }
+            }
+        }
+    }
 
     // draw curve
     wxPoint old_pt(-1,-1);
@@ -187,8 +210,8 @@ void MovingHeadDimmerPanel::SetDimmerCommands( const std::string& _dimmerCmds )
     selected_handle = -1;
     active_handle = -1;
     wxArrayString points = wxSplit(_dimmerCmds, ',');
-    unsigned long num_pts = points.size() / 2;
-    for( int i = 0; i < num_pts; ++i ) {
+    size_t num_pts = points.size() / 2;
+    for (size_t i = 0; i < num_pts; ++i) {
         double x { wxAtof(points[i*2]) };
         double y { wxAtof(points[i*2+1]) };
         wxPoint2DDouble pt(x, y);
@@ -343,4 +366,15 @@ wxPoint MovingHeadDimmerPanel::NormalizedToUI2(const wxPoint2DDouble& pt) const
 {
     wxPoint2DDouble pt1 = NormalizedToUI(pt);
     return wxPoint((int)pt1.m_x, (int)pt1.m_y);
+}
+
+void MovingHeadDimmerPanel::SetTimingTrack( const Element* timing )
+{
+    timingTrack_ = timing;
+}
+
+void MovingHeadDimmerPanel::SetEffectTimeRange(int startTimeMs, int endTimeMs)
+{
+    startTimeMs_ = startTimeMs;
+    endTimeMs_ = endTimeMs;
 }

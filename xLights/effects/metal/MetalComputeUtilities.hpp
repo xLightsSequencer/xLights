@@ -17,7 +17,7 @@ public:
     ~MetalPixelBufferComputeData();
 
     bool doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB);
-    bool doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer);
+    bool doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels);
 
     bool doTransition(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer, RenderBuffer *prevRB);
     bool doMap(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer);

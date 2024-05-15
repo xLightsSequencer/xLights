@@ -149,6 +149,8 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
     bool path_parsed = false;
     bool pan_path_active = true;
     bool tilt_path_active = true;
+    bool has_position = false;
+    bool has_color = false;
     bool has_color_wheel = false;
     bool has_dimmers = false;
     std::string path_setting = "";
@@ -185,6 +187,7 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
     
         if( cmd_type == "Pan" ) {
             pan_pos = atof(settings.c_str());
+            has_position = true;
         } else if ( cmd_type == "Tilt" ) {
             tilt_pos = atof(settings.c_str());
         } else if ( cmd_type == "Pan VC" ) {
@@ -230,6 +233,7 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
             path_scale = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
         } else if( cmd_type == "Color" ) {
             colors = wxSplit(settings, ',');
+            has_color = true;
         } else if( cmd_type == "Wheel" ) {
             colors = wxSplit(settings, ',');
             has_color_wheel = true;
@@ -251,25 +255,27 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
     for (const auto& it : models) {
         auto mhead = dynamic_cast<const DmxMovingHeadComm*>(it);
         if( mhead->GetFixtureVal() == loc ) {
-            int pan_cmd = mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
-            int tilt_cmd = mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);
             
-            WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
-            WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
-            
+            if (has_position) {
+                int pan_cmd = mhead->GetPanMotor()->ConvertPostoCmd(-pan_pos);
+                int tilt_cmd = mhead->GetTiltMotor()->ConvertPostoCmd(-tilt_pos);
+                WriteCmdToPixel(mhead->GetPanMotor(), pan_cmd, buffer);
+                WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
+            }
+
             if (has_dimmers && mhead->HasDimmerChannel()) {
                 uint32_t dimmer_channel = mhead->GetMHDimmerChannel();
                 CalculateDimmer(eff_pos, dimmers, dimmer_channel, buffer);
             }
 
-            if( mhead->HasColorAbility() ) {
+            if( (has_color || has_color_wheel) && mhead->HasColorAbility() ) {
                 DmxColorAbility* mh_color = mhead->GetColorAbility();
                 if (mh_color != nullptr) {
                     if( colors.size() > 0 ) {
                         if( has_color_wheel ) {
                             xlColor c {GetWheelColor(eff_pos, colors)};
                             buffer.SetPixel(0, 0, c);
-                        } else {
+                        } else if (has_color) {
                             xlColor c {GetMultiColorBlend(eff_pos, colors, buffer)};
                             buffer.SetPixel(0, 0, c);
                         }
@@ -344,11 +350,11 @@ xlColor MovingHeadEffect::GetWheelColor(double eff_pos, const wxArrayString& col
 void MovingHeadEffect::CalculateDimmer(double eff_pos, wxArrayString& dimmers, uint32_t dimmer_channel, RenderBuffer &buffer)
 {
     ValueCurve vc;
-    unsigned long num_pts = dimmers.size() / 2;
-    for( int i = 0; i < num_pts; ++i ) {
+    size_t num_pts = dimmers.size() / 2;
+    for (size_t i = 0; i < num_pts; ++i) {
         double x { wxAtof(dimmers[i*2]) };
         double y { wxAtof(dimmers[i*2+1]) };
-        vc.SetValueAt( x, y );
+        vc.SetValueAt( x, y, true);
     }
     vc.SetType("Custom");
     vc.SetLimits(0, 255);
@@ -608,4 +614,12 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
     p->FlexGridSizerPosition->Layout();
     p->FlexGridSizer_Main->Layout();
     p->Refresh();
+}
+
+void MovingHeadEffect::SetEffectTimeRange(int startTimeMs, int endTimeMs) {
+    MovingHeadPanel *p = (MovingHeadPanel*)panel;
+    if (p == nullptr) {
+        return;
+    }
+    p->SetEffectTimeRange(startTimeMs, endTimeMs);
 }

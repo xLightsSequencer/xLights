@@ -1108,7 +1108,7 @@ void xLightsFrame::EffectChanged(wxCommandEvent& event)
     Effect* effect = (Effect*)event.GetClientData();
     SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetFullName(),
                       effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
-                      true);
+                      effect->GetStartTimeMS(), effect->GetEndTimeMS(), true);
     selectedEffectString = "";  // force update to effect rendering
 }
 
@@ -1222,7 +1222,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                 }
                 SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetFullName(),
                     effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
-                    !event.isNew);
+                    effect->GetStartTimeMS(), effect->GetEndTimeMS(), !event.isNew);
                 selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
                 selectedEffect = effect;
 
@@ -1351,7 +1351,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     {
         SetEffectControls(last_effect_created->GetParentEffectLayer()->GetParentElement()->GetFullName(),
                           last_effect_created->GetEffectName(), last_effect_created->GetSettings(),
-                          last_effect_created->GetPaletteMap(), false);
+                          last_effect_created->GetPaletteMap(), last_effect_created->GetStartTimeMS(),
+                          last_effect_created->GetEndTimeMS(), false);
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = last_effect_created;
     }
@@ -1459,7 +1460,8 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
     {
         SetEffectControls(last_effect_created->GetParentEffectLayer()->GetParentElement()->GetFullName(),
             last_effect_created->GetEffectName(), last_effect_created->GetSettings(),
-            last_effect_created->GetPaletteMap(), false);
+            last_effect_created->GetPaletteMap(), last_effect_created->GetStartTimeMS(),
+            last_effect_created->GetEndTimeMS(), false);
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = last_effect_created;
     }
@@ -2157,6 +2159,8 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
                                   el->GetEffect(j)->GetEffectName(),
                                   el->GetEffect(j)->GetSettings(),
                                   el->GetEffect(j)->GetPaletteMap(),
+                                  el->GetEffect(j)->GetStartTimeMS(),
+                                  el->GetEffect(j)->GetEndTimeMS(),
                                   true);
                 selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
                 selectedEffect = el->GetEffect(j);
@@ -2510,7 +2514,7 @@ bool xLightsFrame::TimerRgbSeq(long msec)
 
 void xLightsFrame::SetEffectControls(const std::string &modelName, const std::string &effectName,
                                      const SettingsMap &settings, const SettingsMap &palette,
-                                     bool setDefaults) {
+                                     int startTimeMs, int endTimeMs, bool setDefaults) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (CurrentSeqXmlFile == nullptr) return;
     //timingPanel->Freeze();
@@ -2524,7 +2528,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
         ResetPanelDefaultSettings(effectName, model, false);
     }
 
-    EffectsPanel1->SetEffectPanelStatus(model, effectName);
+    EffectsPanel1->SetEffectPanelStatus(model, effectName, startTimeMs, endTimeMs);
     SetEffectControls(settings);
     SetEffectControls(palette);
     RenderableEffect *ef = GetEffectManager().GetEffect(effectName);

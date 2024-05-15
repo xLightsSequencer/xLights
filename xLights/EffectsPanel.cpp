@@ -143,10 +143,11 @@ void EffectsPanel::ValidateWindow()
     }
 }
 
-void EffectsPanel::SetEffectPanelStatus(Model *cls, const wxString &name) {
+void EffectsPanel::SetEffectPanelStatus(Model *cls, const wxString &name, int startTimeMs, int endTimeMs) {
     RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
     if (eff != nullptr) {
         eff->SetPanelStatus(cls);
+        eff->SetEffectTimeRange(startTimeMs, endTimeMs);
 	}
 }
 

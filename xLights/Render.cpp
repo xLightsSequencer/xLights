@@ -552,8 +552,11 @@ public:
         Effect* tempEffect = nullptr;
         int numLayers = el->GetEffectLayerCount();
 
+        std::vector<bool> partOfCanvas;
+        partOfCanvas.resize(info.validLayers.size());
         for (int x = 0; x < info.validLayers.size(); x++) {
             info.validLayers[x] = false;
+            partOfCanvas[x] = false;
         }
 
         // To support canvas mix type we must render them bottom to top
@@ -674,6 +677,8 @@ public:
                                 }
                                 if (!found) {
                                     vl[i] = false;
+                                } else {
+                                    partOfCanvas[i] = true;
                                 }
                             }
                         }
@@ -688,9 +693,17 @@ public:
                     RenderBuffer& rb = buffer->BufferForLayer(layer, -1);
 
                     // I have to calc the output here to apply blend, rotozoom and transitions
-                    buffer->CalcOutput(frame, vl, layer);
+                    buffer->CalcOutput(frame, vl, layer, true);
                     std::vector<uint8_t> done(rb.GetPixelCount());
-                    rb.CopyNodeColorsToPixels(done);
+                    parallel_for(0, rb.GetNodes().size(), [&](int n) {
+                        for (auto &a : rb.GetNodes()[n]->Coords) {
+                            int x = a.bufX;
+                            int y = a.bufY;
+                            if (x >= 0 && x < rb.BufferWi && y >= 0 && y < rb.BufferHt && y*rb.BufferWi + x < rb.GetPixelCount()) {
+                                done[y*rb.BufferWi+x] = true;
+                            }
+                        }
+                    }, 500);
                     // now fill in any spaces in the buffer that don't have nodes mapped to them
                     parallel_for(0, rb.BufferHt, [&rb, &buffer, &done, &vl, frame](int y) {
                         xlColor c;
@@ -724,6 +737,13 @@ public:
         if (effectsToUpdate) {
             maybeWaitForFrame(frame);
             SetCalOutputStatus(frame, info.submodel, strand, -1);
+            for (int x = 0; x < partOfCanvas.size(); x++) {
+                // if the layer was used for a canvas effect, we don't want it
+                // reblended in
+                if (partOfCanvas[x]) {
+                    info.validLayers[x] = false;
+                }
+            }
             if (blend) {
                 buffer->SetColors(numLayers, &((*seqData)[frame][0]));
                 info.validLayers[numLayers] = true;

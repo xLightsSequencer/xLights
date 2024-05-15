@@ -56,6 +56,8 @@ public:
     virtual ~MovingHeadPanel();
     virtual void ValidateWindow() override;
 
+    void SetEffectTimeRange(int startTimeMs, int endTimeMs);
+
     //(*Declarations(MovingHeadPanel)
     BulkEditCheckBox* CheckBox_MHIgnorePan;
     BulkEditCheckBox* CheckBox_MHIgnoreTilt;
@@ -292,6 +294,9 @@ private:
     MovingHeadDimmerPanel* m_movingHeadDimmerPanel = nullptr;
     MHRgbPickerPanel* m_rgbColorPanel = nullptr;
     MHColorWheelPanel* m_wheelColorPanel = nullptr;
+
+    int startTimeMs_ {0};
+    int endTimeMs_ {0};
 
 //***************************************************
 // Pathing support

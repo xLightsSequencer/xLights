@@ -529,6 +529,12 @@ MovingHeadPanel::~MovingHeadPanel()
 	//*)
 }
 
+void MovingHeadPanel::SetEffectTimeRange(int startTimeMs, int endTimeMs)
+{
+    startTimeMs_ = startTimeMs;
+    endTimeMs_ = endTimeMs;
+}
+
 void MovingHeadPanel::OnResize(wxSizeEvent& event)
 {
     FlexGridSizer_Main->SetSizeHints(this);
@@ -880,52 +886,57 @@ void MovingHeadPanel::ValidateWindow()
 {
     // Lets fix moving head fixture assignments
     auto models = GetActiveModels();
+    if (models.empty()) return;
     bool single_model = models.size() == 1;
 
     // if single model make sure the effect setting is on correct head...if not move it
+    auto model = models.front();
     if (single_model) {
-        auto mh = dynamic_cast<const DmxMovingHeadComm*>(models.front());
-        int fixture = mh->GetFixtureVal();
-        wxString fixture_textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", fixture);
-        wxTextCtrl* fixture_mh_textbox = (wxTextCtrl*)(this->FindWindowByName(fixture_textbox_ctrl));
-        if( fixture_mh_textbox != nullptr ) {
-            std::string mh_settings = fixture_mh_textbox->GetValue();
-            if( mh_settings == xlEMPTY_STRING ) {
-                // need to search for settings
-                for( int i = 1; i <= 8; ++i ) {
-                    if (i == fixture) {
-                        continue;
-                    }
-                    wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
-                    wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
-                    if( mh_textbox != nullptr ) {
-                        mh_settings = mh_textbox->GetValue();
-                        if( mh_settings != xlEMPTY_STRING ) {
-                            for( int j = 1; j <= 8; ++j ) {
-                                textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", j);
-                                mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
-                                if( mh_textbox != nullptr ) {
-                                    if (j == fixture) {
-                                        wxArrayString all_cmds = wxSplit(mh_settings, ';');
-                                        wxArrayString new_cmds;
-                                        for (size_t k = 0; k < all_cmds.size(); ++k )
-                                        {
-                                            std::string cmd = all_cmds[k];
-                                            if( cmd == xlEMPTY_STRING ) continue;
-                                            int pos = cmd.find(":");
-                                            std::string cmd_type = cmd.substr(0, pos);
-                                            if( cmd_type == "Heads") {
-                                                std::string headset = "Heads: ";
-                                                headset += wxString::Format("%d", fixture);
-                                                new_cmds.push_back(headset);
-                                            } else {
-                                                new_cmds.push_back(all_cmds[k]);
+        if( model->GetDisplayAs() == "DmxMovingHeadAdv" ||
+            model->GetDisplayAs() == "DmxMovingHead") {
+            auto mh = dynamic_cast<const DmxMovingHeadComm*>(model);
+            int fixture = mh->GetFixtureVal();
+            wxString fixture_textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", fixture);
+            wxTextCtrl* fixture_mh_textbox = (wxTextCtrl*)(this->FindWindowByName(fixture_textbox_ctrl));
+            if( fixture_mh_textbox != nullptr ) {
+                std::string mh_settings = fixture_mh_textbox->GetValue();
+                if( mh_settings == xlEMPTY_STRING ) {
+                    // need to search for settings
+                    for( int i = 1; i <= 8; ++i ) {
+                        if (i == fixture) {
+                            continue;
+                        }
+                        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+                        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                        if( mh_textbox != nullptr ) {
+                            mh_settings = mh_textbox->GetValue();
+                            if( mh_settings != xlEMPTY_STRING ) {
+                                for( int j = 1; j <= 8; ++j ) {
+                                    textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", j);
+                                    mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                                    if( mh_textbox != nullptr ) {
+                                        if (j == fixture) {
+                                            wxArrayString all_cmds = wxSplit(mh_settings, ';');
+                                            wxArrayString new_cmds;
+                                            for (size_t k = 0; k < all_cmds.size(); ++k )
+                                            {
+                                                std::string cmd = all_cmds[k];
+                                                if( cmd == xlEMPTY_STRING ) continue;
+                                                int pos = cmd.find(":");
+                                                std::string cmd_type = cmd.substr(0, pos);
+                                                if( cmd_type == "Heads") {
+                                                    std::string headset = "Heads: ";
+                                                    headset += wxString::Format("%d", fixture);
+                                                    new_cmds.push_back(headset);
+                                                } else {
+                                                    new_cmds.push_back(all_cmds[k]);
+                                                }
                                             }
+                                            std::string final_cmd = wxJoin(new_cmds, ';');
+                                            fixture_mh_textbox->SetValue(final_cmd);
+                                        } else {
+                                            mh_textbox->SetValue(xlEMPTY_STRING);
                                         }
-                                        std::string final_cmd = wxJoin(new_cmds, ';');
-                                        fixture_mh_textbox->SetValue(final_cmd);
-                                    } else {
-                                        mh_textbox->SetValue(xlEMPTY_STRING);
                                     }
                                 }
                             }
@@ -938,6 +949,15 @@ void MovingHeadPanel::ValidateWindow()
 
     // updates the status panel if its already active and a new effect is selected
     UpdateStatusPanel();
+    
+    // Set current timing track in Dimmer window
+    const ModelManager& mgr = model->GetModelManager();
+    xLightsFrame* xlights = mgr.GetXLightsFrame();
+    if (xlights == nullptr) return;
+    Element* active_timing = xlights->GetMainSequencer()->PanelEffectGrid->GetActiveTimingElement();
+    if (active_timing == nullptr) return;
+    m_movingHeadDimmerPanel->SetEffectTimeRange(startTimeMs_, endTimeMs_);
+    m_movingHeadDimmerPanel->SetTimingTrack(active_timing);
 }
 
 static std::list<std::string> vcurves_pos = {"ID_VALUECURVE_MHPan", "ID_VALUECURVE_MHTilt", "ID_VALUECURVE_MHPanOffset",
@@ -1940,9 +1960,13 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
 void MovingHeadPanel::OnButtonDimmerOnClick(wxCommandEvent& event)
 {
     m_movingHeadDimmerPanel->SetDimmerCommands("0.0,1.0,1.0,1.0");
+    UpdateDimmerSettings();
+    FireChangeEvent();
 }
 
 void MovingHeadPanel::OnButtonDimmerOffClick(wxCommandEvent& event)
 {
     m_movingHeadDimmerPanel->SetDimmerCommands("0.0,0.0,1.0,0.0");
+    UpdateDimmerSettings();
+    FireChangeEvent();
 }

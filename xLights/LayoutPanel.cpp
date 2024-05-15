@@ -6979,6 +6979,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
             if (copyData.IsOk())
             {
                 wxXmlNode* nd = copyData.GetBaseObjectXml();
+                std::string source_model_name = xlEMPTY_STRING;
 
                 if (nd != nullptr)
                 {
@@ -6986,6 +6987,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     auto nx = (int)wxAtof(nd->GetAttribute("WorldPosX"));
                     auto ny = (int)wxAtof(nd->GetAttribute("WorldPosY"));
                     auto nz = (int)wxAtof(nd->GetAttribute("WorldPosZ"));
+                    source_model_name = nd->GetAttribute("name");
 
                     bool moved = true;
                     while (moved)
@@ -7067,27 +7069,28 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						lastModelName = name;
 					}
 
-
-                    Model* sourceModel = xlights->GetModel(this->selectedBaseObject->name);
-                    auto inModelGroups = sourceModel->GetModelManager().GetGroupsContainingModel(sourceModel);
-                    if (!inModelGroups.empty()) {
-                        if (wxMessageBox("Should I add model to the same group(s) as the original?", "Add to groups?", wxICON_QUESTION | wxYES_NO) == wxYES) {
-                            for (const auto& grp : inModelGroups) {
-                                Model* addToGroup = xlights->GetModel(grp);
-                                if (!addToGroup->IsFromBase()) {
-                                    wxXmlNode* node = addToGroup->GetModelXml();
-                                    wxArrayString groupModels = wxSplit(node->GetAttribute("models", ""), ',');
-                                    int groupItems = groupModels.GetCount(); // we'll keep adding items, keep inital count
-                                    for (int i = 0; i < groupItems; i++) {
-                                        if (groupModels[i].StartsWith(selectedBaseObject->name)) {
-                                            wxString addnew = groupModels[i];
-                                            addnew.Replace(selectedBaseObject->name, name);
-                                            groupModels.Add(addnew);
+                    Model* sourceModel = xlights->GetModel(source_model_name);
+                    if (sourceModel != nullptr) {
+                        auto inModelGroups = sourceModel->GetModelManager().GetGroupsContainingModel(sourceModel);
+                        if (!inModelGroups.empty()) {
+                            if (wxMessageBox("Should I add model to the same group(s) as the original?", "Add to groups?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+                                for (const auto& grp : inModelGroups) {
+                                    Model* addToGroup = xlights->GetModel(grp);
+                                    if (!addToGroup->IsFromBase()) {
+                                        wxXmlNode* node = addToGroup->GetModelXml();
+                                        wxArrayString groupModels = wxSplit(node->GetAttribute("models", ""), ',');
+                                        int groupItems = groupModels.GetCount(); // we'll keep adding items, keep inital count
+                                        for (int i = 0; i < groupItems; i++) {
+                                            if (groupModels[i].StartsWith(source_model_name)) {
+                                                wxString addnew = groupModels[i];
+                                                addnew.Replace(source_model_name, name);
+                                                groupModels.Add(addnew);
+                                            }
                                         }
+                                        wxString xmlModels = wxJoin(groupModels, ',');
+                                        node->DeleteAttribute("models");
+                                        node->AddAttribute("models", xmlModels);
                                     }
-                                    wxString xmlModels = wxJoin(groupModels, ',');
-                                    node->DeleteAttribute("models");
-                                    node->AddAttribute("models", xmlModels);
                                 }
                             }
                         }

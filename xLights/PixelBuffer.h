@@ -246,7 +246,7 @@ private:
     void RotateY(RenderBuffer& buffer, GPURenderUtils::RotoZoomSettings& settings);
     void RotateZAndZoom(RenderBuffer& buffer, GPURenderUtils::RotoZoomSettings& settings);
 
-    void GetMixedColor(int node, const std::vector<bool>& validLayers, int EffectPeriod, int saveLayer);
+    void GetMixedColor(int node, const std::vector<bool>& validLayers, int EffectPeriod, int saveLayer, bool saveToPixels);
 
     std::string modelName;
     std::string lastBufferType;
@@ -313,7 +313,7 @@ public:
 
     void HandleLayerBlurZoom(int EffectPeriod, int layer);
     void HandleLayerTransitions(int EffectPeriod, int layer);
-    void CalcOutput(int EffectPeriod, const std::vector<bool>& validLayers, int saveLayer = 0);
+    void CalcOutput(int EffectPeriod, const std::vector<bool>& validLayers, int saveLayer = 0, bool saveToPixels = false);
     void SetColors(int layer, const unsigned char* fdata);
     void GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange);
 
