@@ -693,14 +693,19 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 } else if (selected_timing == "Empty") {
                     bool first = true;
                     wxTextEntryDialog te(this, "Enter a name for the timing track", wxGetTextFromUserPromptStr, selected_timing);
+                    selected_timing = RemoveUnsafeXmlChars(selected_timing);
                     OptimiseDialogPosition(&te);
-                    while (first || xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || selected_timing == "") {
+                    while (first || 
+                           xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || 
+                           xml_file->TimingMatchesModelName(selected_timing, mSequenceElements->GetXLightsFrame()) ||
+                           selected_timing == "") {
                         first = false;
 
                         auto base = selected_timing;
 
                         int suffix = 2;
-                        while (xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame())) {
+                        while (xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) ||
+                               xml_file->TimingMatchesModelName(selected_timing, mSequenceElements->GetXLightsFrame())) {
                             selected_timing = wxString::Format("%s_%d", base, suffix++);
                         }
 

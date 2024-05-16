@@ -2888,6 +2888,16 @@ bool xLightsXmlFile::TimingAlreadyExists(const std::string & section, xLightsFra
     return false;
 }
 
+bool xLightsXmlFile::TimingMatchesModelName(const std::string& section, xLightsFrame* xLightsParent) {
+    if (sequence_loaded) {
+        SequenceElements& mSequenceElements = xLightsParent->GetSequenceElements();
+        if (mSequenceElements.ElementExists(section)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void xLightsXmlFile::AddNewTimingSection(const std::string& filename, xLightsFrame* xLightsParent,
                                          std::vector<int>& starts, std::vector<int>& ends, std::vector<std::string>& labels)
 {
