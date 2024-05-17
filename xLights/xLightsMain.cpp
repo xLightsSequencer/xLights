@@ -10282,3 +10282,13 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
 
     DoAllWork();
 }
+
+std::list<std::string> xLightsFrame::GetPerspectives() {
+    std::list<std::string> perspectives;
+    for (wxXmlNode* e = PerspectivesNode->GetChildren(); e != NULL; e = e->GetNext()) {
+        if (e->GetName() == "perspective")
+            perspectives.push_back(e->GetAttribute("name"));
+       
+    }
+    return perspectives;
+}

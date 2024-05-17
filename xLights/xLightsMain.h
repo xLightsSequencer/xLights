@@ -1881,5 +1881,5 @@ public:
 	void DoPlaySequence();
     void RecalcModels();
     std::string GetUniqueTimingName(const std::string& baseName);
+    std::list<std::string> GetPerspectives();
 };
-

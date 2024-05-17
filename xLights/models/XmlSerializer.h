@@ -19,15 +19,19 @@
 #include "CandyCaneModel.h"
 #include "ChannelBlockModel.h"
 #include "CircleModel.h"
+#include "Color.h"
 #include "CubeModel.h"
 #include "CustomModel.h"
 #include "DimmingCurve.h"
 #include "IciclesModel.h"
 #include "ImageModel.h"
+#include "LayoutGroup.h"
 #include "MatrixModel.h"
+#include "ModelManager.h"
 #include "Model.h"
 #include "ModelGroup.h"
 #include "PolyLineModel.h"
+#include "SequenceViewManager.h"
 #include "SingleLineModel.h"
 #include "SphereModel.h"
 #include "SpinnerModel.h"
@@ -70,6 +74,7 @@ namespace XmlNodeKeys {
     constexpr auto TypeAttribute           = "type";
     constexpr auto CReverseAttribute       = "reverse";     //fix it
     constexpr auto ReverseAttribute        = "Reverse";     //fix it
+    constexpr auto PointDataAttribute      = "PointData";
 
     // Common Model Attributes
     constexpr auto StartSideAttribute     = "StartSide";
@@ -94,6 +99,8 @@ namespace XmlNodeKeys {
     constexpr auto CustomStringsAttribute = "String";
     constexpr auto TagColourAttribute     = "TagColour";
     constexpr auto PixelStyleAttribute    = "PixelStyle";
+    constexpr auto XLVersionAttribute     = "xLightsVersion";
+    constexpr auto SettingsAttribute      = "settings";
 
 
     // Common SubModel Attributes
@@ -207,7 +214,6 @@ namespace XmlNodeKeys {
     constexpr auto SmartRemoteTypeAttribute = "SmartRemoteType";
     constexpr auto SmartRemoteAttribute     = "SmartRemote";
 
-
     // Mesh Attributes
     constexpr auto ObjFileAttribute    = "ObjFile";
     constexpr auto MeshOnlyAttribute   = "MeshOnly";
@@ -264,7 +270,6 @@ namespace XmlNodeKeys {
 
     // Poly Line Model
     constexpr auto NumPointsAttribute    = "NumPoints";
-    constexpr auto PointDataAttribute    = "PointData";
     constexpr auto cPointDataAttribute   = "cPointData";
     constexpr auto IndivSegAttribute     = "IndivSegs";
     constexpr auto SegsExpandedAttribute = "SegsExpanded";
@@ -304,21 +309,62 @@ namespace XmlNodeKeys {
     // WIP
     // constexpr auto Attribute = "";
 
+    //Layout Groups
+    constexpr auto BackgroundImageAttribute      = "backgroundImage";
+    constexpr auto BackgroundBrightnessAttribute = "backgroundBrightness";
+    constexpr auto BackgroundAlphaAttribute      = "backgroundAlpha";
+    constexpr auto ScaleImageAttribute           = "scaleImage";
+     
     // View_Object
+    constexpr auto GridLineSpacingAttribute = "GridLineSpacing";
+    constexpr auto GridWidthAttribute       = "GridWidth";
+    constexpr auto GridHeightAttribute      = "GridHeight";
+    constexpr auto UnitsAttribute           = "Units";
+    constexpr auto LengthAttribute          = "Length";
+    constexpr auto TerrainLineAttribute     = "TerrianLineSpacing";     //fix spelling in v8
+    constexpr auto TerrainWidthAttribute    = "TerrianWidth";           //fix spelling in v8
+    constexpr auto TerrainDepthAttribute    = "TerrianDepth";           //fix spelling in v8
+    constexpr auto TerrainBrushAttribute    = "TerrianBrushSize";       //fix spelling in v8
+    constexpr auto GridColorAttribute       = "gridColor";
+    constexpr auto HideGridAttribute        = "HideGrid";
+    constexpr auto HideImageAttribute       = "HideImage";
+    constexpr auto ObjAttribute             = "ObjFile";
+
+    //Settings
+    constexpr auto ValueAttribute = "value";
+
+    //Colors
+    //Already does it in ColorManager.cpp ColorManager::Save()
+    constexpr auto RedAttribute   = "Red";
+    constexpr auto GreenAttribute = "Green";
+    constexpr auto BlueAttribute  = "Blue";
 
     // Effect Version
+    constexpr auto VersionAttribute = "version";
 
-    // Effect Group
-
-    // View
+    // Previews
+    constexpr auto ModelsAttribute = "models";
 
     // Group - already done
 
     // Perspectives
-
-    // Settings
+    constexpr auto CurrentAttribute  = "current";
 
     // ViewPoint
+    constexpr auto posXAttribute     = "posX";
+    constexpr auto posYAttribute     = "posY";
+    constexpr auto posZAttribute     = "posZ";
+    constexpr auto angleXAttribute   = "angleX";
+    constexpr auto angleYAttribute   = "angleY";
+    constexpr auto angleZAttribute   = "angleZ";
+    constexpr auto distanceAttribute = "distance";
+    constexpr auto zoomAttribute     = "zoom";
+    constexpr auto panXAttribute     = "panx";
+    constexpr auto panYAttribute     = "pany";
+    constexpr auto panZAttribute     = "panz";
+    constexpr auto zoomXAttribute    = "zoom_corrx";
+    constexpr auto zoomYAttribute    = "zoom_corry";
+    constexpr auto is3DAttribute     = "is_ed";
 
     // Model Types
     constexpr auto ArchesType           = "Arches";
@@ -340,7 +386,7 @@ namespace XmlNodeKeys {
     constexpr auto WindowType           = "Window Frame";
     constexpr auto WreathType           = "Wreath";
 
-    //Extra Objects
+    //Extra Types
     constexpr auto ViewObjectsType  = "view_objects";
     constexpr auto EffectsType      = "effects";
     constexpr auto ViewsType        = "views";
@@ -1041,7 +1087,7 @@ struct XmlDeserializingObjectFactory {
         } else if (type == XmlNodeKeys::WindowType) {
             return DeserializeWindow(new wxXmlNode(*node), xlights);
         } else if (type == XmlNodeKeys::WreathType) {
-            return DeserializeViewObjects(new wxXmlNode(*node), xlights);
+            return DeserializeWreath(new wxXmlNode(*node), xlights);
         } else if (type == XmlNodeKeys::ViewObjectsType) {
             return DeserializeEffects(new wxXmlNode(*node), xlights);
         } else if (type == XmlNodeKeys::EffectsType) {
@@ -1269,17 +1315,6 @@ private:
         return model;
     }
 
-    Model* DeserializeViewObjects(wxXmlNode* node, xLightsFrame* xlights) {
-        Model* model;
-        model = new WreathModel(node, xlights->AllModels, false);
-
-        std::string name = node->GetAttribute("name");
-        wxString newname = xlights->AllModels.GenerateModelName(name);
-        model->SetProperty("name", newname, true);
-
-        return model;
-    }
-
     Model* DeserializeEffects(wxXmlNode* node, xLightsFrame* xlights) {
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);
@@ -1381,17 +1416,18 @@ struct XmlSerializer {
     }
 
     // Serializes and Saves a single model into an XML document
-    void SerializeAndSaveModel(const BaseObject& object) {
+    void SerializeAndSaveModel(const BaseObject& object, xLightsFrame* xlights) {
         wxString name = object.GetModelXml()->GetAttribute("name");
+        
         wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (filename.IsEmpty())
             return;
-        wxXmlDocument doc = SerializeModel(object);
+        wxXmlDocument doc = SerializeModel(object, xlights);
         doc.Save(filename);
     }
 
     // Serialize a single model into an XML document
-    wxXmlDocument SerializeModel(const BaseObject& object) {
+    wxXmlDocument SerializeModel(const BaseObject& object, xLightsFrame* xlights) {
         wxXmlDocument doc;
 
         wxXmlNode* docNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelsNodeName);
@@ -1403,6 +1439,11 @@ struct XmlSerializer {
 
         doc.SetRoot(docNode);
 
+        //DeserializeLayoutGroupsObject(docNode, xlights);
+        //DeserializeViewsObject(docNode, xlights);
+        //DeserializeColorsObject(docNode, xlights);
+        //DeserializePerspectivesObject(docNode, xlights);
+        //DeserializeSettingsObject(docNode, xlights);
         return doc;
     }
 
@@ -1426,5 +1467,102 @@ struct XmlSerializer {
         model->ImportModelChildren(model->GetModelXml(), xlights, model->GetName(), min_x, max_x, min_y, max_y);
 
         return model;
+    }
+
+    void DeserializeViewsObject(wxXmlNode* node, xLightsFrame* xlights) {
+        wxXmlNode* viewsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "views");
+        SequenceViewManager* seqViewMgr = xlights->GetViewsManager();
+        std::list<SequenceView*> views = seqViewMgr->GetViews();
+        for (SequenceView* view : views) {
+            std::string name = view->GetName();
+            if (name != "Master View") {
+                wxXmlNode* viewChild = new wxXmlNode(wxXML_ELEMENT_NODE, "view");
+                viewChild->AddAttribute("name", name);
+                viewChild->AddAttribute(XmlNodeKeys::ModelsAttribute, view->GetModelsString());
+                viewsNode->AddChild(viewChild);
+            }
+        }
+        node->AddChild(viewsNode);
+    }
+
+    void DeserializeColorsObject(wxXmlNode* node, xLightsFrame* xlights) {
+        wxXmlNode* colorsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "colors");
+        ColorManager* colorMgr = new ColorManager(xlights);
+        std::map<std::string, xlColor> colors = colorMgr->GetColors();
+        for (const auto& c : colors) {
+            wxXmlNode* colorChild = new wxXmlNode(wxXML_ELEMENT_NODE, c.first);
+            colorChild->AddAttribute(XmlNodeKeys::RedAttribute, std::to_string(c.second.red));
+            colorChild->AddAttribute(XmlNodeKeys::GreenAttribute, std::to_string(c.second.green));
+            colorChild->AddAttribute(XmlNodeKeys::BlueAttribute, std::to_string(c.second.blue));
+            colorsNode->AddChild(colorChild);
+        }
+        node->AddChild(colorsNode);
+    }
+
+    void DeserializeLayoutGroupsObject(wxXmlNode* node, xLightsFrame* xlights) {
+        std::vector<LayoutGroup*> layoutGroups = xlights->LayoutGroups;
+        wxXmlNode* lgNode = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroups");
+        for (LayoutGroup* lg : layoutGroups) {
+            wxXmlNode* lgChild = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroup");
+            lgChild->AddAttribute("name", lg->GetName());
+            lgChild->AddAttribute(XmlNodeKeys::BackgroundImageAttribute, lg->GetBackgroundImage());
+            lgChild->AddAttribute(XmlNodeKeys::BackgroundBrightnessAttribute, std::to_string(lg->GetBackgroundBrightness()));
+            lgChild->AddAttribute(XmlNodeKeys::BackgroundAlphaAttribute, std::to_string(lg->GetBackgroundAlpha()));
+            lgChild->AddAttribute(XmlNodeKeys::ScaleImageAttribute, std::to_string(lg->GetBackgroundScaled()));
+            lgNode->AddChild(lgChild);
+        }
+        node->AddChild(lgNode);
+    }
+
+    void DeserializePerspectivesObject(wxXmlNode* node, xLightsFrame* xlights) {
+        std::list<std::string> perspectives = xlights->GetPerspectives();
+        wxXmlNode* perspectivesNode = new wxXmlNode(wxXML_ELEMENT_NODE, "perspectives");
+        for (std::string p : perspectives) {
+            wxXmlNode* pChild = new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
+            pChild->AddAttribute("name", p);
+            perspectivesNode->AddChild(pChild);
+        }
+        node->AddChild(perspectivesNode);
+    }
+
+    void DeserializeSettingsObject(wxXmlNode* node, xLightsFrame* xlights) {
+        wxXmlNode* settings = new wxXmlNode(wxXML_ELEMENT_NODE, "settings");
+        wxXmlNode* scaleimage = new wxXmlNode(wxXML_ELEMENT_NODE, "scaleImage");
+        scaleimage->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundScaled()));
+        settings->AddChild(scaleimage);
+        wxXmlNode* bkgimage = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundImage");
+        bkgimage->AddAttribute("value", "tbd");
+        settings->AddChild(bkgimage);
+        wxXmlNode* bkgbright = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundBrightness");
+        bkgbright->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundBrightness()));
+        settings->AddChild(bkgbright);
+        wxXmlNode* bkgalpha = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundAlpha");
+        bkgalpha->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundAlpha()));
+        settings->AddChild(bkgalpha);
+        wxXmlNode* boundbox = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DBoundingBox");
+        boundbox->AddAttribute("value", std::to_string(xlights->GetDisplay2DBoundingBox()));
+        settings->AddChild(boundbox);
+        wxXmlNode* grid = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DGrid");
+        grid->AddAttribute("value", std::to_string(xlights->GetDisplay2DGrid()));
+        settings->AddChild(grid);
+        wxXmlNode* gridspace = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DGridSpacing");
+        gridspace->AddAttribute("value", std::to_string(xlights->GetDisplay2DGridSpacing()));
+        settings->AddChild(gridspace);
+        wxXmlNode* center0 = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DCenter0");
+        center0->AddAttribute("value", std::to_string(xlights->GetDisplay2DCenter0()));
+        settings->AddChild(center0);
+        wxXmlNode* laygrp = new wxXmlNode(wxXML_ELEMENT_NODE, "storedLayourGroup");
+        laygrp->AddAttribute("value", xlights->GetStoredLayoutGroup());
+        settings->AddChild(laygrp);
+        wxXmlNode* layout3d = new wxXmlNode(wxXML_ELEMENT_NODE, "LayoutMode3D");
+        layout3d->AddAttribute("value", "tbd");
+        settings->AddChild(layout3d);
+        wxXmlNode* previewW = new wxXmlNode(wxXML_ELEMENT_NODE, "previewWidth");
+        previewW->AddAttribute("value", std::to_string(0));
+        settings->AddChild(previewW);
+        wxXmlNode* previewH = new wxXmlNode(wxXML_ELEMENT_NODE, "previewHeight");
+        previewH->AddAttribute("value", std::to_string(0));
+        settings->AddChild(previewH);
+        node->AddChild(settings);
     }
 };
