@@ -419,3 +419,8 @@ bool TerrianObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
     }
     return true;
 }
+
+std::string TerrianObject::GetAttribute(std::string attribute) {
+    if (ModelXml->HasAttribute(attribute)) return ModelXml->GetAttribute(attribute);
+    return "";
+}

@@ -23,20 +23,24 @@
 #include "CubeModel.h"
 #include "CustomModel.h"
 #include "DimmingCurve.h"
+#include "GridlinesObject.h"
 #include "IciclesModel.h"
 #include "ImageModel.h"
 #include "LayoutGroup.h"
 #include "MatrixModel.h"
+#include "MeshObject.h"
 #include "ModelManager.h"
 #include "Model.h"
 #include "ModelGroup.h"
 #include "PolyLineModel.h"
+#include "RulerObject.h"
 #include "SequenceViewManager.h"
 #include "SingleLineModel.h"
 #include "SphereModel.h"
 #include "SpinnerModel.h"
 #include "StarModel.h"
 #include "SubModel.h"
+#include "TerrianObject.h"
 #include "ThreePointScreenLocation.h"
 #include "TreeModel.h"
 #include "ViewObjectManager.h"
@@ -1405,10 +1409,10 @@ private:
 };
 
 struct XmlSerializer {
-    XmlSerializer() {}
+    XmlSerializer() {
+    }
 
-    static bool IsXmlSerializerFormat(const wxXmlNode *node)
-    {
+    static bool IsXmlSerializerFormat(const wxXmlNode* node) {
         if (node->GetAttribute(XmlNodeKeys::TypeAttribute, "") == XmlNodeKeys::ExportedAttribute) {
             return true;
         }
@@ -1418,7 +1422,7 @@ struct XmlSerializer {
     // Serializes and Saves a single model into an XML document
     void SerializeAndSaveModel(const BaseObject& object, xLightsFrame* xlights) {
         wxString name = object.GetModelXml()->GetAttribute("name");
-        
+
         wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (filename.IsEmpty())
             return;
@@ -1439,11 +1443,12 @@ struct XmlSerializer {
 
         doc.SetRoot(docNode);
 
-        //DeserializeLayoutGroupsObject(docNode, xlights);
-        //DeserializeViewsObject(docNode, xlights);
-        //DeserializeColorsObject(docNode, xlights);
-        //DeserializePerspectivesObject(docNode, xlights);
-        //DeserializeSettingsObject(docNode, xlights);
+        DeserializeLayoutGroupsObject(docNode, xlights);
+        DeserializeViewsObject(docNode, xlights);
+        DeserializeColorsObject(docNode, xlights);
+        DeserializePerspectivesObject(docNode, xlights);
+        DeserializeSettingsObject(docNode, xlights);
+        Deserialize3dObjects(docNode, xlights);
         return doc;
     }
 
@@ -1565,4 +1570,33 @@ struct XmlSerializer {
         settings->AddChild(previewH);
         node->AddChild(settings);
     }
+
+    void Deserialize3dObjects(wxXmlNode* node, xLightsFrame* xlights){
+        wxXmlNode* settings = new wxXmlNode(wxXML_ELEMENT_NODE, "view_objects");
+        wxXmlNode* terrain = new wxXmlNode(wxXML_ELEMENT_NODE, "view_object");
+        const ViewObjectManager* om = new ViewObjectManager(xlights);
+        //std::map<std::string, ViewObject*> vo = om->GetViewObjects();
+        //ViewObject* t0 = om->GetViewObject("Terrain");
+        //BaseObject* b0 = om->GetObject("Mesh");
+        TerrianObject* t = new TerrianObject(node, *om);
+        //OutputManager* om0 = new OutputManager();
+        //ModelManager* mm = new ModelManager(om0, xlights);
+        //std::map<std::string, Model*> gm = mm->GetModels();
+
+        terrain->AddAttribute(XmlNodeKeys::ImageAttribute, t->GetAttribute("Image"));
+        terrain->AddAttribute(XmlNodeKeys::BrightnessAttribute, t->GetAttribute("Brightness"));
+        terrain->AddAttribute(XmlNodeKeys::TransparencyAttribute, std::to_string(t->getTransparency()));
+        terrain->AddAttribute(XmlNodeKeys::TerrainLineAttribute, std::to_string(t->getSpacing()));
+        terrain->AddAttribute(XmlNodeKeys::TerrainWidthAttribute, std::to_string(t->getWidth()));
+        terrain->AddAttribute(XmlNodeKeys::TerrainDepthAttribute, std::to_string(t->getDepth()));
+        terrain->AddAttribute(XmlNodeKeys::TerrainBrushAttribute, t->GetAttribute("TerrianBrushSize"));
+        terrain->AddAttribute(XmlNodeKeys::GridColorAttribute, t->getGridColor());
+        terrain->AddAttribute(XmlNodeKeys::HideGridAttribute, std::to_string(t->isHideGrid()));
+        terrain->AddAttribute(XmlNodeKeys::HideImageAttribute, std::to_string(t->isHideImage()));
+        terrain->AddAttribute(XmlNodeKeys::PointDataAttribute, t->getPointData());
+   
+        settings->AddChild(terrain);
+
+        node->AddChild(settings);
+    };
 };
