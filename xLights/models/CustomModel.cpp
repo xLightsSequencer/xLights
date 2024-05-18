@@ -296,6 +296,7 @@ void CustomModel::InitModel()
 
     std::string customModel = ModelXml->GetAttribute("CustomModel2.0");
     if (customModel != "") {
+        _hasCM2 = true;
         InitCustomMatrix(customModel, true);
     } else {
         std::string customModel = ModelXml->GetAttribute("CustomModel");
@@ -339,9 +340,10 @@ void CustomModel::SetCustomDepth(long d)
     SetFromXml(ModelXml, zeroBased);
 }
 
-std::string CustomModel::GetCustomData() const
-{
-    return ModelXml->GetAttribute("CustomModel").ToStdString();
+std::string CustomModel::GetCustomData() const {
+    std::string cm2 = ModelXml->GetAttribute("CustomModel2.0").ToStdString();
+    _hasCM2 == (cm2 != "");
+    return (cm2 != "" ? cm2 : ModelXml->GetAttribute("CustomModel").ToStdString());
 }
 
 void CustomModel::SetCustomData(const std::string& data)

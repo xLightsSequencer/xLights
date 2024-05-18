@@ -73,6 +73,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual bool SupportsVisitors() override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+        bool hasCM2() const { return _hasCM2; }
 
     protected:
         virtual void InitModel() override;
@@ -95,4 +96,5 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int _strings;
         std::vector<int> stringStartNodes;
         std::vector<std::vector<std::vector<int>>> locations;
+        bool _hasCM2 = false;
 };

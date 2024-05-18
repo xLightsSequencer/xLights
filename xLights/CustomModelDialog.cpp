@@ -48,6 +48,7 @@
 #include "outputs/TwinklyOutput.h"
 #include "Discovery.h"
 #include "outputs/OutputManager.h"
+#include "string.h"
 
 //(*IdInit(CustomModelDialog)
 const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
@@ -586,6 +587,7 @@ void CustomModelDialog::Setup(CustomModel* m)
     lightness = m->GetCustomLightness();
     SliderCustomLightness->SetValue(lightness);
     std::string data = m->GetCustomData();
+    bool _hasCM2 = m->hasCM2();
 
     if (background_image != "" && FileExists(background_image)) {
         bkg_image = new wxImage(background_image);
@@ -605,29 +607,50 @@ void CustomModelDialog::Setup(CustomModel* m)
         }
     }
     else {
-        wxArrayString layers = wxSplit(data, '|');
-        for (auto layer = 0; layer < layers.size(); layer++) {
-            AddPage();
-            //ResizeCustomGrid();
-            auto grid = GetLayerGrid(layer);
-            wxArrayString rows = wxSplit(layers[layer], ';');
-            //grid->AppendRows(rows.size() - 1);
-
-            for (auto row = 0; row < rows.size(); row++) {
-                wxArrayString cols = wxSplit(rows[row], ',');
-                //if (row == 0) {
-                //    grid->AppendCols(cols.size() - 1);
-                //}
-                for (auto col = 0; col < cols.size(); col++) {
-                    wxString value = cols[col];
-                    if (!value.IsEmpty() && value != "0") {
-                        grid->SetCellValue(row, col, value);
+        if (_hasCM2) {
+            wxArrayString layers = wxSplit(data, '|');
+            wxArrayString ctrllayers = wxSplit(layers[0], ',');
+            int type = std::stoi(ctrllayers[0].ToStdString());
+            int node = 1;
+            int step = (type == 1 ? 2 : 3);
+            for (auto layer = 1; layer < layers.size(); layer++) {
+                AddPage();
+                // ResizeCustomGrid();
+                auto grid = GetLayerGrid(layer-1);
+                wxArrayString data = wxSplit(layers[layer], ',');
+                for (auto d = 0; d < data.size();d+=step){
+                    if (type == 1) {
+                        grid->SetCellValue(std::stoi(data[d].ToStdString()), std::stoi(data[d + 1].ToStdString()), std::to_string(node));
+                        node++;
+                    } else {
+                        grid->SetCellValue(std::stoi(data[d].ToStdString()), std::stoi(data[d + 1].ToStdString()), data[d + 2]);
                     }
                 }
-            }
 
-            wxFont font = grid->GetDefaultCellFont();
-            SetGridSizeForFont(font);
+                wxFont font = grid->GetDefaultCellFont();
+                SetGridSizeForFont(font);
+            }
+        } else {
+            wxArrayString layers = wxSplit(data, '|');
+            for (auto layer = 0; layer < layers.size(); layer++) {
+                AddPage();
+                // ResizeCustomGrid();
+                auto grid = GetLayerGrid(layer);
+                wxArrayString rows = wxSplit(layers[layer], ';');
+
+                for (auto row = 0; row < rows.size(); row++) {
+                    wxArrayString cols = wxSplit(rows[row], ',');
+                    for (auto col = 0; col < cols.size(); col++) {
+                        wxString value = cols[col];
+                        if (!value.IsEmpty() && value != "0") {
+                            grid->SetCellValue(row, col, value);
+                        }
+                    }
+                }
+
+                wxFont font = grid->GetDefaultCellFont();
+                SetGridSizeForFont(font);
+            }
         }
     }
 
