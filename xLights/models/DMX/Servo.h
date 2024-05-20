@@ -76,5 +76,8 @@ class Servo
         bool is_2d;
         Servo* link;
         BaseObject* base;
+    
+        // used for display only in the previews
+        int lastValue = 0;
 };
 

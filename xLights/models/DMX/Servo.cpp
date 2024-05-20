@@ -98,6 +98,7 @@ void Servo::Init(BaseObject* base) {
     channel = wxAtoi(node_xml->GetAttribute("Channel", "0"));
     min_limit = wxAtoi(node_xml->GetAttribute("MinLimit", "0"));
     max_limit = wxAtoi(node_xml->GetAttribute("MaxLimit", "65535"));
+    lastValue = (max_limit + min_limit) / 2;
     range_of_motion = wxAtof(node_xml->GetAttribute("RangeOfMotion", "180.0f"));
     pivot_offset_x = wxAtof(node_xml->GetAttribute("PivotOffsetX", "0")) / offset_scale;
     pivot_offset_y = wxAtof(node_xml->GetAttribute("PivotOffsetY", "0")) / offset_scale;
@@ -138,6 +139,16 @@ bool Servo::IsRotate() const {
 }
 
 float Servo::GetPosition(int channel_value) {
+    if (channel_value == 0) {
+        channel_value = lastValue;
+    }
+    if (channel_value < min_limit) {
+        channel_value = min_limit;
+    }
+    if (channel_value > max_limit) {
+        channel_value = max_limit;
+    }
+    lastValue = channel_value;
     return ((1.0 - ((channel_value - min_limit) / (float)(max_limit - min_limit))) * range_of_motion - range_of_motion);
 }
 
