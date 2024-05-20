@@ -1003,13 +1003,6 @@ void ValueCurvePanel::Paint(wxPaintEvent& event) {
                     if (last->IsWrapped() == p->IsWrapped()) {
                         pdc.DrawLine(lastx * w + X_VC_MARGIN, th - last->y * h - Y_VC_MARGIN,
                                      x * w + X_VC_MARGIN, th - p->y * h - Y_VC_MARGIN);
-                        
-                        printf("%0.2f %0.2f (%0.2f, %0.2f)   ->  %0.2f %0.2f (%0.2f, %0.2f)    TH; %0.2f   H: %0.2f\n",
-                               p->x, p->y,
-                               lastx * w + X_VC_MARGIN, th - last->y * h - Y_VC_MARGIN,
-                               lastx, last->y,
-                               x * w + X_VC_MARGIN, th - p->y * h - Y_VC_MARGIN,
-                               th, h);
                     } else {
                         pdc.DrawLine(lastx * w + X_VC_MARGIN, th - p->y * h - Y_VC_MARGIN,
                                      x * w + X_VC_MARGIN, th - p->y * h - Y_VC_MARGIN);
