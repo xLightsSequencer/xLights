@@ -516,19 +516,18 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Cube", cube_xpm);
     AddModelButton("Custom", custom);
     AddModelButton("DMX", add_dmx_xpm);
-    AddModelButton("Image", image_xpm);
     AddModelButton("Icicles", icicles_xpm);
+    AddModelButton("Image", image_xpm);
     AddModelButton("Matrix", matrix);
-    AddModelButton("Single Line", singleline);
     AddModelButton("Poly Line", polyline);
+    AddModelButton("Single Line", singleline);
     AddModelButton("Sphere", sphere);
     AddModelButton("Spinner", spinner);
     AddModelButton("Star", star);
     AddModelButton("Tree", tree);
     AddModelButton("Window Frame", frame);
-    AddModelButton("Wreath", wreath);
-    AddModelButton("Import Custom", import);
     AddModelButton("Download", download);
+    AddModelButton("Import Custom", import);
     obj_button = AddModelButton("Add Object", object);
     obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
 
