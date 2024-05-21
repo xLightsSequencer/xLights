@@ -239,7 +239,7 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
     FireRenderCache* cache = GetCache(buffer, id);
 
     float mod_state = 4.0;
-    if (buffer.needToInit) {
+    if (buffer.needToInit || (maxMHt * maxMWi) != cache->FireBuffer.size()) {
         buffer.needToInit = false;
         cache->FireBuffer.resize(maxMHt * maxMWi);
         for (size_t i = 0; i < cache->FireBuffer.size(); ++i) {
