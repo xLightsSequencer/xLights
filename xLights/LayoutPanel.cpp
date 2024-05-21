@@ -106,22 +106,22 @@ static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeigh
 }
 
 //(*IdInit(LayoutPanel)
-const long LayoutPanel::ID_PANEL4 = wxNewId();
-const long LayoutPanel::ID_PANEL_Objects = wxNewId();
-const long LayoutPanel::ID_NOTEBOOK_OBJECTS = wxNewId();
-const long LayoutPanel::ID_PANEL3 = wxNewId();
-const long LayoutPanel::ID_PANEL2 = wxNewId();
-const long LayoutPanel::ID_SPLITTERWINDOW1 = wxNewId();
-const long LayoutPanel::ID_CHECKBOX_3D = wxNewId();
-const long LayoutPanel::ID_CHECKBOXOVERLAP = wxNewId();
-const long LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
-const long LayoutPanel::ID_PANEL5 = wxNewId();
-const long LayoutPanel::ID_STATICTEXT1 = wxNewId();
-const long LayoutPanel::ID_CHOICE_PREVIEWS = wxNewId();
-const long LayoutPanel::ID_SCROLLBAR1 = wxNewId();
-const long LayoutPanel::ID_SCROLLBAR2 = wxNewId();
-const long LayoutPanel::ID_PANEL1 = wxNewId();
-const long LayoutPanel::ID_SPLITTERWINDOW2 = wxNewId();
+const wxWindowID LayoutPanel::ID_PANEL4 = wxNewId();
+const wxWindowID LayoutPanel::ID_PANEL_Objects = wxNewId();
+const wxWindowID LayoutPanel::ID_NOTEBOOK_OBJECTS = wxNewId();
+const wxWindowID LayoutPanel::ID_PANEL3 = wxNewId();
+const wxWindowID LayoutPanel::ID_PANEL2 = wxNewId();
+const wxWindowID LayoutPanel::ID_SPLITTERWINDOW1 = wxNewId();
+const wxWindowID LayoutPanel::ID_CHECKBOX_3D = wxNewId();
+const wxWindowID LayoutPanel::ID_CHECKBOXOVERLAP = wxNewId();
+const wxWindowID LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
+const wxWindowID LayoutPanel::ID_PANEL5 = wxNewId();
+const wxWindowID LayoutPanel::ID_STATICTEXT1 = wxNewId();
+const wxWindowID LayoutPanel::ID_CHOICE_PREVIEWS = wxNewId();
+const wxWindowID LayoutPanel::ID_SCROLLBAR1 = wxNewId();
+const wxWindowID LayoutPanel::ID_SCROLLBAR2 = wxNewId();
+const wxWindowID LayoutPanel::ID_PANEL1 = wxNewId();
+const wxWindowID LayoutPanel::ID_SPLITTERWINDOW2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(LayoutPanel,wxPanel)
@@ -327,7 +327,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
 	//(*Initialize(LayoutPanel)
 	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizerPreview;
@@ -363,7 +362,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	SecondPanel = new wxPanel(ModelSplitter, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	ModelSplitter->SplitHorizontally(FirstPanel, SecondPanel);
 	LeftPanelSizer->Add(ModelSplitter, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 2);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	CheckBox_3D = new wxCheckBox(LeftPanel, ID_CHECKBOX_3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_3D"));
 	CheckBox_3D->SetValue(false);
@@ -371,10 +369,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	CheckBoxOverlap = new wxCheckBox(LeftPanel, ID_CHECKBOXOVERLAP, _("Overlap checks enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXOVERLAP"));
 	CheckBoxOverlap->SetValue(false);
 	FlexGridSizer3->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	LeftPanelSizer->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	ButtonSavePreview = new wxButton(LeftPanel, ID_BUTTON_SAVE_PREVIEW, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_PREVIEW"));
-	FlexGridSizer2->Add(ButtonSavePreview, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	LeftPanelSizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	LeftPanelSizer->Add(ButtonSavePreview, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	LeftPanel->SetSizer(LeftPanelSizer);
 	PreviewGLPanel = new wxPanel(SplitterWindow2, ID_PANEL1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_PANEL1"));
 	PreviewGLSizer = new wxFlexGridSizer(2, 1, 0, 0);
@@ -1187,9 +1184,28 @@ void LayoutPanel::FreezeTreeListView() {
     //turn off the column width auto-resize.  Makes it REALLY slow to populate the tree
     TreeListViewModels->SetColumnWidth(0, TreeListViewModels->GetColumnWidth(0));
     TreeListViewModels->SetColumnWidth(3, TreeListViewModels->GetColumnWidth(3));
+    treeSorted = TreeListViewModels->GetSortColumn(&treeSortCol, &treeSortAscending);
+    
+    //turn off the sorting as that is ALSO really slow
+    TreeListViewModels->SetItemComparator(nullptr);
+    if (treeSorted) {
+        //UnsetAsSortKey may be unimplemented on all  platforms so we'll set a
+        //sort column to 0 which is faster due to straight string compare
+        TreeListViewModels->SetSortColumn(0, true);
+        //then turn it off again so platforms that DO support this can benefit
+        TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
+    }
+    
 }
 
 void LayoutPanel::ThawTreeListView() {
+    //turn the sorting back on
+    TreeListViewModels->SetItemComparator(&comparator);
+    if (treeSorted) {
+        TreeListViewModels->SetSortColumn(treeSortCol, treeSortAscending);
+        TreeListViewModels->GetDataView()->GetModel()->Resort();
+    }
+    
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
     int i = TreeListViewModels->GetColumnWidth(0);
@@ -1352,9 +1368,6 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     wxStopWatch sw;
 
     FreezeTreeListView();
-    unsigned sortcol;
-    bool ascending;
-    bool sorted = TreeListViewModels->GetSortColumn(&sortcol, &ascending);
 
     std::vector<Model *> dummy_models;
 
@@ -1380,14 +1393,6 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     if (full_refresh) {
         UnSelectAllModels();
 
-        //turn off the sorting as that is ALSO really slow
-        TreeListViewModels->SetItemComparator(nullptr);
-        if (sorted) {
-            //UnsetAsSortKey may be unimplemented on all  platforms so we'll set a
-            //sort column to 0 which is faster due to straight string compare
-            TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
-        }
-
         //delete all items will attempt to resort as each item is deleted, however, our Model pointers
         //stored in the items may be invalid
         wxTreeListItem child = TreeListViewModels->GetFirstItem();
@@ -1400,13 +1405,6 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             child = TreeListViewModels->GetFirstItem();
         }
         TreeListViewModels->DeleteAllItems();
-        if (sorted) {
-            //UnsetAsSortKey may be unimplemented on all  platforms so we'll set a
-            //sort column to 0 which is faster due to straight string compare
-            TreeListViewModels->SetSortColumn(0, true);
-            //then turn it off again so platforms that DO support this can benefit
-            TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
-        }
 
         wxTreeListItem root = TreeListViewModels->GetRootItem();
         // add all the model groups
@@ -1449,12 +1447,6 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             TreeListViewModels->SetColumnWidth(2, width);
         }
 
-        //turn the sorting back on
-        TreeListViewModels->SetItemComparator(&comparator);
-        if (sorted) {
-            TreeListViewModels->SetSortColumn(sortcol, ascending);
-            TreeListViewModels->GetDataView()->GetModel()->Resort();
-        }
     }
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UpdateModelList");
 

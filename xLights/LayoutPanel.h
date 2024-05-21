@@ -122,22 +122,22 @@ class LayoutPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(LayoutPanel)
-		static const long ID_PANEL4;
-		static const long ID_PANEL_Objects;
-		static const long ID_NOTEBOOK_OBJECTS;
-		static const long ID_PANEL3;
-		static const long ID_PANEL2;
-		static const long ID_SPLITTERWINDOW1;
-		static const long ID_CHECKBOX_3D;
-		static const long ID_CHECKBOXOVERLAP;
-		static const long ID_BUTTON_SAVE_PREVIEW;
-		static const long ID_PANEL5;
-		static const long ID_STATICTEXT1;
-		static const long ID_CHOICE_PREVIEWS;
-		static const long ID_SCROLLBAR1;
-		static const long ID_SCROLLBAR2;
-		static const long ID_PANEL1;
-		static const long ID_SPLITTERWINDOW2;
+		static const wxWindowID ID_PANEL4;
+		static const wxWindowID ID_PANEL_Objects;
+		static const wxWindowID ID_NOTEBOOK_OBJECTS;
+		static const wxWindowID ID_PANEL3;
+		static const wxWindowID ID_PANEL2;
+		static const wxWindowID ID_SPLITTERWINDOW1;
+		static const wxWindowID ID_CHECKBOX_3D;
+		static const wxWindowID ID_CHECKBOXOVERLAP;
+		static const wxWindowID ID_BUTTON_SAVE_PREVIEW;
+		static const wxWindowID ID_PANEL5;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_CHOICE_PREVIEWS;
+		static const wxWindowID ID_SCROLLBAR1;
+		static const wxWindowID ID_SCROLLBAR2;
+		static const wxWindowID ID_PANEL1;
+		static const wxWindowID ID_SPLITTERWINDOW2;
 		//*)
 
 		static const long ID_TREELISTVIEW_MODELS;
@@ -572,6 +572,10 @@ class LayoutPanel: public wxPanel
             xLightsFrame* xlights = nullptr;
         };
         ModelListComparator comparator;
+        unsigned treeSortCol;
+        bool treeSortAscending;
+        bool treeSorted;
+    
         bool zoom_gesture_active = false;
         bool rotate_gesture_active = false;
 };
