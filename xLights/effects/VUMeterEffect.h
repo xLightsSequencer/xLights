@@ -83,7 +83,7 @@ protected:
     void RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars, int gain, NSVGimage* svgFile);
     void RenderTimingEventPulseFrame(RenderBuffer& buffer, int fadeframes, std::string timingtrack, float& lastsize, const std::string& filter, bool regex);
     void RenderTimingEventPulseColourFrame(RenderBuffer& buffer, int fadeframes, std::string timingtrack, float& lastsize, int& colourindex, const std::string& filter, bool regex);
-    void RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex, bool all, bool random, const std::string& filter, bool regex);
+    void RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex, bool all, bool random, const std::string& filter, bool regex, bool bounce, int& lastDirection);
     void RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote, int gain);
     void RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain);
     void RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain, bool fullJump, float& lastsize);
