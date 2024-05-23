@@ -202,7 +202,7 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         HeightPct = 10;
         if (buffer.GetMedia() != nullptr) {
             float f = 0.0;
-            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod);
             if (pf != nullptr) {
                 f = pf->max;
             }

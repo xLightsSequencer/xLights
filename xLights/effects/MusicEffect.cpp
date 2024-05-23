@@ -355,7 +355,7 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
     // go through each frame and extract the data i need
     for (int f = buffer.curEffStartPer; f <= buffer.curEffEndPer; ++f)
     {
-        auto pdata = buffer.GetMedia()->GetFrameData(f, "");
+        auto pdata = buffer.GetMedia()->GetFrameData(f);
 
         if (pdata != nullptr) {
             auto pn = pdata->vu.cbegin();

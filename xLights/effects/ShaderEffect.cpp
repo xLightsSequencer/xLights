@@ -1147,7 +1147,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
 
         AudioManager* audioManager = buffer.GetMedia();
         if (audioManager != nullptr) {
-            auto fftData = audioManager->GetFrameData(buffer.curPeriod, "");
+            auto fftData = audioManager->GetFrameData(buffer.curPeriod);
             if (fftData) {
                 std::vector<float> fft128;
                 if ( _shaderConfig->IsAudioFFTShader() )

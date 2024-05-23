@@ -54,6 +54,10 @@ const long SeqSettingsDialog::ID_BITMAPBUTTON_Xml_Media_File = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT1 = wxNewId();
 const long SeqSettingsDialog::ID_TEXTCTRL1 = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON1 = wxNewId();
+const long SeqSettingsDialog::ID_STATICTEXT2 = wxNewId();
+const long SeqSettingsDialog::ID_LISTBOX_SUB_AUDIO = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_ADD_SUB_AUDIO = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_REMOVE_SUB_AUDIO = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Xml_Total_Length = wxNewId();
 const long SeqSettingsDialog::ID_TEXTCTRL_Xml_Seq_Duration = wxNewId();
 const long SeqSettingsDialog::ID_CHECKBOX_Overwrite_Tags = wxNewId();
@@ -178,6 +182,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     quick_start_pressed = wxArtProvider::GetBitmapBundle("xlART_quick_start_pressed", wxART_BUTTON);
 
     //(*Initialize(SeqSettingsDialog)
+    wxBoxSizer* BoxSizer1;
+    wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer11;
     wxFlexGridSizer* FlexGridSizer12;
@@ -247,7 +253,19 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Download = new wxButton(PanelInfo, ID_BUTTON1, _("Download Sequence and Lyrics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer10->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer10->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText3 = new wxStaticText(PanelInfo, ID_STATICTEXT2, _("Sub Audio:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    FlexGridSizer10->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer1 = new wxBoxSizer(wxVERTICAL);
+    ListBoxSubAudio = new wxListBox(PanelInfo, ID_LISTBOX_SUB_AUDIO, wxDefaultPosition, wxSize(860,79), 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_SUB_AUDIO"));
+    BoxSizer1->Add(ListBoxSubAudio, 1, wxALL|wxEXPAND, 5);
+    BoxSizer2 = new wxBoxSizer(wxHORIZONTAL);
+    ButtonAddSubAudio = new wxButton(PanelInfo, ID_BUTTON_ADD_SUB_AUDIO, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD_SUB_AUDIO"));
+    BoxSizer2->Add(ButtonAddSubAudio, 0, wxALL, 5);
+    ButtonRemoveSubAudio = new wxButton(PanelInfo, ID_BUTTON_REMOVE_SUB_AUDIO, _("Remove"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_REMOVE_SUB_AUDIO"));
+    BoxSizer2->Add(ButtonRemoveSubAudio, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer1->Add(BoxSizer2, 0, wxALL|wxEXPAND, 5);
+    FlexGridSizer10->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer6 = new wxFlexGridSizer(0, 4, 0, 0);
     StaticText_Xml_Total_Length = new wxStaticText(PanelInfo, ID_STATICTEXT_Xml_Total_Length, _("Sequence Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Total_Length"));
@@ -419,6 +437,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Connect(ID_CHOICE_Xml_Seq_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect);
     Connect(ID_BITMAPBUTTON_Xml_Media_File,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_DownloadClick);
+    Connect(ID_BUTTON_ADD_SUB_AUDIO,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButtonAddSubAudioClick);
+    Connect(ID_BUTTON_REMOVE_SUB_AUDIO,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButtonRemoveSubAudioClick);
     Connect(ID_TEXTCTRL_Xml_Seq_Duration,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText);
     Connect(ID_BITMAPBUTTON__ModifyTiming,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_ModifyTimingClick);
     Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnCheckBox1Click);
@@ -508,6 +528,11 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
         TextCtrl_Xml_Media_File->SetValue(xml_file->GetMedia()->FileName());
     }
     SetHash();
+
+    for (auto const& su : xml_file->GetSubMediaFiles()) {
+        ListBoxSubAudio->Append(su);
+    }
+
     TextCtrl_Xml_Seq_Duration->ChangeValue(xml_file->GetSequenceDurationString());
     BlendingCheckBox->SetValue(xml_file->supportsModelBlending());
 
@@ -1837,4 +1862,41 @@ void SeqSettingsDialog::OnButton_MusicOpenClick(wxCommandEvent& event)
         link = "http://" + link;
     }
     ::wxLaunchDefaultBrowser(link);
+}
+
+void SeqSettingsDialog::OnButtonAddSubAudioClick(wxCommandEvent& event)
+{
+    wxFileDialog OpenDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP Audio Files|*.mp3;*.ogg;*.m4p;*.mp4;*.m4a;*.aac;*.wav;*.flac;*.wma;*.au;*.mkv;*.mov|xLights Audio Files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg;*.wmv;*.flac", wxFD_OPEN | wxFD_FILE_MUST_EXIST, wxDefaultPosition);
+
+    std::string media_directory = media_directories.empty() ? "" : media_directories.front();
+
+    if (wxDir::Exists(media_directory)) {
+        OpenDialog.SetDirectory(media_directory);
+    }
+    
+    if (OpenDialog.ShowModal() == wxID_OK) {
+        wxString filename = OpenDialog.GetFilename();
+        ObtainAccessToURL(filename.ToStdString());
+
+        SetCursor(wxCURSOR_WAIT);
+        xml_file->AddSubMediaFile(xLightsParent->GetShowDirectory(), filename);
+        ListBoxSubAudio->Clear();
+
+        for (auto const& su : xml_file->GetSubMediaFiles()) {
+            ListBoxSubAudio->Append(su);
+        }
+
+        SetCursor(wxCURSOR_DEFAULT);
+    }
+}
+
+void SeqSettingsDialog::OnButtonRemoveSubAudioClick(wxCommandEvent& event)
+{
+    auto su = ListBoxSubAudio->GetStringSelection();
+    xml_file->RemoveSubMediaFile(su);
+    ListBoxSubAudio->Clear();
+
+    for (auto const& su : xml_file->GetSubMediaFiles()) {
+        ListBoxSubAudio->Append(su);
+    }
 }
