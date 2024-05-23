@@ -640,7 +640,7 @@ void EffectsGrid::FindEffectsForData(uint32_t channel, uint8_t chans, uint32_t _
             if (it.el != nullptr) {
                 logger_base.debug("                             Layer: %d", it.el->GetLayerNumber());
             } else if (it.nl != nullptr) {
-                logger_base.debug("                             Node: %s strand %d node %d", (char*)it.nl->GetName().c_str(), it.GetStrand() + 1, it.GetNode() + 1);
+                logger_base.debug("                             Node: %s strand %d node %d", (char*)it.nl->GetNodeName().c_str(), it.GetStrand() + 1, it.GetNode() + 1);
             }
             logger_base.debug("                             Effect: %s start %0.2fms", (char*)it.ef->GetEffectName().c_str(), (float)it.ef->GetStartTimeMS() / 1000.0);
         }

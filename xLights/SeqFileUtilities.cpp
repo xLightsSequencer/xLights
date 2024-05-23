@@ -1284,7 +1284,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                     for (size_t n = 0; n < ste->GetNodeLayerCount(); ++n) {
                         NodeLayer* nl = ste->GetNodeLayer(n, true);
                         if (nl->GetEffectCount() > 0) {
-                            std::string nodeName = nl->GetName();
+                            std::string nodeName = nl->GetNodeName();
                             if (nodeName == "") {
                                 nodeName = wxString::Format("Node %d", (int)(n + 1));
                             }

@@ -26,12 +26,13 @@
 #include "effects/DMXEffect.h"
 
 std::atomic_int EffectLayer::exclusive_index(0);
-const std::string NamedLayer::NO_NAME("");
+const std::string EffectLayer::NO_NAME("");
 
 EffectLayer::EffectLayer(Element* parent)
 {
     mParentElement = parent;
     mIndex = exclusive_index++;
+    name = nullptr;
 }
 
 EffectLayer::~EffectLayer()
@@ -43,6 +44,9 @@ EffectLayer::~EffectLayer()
     while (!mEffectsToDelete.empty()) {
         delete *mEffectsToDelete.begin();
         mEffectsToDelete.pop_front();
+    }
+    if (name != nullptr) {
+        delete name;
     }
 }
 

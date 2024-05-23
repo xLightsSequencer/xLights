@@ -40,6 +40,7 @@ public:
     int strandIndex = -1;
     int nodeIndex = -1;
     std::string displayName;
+    std::string layerName;
     bool submodel = false;
 };
 
