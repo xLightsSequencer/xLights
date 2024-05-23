@@ -3482,7 +3482,7 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     } else if (s[0] == '>') {
         return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
     } else if (s[0] == '@') {
-        return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
+        return s;
     } else if (s[0] == '!') {
         return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
     } else if (s[0] == '#') {
