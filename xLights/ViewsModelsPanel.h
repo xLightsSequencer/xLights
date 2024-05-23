@@ -156,6 +156,8 @@ public:
     wxButton* Button_RemoveAll;
     wxButton* Button_RemoveSelected;
     wxButton* Button_Top;
+    wxButton* Button_ViewDown;
+    wxButton* Button_ViewUp;
     wxCheckedListCtrl* ListCtrlModels;
     wxCheckedListCtrl* ListCtrlViews;
     wxListCtrl* ListCtrlNonModels;
@@ -181,6 +183,8 @@ protected:
     static const long ID_BUTTON8;
     static const long ID_BUTTON_IMPORT;
     static const long ID_BUTTON11;
+    static const long ID_BUTTON_VIEWUP;
+    static const long ID_BUTTON_VIEWDOWN;
     static const long ID_STATICTEXT1;
     static const long ID_LISTCTRL_VIEWS;
     static const long ID_STATICTEXT2;
@@ -244,6 +248,8 @@ private:
     void OnButton_TopClick(wxCommandEvent& event);
     void OnButtonImportClick(wxCommandEvent& event);
     void OnButton_BottomClick(wxCommandEvent& event);
+    void OnButtonView_UpClick(wxCommandEvent& event);
+    void OnButtonView_DownClick(wxCommandEvent& event);
     //*)
 
     void OnDrop(wxCommandEvent& event);
