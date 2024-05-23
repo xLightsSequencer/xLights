@@ -190,10 +190,13 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
             has_position = true;
         } else if ( cmd_type == "Tilt" ) {
             tilt_pos = atof(settings.c_str());
+            has_position = true;
         } else if ( cmd_type == "Pan VC" ) {
             GetValueCurvePosition(pan_pos, settings, eff_pos, buffer);
+            has_position = true;
         } else if ( cmd_type == "Tilt VC" ) {
             GetValueCurvePosition(tilt_pos, settings, eff_pos, buffer);
+            has_position = true;
         } else if( cmd_type == "PanOffset" ) {
             pan_offset = atof(settings.c_str());
         } else if( cmd_type == "TiltOffset" ) {
