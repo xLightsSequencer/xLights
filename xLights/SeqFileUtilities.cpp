@@ -5815,10 +5815,12 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             settings += "E_CHECKBOX_16bit=0,";
         }
         settings += "E_CHOICE_Channel=" + name + ",";
-        settings += "E_VALUECURVE_Servo=Active=TRUE|Id=ID_VALUECURVE_Servo|Type=Ramp|Min=0.00|Max=1000.00|";
         float start_pos = (((float)events[i].start_pos - (float)min_limit) * 100.0) / ((float)max_limit - (float)min_limit);
-        settings += "P1=" + wxString::Format("%3.1f", start_pos * 10.0).ToStdString() + "|";
         float end_pos = (((float)events[i].end_pos - (float)min_limit) * 100.0) / ((float)max_limit - (float)min_limit);
+
+        settings += "E_TEXTCTRL_Servo=" + wxString::Format("%3.1f", start_pos).ToStdString() + ",";
+        settings += "E_TEXTCTRL_EndValue=" + wxString::Format("%3.1f", end_pos).ToStdString() + ",";
+
         if (start_pos < 0.0) {
             if (warn) {
                 DisplayWarning(wxString::Format("%s: Servo Limit Exceeded. start_pos < 0%% : %.2f min/max %d/%d", name, start_pos, min_limit, max_limit).ToStdString());
@@ -5845,7 +5847,6 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             }
             end_pos = 0.0;
         }
-        settings += "P2=" + wxString::Format("%3.1f", end_pos * 10.0).ToStdString() + "|RV=TRUE";
         if (last_pos == -1.0) {
             last_pos = start_pos;
         }
@@ -5858,6 +5859,7 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             }
             settings2 += "E_CHOICE_Channel=" + name + ",";
             settings2 += "E_TEXTCTRL_Servo=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
+            settings2 += "E_TEXTCTRL_EndValue=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
             layer->AddEffect(0, "Servo", settings2, palette, last_time, events[i].start_time * timing, false, false);
         }
         layer->AddEffect(0, "Servo", settings, palette, events[i].start_time * timing, events[i].end_time * timing, false, false);
@@ -5875,6 +5877,7 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
                 }
                 settings3 += "E_CHOICE_Channel=" + name + ",";
                 settings3 += "E_TEXTCTRL_Servo=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
+                settings3 += "E_TEXTCTRL_EndValue=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
                 layer->AddEffect(0, "Servo", settings3, palette, last_time, sequence_end_time, false, false);
             }
         }

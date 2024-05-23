@@ -60,7 +60,7 @@
 					<growablecols>1</growablecols>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT_Servo" variable="Label_DMX1" member="yes">
-							<label>Value:</label>
+							<label>Start:</label>
 						</object>
 						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -85,7 +85,38 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Servo" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Servo" member="no">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Servo" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Servo" member="yes">
+							<value>0</value>
+							<size>25,-1d</size>
+							<style>wxTE_PROCESS_ENTER</style>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="EndDMXLabel" member="yes">
+							<label>End:</label>
+						</object>
+						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_EndValue" subclass="BulkEditSliderF1" variable="SliderEndValue" member="yes">
+							<max>1000</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_EndValue" subclass="BulkEditTextCtrlF1" variable="TextCtrl_EndValue" member="yes">
 							<value>0</value>
 							<size>25,-1d</size>
 							<style>wxTE_PROCESS_ENTER</style>
@@ -96,6 +127,31 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON1" variable="EqualButton" member="yes">
+							<label>Equal</label>
+							<handler function="OnEqualButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="IDD_SwapButton" variable="SwapButton" member="yes">
+							<label>Swap</label>
+							<handler function="OnSwapButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
