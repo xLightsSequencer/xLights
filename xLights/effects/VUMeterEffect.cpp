@@ -2922,7 +2922,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
                     lastbar = 1;
             } else if (bounce) {
                 lastbar += lastDirection;
-                if (lastbar == bars || 0 == lastbar) {
+                if (lastbar > bars || 0 == lastbar) {
                     lastDirection *= -1;
                     lastbar += (lastDirection*2);//2x so it moves
                 }
