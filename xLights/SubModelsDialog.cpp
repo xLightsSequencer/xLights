@@ -3541,7 +3541,7 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
                                 long nn = model->GetNodeNumber(rnum, cnum);
                                 if (nn >= 0) {
                                     row += wxString::Format("%d,", nn+1);
-                                    nodeMap[wxAtoi(c)] = nn;
+                                    nodeMap[wxAtoi(c)] = nn+1;
                                 }
                                 else {
                                     row += ",";
