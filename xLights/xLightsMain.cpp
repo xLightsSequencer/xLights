@@ -4489,6 +4489,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
         model_header_cols.push_back("Location Y (" + unitDescription + ")");
         model_header_cols.push_back("Location Z (" + unitDescription + ")");
     }
+    model_header_cols.push_back("Aliases");
 
     std::map<int, double> _model_col_widths;
     for (int i = 0; i < model_header_cols.size(); i++) {
@@ -4575,6 +4576,15 @@ void xLightsFrame::ExportModels(wxString const& filename)
                 worksheet_write_number(modelsheet, row, 32, ruler->Measure(position.y), format);
                 worksheet_write_number(modelsheet, row, 33, ruler->Measure(position.z), format);
             }
+            std::list<std::string> aliases = model->GetAliases();
+            if (!aliases.empty()) {
+                auto it = aliases.begin();
+                std::string initial = *it;
+                ++it;
+                std::string separator = ", ";
+                std::string a = (std::accumulate(it, aliases.end(), initial, [&separator](const std::string& a, const std::string& b) { return a + separator + b; }));
+                write_worksheet_string(modelsheet, row, 34, a, format, _model_col_widths);
+            };
 
             ++row;
 
@@ -4593,7 +4603,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
     }
 
     std::map<int, double> _group_col_widths;
-    const std::vector<std::string> groupHeader{ "Group Name", "Models", "Models Count", "Default Buffer W x H", "Preview" };
+    const std::vector<std::string> groupHeader{ "Group Name", "Models", "Models Count", "Default Buffer W x H", "Preview", "Aliases" };
     for (int i = 0; i < groupHeader.size(); i++) {
         worksheet_write_string(groupsheet, 0, i, groupHeader[i].c_str(), header_format);
         _group_col_widths[i] = groupHeader[i].size() + FACTOR; // estimate column width
@@ -4622,6 +4632,15 @@ void xLightsFrame::ExportModels(wxString const& filename)
             worksheet_write_number(groupsheet, row, 2, mg->ModelNames().size(), format);
             write_worksheet_string(groupsheet, row, 3, wxString::Format("%d x %d", w, h), format, _group_col_widths);
             write_worksheet_string(groupsheet, row, 4, model->GetLayoutGroup(), format, _group_col_widths);
+            std::list<std::string> aliases = model->GetAliases();
+            if (!aliases.empty()) {
+                auto it = aliases.begin();
+                std::string initial = *it;
+                ++it;
+                std::string separator = ", ";
+                std::string a = (std::accumulate(it, aliases.end(), initial,[&separator](const std::string& a, const std::string& b) { return a + separator + b; }));
+                write_worksheet_string(groupsheet, row, 5, a, format, _group_col_widths);
+            };
             ++row;
         }
     }
