@@ -5802,6 +5802,10 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
         logger_base.crit("ImportServoData cannot have null layer to import onto - this is going to crash.");
     }
 
+    if (layer->GetLayerName().empty()) {
+        layer->SetLayerName(name);
+    }
+    
     float last_pos = -1.0;
     int last_time = 0;
     bool warn = true;
