@@ -136,13 +136,6 @@ BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
     EVT_COMMAND(wxID_ANY, EVT_SMDROP, SubModelsDialog::OnDrop)
 END_EVENT_TABLE()
 
-StretchGrid::StretchGrid(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name) :
-    wxGrid(parent, id, pos, size, style, name) {
-}
-
-StretchGrid::~StretchGrid() {
-}
-
 SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     m_creating_bound_rect(false),
     m_bound_start_x(0),
@@ -244,7 +237,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
 	LayoutCheckbox->SetValue(false);
 	FlexGridSizer6->Add(LayoutCheckbox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxFIXED_MINSIZE, 5);
-	NodesGrid = new StretchGrid(Panel1, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_GRID1"));
+	NodesGrid = new wxGrid(Panel1, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_GRID1"));
 	NodesGrid->CreateGrid(5,1);
 	NodesGrid->EnableEditing(true);
 	NodesGrid->EnableGridLines(true);
