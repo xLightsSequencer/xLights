@@ -128,7 +128,6 @@ public:
     void Save();
 
     //(*Declarations(SubModelsDialog)
-    wxGrid* NodesGrid;
     wxButton* AddButton;
     wxButton* AddRowButton;
     wxButton* ButtonCopy;
@@ -149,6 +148,7 @@ public:
     wxChoice* ChoiceBufferStyle;
     wxFlexGridSizer* PreviewSizer;
     wxFlexGridSizer* SubBufferSizer;
+    wxGrid* NodesGrid;
     wxListCtrl* ListCtrl_SubModels;
     wxNotebook* TypeNotebook;
     wxPanel* ModelPreviewPanelLocation;
