@@ -139,6 +139,7 @@
 						<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 							<orientation>vertical</orientation>
 							<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
+							<handler function="OnSplitterSashPosChanging" entry="EVT_SPLITTER_SASH_POS_CHANGING" />
 							<object class="wxPanel" name="ID_PANEL5" variable="Panel3" member="yes">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 									<cols>1</cols>

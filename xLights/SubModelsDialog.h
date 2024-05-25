@@ -77,11 +77,6 @@ public:
     StretchGrid (wxWindow *parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
 	       long style = wxWANTS_CHARS, const wxString& name = wxGridNameStr);
     ~StretchGrid ();
-
-protected:
-    void OnGridWindowSize (wxSizeEvent& event);
-    void OnColHeaderSize (wxGridSizeEvent& event);
-    void AutoSizeLastCol ();
 };
 
 class SubModelsDialog : public wxDialog
@@ -349,6 +344,7 @@ private:
     void OnInit(wxInitDialogEvent& event);
     void OnNodesGridCellRightClick(wxGridEvent& event);
     void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
+    void OnSplitterSashPosChanging(wxSplitterEvent& event);
     //*)
 
     void OnCancel(wxCloseEvent& event);
