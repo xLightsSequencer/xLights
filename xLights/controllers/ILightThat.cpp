@@ -103,16 +103,13 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             for (auto model : port->GetModels()) {
                 outputConfig["ports"][x]["models"][i]["name"] = model->GetName();
                 int brightness = model->GetBrightness(-1);
-                if (brightness == -1)
-                {
+                if (brightness == -1) {
                     brightness = 100;
                 }
                 
                 if (model_test_cols.find(model->GetName()) == model_test_cols.end()) {
                     outputConfig["ports"][x]["models"][i]["test_colour"] = 0x00ff0000;
-                }
-                else
-                {
+                } else {
                     outputConfig["ports"][x]["models"][i]["test_colour"] = model_test_cols.find(model->GetName())->second;
                 }
 
@@ -127,8 +124,8 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 i++;
             }
         }
-        for (int i = cud.GetMaxPixelPort(); i < controller->GetControllerCaps()->GetMaxPixelPort() + 1; i++)
-        {
+
+        for (int i = cud.GetMaxPixelPort(); i < controller->GetControllerCaps()->GetMaxPixelPort(); i++) {
             outputConfig["ports"][i]["num_pixels"] = 0;
         }
 
