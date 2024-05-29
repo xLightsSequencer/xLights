@@ -1314,7 +1314,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
 
     if (model->GetDisplayAs() != "ModelGroup") {
         wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
-        wxString endStr = (startStr[0] == '@' ? "" : model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager()));
+        wxString endStr = ((startStr[0] == '@' && model->HasIndividualStartChannels()) ? "" : model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager()));
         if (model->GetDisplayAs() != "SubModel") {
             if ((model->CouldComputeStartChannel || startStr[0] == '@') && model->IsValidStartChannelString()) {
                 SetTreeListViewItemText(item, Col_StartChan, startStr);
