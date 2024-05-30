@@ -401,13 +401,13 @@ void DMXEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
 
     if (StartsWith(string_type, "Single Color")) {
         // handle channels for single color nodes
-        for (uint32_t i = 1; i <= 40; ++i) {
+        for (uint32_t i = 1; i <= DMX_CHANNELS; ++i) {
             if (SetDMXSinglColorPixel(i, num_channels, SettingsMap, eff_pos, color, buffer))
                 return;
         }
    } else {
         // handle channels for 3 color nodes
-        for (uint32_t i = 1; i <= 40 / 3; ++i) {
+       for (uint32_t i = 1; i <= DMX_CHANNELS / 3; ++i) {
             if (SetDMXRGBNode(i, num_channels, SettingsMap, eff_pos, color, buffer, string_type))
                 return;
         }
