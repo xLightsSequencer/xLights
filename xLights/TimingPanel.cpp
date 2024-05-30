@@ -159,28 +159,28 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     FlexGridSizer6->AddGrowableCol(0);
     FlexGridSizer10 = new wxFlexGridSizer(0, 4, 0, 0);
     Choice_In_Transition_Type = new BulkEditChoice(Panel1, ID_CHOICE_In_Transition_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_In_Transition_Type"));
-    Choice_In_Transition_Type->SetSelection( Choice_In_Transition_Type->Append(_("Fade")) );
-    Choice_In_Transition_Type->Append(_("Wipe"));
-    Choice_In_Transition_Type->Append(_("Clock"));
-    Choice_In_Transition_Type->Append(_("From Middle"));
-    Choice_In_Transition_Type->Append(_("Square Explode"));
-    Choice_In_Transition_Type->Append(_("Circle Explode"));
-    Choice_In_Transition_Type->Append(_("Blinds"));
     Choice_In_Transition_Type->Append(_("Blend"));
-    Choice_In_Transition_Type->Append(_("Slide Checks"));
-    Choice_In_Transition_Type->Append(_("Slide Bars"));
-    Choice_In_Transition_Type->Append(_("Fold"));
-    Choice_In_Transition_Type->Append(_("Dissolve"));
-    Choice_In_Transition_Type->Append(_("Circular Swirl"));
-    Choice_In_Transition_Type->Append(_("Bow Tie"));
-    Choice_In_Transition_Type->Append(_("Zoom"));
-    Choice_In_Transition_Type->Append(_("Doorway"));
+    Choice_In_Transition_Type->Append(_("Blinds"));
     Choice_In_Transition_Type->Append(_("Blobs"));
+    Choice_In_Transition_Type->Append(_("Bow Tie"));
+    Choice_In_Transition_Type->Append(_("Circle Explode"));
+    Choice_In_Transition_Type->Append(_("Circles"));
+    Choice_In_Transition_Type->Append(_("Circular Swirl"));
+    Choice_In_Transition_Type->Append(_("Clock"));
+    Choice_In_Transition_Type->Append(_("Dissolve"));
+    Choice_In_Transition_Type->Append(_("Doorway"));
+    Choice_In_Transition_Type->SetSelection( Choice_In_Transition_Type->Append(_("Fade")) );
+    Choice_In_Transition_Type->Append(_("Fold"));
+    Choice_In_Transition_Type->Append(_("From Middle"));
     Choice_In_Transition_Type->Append(_("Pinwheel"));
+    Choice_In_Transition_Type->Append(_("Shatter"));
+    Choice_In_Transition_Type->Append(_("Slide Bars"));
+    Choice_In_Transition_Type->Append(_("Slide Checks"));
+    Choice_In_Transition_Type->Append(_("Square Explode"));
     Choice_In_Transition_Type->Append(_("Star"));
     Choice_In_Transition_Type->Append(_("Swap"));
-    Choice_In_Transition_Type->Append(_("Shatter"));
-    Choice_In_Transition_Type->Append(_("Circles"));
+    Choice_In_Transition_Type->Append(_("Wipe"));
+    Choice_In_Transition_Type->Append(_("Zoom"));
     FlexGridSizer10->Add(Choice_In_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT_Fadein, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fadein"));
     FlexGridSizer10->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -218,28 +218,28 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     FlexGridSizer8->AddGrowableCol(0);
     FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
     Choice_Out_Transition_Type = new BulkEditChoice(Panel2, ID_CHOICE_Out_Transition_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Out_Transition_Type"));
-    Choice_Out_Transition_Type->SetSelection( Choice_Out_Transition_Type->Append(_("Fade")) );
-    Choice_Out_Transition_Type->Append(_("Wipe"));
-    Choice_Out_Transition_Type->Append(_("Clock"));
-    Choice_Out_Transition_Type->Append(_("From Middle"));
-    Choice_Out_Transition_Type->Append(_("Square Explode"));
-    Choice_Out_Transition_Type->Append(_("Circle Explode"));
-    Choice_Out_Transition_Type->Append(_("Blinds"));
     Choice_Out_Transition_Type->Append(_("Blend"));
-    Choice_Out_Transition_Type->Append(_("Slide Checks"));
-    Choice_Out_Transition_Type->Append(_("Slide Bars"));
-    Choice_Out_Transition_Type->Append(_("Fold"));
-    Choice_Out_Transition_Type->Append(_("Dissolve"));
-    Choice_Out_Transition_Type->Append(_("Circular Swirl"));
-    Choice_Out_Transition_Type->Append(_("Bow Tie"));
-    Choice_Out_Transition_Type->Append(_("Zoom"));
-    Choice_Out_Transition_Type->Append(_("Doorway"));
+    Choice_Out_Transition_Type->Append(_("Blinds"));
     Choice_Out_Transition_Type->Append(_("Blobs"));
+    Choice_Out_Transition_Type->Append(_("Bow Tie"));
+    Choice_Out_Transition_Type->Append(_("Circle Explode"));
+    Choice_Out_Transition_Type->Append(_("Circles"));
+    Choice_Out_Transition_Type->Append(_("Circular Swirl"));
+    Choice_Out_Transition_Type->Append(_("Clock"));
+    Choice_Out_Transition_Type->Append(_("Dissolve"));
+    Choice_Out_Transition_Type->Append(_("Doorway"));
+    Choice_Out_Transition_Type->SetSelection(Choice_Out_Transition_Type->Append(_("Fade")));
+    Choice_Out_Transition_Type->Append(_("Fold"));
+    Choice_Out_Transition_Type->Append(_("From Middle"));
     Choice_Out_Transition_Type->Append(_("Pinwheel"));
+    Choice_Out_Transition_Type->Append(_("Shatter"));
+    Choice_Out_Transition_Type->Append(_("Slide Bars"));
+    Choice_Out_Transition_Type->Append(_("Slide Checks"));
+    Choice_Out_Transition_Type->Append(_("Square Explode"));
     Choice_Out_Transition_Type->Append(_("Star"));
     Choice_Out_Transition_Type->Append(_("Swap"));
-    Choice_Out_Transition_Type->Append(_("Shatter"));
-    Choice_Out_Transition_Type->Append(_("Circles"));
+    Choice_Out_Transition_Type->Append(_("Wipe"));
+    Choice_Out_Transition_Type->Append(_("Zoom"));
     FlexGridSizer12->Add(Choice_Out_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText4 = new wxStaticText(Panel2, ID_STATICTEXT_Fadeout, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fadeout"));
     FlexGridSizer12->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -327,59 +327,59 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     BitmapButton_Out_Transition_Adjust->SetLimits(OUT_TRANSITION_MIN, OUT_TRANSITION_MAX);
 
     // If i pull this from the map it sorts them alphabetically and I dont think that is what we want
-    Choice_LayerMethod->Append(_("Normal"));
-    Choice_LayerMethod->Append(_("Effect 1"));
-    Choice_LayerMethod->Append(_("Effect 2"));
     Choice_LayerMethod->Append(_("1 is Mask"));
     Choice_LayerMethod->Append(_("2 is Mask"));
-    Choice_LayerMethod->Append(_("1 is Unmask"));
-    Choice_LayerMethod->Append(_("2 is Unmask"));
     Choice_LayerMethod->Append(_("1 is True Unmask"));
     Choice_LayerMethod->Append(_("2 is True Unmask"));
+    Choice_LayerMethod->Append(_("1 is Unmask"));
+    Choice_LayerMethod->Append(_("2 is Unmask"));
     Choice_LayerMethod->Append(_("1 reveals 2"));
     Choice_LayerMethod->Append(_("2 reveals 1"));
-    Choice_LayerMethod->Append(_("Shadow 1 on 2"));
-    Choice_LayerMethod->Append(_("Shadow 2 on 1"));
-    Choice_LayerMethod->Append(_("Layered"));
+    Choice_LayerMethod->Append(_("Additive"));
     Choice_LayerMethod->Append(_("Average"));
     Choice_LayerMethod->Append(_("Bottom-Top"));
-    Choice_LayerMethod->Append(_("Left-Right"));
+    Choice_LayerMethod->Append(_("Brightness"));
+    Choice_LayerMethod->Append(_("Effect 1"));
+    Choice_LayerMethod->Append(_("Effect 2"));
     Choice_LayerMethod->Append(_("Highlight"));
     Choice_LayerMethod->Append(_("Highlight Vibrant"));
-    Choice_LayerMethod->Append(_("Additive"));
-    Choice_LayerMethod->Append(_("Subtractive"));
-    Choice_LayerMethod->Append(_("Brightness"));
+    Choice_LayerMethod->Append(_("Layered"));
+    Choice_LayerMethod->Append(_("Left-Right"));
     Choice_LayerMethod->Append(_("Max"));
     Choice_LayerMethod->Append(_("Min"));
+    Choice_LayerMethod->Append(_("Normal"));
+    Choice_LayerMethod->Append(_("Shadow 1 on 2"));
+    Choice_LayerMethod->Append(_("Shadow 2 on 1"));
+    Choice_LayerMethod->Append(_("Subtractive"));
 
     Choice_LayerMethod->SetStringSelection("Normal");
 
     Choice_LayerMethod->SetToolTip(_("Layering defines how Effect 1 and Effect 2 will be mixed together.\nHere are the Choices\n"
-                                     "* Normal: This is the same as 1 reveals 2.\n"
-                                     "* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. \n"
-                                     "* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.\n"
                                      "* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.\n"
                                      "* 2 is Mask: (Shadow) Effect 2 will cast a shadow onto Effect 1 for every Effect 2 pixel that has a non-black value.\n"
-                                     "* 1 is Unmask: Unmask like but colours are revealed with no fade. Black becomes white.\n"
-                                     "* 2 is Unmask: Unmask like but colours are revealed with no fade. Black becomes white.\n"
                                      "* 1 is True Unmask: (Mask) Only allow Effect 2 to show through when Effect 1 has a non-black pixel.\n"
                                      "* 2 is True Unmask: (Mask) Only allow Effect 1 to show through when Effect 2 has a non-black pixel.\n"
-                                     "* Shadow 1 on 2: Take brightness and Saturation from 1, use hue from 2\n"
-                                     "* Shadow 2 on 1: Take brightness and Saturation from 2, use hue from 1\n"
-                                     "* 1 reveals 2: (Superimpose) Effect 1 reveals Effect 2\n"
-                                     "* 2 reveals 1: (Superimpose) Effect 2 reveals Effect 1\n"
-                                     "* Layered: Effect 1 only shows in black regions of Effect 2.\n"
+                                     "* 1 is Unmask: Unmask like but colours are revealed with no fade. Black becomes white.\n"
+                                     "* 2 is Unmask: Unmask like but colours are revealed with no fade. Black becomes white.\n"
+                                     "* 1 Reveals 2: (Superimpose) Effect 1 reveals Effect 2\n"
+                                     "* 2 Reveals 1: (Superimpose) Effect 2 reveals Effect 1\n"
+                                     "* Additive - Take value of Effect 1 and Add it to Value from Effect 2.\n"
                                      "* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum\n"
                                      "* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a split screen display\n"
-                                     "* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model.\n"
+                                     "* Brightness - Multiply each colour channel value of both layers and divide by 255.\n"
+                                     "* Canvas - Blend the selected layers into this layer\n"
+                                     "* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. \n"
+                                     "* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.\n"
                                      "* Highlight - Creates highlights by showcasing Effect 1's color where available, while using Effect 2's color where Effect 1 lacks color\n"
                                      "* Highlight Vibrant - Intensifies Effect 2's color where Effect 1 has content, without affectinng black or dark areas\n"
-                                     "* Additive - Take value of Effect 1 and Add it to Value from Effect 2.\n"
-                                     "* Subtractive - Take value of Effect 1 and Subtract it from the Value from Effect 2.\n"
-                                     "* Brightness - Multiply each colour channel value of both layers and divide by 255.\n"
+                                     "* Layered: Effect 1 only shows in black regions of Effect 2.\n"
+                                     "* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model.\n"
                                      "* Max - Take the maximum value for each channel from both effects\n"
                                      "* Min - Take the minimum value for each channel from both effects\n"
-                                     "* Canvas - Blend the selected layers into this layer"));
+                                     "* Normal: This is the same as 1 reveals 2.\n"
+                                     "* Shadow 1 on 2: Take brightness and Saturation from 1, use hue from 2\n"
+                                     "* Shadow 2 on 1: Take brightness and Saturation from 2, use hue from 1\n"
+                                     "* Subtractive - Take value of Effect 1 and Subtract it from the Value from Effect 2."));
 
     SetName("Timing");
 
