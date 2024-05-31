@@ -34,7 +34,6 @@
 #include <wx/menu.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
-#include <wx/splitter.h>
 #include <wx/stattext.h>
 #include <wx/timer.h>
 //*)
@@ -718,8 +717,7 @@ public:
     static const long ID_BUTTON12;
     static const long ID_BUTTON8;
     static const long ID_STATICTEXT1;
-    static const long ID_PANEL6;
-    static const long ID_SPLITTERWINDOW1;
+    static const long ID_PANEL3;
     static const long ID_PANEL_SETUP;
     static const long ID_PANEL_PREVIEW;
     static const long XLIGHTS_SEQUENCER_TAB;
@@ -1007,7 +1005,6 @@ public:
     wxPanel* PanelPreview;
     wxPanel* PanelSequencer;
     wxPanel* PanelSetup;
-    wxSplitterWindow* SplitterWindowControllers;
     wxStaticBoxSizer* StaticBoxSizer1;
     wxStaticText* FileNameText;
     wxStaticText* ShowDirectoryLabel;

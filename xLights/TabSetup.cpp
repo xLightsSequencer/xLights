@@ -1561,13 +1561,6 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         FlexGridSizerSetupControllerButtons->Add(LedPing, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
         LedPing->Show();
 
-        if (StaticTextDummy != nullptr) {
-            // I remove the static text as this was the only way I seem to be able to make the LED visible
-            FlexGridSizerSetupControllerButtons->Detach(StaticTextDummy);
-            Panel5->RemoveChild(StaticTextDummy);
-            delete StaticTextDummy;
-            StaticTextDummy = nullptr;
-        }
     }
 
     // try to ensure what should be visible is visible in roughly the same part of the screen
@@ -1581,7 +1574,8 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
     }
 
     Panel2->SetMinSize(wxSize(400, -1));
-    Panel5->SetMinSize(wxSize(600, -1));
+    Panel5->SetMinSize(wxSize(380, -1));
+    Panel5->SetMaxSize(wxSize(380, -1));
     List_Controllers->Thaw();
 
     Panel2->Layout();
