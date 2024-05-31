@@ -726,7 +726,7 @@
 										<label>Controllers</label>
 										<object class="sizeritem">
 											<object class="wxFlexGridSizer" variable="FlexGridSizerNetworks" member="no">
-												<cols>3</cols>
+												<cols>4</cols>
 												<growablecols>2</growablecols>
 												<growablerows>0</growablerows>
 												<object class="sizeritem">
@@ -811,110 +811,109 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindowControllers" member="yes">
-														<sashpos>1000</sashpos>
-														<sashgravity>0.800000</sashgravity>
-														<orientation>vertical</orientation>
-														<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
-														<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
-															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllers" member="yes">
-																<cols>1</cols>
-																<growablecols>0</growablecols>
-																<growablerows>0</growablerows>
-															</object>
+													<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
+														<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllers" member="yes">
+															<cols>1</cols>
+															<growablecols>0</growablecols>
+															<growablerows>0</growablerows>
 														</object>
-														<object class="wxPanel" name="ID_PANEL6" variable="Panel5" member="yes">
-															<minsize>20,-1</minsize>
-															<style>wxTAB_TRAVERSAL|wxALWAYS_SHOW_SB</style>
-															<object class="wxFlexGridSizer" variable="FlexGridSizerSetupRight" member="yes">
-																<cols>1</cols>
-																<growablecols>0</growablecols>
-																<growablerows>0</growablerows>
-																<object class="sizeritem">
-																	<object class="wxFlexGridSizer" variable="FlexGridSizerSetupProperties" member="yes">
-																		<cols>1</cols>
-																		<growablecols>0</growablecols>
-																		<growablerows>0</growablerows>
-																	</object>
-																	<flag>wxALL|wxEXPAND</flag>
-																	<border>5</border>
-																	<option>1</option>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>2</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxPanel" name="ID_PANEL3" variable="Panel5" member="yes">
+														<minsize>200,-1</minsize>
+														<maxsize>200,-1</maxsize>
+														<style>wxTAB_TRAVERSAL|wxALWAYS_SHOW_SB|wxFULL_REPAINT_ON_RESIZE</style>
+														<object class="wxFlexGridSizer" variable="FlexGridSizerSetupRight" member="yes">
+															<cols>1</cols>
+															<growablecols>0</growablecols>
+															<growablerows>0</growablerows>
+															<object class="sizeritem">
+																<object class="wxFlexGridSizer" variable="FlexGridSizerSetupProperties" member="yes">
+																	<cols>1</cols>
+																	<growablecols>0</growablecols>
+																	<growablerows>0</growablerows>
 																</object>
-																<object class="sizeritem">
-																	<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllerButtons" member="yes">
-																		<rows>1</rows>
-																		<object class="sizeritem">
-																			<object class="wxButton" name="ID_BUTTON1" variable="ButtonVisualise" member="yes">
-																				<label>Visualise ...</label>
-																				<handler function="OnButtonVisualiseClick" entry="EVT_BUTTON" />
-																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																			<border>5</border>
-																			<option>1</option>
+																<flag>wxALL|wxEXPAND</flag>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxFlexGridSizer" variable="FlexGridSizerSetupControllerButtons" member="yes">
+																	<rows>2</rows>
+																	<object class="sizeritem">
+																		<object class="wxButton" name="ID_BUTTON1" variable="ButtonVisualise" member="yes">
+																			<label>Visualise ...</label>
+																			<handler function="OnButtonVisualiseClick" entry="EVT_BUTTON" />
 																		</object>
-																		<object class="sizeritem">
-																			<object class="wxButton" name="ID_BUTTON2" variable="ButtonUploadInput" member="yes">
-																				<label>Upload Input</label>
-																				<handler function="OnButtonUploadInputClick" entry="EVT_BUTTON" />
-																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																			<border>5</border>
-																			<option>1</option>
-																		</object>
-																		<object class="sizeritem">
-																			<object class="wxButton" name="ID_BUTTON4" variable="ButtonUploadOutput" member="yes">
-																				<label>Upload Output</label>
-																				<handler function="OnButtonUploadOutputClick" entry="EVT_BUTTON" />
-																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																			<border>5</border>
-																			<option>1</option>
-																		</object>
-																		<object class="sizeritem">
-																			<object class="wxButton" name="ID_BUTTON7" variable="ButtonOpen" member="yes">
-																				<label>Open</label>
-																				<handler function="OnButtonOpenClick" entry="EVT_BUTTON" />
-																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																			<border>5</border>
-																			<option>1</option>
-																		</object>
-																		<object class="sizeritem">
-																			<object class="wxButton" name="ID_BUTTON12" variable="Button_OpenProxy" member="yes">
-																				<label>Open Proxy</label>
-																				<handler function="OnButton_OpenProxyClick" entry="EVT_BUTTON" />
-																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																			<border>5</border>
-																			<option>1</option>
-																		</object>
-																		<object class="sizeritem">
-																			<object class="wxButton" name="ID_BUTTON8" variable="ButtonControllerDelete" member="yes">
-																				<label>Delete</label>
-																				<handler function="OnButtonControllerDeleteClick" entry="EVT_BUTTON" />
-																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																			<border>5</border>
-																			<option>1</option>
-																		</object>
-																		<object class="sizeritem">
-																			<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticTextDummy" member="yes">
-																				<label>Label</label>
-																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																			<border>5</border>
-																			<option>1</option>
-																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
 																	</object>
-																	<flag>wxALL|wxEXPAND</flag>
-																	<border>5</border>
-																	<option>1</option>
+																	<object class="sizeritem">
+																		<object class="wxButton" name="ID_BUTTON2" variable="ButtonUploadInput" member="yes">
+																			<label>Upload Input</label>
+																			<handler function="OnButtonUploadInputClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxButton" name="ID_BUTTON7" variable="ButtonOpen" member="yes">
+																			<label>Open</label>
+																			<handler function="OnButtonOpenClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticTextDummy" member="yes">
+																			<label></label>
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxButton" name="ID_BUTTON8" variable="ButtonControllerDelete" member="yes">
+																			<label>Delete</label>
+																			<handler function="OnButtonControllerDeleteClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxButton" name="ID_BUTTON4" variable="ButtonUploadOutput" member="yes">
+																			<label>Upload Output</label>
+																			<handler function="OnButtonUploadOutputClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxButton" name="ID_BUTTON12" variable="Button_OpenProxy" member="yes">
+																			<label>Open Proxy</label>
+																			<handler function="OnButton_OpenProxyClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
 																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+																<border>5</border>
+																<option>1</option>
 															</object>
 														</object>
 													</object>
 													<flag>wxALL|wxEXPAND</flag>
-													<border>5</border>
+													<border>2</border>
 													<option>1</option>
 												</object>
 											</object>
