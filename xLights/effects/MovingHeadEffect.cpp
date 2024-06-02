@@ -99,37 +99,11 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
 void MovingHeadEffect::RenderMovingHeads(MovingHeadPanel *p, const Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     auto models = GetModels(model_info);
-    bool single_model = models.size() == 1;
-
-    // if single model make sure the effect setting is on correct head
-    if (single_model) {
-        auto mh = dynamic_cast<const DmxMovingHeadComm*>(model_info);
-        int fixture = mh->GetFixtureVal();
-        wxString mh_fix_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", fixture);
-        std::string mh_settings = SettingsMap[mh_fix_textbox];
-        if( mh_settings == xlEMPTY_STRING ) {
-            // need to search for settings
-            for( int i = 1; i <= 8; ++i ) {
-                if (i == fixture) {
-                    continue;
-                }
-                wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", i);
-                mh_settings = SettingsMap[mh_textbox];
-                if (mh_settings != xlEMPTY_STRING) {
-                    break;
-                }
-            }
-        }
+    for( int i = 1; i <= 8; ++i ) {
+        wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", i);
+        std::string mh_settings = SettingsMap[mh_textbox];
         if( mh_settings != xlEMPTY_STRING ) {
-            RenderMovingHead(mh_settings, fixture, model_info, buffer);
-        }
-    } else {
-        for( int i = 1; i <= 8; ++i ) {
-            wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", i);
-            std::string mh_settings = SettingsMap[mh_textbox];
-            if( mh_settings != xlEMPTY_STRING ) {
-                RenderMovingHead(mh_settings, i, model_info, buffer);
-            }
+            RenderMovingHead(mh_settings, i, model_info, buffer);
         }
     }
 }
