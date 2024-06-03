@@ -326,60 +326,61 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     BitmapButton_In_Transition_Adjust->SetLimits(IN_TRANSITION_MIN, IN_TRANSITION_MAX);
     BitmapButton_Out_Transition_Adjust->SetLimits(OUT_TRANSITION_MIN, OUT_TRANSITION_MAX);
 
-    // If i pull this from the map it sorts them alphabetically and I dont think that is what we want
-    Choice_LayerMethod->Append(_("1 is Mask"));
-    Choice_LayerMethod->Append(_("2 is Mask"));
-    Choice_LayerMethod->Append(_("1 is True Unmask"));
-    Choice_LayerMethod->Append(_("2 is True Unmask"));
-    Choice_LayerMethod->Append(_("1 is Unmask"));
-    Choice_LayerMethod->Append(_("2 is Unmask"));
-    Choice_LayerMethod->Append(_("1 reveals 2"));
-    Choice_LayerMethod->Append(_("2 reveals 1"));
-    Choice_LayerMethod->Append(_("Additive"));
-    Choice_LayerMethod->Append(_("Average"));
-    Choice_LayerMethod->Append(_("Bottom-Top"));
-    Choice_LayerMethod->Append(_("Brightness"));
+     // If i pull this from the map it sorts them alphabetically and I dont think that is what we want
+    Choice_LayerMethod->Append(_("Normal"));
     Choice_LayerMethod->Append(_("Effect 1"));
     Choice_LayerMethod->Append(_("Effect 2"));
-    Choice_LayerMethod->Append(_("Highlight"));
-    Choice_LayerMethod->Append(_("Highlight Vibrant"));
-    Choice_LayerMethod->Append(_("Layered"));
-    Choice_LayerMethod->Append(_("Left-Right"));
-    Choice_LayerMethod->Append(_("Max"));
-    Choice_LayerMethod->Append(_("Min"));
-    Choice_LayerMethod->Append(_("Normal"));
+    Choice_LayerMethod->Append(_("1 is Mask"));
+    Choice_LayerMethod->Append(_("2 is Mask"));
+    Choice_LayerMethod->Append(_("1 is Unmask"));
+    Choice_LayerMethod->Append(_("2 is Unmask"));
+    Choice_LayerMethod->Append(_("1 is True Unmask"));
+    Choice_LayerMethod->Append(_("2 is True Unmask"));
+    Choice_LayerMethod->Append(_("1 reveals 2"));
+    Choice_LayerMethod->Append(_("2 reveals 1"));
     Choice_LayerMethod->Append(_("Shadow 1 on 2"));
     Choice_LayerMethod->Append(_("Shadow 2 on 1"));
+    Choice_LayerMethod->Append(_("Layered"));
+    Choice_LayerMethod->Append(_("Average"));
+    Choice_LayerMethod->Append(_("Bottom-Top"));
+    Choice_LayerMethod->Append(_("Left-Right"));
+    Choice_LayerMethod->Append(_("Highlight"));
+    Choice_LayerMethod->Append(_("Highlight Vibrant"));
+    Choice_LayerMethod->Append(_("Additive"));
     Choice_LayerMethod->Append(_("Subtractive"));
+    Choice_LayerMethod->Append(_("Brightness"));
+    Choice_LayerMethod->Append(_("Max"));
+    Choice_LayerMethod->Append(_("Min"));
 
     Choice_LayerMethod->SetStringSelection("Normal");
 
     Choice_LayerMethod->SetToolTip(_("Layering defines how Effect 1 and Effect 2 will be mixed together.\nHere are the Choices\n"
-                                     "* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.\n"
-                                     "* 2 is Mask: (Shadow) Effect 2 will cast a shadow onto Effect 1 for every Effect 2 pixel that has a non-black value.\n"
-                                     "* 1 is True Unmask: (Mask) Only allow Effect 2 to show through when Effect 1 has a non-black pixel.\n"
-                                     "* 2 is True Unmask: (Mask) Only allow Effect 1 to show through when Effect 2 has a non-black pixel.\n"
-                                     "* 1 is Unmask: Unmask like but colours are revealed with no fade. Black becomes white.\n"
-                                     "* 2 is Unmask: Unmask like but colours are revealed with no fade. Black becomes white.\n"
-                                     "* 1 Reveals 2: (Superimpose) Effect 1 reveals Effect 2\n"
-                                     "* 2 Reveals 1: (Superimpose) Effect 2 reveals Effect 1\n"
-                                     "* Additive - Take value of Effect 1 and Add it to Value from Effect 2.\n"
-                                     "* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum\n"
-                                     "* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a split screen display\n"
-                                     "* Brightness - Multiply each colour channel value of both layers and divide by 255.\n"
-                                     "* Canvas - Blend the selected layers into this layer\n"
+                                     "* Normal: This is the same as 1 reveals 2.\n"
                                      "* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. \n"
                                      "* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.\n"
-                                     "* Highlight - Creates highlights by showcasing Effect 1's color where available, while using Effect 2's color where Effect 1 lacks color\n"
-                                     "* Highlight Vibrant - Intensifies Effect 2's color where Effect 1 has content, without affectinng black or dark areas\n"
-                                     "* Layered: Effect 1 only shows in black regions of Effect 2.\n"
-                                     "* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model.\n"
-                                     "* Max - Take the maximum value for each channel from both effects\n"
-                                     "* Min - Take the minimum value for each channel from both effects\n"
-                                     "* Normal: This is the same as 1 reveals 2.\n"
+                                     "* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.\n"
+                                     "* 2 is Mask: (Shadow) Effect 2 will cast a shadow onto Effect 1 for every Effect 2 pixel that has a non-black value.\n"
+                                     "* 1 is Unmask: Unmask like but colours are revealed with no fade. Black becomes white.\n"
+                                     "* 2 is Unmask: Unmask like but colours are revealed with no fade. Black becomes white.\n"
+                                     "* 1 is True Unmask: (Mask) Only allow Effect 2 to show through when Effect 1 has a non-black pixel.\n"
+                                     "* 2 is True Unmask: (Mask) Only allow Effect 1 to show through when Effect 2 has a non-black pixel.\n"
                                      "* Shadow 1 on 2: Take brightness and Saturation from 1, use hue from 2\n"
                                      "* Shadow 2 on 1: Take brightness and Saturation from 2, use hue from 1\n"
-                                     "* Subtractive - Take value of Effect 1 and Subtract it from the Value from Effect 2."));
+                                     "* 1 reveals 2: (Superimpose) Effect 1 reveals Effect 2\n"
+                                     "* 2 reveals 1: (Superimpose) Effect 2 reveals Effect 1\n"
+                                     "* Layered: Effect 1 only shows in black regions of Effect 2.\n"
+                                     "* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum\n"
+                                     "* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a split screen display\n"
+                                     "* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model.\n"
+                                     "* Highlight - Creates highlights by showcasing Effect 1's color where available, while using Effect 2's color where Effect 1 lacks color\n"
+                                     "* Highlight Vibrant - Intensifies Effect 2's color where Effect 1 has content, without affectinng black or dark areas\n"
+                                     "* Additive - Take value of Effect 1 and Add it to Value from Effect 2.\n"
+                                     "* Subtractive - Take value of Effect 1 and Subtract it from the Value from Effect 2.\n"
+                                     "* Brightness - Multiply each colour channel value of both layers and divide by 255.\n"
+                                     "* Max - Take the maximum value for each channel from both effects\n"
+                                     "* Min - Take the minimum value for each channel from both effects\n"
+                                     "* Canvas - Blend the selected layers into this layer"));
+
 
     SetName("Timing");
 
