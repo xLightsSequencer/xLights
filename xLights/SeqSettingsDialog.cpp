@@ -39,18 +39,6 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
-extern "C" {
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-#include <libavfilter/avfilter.h>
-#include <libavutil/avutil.h>
-#include <libavutil/opt.h>
-#include <libavfilter/buffersink.h>
-#include <libavfilter/buffersrc.h>
-}
-#include <iostream>
-#include <filesystem>
-
 //(*IdInit(SeqSettingsDialog)
 const long SeqSettingsDialog::ID_STATICTEXT_File = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Filename = wxNewId();
