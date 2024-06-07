@@ -624,6 +624,7 @@ public:
     void OnCheckBox_AutoUpdateBaseClick(wxCommandEvent& event);
     void OnButton_UpdateBaseClick(wxCommandEvent& event);
     void ShowHideSelectEffectsWindow(wxCommandEvent& event);
+    bool OnButton_OpenBaseShowDirClick(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -697,6 +698,7 @@ public:
     static const long ID_STATICTEXT4;
     static const long ID_STATICTEXT2;
     static const long ID_BUTTON14;
+    static const long ID_BUTTON17;
     static const long ID_BUTTON15;
     static const long ID_STATICTEXT3;
     static const long ID_CHECKBOX1;
@@ -875,12 +877,14 @@ public:
     wxButton* Button_ChangeTemporarilyAgain;
     wxButton* Button_CheckShowFolderTemporarily;
     wxButton* Button_ClearBaseShowDir;
+    wxButton* Button_OpenBaseShowDir;
     wxButton* Button_OpenProxy;
     wxButton* Button_UpdateBase;
     wxCheckBox* CheckBox_AutoUpdateBase;
     wxChoice* ChoiceParm1;
     wxChoice* ChoiceParm2;
     wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizerSetup;
     wxFlexGridSizer* FlexGridSizerSetupControllerButtons;
     wxFlexGridSizer* FlexGridSizerSetupControllers;
