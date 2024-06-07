@@ -39,6 +39,18 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
+extern "C" {
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libavfilter/avfilter.h>
+#include <libavutil/avutil.h>
+#include <libavutil/opt.h>
+#include <libavfilter/buffersink.h>
+#include <libavfilter/buffersrc.h>
+}
+#include <iostream>
+#include <filesystem>
+
 //(*IdInit(SeqSettingsDialog)
 const long SeqSettingsDialog::ID_STATICTEXT_File = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Filename = wxNewId();
@@ -51,9 +63,14 @@ const long SeqSettingsDialog::ID_CHOICE_Xml_Seq_Type = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Xml_MediaFile = wxNewId();
 const long SeqSettingsDialog::ID_TEXTCTRL_Xml_Media_File = wxNewId();
 const long SeqSettingsDialog::ID_BITMAPBUTTON_Xml_Media_File = wxNewId();
+const long SeqSettingsDialog::ID_STATICTEXT2 = wxNewId();
+const long SeqSettingsDialog::ID_STATICTEXT3 = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT1 = wxNewId();
 const long SeqSettingsDialog::ID_TEXTCTRL1 = wxNewId();
+const long SeqSettingsDialog::ID_TEXTCTRL2 = wxNewId();
+const long SeqSettingsDialog::ID_TEXTCTRL3 = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON1 = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_AddMiliseconds = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Xml_Total_Length = wxNewId();
 const long SeqSettingsDialog::ID_TEXTCTRL_Xml_Seq_Duration = wxNewId();
 const long SeqSettingsDialog::ID_CHECKBOX_Overwrite_Tags = wxNewId();
@@ -184,6 +201,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     wxFlexGridSizer* FlexGridSizer13;
     wxFlexGridSizer* FlexGridSizer14;
     wxFlexGridSizer* FlexGridSizer15;
+    wxFlexGridSizer* FlexGridSizer16;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
@@ -230,7 +248,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Choice_Xml_Seq_Type->Append(_("Animation"));
     FlexGridSizer5->Add(Choice_Xml_Seq_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer10 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer10 = new wxFlexGridSizer(0, 5, 0, 0);
     FlexGridSizer10->AddGrowableCol(1);
     StaticText_Xml_MediaFile = new wxStaticText(PanelInfo, ID_STATICTEXT_Xml_MediaFile, _("Media:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_MediaFile"));
     FlexGridSizer10->Add(StaticText_Xml_MediaFile, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -239,15 +257,31 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     BitmapButton_Xml_Media_File = new wxBitmapButton(PanelInfo, ID_BITMAPBUTTON_Xml_Media_File, wxArtProvider::GetBitmapBundle("wxART_CDROM",wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_Xml_Media_File"));
     BitmapButton_Xml_Media_File->Disable();
     FlexGridSizer10->Add(BitmapButton_Xml_Media_File, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText3 = new wxStaticText(PanelInfo, ID_STATICTEXT2, _("Pre"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    FlexGridSizer10->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText4 = new wxStaticText(PanelInfo, ID_STATICTEXT3, _("Post"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+    FlexGridSizer10->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText1 = new wxStaticText(PanelInfo, ID_STATICTEXT1, _("Hash:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer10->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Hash = new wxTextCtrl(PanelInfo, ID_TEXTCTRL1, _("N/A"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL1"));
     FlexGridSizer10->Add(TextCtrl_Hash, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Premiliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL2, _("0"), wxDefaultPosition, wxSize(50,25), 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+    TextCtrl_Premiliseconds->SetMaxLength(5);
+    TextCtrl_Premiliseconds->SetToolTip(_("Seconds to add to the begining of the sequence"));
+    FlexGridSizer10->Add(TextCtrl_Premiliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Postmiliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL3, _("0"), wxDefaultPosition, wxSize(50,25), 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
+    TextCtrl_Postmiliseconds->SetMaxLength(5);
+    TextCtrl_Postmiliseconds->SetToolTip(_("Seconds to add to the ending of the sequence"));
+    FlexGridSizer10->Add(TextCtrl_Postmiliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Download = new wxButton(PanelInfo, ID_BUTTON1, _("Download Sequence and Lyrics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer10->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer16 = new wxFlexGridSizer(0, 3, 0, 0);
+    Button_AddMiliseconds = new wxButton(PanelInfo, ID_BUTTON_AddMiliseconds, _("Add Miliseconds"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_AddMiliseconds"));
+    FlexGridSizer16->Add(Button_AddMiliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer10->Add(FlexGridSizer16, 1, wxLEFT, 5);
     FlexGridSizer4->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer6 = new wxFlexGridSizer(0, 4, 0, 0);
     StaticText_Xml_Total_Length = new wxStaticText(PanelInfo, ID_STATICTEXT_Xml_Total_Length, _("Sequence Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Total_Length"));
@@ -447,6 +481,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Connect(ID_BUTTON_Reimport,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_ReimportClick);
     Connect(ID_BUTTON_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CancelClick);
     Connect(ID_BUTTON_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
+    Connect(ID_BUTTON_AddMiliseconds, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_AddMilisecondsClick);
     //*)
 
     TextCtrl_Xml_Seq_Duration->Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationLoseFocus, nullptr, this);
@@ -1837,4 +1872,26 @@ void SeqSettingsDialog::OnButton_MusicOpenClick(wxCommandEvent& event)
         link = "http://" + link;
     }
     ::wxLaunchDefaultBrowser(link);
+}
+
+void SeqSettingsDialog::OnButton_AddMilisecondsClick(wxCommandEvent& event) {
+    if (int rc = std::system("ffmpeg -version") == 0) {
+        const std::string inputFile = TextCtrl_Xml_Media_File->GetValue();
+        const std::string pre = TextCtrl_Premiliseconds->GetValue();
+        const std::string post = TextCtrl_Postmiliseconds->GetValue();
+
+        if ((pre != "") && (post != "")) {
+            std::string outputFile = "";
+            size_t lastDot = inputFile.find_last_of('.');
+            // If there is an extension, insert "silence" before the extension, else after
+            if (lastDot != std::string::npos) outputFile = inputFile.substr(0, lastDot) + "_" + pre + "_" + post + inputFile.substr(lastDot);
+            else outputFile = inputFile + "_" + pre + "_" + post;
+            std::string command = "ffmpeg -i \"" + inputFile + "\"" +
+                                  (pre != "0" ? " -f lavfi -t " + std::to_string((std::stof(pre) / 1000)) + " -i anullsrc=r=44100:cl=stereo " : "") +
+                                  (post != "0" ? " -f lavfi -t " + std::to_string((std::stof(post) / 1000)) + " -i anullsrc=r=44100:cl=stereo " : "") +
+                                  "-filter_complex \"" + (pre != "0" && post == "0" ? "[1][0]concat=n=2" : (pre == "0" && post != "0" ? "[0][1]concat=n=2" : "[1][0][2]concat=n=3")) + ":v=0:a=1[out]\" -map \"[out]\" " +
+                                  "\"" + outputFile + "\" -y";
+            system(command.c_str());
+        } else wxMessageBox("Invalid Pre/Post value(s). Neither can be blank, 0 is okay.");
+    } else wxMessageBox("Please install FFMPEG in order to adjust audio files." + std::to_string(rc));
 }

@@ -46,6 +46,7 @@ class SeqSettingsDialog: public wxDialog
 		//(*Declarations(SeqSettingsDialog)
 		wxBitmapButton* BitmapButton_ModifyTiming;
 		wxBitmapButton* BitmapButton_Xml_Media_File;
+		wxButton* Button_AddMiliseconds;
 		wxButton* Button_Cancel;
 		wxButton* Button_Close;
 		wxButton* Button_Download;
@@ -69,6 +70,8 @@ class SeqSettingsDialog: public wxDialog
 		wxPanel* PanelTimings;
 		wxPanel* Panel_DataLayers;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
 		wxStaticText* StaticText_File;
 		wxStaticText* StaticText_Filename;
 		wxStaticText* StaticText_Info;
@@ -90,6 +93,8 @@ class SeqSettingsDialog: public wxDialog
 		wxStaticText* StaticText_Xml_Total_Length;
 		wxStaticText* StaticText_Xml_Website;
 		wxTextCtrl* TextCtrl_Hash;
+		wxTextCtrl* TextCtrl_Postmiliseconds;
+		wxTextCtrl* TextCtrl_Premiliseconds;
 		wxTextCtrl* TextCtrl_SeqTiming;
 		wxTextCtrl* TextCtrl_Xml_Album;
 		wxTextCtrl* TextCtrl_Xml_Artist;
@@ -141,9 +146,14 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_STATICTEXT_Xml_MediaFile;
 		static const long ID_TEXTCTRL_Xml_Media_File;
 		static const long ID_BITMAPBUTTON_Xml_Media_File;
+		static const long ID_STATICTEXT2;
+		static const long ID_STATICTEXT3;
 		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL1;
+		static const long ID_TEXTCTRL2;
+		static const long ID_TEXTCTRL3;
 		static const long ID_BUTTON1;
+		static const long ID_BUTTON_AddMiliseconds;
 		static const long ID_STATICTEXT_Xml_Total_Length;
 		static const long ID_TEXTCTRL_Xml_Seq_Duration;
 		static const long ID_CHECKBOX_Overwrite_Tags;
@@ -253,6 +263,7 @@ class SeqSettingsDialog: public wxDialog
 		void OnButton_EmailSendClick(wxCommandEvent& event);
 		void OnButton_WebsiteOpenClick(wxCommandEvent& event);
 		void OnButton_MusicOpenClick(wxCommandEvent& event);
+        void OnButton_AddMilisecondsClick(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
