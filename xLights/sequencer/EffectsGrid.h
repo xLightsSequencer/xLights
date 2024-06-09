@@ -202,6 +202,8 @@ public:
     }
 
 protected:
+    bool m_wheel_down = false;
+    int m_previous_mouse_x = 0;
 
 private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
@@ -218,6 +220,8 @@ private:
 	void rightClick(wxMouseEvent& event);
 	void mouseLeftDClick(wxMouseEvent& event);
 	void mouseLeftWindow(wxMouseEvent& event);
+    void mouseMiddleDown(wxMouseEvent& event);
+    void mouseMiddleUp(wxMouseEvent& event);
     void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
 	void keyPressed(wxKeyEvent& event);
 	void keyReleased(wxKeyEvent& event);
