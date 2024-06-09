@@ -213,18 +213,18 @@ private:
     void CreateEffectForFile(int x, int y, const std::string& effectName, const std::string& filename);
     void render(wxPaintEvent& evt);
     void magnify(wxMouseEvent& event);
-	void mouseMoved(wxMouseEvent& event);
-	void mouseDown(wxMouseEvent& event);
-	void mouseWheelMoved(wxMouseEvent& event);
-	void mouseReleased(wxMouseEvent& event);
-	void rightClick(wxMouseEvent& event);
-	void mouseLeftDClick(wxMouseEvent& event);
-	void mouseLeftWindow(wxMouseEvent& event);
+    void mouseMoved(wxMouseEvent& event);
+    void mouseDown(wxMouseEvent& event);
+    void mouseWheelMoved(wxMouseEvent& event);
+    void mouseReleased(wxMouseEvent& event);
+    void rightClick(wxMouseEvent& event);
+    void mouseLeftDClick(wxMouseEvent& event);
+    void mouseLeftWindow(wxMouseEvent& event);
     void mouseMiddleDown(wxMouseEvent& event);
     void mouseMiddleUp(wxMouseEvent& event);
     void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
-	void keyPressed(wxKeyEvent& event);
-	void keyReleased(wxKeyEvent& event);
+    void keyPressed(wxKeyEvent& event);
+    void keyReleased(wxKeyEvent& event);
 
     void CreateEffectIconTextures(xlGraphicsContext *ctx);
     void SetRCToolTip();
