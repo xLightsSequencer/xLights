@@ -159,28 +159,28 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     FlexGridSizer6->AddGrowableCol(0);
     FlexGridSizer10 = new wxFlexGridSizer(0, 4, 0, 0);
     Choice_In_Transition_Type = new BulkEditChoice(Panel1, ID_CHOICE_In_Transition_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_In_Transition_Type"));
-    Choice_In_Transition_Type->SetSelection( Choice_In_Transition_Type->Append(_("Fade")) );
-    Choice_In_Transition_Type->Append(_("Wipe"));
-    Choice_In_Transition_Type->Append(_("Clock"));
-    Choice_In_Transition_Type->Append(_("From Middle"));
-    Choice_In_Transition_Type->Append(_("Square Explode"));
-    Choice_In_Transition_Type->Append(_("Circle Explode"));
-    Choice_In_Transition_Type->Append(_("Blinds"));
     Choice_In_Transition_Type->Append(_("Blend"));
-    Choice_In_Transition_Type->Append(_("Slide Checks"));
-    Choice_In_Transition_Type->Append(_("Slide Bars"));
-    Choice_In_Transition_Type->Append(_("Fold"));
-    Choice_In_Transition_Type->Append(_("Dissolve"));
-    Choice_In_Transition_Type->Append(_("Circular Swirl"));
-    Choice_In_Transition_Type->Append(_("Bow Tie"));
-    Choice_In_Transition_Type->Append(_("Zoom"));
-    Choice_In_Transition_Type->Append(_("Doorway"));
+    Choice_In_Transition_Type->Append(_("Blinds"));
     Choice_In_Transition_Type->Append(_("Blobs"));
+    Choice_In_Transition_Type->Append(_("Bow Tie"));
+    Choice_In_Transition_Type->Append(_("Circle Explode"));
+    Choice_In_Transition_Type->Append(_("Circles"));
+    Choice_In_Transition_Type->Append(_("Circular Swirl"));
+    Choice_In_Transition_Type->Append(_("Clock"));
+    Choice_In_Transition_Type->Append(_("Dissolve"));
+    Choice_In_Transition_Type->Append(_("Doorway"));
+    Choice_In_Transition_Type->SetSelection( Choice_In_Transition_Type->Append(_("Fade")) );
+    Choice_In_Transition_Type->Append(_("Fold"));
+    Choice_In_Transition_Type->Append(_("From Middle"));
     Choice_In_Transition_Type->Append(_("Pinwheel"));
+    Choice_In_Transition_Type->Append(_("Shatter"));
+    Choice_In_Transition_Type->Append(_("Slide Bars"));
+    Choice_In_Transition_Type->Append(_("Slide Checks"));
+    Choice_In_Transition_Type->Append(_("Square Explode"));
     Choice_In_Transition_Type->Append(_("Star"));
     Choice_In_Transition_Type->Append(_("Swap"));
-    Choice_In_Transition_Type->Append(_("Shatter"));
-    Choice_In_Transition_Type->Append(_("Circles"));
+    Choice_In_Transition_Type->Append(_("Wipe"));
+    Choice_In_Transition_Type->Append(_("Zoom"));
     FlexGridSizer10->Add(Choice_In_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT_Fadein, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fadein"));
     FlexGridSizer10->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -218,28 +218,28 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     FlexGridSizer8->AddGrowableCol(0);
     FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
     Choice_Out_Transition_Type = new BulkEditChoice(Panel2, ID_CHOICE_Out_Transition_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Out_Transition_Type"));
-    Choice_Out_Transition_Type->SetSelection( Choice_Out_Transition_Type->Append(_("Fade")) );
-    Choice_Out_Transition_Type->Append(_("Wipe"));
-    Choice_Out_Transition_Type->Append(_("Clock"));
-    Choice_Out_Transition_Type->Append(_("From Middle"));
-    Choice_Out_Transition_Type->Append(_("Square Explode"));
-    Choice_Out_Transition_Type->Append(_("Circle Explode"));
-    Choice_Out_Transition_Type->Append(_("Blinds"));
     Choice_Out_Transition_Type->Append(_("Blend"));
-    Choice_Out_Transition_Type->Append(_("Slide Checks"));
-    Choice_Out_Transition_Type->Append(_("Slide Bars"));
-    Choice_Out_Transition_Type->Append(_("Fold"));
-    Choice_Out_Transition_Type->Append(_("Dissolve"));
-    Choice_Out_Transition_Type->Append(_("Circular Swirl"));
-    Choice_Out_Transition_Type->Append(_("Bow Tie"));
-    Choice_Out_Transition_Type->Append(_("Zoom"));
-    Choice_Out_Transition_Type->Append(_("Doorway"));
+    Choice_Out_Transition_Type->Append(_("Blinds"));
     Choice_Out_Transition_Type->Append(_("Blobs"));
+    Choice_Out_Transition_Type->Append(_("Bow Tie"));
+    Choice_Out_Transition_Type->Append(_("Circle Explode"));
+    Choice_Out_Transition_Type->Append(_("Circles"));
+    Choice_Out_Transition_Type->Append(_("Circular Swirl"));
+    Choice_Out_Transition_Type->Append(_("Clock"));
+    Choice_Out_Transition_Type->Append(_("Dissolve"));
+    Choice_Out_Transition_Type->Append(_("Doorway"));
+    Choice_Out_Transition_Type->SetSelection(Choice_Out_Transition_Type->Append(_("Fade")));
+    Choice_Out_Transition_Type->Append(_("Fold"));
+    Choice_Out_Transition_Type->Append(_("From Middle"));
     Choice_Out_Transition_Type->Append(_("Pinwheel"));
+    Choice_Out_Transition_Type->Append(_("Shatter"));
+    Choice_Out_Transition_Type->Append(_("Slide Bars"));
+    Choice_Out_Transition_Type->Append(_("Slide Checks"));
+    Choice_Out_Transition_Type->Append(_("Square Explode"));
     Choice_Out_Transition_Type->Append(_("Star"));
     Choice_Out_Transition_Type->Append(_("Swap"));
-    Choice_Out_Transition_Type->Append(_("Shatter"));
-    Choice_Out_Transition_Type->Append(_("Circles"));
+    Choice_Out_Transition_Type->Append(_("Wipe"));
+    Choice_Out_Transition_Type->Append(_("Zoom"));
     FlexGridSizer12->Add(Choice_Out_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText4 = new wxStaticText(Panel2, ID_STATICTEXT_Fadeout, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fadeout"));
     FlexGridSizer12->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -326,7 +326,7 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     BitmapButton_In_Transition_Adjust->SetLimits(IN_TRANSITION_MIN, IN_TRANSITION_MAX);
     BitmapButton_Out_Transition_Adjust->SetLimits(OUT_TRANSITION_MIN, OUT_TRANSITION_MAX);
 
-    // If i pull this from the map it sorts them alphabetically and I dont think that is what we want
+     // If i pull this from the map it sorts them alphabetically and I dont think that is what we want
     Choice_LayerMethod->Append(_("Normal"));
     Choice_LayerMethod->Append(_("Effect 1"));
     Choice_LayerMethod->Append(_("Effect 2"));
@@ -380,6 +380,7 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
                                      "* Max - Take the maximum value for each channel from both effects\n"
                                      "* Min - Take the minimum value for each channel from both effects\n"
                                      "* Canvas - Blend the selected layers into this layer"));
+
 
     SetName("Timing");
 
