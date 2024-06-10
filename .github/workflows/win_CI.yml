@@ -68,8 +68,7 @@ jobs:
 
     steps:
     - name: Checkout xLights
-      run: git clone -b ${{github.head_ref}} https://github.com/xLightsSequencer/xLights.git C:/xLights/ --depth 1  --depth=1 --shallow-submodules --recurse-submodules
-
+      run: "git clone -b ${{ github.ref_name }} https://github.com/xLightsSequencer/xLights.git C:/xLights/ --depth 1  --depth=1 --shallow-submodules --recurse-submodules"
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v1
 
