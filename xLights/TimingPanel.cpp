@@ -228,7 +228,7 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     Choice_Out_Transition_Type->Append(_("Clock"));
     Choice_Out_Transition_Type->Append(_("Dissolve"));
     Choice_Out_Transition_Type->Append(_("Doorway"));
-    Choice_Out_Transition_Type->SetSelection(Choice_Out_Transition_Type->Append(_("Fade")));
+    Choice_Out_Transition_Type->SetSelection( Choice_Out_Transition_Type->Append(_("Fade")) );
     Choice_Out_Transition_Type->Append(_("Fold"));
     Choice_Out_Transition_Type->Append(_("From Middle"));
     Choice_Out_Transition_Type->Append(_("Pinwheel"));
@@ -427,8 +427,8 @@ void TimingPanel::SetDefaultControls(const Model* model, bool optionbased)
         TextCtrl_Fadeout->SetValue("0.00");
         Slider_In_Adjust->SetValue(50);
         Slider_Out_Adjust->SetValue(50);
-        Choice_In_Transition_Type->SetSelection(0);
-        Choice_Out_Transition_Type->SetSelection(0);
+        Choice_In_Transition_Type->SetStringSelection("Fade");
+        Choice_Out_Transition_Type->SetStringSelection("Fade");
         SpinCtrl_FreezeEffectAtFrame->SetValue(999999);
         SpinCtrl_SuppressEffectUntil->SetValue(0);
         CheckBox_In_Reverse->SetValue(false);
