@@ -644,7 +644,7 @@ void Discovery::Discover() {
         //first check to see if any of the socket have received data
         for (const auto& dg : datagrams) {
             for (const auto &socket : dg->sockets) {
-                if (socket->IsOk() && socket->IsData()) {
+                while (socket->IsOk() && socket->IsData()) {
                     socket->Read(&buffer[0], sizeof(buffer));
                     readSize = socket->GetLastIOReadSize();
                     if (readSize != 0) {

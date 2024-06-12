@@ -8,6 +8,7 @@
         <MaxPixelPortChannels>2250</MaxPixelPortChannels>
         <AllInputUniversesMustBeSameSize/>
         <UniversesMustBeSequential/>
+        <AllInputUniversesMustBe510/>
         <SupportsAutoLayout/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
@@ -15,6 +16,8 @@
         <SerialProtocols/>
         <InputProtocols>
             <Protocol>ddp</Protocol>
+            <Protocol>artnet</Protocol>
+            <Protocol>e131</Protocol>
         </InputProtocols>
         <ConfigDriver>ILightThat</ConfigDriver>
     </AbstractVariant>

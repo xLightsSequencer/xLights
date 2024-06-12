@@ -48,8 +48,6 @@ public:
         return true;
     }
 
-    void OnSize(wxSizeEvent& event);
-
     void clearBackgroundBitmap();
     void setBackgroundBitmap(std::unique_ptr<wxBitmap> bm);
     void UpdatePathState(SketchCanvasPathState state);

@@ -3511,9 +3511,16 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
     strcpy((char *)&buffer[84], ver.c_str());
 
     for (const auto &a : addresses) {
-        discovery.AddCurl(a, "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
+        discovery.AddCurl(a, "/api/fppd/multiSyncSystems", [a, &discovery] (int rc, const std::string &buffer, const std::string &err) {
             if (rc == 200) {
                 ProcessFPPSystems(discovery, buffer);
+            } else if (rc == 404) {
+                discovery.AddCurl(a, "/", [a, &discovery] (int rc, const std::string &buffer, const std::string &errorBuffer) {
+                    if (rc == 200) {
+                        discovery.DetectControllerType(a, "", buffer);
+                    }
+                    return true;
+                });
             }
             return true;
         });

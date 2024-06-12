@@ -1313,10 +1313,10 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
                                                          new ModelTreeData(model, nativeOrder, fullName));
 
     if (model->GetDisplayAs() != "ModelGroup") {
-        wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
         wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
+        wxString endStr = ((startStr[0] == '@' && model->HasIndividualStartChannels()) ? "" : model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager()));
         if (model->GetDisplayAs() != "SubModel") {
-            if (model->CouldComputeStartChannel && model->IsValidStartChannelString()) {
+            if ((model->CouldComputeStartChannel || startStr[0] == '@') && model->IsValidStartChannelString()) {
                 SetTreeListViewItemText(item, Col_StartChan, startStr);
             } else {
                 SetTreeListViewItemText(item, Col_StartChan, "*** " + model->ModelStartChannel);
@@ -1518,7 +1518,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                         }
                         if (m->DisplayAs == "SubModel") {
                             if (mark_selected) {
-                                prev_models.push_back(m);
+                                prev_models.push_back(m);  // setting this causes exception when prev_models render finds a submodel
                             }
                         }
                         else if (m->DisplayAs == "ModelGroup") {
@@ -4623,7 +4623,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
     int selectedObjectCnt = editing_models ? ModelsSelectedCount() : ViewObjectsSelectedCount();
 
-    if (selectedObjectCnt > 1)
+    if (editing_models && selectedTreeModels.size() > 1 && selectedTreeGroups.size() == 0)
     {
         wxMenu* mnuBulkEdit = new wxMenu();
         AddBulkEditOptionsToMenu(mnuBulkEdit);
@@ -4646,15 +4646,14 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnu.Append(ID_PREVIEW_DISTRIBUTE, "Distribute", mnuDistribute, "");
         mnu.Append(ID_PREVIEW_RESIZE, "Resize", mnuResize, "");
         mnu.AppendSeparator();
-        
-        if (!is_3d) {
-            auto mg = GetSelectedModelGroup();
-            if (xlights->AllModels.IsModelValid(mg)) {
-                mnu.Append(ID_SET_CENTER_OFFSET, _("Set Center Offset Here"));
-                mnu.AppendSeparator();
-                m_previous_mouse_x = event.GetX();
-                m_previous_mouse_y = event.GetY();
-            }
+    }
+    if (!is_3d && selectedTreeGroups.size() == 1 && selectedTreeModels.size() == 0 && selectedTreeSubModels.size() == 0) {
+        auto mg = GetSelectedModelGroup();
+        if (xlights->AllModels.IsModelValid(mg)) {
+            mnu.Append(ID_SET_CENTER_OFFSET, _("Set Center Offset Here"));
+            mnu.AppendSeparator();
+            m_previous_mouse_x = event.GetX();
+            m_previous_mouse_y = event.GetY();
         }
     }
 

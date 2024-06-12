@@ -64,6 +64,8 @@ EVT_LEFT_UP(EffectsGrid::mouseReleased)
 EVT_MOUSE_CAPTURE_LOST(EffectsGrid::OnLostMouseCapture)
 EVT_RIGHT_DOWN(EffectsGrid::rightClick)
 EVT_LEFT_DCLICK(EffectsGrid::mouseLeftDClick)
+EVT_MIDDLE_DOWN(EffectsGrid::mouseMiddleDown)
+EVT_MIDDLE_UP(EffectsGrid::mouseMiddleUp)
 EVT_LEAVE_WINDOW(EffectsGrid::mouseLeftWindow)
 EVT_PAINT(EffectsGrid::render)
 END_EVENT_TABLE()
@@ -1317,6 +1319,22 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
         mDragEndY = event.GetY();
         UpdateSelectionRectangle();
         Draw();
+    } else if (m_wheel_down) {
+        if (event.Dragging()) {
+            if (xlights->CurrentSeqXmlFile == nullptr)
+                return;
+
+            MainSequencer* ms = mSequenceElements->GetXLightsFrame()->GetMainSequencer();
+            int pos = ms->ScrollBarEffectsHorizontal->GetThumbPosition();
+            double delta_x = ((double)event.GetX() - m_previous_mouse_x);
+            double ts = ms->ScrollBarEffectsHorizontal->GetThumbSize() / 5000.0;
+            if (ts < 1.0) {
+                ts = 1.0;
+            }
+            ms->ScrollBarEffectsHorizontal->SetThumbPosition(pos - (delta_x * ts));
+            wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
+            ms->HorizontalScrollChanged(eventScroll);
+        }
     }
     else {
         if (!xlights->IsACActive() || rowIndex < mSequenceElements->GetNumberOfTimingRows()) {
@@ -1347,9 +1365,18 @@ void adjustMS(int timeMS, int& min, int& max)
     }
 }
 
-void EffectsGrid::mouseLeftWindow(wxMouseEvent& event)
-{
+void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {
     UpdateMousePosition(-1);
+    m_wheel_down = false;
+}
+
+void EffectsGrid::mouseMiddleDown(wxMouseEvent& event) {
+    m_previous_mouse_x = event.GetX();
+    m_wheel_down = true;
+}
+
+void EffectsGrid::mouseMiddleUp(wxMouseEvent& event) {
+    m_wheel_down = false;
 }
 
 int EffectsGrid::GetClippedPositionFromTimeMS(int ms) const
