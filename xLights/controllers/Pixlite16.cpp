@@ -1129,7 +1129,7 @@ bool Pixlite16::GetMK3Config()
 
     if (_mk3APIVersion != "") {
         std::string request = "{\"req\":\"configRead\",\"id\":1,\"params\":{\"path\":[\"\"]}}";
-        _mk3Config = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "application/json");
+        _mk3Config = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
 
         wxJSONValue jsonVal;
         wxJSONReader reader;
@@ -1192,7 +1192,7 @@ bool Pixlite16::GetMK3Config()
             }
 
             request = "{\"req\":\"constantRead\",\"id\":1,\"params\":{\"path\":[\"\"]}}";
-            _mk3Constants = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "application/json");
+            _mk3Constants = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
 
             return true;
         }
@@ -1532,7 +1532,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     logger_base.debug(request);
 
-    auto res = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "application/json");
+    auto res = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
 
     logger_base.debug(res);
 
