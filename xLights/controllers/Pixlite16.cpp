@@ -1431,7 +1431,12 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"zigZag\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += wxString::Format("%d", _config._outputZigZag[i]);
+        if (_config._outputPixels[i] == 0) {
+            request += "1";
+        }
+        else {
+            request += wxString::Format("%d", _config._outputZigZag[i]);
+        }
         if (i != pp - 1) {
             request += ",";
         }
