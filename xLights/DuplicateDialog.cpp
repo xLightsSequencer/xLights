@@ -22,6 +22,7 @@
 const long DuplicateDialog::ID_SPINCTRL_COUNT = wxNewId();
 const long DuplicateDialog::ID_STATICTEXT2 = wxNewId();
 const long DuplicateDialog::ID_SPINCTRL_GAP = wxNewId();
+const long DuplicateDialog::ID_CHECKBOX_RetainDur = wxNewId();
 const long DuplicateDialog::ID_BUTTON_OK = wxNewId();
 const long DuplicateDialog::ID_BUTTON_CLOSE = wxNewId();
 //*)
@@ -42,29 +43,37 @@ DuplicateDialog::DuplicateDialog(wxWindow* parent, wxWindowID id, const wxPoint&
     BoxSizer1 = new wxBoxSizer(wxVERTICAL);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText1 = new wxStaticText(this, wxID_ANY, _("Count:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    FlexGridSizer2->Add(StaticText1, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_Count = new wxSpinCtrl(this, ID_SPINCTRL_COUNT, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 1, _T("ID_SPINCTRL_COUNT"));
     SpinCtrl_Count->SetValue(_T("1"));
-    FlexGridSizer2->Add(SpinCtrl_Count, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer2->Add(SpinCtrl_Count, 1, wxALL|wxEXPAND, 5);
     StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Gap:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer2->Add(StaticText2, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_Gap = new wxSpinCtrl(this, ID_SPINCTRL_GAP, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 100, 0, _T("ID_SPINCTRL_GAP"));
     SpinCtrl_Gap->SetValue(_T("0"));
-    FlexGridSizer2->Add(SpinCtrl_Gap, 1, wxALL | wxEXPAND, 5);
-    BoxSizer1->Add(FlexGridSizer2, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer2->Add(SpinCtrl_Gap, 1, wxALL|wxEXPAND, 5);
+    StaticText3 = new wxStaticText(this, wxID_ANY, _("Retain Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Checkbox_Retain_Duration = new wxCheckBox(this, ID_CHECKBOX_RetainDur, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_RetainDur"));
+    Checkbox_Retain_Duration->SetValue(false);
+    Checkbox_Retain_Duration->SetToolTip(_("Paste by Cell will retain the duration of the original effect"));
+    FlexGridSizer2->Add(Checkbox_Retain_Duration, 1, wxALL, 5);
+    BoxSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
     BoxSizer2 = new wxBoxSizer(wxHORIZONTAL);
     Button_Ok = new wxButton(this, ID_BUTTON_OK, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_OK"));
-    BoxSizer2->Add(Button_Ok, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    Button_Ok->SetDefault();
+    BoxSizer2->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Close = new wxButton(this, ID_BUTTON_CLOSE, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CLOSE"));
-    BoxSizer2->Add(Button_Close, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    BoxSizer1->Add(BoxSizer2, 0, wxALL | wxEXPAND, 5);
+    BoxSizer2->Add(Button_Close, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer1->Add(BoxSizer2, 0, wxALL|wxEXPAND, 5);
     SetSizer(BoxSizer1);
     BoxSizer1->Fit(this);
     BoxSizer1->SetSizeHints(this);
 
-    Connect(ID_BUTTON_OK, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&DuplicateDialog::OnButton_OkClick);
-    Connect(ID_BUTTON_CLOSE, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&DuplicateDialog::OnButton_CloseClick);
+    Connect(ID_BUTTON_OK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DuplicateDialog::OnButton_OkClick);
+    Connect(ID_BUTTON_CLOSE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DuplicateDialog::OnButton_CloseClick);
     //*)
+
     wxConfigBase* config = wxConfigBase::Get();
     if (config != nullptr) {
         int count { 1 };
