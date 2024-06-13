@@ -7001,6 +7001,10 @@ void EffectsGrid::DuplicateSelectedEffects()
                 if (tel == nullptr) {
                     return;
                 }
+                long start = mSelectedEffect->GetStartTimeMS();
+                long end = mSelectedEffect->GetEndTimeMS();
+                long length = end - start;
+
                 long startCol = tel->GetEffectByTime(mSelectedEffect->GetStartTimeMS())->GetID() + 2;
                 if (mSelectedEffect->GetStartTimeMS() == 0) {//first timing mark in the zero column, and second timing mark has start column of 0 too
                     startCol--;
@@ -7012,7 +7016,12 @@ void EffectsGrid::DuplicateSelectedEffects()
                     Effect* eff = tel->GetEffect(startCol);
                     if (nullptr != eff) {
                         long newstart = mTimeline->RoundToMultipleOfPeriod(eff->GetStartTimeMS(), mSequenceElements->GetFrequency());
-                        long newEnd = mTimeline->RoundToMultipleOfPeriod(eff->GetEndTimeMS(), mSequenceElements->GetFrequency());
+                        long newEnd;
+                        if (dialog.GetRetainDuration()) {
+                            newEnd = mTimeline->RoundToMultipleOfPeriod(newstart + length, mSequenceElements->GetFrequency());
+                        } else {
+                            newEnd = mTimeline->RoundToMultipleOfPeriod(eff->GetEndTimeMS(), mSequenceElements->GetFrequency());
+                        }
                         if (!el->HasEffectsInTimeRange(newstart, newEnd)) {
                             Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newEnd, EFFECT_SELECTED, false);
                             mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
