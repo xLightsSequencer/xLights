@@ -590,8 +590,6 @@ void TimingPanel::ValidateWindow()
         _layersSelected = "";
         Button_Layers->Enable(false);
     }
-    auto fin = TextCtrl_Fadein->GetValue();
-    auto fout = TextCtrl_Fadeout->GetValue();
 	bool inEnable = (wxAtof(TextCtrl_Fadein->GetValue()) != 0.0);
 	bool outEnable = (wxAtof(TextCtrl_Fadeout->GetValue()) != 0.0);
 	auto inTransitionType = Choice_In_Transition_Type->GetStringSelection();
