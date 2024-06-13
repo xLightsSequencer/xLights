@@ -23,7 +23,6 @@
 #include "../xLightsApp.h"
 #include "../effects/RenderableEffect.h"
 #include "../ExternalHooks.h"
-
 #include <unordered_map>
 
 #include <log4cpp/Category.hh>

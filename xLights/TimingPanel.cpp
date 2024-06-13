@@ -481,7 +481,7 @@ wxString TimingPanel::GetTimingString()
     // Fade in
     if ("" != TextCtrl_Fadein->GetValue() && "0" != TextCtrl_Fadein->GetValue() && "0.0" != TextCtrl_Fadein->GetValue() && "0.00" != TextCtrl_Fadein->GetValue()) {
         s += "T_TEXTCTRL_Fadein=" + TextCtrl_Fadein->GetValue() + ",";
-        if (Choice_In_Transition_Type->GetSelection() > 0) {
+        if (Choice_In_Transition_Type->GetStringSelection() != "Fade") {
             s += "T_CHOICE_In_Transition_Type=";
             s += Choice_In_Transition_Type->GetStringSelection();
             s += ",";
@@ -501,7 +501,7 @@ wxString TimingPanel::GetTimingString()
     // Fade Out
     if ("" != TextCtrl_Fadeout->GetValue() && "0" != TextCtrl_Fadeout->GetValue() && "0.0" != TextCtrl_Fadeout->GetValue() && "0.00" != TextCtrl_Fadeout->GetValue()) {
         s += "T_TEXTCTRL_Fadeout=" + TextCtrl_Fadeout->GetValue() + ",";
-        if (Choice_Out_Transition_Type->GetSelection() > 0) {
+        if (Choice_Out_Transition_Type->GetStringSelection() != "Fade") {
             s += "T_CHOICE_Out_Transition_Type=";
             s += Choice_Out_Transition_Type->GetStringSelection();
             s += ",";
@@ -594,7 +594,6 @@ void TimingPanel::ValidateWindow()
         _layersSelected = "";
         Button_Layers->Enable(false);
     }
-
 	bool inEnable = (wxAtof(TextCtrl_Fadein->GetValue()) != 0.0);
 	bool outEnable = (wxAtof(TextCtrl_Fadeout->GetValue()) != 0.0);
 	auto inTransitionType = Choice_In_Transition_Type->GetStringSelection();
