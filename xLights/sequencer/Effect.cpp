@@ -213,13 +213,6 @@ Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const s
         mSettings.erase("Converted");
     }
 
-    if (mSettings.Get("T_TEXTCTRL_Fadein", "XXX") != "XXX") {
-        auto result = mSettings.insert(std::make_pair("T_CHOICE_In_Transition_Type", "Fade"));
-    }
-    if (mSettings.Get("T_TEXTCTRL_Fadeout", "XXX") != "XXX") {
-        auto result = mSettings.insert(std::make_pair("T_CHOICE_Out_Transition_Type", "Fade"));
-    }
-
     // check for any other odd looking blank settings
     //for (const auto& it : mSettings)
     //{

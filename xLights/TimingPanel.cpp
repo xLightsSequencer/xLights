@@ -481,9 +481,11 @@ wxString TimingPanel::GetTimingString()
     // Fade in
     if ("" != TextCtrl_Fadein->GetValue() && "0" != TextCtrl_Fadein->GetValue() && "0.0" != TextCtrl_Fadein->GetValue() && "0.00" != TextCtrl_Fadein->GetValue()) {
         s += "T_TEXTCTRL_Fadein=" + TextCtrl_Fadein->GetValue() + ",";
+        if (Choice_In_Transition_Type->GetStringSelection() != "Fade") {
             s += "T_CHOICE_In_Transition_Type=";
             s += Choice_In_Transition_Type->GetStringSelection();
             s += ",";
+        }
         if (CheckBox_In_Reverse->IsEnabled() && CheckBox_In_Reverse->GetValue()) {
             s += "T_CHECKBOX_In_Transition_Reverse=1,";
         }
@@ -499,9 +501,11 @@ wxString TimingPanel::GetTimingString()
     // Fade Out
     if ("" != TextCtrl_Fadeout->GetValue() && "0" != TextCtrl_Fadeout->GetValue() && "0.0" != TextCtrl_Fadeout->GetValue() && "0.00" != TextCtrl_Fadeout->GetValue()) {
         s += "T_TEXTCTRL_Fadeout=" + TextCtrl_Fadeout->GetValue() + ",";
+        if (Choice_Out_Transition_Type->GetStringSelection() != "Fade") {
             s += "T_CHOICE_Out_Transition_Type=";
             s += Choice_Out_Transition_Type->GetStringSelection();
             s += ",";
+        }
         if (CheckBox_Out_Reverse->IsEnabled() && CheckBox_Out_Reverse->GetValue()) {
             s += "T_CHECKBOX_Out_Transition_Reverse=1,";
         }
