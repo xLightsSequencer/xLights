@@ -3344,7 +3344,7 @@ bool AudioManager::CreateAudioFile(const std::vector<float>& left, const std::ve
     codecContext->channel_layout = AV_CH_LAYOUT_STEREO;
 
     AVFormatContext* formatContext;
-    avformat_alloc_output_context2( &formatContext, nullptr, nullptr, targetFile.c_str() );
+    avformat_alloc_output_context2(&formatContext, nullptr, "wav", targetFile.c_str());
     if (formatContext == nullptr)
     {
         logger_base.error("  Error opening output-context");
