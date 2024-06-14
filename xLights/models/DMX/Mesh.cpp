@@ -491,7 +491,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *spro
         }
 
         int end = vac->getCount();
-        sprogram->addStep([=](xlGraphicsContext *ctx) {
+        sprogram->addStep([=, this](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
             ctx->ApplyMatrix(m);
             if (mesh_only) {
@@ -509,7 +509,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *spro
             ctx->PopMatrix();
         });
         if (!mesh_only) {
-            tprogram->addStep([=](xlGraphicsContext *ctx) {
+            tprogram->addStep([=, this](xlGraphicsContext *ctx) {
                 ctx->PushMatrix();
                 ctx->ApplyMatrix(m);
                 ctx->drawMeshTransparents(mesh3d, this->brightness);

@@ -8374,17 +8374,11 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     if (selectedTreeGroups.size() == 0) {
         if (selectedTreeSubModels.size() == 0) {
             if (selectedTreeModels.size() == 1) {
-                ModelTreeData* data = (ModelTreeData*)TreeListViewModels->GetItemData(selectedTreeModels[0]);
-                Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
-                auto dm = mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Model");
-                if (model != nullptr) {
-                    dm->Enable(!model->IsLocked());
-                }
                 auto par = TreeListViewModels->GetItemParent(selectedTreeModels[0]);
                 if (par != TreeListViewModels->GetRootItem()) {
                     mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Group");
+                    mnuContext.AppendSeparator();
                 }
-                mnuContext.AppendSeparator();
             }
             else 
             if (selectedTreeModels.size() > 1) {
@@ -8409,8 +8403,6 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                         allFromBase = allFromBase && model->IsFromBase();
                     }
                 }
-                auto dm = mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Models");
-                dm->Enable(!allLocked);
                 auto lm = mnuContext.Append(ID_PREVIEW_MODEL_LOCK, "Lock Models");
                 lm->Enable(!allLocked);
                 auto um = mnuContext.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock Models");
@@ -8421,6 +8413,9 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                 if (allSameParent && parent != TreeListViewModels->GetRootItem()) {
                     mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Group");
                 }
+                auto dm = mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Models");
+                dm->Enable(!allLocked);
+
                 mnuContext.AppendSeparator();
             }
         } else {
@@ -8442,6 +8437,12 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
 
     if (selectedTreeModels.size() == 1 && selectedTreeGroups.size() + selectedTreeSubModels.size() == 0) {
         AddSingleModelOptionsToBaseMenu(mnuContext);
+        ModelTreeData* data = (ModelTreeData*)TreeListViewModels->GetItemData(selectedTreeModels[0]);
+        Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
+        auto dm = mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Model");
+        if (model != nullptr) {
+            dm->Enable(!model->IsLocked());
+        }
         // Remove preview 'Create Group' option as it may be confusing with tree list 'Create Group from Selections'
         mnuContext.Remove(ID_PREVIEW_MODEL_CREATEGROUP);
         // Remove preview option 'Add to Existing Group' as it is added with the other group options below

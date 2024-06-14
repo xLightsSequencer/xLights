@@ -228,7 +228,7 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     Choice_Out_Transition_Type->Append(_("Clock"));
     Choice_Out_Transition_Type->Append(_("Dissolve"));
     Choice_Out_Transition_Type->Append(_("Doorway"));
-    Choice_Out_Transition_Type->SetSelection(Choice_Out_Transition_Type->Append(_("Fade")));
+    Choice_Out_Transition_Type->SetSelection( Choice_Out_Transition_Type->Append(_("Fade")) );
     Choice_Out_Transition_Type->Append(_("Fold"));
     Choice_Out_Transition_Type->Append(_("From Middle"));
     Choice_Out_Transition_Type->Append(_("Pinwheel"));
@@ -427,8 +427,8 @@ void TimingPanel::SetDefaultControls(const Model* model, bool optionbased)
         TextCtrl_Fadeout->SetValue("0.00");
         Slider_In_Adjust->SetValue(50);
         Slider_Out_Adjust->SetValue(50);
-        Choice_In_Transition_Type->SetSelection(0);
-        Choice_Out_Transition_Type->SetSelection(0);
+        Choice_In_Transition_Type->SetStringSelection("Fade");
+        Choice_Out_Transition_Type->SetStringSelection("Fade");
         SpinCtrl_FreezeEffectAtFrame->SetValue(999999);
         SpinCtrl_SuppressEffectUntil->SetValue(0);
         CheckBox_In_Reverse->SetValue(false);
@@ -481,7 +481,7 @@ wxString TimingPanel::GetTimingString()
     // Fade in
     if ("" != TextCtrl_Fadein->GetValue() && "0" != TextCtrl_Fadein->GetValue() && "0.0" != TextCtrl_Fadein->GetValue() && "0.00" != TextCtrl_Fadein->GetValue()) {
         s += "T_TEXTCTRL_Fadein=" + TextCtrl_Fadein->GetValue() + ",";
-        if (Choice_In_Transition_Type->GetSelection() > 0) {
+        if (Choice_In_Transition_Type->GetStringSelection() != "Fade") {
             s += "T_CHOICE_In_Transition_Type=";
             s += Choice_In_Transition_Type->GetStringSelection();
             s += ",";
@@ -501,7 +501,7 @@ wxString TimingPanel::GetTimingString()
     // Fade Out
     if ("" != TextCtrl_Fadeout->GetValue() && "0" != TextCtrl_Fadeout->GetValue() && "0.0" != TextCtrl_Fadeout->GetValue() && "0.00" != TextCtrl_Fadeout->GetValue()) {
         s += "T_TEXTCTRL_Fadeout=" + TextCtrl_Fadeout->GetValue() + ",";
-        if (Choice_Out_Transition_Type->GetSelection() > 0) {
+        if (Choice_Out_Transition_Type->GetStringSelection() != "Fade") {
             s += "T_CHOICE_Out_Transition_Type=";
             s += Choice_Out_Transition_Type->GetStringSelection();
             s += ",";
@@ -594,7 +594,6 @@ void TimingPanel::ValidateWindow()
         _layersSelected = "";
         Button_Layers->Enable(false);
     }
-
 	bool inEnable = (wxAtof(TextCtrl_Fadein->GetValue()) != 0.0);
 	bool outEnable = (wxAtof(TextCtrl_Fadeout->GetValue()) != 0.0);
 	auto inTransitionType = Choice_In_Transition_Type->GetStringSelection();

@@ -1367,13 +1367,13 @@ void ModelPreview::AddGridToAccumulator(const glm::mat4& ViewScale)
     if (_displayGrid) {
         auto color = ColorManager::instance()->GetColor(ColorManager::COLOR_GRIDLINES);
         
-        solidProgram->addStep([=](xlGraphicsContext *ctx) {
+        solidProgram->addStep([this, color](xlGraphicsContext *ctx) {
             ctx->drawLines(grid2d, color, 0, grid2d->getCount() - 8);
         });
     }
 
     if (allowSelected && _display2DBox) {
-        transparentProgram->addStep([=](xlGraphicsContext *ctx) {
+        transparentProgram->addStep([this](xlGraphicsContext *ctx) {
             ctx->drawLines(grid2d, xlGREENTRANSLUCENT, grid2d->getCount() - 8, 8);
         });
     }
