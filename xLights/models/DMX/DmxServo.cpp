@@ -391,7 +391,7 @@ void DmxServo::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ct
     }
 
     xlGraphicsProgram* program = transparentProgram;
-    program->addStep([=](xlGraphicsContext* ctx) {
+    program->addStep([is_3d, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane

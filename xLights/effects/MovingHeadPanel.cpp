@@ -522,6 +522,14 @@ void MovingHeadPanel::SetEffectTimeRange(int startTimeMs, int endTimeMs)
 
 void MovingHeadPanel::OnResize(wxSizeEvent& event)
 {
+    wxSize old_sz = m_sketchCanvasPanel->GetSize();
+    if( old_sz.GetWidth() != old_sz.GetHeight() ) {
+        if( old_sz.GetWidth() > 270 ) {
+            wxSize new_size = old_sz;
+            new_size.SetHeight(new_size.GetWidth());
+            m_sketchCanvasPanel->SetMinSize(new_size);
+        }
+    }
     FlexGridSizer_Main->SetSizeHints(this);
     Layout();
     event.Skip();
