@@ -1574,8 +1574,7 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
     }
 
     Panel2->SetMinSize(wxSize(400, -1));
-    Panel5->SetMinSize(wxSize(380, -1));
-    Panel5->SetMaxSize(wxSize(380, -1));
+    Panel5->SetMinSize(this->FromDIP(wxSize(380, -1)));
     List_Controllers->Thaw();
 
     Panel2->Layout();
