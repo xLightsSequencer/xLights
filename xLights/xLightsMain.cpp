@@ -8425,6 +8425,7 @@ void xLightsFrame::SetShowBaseShowFolder(bool b)
     StaticText_BaseShowDir->Show(b);
     CheckBox_AutoUpdateBase->Show(b);
     Button_ChangeBaseShowDir->Show(b);
+    Button_OpenBaseShowDir->Show(b);
     StaticText_BaseShowDirLabel->Show(b);
     FlexGridSizer1->Layout();
     GridBagSizer1->Layout();
