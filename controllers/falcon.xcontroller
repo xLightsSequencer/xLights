@@ -289,7 +289,7 @@
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxPixelPortChannels>2112</MaxPixelPortChannels>
-            <v4BoardMode>9</v4BoardMode>
+      <v4BoardMode>9</v4BoardMode>
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>6</SupportsSmartRemotes>
 		</Variant>
@@ -299,7 +299,7 @@
 			<MaxPixelPort>48</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxPixelPortChannels>2112</MaxPixelPortChannels>
-            <v4BoardMode>10</v4BoardMode>
+       <v4BoardMode>10</v4BoardMode>
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>6</SupportsSmartRemotes>
 		</Variant>
@@ -317,9 +317,27 @@
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
-            <v4BoardMode>4</v4BoardMode>
+      <v4BoardMode>4</v4BoardMode>
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>6</SupportsSmartRemotes>
 		</Variant>
 	</Controller>
+  <Controller Name="F48V5">
+    <Variant Name="4 + 4 + 4 Smart Receiver Chains" Base="Falcon:BaseV4FalconSettings">
+      <MaxPixelPort>48</MaxPixelPort>
+      <MaxSerialPort>1</MaxSerialPort>
+      <MaxPixelPortChannels>2112</MaxPixelPortChannels>
+      <v4BoardMode>10</v4BoardMode>
+      <SupportsRemotes/>
+      <SupportsSmartRemotes>6</SupportsSmartRemotes>
+    </Variant>
+    <Variant Name="4 + 4 Smart Receiver Chains" Base="Falcon:BaseV4FalconSettings">
+      <MaxPixelPort>32</MaxPixelPort>
+      <MaxSerialPort>1</MaxSerialPort>
+      <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+      <v4BoardMode>11</v4BoardMode>
+      <SupportsRemotes/>
+      <SupportsSmartRemotes>6</SupportsSmartRemotes>
+    </Variant>
+  </Controller>
 </Vendor>
