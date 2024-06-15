@@ -1431,7 +1431,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"zigZag\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        if (_config._outputPixels[i] == 0) {
+        if (_config._outputZigZag[i] == 0) {
             request += "1";
         }
         else {
