@@ -11,6 +11,44 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.11 Jun 15, 2024
+   - enh (dkulp)        Add ability to set display names for Model/Submodel layers
+   - enh (dkulp)        For VSA import, set the layer name to mach the servo
+   - enh (dkulp)        Add effect background for Servo Effect
+   - enh (dkulp)        Make Servo effect easier to use for common "Ramp" use cases by not requiring the value curves for those
+   - enh (dkulp)        Make sure preview honors the min/max configured for the servo
+   - enh (dkulp)        Change MovingHeadPanel to use dialog units and/or default sizes for buttons
+   - enh (gil)          Show Active Timing Marks in Moving Head Effect Dimmer Panel; Only set MH channels that have actually been changed
+   - enh (dkulp)        Allow Canvas mode effects to set pixels transparent (ex: shaders only applying to part of buffer)
+   - enh (cybercop23)   Sort Model Icons + swapped Download & Import
+   - enh (cybercop23)   Removed Wreath model from being created
+   - enh (scott)        Added Timing Event Bar Bounce to VU Meter
+   - enh (derwin12)     Ability to order the views in the Display Editor window
+   - enh (cybercop23)   Add Aliases for Models and Groups to the Export Model
+   - enh (cybercop23)   Layout Panel - Remove start/end channels for shadow items, MH type
+   - enh (cybercop23)   Add quick open base button
+   - enh (cybercop23)   Sort dropdowns for In/Out Transitions
+   - enh (PeteMatthews) Add sACN/ArtNet support for ILightThat controller
+   - enh (cybercop23)   Stack button on ctrl page and remove the slider to prevent full close of right panel
+   - enh (derwin12)     Allow for a model vid export to be done at high or lowdef render via scripting
+   - enh (derwin12)     Add middle mouse to pan sequencer
+   - enh (derwin12)     Check that timing track name doesnt conflict with models
+   - enh (derwin12)     Show Set Center Point dialog for all groups
+   - enh (cybercop23)   Move Delete to lower in thej list to reduce accidental click
+   - enh (derwin12)     Optionally retain the effect duration when duplicating an effect
+   - bug (derwin12)     Keep buttons visible in submodel dialog
+   - bug (gil)          Fix Pan value curve
+   - bug (derwin12)     Model groups with one model causing stalling/crashing
+   - bug (MrPierreB)    Bars effect - Fix bug where the highlight color is not used when other layer blending options are selected
+   - bug (gil)          Fix model paste when no model is selected
+   - bug (dkulp)        Fix ValueCurve bottom not being visible or selectable on Mac.
+   - bug (dkulp)        Some fixes for colored buttons on sonoma having their sizes changing
+   - bug (dkulp)        Make sure sorting is turned off during the model list "Freeze" and re-enabled on "Thaw"
+   - bug (dkulp)        FireEffect: only call GetMaxBuffer during init, use that size throughout the effect rendering for consistency
+   - bug (scott)        DMXEffect - some more fixes after update to 48dmx channels
+   - bug (gil)          Fix major bug with MovingHeadEffect on groups...it was triggering all heads whether they were selected or not
+   - bug (gil)          Fix Sketch panel resize
+   - bug (keith)        Fix some E4-S Mk3 controller issues with v1.5 firmware, zig-zag, content-type
 2024.10 Apr 30, 2024
    - enh (MrPierreB)    Add ability to control the highlight color for the Bars effect
    - enh (gil)          Add Preset support for Dimmers
