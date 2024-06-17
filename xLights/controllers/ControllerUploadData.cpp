@@ -76,7 +76,11 @@ UDControllerPortModel::UDControllerPortModel(Model* m, Controller* controller, O
     }
     else {
         _startChannel = _model->GetStringStartChan(string) + 1;
-        _endChannel = _startChannel + _model->NodesPerString(string) * _model->GetChanCountPerNode() - 1;
+        if ((string + 1) == _model->GetParm1()) { // last custom string; zero indexed vs parm1
+            _endChannel = _model->GetLastChannel()+1;
+        } else {
+            _endChannel = _model->GetStringStartChan(string+1);
+          }
     }
 
     Output* o = nullptr;
