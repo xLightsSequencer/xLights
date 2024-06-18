@@ -2796,7 +2796,7 @@ void xLightsXmlFile::Save(SequenceElements& seq_elements)
                             }
                         }
                         if (!layer->GetLayerName().empty()) {
-                            effect_layer_node->AddAttribute("layerName", layer->GetLayerName());
+                            eln->AddAttribute("layerName", layer->GetLayerName());
                         }
                         if (j > 0) {
                             eln->AddAttribute("layer", string_format("%d", j));
