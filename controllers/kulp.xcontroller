@@ -165,6 +165,25 @@
             <fpp1>21,16</fpp1>
         </Variant>
     </Controller>
+    <Controller Name="K2-Pi0">
+        <Variant Name="No Expansion" ID="K2-Pi0" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <SupportsVirtualMatrix/>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+        </Variant>
+    </Controller>
+    <Controller Name="K2-Pi-Servo">
+        <Variant Name="No Expansion" ID="K2-Pi-Servo" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxPWMPort>16</MaxPWMPort>
+            <SupportsVirtualMatrix/>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+        </Variant>
+    </Controller>
     <Controller Name="K8-PB">
         <Variant Name="No Expansion" ID="K8-PB" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>20</MaxPixelPort>

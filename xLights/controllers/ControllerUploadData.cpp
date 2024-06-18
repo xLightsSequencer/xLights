@@ -1361,10 +1361,11 @@ int UDController::GetSmartRemoteCount(int port)
 {
     int count = 0;
     int basePort = ((port - 1) / 4) * 4;
-    for (int p = basePort; p < basePort + 4; ++p)
-    {
-        auto pp = GetControllerPixelPort(p + 1);
-        count = std::max(count, pp->GetSmartRemoteCount());
+    for (int p = basePort; p < basePort + 4; ++p) {
+        if (HasPixelPort(p + 1)) {
+            auto pp = GetControllerPixelPort(p + 1);
+            count = std::max(count, pp->GetSmartRemoteCount());
+        }
     }
     return count;
 }
