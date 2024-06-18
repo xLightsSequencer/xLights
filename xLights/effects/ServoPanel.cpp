@@ -40,6 +40,7 @@ const wxWindowID ServoPanel::ID_TEXTCTRL_Servo = wxNewId();
 const wxWindowID ServoPanel::ID_STATICTEXT1 = wxNewId();
 const wxWindowID ServoPanel::IDD_SLIDER_EndValue = wxNewId();
 const wxWindowID ServoPanel::ID_TEXTCTRL_EndValue = wxNewId();
+const wxWindowID ServoPanel::IDD_CHECKBOX_Sync = wxNewId();
 const wxWindowID ServoPanel::ID_BUTTON1 = wxNewId();
 const wxWindowID ServoPanel::IDD_SwapButton = wxNewId();
 //*)
@@ -52,9 +53,9 @@ END_EVENT_TABLE()
 ServoPanel::ServoPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(ServoPanel)
-	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer_Main = new wxFlexGridSizer(0, 1, 0, 0);
@@ -74,7 +75,7 @@ ServoPanel::ServoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Servo_TimingTrack = new BulkEditChoice(this, ID_CHOICE_Servo_TimingTrack, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Servo_TimingTrack"));
 	Choice_Servo_TimingTrack->Disable();
 	FlexGridSizer2->Add(Choice_Servo_TimingTrack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer_Main->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer_Main->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
 	Label_DMX1 = new wxStaticText(this, ID_STATICTEXT_Servo, _("Start:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Servo"));
@@ -92,17 +93,27 @@ ServoPanel::ServoPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_EndValue = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_EndValue, _T("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_EndValue"));
 	FlexGridSizer1->Add(TextCtrl_EndValue, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer_Main->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
-	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
+	FlexGridSizer_Main->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer3->AddGrowableCol(0);
+	FlexGridSizer3->AddGrowableCol(1);
+	SyncCheckBox = new wxCheckBox(this, IDD_CHECKBOX_Sync, _("Sync"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_CHECKBOX_Sync"));
+	SyncCheckBox->SetValue(false);
+	FlexGridSizer3->Add(SyncCheckBox, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	EqualButton = new wxButton(this, ID_BUTTON1, _("Equal"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	BoxSizer1->Add(EqualButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(EqualButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SwapButton = new wxButton(this, IDD_SwapButton, _("Swap"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SwapButton"));
-	BoxSizer1->Add(SwapButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer_Main->Add(BoxSizer1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(SwapButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Main->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer_Main);
 
 	Connect(ID_CHECKBOX_Timing_Track, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ServoPanel::OnCheckBox_Timing_TrackClick);
-	Connect(ID_VALUECURVE_Servo, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ServoPanel::OnVCButtonClick);
+	Connect(IDD_SLIDER_Servo, wxEVT_SLIDER, (wxObjectEventFunction)&ServoPanel::StartValueUpdated);
+	Connect(ID_TEXTCTRL_Servo, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&ServoPanel::StartValueUpdated);
+	Connect(IDD_SLIDER_EndValue, wxEVT_SLIDER, (wxObjectEventFunction)&ServoPanel::EndValueUpdated);
+	Connect(ID_TEXTCTRL_EndValue, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&ServoPanel::EndValueUpdated);
+	Connect(IDD_CHECKBOX_Sync, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ServoPanel::OnSyncCheckBoxClick);
 	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ServoPanel::OnEqualButtonClick);
 	Connect(IDD_SwapButton, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ServoPanel::OnSwapButtonClick);
 	//*)
@@ -138,6 +149,7 @@ void ServoPanel::ValidateWindow()
             Label_DMX1->Disable();
             SwapButton->Disable();
             EqualButton->Disable();
+            SyncCheckBox->Disable();
         }
 	} else {
 		Choice_Servo_TimingTrack->Disable();
@@ -154,13 +166,19 @@ void ServoPanel::ValidateWindow()
             EndDMXLabel->Disable();
             SwapButton->Disable();
             EqualButton->Disable();
+            SyncCheckBox->SetValue(false);
+            SyncCheckBox->Disable();
         } else {
             Label_DMX1->SetLabelText("Start:");
-            SliderEndValue->Enable();
-            TextCtrl_EndValue->Enable();
             EndDMXLabel->Enable();
             SwapButton->Enable();
             EqualButton->Enable();
+            SyncCheckBox->Enable();
+            if (TextCtrl_Servo->GetValue() != TextCtrl_EndValue->GetValue()) {
+                SyncCheckBox->SetValue(false);
+            }
+            SliderEndValue->Enable();
+            TextCtrl_EndValue->Enable();
         }
 	}
 }
@@ -182,4 +200,31 @@ void ServoPanel::OnEqualButtonClick(wxCommandEvent& event)
 {
     wxString v1 = TextCtrl_Servo->GetValue();
     TextCtrl_EndValue->SetValue(v1);
+}
+
+void ServoPanel::OnSyncCheckBoxClick(wxCommandEvent& event)
+{
+    if (SyncCheckBox->IsChecked()) {
+        SliderEndValue->SetValue(Slider_Servo->GetValue());
+        TextCtrl_EndValue->SetValue(TextCtrl_Servo->GetValue());
+        FireChangeEvent();
+    }
+}
+
+void ServoPanel::StartValueUpdated(wxCommandEvent& event)
+{
+    if (SyncCheckBox->IsChecked()) {
+        SliderEndValue->SetValue(Slider_Servo->GetValue());
+        TextCtrl_EndValue->ChangeValue(TextCtrl_Servo->GetValue());
+        FireChangeEvent();
+    }
+}
+
+void ServoPanel::EndValueUpdated(wxCommandEvent& event)
+{
+    if (SyncCheckBox->IsChecked()) {
+        Slider_Servo->SetValue(SliderEndValue->GetValue());
+        TextCtrl_Servo->ChangeValue(TextCtrl_EndValue->GetValue());
+        FireChangeEvent();
+    }
 }

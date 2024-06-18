@@ -51,7 +51,6 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -69,6 +68,7 @@
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Servo" subclass="BulkEditSliderF1" variable="Slider_Servo" member="yes">
 							<max>1000</max>
+							<handler function="StartValueUpdated" entry="EVT_SLIDER" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -78,7 +78,6 @@
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Servo" subclass="BulkEditValueCurveButton" variable="ValueCurve_Servo" member="yes">
 							<bitmap code="GetValueCurveNotSelectedBitmap()" />
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -89,6 +88,7 @@
 							<value>0</value>
 							<size>25,-1d</size>
 							<style>wxTE_PROCESS_ENTER</style>
+							<handler function="StartValueUpdated" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -105,6 +105,7 @@
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_EndValue" subclass="BulkEditSliderF1" variable="SliderEndValue" member="yes">
 							<max>1000</max>
+							<handler function="EndValueUpdated" entry="EVT_SLIDER" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -120,6 +121,7 @@
 							<value>0</value>
 							<size>25,-1d</size>
 							<style>wxTE_PROCESS_ENTER</style>
+							<handler function="EndValueUpdated" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -127,11 +129,26 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+					<cols>4</cols>
+					<growablecols>0,1</growablecols>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="IDD_CHECKBOX_Sync" variable="SyncCheckBox" member="yes">
+							<label>Sync</label>
+							<handler function="OnSyncCheckBoxClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON1" variable="EqualButton" member="yes">
 							<label>Equal</label>
@@ -151,8 +168,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<flag>wxALL|wxEXPAND</flag>
 				<option>1</option>
 			</object>
 		</object>

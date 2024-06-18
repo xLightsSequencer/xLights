@@ -13,7 +13,6 @@
 //(*Headers(ServoPanel)
 #include <wx/panel.h>
 class wxBitmapButton;
-class wxBoxSizer;
 class wxButton;
 class wxCheckBox;
 class wxChoice;
@@ -46,6 +45,7 @@ class ServoPanel: public xlEffectPanel
 		BulkEditValueCurveButton* ValueCurve_Servo;
 		wxButton* EqualButton;
 		wxButton* SwapButton;
+		wxCheckBox* SyncCheckBox;
 		wxFlexGridSizer* FlexGridSizer_Main;
 		wxStaticText* EndDMXLabel;
 		wxStaticText* Label_DMX1;
@@ -67,6 +67,7 @@ class ServoPanel: public xlEffectPanel
 		static const wxWindowID ID_STATICTEXT1;
 		static const wxWindowID IDD_SLIDER_EndValue;
 		static const wxWindowID ID_TEXTCTRL_EndValue;
+		static const wxWindowID IDD_CHECKBOX_Sync;
 		static const wxWindowID ID_BUTTON1;
 		static const wxWindowID IDD_SwapButton;
 		//*)
@@ -78,6 +79,9 @@ class ServoPanel: public xlEffectPanel
 		void OnCheckBox_Timing_TrackClick(wxCommandEvent& event);
 		void OnSwapButtonClick(wxCommandEvent& event);
 		void OnEqualButtonClick(wxCommandEvent& event);
+		void OnSyncCheckBoxClick(wxCommandEvent& event);
+		void StartValueUpdated(wxCommandEvent& event);
+		void EndValueUpdated(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

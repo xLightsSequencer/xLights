@@ -122,9 +122,10 @@ void ServoEffect::SetDefaultParameters() {
     SetSliderValue(dp->Slider_Servo, 0);
     SetSliderValue(dp->SliderEndValue, 0);
     dp->Choice_Channel->SetSelection(-1);
+    dp->CheckBox_16bit->SetValue(false);
     SetCheckBoxValue(dp->CheckBox_Timing_Track, false);
-    SetCheckBoxValue(dp->CheckBox_16bit, false);
     dp->Choice_Servo_TimingTrack->SetSelection(-1);
+    dp->SyncCheckBox->SetValue(false);
 }
 
 void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
