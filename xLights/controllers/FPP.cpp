@@ -17,6 +17,7 @@
 #include <cctype>
 #include <thread>
 #include <cinttypes>
+#include <ranges>
 
 #include <curl/curl.h>
 
@@ -308,13 +309,13 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
     }
     return response_code == 200;
 }
-int FPP::PostToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType) {
+int FPP::PostToURL(const std::string& url, const std::vector<uint8_t>& val, const std::string& contentType) const {
     return TransferToURL(url, val, contentType, true);
 }
-int FPP::PutToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType) {
+int FPP::PutToURL(const std::string& url, const std::vector<uint8_t>& val, const std::string& contentType) const {
     return TransferToURL(url, val, contentType, false);
 }
-int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType, bool isPost) {
+int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t>& val, const std::string& contentType, bool isPost) const {
 
     std::string fullUrl = ipAddress + url;
     std::string ipAddForGet = ipAddress;
@@ -615,8 +616,7 @@ int FPP::PostJSONToURLAsFormData(const std::string& url, const std::string &extr
     return PostToURL(url, memBuffPost, "application/x-www-form-urlencoded; charset=UTF-8");
 }
 
-void FPP::DumpJSON(const wxJSONValue& json)
-{
+void FPP::DumpJSON(const wxJSONValue& json) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString str;
     wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
@@ -624,12 +624,12 @@ void FPP::DumpJSON(const wxJSONValue& json)
     logger_base.debug(ToUTF8(str));
 }
 
-int FPP::PostToURL(const std::string& url, const std::string &val, const std::string &contentType) {
+int FPP::PostToURL(const std::string& url, const std::string& val, const std::string& contentType) const {
     std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, val);
     return PostToURL(url, memBuffPost, contentType);
 }
-int FPP::PutToURL(const std::string& url, const std::string &val, const std::string &contentType) {
+int FPP::PutToURL(const std::string& url, const std::string& val, const std::string& contentType) const {
     std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, val);
     return PutToURL(url, memBuffPost, contentType);
@@ -1350,7 +1350,7 @@ bool FPP::UploadUDPOut(const wxJSONValue &udp) {
             }
         }
     }
-    PostJSONToURL("/api/channel/output/universeOutputs", newudp);    
+    PostJSONToURL("/api/channel/output/universeOutputs", newudp);
     return false;
 }
 
@@ -1391,6 +1391,9 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
         jm["ChannelCount"] = model->GetActChanCount();
         jm["StartChannel"] = ch;
         jm["ChannelCountPerNode"] = model->GetChanCountPerNode();
+        if (IsVersionAtLeast(8, 0)) {
+            jm["xLights"] = true;
+        }
 
         MatrixModel *mm = dynamic_cast<MatrixModel*>(model);
         if (mm) {
@@ -1440,9 +1443,19 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
                 }
             }
 
-            if (ogModels->Item(i).HasMember("StartChannel") && ogModels->Item(i)["StartChannel"].IsInt32()) {
-                auto ogStartChan = ogModels->Item(i)["StartChannel"].AsInt32();
-                if (ogStartChan < startChan || ogStartChan > endChannel ) {
+            if (!IsVersionAtLeast(8, 0)) {
+                //I don't think this works
+                if (ogModels->Item(i).HasMember("StartChannel") && ogModels->Item(i)["StartChannel"].IsInt32()) {
+                    auto ogStartChan = ogModels->Item(i)["StartChannel"].AsInt32();
+                    if (ogStartChan < startChan || ogStartChan > endChannel ) {
+                        continue;
+                    }
+                }
+            }
+
+            if (ogModels->Item(i).HasMember("xLights") && ogModels->Item(i)["xLights"].IsBool()) {
+                auto isfromXlights = ogModels->Item(i)["xLights"].AsBool();
+                if (isfromXlights) {
                     continue;
                 }
             }
@@ -2842,25 +2855,53 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
 bool FPP::UploadControllerProxies(OutputManager* outputManager)
 {
-    auto currentProxies = GetProxies();
-    std::vector<std::string> newProxies;
-
-    for (const auto& it : outputManager->GetControllers()) {
-        auto c = dynamic_cast<ControllerEthernet*>(it);
-        if (c != nullptr) {
-            std::string proxy_ip = ip_utils::ResolveIP(c->GetFPPProxy());
-            if (ipAddress.compare(proxy_ip) == 0) {
-                auto controllerip = c->GetIP();
-                if (std::find(currentProxies.begin(), currentProxies.end(), controllerip) == currentProxies.end()) {
-                    newProxies.push_back(controllerip);
-                    currentProxies.push_back(controllerip);
+    if(IsVersionAtLeast(8, 0)) {
+        auto currentProxies = GetProxies();
+        for (const auto& it : outputManager->GetControllers()) {
+            auto c = dynamic_cast<ControllerEthernet*>(it);
+            if (c != nullptr) {
+                std::string proxy_ip = ip_utils::ResolveIP(c->GetFPPProxy());
+                if (ipAddress.compare(proxy_ip) == 0) {
+                    auto const& controller_ip = c->GetIP();
+                    auto const& controller_name = c->GetName();
+                    if (std::find_if(currentProxies.begin(), currentProxies.end(),
+                        [controller_ip](auto const& pro) { return get<0>(pro) == controller_ip; }) == currentProxies.end()) {
+                        currentProxies.emplace_back(controller_ip, controller_name);
+                    }
                 }
             }
         }
-    }
 
-    for (const auto& nprox : newProxies) {
-        PostToURL("/api/proxies/" + nprox, "", "text/plain");
+        wxJSONValue proxies;
+        for (const auto& [ip, description] : currentProxies) {
+            wxJSONValue proxy;
+            proxy["host"] = ip;
+            proxy["description"] = description;
+            proxies.Append(proxy);
+        }
+
+        return PostJSONToURL("/api/proxies", proxies);
+    } else {
+        auto currentProxies = GetProxyList();
+        std::vector<std::string> newProxies;
+
+        for (const auto& it : outputManager->GetControllers()) {
+            auto c = dynamic_cast<ControllerEthernet*>(it);
+            if (c != nullptr) {
+                std::string proxy_ip = ip_utils::ResolveIP(c->GetFPPProxy());
+                if (ipAddress.compare(proxy_ip) == 0) {
+                    auto controllerip = c->GetIP();
+                    if (std::find(currentProxies.begin(), currentProxies.end(), controllerip) == currentProxies.end()) {
+                        newProxies.push_back(controllerip);
+                        currentProxies.push_back(controllerip);
+                    }
+                }
+            }
+        }
+
+        for (const auto& nprox : newProxies) {
+            PostToURL("/api/proxies/" + nprox, "", "text/plain");
+        }
     }
     return false;
 }
@@ -3156,7 +3197,12 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
     DiscoveredData *ipinst = discovery.FindByIp(ip, "", true);
     ipinst->extraData["httpConnected"] = true;
     for (int x = 0; x < origJson.Size(); x++) {
-        std::string proxy = ToUTF8(origJson[x].AsString());
+        std::string proxy;
+        if (origJson[x].IsString()) {
+            proxy = ToUTF8(origJson[x].AsString());
+        } else if (origJson[x].IsObject()) {//FPP 8 change
+            proxy = ToUTF8(origJson[x]["host"].AsString());
+        }
         DiscoveredData *inst = discovery.FindByIp(proxy, "", true);
         if (!inst->extraData.HasMember("httpConnected")) {
             inst->extraData["httpConnected"] = false;
@@ -3729,11 +3775,15 @@ void FPP::TypeIDtoControllerType(int typeId, FPP* inst) {
     }
 }
 
-std::vector<std::string> FPP::GetProxies()
-{
+std::vector<std::string> FPP::GetProxyList() {
+    auto kp = std::views::keys(GetProxies());
+    return { kp.begin(), kp.end() };
+}
+
+std::vector<std::tuple<std::string, std::string>> FPP::GetProxies() {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    std::vector<std::string> res;
+    std::vector<std::tuple<std::string, std::string>> res;
 
     if (IsConnected()) {
         wxJSONValue val;
@@ -3741,7 +3791,10 @@ std::vector<std::string> FPP::GetProxies()
             for (int x = 0; x < val.Size(); x++) {
                 if (val[x].IsString()) {
                     logger_base.debug("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x].AsString().c_str());
-                    res.push_back(ToUTF8(val[x].AsString()));
+                    res.push_back({ ToUTF8(val[x].AsString()), std::string() });
+                } else if (val[x].IsObject()) { // FPP 8 change
+                    logger_base.debug("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x]["host"].AsString().c_str());
+                    res.push_back({ ToUTF8(val[x]["host"].AsString()), ToUTF8(val[x]["description"].AsString()) });
                 }
             }
         }
@@ -3755,7 +3808,7 @@ bool FPP::ValidateProxy(const std::string& to, const std::string& via)
 {
     FPP fpp(via);
     if (fpp.IsConnected()) {
-        for (const auto& it : fpp.GetProxies()) {
+        for (const auto& it : fpp.GetProxyList()) {
             if (to == it) return true;
         }
     }

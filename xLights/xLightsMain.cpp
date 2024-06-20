@@ -2312,6 +2312,16 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
     wxString hdg = wxString::Format(_("About xLights %s"), GetDisplayVersionString());
     wxString ver = wxString::Format(_("Version: %s\n%s"), GetDisplayVersionString(), wxVERSION_STRING);
+#if defined(_MSC_VER)
+    ver += wxString::Format("\nVisual C++ %d" ,_MSC_VER);
+#endif
+#if defined(__clang_version__)
+    ver += wxString::Format("\nClang %s", __clang_version__);
+#else
+#if defined(__GNUC__)//clang also defines this
+    ver += wxString::Format("\nGCC %d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+#endif
+#endif
     AboutDialog dlg(this);
 
     dlg.IconBitmap->SetIcon(wxArtProvider::GetIconBundle("xlART_xLights_Icons", wxART_FRAME_ICON).GetIcon(wxSize(128, 128)));

@@ -77,7 +77,7 @@ class FPP : public BaseController
     void SetNewRanges(const std::map<int, int> &rngs);
     bool IsDDPInputEnabled();
 
-    bool IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch = 0) const;
+    [[nodiscard]] bool IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch = 0) const;
 
 #ifndef DISCOVERYONLY
     bool PrepareUploadSequence(FSEQFile *file,
@@ -120,7 +120,8 @@ class FPP : public BaseController
     bool SetRestartFlag();
     bool Restart(bool ifNeeded = false);
     void SetDescription(const std::string &st);
-    std::vector<std::string> GetProxies();
+    [[nodiscard]] std::vector<std::string> GetProxyList();
+    [[nodiscard]] std::vector<std::tuple<std::string, std::string>> GetProxies();
 
     static void PrepareDiscovery(Discovery &discovery);
     static void PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing = true);
@@ -152,20 +153,19 @@ private:
     FPPUploadProgressDialog *progressDialog = nullptr;
     wxGauge *progress = nullptr;
     
-    void DumpJSON(const wxJSONValue& json);
+    void DumpJSON(const wxJSONValue& json) const;
 
     bool GetURLAsJSON(const std::string& url, wxJSONValue& val, bool recordError = true);
     bool GetURLAsString(const std::string& url, std::string& val, bool recordError = true);
 
     int PostJSONToURL(const std::string& url, const wxJSONValue& val);
     int PostJSONToURLAsFormData(const std::string& url, const std::string &extra, const wxJSONValue& val);
-    int PostToURL(const std::string& url, const std::string &val, const std::string &contentType = "application/octet-stream");
-    int PostToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType = "application/octet-stream");
-    int PutToURL(const std::string& url, const std::string &val, const std::string &contentType = "application/octet-stream");
-    int PutToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType = "application/octet-stream");
-    int TransferToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType, bool isPost);
+    int PostToURL(const std::string& url, const std::string& val, const std::string& contentType = "application/octet-stream") const;
+    int PostToURL(const std::string& url, const std::vector<uint8_t>& val, const std::string& contentType = "application/octet-stream") const;
+    int PutToURL(const std::string& url, const std::string& val, const std::string& contentType = "application/octet-stream") const;
+    int PutToURL(const std::string& url, const std::vector<uint8_t>& val, const std::string& contentType = "application/octet-stream") const;
+    int TransferToURL(const std::string& url, const std::vector<uint8_t>& val, const std::string& contentType, bool isPost) const;
 
-    
     bool uploadOrCopyFile(const std::string &filename,
                           const std::string &file,
                           const std::string &dir);
@@ -184,7 +184,7 @@ private:
     bool IsCompatible(const ControllerCaps *rules,
                       std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,
                       std::string &driver);
-    
+
     class PlaylistEntry {
     public:
         std::string sequence;
