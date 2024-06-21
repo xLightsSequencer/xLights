@@ -17,7 +17,6 @@
 #include <cctype>
 #include <thread>
 #include <cinttypes>
-#include <ranges>
 
 #include <curl/curl.h>
 
@@ -3776,8 +3775,10 @@ void FPP::TypeIDtoControllerType(int typeId, FPP* inst) {
 }
 
 std::vector<std::string> FPP::GetProxyList() {
-    auto kp = std::views::keys(GetProxies());
-    std::vector<std::string> keys{ kp.begin(), kp.end() };
+    auto proxies = GetProxies();
+    std::vector<std::string> keys;
+    std::transform(proxies.begin(), proxies.end(), std::back_inserter(keys),
+                   [](auto const& host) { return std::get<0>(host); });
     return keys;
 }
 
