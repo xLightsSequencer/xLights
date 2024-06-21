@@ -5,6 +5,7 @@
 #include <set>
 #include <algorithm>
 #include <string>
+#include <vector>
 
 #include "../models/ModelManager.h"
 #include "ControllerUploadData.h"

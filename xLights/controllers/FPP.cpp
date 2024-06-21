@@ -3777,7 +3777,8 @@ void FPP::TypeIDtoControllerType(int typeId, FPP* inst) {
 
 std::vector<std::string> FPP::GetProxyList() {
     auto kp = std::views::keys(GetProxies());
-    return { kp.begin(), kp.end() };
+    std::vector<std::string> keys{ kp.begin(), kp.end() };
+    return keys;
 }
 
 std::vector<std::tuple<std::string, std::string>> FPP::GetProxies() {
