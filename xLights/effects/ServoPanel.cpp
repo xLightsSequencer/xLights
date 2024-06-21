@@ -122,7 +122,8 @@ ServoPanel::ServoPanel(wxWindow* parent) : xlEffectPanel(parent)
 
 	Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ServoPanel::OnVCChanged, nullptr, this);
 	Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&ServoPanel::OnValidateWindow, nullptr, this);
-
+    Connect(ID_VALUECURVE_Servo, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ServoPanel::OnVCButtonClick);
+    
     ValueCurve_Servo->GetValue()->SetLimits(SERVO_MIN, SERVO_MAX);
     ValueCurve_Servo->GetValue()->SetDivisor(SERVO_DIVISOR);
 
