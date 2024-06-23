@@ -67,7 +67,14 @@ void OffEffect::adjustSettings(const std::string& version, Effect* effect, bool 
     if (i != "") {
         effect->GetSettings().erase("E_CHECKBOX_Off_Transparent");
         if (i == "1") {
-            effect->GetSettings()["E_CHOICE_Off_Style"] = "Transparent";
+            i = effect->GetSettings().Get("T_CHECKBOX_Canvas", "");
+            if (i == "1") {
+                // old canvas + transparent OFF effects would be black as canvas would not
+                // have any alpha channels.
+                effect->GetSettings()["E_CHOICE_Off_Style"] = "Transparent -> Black";
+            } else {
+                effect->GetSettings()["E_CHOICE_Off_Style"] = "Transparent";
+            }
         }
     }
 }
