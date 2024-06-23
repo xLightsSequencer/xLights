@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.12 Jun 23, 2024
+    - enh (keith)       Add F48v5 support
+    - enh (dkulp)       Add K2-Pi0 and K2-Pi-Servo (pixel ports only) support
+    - enh (dkulp)       Add "Sync" checkbox to Servo panel to keep start/end in sync while adjusting
+    - enh (scott)       FPP8 - Add descriptions to uploaded proxies
+    - enh (scott)       FPPConnect - Tag/Remove xLights generated models
+    - enh (scott)       Import/Export custom strings on Custom Models
+    - bug (dkulp)       Visualizer should not show four pixel ports for controllers with only two ports
+    - bug (dkulp)       Fix crash with layer names on SubModels with only one layer
+    - bug (dkulp)       Fix value curve on servo effect
+    - bug (scott)       Fix some issues with Hardware video decoding with Cuda as well as AMD
 2024.11 Jun 15, 2024
    - enh (dkulp)        Add ability to set display names for Model/Submodel layers
    - enh (dkulp)        For VSA import, set the layer name to mach the servo
