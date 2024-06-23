@@ -1390,9 +1390,7 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
         jm["ChannelCount"] = model->GetActChanCount();
         jm["StartChannel"] = ch;
         jm["ChannelCountPerNode"] = model->GetChanCountPerNode();
-        if (IsVersionAtLeast(8, 0)) {
-            jm["xLights"] = true;
-        }
+        jm["xLights"] = true;
 
         MatrixModel *mm = dynamic_cast<MatrixModel*>(model);
         if (mm) {

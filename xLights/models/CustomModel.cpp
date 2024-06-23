@@ -1137,6 +1137,23 @@ void CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         // generally xmodels dont have these ... but there are some cases where we do where it would point to a shadow model ... in those cases we want to bring it in
         wxString smf = root->GetAttribute("ShadowModelFor");
         wxString sc = root->GetAttribute("StartChannel");
+        wxString cs = root->GetAttribute("CustomStrings");
+
+        std::vector<std::tuple<wxString, wxString>> cust_strings;
+        wxString nm = StartNodeAttrName(0);
+        bool hasIndiv = root->HasAttribute(nm);
+        if (hasIndiv && !cs.IsEmpty()) {
+            int c = wxAtoi(cs);
+            for (int x = 0; x < c; ++x) {
+                nm = StartNodeAttrName(x);
+                if (root->HasAttribute(nm)) {
+                    wxString val = root->GetAttribute(nm, "");
+                    if (!val.IsEmpty()) {
+                        cust_strings.emplace_back(nm, val);
+                    }
+                }
+            }
+        }
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
@@ -1162,6 +1179,12 @@ void CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         if (sc != "") {
             SetControllerName("Use Start Channel");
             SetProperty("StartChannel", sc);
+        }
+        if (!cs.IsEmpty()) {
+            SetProperty("CustomStrings", cs);
+            for (auto const& [key, value] : cust_strings) {
+                SetProperty(key, value);
+            }
         }
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         SetProperty("name", newname, true);
@@ -1435,6 +1458,23 @@ void CustomModel::ExportXlightsModel()
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
     wxString lg = ModelXml->GetAttribute("LayoutGroup");
+    wxString cs = ModelXml->GetAttribute("CustomStrings");
+
+    std::vector<std::tuple<wxString, wxString>> cust_strings;
+    wxString nm = StartNodeAttrName(0);
+    bool hasIndiv = ModelXml->HasAttribute(nm);
+    if (hasIndiv) {
+        int c = _strings;
+        for (int x = 0; x < c; ++x) {
+            nm = StartNodeAttrName(x);
+            if (ModelXml->HasAttribute(nm)) {
+                wxString val = ModelXml->GetAttribute(nm, "");
+                if (!val.IsEmpty()) {
+                    cust_strings.emplace_back(nm,val);
+                }
+            }
+        }
+    }
     wxString v = xlights_version_string;
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
@@ -1453,6 +1493,12 @@ void CustomModel::ExportXlightsModel()
     f.Write("CustomModel=\"");
     f.Write(cm);
     f.Write("\" ");
+    if (!cs.IsEmpty()) {
+        f.Write(wxString::Format("CustomStrings=\"%s\" ", cs));
+        for (auto const& [key, value] : cust_strings) {
+            f.Write(wxString::Format("%s=\"%s\" ", key, value));
+        }
+    }
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
