@@ -352,7 +352,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
     enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
 #if defined(__WXMSW__)
-        std::list<std::string> hwdecoders = { "cuda", "amf", "qsv", "vulkan" };
+        std::list<std::string> hwdecoders = { "cuda", "qsv", "d3d11va", "vulkan" };
 
         switch (HW_ACCELERATION_TYPE) {
             case WINHARDWARERENDERTYPE::FFMPEG_CUDA:
@@ -365,7 +365,8 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
                 hwdecoders = { "vulkan" };
                 break;
             case WINHARDWARERENDERTYPE::FFMPEG_AMF:
-                hwdecoders = { "amf" };
+            case WINHARDWARERENDERTYPE::FFMPEG_D3D11VA:
+                hwdecoders = { "d3d11va" };
                 break;
             case WINHARDWARERENDERTYPE::FFMPEG_AUTO:
             case WINHARDWARERENDERTYPE::DIRECX11_API:
@@ -436,6 +437,9 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
             {
                 _codecContext->hw_device_ctx = av_buffer_ref(_hw_device_ctx);
                 _codecContext->get_format = get_hw_format;
+                if (type == AV_HWDEVICE_TYPE_CUDA) {
+                    _codecContext->extra_hw_frames = 8;//workaround for some CUDA decode errors #4628
+                }
                 const char *devName = "";
 #if __has_include(<libavdevice/avdevice.h>)
                 devName = av_hwdevice_get_type_name(type);

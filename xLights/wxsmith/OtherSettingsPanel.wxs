@@ -55,6 +55,7 @@
 								<item>FFmpeg QSV</item>
 								<item>FFmpeg Vulkan</item>
 								<item>FFmpeg AMF</item>
+								<item>FFmpeg DirectX11</item>
 							</content>
 							<selection>1</selection>
 							<handler function="OnControlChanged" entry="EVT_CHOICE" />

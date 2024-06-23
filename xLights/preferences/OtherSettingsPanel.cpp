@@ -99,6 +99,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     HardwareVideoRenderChoice->Append(_("FFmpeg QSV"));
     HardwareVideoRenderChoice->Append(_("FFmpeg Vulkan"));
     HardwareVideoRenderChoice->Append(_("FFmpeg AMF"));
+    HardwareVideoRenderChoice->Append(_("FFmpeg DirectX11"));
     FlexGridSizer3->Add(HardwareVideoRenderChoice, 1, wxALL|wxEXPAND, 5);
     GridBagSizer1->Add(FlexGridSizer3, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
     ShaderCheckbox = new wxCheckBox(this, ID_CHECKBOX7, _("Shaders on Background Threads"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
