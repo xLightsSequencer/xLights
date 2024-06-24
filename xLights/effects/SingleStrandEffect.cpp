@@ -179,6 +179,7 @@ void SingleStrandEffect::Render(Effect* effect, const SettingsMap& SettingsMap, 
                                 GetValueCurveInt("Color_Mix1", 10, SettingsMap, eff_pos, SINGLESTRAND_COLOURMIX_MIN, SINGLESTRAND_COLOURMIX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
                                 SettingsMap.Get("CHOICE_Chase_Type1", "Left-Right"),
                                 SettingsMap.GetBool("CHECKBOX_Chase_3dFade1", false),
+                                SettingsMap.GetBool("CHECKBOX_Chase_3dFade1_Rev", false),
                                 SettingsMap.GetBool("CHECKBOX_Chase_Group_All", false),
                                 GetValueCurveDouble("Chase_Rotations", 1.0, SettingsMap, eff_pos, SINGLESTRAND_ROTATIONS_MIN, SINGLESTRAND_ROTATIONS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SINGLESTRAND_ROTATIONS_DIVISOR),
                                 GetValueCurveDouble("Chase_Offset", 0.0, SettingsMap, eff_pos, SINGLESTRAND_OFFSET_MIN, SINGLESTRAND_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SINGLESTRAND_OFFSET_DIVISOR));
@@ -362,7 +363,7 @@ int mapChaseType(const std::string &Chase_Type) {
 void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* eff,
     const std::string & ColorSchemeName, int Number_Chases, int chaseSize,
     const std::string &Chase_Type1,
-    bool Chase_Fade3d1, bool Chase_Group_All,
+    bool Chase_Fade3d1, bool Chase_3dFade1_Rev, bool Chase_Group_All,
     float chaseSpeed, float offset)
 {
     int ColorScheme = "Palette" == ColorSchemeName;
@@ -512,9 +513,9 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
             x = chase * dx + startState - scaledChaseWidth; // L-R
         }
 
-        draw_chase(buffer, DoubleEnd ? width - x - 1 * scaledChaseWidth : x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Chase_Fade3d1, bool(ChaseDirection) != DoubleEnd, Mirror); // Turn pixel on
+        draw_chase(buffer, DoubleEnd ? width - x - 1 * scaledChaseWidth : x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Chase_Fade3d1, Chase_3dFade1_Rev, bool(ChaseDirection) != DoubleEnd, Mirror); // Turn pixel on
         if (Dual_Chases) {
-            draw_chase(buffer, DoubleEnd ? x - 1 * scaledChaseWidth : x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Chase_Fade3d1, bool(ChaseDirection) == DoubleEnd, Mirror);
+            draw_chase(buffer, DoubleEnd ? x - 1 * scaledChaseWidth : x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Chase_Fade3d1, Chase_3dFade1_Rev, bool(ChaseDirection) == DoubleEnd, Mirror);
         }
     }
     buffer.CopyPixelsToDisplayListX(eff, 0, 0, chaseSize);
@@ -528,6 +529,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
     int width,
     int Chase_Width,
     bool Chase_Fade3d1,
+    bool Chase_3dFade1_Rev,
     int ChaseDirection,
     bool mirror)
 {
@@ -663,10 +665,21 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
 
                 if (Chase_Fade3d1) {
                     if (buffer.allowAlpha) {
-                        color.alpha = 255.0 * (i + 1.0) / max_chase_width;
+                        if (Chase_3dFade1_Rev) {
+                            color.alpha = 255.0 * (max_chase_width - i + 1.0) / max_chase_width; // reverse the fade black to white
+                        } else {
+                            
+                               color.alpha = 255.0 * (i + 1.0) / max_chase_width; // orignal fade from color to black
+                        }
                     } else {
                         HSVValue hsv1 = color.asHSV();
-                        hsv1.value = orig_v - ((max_chase_width - (i + 1.0)) / max_chase_width); // fades data down over chase width
+                        if (Chase_3dFade1_Rev) {
+                            // new reverse value (brightnesss fade) take the orignal brightness - itself (min value) + the fraction of the width going to bright
+                            hsv1.value = orig_v - orig_v + ((max_chase_width - (i + 1.0)) / max_chase_width);
+                        } else {
+                            // orignal fade to black code.
+                            hsv1.value = orig_v - ((max_chase_width - (i + 1.0)) / max_chase_width); // fades data down over chase width
+                        }
                         if (hsv1.value < 0.0) hsv1.value = 0.0;
                         color = hsv1;
                     }

@@ -35,6 +35,7 @@ class SingleStrandPanel: public xlEffectPanel
 		virtual void ValidateWindow() override;
 
 		//(*Declarations(SingleStrandPanel)
+		BulkEditCheckBox* CHECKBOX_Chase_3dFade1_Rev;
 		BulkEditCheckBox* CheckBox_Chase_3dFade1;
 		BulkEditCheckBox* CheckBox_Chase_Group_All;
 		BulkEditChoice* Choice_Chase_Type1;
@@ -123,6 +124,7 @@ class SingleStrandPanel: public xlEffectPanel
 		static const long ID_CHOICE_Chase_Type1;
 		static const long ID_BITMAPBUTTON_CHOICE_Chase_Type1;
 		static const long ID_CHECKBOX_Chase_3dFade1;
+		static const long ID_CHECKBOX_Chase_3dFade1_Rev;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1;
 		static const long ID_CHECKBOX_Chase_Group_All;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Chase_Group_All;
@@ -167,7 +169,7 @@ class SingleStrandPanel: public xlEffectPanel
 
 		//(*Handlers(SingleStrandPanel)
 		//*)
-
+		void OnCheckBox_Chase_3dFade1Click(wxCommandEvent& event);
         void OnChoice_Chase_Type_Select(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()
