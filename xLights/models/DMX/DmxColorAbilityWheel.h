@@ -31,11 +31,11 @@ struct WheelColor
 class DmxColorAbilityWheel : public DmxColorAbility
 {
     public:
-    DmxColorAbilityWheel(wxXmlNode* ModelXml) :
-        DmxColorAbility()
-    {
-        InitColor(ModelXml);
-    };
+        DmxColorAbilityWheel(wxXmlNode* ModelXml) :
+            DmxColorAbility()
+        {
+            InitColor(ModelXml);
+        };
         void InitColor( wxXmlNode* ModelXml) override;
         bool IsColorChannel(uint32_t channel)const override;
         void SetColorPixels(const xlColor& color, xlColorVector & pixelVector ) const override;
@@ -55,12 +55,16 @@ class DmxColorAbilityWheel : public DmxColorAbility
         int GetNumChannels() const override;
         [[nodiscard]] uint32_t GetWheelChannel() const { return wheel_channel; }
         [[nodiscard]] uint32_t GetDimmerChannel() const { return dimmer_channel; }
+        [[nodiscard]] uint32_t GetWheelDelay() const { return wheel_delay; }
         [[nodiscard]] xlColorVector GetColors() const override;
-        [[nodiscard]] std::vector<WheelColor> GetWheelColorSettings() const { return colors; };
+        [[nodiscard]] std::vector<WheelColor> const& GetWheelColorSettings() const { return colors; };
+        [[nodiscard]] size_t GetColorWheelColorSize() const { return colors.size(); };
+        [[nodiscard]] int GetDMXWheelIndex(xlColor const& color) const;
 
     private:
         uint32_t wheel_channel;
         uint32_t dimmer_channel;
+        uint32_t wheel_delay;
         std::vector<WheelColor> colors;
 
         std::optional<xlColor> GetDMXWheelValue(xlColor const & color) const;

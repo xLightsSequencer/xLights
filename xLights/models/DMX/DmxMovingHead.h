@@ -18,7 +18,7 @@
 
 class DmxMotorBase;
 
-class DmxMovingHead : public DmxMovingHeadComm, public DmxShutterAbility, public DmxDimmerAbility
+class DmxMovingHead : public DmxMovingHeadComm, public DmxDimmerAbility
 {
     public:
         DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);

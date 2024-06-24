@@ -785,6 +785,15 @@
 															<cols>1</cols>
 															<rows>1</rows>
 															<growablecols>0</growablecols>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_AUTO_SHUTTER" variable="CheckBoxAutoShutter" member="yes">
+																	<label>Auto Shutter</label>
+																	<handler function="OnCheckBoxAutoShutterClick" entry="EVT_CHECKBOX" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
 														<option>1</option>

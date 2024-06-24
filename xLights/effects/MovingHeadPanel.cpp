@@ -97,6 +97,7 @@ const wxWindowID MovingHeadPanel::ID_CHECKBOX_MHIgnoreTilt = wxNewId();
 const wxWindowID MovingHeadPanel::ID_BUTTON_SavePathPreset = wxNewId();
 const wxWindowID MovingHeadPanel::ID_PANEL_Pathing = wxNewId();
 const wxWindowID MovingHeadPanel::ID_PANEL_Color = wxNewId();
+const wxWindowID MovingHeadPanel::ID_CHECKBOX_AUTO_SHUTTER = wxNewId();
 const wxWindowID MovingHeadPanel::ID_PANEL_ColorWheel = wxNewId();
 const wxWindowID MovingHeadPanel::ID_NOTEBOOK2 = wxNewId();
 const wxWindowID MovingHeadPanel::ID_PANEL_Control = wxNewId();
@@ -375,6 +376,9 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerColorWheelMain->Add(FlexGridSizerColorWheel, 1, wxALL|wxEXPAND, 0);
     FlexGridSizerColorWheelSliders = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerColorWheelSliders->AddGrowableCol(0);
+    CheckBoxAutoShutter = new wxCheckBox(PanelColorWheel, ID_CHECKBOX_AUTO_SHUTTER, _("Auto Shutter"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_AUTO_SHUTTER"));
+    CheckBoxAutoShutter->SetValue(false);
+    FlexGridSizerColorWheelSliders->Add(CheckBoxAutoShutter, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerColorWheelMain->Add(FlexGridSizerColorWheelSliders, 1, wxALL|wxEXPAND, 0);
     PanelColorWheel->SetSizer(FlexGridSizerColorWheelMain);
     Notebook2->AddPage(PanelColor, _("Color"), false);
@@ -447,6 +451,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     Connect(ID_CHECKBOX_MHIgnorePan, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHIgnorePanClick);
     Connect(ID_CHECKBOX_MHIgnoreTilt, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHIgnoreTiltClick);
     Connect(ID_BUTTON_SavePathPreset, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonSavePathPresetClick);
+    Connect(ID_CHECKBOX_AUTO_SHUTTER, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnCheckBoxAutoShutterClick);
     Connect(ID_BUTTON_ResetToDefault, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButton_ResetToDefaultClick);
     Connect(ID_NOTEBOOK1, wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&MovingHeadPanel::OnNotebook1PageChanged);
     //*)
@@ -1124,7 +1129,7 @@ void MovingHeadPanel::UpdateColorPanel()
 static std::list<std::string> possettings = {"Heads", "Pan", "Tilt", "PanOffset", "TiltOffset", "Groupings", "Cycles",
                                              "Pan VC", "Tilt VC", "PanOffset VC", "TiltOffset VC", "Groupings VC"};
 static std::list<std::string> pathsettings = {"Path", "PathScale", "TimeOffset", "IgnorePan", "IgnoreTilt", "PathScale VC", "TimeOffset VC" };
-static std::list<std::string> colorsettings = {"Color", "Wheel" };
+static std::list<std::string> colorsettings = { "Color", "Wheel", "AutoShutter" };
 static std::list<std::string> dimmersettings = {"Dimmer" };
 
 void MovingHeadPanel::UpdateMHSettings()
@@ -1239,6 +1244,9 @@ void MovingHeadPanel::UpdateColorSettings()
                         if( wheel_active ) {
                             mh_settings += ";";
                             mh_settings += wheel_text;
+                            if (CheckBoxAutoShutter->IsChecked()) {
+                                mh_settings += ";AutoShutter: true";
+                            }
                         }
                         mh_textbox->SetValue(mh_settings);
                     }
@@ -1914,6 +1922,8 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
             if( m_movingHeadDimmerPanel != nullptr ) {
                 m_movingHeadDimmerPanel->SetDimmerCommands(settings);
             }
+        } else if (cmd_type == "AutoShutter") {
+            UpdateCheckbox("AutoShutter", true);
         }
     }
     float pan = 0.0f;
@@ -1966,4 +1976,10 @@ void MovingHeadPanel::OnButtonDimmerOffClick(wxCommandEvent& event)
 
 void MovingHeadPanel::OnValueCurve_MHTiltOffsetClick(wxCommandEvent& event)
 {
+}
+
+void MovingHeadPanel::OnCheckBoxAutoShutterClick(wxCommandEvent& event)
+{
+    UpdateColorSettings();
+    FireChangeEvent();
 }

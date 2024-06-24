@@ -21,7 +21,7 @@
 class Mesh;
 class MhFeature;
 
-class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility, public DmxDimmerAbility
+class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxDimmerAbility
 {
     public:
     DmxMovingHeadAdv(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
