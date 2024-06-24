@@ -475,6 +475,9 @@ void MovingHeadEffect::CalculateColorWheelShutter(DmxColorAbility* mh_color, dou
         return xlColor(v);
     };
     auto wheel_delay = wheel_head->GetWheelDelay();
+    if (0u == wheel_delay ) {
+        return;
+    }
     long effect_len_ms = buffer.GetEndTimeMS() - buffer.GetStartTimeMS();
     int frame_Time = buffer.frameTimeInMs;
     ValueCurve vc;
