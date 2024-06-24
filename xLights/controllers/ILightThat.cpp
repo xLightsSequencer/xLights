@@ -94,12 +94,12 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         outputConfig["start_universe"] = cud.GetFirstOutput()->GetUniverse();
         if (cud.GetFirstOutput()->GetType() == OUTPUT_E131 ||
             cud.GetFirstOutput()->GetType() == OUTPUT_ARTNET) {
-            // We know channels will be the same, as the xcontroller file specifies 
+            // We know number of channels will all be the same, as the xcontroller file specifies
             // AllInputUniversesMustBeSameSize
             outputConfig["channels_per_universe"] = cud.GetFirstOutput()->GetChannels();
         } else {
             // DDP or something else. Give a nice default value...
-            outputConfig["channels_per_universe"] = 510; 
+            outputConfig["channels_per_universe"] = 510;
         }
         //GetOutputConfig(outputConfig);
         for (int x = 0; x < cud.GetMaxPixelPort(); x++) {
@@ -114,7 +114,7 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 if (brightness == -1) {
                     brightness = 100;
                 }
-                
+
                 if (model_test_cols.find(model->GetName()) == model_test_cols.end()) {
                     outputConfig["ports"][x]["models"][i]["test_colour"] = _model_test_default_colours [_model_test_default_col_idx];
                     _model_test_default_col_idx = (_model_test_default_col_idx + 1) % _model_test_default_colours.size();
