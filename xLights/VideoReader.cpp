@@ -437,9 +437,6 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
             {
                 _codecContext->hw_device_ctx = av_buffer_ref(_hw_device_ctx);
                 _codecContext->get_format = get_hw_format;
-                if (type == AV_HWDEVICE_TYPE_CUDA) {
-                    _codecContext->extra_hw_frames = 8;//workaround for some CUDA decode errors #4628
-                }
                 const char *devName = "";
 #if __has_include(<libavdevice/avdevice.h>)
                 devName = av_hwdevice_get_type_name(type);
@@ -664,7 +661,7 @@ void VideoReader::Seek(int timestampMS, bool readFrame)
 #ifdef VIDEO_EXTRALOGGING
         logger_base.info("VideoReader: Seeking to %d ms.", timestampMS);
 #endif
-        if (_atEnd && _videoToolboxAccelerated) {
+        if (_atEnd && (_videoToolboxAccelerated || _hw_device_ctx)) {
             // once the end is reached, the hardware decoder is done
             // so we need to reopen it to be able continue decoding
             reopenContext();
@@ -914,7 +911,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
                 int decodeCount = 0;
                 int ret = avcodec_send_packet(_codecContext, _packet);
                 while (!_abort && ret != 0) {
-                    if (ret != AVERROR(EAGAIN) && _videoToolboxAccelerated) {
+                    if (ret != AVERROR(EAGAIN) && (_videoToolboxAccelerated || _hw_device_ctx )) {
                         logger_base.debug("    Hardware video decoding failed for %s. Reverting to software decoding.", (const char*)_filename.c_str());
                         reopenContext(false);
                         Seek(timestampMS, false);
