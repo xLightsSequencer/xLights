@@ -8,7 +8,6 @@
         <MaxPixelPortChannels>2250</MaxPixelPortChannels>
         <AllInputUniversesMustBeSameSize/>
         <UniversesMustBeSequential/>
-        <AllInputUniversesMustBe510/>
         <SupportsAutoLayout/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
