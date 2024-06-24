@@ -4623,7 +4623,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
     int selectedObjectCnt = editing_models ? ModelsSelectedCount() : ViewObjectsSelectedCount();
 
-    if (editing_models && selectedTreeModels.size() > 1 && selectedTreeGroups.size() == 0)
+    if (selectedObjectCnt > 1)
     {
         wxMenu* mnuBulkEdit = new wxMenu();
         AddBulkEditOptionsToMenu(mnuBulkEdit);
