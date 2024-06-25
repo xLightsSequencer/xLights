@@ -1518,7 +1518,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                         }
                         if (m->DisplayAs == "SubModel") {
                             if (mark_selected) {
-                                prev_models.push_back(m);  // setting this causes exception when prev_models render finds a submodel
+                              //  prev_models.push_back(m);  // setting this causes exception when prev_models render finds a submodel
                             }
                         }
                         else if (m->DisplayAs == "ModelGroup") {
