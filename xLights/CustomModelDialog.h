@@ -48,6 +48,8 @@ class OutputManager;
 
 wxDECLARE_EVENT(EVT_GRID_KEY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SWITCH_GRID, wxCommandEvent);
+wxDECLARE_EVENT(EVT_UNDO_GRID, wxCommandEvent);
+wxDECLARE_EVENT(EVT_REDO_GRID, wxCommandEvent);
 
 class CustomModelDialog: public wxDialog
 {
@@ -266,6 +268,8 @@ class CustomModelDialog: public wxDialog
 		void OnGridCustomCellLeftClick(wxGridEvent& event);
 		void OnGridKeyDown(wxKeyEvent& event);
 		void OnSwitchGrid(wxCommandEvent& event);
+        void OnUndoGrid(wxCommandEvent& event);
+        void OnRedoGrid(wxCommandEvent& event);
 
 		void GetMinMaxNode(long& min, long& max);
 		void Reverse();

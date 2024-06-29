@@ -125,13 +125,17 @@ const long CustomModelDialog::ID_TIMER1 = wxNewId();
 
 wxDEFINE_EVENT(EVT_GRID_KEY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SWITCH_GRID, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UNDO_GRID, wxCommandEvent);
+wxDEFINE_EVENT(EVT_REDO_GRID, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(CustomModelDialog,wxDialog)
 	//(*EventTable(CustomModelDialog)
 	//*)
     EVT_COMMAND(wxID_ANY, EVT_GRID_KEY, CustomModelDialog::OnGridKey)
     EVT_COMMAND(wxID_ANY, EVT_SWITCH_GRID, CustomModelDialog::OnSwitchGrid)
-END_EVENT_TABLE()
+    EVT_COMMAND(wxID_ANY, EVT_UNDO_GRID, CustomModelDialog::OnUndoGrid)
+    EVT_COMMAND(wxID_ANY, EVT_REDO_GRID, CustomModelDialog::OnRedoGrid)
+    END_EVENT_TABLE()
 
 class CustomNotebook : public wxNotebook
 {
@@ -269,6 +273,26 @@ class CopyPasteGrid : public wxGrid
                 wxCommandEvent keyEvent(EVT_GRID_KEY);
                 keyEvent.SetInt(WXK_CONTROL_A);
                 wxPostEvent(this, keyEvent);
+                event.StopPropagation();
+            }
+            break;
+        case 'z':
+        case 'Z':
+        case WXK_CONTROL_Z:
+            if (event.CmdDown() || event.ControlDown()) {
+                wxCommandEvent keyundoEvent(EVT_UNDO_GRID);
+                keyundoEvent.SetInt(WXK_CONTROL_A);
+                wxPostEvent(this, keyundoEvent);
+                event.StopPropagation();
+            }
+            break;
+        case 'y':
+        case 'Y':
+        case WXK_CONTROL_Y:
+            if (event.CmdDown() || event.ControlDown()) {
+                wxCommandEvent keyundoEvent(EVT_REDO_GRID);
+                keyundoEvent.SetInt(WXK_CONTROL_A);
+                wxPostEvent(this, keyundoEvent);
                 event.StopPropagation();
             }
             break;
@@ -3448,5 +3472,36 @@ void CustomModelDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
         StartOutputToLights();
     } else {
         StopOutputToLights();
+    }
+}
+
+void CustomModelDialog::OnUndoGrid(wxCommandEvent& event) {  
+    if (autoincrement) {
+        auto grid = GetActiveGrid();
+        next_channel--;
+        next_channel = std::max(1, next_channel);
+        SpinCtrlNextChannel->SetValue(next_channel);
+        for (auto c = 0; c < grid->GetNumberCols(); c++) {
+            for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+                wxString s = grid->GetCellValue(r, c);
+
+                if (!s.IsEmpty()) {
+                    long v;
+                    if (s.ToCLong(&v) == true) {
+                        if (next_channel ==v ) {
+                            GetActiveGrid()->SetCellValue(r, c, "");
+                            GetActiveGrid()->SetGridCursor(r, c);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void CustomModelDialog::OnRedoGrid(wxCommandEvent& event) {
+    if (autoincrement) {
+        next_channel++;
+        SpinCtrlNextChannel->SetValue(next_channel);
     }
 }
