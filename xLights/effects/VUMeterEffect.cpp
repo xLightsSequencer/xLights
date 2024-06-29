@@ -259,6 +259,15 @@ void VUMeterEffect::SetPanelStatus(Model* cls)
     {
         vp->Choice_VUMeter_TimingTrack->Select(0);
     }
+    if (mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile) {
+        xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+        vp->Choice_VUMeter_Audio->Clear();
+        //vp->Choice_VUMeter_Audio->AppendItems(xml_file->GetSubMediaNames());
+        vp->Choice_VUMeter_Audio->Append("Main");
+        for (auto const& name: xml_file->GetSubMediaNames()) {
+             vp->Choice_VUMeter_Audio->Append(name);
+        }
+    }
 
     // Validate the window (includes enabling and disabling controls)
     vp->ValidateWindow();
@@ -319,7 +328,8 @@ void VUMeterEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
            SettingsMap.GetBool("CHECKBOX_VUMeter_LogarithmicX", false),
            SettingsMap.Get("TEXTCTRL_Filter", ""),
            SettingsMap.GetBool("CHECKBOX_Regex", false),
-           SettingsMap.Get("FILEPICKERCTRL_SVGFile", ""));
+           SettingsMap.Get("FILEPICKERCTRL_SVGFile", ""),
+           SettingsMap.Get("CHOICE_VUMeter_Audio", ""));
 }
 
 class VUMeterRenderCache : public EffectRenderCache
@@ -518,8 +528,9 @@ int VUMeterEffect::DecodeShape(const std::string& shape)
 	return ShapeType::CIRCLE;
 }
 
-void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset, int gain, bool logarithmicX, const std::string& filter, bool regex, const std::string& svgFile)
-{
+void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, 
+    const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset, int gain, bool logarithmicX, const std::string& filter, bool regex, 
+    const std::string& svgFile, const std::string& audioFile) {
     // startnote must be less than or equal to endnote
     if (startnote > endnote)
     {
@@ -590,19 +601,19 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 		switch (nType)
 		{
 		case RenderType::SPECTROGRAM:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, false, 0, false, logarithmicX, false, 1, sensitivity, _lineHistory);
+            RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, false, 0, false, logarithmicX, false, 1, sensitivity, _lineHistory, audioFile);
 			break;
 		case RenderType::SPECTROGRAM_PEAK:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, false, logarithmicX, false, 1, sensitivity, _lineHistory);
+            RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, false, logarithmicX, false, 1, sensitivity, _lineHistory, audioFile);
 			break;
 		case RenderType::SPECTROGRAM_LINE:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, true, logarithmicX, false, 1, sensitivity, _lineHistory);
+            RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, true, logarithmicX, false, 1, sensitivity, _lineHistory, audioFile);
 			break;
 		case RenderType::SPECTROGRAM_CIRCLELINE:
-            RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, true, logarithmicX, true, gain, sensitivity, _lineHistory);
+            RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, true, logarithmicX, true, gain, sensitivity, _lineHistory, audioFile);
 			break;
 		case RenderType::VOLUME_BARS:
-			RenderVolumeBarsFrame(buffer, usebars, gain);
+            RenderVolumeBarsFrame(buffer, usebars, gain, audioFile);
 			break;
 		case RenderType::WAVEFORM:
 			RenderWaveformFrame(buffer, usebars, yoffset, gain, false);
@@ -626,58 +637,58 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             RenderTimingEventFrame(buffer, usebars, nType, timingtrack, _timingmarks, filter, regex);
 			break;
 		case RenderType::ON:
-			RenderOnFrame(buffer, gain);
+            RenderOnFrame(buffer, gain, audioFile);
 			break;
 		case RenderType::PULSE:
 			RenderPulseFrame(buffer, usebars, timingtrack, _lasttimingmark);
 			break;
 		case RenderType::INTENSITY_WAVE:
-			RenderIntensityWaveFrame(buffer, usebars, gain);
+            RenderIntensityWaveFrame(buffer, usebars, gain, audioFile);
 			break;
 		case RenderType::LEVEL_PULSE:
-			RenderLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark, gain);
+            RenderLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark, gain, audioFile);
 			break;
         case RenderType::LEVEL_JUMP:
-            RenderLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, gain, false, _lastsize);
+            RenderLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, gain, false, _lastsize, audioFile);
             break;
         case RenderType::LEVEL_JUMP100:
-            RenderLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, gain, true, _lastsize);
+            RenderLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, gain, true, _lastsize, audioFile);
             break;
         case RenderType::LEVEL_SHAPE:
-			RenderLevelShapeFrame(buffer, shape, _lastsize, sensitivity, slowdownfalls, xoffset, yoffset, usebars, gain, cache->GetImage());
+            RenderLevelShapeFrame(buffer, shape, _lastsize, sensitivity, slowdownfalls, xoffset, yoffset, usebars, gain, cache->GetImage(), audioFile);
 			break;
         case RenderType::COLOR_ON:
-            RenderOnColourFrame(buffer, gain);
+            RenderOnColourFrame(buffer, gain, audioFile);
             break;
         case RenderType::DOMINANT_FREQUENCY_COLOUR:
-            RenderDominantFrequencyColour(buffer, sensitivity, startnote, endnote, false);
+            RenderDominantFrequencyColour(buffer, sensitivity, startnote, endnote, false, audioFile);
             break;
         case RenderType::DOMINANT_FREQUENCY_COLOUR_GRADIENT:
-            RenderDominantFrequencyColour(buffer, sensitivity, startnote, endnote, true);
+            RenderDominantFrequencyColour(buffer, sensitivity, startnote, endnote, true, audioFile);
             break;
         case RenderType::TIMING_EVENT_COLOR:
             RenderTimingEventColourFrame(buffer, _colourindex, timingtrack, sensitivity, filter, regex);
             break;
         case RenderType::NOTE_ON:
-            RenderNoteOnFrame(buffer, startnote, endnote, gain);
+            RenderNoteOnFrame(buffer, startnote, endnote, gain, audioFile);
             break;
         case RenderType::NOTE_LEVEL_PULSE:
-            RenderNoteLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote, gain);
+            RenderNoteLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote, gain, audioFile);
             break;
         case RenderType::NOTE_LEVEL_JUMP:
-            RenderNoteLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote, gain, false, _lastsize);
+            RenderNoteLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote, gain, false, _lastsize, audioFile);
             break;
         case RenderType::NOTE_LEVEL_JUMP100:
-            RenderNoteLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote, gain, true, _lastsize);
+            RenderNoteLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote, gain, true, _lastsize, audioFile);
             break;
         case RenderType::TIMING_EVENT_JUMP:
-            RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, true, gain, filter, regex);
+            RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, true, gain, filter, regex, audioFile);
             break;
         case RenderType::TIMING_EVENT_PULSE:
             RenderTimingEventPulseFrame(buffer, usebars, timingtrack, _lastsize, filter, regex);
             break;
         case RenderType::TIMING_EVENT_JUMP_100:
-            RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, false, 0, filter, regex);
+            RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, false, 0, filter, regex, audioFile);
             break;
         case RenderType::TIMING_EVENT_BAR:
             RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, false, false, filter, regex, false, _lastDirection);
@@ -689,10 +700,10 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, false, true, filter, regex, false, _lastDirection);
             break;
         case RenderType::LEVEL_BAR:
-            RenderLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, gain, false);
+            RenderLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, gain, false, audioFile);
             break;
         case RenderType::LEVEL_RANDOM_BAR:
-            RenderLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, gain, true);
+            RenderLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, gain, true, audioFile);
             break;
         case RenderType::NOTE_LEVEL_BAR:
             RenderNoteLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, startnote, endnote, gain, false);
@@ -701,7 +712,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             RenderNoteLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, startnote, endnote, gain, true);
             break;
         case RenderType::LEVEL_PULSE_COLOR:
-            RenderLevelPulseColourFrame(buffer, usebars, sensitivity, _lasttimingmark, _colourindex, gain);
+            RenderLevelPulseColourFrame(buffer, usebars, sensitivity, _lasttimingmark, _colourindex, gain, audioFile);
             break;
         case RenderType::TIMING_EVENT_BARS:
             RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, true, false, filter, regex, false, _lastDirection);
@@ -710,7 +721,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             RenderTimingEventPulseColourFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, filter, regex);
             break;
         case RenderType::LEVEL_COLOR:
-            RenderLevelColourFrame(buffer, _colourindex, sensitivity, _lasttimingmark, gain);
+            RenderLevelColourFrame(buffer, _colourindex, sensitivity, _lasttimingmark, gain, audioFile);
             break;
         default:
             wxASSERT(false);
@@ -724,13 +735,27 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	}
 }
 
-void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::vector<float>& lastvalues, std::vector<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain, int sensitivity, std::list<std::vector<wxPoint>>& lineHistory) const
-{
+const FrameData* getAudioFrameData(RenderBuffer& buffer, int idx , const std::string& audioName) {
+    if (buffer.GetMedia() == nullptr)
+        return nullptr;
+    if (audioName.empty() || audioName == "Main") {
+        return buffer.GetMedia()->GetFrameData(idx);
+    }
+    auto subAud = buffer.GetSubMedia(audioName);
+    if (subAud) {
+        return subAud->GetFrameData(idx);
+    }
+    return buffer.GetMedia()->GetFrameData(idx);
+}
+
+void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::vector<float>& lastvalues, std::vector<float>& lastpeaks, std::list<int>& pauseuntilpeakfall,
+                                            bool slowdownfalls, int startNote, int endNote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, 
+                                            bool circle, int gain, int sensitivity, std::list<std::vector<wxPoint>>& lineHistory, const std::string& audioFile) const {
     if (buffer.GetMedia() == nullptr) return;
 
     int truexoffset = xoffset * buffer.BufferWi / 100;
     int trueyoffset = yoffset * buffer.BufferHt / 100;
-	auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pdata = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
 
     while (lineHistory.size() > sensitivity / 10)
     {
@@ -1020,8 +1045,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 	}
 }
 
-void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars, int gain)
-{
+void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer& buffer, int usebars, int gain, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
     if (usebars == 0) usebars = 1;
@@ -1033,7 +1057,7 @@ void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars, int
         int i = start + (int)((float)x / cols);
         if (i > 0) {
             float f = 0.0;
-            auto pf = buffer.GetMedia()->GetFrameData(i, "");
+            auto pf = getAudioFrameData(buffer, i, audioFile);
             if (pf != nullptr) {
                 f = ApplyGain(pf->max, gain);
             }
@@ -1104,7 +1128,7 @@ void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars, int y
         for (int i = 0; i < usebars; i++) {
             if (start + i >= 0) {
                 float fh = 0.0;
-                auto pf = buffer.GetMedia()->GetFrameData(start + i, "");
+                auto pf = buffer.GetMedia()->GetFrameData(start + i);
                 float fl = 0.0;
                 if (pf != nullptr) {
                     fh = ApplyGain(pf->max, gain);
@@ -1310,12 +1334,11 @@ void VUMeterEffect::RenderTimingEventTimedChaseFrame(RenderBuffer& buffer, int u
     }
 }
 
-void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer, int gain)
-{
+void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer, int gain, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
     float f = 0.0;
-	auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pf = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
     if (pf != nullptr) {
 		f = ApplyGain(pf->max, gain);
 	}
@@ -1332,13 +1355,12 @@ void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer, int gain)
 	}
 }
 
-void VUMeterEffect::RenderDominantFrequencyColour(RenderBuffer& buffer, int sensitivity, int startnote, int endnote, bool gradient)
-{
+void VUMeterEffect::RenderDominantFrequencyColour(RenderBuffer& buffer, int sensitivity, int startnote, int endnote, bool gradient, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
     float sns = (float)sensitivity / 100.0;
 
-    auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pdata = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
 
     if (pdata != nullptr && pdata->vu.size() != 0)
     {
@@ -1383,12 +1405,11 @@ void VUMeterEffect::RenderDominantFrequencyColour(RenderBuffer& buffer, int sens
     }
 }
 
-void VUMeterEffect::RenderOnColourFrame(RenderBuffer& buffer, int gain)
-{
+void VUMeterEffect::RenderOnColourFrame(RenderBuffer& buffer, int gain, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
     float f = 0.0;
-    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pf = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
     if (pf != nullptr) {
         f = ApplyGain(pf->max, gain);
     }
@@ -1454,8 +1475,7 @@ void VUMeterEffect::RenderPulseFrame(RenderBuffer& buffer, int fadeframes, std::
     }
 }
 
-void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer &buffer, int usebars, int gain)
-{
+void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer& buffer, int usebars, int gain, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
 	int start = buffer.curPeriod - usebars;
@@ -1466,7 +1486,7 @@ void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer &buffer, int usebars, 
 		if (start + i >= 0)
 		{
 			float f = 0.0;
-			auto pf = buffer.GetMedia()->GetFrameData(start + i, "");
+            auto pf = getAudioFrameData(buffer, start + i, audioFile);
 			if (pf != nullptr) {
 				f = ApplyGain(pf->max, gain);
 			}
@@ -1496,12 +1516,11 @@ void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer &buffer, int usebars, 
 	}
 }
 
-void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain)
-{
+void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
     float f = 0.0;
-	auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pf = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
 	if (pf != nullptr) {
 		f = ApplyGain(pf->max, gain);
 	}
@@ -1536,12 +1555,11 @@ void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, 
 	}
 }
 
-void VUMeterEffect::RenderLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain, bool fullJump, float& lastVal)
-{
+void VUMeterEffect::RenderLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain, bool fullJump, float& lastVal, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
     float f = 0.0;
-    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pf = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
     if (pf != nullptr) {
         f = ApplyGain(pf->max, gain);
     }
@@ -1583,12 +1601,11 @@ void VUMeterEffect::RenderLevelJumpFrame(RenderBuffer& buffer, int fadeframes, i
     }
 }
 
-void VUMeterEffect::RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark, int& colourindex, int gain)
-{
+void VUMeterEffect::RenderLevelPulseColourFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int& colourindex, int gain, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
     float f = 0.0;
-    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pf = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
     if (pf != nullptr) {
         f = ApplyGain(pf->max, gain);
     }
@@ -1632,12 +1649,11 @@ void VUMeterEffect::RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadefr
     }
 }
 
-void VUMeterEffect::RenderLevelColourFrame(RenderBuffer &buffer, int& colourindex, int sensitivity, int& lasttimingmark, int gain)
-{
+void VUMeterEffect::RenderLevelColourFrame(RenderBuffer& buffer, int& colourindex, int sensitivity, int& lasttimingmark, int gain, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
     float f = 0.0;
-    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pf = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
     if (pf != nullptr) {
         f = ApplyGain(pf->max, gain);
     }
@@ -2235,8 +2251,7 @@ void VUMeterEffect::DrawCandycane(RenderBuffer &buffer, int xc, int yc, double r
 
 #pragma endregion
 
-void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars, int gain, NSVGimage* svgFile)
-{
+void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars, int gain, NSVGimage* svgFile, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
 	int nShape = DecodeShape(shape);
@@ -2250,7 +2265,7 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
     float scaling = (float)scale / 100.0 * 7.0;
 
 	float f = 0.0;
-    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pf = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
 	if (pf != nullptr) {
 		f = ApplyGain(pf->max, gain);
 	}
@@ -2572,8 +2587,7 @@ Effect* VUMeterEffect::GetTimingEvent(const std::string& timingTrack, uint32_t m
     return nullptr;
 }
 
-void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer& buffer, int fallframes, std::string timingtrack, float& lastsize, bool useAudioLevel, int gain, const std::string& filter, bool regex)
-{
+void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer& buffer, int fallframes, std::string timingtrack, float& lastsize, bool useAudioLevel, int gain, const std::string& filter, bool regex, const std::string& audioFile) {
     if (useAudioLevel && buffer.GetMedia() == nullptr) return;
 
     if (timingtrack != "")
@@ -2584,7 +2598,7 @@ void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer& buffer, int fallfra
         {
             if (useAudioLevel) {
                 float f = 0.0;
-                auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+                auto pf = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
                 if (pf != nullptr) {
                     f = ApplyGain(pf->max, gain);
                 }
@@ -2708,11 +2722,10 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer& buffer, int& colo
     }
 }
 
-void VUMeterEffect::RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote, int gain)
-{
+void VUMeterEffect::RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote, int gain, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
-    auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pdata = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
 
     if (pdata != nullptr && pdata->vu.size() != 0)
     {
@@ -2743,11 +2756,10 @@ void VUMeterEffect::RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int e
     }
 }
 
-void VUMeterEffect::RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain)
-{
+void VUMeterEffect::RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
-    auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pdata = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
 
     if (pdata != nullptr && pdata->vu.size() != 0)
     {
@@ -2795,11 +2807,10 @@ void VUMeterEffect::RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadefram
     }
 }
 
-void VUMeterEffect::RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain, bool fullJump, float& lastsize)
-{
+void VUMeterEffect::RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain, bool fullJump, float& lastsize, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
-    auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pdata = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
 
     if (pdata != nullptr && pdata->vu.size() != 0)
     {
@@ -2853,11 +2864,10 @@ void VUMeterEffect::RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframe
     }
 }
 
-void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int gain, bool random)
-{
+void VUMeterEffect::RenderLevelBarFrame(RenderBuffer& buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int gain, bool random, const std::string& audioFile) {
     if (buffer.GetMedia() == nullptr) return;
 
-    auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pdata = getAudioFrameData(buffer, buffer.curPeriod, audioFile);
 
     if (pdata != nullptr) {
         float level = ApplyGain(pdata->max, gain);
@@ -2982,7 +2992,7 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer& buffer, int bars, int 
     if (buffer.GetMedia() == nullptr)
         return;
 
-    auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod);
 
     if (pdata != nullptr && pdata->vu.size() != 0) {
         int i = 0;
