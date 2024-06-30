@@ -124,13 +124,12 @@ void SyncManager::ClearMasters()
     }
 }
 
-void SyncManager::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const
-{ 
+void SyncManager::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno, int overridetimeSecs) const { 
     for (auto& it : _masters)
     {
         if (it->IsReactive())
         {
-            it->SendSync(frameMS, stepLengthMS, stepMS, playlistMS, fseq, media, step, timeItem, stepno);
+            it->SendSync(frameMS, stepLengthMS, stepMS, playlistMS, fseq, media, step, timeItem, stepno, overridetimeSecs);
         }
     }
 }

@@ -91,7 +91,8 @@ public:
                         auto ms = pl->GetPosition();
                         auto stepno = pl->GetRunningStepIndex();
                         auto stepms = pl->GetRunningStep() == nullptr ? 0 : pl->GetRunningStep()->GetPosition();
-                        _syncArtNet->SendSync(0, 0, stepms, ms, "", "", "", "", stepno);
+                        auto basesecs = pl->GetRunningStep() == nullptr ? -1 : pl->GetRunningStep()->GetBaseTimeCodeTime();
+                        _syncArtNet->SendSync(0, 0, stepms, ms, "", "", "", "", stepno, basesecs);
                         _toSendStop = true;
                     }
                     else
@@ -222,7 +223,7 @@ double SyncArtNet::GetInterval()
     return 1000.0 / 25.0;
 }
 
-void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const
+void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno, int overridetimeSecs) const
 {
     if (_artnetSocket == nullptr) return;
 
@@ -250,8 +251,13 @@ void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t step
         ms = 0;
     }
 
+    if (overridetimeSecs >= 0)
+    {
+        ms += overridetimeSecs * 1000;
+    }
+
     // hours
-    buffer[17] = GetHours(ms, stepno);
+    buffer[17] = GetHours(ms, stepno, overridetimeSecs);
     // minutes
     buffer[16] = GetMinutes(ms);
     // secs
@@ -284,5 +290,5 @@ void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t step
 
 void SyncArtNet::SendStop() const
 {
-    SendSync(50, 0, 0, 0xFFFFFFFF, "", "", "", "", 0);
+    SendSync(50, 0, 0, 0xFFFFFFFF, "", "", "", "", 0, 0);
 }

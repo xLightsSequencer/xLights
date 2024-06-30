@@ -90,7 +90,8 @@ public:
                         auto ms = pl->GetPosition();
                         auto stepno = pl->GetRunningStepIndex();
                         auto stepms = pl->GetRunningStep() == nullptr ? 0 : pl->GetRunningStep()->GetPosition();
-                        _syncMidi->SendSync(0, 0, stepms, ms, "", "", "", "", stepno);
+                        auto basesecs = pl->GetRunningStep() == nullptr ? -1 : pl->GetRunningStep()->GetBaseTimeCodeTime();
+                        _syncMidi->SendSync(0, 0, stepms, ms, "", "", "", "", stepno, basesecs);
                         _toSendStop = true;
                     }
                     else
@@ -331,8 +332,7 @@ void SyncMIDI::SendClock() const
     }
 }
 
-void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const
-{
+void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno, int overridetimeSecs) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static size_t lastmsec = 999999999;
     static bool firstquarterframe = true;
@@ -389,11 +389,15 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
     if (sendresync) {
         uint8_t buffer[10];
         size_t ms = playlistMS;
-        if (_useStepMMSSFormat && _supportsStepMMSSFormat) {
-            ms = stepMS;
-        }
 
-        ms += _timeCodeOffset;
+        if (overridetimeSecs >= 0) {
+            ms += overridetimeSecs * 1000;
+        } else {
+            if (_useStepMMSSFormat && _supportsStepMMSSFormat) {
+                ms = stepMS;
+            }
+            ms += _timeCodeOffset;
+        }
 
         buffer[0] = 0xF0;
         buffer[1] = 0x7F;
@@ -401,7 +405,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
         buffer[3] = 0x01;
         buffer[4] = 0x01;
 
-        buffer[5] = (static_cast<int>(_timeCodeFormat) << 5) + GetHours(ms, stepno); // hour
+        buffer[5] = (static_cast<int>(_timeCodeFormat) << 5) + GetHours(ms, stepno, overridetimeSecs); // hour
         buffer[6] = GetMinutes(ms); // minute
         buffer[7] = GetSeconds(ms); // seconds
         ms = ms % 1000;
@@ -432,12 +436,16 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
     }
     else {
         size_t ms = playlistMS;
-        if (_useStepMMSSFormat && _supportsStepMMSSFormat) {
-            ms = stepMS;
+        if (overridetimeSecs >= 0) {
+            ms += overridetimeSecs * 1000;
+        } else {
+            if (_useStepMMSSFormat && _supportsStepMMSSFormat) {
+                ms = stepMS;
+            }
+            ms += _timeCodeOffset;
         }
-        ms += _timeCodeOffset;
 
-        int hours = (static_cast<int>(_timeCodeFormat) << 5) + GetHours(ms, stepno);
+        int hours = (static_cast<int>(_timeCodeFormat) << 5) + GetHours(ms, stepno, overridetimeSecs);
         int mins = GetMinutes(ms);
         int secs = GetSeconds(ms);
         ms = ms % 1000;
@@ -544,5 +552,5 @@ uint8_t SyncMIDI::GetTimeCodeBits() const
 
 void SyncMIDI::SendStop() const
 {
-    SendSync(50, 0, 0, 0xFFFFFFFF, "", "", "", "", 0);
+    SendSync(50, 0, 0, 0xFFFFFFFF, "", "", "", "", 0, 0);
 }

@@ -924,7 +924,8 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
                         media, 
                         running->GetRunningStep()->GetNameNoTime(), 
                         tsn,
-                        running->GetRunningStepIndex());
+                        running->GetRunningStepIndex(),
+                        running->GetRunningStep()->GetBaseTimeCodeTime());
                 }
 
                 // for queued songs we must remove the queued song when it finishes

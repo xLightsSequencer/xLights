@@ -63,8 +63,8 @@ class SyncBase
         REMOTEMODE _remoteMode = REMOTEMODE::DISABLED;
         bool _useStepMMSSFormat = false;
 
-        uint32_t GetHours(uint32_t ms, uint32_t step) const {
-            if (_useStepMMSSFormat && _supportsStepMMSSFormat) {
+        uint32_t GetHours(uint32_t ms, uint32_t step, int overrideBaseTime) const {
+            if (overrideBaseTime < 0 && _useStepMMSSFormat && _supportsStepMMSSFormat) {
                 return step;
             }
             return ms / 3600000; 
@@ -76,7 +76,7 @@ class SyncBase
 
         SyncBase(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options);
 		virtual ~SyncBase() {}
-        virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const = 0;
+        virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno, int overridetimeSecs) const = 0;
         virtual std::string GetType() const = 0;
         virtual void SendStop() const = 0;
         uint32_t GetMS() const { return _ms; }
@@ -107,7 +107,7 @@ class SyncManager
 		void SetRemote(REMOTEMODE rm);
         void ClearRemote();
         void ClearMasters();
-        void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const; // send out to all masters
+        void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno, int overridetimeSecs) const; // send out to all masters
         void Start(int mode, REMOTEMODE remoteMode, const std::string& localIP);
         void Stop(const std::string& localIP);
         bool IsSlave() const { return _remote != nullptr; }

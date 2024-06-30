@@ -95,8 +95,7 @@ SyncOSC::~SyncOSC()
     }
 }
 
-void SyncOSC::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& stepName, const std::string& timingItemName, uint32_t stepno) const
-{
+void SyncOSC::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& stepName, const std::string& timingItemName, uint32_t stepno, int overridetimeSecs) const {
     if (_mode != SYNCMODE::OSCMASTER || _oscSocket == nullptr) return;
 
     auto path = _path;
