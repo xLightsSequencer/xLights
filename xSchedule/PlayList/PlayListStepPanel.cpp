@@ -103,8 +103,10 @@ PlayListStepPanel::PlayListStepPanel(wxWindow* parent, PlayListStep* step, wxWin
     int bt = step->GetBaseTimeCodeTime();
 
     if (bt < 0) {
+        CheckBox_TimeCodeOverride->SetValue(false);
         TimeCodeBaseTime->SetValue(wxDateTime(0, 0, 0));
     } else {
+        CheckBox_TimeCodeOverride->SetValue(true);
         TimeCodeBaseTime->SetValue(wxDateTime(bt / (60 * 60), (bt % (60 * 60)) / 60, bt % 60));
     }
 
@@ -153,6 +155,7 @@ void PlayListStepPanel::ValidateWindow()
         CheckBox_ExcludeFirstStep->Enable(false);
         CheckBox_ExcludeLastStep->Enable(false);
     }
+
     if (CheckBox_TimeCodeOverride->GetValue())
     {
         StaticText_BaseTime->Enable(true);

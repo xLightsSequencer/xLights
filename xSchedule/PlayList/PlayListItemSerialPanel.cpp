@@ -104,6 +104,8 @@ PlayListItemSerialPanel::PlayListItemSerialPanel(wxWindow* parent, PlayListItemS
     Choice_CommPort->SetStringSelection(serial->GetCommPort());
     Choice_Configuration->SetStringSelection(serial->GetConfiguration());
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)serial->GetDelay() / 1000.0));
+
+	wxToolTip::SetAutoPop(10000);
 }
 
 PlayListItemSerialPanel::~PlayListItemSerialPanel()
@@ -116,6 +118,8 @@ PlayListItemSerialPanel::~PlayListItemSerialPanel()
     _serial->SetSpeed(wxAtoi(Choice_Speed->GetStringSelection()));
     _serial->SetData(TextCtrl_Data->GetValue().ToStdString());
     _serial->SetDelay(wxAtof(TextCtrl_Delay->GetValue())*1000);
+
+	wxToolTip::SetAutoPop(-1);
 }
 
 void PlayListItemSerialPanel::OnTextCtrl_DelayText(wxCommandEvent& event)

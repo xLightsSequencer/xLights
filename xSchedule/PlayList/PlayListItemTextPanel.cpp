@@ -196,6 +196,8 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
     CheckBox_RenderWhenBlank->SetValue(_text->GetRenderWhenBlank());
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)text->GetDelay() / 1000.0));
 
+	wxToolTip::SetAutoPop(10000);
+
     ValidateWindow();
 }
 
@@ -222,6 +224,8 @@ PlayListItemTextPanel::~PlayListItemTextPanel()
     _text->SetPriority(SpinCtrl_Priority->GetValue());
     _text->SetRenderWhenBlank(CheckBox_RenderWhenBlank->GetValue());
     _text->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
+
+	wxToolTip::SetAutoPop(-1);
 }
 
 void PlayListItemTextPanel::OnChoice_TypeSelect(wxCommandEvent& event)

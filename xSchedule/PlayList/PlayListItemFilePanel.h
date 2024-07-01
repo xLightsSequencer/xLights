@@ -24,6 +24,8 @@ class PlayListItemFilePanel: public wxPanel
 {
     PlayListItemFile* _file;
 
+	void ValidateWindow();
+
 	public:
 
 		PlayListItemFilePanel(wxWindow* parent, PlayListItemFile* file, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);

@@ -75,6 +75,8 @@ PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rd
     TextCtrl_Text->SetToolTip(PlayListItemRDS::GetTooltip());
     Choice_CommPort->SetStringSelection(_rds->GetCommPort());
 
+	wxToolTip::SetAutoPop(10000);
+
     ValidateWindow();
 }
 
@@ -85,6 +87,8 @@ PlayListItemRDSPanel::~PlayListItemRDSPanel()
     _rds->SetStationName(TextCtrl_StationName->GetValue().ToStdString());
     _rds->SetText(TextCtrl_Text->GetValue().ToStdString());
     _rds->SetCommPort(Choice_CommPort->GetStringSelection().ToStdString());
+
+	wxToolTip::SetAutoPop(-1);
 }
 
 void PlayListItemRDSPanel::OnChoice_ScrollModeSelect(wxCommandEvent& event)
