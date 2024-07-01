@@ -12,6 +12,7 @@
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/tooltip.h>
 
 #include "ButtonDetailsDialog.h"
 #include "xScheduleMain.h"

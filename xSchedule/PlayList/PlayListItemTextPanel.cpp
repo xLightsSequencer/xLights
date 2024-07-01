@@ -15,6 +15,7 @@
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/tooltip.h>
 
 #include <wx/colordlg.h>
 #include "../xScheduleMain.h"

@@ -19,6 +19,7 @@
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/tooltip.h>
 
 //(*IdInit(PlayListItemRunCommandPanel)
 const long PlayListItemRunCommandPanel::ID_STATICTEXT3 = wxNewId();

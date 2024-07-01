@@ -16,6 +16,7 @@
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/tooltip.h>
 
 //(*IdInit(PlayListItemOSCPanel)
 const long PlayListItemOSCPanel::ID_STATICTEXT3 = wxNewId();

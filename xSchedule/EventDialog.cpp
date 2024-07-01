@@ -44,6 +44,7 @@
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/tooltip.h>
 
 //(*IdInit(EventDialog)
 const long EventDialog::ID_CHOICEBOOK1 = wxNewId();

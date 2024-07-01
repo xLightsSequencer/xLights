@@ -17,6 +17,7 @@
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/tooltip.h>
 
 //(*IdInit(PlayListItemSerialPanel)
 const long PlayListItemSerialPanel::ID_STATICTEXT3 = wxNewId();
