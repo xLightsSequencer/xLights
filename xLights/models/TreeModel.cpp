@@ -45,6 +45,7 @@ static wxPGChoices TREE_DIRECTIONS(wxArrayString(2, TREE_DIRECTION_VALUES));
 void TreeModel::InitModel() {
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
     _noZig = (ModelXml->GetAttribute("NoZig", "false") == "true");
+    _displayAs = (ModelXml->GetAttribute("DisplayAs"));
     bool isHMatrix = (ModelXml->GetAttribute("StrandDir", TREE_DIRECTION_VALUES[1]) == TREE_DIRECTION_VALUES[0]);
     wxStringTokenizer tkz(DisplayAs, " ");
     wxString token = tkz.GetNextToken();

@@ -500,3 +500,5 @@ int ImageModel::GetChannelValue(int channel)
     Nodes[channel]->GetColor(c);
     return std::max(c.red, std::max(c.green, c.blue));
 }
+
+void ImageModel::ExportXlightsModel() {}

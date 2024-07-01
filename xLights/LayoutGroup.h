@@ -21,6 +21,7 @@ class PreviewPane;
 class LayoutGroup : public wxObject
 {
     public:
+        LayoutGroup();
         LayoutGroup(const std::string & name, xLightsFrame* xl, wxXmlNode *node);
         virtual ~LayoutGroup();
 

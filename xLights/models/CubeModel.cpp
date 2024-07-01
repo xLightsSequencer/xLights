@@ -384,6 +384,22 @@ std::string CubeModel::GetStartLocation() const
     return ModelXml->GetAttribute("Start", "") + " " + ModelXml->GetAttribute("Style", "");
 }
 
+std::string CubeModel::GetStrandStart() const {
+    return ModelXml->GetAttribute("Start", "");
+}
+
+std::string CubeModel::GetStrandStyle() const {
+    return ModelXml->GetAttribute("Style", "");
+}
+
+std::string CubeModel::GetStrandPerLine() const {
+    return ModelXml->GetAttribute("StrandPerLine", "");
+}
+
+std::string CubeModel::GetStrandPerLayer() const {
+    return ModelXml->GetAttribute("StrandPerLayer", "");
+}
+
 std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

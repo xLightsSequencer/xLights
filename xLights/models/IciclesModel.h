@@ -24,6 +24,13 @@ public:
     virtual bool SupportsWiringView() const override { return true; }
     virtual std::string GetDimension() const override;
     virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
+    virtual bool SupportsXlightsModel() override { return true; }
+    virtual void ExportXlightsModel() override;
+    bool HasAlternateNodes() const { return _alternateNodes; }
+    std::string GetDropPattern() const { return _dropPattern; }
+
+    virtual bool SupportsVisitors() override { return true; }
+    void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
 protected:
     virtual void InitModel() override;
@@ -31,4 +38,5 @@ protected:
 private:
     void SetIciclesCoord();
     bool _alternateNodes = false;
+    std::string _dropPattern = "";
 };

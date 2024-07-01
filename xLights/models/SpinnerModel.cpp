@@ -578,3 +578,4 @@ int SpinnerModel::NodesPerString() const {
         }
     }
 }
+void SpinnerModel::ExportXlightsModel() {}

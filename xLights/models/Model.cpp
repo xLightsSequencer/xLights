@@ -7313,6 +7313,23 @@ std::string Model::GetControllerName() const
     return ModelXml->GetAttribute("Controller", "").Trim(true).Trim(false).ToStdString();
 }
 
+std::string Model::GetControllerGamma() const {
+    return GetControllerConnection()->GetAttribute("gamma", "0.0").ToStdString();
+}
+
+int Model::GetControllerReverse() const {
+    return wxAtoi(GetControllerConnection()->GetAttribute("reverse", "0"));
+}
+
+int Model::GetControllerZigZag() const {
+    return wxAtoi(GetControllerConnection()->GetAttribute("zigZag", "0"));
+}
+
+std::string Model::GetRGBWHandling() const {
+    return ModelXml->GetAttribute("RGBWHandling", "").ToStdString();
+}
+
+
 // std::list<std::string> Model::GetProtocols()
 //{
 //     std::list<std::string> res;
@@ -7558,6 +7575,33 @@ void Model::ExportDimensions(wxFile& f) const
     }
 }
 
+std::string Model::GetRulerDim() const {
+    auto ruler = RulerObject::GetRuler();
+    std::string u = "";
+    if (ruler != nullptr) {
+        switch (ruler->GetUnits()) {
+        case RULER_UNITS_INCHES:
+            u = "i";
+            break;
+        case RULER_UNITS_FEET:
+            u = "f";
+            break;
+        case RULER_UNITS_YARDS:
+            u = "y";
+            break;
+        case RULER_UNITS_MM:
+            u = "mm";
+            break;
+        case RULER_UNITS_CM:
+            u = "cm";
+            break;
+        case RULER_UNITS_M:
+            u = "m";
+            break;
+        }
+        return u;
+    }
+}
 void Model::SaveDisplayDimensions()
 {
     _savedWidth = GetModelScreenLocation().GetRestorableMWidth();

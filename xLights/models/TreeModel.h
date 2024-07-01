@@ -22,21 +22,23 @@ class TreeModel : public MatrixModel
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual void ExportAsCustomXModel3D() const override;
-        virtual bool SupportsExportAsCustom3D() const override
-        {
-            return true;
-        }
-        virtual bool SupportsWiringView() const override
-        {
-            return true;
-        }
+        virtual bool SupportsExportAsCustom3D() const override { return true; }
+        virtual bool SupportsWiringView() const override { return true; }
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
         virtual int NodeRenderOrder() override {return 1;}
-        virtual bool SupportsLowDefinitionRender() const override
-        {
-            return false; // we need to override this as the matrix model can set it to true
-        }
+        // we need to override this as the matrix model can set it to true
+        virtual bool SupportsLowDefinitionRender() const override { return false; }
+        int GetTreeType() const { return treeType; }
+        float GetTreeDegrees() const { return degrees; }
+        float GetTreeRotation() const { return rotation; }
+        float GetSpiralRotations() const { return spiralRotations; }
+        float GetBottomTopRatio() const { return botTopRatio; }
+        float GetTreePerspective() const { return perspective; }
+        std::string GetTreeDescription() const { return _displayAs; }
+
+        virtual bool SupportsVisitors() override { return true; }
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:
         virtual void AddStyleProperties(wxPropertyGridInterface *grid) override;
@@ -48,5 +50,6 @@ class TreeModel : public MatrixModel
         float spiralRotations;
         float botTopRatio;
         float perspective;
+        std::string _displayAs;
         void SetTreeCoord(long degrees);
 };

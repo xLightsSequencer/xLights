@@ -29,9 +29,7 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int MapToNodeIndex(int strand, int node) const override;
         virtual int GetMappedStrand(int strand) const override;
 
-        int GetStarSize(int starLayer) const {
-            return GetLayerSize(starLayer);
-        }
+        int GetStarSize(int starLayer) const { return GetLayerSize(starLayer); }
         virtual int GetNumStrands() const override;
         virtual bool AllNodesAllocated() const override;
 
@@ -44,6 +42,12 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;
+        float GetStarRatio() const { return starRatio; }
+        int GetInnerPercent() const { return innerPercent; }
+        std::string GetStartLocation() const { return _starStartLocation; }
+
+        virtual bool SupportsVisitors() override { return true; }
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:
         static std::vector<std::string> STAR_BUFFER_STYLES;

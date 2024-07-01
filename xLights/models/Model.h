@@ -143,6 +143,8 @@ public:
     long GetParm2() const { return parm2; }
     long GetParm3() const { return parm3; }
     int GetTransparency() const { return transparency; }
+    int GetBlackTransparency() const { return blackTransparency; }
+    std::string GetDescription() const { return description; }
     const std::string GetNodeNames() const { return _nodeNamesString; }
     const std::string GetStrandNames() const { return _strandNamesString; }
 
@@ -163,6 +165,7 @@ public:
     void SetBlackTransparency(int t);
     void ApplyDimensions(const std::string& units, float width, float height, float depth, float& min_x, float& max_x, float& min_y, float& max_y);
     void ExportDimensions(wxFile& f) const;
+    std::string GetRulerDim() const;
 
     virtual bool AllNodesAllocated() const { return true; }
     static void ParseFaceInfo(wxXmlNode* fiNode, FaceStateData& faceInfo);
@@ -382,6 +385,11 @@ public:
     [[nodiscard]] int GetControllerEndNulls() const;
     [[nodiscard]] wxString GetControllerColorOrder() const;
     [[nodiscard]] int GetControllerGroupCount() const;
+    [[nodiscard]] std::string GetControllerGamma() const;
+    [[nodiscard]] int GetControllerZigZag() const;
+    [[nodiscard]] int GetControllerReverse() const;
+    [[nodiscard]] std::string GetRGBWHandling() const;
+
     void SetControllerStartNulls(int nulls);
     void SetControllerEndNulls(int nulls);
     void SetControllerColorOrder(wxString const& color);

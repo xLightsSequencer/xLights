@@ -30,6 +30,7 @@ void IciclesModel::InitModel()
 {
     wxString dropPattern = GetModelXml()->GetAttribute("DropPattern", "3,4,5,4");
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
+    _dropPattern = ModelXml->GetAttribute("DropPattern", "");
     wxArrayString pat = wxSplit(dropPattern, ',');
     int numStrings = parm1;
     int lightsPerString = parm2;
@@ -217,3 +218,5 @@ void IciclesModel::AddDimensionProperties(wxPropertyGridInterface* grid)
     // the height does not make sense for icicles
     static_cast<TwoPointScreenLocation>(screenLocation).AddDimensionProperties(grid, 1.0);
 }
+
+void IciclesModel::ExportXlightsModel() {}

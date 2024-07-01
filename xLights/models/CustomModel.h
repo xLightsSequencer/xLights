@@ -69,6 +69,11 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual std::string GetNodeName(size_t x, bool def = false) const override;
         virtual std::list<std::string> CheckModelSettings() override;
         virtual int NodesPerString(int string) const override;
+        std::vector<std::vector<std::vector<int>>> GetLocations() const { return locations; }
+
+        virtual bool SupportsVisitors() override { return true; }
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+        bool hasCM2() const { return _hasCM2; }
 
     protected:
         virtual void InitModel() override;
@@ -77,6 +82,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
     private:
         int GetCustomMaxChannel(const std::string& customModel) const;
         void InitCustomMatrix(const std::string& customModel);
+        void InitCustomMatrix(const std::string& customModel, const bool& isCompressed);
+
         static std::string StartNodeAttrName(int idx)
         {
             return wxString::Format(wxT("String%i"), idx + 1).ToStdString();  // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
@@ -89,4 +96,5 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int _strings;
         std::vector<int> stringStartNodes;
         std::vector<std::vector<std::vector<int>>> locations;
+        bool _hasCM2 = false;
 };

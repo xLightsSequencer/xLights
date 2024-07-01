@@ -33,6 +33,29 @@ public:
 
     virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
+     // Getter methods for private members
+    const std::string& getImageFile() const { return _imageFile; }
+    int getSpacing() const { return spacing; }
+    const xlColor& getGridColor() const { return gridColor; }
+    int getWidth() const { return width; }
+    int getHeight() const { return height; }
+    int getDepth() const { return depth; }
+    int getNumPointsWide() const { return num_points_wide; }
+    int getNumPointsDeep() const { return num_points_deep; }
+    int getNumPoints() const { return num_points; }
+    bool isEditTerrian() const { return editTerrian; }
+    bool isHideImage() const { return hide_image; }
+    bool isHideGrid() const { return hide_grid; }
+    int getBrushSize() const { return brush_size; }
+    int getImgWidth() const { return img_width; }
+    int getImgHeight() const { return img_height; }
+    int getTransparency() const { return transparency; }
+    float getBrightness() const { return brightness; }
+    std::string getPointData() const {
+        return std::to_string(num_points) + "," + std::to_string(num_points_deep) + ",0.00," + std::to_string(num_points_wide);
+    };
+    std::string GetAttribute(const std::string);
+
 protected:
 
 private:

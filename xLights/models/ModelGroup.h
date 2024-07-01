@@ -15,6 +15,7 @@
 #include <string>
 
 #include "Model.h"
+#include "Color.h"
 
 class ModelManager;
 
@@ -54,8 +55,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         bool ContainsModelGroup(ModelGroup* mg, std::set<Model*>& visited);
         bool DirectlyContainsModel(Model* m) const;
         bool DirectlyContainsModel(std::string const& m) const;
-        bool ContainsModel(Model* m) const;
-        bool ContainsModel(Model* m, std::list<const Model*>& visited) const;
+        bool ContainsModel(const Model* m) const;
+        bool ContainsModel(const Model* m, std::list<const Model*>& visited) const;
         bool ContainsModelOrSubmodel(Model* m) const;
         bool ContainsModelOrSubmodel(Model* m, std::list<const Model*>& visited) const;
         bool OnlyContainsModel(const std::string& name) const;
@@ -88,6 +89,12 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetCentreMiny( int miny );
         void SetCentreMaxx( int maxx );
         void SetCentreMaxy( int maxy );
+        int GetCentreMinx() const { return minx; }
+        int GetCentreMiny() const { return miny; }
+        int GetCentreMaxx() const { return maxx; }
+        int GetCentreMaxy() const { return maxy; }
+        std::string GetLayout() const { return layout_group; }
+        wxColour GetTagColour() const { return modelTagColour; }
 
     protected:
         static std::vector<std::string> GROUP_BUFFER_STYLES;
@@ -102,5 +109,9 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         bool centreDefined = false;
         float centrex;
         float centrey;
+        int minx = 0;
+        int miny = 0;
+        int maxx = 0;
+        int maxy = 0;
 };
 

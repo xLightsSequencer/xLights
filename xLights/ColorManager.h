@@ -158,6 +158,8 @@ class ColorManager
             { ColorManager::ColorNames::COLOR_TEXT_UNSELECTED, "TextUnselected", "Unselected Text", xlLIGHT_GREY, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB },
             { ColorManager::ColorNames::COLOR_TEXT_HIGHLIGHTED, "TextHighlighted", "Highlighted Text", xlBLUE, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB }
         };
+        std::map<std::string, xlColor> GetColors() { return colors; }
+        std::map<std::string, xlColor> GetDefaultColors() { return colors_default; }
 
     protected:
 

@@ -243,3 +243,13 @@ int ChannelBlockModel::GetNumStrands() const {
 int ChannelBlockModel::CalcCannelsPerString() {
 	return GetNodeChannelCount(StringType);
 }
+void ChannelBlockModel::ExportXlightsModel() {}
+
+std::vector<std::string> ChannelBlockModel::GetChannelProperies() const {
+    std::vector<std::string> channelPropColour;
+    for (auto i = 0; i < GetNumStrands(); i++) {
+        wxString nm = ChanColorAttrName(i);
+        channelPropColour.push_back(ModelXml->GetAttribute("ChannelProperties." + nm).ToStdString());
+    }
+    return channelPropColour;
+}
