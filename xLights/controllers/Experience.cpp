@@ -285,8 +285,8 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             stringData["outputs"][p - 1] = port;
         } else if (fullControl) {
             wxJSONValue vs;
-            vs["sc"] = 1;
-            vs["ec"] = 1;
+            vs["sc"] = 0;
+            vs["ec"] = 0;
             port["virtual_strings"].Append(vs);
             stringData["outputs"][p - 1] = port;
         }
@@ -302,44 +302,51 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             if (cud.HasPixelPort(portID)) {
                 UDControllerPort* portData = cud.GetControllerPixelPort(portID);
                 portData->CreateVirtualStrings(false);
-
                 for (const auto& pvs : portData->GetVirtualStrings()) {
                     wxJSONValue vs;
-                    vs["n"] = pvs->_description;
-                    vs["sc"] = pvs->_startChannel - startChannel + 1;
-                    vs["ec"] = pvs->Channels() / pvs->_channelsPerPixel;
+
+                    if (pvs->_isDummy) {
+                        vs["sc"] = 0;
+                        vs["ec"] = 0;
+                    } else {
+                        vs["n"] = pvs->_description;
+                        vs["sc"] = pvs->_startChannel - startChannel + 1;
+                        vs["ec"] = pvs->Channels() / pvs->_channelsPerPixel;
+
+                        if (pvs->_reverseSet && pvs->_reverse == "Reverse") {
+                            vs["r"] = true;
+                        }
+                        if (pvs->_gammaSet) {
+                            vs["g"] = EncodeGamma(pvs->_gamma);
+                        }
+                        if (pvs->_brightnessSet) {
+                            vs["b"] = EncodeBrightness(pvs->_brightness);
+                        } else if (fullControl) {
+                            vs["b"] = defaultBrightness;
+                        }
+                        if (pvs->_startNullPixelsSet) {
+                            vs["sn"] = pvs->_startNullPixels;
+                        }
+                        if (pvs->_endNullPixelsSet) {
+                            vs["en"] = pvs->_endNullPixels;
+                        }
+                        if (pvs->_colourOrderSet) {
+                            vs["st"] = EncodeColorOrder(pvs->_colourOrder);
+                        }
+                    }
+
                     if (pvs->_smartRemote > 0) {
                         vs["ri"] = pvs->_smartRemote - 1;
                     }
                     remoteIds.insert(pvs->_smartRemote);
-                    if (pvs->_reverseSet && pvs->_reverse == "Reverse") {
-                        vs["r"] = true;
-                    }
-                    if (pvs->_gammaSet) {
-                        vs["g"] = EncodeGamma(pvs->_gamma);
-                    }
-                    if (pvs->_brightnessSet) {
-                        vs["b"] = EncodeBrightness(pvs->_brightness);
-                    } else if (fullControl) {
-                        vs["b"] = defaultBrightness;
-                    }
-                    if (pvs->_startNullPixelsSet) {
-                        vs["sn"] = pvs->_startNullPixels;
-                    }
-                    if (pvs->_endNullPixelsSet) {
-                        vs["en"] = pvs->_endNullPixels;
-                    }
-                    if (pvs->_colourOrderSet) {
-                        vs["st"] =  EncodeColorOrder(pvs->_colourOrder);
-                    }
                     port["virtual_strings"].Append(vs);
                 }
                 port["disabled"] = false;
                 stringData["outputs"][portID - 1] = port;
             } else if (fullControl) {
                 wxJSONValue vs;
-                vs["sc"] = 1;
-                vs["ec"] = 1;
+                vs["sc"] = 0;
+                vs["ec"] = 0;
                 port["virtual_strings"].Append(vs);
                 stringData["outputs"][portID - 1] = port;
             }
@@ -376,8 +383,8 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             stringData["long_range_ports"][lrIdx]["type"] = wxString("dmx");
         } else if (fullControl) {
             wxJSONValue vs;
-            vs["sc"] = 1;
-            vs["ec"] = 1;
+            vs["sc"] = 0;
+            vs["ec"] = 0;
             sport["virtual_strings"].Append(vs);
             stringData["outputs"][portID - 1] = sport;
             stringData["long_range_ports"][lrIdx]["number_of_receivers"] = 1;
