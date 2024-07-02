@@ -403,6 +403,15 @@ void Controller::SearchForNewVendor( std::string const& vendor, std::string cons
         _dirty = true;
         VMVChanged();
     }
+
+    ControllerCaps* newcap2 = ControllerCaps::GetControllerConfigByAlternateName(vendor, model, variant);
+    if (newcap2 && model != newcap2->GetModel()) {
+        _vendor = newcap2->GetVendor();
+        _model = newcap2->GetModel();
+        _variant = newcap2->GetVariantName();
+        _dirty = true;
+        VMVChanged();
+    }
 }
 #pragma endregion
 

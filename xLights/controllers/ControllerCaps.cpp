@@ -302,6 +302,24 @@ ControllerCaps* ControllerCaps::GetControllerConfigByModel( const std::string& m
     }
     return nullptr;
 }
+
+ControllerCaps* ControllerCaps::GetControllerConfigByAlternateName(const std::string& vendor, const std::string& model, const std::string& variant) {
+    LoadControllers();
+    // look for controller if name changed
+
+    auto v = __controllers.find(vendor);
+    if (v != __controllers.end()) {
+        for (auto const &[_, cap] : v->second) {
+            for (auto const& vr : cap) {
+                auto const& names = vr->GetAlternativeNames();
+                if (std::find(names.begin(), names.end(), model) != names.end() && vr->GetVariantName() == variant) {
+                    return vr;
+                }
+            }
+        }
+    }
+    return nullptr;
+}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -708,6 +726,10 @@ bool ControllerCaps::AllSmartRemoteTypesPerPortMustBeSame() const {
 std::string ControllerCaps::GetCustomPropertyByPath(const std::string name, const std::string& def) const {
 
     return GetXmlNodeContent(_config, name, def);
+}
+
+std::vector<std::string> ControllerCaps::GetAlternativeNames() const {
+    return GetXmlNodeListContent(_config, "AltNames", "AltName");
 }
 
 void ControllerCaps::Dump() const
