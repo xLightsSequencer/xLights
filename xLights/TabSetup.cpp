@@ -142,9 +142,13 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
     MenuFile->FindItem(ID_MENUITEM_OPENRECENTSEQUENCE)->Enable(cnt != 0);
 }
 
-
 bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
 {
+    if (readOnlyMode) {
+        wxMessageBox("Show directory cannot be changed in read only mode.", "Read Only Mode", wxICON_INFORMATION | wxOK);
+        return false;
+    }
+
     wxString nd = newdir;
     if (nd.EndsWith(wxFileName::GetPathSeparator()))
         nd = nd.SubString(0, nd.size() - 2);

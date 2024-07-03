@@ -90,13 +90,13 @@ void OffEffect::Render(Effect* effect, const SettingsMap& settings, RenderBuffer
         //  Every Node, every frame set to BLACK
         buffer.Fill(xlBLACK);
     } else if (style == "Black -> Transparent") {
-        for (int x = 0; x < buffer.GetPixelCount(); x++) {
+        for (size_t x = 0; x < buffer.GetPixelCount(); ++x) {
             if (buffer.GetPixels()[x] == xlBLACK) {
                 buffer.GetPixels()[x] = xlCLEAR;
             }
         }
     } else if (style == "Transparent -> Black") {
-        for (int x = 0; x < buffer.GetPixelCount(); x++) {
+        for (size_t x = 0; x < buffer.GetPixelCount(); ++x) {
             if (buffer.GetPixels()[x] == xlCLEAR) {
                 buffer.GetPixels()[x] = xlBLACK;
             }

@@ -1275,6 +1275,12 @@ void xLightsFrame::SaveSequence()
         return;
     }
 
+    if (readOnlyMode)
+    {
+        DisplayError("Sequences cannot be saved in read only mode!", this);
+        return;
+    }
+
     wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
     wxPostEvent(this, playEvent);
 
@@ -1445,6 +1451,11 @@ void xLightsFrame::SetSequenceTiming(int timingMS)
 
 void xLightsFrame::SaveAsSequence()
 {
+    if (readOnlyMode) {
+		DisplayError("Sequences cannot be saved in read only mode!", this);
+		return;
+	}
+
     if (_seqData.NumFrames() == 0) {
         DisplayError("You must open a sequence first!", this);
         return;

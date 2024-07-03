@@ -440,6 +440,16 @@ public:
     void DoLayoutWork();
     bool DoAllWork();
 
+    bool readOnlyMode = false;
+    void SetReadOnlyMode(bool mode) {
+    	readOnlyMode = mode;
+        UpdateReadOnlyState();
+	}
+    bool IsReadOnlyMode() const {
+		return readOnlyMode;
+	}
+    void UpdateReadOnlyState();
+
     EffectManager &GetEffectManager() { return effectManager; }
 
     bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size,
@@ -712,11 +722,11 @@ public:
     static const long ID_PANEL2;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
-    static const long ID_BUTTON4;
     static const long ID_BUTTON7;
-    static const long ID_BUTTON12;
-    static const long ID_BUTTON8;
     static const long ID_STATICTEXT1;
+    static const long ID_BUTTON8;
+    static const long ID_BUTTON4;
+    static const long ID_BUTTON12;
     static const long ID_PANEL3;
     static const long ID_PANEL_SETUP;
     static const long ID_PANEL_PREVIEW;
@@ -872,6 +882,7 @@ public:
     wxButton* ButtonUploadOutput;
     wxButton* ButtonVisualise;
     wxButton* Button_ChangeBaseShowDir;
+    wxButton* Button_ChangeShowDirPermanently;
     wxButton* Button_ChangeTemporarilyAgain;
     wxButton* Button_CheckShowFolderTemporarily;
     wxButton* Button_ClearBaseShowDir;
@@ -1558,6 +1569,9 @@ public:
     wxXmlNode* ViewObjectsNode = nullptr;
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
     void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
+    void OpenSequence(const wxString& passed_filename) {
+     OpenSequence(passed_filename, nullptr); 
+    }
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();
