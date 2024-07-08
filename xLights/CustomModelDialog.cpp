@@ -1989,7 +1989,7 @@ void CustomModelDialog::ShiftSelected()
 {
     //I think not "wrapping around" is better when shifting selected nodes.
     //I see this being used when a Node is missed and only half need to be shifted by one.
-    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -10000, 10000);
+    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -1000000, 1000000);
     if (dlg.ShowModal() == wxID_OK) {
         auto scaleFactor = dlg.GetValue();
         if (scaleFactor != 0) {
