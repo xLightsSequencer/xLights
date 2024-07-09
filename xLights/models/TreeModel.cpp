@@ -22,6 +22,7 @@
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
+#include "CustomModel.h"
 
 TreeModel::TreeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : MatrixModel(manager)
 {
@@ -617,34 +618,6 @@ void TreeModel::ExportAsCustomXModel3D() const
         data[zz][yy][xx] = i++;
     }
 
-    wxString cm = "";
-    for (auto l : data) {
-        if (cm != "")
-            cm += "|";
-        wxString ll = "";
-
-        for (auto r : l) {
-            if (ll != "")
-                ll += ";";
-            wxString rr = "";
-
-            bool first = true;
-            for (auto c : r) {
-                if (first) {
-                    first = false;
-                } else {
-                    rr += ",";
-                }
-
-                if (c != -1) {
-                    rr += wxString::Format("%d ", c);
-                }
-            }
-            ll += rr;
-        }
-        cm += ll;
-    }
-
     wxString p1 = wxString::Format("%i", (int)(SCALE_FACTOR_3D * w + 1));
     wxString p2 = wxString::Format("%i", (int)(SCALE_FACTOR_3D * h + 1));
     wxString dd = wxString::Format("%i", (int)(SCALE_FACTOR_3D * d + 1));
@@ -681,7 +654,10 @@ void TreeModel::ExportAsCustomXModel3D() const
     if (psp != "")
         f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
     f.Write("CustomModel=\"");
-    f.Write(cm);
+    f.Write(CustomModel::ToCustomModel(data));
+    f.Write("\" ");
+    f.Write("CustomModelCompressed=\"");
+    f.Write(CustomModel::ToCompressed(data));
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(ExportSuperStringColors());

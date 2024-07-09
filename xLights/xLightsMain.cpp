@@ -3281,6 +3281,11 @@ void xLightsFrame::OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event)
 {
+    if (readOnlyMode) {
+        DisplayError("Sequences cannot be opened in read only mode!", this);
+        return;
+    }
+
     OpenSequence("", nullptr);
 }
 
@@ -9179,12 +9184,19 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
             m_mgr->Update();
             PlayToolBar->Refresh();
         } else if (type == "OPEN_SEQUENCE") {
+            if (readOnlyMode) {
+                DisplayError("Sequences cannot be opened in read only mode!", this);
+            } else
             OpenSequence("", nullptr);
         } else if (type == "CLOSE_SEQUENCE") {
             AskCloseSequence();
         } else if (type == "NEW_SEQUENCE") {
-            NewSequence();
-            EnableSequenceControls(true);
+            if (readOnlyMode) {
+                DisplayError("Sequences cannot be created in read only mode!", this);
+            } else {
+                NewSequence();
+                EnableSequenceControls(true);
+            }
         } else if (type == "PASTE_BY_CELL") {
             SetPasteByCell();
         } else if (type == "PASTE_BY_TIME") {
@@ -9225,8 +9237,12 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
             wxCommandEvent e;
             OnmAltBackupMenuItemSelected(e);
         } else if (type == "SELECT_SHOW_FOLDER") {
-            wxCommandEvent e;
-            OnMenuOpenFolderSelected(e);
+            if (readOnlyMode) {
+                DisplayError("Show folder cannot be changed in read only mode! Close and restart xLights.", this);
+            } else {
+                wxCommandEvent e;
+                OnMenuOpenFolderSelected(e);
+            }
         } else {
             return false;
         }

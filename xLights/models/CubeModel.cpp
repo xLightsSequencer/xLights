@@ -23,6 +23,7 @@
 #include "../outputs/OutputManager.h"
 #include "../outputs/Controller.h"
 #include "../ModelPreview.h"
+#include "CustomModel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1221,24 +1222,21 @@ void CubeModel::ExportAsCustomXModel3D() const
 
     auto locations = BuildCube();
 
+    std::vector < std::vector < std::vector<int>>> data;
+
+    data.reserve(depth);
     for (int l = 0; l < depth; l++) {
-        if (cm != "")
-            cm += "|";
-        wxString ll = "";
-
+		std::vector < std::vector<int>> layer;
+        layer.reserve(height);
         for (int r = height - 1; r >= 0; r--) {
-            if (ll != "")
-                ll += ";";
-            wxString rr = "";
-
-            for (int c = 0; c < width; c++) {
-                if (rr != "")
-                    rr += ",";
-                rr += wxString::Format("%d ", FindNodeIndex(locations, c, r, l) + 1);
-            }
-            ll += rr;
-        }
-        cm += ll;
+			std::vector<int> row;
+			row.reserve(width);
+			for (int c = 0; c < width; c++) {
+				row.push_back(FindNodeIndex(locations, c, r, l) + 1);
+			}
+			layer.push_back(row);
+		}
+        data.push_back(layer);
     }
 
     wxString p1 = wxString::Format("%i", width);
@@ -1275,7 +1273,10 @@ void CubeModel::ExportAsCustomXModel3D() const
     if (psp != "")
         f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
     f.Write("CustomModel=\"");
-    f.Write(cm);
+    f.Write(CustomModel::ToCustomModel(data));
+    f.Write("\" ");
+    f.Write("CustomModelCompressed=\"");
+    f.Write(CustomModel::ToCompressed(data));
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(ExportSuperStringColors());

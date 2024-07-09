@@ -582,8 +582,7 @@ void CustomModelDialog::ValidateWindow()
     }
 }
 
-void CustomModelDialog::UpdatePreview(int width, int height, int depth, const std::string& modelData)
-{
+void CustomModelDialog::UpdatePreview(int width, int height, int depth, const std::vector<std::vector<std::vector<int>>>& modelData) {
     _model->GetBaseObjectScreenLocation().SetMDepth(depth);
     _model->UpdateModel(width, height, depth, modelData);
     _model->GetModelScreenLocation().SetWorldPosition(glm::vec3(0, 0, 0)); // centre the model
@@ -609,7 +608,7 @@ void CustomModelDialog::Setup(CustomModel* m)
     FilePickerCtrl1->SetFileName(wxFileName(background_image));
     lightness = m->GetCustomLightness();
     SliderCustomLightness->SetValue(lightness);
-    std::string data = m->GetCustomData();
+    auto data = m->GetData();
 
     if (background_image != "" && FileExists(background_image)) {
         bkg_image = new wxImage(background_image);
@@ -619,7 +618,7 @@ void CustomModelDialog::Setup(CustomModel* m)
     WidthSpin->SetValue(m->GetCustomWidth());
     HeightSpin->SetValue(m->GetCustomHeight());
 
-    if (data == "") {
+    if (data.size() == 0) {
         for (int i = 0; i < m->GetCustomDepth(); i++) {
             AddPage();
             auto grid = GetLayerGrid(i);
@@ -629,23 +628,16 @@ void CustomModelDialog::Setup(CustomModel* m)
         }
     }
     else {
-        wxArrayString layers = wxSplit(data, '|');
-        for (auto layer = 0; layer < layers.size(); layer++) {
+
+        for (auto layer = 0; layer < data.size(); ++layer) {
             AddPage();
             //ResizeCustomGrid();
             auto grid = GetLayerGrid(layer);
-            wxArrayString rows = wxSplit(layers[layer], ';');
-            //grid->AppendRows(rows.size() - 1);
 
-            for (auto row = 0; row < rows.size(); row++) {
-                wxArrayString cols = wxSplit(rows[row], ',');
-                //if (row == 0) {
-                //    grid->AppendCols(cols.size() - 1);
-                //}
-                for (auto col = 0; col < cols.size(); col++) {
-                    wxString value = cols[col];
-                    if (!value.IsEmpty() && value != "0") {
-                        grid->SetCellValue(row, col, value);
+            for (auto row = 0; row < data[0].size(); ++row) {
+                for (auto col = 0; col < data[0][0].size(); col++) {
+                    if (data[layer][row][col] > 0) {
+                        grid->SetCellValue(row, col, std::to_string(data[layer][row][col]));
                     }
                 }
             }
@@ -746,33 +738,37 @@ wxString StripIllegalChars(const wxString& s)
     return res;
 }
 
-std::string CustomModelDialog::GetModelData()
-{
-    std::string customChannelData = "";
+std::vector<std::vector<std::vector<int>>> CustomModelDialog::GetModelData() {
+    std::vector<std::vector<std::vector<int>>> modelData;
+
     for (int layer = 0; layer < Notebook1->GetPageCount(); layer++) {
-        if (layer > 0) customChannelData += "|";
-        auto grid = GetLayerGrid(layer);
-        int numCols = grid->GetNumberCols();
-        int numRows = grid->GetNumberRows();
-        for (int row = 0; row < numRows; row++) {
-            if (row > 0) customChannelData += ";";
-            for (int col = 0; col < numCols; col++) {
-                if (col > 0) customChannelData += ",";
-                wxString value = StripIllegalChars(grid->GetCellValue(row, col));
-                if (value == "0" || value.StartsWith("-") || value.size() > 6) value.clear();
-                customChannelData += value;
-            }
-        }
-    }
-    return customChannelData;
+		auto grid = GetLayerGrid(layer);
+		int numCols = grid->GetNumberCols();
+		int numRows = grid->GetNumberRows();
+		std::vector<std::vector<int>> layerData;
+		for (int row = 0; row < numRows; row++) {
+			std::vector<int> rowData;
+			for (int col = 0; col < numCols; col++) {
+				wxString value = StripIllegalChars(grid->GetCellValue(row, col));
+				if (value == "") {
+					rowData.push_back(-1);
+				}
+				else {
+					rowData.push_back(wxAtoi(value));
+				}
+			}
+			layerData.push_back(rowData);
+		}
+		modelData.push_back(layerData);
+	}
+    return modelData;
 }
 
 void CustomModelDialog::Save(CustomModel *m) {
     m->SetCustomHeight(HeightSpin->GetValue());
     m->SetCustomWidth(WidthSpin->GetValue());
     m->SetCustomDepth(SpinCtrl_Depth->GetValue());
-    std::string customChannelData = GetModelData();
-    m->SetCustomData(customChannelData);
+    m->SetCustomData(GetModelData());
     m->SetCustomLightness(lightness);
     m->SetCustomBackground(FilePickerCtrl1->GetFileName().GetFullPath());
 }
@@ -2088,17 +2084,21 @@ void CustomModelDialog::OnGridKey(wxCommandEvent& event)
     case WXK_PAGEUP: // CTRL+SHIFT
         if (Notebook1->GetSelection() != 0)
         {
+            auto old = GetActiveGrid();
             int newLayer = Notebook1->GetSelection() - 1;
-            Notebook1->SetSelection(Notebook1->GetSelection() - 1);
+            GetLayerGrid(newLayer)->Scroll(old->GetScrollPos(wxHORIZONTAL), old->GetScrollPos(wxVERTICAL));
             GetLayerGrid(newLayer)->SetGridCursor(row, col);
+            Notebook1->SetSelection(Notebook1->GetSelection() - 1);
         }
         break;
     case WXK_PAGEDOWN: // CTRL+SHIFT
         if (Notebook1->GetSelection() != Notebook1->GetPageCount() - 1)
         {
+            auto old = GetActiveGrid();
             int newLayer = Notebook1->GetSelection() + 1;
-            Notebook1->SetSelection(newLayer);
+            GetLayerGrid(newLayer)->Scroll(old->GetScrollPos(wxHORIZONTAL), old->GetScrollPos(wxVERTICAL));
             GetLayerGrid(newLayer)->SetGridCursor(row, col);
+            Notebook1->SetSelection(newLayer);
         }
         break;
     case WXK_HOME: // CTRL+SHIFT

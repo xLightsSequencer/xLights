@@ -54,6 +54,10 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 {
+    if (readOnlyMode) {
+        DisplayError("Sequences cannot be opened in read only mode!", this);
+        return;
+    }
     OpenSequence("", nullptr);
 }
 

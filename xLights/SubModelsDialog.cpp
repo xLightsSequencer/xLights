@@ -36,6 +36,7 @@
 
 #include "SubModelsDialog.h"
 #include "models/Model.h"
+#include "models/CustomModel.h"
 #include "SubBufferPanel.h"
 #include "SubModelGenerateDialog.h"
 #include "EditSubmodelAliasesDialog.h"
@@ -3468,25 +3469,18 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
             {
                 AlignmentDialog dlg(this);
 
-                if ((modelw == width && modelh == height) || dlg.ShowModal() == wxID_OK)
-                {
+                if ((modelw == width && modelh == height) || dlg.ShowModal() == wxID_OK) {
                     int xStart = 0;
-                    if (dlg.GetX() == AlignmentDialog::Alignment::CENTRE)
-                    {
+                    if (dlg.GetX() == AlignmentDialog::Alignment::CENTRE) {
                         xStart = (float)modelw / 2.0 - (float)width / 2.0;
-                    }
-                    else if (dlg.GetX() == AlignmentDialog::Alignment::RIGHT)
-                    {
+                    } else if (dlg.GetX() == AlignmentDialog::Alignment::RIGHT) {
                         xStart = modelw - width;
                     }
 
                     int yStart = 0;
-                    if (dlg.GetY() == AlignmentDialog::Alignment::TOP)
-                    {
+                    if (dlg.GetY() == AlignmentDialog::Alignment::TOP) {
                         yStart = modelh - height;
-                    }
-                    else if (dlg.GetY() == AlignmentDialog::Alignment::MIDDLE)
-                    {
+                    } else if (dlg.GetY() == AlignmentDialog::Alignment::MIDDLE) {
                         yStart = (float)modelh / 2.0 - (float)height / 2.0;
                     }
 
@@ -3497,38 +3491,33 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
                     sm->strands.clear();
                     sm->isRanges = true;
 
-                    auto data = root->GetAttribute("CustomModel", "");
-                    auto rows = wxSplit(data, ';');
+                    auto data = CustomModel::ParseCustomModelDataFromXml(root);
+
                     int rnum = yStart;
-                    for (auto r = rows.rbegin(); r != rows.rend(); ++r)
-                    {
-                        auto cols = wxSplit(*r, ',');
-                        wxString row = "";
+                    for (size_t row = 0; row < data[0].size(); ++row) {
                         int cnum = xStart;
-                        for (auto c : cols)
-                        {
-                            if (c == "")
-                            {
-                                row += ",";
-                            }
-                            else
-                            {
+                        wxString outRow = "";
+                        for (size_t col = 0; col < data[0][0].size(); ++col) {
+                            if (data[0][row][col] == 0) {
+                                outRow += ",";
+                            } else {
                                 long nn = model->GetNodeNumber(rnum, cnum);
                                 if (nn >= 0) {
-                                    row += wxString::Format("%d,", nn+1);
-                                    nodeMap[wxAtoi(c)] = nn+1;
-                                }
-                                else {
-                                    row += ",";
+                                    outRow += wxString::Format("%d,", nn + 1);
+                                    nodeMap[data[0][row][col]] = nn + 1;
+                                } else {
+                                    outRow += ",";
                                 }
                             }
                             cnum++;
                         }
                         // chop off one comma
-                        if (row.size() > 0) row = row.Left(row.size() - 1);
-                        sm->strands.push_back(row);
+                        if (outRow.size() > 0)
+                            outRow = outRow.Left(outRow.size() - 1);
+                        sm->strands.push_back(outRow);
                         rnum++;
                     }
+
                     _subModels.push_back(sm);
                     long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
                     ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm);
@@ -3804,23 +3793,14 @@ void SubModelsDialog::ExportSubModelAsxModel(wxString const& filename, const std
         }
     }
 
+    std::vector<std::vector<std::vector<int>>> data3d;
+    data3d.push_back(data);
+
     wxFile f(filename);
 
     if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
         return;
-    }
-
-    std::string cm;
-
-    for (int r = rows - 1 ; r >= 0; r--) {
-        for (int c = 0; c < cols; c++) {
-            if (data[r][c] != 0) {
-                cm += wxString::Format("%d", data[r][c]);
-            }
-            if (c != cols - 1) cm += ",";
-        }
-        if (r != 0) cm += ";";
     }
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
@@ -3829,7 +3809,10 @@ void SubModelsDialog::ExportSubModelAsxModel(wxString const& filename, const std
     f.Write(wxString::Format("parm2=\"%d\" ", rows));
     f.Write("Depth=\"1\" ");
     f.Write("CustomModel=\"");
-    f.Write(cm);
+    f.Write(CustomModel::ToCustomModel(data3d));
+    f.Write("\" ");
+    f.Write("CustomModelCompressed=\"");
+    f.Write(CustomModel::ToCompressed(data3d));
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", xlights_version_string));
     f.Write(" >\n");

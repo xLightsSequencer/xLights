@@ -4826,8 +4826,6 @@ void Model::ExportAsCustomXModel() const
     if (!f.Create(filename, true) || !f.IsOpened())
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
-    wxString cm = "";
-
     float minsx = 99999;
     float minsy = 99999;
     float maxsx = -1;
@@ -4868,7 +4866,7 @@ void Model::ExportAsCustomXModel() const
     sizey *= scale;
 
     int* nodeLayout = (int*)malloc(sizey * sizex * sizeof(int));
-    memset(nodeLayout, 0x00, sizey * sizex * sizeof(int));
+    memset(nodeLayout, 0xFF, sizey * sizex * sizeof(int));
 
     for (int i = 0; i < nodeCount; ++i) {
         int x = (Nodes[i]->Coords[0].screenX - minx) * scale;
@@ -4876,18 +4874,17 @@ void Model::ExportAsCustomXModel() const
         nodeLayout[y * sizex + x] = i + 1;
     }
 
-    for (int i = 0; i < sizey * sizex; ++i) {
-        if (i != 0) {
-            if (i % sizex == 0) {
-                cm += ";";
-            } else {
-                cm += ",";
-            }
-        }
-        if (nodeLayout[i] != 0) {
-            cm += wxString::Format("%i", nodeLayout[i]);
-        }
-    }
+    std::vector<std::vector<std::vector<int>>> data;
+
+    auto layer = std::vector<std::vector<int>>();
+    for (int y = 0; y < sizey; ++y) {
+		std::vector<int> row;
+		for (int x = 0; x < sizex; ++x) {
+                row.push_back(nodeLayout[y * sizex + x]);
+		}
+		layer.push_back(row);
+	}
+    data.push_back(layer);
 
     free(nodeLayout);
 
@@ -4926,7 +4923,10 @@ void Model::ExportAsCustomXModel() const
         f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
     f.Write(wxString::Format("LayoutGroup=\"%s\" ", lg));
     f.Write("CustomModel=\"");
-    f.Write(cm);
+    f.Write(CustomModel::ToCustomModel(data));
+    f.Write("\" ");
+    f.Write("CustomModelCompressed=\"");
+    f.Write(CustomModel::ToCompressed(data));
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(ExportSuperStringColors());
