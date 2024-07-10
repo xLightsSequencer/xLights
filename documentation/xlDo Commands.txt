@@ -230,7 +230,7 @@ Response
 Packaged Sequence Files
     {"cmd":"packageSequence"}
 Response
-    {"res":200, "output": "SequenceName.zip"}
+    {"res":200, "output": "SequenceName.xsqz"}
 
 Packaged Log Files
     {"cmd":"packageLogFiles"}

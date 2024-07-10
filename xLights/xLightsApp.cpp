@@ -606,7 +606,7 @@ bool xLightsApp::OnInit()
         }
         for (size_t x = 0; x < parser.GetParamCount(); x++) {
             wxString sequenceFile = parser.GetParam(x);
-            if (sequenceFile.Lower().EndsWith(".zip")) {
+            if (sequenceFile.Lower().EndsWith(".zip") || sequenceFile.Lower().EndsWith(".xsqz")) {
                 logger_base.info("Sequence zip file passed on command line: %s.", (const char*)sequenceFile.c_str());
                 info += _("Loading read only sequence ") + sequenceFile + "\n";
                 readOnlyZipFile = sequenceFile;

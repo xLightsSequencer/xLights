@@ -7356,11 +7356,11 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     }
 
     wxFileName fn(CurrentSeqXmlFile->GetFullPath());
-    wxString filename = fn.GetName() + ".zip";
+    wxString filename = fn.GetName() + ".xsqz";
     wxString filePath = fn.GetPath() + wxFileName::GetPathSeparator() + filename;
 
     if (showDialogs) {
-        wxFileDialog fd(this, "Zip file to create.", CurrentDir, filename, "zip file(*.zip)|*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        wxFileDialog fd(this, "Zip file to create.", CurrentDir, filename, "zip file(*.zip;*.xsqz)|*.xsqz;*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
         if (fd.ShowModal() == wxID_CANCEL) {
             return "";
