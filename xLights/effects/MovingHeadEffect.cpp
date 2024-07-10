@@ -515,7 +515,6 @@ void MovingHeadEffect::CalculateColorWheelShutter(DmxColorAbility* mh_color, dou
     vc.SetActive(true);
 
     uint8_t value = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    auto test = effect_len_ms * eff_pos;
     xlColor msb_c = xlBLACK;
     msb_c.red = value;
     msb_c.green = value;

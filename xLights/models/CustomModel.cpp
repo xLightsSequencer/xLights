@@ -723,7 +723,6 @@ std::vector<std::vector<std::vector<int>>> CustomModel::ParseCustomModel(const s
     cols.reserve(100);
 
     Split(customModel, '|', layers);
-    float depth = layers.size();
     int layer = 0;
 
     for (auto lv : layers) {

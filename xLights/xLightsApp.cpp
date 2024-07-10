@@ -427,24 +427,59 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
         showDir = wxPathOnly(showDir);
         if (showDir == old) showDir = "";
     }
-    
+
     if (__frame) {
         xLightsFrame* frame = __frame;
         frame->CallAfter([showDir, fileName, frame] {
-            if (showDir != "" && showDir != frame->showDirectory) {
-                wxString nsd = showDir;
-                if (!ObtainAccessToURL(nsd)) {
-                    wxDirDialog dlg(frame, "Select Show Directory", nsd,  wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
-                    if (dlg.ShowModal() == wxID_OK) {
-                        nsd = dlg.GetPath();
+            
+            if (fileName.EndsWith("xsqz") || fileName.EndsWith("zip")) {
+
+                wxFileName fn(fileName);
+                SequencePackage xsqPkg(fn, nullptr);
+
+                if (xsqPkg.IsPkg()) {
+                    xsqPkg.Extract();
+                    xsqPkg.SetLeaveFiles(true);
+
+                    // find the sequence file
+                    auto xsqFile = xsqPkg.GetXsqFile();
+
+                    // temporarily set the show folder
+                    frame->SetReadOnlyMode(false);
+                    xLightsApp::showDir = xsqPkg.GetTempShowFolder();
+                    frame->SetDir(xLightsApp::showDir, false);
+                    
+                    // save the folder and we will remove it when we shutdown
+                    if (!cleanupFolder.empty()) {
+                        wxDir::Remove(cleanupFolder);
                     }
-                    if (!ObtainAccessToURL(nsd)) {
-                        return;
-                    }
+                    cleanupFolder = xLightsApp::showDir;
+                    
+                    // tell xlights not to allow saving ... at least as much as possible
+                    frame->SetReadOnlyMode(true);
+
+                    // open the sequence
+                    const wxString file = xsqFile.GetFullPath();
+                    frame->OpenSequence(file, nullptr);
+                } else {
+                    logger_base.debug("Zip file did not contain sequence.");
                 }
-                frame->SetDir(nsd, false);
+            } else {
+                if (showDir != "" && showDir != frame->showDirectory) {
+                    wxString nsd = showDir;
+                    if (!ObtainAccessToURL(nsd)) {
+                        wxDirDialog dlg(frame, "Select Show Directory", nsd,  wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+                        if (dlg.ShowModal() == wxID_OK) {
+                            nsd = dlg.GetPath();
+                        }
+                        if (!ObtainAccessToURL(nsd)) {
+                            return;
+                        }
+                    }
+                    frame->SetDir(nsd, false);
+                }
+                frame->OpenSequence(fileName, nullptr);
             }
-            frame->OpenSequence(fileName, nullptr);
         });
     } else {
         logger_base.info("       No xLightsFrame");
