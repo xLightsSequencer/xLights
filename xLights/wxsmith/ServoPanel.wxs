@@ -55,8 +55,14 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-					<cols>4</cols>
-					<growablecols>1</growablecols>
+					<cols>5</cols>
+					<growablecols>2</growablecols>
+					<object class="sizeritem">
+						<object class="wxToggleButton" name="ID_TOGGLEBUTTON_Start" subclass="LinkedToggleButton" variable="StartLinkedButton" member="yes" />
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT_Servo" variable="Label_DMX1" member="yes">
 							<label>Start:</label>
@@ -92,6 +98,12 @@
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxToggleButton" name="ID_TOGGLEBUTTON_End" subclass="LinkedToggleButton" variable="EndLinkedButton" member="yes" />
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">

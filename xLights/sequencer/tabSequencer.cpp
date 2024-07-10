@@ -287,8 +287,7 @@ void xLightsFrame::InitSequencer()
                 m_mgr->Update();
             }
             LogPerspective(machinePerspective);
-        }
-        else {
+        } else {
             if (mCurrentPerpective != nullptr) {
                 DoLoadPerspective(mCurrentPerpective);
             }
@@ -347,8 +346,7 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         UnsavedRgbEffectsChanges = true;
         UpdateLayoutSave();
         UpdateControllerSave();
-    }
-    else {
+    } else {
         wxString currentName = PerspectivesNode->GetAttribute("current");
         for (wxXmlNode* p = PerspectivesNode->GetChildren(); p != nullptr; p = p->GetNext()) {
             if (p->GetName() == "perspective") {
@@ -2551,15 +2549,11 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
     bool res = true;
     auto orig = name;
     wxWindow* ContextWin = nullptr;
-	if (name.StartsWith("E_"))
-	{
+	if (name.StartsWith("E_")) {
 		ContextWin = EffectsPanel1;
-	}
-	else if (name.StartsWith("T_"))
-	{
+	} else if (name.StartsWith("T_")) {
         // Layers selected is not stored in a control so we handle it here
-        if (name == "T_LayersSelected")
-        {
+        if (name == "T_LayersSelected") {
             timingPanel->SetLayersSelected(value.ToStdString());
             return res;
         }
@@ -2567,26 +2561,17 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 	    if (name == "T_CHECKBOX_OverlayBkg") {
 			//temporary until this key is remapped
 			ContextWin = bufferPanel;
-		}
-		else {
+		} else {
 			ContextWin = timingPanel;
 		}
-	}
-	else if (name.StartsWith("B_"))
-	{
+	} else if (name.StartsWith("B_")) {
 	    ContextWin = bufferPanel;
-	}
-	else if (name.StartsWith("C_"))
-	{
+	} else if (name.StartsWith("C_")) {
 		ContextWin = colorPanel;
-	}
-    else if (name.StartsWith("X_"))
-    {
+	} else if (name.StartsWith("X_")) {
         // This is used for properties that are not displayed on a panel ... but are typically accessed via the right click menu on an effect
         return res;
-    }
-    else
-	{
+    } else {
         logger_base.error("ApplySetting: Unable to panel type for: %s", (const char*)name.c_str());
         return false;
 	}
@@ -2594,10 +2579,8 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
     name = "ID_" + name.Mid(2);
 	wxWindow *CtrlWin = wxWindow::FindWindowByName(name, ContextWin);
 
-    if (CtrlWin != nullptr)
-	{
-		if (name.StartsWith("ID_SLIDER"))
-		{
+    if (CtrlWin != nullptr) {
+		if (name.StartsWith("ID_SLIDER")) {
 			wxSlider* ctrl = (wxSlider*)CtrlWin;
             long tempLong;
 			if (value.ToLong(&tempLong)) {
@@ -2608,14 +2591,11 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 				event.SetInt(tempLong);
 				ctrl->ProcessWindowEvent(event);
 			}
-		}
-		else if (name.StartsWith("ID_TEXTCTRL"))
-		{
+        } else if (name.StartsWith("ID_TEXTCTRL")) {
 			wxTextCtrl* ctrl = dynamic_cast<wxTextCtrl*>(CtrlWin);
             if (ctrl != nullptr) {
                 ctrl->SetValue(value);
-            }
-            else {
+            } else {
                 // some text ctrls have been replace with combo boxes ... maybe this is one of those
                 wxComboBox* ctrl = dynamic_cast<wxComboBox*>(CtrlWin);
                 if (ctrl != nullptr) {
@@ -2624,14 +2604,10 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
                     wxASSERT(false);
                 }
             }
-		}
-		else if (name.StartsWith("ID_SPINCTRL"))
-		{
+		} else if (name.StartsWith("ID_SPINCTRL")) {
 			wxSpinCtrl* ctrl = (wxSpinCtrl*)CtrlWin;
 			ctrl->SetValue(wxAtoi(value));
-		}
-		else if (name.StartsWith("ID_CHOICE"))
-		{
+		} else if (name.StartsWith("ID_CHOICE")) {
 			wxString nn = "IDD_RADIOBUTTON" + name.SubString(9, name.size());
 			wxRadioButton *b = (wxRadioButton*)wxWindow::FindWindowByName(nn, ContextWin);
 			if (b != nullptr) {
@@ -2661,16 +2637,11 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
                 event.SetString(ctrl->GetStringSelection());
                 ctrl->ProcessWindowEvent(event);
             }
-		}
-		else if (name.StartsWith("ID_BUTTON"))
-		{
-            if (name.StartsWith("ID_BUTTON_Palette"))
-            {
+        } else if (name.StartsWith("ID_BUTTON")) {
+            if (name.StartsWith("ID_BUTTON_Palette")) {
                 colorPanel->SetButtonColor((ColorCurveButton*)CtrlWin, value.ToStdString());
             }
-		}
-		else if (name.StartsWith("ID_CHECKBOX"))
-		{
+		} else if (name.StartsWith("ID_CHECKBOX")) {
 			wxCheckBox* ctrl = (wxCheckBox*)CtrlWin;
             long tempLong;
 			if (value.ToLong(&tempLong)) {
@@ -2680,59 +2651,44 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 				evt.SetInt(tempLong != 0);
 				ctrl->ProcessWindowEvent(evt);
 			}
-		}
-		else if (name.StartsWith("ID_NOTEBOOK"))
-		{
+		} else if (name.StartsWith("ID_NOTEBOOK")) {
 			wxNotebook* ctrl = (wxNotebook*)CtrlWin;
-			for (size_t z = 0; z < ctrl->GetPageCount(); z++)
-			{
-				if (value == ctrl->GetPageText(z))
-				{
+			for (size_t z = 0; z < ctrl->GetPageCount(); z++) {
+				if (value == ctrl->GetPageText(z)) {
 					ctrl->SetSelection(z);
 				}
 			}
-		}
-		else if (name.StartsWith("ID_FILEPICKER") || name.StartsWith("ID_0FILEPICKER"))
-		{
+		} else if (name.StartsWith("ID_FILEPICKER") || name.StartsWith("ID_0FILEPICKER")) {
 			wxFilePickerCtrl *picker = (wxFilePickerCtrl*)CtrlWin;
 			picker->SetFileName(value);
 
 			wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, picker, picker->GetId(), value);
 			evt.SetEventObject(picker);
 			picker->ProcessWindowEvent(evt);
-		}
-		else if (name.StartsWith("ID_FONTPICKER"))
-		{
+		} else if (name.StartsWith("ID_FONTPICKER")) {
 			wxFontPickerCtrl *picker = (wxFontPickerCtrl*)CtrlWin;
 			wxFont oldfont;
 			oldfont.SetNativeFontInfoUserDesc(value);
 			picker->SetSelectedFont(oldfont);
-		}
-        else if (name.StartsWith("ID_COLOURPICKER"))
-        {
+		} else if (name.StartsWith("ID_COLOURPICKER")) {
             wxColourPickerCtrl* picker = (wxColourPickerCtrl*)CtrlWin;
             wxColour c(value);
             picker->SetColour(c);
-        }
-        else if (name.StartsWith("ID_CUSTOM"))
-        {
+        } else if (name.StartsWith("ID_CUSTOM")) {
             xlCustomControl *custom = dynamic_cast<xlCustomControl *>(CtrlWin);
             custom->SetValue(value.ToStdString());
-        }
-        else if (name.StartsWith("ID_VALUECURVE"))
-        {
+        } else if (name.StartsWith("ID_VALUECURVE")) {
             ValueCurveButton *vcb = dynamic_cast<ValueCurveButton *>(CtrlWin);
             vcb->SetValue(value.ToStdString());
-        }
-        else
-		{
+        } else if (name.StartsWith("ID_TOGGLEBUTTON")) {
+            wxToggleButton *vcb = dynamic_cast<wxToggleButton *>(CtrlWin);
+            vcb->SetValue(wxAtoi(value) != 0);
+        } else {
 			logger_base.error("ApplySetting: Unknown type: %s", (const char*)name.c_str());
             res = false;
             wxASSERT(false);
         }
-	}
-	else
-	{
+    } else {
 		if (name.StartsWith("ID_")) {
 			//check if the control has been renamed to be ignored
 			wxString nn = "IDD_" + name.SubString(3, name.size());
@@ -2752,8 +2708,7 @@ void xLightsFrame::SetEffectChoice(wxCommandEvent& event)
     auto v = wxSplit(event.GetString(), '|');
     if (v.size() == 2) {
         ApplySetting(v[0], v[1], event.GetInt());
-    }
-    else {
+    } else {
         wxASSERT(false);
     }
 }
@@ -2818,12 +2773,9 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 
 	// Apply those settings without APPLYLAST in their name first
     for (const auto& it : settings) {
-		if (it.first.find("APPLYLAST") == std::string::npos)
-		{
+		if (it.first.find("APPLYLAST") == std::string::npos) {
 			ApplySetting(it.first, ToWXString(it.second));
-		}
-        else
-        {
+        } else {
             applylast = true;
         }
     }
@@ -2831,15 +2783,12 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     MixTypeChanged = true;
     FadesChanged = true;
 
-    if (applylast)
-    {
+    if (applylast) {
         // we do this asynchronously as we tyically need other events to process first
         wxCommandEvent event(EVT_APPLYLAST);
         event.SetClientData(new SettingsMap(settings));
         wxPostEvent(this, event);
-    }
-    else
-    {
+    } else {
         ValidatePanels();
     }
 }
@@ -2856,8 +2805,7 @@ void xLightsFrame::ValidatePanels()
 std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette) const
 {
     RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
-    if (eff == nullptr)
-    {
+    if (eff == nullptr) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.crit("xLightsFrame::GetEffectTextFromWindows eff returned nullptr for effect %d. This is going to crash.", EffectsPanel1->EffectChoicebook->GetSelection());
     }
@@ -4123,5 +4071,23 @@ void xLightsFrame::UpdateSequenceVideoPanel(const wxString& path)
         std::string spath(path.ToStdString());
         ObtainAccessToURL(spath);
         sequenceVideoPanel->SetMediaPath(spath);
+    }
+}
+
+
+void xLightsFrame::CallOnEffectBeforeSelected(std::function<void(Effect *)> &&cb) {
+    if (selectedEffect != nullptr) {
+        Effect *ef = selectedEffect->GetParentEffectLayer()->GetEffectAtTime(selectedEffect->GetStartTimeMS() - 1);
+        if (ef != nullptr) {
+            cb(ef);
+        }
+    }
+}
+void xLightsFrame::CallOnEffectAfterSelected(std::function<void(Effect *)> &&cb) {
+    if (selectedEffect != nullptr) {
+        Effect *ef = selectedEffect->GetParentEffectLayer()->GetEffectAtTime(selectedEffect->GetEndTimeMS() + 1);
+        if (ef != nullptr) {
+            cb(ef);
+        }
     }
 }

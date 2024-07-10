@@ -586,6 +586,10 @@ wxBEGIN_EVENT_TABLE(xlMacDockIcon, wxTaskBarIcon)
     SplashDialog* splash = nullptr;
 };
 
+xLightsFrame *xLightsFrame::GetFrame() {
+    return xLightsApp::__frame;
+}
+
 xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderOnlyMode) :
     _sequenceElements(this),
     jobPool("RenderPool"),

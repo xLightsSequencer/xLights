@@ -117,7 +117,8 @@ void ServoEffect::SetDefaultParameters() {
     if (dp == nullptr) {
         return;
     }
-
+    dp->EndLinkedButton->SetValue(false);
+    dp->StartLinkedButton->SetValue(false);
     dp->ValueCurve_Servo->SetActive(false);
     SetSliderValue(dp->Slider_Servo, 0);
     SetSliderValue(dp->SliderEndValue, 0);

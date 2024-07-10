@@ -1706,6 +1706,9 @@ public:
     }
     void ShowDataFindPanel();
 
+    static xLightsFrame *GetFrame();
+    void CallOnEffectBeforeSelected(std::function<void(Effect *)> &&cb);
+    void CallOnEffectAfterSelected(std::function<void(Effect *)> &&cb);
 private:
 
     int _acParm1Intensity;

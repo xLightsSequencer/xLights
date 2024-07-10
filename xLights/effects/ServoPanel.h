@@ -20,7 +20,9 @@ class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
 class wxTextCtrl;
+class wxToggleButton;
 //*)
+
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
@@ -43,6 +45,8 @@ class ServoPanel: public xlEffectPanel
 		BulkEditTextCtrlF1* TextCtrl_EndValue;
 		BulkEditTextCtrlF1* TextCtrl_Servo;
 		BulkEditValueCurveButton* ValueCurve_Servo;
+		LinkedToggleButton* EndLinkedButton;
+		LinkedToggleButton* StartLinkedButton;
 		wxButton* EqualButton;
 		wxButton* SwapButton;
 		wxCheckBox* SyncCheckBox;
@@ -60,10 +64,12 @@ class ServoPanel: public xlEffectPanel
 		static const wxWindowID ID_CHECKBOX_16bit;
 		static const wxWindowID ID_CHECKBOX_Timing_Track;
 		static const wxWindowID ID_CHOICE_Servo_TimingTrack;
+		static const wxWindowID ID_TOGGLEBUTTON_Start;
 		static const wxWindowID ID_STATICTEXT_Servo;
 		static const wxWindowID IDD_SLIDER_Servo;
 		static const wxWindowID ID_VALUECURVE_Servo;
 		static const wxWindowID ID_TEXTCTRL_Servo;
+		static const wxWindowID ID_TOGGLEBUTTON_End;
 		static const wxWindowID ID_STATICTEXT1;
 		static const wxWindowID IDD_SLIDER_EndValue;
 		static const wxWindowID ID_TEXTCTRL_EndValue;

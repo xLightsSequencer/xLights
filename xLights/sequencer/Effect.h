@@ -84,6 +84,7 @@ public:
 
     wxString GetDescription() const;
     std::string GetSetting(const std::string& id) const;
+    bool SetSetting(const std::string& id, const std::string &v);
 
     int GetStartTimeMS() const { return mStartTime; }
     void SetStartTimeMS(int startTimeMS);

@@ -335,6 +335,17 @@ std::string Effect::GetSetting(const std::string& id) const
     return "";
 }
 
+bool Effect::SetSetting(const std::string& id, const std::string &v)
+{
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    if (!mSettings.Contains(id) || mSettings[id] != v) {
+        mSettings[id] = v;
+        IncrementChangeCount();
+        return true;
+    }
+    return false;
+}
+
 wxString Effect::GetDescription() const
 {
         return GetSetting("X_Effect_Description");

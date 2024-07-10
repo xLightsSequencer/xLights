@@ -161,75 +161,59 @@ bool RenderableEffect::IsVersionOlder(const std::string& compare, const std::str
 }
 
 // this is recursive
-static wxString GetEffectStringFromWindow(wxWindow *ParentWin)
-{
+static wxString GetEffectStringFromWindow(wxWindow *ParentWin) {
     wxString s;
-    for (const auto& it : ParentWin->GetChildren())
-    {
+    for (const auto& it : ParentWin->GetChildren()) {
         wxWindow *ChildWin = it;
         if (!ChildWin->IsEnabled()) {
             continue;
         }
         wxString ChildName = ChildWin->GetName();
         wxString AttrName = "E_" + ChildName.Mid(3);
-        if (ChildName.StartsWith("ID_SLIDER"))
-        {
+        if (ChildName.StartsWith("ID_SLIDER")) {
             wxSlider* ctrl=(wxSlider*)ChildWin;
-            s+=AttrName+ "=" + wxString::Format("%d",ctrl->GetValue()) + ",";
-        }
-        else if (ChildName.StartsWith("ID_VALUECURVE"))
-        {
+            s += AttrName+ "=" + wxString::Format("%d",ctrl->GetValue()) + ",";
+        } else if (ChildName.StartsWith("ID_VALUECURVE")) {
             ValueCurveButton* ctrl = (ValueCurveButton*)ChildWin;
-            if (ctrl->GetValue()->IsActive())
-            {
+            if (ctrl->GetValue()->IsActive()) {
                 s += AttrName + "=" + ctrl->GetValue()->Serialise() + ",";
             }
-        }
-        else if (ChildName.StartsWith("ID_TEXTCTRL"))
-        {
+        } else if (ChildName.StartsWith("ID_TEXTCTRL")) {
             wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
             wxString v = ctrl->GetValue();
             v.Replace("&", "&amp;", true);
             v.Replace(",", "&comma;", true);
-            s+=AttrName + "=" + v + ",";
-        }
-		else if (ChildName.StartsWith("ID_SPINCTRL"))
-		{
+            s += AttrName + "=" + v + ",";
+        } else if (ChildName.StartsWith("ID_SPINCTRL")) {
 			wxSpinCtrl* ctrl = (wxSpinCtrl*)ChildWin;
 			int i = ctrl->GetValue();
 			s += AttrName + "=" + wxString::Format(wxT("%i"), i) + ",";
-		}
-		else if (ChildName.StartsWith("ID_CHOICE"))
-        {
+		} else if (ChildName.StartsWith("ID_CHOICE")) {
             wxChoice* ctrl=(wxChoice*)ChildWin;
-            s+=AttrName + "=" + ctrl->GetStringSelection() + ",";
-        }
-        else if (ChildName.StartsWith("ID_CHECKBOX"))
-        {
+            s += AttrName + "=" + ctrl->GetStringSelection() + ",";
+        } else if (ChildName.StartsWith("ID_CHECKBOX")) {
             wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
             wxString checkedVal =(ctrl->IsChecked()) ? "1" : "0";
-            s+=AttrName + "=" + checkedVal + ",";
-        }
-        else if (ChildName.StartsWith("ID_FILEPICKER") || ChildName.StartsWith("ID_0FILEPICKER"))
-        {
+            s += AttrName + "=" + checkedVal + ",";
+        } else if (ChildName.StartsWith("ID_TOGGLEBUTTON")) {
+            wxToggleButton* ctrl=(wxToggleButton*)ChildWin;
+            wxString checkedVal = ctrl->GetValue() ? "1" : "0";
+            s += AttrName + "=" + checkedVal + ",";
+        } else if (ChildName.StartsWith("ID_FILEPICKER") || ChildName.StartsWith("ID_0FILEPICKER")) {
             wxFilePickerCtrl* ctrl=(wxFilePickerCtrl*)ChildWin;
             ObtainAccessToURL(ctrl->GetFileName().GetFullPath());
-            s+=AttrName + "=" + ctrl->GetFileName().GetFullPath() + ",";
-        }
-        else if (ChildName.StartsWith("ID_FONTPICKER"))
-        {
+            s += AttrName + "=" + ctrl->GetFileName().GetFullPath() + ",";
+        } else if (ChildName.StartsWith("ID_FONTPICKER")) {
             wxFontPickerCtrl* ctrl=(wxFontPickerCtrl*)ChildWin;
             wxFont f = ctrl->GetSelectedFont();
             if (f.IsOk()) {
                 wxString FontDesc=f.GetNativeFontInfoUserDesc();
                 FontDesc.Replace(" unknown-90","");
-                s+=AttrName + "=" + FontDesc + ",";
+                s += AttrName + "=" + FontDesc + ",";
             } else {
-                s+=AttrName + "=,";
+                s += AttrName + "=,";
             }
-        }
-        else if (ChildName.StartsWith("ID_NOTEBOOK") || ChildName.StartsWith("IDD_NOTEBOOK"))
-        {
+        } else if (ChildName.StartsWith("ID_NOTEBOOK") || ChildName.StartsWith("IDD_NOTEBOOK")) {
             wxNotebook* ctrl=(wxNotebook*)ChildWin;
             //for IDD_ stuff, don't record the value of the actual page selected
             if (ChildName.StartsWith("ID_NOTEBOOK")) {
@@ -237,8 +221,7 @@ static wxString GetEffectStringFromWindow(wxWindow *ParentWin)
                 s+=ctrl->GetPageText(ctrl->GetSelection());
                 s+=",";
             }
-            for(int i = 0; i<ctrl->GetPageCount(); i++)
-            {
+            for(int i = 0; i<ctrl->GetPageCount(); i++) {
                 wxString pageString = GetEffectStringFromWindow(ctrl->GetPage(i));
                 if (pageString.size() > 0) {
                     s += pageString;
@@ -247,9 +230,7 @@ static wxString GetEffectStringFromWindow(wxWindow *ParentWin)
                     }
                 }
             }
-        }
-        else if (ChildName.StartsWith("ID_PANEL_"))
-        {
+        } else if (ChildName.StartsWith("ID_PANEL_")) {
             wxString pageString = GetEffectStringFromWindow(ChildWin);
             if (pageString.size() > 0) {
                 s += pageString;
