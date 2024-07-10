@@ -103,8 +103,36 @@ static wxPGChoices CIRCLE_START_LOCATION(wxArrayString(8, CIRCLE_START_LOCATION_
 
 void CircleModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
+    wxPGProperty* p;
+    AddLayerSizeProperty(grid);
+    p = grid->Append(new wxStringProperty("Total Nodes", "TotalNodes", wxString::Format("%d", totalNodes)));
+    p->SetHelpString("Total Nodes for this model");
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
 
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", parm1));
+    if (SingleNode) {
+        p = grid->Append(new wxUIntProperty("Lights/String", "CircleLightCount", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 2000);
+        p->SetEditor("SpinCtrl");
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPGPropertyFlags::Hidden, true);
+    } else {
+        p = grid->Append(new wxUIntProperty("Nodes/String", "CircleLightCount", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 2000);
+        p->SetEditor("SpinCtrl");
+        p->SetHelpString("This is typically the total number of pixels per #String.");
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPGPropertyFlags::Hidden, true);
+    }
+
+    p = grid->Append(new wxUIntProperty("Center %", "CircleCenterPercent", parm3));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 100);
+    p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
@@ -148,36 +176,6 @@ void CircleModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
         }
     }
     
-    p = grid->Append(new wxStringProperty("Total Nodes", "TotalNodes", wxString::Format("%d", totalNodes)));
-    p->SetHelpString("Total Nodes for this model");
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
-
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "CircleLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 2000);
-        p->SetEditor("SpinCtrl");
-        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPGPropertyFlags::Hidden, true);
-    }
-    else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "CircleLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 2000);
-        p->SetEditor("SpinCtrl");
-        p->SetHelpString("This is typically the total number of pixels per #String.");
-        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPGPropertyFlags::Hidden, true);
-    }
-
-    p = grid->Append(new wxUIntProperty("Center %", "CircleCenterPercent", parm3));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-
-    AddLayerSizeProperty(grid);
-
     int start = IsLtoR ? 1 : 0;
     if (insideOut) {
         start += 2;
@@ -203,7 +201,12 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         ModelXml->AddAttribute("parm1", wxString::Format("%d", newVal));
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)GetLayerSizesTotalNodes() / newVal));
-        //AdjustStringProperties(grid, parm1);
+        if (ModelXml->HasAttribute("CustomStrings")) {
+            for (int x = 0; x < parm1; x++) {
+                ModelXml->DeleteAttribute(StartNodeAttrName(x));
+            }
+            ModelXml->DeleteAttribute("CustomStrings");
+        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStringCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStringCount");
@@ -252,16 +255,18 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CircleModel::OnPropertyGridChange::CircleLayerSizes");
         return 0;
     } else if (event.GetPropertyName() == "ModelIndividualStartNodes") {
-        bool hasIndiv = parm1>1;
         for (int x = 0; x < parm1; x++) {
             wxString nm = StartNodeAttrName(x);
             ModelXml->DeleteAttribute(nm);
         }
-        if (hasIndiv) {
-            for (int x = 0; x < parm1; x++) {
-                wxString nm = StartNodeAttrName(x);
-                ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
-            }
+        for (int x = 0; x < parm1; x++) {
+            wxString nm = StartNodeAttrName(x);
+            ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
+        }
+        if (ModelXml->HasAttribute("CustomStrings")) {
+            ModelXml->DeleteAttribute("CustomStrings");
+        } else {
+            ModelXml->AddAttribute("CustomStrings", wxString::Format("%d", parm1));
         }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::ModelIndividualStartNodes");

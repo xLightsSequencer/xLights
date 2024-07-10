@@ -3099,12 +3099,9 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
     int ChannelsPerString = CalcCannelsPerString();
 
-    if (ModelNode->GetAttribute("TotalNodes") != "") {
+    if (ModelNode->HasAttribute("CustomStrings") && ModelNode->HasAttribute("Strings1")) {
         std::vector<int> customStartNodes{};
         for (auto i = 1; i <= NumberOfStrings; i++) {
-
-            auto foo = ModelNode->GetAttribute(wxString::Format(wxT("Strings%i"), i).ToStdString(), "-1");
-
             if (i == 1) {
                 customStartNodes.push_back(StartChannel - 1);
             } else if (wxAtoi(ModelNode->GetAttribute(wxString::Format(wxT("Strings%i"), i).ToStdString(), "-1")) == -1 ) {

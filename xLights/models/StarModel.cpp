@@ -545,7 +545,37 @@ static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(12, TOP_BOT_LEFT_RIGHT_VALUE
 
 void StarModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", parm1));
+    wxPGProperty* p;
+
+    AddLayerSizeProperty(grid);
+    p = grid->Append(new wxStringProperty("Total Nodes", "TotalNodes", wxString::Format("%d", totalNodes)));
+    p->SetHelpString("Total Nodes for this model");
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+
+    if (SingleNode) {
+        p = grid->Append(new wxUIntProperty("Lights/String", "StarLightCount", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 10000);
+        p->SetEditor("SpinCtrl");
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPGPropertyFlags::Hidden, true);
+    } else {
+        p = grid->Append(new wxUIntProperty("Nodes/String", "StarLightCount", parm2));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", 10000);
+        p->SetEditor("SpinCtrl");
+        p->SetHelpString("This is typically the total number of pixels per #String.");
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPGPropertyFlags::Hidden, true);
+    }
+
+    p = grid->Append(new wxUIntProperty("# Points", "StarStrandCount", parm3));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 250);
+    p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");
@@ -591,33 +621,6 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* 
         }
     }
 
-    p = grid->Append(new wxStringProperty("Total Nodes", "TotalNodes", wxString::Format("%d", totalNodes)));
-    p->SetHelpString("Total Nodes for this model");
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
-
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "StarLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPGPropertyFlags::Hidden, true);
-    } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "StarLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-        p->SetHelpString("This is typically the total number of pixels per #String.");
-        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPGPropertyFlags::Hidden, true);
-    }
-
-    p = grid->Append(new wxUIntProperty("# Points", "StarStrandCount", parm3));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 250);
-    p->SetEditor("SpinCtrl");
-
     int ssl = 0;
     for (size_t i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++) {
         if (TOP_BOT_LEFT_RIGHT[i].GetText() == _starStartLocation) {
@@ -627,7 +630,6 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* 
     }
 
     grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, ssl));
-    AddLayerSizeProperty(grid);
 
     p = grid->Append(new wxFloatProperty("Outer to Inner Ratio", "StarRatio", starRatio));
     p->SetAttribute("Precision", 2);
@@ -657,7 +659,12 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGri
         ModelXml->AddAttribute("parm1", wxString::Format("%d", newVal));
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)GetLayerSizesTotalNodes() / newVal));
-        //AdjustStringProperties(grid, parm1);
+        if (ModelXml->HasAttribute("CustomStrings")) {
+            for (int x = 0; x < parm1; x++) {
+                ModelXml->DeleteAttribute(StartNodeAttrName(x));
+            }
+            ModelXml->DeleteAttribute("CustomStrings");
+        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarStringCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::StarStringCount");
@@ -719,16 +726,18 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnPropertyGridChange::StarRatio");
         return 0;
     } else if (event.GetPropertyName() == "ModelIndividualStartNodes") {
-        bool hasIndiv = parm1 > 1;
         for (int x = 0; x < parm1; x++) {
             wxString nm = StartNodeAttrName(x);
             ModelXml->DeleteAttribute(nm);
         }
-        if (hasIndiv) {
-            for (int x = 0; x < parm1; x++) {
-                wxString nm = StartNodeAttrName(x);
-                ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
-            }
+        for (int x = 0; x < parm1; x++) {
+            wxString nm = StartNodeAttrName(x);
+            ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
+        }
+        if (ModelXml->HasAttribute("CustomStrings")) {
+            ModelXml->DeleteAttribute("CustomStrings");
+        } else {
+            ModelXml->AddAttribute("CustomStrings", wxString::Format("%d", parm1));
         }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::ModelIndividualStartNodes");
