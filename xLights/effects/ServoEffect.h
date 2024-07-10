@@ -50,7 +50,8 @@ public:
 
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
-
+    virtual void AdjustSettingsAfterSplit(Effect *first, Effect *second) override;
+    
 protected:
     virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
     int GetPhonemeValue(RenderBuffer& buffer, SequenceElements* elements, const std::string& trackName);

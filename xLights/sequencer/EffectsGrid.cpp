@@ -376,9 +376,9 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             menu_paste->Enable(false);
         }
 
+        mDropStartTimeMS = mTimeline->GetRawTimeMSfromPosition(event.GetX());
         wxMenuItem* menu_split = mnuLayer.Append(ID_GRID_MNU_SPLIT_EFFECT, "Split");
-        if (mSelectedEffect == nullptr || MultipleEffectsSelected() || (mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS() <= mSequenceElements->GetFrameMS()))
-        {
+        if (mSelectedEffect == nullptr || MultipleEffectsSelected() || (mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS() <= mSequenceElements->GetFrameMS())) {
             menu_split->Enable(false);
         }
 
@@ -767,7 +767,13 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
             long e = mSelectedEffect->GetEndTimeMS();
             if (e - s > mSequenceElements->GetFrameMS()) {
                 auto el = mSelectedEffect->GetParentEffectLayer();
-                float splitf = (float)(e - s) / 2.0f;
+                float splitf = mDropStartTimeMS;// (float)(e - s) / 2.0f;
+                if (mDropStartTimeMS <= s || mDropStartTimeMS >= e) {
+                    splitf = (float)(e - s) / 2.0f;
+                } else {
+                    splitf -= s;
+                }
+                mSequenceElements->get_undo_mgr().CreateUndoStep();
                 mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), mSelectedEffect->GetID(), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString());
                 mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(el->GetParentElement()->GetModelName(), el->GetIndex(), mSelectedEffect->GetID(), mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS());
                 long newend = TimeLine::RoundToMultipleOfPeriod((float)s + splitf, mSequenceElements->GetFrameMS());
@@ -777,8 +783,16 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
                 newend = e;
 
                 Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newend, EFFECT_SELECTED, false);
+                
+                xlights->GetEffectManager().GetEffect(newef->GetEffectIndex())->AdjustSettingsAfterSplit(mSelectedEffect, newef);
+                
                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
+                mSequenceElements->get_undo_mgr().CreateUndoStep();
+                mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), mSelectedEffect);
+
                 mSelectedEffect->SetSelected(EFFECT_SELECTED);
+                
+                sendRenderDirtyEvent();
             }
         }
     } else if (id == ID_GRID_MNU_DUPLICATE_EFFECT) {

@@ -240,6 +240,7 @@ void ServoPanel::StartValueUpdated(wxCommandEvent& event)
             if (eff->GetEffectIndex() == EffectManager::eff_SERVO) {
                 changed |= eff->SetSetting("E_TEXTCTRL_EndValue", TextCtrl_Servo->GetValue());
             }
+            return changed;
         });
     }
     if (changed) {
@@ -261,6 +262,7 @@ void ServoPanel::EndValueUpdated(wxCommandEvent& event)
             if (eff->GetEffectIndex() == EffectManager::eff_SERVO) {
                 changed |= eff->SetSetting("E_TEXTCTRL_Servo", TextCtrl_EndValue->GetValue());
             }
+            return changed;
         });
     }
     if (changed) {

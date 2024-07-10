@@ -88,6 +88,23 @@ void ServoEffect::adjustSettings(const std::string& version, Effect* effect, boo
         }
     }
 }
+void ServoEffect::AdjustSettingsAfterSplit(Effect *first, Effect *second) {
+    float total = second->GetEndTimeMS() - first->GetStartTimeMS();
+    float pct = (first->GetEndTimeMS() - first->GetStartTimeMS()) / total;
+    
+    const std::string vn = "E_VALUECURVE_Servo";
+    const std::string &vc = first->GetSetting(vn);
+    if (vc.empty()) {
+        float sv = std::atof(first->GetSetting("E_TEXTCTRL_Servo").c_str());
+        float ev = std::atof(first->GetSetting("E_TEXTCTRL_EndValue").c_str());
+        float mv = sv + (ev - sv) * pct;
+        first->SetSetting("E_TEXTCTRL_EndValue", std::to_string(mv));
+        second->SetSetting("E_TEXTCTRL_Servo", std::to_string(mv));
+        first->SetSetting("E_TOGGLEBUTTON_End", "1");
+        second->SetSetting("E_TOGGLEBUTTON_Start", "1");
+    }
+}
+
 
 std::list<std::string> ServoEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);

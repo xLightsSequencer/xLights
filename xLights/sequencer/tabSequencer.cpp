@@ -4075,19 +4075,31 @@ void xLightsFrame::UpdateSequenceVideoPanel(const wxString& path)
 }
 
 
-void xLightsFrame::CallOnEffectBeforeSelected(std::function<void(Effect *)> &&cb) {
+void xLightsFrame::CallOnEffectBeforeSelected(std::function<bool(Effect *)> &&cb) {
     if (selectedEffect != nullptr) {
         Effect *ef = selectedEffect->GetParentEffectLayer()->GetEffectAtTime(selectedEffect->GetStartTimeMS() - 1);
         if (ef != nullptr) {
-            cb(ef);
+            _sequenceElements.get_undo_mgr().CaptureModifiedEffect(ef->GetParentEffectLayer()->GetParentElement()->GetFullName(),
+                                                                   ef->GetParentEffectLayer()->GetIndex(), ef);
+            bool changed = cb(ef);
+            if (!changed) {
+                //didn't change, cancel the undo step
+                _sequenceElements.get_undo_mgr().CancelLastStep();
+            }
         }
     }
 }
-void xLightsFrame::CallOnEffectAfterSelected(std::function<void(Effect *)> &&cb) {
+void xLightsFrame::CallOnEffectAfterSelected(std::function<bool(Effect *)> &&cb) {
     if (selectedEffect != nullptr) {
         Effect *ef = selectedEffect->GetParentEffectLayer()->GetEffectAtTime(selectedEffect->GetEndTimeMS() + 1);
         if (ef != nullptr) {
-            cb(ef);
+            _sequenceElements.get_undo_mgr().CaptureModifiedEffect(ef->GetParentEffectLayer()->GetParentElement()->GetFullName(),
+                                                                   ef->GetParentEffectLayer()->GetIndex(), ef);
+            bool changed = cb(ef);
+            if (!changed) {
+                //didn't change, cancel the undo step
+                _sequenceElements.get_undo_mgr().CancelLastStep();
+            }
         }
     }
 }
