@@ -1030,7 +1030,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
             ImportVixen3(fn);
         } else if (ext == "vix") {
             ImportVix(fn);
-        } else if (ext == "xml" || ext == "xsq" || ext == "zip" || ext == "piz") {
+        } else if (ext == "xml" || ext == "xsq" || ext == "zip" || ext == "xsqz" || ext == "piz") {
             ImportXLights(fn);
         } else if (ext == "msq") {
             ImportLSP(fn);
