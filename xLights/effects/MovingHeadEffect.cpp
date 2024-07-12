@@ -66,12 +66,26 @@ void MovingHeadEffect::SetDefaultParameters() {
         return;
     }
 
-    SetSliderValue(dp->Slider_MHPan, 0);
-    SetSliderValue(dp->Slider_MHTilt, 0);
-    SetSliderValue(dp->Slider_MHCycles, 10);
-
     dp->ValueCurve_MHPan->SetActive(false);
     dp->ValueCurve_MHTilt->SetActive(false);
+    dp->ValueCurve_MHPanOffset->SetActive(false);
+    dp->ValueCurve_MHTiltOffset->SetActive(false);
+    dp->ValueCurve_MHGroupings->SetActive(false);
+    dp->ValueCurve_MHPathScale->SetActive(false);
+    dp->ValueCurve_MHTimeOffset->SetActive(false);
+
+    SetSliderValue(dp->Slider_MHPan, 0.0f);
+    SetSliderValue(dp->Slider_MHTilt, 0.0f);
+    SetSliderValue(dp->Slider_MHPanOffset, 0.0f);
+    SetSliderValue(dp->Slider_MHTiltOffset, 0.0f);
+    SetSliderValue(dp->Slider_MHGroupings, 1);
+    SetSliderValue(dp->Slider_MHCycles, 10);
+    SetSliderValue(dp->Slider_MHPathScale, 0.0f);
+    SetSliderValue(dp->Slider_MHTimeOffset, 0.0f);
+
+    dp->CheckBox_MHIgnorePan->SetValue(false);
+    dp->CheckBox_MHIgnoreTilt->SetValue(false);
+    dp->CheckBoxAutoShutter->SetValue(false);
 }
 
 void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

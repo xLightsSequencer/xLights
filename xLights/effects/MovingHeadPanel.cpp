@@ -212,7 +212,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerPositionPan = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizerPositionPan->AddGrowableCol(1);
     Label_Pan = new wxStaticText(PanelPosition, ID_STATICTEXT_Pan, _("Pan (deg):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Pan"));
-    FlexGridSizerPositionPan->Add(Label_Pan, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizerPositionPan->Add(Label_Pan, 1, wxALL|wxEXPAND, 2);
     Slider_MHPan = new BulkEditSliderF1(PanelPosition, ID_SLIDER_MHPan, 0, -1800, 1800, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MHPan"));
     FlexGridSizerPositionPan->Add(Slider_MHPan, 1, wxALL|wxEXPAND, 2);
     ValueCurve_MHPan = new BulkEditValueCurveButton(PanelPosition, ID_VALUECURVE_MHPan, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_MHPan"));
@@ -222,7 +222,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerPosition->Add(FlexGridSizerPositionPan, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizerPositionTilt = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizerPositionTilt->AddGrowableCol(1);
-    Label_Tilt = new wxStaticText(PanelPosition, ID_STATICTEXT_Tilt, _("Tilt (deg):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Tilt"));
+    Label_Tilt = new wxStaticText(PanelPosition, ID_STATICTEXT_Tilt, _("Tilt (deg): "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Tilt"));
     FlexGridSizerPositionTilt->Add(Label_Tilt, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_MHTilt = new BulkEditSliderF1(PanelPosition, ID_SLIDER_MHTilt, 0, -1800, 1800, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MHTilt"));
     FlexGridSizerPositionTilt->Add(Slider_MHTilt, 1, wxALL|wxEXPAND, 2);
@@ -233,7 +233,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerPosition->Add(FlexGridSizerPositionTilt, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizer_PanOffset = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizer_PanOffset->AddGrowableCol(1);
-    Label_PanOffset = new wxStaticText(PanelPosition, ID_STATICTEXT_PanOffset, _("Fan Pan:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PanOffset"));
+    Label_PanOffset = new wxStaticText(PanelPosition, ID_STATICTEXT_PanOffset, _("Fan Pan:  "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PanOffset"));
     FlexGridSizer_PanOffset->Add(Label_PanOffset, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_MHPanOffset = new BulkEditSliderF1(PanelPosition, ID_SLIDER_MHPanOffset, 0, -1800, 1800, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MHPanOffset"));
     FlexGridSizer_PanOffset->Add(Slider_MHPanOffset, 1, wxALL|wxEXPAND, 2);
@@ -244,8 +244,8 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel(parent)
     FlexGridSizerPosition->Add(FlexGridSizer_PanOffset, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizer_TiltOffset = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizer_TiltOffset->AddGrowableCol(1);
-    Label_TiltOffset = new wxStaticText(PanelPosition, ID_STATICTEXT_TiltOffset, _("Fan Tilt:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_TiltOffset"));
-    FlexGridSizer_TiltOffset->Add(Label_TiltOffset, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+    Label_TiltOffset = new wxStaticText(PanelPosition, ID_STATICTEXT_TiltOffset, _("Fan Tilt:   "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_TiltOffset"));
+    FlexGridSizer_TiltOffset->Add(Label_TiltOffset, 1, wxALL|wxEXPAND, 2);
     Slider_MHTiltOffset = new BulkEditSliderF1(PanelPosition, ID_SLIDER_MHTiltOffset, 0, -1800, 1800, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MHTiltOffset"));
     FlexGridSizer_TiltOffset->Add(Slider_MHTiltOffset, 1, wxALL|wxEXPAND, 2);
     ValueCurve_MHTiltOffset = new BulkEditValueCurveButton(PanelPosition, ID_VALUECURVE_MHTiltOffset, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_MHTiltOffset"));
@@ -1956,8 +1956,41 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
             }
         }
     }
+
+    ValueCurve_MHPan->SetActive(false);
+    ValueCurve_MHTilt->SetActive(false);
+    ValueCurve_MHPanOffset->SetActive(false);
+    ValueCurve_MHTiltOffset->SetActive(false);
+    ValueCurve_MHGroupings->SetActive(false);
+    SetSliderValue(Slider_MHPan, 0.0f);
+    SetSliderValue(Slider_MHTilt, 0.0f);
+    SetSliderValue(Slider_MHPanOffset, 0.0f);
+    SetSliderValue(Slider_MHTiltOffset, 0.0f);
+    SetSliderValue(Slider_MHGroupings, 1);
+    SetSliderValue(Slider_MHCycles, 10);
+    NotifyPositionUpdated();
+
+    m_movingHeadDimmerPanel->SetDimmerCommands("0.0,0.0,1.0,0.0");
+
+    OnButton_MHPathClearClick(event);
+    ValueCurve_MHPathScale->SetActive(false);
+    ValueCurve_MHTimeOffset->SetActive(false);
+    SetSliderValue(Slider_MHPathScale, 0.0f);
+    SetSliderValue(Slider_MHTimeOffset, 0.0f);
+    CheckBox_MHIgnorePan->SetValue(false);
+    CheckBox_MHIgnoreTilt->SetValue(false);
+    UpdatePathSettings();
+
     FireChangeEvent();
     UpdateStatusPanel();
+}
+
+void MovingHeadPanel::SetSliderValue(wxSlider* slider, int value) {
+    slider->SetValue(value);
+    wxScrollEvent event(wxEVT_SLIDER, slider->GetId());
+    event.SetEventObject(slider);
+    event.SetInt(value);
+    slider->ProcessWindowEvent(event);
 }
 
 void MovingHeadPanel::OnButtonDimmerOnClick(wxCommandEvent& event)
