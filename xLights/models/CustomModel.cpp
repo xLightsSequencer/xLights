@@ -937,7 +937,7 @@ void CustomModel::InitCustomMatrix(const std::string& customModel, const std::st
             size_t col = 0;
             for (const auto& c : r) {
                 if (c > 0) {
-                    int idx = c;
+                    int idx = c - 1;//index is zero based
                     // is node already defined in map?
                     if (nodemap[idx] < 0) {
                         // unmapped - so add a node
