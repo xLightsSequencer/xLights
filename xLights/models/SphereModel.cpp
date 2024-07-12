@@ -179,7 +179,7 @@ void SphereModel::ExportXlightsModel()
     wxString da = ModelXml->GetAttribute("DisplayAs");
     wxString sl = ModelXml->GetAttribute("StartLatitude", "-86");
     wxString el = ModelXml->GetAttribute("EndLatitude", "86");
-    wxString d = ModelXml->GetAttribute("Degrees");
+    wxString d = ModelXml->GetAttribute("Degrees", "360");
 
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<spheremodel \n");
