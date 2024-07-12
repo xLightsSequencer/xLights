@@ -6097,22 +6097,6 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
     return result;
 }
 
-float ComputeFontSize(int& toffset, const float factor)
-{
-    double fontSize = DEFAULT_ROW_HEADING_HEIGHT - 10;
-    toffset = 0;
-    if (fontSize < 10) {
-        if (factor > 1.5) {
-            fontSize = 9;
-            toffset = 1;
-        } else {
-            fontSize = 10;
-            toffset = 2;
-        }
-    }
-    return fontSize;
-}
-
 void EffectsGrid::DrawEffects(xlGraphicsContext *ctx)
 {
     int width = getWidth();
@@ -6596,7 +6580,7 @@ void EffectsGrid::Draw()
     if (mSequenceElements) {
         float factor = translateToBacking(1.0);
         int toffset;
-        float fontSize = ComputeFontSize(toffset, factor) * factor;
+        float fontSize = xlFontInfo::ComputeFontSize(toffset, DEFAULT_ROW_HEADING_HEIGHT, factor) * factor;
         if (curFontSize != fontSize) {
             if (fontTexture) {
                 delete fontTexture;

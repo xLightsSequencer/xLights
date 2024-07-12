@@ -1095,6 +1095,9 @@
     <ClCompile Include="effects\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp">
       <Filter>Effects\MovingHeadPanels</Filter>
     </ClCompile>
+    <ClCompile Include="models\LabelObject.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2175,6 +2178,9 @@
     <ClInclude Include="models\XmlSerializer.h" />
     <ClInclude Include="models\DMX\DmxDimmerAbility.h">
       <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\LabelObject.h">
+      <Filter>Models</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

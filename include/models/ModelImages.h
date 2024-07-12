@@ -36,6 +36,7 @@
 #include "add_object_ruler.xpm"
 #include "add_object_mesh.xpm"
 #include "add_object_terrian.xpm"
+#include "add_object_label.xpm"
 #include "add_dmx_moving_head.xpm"
 #include "add_dmx_skulltronix.xpm"
 #include "add_dmx.xpm"

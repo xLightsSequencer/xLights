@@ -218,6 +218,7 @@ class LayoutPanel: public wxPanel
         static const long ID_ADD_OBJECT_TERRIAN;
         static const long ID_ADD_OBJECT_RULER;
         static const long ID_ADD_OBJECT_MESH;
+        static const long ID_ADD_OBJECT_LABEL;
         static const long ID_ADD_DMX_MOVING_HEAD;
         static const long ID_ADD_DMX_GENERAL;
         static const long ID_ADD_DMX_MOVING_HEAD_ADV;

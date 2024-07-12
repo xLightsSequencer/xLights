@@ -873,14 +873,13 @@ int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool S
     return 0;
 }
 
-wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
+wxCursor TwoPointScreenLocation::InitializeLocation(int& handle, int x, int y, const std::vector<NodeBaseClassPtr>& Nodes, ModelPreview* preview) {
     if (preview != nullptr) {
-        FindPlaneIntersection( x, y, preview );
-        if( preview->Is3D() ) {
+        FindPlaneIntersection(x, y, preview);
+        if (preview->Is3D()) {
             active_handle = END_HANDLE;
         }
-    }
-    else {
+    } else {
         DisplayError("InitializeLocation: called with no preview....investigate!");
     }
     x2 = y2 = z2 = 0.0f;
@@ -888,22 +887,21 @@ wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, c
     return wxCURSOR_SIZING;
 }
 
-void TwoPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
-{
+void TwoPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const {
     wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", RulerObject::Measure(origin, point2)));
-    //prop->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+    // prop->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
     prop->SetAttribute("Precision", 2);
-    //prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    // prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 }
 
-std::string TwoPointScreenLocation::GetDimension(float factor) const
-{
-    if (RulerObject::GetRuler() == nullptr) return "";
+std::string TwoPointScreenLocation::GetDimension(float factor) const {
+    if (RulerObject::GetRuler() == nullptr)
+        return "";
     return wxString::Format("Length %s", RulerObject::MeasureLengthDescription(origin, point2)).ToStdString();
 }
 
-void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
-    wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
+void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface* propertyEditor) const {
+    wxPGProperty* prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
     prop->SetAttribute("UseCheckbox", 1);
     prop = propertyEditor->Append(new wxFloatProperty("WorldX", "WorldX", worldPos_x));
     prop->SetAttribute("Precision", 2);

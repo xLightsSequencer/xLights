@@ -90,6 +90,7 @@ bool xlFontInfo::load(const FontInfoStruct &fi) {
     }
     return image.IsOk();
 }
+
 float xlFontInfo::widthOf(const std::string &text, float factor) const {
     float w = 0;
     for (int idx = 0; idx < text.size(); idx++) {
@@ -102,17 +103,36 @@ float xlFontInfo::widthOf(const std::string &text, float factor) const {
     return w / factor;
 }
 
-void xlFontInfo::populate(xlVertexTextureAccumulator &va, float x, float yBase, const std::string &text, float factor) const {
+size_t xlFontInfo::CountChar(const std::string& text, char termChar) const {
+    size_t count = 0;
+	for (size_t i = 0; i < text.size(); ++i) {
+		if (text[i] == termChar) {
+			++count;
+		}
+	}
+	return count;
+}
+
+void xlFontInfo::populate(xlVertexTextureAccumulator &va, float x, float yBase, const std::string &text, float factor, bool invert, float z) const {
 
     if (widths.size() == 0 || text.empty()) {
         return;
     }
 
+    float origX = x;
+
     va.PreAlloc(6 * text.size());
     float textureHeight = image.GetHeight();
     float textureWidth = image.GetWidth();
+    int ls = CountChar(text, '\n') + 1;
+    int outputLine = ls - 1;
     for (int idx = 0; idx < text.size(); idx++) {
         char ch = text[idx];
+        if (ch == '\n') {
+            outputLine--;
+            x = origX;
+            continue;
+        }
         if (ch < ' ' || ch > '~') {
             ch = '?';
         }
@@ -136,7 +156,8 @@ void xlFontInfo::populate(xlVertexTextureAccumulator &va, float x, float yBase, 
         float ty2 = 2 + (line * (maxH + 5));
         float ty = ty2 + maxH;
 
-        float y = yBase;
+        float lineh = maxH / factor;
+        float y = yBase + (outputLine * lineh);
         float y2 = yBase - float(maxH) / factor;
 
         //samples need to be from within the pixel
@@ -155,12 +176,15 @@ void xlFontInfo::populate(xlVertexTextureAccumulator &va, float x, float yBase, 
         x += 0.25f/factor;
         x2 += 0.25f/factor;
 
-        va.AddVertex(x, y, tx, ty);
-        va.AddVertex(x, y2, tx, ty2);
-        va.AddVertex(x2, y2, tx2, ty2);
-        va.AddVertex(x2, y2, tx2, ty2);
-        va.AddVertex(x2, y, tx2, ty);
-        va.AddVertex(x, y, tx, ty);
+        if (invert) {
+            std::swap(ty, ty2);
+        }
+        va.AddVertex(x, y, z, tx, ty);
+        va.AddVertex(x, y2, z, tx, ty2);
+        va.AddVertex(x2, y2, z, tx2, ty2);
+        va.AddVertex(x2, y2, z, tx2, ty2);
+        va.AddVertex(x2, y, z, tx2, ty);
+        va.AddVertex(x, y, z, tx, ty);
 
         x += widths[ch - ' '] / factor;
     }
@@ -189,4 +213,19 @@ const xlFontInfo &xlFontInfo::FindFont(int size) {
     }
 
     return FONTS[tsize];
+}
+
+float xlFontInfo::ComputeFontSize(int& toffset, const float height, const float factor) {
+    double fontSize = height - 10;
+    toffset = 0;
+    if (fontSize < 10) {
+        if (factor > 1.5) {
+            fontSize = 9;
+            toffset = 1;
+        } else {
+            fontSize = 10;
+            toffset = 2;
+        }
+    }
+    return fontSize;
 }

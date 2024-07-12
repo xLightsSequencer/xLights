@@ -222,6 +222,7 @@ const long LayoutPanel::ID_ADD_OBJECT_GRIDLINES = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_TERRIAN = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_RULER = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
+const long LayoutPanel::ID_ADD_OBJECT_LABEL = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_MOVING_HEAD_ADV = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_GENERAL = wxNewId();
@@ -6107,6 +6108,7 @@ void LayoutPanel::AddObjectButton(wxMenu& mnu, const long id, const std::string 
 void LayoutPanel::DisplayAddObjectPopup() {
     wxMenu mnuObjects;
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_IMAGE, "Image", add_object_image_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_OBJECT_LABEL, "Label", add_object_label_xpm);
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_GRIDLINES, "Gridlines", add_object_gridlines_xpm);
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_TERRIAN, "Terrian", add_object_terrian_xpm);
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_MESH, "Mesh", add_object_mesh_xpm);
@@ -6132,7 +6134,14 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
         object_created = true;
     }
-    else if (id == ID_ADD_OBJECT_GRIDLINES)
+    else if (id == ID_ADD_OBJECT_LABEL) {
+        logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_LABEL");
+        CreateUndoPoint("All", "", "");
+        vobj = xlights->AllObjects.CreateAndAddObject("Label");
+        vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
+        objects_panel->UpdateObjectList(true, currentLayoutGroup);
+        object_created = true;
+    } else if (id == ID_ADD_OBJECT_GRIDLINES)
     {
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_GRIDLINES");
         CreateUndoPoint("All", "", "");

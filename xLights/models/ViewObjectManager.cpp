@@ -16,6 +16,7 @@
 #include "RulerObject.h"
 #include "ImageObject.h"
 #include "MeshObject.h"
+#include "LabelObject.h"
 #include "TerrianObject.h"
 #include "xLightsMain.h"
 
@@ -64,6 +65,8 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
         view_object = new ImageObject(node, *this);
     } else if (type == "Mesh") {
         view_object = new MeshObject(node, *this);
+    } else if (type == "Label") {
+        view_object = new LabelObject(node, *this);
     } else if (type == "Terrian") {
         view_object = new TerrianObject(node, *this);
     } else {
@@ -86,6 +89,8 @@ ViewObject* ViewObjectManager::CreateObject(wxXmlNode *node) const {
         view_object = new ImageObject(node, *this);
     } else if (type == "Mesh") {
         view_object = new MeshObject(node, *this);
+    } else if (type == "Label") {
+        view_object = new LabelObject(node, *this);
     } else if (type == "Terrian") {
         view_object = new TerrianObject(node, *this);
     } else {
