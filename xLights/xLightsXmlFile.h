@@ -18,6 +18,7 @@
 #include "Vixen3.h"
 
 #include <array>
+#include <vector>
 
 class SequenceElements;  // forward declaration needed due to circular dependency
 class xLightsFrame;
@@ -103,6 +104,18 @@ public:
     }
     void SetMediaFile(const wxString& ShowDir, const wxString& filename, bool overwrite_tags);
     void ClearMediaFile();
+
+    void AddSubMediaFile(const wxString& ShowDir, const wxString& filename);
+    void RemoveSubMediaFile(const wxString& filename);
+    void RemoveAllSubMediaFile(); 
+    std::vector<wxString> GetSubMediaFiles() const;
+    std::vector<wxString> GetSubMediaNames() const;
+    AudioManager* GetSubMedia(wxString const& name) const;
+
+    AudioManager* GetSubMedia(int idx) const
+    {
+        return sub_audio.at(idx).get();
+    }
 
     const wxString& GetHeaderInfo(HEADER_INFO_TYPES node_type) const;
     void SetHeaderInfo(HEADER_INFO_TYPES node_type, const wxString& node_value);
@@ -213,6 +226,8 @@ private:
     bool sequence_loaded = false; // flag to indicate the sequencer has been loaded with this xml data
     DataLayerSet mDataLayers;
     AudioManager* audio = nullptr;
+
+    std::vector<std::unique_ptr<AudioManager>> sub_audio;
 
     void CreateNew();
     bool LoadSequence(const wxString& ShowDir, bool ignore_audio, const wxFileName &realFilename);

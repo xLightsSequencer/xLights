@@ -363,8 +363,8 @@ public:
     void SetStepBlock(int step, int block);
 	void SetFrameInterval(int intervalMS);
 	int GetFrameInterval() const { return _intervalMS; }
-    const FrameData* GetFrameData(int frame, const std::string &timing, bool needNotes = false);
-	const FrameData* GetFrameData(const std::string &timing, long ms, bool needNotes = false);
+    const FrameData* GetFrameData(int frame, bool needNotes = false);
+	const FrameData* GetFrameData(long ms, bool needNotes = false);
 	void DoPrepareFrameData();
 	void DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback progresscallback);
 	bool IsPolyphonicTranscriptionDone() const { return _polyphonicTranscriptionDone; };

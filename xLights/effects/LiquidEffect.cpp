@@ -607,7 +607,7 @@ void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], in
         float audioLevel = 0.0001f;
         if (buffer.GetMedia() != nullptr)
         {
-            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod);
             if (pf != nullptr) {
                 audioLevel = pf->max;
             }
