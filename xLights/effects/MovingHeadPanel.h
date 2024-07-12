@@ -221,6 +221,7 @@ protected:
     static const wxWindowID ID_TEXTCTRL_MH8_Settings;
     //*)
     
+    static void SetSliderValue(wxSlider* slider, int value);
 private:
     
     //(*Handlers(MovingHeadPanel)

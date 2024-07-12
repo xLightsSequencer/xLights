@@ -235,7 +235,7 @@
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_Tilt" variable="Label_Tilt" member="yes">
-												<label>Tilt (deg):</label>
+												<label>Tilt (deg): </label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
@@ -279,7 +279,7 @@
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_PanOffset" variable="Label_PanOffset" member="yes">
-												<label>Fan Pan:</label>
+												<label>Fan Pan:  </label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
@@ -323,7 +323,7 @@
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_TiltOffset" variable="Label_TiltOffset" member="yes">
-												<label>Fan Tilt:</label>
+												<label>Fan Tilt:   </label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
@@ -421,7 +421,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxSlider" name="ID_SLIDER_MHCycles" subclass="BulkEditSliderF1" variable="Slider_MHCycles" member="yes">
-												<value>10</value>
+												<value>1</value>
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>2</border>
@@ -433,7 +433,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHCycles" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHCycles" member="no">
-												<value>0</value>
+												<value>1</value>
 												<size>25,-1d</size>
 												<style>wxTE_PROCESS_ENTER</style>
 											</object>
