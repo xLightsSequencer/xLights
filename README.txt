@@ -11,6 +11,20 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.13 July 14, 2024
+    - enh (scott)       Added "auto shutter" to Moving Head Effect for Color Wheels
+    - enh (PeteMatthews) ILightThat controllers: Set universe size in config, add Switchy
+    - enh (scott)       Added Undo/Redo to Custom Model Auto Increment
+    - enh (scott)       Added ability to rename controller model name
+    - enh (keith)       Change the packeged sequence default extension to xsqz
+    - enh (keith)       Add ability to directly open packaged sequences from zip/xsqz file in read only mode in xlights by double clicking on zip or dragging it onto the icon
+    - enh (dkulp)       Support for linking Servo effects so that changes to end will effect the start of the next servo and vice/versa
+    - enh (dkulp)       When splitting an effect, use the location of the mouse as the split point (instead of the center)
+    - enh (keith)       For sparse custom models add a save format which is sparse
+    - bug (cybercop23)  Reset all MH Panel options
+    - bug (scott)       Fix some of the Experience SR Upload issues
+    - bug (scott)       Bulk Edit missing in Layout Tab
+    - bug (scott)       If windows hardware video render fails, fallback to software
 2024.12 Jun 23, 2024
     - enh (keith)       Add F48v5 support
     - enh (dkulp)       Add K2-Pi0 and K2-Pi-Servo (pixel ports only) support
