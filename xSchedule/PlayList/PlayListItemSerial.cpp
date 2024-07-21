@@ -8,20 +8,19 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
 #include <wx/notebook.h>
+#include <wx/xml/xml.h>
 
 #include "PlayListItemSerial.h"
 #include "PlayListItemSerialPanel.h"
-#include "../xLights/outputs/serial.h"
-#include "../../xLights/outputs/SerialOutput.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/outputs/SerialOutput.h"
+#include "../xLights/outputs/serial.h"
 
 #include <log4cpp/Category.hh>
 
 PlayListItemSerial::PlayListItemSerial(wxXmlNode* node) :
-    PlayListItem(node)
-{
+    PlayListItem(node) {
     _started = false;
     _commPort = "COM1";
     _configuration = "8N1";
@@ -30,8 +29,7 @@ PlayListItemSerial::PlayListItemSerial(wxXmlNode* node) :
     PlayListItemSerial::Load(node);
 }
 
-void PlayListItemSerial::Load(wxXmlNode* node)
-{
+void PlayListItemSerial::Load(wxXmlNode* node) {
     PlayListItem::Load(node);
     _commPort = node->GetAttribute("CommPort", "COM1");
     _configuration = node->GetAttribute("Configuration", "8N1");
@@ -40,8 +38,7 @@ void PlayListItemSerial::Load(wxXmlNode* node)
 }
 
 PlayListItemSerial::PlayListItemSerial() :
-    PlayListItem()
-{
+    PlayListItem() {
     _type = "PLISERIAL";
     _started = false;
     _commPort = "COM1";
@@ -50,8 +47,7 @@ PlayListItemSerial::PlayListItemSerial() :
     _data = "";
 }
 
-PlayListItem* PlayListItemSerial::Copy(const bool isClone) const
-{
+PlayListItem* PlayListItemSerial::Copy(const bool isClone) const {
     PlayListItemSerial* res = new PlayListItemSerial();
     res->_commPort = _commPort;
     res->_configuration = _configuration;
@@ -63,8 +59,7 @@ PlayListItem* PlayListItemSerial::Copy(const bool isClone) const
     return res;
 }
 
-wxXmlNode* PlayListItemSerial::Save()
-{
+wxXmlNode* PlayListItemSerial::Save() {
     wxXmlNode* node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("CommPort", _commPort);
@@ -77,31 +72,26 @@ wxXmlNode* PlayListItemSerial::Save()
     return node;
 }
 
-std::string PlayListItemSerial::GetTitle() const
-{
+std::string PlayListItemSerial::GetTitle() const {
     return "Serial";
 }
 
-void PlayListItemSerial::Configure(wxNotebook* notebook)
-{
+void PlayListItemSerial::Configure(wxNotebook* notebook) {
     notebook->AddPage(new PlayListItemSerialPanel(notebook, this), GetTitle(), true);
 }
 
-std::string PlayListItemSerial::GetNameNoTime() const
-{
+std::string PlayListItemSerial::GetNameNoTime() const {
     if (_name != "")
         return _name;
 
     return _commPort;
 }
 
-std::string PlayListItemSerial::GetTooltip()
-{
+std::string PlayListItemSerial::GetTooltip() {
     return "Use \\xAA to enter binary values where AA is a hexadecimal value.\n\n" + GetTagHint();
 }
 
-unsigned char* PlayListItemSerial::PrepareData(const std::string s, int& used)
-{
+unsigned char* PlayListItemSerial::PrepareData(const std::string s, int& used) {
     wxString working = ReplaceTags(s);
 
     unsigned char* buffer = (unsigned char*)malloc(working.size());
@@ -144,8 +134,7 @@ unsigned char* PlayListItemSerial::PrepareData(const std::string s, int& used)
     return res;
 }
 
-void PlayListItemSerial::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
-{
+void PlayListItemSerial::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (ms >= _delay && !_started) {
         _started = true;
@@ -214,8 +203,7 @@ void PlayListItemSerial::Frame(uint8_t* buffer, size_t size, size_t ms, size_t f
     }
 }
 
-void PlayListItemSerial::Start(long stepLengthMS)
-{
+void PlayListItemSerial::Start(long stepLengthMS) {
     PlayListItem::Start(stepLengthMS);
 
     _started = false;

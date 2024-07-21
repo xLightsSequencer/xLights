@@ -426,6 +426,7 @@ copy "$(SolutionDir)..\bin\xschedule.windows.properties" "$(TargetDir)"</Command
     <ClCompile Include="PluginManager.cpp" />
     <ClCompile Include="RemapDialog.cpp" />
     <ClCompile Include="RemoteModeConfigDialog.cpp" />
+    <ClCompile Include="RGBEffects.cpp" />
     <ClCompile Include="RunningSchedule.cpp" />
     <ClCompile Include="Schedule.cpp" />
     <ClCompile Include="ScheduleDialog.cpp" />
@@ -675,6 +676,7 @@ copy "$(SolutionDir)..\bin\xschedule.windows.properties" "$(TargetDir)"</Command
     <ClInclude Include="ReentrancyCounter.h" />
     <ClInclude Include="RemapDialog.h" />
     <ClInclude Include="RemoteModeConfigDialog.h" />
+    <ClInclude Include="RGBEffects.h" />
     <ClInclude Include="RunningSchedule.h" />
     <ClInclude Include="Schedule.h" />
     <ClInclude Include="ScheduleDialog.h" />
