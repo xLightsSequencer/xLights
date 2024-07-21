@@ -13,6 +13,7 @@
 #include "MatrixMapper.h"
 #include "PlayList/PlayerWindow.h"
 #include <wx/wx.h>
+#include <wx/xml/xml.h>
 #include <string>
 
 class wxXmlNode;
