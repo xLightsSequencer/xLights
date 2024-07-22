@@ -485,7 +485,7 @@ void TreeModel::ExportXlightsModel()
     f.Close();
 }
 
-void TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "treemodel") {
         wxString name = root->GetAttribute("name");
@@ -554,8 +554,10 @@ void TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::ImportXlightsModel");
+        return true;
     } else {
         DisplayError("Failure loading Tree model file.");
+        return false;
     }
 }
 

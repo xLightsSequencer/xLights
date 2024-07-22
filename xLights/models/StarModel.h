@@ -23,7 +23,7 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
         virtual int GetStrandLength(int strand) const override;
         virtual int MapToNodeIndex(int strand, int node) const override;

@@ -114,10 +114,11 @@ void DmxGeneral::ExportXlightsModel()
     f.Close();
 }
 
-void DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "dmxgeneral") {
-        ImportBaseParameters(root);
+        if (!ImportBaseParameters(root))
+            return false;
 
         wxString name = root->GetAttribute("name");
         wxString v = root->GetAttribute("SourceVersion");
@@ -149,8 +150,10 @@ void DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxGeneral::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxGeneral::ImportXlightsModel");
+        return true;
     } else {
         DisplayError("Failure loading DmxGeneral model file.");
+        return false;
     }
 }
 

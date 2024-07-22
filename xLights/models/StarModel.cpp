@@ -742,7 +742,7 @@ void StarModel::ExportXlightsModel()
     f.Close();
 }
 
-void StarModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool StarModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "starmodel") {
         wxString name = root->GetAttribute("name");
@@ -811,7 +811,9 @@ void StarModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::ImportXlightsModel");
+        return true;
     } else {
         DisplayError("Failure loading Star model file.");
+        return false;
     }
 }

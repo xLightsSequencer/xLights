@@ -231,7 +231,7 @@ void SphereModel::ExportXlightsModel()
     f.Close();
 }
 
-void SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "spheremodel") {
         wxString name = root->GetAttribute("name");
@@ -288,8 +288,10 @@ void SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::ImportXlightsModel");
+        return true;
     } else {
         DisplayError("Failure loading Sphere model file.");
+        return false;
     }
 }
 

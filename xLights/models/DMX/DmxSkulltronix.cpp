@@ -1195,10 +1195,11 @@ void DmxSkulltronix::ExportXlightsModel()
     f.Close();
 }
 
-void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "dmxmodel") {
-        ImportBaseParameters(root);
+        if (!ImportBaseParameters(root))
+            return false;
 
         wxString name = root->GetAttribute("name");
         wxString v = root->GetAttribute("SourceVersion");
@@ -1284,7 +1285,10 @@ void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkulltronix::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading DmxSkulltronix model file.");
+        return false;
     }
 }

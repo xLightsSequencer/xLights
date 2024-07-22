@@ -278,10 +278,11 @@ void DmxFloodlight::ExportXlightsModel()
     f.Close();
 }
 
-void DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "dmxmodel") {
-        ImportBaseParameters(root);
+        if (!ImportBaseParameters(root))
+            return false;
 
         wxString name = root->GetAttribute("name");
         wxString v = root->GetAttribute("SourceVersion");
@@ -302,8 +303,11 @@ void DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxFloodlight::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxFloodlight::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading DmxFloodlight model file.");
+        return false;
     }
 }
 

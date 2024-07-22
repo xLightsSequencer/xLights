@@ -444,7 +444,7 @@ void MultiPointModel::DeleteHandle(int handle_) {
     GetModelScreenLocation().DeleteHandle(handle);
 }
 
-void MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "multipointmodel") {
         wxString name = root->GetAttribute("name");
@@ -501,8 +501,11 @@ void MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights,
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading MultiPoint model file.");
+        return false;
     }
 }
 

@@ -624,7 +624,7 @@ void ArchesModel::ExportXlightsModel()
     f.Close();
 }
 
-void ArchesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool ArchesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "archesmodel") {
         wxString name = root->GetAttribute("name");
@@ -682,8 +682,10 @@ void ArchesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::ImportXlightsModel");
+        return true;
     } else {
         DisplayError("Failure loading Arches model file.");
+        return false;
     }
 }
 

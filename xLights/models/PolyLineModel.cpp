@@ -1396,7 +1396,7 @@ void PolyLineModel::OnPropertyGridItemExpanded(wxPropertyGridInterface* grid, wx
     }
 }
 
-void PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "polylinemodel") {
         wxString name = root->GetAttribute("name");
@@ -1477,8 +1477,11 @@ void PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading PolyLine model file.");
+        return false;
     }
 }
 

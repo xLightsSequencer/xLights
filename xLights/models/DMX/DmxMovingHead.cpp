@@ -1244,10 +1244,11 @@ void DmxMovingHead::ExportXlightsModel()
     f.Close();
 }
 
-void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "dmxmodel") {
-        ImportBaseParameters(root);
+        if (!ImportBaseParameters(root))
+            return false;
 
         wxString name = root->GetAttribute("name");
         wxString v = root->GetAttribute("SourceVersion");
@@ -1312,8 +1313,11 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHead::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading DmxMovingHead model file.");
+        return false;
     }
 }
 

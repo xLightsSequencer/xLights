@@ -345,7 +345,7 @@ void DmxModel::ExportBaseParameters(wxFile& f)
     }
 }
 
-void DmxModel::ImportBaseParameters(wxXmlNode* root)
+bool DmxModel::ImportBaseParameters(wxXmlNode* root)
 {
     wxString p1 = root->GetAttribute("parm1");
     wxString p2 = root->GetAttribute("parm2");
@@ -380,6 +380,8 @@ void DmxModel::ImportBaseParameters(wxXmlNode* root)
     if (nullptr != preset_ability) {
         preset_ability->ImportParameters(root, this);
     }
+
+    return true;
 }
 
 std::vector<std::string> DmxModel::GenerateNodeNames() const

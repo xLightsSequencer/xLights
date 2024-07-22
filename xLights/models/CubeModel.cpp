@@ -1064,7 +1064,7 @@ void CubeModel::ExportXlightsModel()
     f.Close();
 }
 
-void CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "Cubemodel") {
         wxString name = root->GetAttribute("name");
@@ -1125,8 +1125,11 @@ void CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading Cube model file.");
+        return false;
     }
 }
 

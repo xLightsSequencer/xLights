@@ -873,10 +873,11 @@ void DmxServo3d::ExportXlightsModel()
     f.Close();
 }
 
-void DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "dmxservo3d" || root->GetName() == "dmxservo3axis") {
-        ImportBaseParameters(root);
+        if (!ImportBaseParameters(root))
+            return false;
 
         wxString name = root->GetAttribute("name");
         wxString v = root->GetAttribute("SourceVersion");
@@ -996,7 +997,10 @@ void DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3d::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading DmxServo3d model file.");
+        return false;
     }
 }
