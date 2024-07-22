@@ -4828,8 +4828,10 @@ void Model::ExportAsCustomXModel() const
 
     wxFile f(filename);
     //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
 
     float minsx = 99999;
     float minsy = 99999;

@@ -1629,9 +1629,10 @@ void CustomModel::ExportXlightsModel()
     if (filename.IsEmpty())
         return;
     wxFile f(filename);
-    //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
     wxString cm = ModelXml->GetAttribute("CustomModel");
     wxString cmc = ModelXml->GetAttribute("CustomModelCompressed");
     wxString p1 = ModelXml->GetAttribute("parm1");
