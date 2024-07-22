@@ -631,15 +631,15 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
         last_miny = miny;
         last_maxx = maxx;
         last_maxy = maxy;
-        if( !mg->GetCentreDefined() ) {
+        if (!mg->GetCentreDefined()) {
             int offx = mg->GetXCentreOffset();
             int offy = mg->GetYCentreOffset();
             float cx = (minx + maxx) / 2.0 + (offx * (maxx - minx)) / 2000.0;
             float cy = (miny + maxy) / 2.0 + (offy * (maxy - miny)) / 2000.0;
             DrawGroupCentre(cx, cy);
-            mg->SetCentreX( cx );
-            mg->SetCentreY( cy );
-            mg->SetCentreDefined( true );
+            mg->SetCentreX(cx);
+            mg->SetCentreY(cy);
+            mg->SetCentreDefined(offx != 0 || offy != 0);
             mg->SetCentreMinx(minx);
             mg->SetCentreMiny(miny);
             mg->SetCentreMaxx(maxx);
