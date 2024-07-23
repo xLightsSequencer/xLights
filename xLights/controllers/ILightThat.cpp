@@ -112,7 +112,11 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 outputConfig["ports"][x]["models"][i]["name"] = model->GetName();
                 int brightness = model->GetBrightness(-1);
                 if (brightness == -1) {
-                    brightness = 100;
+                    if (controller->IsFullxLightsControl()) {
+                        brightness = controller->GetDefaultBrightnessUnderFullControl();
+                    } else {
+                        brightness = 100;
+                    }
                 }
 
                 if (model_test_cols.find(model->GetName()) == model_test_cols.end()) {
