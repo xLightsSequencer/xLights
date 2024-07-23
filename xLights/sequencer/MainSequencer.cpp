@@ -546,6 +546,8 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                 PanelRowHeadings->SelectTiming(7);
             } else if (type == "SELECT_TIMING_9") {
                 PanelRowHeadings->SelectTiming(8);
+            } else if (type == "SELECT_NO_TIMING") {
+                PanelRowHeadings->SelectTiming(-1);
             } else if (type == "ZOOM_IN") {
                 PanelTimeLine->ZoomIn();
             }

@@ -260,12 +260,23 @@ void RowHeading::mouseLeftDown(wxMouseEvent& event)
     }
 }
 
-void RowHeading::SelectTiming(uint32_t timing) {
-    auto te = mSequenceElements->GetTimingElement(timing);
-    if (te != nullptr) {
+void RowHeading::SelectTiming(int timing) {
+
+    if (timing >= 0) {
+        auto te = mSequenceElements->GetTimingElement(timing);
+        if (te != nullptr) {
+            mSequenceElements->DeactivateAllTimingElements();
+            te->SetActive(true);
+            mSequenceElements->SetSelectedTimingRow(timing);
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        } else {
+            timing = -1;
+        }
+    }
+    if (timing == -1) {
         mSequenceElements->DeactivateAllTimingElements();
-        te->SetActive(true);
-        mSequenceElements->SetSelectedTimingRow(timing);
+        mSequenceElements->SetSelectedTimingRow(-1);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
