@@ -115,7 +115,7 @@ const static std::vector<std::vector<std::string>> __equivalentPixels =
 {
     { "" }, // No protocol
     { "ws2811", // preferred & default
-      "apa104", "apa106", "cs8812", "gs8202", "gs8206", "gs8208", "ink1002", "ink1003", "lpd1882",
+      "apa104", "apa106", "cs8812", "gs8202", "gs8206", "gs8208", "ink1002", "ink1003", "lb1908", "lpd1882",
       "lx1203", "p9883", "sk6812", "sk6813", "sk6822", "sm16703", "sm16711", "sm16712", "tm1803", "tm1804", "tm1809",
       "tm1812", "tm1914", "ucs1903", "ucs1904", "ucs1909", "ucs1912", "ucs2903", "ucs2909", "ucs2912", "ucs9812",
       "ws2812", "ws2812b", "ws2813", "ws2815", "ws2818",
