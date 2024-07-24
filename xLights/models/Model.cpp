@@ -134,10 +134,10 @@ static void clearUnusedProtocolProperties(wxXmlNode* node)
 }
 
 static const std::string EFFECT_PREVIEW_CACHE("ModelPreviewEffectCache");
-static const std::string MODEL_PREVIEW_CACHE_2D("ModelPreviewCache3D");
-static const std::string MODEL_PREVIEW_CACHE_3D("ModelPreviewCache2D");
-static const std::string LAYOUT_PREVIEW_CACHE_2D("LayoutPreviewCache3D");
-static const std::string LAYOUT_PREVIEW_CACHE_3D("LayoutPreviewCache2D");
+static const std::string MODEL_PREVIEW_CACHE_2D("ModelPreviewCache2D");
+static const std::string MODEL_PREVIEW_CACHE_3D("ModelPreviewCache3D");
+static const std::string LAYOUT_PREVIEW_CACHE_2D("LayoutPreviewCache2D");
+static const std::string LAYOUT_PREVIEW_CACHE_3D("LayoutPreviewCache3D");
 
 Model::Model(const ModelManager& manager) :
     modelManager(manager)
