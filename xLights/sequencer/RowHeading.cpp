@@ -260,6 +260,28 @@ void RowHeading::mouseLeftDown(wxMouseEvent& event)
     }
 }
 
+void RowHeading::SelectTiming(int timing) {
+
+    if (timing >= 0) {
+        auto te = mSequenceElements->GetTimingElement(timing);
+        if (te != nullptr) {
+            mSequenceElements->DeactivateAllTimingElements();
+            te->SetActive(true);
+            mSequenceElements->SetSelectedTimingRow(timing);
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        } else {
+            timing = -1;
+        }
+    }
+    if (timing == -1) {
+        mSequenceElements->DeactivateAllTimingElements();
+        mSequenceElements->SetSelectedTimingRow(-1);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    }
+}
+
 void RowHeading::ToggleExpand(Element* element)
 {
     if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {

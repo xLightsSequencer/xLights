@@ -2275,7 +2275,11 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
                     v["layout"] = layout;
                     v["colorOrder"] = wxString("RGB");
                     v["invert"] = 0;
-                    v["device"] = wxString::Format("fb%d", port);
+                    if (IsVersionAtLeast(8, 0)) {
+                        v["device"] = wxString::Format("HDMI-A-%d", port);
+                    } else {
+                        v["device"] = wxString::Format("fb%d", port);
+                    }
                     v["xoff"] = 0;
                     v["description"] = name;
                     v["yoff"] = curOffset;

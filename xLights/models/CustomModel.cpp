@@ -1292,7 +1292,7 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     return html;
 }
 
-void CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "custommodel") {
         wxString name = root->GetAttribute("name");
@@ -1380,8 +1380,11 @@ void CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading custom model file.");
+        return false;
     }
 }
 
@@ -1468,7 +1471,7 @@ bool HasDuplicates(float divisor, std::list<std::list<wxPoint>> chs)
     return false;
 }
 
-void CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxXmlDocument doc(filename);
@@ -1510,7 +1513,7 @@ void CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         if (chs.size() == 0) {
             logger_base.error("No model data found.");
             wxMessageBox("Unable to import model data.");
-            return;
+            return false;
         }
 
         int minx = 999999999;
@@ -1611,8 +1614,10 @@ void CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
 
         SetProperty("CustomModel", cm);
         logger_base.debug("Model import done.");
+        return true;
     } else {
         DisplayError("Failure loading LOR model file.");
+        return false;
     }
 }
 
@@ -1624,9 +1629,10 @@ void CustomModel::ExportXlightsModel()
     if (filename.IsEmpty())
         return;
     wxFile f(filename);
-    //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
     wxString cm = ModelXml->GetAttribute("CustomModel");
     wxString cmc = ModelXml->GetAttribute("CustomModelCompressed");
     wxString p1 = ModelXml->GetAttribute("parm1");

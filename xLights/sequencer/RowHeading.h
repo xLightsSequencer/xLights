@@ -40,7 +40,8 @@ public:
     int GetMaxRows();
     void SetCanPaste(bool value) { mCanPaste = value; }
     void ToggleExpand(Element * element);
-    
+    void SelectTiming(int timing);
+
     static int rowHeadingSize;
     
 protected:

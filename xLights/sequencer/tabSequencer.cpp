@@ -2339,7 +2339,9 @@ void xLightsFrame::StopOutputTimer() {
 }
 bool xLightsFrame::TimerRgbSeq(long msec)
 {
-    //check if there are models that depend on timing tracks or similar that need to be rendered
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // check if there are models that depend on timing tracks or similar that need to be rendered
     std::vector<Element *> elsToRender;
     if (_sequenceElements.GetElementsToRender(elsToRender)) {
         for (const auto& it : elsToRender) {
@@ -2414,12 +2416,33 @@ bool xLightsFrame::TimerRgbSeq(long msec)
         } else {
             current_play_time = curt;
         }
+
+        // see if its time to stop model play
+        if (curt > playEndTime) {
+            if (mLoopAudio) {
+                DoPlaySequence();
+                curt = playStartTime;
+                current_play_time = curt;
+                fpsEvents.clear(); // we need to clear FPS data
+                // EndGraphicsSyncPoint();
+                // return true;
+            } else {
+                playStartTime = playEndTime = 0;
+                playStartMS = -1;
+                wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+                wxPostEvent(this, playEvent);
+                EndGraphicsSyncPoint();
+                //logger_base.debug("Stopping play");
+                return true;
+            }
+        }
     }
     
     RecordTimingCheckpoint();
     int frame = curt / _seqData.FrameTime();
     if (frame < _seqData.NumFrames()) {
-        //have the frame, copy from SeqData
+        //logger_base.debug("Outputting Frame %d", frame);
+        // have the frame, copy from SeqData
         TimerOutput(frame);
         if (playModel != nullptr) {
             int nn = playModel->GetNodeCount();
@@ -2442,24 +2465,12 @@ bool xLightsFrame::TimerRgbSeq(long msec)
         }
         RecordTimingCheckpoint();
     }
+    //else
+    //{
+    //    logger_base.debug("Frame %d is out of range", frame);
+    //}
     
     if (playType == PLAY_TYPE_MODEL) {
-        // see if its time to stop model play
-        if (curt >= playEndTime) {
-            if (mLoopAudio) {
-                DoPlaySequence();
-                EndGraphicsSyncPoint();
-                return true;
-            } else {
-                playStartTime = playEndTime = 0;
-                playStartMS = -1;
-                wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
-                wxPostEvent(this, playEvent);
-                EndGraphicsSyncPoint();
-                return true;
-            }
-        }
-
         wxASSERT(_seqData.FrameTime() != 0);
         int frame = curt / _seqData.FrameTime();
         fpsEvents.push_back(FPSEvent(frame));

@@ -9,41 +9,37 @@
  **************************************************************/
 
 #include "ListenerARTNet.h"
-#include <log4cpp/Category.hh>
-#include <wx/socket.h>
-#include "../../xLights/outputs/ArtNetOutput.h"
 #include "ListenerManager.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/outputs/ArtNetOutput.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
+#include <log4cpp/Category.hh>
+#include <wx/socket.h>
 
-bool ListenerARTNet::IsValidHeader(uint8_t* buffer)
-{
-    return
-        buffer[0] == 'A' &&
-        buffer[1] == 'r' &&
-        buffer[2] == 't' &&
-        buffer[3] == '-' &&
-        buffer[4] == 'N' &&
-        buffer[5] == 'e' &&
-        buffer[6] == 't' &&
-        buffer[7] == 0x00;
+bool ListenerARTNet::IsValidHeader(uint8_t* buffer) {
+    return buffer[0] == 'A' &&
+           buffer[1] == 'r' &&
+           buffer[2] == 't' &&
+           buffer[3] == '-' &&
+           buffer[4] == 'N' &&
+           buffer[5] == 'e' &&
+           buffer[6] == 't' &&
+           buffer[7] == 0x00;
 }
 
-ListenerARTNet::ListenerARTNet(ListenerManager* listenerManager, const std::string& localIP) : ListenerBase(listenerManager, localIP)
-{
+ListenerARTNet::ListenerARTNet(ListenerManager* listenerManager, const std::string& localIP) :
+    ListenerBase(listenerManager, localIP) {
     _socket = nullptr;
 }
 
-void ListenerARTNet::Start()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+void ListenerARTNet::Start() {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("ARTNet listener starting.");
     _thread = new ListenerThread(this, _localIP);
 }
 
-void ListenerARTNet::Stop()
-{
+void ListenerARTNet::Stop() {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_stop) {
         logger_base.debug("ARTNet listener stopping.");
@@ -59,15 +55,13 @@ void ListenerARTNet::Stop()
     }
 }
 
-void ListenerARTNet::StartProcess(const std::string& localIP)
-{
+void ListenerARTNet::StartProcess(const std::string& localIP) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxIPV4address localaddr;
     if (localIP == "") {
         localaddr.AnyAddress();
-    }
-    else {
+    } else {
         localaddr.Hostname(localIP);
     }
     localaddr.Service(ARTNET_PORT);
@@ -75,18 +69,15 @@ void ListenerARTNet::StartProcess(const std::string& localIP)
     _socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_REUSEADDR);
     if (_socket == nullptr) {
         logger_base.error("Error opening datagram for ARTNet reception. %s", (const char*)localaddr.IPAddress().c_str());
-    }
-    else if (!_socket->IsOk()) {
+    } else if (!_socket->IsOk()) {
         logger_base.error("Error opening datagram for ARTNet reception. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
-    }
-    else if (_socket->Error()) {
+    } else if (_socket->Error()) {
         logger_base.error("Error opening datagram for ARTNet reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
-    }
-    else {
+    } else {
         _socket->SetTimeout(1);
         _socket->Notify(false);
         logger_base.info("ARTNet reception datagram opened successfully.");
@@ -94,9 +85,8 @@ void ListenerARTNet::StartProcess(const std::string& localIP)
     }
 }
 
-void ListenerARTNet::StopProcess()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+void ListenerARTNet::StopProcess() {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_socket != nullptr) {
         logger_base.info("ARTNet Listener closed.");
         _socket->Close();
@@ -105,38 +95,35 @@ void ListenerARTNet::StopProcess()
     }
 }
 
-void ListenerARTNet::Poll()
-{
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+void ListenerARTNet::Poll() {
+    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_socket != nullptr) {
         unsigned char buffer[2048];
         memset(buffer, 0x00, sizeof(buffer));
 
-        //wxStopWatch sw;
-        //logger_base.debug("Trying to read ARTNet packet.");
+        // wxStopWatch sw;
+        // logger_base.debug("Trying to read ARTNet packet.");
         _socket->Read(&buffer[0], sizeof(buffer));
-        if (_stop) return;
-        //logger_base.debug(" Read done. %ldms", sw.Time());
+        if (_stop)
+            return;
+        // logger_base.debug(" Read done. %ldms", sw.Time());
 
         if (_socket->GetLastIOReadSize() == 0) {
             _socket->WaitForRead(0, 50);
-        }
-        else {
+        } else {
             if (IsValidHeader(buffer)) {
                 int size = ((buffer[16] << 8) + buffer[17]) & 0x0FFF;
-                //logger_base.debug("Processing packet.");
+                // logger_base.debug("Processing packet.");
                 if (buffer[9] == 0x50) {
                     // ARTNet data packet
                     int universe = (buffer[13] << 8) + buffer[14];
                     _listenerManager->ProcessPacket(GetType(), universe, &buffer[ARTNET_PACKET_HEADERLEN], size);
-                }
-                else if (buffer[9] == 0x99) {
+                } else if (buffer[9] == 0x99) {
                     // Trigger data packet
                     int oem = (((int)buffer[12]) << 8) + buffer[13];
                     _listenerManager->ProcessPacket(GetType() + "Trigger", oem, &buffer[14], 2);
-                }
-                else if (buffer[9] == 0x97) {
+                } else if (buffer[9] == 0x97) {
                     // Timecode data packet
                     int frames = buffer[14];
                     int secs = buffer[15];
@@ -149,36 +136,35 @@ void ListenerARTNet::Poll()
                     long ms = ((hours * 60 + mins) * 60 + secs) * 1000 + stepoffset;
                     switch (mode) {
                     case 0:
-                        //24 fps
+                        // 24 fps
                         ms += frames * 1000 / 24;
                         break;
                     case 1:
-                        //25 fps
+                        // 25 fps
                         ms += frames * 1000 / 25;
                         break;
                     case 2:
-                        //29.97 fps
+                        // 29.97 fps
                         ms += frames * 100000 / 2997;
                         break;
                     case 3:
-                        //30 fps
+                        // 30 fps
                         ms += frames * 1000 / 30;
                         break;
                     default:
                         break;
                     }
 
-                    //logger_base.debug("Timecode packet mode %d %d:%d:%d.%d => %ldms", mode, hours, mins, secs, frames, ms);
+                    // logger_base.debug("Timecode packet mode %d %d:%d:%d.%d => %ldms", mode, hours, mins, secs, frames, ms);
 
                     if (ms == 0) {
                         // This is a stop
                         _listenerManager->Sync("", 0xFFFFFFFF, GetType());
-                    }
-                    else {
+                    } else {
                         _listenerManager->Sync("", ms, GetType());
                     }
                 }
-                //logger_base.debug("Processing packet done.");
+                // logger_base.debug("Processing packet done.");
             }
         }
     }

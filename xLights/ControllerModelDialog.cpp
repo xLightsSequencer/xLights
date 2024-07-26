@@ -3903,7 +3903,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
 
     // Not a fan of this code here but I dont have a better place for it right now
     std::string special;
-    if (_controller->GetVendor() == "HinksPix" && _controller->GetModel() == "PRO") {
+    if (_controller->GetVendor() == "HinksPix" && Contains(_controller->GetModel(), "PRO")) {
         if (m->GetSmartRemote() != 0) {
             int absPort = m->GetControllerPort();
             int absSM = m->GetSmartRemote();

@@ -9,72 +9,63 @@
  **************************************************************/
 
 #include "Pinger.h"
-#include "../xLights/outputs/OutputManager.h"
-#include "events/ListenerManager.h"
+#include "../xLights/UtilFunctions.h"
 #include "../xLights/outputs/ControllerEthernet.h"
 #include "../xLights/outputs/ControllerSerial.h"
-#include "../xLights/UtilFunctions.h"
+#include "../xLights/outputs/OutputManager.h"
+#include "events/ListenerManager.h"
 
 #include <atomic>
 
 #include <log4cpp/Category.hh>
 
-class PingThread : public wxThread
-{
+class PingThread : public wxThread {
     APinger* _pinger;
     std::atomic<bool> _stop;
     std::atomic<bool> _running;
 
 public:
-
-    PingThread(APinger* pinger) : wxThread(wxTHREAD_JOINABLE)
-    {
+    PingThread(APinger* pinger) :
+        wxThread(wxTHREAD_JOINABLE) {
         _pinger = pinger;
         _stop = false;
         _running = false;
     }
 
-    virtual ~PingThread()
-    {
-        //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    virtual ~PingThread() {
+        // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-        if (_running && !_stop)
-        {
+        if (_running && !_stop) {
             _stop = true;
         }
     }
 
-    void Stop()
-    {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Asking pinging thread %s to stop", (const char *)_pinger->GetName().c_str());
+    void Stop() {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug("Asking pinging thread %s to stop", (const char*)_pinger->GetName().c_str());
         _stop = true;
     }
-    
+
     // if ping fails try this many times before setting the result
 #define PINGRETRIES 3
 
-    virtual void* Entry() override
-    {
+    virtual void* Entry() override {
         _running = true;
 
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Pinging thread %s started", (const char *)_pinger->GetName().c_str());
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug("Pinging thread %s started", (const char*)_pinger->GetName().c_str());
 
-        while (!_stop)
-        {
-
+        while (!_stop) {
             auto res = Output::PINGSTATE::PING_UNKNOWN;
 
             // if it previously failed ... only try once
             int loops = PINGRETRIES;
-            if (_pinger->GetFailCount() > 0) loops = 1;
-            
-            for (int i = 0; !_stop && i < loops; i++)
-            {
+            if (_pinger->GetFailCount() > 0)
+                loops = 1;
+
+            for (int i = 0; !_stop && i < loops; i++) {
                 res = _pinger->Ping();
-                if (res != Output::PINGSTATE::PING_ALLFAILED)
-                {
+                if (res != Output::PINGSTATE::PING_ALLFAILED) {
                     break;
                 }
             }
@@ -82,8 +73,7 @@ public:
 
             int count = 0;
 
-            while (!_stop && count < _pinger->GetPingInterval() * 100)
-            {
+            while (!_stop && count < _pinger->GetPingInterval() * 100) {
                 wxMilliSleep(10);
                 count++;
             }
@@ -94,13 +84,11 @@ public:
     }
 };
 
-APinger::APinger(ListenerManager* lm, Controller* controller)
-{
+APinger::APinger(ListenerManager* lm, Controller* controller) {
     _listenerManager = lm;
     _controller = controller;
     _why = "Output";
-    if (dynamic_cast<ControllerEthernet*>(controller) != nullptr)
-    {
+    if (dynamic_cast<ControllerEthernet*>(controller) != nullptr) {
         _ip = dynamic_cast<ControllerEthernet*>(controller)->GetIP();
     }
 
@@ -114,8 +102,7 @@ APinger::APinger(ListenerManager* lm, Controller* controller)
     _pingThread->Run();
 }
 
-APinger::APinger(ListenerManager* lm, const std::string ip, const std::string why)
-{
+APinger::APinger(ListenerManager* lm, const std::string ip, const std::string why) {
     _listenerManager = lm;
     _controller = nullptr;
     _ip = ip;
@@ -130,19 +117,15 @@ APinger::APinger(ListenerManager* lm, const std::string ip, const std::string wh
     _pingThread->Run();
 }
 
-APinger::~APinger()
-{
+APinger::~APinger() {
 }
 
-Output::PINGSTATE APinger::GetPingResult() const
-{
+Output::PINGSTATE APinger::GetPingResult() const {
     return _lastResult;
 }
 
-bool APinger::GetPingResult(Output::PINGSTATE state) const
-{
-    switch (state)
-    {
+bool APinger::GetPingResult(Output::PINGSTATE state) const {
+    switch (state) {
     case Output::PINGSTATE::PING_ALLFAILED:
         return false;
     case Output::PINGSTATE::PING_OK:
@@ -156,10 +139,8 @@ bool APinger::GetPingResult(Output::PINGSTATE state) const
     }
 }
 
-std::string APinger::GetPingResultName(Output::PINGSTATE state)
-{
-    switch(state)
-    {
+std::string APinger::GetPingResultName(Output::PINGSTATE state) {
+    switch (state) {
     case Output::PINGSTATE::PING_ALLFAILED:
         return "Failed";
     case Output::PINGSTATE::PING_UNAVAILABLE:
@@ -176,18 +157,15 @@ std::string APinger::GetPingResultName(Output::PINGSTATE state)
     return "Unknown";
 }
 
-Output::PINGSTATE APinger::Ping()
-{
-    if (_controller != nullptr)
-    {
+Output::PINGSTATE APinger::Ping() {
+    if (_controller != nullptr) {
         return _controller->Ping();
     }
- 
+
     return IPOutput::Ping(_ip, "");
 }
 
-void APinger::CheckLocal()
-{
+void APinger::CheckLocal() {
     _isLocal = false;
 
     auto ips = GetLocalIPs();
@@ -200,30 +178,27 @@ void APinger::CheckLocal()
     }
 }
 
-void APinger::SetPingResult(Output::PINGSTATE result)
-{
+void APinger::SetPingResult(Output::PINGSTATE result) {
     _lastResult = result;
 
-    if (result == Output::PINGSTATE::PING_ALLFAILED) _failCount++;
-    if (result == Output::PINGSTATE::PING_OK || result == Output::PINGSTATE::PING_OPEN || result == Output::PINGSTATE::PING_OPENED || result == Output::PINGSTATE::PING_WEBOK) _failCount = 0;
+    if (result == Output::PINGSTATE::PING_ALLFAILED)
+        _failCount++;
+    if (result == Output::PINGSTATE::PING_OK || result == Output::PINGSTATE::PING_OPEN || result == Output::PINGSTATE::PING_OPENED || result == Output::PINGSTATE::PING_WEBOK)
+        _failCount = 0;
 
     _listenerManager->ProcessPacket("Ping", GetPingResult(result), _ip);
 }
 
-std::string APinger::GetName() const
-{
-    if (_controller != nullptr)
-    {
+std::string APinger::GetName() const {
+    if (_controller != nullptr) {
         return _controller->GetPingDescription();
     }
     return _ip + " " + _why + (_lastResult == Output::PINGSTATE::PING_ALLFAILED && IsLocal() ? _(" (Down)") : _(""));
 }
 
-void APinger::Stop()
-{
+void APinger::Stop() {
     // tell it to stop ... but it may take a bit of time to stop
-    if (_pingThread != nullptr)
-    {
+    if (_pingThread != nullptr) {
         _pingThread->Stop();
         _pingThread->Delete();
         delete _pingThread;
@@ -233,44 +208,35 @@ void APinger::Stop()
     _ip = "";
 }
 
-std::string GetID(Controller* controller)
-{
-    if (dynamic_cast<ControllerEthernet*>(controller) != nullptr)
-    {
+std::string GetID(Controller* controller) {
+    if (dynamic_cast<ControllerEthernet*>(controller) != nullptr) {
         return dynamic_cast<ControllerEthernet*>(controller)->GetIP();
-    }
-    else if (dynamic_cast<ControllerSerial*>(controller) != nullptr)
-    {
+    } else if (dynamic_cast<ControllerSerial*>(controller) != nullptr) {
         return dynamic_cast<ControllerSerial*>(controller)->GetPort();
     }
     return "";
 }
 
-Pinger::Pinger(ListenerManager* listenerManager, OutputManager* outputManager)
-{
+Pinger::Pinger(ListenerManager* listenerManager, OutputManager* outputManager) {
     _listenerManager = listenerManager;
     std::list<std::string> created;
 
     auto controllers = outputManager->GetControllers();
 
-    for (const auto& it : controllers)
-    {
+    for (const auto& it : controllers) {
         if (it->CanPing()) // && it->IsEnabled())
         {
             // check if we have already seen it
             bool found = false;
-            for (const auto& cit : created)
-            {
-                if (cit == GetID(it))
-                {
+            for (const auto& cit : created) {
+                if (cit == GetID(it)) {
                     // we have seen it
                     found = true;
                     break;
                 }
             }
 
-            if (!found)
-            {
+            if (!found) {
                 created.push_back(GetID(it));
                 _pingers.push_back(new APinger(listenerManager, it));
             }
@@ -278,74 +244,69 @@ Pinger::Pinger(ListenerManager* listenerManager, OutputManager* outputManager)
     }
 }
 
-Pinger::~Pinger()
-{
+Pinger::~Pinger() {
     _stopping = true;
 
     // Tell them to stop first ... means when we come to delete them we may not need to wait as long
-    for (const auto& it : _pingers)
-    {
+    for (const auto& it : _pingers) {
         it->Stop();
     }
 
     // give the ping threads some CPU time
     wxMilliSleep(100);
 
-    for (const auto& it : _pingers)
-    {
+    for (const auto& it : _pingers) {
         delete it;
     }
 }
 
-void Pinger::AddIP(const std::string ip, const std::string why)
-{
-    if (ip == "") return;
-    if (ip == "255.255.255.255") return;
+void Pinger::AddIP(const std::string ip, const std::string why) {
+    if (ip == "")
+        return;
+    if (ip == "255.255.255.255")
+        return;
 
-    for (const auto& it : _pingers)
-    {
-        if (it->GetIP() == ip) return;
+    for (const auto& it : _pingers) {
+        if (it->GetIP() == ip)
+            return;
     }
 
     _pingers.push_back(new APinger(_listenerManager, ip, why));
 }
 
-void Pinger::RemoveNonOutputIPs()
-{
+void Pinger::RemoveNonOutputIPs() {
     std::list<APinger*> newPingers;
-    for (const auto& it : _pingers)
-    {
-        if (!it->IsOutput())
-        {
+    for (const auto& it : _pingers) {
+        if (!it->IsOutput()) {
             it->Stop();
             delete it;
-        }
-        else
-        {
+        } else {
             newPingers.push_back(it);
         }
     }
     _pingers = newPingers;
 }
 
-APinger* Pinger::GetPinger(const std::string& ip) const
-{
-    if (_stopping) return nullptr;
+APinger* Pinger::GetPinger(const std::string& ip) const {
+    if (_stopping)
+        return nullptr;
 
     for (const auto& it : _pingers) {
-        if (it->GetIP() == ip) return it;
+        if (it->GetIP() == ip)
+            return it;
     }
 
     return nullptr;
 }
 
-APinger* Pinger::GetPingerByIndex(int index) const
-{
-    if (_stopping) return nullptr;
+APinger* Pinger::GetPingerByIndex(int index) const {
+    if (_stopping)
+        return nullptr;
 
     int i = 0;
-    for (const auto& it : _pingers)         {
-        if (i == index) return it;
+    for (const auto& it : _pingers) {
+        if (i == index)
+            return it;
         i++;
     }
     return nullptr;

@@ -3658,7 +3658,22 @@ void LayoutPanel::FinalizeModel()
             if (!_newModel->SupportsVisitors() || !XmlSerializer::IsXmlSerializerFormat(_newModel->GetModelXml())) {
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import. " + _lastXlightsModel);
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Model type " + _newModel->GetDisplayAs());
-                _newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
+                bool success = _newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
+                if (!success) {
+                    _lastXlightsModel = "";
+                    xlights->GetOutputModelManager()->ClearSelectedModel();
+                    modelPreview->SetAdditionalModel(nullptr);
+                    if (_newModel != nullptr) {
+                        delete _newModel; // I am not sure this may cause issues ... but if we dont have it i think it leaks
+                        _newModel = nullptr;
+                    }
+                    modelPreview->SetCursor(wxCURSOR_DEFAULT);
+                    b->SetState(0);
+                    selectedButton = nullptr;
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "FinalizeModel");
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
+                    return;
+                }
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Import done.");
             }
 

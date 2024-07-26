@@ -130,12 +130,21 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "EFFECT_TOGGLE", KBSCOPE::Sequence },
     { "EFFECT_DISABLE", KBSCOPE::Sequence },
     { "EFFECT_ENABLE", KBSCOPE::Sequence },
-    { "MODEL_EFFECT_TOGGLE", KBSCOPE::Sequence }
-
+    { "MODEL_EFFECT_TOGGLE", KBSCOPE::Sequence },
+    { "EFFECTS_TO_TIMING", KBSCOPE::Sequence },
+    { "SELECT_TIMING_1", KBSCOPE::Sequence },
+    { "SELECT_TIMING_2", KBSCOPE::Sequence },
+    { "SELECT_TIMING_3", KBSCOPE::Sequence },
+    { "SELECT_TIMING_4", KBSCOPE::Sequence },
+    { "SELECT_TIMING_5", KBSCOPE::Sequence },
+    { "SELECT_TIMING_6", KBSCOPE::Sequence },
+    { "SELECT_TIMING_7", KBSCOPE::Sequence },
+    { "SELECT_TIMING_8", KBSCOPE::Sequence },
+    { "SELECT_TIMING_9", KBSCOPE::Sequence },
+    { "SELECT_NO_TIMING", KBSCOPE::Sequence }
 };
 
-static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
-{
+static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
     { "TIMING_ADD", "Add a timing mark." },
     { "TIMING_SPLIT", "Split a timing mark." },
     { "ZOOM_IN", "Zoom into the effects grid." },
@@ -242,7 +251,18 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
     { "EFFECT_TOGGLE", "Toggle (Enable/Disable) rendering of the selected effects in the sequencer" },
     { "EFFECT_DISABLE", "Disable rendering of the selected effects in the sequencer" },
     { "EFFECT_ENABLE", "Enable rendering of the selected effects in the sequencer" },
-    { "MODEL_EFFECT_TOGGLE", "Toggle (Enable/Disable) rendering of the selected model or the effects in the sequencer" }
+    { "MODEL_EFFECT_TOGGLE", "Toggle (Enable/Disable) rendering of the selected model or the effects in the sequencer" },
+    { "EFFECTS_TO_TIMING", "Convert selected effects to timing marks." },
+    { "SELECT_TIMING_1", "Select first timing." },
+    { "SELECT_TIMING_2", "Select second timing." },
+    { "SELECT_TIMING_3", "Select third timing." },
+    { "SELECT_TIMING_4", "Select fourth timing." },
+    { "SELECT_TIMING_5", "Select fifth timing." },
+    { "SELECT_TIMING_6", "Select sixth timing." },
+    { "SELECT_TIMING_7", "Select seventh timing." },
+    { "SELECT_TIMING_8", "Select eighth timing." },
+    { "SELECT_TIMING_9", "Select ninth timing." },
+    { "SELECT_NO_TIMING", "Select no timing tracks." }
 };
 
 const std::vector<KeyBinding> DefaultBindings =

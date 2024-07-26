@@ -134,10 +134,10 @@ static void clearUnusedProtocolProperties(wxXmlNode* node)
 }
 
 static const std::string EFFECT_PREVIEW_CACHE("ModelPreviewEffectCache");
-static const std::string MODEL_PREVIEW_CACHE_2D("ModelPreviewCache3D");
-static const std::string MODEL_PREVIEW_CACHE_3D("ModelPreviewCache2D");
-static const std::string LAYOUT_PREVIEW_CACHE_2D("LayoutPreviewCache3D");
-static const std::string LAYOUT_PREVIEW_CACHE_3D("LayoutPreviewCache2D");
+static const std::string MODEL_PREVIEW_CACHE_2D("ModelPreviewCache2D");
+static const std::string MODEL_PREVIEW_CACHE_3D("ModelPreviewCache3D");
+static const std::string LAYOUT_PREVIEW_CACHE_2D("LayoutPreviewCache2D");
+static const std::string LAYOUT_PREVIEW_CACHE_3D("LayoutPreviewCache3D");
 
 Model::Model(const ModelManager& manager) :
     modelManager(manager)
@@ -2390,16 +2390,21 @@ void Model::ImportShadowModels(wxXmlNode* n, xLightsFrame* xlights)
             float min_y = 0;
             float max_x = 0;
             float max_y = 0;
-            model->ImportXlightsModel(m, xlights, min_x, max_x, min_y, max_y);
-            model->SetControllerName(NO_CONTROLLER); // this will force the start channel to a non controller start channel ... then the user can associate them using visualiser
-            xlights->AllModels.AddModel(model);
-            AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::ImportShadowModels");
-            AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::ImportShadowModels");
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::ImportShadowModels");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::ImportShadowModels");
-            AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "Model::ImportShadowModels");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::ImportShadowModels");
-            IncrementChangeCount();
+            bool success = model->ImportXlightsModel(m, xlights, min_x, max_x, min_y, max_y);
+            if (success) {
+                model->SetControllerName(NO_CONTROLLER); // this will force the start channel to a non controller start channel ... then the user can associate them using visualiser
+                xlights->AllModels.AddModel(model);
+                AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::ImportShadowModels");
+                AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::ImportShadowModels");
+                AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::ImportShadowModels");
+                AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::ImportShadowModels");
+                AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "Model::ImportShadowModels");
+                AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::ImportShadowModels");
+                IncrementChangeCount();
+            } else {
+                // remove model that failed to import
+                delete model;
+            }
         }
     }
 }
@@ -4823,8 +4828,10 @@ void Model::ExportAsCustomXModel() const
 
     wxFile f(filename);
     //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
 
     float minsx = 99999;
     float minsy = 99999;
@@ -7698,11 +7705,11 @@ bool wxDropPatternProperty::ValidateValue(wxVariant& value, wxPGValidationInfo& 
     return true;
 }
 
-void Model::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool Model::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     // these have already been dealt with
     if (EndsWith(filename, "gdtf"))
-        return;
+        return false;
 
     std::string lower = Lower(filename);
     if (!EndsWith(lower, "xmodel")) {
@@ -7711,16 +7718,17 @@ void Model::ImportXlightsModel(std::string const& filename, xLightsFrame* xlight
             return cm->ImportLORModel(filename, xlights, min_x, max_x, min_y, max_y);
         }
         DisplayError("Attempt to import non-xmodel onto a non custom model.");
-        return;
+        return false;
     }
 
     wxXmlDocument doc(filename);
     if (doc.IsOk()) {
         wxXmlNode* root = doc.GetRoot();
-        ImportXlightsModel(root, xlights, min_x, max_x, min_y, max_y);
-    } else {
-        DisplayError("Failure loading model file: " + filename);
+        return ImportXlightsModel(root, xlights, min_x, max_x, min_y, max_y);
     }
+
+    DisplayError("Failure loading model file: " + filename);
+    return false;
 }
 
 std::string Model::GetAttributesAsJSON() const
