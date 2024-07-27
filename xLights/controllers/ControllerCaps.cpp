@@ -16,6 +16,9 @@
 #include <wx/stdpaths.h>
 #include <wx/dir.h>
 
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
+
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
 #include "../outputs/Controller.h"

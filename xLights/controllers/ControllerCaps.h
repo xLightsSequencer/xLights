@@ -19,6 +19,8 @@
 
 class Controller;
 class BaseController;
+class wxPropertyGrid;
+class wxPropertyGridEvent;
 
 class ControllerCaps
 {
