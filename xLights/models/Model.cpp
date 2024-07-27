@@ -1143,6 +1143,8 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
             sp->SetAttribute("Max", caps->GetMaxLEDPanelMatrixPort());
         } else if (IsVirtualMatrixProtocol()) {
             sp->SetAttribute("Max", caps->GetMaxVirtualMatrixPort());
+        } else if (IsPWMProtocol()) {
+            sp->SetAttribute("Max", caps->GetMaxPWMPort());
         } else {
             sp->SetAttribute("Max", MOST_CONTROLLER_PORTS_WE_EXPECT);
         }
@@ -1218,6 +1220,22 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
             sp->SetAttribute("Max", caps->GetMaxSerialPortChannels());
         }
         sp->SetEditor("SpinCtrl");
+    } else if (IsPWMProtocol()) {
+        if (DisplayAs.rfind("Dmx", 0) != 0) { //DMX models handle this themselves
+            double gamma = wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
+            auto sp2 = grid->AppendIn(sp, new wxFloatProperty("Gamma", "ModelControllerConnectionPixelGamma", gamma));
+            sp2->SetAttribute("Min", 0.1);
+            sp2->SetAttribute("Max", 5.0);
+            sp2->SetAttribute("Precision", 1);
+            sp2->SetAttribute("Step", 0.1);
+            sp2->SetEditor("SpinCtrl");
+            
+            sp2 = grid->AppendIn(sp, new wxUIntProperty("Brightness", "ModelControllerConnectionPixelBrightness",
+                                                        wxAtoi(GetControllerConnection()->GetAttribute("brightness", "100"))));
+            sp2->SetAttribute("Min", 0);
+            sp2->SetAttribute("Max", 100);
+            sp2->SetEditor("SpinCtrl");
+        }
     } else if (IsPixelProtocol()) {
         if (caps == nullptr || caps->SupportsPixelPortNullPixels()) {
             sp = grid->AppendIn(p, new wxBoolProperty("Set Start Null Pixels", "ModelControllerConnectionPixelSetNullNodes", node->HasAttribute("nullNodes")));
@@ -1670,6 +1688,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
                         SetControllerProtocol("Virtual Matrix");
                     } else if (caps->SupportsLEDPanelMatrix()) {
                         SetControllerProtocol("LED Panel Matrix");
+                    } else if (caps->SupportsPWM()) {
+                        SetControllerProtocol("PWM");
                     }
                 }
                 protocolChanged = true;
@@ -6761,7 +6781,7 @@ std::list<std::string> Model::CheckModelSettings()
 
 bool Model::IsControllerConnectionValid() const
 {
-    return ((IsPixelProtocol() || IsSerialProtocol() || IsMatrixProtocol()) && GetControllerPort(1) > 0);
+    return ((IsPixelProtocol() || IsSerialProtocol() || IsMatrixProtocol() || IsPWMProtocol()) && GetControllerPort(1) > 0);
 }
 
 void Model::SetTagColour(wxColour colour)
@@ -7593,7 +7613,8 @@ void Model::RestoreDisplayDimensions()
 // This is deliberately ! serial so that it defaults to thinking it is pixel
 bool Model::IsPixelProtocol() const
 {
-    return GetControllerPort(1) != 0 && !::IsSerialProtocol(GetControllerProtocol()) && !::IsMatrixProtocol(GetControllerProtocol());
+    const std::string p = GetControllerProtocol();
+    return GetControllerPort(1) != 0 && !::IsSerialProtocol(p) && !::IsMatrixProtocol(p) && !::IsPWMProtocol(p);
 }
 bool Model::IsSerialProtocol() const
 {
@@ -7611,6 +7632,31 @@ bool Model::IsVirtualMatrixProtocol() const
 {
     return GetControllerPort(1) != 0 && ::IsVirtualMatrixProtocol(GetControllerProtocol());
 }
+bool Model::IsPWMProtocol() const
+{
+    return GetControllerPort(1) != 0 && ::IsPWMProtocol(GetControllerProtocol());
+}
+
+std::vector<PWMOutput> Model::GetPWMOutputs() const {
+    std::vector<PWMOutput> ret;
+    if (IsPWMProtocol()) {
+        int cur = 1;
+        for (auto &n : Nodes) {
+            for (int x = 0; x < n->GetChanCount(); x++) {
+                std::string label = n->GetName();
+                if (label.empty()) {
+                    label = "LED-" + std::to_string(cur) + "-" + n->GetNodeType()[x];
+                }
+                float g = wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
+                int b = wxAtoi(GetControllerConnection()->GetAttribute("brightness", "100"));
+                ret.emplace_back(n->ActChan + 1, PWMOutput::Type::LED, 1, label, b, g);
+            }
+            cur++;
+        }
+    }
+    return ret;
+}
+
 
 std::vector<std::string> Model::GetSmartRemoteTypes() const
 {

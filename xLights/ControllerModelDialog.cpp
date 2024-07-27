@@ -115,6 +115,7 @@ wxColour __charcoal(30, 30, 30);
 wxColour __lightGreen(153, 255, 145, wxALPHA_OPAQUE);
 wxColour __darkGreen(6, 60, 0, wxALPHA_OPAQUE);
 wxColour __darkBlue(0, 0, 60, wxALPHA_OPAQUE);
+wxColour __royalBlue(65, 105, 225, wxALPHA_OPAQUE);
 wxColour __lightPurple(184, 150, 255, wxALPHA_OPAQUE);
 wxColour __darkPurple(49, 0, 74, wxALPHA_OPAQUE);
 wxColour __darkRed(60, 0, 0, wxALPHA_OPAQUE);
@@ -133,6 +134,7 @@ wxBrush __over40Brush;
 wxPen __dropTargetPen;
 wxPen __pixelPortOutlinePen;
 wxPen __serialPortOutlinePen;
+wxPen __pwmPortOutlinePen;
 wxPen __vmPortOutlinePen;
 wxPen __lpmPortOutlinePen;
 wxPen __modelOutlinePen;
@@ -178,6 +180,7 @@ void SetColours(bool printing)
 {
     __invalidBrush.SetColour(__lightRed);
     __serialPortOutlinePen.SetColour(*wxGREEN);
+    __pwmPortOutlinePen.SetColour(__royalBlue);
     __over40Brush.SetColour(__lightOrange);
     __modelOutlinePen.SetColour(__grey);
     __modelOutlineLastDroppedPen.SetColour(__magenta);
@@ -245,6 +248,7 @@ public:
     const static int STYLE_PIXELS = 1;
     const static int STYLE_STRINGS = 2;
     const static int STYLE_CHANNELS = 4;
+    const static int STYLE_LABEL = 8;
     enum class HITLOCATION { NONE,
                              LEFT,
                              RIGHT,
@@ -364,6 +368,7 @@ class PortCMObject : public BaseCMObject
 public:
     enum class PORTTYPE { PIXEL,
                           SERIAL,
+                          PWM,
                           VIRTUAL_MATRIX,
                           PANEL_MATRIX };
 
@@ -389,6 +394,8 @@ public:
             return _cud->GetControllerVirtualMatrixPort(_port);
         } else if (_type == PORTTYPE::PANEL_MATRIX) {
             return _cud->GetControllerLEDPanelMatrixPort(_port);
+        } else if (_type == PORTTYPE::PWM) {
+            return _cud->GetControllerPWMPort(_port);
         }
         return nullptr;
     }
@@ -407,6 +414,8 @@ public:
             return _caps->GetMaxPixelPortChannels();
         } else if (_type == PORTTYPE::SERIAL) {
             return _caps->GetMaxSerialPortChannels();
+        } else if (_type == PORTTYPE::PWM) {
+            return 2;
         }
         return 9999999;
     }
@@ -537,6 +546,8 @@ public:
             dc.SetPen(__vmPortOutlinePen);
         } else if (_type == PORTTYPE::PANEL_MATRIX) {
             dc.SetPen(__lpmPortOutlinePen);
+        } else if (_type == PORTTYPE::PWM) {
+            dc.SetPen(__pwmPortOutlinePen);
         } else {
             dc.SetPen(__serialPortOutlinePen);
         }
@@ -558,6 +569,8 @@ public:
             DrawTextLimited(dc, wxString::Format("Virtual Matrix %d", _port), pt, sz - wxSize(4, 4));
         } else if (_type == PORTTYPE::PANEL_MATRIX) {
             DrawTextLimited(dc, wxString::Format("LED Panel %d", _port), pt, sz - wxSize(4, 4));
+        } else if (_type == PORTTYPE::PWM) {
+            DrawTextLimited(dc, wxString::Format("PWM Port %d", _port), pt, sz - wxSize(4, 4));
         } else {
             DrawTextLimited(dc, wxString::Format("Serial Port %d", _port), pt, sz - wxSize(4, 4));
         }
@@ -603,6 +616,8 @@ public:
                 return;
             if (_type == PORTTYPE::PANEL_MATRIX && !_caps->SupportsLEDPanelMatrix())
                 return;
+            if (_type == PORTTYPE::PWM && !_caps->SupportsPWM())
+                return;
         }
         mnu.AppendSeparator();
         if (_type == PORTTYPE::PIXEL || _type == PORTTYPE::SERIAL) {
@@ -633,6 +648,8 @@ public:
                 port = _cud->GetControllerVirtualMatrixPort(GetPort());
             } else if (_type == PORTTYPE::PANEL_MATRIX) {
                 port = _cud->GetControllerLEDPanelMatrixPort(GetPort());
+            } else if (_type == PORTTYPE::PWM) {
+                port = _cud->GetControllerPWMPort(GetPort());
             } else {
                 port = _cud->GetControllerSerialPort(GetPort());
             }
@@ -1223,6 +1240,7 @@ protected:
     bool _outline = false;
     bool _main = false;
     std::string _displayName;
+    std::string _label;
     int _string = 0;
     UDControllerPort* _port = nullptr;
     int _virtualString;
@@ -1230,8 +1248,8 @@ protected:
     bool _isShadowFor = false;
 
 public:
-    ModelCMObject(UDControllerPort* port, int virtualString, const std::string& name, const std::string displayName, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, double scale) :
-        BaseCMObject(cud, caps, location, size, style, scale), _mm(mm), _port(port), _virtualString(virtualString)
+    ModelCMObject(UDControllerPort* port, int virtualString, const std::string& name, const std::string displayName, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, double scale, const std::string &label = "") :
+        BaseCMObject(cud, caps, location, size, style, scale), _mm(mm), _port(port), _virtualString(virtualString), _label(label)
     {
         _name = name;
         _main = name == displayName;
@@ -1252,7 +1270,9 @@ public:
             _isShadowFor = m->GetShadowModelFor() != "";
         }
     }
-
+    void SetString(int i) {
+        _string = i;
+    }
     std::string GetName() const
     {
         return _name;
@@ -1431,6 +1451,10 @@ public:
             }
             if (_style & STYLE_STRINGS) {
                 DrawTextLimited(dc, wxString::Format("Strings: %d", m->GetNumPhysicalStrings()), pt, sz - wxSize(4, 4));
+                pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
+            }
+            if (_style & STYLE_LABEL) {
+                DrawTextLimited(dc, _label, pt, sz - wxSize(4, 4));
                 pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
             }
         }
@@ -2369,6 +2393,26 @@ void ControllerModelDialog::ReloadModels()
         }
         y += VERTICAL_GAP + VERTICAL_SIZE;
     }
+    
+    for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxPWMPort()), _cud->GetMaxPWMPort()); i++) {
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PWM, i + 1, _cud, _caps,
+                                                wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                                                BaseCMObject::STYLE_CHANNELS, false, _scale));
+        auto sp = _cud->GetControllerPWMPort(i + 1);
+        if (sp != nullptr) {
+            int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + FIRST_MODEL_GAP_MULTIPLIER * HORIZONTAL_GAP;
+            for (const auto& it : sp->GetModels()) {
+                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                                             BaseCMObject::STYLE_LABEL, _scale, it->GetLabel());
+                cmm->SetString(it->GetString());
+                _controllers.push_back(cmm);
+                x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
+            }
+            if (x > maxx)
+                maxx = x;
+        }
+        y += VERTICAL_GAP + VERTICAL_SIZE;
+    }
     for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxVirtualMatrixPort()), _cud->GetMaxVirtualMatrixPort()); i++) {
         _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::VIRTUAL_MATRIX, i + 1, _cud, _caps,
                                                 wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
@@ -2702,6 +2746,9 @@ void ControllerModelDialog::DropModelFromModelsPaneOnModel(ModelCMObject* droppe
     } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
         m->SetControllerProtocol("LED Panel Matrix");
         m->SetSmartRemote(0);
+    } else if (port->GetPortType() == PortCMObject::PORTTYPE::PWM) {
+        m->SetControllerProtocol("PWM");
+        m->SetSmartRemote(0);
     } else {
         if (port->GetModelCount() == 0) {
             if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0)
@@ -2839,6 +2886,9 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                 m->SetSmartRemote(0);
             } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
                 m->SetControllerProtocol("LED Panel Matrix");
+                m->SetSmartRemote(0);
+            } else if (port->GetPortType() == PortCMObject::PORTTYPE::PWM) {
+                m->SetControllerProtocol("PWM");
                 m->SetSmartRemote(0);
             } else {
                 if (port->GetModelCount() == 0) {
@@ -3136,6 +3186,9 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                     m->SetSmartRemote(0);
                 } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
                     m->SetControllerProtocol("LED Panel Matrix");
+                    m->SetSmartRemote(0);
+                } else if (port->GetPortType() == PortCMObject::PORTTYPE::PWM) {
+                    m->SetControllerProtocol("PWM");
                     m->SetSmartRemote(0);
                 } else {
                     if (port->GetModelCount() == 0) {
@@ -3798,7 +3851,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     bool isSubsequentString = false;
 
     auto m = mob->GetModel();
-    if (m == nullptr && mob->GetString() > 0) {
+    if (m == nullptr) {
         // this is a 2nd+ string on a model
         isSubsequentString = true;
         m = _mm->GetModel(mob->GetName());
@@ -3846,6 +3899,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     std::string usc;
     std::string dmx;
     std::string stringSettings;
+    std::string stringText = "Strings " + std::to_string(m->GetNumPhysicalStrings())+ "\n";
     if (m->IsSerialProtocol()) {
         dmx = wxString::Format("\nChannel %d", m->GetControllerDMXChannel());
         UDControllerPortModel* udm = mob->GetUDModel();
@@ -3861,6 +3915,18 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
         }
     } else if (m->IsMatrixProtocol()) {
         // Any extra matrix properties to display?
+    } else if (m->IsPWMProtocol()) {
+        UDControllerPortModel* udm = mob->GetUDModel();
+        if (udm) {
+            usc = std::to_string(udm->GetStartChannel()) + "\nBits: ";
+            if (udm->GetStartChannel() == udm->GetEndChannel()) {
+                usc += "8";
+            } else {
+                usc += "16";
+            }
+            isSubsequentString = udm->GetString() != 0;
+            stringText = "";
+        }
     } else {
         UDControllerPortModel* udm = mob->GetUDModel();
         if (udm != nullptr) {
@@ -3940,14 +4006,14 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     }
 
     if (_autoLayout) {
-        return wxString::Format("Name: %s\n%sController Name: %s\n%s%sStrings %d\n%sPort: %d\nProtocol: %s%s%s%s%s",
-                                mob->GetDisplayName(), shadow, controllerName, mc, sccc,
-                                m->GetNumPhysicalStrings(), sr, mob->GetPort() != nullptr ? (mob->GetPort()->GetPort() == 0 ? m->GetControllerPort() : mob->GetPort()->GetPort()) : m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special)
+        return wxString::Format("Name: %s\n%sController Name: %s\n%s%s%s%sPort: %d\nProtocol: %s%s%s%s%s",
+                                mob->GetDisplayName(), shadow, controllerName, mc, sccc, stringText,
+                                sr, mob->GetPort() != nullptr ? (mob->GetPort()->GetPort() == 0 ? m->GetControllerPort() : mob->GetPort()->GetPort()) : m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special)
             .ToStdString();
     } else {
-        return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\n%sStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s%s",
-                                mob->GetDisplayName(), shadow, controllerName, universe, sccc,
-                                m->GetNumPhysicalStrings(), sr, mob->GetPort() != nullptr ? (mob->GetPort()->GetPort() == 0 ? m->GetControllerPort() : mob->GetPort()->GetPort()) : m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special)
+        return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\n%s%sSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s%s",
+                                mob->GetDisplayName(), shadow, controllerName, universe, sccc, stringText,
+                                sr, mob->GetPort() != nullptr ? (mob->GetPort()->GetPort() == 0 ? m->GetControllerPort() : mob->GetPort()->GetPort()) : m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special)
             .ToStdString();
     }
 }

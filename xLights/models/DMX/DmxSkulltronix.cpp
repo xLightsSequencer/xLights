@@ -192,7 +192,7 @@ void DmxSkulltronix::AddTypeProperties(wxPropertyGridInterface* grid, OutputMana
     p->SetEditor("SpinCtrl");
 
     if (nullptr != color_ability) {
-        color_ability->AddColorTypeProperties(grid);
+        color_ability->AddColorTypeProperties(grid, false);
     }
 }
 

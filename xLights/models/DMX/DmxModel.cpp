@@ -405,3 +405,20 @@ void DmxModel::EnableFixedChannels(xlColorVector& pixelVector) const
          preset_ability->SetPresetValues(pixelVector);
     }
 }
+
+void DmxModel::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
+    if (nullptr != color_ability) {
+        color_ability->GetPWMOutputs(channels);
+    }
+}
+std::vector<PWMOutput> DmxModel::GetPWMOutputs() const {
+    std::map<uint32_t, PWMOutput> channels;
+    GetPWMOutputs(channels);
+    std::vector<PWMOutput> ret;
+    uint32_t startChannel = GetFirstChannel();
+    for (auto &a : channels) {
+        ret.emplace_back(a.second);
+        ret.back().startChannel += startChannel;
+    }
+    return ret;
+}

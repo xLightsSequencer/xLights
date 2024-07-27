@@ -15,6 +15,7 @@
 #include "DmxFloodlight.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxPresetAbility.h"
+#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../UtilFunctions.h"
 #include "../../xLightsMain.h"
@@ -36,7 +37,8 @@ void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
 
     DmxModel::AddTypeProperties(grid, outputManager);
     if (nullptr != color_ability) {
-        color_ability->AddColorTypeProperties(grid);
+        ControllerCaps *caps = GetControllerCaps();
+        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
     }
     AddShutterTypeProperties(grid);
 
@@ -332,4 +334,12 @@ std::vector<std::string> DmxFloodlight::GenerateNodeNames() const
         names[shutter_channel - 1] = "Shutter";
     }
     return names;
+}
+
+
+void DmxFloodlight::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
+    DmxModel::GetPWMOutputs(channels);
+    if (shutter_channel > 0) {
+        channels[shutter_channel] = PWMOutput(shutter_channel, PWMOutput::Type::LED, 1, "Shutter");
+    }
 }

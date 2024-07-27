@@ -40,6 +40,8 @@ class DmxServo3d : public DmxModel
         void UpdateBits() { update_bits = true; }
         bool Is16Bit() const { return _16bit; }
 
+        void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
+
     protected:
         virtual void InitModel() override;
         void Clear();

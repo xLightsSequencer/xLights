@@ -28,6 +28,7 @@
 #include "Mesh.h"
 #include "MovingHeads/MhFeature.h"
 #include "MovingHeads/MhFeatureDialog.h"
+#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -223,7 +224,8 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
     }
     grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES_ADV, selected));
     if (nullptr != color_ability) {
-        color_ability->AddColorTypeProperties(grid);
+        ControllerCaps *caps = GetControllerCaps();
+        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
     }
     grid->Collapse("DmxColorAbility");
 

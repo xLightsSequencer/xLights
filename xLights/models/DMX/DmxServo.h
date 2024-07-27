@@ -34,6 +34,8 @@ public:
     Servo* GetAxis(int num) { return num < num_servos ? servos[num] : servos[0]; }
     int GetNumServos() { return num_servos; }
 
+    void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
+
 protected:
     virtual void InitModel() override;
     void Clear();

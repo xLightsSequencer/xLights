@@ -117,9 +117,12 @@ int UDControllerPortModel::GetDMXChannelOffset() const
 
 int UDControllerPortModel::GetBrightness(int currentBrightness) const
 {
-    wxXmlNode* node = _model->GetControllerConnection();
-    if (node != nullptr && node->HasAttribute("brightness"))  return wxAtoi(node->GetAttribute("brightness"));
-    return currentBrightness;
+    if (brightness == -1) {
+        wxXmlNode* node = _model->GetControllerConnection();
+        if (node != nullptr && node->HasAttribute("brightness"))  return wxAtoi(node->GetAttribute("brightness"));
+        return currentBrightness;
+    }
+    return brightness;
 }
 
 int UDControllerPortModel::GetStartNullPixels(int currentStartNullPixels) const
@@ -160,10 +163,13 @@ int UDControllerPortModel::GetSmartTs(int currentSmartTs) const
 
 float UDControllerPortModel::GetGamma(int currentGamma)  const
 {
-    wxXmlNode* node = _model->GetControllerConnection();
-    if (node != nullptr && node->HasAttribute("gamma"))
-        return wxAtof(node->GetAttribute("gamma"));
-    return currentGamma;
+    if (brightness == -1) {
+        wxXmlNode* node = _model->GetControllerConnection();
+        if (node != nullptr && node->HasAttribute("gamma"))
+            return wxAtof(node->GetAttribute("gamma"));
+        return currentGamma;
+    }
+    return gamma;
 }
 
 std::string UDControllerPortModel::GetColourOrder(const std::string& currentColourOrder) const
@@ -202,13 +208,19 @@ int UDControllerPortModel::GetZigZag(int currentZigZag) const
 }
 
 std::string UDControllerPortModel::GetName() const {
-    if (_string == -1) {
+    if (_string == -1 || !label.empty()) {
         return _model->GetName();
-    }
-    else {
+    } else {
         return _model->GetName() + "-str-" + wxString::Format("%d", _string + 1).ToStdString();
     }
 }
+std::string UDControllerPortModel::GetLabel() const {
+    if (label.empty()) {
+        return GetName();
+    }
+    return label;
+}
+
 
 void UDControllerPortModel::Dump() const {
 
@@ -218,8 +230,7 @@ void UDControllerPortModel::Dump() const {
         logger_base.debug("                Model %s. Controller Connection %s. Start Channel %d. End Channel %d. Channels %d. Pixels %d. Start Channel #%d:%d",
             (const char*)_model->GetName().c_str(), (const char*)_model->GetControllerConnectionRangeString().c_str(),
             _startChannel, _endChannel, Channels(),  INTROUNDUPDIV(Channels() , GetChannelsPerPixel()), GetUniverse(), GetUniverseStartChannel());
-    }
-    else {
+    } else {
         logger_base.debug("                Model %s. String %d. Controller Connection %s. Start Channel %d. End Channel %d.",
             (const char*)_model->GetName().c_str(), _string + 1, (const char*)_model->GetControllerConnectionRangeString().c_str(),
             _startChannel, _endChannel);
@@ -267,7 +278,6 @@ bool UDControllerPortModel::Check(Controller* controller, const ControllerCaps* 
 
 #pragma region Constructors and Destructors
 UDControllerPort::~UDControllerPort() {
-
     while (_models.size() > 0) {
         delete _models.back();
         _models.pop_back();
@@ -282,7 +292,9 @@ UDControllerPort::~UDControllerPort() {
 #pragma region Model Handling
 UDControllerPortModel* UDControllerPort::GetFirstModel() const
 {
-    if (_models.size() == 0) return nullptr;
+    if (_models.size() == 0) {
+        return nullptr;
+    }
     UDControllerPortModel* first = _models.front();
     for (const auto& it : _models) {
         if (*it < *first) {
@@ -294,8 +306,9 @@ UDControllerPortModel* UDControllerPort::GetFirstModel() const
 
 UDControllerPortModel* UDControllerPort::GetFirstModel(int sr) const
 {
-    if (_models.size() == 0)
+    if (_models.size() == 0) {
         return nullptr;
+    }
     UDControllerPortModel* first = nullptr;
     for (const auto& it : _models) {
         if (it->GetSmartRemote() == sr) {
@@ -348,14 +361,15 @@ UDControllerPortModel* UDControllerPort::GetModel(const std::string& modelName, 
     return nullptr;
 }
 
-void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager* om, int string, bool eliminateOverlaps) {
+UDControllerPortModel * UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager* om, int string, bool eliminateOverlaps) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxASSERT(!ContainsModel(m, string));
 
     _om = om;
 
-    _models.push_back(new UDControllerPortModel(m, controller, om, string));
+    UDControllerPortModel *nm = new UDControllerPortModel(m, controller, om, string);
+    _models.push_back(nm);
     if (_protocol == "") {
         _protocol = m->GetControllerProtocol();
     }
@@ -411,6 +425,7 @@ void UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager*
             if (erased) break; // iterators are invalid so need to break out
         }
     }
+    return nm;
 }
 
 bool UDControllerPort::ContainsModel(Model* m, int string) const {
@@ -1245,6 +1260,11 @@ bool UDController::ModelProcessed(Model* m, int string) {
             return true;
         }
     }
+    for (const auto& it : _pwmPorts) {
+        if (it.second->ContainsModel(m, string)) {
+            return true;
+        }
+    }
     for (const auto& it : _virtualMatrixPorts) {
         if (it.second->ContainsModel(m, string)) {
             return true;
@@ -1281,6 +1301,11 @@ void UDController::ClearPorts() {
         delete it.second;
     }
     _serialPorts.clear();
+    
+    for (const auto& it : _pwmPorts) {
+        delete it.second;
+    }
+    _pwmPorts.clear();
 
     for (const auto& it : _virtualMatrixPorts) {
         delete it.second;
@@ -1338,6 +1363,19 @@ void UDController::Rescan(bool eliminateOverlaps) {
                     } else if (it.second->IsSerialProtocol()) {
                         int port = it.second->GetControllerPort(1);
                         GetControllerSerialPort(port)->AddModel(it.second, _controller, _outputManager, -1, eliminateOverlaps);
+                    } else if (it.second->IsPWMProtocol()) {
+                        std::vector<PWMOutput> outputs = it.second->GetPWMOutputs();
+                        int port = it.second->GetControllerPort(1);
+                        int string = 0;
+                        for (auto &o : outputs) {
+                            if (port <= _controller->GetControllerCaps()->GetMaxPWMPort()) {
+                                auto m = GetControllerPWMPort(port)->AddModel(it.second, _controller, _outputManager, string, eliminateOverlaps);
+                                m->SetPortProperties(o.label, o.brightness, o.gamma, o.startChannel, o.startChannel + o.channels - 1);
+                            }
+                            port++;
+                            string++;
+                            modelstart += o.channels;
+                        }
                     }
                 }
             }
@@ -1376,6 +1414,12 @@ UDControllerPort* UDController::GetControllerSerialPort(int port) {
     }
     return _serialPorts[port];
 }
+UDControllerPort* UDController::GetControllerPWMPort(int port) {
+    if (!HasPWMPort(port)) {
+        _pwmPorts[port] = new UDControllerPort("PWM", port);
+    }
+    return _pwmPorts[port];
+}
 UDControllerPort* UDController::GetControllerVirtualMatrixPort(int port) {
     if (_virtualMatrixPorts.find(port) == _virtualMatrixPorts.end()) {
         _virtualMatrixPorts[port] = new UDControllerPort("Virtual Matrix", port);
@@ -1397,6 +1441,9 @@ UDControllerPort* UDController::GetPortContainingModel(Model* model) const
     for (const auto& it : _serialPorts) {
         if (it.second->ContainsModel(model, 0)) return it.second;
     }
+    for (const auto& it : _pwmPorts) {
+        if (it.second->ContainsModel(model, 0)) return it.second;
+    }
     for (const auto& it : _virtualMatrixPorts) {
         if (it.second->ContainsModel(model, 0)) return it.second;
     }
@@ -1413,6 +1460,10 @@ UDControllerPortModel* UDController::GetControllerPortModel(const std::string& m
         if (m != nullptr) return m;
     }
     for (const auto& it : _serialPorts) {
+        auto m = it.second->GetModel(modelName, str);
+        if (m != nullptr) return m;
+    }
+    for (const auto& it : _pwmPorts) {
         auto m = it.second->GetModel(modelName, str);
         if (m != nullptr) return m;
     }
@@ -1439,7 +1490,16 @@ int UDController::GetMaxSerialPort() const {
     }
     return last;
 }
+int UDController::GetMaxPWMPort() const {
 
+    int last = 0;
+    for (const auto& it : _pwmPorts) {
+        if (it.second->GetPort() > last) {
+            last = it.second->GetPort();
+        }
+    }
+    return last;
+}
 int UDController::GetMaxPixelPort() const {
 
     int last = 0;
@@ -1488,6 +1548,14 @@ bool UDController::HasSerialPort(int port) const {
     }
     return false;
 }
+bool UDController::HasPWMPort(int port) const {
+    for (const auto& it : _pwmPorts) {
+        if (it.second->GetPort() == port) {
+            return true;
+        }
+    }
+    return false;
+}
 bool UDController::HasLEDPanelMatrixPort(int port) const {
     for (const auto& it : _ledPanelMatrixPorts) {
         if (it.second->GetPort() == port) {
@@ -1523,6 +1591,10 @@ Model* UDController::GetModelAfter(Model* m) const
         auto mm = it.second->GetModelAfter(m);
         if (mm != nullptr) return mm;
     }
+    for (const auto& it : _pwmPorts) {
+        auto mm = it.second->GetModelAfter(m);
+        if (mm != nullptr) return mm;
+    }
     for (const auto& it : _virtualMatrixPorts) {
         auto mm = it.second->GetModelAfter(m);
         if (mm != nullptr) return mm;
@@ -1542,6 +1614,11 @@ bool UDController::HasModels() const
         }
     }
     for (const auto& it : _serialPorts) {
+        if (it.second->GetFirstModel() != nullptr) {
+            return true;
+        }
+    }
+    for (const auto& it : _pwmPorts) {
         if (it.second->GetFirstModel() != nullptr) {
             return true;
         }
@@ -1569,6 +1646,11 @@ bool UDController::SetAllModelsToControllerName(const std::string& controllerNam
     }
 
     for (const auto& it : _serialPorts) {
+        changed |= it.second->SetAllModelsToControllerName(controllerName);
+        // we dont chain serial models
+        //changed |= it.second->EnsureAllModelsAreChained();
+    }
+    for (const auto& it : _pwmPorts) {
         changed |= it.second->SetAllModelsToControllerName(controllerName);
         // we dont chain serial models
         //changed |= it.second->EnsureAllModelsAreChained();
@@ -1603,6 +1685,13 @@ bool UDController::SetAllModelsToValidProtocols(const std::vector<std::string>& 
             force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
         }
     }
+    force = "";
+    for (const auto& it : _pwmPorts) {
+        changed |= it.second->SetAllModelsToValidProtocols({"PWM"}, force);
+        if (allsame && force == "" && it.second->GetFirstModel() != nullptr) {
+            force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
+        }
+    }
 
     force = "";
     for (const auto& it : _virtualMatrixPorts) {
@@ -1633,6 +1722,9 @@ bool UDController::ClearSmartRemoteOnAllModels()
     for (const auto& it : _serialPorts) {
         changed |= it.second->ClearSmartRemoteOnAllModels();
     }
+    for (const auto& it : _pwmPorts) {
+        changed |= it.second->ClearSmartRemoteOnAllModels();
+    }
     for (const auto& it : _virtualMatrixPorts) {
         changed |= it.second->ClearSmartRemoteOnAllModels();
     }
@@ -1658,6 +1750,9 @@ bool UDController::IsValid() const {
         if (!it.second->IsValid()) return false;
     }
     for (const auto& it : _serialPorts) {
+        if (!it.second->IsValid()) return false;
+    }
+    for (const auto& it : _pwmPorts) {
         if (!it.second->IsValid()) return false;
     }
     for (const auto& it : _virtualMatrixPorts) {
@@ -1690,6 +1785,10 @@ void UDController::Dump() const {
     }
     logger_base.debug("   Serial Ports %d. Maximum port Number %d.", (int)_serialPorts.size(), GetMaxSerialPort());
     for (const auto& it : _serialPorts) {
+        it.second->Dump();
+    }
+    logger_base.debug("   PWM Ports %d. Maximum port Number %d.", (int)_pwmPorts.size(), GetMaxPWMPort());
+    for (const auto& it : _pwmPorts) {
         it.second->Dump();
     }
     logger_base.debug("   Virtual Matrices %d.", (int)_virtualMatrixPorts.size());
@@ -1791,7 +1890,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
             }
         }
 
-        if(rules->AllSmartRemoteTypesPerPortMustBeSame()) {
+        if (rules->AllSmartRemoteTypesPerPortMustBeSame()) {
             for (const auto& it : _pixelPorts) {
                 if (!it.second->AllSmartRemoteTypesSame()){
                     res += wxString::Format("ERR: Pixel port %d has a models not configured all as the same smart remote type.\n", it.second->GetPort()).ToStdString();
@@ -1973,6 +2072,17 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
 
             if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxSerialPort()) {
                 res += wxString::Format("ERR: Serial port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxSerialPort()).ToStdString();
+                success = false;
+            }
+        }
+    }
+    if (rules->GetMaxPWMPort() == 0 && _pwmPorts.size() > 0) {
+        res += wxString::Format("ERR: Attempt to upload PWM port %d but this controller does not support PWM ports.\n", _pwmPorts.begin()->second->GetPort()).ToStdString();
+        success = false;
+    } else {
+        for (const auto& it : _pwmPorts) {
+            if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxPWMPort()) {
+                res += wxString::Format("ERR: PWM port %d is not valid on this controller. Valid ports %d-%d.\n", it.second->GetPort(), 1, rules->GetMaxPWMPort()).ToStdString();
                 success = false;
             }
         }

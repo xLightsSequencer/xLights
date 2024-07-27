@@ -44,6 +44,10 @@ class UDControllerPortModel
     std::string _protocol;
     int _smartRemote = -1;
     std::string _smartRemoteType;
+
+    std::string label;
+    int brightness = -1;
+    float gamma;
     #pragma endregion
 
     #pragma region Private Functions
@@ -102,10 +106,19 @@ public:
     Model* GetModel() const { return _model; }
 
     std::string GetName() const;
+    std::string GetLabel() const;
 
     void Dump() const;
 
     bool Check(Controller* controller, const ControllerCaps* rules, std::string& res) const;
+    
+    void SetPortProperties(const std::string &l, int b, float g, uint32_t sc, uint32_t ec) {
+        label = l;
+        brightness = b;
+        gamma = g;
+        _startChannel = sc;
+        _endChannel = ec;
+    }
     #pragma endregion
 };
 
@@ -176,7 +189,7 @@ class UDControllerPort
     [[nodiscard]] Model* GetModelAfter(Model* m) const;
     [[nodiscard]] Model* GetModelBefore(Model* m) const;
     [[nodiscard]] UDControllerPortModel* GetModel(const std::string& modelName, int str) const;
-    void AddModel(Model* m, Controller* controller, OutputManager* om, int string = 0, bool eliminateOverlaps = false);
+    UDControllerPortModel *AddModel(Model* m, Controller* controller, OutputManager* om, int string = 0, bool eliminateOverlaps = false);
     bool ContainsModel(Model* m, int string) const;
     std::list<UDControllerPortModel*> GetModels() const { return _models; }
     int CountEmptySmartRemotesBefore(int sr) const;
@@ -283,6 +296,7 @@ class UDController
 	//std::list<Output*> _outputs;
 	std::map<int, UDControllerPort*> _pixelPorts;
 	std::map<int, UDControllerPort*> _serialPorts;
+    std::map<int, UDControllerPort*> _pwmPorts;
     std::map<int, UDControllerPort*> _virtualMatrixPorts;
     std::map<int, UDControllerPort*> _ledPanelMatrixPorts;
     std::list<Model*> _noConnectionModels;
@@ -309,6 +323,7 @@ class UDController
     #pragma region Port Handling
     [[nodiscard]] UDControllerPort* GetControllerPixelPort(int port);
     [[nodiscard]] UDControllerPort* GetControllerSerialPort(int port);
+    [[nodiscard]] UDControllerPort* GetControllerPWMPort(int port);
     [[nodiscard]] UDControllerPort* GetControllerVirtualMatrixPort(int port);
     [[nodiscard]] UDControllerPort* GetControllerLEDPanelMatrixPort(int port);
     [[nodiscard]] UDControllerPort* GetPortContainingModel(Model* model) const;
@@ -317,11 +332,13 @@ class UDController
 
     #pragma region Getters and Setters
     [[nodiscard]] int GetMaxSerialPort() const;
+    [[nodiscard]] int GetMaxPWMPort() const;
     [[nodiscard]] int GetMaxPixelPort() const;
     [[nodiscard]] int GetMaxLEDPanelMatrixPort() const;
     [[nodiscard]] int GetMaxVirtualMatrixPort() const;
     [[nodiscard]] bool HasPixelPort(int port) const;
     [[nodiscard]] bool HasSerialPort(int port) const;
+    [[nodiscard]] bool HasPWMPort(int port) const;
     [[nodiscard]] bool HasLEDPanelMatrixPort(int port) const;
     [[nodiscard]] bool HasVirtualMatrixPort(int port) const;
     [[nodiscard]] int GetMaxPixelPortChannels() const;

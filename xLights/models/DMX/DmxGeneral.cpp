@@ -14,6 +14,7 @@
 
 #include "DmxGeneral.h"
 #include "../ModelScreenLocation.h"
+#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
 #include "../../xLightsVersion.h"
@@ -38,7 +39,8 @@ void DmxGeneral::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager*
     DmxModel::AddTypeProperties(grid, outputManager);
 
     if (nullptr != color_ability) {
-        color_ability->AddColorTypeProperties(grid);
+        ControllerCaps *caps = GetControllerCaps();
+        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
     }
 }
 

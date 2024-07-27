@@ -24,6 +24,7 @@
 #include "DmxPresetAbility.h"
 #include "DmxMotorPanTilt.h"
 #include "../ModelScreenLocation.h"
+#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
 #include "../../xLightsVersion.h"
@@ -147,7 +148,8 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
         grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
         int selected = DMX_COLOR_TYPES.Index(color_ability->GetTypeName());
         grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES, selected));
-        color_ability->AddColorTypeProperties(grid);
+        ControllerCaps *caps = GetControllerCaps();
+        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
     }
     AddDimmerTypeProperties(grid);
     AddShutterTypeProperties(grid);

@@ -77,6 +77,8 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
             return DMX_COLOR_TYPE_RGBW;
         }
 
+        virtual std::vector<PWMOutput> GetPWMOutputs() const override;
+        virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const;
     protected:
         virtual void InitModel() override;
         void ExportBaseParameters(wxFile& f);

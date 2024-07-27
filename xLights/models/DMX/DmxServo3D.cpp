@@ -21,6 +21,7 @@
 #include "Mesh.h"
 #include "Servo.h"
 #include "ServoConfigDialog.h"
+#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -202,7 +203,8 @@ void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager*
     p->SetAttribute("UseCheckbox", true);
 
     for (const auto& it : servos) {
-        it->AddTypeProperties(grid);
+        ControllerCaps *caps = GetControllerCaps();
+        it->AddTypeProperties(grid, IsPWMProtocol() && caps != nullptr && caps->SupportsPWM());
     }
 
     for (const auto& it : static_meshs) {
@@ -1005,5 +1007,13 @@ bool DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
     } else {
         DisplayError("Failure loading DmxServo3d model file.");
         return false;
+    }
+}
+
+
+void DmxServo3d::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
+    DmxModel::GetPWMOutputs(channels);
+    for (auto &s : servos) {
+        s->GetPWMOutputs(channels);
     }
 }

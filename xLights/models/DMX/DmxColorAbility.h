@@ -30,7 +30,7 @@ class DmxColorAbility
         virtual bool IsColorChannel(uint32_t channel) const = 0;
         virtual void SetColorPixels(const xlColor& color, xlColorVector & pixelVector ) const = 0;
 
-        virtual void AddColorTypeProperties(wxPropertyGridInterface *grid) const = 0;
+        virtual void AddColorTypeProperties(wxPropertyGridInterface *grid, bool pwm) const = 0;
         virtual int OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) = 0;
         virtual void GetColor(xlColor& color, int transparency, int blackTransparency,
                               bool allowSelected, const xlColor* c, const std::vector<NodeBaseClassPtr>& Nodes) const = 0;
@@ -47,6 +47,7 @@ class DmxColorAbility
         virtual int GetNumChannels() const = 0;
         [[nodiscard]] virtual xlColorVector GetColors() const { return xlColorVector(); }
 
+        virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &map) const = 0;
     protected:
         DmxColorAbility() = default;
 

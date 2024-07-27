@@ -23,6 +23,7 @@
 #include "Servo.h"
 #include "SkullConfigDialog.h"
 #include "DmxColorAbilityRGB.h"
+#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -252,23 +253,26 @@ void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* o
     p = grid->Append(new wxBoolProperty("Mesh Only", "MeshOnly", mesh_only));
     p->SetAttribute("UseCheckbox", true);
 
+    ControllerCaps *caps = GetControllerCaps();
+    bool doPWM = IsPWMProtocol() && caps != nullptr && caps->SupportsPWM();
+    
     if (has_jaw && jaw_servo != nullptr) {
-        jaw_servo->AddTypeProperties(grid);
+        jaw_servo->AddTypeProperties(grid, doPWM);
     }
     if (has_pan && pan_servo != nullptr) {
-        pan_servo->AddTypeProperties(grid);
+        pan_servo->AddTypeProperties(grid, doPWM);
     }
     if (has_tilt && tilt_servo != nullptr) {
-        tilt_servo->AddTypeProperties(grid);
+        tilt_servo->AddTypeProperties(grid, doPWM);
     }
     if (has_nod && nod_servo != nullptr) {
-        nod_servo->AddTypeProperties(grid);
+        nod_servo->AddTypeProperties(grid, doPWM);
     }
     if (has_eye_ud && eye_ud_servo != nullptr) {
-        eye_ud_servo->AddTypeProperties(grid);
+        eye_ud_servo->AddTypeProperties(grid, doPWM);
     }
     if (has_eye_lr && eye_lr_servo != nullptr) {
-        eye_lr_servo->AddTypeProperties(grid);
+        eye_lr_servo->AddTypeProperties(grid, doPWM);
     }
 
     grid->Append(new wxPropertyCategory("Orientation Properties", "OrientProperties"));
@@ -323,7 +327,8 @@ void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* o
         p->SetAttribute("Max", 512);
         p->SetEditor("SpinCtrl");
         if (nullptr != color_ability) {
-            color_ability->AddColorTypeProperties(grid);
+            ControllerCaps *caps = GetControllerCaps();
+            color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
         }
     }
 
@@ -1126,4 +1131,30 @@ void DmxSkull::DisableUnusedProperties(wxPropertyGridInterface* grid)
     }
 
     // Don't remove ModelStates ... these can be used for DMX devices that use a value range to set a colour or behaviour
+}
+
+
+void DmxSkull::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
+    DmxModel::GetPWMOutputs(channels);
+    if (has_jaw) {
+        jaw_servo->GetPWMOutputs(channels);
+    }
+    if (has_pan) {
+        pan_servo->GetPWMOutputs(channels);
+    }
+    if (has_tilt) {
+        tilt_servo->GetPWMOutputs(channels);
+    }
+    if (has_nod) {
+        nod_servo->GetPWMOutputs(channels);
+    }
+    if (has_eye_ud) {
+        eye_ud_servo->GetPWMOutputs(channels);
+    }
+    if (has_eye_lr) {
+        eye_lr_servo->GetPWMOutputs(channels);
+    }
+    if (eye_brightness_channel > 0) {
+        channels[eye_brightness_channel] = PWMOutput(eye_brightness_channel, PWMOutput::Type::LED, 1, "Eye Brightness");
+    }
 }

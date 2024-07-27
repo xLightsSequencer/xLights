@@ -254,6 +254,7 @@ std::vector<std::string> GetAllPixelTypes(bool includeSerial, bool includeArtifi
         res.push_back("Virtual Matrix");
         res.push_back("LED Panel Matrix");
     }
+    res.push_back("PWM");
 
     return res;
 }
@@ -349,6 +350,9 @@ bool IsLEDPanelMatrixProtocol(const std::string& p1)
 bool IsVirtualMatrixProtocol(const std::string& p1)
 {
     return p1 == "Virtual Matrix";
+}
+bool IsPWMProtocol(const std::string& p1) {
+    return p1 == "PWM";
 }
 
 int GetChannelsPerPixel(const std::string& p)

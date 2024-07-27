@@ -21,6 +21,7 @@
 #include "TwoPointScreenLocation.h"
 #include "ThreePointScreenLocation.h"
 #include "PolyPointScreenLocation.h"
+#include "PWMOutput.h"
 
 #include "../Color.h"
 #include "BaseObject.h"
@@ -422,6 +423,9 @@ public:
     bool IsMatrixProtocol() const;
     bool IsLEDPanelMatrixProtocol() const;
     bool IsVirtualMatrixProtocol() const;
+    bool IsPWMProtocol() const;
+    
+    virtual std::vector<PWMOutput> GetPWMOutputs() const;
 
     static wxArrayString GetSmartRemoteValues(int smartRemoteCount);
 

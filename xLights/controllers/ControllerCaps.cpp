@@ -349,6 +349,12 @@ bool ControllerCaps::SupportsLEDPanelMatrix() const {
 
     return DoesXmlNodeExist(_config, "SupportsLEDPanelMatrix");
 }
+
+bool ControllerCaps::SupportsPWM() const {
+
+    return DoesXmlNodeExist(_config, "SupportsPWM");
+}
+
 bool ControllerCaps::SupportsVirtualMatrix() const {
 
     return DoesXmlNodeExist(_config, "SupportsVirtualMatrix");
@@ -536,6 +542,11 @@ int ControllerCaps::GetMaxPixelPort() const {
 int ControllerCaps::GetMaxSerialPort() const {
     return wxAtoi(GetXmlNodeContent(_config, "MaxSerialPort"));
 }
+
+int ControllerCaps::GetMaxPWMPort() const {
+    return wxAtoi(GetXmlNodeContent(_config, "MaxPWMPort"));
+}
+
 int ControllerCaps::GetMaxVirtualMatrixPort() const {
     //for now, use 1 if supported.  Technially FPP supports unlimitted Virtual Matrices,
     //on one port, but has two HDMI ports on the Pi4 so some of this may need to
@@ -683,6 +694,9 @@ std::vector<std::string> ControllerCaps::GetAllProtocols() const
     }
     if (SupportsLEDPanelMatrix()) {
         res.push_back("LED Panel Matrix");
+    }
+    if (SupportsPWM()) {
+        res.push_back("PWM");
     }
     return res;
 }

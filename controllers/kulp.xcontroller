@@ -182,6 +182,7 @@
             <SupportsVirtualMatrix/>
             <SupportsLEDPanelMatrix/>
             <SupportsAutoLayout/>
+            <SupportsPWM/>
         </Variant>
     </Controller>
     <Controller Name="K8-PB">

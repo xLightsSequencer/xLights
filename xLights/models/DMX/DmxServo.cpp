@@ -21,6 +21,7 @@
 #include "DmxImage.h"
 #include "Servo.h"
 
+#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -87,7 +88,8 @@ void DmxServo::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* o
     p->SetEditor("SpinCtrl");
 
     for (const auto& it : servos) {
-        it->AddTypeProperties(grid);
+        ControllerCaps *caps = GetControllerCaps();
+        it->AddTypeProperties(grid, IsPWMProtocol() && caps != nullptr && caps->SupportsPWM());
     }
 
     for (const auto& it : static_images) {
@@ -645,5 +647,11 @@ bool DmxServo::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
     } else {
         DisplayError("Failure loading DmxServo model file.");
         return false;
+    }
+}
+void DmxServo::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
+    DmxModel::GetPWMOutputs(channels);
+    for (auto &s : servos) {
+        s->GetPWMOutputs(channels);
     }
 }
