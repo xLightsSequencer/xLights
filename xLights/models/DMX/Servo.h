@@ -12,6 +12,10 @@
 
 #include <wx/string.h>
 #include <glm/glm.hpp>
+
+#include "../PWMOutput.h"
+#include <map>
+
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
 class BaseObject;
