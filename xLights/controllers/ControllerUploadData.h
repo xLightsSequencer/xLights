@@ -34,6 +34,21 @@ class ControllerCaps;
 
 class UDControllerPortModel
 {
+public:
+    class PWMProperties {
+    public:
+        int type = 0; // 0 is LED
+        std::string label;
+        int brightness = -1;
+        float gamma;
+        
+        int minValue = 1000;
+        int maxValue = 2000;
+        bool reverse = false;
+        std::string zeroBehavior = "Hold";
+        std::string dateType = "Scaled";
+    };
+private:
     #pragma region Member Varaibles
     int32_t _startChannel = -1;
     int32_t _endChannel = -1;
@@ -45,9 +60,9 @@ class UDControllerPortModel
     int _smartRemote = -1;
     std::string _smartRemoteType;
 
-    std::string label;
-    int brightness = -1;
-    float gamma;
+    //pwm properties
+    PWMProperties pwmProperties;
+    
     #pragma endregion
 
     #pragma region Private Functions
@@ -112,13 +127,29 @@ public:
 
     bool Check(Controller* controller, const ControllerCaps* rules, std::string& res) const;
     
-    void SetPortProperties(const std::string &l, int b, float g, uint32_t sc, uint32_t ec) {
-        label = l;
-        brightness = b;
-        gamma = g;
+    void SetPWMLedPortProperties(const std::string &l, int b, float g, uint32_t sc, uint32_t ec) {
+        pwmProperties.type = 0;
+        pwmProperties.label = l;
+        pwmProperties.brightness = b;
+        pwmProperties.gamma = g;
         _startChannel = sc;
         _endChannel = ec;
     }
+    void SetPWMServoPortProperties(const std::string &l,
+                                   int cmin, int cmax, bool creverse,
+                                   const std::string &zb, const std::string &dt,
+                                   uint32_t sc, uint32_t ec) {
+        pwmProperties.type = 1;
+        pwmProperties.label = l;
+        pwmProperties.minValue = cmin;
+        pwmProperties.maxValue = cmax;
+        pwmProperties.reverse = creverse;
+        pwmProperties.zeroBehavior = zb;
+        pwmProperties.dateType = dt;
+        _startChannel = sc;
+        _endChannel = ec;
+    }
+    const PWMProperties &GetPWMProperties() const { return pwmProperties; }
     #pragma endregion
 };
 

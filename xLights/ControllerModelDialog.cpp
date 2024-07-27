@@ -3918,7 +3918,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     } else if (m->IsPWMProtocol()) {
         UDControllerPortModel* udm = mob->GetUDModel();
         if (udm) {
-            usc = std::to_string(udm->GetStartChannel()) + "\nBits: ";
+            usc = std::to_string(udm->GetStartChannel() + 1) + "\nBits: ";
             if (udm->GetStartChannel() == udm->GetEndChannel()) {
                 usc += "8";
             } else {

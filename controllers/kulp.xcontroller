@@ -183,6 +183,23 @@
             <SupportsLEDPanelMatrix/>
             <SupportsAutoLayout/>
             <SupportsPWM/>
+            <ExtraProperties>
+                <Property name="PWMFrequency" label="PWM Frequency">
+                    <Tip></Tip>
+                    <Type>Enum</Type>
+                    <Default>50hz</Default>
+                    <Values>
+                        <Value>50hz</Value>
+                        <Value>80hz</Value>
+                        <Value>100hz</Value>
+                        <Value>120hz</Value>
+                        <Value>150hz</Value>
+                        <Value>200hz</Value>
+                        <Value>240hz</Value>
+                        <Value>250hz</Value>
+                    </Values>
+                </Property>
+            </ExtraProperties>
         </Variant>
     </Controller>
     <Controller Name="K8-PB">

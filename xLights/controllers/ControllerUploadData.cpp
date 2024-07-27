@@ -117,12 +117,12 @@ int UDControllerPortModel::GetDMXChannelOffset() const
 
 int UDControllerPortModel::GetBrightness(int currentBrightness) const
 {
-    if (brightness == -1) {
+    if (pwmProperties.brightness == -1) {
         wxXmlNode* node = _model->GetControllerConnection();
         if (node != nullptr && node->HasAttribute("brightness"))  return wxAtoi(node->GetAttribute("brightness"));
         return currentBrightness;
     }
-    return brightness;
+    return pwmProperties.brightness;
 }
 
 int UDControllerPortModel::GetStartNullPixels(int currentStartNullPixels) const
@@ -163,13 +163,13 @@ int UDControllerPortModel::GetSmartTs(int currentSmartTs) const
 
 float UDControllerPortModel::GetGamma(int currentGamma)  const
 {
-    if (brightness == -1) {
+    if (pwmProperties.brightness == -1) {
         wxXmlNode* node = _model->GetControllerConnection();
         if (node != nullptr && node->HasAttribute("gamma"))
             return wxAtof(node->GetAttribute("gamma"));
         return currentGamma;
     }
-    return gamma;
+    return pwmProperties.gamma;
 }
 
 std::string UDControllerPortModel::GetColourOrder(const std::string& currentColourOrder) const
@@ -208,17 +208,17 @@ int UDControllerPortModel::GetZigZag(int currentZigZag) const
 }
 
 std::string UDControllerPortModel::GetName() const {
-    if (_string == -1 || !label.empty()) {
+    if (_string == -1 || !pwmProperties.label.empty()) {
         return _model->GetName();
     } else {
         return _model->GetName() + "-str-" + wxString::Format("%d", _string + 1).ToStdString();
     }
 }
 std::string UDControllerPortModel::GetLabel() const {
-    if (label.empty()) {
+    if (pwmProperties.label.empty()) {
         return GetName();
     }
-    return label;
+    return pwmProperties.label;
 }
 
 
@@ -1370,7 +1370,13 @@ void UDController::Rescan(bool eliminateOverlaps) {
                         for (auto &o : outputs) {
                             if (port <= _controller->GetControllerCaps()->GetMaxPWMPort()) {
                                 auto m = GetControllerPWMPort(port)->AddModel(it.second, _controller, _outputManager, string, eliminateOverlaps);
-                                m->SetPortProperties(o.label, o.brightness, o.gamma, o.startChannel, o.startChannel + o.channels - 1);
+                                if (o.type == PWMOutput::Type::LED) {
+                                    m->SetPWMLedPortProperties(o.label, o.brightness, o.gamma, o.startChannel, o.startChannel + o.channels - 1);
+                                } else {
+                                    m->SetPWMServoPortProperties(o.label, o.min_limit, o.max_limit,
+                                                                 o.reverse, o.zeroStyle, o.dataType,
+                                                                 o.startChannel, o.startChannel + o.channels - 1);
+                                }
                             }
                             port++;
                             string++;

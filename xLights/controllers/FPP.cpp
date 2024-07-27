@@ -1757,6 +1757,7 @@ bool FPP::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Cont
         && !UploadVirtualMatrixOutputs(allmodels, outputManager, controller)
         && !UploadPixelOutputs(allmodels, outputManager, controller)
         && !UploadSerialOutputs(allmodels, outputManager, controller)
+        && !UploadPWMOutputs(allmodels, outputManager, controller)
         && !Restart("");
 }
 
@@ -1768,6 +1769,7 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
     UploadVirtualMatrixOutputs(allmodels, outputManager, controller);
     UploadPixelOutputs(allmodels, outputManager, controller);
     UploadSerialOutputs(allmodels, outputManager, controller);
+    UploadPWMOutputs(allmodels, outputManager, controller);
     SetInputUniversesBridge(controller);
     
     if (restartNeeded) {
@@ -1982,6 +1984,18 @@ static bool UpdateJSONValue(wxJSONValue &v, const std::string &key, int newValue
     int origValue = v[key].AsLong();
     if (origValue != newValue) {
         v[key] = newValue;
+        return true;
+    }
+    return false;
+}
+static bool UpdateJSONFloatValue(wxJSONValue &v, const std::string &key, float newValue) {
+    if (!v.HasMember(key)) {
+        v[key] = newValue;
+        return true;
+    }
+    float origValue = v[key].AsDouble();
+    if (origValue != newValue) {
+        v[key] = (double)newValue;
         return true;
     }
     return false;
@@ -2422,6 +2436,121 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
 
     return false;
 }
+
+bool FPP::UploadPWMOutputs(ModelManager* allmodels,
+                           OutputManager* outputManager,
+                           Controller* controller) {
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    if (rules == nullptr) {
+        return false;
+    }
+    int maxPort = rules->GetMaxPWMPort();
+    if (maxPort <= 0) {
+        return false;
+    }
+    if (!IsVersionAtLeast(8, 0)) {
+        //PWM output requires FPP 8.0 or later
+        return true;
+    }
+    bool hasPWM = false;
+    if (!capeInfo.HasMember("id")) {
+        GetURLAsJSON("/api/cape", capeInfo);
+    }
+    for (int x = 0; x < capeInfo["provides"].Size(); x++) {
+        if (capeInfo["provides"][x].AsString() == "pwm") {
+            hasPWM = true;
+        }
+    }
+    if (!hasPWM) {
+        return true;
+    }
+    
+    UDController cud(controller, outputManager, allmodels, false);
+    if (cud.GetMaxPWMPort() == 0) {
+        return false;
+    }
+    bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
+
+    std::map<int, int> rngs;
+    FillRanges(rngs);
+    bool changed = false;
+    
+    wxJSONValue root;
+    int pca9685Index = -1;
+    if (!fullcontrol && GetURLAsJSON("/api/configfile/co-pwm.json", root, false)) {
+        if (root.HasMember("channelOutputs")) {
+            for (int x = 0; x < root["channelOutputs"].Size(); x++) {
+                if (root["channelOutputs"][x]["type"].AsString() == "PCA9685") {
+                    pca9685Index = x;
+                    break;
+                }
+            }
+        }
+    }
+    if (pca9685Index == -1) {
+        changed = true;
+        pca9685Index = 0;
+        root["channelOutputs"] = wxJSONValue(wxJSONTYPE_ARRAY);
+        root["channelOutputs"][pca9685Index]["type"] = wxString("PCA9685");
+        root["channelOutputs"][pca9685Index]["subType"] = "";
+        root["channelOutputs"][pca9685Index]["enabled"] = 1;
+        root["channelOutputs"][pca9685Index]["frequency"] = controller->GetExtraProperty("PWMFrequency", "50hz");
+        root["channelOutputs"][pca9685Index]["startChannel"] = 0;
+        root["channelOutputs"][pca9685Index]["channelCount"] = -1;
+        root["channelOutputs"][pca9685Index]["outputs"] = wxJSONValue(wxJSONTYPE_ARRAY);
+    }
+    // make sure we have enough ports....
+    while (maxPort > root["channelOutputs"][pca9685Index]["outputs"].Size()) {
+        changed = true;
+        wxJSONValue v;
+        v["description"] = xlEMPTY_WXSTRING;
+        v["startChannel"] = 0;
+        v["is16bit"] = 1;
+        v["type"] = wxString("Servo");
+        v["min"] = 1000;
+        v["max"] = 2000;
+        v["reverse"] = 0;
+        v["zero"] = wxString("Hold");
+        v["dataType"] = wxString("Scaled");
+        root["channelOutputs"][pca9685Index]["outputs"].Append(v);
+    }
+    for (int x = 0; x < maxPort; x++) {
+        if (x < cud.GetMaxPWMPort()) {
+            auto *p = cud.GetControllerPWMPort(x + 1);
+            auto *m = p->GetFirstModel();
+            auto &jv = root["channelOutputs"][pca9685Index]["outputs"][x];
+            if (m) {
+                const auto &props = m->GetPWMProperties();
+                changed |= UpdateJSONValue(jv, "startChannel", m->GetStartChannel());
+                std::string mname = m->GetName();
+                changed |= UpdateJSONValue(jv, "description", mname + " - " + props.label);
+                changed |= UpdateJSONValue(jv, "is16bit", m->GetStartChannel() != m->GetEndChannel() ? 1 : 0);
+                if (props.type == 0) {
+                    //LED
+                    changed |= UpdateJSONValue(jv, "type", "LED");
+                    changed |= UpdateJSONValue(jv, "brightness", props.brightness);
+                    changed |= UpdateJSONFloatValue(jv, "gamma", props.gamma);
+                } else {
+                    //SERVO
+                    changed |= UpdateJSONValue(jv, "type", "Servo");
+                    changed |= UpdateJSONValue(jv, "min", props.minValue);
+                    changed |= UpdateJSONValue(jv, "max", props.maxValue);
+                    changed |= UpdateJSONValue(jv, "reverse", props.reverse ? 1 : 0);
+                    changed |= UpdateJSONValue(jv, "zero", props.zeroBehavior);
+                    changed |= UpdateJSONValue(jv, "dataType", props.dateType);
+                }
+            }
+        }
+    }
+    
+    if (changed) {
+        PostJSONToURL("/api/configfile/co-pwm.json", root);
+        SetRestartFlag();
+        SetNewRanges(rngs);
+    }
+    return false;
+}
+
 
 bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,

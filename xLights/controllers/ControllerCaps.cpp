@@ -783,4 +783,53 @@ void ControllerCaps::Dump() const
 }
 
 
+void ControllerCaps::AddProperties(Controller *controller, wxPropertyGrid* propertyGrid) {
+    for (wxXmlNode* n = _config->GetChildren(); n != nullptr; n = n->GetNext()) {
+        if (n->GetName() == "ExtraProperties") {
+            for (wxXmlNode* pnode = n->GetChildren(); pnode != nullptr; pnode = pnode->GetNext()) {
+                std::string name = pnode->GetAttribute("name");
+                std::string label = pnode->GetAttribute("label");
+                std::string def = GetXmlNodeContent(pnode, "Default");
+                std::string type = GetXmlNodeContent(pnode, "Type", "String");
+                if (type == "Enum") {
+                    std::vector<std::string> values = GetXmlNodeListContent(pnode, "Values", "Value");
+                    wxPGChoices pgcValues;
+                    for (auto &v : values) {
+                        pgcValues.Add(v);
+                    }
+                    int idx = pgcValues.Index(controller->GetExtraProperty(name, def));
+                    propertyGrid->Append(new wxEnumProperty(label, "Controller" + name, pgcValues, idx));
+                } else if (type == "String") {
+                    propertyGrid->Append(new wxStringProperty(label, "Controller" + name, controller->GetExtraProperty(name, def)));
+                }
+            }
+        }
+    }
+}
+bool ControllerCaps::HandlePropertyEvent(Controller *controller, wxPropertyGridEvent& event) {
+    for (wxXmlNode* n = _config->GetChildren(); n != nullptr; n = n->GetNext()) {
+        if (n->GetName() == "ExtraProperties") {
+            for (wxXmlNode* pnode = n->GetChildren(); pnode != nullptr; pnode = pnode->GetNext()) {
+                std::string name = pnode->GetAttribute("name");
+                std::string type = GetXmlNodeContent(pnode, "Type", "String");
+                if (event.GetPropertyName() == "Controller" + name) {
+                    if (type == "String") {
+                        controller->SetExtraProperty(name, event.GetPropertyValue().GetString());
+                        return true;
+                    }
+                    if (type == "Enum") {
+                        std::vector<std::string> values = GetXmlNodeListContent(pnode, "Values", "Value");
+                        int idx = event.GetPropertyValue().GetLong();
+                        if (idx < values.size()) {
+                            controller->SetExtraProperty(name, values[idx]);
+                        }
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
 #pragma endregion

@@ -114,6 +114,9 @@ class FPP : public BaseController
     bool UploadSerialOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
                              Controller* controller);
+    bool UploadPWMOutputs(ModelManager* allmodels,
+                          OutputManager* outputManager,
+                          Controller* controller);
     bool SetInputUniversesBridge(Controller* controller);
 
     bool UploadControllerProxies(OutputManager* outputManager);

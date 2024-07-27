@@ -144,5 +144,9 @@ public:
     std::string GetConfigDriver() const;
 
     void Dump() const;
+    
+    void AddProperties(Controller *controller, wxPropertyGrid* propertyGrid);
+    bool HandlePropertyEvent(Controller *controller, wxPropertyGridEvent& event);
+
     #pragma endregion
 };
