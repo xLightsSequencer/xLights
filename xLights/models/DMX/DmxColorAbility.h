@@ -10,7 +10,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <map>
+
 #include "../Node.h"
+#include "../PWMOutput.h"
 
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
