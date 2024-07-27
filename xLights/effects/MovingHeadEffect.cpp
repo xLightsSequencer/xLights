@@ -86,6 +86,9 @@ void MovingHeadEffect::SetDefaultParameters() {
     dp->CheckBox_MHIgnorePan->SetValue(false);
     dp->CheckBox_MHIgnoreTilt->SetValue(false);
     dp->CheckBoxAutoShutter->SetValue(false);
+
+    dp->CheckAllFixtures();
+    dp->UpdateStatusPanel();
 }
 
 void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
