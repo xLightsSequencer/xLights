@@ -195,6 +195,7 @@ const long LayoutPanel::ID_MNU_DELETE_EMPTY_MODEL_GROUPS = wxNewId();
 const long LayoutPanel::ID_MNU_RENAME_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_CLONE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_BULKEDIT_GROUP_TAGCOLOR = wxNewId();
+const long LayoutPanel::ID_MNU_BULKEDIT_GROUP_PREVIEW = wxNewId();
 const long LayoutPanel::ID_MNU_MAKESCVALID = wxNewId();
 const long LayoutPanel::ID_MNU_MAKEALLSCVALID = wxNewId();
 const long LayoutPanel::ID_MNU_MAKEALLSCNOTOVERLAPPING = wxNewId();
@@ -2109,6 +2110,23 @@ void LayoutPanel::BulkEditControllerPreview()
         // reselect all the models
         ReselectTreeModels(selectedModelPaths);
 
+        RenderLayout();
+    }
+}
+
+void LayoutPanel::BulkEditGroupControllerPreview() {
+    wxArrayString choices = Model::GetLayoutGroups(xlights->AllModels);
+    int sel = 0;
+    wxSingleChoiceDialog dlg(this, "Preview", "Preview", choices);
+    dlg.SetSelection(sel);
+    OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() == wxID_OK) {
+        for (const auto& item : selectedTreeGroups) {
+            Model* model = GetModelFromTreeItem(item);
+            model->SetLayoutGroup(dlg.GetStringSelection().ToStdString());
+        }
+        xlights->GetOutputModelManager()->ClearSelectedModel();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditGroupControllerPreview");
         RenderLayout();
     }
 }
@@ -7841,8 +7859,9 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
     } else if (event.GetId() == ID_MNU_BULKEDIT_GROUP_TAGCOLOR) {
         BulkEditGroupTagColor();
-    }
-    else if (event.GetId() == ID_PREVIEW_FLIP_HORIZONTAL) {
+    } else if (event.GetId() == ID_MNU_BULKEDIT_GROUP_PREVIEW) {
+        BulkEditGroupControllerPreview();
+    } else if (event.GetId() == ID_PREVIEW_FLIP_HORIZONTAL) {
         if (editing_models) {
             PreviewModelFlipH();
         } else {
@@ -8527,6 +8546,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     if (selectedTreeGroups.size() > 1) {
         mnuContext.AppendSeparator();
         mnuContext.Append(ID_MNU_BULKEDIT_GROUP_TAGCOLOR, "Bulk Edit Tag Color");
+        mnuContext.Append(ID_MNU_BULKEDIT_GROUP_PREVIEW, "Bulk Edit Preview");
     }
 
     bool foundInvalid = false;
