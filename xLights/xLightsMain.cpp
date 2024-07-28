@@ -9320,7 +9320,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 
     wxString filename = wxFileSelector("Choose reaper file describing the changes required to the audio.",
                                        CurrentDir, wxEmptyString, "*.rrp",
-                                       "Reaper files (*.rpp)|*.rpp|xAudio files (*.xaudio)|*.xaudio|All files (*.*)|*.*",
+                                       "Reaper or xAudio files (*.rpp;*.xaudio)|*.rpp;*.xaudio|All files (*.*)|*.*",
                                        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
     if (filename != "") {
@@ -9550,6 +9550,10 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 
                 if (music != "") {
                     sourceSongs[it.file] = new AudioManager(music);
+                    // wait for song to load
+                    while (!sourceSongs[it.file]->IsDataLoaded()) {
+                        wxMilliSleep(100);
+                    }
                 } else {
                     sourceSongs[it.file] = nullptr;
                 }
@@ -9559,8 +9563,18 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
         bool ok = true;
 
         long outputRate = -1;
+        long sampleRate = -1;
         for (const auto& it : sourceSongs) {
             if (it.second != nullptr) {
+                if (sampleRate == -1) {
+					sampleRate = it.second->GetSampleRate();
+				} else {
+					if (ok && sampleRate != it.second->GetSampleRate()) {
+						logger_base.debug("Songs do not all have the same sample rate ... unable to do the required mixing.");
+						wxMessageBox("In order to prepare the audio all the input songs must have the same sample rate.");
+						ok = false;
+					}
+				}
                 if (outputRate == -1) {
                     outputRate = it.second->GetRate();
                 } else {
@@ -9716,7 +9730,11 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             }
             SetStatusText("Saving output file.");
 
-            if (!AudioManager::CreateAudioFile(left, right, targetFile.GetFullPath(), outputRate)) {
+            if (!AudioManager::EncodeAudio(left,
+                               right,
+                               outputRate, sampleRate,
+                               targetFile.GetFullPath())) {
+            //if (!AudioManager::CreateAudioFile(left, right, targetFile.GetFullPath(), outputRate)) {
                 wxMessageBox("Error creating audio file. See log for details.");
                 SetStatusText("Audio file creation failed.");
             } else {
