@@ -366,6 +366,16 @@ void MHColorWheelPanel::SetColours( const std::string& _colors )
     Refresh();
 }
 
+void MHColorWheelPanel::ResetColours() {
+    for (std::size_t i = 0; i < m_handles.size(); ++i) {
+        m_handles.erase(m_handles.begin() + i);
+    }
+    m_colorWheelParent->NotifyColorUpdated();
+    Refresh();
+    selected_point = -1;
+    active_handle = -1;
+}
+
 void MHColorWheelPanel::DefineColours( xlColorVector& _colors )
 {
     if (_colors != colors) {

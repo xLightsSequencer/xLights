@@ -38,6 +38,7 @@ public:
     virtual std::string GetColour() override;
     virtual bool HasColour() override { return m_handles.size() > 0; }
     virtual void SetColours( const std::string& _colors ) override;
+    virtual void ResetColours() override;
     void DefineColours( xlColorVector& _colors );
     void OnSize(wxSizeEvent& event);
 

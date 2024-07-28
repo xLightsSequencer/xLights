@@ -421,3 +421,13 @@ void MHRgbPickerPanel::SetColours( const std::string& _colors )
     }
     Refresh();
 }
+
+void MHRgbPickerPanel::ResetColours() {
+    for (std::size_t i = 0; i < m_handles.size(); ++i) {
+        m_handles.erase(m_handles.begin() + i);
+    }
+    m_rgbPickerParent->NotifyColorUpdated();
+    Refresh();
+    selected_point = -1;
+    active_handle = -1;
+}

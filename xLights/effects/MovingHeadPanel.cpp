@@ -1981,6 +1981,9 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
     CheckBox_MHIgnoreTilt->SetValue(false);
     UpdatePathSettings();
 
+    m_rgbColorPanel->ResetColours();
+    m_wheelColorPanel->ResetColours();
+
     FireChangeEvent();
     UpdateStatusPanel();
 }
