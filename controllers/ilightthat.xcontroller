@@ -3,11 +3,13 @@
 		<SupportsPixelPortBrightness/>
 		<SupportsPixelPortColourOrder/>
         <SupportsUpload/>
-        <MaxInputUniverses>9</MaxInputUniverses>
+        <MaxInputUniverses>36</MaxInputUniverses>
         <MaxSerialPortChannels>0</MaxSerialPortChannels>
         <MaxPixelPortChannels>2250</MaxPixelPortChannels>
         <AllInputUniversesMustBeSameSize/>
         <UniversesMustBeSequential/>
+        <SupportsFullxLightsControl/>
+        <SupportsDefaultBrightness/>
         <SupportsAutoLayout/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
@@ -37,6 +39,7 @@
 			<MaxPixelPort>4</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxPixelPortChannels>3</MaxPixelPortChannels>
+			<MaxInputUniverses>1</MaxInputUniverses>
 		</Variant>
 	</Controller>
 </Vendor>
