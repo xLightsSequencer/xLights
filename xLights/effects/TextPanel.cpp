@@ -48,6 +48,7 @@ const long TextPanel::ID_STATICTEXT_Text_Dir = wxNewId();
 const long TextPanel::ID_CHOICE_Text_Dir = wxNewId();
 const long TextPanel::ID_BITMAPBUTTON_CHOICE_Text_Dir = wxNewId();
 const long TextPanel::ID_CHECKBOX_TextToCenter = wxNewId();
+const long TextPanel::ID_CHECKBOX_TextNoRepeat = wxNewId();
 const long TextPanel::ID_BITMAPBUTTON_TextToCenter = wxNewId();
 const long TextPanel::ID_STATICTEXT_Text_Speed = wxNewId();
 const long TextPanel::IDD_SLIDER_Text_Speed = wxNewId();
@@ -107,7 +108,6 @@ void xlTextFilePickerCtrl::ValidateControl()
 TextPanel::TextPanel(wxWindow* parent) : xlEffectPanel(parent)
 {
 	//(*Initialize(TextPanel)
-	BulkEditCheckBox* CheckBox_TextToCenter;
 	BulkEditFontPicker* FontPickerCtrl;
 	BulkEditTextCtrl* TextCtrl72;
 	BulkEditTextCtrl* TextCtrl91;
@@ -170,7 +170,7 @@ TextPanel::TextPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer119->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText78 = new wxStaticText(Panel_Text1, ID_STATICTEXT_Text_Dir, _("Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Text_Dir"));
 	FlexGridSizer119->Add(StaticText78, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer48 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer48 = new wxFlexGridSizer(0, 4, 0, 0);
 	Choice_Text_Dir = new BulkEditChoice(Panel_Text1, ID_CHOICE_Text_Dir, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_Dir"));
 	Choice_Text_Dir->SetSelection( Choice_Text_Dir->Append(_("none")) );
 	Choice_Text_Dir->Append(_("left"));
@@ -191,7 +191,11 @@ TextPanel::TextPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_TextToCenter = new BulkEditCheckBox(Panel_Text1, ID_CHECKBOX_TextToCenter, _("C"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_TextToCenter"));
 	CheckBox_TextToCenter->SetValue(false);
 	CheckBox_TextToCenter->SetToolTip(_("Move to center and stop"));
-	FlexGridSizer48->Add(CheckBox_TextToCenter, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer48->Add(CheckBox_TextToCenter, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	CheckBox_NoRepeat = new BulkEditCheckBox(Panel_Text1, ID_CHECKBOX_TextNoRepeat, _("NoRep"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_TextNoRepeat"));
+	CheckBox_NoRepeat->SetValue(false);
+	CheckBox_NoRepeat->SetToolTip(_("Do not cycle the text."));
+	FlexGridSizer48->Add(CheckBox_NoRepeat, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer119->Add(FlexGridSizer48, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
 	BitmapButton_TextToCenter = new xlLockButton(Panel_Text1, ID_BITMAPBUTTON_TextToCenter, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_TextToCenter"));
 	BitmapButton_TextToCenter->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
@@ -321,6 +325,7 @@ TextPanel::TextPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_CHOICE_Text_LyricTrack,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TextPanel::OnChoice_LyricTrackSelect);
 	Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
+	Connect(ID_CHOICE_Text_Dir,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TextPanel::OnChoice_Text_DirSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_TextToCenter,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_Text_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
@@ -358,6 +363,13 @@ void TextPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 
 void TextPanel::ValidateWindow()
 {
+    if (Choice_Text_Dir->GetStringSelection() == "none") {
+        CheckBox_TextToCenter->Disable();
+        CheckBox_NoRepeat->Disable();
+    } else {
+        CheckBox_TextToCenter->Enable();
+        CheckBox_NoRepeat->Enable();
+    }
     TextCtrl_Text->Enable();
     if (TextCtrl_Text->GetValue() != "")
     {
@@ -390,6 +402,11 @@ void TextPanel::OnTextCtrl_TextText(wxCommandEvent& event)
 }
 
 void TextPanel::OnChoice_LyricTrackSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void TextPanel::OnChoice_Text_DirSelect(wxCommandEvent& event)
 {
     ValidateWindow();
 }
