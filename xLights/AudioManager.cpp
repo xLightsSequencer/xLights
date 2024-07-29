@@ -3155,7 +3155,12 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     codec_context->bit_rate = bitrate;
     codec_context->sample_rate = sampleRate;
     codec_context->channel_layout = AV_CH_LAYOUT_STEREO;
+
+#if LIBAVFORMAT_VERSION_MAJOR < 58
+    codec_context->channels = 2;
+#else
     codec_context->channels = av_get_channel_layout_nb_channels(codec_context->channel_layout);
+#endif
 
     // Check the format is ok
     {
