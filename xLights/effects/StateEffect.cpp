@@ -277,7 +277,7 @@ void StateEffect::RenderState(RenderBuffer& buffer,
             return;
         }
 
-        std::recursive_timed_mutex* lock = lock = &track->GetChangeLock();
+        std::recursive_timed_mutex* lock = &track->GetChangeLock();
         std::unique_lock<std::recursive_timed_mutex> locker(*lock);
 
         EffectLayer* layer = track->GetEffectLayer(0);
