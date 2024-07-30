@@ -2003,7 +2003,7 @@ int AudioManager::OpenMediaFile() {
         return 1;
     }
 
-#if LIBAVFORMAT_VERSION_MAJOR < 58
+#if LIBAVFORMAT_VERSION_MAJOR < 59
     _channels = codecContext->channels;
     #else
     _channels = codecContext->ch_layout.nb_channels;
@@ -2144,12 +2144,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 
     // setup our conversion format ... we need to convert the input to a standard format before we can process anything
     int out_channels = 2;
-#if LIBAVFORMAT_VERSION_MAJOR < 58
-    uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
-    #else
-    AVChannelLayout out_channel_layout;
-    av_channel_layout_default(&out_channel_layout, out_channels);
-    #endif
 
     AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;
     int out_sample_rate = _rate;
@@ -2160,17 +2154,16 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 #define CONVERSION_BUFFER_SIZE 192000
     uint8_t* out_buffer = (uint8_t*)av_malloc(CONVERSION_BUFFER_SIZE * out_channels * 2); // 1 second of audio
 
-#if LIBAVFORMAT_VERSION_MAJOR < 58
+#if LIBAVFORMAT_VERSION_MAJOR < 59
+    uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
     int64_t in_channel_layout = av_get_default_channel_layout(codecContext->channels);
-#else
-    AVChannelLayout in_channel_layout;
-    av_channel_layout_default(&in_channel_layout, codecContext->ch_layout.nb_channels);
-#endif
-
-#if LIBAVFORMAT_VERSION_MAJOR < 58
     struct SwrContext* au_convert_ctx = swr_alloc_set_opts(nullptr, out_channel_layout, out_sample_fmt, out_sample_rate,
                                                            in_channel_layout, codecContext->sample_fmt, codecContext->sample_rate, 0, nullptr);
     #else
+    AVChannelLayout out_channel_layout;
+    av_channel_layout_default(&out_channel_layout, out_channels);
+    AVChannelLayout in_channel_layout;
+    av_channel_layout_default(&in_channel_layout, codecContext->ch_layout.nb_channels);
     struct SwrContext* au_convert_ctx = nullptr;
     swr_alloc_set_opts2(&au_convert_ctx, &out_channel_layout, out_sample_fmt, out_sample_rate, &in_channel_layout, codecContext->sample_fmt, codecContext->sample_rate, 0, nullptr);
     #endif
@@ -3176,7 +3169,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     codec_context->bit_rate = bitrate;
     codec_context->sample_rate = sampleRate;
 
-#if LIBAVFORMAT_VERSION_MAJOR < 58
+#if LIBAVFORMAT_VERSION_MAJOR < 59
     codec_context->channel_layout = AV_CH_LAYOUT_STEREO;
     codec_context->channels = 2;
 #else
@@ -3306,7 +3299,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     frame->nb_samples = codec_context->frame_size;
     frame->format = codec_context->sample_fmt;
 
-#if LIBAVFORMAT_VERSION_MAJOR < 58
+#if LIBAVFORMAT_VERSION_MAJOR < 59
     frame->channels = codec_context->channels;
 #else
     if (av_channel_layout_copy(&frame->ch_layout, &codec_context->ch_layout) < 0) {
@@ -3328,7 +3321,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     logger_base.debug("av_samples_get_buffer_size");
 #endif
     int buffer_size = av_samples_get_buffer_size(nullptr,
-#if LIBAVFORMAT_VERSION_MAJOR < 58
+#if LIBAVFORMAT_VERSION_MAJOR < 59
                                                  codec_context->channels
 #else
                                                  codec_context->ch_layout.nb_channels
@@ -3382,7 +3375,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     logger_base.debug("avcodec_fill_audio_frame");
 #endif
     if (avcodec_fill_audio_frame(frame,
-#if LIBAVFORMAT_VERSION_MAJOR < 58
+#if LIBAVFORMAT_VERSION_MAJOR < 59
                                  codec_context->channels
 #else
                                  codec_context->ch_layout.nb_channels
@@ -3646,7 +3639,7 @@ bool AudioReaderDecoder::getAudioParams(AudioParams& p) {
     p.sampleFormat = _codecContext->sample_fmt;
 
     const AVCodecParameters* codecParams = _formatContext->streams[_streamIndex]->codecpar;
-#if LIBAVFORMAT_VERSION_MAJOR < 58
+#if LIBAVFORMAT_VERSION_MAJOR < 59
     p.channelCount = codecParams->channels;
 #else
     p.channelCount = codecParams->ch_layout.nb_channels;
@@ -3744,7 +3737,7 @@ AudioResamplerInitState AudioResampler::initialize() {
     if (_initState != AudioResamplerInitState::NoInit)
         return _initState;
 
-#if LIBAVFORMAT_VERSION_MAJOR < 58
+#if LIBAVFORMAT_VERSION_MAJOR < 59
     uint64_t inChannelLayout = ::av_get_default_channel_layout(_inputParams.channelCount);
     uint64_t outChannelLayout = ::av_get_default_channel_layout(_outputParams.channelCount);
     _swrContext = ::swr_alloc_set_opts(nullptr,

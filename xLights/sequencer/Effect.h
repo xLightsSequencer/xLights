@@ -91,6 +91,7 @@ public:
     int GetEndTimeMS() const { return mEndTime; }
     void SetEndTimeMS(int endTimeMS);
     bool OverlapsWith(int startTimeMS, int EndTimeMS) const;
+    bool FilteredIn(const std::string& filterText, bool isFilterTextRegex) const;
 
     void ConvertTo(int effectIndex);
 
