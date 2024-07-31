@@ -56,26 +56,26 @@ void DmxPresetAbility::SetPresetValues(xlColorVector& pixelVector) const
 
 void DmxPresetAbility::AddProperties(wxPropertyGridInterface* grid) const
 {
-    auto p = grid->Append(new wxUIntProperty("Number of Presets", "DmxPresetSize", presets.size()));
+    auto p = grid->Append(new wxUIntProperty("Number of Fixed Channels", "DmxPresetSize", presets.size()));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", MAX_PRESETS);
     p->SetEditor("SpinCtrl");
 
     int index{ 0 };
     for (auto const& pre : presets) {
-        auto sp = grid->AppendIn(p, new wxUIntProperty(wxString::Format("Preset %d DMX Channel", 1 + index),
+        auto sp = grid->AppendIn(p, new wxUIntProperty(wxString::Format("Fixed Channel %d DMX Channel", 1 + index),
                                                        wxString::Format("DmxPresetChannel%d", index), pre.DMXChannel));
 
         sp->SetAttribute("Min", 1);
         sp->SetAttribute("Max", 255);
         sp->SetEditor("SpinCtrl");
-        sp = grid->AppendIn(p, new wxUIntProperty(wxString::Format("Preset %d DMX Value", 1 + index),
+        sp = grid->AppendIn(p, new wxUIntProperty(wxString::Format("Fixed Channel %d DMX Value", 1 + index),
                                                   wxString::Format("DmxPresetValue%d", index), pre.DMXValue));
         sp->SetAttribute("Min", 0);
         sp->SetAttribute("Max", 255);
         sp->SetEditor("SpinCtrl");
 
-        grid->AppendIn(p, new wxStringProperty(wxString::Format("Preset %d Description", 1 + index),
+        grid->AppendIn(p, new wxStringProperty(wxString::Format("Fixed Channel %d Description", 1 + index),
                                                wxString::Format("DmxPresetDesc%d", index), pre.Description));
 
         ++index;
@@ -187,7 +187,7 @@ void DmxPresetAbility::WriteXMLSettings(wxXmlNode* ModelXml) const
 
     for (auto const& pre : presets) {
         if (pre.DMXChannel > nodeCount) {
-            res.push_back(wxString::Format("    ERR: Model %s Preset channel refers to a channel (%d) not present on the model which only has %d channels.", m->GetName(), pre.DMXChannel, nodeCount));
+            res.push_back(wxString::Format("    ERR: Model %s Fixed channel refers to a channel (%d) not present on the model which only has %d channels.", m->GetName(), pre.DMXChannel, nodeCount));
         }
     }
 

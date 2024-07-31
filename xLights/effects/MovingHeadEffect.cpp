@@ -282,6 +282,7 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
                     }
                 }
             }
+            buffer.EnableFixedDMXChannels(mhead);
         }
     }
 }

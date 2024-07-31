@@ -1717,3 +1717,9 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
         }
     }
 }
+
+void RenderBuffer::EnableFixedDMXChannels(const DmxModel* dmx) {
+    if (dmx != nullptr) {
+        dmx->EnableFixedChannels(pixelVector);
+    }
+}
