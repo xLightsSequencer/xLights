@@ -110,6 +110,7 @@ class ValueCurveDialog: public wxDialog
 		wxButton* Button_Flip;
 		wxButton* Button_Ok;
 		wxButton* Button_Reverse;
+		wxCheckBox* CheckBox_FilterLabelRegex;
 		wxCheckBox* CheckBox_WrapValues;
 		wxChoice* Choice1;
 		wxChoice* Choice_TimingTrack;
@@ -122,12 +123,14 @@ class ValueCurveDialog: public wxDialog
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
 		wxStaticText* StaticText_BottomValue;
 		wxStaticText* StaticText_P1;
 		wxStaticText* StaticText_P2;
 		wxStaticText* StaticText_P3;
 		wxStaticText* StaticText_P4;
 		wxStaticText* StaticText_TopValue;
+		wxTextCtrl* TextCtrl_FilterLabel;
 		wxTextCtrl* TextCtrl_Parameter1;
 		wxTextCtrl* TextCtrl_Parameter2;
 		wxTextCtrl* TextCtrl_Parameter3;
@@ -138,34 +141,37 @@ class ValueCurveDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(ValueCurveDialog)
-		static const wxWindowID ID_STATICTEXT3;
-		static const wxWindowID ID_STATICTEXT7;
-		static const wxWindowID ID_STATICTEXT4;
-		static const wxWindowID ID_CHOICE1;
-		static const wxWindowID ID_STATICTEXT1;
-		static const wxWindowID ID_SLIDER_Parameter1;
-		static const wxWindowID IDD_TEXTCTRL_Parameter1;
-		static const wxWindowID ID_STATICTEXT2;
-		static const wxWindowID ID_SLIDER_Parameter2;
-		static const wxWindowID IDD_TEXTCTRL_Parameter2;
-		static const wxWindowID ID_STATICTEXT5;
-		static const wxWindowID ID_SLIDER_Parameter3;
-		static const wxWindowID IDD_TEXTCTRL_Parameter3;
-		static const wxWindowID ID_STATICTEXT6;
-		static const wxWindowID ID_SLIDER_Parameter4;
-		static const wxWindowID IDD_TEXTCTRL_Parameter4;
-		static const wxWindowID ID_CHECKBOX_WrapValues;
-		static const wxWindowID ID_BUTTON5;
-		static const wxWindowID ID_BUTTON6;
-		static const wxWindowID ID_STATICTEXT8;
-		static const wxWindowID ID_SLIDER1;
-		static const wxWindowID ID_TEXTCTRL1;
-		static const wxWindowID ID_STATICTEXT9;
-		static const wxWindowID ID_CHOICE2;
-		static const wxWindowID ID_BUTTON3;
-		static const wxWindowID ID_BUTTON4;
-		static const wxWindowID ID_BUTTON1;
-		static const wxWindowID ID_BUTTON2;
+		static const long ID_STATICTEXT3;
+		static const long ID_STATICTEXT7;
+		static const long ID_STATICTEXT4;
+		static const long ID_CHOICE1;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_Parameter1;
+		static const long IDD_TEXTCTRL_Parameter1;
+		static const long ID_STATICTEXT2;
+		static const long ID_SLIDER_Parameter2;
+		static const long IDD_TEXTCTRL_Parameter2;
+		static const long ID_STATICTEXT5;
+		static const long ID_SLIDER_Parameter3;
+		static const long IDD_TEXTCTRL_Parameter3;
+		static const long ID_STATICTEXT6;
+		static const long ID_SLIDER_Parameter4;
+		static const long IDD_TEXTCTRL_Parameter4;
+		static const long ID_CHECKBOX_WrapValues;
+		static const long ID_BUTTON5;
+		static const long ID_BUTTON6;
+		static const long ID_STATICTEXT8;
+		static const long ID_SLIDER1;
+		static const long ID_TEXTCTRL1;
+		static const long ID_STATICTEXT9;
+		static const long ID_CHOICE2;
+		static const long ID_STATICTEXT10;
+		static const long ID_TEXTCTRL2;
+		static const long ID_CHECKBOX1;
+		static const long ID_BUTTON3;
+		static const long ID_BUTTON4;
+		static const long ID_BUTTON1;
+		static const long ID_BUTTON2;
 		//*)
 
 	private:
@@ -193,6 +199,8 @@ class ValueCurveDialog: public wxDialog
 		void OnTextCtrl_TimeOffsetText(wxCommandEvent& event);
 		void OnButton_FlipClick(wxCommandEvent& event);
 		void OnChoice_TimingTrackSelect(wxCommandEvent& event);
+		void OnTextCtrl_FilterLabelText(wxCommandEvent& event);
+		void OnCheckBox_FilterLabelRegexClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -4227,6 +4227,14 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         logger_base.warn("Model::InitRenderBufferNodes BufferWi was 0 ... overridden to be 1.");
         bufferWi = 1;
     }
+    if (bufferHt > 10000) {
+        logger_base.warn("Model::InitRenderBufferNodes BufferHt was overly large ... overridden to be 10000.");
+        bufferHt = 10000;
+    }
+    if (bufferWi > 10000) {
+        logger_base.warn("Model::InitRenderBufferNodes BufferWi was overly large ... overridden to be 10000.");
+        bufferWi = 10000;
+    }
 
     ApplyTransform(transform, newNodes, bufferWi, bufferHt);
 }

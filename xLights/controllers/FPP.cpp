@@ -2492,7 +2492,7 @@ bool FPP::UploadPWMOutputs(ModelManager* allmodels,
         pca9685Index = 0;
         root["channelOutputs"] = wxJSONValue(wxJSONTYPE_ARRAY);
         root["channelOutputs"][pca9685Index]["type"] = wxString("PCA9685");
-        root["channelOutputs"][pca9685Index]["subType"] = "";
+        root["channelOutputs"][pca9685Index]["subType"] = rules->GetID();
         root["channelOutputs"][pca9685Index]["enabled"] = 1;
         root["channelOutputs"][pca9685Index]["frequency"] = controller->GetExtraProperty("PWMFrequency", "50hz");
         root["channelOutputs"][pca9685Index]["startChannel"] = 0;

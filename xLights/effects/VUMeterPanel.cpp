@@ -348,7 +348,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
     BitmapButton_VUMeter_YOffsetVC->GetValue()->SetLimits(VUMETER_OFFSET_MIN, VUMETER_OFFSET_MAX);
     BitmapButton_VUMeter_Gain->GetValue()->SetLimits(VUMETER_GAIN_MIN, VUMETER_GAIN_MAX);
 
-    TextCtrl_Filter->SetToolTip("Only trigger on timing events which contain this token in their text. Blank matches all.");
+    TextCtrl_Filter->SetToolTip("Only trigger on timing events which contain this token in their text. Blank matches all. Multiple tokens can be ; separated in non-regex mode.");
 
 	ValidateWindow();
 }
