@@ -57,6 +57,9 @@ public:
     virtual void ValidateWindow() override;
 
     void SetEffectTimeRange(int startTimeMs, int endTimeMs);
+    std::list<Model*> GetActiveModels();
+    void UpdateStatusPanel();
+    void CheckAllFixtures();
 
     //(*Declarations(MovingHeadPanel)
     BulkEditCheckBox* CheckBox_MHIgnorePan;
@@ -145,6 +148,10 @@ protected:
     
     //(*Identifiers(MovingHeadPanel)
     static const wxWindowID ID_STATICTEXT_Fixtures;
+    static const wxWindowID ID_BUTTON_All;
+    static const wxWindowID ID_BUTTON_None;
+    static const wxWindowID ID_BUTTON_Evens;
+    static const wxWindowID ID_BUTTON_Odds;
     static const wxWindowID IDD_CHECKBOX_MH1;
     static const wxWindowID IDD_CHECKBOX_MH2;
     static const wxWindowID IDD_CHECKBOX_MH3;
@@ -153,10 +160,6 @@ protected:
     static const wxWindowID IDD_CHECKBOX_MH6;
     static const wxWindowID IDD_CHECKBOX_MH7;
     static const wxWindowID IDD_CHECKBOX_MH8;
-    static const wxWindowID ID_BUTTON_All;
-    static const wxWindowID ID_BUTTON_None;
-    static const wxWindowID ID_BUTTON_Evens;
-    static const wxWindowID ID_BUTTON_Odds;
     static const wxWindowID ID_STATICTEXT_Pan;
     static const wxWindowID ID_SLIDER_MHPan;
     static const wxWindowID ID_VALUECURVE_MHPan;
@@ -252,13 +255,11 @@ private:
     
     DECLARE_EVENT_TABLE()
 
-    std::list<Model*> GetActiveModels();
     void UncheckAllFixtures();
     void UpdateMHSettings();
     void UpdateColorSettings();
     void UpdatePathSettings();
     void UpdateDimmerSettings();
-    void UpdateStatusPanel();
     void RemoveSettings(std::list<std::string>& settings);
     void AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings);
     void AddPath(std::string& mh_settings);
@@ -274,6 +275,7 @@ private:
     void UpdatePositionCanvas(float pan, float tilt);
     void RecallSettings(const std::string mh_settings);
     bool IsHeadActive(int num);
+    void GetFixturesGroups();
     
     // Preset Functions
     void PopulatePresets();
@@ -302,6 +304,9 @@ private:
 
     int startTimeMs_ {0};
     int endTimeMs_ {0};
+    std::string mh_evens;
+    std::string mh_odds;
+    std::string mh_all;
 
 //***************************************************
 // Pathing support
