@@ -104,6 +104,8 @@ wxBitmap MHPresetBitmapButton::CreateImage( int w, int h, double scaleFactor ) {
                     heads = wxSplit(settings, ',');
                 } else if( cmd_type == "Color" ) {
                     colors = wxSplit(settings, ',');
+                } else if (cmd_type == "Wheel") {
+                    colors = wxSplit(settings, ',');
                 }
             }
 
