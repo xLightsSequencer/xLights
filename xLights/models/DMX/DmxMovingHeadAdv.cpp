@@ -82,7 +82,11 @@ DmxMovingHeadAdv::DmxMovingHeadAdv(wxXmlNode *node, const ModelManager &manager,
 #ifndef __WXMSW__
     obj_path = wxStandardPaths::Get().GetResourcesDir() + "/meshobjects/SimpleMovingHead/";
 #else
+#ifdef _DEBUG
+    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/../../../meshobjects/SimpleMovingHead/";
+#else
     obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/SimpleMovingHead/";
+#endif
 #endif
     beam_width = GetDefaultBeamWidth();
     SetFromXml(node, zeroBased);

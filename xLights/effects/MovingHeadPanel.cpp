@@ -2062,8 +2062,12 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
     UpdatePathSettings();
     CheckAllFixtures();
     TextCtrl_Status->SetValue("");
-    m_rgbColorPanel->ResetColours();
-    m_wheelColorPanel->ResetColours();
+    if (m_rgbColorPanel != nullptr) {
+        m_rgbColorPanel->ResetColours();
+    }
+    if (m_wheelColorPanel != nullptr) {
+        m_wheelColorPanel->ResetColours();
+    }
     FireChangeEvent();
     ValidateWindow();
 }
