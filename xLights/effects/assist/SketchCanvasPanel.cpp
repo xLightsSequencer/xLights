@@ -626,11 +626,11 @@ void SketchCanvasPanel::UpdateHandlesForPath(long pathIndex)
             m_ClosedState = SketchCanvasPathState::LineToNewPoint;
             break;
         case SegmentType::Quadratic:
-            m_handles.pop_back();
+            //m_handles.pop_back();//this causes crashes for missing array index for me... SEH
             m_ClosedState = SketchCanvasPathState::QuadraticCurveToNewPoint;
             break;
         case SegmentType::Cubic:
-            m_handles.pop_back();
+            //m_handles.pop_back();//this causes crashes for missing array index for me... SEH
             m_ClosedState = SketchCanvasPathState::CubicCurveToNewPoint;
             break;
         case SegmentType::Unknown:
