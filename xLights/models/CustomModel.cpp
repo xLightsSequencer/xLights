@@ -584,7 +584,7 @@ void CustomModel::InitRenderBufferNodes(const std::string& tp, const std::string
     }
 
     if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel" ||
-        type == "Horizontal Per Strand" || type == "Vertical Per Strand") {
+        StartsWith(type, "Horizontal Per ") || StartsWith(type, "Vertical Per ")) {
         return;
     }
 
