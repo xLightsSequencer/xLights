@@ -283,6 +283,7 @@ void Servo::AddTypeProperties(wxPropertyGridInterface *grid, bool pwm) {
 
 int Servo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked) {
     std::string name = event.GetPropertyName().ToStdString();
+    std::string cname = "Controller" + base_name;
     if (base_name + "Channel" == name) {
         node_xml->DeleteAttribute("Channel");
         node_xml->AddAttribute("Channel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
@@ -368,7 +369,7 @@ int Servo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         base->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Servo::OnPropertyGridChange::ServoStyle");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Servo::OnPropertyGridChange::ServoStyle");
         return 0;
-    } else if (name.starts_with("Controller")) {
+    } else if (name.starts_with(cname)) {
         if (name.ends_with("MinLimit")) {
             controller_min = event.GetValue().GetLong();
             node_xml->DeleteAttribute("ControllerMin");
