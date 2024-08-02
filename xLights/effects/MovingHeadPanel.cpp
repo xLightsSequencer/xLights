@@ -1413,9 +1413,9 @@ void MovingHeadPanel::UpdateStatusPanel()
                             for (auto i = 0; i < setMH.size(); i++) {
                                 wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%s", setMH[i]);
                                 wxCheckBox* checkbox = (wxCheckBox*)(FindWindowByName(checkbox_ctrl));
-                                if (checkbox != nullptr) {
+                                /*if (checkbox != nullptr) {
                                     checkbox->SetValue(true);
-                                }
+                                }*/
                             }
                             headselect_set = true;
                         }
