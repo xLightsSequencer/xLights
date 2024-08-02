@@ -54,12 +54,25 @@ void DmxPresetAbility::SetPresetValues(xlColorVector& pixelVector) const
     }
 }
 
-void DmxPresetAbility::AddProperties(wxPropertyGridInterface* grid) const
-{
-    auto p = grid->Append(new wxUIntProperty("Number of Fixed Channels", "DmxPresetSize", presets.size()));
+void DmxPresetAbility::AddProperties(wxPropertyGridInterface* grid, wxXmlNode* ModelXml) {
+    int fixedChannelSize = presets.size();
+    int maxChannelSize = MAX_PRESETS;
+    if (ModelXml->HasAttribute("parm1")) {
+        int dmxChannelCount = wxAtoi(ModelXml->GetAttribute("parm1"));
+        maxChannelSize = dmxChannelCount;
+        if (fixedChannelSize > dmxChannelCount) {
+            fixedChannelSize = dmxChannelCount;
+        }
+    }
+
+    auto p = grid->Append(new wxUIntProperty("Number of Fixed Channels", "DmxPresetSize", fixedChannelSize));
     p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", MAX_PRESETS);
+    p->SetAttribute("Max", maxChannelSize);
     p->SetEditor("SpinCtrl");
+
+    while (maxChannelSize < presets.size()) {
+        presets.pop_back();
+    }
 
     int index{ 0 };
     for (auto const& pre : presets) {
@@ -67,7 +80,7 @@ void DmxPresetAbility::AddProperties(wxPropertyGridInterface* grid) const
                                                        wxString::Format("DmxPresetChannel%d", index), pre.DMXChannel));
 
         sp->SetAttribute("Min", 1);
-        sp->SetAttribute("Max", 255);
+        sp->SetAttribute("Max", maxChannelSize);
         sp->SetEditor("SpinCtrl");
         sp = grid->AppendIn(p, new wxUIntProperty(wxString::Format("Fixed Channel %d DMX Value", 1 + index),
                                                   wxString::Format("DmxPresetValue%d", index), pre.DMXValue));
@@ -87,6 +100,14 @@ int DmxPresetAbility::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
     if ("DmxPresetSize" == event.GetPropertyName()) {
         int presetSize = (int)event.GetPropertyValue().GetInteger();
         // if new presets size is less than number of presets, remove unneeded presets
+
+        int dmxChannelCount = 0;
+        if (ModelXml->HasAttribute("parm1")) {
+            dmxChannelCount = wxAtoi(ModelXml->GetAttribute("parm1"));
+        }
+        if (presetSize > dmxChannelCount) { // find the #of channels
+            presetSize = dmxChannelCount;
+        }
         while (presetSize < presets.size()) {
             presets.pop_back();
         }

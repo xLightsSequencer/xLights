@@ -71,7 +71,7 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* o
     p->SetEditor("SpinCtrl");
 
     if (nullptr != preset_ability ) {
-        preset_ability->AddProperties(grid);
+        preset_ability->AddProperties(grid, ModelXml);
     }
 }
 
