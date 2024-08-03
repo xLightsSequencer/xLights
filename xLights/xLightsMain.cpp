@@ -7606,7 +7606,7 @@ bool xLightsFrame::FilesMatch(const std::string& file1, const std::string& file2
     return (memcmp(buf1, buf2, sizeof(buf1)) == 0);
 }
 
-std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::string& subdirectory)
+std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::string& subdirectory, const bool reuse)
 {
     log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxFileName fn(file);
@@ -7633,13 +7633,15 @@ std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::s
     target += fn.GetFullName();
 
     int i = 1;
-    while (FileExists(target) && !FilesMatch(file, target)) {
+    while (FileExists(target) && !FilesMatch(file, target) && !reuse) {
         target = dir + wxFileName::GetPathSeparator() + fn.GetName() + "_" + wxString::Format("%d", i++) + "." + fn.GetExt();
     }
 
     if (!FileExists(target)) {
         logger_base.debug("Copying file %s to %s.", (const char*)file.c_str(), (const char*)target.c_str());
         wxCopyFile(file, target, false);
+    } else if (reuse) {
+        logger_base.debug("Reusing file %s for %s.", (const char*)target.c_str(), (const char*)file.c_str());
     }
 
     return target.ToStdString();

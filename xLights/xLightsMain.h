@@ -1888,7 +1888,7 @@ public:
     MainSequencer* GetMainSequencer() const { return mainSequencer; }
     wxString GetSeqXmlFileName();
 
-    std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory);
+    std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory, const bool reuse = false);
     bool IsInShowFolder(const std::string & file) const;
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
     ColorPanel* GetColorPanel() const { return colorPanel; }
