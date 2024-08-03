@@ -26,11 +26,16 @@ protected:
     uint8_t _data[xxx_MAX_CHANNELS];
     uint8_t _notSentCount[xxx_MAX_CHANNELS];
     uint8_t _lastSent[xxx_MAX_CHANNELS];
+    std::string _deviceChannels;
     #pragma endregion 
 
     #pragma region Private Functions
     virtual void SendHeartbeat() const override;
-    #pragma endregion 
+    uint8_t GetDeviceFromChannel(uint32_t channel) const;
+    uint8_t GetChannelOnDevice(uint32_t channel) const;
+    uint8_t GetDeviceChannels(uint8_t device) const;
+    uint8_t PopulateBuffer(uint8_t* buffer, int32_t channel, uint8_t value) const;
+#pragma endregion 
 
 public:
 
@@ -47,6 +52,22 @@ public:
 
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_xxxSERIAL; }
+    std::string GetDeviceChannels() const {
+        return _deviceChannels;
+    }
+    void SetDeviceChannels(const std::string& deviceChannels) {
+        if (_deviceChannels != deviceChannels) {
+            _deviceChannels = deviceChannels;
+            _dirty = true;
+        }
+        auto ch = wxSplit(_deviceChannels, ',');
+        uint8_t channels = 0;
+        for (const auto& it : ch) {
+            channels += wxAtoi(it);
+        }
+        SetChannels(channels);
+    }
+    virtual wxXmlNode* Save() override;
 
     virtual int32_t GetMaxChannels() const override { return xxx_MAX_CHANNELS; }
     static int GetMaxxxxChannels() { return xxx_MAX_CHANNELS; }
@@ -67,4 +88,13 @@ public:
     virtual void SetManyChannels(int32_t channel, unsigned char data[], size_t size) override;
     virtual void AllOff() override;
     #pragma endregion 
+
+    #pragma region UI
+#ifndef EXCLUDENETWORKUI
+    virtual void UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
+    virtual void AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty* before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) override;
+    virtual void RemoveProperties(wxPropertyGrid* propertyGrid) override;
+    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) override;
+#endif
+#pragma endregion
 };

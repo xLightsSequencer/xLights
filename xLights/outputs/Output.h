@@ -146,7 +146,12 @@ public:
     virtual std::string GetUniverseString() const { return wxString::Format(wxT("%i"), GetUniverse()).ToStdString(); }
 
     int32_t GetChannels() const { return _channels; }
-    virtual void SetChannels(int32_t channels) { _channels = channels; _dirty = true; }
+    virtual void SetChannels(int32_t channels) {
+        if (_channels != channels) {
+            _channels = channels;
+            _dirty = true;
+        }
+    }
     virtual int GetMaxChannels() const = 0;
     virtual bool IsValidChannelCount(int32_t channelCount) const = 0;
 
