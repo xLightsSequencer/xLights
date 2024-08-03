@@ -40,6 +40,7 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxDimmerAbility
 
         int GetNumMotors() const { return NUM_MOTORS; }
         DmxMotor* GetAxis(int num) { return num == 1 ? tilt_motor.get() : pan_motor.get(); }
+        [[nodiscard]] std::vector<std::string> GenerateNodeNames() const override;
 
         DmxMotorBase* GetPanMotor() const override { return pan_motor.get(); }
         DmxMotorBase* GetTiltMotor() const override { return tilt_motor.get(); }
