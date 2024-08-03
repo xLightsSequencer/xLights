@@ -34,7 +34,7 @@ on:
 jobs:
   build:
     env:
-      SOLUTION_BANCH: "${{ github.event.pull_request.head.ref}}"
+      SOLUTION_BANCH: "${{ github.sha}}"
     runs-on: windows-2022
 
     steps:
