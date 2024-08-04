@@ -39,7 +39,7 @@ jobs:
 
     steps:
     - name: Checkout xLights
-      run: "git clone -b ${{env.SOLUTION_BANCH}} https://github.com/xLightsSequencer/xLights.git C:/xLights/ --depth 1  --depth=1 --shallow-submodules --recurse-submodules"
+      run: "git clone https://github.com/xLightsSequencer/xLights.git ${{env.SOLUTION_BANCH}} C:/xLights/ --depth 1  --depth=1 --shallow-submodules --recurse-submodules"
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v1
 
