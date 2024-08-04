@@ -218,6 +218,7 @@ void SequencePackage::Extract()
                             wxXmlDocument rgbEffects;
                             if (rgbEffects.Load(fnOutput.GetFullPath())) {
                                 _rgbEffects = rgbEffects;
+                                _xlEffects = fnOutput.GetFullPath();
                                 _pkgRoot = fnOutput.GetPath();
                                 _hasRGBEffects = true;
                             }
@@ -267,6 +268,7 @@ void SequencePackage::FindRGBEffectsFile()
     if( wxFile::Exists(showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml")) {
         wxXmlDocument rgbEffects;
         if (rgbEffects.Load(showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml")) {
+            _xlEffects = showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml";
             _rgbEffects = rgbEffects;
             _hasRGBEffects = true;
         }
@@ -314,7 +316,7 @@ wxXmlDocument& SequencePackage::GetRgbEffectsFile()
 
 std::string SequencePackage::GetTempShowFolder() const
 {
-    return wxPathOnly(_xsqFile.GetFullPath()).ToStdString();
+    return wxPathOnly(_xlEffects.GetFullPath()).ToStdString();
 }
 
 bool SequencePackage::ModelsChanged() const
