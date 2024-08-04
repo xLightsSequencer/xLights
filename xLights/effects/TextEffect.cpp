@@ -879,17 +879,6 @@ void DrawLabel(TextDrawingContext *dc,
 //#define WANT_DEBUG 99
 //#include "djdebug.cpp"
 
-static wxString StripLeft(wxString str, wxString pattern)
-{
-    while (str.StartsWith(pattern, &str)) {};
-    return str;
-}
-
-static wxString StripRight(wxString str, wxString pattern)
-{
-    while (str.EndsWith(pattern, &str)) {};
-    return str;
-}
 
 TextRenderCache *GetCache(RenderBuffer &buffer, int id) {
     TextRenderCache *cache = (TextRenderCache*)buffer.infoCache[id];

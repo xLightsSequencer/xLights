@@ -2100,7 +2100,6 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
     logger_base.debug("Preparing to load song data.");
 
     // setup our conversion format ... we need to convert the input to a standard format before we can process anything
-    uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
     int out_channels = 2;
 
     AVFrame* frame = av_frame_alloc();
