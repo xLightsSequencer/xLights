@@ -599,9 +599,6 @@ wxIconBundle xlArtProvider::CreateIconBundle(const wxArtID& id,
     return wxNullIconBundle;
 }
 
-
-
-
 wxBitmapBundle BitmapCache::GetPapgayoIcon() {
     return CreateBitmapBundleFromXPMs(16, "Papagayo", {papagayo_16, papagayo_64, papagayo_64, papagayo_64, papagayo_64});
 }

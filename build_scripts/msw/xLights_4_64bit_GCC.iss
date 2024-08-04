@@ -181,7 +181,7 @@ Root: HKCR; Subkey: "xLights.Sequence\shell\open\command"; ValueData: """{app}\{
 
 Root: HKCR; Subkey: ".xsqz";                                       ValueData: "xLights.PackagedSequence";  Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
 Root: HKCR; Subkey: "xLights.PackagedSequence";                    ValueData: "xLights Packaged Sequence";  Flags: uninsdeletekey;   ValueType: string;  ValueName: ""
-Root: HKCR; Subkey: "xLights.PackagedSequence\DefaultIcon";        ValueData: "{app}\{#MyTitleName}.exe,0"; Flags: uninsdeletekey;   ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "xLights.PackagedSequence\DefaultIcon";        ValueData: "{app}\{#MyTitleName}.exe,11"; Flags: uninsdeletekey;   ValueType: string;  ValueName: ""
 Root: HKCR; Subkey: "xLights.PackagedSequence\shell\open\command"; ValueData: """{app}\{#MyTitleName}.exe"" ""%1"""; Flags: uninsdeletekey; ValueType: string; ValueName: ""
 
 ; delete old association
