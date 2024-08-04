@@ -120,8 +120,9 @@ class DmxSkull : public DmxModel
             return eye_lr_servo == nullptr ? 0 : eye_lr_servo->GetMaxLimit();
         }
 
-        void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
+        virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
 
+        virtual std::vector<std::string> GenerateNodeNames() const override;
     protected:
         enum SERVO_TYPE {
             JAW,

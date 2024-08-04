@@ -1158,3 +1158,34 @@ void DmxSkull::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
         channels[eye_brightness_channel] = PWMOutput(eye_brightness_channel, PWMOutput::Type::LED, 1, "Eye Brightness");
     }
 }
+
+std::vector<std::string> DmxSkull::GenerateNodeNames() const {
+    std::vector<std::string> names = DmxModel::GenerateNodeNames();
+
+    if (0 != pan_servo->GetChannel() && pan_servo->GetChannel() < names.size()) {
+        names[pan_servo->GetChannel() - 1] = "Pan";
+        if (pan_servo->Is16Bit()) {
+            names[pan_servo->GetChannel()] = "Pan Fine";
+        }
+    }
+    if (0 != tilt_servo->GetChannel() && tilt_servo->GetChannel() < names.size()) {
+        names[tilt_servo->GetChannel() - 1] = "Tilt";
+        if (tilt_servo->Is16Bit()) {
+            names[tilt_servo->GetChannel()] = "Tilt Fine";
+        }
+    }
+    if (0 != nod_servo->GetChannel() && nod_servo->GetChannel() < names.size()) {
+        names[nod_servo->GetChannel() - 1] = "Nod";
+        if (nod_servo->Is16Bit()) {
+            names[nod_servo->GetChannel()] = "Nod Fine";
+        }
+    }
+    if (0 != jaw_servo->GetChannel() && jaw_servo->GetChannel() < names.size()) {
+        names[jaw_servo->GetChannel() - 1] = "Jaw";
+        if (jaw_servo->Is16Bit()) {
+            names[jaw_servo->GetChannel()] = "Jaw Fine";
+        }
+    }
+    return names;
+}
+
