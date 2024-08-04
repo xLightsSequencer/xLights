@@ -626,24 +626,25 @@ void CustomModelDialog::Setup(CustomModel* m)
             wxFont font = grid->GetDefaultCellFont();
             SetGridSizeForFont(font);
         }
-    }
-    else {
-
-        for (auto layer = 0; layer < data.size(); ++layer) {
+    } else {
+        for (auto layer = 0; layer < m->GetCustomDepth(); ++layer) {
             AddPage();
-            //ResizeCustomGrid();
-            auto grid = GetLayerGrid(layer);
 
-            for (auto row = 0; row < data[0].size(); ++row) {
-                for (auto col = 0; col < data[0][0].size(); col++) {
-                    if (data[layer][row][col] > 0) {
-                        grid->SetCellValue(row, col, std::to_string(data[layer][row][col]));
+            if (layer < data.size()) {
+
+                auto grid = GetLayerGrid(layer);
+
+                for (auto row = 0; row < data[0].size(); ++row) {
+                    for (auto col = 0; col < data[0][0].size(); col++) {
+                        if (data[layer][row][col] > 0) {
+                            grid->SetCellValue(row, col, std::to_string(data[layer][row][col]));
+                        }
                     }
                 }
-            }
 
-            wxFont font = grid->GetDefaultCellFont();
-            SetGridSizeForFont(font);
+                wxFont font = grid->GetDefaultCellFont();
+                SetGridSizeForFont(font);
+            }
         }
     }
 
@@ -676,7 +677,7 @@ void CustomModelDialog::Setup(CustomModel* m)
     //        GridCustom->SetDefaultEditor(reditor);
 
     // neither does this
-    //for (int r = 0; r < GridCustom->GetNumberRows(); ++r)
+    // for (int r = 0; r < GridCustom->GetNumberRows(); ++r)
     //{
     //    for (int c = 0; c < GridCustom->GetNumberCols(); ++c)
     //    {
