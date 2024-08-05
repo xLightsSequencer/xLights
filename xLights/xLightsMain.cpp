@@ -9346,19 +9346,21 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
         };
 
         std::list<musicEdit> edits;
-        wxFileName targetFile;
-        targetFile.SetPath(CurrentDir);
-
+        wxFileName targetFile(CurrentDir);
         if (filename.Lower().EndsWith(".rpp")) {
             wxFile reaper;
             if (reaper.Open(filename)) {
                 wxString reaperContent;
                 reaper.ReadAll(&reaperContent);
 
+                targetFile = wxFileName(filename);
+                
                 wxRegEx regexTgt("RENDER_FILE \\\"[^\\\"]*?\\/([^\\\"\\/]*)\\\"", wxRE_ADVANCED | wxRE_NEWLINE);
                 if (regexTgt.Matches(reaperContent)) {
-                    targetFile.SetName(regexTgt.GetMatch(reaperContent, 1));
+                    targetFile.SetFullName(regexTgt.GetMatch(reaperContent, 1));
                     logger_base.debug("    Target file: %s", (const char*)targetFile.GetFullPath().c_str());
+                } else {
+                    targetFile.SetExt("m4a");
                 }
 
                 wxRegEx regexPosition("POSITION ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
@@ -9543,19 +9545,24 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             outputLength = std::max(outputLength, it.start + it.length);
 
             if (sourceSongs.find(it.file) == sourceSongs.end()) {
-                wxString music = wxFileSelector("Choose your copy of " + it.file + ".",
-                                                CurrentDir, wxEmptyString, wxEmptyString,
-                                                "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.wmv;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg",
-                                                wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
-
-                if (music != "") {
-                    sourceSongs[it.file] = new AudioManager(music);
-                    // wait for song to load
-                    while (!sourceSongs[it.file]->IsDataLoaded()) {
-                        wxMilliSleep(100);
+                wxFileName fn = targetFile;
+                fn.SetFullName(it.file);
+                if (!fn.Exists()) {
+                    wxString music = wxFileSelector("Choose your copy of " + it.file + ".",
+                                                    fn.GetPath(), wxEmptyString, wxEmptyString,
+                                                    "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.wmv;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg",
+                                                    wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+                    if (music != "") {
+                        sourceSongs[it.file] = new AudioManager(music);
+                        // wait for song to load
+                        while (!sourceSongs[it.file]->IsDataLoaded()) {
+                            wxMilliSleep(100);
+                        }
+                    } else {
+                        sourceSongs[it.file] = nullptr;
                     }
                 } else {
-                    sourceSongs[it.file] = nullptr;
+                    sourceSongs[it.file] = new AudioManager(fn.GetFullPath());
                 }
             }
         }
@@ -9710,6 +9717,15 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                 if (it > 1.0)
                     it = 1.0;
             }
+            
+#ifdef __WXOSX__
+            // Cannot generate MP3's, change to AAC/m4a (which has better quality anyway)
+            wxFileName fn = targetFile;
+            if (fn.GetExt() == "mp3") {
+                fn.SetExt("m4a");
+                targetFile = fn.GetFullPath();
+            }
+#endif
 
             if (FileExists(targetFile)) {
                 if (wxMessageBox(targetFile.GetFullPath() + " already exists. Do you want to overwrite it?", "Replace", wxYES_NO | wxCENTRE, this) == wxNO) {
@@ -9717,7 +9733,11 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                                     "Choose filename to save the audio as.",
                                     targetFile.GetPath(),
                                     targetFile.GetName(),
-                                    "MP3 Files|*.mp3",
+#ifdef __WXOSX__
+                                    "Audio Files|*.m4a",
+#else
+                                    "Audio Files|*.mp3;*.m4a",
+#endif
                                     wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
                     if (fd.ShowModal() == wxID_OK) {

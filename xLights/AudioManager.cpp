@@ -3086,6 +3086,24 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     av_log_set_callback(my_av_log_callback_am);
 #endif
 
+    // Find the MP3 encoder
+#ifdef AUDIOWRITE_DEBUG
+    logger_base.debug("avcodec_find_encoder");
+#endif
+    
+    AVCodecID codecId = filename.ends_with("m4a") ? AV_CODEC_ID_AAC : AV_CODEC_ID_MP3;
+    const AVCodec* codec = avcodec_find_encoder(codecId);
+    if (!codec) {
+        codec = avcodec_find_encoder(AV_CODEC_ID_AAC);
+    }
+    if (!codec) {
+        logger_base.error("MP3/MP2/AAC encoder not found");
+#ifdef AUDIOWRITE_DEBUG
+        av_log_set_callback(nullptr);
+#endif
+        return false;
+    }
+
     // Allocate the output media context
     AVFormatContext* format_context = nullptr;
 #ifdef AUDIOWRITE_DEBUG
@@ -3094,20 +3112,6 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     avformat_alloc_output_context2(&format_context, nullptr, nullptr, filename.c_str());
     if (!format_context) {
         logger_base.error("Could not deduce output format from file extension");
-#ifdef AUDIOWRITE_DEBUG
-        av_log_set_callback(nullptr);
-#endif
-        return false;
-    }
-
-    // Find the MP3 encoder
-#ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("avcodec_find_encoder");
-#endif
-    const AVCodec* codec = avcodec_find_encoder(AV_CODEC_ID_MP3);
-    if (!codec) {
-        avformat_free_context(format_context);
-        logger_base.error("MP3 encoder not found");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
@@ -3143,7 +3147,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     }
 
     // Check the sample rate is ok
-    {
+    if (codec->supported_samplerates) {
         const int* p = codec->supported_samplerates;
         bool rateOK = false;
         while (*p != 0) {
@@ -3165,7 +3169,6 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     }
 
     codec_context->sample_fmt = AV_SAMPLE_FMT_FLTP; // Planar float format
-    codec_context->bit_rate = bitrate;
     codec_context->sample_rate = sampleRate;
 
 #if LIBAVFORMAT_VERSION_MAJOR < 59
@@ -3297,7 +3300,8 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     }
     frame->nb_samples = codec_context->frame_size;
     frame->format = codec_context->sample_fmt;
-
+    frame->time_base = codec_context->time_base;
+    
 #if LIBAVFORMAT_VERSION_MAJOR < 59
     frame->channels = codec_context->channels;
 #else
@@ -3380,7 +3384,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
                                  codec_context->ch_layout.nb_channels
 #endif
                                  ,
-                                 codec_context->sample_fmt, frame_buffer, buffer_size, 1) < 0) {
+                                 codec_context->sample_fmt, frame_buffer, buffer_size, 0) < 0) {
         avcodec_free_context(&codec_context);
         av_frame_free(&frame);
         avio_closep(&format_context->pb);
@@ -3417,6 +3421,8 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         // Set up the frame data pointers
         float* left_ptr = (float*)(frame->data[0]);
         float* right_ptr = (float*)(frame->data[1]);
+        frame->pts = sample_index;
+        frame->duration = 0;
         for (int i = 0; i < codec_context->frame_size; ++i) {
             if (sample_index >= left_channel.size()) {
                 left_ptr[i] = 0;
@@ -3425,10 +3431,10 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
                 left_ptr[i] = left_channel[sample_index];
                 right_ptr[i] = right_channel[sample_index];
                 ++sample_index;
+                ++frame->duration;
             }
         }
 
-        frame->pts = sample_index / codec_context->frame_size;
 
         // Send the frame to the encoder
 #ifdef AUDIOWRITE_DEBUG
