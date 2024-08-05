@@ -3511,6 +3511,10 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 #endif
             return false;
         }
+        if (sample_index >= left_channel.size()) {
+            // at the end, flush everything
+            avcodec_send_frame(codec_context, nullptr);
+        }
 
         // Receive the encoded packets
         while (ret >= 0) {
