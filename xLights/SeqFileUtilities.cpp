@@ -40,9 +40,9 @@
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
 #include "models/DMX/DmxModel.h"
+#include "models/DMX/DmxMovingHeadAdv.h"
 #include "models/ModelGroup.h"
 #include "sequencer/MainSequencer.h"
-
 #include "SequencePackage.h"
 #include "Vixen3.h"
 #include "effects/BarsEffect.h"
@@ -1043,6 +1043,18 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     }
 }
 
+int GetMHFixtures() {
+    auto models = xLightsApp::GetFrame()->PreviewModels;
+    std::vector<int> fixtures;
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+            DmxMovingHeadComm* mh = (DmxMovingHeadComm*)it;
+            fixtures.push_back(mh->GetFixtureVal());
+        }
+    }
+    return std::distance(fixtures.begin(), std::unique(fixtures.begin(), fixtures.end()));
+}
+
 void MapXLightsEffects(EffectLayer* target, EffectLayer* src, std::vector<EffectLayer*>& mapped, bool eraseExisting, SequencePackage& xsqPkg, bool lock, const std::map<std::string, std::string>& mapping)
 {
     if (eraseExisting)
@@ -1102,6 +1114,60 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src, std::vector<Effect
                     // cant see why this would happen
                     // gjones - I found this happening when importing a sequence along with timing layers...added code to skip timing layers to          avoid this assert in the debugger.
                     wxASSERT(false);
+                }
+            }
+
+            if (ef->GetEffectName() == "Moving Head") {
+                int numMovers = GetMHFixtures();
+
+                if (numMovers > 0) {
+                    std::vector<std::string> sections;
+                    std::string section;
+                    std::istringstream stream(settings);
+
+                    while (std::getline(stream, section, ',')) {
+                        if (section.find("E_TEXTCTRL_MH") == 0 && section.find("_Settings") != std::string::npos) {
+                            size_t pos = section.find("_Settings");
+                            int number = std::stoi(section.substr(13, pos - 13));
+                            if (number > numMovers) {
+                                continue;
+                            }
+                            std::string hsection = section;
+                            size_t headsPos = hsection.find("Heads:");
+                            if (headsPos != std::string::npos) {
+                                std::string headsPart = hsection.substr(headsPos + 6);
+                                wxString headsPartx = headsPart.c_str();
+                                headsPartx.Replace("&comma;", ",");
+                                std::istringstream headsStream(headsPartx);
+                                std::string head;
+                                std::vector<std::string> filteredHeads;
+                                while (std::getline(headsStream, head, ',')) {
+                                    if (std::stoi(head) <= numMovers) {
+                                        filteredHeads.push_back(head);
+                                    }
+                                }
+                                std::ostringstream filteredHeadsStream;
+                                for (size_t i = 0; i < filteredHeads.size(); ++i) {
+                                    if (i > 0) {
+                                        filteredHeadsStream << "&comma;";
+                                    }
+                                    filteredHeadsStream << filteredHeads[i];
+                                }
+                                section = hsection.substr(0, headsPos + 6) + filteredHeadsStream.str();
+                            }
+
+                        }
+                        sections.push_back(section);
+                    }
+
+                    std::ostringstream result;
+                    for (size_t i = 0; i < sections.size(); ++i) {
+                        if (i > 0) {
+                            result << ",";
+                        }
+                        result << sections[i];
+                    }
+                    settings = result.str();
                 }
             }
 
