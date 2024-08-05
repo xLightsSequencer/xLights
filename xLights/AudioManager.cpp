@@ -3320,7 +3320,9 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     }
     frame->nb_samples = codec_context->frame_size;
     frame->format = codec_context->sample_fmt;
+#if LIBAVFORMAT_VERSION_MAJOR >= 59
     frame->time_base = codec_context->time_base;
+#endif
     
 #if LIBAVFORMAT_VERSION_MAJOR < 59
     frame->channels = codec_context->channels;
@@ -3440,6 +3442,13 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     while (sample_index < left_channel.size()) {
         // Set up the frame data pointers
         frame->pts = sample_index;
+        int mx = codec_context->frame_size;
+        if ((sample_index + mx) > left_channel.size()) {
+            mx = left_channel.size() - sample_index;
+        }
+#if LIBAVFORMAT_VERSION_MAJOR >= 59
+        frame->duration = mx;
+#endif
         if (s16Data.empty()) {
             frame->duration = 0;
             float* left_ptr = (float*)(frame->data[0]);
@@ -3452,16 +3461,10 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
                     left_ptr[i] = left_channel[sample_index];
                     right_ptr[i] = right_channel[sample_index];
                     ++sample_index;
-                    ++frame->duration;
                 }
             }
         } else {
-            int mx = codec_context->frame_size;
-            if ((sample_index + mx * 2) > s16Data.size()) {
-                mx = s16Data.size() - sample_index;
-            }
             memcpy(frame->data[0], &s16Data[sample_index * 2], mx * sizeof(int16_t) * 2);
-            frame->duration = mx;
             sample_index += mx;
         }
 
