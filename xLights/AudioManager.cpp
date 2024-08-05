@@ -3092,7 +3092,10 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 #endif
     
     AVCodecID codecId = filename.ends_with("m4a") ? AV_CODEC_ID_AAC : AV_CODEC_ID_MP3;
-    const AVCodec* codec = avcodec_find_encoder(codecId);
+    const AVCodec* codec = codecId == AV_CODEC_ID_AAC ? avcodec_find_encoder_by_name("aac_at") : nullptr;
+    if (!codec) {
+        codec = avcodec_find_encoder(codecId);
+    }
     if (!codec) {
         codec = avcodec_find_encoder(AV_CODEC_ID_AAC);
     }
@@ -3187,17 +3190,34 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     codec_context->ch_layout.nb_channels = 2;
 #endif
 
+    std::vector<int16_t> s16Data;
     // Check the format is ok
     {
         const enum AVSampleFormat* p = codec->sample_fmts;
         bool fmtOK = false;
+        bool hasS16 = false;
         while (*p != AV_SAMPLE_FMT_NONE) {
             logger_base.debug("    Encoder supports sample format %s", av_get_sample_fmt_name(*p));
             if (*p == codec_context->sample_fmt) {
                 fmtOK = true;
                 break;
             }
+            if (*p == AV_SAMPLE_FMT_S16) {
+                hasS16 = true;
+            }
             p++;
+        }
+        if (!fmtOK && hasS16) {
+            //audiotoolbox aac encoder on Mac only supports S16 fmt
+            s16Data.resize(left_channel.size() * 2);
+            for (int x = 0; x < left_channel.size(); x++) {
+                float lsample = std::clamp(left_channel[x], -1.0f, 1.0f);
+                float rsample = std::clamp(right_channel[x], -1.0f, 1.0f);
+                s16Data[x * 2] = (int16_t)round(lsample * 32767.0f);
+                s16Data[x * 2 + 1] = (int16_t)round(rsample * 32767.0f);
+            }
+            codec_context->sample_fmt = AV_SAMPLE_FMT_S16;
+            fmtOK = true;
         }
         if (!fmtOK) {
             logger_base.error("Encoder does not support sample format %s",
@@ -3419,20 +3439,30 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     int sample_index = 0;
     while (sample_index < left_channel.size()) {
         // Set up the frame data pointers
-        float* left_ptr = (float*)(frame->data[0]);
-        float* right_ptr = (float*)(frame->data[1]);
         frame->pts = sample_index;
-        frame->duration = 0;
-        for (int i = 0; i < codec_context->frame_size; ++i) {
-            if (sample_index >= left_channel.size()) {
-                left_ptr[i] = 0;
-                right_ptr[i] = 0;
-            } else {
-                left_ptr[i] = left_channel[sample_index];
-                right_ptr[i] = right_channel[sample_index];
-                ++sample_index;
-                ++frame->duration;
+        if (s16Data.empty()) {
+            frame->duration = 0;
+            float* left_ptr = (float*)(frame->data[0]);
+            float* right_ptr = (float*)(frame->data[1]);
+            for (int i = 0; i < codec_context->frame_size; ++i) {
+                if (sample_index >= left_channel.size()) {
+                    left_ptr[i] = 0;
+                    right_ptr[i] = 0;
+                } else {
+                    left_ptr[i] = left_channel[sample_index];
+                    right_ptr[i] = right_channel[sample_index];
+                    ++sample_index;
+                    ++frame->duration;
+                }
             }
+        } else {
+            int mx = codec_context->frame_size;
+            if ((sample_index + mx * 2) > s16Data.size()) {
+                mx = s16Data.size() - sample_index;
+            }
+            memcpy(frame->data[0], &s16Data[sample_index * 2], mx * sizeof(int16_t) * 2);
+            frame->duration = mx;
+            sample_index += mx;
         }
 
 
