@@ -3446,11 +3446,10 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         if ((sample_index + mx) > left_channel.size()) {
             mx = left_channel.size() - sample_index;
         }
-#if LIBAVFORMAT_VERSION_MAJOR >= 59
+#if LIBAVFORMAT_VERSION_MAJOR >= 60
         frame->duration = mx;
 #endif
         if (s16Data.empty()) {
-            frame->duration = 0;
             float* left_ptr = (float*)(frame->data[0]);
             float* right_ptr = (float*)(frame->data[1]);
             for (int i = 0; i < codec_context->frame_size; ++i) {
