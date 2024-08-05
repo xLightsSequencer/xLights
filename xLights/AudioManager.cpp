@@ -3091,7 +3091,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     logger_base.debug("avcodec_find_encoder");
 #endif
     
-    AVCodecID codecId = filename.ends_with("m4a") ? AV_CODEC_ID_AAC : AV_CODEC_ID_MP3;
+    AVCodecID codecId = EndsWith(filename, "m4a") ? AV_CODEC_ID_AAC : AV_CODEC_ID_MP3;
     const AVCodec* codec = codecId == AV_CODEC_ID_AAC ? avcodec_find_encoder_by_name("aac_at") : nullptr;
     if (!codec) {
         codec = avcodec_find_encoder(codecId);
