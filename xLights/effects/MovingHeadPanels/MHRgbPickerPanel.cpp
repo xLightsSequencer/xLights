@@ -65,12 +65,12 @@ void MHRgbPickerPanel::OnSize(wxSizeEvent& event){
     event.Skip();
 }
 
-void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/)
-{
+void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/) {
     wxAutoBufferedPaintDC pdc(this);
 
-    if ( !m_hsvBitmap->IsOk() )
-     return;
+    if (!m_hsvBitmap->IsOk()) {
+        return;
+    }
 
     wxSize dcSize = pdc.GetSize();
     
@@ -98,12 +98,15 @@ void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/)
         pdc.DrawCircle(ptUI, handleRadius-1);
         pdc.DrawCircle(ptUI, handleRadius);
         pdc.DrawCircle(ptUI, handleRadius+1);
-        pdc.SetTextForeground(wxColour(xlBLACK));
+        if (c.asHSV().value > 0.5) {
+            pdc.SetTextForeground(wxColour(xlBLACK));
+        } else {
+            pdc.SetTextForeground(wxColour(xlWHITE));
+        }
         wxString text = wxString::Format("%d", handle);
         pdc.DrawText(text, ptUI.x-4, ptUI.y-8);
         handle++;
     }
-    
     // draw color value bar
     if( active_handle >= 0 ) {
         wxRect rect(v_left, v_top, v_width, v_height);
@@ -127,6 +130,10 @@ void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/)
             pdc.SetBrush(*wxWHITE_BRUSH);
         }
         pdc.DrawPolygon(num_points, points, wxODDEVEN_RULE);
+        pdc.SetTextForeground(wxColour(xlBLACK));
+        wxString text = wxString::Format("H:%i,S:%i,V:%i",
+                        int(hsv.hue * 360.0), int(hsv.saturation * 100.0), int(value * 100.0));
+        pdc.DrawText(text, 0 , 0);
     }
 }
 
@@ -135,7 +142,7 @@ void MHRgbPickerPanel::OnKeyDown(wxKeyEvent& event) {
     if (keycode == WXK_DELETE) {
         if (active_handle >= 0) {
             m_handles.erase(m_handles.begin() + active_handle);
-            if (m_handles.size() > 0) {
+            if (!m_handles.empty()) {
                 selected_point = std::max(active_handle - 1, 0);
                 active_handle = std::max(active_handle - 1, 0);
             } else {
@@ -163,7 +170,7 @@ void MHRgbPickerPanel::OnLeftDown(wxMouseEvent& event) {
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
     m_mousePos = UItoNormalized(ptUI);
     m_mouseDown = true;
-    if (m_handles.size() == 0) {
+    if (m_handles.empty()) {
         if (insideColors(ptUI.m_x, ptUI.m_y)) {
             xlColor color{ GetPointColor(ptUI.m_x, ptUI.m_y) };
             m_handles.push_back(HandlePoint(m_mousePos, color));
