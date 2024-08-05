@@ -2019,6 +2019,7 @@ int AudioManager::OpenMediaFile() {
     wxASSERT(_rate > 0);
 
     _sampleRate = codecContext->sample_rate;
+    _bitRate = codecContext->bit_rate;
 
     _bits = av_get_bytes_per_sample(codecContext->sample_fmt);
     wxASSERT(_bits > 0);
@@ -2146,6 +2147,11 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 
     AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;
     int out_sample_rate = _rate;
+    
+    AVDictionaryEntry *tag = nullptr;
+    while ((tag = av_dict_get(formatContext->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
+        _metaData[tag->key] = tag->value;
+    }
 
     AVPacket* readingPacket = av_packet_alloc();
     // av_init_packet( readingPacket );
@@ -3012,7 +3018,7 @@ bool AudioManager::WriteCurrentAudio(const std::string& path, long bitrate) {
     std::vector<float> rightData(_data[1], _data[1] + _trackSize);
     return EncodeAudio(leftData,
                        rightData,
-                       bitrate, 48000,
+                       bitrate,
                        path);
 }
 
@@ -3065,11 +3071,12 @@ void my_av_log_callback_am(void* ptr, int level, const char* fmt, va_list vargs)
 
 bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
                                const std::vector<float>& right_channel,
-                               size_t bitrate, size_t sampleRate,
-                               const std::string& filename) {
+                               size_t sampleRate,
+                               const std::string& filename,
+                               AudioManager *copyFrom) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.debug("Writing %lu samples to %s at bitrate %lu sample rate %lu", left_channel.size(), (const char*)filename.c_str(), bitrate, sampleRate);
+    logger_base.debug("Writing %lu samples to %s at sample rate %lu", left_channel.size(), (const char*)filename.c_str(), sampleRate);
 
     if (left_channel.size() != right_channel.size()) {
         logger_base.error("Left and right channel sizes do not match");
@@ -3119,6 +3126,12 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         av_log_set_callback(nullptr);
 #endif
         return false;
+    }
+    
+    if (copyFrom) {
+        for (auto &tag : copyFrom->GetMetaData()) {
+            av_dict_set(&format_context->metadata, tag.first.c_str(), tag.second.c_str(), 0);
+        };
     }
 
     // Create a new audio stream in the output file container
@@ -3173,6 +3186,9 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 
     codec_context->sample_fmt = AV_SAMPLE_FMT_FLTP; // Planar float format
     codec_context->sample_rate = sampleRate;
+    if (copyFrom && copyFrom->GetBitRate() > 0) {
+        codec_context->bit_rate = copyFrom->GetBitRate();
+    }
 
 #if LIBAVFORMAT_VERSION_MAJOR < 59
     codec_context->channel_layout = AV_CH_LAYOUT_STEREO;

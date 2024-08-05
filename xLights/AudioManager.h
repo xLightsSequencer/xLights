@@ -274,6 +274,9 @@ class AudioManager {
     std::future<void> _prepFrameData;
     std::future<void> _loadingAudio;
     std::string _device;
+    
+    long _bitRate = 0;
+    std::map<std::string, std::string> _metaData;
 
     void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
     void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
@@ -336,6 +339,12 @@ public:
     long GetRate() const {
         return _rate;
     };
+    long GetBitRate() const {
+        return _bitRate;
+    };
+    const std::map<std::string, std::string> &GetMetaData() {
+        return _metaData;
+    }
     int GetChannels() const {
         return _channels;
     };
@@ -391,8 +400,9 @@ public:
     bool WriteCurrentAudio(const std::string& path, long bitrate);
     static bool EncodeAudio(const std::vector<float>& left_channel,
                             const std::vector<float>& right_channel,
-                            size_t bitrate, size_t samplerate,
-                            const std::string& filename);
+                            size_t samplerate,
+                            const std::string& filename,
+                            AudioManager *copyFrom = nullptr);
 
     void AudioDeviceChanged();
 

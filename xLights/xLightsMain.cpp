@@ -9349,6 +9349,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 
         std::list<musicEdit> edits;
         wxFileName targetFile(CurrentDir);
+        AudioManager *firstAudio = nullptr;
         if (filename.Lower().EndsWith(".rpp")) {
             wxFile reaper;
             if (reaper.Open(filename)) {
@@ -9566,43 +9567,36 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                 } else {
                     sourceSongs[it.file] = new AudioManager(fn.GetFullPath());
                 }
+                if (firstAudio == nullptr) {
+                    firstAudio = sourceSongs[it.file];
+                }
             }
         }
 
         bool ok = true;
 
-        long outputRate = -1;
         long sampleRate = -1;
         for (const auto& it : sourceSongs) {
             if (it.second != nullptr) {
                 if (sampleRate == -1) {
-					sampleRate = it.second->GetSampleRate();
-				} else {
-					if (ok && sampleRate != it.second->GetSampleRate()) {
-						logger_base.debug("Songs do not all have the same sample rate ... unable to do the required mixing.");
-						wxMessageBox("In order to prepare the audio all the input songs must have the same sample rate.");
-						ok = false;
-					}
-				}
-                if (outputRate == -1) {
-                    outputRate = it.second->GetRate();
+                    sampleRate = it.second->GetRate();
                 } else {
-                    if (ok && outputRate != it.second->GetRate()) {
+                    if (ok && sampleRate != it.second->GetRate()) {
                         logger_base.debug("Songs do not all have the same bitrate ... unable to do the required mixing.");
-                        wxMessageBox("In order to prepare the audio all the input songs must have the same bitrate.");
+                        wxMessageBox("In order to prepare the audio all the input songs must have the same sample rate.");
                         ok = false;
                     }
                 }
             }
         }
 
-        if (outputRate == -1) {
+        if (sampleRate == -1) {
             SetStatusText("Audio file creation failed - No input audio.");
             ok = false;
         }
 
         if (ok) {
-            long totalSamples = outputRate * outputLength;
+            long totalSamples = sampleRate * outputLength;
             logger_base.debug("    New file will:");
             logger_base.debug("        have %ld samples.", totalSamples);
             logger_base.debug("        be %0.3f seconds long.", outputLength);
@@ -9623,8 +9617,8 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                     SetStatusText("Combining audio clips.");
 
                     logger_base.debug("Processing sample from %s.", (const char*)it.file.c_str());
-                    long startOutput = outputRate * it.start;
-                    long outputSamples = outputRate * it.length;
+                    long startOutput = sampleRate * it.start;
+                    long outputSamples = sampleRate * it.length;
                     // logger_base.debug("    Sample Output Start %ld-%ld [%ld].", startOutput, startOutput + outputSamples - 1, outputSamples);
                     wxASSERT(startOutput + outputSamples - 1 <= totalSamples);
                     long startSample = audio->GetRate() * it.sourceoffset;
@@ -9754,9 +9748,9 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 
             if (!AudioManager::EncodeAudio(left,
                                right,
-                               outputRate, sampleRate,
-                               targetFile.GetFullPath())) {
-            //if (!AudioManager::CreateAudioFile(left, right, targetFile.GetFullPath(), outputRate)) {
+                               sampleRate,
+                               targetFile.GetFullPath(),
+                               firstAudio)) {
                 wxMessageBox("Error creating audio file. See log for details.");
                 SetStatusText("Audio file creation failed.");
             } else {
