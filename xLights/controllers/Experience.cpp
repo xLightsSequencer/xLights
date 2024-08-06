@@ -175,9 +175,11 @@ int32_t Experience::SetInputUniverses(wxJSONValue& data, Controller* controller)
         data["system"]["operating_mode"] = wxString("ddp");
         DDPOutput* ddp = (DDPOutput*)out;
         if (ddp->IsKeepChannelNumbers()) {
-            startChannel = 1;            
+            data["system"]["start_channel"] = startChannel;
+            startChannel = 1;//offset for pixel page
+        } else {
+            data["system"]["start_channel"] = 1;
         }
-        data["system"]["start_channel"] = startChannel;
     } else  {
         //should never hit this
         DisplayError(wxString::Format(
