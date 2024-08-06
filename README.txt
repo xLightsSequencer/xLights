@@ -34,6 +34,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - enh (keith)       New xsqz icon
     - enh (derwin12)    Ruse existing shader files when doing a File Cleanup
     - enh (keith)       Add falcon PiCap v2
+	- enh (keith)		Add some xlights model support to matrices and virtual matrices in xSchedule
+	- enh (keith)		Add the ability to hard code a timecode offset for each step in a playlist for ultimate control over timecode
     - bug (derwin12)    Add all layers for the custom model dialog
     - bug (keith)       Fix sequences packaged in subfolders not loading in xsqz
     - bug (dkulp)       Fix issues with canvas mode effects and DMX buffers
