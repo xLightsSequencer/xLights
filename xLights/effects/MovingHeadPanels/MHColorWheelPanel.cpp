@@ -31,6 +31,7 @@ BEGIN_EVENT_TABLE(MHColorWheelPanel, wxPanel)
     EVT_LEFT_UP(MHColorWheelPanel::OnLeftUp)
     EVT_MOTION(MHColorWheelPanel::OnMouseMove)
     EVT_ENTER_WINDOW(MHColorWheelPanel::OnEntered)
+    EVT_LEAVE_WINDOW(MHColorWheelPanel::OnLeave)
     EVT_SIZE(MHColorWheelPanel::OnSize)
 END_EVENT_TABLE()
 
@@ -217,6 +218,12 @@ void MHColorWheelPanel::OnMouseMove(wxMouseEvent& event)
 void MHColorWheelPanel::OnEntered(wxMouseEvent& /*event*/)
 {
     SetFocus();
+}
+
+void MHColorWheelPanel::OnLeave(wxMouseEvent& /*event*/) 
+{
+    m_mouseDown = false;
+    m_mouseDClick = false;
 }
 
 int MHColorWheelPanel::HitTest( wxPoint2DDouble& ptUI )

@@ -62,6 +62,7 @@ private:
     void OnEntered(wxMouseEvent& event);
     void OnKeyDown(wxKeyEvent& event);
     void OnKeyUp(wxKeyEvent& event);
+    void OnLeave(wxMouseEvent& event);
 
     wxPoint2DDouble UItoNormalized(const wxPoint2DDouble& pt) const;
     wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt) const;

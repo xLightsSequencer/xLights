@@ -30,6 +30,7 @@ BEGIN_EVENT_TABLE(MHRgbPickerPanel, wxPanel)
     EVT_LEFT_UP(MHRgbPickerPanel::OnLeftUp)
     EVT_MOTION(MHRgbPickerPanel::OnMouseMove)
     EVT_ENTER_WINDOW(MHRgbPickerPanel::OnEntered)
+    EVT_LEAVE_WINDOW(MHRgbPickerPanel::OnLeave)
     EVT_SIZE(MHRgbPickerPanel::OnSize)
 END_EVENT_TABLE()
 
@@ -253,6 +254,13 @@ void MHRgbPickerPanel::OnMouseMove(wxMouseEvent& event)
 void MHRgbPickerPanel::OnEntered(wxMouseEvent& /*event*/)
 {
     SetFocus();
+}
+
+void MHRgbPickerPanel::OnLeave(wxMouseEvent& /*event*/) {
+    m_mouseDown = false;
+    m_mouseDownV = false;
+    m_mouseDClick = false;
+    selected_point = -1;
 }
 
 bool MHRgbPickerPanel::HitTestV( wxPoint2DDouble& ptUI )
