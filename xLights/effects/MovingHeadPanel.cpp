@@ -1359,10 +1359,19 @@ void MovingHeadPanel::UpdateStatusPanel()
     if (TextCtrl_MH1_Settings->GetValue() == "")
         CheckAllFixtures();
     GetFixturesGroups();
-    Button_All->SetBackgroundColour(wxColour(32, 32, 32));
-    Button_None->SetBackgroundColour(wxColour(32, 32, 32));
-    Button_Evens->SetBackgroundColour(wxColour(32, 32, 32));
-    Button_Odds->SetBackgroundColour(wxColour(32, 32, 32));
+    Button_All->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+    Button_None->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+    Button_Evens->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+    Button_Odds->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+    wxColor btntext(0, 0, 0);
+    if (IsDarkMode()) {
+        btntext =wxColor (255, 255, 255);
+    }
+    Button_All->SetForegroundColour(wxColour(btntext));
+    Button_None->SetForegroundColour(wxColour(btntext));
+    Button_Evens->SetForegroundColour(wxColour(btntext));
+    Button_Odds->SetForegroundColour(wxColour(btntext));
+
     std::string all_settings = xlEMPTY_STRING;
     for( int i = 1; i <= 8; ++i ) {
         wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
@@ -1422,10 +1431,13 @@ void MovingHeadPanel::UpdateStatusPanel()
                         if (hasrealvalues) {
                             if (hascmd_heads == mh_evens) {
                                 Button_Evens->SetBackgroundColour(*wxBLUE);
+                                Button_Evens->SetForegroundColour(wxColour(255,255,255));
                             } else if (hascmd_heads == mh_odds) {
                                 Button_Odds->SetBackgroundColour(*wxBLUE);
+                                Button_Odds->SetForegroundColour(wxColour(255,255,255));
                             } else if (hascmd_heads == mh_all) {
                                 Button_All->SetBackgroundColour(*wxBLUE);
+                                Button_All->SetForegroundColour(wxColour(255,255,255));
                             }
                         }
                     }
