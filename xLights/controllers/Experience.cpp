@@ -255,7 +255,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         port["long_range_port_index"].SetType(wxJSONTYPE_NULL);
         if (cud.HasPixelPort(p)) {
             UDControllerPort* portData = cud.GetControllerPixelPort(p);
-            portData->CreateVirtualStrings(false);
+            portData->CreateVirtualStrings(false, false);
             for (const auto& pvs : portData->GetVirtualStrings()) {
                 wxJSONValue vs;
                 vs["n"] = pvs->_description;
@@ -303,7 +303,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             //one based
             if (cud.HasPixelPort(portID)) {
                 UDControllerPort* portData = cud.GetControllerPixelPort(portID);
-                portData->CreateVirtualStrings(false);
+                portData->CreateVirtualStrings(false, false);
                 for (const auto& pvs : portData->GetVirtualStrings()) {
                     wxJSONValue vs;
 

@@ -240,7 +240,7 @@ class UDControllerPort
     #pragma endregion
 
     #pragma region Virtual String Handling
-    void CreateVirtualStrings(bool mergeSequential);
+    void CreateVirtualStrings(bool mergeSequential, bool overrideSingle = true);
     [[nodiscard]] int GetVirtualStringCount() const
     {
         return (int)_virtualStrings.size();

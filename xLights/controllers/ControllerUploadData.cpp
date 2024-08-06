@@ -577,7 +577,7 @@ bool UDControllerPort::EnsureAllModelsAreChained()
 #pragma endregion
 
 #pragma region Virtual String Handling
-void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
+void UDControllerPort::CreateVirtualStrings(bool mergeSequential, bool overrideSingle ) {
 
     while (_virtualStrings.size() > 0) {
         delete _virtualStrings.front();
@@ -714,7 +714,7 @@ void UDControllerPort::CreateVirtualStrings(bool mergeSequential) {
             current->_universe = it->GetUniverse();
             current->_universeStartChannel = it->GetUniverseStartChannel();
             current->_channelsPerPixel = it->GetChannelsPerPixel();
-            if (current->_channelsPerPixel == 1)
+            if (current->_channelsPerPixel == 1 && overrideSingle)
                 current->_channelsPerPixel = GetChannelsPerPixel(it->GetProtocol()); // this happens if a channel block is dropped first on a port and we dont want that
             current->_smartRemote = it->GetSmartRemote();
             current->_smartRemoteType = it->GetSmartRemoteType();

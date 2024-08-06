@@ -2676,7 +2676,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     for (int pp = 1; pp <= rules->GetMaxPixelPort(); pp++) {
         if (cud.HasPixelPort(pp)) {
             UDControllerPort* port = cud.GetControllerPixelPort(pp);
-            port->CreateVirtualStrings(false);
+            port->CreateVirtualStrings(false, false);
             for (const auto& pvs : port->GetVirtualStrings()) {
                 wxJSONValue vs;
                 if (pvs->_isDummy) {
