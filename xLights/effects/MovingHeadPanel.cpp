@@ -1365,7 +1365,7 @@ void MovingHeadPanel::UpdateStatusPanel()
     Button_Odds->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     wxColor btntext(0, 0, 0);
     if (IsDarkMode()) {
-        btntext =wxColor (255, 255, 255);
+        btntext = wxColor (255, 255, 255);
     }
     Button_All->SetForegroundColour(wxColour(btntext));
     Button_None->SetForegroundColour(wxColour(btntext));
