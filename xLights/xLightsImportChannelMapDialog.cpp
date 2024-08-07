@@ -2706,12 +2706,17 @@ void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& 
     _dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); ++i) {
         xLightsImportModelNode* m = _dataModel->GetNthChild(i);
-        if (m->HasMapping()) xlights->GetModel(m->_model)->AddAlias(m->_mapping);
+        if (m->HasMapping() && !m->_mapping.empty()) {
+            xlights->GetModel(m->_model)->AddAlias(m->_mapping);
+        }
         wxDataViewItemArray strands;
         _dataModel->GetChildren(models[i], strands);
         for (size_t j = 0; j < strands.size(); ++j) {
             xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
-            if (astrand->HasMapping()) xlights->GetModel((astrand->_model + "/" + astrand->_strand))->AddAlias(astrand->_mapping);
+            if (astrand->HasMapping() && !astrand->_mapping.empty()) {
+                auto m = xlights->GetModel((astrand->_model + "/" + astrand->_strand));
+                if (m != nullptr) m->AddAlias(astrand->_mapping);
+            }
         }
     }
     xlights->SetStatusText(_("Update Aliases Done."));
