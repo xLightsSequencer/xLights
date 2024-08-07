@@ -185,9 +185,9 @@ VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* output
         TextCtrl_StartChannel->SetValue(node->GetAttribute("StartChannel", ""));
         long sc = _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
         if (sc == 0 || sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
-            StaticText8->SetLabel("Invalid");
+            StaticText6->SetLabel("Invalid");
         } else {
-            StaticText8->SetLabel(wxString::Format("%ld", (long)sc));
+            StaticText6->SetLabel(wxString::Format("%ld", (long)sc));
         }
     } else {
         Choice_FromModel->SetSelection(0);
@@ -324,9 +324,9 @@ void VirtualMatrixDialog::OnChoice_FromModelSelect(wxCommandEvent& event) {
         TextCtrl_StartChannel->SetValue(node->GetAttribute("StartChannel", ""));
         long sc = _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
         if (sc == 0 || sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels()) {
-            StaticText8->SetLabel("Invalid");
+            StaticText6->SetLabel("Invalid");
         } else {
-            StaticText8->SetLabel(wxString::Format("%ld", (long)sc));
+            StaticText6->SetLabel(wxString::Format("%ld", (long)sc));
         }
         Choice_Rotation->SetSelection(-1);
         Choice_PixelChannels->SetSelection(0);
