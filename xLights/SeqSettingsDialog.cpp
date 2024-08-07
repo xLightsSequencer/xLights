@@ -1859,8 +1859,8 @@ void SeqSettingsDialog::OnButton_AddMilisecondsClick(wxCommandEvent& event) {
     const std::string inputFile = TextCtrl_Xml_Media_File->GetValue();
     wxFileName inFile(inputFile);
     const std::string mp3dur = TextCtrl_Xml_Seq_Duration->GetValue();
-    const std::string pre = TextCtrl_Premiliseconds->GetValue().Trim();
-    const std::string post = TextCtrl_Postmiliseconds->GetValue().Trim();
+    const std::string pre = TextCtrl_Premiliseconds->GetValue().Trim(true).Trim(false);
+    const std::string post = TextCtrl_Postmiliseconds->GetValue().Trim(true).Trim(false);
 
     if ((pre != "") && (post != "")) {
         std::string outputFile = "";
