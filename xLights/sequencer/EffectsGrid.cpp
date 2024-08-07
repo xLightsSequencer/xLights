@@ -6774,7 +6774,7 @@ void EffectsGrid::CutModelEffects(int row_number, bool allLayers) {
     }
 }
 
-void EffectsGrid::CopyModelEffects(int row_number, bool allLayers) {
+void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubModels) {
     if (!allLayers) {
         mSequenceElements->UnSelectAllEffects();
         EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row_number);
@@ -6801,6 +6801,25 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers) {
         mSequenceElements->UnSelectAllEffects();
         for (int i = 0; i < e->GetEffectLayerCount(); i++) {
             e->GetEffectLayer(i)->SelectAllEffects();
+        }
+        if (incSubModels) {
+            ModelElement* me = dynamic_cast<ModelElement*>(e);
+            if (me == nullptr) {
+                SubModelElement* se = dynamic_cast<SubModelElement*>(e);
+                me = se->GetModelElement();
+            }
+            if (me != nullptr) {
+                for (size_t s = 0; s < me->GetSubModelCount(); ++s) {
+                    auto se = me->GetSubModel(s);
+                    if (se != nullptr) {
+                        for (int i = 0; i < se->GetEffectLayerCount(); ++i) {
+                            if (se->GetEffectLayer(i)->GetEffectCount() > 0) {
+                                se->GetEffectLayer(i)->SelectAllEffects();
+                            }
+                        }
+                    }
+                }
+            }
         }
         ((MainSequencer*)mParent)->CopySelectedEffects();
         mSequenceElements->UnSelectAllEffects();
