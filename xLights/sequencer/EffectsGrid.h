@@ -128,7 +128,7 @@ public:
     void SetEffectsTiming();
     void ProcessDroppedEffect(Effect* effect);
     void CutModelEffects(int row_number, bool allLayers);
-    void CopyModelEffects(int row_number, bool allLayers);
+    void CopyModelEffects(int row_number, bool allLayers, bool incSubModels = false);
     void PasteModelEffects(int row_number, bool allLayers);
     Effect* GetSelectedEffect() const;
     int GetSelectedEffectCount(const std::string& effectName) const;
