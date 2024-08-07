@@ -104,6 +104,7 @@ private:
     static const long ID_ROW_MNU_CUT_MODEL;
     static const long ID_ROW_MNU_COPY_ROW;
     static const long ID_ROW_MNU_COPY_MODEL;
+    static const long ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS;
     static const long ID_ROW_MNU_PASTE_ROW;
     static const long ID_ROW_MNU_PASTE_MODEL;
     static const long ID_ROW_MNU_RENDERENABLE_ALL;

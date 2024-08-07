@@ -1493,7 +1493,7 @@ void xLightsFrame::CutModelEffects(wxCommandEvent& event)
 
 void xLightsFrame::CopyModelEffects(wxCommandEvent& event)
 {
-    mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt(), event.GetString() == "All");
+    mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt(), event.GetString().StartsWith("All"), event.GetString() == "AllInclSub");
 }
 
 void xLightsFrame::PasteModelEffects(wxCommandEvent& event)
