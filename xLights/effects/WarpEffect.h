@@ -34,6 +34,7 @@ public:
         SAMPLE_ON,
         MIRROR,
         COPY,
+        FLIP,
 
         COUNT_WARP_STYLES
     };
