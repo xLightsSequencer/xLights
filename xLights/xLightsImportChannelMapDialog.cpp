@@ -2364,20 +2364,20 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                         //            strand->_mapping = ListCtrl_Available->GetItemText(j) + "/" + strand->_strand;
                         //            strand->_mappingExists = true;
                         //        }
-                                //for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
-                                //    auto node = strand->GetNthChild(m);
-                                //    if (node != nullptr) {
-                                //        if (node->_mapping.empty()) {
-                                //            if (lambda_node(model->_model + "/" + strand->_strand + "/" + node->_node, availName, extra1, extra2, aliases)) {
-                                //                // matched to the node level
-                                //                node->_mapping = ListCtrl_Available->GetItemText(j);
-                                //                node->_mappingExists = true;
-                                //            }
-                                //        }
-                                //    }
-                                //}
-                       //     }
-                      //  }
+                        //        for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
+                        //            auto node = strand->GetNthChild(m);
+                        //            if (node != nullptr) {
+                        //                if (node->_mapping.empty()) {
+                        //                    if (lambda_node(model->_model + "/" + strand->_strand + "/" + node->_node, availName, extra1, extra2, aliases)) {
+                        //                        // matched to the node level
+                        //                        node->_mapping = ListCtrl_Available->GetItemText(j);
+                        //                        node->_mappingExists = true;
+                        //                    }
+                        //                }
+                        //            }
+                        //        }
+                        //     }
+                        //  }
                     }
                 }
             }
@@ -2714,8 +2714,12 @@ void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& 
         for (size_t j = 0; j < strands.size(); ++j) {
             xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
             if (astrand->HasMapping() && !astrand->_mapping.empty()) {
-                auto m = xlights->GetModel((astrand->_model + "/" + astrand->_strand));
-                if (m != nullptr) m->AddAlias(astrand->_mapping);
+                auto sm0 = Split(astrand->_mapping, '/');
+                if ((sm0[1] != astrand->_strand) || (sm0[0] != m->_mapping)) {
+                    auto sm = xlights->GetModel((astrand->_model + "/" + astrand->_strand));
+                    if (sm != nullptr)
+                        sm->AddAlias(astrand->_mapping);
+                }
             }
         }
     }
