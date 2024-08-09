@@ -4908,6 +4908,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     size_t errcount = 0;
     size_t warncount = 0;
+    size_t toterrcount = 0;
+    size_t totwarncount = 0;
 
     wxFile f;
     wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
@@ -4937,6 +4939,10 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     } else {
         LogAndWrite(f, "Sequence: No sequence open.");
     }
+
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Network Checks");
 
     prog.Update(0, "Checking network");
     wxYield();
@@ -4986,6 +4992,15 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     size_t errcountsave = errcount;
     size_t warncountsave = warncount;
+    LogAndWrite(f, wxString::Format("\nSection Errors (Network): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+    toterrcount += errcount;
+    totwarncount += warncount;
+    errcount = 0;
+    warncount = 0;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Preference Checks");
 
     prog.Update(1, "Checking preferences");
     wxYield();
@@ -5066,11 +5081,21 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    LogAndWrite(f, wxString::Format("\nSection Errors (Preferences): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+    toterrcount += errcount;
+    totwarncount += warncount;
+    errcount = 0;
+    warncount = 0;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Inactive Controller Checks");
+
     prog.Update(3, "Checking controllers");
     wxYield();
 
     LogAndWrite(f, "");
-    LogAndWrite(f, "Inactive Controllers");
+    LogAndWrite(f, "Checking for inactive controllers");
 
     // Check for inactive outputs
     for (const auto& c : _outputManager.GetControllers()) {
@@ -5129,6 +5154,13 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    LogAndWrite(f, wxString::Format("\nSection Errors (Controllers): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+    toterrcount += errcount;
+    totwarncount += warncount;
+    errcount = 0;
+    warncount = 0;
+
     // Controller Checks
     // do these checks for all Managed Controllers
     std::list<Controller*> uniqueControllers;
@@ -5142,6 +5174,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     if (uniqueControllers.size() > 0) {
         LogAndWrite(f, "");
         LogAndWrite(f, "Controller Checks");
+        LogAndWrite(f, "");
 
         // controller ip address must only be on one output ... no duplicates
         for (const auto& it : uniqueControllers) {
@@ -5245,7 +5278,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
         // Apply the vendor specific validations
         for (const auto& it : _outputManager.GetControllers()) {
-            wxString msg = wxString::Format("        Applying controller rules for %s:%s:%s", it->GetName(), it->GetIP(), it->GetDescription());
+            wxString msg = wxString::Format("Applying controller rules for %s:%s:%s", it->GetName(), it->GetIP(), it->GetDescription());
             LogAndWrite(f, msg.ToStdString());
 
             std::string check;
@@ -5474,11 +5507,18 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
-    prog.Update(50, "Checking models");
-    wxYield();
+    LogAndWrite(f, wxString::Format("\nSection Errors (Controllers): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+    toterrcount += errcount;
+    totwarncount += warncount;
+    errcount = 0;
+    warncount = 0;
 
     LogAndWrite(f, "");
-    LogAndWrite(f, "Invalid start channels");
+    LogAndWrite(f, "Model Channel Checks");
+
+    prog.Update(50, "Checking models");
+    wxYield();
 
     for (const auto& it : AllModels) {
         if (it.second->GetDisplayAs() != "ModelGroup") {
@@ -6138,8 +6178,18 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    LogAndWrite(f, wxString::Format("\nSection Errors (Models): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+    toterrcount += errcount;
+    totwarncount += warncount;
+    errcount = 0;
+    warncount = 0;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Sequence problems");
+    LogAndWrite(f, "");
+
     if (CurrentSeqXmlFile != nullptr) {
-        LogAndWrite(f, "");
         LogAndWrite(f, "Uncommon and often undesirable settings");
 
         if (CurrentSeqXmlFile->GetRenderMode() == xLightsXmlFile::CANVAS_MODE) {
@@ -6264,11 +6314,19 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             warncountsave = warncount;
         }
 
-        prog.Update(70, "Checking effects");
-        wxYield();
+        LogAndWrite(f, wxString::Format("\nSection Errors (Sequence): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+        LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+        toterrcount += errcount;
+        totwarncount += warncount;
+        errcount = 0;
+        warncount = 0;
 
         LogAndWrite(f, "");
-        LogAndWrite(f, "Effect problems");
+        LogAndWrite(f, "Sequence effect problems");
+        LogAndWrite(f, "");
+
+        prog.Update(70, "Checking effects");
+        wxYield();
 
         // check all effects
         bool disabledEffects = false;
@@ -6336,11 +6394,18 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         errcountsave = errcount;
         warncountsave = warncount;
 
-        prog.Update(90, "Dumping used assets");
-        wxYield();
+        LogAndWrite(f, wxString::Format("\nSection Errors (Sequence): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+        LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+        toterrcount += errcount;
+        totwarncount += warncount;
+        errcount = 0;
+        warncount = 0;
 
         LogAndWrite(f, "");
-        LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+        LogAndWrite(f, "General Notes");
+
+        prog.Update(90, "Dumping used assets");
+        wxYield();
 
         LogAndWrite(f, "");
         LogAndWrite(f, "If you are planning on importing this sequence be aware the sequence relies on the following items that will not be imported.");
@@ -6362,17 +6427,15 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             wxString msg = wxString::Format("        Viewpoint: %s.", it);
             LogAndWrite(f, msg.ToStdString());
         }
-
-        LogAndWrite(f, "");
-        LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
-
     } else {
         LogAndWrite(f, "");
         LogAndWrite(f, "No sequence loaded so sequence checks skipped.");
     }
+    LogAndWrite(f, "");
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
 
     LogAndWrite(f, "");
-    LogAndWrite(f, "Checking problems with file access times.");
+    LogAndWrite(f, "OS Checks");
 
     prog.Update(95, "Checking performance");
 
@@ -6438,9 +6501,12 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    LogAndWrite(f, wxString::Format("\nSection Errors (OS): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "=================================================================================================================");
     LogAndWrite(f, "");
-    LogAndWrite(f, "Check sequence done.");
-    LogAndWrite(f, wxString::Format("Errors: %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "Check sequence completed.");
+    LogAndWrite(f, "");
+    LogAndWrite(f, wxString::Format("Total Errors: %u. Warnings: %u", (unsigned int)toterrcount, (unsigned int)totwarncount).ToStdString());
 
     prog.Update(100, "Done");
     wxYield();
