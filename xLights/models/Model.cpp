@@ -6751,6 +6751,12 @@ wxString Model::CreateBufferAsSubmodel() const
     for (uint32_t i = 0; i < nodeCount; ++i) {
         int bufx = Nodes[i]->Coords[0].bufX;
         int bufy = Nodes[i]->Coords[0].bufY;
+        if (bufy > nodearray.size() || bufy < 0) {
+            continue;
+        }
+        if (bufx > nodearray[bufy].size() || bufx < 0) {
+            continue;
+        }
         nodearray[bufy][bufx] = wxString::Format("%d", i + 1);
     }
     wxXmlNode* child = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
