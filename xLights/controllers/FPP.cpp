@@ -1473,11 +1473,10 @@ static bool Compare3dPointTuple(const std::tuple<float, float, float, int> &l,
     return std::get<2>(l) < std::get<2>(r);
 }
 
-std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels) {
+std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi, int previewHi) {
     std::string ret;
 
     constexpr float PADDING{ 10.0F };
-    bool first { true };
     float minX{ 0.0F };
     float maxX{ 0.0F };
     float minY{ 0.0F };
@@ -1497,21 +1496,18 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels) {
         if (model->GetDisplayAs() == "ModelGroup") {
             continue;
         }
-
-        if (first) {
-            first = false;
-            maxY = model->GetModelScreenLocation().previewH;
-            maxX = model->GetModelScreenLocation().previewW;
-        }
-
+        
         minY = std::min(model->GetModelScreenLocation().GetBottom() - PADDING, minY);
         maxY = std::max(model->GetModelScreenLocation().GetTop() + PADDING, maxY);
         minX = std::min(model->GetModelScreenLocation().GetLeft() - PADDING, minX);
         maxX = std::max(model->GetModelScreenLocation().GetRight() + PADDING, maxX);
     }
 
+    int totW = std::max(previewWi, int(maxX - minX));
+    int totH = std::max(previewHi, int(maxY - minY));
+
     ret += "# Preview Size\n";
-    ret += ToUTF8(wxString::Format("%d,%d\n", int(maxX - minX), int(maxY - minY)));
+    ret += ToUTF8(wxString::Format("%d,%d\n", totW, totH));
 
     for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
         Model* model = m->second;

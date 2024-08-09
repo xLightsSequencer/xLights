@@ -23,6 +23,7 @@
 #include "ControllerCaps.h"
 #include "utils/ip_utils.h"
 #include "FPPUploadProgressDialog.h"
+#include "ModelPreview.h"
 
 #include <log4cpp/Category.hh>
 #include "../xSchedule/wxJSON/jsonreader.h"
@@ -906,12 +907,15 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         AddFPPButton->Enable(true);
     }
 }
+
 void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
     std::map<int, int> udpRanges;
     wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
-    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels);
+    int pw, ph;
+    frame->GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
+    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, pw, ph);
     bool cancelled = false;
     int row = 0;
     for (const auto& inst : instances) {

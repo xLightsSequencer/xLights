@@ -28,6 +28,7 @@
 #include "../outputs/E131Output.h"
 #include "../../xSchedule/wxHTTPServer/wxhttpserver.h"
 #include "../sequencer/MainSequencer.h"
+#include "../ModelPreview.h"
 #include <wx/uri.h>
 
 #include "LuaRunner.h"
@@ -361,7 +362,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         if (map == "true") {
-            std::string displayMap = FPP::CreateVirtualDisplayMap(&AllModels);
+            int pw, ph;
+            GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
+            std::string displayMap = FPP::CreateVirtualDisplayMap(&AllModels, pw, ph);
             fpp->UploadDisplayMap(displayMap);
             fpp->SetRestartFlag();
         }

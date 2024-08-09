@@ -137,7 +137,7 @@ class FPP : public BaseController
 
 #ifndef DISCOVERYONLY
     wxJSONValue CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
-    static std::string CreateVirtualDisplayMap(ModelManager* allmodels);
+    static std::string CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi, int previewHi);
     static wxJSONValue CreateUniverseFile(const std::list<Controller*>& controllers, bool input, std::map<int, int> *rngs = nullptr);
     static wxJSONValue CreateUniverseFile(Controller* controller, bool input);
 #endif
