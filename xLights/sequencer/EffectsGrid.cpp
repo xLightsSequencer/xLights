@@ -1294,6 +1294,16 @@ void EffectsGrid::OnDropFiles(int x, int y, const wxArrayString& files) {
     }
 }
 
+bool EffectsGrid::IsTopModelVisible() {
+    Row_Information_Struct* topRow = mSequenceElements->GetVisibleRowInformation(mSequenceElements->GetNumberOfTimingRows());
+    return topRow->Index == mSequenceElements->GetNumberOfTimingRows();
+}
+
+bool EffectsGrid::IsMouseOverTiming(int y) {
+    int rowIndex = GetRow(y);
+    return rowIndex < mSequenceElements->GetNumberOfTimingRows();
+}
+
 void EffectsGrid::mouseMoved(wxMouseEvent& event) {
     if (!mIsInitialized || mSequenceElements == nullptr) {
         return;
@@ -1308,9 +1318,22 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event) {
         Resize(event.GetX(), event.AltDown(), event.ControlDown());
         Draw();
     } else if (mDragging) {
-        mDragEndX = event.GetX();
-        mDragEndY = event.GetY();
-        UpdateSelectionRectangle();
+        // Only update Y when transferring between timing rows and model rows if the top model row is visible
+        // This prevents unexpected elements being selected on rows between the top model row and the timing rows when the elasic
+        // band cross from timing to models
+        if ((IsMouseOverTiming(mDragEndY) && IsMouseOverTiming(event.GetY())) ||
+            (!IsMouseOverTiming(mDragEndY) && !IsMouseOverTiming(event.GetY())) ||
+            IsTopModelVisible()) {
+            mDragEndX = event.GetX();
+            mDragEndY = event.GetY();
+            UpdateSelectionRectangle();
+        }
+        else
+        {
+            // We still update X but not Y
+            mDragEndX = event.GetX();
+            UpdateSelectionRectangle();
+        }
         Draw();
     } else if (m_wheel_down) {
         if (event.Dragging()) {

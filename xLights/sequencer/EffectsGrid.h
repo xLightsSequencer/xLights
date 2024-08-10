@@ -139,6 +139,8 @@ public:
     void ConvertSelectedEffectsTo(const std::string& effectName);
     void DuplicateSelectedEffects();
     void CreateTimingFromSelectedEffects();
+    bool IsTopModelVisible();
+    bool IsMouseOverTiming(int y);
 
     bool HandleACKey(wxChar key, bool shift = false);
     bool IsACActive();
