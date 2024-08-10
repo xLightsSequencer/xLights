@@ -1318,11 +1318,13 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event) {
         Resize(event.GetX(), event.AltDown(), event.ControlDown());
         Draw();
     } else if (mDragging) {
-        // Only update Y when transferring between timing rows and model rows if the top model row is visible
+        // Only update Y when transferring between timing rows and model rows if the top model row is visible or the start point is in the same timing vs non timing as the new end
         // This prevents unexpected elements being selected on rows between the top model row and the timing rows when the elasic
         // band cross from timing to models
         if ((IsMouseOverTiming(mDragEndY) && IsMouseOverTiming(event.GetY())) ||
+            (IsMouseOverTiming(event.GetY()) && IsMouseOverTiming(mDragStartY)) ||
             (!IsMouseOverTiming(mDragEndY) && !IsMouseOverTiming(event.GetY())) ||
+            (!IsMouseOverTiming(event.GetY()) && !IsMouseOverTiming(mDragStartY)) ||
             IsTopModelVisible()) {
             mDragEndX = event.GetX();
             mDragEndY = event.GetY();
