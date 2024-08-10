@@ -5982,6 +5982,10 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
 
     // check for XmlSerializer format
     if (XmlSerializer::IsXmlSerializerFormat(node)) {
+        auto n = node;
+        if (node->GetName() == "models") {
+            n = node->GetChildren();
+        }
         // grab the attributes I want to keep
         std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
         auto x = model->GetHcenterPos();
@@ -5989,7 +5993,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         auto lg = model->GetLayoutGroup();
 
         XmlSerializer serializer;
-        model = serializer.DeserializeModel(node, xlights);
+        model = serializer.DeserializeModel(n, xlights);
 
         model->SetHcenterPos(x);
         model->SetVcenterPos(y);
