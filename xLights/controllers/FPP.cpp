@@ -3006,7 +3006,7 @@ bool FPP::UploadControllerProxies(OutputManager* outputManager)
             proxies.Append(proxy);
         }
 
-        return PostJSONToURL("/api/proxies", proxies);
+        PostJSONToURL("/api/proxies", proxies);
     } else {
         auto currentProxies = GetProxyList();
         std::vector<std::string> newProxies;
