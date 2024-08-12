@@ -4967,15 +4967,8 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                 } else {
                     // force paste to top left of selection
                     mDropRow = std::min(mRangeStartRow, mRangeEndRow);
-                    int drop_end_row = mDropRow + rowstopaste - 1 + mSequenceElements->GetFirstVisibleModelRow();
-
-                    // This gets it to the right row ... but doesnt fix the right column so leaving it out until i can fix that
-                    // It isnt great the way it is ... but it is better than being inconsistent
-                    // if (mRangeCursorRow == mRangeEndRow)
-                    //{
-                    //    drop_row_offset -= selectedrows - 1;
-                    //}
-                    res = ACDraw(ACTYPE::OFF, ACSTYLE::NILSTYLEOVERRIDE, ACMODE::MODENIL, 0, 0, 0, mDropStartTimeMS, drop_end_time, mDropRow + mSequenceElements->GetFirstVisibleModelRow(), drop_end_row);
+                    const int drop_end_row = mDropRow + rowstopaste - 1;
+                    res = ACDraw(ACTYPE::OFF, ACSTYLE::NILSTYLEOVERRIDE, ACMODE::MODENIL, 0, 0, 0, mDropStartTimeMS, drop_end_time, mDropRow, drop_end_row);
                 }
             }
 
