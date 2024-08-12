@@ -312,9 +312,14 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
     //Load FSEQ and Backup directory settings
     fseqDirectory = GetXmlSetting("fseqDir", showDirectory);
-    renderCacheDirectory = GetXmlSetting("renderCacheDir", fseqDirectory); // we user fseq directory if no setting is present
-    ObtainAccessToURL(renderCacheDirectory);
-    ObtainAccessToURL(fseqDirectory);
+    if (wxDir::Exists(fseqDirectory) && !ObtainAccessToURL(fseqDirectory, true)) {
+        std::string orig = fseqDirectory;
+        PromptForDirectorySelection("Reselect FSEQ Directory", fseqDirectory);
+        if (fseqDirectory != orig) {
+            SetXmlSetting("fseqDir", fseqDirectory);
+            UnsavedRgbEffectsChanges = true;
+        }
+    }
     if (!wxDir::Exists(fseqDirectory)) {
         logger_base.warn("FSEQ Directory not Found ... switching to Show Directory.");
         fseqDirectory = showDirectory;
@@ -322,6 +327,15 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         UnsavedRgbEffectsChanges = true;
     }
     FseqDir = fseqDirectory;
+    renderCacheDirectory = GetXmlSetting("renderCacheDir", fseqDirectory); // we user fseq directory if no setting is present
+    if (wxDir::Exists(renderCacheDirectory) && !ObtainAccessToURL(renderCacheDirectory, true)) {
+        std::string orig = renderCacheDirectory;
+        PromptForDirectorySelection("Reselect RenderCache Directory", renderCacheDirectory);
+        if (orig != renderCacheDirectory) {
+            SetXmlSetting("renderCacheDir", renderCacheDirectory);
+            UnsavedRgbEffectsChanges = true;
+        }
+    }
     if (!wxDir::Exists(renderCacheDirectory)) {
         logger_base.warn("Render Cache Directory not Found ... switching to Show Directory.");
         renderCacheDirectory = showDirectory;

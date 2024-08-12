@@ -1756,7 +1756,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     }
 
     if (wxDir::Exists(mAltBackupDir)) {
-        ObtainAccessToURL(mAltBackupDir);
+        if (!ObtainAccessToURL(mAltBackupDir, true)) {
+            std::string orig = mAltBackupDir;
+            PromptForDirectorySelection("Reselect Alternate Backup Directory", orig);
+            if (orig != mAltBackupDir) {
+                mAltBackupDir = orig;
+                config->Write(_("xLightsAltBackupDir"), mAltBackupDir);
+            }
+        }
         mAltBackupMenuItem->SetHelp(mAltBackupDir);
     } else {
         mAltBackupMenuItem->SetHelp("");
@@ -1839,7 +1846,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     if (ok && !dir.IsEmpty()) {
         if (!SetDir(dir, !showDirFromCommandLine)) {
             CurrentDir = "";
-            if (!PromptForShowDirectory(true)) {
+            if (!PromptForShowDirectory(true, dir)) {
                 CurrentDir = "";
                 splash.Hide();
                 wxMessageBox("Exiting as setting a show folder is not optional.");
@@ -4471,7 +4478,11 @@ void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)
     if (mAltBackupDir == "") {
         return;
     }
-    ObtainAccessToURL(mAltBackupDir);
+    if (!ObtainAccessToURL(mAltBackupDir, true)) {
+        std::string orig = mAltBackupDir;
+        PromptForDirectorySelection("Reselect alternate backup directory", orig);
+        mAltBackupDir = orig;
+    }
     SaveWorking();
 
     DoAltBackup();
