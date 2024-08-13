@@ -1660,7 +1660,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     SetFixFileDirectories(mediaDirectories);
     wxString tbData = config->Read("ToolbarLocations");
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION)) {
+        const int size = AUIStatusBar->GetSize().GetHeight();
         MainAuiManager->LoadPerspective(tbData.Right(tbData.size() - 5));
+        MainAuiManager->GetPane("Status Bar").MinSize(wxSize(-1, size));
+        MainAuiManager->Update();
     }
     logger_base.debug("Perspectives loaded.");
 
