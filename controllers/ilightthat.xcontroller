@@ -42,4 +42,11 @@
 			<MaxInputUniverses>1</MaxInputUniverses>
 		</Variant>
 	</Controller>
+	<Controller Name="BaldrickDMX">
+		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
+			<MaxPixelPort>1</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>512</MaxPixelPortChannels>
+		</Variant>
+	</Controller>
 </Vendor>
