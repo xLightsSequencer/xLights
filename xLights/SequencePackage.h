@@ -64,6 +64,7 @@ class SequencePackage {
         SeqPkgImportOptions* GetImportOptions();
         wxFileName& GetXsqFile();
         wxXmlDocument& GetRgbEffectsFile();
+        std::string GetTempDir() const;
 
         std::string FixAndImportMedia(Effect* mappedEffect, EffectLayer *target);
         void ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, const std::string& faceName);

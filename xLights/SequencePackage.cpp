@@ -318,6 +318,9 @@ std::string SequencePackage::GetTempShowFolder() const
 {
     return wxPathOnly(_xlEffects.GetFullPath()).ToStdString();
 }
+std::string SequencePackage::GetTempDir() const {
+    return _tempDir.GetFullPath().ToStdString();
+}
 
 bool SequencePackage::ModelsChanged() const
 {

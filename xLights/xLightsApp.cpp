@@ -373,9 +373,8 @@ int main(int argc, char **argv)
     int rc =  wxEntry(argc, argv);
     logger_base.info("Main: wxWidgets exited with rc=" + wxString::Format("%d", rc));
 
-    if (cleanupFolder != "")
-    {
-        wxDir::Remove(cleanupFolder);
+    if (cleanupFolder != "") {
+        wxDir::Remove(cleanupFolder, wxPATH_RMDIR_RECURSIVE);
     }
 
     return rc;
@@ -435,7 +434,7 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
             if (fileName.EndsWith("xsqz") || fileName.EndsWith("zip")) {
 
                 wxFileName fn(fileName);
-                SequencePackage xsqPkg(fn, nullptr);
+                SequencePackage xsqPkg(fn, __frame);
 
                 if (xsqPkg.IsPkg()) {
                     xsqPkg.Extract();
@@ -451,9 +450,9 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
                     
                     // save the folder and we will remove it when we shutdown
                     if (!cleanupFolder.empty()) {
-                        wxDir::Remove(cleanupFolder);
+                        wxDir::Remove(cleanupFolder, wxPATH_RMDIR_RECURSIVE);
                     }
-                    cleanupFolder = xLightsApp::showDir;
+                    cleanupFolder = xsqPkg.GetTempDir();
                     
                     // tell xlights not to allow saving ... at least as much as possible
                     frame->SetReadOnlyMode(true);
