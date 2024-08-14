@@ -4225,7 +4225,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         logger_base.warn("Model::InitRenderBufferNodes BufferWi was 0 ... overridden to be 1.");
         bufferWi = 1;
     }
-    if (bufferWi * bufferHt > 21000000) {
+    if (bufferWi * bufferHt > 2100000) {
         if (bufferHt > 100000) {
             logger_base.warn("Model::InitRenderBufferNodes BufferHt was overly large ... overridden to be 100000.");
             bufferHt = 100000;
