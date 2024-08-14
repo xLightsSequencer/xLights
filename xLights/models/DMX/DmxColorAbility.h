@@ -46,7 +46,7 @@ class DmxColorAbility
         [[nodiscard]] virtual std::string GetTypeName() const = 0;
         virtual void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const = 0;
         virtual void ImportParameters(wxXmlNode* ImportXml, Model* m) const = 0;
-        virtual void SetNodeNames(std::vector<std::string> & names) const = 0;
+        virtual void SetNodeNames(std::vector<std::string> & names, const std::string &pfx = "") const = 0;
         virtual int GetNumChannels() const = 0;
         [[nodiscard]] virtual xlColorVector GetColors() const { return xlColorVector(); }
 

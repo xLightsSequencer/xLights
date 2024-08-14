@@ -339,13 +339,13 @@ void DmxColorAbilityWheel::ImportParameters(wxXmlNode* ImportXml, Model* m) cons
     }
 }
 
-void DmxColorAbilityWheel::SetNodeNames(std::vector<std::string>& names) const
+void DmxColorAbilityWheel::SetNodeNames(std::vector<std::string>& names, const std::string &pfx) const
 {
     if (CheckChannel(wheel_channel, names.size())) {
-        names[wheel_channel - 1] = "Color Wheel";
+        names[wheel_channel - 1] = pfx + "Color Wheel";
     }
     if (CheckChannel(dimmer_channel, names.size())) {
-        names[dimmer_channel - 1] = "Dimmer";
+        names[dimmer_channel - 1] = pfx + "Dimmer";
     }
 }
 

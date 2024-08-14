@@ -417,6 +417,9 @@ std::vector<PWMOutput> DmxModel::GetPWMOutputs() const {
     std::vector<PWMOutput> ret;
     uint32_t startChannel = GetFirstChannel();
     for (auto &a : channels) {
+        if ((a.first - 1) < nodeNames.size() && !nodeNames[a.first - 1].empty()) {
+            a.second.label = nodeNames[a.first - 1];
+        }
         ret.emplace_back(a.second);
         ret.back().startChannel += startChannel - 1;
     }

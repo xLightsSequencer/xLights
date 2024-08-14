@@ -1186,6 +1186,24 @@ std::vector<std::string> DmxSkull::GenerateNodeNames() const {
             names[jaw_servo->GetChannel()] = "Jaw Fine";
         }
     }
+    if (0 != eye_ud_servo->GetChannel() && eye_ud_servo->GetChannel() < names.size()) {
+        names[eye_ud_servo->GetChannel() - 1] = "Eye U-D";
+        if (eye_ud_servo->Is16Bit()) {
+            names[eye_ud_servo->GetChannel()] = "Eye U-D Fine";
+        }
+    }
+    if (0 != eye_lr_servo->GetChannel() && eye_lr_servo->GetChannel() < names.size()) {
+        names[eye_lr_servo->GetChannel() - 1] = "Eye L-R";
+        if (eye_lr_servo->Is16Bit()) {
+            names[eye_lr_servo->GetChannel()] = "Eye L-R Fine";
+        }
+    }
+    if (nullptr != color_ability) {
+        color_ability->SetNodeNames(names, "Eye ");
+    }
+    if (eye_brightness_channel > 0) {
+        names[eye_brightness_channel - 1] = "Eye Bright";
+    }
     return names;
 }
 

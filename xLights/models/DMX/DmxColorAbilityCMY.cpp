@@ -353,19 +353,19 @@ void DmxColorAbilityCMY::ImportParameters(wxXmlNode* ImportXml, Model* m) const
     m->SetProperty("DmxWhiteChannel", wc);
 }
 
-void DmxColorAbilityCMY::SetNodeNames(std::vector<std::string>& names) const
+void DmxColorAbilityCMY::SetNodeNames(std::vector<std::string>& names, const std::string &pfx) const
 {
     if (CheckChannel(cyan_channel, names.size())) {
-        names[cyan_channel - 1] = "Cyan";
+        names[cyan_channel - 1] = pfx + "Cyan";
     }
     if (CheckChannel(magenta_channel, names.size())) {
-        names[magenta_channel - 1] = "Magenta";
+        names[magenta_channel - 1] = pfx + "Magenta";
     }
     if (CheckChannel(yellow_channel, names.size())) {
-        names[yellow_channel - 1] = "Yellow";
+        names[yellow_channel - 1] = pfx + "Yellow";
     }
     if (CheckChannel(white_channel, names.size())) {
-        names[white_channel - 1] = "White";
+        names[white_channel - 1] = pfx + "White";
     }
 }
 
