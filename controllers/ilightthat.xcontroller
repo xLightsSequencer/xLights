@@ -14,12 +14,14 @@
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
         </PixelProtocols>
-        <SerialProtocols/>
         <InputProtocols>
             <Protocol>ddp</Protocol>
             <Protocol>artnet</Protocol>
             <Protocol>e131</Protocol>
         </InputProtocols>
+        <SerialProtocols>
+            <Protocol>dmx</Protocol>
+        </SerialProtocols>
         <ConfigDriver>ILightThat</ConfigDriver>
     </AbstractVariant>
     <Controller Name="Baldrick 8 Port v1">
@@ -44,9 +46,9 @@
 	</Controller>
 	<Controller Name="BaldrickDMX">
 		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
-			<MaxPixelPort>1</MaxPixelPort>
-			<MaxSerialPort>0</MaxSerialPort>
-			<MaxPixelPortChannels>512</MaxPixelPortChannels>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 		</Variant>
 	</Controller>
 </Vendor>
