@@ -703,8 +703,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                         color.alpha = 255.0 * (max_chase_width - i + 1.0) / max_chase_width;
                     } else {
                         HSVValue hsv1 = color.asHSV();
-                        // new reverse value (brightnesss fade) take the orignal brightness - itself (min value) + the fraction of the width going to bright
-                        hsv1.value = orig_v - orig_v + ((max_chase_width - (i + 1.0)) / max_chase_width);
+                        hsv1.value = ((max_chase_width - (i + 1.0)) / max_chase_width);
                         if (hsv1.value < 0.0) {
                             hsv1.value = 0.0;
                         }
@@ -736,7 +735,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                             if (i > middle_chase_index) {
                                 hsv1.value = orig_v - ((max_chase_width - (2.0 * i + 1.0)) / max_chase_width);
                             } else {
-                                hsv1.value = orig_v - orig_v + ((max_chase_width - (2.0 * i )) / ( max_chase_width));
+                                hsv1.value = ((max_chase_width - (2.0 * i)) / (max_chase_width));
                             }
  
                         if (hsv1.value < 0.0) {
@@ -770,7 +769,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                     } else {  // middle not alpha blend
                         HSVValue hsv1 = color.asHSV();
                         if (i > middle_chase_index) {
-                            hsv1.value = orig_v - orig_v + ((max_chase_width - (i + 1.0)) / (.5 * max_chase_width));
+                            hsv1.value = ((max_chase_width - (i + 1.0)) / (.5 * max_chase_width));
                         } else {
                             hsv1.value = orig_v - ((max_chase_width - (2.0 * i + 1.0)) / max_chase_width);
                         }
@@ -800,9 +799,10 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                                     int a = color.alpha;
                                     color = color.AlphaBlend(c);
                                     color.alpha = c.alpha > a ? c.alpha : a;
-
                                 } else {
-                                    if (Fade_Type == "Middle" || Fade_Type == "From Tail") {
+                                    // only blend new fade types for hsv types to allow for backward compatabilty 
+                                    // overcomes leading black on bounce effects overriding trailing brightness
+                                    if (Fade_Type == "Middle" || Fade_Type == "From Tail" || Fade_Type == "Head and Tail") {
                                         color = color.ChannelMax(c);
                                     }
                                 }
@@ -823,9 +823,11 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                                     color = color.AlphaBlend(c);
                                     color.alpha = c.alpha > a ? c.alpha : a;
                                 } else {
-                                    if (Fade_Type == "Middle" || Fade_Type == "From Tail") {
+                                    // only blend new fade types for hsv types to allow for backward compatabilty
+                                    // overcomes leading black on bounce effects overriding trailing brightness
+                                    if (Fade_Type == "Middle" || Fade_Type == "From Tail" || Fade_Type == "Head and Tail") {
                                         color = color.ChannelMax(c);
-                                    }
+                                   }
                                 }
                             }
                         }
