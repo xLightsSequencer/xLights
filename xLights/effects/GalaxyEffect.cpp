@@ -146,6 +146,7 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Galaxy_Reverse");
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Galaxy_Blend_Edges");
     bool inward = SettingsMap.GetBool("CHECKBOX_Galaxy_Inward");
+    bool scale = SettingsMap.GetBool("CHECKBOX_Galaxy_Scale");
 
     if (revolutions == 0)
         return;
@@ -172,6 +173,14 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     double radius2 = end_radius;
     double width1 = start_width;
     double width2 = end_width;
+
+    if (scale) { // convert to percentage of buffer, i.e 100 is 100% of buffer size
+        double bufferMax = std::max(buffer.BufferHt, buffer.BufferWi);
+        radius1 = radius1 * (bufferMax / 200.0); // 200 bc radius is half of the width
+        radius2 = radius2 * (bufferMax / 200.0);
+        width1 = width1 * (bufferMax / 100.0);
+        width2 = width2 * (bufferMax / 100.0);
+    }
 
     double half_width = 1;
 
