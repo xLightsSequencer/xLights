@@ -102,10 +102,6 @@ Here are the steps to Code::Blocks for Editing .wxs files in Windows.
 
   b) Extract all the EXE and DLLs from above to one folder i.e "C:\Codeblocks_nightly_7_30"
 
-     Download and install the ming-w64-install.exe file from here:
-        Navigate to: https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/
-        Click the i686-posix-dwarf link.
-
   c) Launch 'codeblocks.exe' from the folder to open Code::Blocks
     
   d) Now you are ready to use Code::Blocks to Edit xLights UI Files
