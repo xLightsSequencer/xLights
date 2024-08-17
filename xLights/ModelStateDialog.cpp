@@ -683,12 +683,14 @@ void ModelStateDialog::OnNodeRangeGridCellChange(wxGridEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     GetValue(NodeRangeGrid, event.GetRow(), event.GetCol(), stateData[name]);
+    ValidateWindow();
 }
 
 void ModelStateDialog::OnSingleNodeGridCellChange(wxGridEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     GetValue(SingleNodeGrid, event.GetRow(), event.GetCol(), stateData[name]);
+    ValidateWindow();
 }
 
 void ModelStateDialog::OnStateTypeChoicePageChanged(wxChoicebookEvent& event)
@@ -937,8 +939,7 @@ void ModelStateDialog::OnButton_7SegmentClick(wxCommandEvent& event)
     }
 }
 
-void ModelStateDialog::ValidateWindow()
-{
+void ModelStateDialog::ValidateWindow() {
     if (NameChoice->GetStringSelection() == "") {
         NodeRangeGrid->Disable();
         SingleNodeGrid->Disable();
@@ -965,6 +966,43 @@ void ModelStateDialog::ValidateWindow()
         NodeRangeGrid->ShowCol(COLOUR_COL);
     } else {
         NodeRangeGrid->HideCol(COLOUR_COL);
+    }
+
+    // check that all states have a name
+    wxGrid* grid = nullptr;
+    if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
+        grid = SingleNodeGrid;
+    } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
+        grid = NodeRangeGrid;
+    } else {
+    }
+
+    wxWindow* okButton = this->FindWindow(wxID_OK);
+    if (grid != nullptr)
+    {
+        bool blank = false;
+        for (int i = 0; i < grid->GetNumberRows(); i++) {
+            if (grid->GetCellValue(i, CHANNEL_COL) != "" && grid->GetCellValue(i, NAME_COL) == "") {
+                grid->SetCellBackgroundColour(i, NAME_COL, *wxRED);
+                grid->SetCellBackgroundColour(i, CHANNEL_COL, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+                blank = true;
+            } else if (grid->GetCellValue(i, NAME_COL) != "" && grid->GetCellValue(i, CHANNEL_COL) == "") {
+                grid->SetCellBackgroundColour(i, NAME_COL, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+                grid->SetCellBackgroundColour(i, CHANNEL_COL, *wxRED);
+                blank = true;
+            }
+            else
+            {
+                grid->SetCellBackgroundColour(i, NAME_COL, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+                grid->SetCellBackgroundColour(i, CHANNEL_COL, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+            }
+        }
+        // enable wxID_OK button
+
+		okButton->Enable(!blank);
+    } else {
+        // enable wxID_OK button
+        okButton->Enable(true);
     }
 }
 
