@@ -1290,16 +1290,22 @@ void ColorPanel::OnBitmapButton_SavePaletteClick(wxCommandEvent& event)
 
     int i = 1;
     wxString fn = "PAL001.xpalette";
-    if (wxGetKeyState(WXK_COMMAND)) {
+    if (wxGetKeyState(WXK_COMMAND) || wxGetKeyState(WXK_CONTROL)) {
         wxTextEntryDialog dialog(this, "Set Palette Name", "Set Palette Name");
         if (dialog.ShowModal() == wxID_OK) {
             fn = wxString::Format("%s.xpalette", RemoveNonAlphanumeric(dialog.GetValue()));
+            if (FileExists(xLightsFrame::CurrentDir + "/Palettes/" + fn)) {
+                wxString msg = fn + " File Already Exists. Override?";
+                if (wxMessageBox(msg, "Override", wxYES_NO, this) != wxYES) {
+                    return;
+                }
+            }
         }
-    }
-
-    while (FileExists(xLightsFrame::CurrentDir + "/Palettes/" + fn)) {
-        i++;
-        fn = wxString::Format("PAL%03d.xpalette", i);
+    } else {
+        while (FileExists(xLightsFrame::CurrentDir + "/Palettes/" + fn)) {
+            i++;
+            fn = wxString::Format("PAL%03d.xpalette", i);
+        }
     }
 
     wxFile f;
@@ -1385,7 +1391,7 @@ void ColorPanel::OnBitmapButton_DeletePaletteClick(wxCommandEvent& event)
     for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it)
     {
         wxString ss(it->c_str());
-        if (ss.BeforeLast(',')+"," == pal)
+        if (ss.BeforeLast(',') + "," == pal)
         {
             // found it
             wxString filename = FindPaletteFile(ss.AfterLast(','), pal);
