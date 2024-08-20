@@ -81,7 +81,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     wxStaticBoxSizer* StaticBoxSizer3;
     wxStaticText* StaticText1;
 
-    Create(parent, wxID_ANY, wxDefaultPosition, wxSize(603,310), wxTAB_TRAVERSAL, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
     GridBagSizer1 = new wxGridBagSizer(0, 0);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText2 = new wxStaticText(this, ID_STATICTEXT1, _("Link save:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
