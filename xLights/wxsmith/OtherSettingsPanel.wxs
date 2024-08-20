@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="OtherSettingsPanel">
-		<size>603,310</size>
 		<id_arg>0</id_arg>
 		<handler function="OnPaint" entry="EVT_PAINT" />
 		<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
