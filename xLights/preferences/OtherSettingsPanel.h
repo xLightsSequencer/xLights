@@ -43,6 +43,7 @@ class OtherSettingsPanel: public wxPanel
 		wxCheckBox* HardwareVideoDecodingCheckBox;
 		wxCheckBox* ShaderCheckbox;
 		wxChoice* ChoiceCodec;
+		wxChoice* Choice_AliasPromptBehavior;
 		wxChoice* Choice_LinkControllerUpload;
 		wxChoice* Choice_LinkSave;
 		wxChoice* Choice_MinTipLevel;
@@ -53,6 +54,7 @@ class OtherSettingsPanel: public wxPanel
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
 		wxTextCtrl* eMailTextControl;
 		//*)
 
@@ -62,27 +64,29 @@ class OtherSettingsPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(OtherSettingsPanel)
-		static const long ID_STATICTEXT1;
-		static const long ID_CHOICE1;
-		static const long ID_CHECKBOX1;
-		static const long ID_CHOICE4;
-		static const long ID_CHECKBOX7;
-		static const long ID_STATICTEXT3;
-		static const long ID_CHOICE_CODEC;
-		static const long ID_STATICTEXT5;
-		static const long ID_SPINCTRLDOUBLE_BITRATE;
-		static const long ID_CHECKBOX2;
-		static const long ID_CHECKBOX3;
-		static const long ID_CHECKBOX4;
-		static const long ID_CHECKBOX6;
-		static const long ID_CHECKBOX5;
-		static const long ID_STATICTEXT4;
-		static const long ID_CHOICE3;
-		static const long ID_CHECKBOX8;
-		static const long ID_STATICTEXT2;
-		static const long ID_CHOICE2;
-		static const long ID_TEXTCTRL1;
-		static const long ID_CHECKBOX9;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_CHOICE1;
+		static const wxWindowID ID_CHECKBOX1;
+		static const wxWindowID ID_CHOICE4;
+		static const wxWindowID ID_CHECKBOX7;
+		static const wxWindowID ID_STATICTEXT3;
+		static const wxWindowID ID_CHOICE_CODEC;
+		static const wxWindowID ID_STATICTEXT5;
+		static const wxWindowID ID_SPINCTRLDOUBLE_BITRATE;
+		static const wxWindowID ID_CHECKBOX2;
+		static const wxWindowID ID_CHECKBOX3;
+		static const wxWindowID ID_CHECKBOX4;
+		static const wxWindowID ID_CHECKBOX6;
+		static const wxWindowID ID_CHECKBOX5;
+		static const wxWindowID ID_STATICTEXT4;
+		static const wxWindowID ID_CHOICE3;
+		static const wxWindowID ID_CHECKBOX8;
+		static const wxWindowID ID_STATICTEXT2;
+		static const wxWindowID ID_CHOICE2;
+		static const wxWindowID ID_STATICTEXT6;
+		static const wxWindowID ID_CHOICE_ALIASPROMPT;
+		static const wxWindowID ID_TEXTCTRL1;
+		static const wxWindowID ID_CHECKBOX9;
 		//*)
 
 	private:

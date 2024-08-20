@@ -2046,6 +2046,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     config->Read("xLightsLinkedControllerUpload", &_linkedControllerUpload, "Inputs and Outputs");
     logger_base.debug("Linked controller upload: %s.", (const char*)_linkedControllerUpload.c_str());
+    
+    config->Read("xLightsModelRename", &_aliasRenameBehavior, "Always Prompt");
+    logger_base.debug("Model Rename Behavior: %s.", (const char*)_aliasRenameBehavior.c_str());
 
     std::thread th([this]() {
         try {
@@ -9911,6 +9914,16 @@ void xLightsFrame::SetLinkedControllerUpload(const wxString& e)
     config->Write("xLightsLinkedControllerUpload", _linkedControllerUpload);
     config->Flush();
     logger_base.info("Linked controller upload set to %s", (const char*)_linkedControllerUpload.c_str());
+}
+
+void xLightsFrame::SetRenameModelAliasPromptBehavior(const wxString& e)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _aliasRenameBehavior = e;
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsModelRename", _aliasRenameBehavior);
+    config->Flush();
+    logger_base.info("Rename Alias Prompt Behavior set to %s", (const char*)_aliasRenameBehavior.c_str());
 }
 
 void xLightsFrame::CollectUserEmail()
