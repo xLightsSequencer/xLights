@@ -809,6 +809,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     BoxSizer1->Add(ButtonAddControllerNull, 1, wxALL|wxEXPAND, 3);
     ButtonDiscover = new wxButton(PanelSetup, ID_BUTTON5, _("Discover"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
     BoxSizer1->Add(ButtonDiscover, 1, wxALL|wxEXPAND, 3);
+    BoxSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+    BoxSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
     ButtonFPPConnect = new wxButton(PanelSetup, ID_BUTTON18, _("FPP Connect"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON18"));
     BoxSizer1->Add(ButtonFPPConnect, 1, wxALL|wxEXPAND, 3);
     FlexGridSizerNetworks->Add(BoxSizer1, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 0);
