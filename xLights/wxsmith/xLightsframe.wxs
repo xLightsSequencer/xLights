@@ -795,6 +795,15 @@
 															<border>3</border>
 															<option>1</option>
 														</object>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON18" variable="ButtonFPPConnect" member="yes">
+																<label>FPP Connect</label>
+																<handler function="OnButtonFPPConnectClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>3</border>
+															<option>1</option>
+														</object>
 													</object>
 													<flag>wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 													<option>1</option>
