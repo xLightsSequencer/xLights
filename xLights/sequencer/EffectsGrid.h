@@ -345,6 +345,7 @@ private:
     int mDropEndX;
     int mDropRow;
     int mDropStartTimeMS;
+    int mRightClickStartTimeMS;
     int mDropEndTimeMS;
 
     bool mCellRangeSelected;

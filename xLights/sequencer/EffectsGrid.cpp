@@ -364,7 +364,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
             menu_paste->Enable(false);
         }
 
-        mDropStartTimeMS = mTimeline->GetRawTimeMSfromPosition(event.GetX());
+        mRightClickStartTimeMS = mTimeline->GetRawTimeMSfromPosition(event.GetX());
         wxMenuItem* menu_split = mnuLayer.Append(ID_GRID_MNU_SPLIT_EFFECT, "Split");
         if (mSelectedEffect == nullptr || MultipleEffectsSelected() || (mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS() <= mSequenceElements->GetFrameMS())) {
             menu_split->Enable(false);
@@ -772,6 +772,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         if (mSelectedEffect != nullptr) {
             long s = mSelectedEffect->GetStartTimeMS();
             long e = mSelectedEffect->GetEndTimeMS();
+            mDropStartTimeMS = mRightClickStartTimeMS;
             if (e - s > mSequenceElements->GetFrameMS()) {
                 auto el = mSelectedEffect->GetParentEffectLayer();
                 float splitf = mDropStartTimeMS; // (float)(e - s) / 2.0f;
