@@ -6214,12 +6214,16 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
             }
         }
         model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
-        model->SetHcenterPos(x);
-        model->SetVcenterPos(y);
-        // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
-        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
+        if( model != nullptr ) {
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
+            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
+            model->SetLayoutGroup(lg);
+            model->Selected = true;
+        } else {
+            cancelled = true;
+        }
         return model;
     } else if (node->GetName() == "dmxgeneral") {
         // grab the attributes I want to keep
