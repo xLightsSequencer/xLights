@@ -1330,6 +1330,7 @@ void xLightsFrame::EnableNetworkChanges() {
     BitmapButtonMoveNetworkUp->Enable(flag);
     BitmapButtonMoveNetworkDown->Enable(flag);
     ButtonDiscover->Enable(flag);
+    ButtonFPPConnect->Enable(flag);
     ButtonSaveSetup->Enable(!CurrentDir.IsEmpty());
     CheckBoxLightOutput->Enable(!CurrentDir.IsEmpty());
     BitmapButtonMoveNetworkDown->Enable(flag);
@@ -1338,6 +1339,9 @@ void xLightsFrame::EnableNetworkChanges() {
 }
 
 #pragma region Left Buttons
+void xLightsFrame::OnButtonFPPConnectClick(wxCommandEvent& event) {
+    this->OnMenuItem_FPP_ConnectSelected(event);
+}
 void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
