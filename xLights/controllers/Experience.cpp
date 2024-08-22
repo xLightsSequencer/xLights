@@ -183,7 +183,7 @@ int32_t Experience::SetInputUniverses(wxJSONValue& data, Controller* controller)
     } else  {
         //should never hit this
         DisplayError(wxString::Format(
-                         "Invalud Input Type For Experience Controller %s.",
+                         "Invalid Input Type For Experience Controller %s.",
                          out->GetType())
                          .ToStdString());
         return startChannel;
