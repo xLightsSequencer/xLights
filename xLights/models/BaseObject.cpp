@@ -27,7 +27,7 @@ BaseObject::~BaseObject()
     //dtor
 }
 
-wxXmlNode* BaseObject::GetModelXml(void) const {
+wxXmlNode* BaseObject::GetModelXml() const {
     return this->ModelXml;
 }
 

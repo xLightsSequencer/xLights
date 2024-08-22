@@ -96,13 +96,13 @@ public:
 
     void SetDisplayAs(const std::string& type) { DisplayAs = type; }
 
-    wxXmlNode* GetModelXml(void) const;
+    wxXmlNode* GetModelXml() const;
     virtual void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false) = 0;
 
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
 
-    virtual void IncrementChangeCount(void) { ++changeCount; uiObjectsInvalid = true; }
+    virtual void IncrementChangeCount() { ++changeCount; uiObjectsInvalid = true; }
 
 	void AddOffset(double deltax, double deltay, double deltaz);
     void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);

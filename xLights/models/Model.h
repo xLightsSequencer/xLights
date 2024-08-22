@@ -291,23 +291,23 @@ protected:
     const ModelManager& modelManager;
 
     int FindNodeAtXY(int bufx, int bufy);
-    virtual void InitModel(void) {
+    virtual void InitModel() {
     }
-    virtual int CalcCannelsPerString(void);
+    virtual int CalcCannelsPerString();
     virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
-    void RecalcStartChannels(void);
+    void RecalcStartChannels();
 
     void SetBufferSize(int NewHt, int NewWi);
     void SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::string& rgbOrder);
-    void CopyBufCoord2ScreenCoord(void);
+    void CopyBufCoord2ScreenCoord();
 
     bool FindCustomModelScale(int scale) const;
 
-    wxString ExportSuperStringColors(void) const;
+    wxString ExportSuperStringColors() const;
     void ImportSuperStringColours(wxXmlNode* root);
 
-    void SetLineCoord(void);
-    std::string GetNextName(void);
+    void SetLineCoord();
+    std::string GetNextName();
 
     PIXEL_STYLE _pixelStyle = PIXEL_STYLE::PIXEL_STYLE_SMOOTH;
     int pixelSize = 2;
@@ -502,7 +502,7 @@ public:
     bool HasState(std::string const& state) const;
 
     bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
-    const std::string& GetStringType(void) const { return StringType; }
+    const std::string& GetStringType() const { return StringType; }
     virtual int NodesPerString() const;
     virtual int NodesPerString(int string) const { return NodesPerString(); }
     virtual int MapPhysicalStringToLogicalString(int string) const { return string; }
@@ -528,7 +528,7 @@ public:
     virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
     virtual void ExportAsCustomXModel() const;
     virtual std::string GetStartLocation() const;
-    bool IsCustom(void);
+    bool IsCustom();
     virtual bool SupportsExportAsCustom() const = 0;
     virtual bool SupportsExportAsCustom3D() const
     {

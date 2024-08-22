@@ -4662,7 +4662,7 @@ void Model::GetNodeCoords(int nodeidx, std::vector<wxPoint>& pts)
     }
 }
 
-bool Model::IsCustom(void)
+bool Model::IsCustom()
 {
     return (DisplayAs == "Custom");
 }
