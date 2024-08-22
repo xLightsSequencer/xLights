@@ -11,6 +11,41 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.15 August 22, 2024
+    - enh (kylegrymonprez)  Add ability to set the alias behavior for renaming models
+    - enh (kylegrymonprez)  Add FPP Connect button to setup tab
+    - enh (scott)           Allow overriding named color pallets
+    - enh (scott)           Add face definition name to check sequence for missing pictures
+    - enh (scott)           Add Set Palette Name
+    - enh (scott)           Galaxy Effect - add scale to buffer
+    - enh (derwin12)        Warp Effect - Add Flip option
+    - enh (sidelights)      Single Strand Effect - add additional fade types
+    - enh (cybercop23)      Allow animations for the Model Viewer
+    - enh (PeteMathews)     Add support for BaldrickDMX board
+    - enh (jasonsomers)     Add support for new variant of RGB2Go-Duo2Go
+    - enh (dkulp)           Skull Model - generate node names for color channels and eye servos
+    - enh (dkulp)           Detect when Show Directory, FSEQ Directory, or Backup directory are unwritable and re-prompt
+    - enh (cybercop23)      Add pre/post silence to media
+    - enh (derwin12)        Add summary to Check Sequence
+    - bug (scott)           Fix ESPixelStickv4 DMX upload
+    - bug (derwin12)        Fix inconsitent paste behavior with timing tracks selected
+    - bug (scott)           Fix State Dialog buttons being too squished
+    - bug (keith)           Don't allow saving invalid states in State Dialog
+    - bug (derwin12)        Allow some larger buffers that were restricting some rendering
+    - bug (derwin12/dkulp)  Fix status bar height on HiDPI windows displays
+    - bug (dkulp)           Make sure temp directory is properly cleaned after loading xsqz files
+    - bug (dkulp)           More fixes for Mac xsqz icons
+    - bug (derwin12)        Copy/Paste for AC effects was clearing wrong row
+    - bug (derwin12)        Avoid single dot Ripple outlines
+    - bug (scott)           Fix problems with uploading proxies to FPP
+    - bug (keith)           Fix some issues with "rubber band" selection of effects and timings
+    - bug (scott)           Fix loading some new xmodel formats
+    - bug (dkulp)           Fix upload of virtualdisplaymap if 2d preview uses 0 for center
+    - bug (cybercop23)      Fix some crashes when  creating aliases from mappings
+    - bug (keith)           Fix labels in Matrix Dialog
+    - bug (cybercop23)      Fix Moving Head button hightlight color for light mode
+    - bug (scott)           Fix FPP upload for single channel model types
+    - bug (scott)           Fix DDP channel number for Genius Pro DMX output
 2024.14 August 5, 2024
     - enh (scott)       Added Scale to Buffer to Fan Effect, Radius 1 and 2 become Percentage values(100=100% of buffer) when enabled
     - enh (keith)       Add key bindings to switch between timing tracks, unselect all timing tracks
