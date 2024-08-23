@@ -96,6 +96,8 @@ const long ViewsModelsPanel::ID_BUTTON7 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON8 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON_IMPORT = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON11 = wxNewId();
+const long ViewsModelsPanel::ID_BUTTON_VIEWUP = wxNewId();
+const long ViewsModelsPanel::ID_BUTTON_VIEWDOWN = wxNewId();
 const long ViewsModelsPanel::ID_STATICTEXT1 = wxNewId();
 const long ViewsModelsPanel::ID_LISTCTRL_VIEWS = wxNewId();
 const long ViewsModelsPanel::ID_STATICTEXT2 = wxNewId();
@@ -139,6 +141,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
 {
 	//(*Initialize(ViewsModelsPanel)
 	wxBoxSizer* BoxSizer1;
+	wxBoxSizer* BoxSizer2;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer8;
 	wxGridBagSizer* GridBagSizer1;
@@ -169,7 +172,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
 	BoxSizer1->Add(Button_Bottom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5->Add(BoxSizer1, 1, wxALL|wxEXPAND, 0);
 	GridBagSizer1->Add(FlexGridSizer5, wxGBPosition(1, 1), wxGBSpan(3, 1), wxEXPAND, 0);
-	FlexGridSizer8 = new wxFlexGridSizer(6, 1, 0, 0);
+	FlexGridSizer8 = new wxFlexGridSizer(7, 1, 0, 0);
 	Button_AddView = new wxButton(this, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer8->Add(Button_AddView, 1, wxALL|wxEXPAND, 2);
 	Button_DeleteView = new wxButton(this, ID_BUTTON2, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
@@ -182,6 +185,12 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
 	FlexGridSizer8->Add(ButtonImport, 1, wxALL|wxEXPAND, 2);
 	Button_MakeMaster = new wxButton(this, ID_BUTTON11, _("Make Master"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
 	FlexGridSizer8->Add(Button_MakeMaster, 1, wxALL|wxEXPAND, 2);
+	BoxSizer2 = new wxBoxSizer(wxHORIZONTAL);
+	Button_ViewUp = new wxButton(this, ID_BUTTON_VIEWUP, _("^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON_VIEWUP"));
+	BoxSizer2->Add(Button_ViewUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_ViewDown = new wxButton(this, ID_BUTTON_VIEWDOWN, _("v"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON_VIEWDOWN"));
+	BoxSizer2->Add(Button_ViewDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(BoxSizer2, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	GridBagSizer1->Add(FlexGridSizer8, wxGBPosition(1, 3), wxDefaultSpan, wxALL|wxEXPAND, 2);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("View:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	GridBagSizer1->Add(StaticText1, wxGBPosition(0, 2), wxDefaultSpan, wxALL, 2);
@@ -199,6 +208,8 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Available:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	GridBagSizer1->Add(StaticText3, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxEXPAND, 2);
 	SetSizer(GridBagSizer1);
+	GridBagSizer1->Fit(this);
+	GridBagSizer1->SetSizeHints(this);
 
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddAllClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddSelectedClick);
@@ -214,6 +225,8 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
 	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonCloneClick);
 	Connect(ID_BUTTON_IMPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonImportClick);
 	Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MakeMasterClick);
+	Connect(ID_BUTTON_VIEWUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonView_UpClick);
+	Connect(ID_BUTTON_VIEWDOWN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonView_DownClick);
 	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemSelect);
 	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemDClick);
 	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsKeyDown);
@@ -641,7 +654,7 @@ void ViewsModelsPanel::RemoveSelectedModels()
             // we need to unselect the current effect because we may be about to delete it
             wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
             wxPostEvent(GetParent(), eventUnSelected);
-            
+
             for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
                 if (IsItemSelected(ListCtrlModels, i)) {
                     // Got a selected item so handle it
@@ -913,11 +926,15 @@ void ViewsModelsPanel::ValidateWindow()
         Button_DeleteView->Enable(false);
         ButtonRename->Enable(false);
         Button_MakeMaster->Enable(false);
+        Button_ViewUp->Enable(false);
+        Button_ViewDown->Enable(false);
     }
     else {
         Button_DeleteView->Enable(true);
         ButtonRename->Enable(true);
         Button_MakeMaster->Enable(true);
+        Button_ViewUp->Enable(true);
+        Button_ViewDown->Enable(true);
     }
 
     if (GetSelectedItemCount() > 0) {
@@ -2367,6 +2384,36 @@ void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
     }
 }
 
+void ViewsModelsPanel::OnButtonView_DownClick(wxCommandEvent& event) {
+    if (_seqData == nullptr || _seqData->NumFrames() == 0)
+        return;
+
+    size_t idx = ListCtrlViews->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    if (idx != -1 && idx < ListCtrlViews->GetItemCount() - 1) {
+        _sequenceViewManager->MoveViewDown(idx);
+        MarkViewsChanged();
+        PopulateViews();
+        ListCtrlViews->SetItemState(idx + 1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+        ValidateWindow();
+    }
+}
+
+void ViewsModelsPanel::OnButtonView_UpClick(wxCommandEvent& event) {
+    if (_seqData == nullptr || _seqData->NumFrames() == 0)
+        return;
+
+    size_t idx = ListCtrlViews->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    if (idx > 1) {
+        _sequenceViewManager->MoveViewUp(idx);
+        MarkViewsChanged();
+        PopulateViews();
+        ListCtrlViews->SetItemState(idx - 1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    }
+    ValidateWindow();
+}
+
 void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 {
     if (GetSelectionIsMixed()) return;
@@ -2555,7 +2602,7 @@ void ViewsModelsPanel::DoMakeMaster()
                         //_sequenceElements->DeleteElement(name); //this removes models not found in the "new" master view from ALL Views, not just the master view, causing models to disappear from random Views
                         RemoveModelFromLists(name);
                         --i;
-                    } 
+                    }
                     else {
                         //                        hadEffects = true;
                         hadEffects.push_back(name);

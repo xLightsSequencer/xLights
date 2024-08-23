@@ -88,6 +88,8 @@ class ValueCurve
     std::string _type;
     std::string _id;
     std::string _timingTrack;
+    std::string _filterLabelText;
+    bool _isFilterLabelRegex = false;
     float _max;
     float _min;
     float _divisor;
@@ -110,8 +112,8 @@ class ValueCurve
     float Normalise(int parm, float value);
     float Denormalise(int parm, float value) const;
     float ApplyGain(float value, int gain) const;
-    int GetSubsequentTimingMark(const std::string& timingTrack, int time, bool startsOnly);
-    int GetPriorTimingMark(const std::string& timingTrack, int time, bool startsOnly);
+    int GetSubsequentTimingMark(const std::string& timingTrack, int time, bool startsOnly, const std::string& filterLabelText, bool isFilterLabelRegex);
+    int GetPriorTimingMark(const std::string& timingTrack, int time, bool startsOnly, const std::string& filterLabelText, bool isFilterLabelRegex);
 
 public:
 
@@ -122,7 +124,7 @@ public:
 
     ValueCurve() { _divisor = 1; _min = MINVOIDF; _max = MAXVOIDF; SetDefault(); }
     ValueCurve(const std::string& serialised);
-    ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false, float divisor = 1.0, const std::string& timingTrack = "");
+    ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false, float divisor = 1.0, const std::string& timingTrack = "", const std::string& filterLabelText = "", bool isFilterLabelRegex = false);
     void SetDefault(float min = MINVOIDF, float max = MAXVOIDF, int divisor = MAXVOID);
     wxBitmap GetImage(int x, int y, double scaleFactor = 1.0);
     std::string Serialise();
@@ -158,6 +160,14 @@ public:
     bool IsRealValue() const { return _realValues; }
     int GetPointCount() const { return _values.size(); }
     void SetTimingTrack(const std::string& timingTrack) { _timingTrack = timingTrack; }
+    void SetFilterLabelText(const std::string& filterLabelText) {
+    	_filterLabelText = filterLabelText;
+		}
+    void SetFilterLabelRegex(bool isFilterLabelRegex) {
+        _isFilterLabelRegex = isFilterLabelRegex;
+    }
+    std::string GetFilterLabelText() const { return _filterLabelText; }
+    bool IsFilterLabelRegex() const { return _isFilterLabelRegex; }
     std::string GetTimingTrack() const { return _timingTrack; }
     void SetParameter1(float parameter1) { _parameter1 = SafeParameter(1, parameter1); RenderType(); }
     void SetParameter2(float parameter2) { _parameter2 = SafeParameter(2, parameter2); RenderType(); }

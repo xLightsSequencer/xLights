@@ -102,7 +102,9 @@ public:
 
     virtual bool IsLookedUpByControllerName() const override { return false; }
 
-    virtual bool SupportsAutoSize() const override { return _type != OUTPUT_LOR_OPT; }
+    virtual bool SupportsAutoSize() const override {
+        return _type != OUTPUT_LOR_OPT && _type != OUTPUT_xxxSERIAL;
+    }
 
     virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetUniverseString() const override { return wxString::Format("%d", _id); }

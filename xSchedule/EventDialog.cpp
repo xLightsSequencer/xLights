@@ -44,6 +44,7 @@
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/tooltip.h>
 
 //(*IdInit(EventDialog)
 const long EventDialog::ID_CHOICEBOOK1 = wxNewId();
@@ -239,6 +240,8 @@ EventDialog::EventDialog(wxWindow* parent, OutputManager* outputManager, EventBa
     SetMinSize(wxSize(800, 600));
     SetSize(800, 600);
 
+	wxToolTip::SetAutoPop(10000);
+
     ValidateWindow();
 }
 
@@ -246,6 +249,7 @@ EventDialog::~EventDialog()
 {
 	//(*Destroy(EventDialog)
 	//*)
+    wxToolTip::SetAutoPop(-1);
 }
 
 void EventDialog::OnButton_OkClick(wxCommandEvent& event)

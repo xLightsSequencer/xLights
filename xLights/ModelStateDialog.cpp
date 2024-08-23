@@ -43,24 +43,24 @@
 #include <wx/numdlg.h>
 
 //(*IdInit(ModelStateDialog)
-const long ModelStateDialog::ID_STATICTEXT2 = wxNewId();
-const long ModelStateDialog::ID_CHOICE3 = wxNewId();
-const long ModelStateDialog::ID_BUTTON3 = wxNewId();
-const long ModelStateDialog::ID_BUTTON_IMPORT = wxNewId();
-const long ModelStateDialog::ID_BUTTON4 = wxNewId();
-const long ModelStateDialog::ID_CHECKBOX1 = wxNewId();
-const long ModelStateDialog::ID_BUTTON1 = wxNewId();
-const long ModelStateDialog::ID_GRID_COROSTATES = wxNewId();
-const long ModelStateDialog::ID_PANEL2 = wxNewId();
-const long ModelStateDialog::ID_CHECKBOX2 = wxNewId();
-const long ModelStateDialog::ID_CHECKBOX3 = wxNewId();
-const long ModelStateDialog::ID_BUTTON2 = wxNewId();
-const long ModelStateDialog::ID_GRID3 = wxNewId();
-const long ModelStateDialog::ID_PANEL6 = wxNewId();
-const long ModelStateDialog::ID_CHOICEBOOK1 = wxNewId();
-const long ModelStateDialog::ID_PANEL5 = wxNewId();
-const long ModelStateDialog::ID_PANEL_PREVIEW = wxNewId();
-const long ModelStateDialog::ID_SPLITTERWINDOW1 = wxNewId();
+const wxWindowID ModelStateDialog::ID_STATICTEXT2 = wxNewId();
+const wxWindowID ModelStateDialog::ID_CHOICE3 = wxNewId();
+const wxWindowID ModelStateDialog::ID_BUTTON3 = wxNewId();
+const wxWindowID ModelStateDialog::ID_BUTTON_IMPORT = wxNewId();
+const wxWindowID ModelStateDialog::ID_BUTTON4 = wxNewId();
+const wxWindowID ModelStateDialog::ID_CHECKBOX1 = wxNewId();
+const wxWindowID ModelStateDialog::ID_BUTTON1 = wxNewId();
+const wxWindowID ModelStateDialog::ID_GRID_COROSTATES = wxNewId();
+const wxWindowID ModelStateDialog::ID_PANEL2 = wxNewId();
+const wxWindowID ModelStateDialog::ID_CHECKBOX2 = wxNewId();
+const wxWindowID ModelStateDialog::ID_CHECKBOX3 = wxNewId();
+const wxWindowID ModelStateDialog::ID_BUTTON2 = wxNewId();
+const wxWindowID ModelStateDialog::ID_GRID3 = wxNewId();
+const wxWindowID ModelStateDialog::ID_PANEL6 = wxNewId();
+const wxWindowID ModelStateDialog::ID_CHOICEBOOK1 = wxNewId();
+const wxWindowID ModelStateDialog::ID_PANEL5 = wxNewId();
+const wxWindowID ModelStateDialog::ID_PANEL_PREVIEW = wxNewId();
+const wxWindowID ModelStateDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
 const long ModelStateDialog::ID_TIMER1 = wxNewId();
 
@@ -118,6 +118,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("State Definition"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
+	SetMinSize(wxSize(-1,-1));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
@@ -132,15 +133,15 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 	StaticText3 = new wxStaticText(Panel3, ID_STATICTEXT2, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer7->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	NameChoice = new wxChoice(Panel3, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
-	NameChoice->SetMinSize(wxDLG_UNIT(Panel3,wxSize(100,-1)));
+	NameChoice->SetMinSize(wxDLG_UNIT(Panel3,wxSize(50,-1)));
 	FlexGridSizer7->Add(NameChoice, 1, wxALL|wxEXPAND, 5);
-	AddButton = new wxButton(Panel3, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-	FlexGridSizer7->Add(AddButton, 1, wxTOP|wxBOTTOM|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	AddButton = new wxButton(Panel3, ID_BUTTON3, _("Add"), wxDefaultPosition, wxSize(88,34), 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	FlexGridSizer7->Add(AddButton, 1, wxTOP|wxBOTTOM|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	Button_Import = new wxButton(Panel3, ID_BUTTON_IMPORT, _T("..."), wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
 	Button_Import->SetMinSize(wxSize(20,-1));
-	FlexGridSizer7->Add(Button_Import, 0, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	DeleteButton = new wxButton(Panel3, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-	FlexGridSizer7->Add(DeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer7->Add(Button_Import, 1, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	DeleteButton = new wxButton(Panel3, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxSize(97,34), 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	FlexGridSizer7->Add(DeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer4->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	StateTypeChoice = new wxChoicebook(Panel3, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
 	CoroPanel = new wxPanel(StateTypeChoice, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
@@ -216,7 +217,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 	SplitterWindow1->SplitVertically(Panel3, ModelPreviewPanelLocation);
 	FlexGridSizer1->Add(SplitterWindow1, 0, wxEXPAND, 0);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->SetSizeHints(this);
+	Fit();
 
 	Connect(ID_CHOICE3, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ModelStateDialog::OnMatrixNameChoiceSelect);
 	Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelStateDialog::OnButtonMatrixAddClicked);
@@ -683,12 +684,14 @@ void ModelStateDialog::OnNodeRangeGridCellChange(wxGridEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     GetValue(NodeRangeGrid, event.GetRow(), event.GetCol(), stateData[name]);
+    ValidateWindow();
 }
 
 void ModelStateDialog::OnSingleNodeGridCellChange(wxGridEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     GetValue(SingleNodeGrid, event.GetRow(), event.GetCol(), stateData[name]);
+    ValidateWindow();
 }
 
 void ModelStateDialog::OnStateTypeChoicePageChanged(wxChoicebookEvent& event)
@@ -937,8 +940,7 @@ void ModelStateDialog::OnButton_7SegmentClick(wxCommandEvent& event)
     }
 }
 
-void ModelStateDialog::ValidateWindow()
-{
+void ModelStateDialog::ValidateWindow() {
     if (NameChoice->GetStringSelection() == "") {
         NodeRangeGrid->Disable();
         SingleNodeGrid->Disable();
@@ -965,6 +967,43 @@ void ModelStateDialog::ValidateWindow()
         NodeRangeGrid->ShowCol(COLOUR_COL);
     } else {
         NodeRangeGrid->HideCol(COLOUR_COL);
+    }
+
+    // check that all states have a name
+    wxGrid* grid = nullptr;
+    if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
+        grid = SingleNodeGrid;
+    } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
+        grid = NodeRangeGrid;
+    } else {
+    }
+
+    wxWindow* okButton = this->FindWindow(wxID_OK);
+    if (grid != nullptr)
+    {
+        bool blank = false;
+        for (int i = 0; i < grid->GetNumberRows(); i++) {
+            if (grid->GetCellValue(i, CHANNEL_COL) != "" && grid->GetCellValue(i, NAME_COL) == "") {
+                grid->SetCellBackgroundColour(i, NAME_COL, *wxRED);
+                grid->SetCellBackgroundColour(i, CHANNEL_COL, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+                blank = true;
+            } else if (grid->GetCellValue(i, NAME_COL) != "" && grid->GetCellValue(i, CHANNEL_COL) == "") {
+                grid->SetCellBackgroundColour(i, NAME_COL, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+                grid->SetCellBackgroundColour(i, CHANNEL_COL, *wxRED);
+                blank = true;
+            }
+            else
+            {
+                grid->SetCellBackgroundColour(i, NAME_COL, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+                grid->SetCellBackgroundColour(i, CHANNEL_COL, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+            }
+        }
+        // enable wxID_OK button
+
+		okButton->Enable(!blank);
+    } else {
+        // enable wxID_OK button
+        okButton->Enable(true);
     }
 }
 

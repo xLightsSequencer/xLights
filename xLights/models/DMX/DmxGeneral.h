@@ -27,7 +27,7 @@ class DmxGeneral : public DmxModel
         virtual void InitModel() override;
 
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
         virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
                                           xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d = false,
                                           const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,

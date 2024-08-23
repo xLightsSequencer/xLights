@@ -18,7 +18,7 @@
 
 class DmxMotorBase;
 
-class DmxMovingHead : public DmxMovingHeadComm, public DmxShutterAbility, public DmxDimmerAbility
+class DmxMovingHead : public DmxMovingHeadComm, public DmxDimmerAbility
 {
     public:
         DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
@@ -52,7 +52,7 @@ class DmxMovingHead : public DmxMovingHeadComm, public DmxShutterAbility, public
         virtual void InitModel() override;
 
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
         virtual float GetDefaultBeamWidth() const { return 30; }
 

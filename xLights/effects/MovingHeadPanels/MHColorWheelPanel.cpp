@@ -31,6 +31,7 @@ BEGIN_EVENT_TABLE(MHColorWheelPanel, wxPanel)
     EVT_LEFT_UP(MHColorWheelPanel::OnLeftUp)
     EVT_MOTION(MHColorWheelPanel::OnMouseMove)
     EVT_ENTER_WINDOW(MHColorWheelPanel::OnEntered)
+    EVT_LEAVE_WINDOW(MHColorWheelPanel::OnLeave)
     EVT_SIZE(MHColorWheelPanel::OnSize)
 END_EVENT_TABLE()
 
@@ -106,14 +107,18 @@ void MHColorWheelPanel::OnPaint(wxPaintEvent& /*event*/)
     }
 }
 
-void MHColorWheelPanel::OnKeyDown(wxKeyEvent& event)
-{
+void MHColorWheelPanel::OnKeyDown(wxKeyEvent& event) {
     int keycode = event.GetKeyCode();
     if (keycode == WXK_DELETE) {
-        if( active_handle >= 0 ) {
-            m_handles.erase(m_handles.begin()+active_handle);
-            selected_point = -1;
-            active_handle = -1;
+        if (active_handle >= 0) {
+            m_handles.erase(m_handles.begin() + active_handle);
+            if (m_handles.size() > 0) {
+                selected_point = std::max(active_handle - 1, 0);
+                active_handle = std::max(active_handle - 1, 0);
+            } else {
+                selected_point = -1;
+                active_handle = -1;
+            }
             m_colorWheelParent->NotifyColorUpdated();
             Refresh();
         }
@@ -137,39 +142,50 @@ void MHColorWheelPanel::OnLeftDown(wxMouseEvent& event)
     m_mousePos = UItoNormalized(ptUI);
     m_mouseDown = true;
     HSVValue hsv;
-    if( m_handles.size() == 0 ) {
-        if( insideColors(ptUI.m_x, ptUI.m_y, hsv) ) {
+    if (m_handles.size() == 0) {
+        if (insideColors(ptUI.m_x, ptUI.m_y, hsv)) {
             m_handles.push_back(HandlePoint(m_mousePos, hsv));
             selected_point = 0;
             active_handle = 0;
             m_colorWheelParent->NotifyColorUpdated();
             Refresh();
         }
-    } else if( insideColors(ptUI.m_x, ptUI.m_y, hsv) ) {
-        if( m_shiftdown ) {
-            if( m_handles.size() < colors.size() ) {
+    } else if (insideColors(ptUI.m_x, ptUI.m_y, hsv)) {
+        selected_point = HitTest(ptUI);
+        if (selected_point >= 0 && !m_shiftdown) {
+            active_handle = selected_point;
+            if (active_handle >= 0) {
+                m_handles.erase(m_handles.begin() + active_handle);
+                if (m_handles.size() > 0) {
+                    selected_point = std::max(active_handle - 1, 0);
+                    active_handle = std::max(active_handle - 1, 0);
+                } else {
+                    selected_point = -1;
+                    active_handle = -1;
+                }
+                m_colorWheelParent->NotifyColorUpdated();
+            }
+            Refresh();
+        } else {
+            if (m_handles.size() < colors.size() && !m_shiftdown) {
                 active_handle = m_handles.size();
                 m_handles.push_back(HandlePoint(m_mousePos, hsv));
                 selected_point = active_handle;
-                m_colorWheelParent->NotifyColorUpdated();
-                Refresh();
-            }
-        } else {
-            selected_point = HitTest(ptUI);
-            if( selected_point >= 0 ) {
-                active_handle = selected_point;
-                Refresh();
             } else {
-                m_handles[active_handle].pt.m_x = m_mousePos.m_x;
-                m_handles[active_handle].pt.m_y = m_mousePos.m_y;
-                m_handles[active_handle].color = hsv;
-                selected_point = active_handle;
-                m_colorWheelParent->NotifyColorUpdated();
-                Refresh();
+                if (selected_point >= 0) {
+                    active_handle = selected_point;
+                    m_handles[active_handle].pt.m_x = m_mousePos.m_x;
+                    m_handles[active_handle].pt.m_y = m_mousePos.m_y;
+                    m_handles[active_handle].color = hsv;
+                    selected_point = active_handle;
+                }
             }
+            m_colorWheelParent->NotifyColorUpdated();
+            Refresh();
         }
     }
 }
+
 void MHColorWheelPanel::OnLeftUp(wxMouseEvent& event)
 {
     m_mouseDown = false;
@@ -202,6 +218,12 @@ void MHColorWheelPanel::OnMouseMove(wxMouseEvent& event)
 void MHColorWheelPanel::OnEntered(wxMouseEvent& /*event*/)
 {
     SetFocus();
+}
+
+void MHColorWheelPanel::OnLeave(wxMouseEvent& /*event*/) 
+{
+    m_mouseDown = false;
+    m_mouseDClick = false;
 }
 
 int MHColorWheelPanel::HitTest( wxPoint2DDouble& ptUI )
@@ -364,6 +386,16 @@ void MHColorWheelPanel::SetColours( const std::string& _colors )
         pt2.m_y = 1.0 - pt2.m_y;
     }
     Refresh();
+}
+
+void MHColorWheelPanel::ResetColours() {
+    for (std::size_t i = 0; i < m_handles.size(); ++i) {
+        m_handles.erase(m_handles.begin() + i);
+    }
+    m_colorWheelParent->NotifyColorUpdated();
+    Refresh();
+    selected_point = -1;
+    active_handle = -1;
 }
 
 void MHColorWheelPanel::DefineColours( xlColorVector& _colors )

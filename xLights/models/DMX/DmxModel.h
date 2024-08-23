@@ -57,7 +57,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
         virtual void ExportXlightsModel() override {}
-        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override = 0;
+        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override = 0;
         virtual int GetNumPhysicalStrings() const override { return 1; }
         virtual bool IsDMXModel() const override { return true; }
         virtual std::list<std::string> CheckModelSettings() override;
@@ -77,10 +77,12 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
             return DMX_COLOR_TYPE_RGBW;
         }
 
+        virtual std::vector<PWMOutput> GetPWMOutputs() const override;
+        virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const;
     protected:
         virtual void InitModel() override;
         void ExportBaseParameters(wxFile& f);
-        void ImportBaseParameters(wxXmlNode* root);
+        bool ImportBaseParameters(wxXmlNode* root);
         void UpdateChannelCount(int num_channels, bool do_work);
 
         virtual int GetChannelValue( int channel, bool bits16);

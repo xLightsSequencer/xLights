@@ -126,6 +126,7 @@
 #include "../include/xLights-64.xpm"
 #include "../include/xLights-128.xpm"
 #include "../include/splashimage.h"
+#include "../include/link_svgs.h"
 
 #include "../include/fpp_icon.h"
 
@@ -565,6 +566,10 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
         return CreateBitmapBundleFromPNGs(id, lynx_png, sizeof(lynx_png));
     } else if ("xlART_xLights_SlashImage" == id) {
         return CreateBitmapBundleFromPNGs(id, xl_splashimage_png, sizeof(xl_splashimage_png));
+    } else if ("xlART_LINKED" == id) {
+        return wxBitmapBundle::FromSVG(linkSVG, sizeof(linkSVG), wxSize(16, 16));
+    } else if ("xlART_UNLINKED" == id) {
+        return wxBitmapBundle::FromSVG(unlinkSVG, sizeof(unlinkSVG), wxSize(16, 16));
     }
     return wxBitmapBundle();
 }
@@ -593,9 +598,6 @@ wxIconBundle xlArtProvider::CreateIconBundle(const wxArtID& id,
     }
     return wxNullIconBundle;
 }
-
-
-
 
 wxBitmapBundle BitmapCache::GetPapgayoIcon() {
     return CreateBitmapBundleFromXPMs(16, "Papagayo", {papagayo_16, papagayo_64, papagayo_64, papagayo_64, papagayo_64});

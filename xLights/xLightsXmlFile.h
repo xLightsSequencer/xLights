@@ -140,6 +140,7 @@ public:
     void DeleteTimingSection(const std::string& section);
     void SetTimingSectionName(const std::string& section, const std::string& name);
     bool TimingAlreadyExists(const std::string& section, xLightsFrame* xLightsParent);
+    bool TimingMatchesModelName(const std::string& section, xLightsFrame* xLightsParent);
     wxArrayString GetTimingList() const
     {
         return timing_list;

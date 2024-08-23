@@ -12,6 +12,7 @@
 
 //(*Headers(DuplicateDialog)
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
@@ -28,10 +29,12 @@ class DuplicateDialog: public wxDialog
 		//(*Declarations(DuplicateDialog)
 		wxButton* Button_Close;
 		wxButton* Button_Ok;
+		wxCheckBox* Checkbox_Retain_Duration;
 		wxSpinCtrl* SpinCtrl_Count;
 		wxSpinCtrl* SpinCtrl_Gap;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		//*)
 
         int GetCount() const
@@ -42,6 +45,9 @@ class DuplicateDialog: public wxDialog
         {
             return SpinCtrl_Gap->GetValue();
         }
+        int GetRetainDuration() const {
+            return Checkbox_Retain_Duration->GetValue();
+        }
 
 	protected:
 
@@ -49,6 +55,7 @@ class DuplicateDialog: public wxDialog
 		static const long ID_SPINCTRL_COUNT;
 		static const long ID_STATICTEXT2;
 		static const long ID_SPINCTRL_GAP;
+		static const long ID_CHECKBOX_RetainDur;
 		static const long ID_BUTTON_OK;
 		static const long ID_BUTTON_CLOSE;
 		//*)

@@ -560,7 +560,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     Button_Cancel = new wxButton(Panel1, ID_BUTTON4, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
     FlexGridSizer2->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-    Button_UpdateAliases = new wxButton(Panel1, ID_BUTTON6, _("Update Model Aliases Using Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
+    Button_UpdateAliases = new wxButton(Panel1, ID_BUTTON6, _("Update All Aliases Using Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
     FlexGridSizer2->Add(Button_UpdateAliases, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_AutoMap = new wxButton(Panel1, ID_BUTTON5, _("Auto Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
     FlexGridSizer2->Add(Button_AutoMap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -2364,20 +2364,20 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                         //            strand->_mapping = ListCtrl_Available->GetItemText(j) + "/" + strand->_strand;
                         //            strand->_mappingExists = true;
                         //        }
-                                //for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
-                                //    auto node = strand->GetNthChild(m);
-                                //    if (node != nullptr) {
-                                //        if (node->_mapping.empty()) {
-                                //            if (lambda_node(model->_model + "/" + strand->_strand + "/" + node->_node, availName, extra1, extra2, aliases)) {
-                                //                // matched to the node level
-                                //                node->_mapping = ListCtrl_Available->GetItemText(j);
-                                //                node->_mappingExists = true;
-                                //            }
-                                //        }
-                                //    }
-                                //}
-                       //     }
-                      //  }
+                        //        for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
+                        //            auto node = strand->GetNthChild(m);
+                        //            if (node != nullptr) {
+                        //                if (node->_mapping.empty()) {
+                        //                    if (lambda_node(model->_model + "/" + strand->_strand + "/" + node->_node, availName, extra1, extra2, aliases)) {
+                        //                        // matched to the node level
+                        //                        node->_mapping = ListCtrl_Available->GetItemText(j);
+                        //                        node->_mappingExists = true;
+                        //                    }
+                        //                }
+                        //            }
+                        //        }
+                        //     }
+                        //  }
                     }
                 }
             }
@@ -2702,10 +2702,25 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& event)
 {
-    for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
+    wxDataViewItemArray models;
+    _dataModel->GetChildren(wxDataViewItem(0), models);
+    for (size_t i = 0; i < models.size(); ++i) {
         xLightsImportModelNode* m = _dataModel->GetNthChild(i);
-        if (m->HasMapping()) {
+        if (m->HasMapping() && !m->_mapping.empty()) {
             xlights->GetModel(m->_model)->AddAlias(m->_mapping);
+        }
+        wxDataViewItemArray strands;
+        _dataModel->GetChildren(models[i], strands);
+        for (size_t j = 0; j < strands.size(); ++j) {
+            xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
+            if (astrand->HasMapping() && !astrand->_mapping.empty()) {
+                auto sm0 = Split(astrand->_mapping, '/');
+                if ((sm0[1] != astrand->_strand) || (sm0[0] != m->_mapping)) {
+                    auto sm = xlights->GetModel((astrand->_model + "/" + astrand->_strand));
+                    if (sm != nullptr)
+                        sm->AddAlias(astrand->_mapping);
+                }
+            }
         }
     }
     xlights->SetStatusText(_("Update Aliases Done."));

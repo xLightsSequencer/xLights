@@ -56,6 +56,11 @@ private:
 
 void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
 {
+    if (readOnlyMode) {
+        wxMessageBox("Preferences are not available in read only mode", "Read Only Mode", wxICON_INFORMATION | wxOK);
+        return;
+    }
+
     auto ld = _lowDefinitionRender;
 
     if (!mPreferencesEditor.get()) {

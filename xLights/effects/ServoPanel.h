@@ -13,13 +13,16 @@
 //(*Headers(ServoPanel)
 #include <wx/panel.h>
 class wxBitmapButton;
+class wxButton;
 class wxCheckBox;
 class wxChoice;
 class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
 class wxTextCtrl;
+class wxToggleButton;
 //*)
+
 
 #include "../BulkEditControls.h"
 #include "EffectPanelUtils.h"
@@ -37,9 +40,18 @@ class ServoPanel: public xlEffectPanel
 		BulkEditCheckBox* CheckBox_Timing_Track;
 		BulkEditChoice* Choice_Channel;
 		BulkEditChoice* Choice_Servo_TimingTrack;
+		BulkEditSliderF1* SliderEndValue;
 		BulkEditSliderF1* Slider_Servo;
+		BulkEditTextCtrlF1* TextCtrl_EndValue;
+		BulkEditTextCtrlF1* TextCtrl_Servo;
 		BulkEditValueCurveButton* ValueCurve_Servo;
+		LinkedToggleButton* EndLinkedButton;
+		LinkedToggleButton* StartLinkedButton;
+		wxButton* EqualButton;
+		wxButton* SwapButton;
+		wxCheckBox* SyncCheckBox;
 		wxFlexGridSizer* FlexGridSizer_Main;
+		wxStaticText* EndDMXLabel;
 		wxStaticText* Label_DMX1;
 		wxStaticText* StaticText1;
 		//*)
@@ -47,15 +59,23 @@ class ServoPanel: public xlEffectPanel
 	protected:
 
 		//(*Identifiers(ServoPanel)
-		static const long ID_STATICTEXT_Channel;
-		static const long ID_CHOICE_Channel;
-		static const long ID_CHECKBOX_16bit;
-		static const long ID_CHECKBOX_Timing_Track;
-		static const long ID_CHOICE_Servo_TimingTrack;
-		static const long ID_STATICTEXT_Servo;
-		static const long IDD_SLIDER_Servo;
-		static const long ID_VALUECURVE_Servo;
-		static const long ID_TEXTCTRL_Servo;
+		static const wxWindowID ID_STATICTEXT_Channel;
+		static const wxWindowID ID_CHOICE_Channel;
+		static const wxWindowID ID_CHECKBOX_16bit;
+		static const wxWindowID ID_CHECKBOX_Timing_Track;
+		static const wxWindowID ID_CHOICE_Servo_TimingTrack;
+		static const wxWindowID ID_TOGGLEBUTTON_Start;
+		static const wxWindowID ID_STATICTEXT_Servo;
+		static const wxWindowID IDD_SLIDER_Servo;
+		static const wxWindowID ID_VALUECURVE_Servo;
+		static const wxWindowID ID_TEXTCTRL_Servo;
+		static const wxWindowID ID_TOGGLEBUTTON_End;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID IDD_SLIDER_EndValue;
+		static const wxWindowID ID_TEXTCTRL_EndValue;
+		static const wxWindowID IDD_CHECKBOX_Sync;
+		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID IDD_SwapButton;
 		//*)
 
 	private:
@@ -63,6 +83,11 @@ class ServoPanel: public xlEffectPanel
 		//(*Handlers(ServoPanel)
 		void OnCheckBox1Click(wxCommandEvent& event);
 		void OnCheckBox_Timing_TrackClick(wxCommandEvent& event);
+		void OnSwapButtonClick(wxCommandEvent& event);
+		void OnEqualButtonClick(wxCommandEvent& event);
+		void OnSyncCheckBoxClick(wxCommandEvent& event);
+		void StartValueUpdated(wxCommandEvent& event);
+		void EndValueUpdated(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

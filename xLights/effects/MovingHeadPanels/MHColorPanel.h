@@ -24,6 +24,7 @@ public:
     virtual std::string GetColour() = 0;
     virtual bool HasColour() = 0;
     virtual void SetColours( const std::string& _colors ) = 0;
+    virtual void ResetColours() = 0;
 
 private:
 

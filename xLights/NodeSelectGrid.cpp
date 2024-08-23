@@ -908,46 +908,36 @@ void NodeSelectGrid::ImportModelXML(wxXmlNode* xmlData)
         return;
     }
 
-    const auto customModel = xmlData->GetAttribute("CustomModel").ToStdString();
-    const auto rows = wxSplit(customModel, ';');
+    auto data = CustomModel::ParseCustomModelDataFromXml(xmlData);
 
-    if (GridNodes->GetNumberRows() < rows.size()) {
+    size_t height = data[0].size();
+    const int gridheight = GridNodes->GetNumberRows();
+    size_t width = data[0][0].size();
+	const int gridwidth = GridNodes->GetNumberCols();
+
+    if (gridheight < height) {
         DisplayError("xModel file dimensions are too big.");
         return;
     }
-
-    const int height = rows.size();
-    const int gridheight = GridNodes->GetNumberRows();
+    if (gridwidth < width) {
+		DisplayError("xModel file dimensions are too big.");
+		return;
+	}
 
     const int rowOffset = ((gridheight - height) / 2);
+    const int colOffset = ((gridwidth - width) / 2);
 
-    int row = 0;
-    for (const auto& rv : rows) {
-        const wxArrayString cols = wxSplit(rv, ',');
-        if (cols.size() > GridNodes->GetNumberCols()) {
-            DisplayError("xModel file dimensions are too big.");
-            return;
-        }
-        const int width = cols.size();
-        const int gridhwidth = GridNodes->GetNumberCols();
-
-        const int colOffset = ((gridhwidth - width) / 2);
-        int col = 0;
-        for (auto value : cols) {
-            while (value.length() > 0 && value[0] == ' ') {
-                value = value.substr(1);
-            }
-
-            if (!value.empty()) {
+    for (size_t row = 0; row < height; ++row) {
+		for (size_t col = 0; col < width; ++col) {
+			if (data[0][row][col] != 0) {
                 const wxString cellval = GridNodes->GetCellValue(row + rowOffset, col + colOffset);
                 if (!cellval.IsNull() && !cellval.IsEmpty()) {
-                    SelectNode(true, row + rowOffset, col + colOffset, wxAtoi(value));
+                    SelectNode(true, row + rowOffset, col + colOffset, data[0][row][col]);
                 }
-            }
-            ++col;
-        }
-        ++row;
-    }
+			}
+		}
+	}
+
     UpdateTextFromGrid();
     GridNodes->Refresh();
     ValidateWindow();

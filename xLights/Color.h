@@ -233,6 +233,20 @@ public:
         return xlColor((uint8_t)dr, (uint8_t)dg, (uint8_t)db);
     }
     
+        /** Blend this color onto the background **/
+    xlColor Blend(const xlColor& bc) const {
+      
+        int r = (red + bc.red) / 2;
+        int g = (green+ bc.green) / 2;
+        int b = (blue + bc.blue) / 2;
+        return xlColor(r, g, b);
+    }
+
+    /** Blend this color onto the background **/
+    xlColor ChannelMax(const xlColor& bc) const {
+        return xlColor(std::max(red,bc.red),std::max(green,bc.green),std::max(blue,bc.blue));
+    }
+    
     /** AlphaBlend the fg color onto this color **/
     void AlphaBlendForgroundOnto(const xlColor &fc) {
         if (fc.alpha == 0) return;

@@ -30,7 +30,8 @@ enum class WINHARDWARERENDERTYPE : int {
     FFMPEG_CUDA,
     FFMPEG_QSV,
     FFMPEG_VULKAN,
-    FFMPEG_AMF
+    FFMPEG_AMF,
+    FFMPEG_D3D11VA
 };
 
 class VideoReader

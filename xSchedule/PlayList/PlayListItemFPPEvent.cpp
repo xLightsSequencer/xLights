@@ -9,21 +9,20 @@
  **************************************************************/
 
 #include "PlayListItemFPPEvent.h"
-#include "PlayListItemFPPEventPanel.h"
 #include "PlayList.h"
-#include <wx/xml/xml.h>
-#include <wx/notebook.h>
-#include <log4cpp/Category.hh>
-#include <wx/socket.h>
-#include "../xLights/outputs/IPOutput.h"
-#include "../Control.h"
-#include <wx/protocol/http.h>
+#include "PlayListItemFPPEventPanel.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../Control.h"
+#include "../xLights/outputs/IPOutput.h"
 #include "../xLights/utils/ip_utils.h"
 #include "utils/Curl.h"
+#include <log4cpp/Category.hh>
+#include <wx/notebook.h>
+#include <wx/protocol/http.h>
+#include <wx/socket.h>
+#include <wx/xml/xml.h>
 
-class FPPEventThread : public wxThread
-{
+class FPPEventThread : public wxThread {
     std::string _ip;
     int _major;
     int _minor;
@@ -32,18 +31,14 @@ class FPPEventThread : public wxThread
 
 public:
     FPPEventThread(const std::string& ip, int method, int major, int minor, const std::string& localIP) :
-        _ip(ip), _major(major), _minor(minor), _method(method), _localIP(localIP)
-    {
+        _ip(ip), _major(major), _minor(minor), _method(method), _localIP(localIP) {
     }
 
-    std::string GetEventString() const
-    {
+    std::string GetEventString() const {
         return wxString::Format("%02d_%02d", _major, _minor).ToStdString();
     }
 
-
-    virtual void* Entry() override
-    {
+    virtual void* Entry() override {
         log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         logger_base.debug("PlayListFPPEvent in thread.");
@@ -58,53 +53,46 @@ public:
                 logger_base.debug("FPP Event sent %s:%s", (const char*)_ip.c_str(), (const char*)url.c_str());
                 auto res = Curl::HTTPSGet(url, "", "", 1);
                 logger_base.info("CURL GET: %s", (const char*)res.c_str());
-            }
-            else if (_method == 1) {
+            } else if (_method == 1) {
                 std::string url = "http://" + _ip + "/api/command";
                 std::string body = wxString::Format("{\"command\":\"Trigger Event\",\"args\":[\"%u\",\"%u\"]}", _major, _minor).ToStdString();
                 logger_base.debug("FPP Event sent %s:%s:%s", (const char*)_ip.c_str(), (const char*)url.c_str(), (const char*)body.c_str());
                 auto res = Curl::HTTPSPost("http://" + _ip + "/api/command", body);
-            }
-            else {
+            } else {
                 std::string url = "http://" + _ip + "/api/command";
                 std::string body = wxString::Format("{\"command\":\"Trigger Command Preset Slot\",\"args\":[\"%u\"]}", _major).ToStdString();
                 logger_base.debug("FPP Event sent %s:%s:%s", (const char*)_ip.c_str(), (const char*)url.c_str(), (const char*)body.c_str());
                 auto res = Curl::HTTPSPost("http://" + _ip + "/api/command", body);
             }
-        }
-        else {
+        } else {
             // I am pretty sure this no longer works in FPP ... at least I dont seem to be able to make it work
 
             // Open the socket
             wxIPV4address localaddr;
             if (_localIP == "") {
                 localaddr.AnyAddress();
-            }
-            else {
+            } else {
                 localaddr.Hostname(_localIP);
             }
 
             wxDatagramSocket* socket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
             if (socket == nullptr) {
                 logger_base.error("Error opening datagram for FPP Event send. %s", (const char*)localaddr.IPAddress().c_str());
-            }
-            else if (!socket->IsOk()) {
+            } else if (!socket->IsOk()) {
                 logger_base.error("Error opening datagram for FPP Event send. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
                 delete socket;
                 socket = nullptr;
-            }
-            else if (socket->Error()) {
+            } else if (socket->Error()) {
                 logger_base.error("Error opening datagram for FPP Event send. %d : %s %s", socket->LastError(), (const char*)DecodeIPError(socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
                 delete socket;
                 socket = nullptr;
-            }
-            else {
+            } else {
                 logger_base.info("FPP Event send datagram opened successfully.");
             }
 
             if (socket != nullptr) {
                 wxIPV4address remoteAddr;
-                //remoteAddr.BroadcastAddress();
+                // remoteAddr.BroadcastAddress();
                 remoteAddr.Hostname("255.255.255.255");
                 remoteAddr.Service(FPP_CTRL_PORT);
 
@@ -140,13 +128,12 @@ public:
     }
 };
 
-PlayListItemFPPEvent::PlayListItemFPPEvent(wxXmlNode* node) : PlayListItem(node)
-{
+PlayListItemFPPEvent::PlayListItemFPPEvent(wxXmlNode* node) :
+    PlayListItem(node) {
     PlayListItemFPPEvent::Load(node);
 }
 
-void PlayListItemFPPEvent::Load(wxXmlNode* node)
-{
+void PlayListItemFPPEvent::Load(wxXmlNode* node) {
     PlayListItem::Load(node);
     _major = wxAtoi(node->GetAttribute("Major", "1"));
     _minor = wxAtoi(node->GetAttribute("Minor", "1"));
@@ -154,13 +141,12 @@ void PlayListItemFPPEvent::Load(wxXmlNode* node)
     _method = wxAtoi(node->GetAttribute("Method", "2"));
 }
 
-PlayListItemFPPEvent::PlayListItemFPPEvent() : PlayListItem()
-{
+PlayListItemFPPEvent::PlayListItemFPPEvent() :
+    PlayListItem() {
     _type = "PLIFPPEVENT";
 }
 
-PlayListItem* PlayListItemFPPEvent::Copy(const bool isClone) const
-{
+PlayListItem* PlayListItemFPPEvent::Copy(const bool isClone) const {
     PlayListItemFPPEvent* res = new PlayListItemFPPEvent();
     res->_major = _major;
     res->_minor = _minor;
@@ -172,9 +158,8 @@ PlayListItem* PlayListItemFPPEvent::Copy(const bool isClone) const
     return res;
 }
 
-wxXmlNode* PlayListItemFPPEvent::Save()
-{
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
+wxXmlNode* PlayListItemFPPEvent::Save() {
+    wxXmlNode* node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Major", wxString::Format("%d", _major));
     node->AddAttribute("Minor", wxString::Format("%d", _minor));
@@ -185,39 +170,34 @@ wxXmlNode* PlayListItemFPPEvent::Save()
     return node;
 }
 
-std::string PlayListItemFPPEvent::GetTitle() const
-{
+std::string PlayListItemFPPEvent::GetTitle() const {
     return "FPP Event";
 }
 
-void PlayListItemFPPEvent::Configure(wxNotebook* notebook)
-{
+void PlayListItemFPPEvent::Configure(wxNotebook* notebook) {
     notebook->AddPage(new PlayListItemFPPEventPanel(notebook, this), GetTitle(), true);
 }
 
-std::string PlayListItemFPPEvent::GetNameNoTime() const
-{
-    if (_name != "") return _name;
+std::string PlayListItemFPPEvent::GetNameNoTime() const {
+    if (_name != "")
+        return _name;
 
-    if (_method == 2)         {
+    if (_method == 2) {
         return wxString::Format("%02d", _major).ToStdString();
     }
-    
+
     return wxString::Format("%02d_%02d", _major, _minor).ToStdString();
 }
 
-std::string PlayListItemFPPEvent::GetTooltip()
-{
+std::string PlayListItemFPPEvent::GetTooltip() {
     return "";
 }
 
-//#define EXTREME_FPPEVENT_LOGGING
+// #define EXTREME_FPPEVENT_LOGGING
 
-void PlayListItemFPPEvent::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (ms >= _delay && !_started)
-    {
+void PlayListItemFPPEvent::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (ms >= _delay && !_started) {
         _started = true;
 
         FPPEventThread* thread = new FPPEventThread(_ip, _method, _major, _minor, GetLocalIP());
@@ -226,8 +206,7 @@ void PlayListItemFPPEvent::Frame(uint8_t* buffer, size_t size, size_t ms, size_t
     }
 }
 
-void PlayListItemFPPEvent::Start(long stepLengthMS)
-{
+void PlayListItemFPPEvent::Start(long stepLengthMS) {
     PlayListItem::Start(stepLengthMS);
 
     _started = false;

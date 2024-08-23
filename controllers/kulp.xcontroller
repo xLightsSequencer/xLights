@@ -165,6 +165,43 @@
             <fpp1>21,16</fpp1>
         </Variant>
     </Controller>
+    <Controller Name="K2-Pi0">
+        <Variant Name="No Expansion" ID="K2-Pi0" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <SupportsVirtualMatrix/>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+        </Variant>
+    </Controller>
+    <Controller Name="K2-Pi-Servo">
+        <Variant Name="No Expansion" ID="K2-Pi-Servo" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <MaxPWMPort>16</MaxPWMPort>
+            <SupportsVirtualMatrix/>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+            <SupportsPWM/>
+            <ExtraProperties>
+                <Property name="PWMFrequency" label="PWM Frequency">
+                    <Tip></Tip>
+                    <Type>Enum</Type>
+                    <Default>50hz</Default>
+                    <Values>
+                        <Value>50hz</Value>
+                        <Value>80hz</Value>
+                        <Value>100hz</Value>
+                        <Value>120hz</Value>
+                        <Value>150hz</Value>
+                        <Value>200hz</Value>
+                        <Value>240hz</Value>
+                        <Value>250hz</Value>
+                    </Values>
+                </Property>
+            </ExtraProperties>
+        </Variant>
+    </Controller>
     <Controller Name="K8-PB">
         <Variant Name="No Expansion" ID="K8-PB" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>20</MaxPixelPort>

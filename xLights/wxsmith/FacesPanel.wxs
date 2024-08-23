@@ -55,6 +55,7 @@
 							<object class="sizeritem">
 								<object class="wxChoice" name="ID_CHOICE_Faces_TimingTrack" subclass="BulkEditChoice" variable="Choice_Faces_TimingTrack" member="yes">
 									<enabled>0</enabled>
+									<style>wxCB_SORT</style>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>

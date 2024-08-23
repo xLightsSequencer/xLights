@@ -33,27 +33,29 @@ extern bool isMetalComputeSupported();
 #endif
 
 //(*IdInit(OtherSettingsPanel)
-const long OtherSettingsPanel::ID_STATICTEXT1 = wxNewId();
-const long OtherSettingsPanel::ID_CHOICE1 = wxNewId();
-const long OtherSettingsPanel::ID_CHECKBOX1 = wxNewId();
-const long OtherSettingsPanel::ID_CHOICE4 = wxNewId();
-const long OtherSettingsPanel::ID_CHECKBOX7 = wxNewId();
-const long OtherSettingsPanel::ID_STATICTEXT3 = wxNewId();
-const long OtherSettingsPanel::ID_CHOICE_CODEC = wxNewId();
-const long OtherSettingsPanel::ID_STATICTEXT5 = wxNewId();
-const long OtherSettingsPanel::ID_SPINCTRLDOUBLE_BITRATE = wxNewId();
-const long OtherSettingsPanel::ID_CHECKBOX2 = wxNewId();
-const long OtherSettingsPanel::ID_CHECKBOX3 = wxNewId();
-const long OtherSettingsPanel::ID_CHECKBOX4 = wxNewId();
-const long OtherSettingsPanel::ID_CHECKBOX6 = wxNewId();
-const long OtherSettingsPanel::ID_CHECKBOX5 = wxNewId();
-const long OtherSettingsPanel::ID_STATICTEXT4 = wxNewId();
-const long OtherSettingsPanel::ID_CHOICE3 = wxNewId();
-const long OtherSettingsPanel::ID_CHECKBOX8 = wxNewId();
-const long OtherSettingsPanel::ID_STATICTEXT2 = wxNewId();
-const long OtherSettingsPanel::ID_CHOICE2 = wxNewId();
-const long OtherSettingsPanel::ID_TEXTCTRL1 = wxNewId();
-const long OtherSettingsPanel::ID_CHECKBOX9 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_STATICTEXT1 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE1 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHECKBOX1 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE4 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHECKBOX7 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_STATICTEXT3 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE_CODEC = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_STATICTEXT5 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_SPINCTRLDOUBLE_BITRATE = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHECKBOX2 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHECKBOX3 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHECKBOX4 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHECKBOX6 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHECKBOX5 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_STATICTEXT4 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE3 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHECKBOX8 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_STATICTEXT2 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE2 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_STATICTEXT6 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE_ALIASPROMPT = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_TEXTCTRL1 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHECKBOX9 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
@@ -71,6 +73,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer6;
+    wxFlexGridSizer* FlexGridSizer7;
     wxGridBagSizer* GridBagSizer1;
     wxGridBagSizer* GridBagSizer2;
     wxStaticBoxSizer* StaticBoxSizer1;
@@ -99,6 +102,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     HardwareVideoRenderChoice->Append(_("FFmpeg QSV"));
     HardwareVideoRenderChoice->Append(_("FFmpeg Vulkan"));
     HardwareVideoRenderChoice->Append(_("FFmpeg AMF"));
+    HardwareVideoRenderChoice->Append(_("FFmpeg DirectX11"));
     FlexGridSizer3->Add(HardwareVideoRenderChoice, 1, wxALL|wxEXPAND, 5);
     GridBagSizer1->Add(FlexGridSizer3, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
     ShaderCheckbox = new wxCheckBox(this, ID_CHECKBOX7, _("Shaders on Background Threads"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
@@ -140,7 +144,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     GridBagSizer1->Add(CheckBox_PurgeDownloadCache, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
     CheckBox_IgnoreVendorModelRecommendations = new wxCheckBox(this, ID_CHECKBOX5, _("Ignore vendor model recommendations"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
     CheckBox_IgnoreVendorModelRecommendations->SetValue(false);
-    GridBagSizer1->Add(CheckBox_IgnoreVendorModelRecommendations, wxGBPosition(8, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
+    GridBagSizer1->Add(CheckBox_IgnoreVendorModelRecommendations, wxGBPosition(9, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
     StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Tip Of The Day"));
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText5 = new wxStaticText(this, ID_STATICTEXT4, _("Minimum Tip Level"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
@@ -166,6 +170,15 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Choice_LinkControllerUpload->Append(_("Inputs and Outputs"));
     FlexGridSizer5->Add(Choice_LinkControllerUpload, 1, wxALL|wxEXPAND, 5);
     GridBagSizer1->Add(FlexGridSizer5, wxGBPosition(7, 0), wxDefaultSpan, wxALL|wxEXPAND, 0);
+    FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
+    StaticText7 = new wxStaticText(this, ID_STATICTEXT6, _("Model renaming alias behavior"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+    FlexGridSizer7->Add(StaticText7, 1, wxALL|wxEXPAND, 5);
+    Choice_AliasPromptBehavior = new wxChoice(this, ID_CHOICE_ALIASPROMPT, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_ALIASPROMPT"));
+    Choice_AliasPromptBehavior->SetSelection( Choice_AliasPromptBehavior->Append(_("Always Prompt")) );
+    Choice_AliasPromptBehavior->Append(_("Always Yes"));
+    Choice_AliasPromptBehavior->Append(_("Always No"));
+    FlexGridSizer7->Add(Choice_AliasPromptBehavior, 1, wxALL|wxEXPAND, 5);
+    GridBagSizer1->Add(FlexGridSizer7, wxGBPosition(8, 0), wxDefaultSpan, wxALL|wxEXPAND, 0);
     FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText1 = new wxStaticText(this, wxID_ANY, _("eMail Address:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer6->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -177,27 +190,26 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     GPURenderCheckbox->SetToolTip(_("Some effects can be rendered on the GPU if this is enabled."));
     GridBagSizer1->Add(GPURenderCheckbox, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(GridBagSizer1);
-    GridBagSizer1->Fit(this);
-    GridBagSizer1->SetSizeHints(this);
 
-    Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHOICE4,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX7,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHOICE_CODEC,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_SPINCTRLDOUBLE_BITRATE,wxEVT_SPINCTRLDOUBLE,(wxObjectEventFunction)&OtherSettingsPanel::OnSpinCtrlDoubleBitrateChange);
-    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX8,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(ID_CHECKBOX9,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
-    Connect(wxEVT_PAINT,(wxObjectEventFunction)&OtherSettingsPanel::OnPaint);
+    Connect(ID_CHOICE1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE4, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX7, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE_CODEC, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_SPINCTRLDOUBLE_BITRATE, wxEVT_SPINCTRLDOUBLE, (wxObjectEventFunction)&OtherSettingsPanel::OnSpinCtrlDoubleBitrateChange);
+    Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX6, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX5, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE3, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX8, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE2, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE_ALIASPROMPT, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX9, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(wxEVT_PAINT, (wxObjectEventFunction)&OtherSettingsPanel::OnPaint);
     //*)
 
 #ifdef __LINUX__
@@ -238,6 +250,7 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetUserEMAIL(eMailTextControl->GetValue());
 	frame->SetLinkedSave(Choice_LinkSave->GetStringSelection());
 	frame->SetLinkedControllerUpload(Choice_LinkControllerUpload->GetStringSelection());
+    frame->SetRenameModelAliasPromptBehavior(Choice_AliasPromptBehavior->GetStringSelection());
 	frame->SetPromptBatchRenderIssues(CheckBox_BatchRenderPromptIssues->GetValue());
 	frame->SetIgnoreVendorModelRecommendations(CheckBox_IgnoreVendorModelRecommendations->GetValue());
 	frame->SetPurgeDownloadCacheOnStart(CheckBox_PurgeDownloadCache->GetValue());
@@ -261,6 +274,7 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     eMailTextControl->ChangeValue(frame->UserEMAIL());
 	Choice_LinkSave->SetStringSelection(frame->GetLinkedSave());
 	Choice_LinkControllerUpload->SetStringSelection(frame->GetLinkedControllerUpload());
+    Choice_AliasPromptBehavior->SetStringSelection(frame->GetRenameModelAliasPromptBehavior());
 	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
 	CheckBox_IgnoreVendorModelRecommendations->SetValue(frame->GetIgnoreVendorModelRecommendations());
 	CheckBox_PurgeDownloadCache->SetValue(frame->GetPurgeDownloadCacheOnStart());

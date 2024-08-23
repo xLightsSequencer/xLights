@@ -142,9 +142,13 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
     MenuFile->FindItem(ID_MENUITEM_OPENRECENTSEQUENCE)->Enable(cnt != 0);
 }
 
-
 bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
 {
+    if (readOnlyMode) {
+        wxMessageBox("Show directory cannot be changed in read only mode.", "Read Only Mode", wxICON_INFORMATION | wxOK);
+        return false;
+    }
+    
     wxString nd = newdir;
     if (nd.EndsWith(wxFileName::GetPathSeparator()))
         nd = nd.SubString(0, nd.size() - 2);
@@ -154,6 +158,11 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         return false;
     }
 
+    if (!ObtainAccessToURL(newdir, true)) {
+        return false;
+    }
+
+    
     layoutPanel->ClearSelectedModelGroup();
 
     // delete any views that were added to the menu
@@ -252,7 +261,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         return false;
     }
 
-    ObtainAccessToURL(nd.ToStdString());
+    ObtainAccessToURL(nd.ToStdString(), true);
 
     // update UI
     CheckBoxLightOutput->SetValue(false);
@@ -418,6 +427,12 @@ void xLightsFrame::OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event)
     PromptForShowDirectory(false);
 }
 
+bool xLightsFrame::OnButton_OpenBaseShowDirClick(wxCommandEvent& event) {
+    displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
+    layoutPanel->ClearUndo();
+    return SetDir(_outputManager.GetBaseShowDir(), false);
+}
+
 void xLightsFrame::OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event)
 {
     if (Button_CheckShowFolderTemporarily->GetLabel() == "Change Temporarily") {
@@ -432,15 +447,28 @@ void xLightsFrame::OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event)
     }
 }
 
-bool xLightsFrame::PromptForShowDirectory(bool permanent) {
+bool xLightsFrame::PromptForDirectorySelection(const std::string &msg, std::string &dir) {
+    wxDirDialog DirDialog1(this, msg, dir, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+    while (true) {
+        if (DirDialog1.ShowModal() == wxID_OK) {
+            dir = DirDialog1.GetPath();
+            ObtainAccessToURL(dir, true);
+            return true;
+        }
+        DirDialog1.SetPath(dir);
+    }
+}
 
-    wxDirDialog DirDialog1(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+
+bool xLightsFrame::PromptForShowDirectory(bool permanent, const std::string &defaultDir) {
+
+    wxDirDialog DirDialog1(this, _("Select Show Directory"), defaultDir, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
 
     while (DirDialog1.ShowModal() == wxID_OK) {
         bool dirOK = true;
         AbortRender(); // make sure nothing is still rendering
         wxString newdir = DirDialog1.GetPath();
-        ObtainAccessToURL(newdir);
+        ObtainAccessToURL(newdir, true);
         if (newdir == CurrentDir) return true;
 
         if (ShowFolderIsInBackup(newdir.ToStdString())) {
@@ -1302,6 +1330,7 @@ void xLightsFrame::EnableNetworkChanges() {
     BitmapButtonMoveNetworkUp->Enable(flag);
     BitmapButtonMoveNetworkDown->Enable(flag);
     ButtonDiscover->Enable(flag);
+    ButtonFPPConnect->Enable(flag);
     ButtonSaveSetup->Enable(!CurrentDir.IsEmpty());
     CheckBoxLightOutput->Enable(!CurrentDir.IsEmpty());
     BitmapButtonMoveNetworkDown->Enable(flag);
@@ -1310,6 +1339,9 @@ void xLightsFrame::EnableNetworkChanges() {
 }
 
 #pragma region Left Buttons
+void xLightsFrame::OnButtonFPPConnectClick(wxCommandEvent& event) {
+    this->OnMenuItem_FPP_ConnectSelected(event);
+}
 void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1555,13 +1587,6 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         FlexGridSizerSetupControllerButtons->Add(LedPing, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
         LedPing->Show();
 
-        if (StaticTextDummy != nullptr) {
-            // I remove the static text as this was the only way I seem to be able to make the LED visible
-            FlexGridSizerSetupControllerButtons->Detach(StaticTextDummy);
-            Panel5->RemoveChild(StaticTextDummy);
-            delete StaticTextDummy;
-            StaticTextDummy = nullptr;
-        }
     }
 
     // try to ensure what should be visible is visible in roughly the same part of the screen
@@ -1575,7 +1600,7 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
     }
 
     Panel2->SetMinSize(wxSize(400, -1));
-    Panel5->SetMinSize(wxSize(600, -1));
+    Panel5->SetMinSize(this->FromDIP(wxSize(380, -1)));
     List_Controllers->Thaw();
 
     Panel2->Layout();
@@ -1941,7 +1966,7 @@ int xLightsFrame::GetSelectedControllerCount() const {
 
 void xLightsFrame::OnListItemSelectedControllers(wxListEvent& event)
 {
-    if (!inInitialize) { // dwe
+    if (!inInitialize) {
         SetControllersProperties();
     }
 

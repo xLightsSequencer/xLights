@@ -28,6 +28,7 @@
 #include "Mesh.h"
 #include "MovingHeads/MhFeature.h"
 #include "MovingHeads/MhFeatureDialog.h"
+#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -81,7 +82,11 @@ DmxMovingHeadAdv::DmxMovingHeadAdv(wxXmlNode *node, const ModelManager &manager,
 #ifndef __WXMSW__
     obj_path = wxStandardPaths::Get().GetResourcesDir() + "/meshobjects/SimpleMovingHead/";
 #else
+#ifdef _DEBUG
+    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/../../../meshobjects/SimpleMovingHead/";
+#else
     obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/SimpleMovingHead/";
+#endif
 #endif
     beam_width = GetDefaultBeamWidth();
     SetFromXml(node, zeroBased);
@@ -223,7 +228,8 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
     }
     grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES_ADV, selected));
     if (nullptr != color_ability) {
-        color_ability->AddColorTypeProperties(grid);
+        ControllerCaps *caps = GetControllerCaps();
+        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
     }
     grid->Collapse("DmxColorAbility");
 
@@ -1037,4 +1043,26 @@ void DmxMovingHeadAdv::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_c
             }
         }
     }
+}
+
+std::vector<std::string> DmxMovingHeadAdv::GenerateNodeNames() const {
+    std::vector<std::string> names = DmxModel::GenerateNodeNames();
+
+    if (0 != shutter_channel && shutter_channel < names.size()) {
+        names[shutter_channel - 1] = "Shutter";
+    }
+    if (0 != pan_motor->GetChannelCoarse() && pan_motor->GetChannelCoarse() < names.size()) {
+        names[pan_motor->GetChannelCoarse() - 1] = "Pan";
+    }
+    if (0 != tilt_motor->GetChannelCoarse() && tilt_motor->GetChannelCoarse() < names.size()) {
+        names[tilt_motor->GetChannelCoarse() - 1] = "Tilt";
+    }
+    if (0 != pan_motor->GetChannelFine() && pan_motor->GetChannelFine() < names.size()) {
+        names[pan_motor->GetChannelFine() - 1] = "Pan Fine";
+    }
+    if (0 != tilt_motor->GetChannelFine() && tilt_motor->GetChannelFine() < names.size()) {
+        names[tilt_motor->GetChannelFine() - 1] = "Tilt Fine";
+    }
+
+    return names;
 }

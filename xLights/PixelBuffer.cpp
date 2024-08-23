@@ -1534,7 +1534,7 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool>& validLay
     layers[saveLayer]->buffer.Nodes[node]->SetColor(c);
     if (saveToPixels) {
         for (auto &n : layers[saveLayer]->buffer.Nodes[node]->Coords) {
-            layers[saveLayer]->buffer.SetPixel(n.bufX, n.bufY, c);
+            layers[saveLayer]->buffer.SetPixel(n.bufX, n.bufY, c, false, false, true);
         }
     }
 }

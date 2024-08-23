@@ -30,6 +30,7 @@ BEGIN_EVENT_TABLE(MHRgbPickerPanel, wxPanel)
     EVT_LEFT_UP(MHRgbPickerPanel::OnLeftUp)
     EVT_MOTION(MHRgbPickerPanel::OnMouseMove)
     EVT_ENTER_WINDOW(MHRgbPickerPanel::OnEntered)
+    EVT_LEAVE_WINDOW(MHRgbPickerPanel::OnLeave)
     EVT_SIZE(MHRgbPickerPanel::OnSize)
 END_EVENT_TABLE()
 
@@ -65,12 +66,12 @@ void MHRgbPickerPanel::OnSize(wxSizeEvent& event){
     event.Skip();
 }
 
-void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/)
-{
+void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/) {
     wxAutoBufferedPaintDC pdc(this);
 
-    if ( !m_hsvBitmap->IsOk() )
-     return;
+    if (!m_hsvBitmap->IsOk()) {
+        return;
+    }
 
     wxSize dcSize = pdc.GetSize();
     
@@ -98,14 +99,15 @@ void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/)
         pdc.DrawCircle(ptUI, handleRadius-1);
         pdc.DrawCircle(ptUI, handleRadius);
         pdc.DrawCircle(ptUI, handleRadius+1);
-        if( m_handles.size() > 1 ) {
+        if (c.asHSV().value > 0.5) {
             pdc.SetTextForeground(wxColour(xlBLACK));
-            wxString text = wxString::Format("%d", handle);
-            pdc.DrawText(text, ptUI.x-4, ptUI.y-8);
-            handle++;
+        } else {
+            pdc.SetTextForeground(wxColour(xlWHITE));
         }
+        wxString text = wxString::Format("%d", handle);
+        pdc.DrawText(text, ptUI.x-4, ptUI.y-8);
+        handle++;
     }
-    
     // draw color value bar
     if( active_handle >= 0 ) {
         wxRect rect(v_left, v_top, v_width, v_height);
@@ -129,17 +131,25 @@ void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/)
             pdc.SetBrush(*wxWHITE_BRUSH);
         }
         pdc.DrawPolygon(num_points, points, wxODDEVEN_RULE);
+        pdc.SetTextForeground(wxColour(xlBLACK));
+        wxString text = wxString::Format("H:%i,S:%i,V:%i",
+                        int(hsv.hue * 360.0), int(hsv.saturation * 100.0), int(value * 100.0));
+        pdc.DrawText(text, 0 , 0);
     }
 }
 
-void MHRgbPickerPanel::OnKeyDown(wxKeyEvent& event)
-{
+void MHRgbPickerPanel::OnKeyDown(wxKeyEvent& event) {
     int keycode = event.GetKeyCode();
     if (keycode == WXK_DELETE) {
-        if( active_handle >= 0 ) {
-            m_handles.erase(m_handles.begin()+active_handle);
-            selected_point = -1;
-            active_handle = -1;
+        if (active_handle >= 0) {
+            m_handles.erase(m_handles.begin() + active_handle);
+            if (!m_handles.empty()) {
+                selected_point = std::max(active_handle - 1, 0);
+                active_handle = std::max(active_handle - 1, 0);
+            } else {
+                selected_point = -1;
+                active_handle = -1;
+            }
             m_rgbPickerParent->NotifyColorUpdated();
             Refresh();
         }
@@ -156,48 +166,56 @@ void MHRgbPickerPanel::OnKeyUp(wxKeyEvent& event)
     }
 }
 
-void MHRgbPickerPanel::OnLeftDown(wxMouseEvent& event)
-{
+void MHRgbPickerPanel::OnLeftDown(wxMouseEvent& event) {
     wxAffineMatrix2D m;
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
     m_mousePos = UItoNormalized(ptUI);
     m_mouseDown = true;
-    if( m_handles.size() == 0 ) {
-        if( insideColors(ptUI.m_x, ptUI.m_y) ) {
-            xlColor color{GetPointColor(ptUI.m_x, ptUI.m_y)};
+    if (m_handles.empty()) {
+        if (insideColors(ptUI.m_x, ptUI.m_y)) {
+            xlColor color{ GetPointColor(ptUI.m_x, ptUI.m_y) };
             m_handles.push_back(HandlePoint(m_mousePos, color));
             selected_point = 0;
             active_handle = 0;
             m_rgbPickerParent->NotifyColorUpdated();
             Refresh();
         }
-    } else if( insideColors(ptUI.m_x, ptUI.m_y) ) {
-        if( m_shiftdown ) {
-            if( m_handles.size() < 8 ) {
+    } else if (insideColors(ptUI.m_x, ptUI.m_y)) {
+        selected_point = HitTest(ptUI);
+        if (selected_point >= 0 && !m_shiftdown) {
+            active_handle = selected_point;
+            if (active_handle >= 0) {
+                m_handles.erase(m_handles.begin() + active_handle);
+                if (m_handles.size() > 0) {
+                    selected_point = std::max(active_handle - 1, 0);
+                    active_handle = std::max(active_handle - 1, 0);
+                } else {
+                    selected_point = -1;
+                    active_handle = -1;
+                }
+                m_rgbPickerParent->NotifyColorUpdated();
+            }
+            Refresh();
+        } else {
+            if (m_handles.size() < 8 && !m_shiftdown) {
                 active_handle = m_handles.size();
-                xlColor color{GetPointColor(ptUI.m_x, ptUI.m_y)};
+                xlColor color{ GetPointColor(ptUI.m_x, ptUI.m_y) };
                 m_handles.push_back(HandlePoint(m_mousePos, color));
                 selected_point = active_handle;
-                m_rgbPickerParent->NotifyColorUpdated();
-                Refresh();
-            }
-        } else {
-            selected_point = HitTest(ptUI);
-            if( selected_point >= 0 ) {
-                active_handle = selected_point;
-                Refresh();
             } else {
-                m_handles[active_handle].pt.m_x = m_mousePos.m_x;
-                m_handles[active_handle].pt.m_y = m_mousePos.m_y;
-                xlColor c {GetPointColor(ptUI.m_x, ptUI.m_y)};
-                m_handles[active_handle].color = wxColour(c);
-                selected_point = active_handle;
-                m_rgbPickerParent->NotifyColorUpdated();
-                Refresh();
+                if (selected_point >= 0) {
+                    active_handle = selected_point;
+                    m_handles[active_handle].pt.m_x = m_mousePos.m_x;
+                    m_handles[active_handle].pt.m_y = m_mousePos.m_y;
+                    xlColor c{ GetPointColor(ptUI.m_x, ptUI.m_y) };
+                    m_handles[active_handle].color = wxColour(c);
+                }
             }
+            m_rgbPickerParent->NotifyColorUpdated();
+            Refresh();
         }
     } else {
-        if( HitTestV( ptUI ) ) {
+        if (HitTestV(ptUI)) {
             m_mouseDown = false;
             m_mouseDownV = true;
         }
@@ -236,6 +254,13 @@ void MHRgbPickerPanel::OnMouseMove(wxMouseEvent& event)
 void MHRgbPickerPanel::OnEntered(wxMouseEvent& /*event*/)
 {
     SetFocus();
+}
+
+void MHRgbPickerPanel::OnLeave(wxMouseEvent& /*event*/) {
+    m_mouseDown = false;
+    m_mouseDownV = false;
+    m_mouseDClick = false;
+    selected_point = -1;
 }
 
 bool MHRgbPickerPanel::HitTestV( wxPoint2DDouble& ptUI )
@@ -420,4 +445,14 @@ void MHRgbPickerPanel::SetColours( const std::string& _colors )
         active_handle = 0;
     }
     Refresh();
+}
+
+void MHRgbPickerPanel::ResetColours() {
+    for (std::size_t i = 0; i < m_handles.size(); ++i) {
+        m_handles.erase(m_handles.begin() + i);
+    }
+    m_rgbPickerParent->NotifyColorUpdated();
+    Refresh();
+    selected_point = -1;
+    active_handle = -1;
 }

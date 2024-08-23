@@ -89,6 +89,7 @@ constexpr auto DmxWhiteChannelAttribute = "DmxWhiteChannel";
 // DmxColorAbilityWheel Attributes
 constexpr auto DmxColorWheelChannelAttribute = "DmxColorWheelChannel";
 constexpr auto DmxDimmerChannelAttribute     = "DmxDimmerChannel";
+constexpr auto DmxColorWheelDelayAttribute   = "DmxColorWheelDelay";
 constexpr auto DmxColorWheelColorAttribute   = "DmxColorWheelColor";
 constexpr auto DmxColorWheelDMXAttribute     = "DmxColorWheelDMX";
 
@@ -212,6 +213,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor
     {
         node->AddAttribute(XmlNodeKeys::DmxColorWheelChannelAttribute, std::to_string(colors->GetWheelChannel()));
         node->AddAttribute(XmlNodeKeys::DmxDimmerChannelAttribute, std::to_string(colors->GetDimmerChannel()));
+        node->AddAttribute(XmlNodeKeys::DmxColorWheelDelayAttribute, std::to_string(colors->GetWheelDelay()));
         std::vector<WheelColor> settings = colors->GetWheelColorSettings();
         int index = 0;
         for (const auto& it : settings)

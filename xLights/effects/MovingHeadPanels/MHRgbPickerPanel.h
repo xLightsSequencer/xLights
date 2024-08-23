@@ -39,6 +39,7 @@ public:
     virtual std::string GetColour() override;
     virtual bool HasColour() override { return m_handles.size() > 0; }
     virtual void SetColours( const std::string& _colors ) override;
+    virtual void ResetColours() override;
     void OnSize(wxSizeEvent& event);
 
 private:
@@ -61,6 +62,7 @@ private:
     void OnEntered(wxMouseEvent& event);
     void OnKeyDown(wxKeyEvent& event);
     void OnKeyUp(wxKeyEvent& event);
+    void OnLeave(wxMouseEvent& event);
 
     wxPoint2DDouble UItoNormalized(const wxPoint2DDouble& pt) const;
     wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt) const;

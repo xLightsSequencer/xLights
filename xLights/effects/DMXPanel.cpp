@@ -1005,6 +1005,14 @@ DMXPanel::DMXPanel(wxWindow* parent) : xlEffectPanel(parent)
     ValueCurve_DMX38->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
     ValueCurve_DMX39->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
     ValueCurve_DMX40->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX41->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX42->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX43->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX44->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX45->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX46->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX47->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX48->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
 
 	ValidateWindow();
 }

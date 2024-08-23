@@ -100,6 +100,11 @@ void xLightsFrame::AddAllModelsToSequence()
 
 void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, uint32_t frameMS, const std::string& defView)
 {
+    if (readOnlyMode) {
+        DisplayError("Sequences cannot be created in read only mode!", this);
+        return;
+    }
+
     // close any open sequences
     if (!CloseSequence()) {
         return;
@@ -957,13 +962,13 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxArrayString filters;
-    filters.push_back("All|*.xsq;*.sup;*.lms;*.lpe;*.las;*.loredit;*.xml;*.hlsdata;*.vix;*.tim;*.msq;*.vsa;*.zip;*.piz");
+    filters.push_back("All|*.xsq;*.sup;*.lms;*.lpe;*.las;*.loredit;*.xml;*.hlsdata;*.vix;*.tim;*.msq;*.vsa;*.zip;*.piz;*.xsqz");
     filters.push_back("SuperStar File (*.sup)|*.sup");
     filters.push_back("LOR Music Sequences (*.lms)|*.lms");
     filters.push_back("LOR Pixel Editor Sequences (*.lpe)|*.lpe");
     filters.push_back("LOR Animation Sequences (*.las)|*.las");
     filters.push_back("LOR S5(*.loredit)|*.loredit");
-    filters.push_back("xLights Sequence Package (*.zip;*.piz)|*.zip;*.piz");
+    filters.push_back("xLights Sequence Package (*.zip;*.piz;*.xsqz)|*.zip;*.piz;*.xsqz");
     filters.push_back("xLights Sequence (*.xsq)|*.xsq");
     filters.push_back("Old xLights Sequence (*.xml)|*.xml");
     filters.push_back("HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata");
@@ -1025,7 +1030,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
             ImportVixen3(fn);
         } else if (ext == "vix") {
             ImportVix(fn);
-        } else if (ext == "xml" || ext == "xsq" || ext == "zip" || ext == "piz") {
+        } else if (ext == "xml" || ext == "xsq" || ext == "zip" || ext == "xsqz" || ext == "piz") {
             ImportXLights(fn);
         } else if (ext == "msq") {
             ImportLSP(fn);
@@ -1284,7 +1289,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                     for (size_t n = 0; n < ste->GetNodeLayerCount(); ++n) {
                         NodeLayer* nl = ste->GetNodeLayer(n, true);
                         if (nl->GetEffectCount() > 0) {
-                            std::string nodeName = nl->GetName();
+                            std::string nodeName = nl->GetNodeName();
                             if (nodeName == "") {
                                 nodeName = wxString::Format("Node %d", (int)(n + 1));
                             }
@@ -5802,6 +5807,10 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
         logger_base.crit("ImportServoData cannot have null layer to import onto - this is going to crash.");
     }
 
+    if (layer->GetLayerName().empty()) {
+        layer->SetLayerName(name);
+    }
+    
     float last_pos = -1.0;
     int last_time = 0;
     bool warn = true;
@@ -5815,10 +5824,12 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             settings += "E_CHECKBOX_16bit=0,";
         }
         settings += "E_CHOICE_Channel=" + name + ",";
-        settings += "E_VALUECURVE_Servo=Active=TRUE|Id=ID_VALUECURVE_Servo|Type=Ramp|Min=0.00|Max=1000.00|";
         float start_pos = (((float)events[i].start_pos - (float)min_limit) * 100.0) / ((float)max_limit - (float)min_limit);
-        settings += "P1=" + wxString::Format("%3.1f", start_pos * 10.0).ToStdString() + "|";
         float end_pos = (((float)events[i].end_pos - (float)min_limit) * 100.0) / ((float)max_limit - (float)min_limit);
+
+        settings += "E_TEXTCTRL_Servo=" + wxString::Format("%3.1f", start_pos).ToStdString() + ",";
+        settings += "E_TEXTCTRL_EndValue=" + wxString::Format("%3.1f", end_pos).ToStdString() + ",";
+
         if (start_pos < 0.0) {
             if (warn) {
                 DisplayWarning(wxString::Format("%s: Servo Limit Exceeded. start_pos < 0%% : %.2f min/max %d/%d", name, start_pos, min_limit, max_limit).ToStdString());
@@ -5845,7 +5856,6 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             }
             end_pos = 0.0;
         }
-        settings += "P2=" + wxString::Format("%3.1f", end_pos * 10.0).ToStdString() + "|RV=TRUE";
         if (last_pos == -1.0) {
             last_pos = start_pos;
         }
@@ -5858,6 +5868,7 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             }
             settings2 += "E_CHOICE_Channel=" + name + ",";
             settings2 += "E_TEXTCTRL_Servo=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
+            settings2 += "E_TEXTCTRL_EndValue=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
             layer->AddEffect(0, "Servo", settings2, palette, last_time, events[i].start_time * timing, false, false);
         }
         layer->AddEffect(0, "Servo", settings, palette, events[i].start_time * timing, events[i].end_time * timing, false, false);
@@ -5875,6 +5886,7 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
                 }
                 settings3 += "E_CHOICE_Channel=" + name + ",";
                 settings3 += "E_TEXTCTRL_Servo=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
+                settings3 += "E_TEXTCTRL_EndValue=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
                 layer->AddEffect(0, "Servo", settings3, palette, last_time, sequence_end_time, false, false);
             }
         }

@@ -472,7 +472,7 @@ void RenderCache::CleanupCache(SequenceElements* sequenceElements)
     }
     logger_base.debug("    Cleaned up %d items in the cache.", deleted);
 
-    for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
+    for (int i = 0; i < sequenceElements->GetElementCount(); ++i) {
         Element* em = sequenceElements->GetElement(i);
         purgeCache(em, false);
     }

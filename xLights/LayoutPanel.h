@@ -351,6 +351,7 @@ class LayoutPanel: public wxPanel
         void BulkEditShadowModelFor();
         void BulkEditControllerConnection(int type);
         void BulkEditControllerPreview();
+        void BulkEditGroupControllerPreview();
         void BulkEditDimmingCurves();
         void ReplaceModel();
         void EditSubModelAlias();
@@ -536,6 +537,7 @@ class LayoutPanel: public wxPanel
         static const long ID_MNU_ADD_MODEL_GROUP;
         static const long ID_MNU_ADD_TO_EXISTING_GROUPS;
         static const long ID_MNU_BULKEDIT_GROUP_TAGCOLOR;
+        static const long ID_MNU_BULKEDIT_GROUP_PREVIEW;
         static const long ID_MNU_EDIT_SUBMODEL_ALIAS;
         void OnModelsPopup(wxCommandEvent& event);
         LayoutGroup* GetLayoutGroup(const std::string& name);

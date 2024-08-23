@@ -32,8 +32,6 @@
 
 #define END_OF_RENDER_FRAME INT_MAX
 
-//other common strings
-static const std::string STR_EMPTY("");
 
 class EffectLayerInfo {
 public:

@@ -70,20 +70,6 @@ class SubModelTextDropTarget : public wxTextDropTarget
         wxString _type;
 };
 
-//https://forums.wxwidgets.org/viewtopic.php?f=20&t=41045
-class StretchGrid : public wxGrid
-{
-public:
-    StretchGrid (wxWindow *parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-	       long style = wxWANTS_CHARS, const wxString& name = wxGridNameStr);
-    ~StretchGrid ();
-
-protected:
-    void OnGridWindowSize (wxSizeEvent& event);
-    void OnColHeaderSize (wxGridSizeEvent& event);
-    void AutoSizeLastCol ();
-};
-
 class SubModelsDialog : public wxDialog
 {
     struct SubModelInfo {
@@ -142,7 +128,6 @@ public:
     void Save();
 
     //(*Declarations(SubModelsDialog)
-    StretchGrid* NodesGrid;
     wxButton* AddButton;
     wxButton* AddRowButton;
     wxButton* ButtonCopy;
@@ -163,6 +148,7 @@ public:
     wxChoice* ChoiceBufferStyle;
     wxFlexGridSizer* PreviewSizer;
     wxFlexGridSizer* SubBufferSizer;
+    wxGrid* NodesGrid;
     wxListCtrl* ListCtrl_SubModels;
     wxNotebook* TypeNotebook;
     wxPanel* ModelPreviewPanelLocation;
@@ -349,6 +335,7 @@ private:
     void OnInit(wxInitDialogEvent& event);
     void OnNodesGridCellRightClick(wxGridEvent& event);
     void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
+    void OnSplitterSashPosChanging(wxSplitterEvent& event);
     //*)
 
     void OnCancel(wxCloseEvent& event);

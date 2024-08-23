@@ -21,7 +21,7 @@
 class Mesh;
 class MhFeature;
 
-class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility, public DmxDimmerAbility
+class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxDimmerAbility
 {
     public:
     DmxMovingHeadAdv(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
@@ -40,6 +40,7 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility, pub
 
         int GetNumMotors() const { return NUM_MOTORS; }
         DmxMotor* GetAxis(int num) { return num == 1 ? tilt_motor.get() : pan_motor.get(); }
+        [[nodiscard]] std::vector<std::string> GenerateNodeNames() const override;
 
         DmxMotorBase* GetPanMotor() const override { return pan_motor.get(); }
         DmxMotorBase* GetTiltMotor() const override { return tilt_motor.get(); }
@@ -65,7 +66,9 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxShutterAbility, pub
 
         void Draw3DBeam(xlVertexColorAccumulator *vac, xlColor beam_color, float beam_length_displayed, float pan_angle_raw, float tilt_angle, bool shutter_open, float beam_offset);
 
-        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override {}
+        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override {
+            return true;
+        }
 
         virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
         virtual float GetDefaultBeamWidth() const { return 1.5f; }

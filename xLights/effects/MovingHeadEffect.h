@@ -24,6 +24,7 @@
 
 class DmxMotorBase;
 class MovingHeadPanel;
+class DmxColorAbility;
 
 class MovingHeadEffect : public RenderableEffect
 {
@@ -127,4 +128,5 @@ protected:
     void CalculatePosition(int location, float& position, wxArrayString& heads, int groupings, float offset, float& delta );
     void CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const std::string& path_def);
     void CalculateDimmer(double eff_pos, wxArrayString&dimmers, uint32_t dimmer_channel, RenderBuffer &buffer);
+    void CalculateColorWheelShutter(DmxColorAbility* mh_color, double eff_pos, const wxArrayString& colors, int shutter_channel, int shutter_on, RenderBuffer& buffer);
 };

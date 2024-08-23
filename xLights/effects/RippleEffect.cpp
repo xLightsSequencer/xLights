@@ -870,13 +870,12 @@ static void drawRippleNew(
         }
 
         if (brX+outline > 0 && brY+outline > 0) {
-            if (outline > 0) {
-                if (outline > 1) {
-                    // Asked for a thicker shape
-                    ipointvec inner = ScaleShape(points, std::max(brX - outline, 0.0), std::max(brY - outline, 0.0), sxc, syc, srotation, true);
-                    ipointvec outer = ScaleShape(points, std::max(brX + outline, 0.0), std::max(brY + outline, 0.0), sxc, syc, srotation, true);
-                    FillRegion(buffer, inner, outer, hsvs, closedShape);
-                }
+            if (brX + outline > 0.75 || brY + outline > 0.75) {
+                // Asked for a thicker shape
+                ipointvec inner = ScaleShape(points, std::max(brX - outline, 0.0), std::max(brY - outline, 0.0), sxc, syc, srotation, true);
+                ipointvec outer = ScaleShape(points, std::max(brX + outline, 0.0), std::max(brY + outline, 0.0), sxc, syc, srotation, true);
+                FillRegion(buffer, inner, outer, hsvs, closedShape);
+
                 // Default line drawn always
                 if (fill) {
                     dpointvec mshp = ScaleShapeD(points, brX, brY, sxc, syc, srotation);

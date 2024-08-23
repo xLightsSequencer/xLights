@@ -289,8 +289,6 @@ void xxxEthernetOutput::AllOff() {
 }
 #pragma endregion 
 
-
-
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
 #include "../models/ModelManager.h"

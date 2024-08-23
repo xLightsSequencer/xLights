@@ -29,8 +29,6 @@
 
 #include "nanosvg/src/nanosvg.h"
 
-#include <regex>
-
 #include <algorithm>
 
 namespace RenderType
@@ -2549,36 +2547,9 @@ Effect* VUMeterEffect::GetTimingEvent(const std::string& timingTrack, uint32_t m
     EffectLayer* el = t->GetEffectLayer(0);
     for (int j = 0; j < el->GetEffectCount(); j++) {
         Effect* e = el->GetEffect(j);
-        if (e->GetStartTimeMS() <= ms && e->GetEndTimeMS() > ms)
-        {
-            if (filter == "") return e;
-
-            const std::string name = e->GetEffectName();
-
-            if (name == "")
-                return nullptr;
-
-            if (regex)
-            {
-                std::regex r(filter, std::regex_constants::extended);
-                if (std::regex_search(name, r))
-                    return e;
-            }
-            else
-            {
-                // tokenise the label and then check if any match the filter
-                const std::string tokens = ": ;,";
-                char n[4096] = { 0 };
-                strncpy(n, name.c_str(), sizeof(n) - 1);
-                const char* token = strtok(n, tokens.c_str());
-                while (token != nullptr)
-                {
-                    if (filter == token)
-                        return e;
-                    token = strtok(nullptr, tokens.c_str());
-                }
-            }
-        }
+        if (e->GetStartTimeMS() <= ms && e->GetEndTimeMS() > ms && e->FilteredIn(filter, regex)) {
+			return e;
+		}
 
         if (e->GetStartTimeMS() > ms)
             return nullptr;
@@ -2932,7 +2903,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
                     lastbar = 1;
             } else if (bounce) {
                 lastbar += lastDirection;
-                if (lastbar == bars || 0 == lastbar) {
+                if (lastbar > bars || 0 == lastbar) {
                     lastDirection *= -1;
                     lastbar += (lastDirection*2);//2x so it moves
                 }

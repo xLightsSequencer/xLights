@@ -42,8 +42,7 @@ SyncSMPTE::~SyncSMPTE()
 {
 }
 
-void SyncSMPTE::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const
-{
+void SyncSMPTE::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno, int overridetimeSecs) const {
     // Not implemented
 }
 

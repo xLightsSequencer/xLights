@@ -405,7 +405,7 @@ void StrandElement::InitFromModel(Model &model) {
     int nc = model.GetStrandLength(mStrand);
     mName = model.GetStrandName(mStrand);
     for (int x = 0; x < mNodeLayers.size(); x++) {
-        mNodeLayers[x]->SetName(model.GetNodeName(x));
+        mNodeLayers[x]->SetNodeName(model.GetNodeName(x));
     }
     while (mNodeLayers.size() < nc) {
         NodeLayer *nl = new NodeLayer(this, model.GetNodeName(mNodeLayers.size()));

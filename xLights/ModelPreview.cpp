@@ -631,15 +631,15 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
         last_miny = miny;
         last_maxx = maxx;
         last_maxy = maxy;
-        if( !mg->GetCentreDefined() ) {
+        if (!mg->GetCentreDefined()) {
             int offx = mg->GetXCentreOffset();
             int offy = mg->GetYCentreOffset();
             float cx = (minx + maxx) / 2.0 + (offx * (maxx - minx)) / 2000.0;
             float cy = (miny + maxy) / 2.0 + (offy * (maxy - miny)) / 2000.0;
             DrawGroupCentre(cx, cy);
-            mg->SetCentreX( cx );
-            mg->SetCentreY( cy );
-            mg->SetCentreDefined( true );
+            mg->SetCentreX(cx);
+            mg->SetCentreY(cy);
+            mg->SetCentreDefined(offx != 0 || offy != 0);
             mg->SetCentreMinx(minx);
             mg->SetCentreMiny(miny);
             mg->SetCentreMaxx(maxx);
@@ -1367,13 +1367,13 @@ void ModelPreview::AddGridToAccumulator(const glm::mat4& ViewScale)
     if (_displayGrid) {
         auto color = ColorManager::instance()->GetColor(ColorManager::COLOR_GRIDLINES);
         
-        solidProgram->addStep([=](xlGraphicsContext *ctx) {
+        solidProgram->addStep([this, color](xlGraphicsContext *ctx) {
             ctx->drawLines(grid2d, color, 0, grid2d->getCount() - 8);
         });
     }
 
     if (allowSelected && _display2DBox) {
-        transparentProgram->addStep([=](xlGraphicsContext *ctx) {
+        transparentProgram->addStep([this](xlGraphicsContext *ctx) {
             ctx->drawLines(grid2d, xlGREENTRANSLUCENT, grid2d->getCount() - 8, 8);
         });
     }

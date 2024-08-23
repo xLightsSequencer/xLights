@@ -142,201 +142,202 @@
 #define MAXBACKUPFILE_MB 30
 
 //(*IdInit(xLightsFrame)
-const long xLightsFrame::ID_AUITOOLBAR_OPENSHOW = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_NEWSEQUENCE = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_OPEN = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_SAVE = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_SAVEAS = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_RENDERALL = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_MAIN = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_PLAY_NOW = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_PAUSE = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_STOP = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_FIRST_FRAME = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_LAST_FRAME = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_REPLAY_SECTION = wxNewId();
-const long xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM2 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM5 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM7 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM3 = wxNewId();
-const long xLightsFrame::ID_TOGGLE_MODEL_PREVIEW = wxNewId();
-const long xLightsFrame::ID_TOGGLE_HOUSE_PREVIEW = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM6 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM8 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM9 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM10 = wxNewId();
-const long xLightsFrame::ID_AUIWINDOWTOOLBAR = wxNewId();
-const long xLightsFrame::ID_PASTE_BY_TIME = wxNewId();
-const long xLightsFrame::ID_PASTE_BY_CELL = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_EDIT = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACDISABLED = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACSELECT = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACOFF = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACON = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACSHIMMER = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACTWINKLE = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACINTENSITY = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACRAMPUP = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACRAMPDOWN = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACRAMPUPDOWN = wxNewId();
-const long xLightsFrame::ID_CHOICE_PARM1 = wxNewId();
-const long xLightsFrame::ID_CHOICE_PARM2 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACFILL = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACCASCADE = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACFOREGROUND = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_ACBACKGROUND = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_AC = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM14 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_VIEW = wxNewId();
-const long xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
-const long xLightsFrame::ID_BUTTON3 = wxNewId();
-const long xLightsFrame::ID_BUTTON11 = wxNewId();
-const long xLightsFrame::ID_BUTTON13 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT2 = wxNewId();
-const long xLightsFrame::ID_BUTTON14 = wxNewId();
-const long xLightsFrame::ID_BUTTON15 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT3 = wxNewId();
-const long xLightsFrame::ID_CHECKBOX1 = wxNewId();
-const long xLightsFrame::ID_BUTTON16 = wxNewId();
-const long xLightsFrame::ID_BUTTON_SAVE_SETUP = wxNewId();
-const long xLightsFrame::ID_BUTTON9 = wxNewId();
-const long xLightsFrame::ID_BUTTON6 = wxNewId();
-const long xLightsFrame::ID_BUTTON10 = wxNewId();
-const long xLightsFrame::ID_BUTTON5 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON1 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON2 = wxNewId();
-const long xLightsFrame::ID_PANEL2 = wxNewId();
-const long xLightsFrame::ID_BUTTON1 = wxNewId();
-const long xLightsFrame::ID_BUTTON2 = wxNewId();
-const long xLightsFrame::ID_BUTTON4 = wxNewId();
-const long xLightsFrame::ID_BUTTON7 = wxNewId();
-const long xLightsFrame::ID_BUTTON12 = wxNewId();
-const long xLightsFrame::ID_BUTTON8 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT1 = wxNewId();
-const long xLightsFrame::ID_PANEL6 = wxNewId();
-const long xLightsFrame::ID_SPLITTERWINDOW1 = wxNewId();
-const long xLightsFrame::ID_PANEL_SETUP = wxNewId();
-const long xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
-const long xLightsFrame::XLIGHTS_SEQUENCER_TAB = wxNewId();
-const long xLightsFrame::ID_NOTEBOOK1 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT6 = wxNewId();
-const long xLightsFrame::ID_GAUGE1 = wxNewId();
-const long xLightsFrame::ID_PANEL5 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT7 = wxNewId();
-const long xLightsFrame::ID_PANEL1 = wxNewId();
-const long xLightsFrame::ID_NEW_SEQUENCE = wxNewId();
-const long xLightsFrame::ID_OPEN_SEQUENCE = wxNewId();
-const long xLightsFrame::ID_MENUITEM4 = wxNewId();
-const long xLightsFrame::ID_MENUITEM_OPENRECENTSEQUENCE = wxNewId();
-const long xLightsFrame::IS_SAVE_SEQ = wxNewId();
-const long xLightsFrame::ID_SAVE_AS_SEQUENCE = wxNewId();
-const long xLightsFrame::ID_CLOSE_SEQ = wxNewId();
-const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
-const long xLightsFrame::ID_MNU_KEYBINDINGS = wxNewId();
-const long xLightsFrame::ID_EXPORT_VIDEO = wxNewId();
-const long xLightsFrame::ID_MENUITEM2 = wxNewId();
-const long xLightsFrame::ID_MENUITEM8 = wxNewId();
-const long xLightsFrame::ID_MENUITEM_RECENTFOLDERS = wxNewId();
-const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
-const long xLightsFrame::ID_FILE_RESTOREBACKUP = wxNewId();
-const long xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
-const long xLightsFrame::ID_SHIFT_EFFECTS = wxNewId();
-const long xLightsFrame::ID_MNU_SHIFT_SELECTED_EFFECTS = wxNewId();
-const long xLightsFrame::ID_MNU_COLOURREPLACE = wxNewId();
-const long xLightsFrame::ID_MENUITEM13 = wxNewId();
-const long xLightsFrame::ID_MNU_CHECKSEQ = wxNewId();
-const long xLightsFrame::ID_MNU_CLEANUPFILE = wxNewId();
-const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
-const long xLightsFrame::ID_MNU_DOWNLOADSEQUENCES = wxNewId();
-const long xLightsFrame::ID_MENU_BATCH_RENDER = wxNewId();
-const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
-const long xLightsFrame::ID_MNU_BULKUPLOAD = wxNewId();
-const long xLightsFrame::ID_MENU_HINKSPIX_EXPORT = wxNewId();
-const long xLightsFrame::ID_MENU_RUN_SCRIPT = wxNewId();
-const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
-const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
-const long xLightsFrame::ID_MNU_EXPORT_CONTROLLER_CONNECTIONS = wxNewId();
-const long xLightsFrame::ID_MENU_VIEW_LOG = wxNewId();
-const long xLightsFrame::ID_MENUITEM18 = wxNewId();
-const long xLightsFrame::iD_MNU_VENDORCACHEPURGE = wxNewId();
-const long xLightsFrame::ID_MNU_PURGERENDERCACHE = wxNewId();
-const long xLightsFrame::ID_MNU_CRASH = wxNewId();
-const long xLightsFrame::ID_MNU_DUMPRENDERSTATE = wxNewId();
-const long xLightsFrame::ID_MENU_GENERATE2DPATH = wxNewId();
-const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
-const long xLightsFrame::ID_MNU_REMAPCUSTOM = wxNewId();
-const long xLightsFrame::ID_MNU_GENERATELYRICS = wxNewId();
-const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
-const long xLightsFrame::ID_MNU_PREPAREAUDIO = wxNewId();
-const long xLightsFrame::ID_MENU_USER_DICT = wxNewId();
-const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
-const long xLightsFrame::ID_MENU_XCAPTURE = wxNewId();
-const long xLightsFrame::ID_MNU_XSCANNER = wxNewId();
-const long xLightsFrame::ID_MENUITEM5 = wxNewId();
-const long xLightsFrame::MNU_ID_ACLIGHTS = wxNewId();
-const long xLightsFrame::ID_MNU_SHOWRAMPS = wxNewId();
-const long xLightsFrame::ID_MENUITEM_SAVE_PERSPECTIVE = wxNewId();
-const long xLightsFrame::ID_MENUITEM_SAVE_AS_PERSPECTIVE = wxNewId();
-const long xLightsFrame::ID_MENUITEM_LOAD_PERSPECTIVE = wxNewId();
-const long xLightsFrame::ID_MNU_PERSPECTIVES_AUTOSAVE = wxNewId();
-const long xLightsFrame::ID_MENUITEM7 = wxNewId();
-const long xLightsFrame::ID_MENUITEM_DISPLAY_ELEMENTS = wxNewId();
-const long xLightsFrame::ID_MENU_TOGGLE_MODEL_PREVIEW = wxNewId();
-const long xLightsFrame::ID_MENU_TOGGLE_HOUSE_PREVIEW = wxNewId();
-const long xLightsFrame::ID_MENUITEM14 = wxNewId();
-const long xLightsFrame::ID_MENUITEM15 = wxNewId();
-const long xLightsFrame::ID_MENUITEM16 = wxNewId();
-const long xLightsFrame::ID_MENUITEM9 = wxNewId();
-const long xLightsFrame::ID_MENUITEM17 = wxNewId();
-const long xLightsFrame::ID_MNU_VALUECURVES = wxNewId();
-const long xLightsFrame::ID_MNU_COLOURDROPPER = wxNewId();
-const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
-const long xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
-const long xLightsFrame::ID_MENUITEM_SEARCH_EFFECTS = wxNewId();
-const long xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
-const long xLightsFrame::ID_MNU_JUKEBOX = wxNewId();
-const long xLightsFrame::ID_MNU_FINDDATA = wxNewId();
-const long xLightsFrame::ID_MNU_SUPPRESSDOCK_HP = wxNewId();
-const long xLightsFrame::ID_MNU_SUPPRESSDOCK_MP = wxNewId();
-const long xLightsFrame::ID_MENUITEM3 = wxNewId();
-const long xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
-const long xLightsFrame::ID_MENUITEM_WINDOWS_DOCKALL = wxNewId();
-const long xLightsFrame::ID_MENUITEM11 = wxNewId();
-const long xLightsFrame::ID_MENUITEM10 = wxNewId();
-const long xLightsFrame::ID_PLAY_FULL = wxNewId();
-const long xLightsFrame::ID_MNU_1POINT5SPEED = wxNewId();
-const long xLightsFrame::ID_MN_2SPEED = wxNewId();
-const long xLightsFrame::ID_MNU_3SPEED = wxNewId();
-const long xLightsFrame::ID_MNU_4SPEED = wxNewId();
-const long xLightsFrame::ID_PLAY_3_4 = wxNewId();
-const long xLightsFrame::ID_PLAY_1_2 = wxNewId();
-const long xLightsFrame::ID_PLAY_1_4 = wxNewId();
-const long xLightsFrame::ID_MNU_LOUDVOLUME = wxNewId();
-const long xLightsFrame::ID_MNU_MEDVOLUME = wxNewId();
-const long xLightsFrame::ID_MNU_QUIET = wxNewId();
-const long xLightsFrame::ID_MNU_SUPERQUIET = wxNewId();
-const long xLightsFrame::ID_MNU_SILENT = wxNewId();
-const long xLightsFrame::ID_IMPORT_EFFECTS = wxNewId();
-const long xLightsFrame::ID_MNU_TOD = wxNewId();
-const long xLightsFrame::ID_MNU_MANUAL = wxNewId();
-const long xLightsFrame::ID_MNU_ZOOM = wxNewId();
-const long xLightsFrame::ID_MENUITEM1 = wxNewId();
-const long xLightsFrame::idMenuHelpContent = wxNewId();
-const long xLightsFrame::ID_MENU_HELP_FORMUM = wxNewId();
-const long xLightsFrame::ID_MNU_VIDEOS = wxNewId();
-const long xLightsFrame::ID_MENU_HELP_DOWNLOAD = wxNewId();
-const long xLightsFrame::ID_MNU_HELP_RELEASE_NOTES = wxNewId();
-const long xLightsFrame::ID_MENU_HELP_ISSUE = wxNewId();
-const long xLightsFrame::ID_MENU_HELP_FACEBOOK = wxNewId();
-const long xLightsFrame::ID_MNU_DONATE = wxNewId();
-const long xLightsFrame::ID_MNU_UPDATE = wxNewId();
-const long xLightsFrame::ID_TIMER_OutputTimer = wxNewId();
-const long xLightsFrame::ID_TIMER_AutoSave = wxNewId();
-const long xLightsFrame::ID_TIMER_EFFECT_SETTINGS = wxNewId();
-const long xLightsFrame::ID_TIMER_RENDERSTATUS = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_OPENSHOW = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_NEWSEQUENCE = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_OPEN = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_SAVE = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_SAVEAS = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_RENDERALL = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_MAIN = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_PLAY_NOW = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_PAUSE = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_STOP = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_FIRST_FRAME = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_LAST_FRAME = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_REPLAY_SECTION = wxNewId();
+const wxWindowID xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM2 = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM5 = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM7 = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM3 = wxNewId();
+const wxWindowID xLightsFrame::ID_TOGGLE_MODEL_PREVIEW = wxNewId();
+const wxWindowID xLightsFrame::ID_TOGGLE_HOUSE_PREVIEW = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM6 = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM8 = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM9 = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM10 = wxNewId();
+const wxWindowID xLightsFrame::ID_AUIWINDOWTOOLBAR = wxNewId();
+const wxWindowID xLightsFrame::ID_PASTE_BY_TIME = wxNewId();
+const wxWindowID xLightsFrame::ID_PASTE_BY_CELL = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_EDIT = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACDISABLED = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACSELECT = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACOFF = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACON = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACSHIMMER = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACTWINKLE = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACINTENSITY = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACRAMPUP = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACRAMPDOWN = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACRAMPUPDOWN = wxNewId();
+const wxWindowID xLightsFrame::ID_CHOICE_PARM1 = wxNewId();
+const wxWindowID xLightsFrame::ID_CHOICE_PARM2 = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACFILL = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACCASCADE = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACFOREGROUND = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM_ACBACKGROUND = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_AC = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBARITEM14 = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_VIEW = wxNewId();
+const wxWindowID xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON3 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON11 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON13 = wxNewId();
+const wxWindowID xLightsFrame::ID_STATICTEXT4 = wxNewId();
+const wxWindowID xLightsFrame::ID_STATICTEXT2 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON14 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON17 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON15 = wxNewId();
+const wxWindowID xLightsFrame::ID_STATICTEXT3 = wxNewId();
+const wxWindowID xLightsFrame::ID_CHECKBOX1 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON16 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON_SAVE_SETUP = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON9 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON6 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON10 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON5 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON18 = wxNewId();
+const wxWindowID xLightsFrame::ID_BITMAPBUTTON1 = wxNewId();
+const wxWindowID xLightsFrame::ID_BITMAPBUTTON2 = wxNewId();
+const wxWindowID xLightsFrame::ID_PANEL2 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON1 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON2 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON7 = wxNewId();
+const wxWindowID xLightsFrame::ID_STATICTEXT1 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON8 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON4 = wxNewId();
+const wxWindowID xLightsFrame::ID_BUTTON12 = wxNewId();
+const wxWindowID xLightsFrame::ID_PANEL3 = wxNewId();
+const wxWindowID xLightsFrame::ID_PANEL_SETUP = wxNewId();
+const wxWindowID xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
+const wxWindowID xLightsFrame::XLIGHTS_SEQUENCER_TAB = wxNewId();
+const wxWindowID xLightsFrame::ID_NOTEBOOK1 = wxNewId();
+const wxWindowID xLightsFrame::ID_STATICTEXT6 = wxNewId();
+const wxWindowID xLightsFrame::ID_GAUGE1 = wxNewId();
+const wxWindowID xLightsFrame::ID_PANEL5 = wxNewId();
+const wxWindowID xLightsFrame::ID_STATICTEXT7 = wxNewId();
+const wxWindowID xLightsFrame::ID_PANEL1 = wxNewId();
+const wxWindowID xLightsFrame::ID_NEW_SEQUENCE = wxNewId();
+const wxWindowID xLightsFrame::ID_OPEN_SEQUENCE = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM4 = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_OPENRECENTSEQUENCE = wxNewId();
+const wxWindowID xLightsFrame::IS_SAVE_SEQ = wxNewId();
+const wxWindowID xLightsFrame::ID_SAVE_AS_SEQUENCE = wxNewId();
+const wxWindowID xLightsFrame::ID_CLOSE_SEQ = wxNewId();
+const wxWindowID xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_KEYBINDINGS = wxNewId();
+const wxWindowID xLightsFrame::ID_EXPORT_VIDEO = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM2 = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM8 = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_RECENTFOLDERS = wxNewId();
+const wxWindowID xLightsFrame::ID_FILE_BACKUP = wxNewId();
+const wxWindowID xLightsFrame::ID_FILE_RESTOREBACKUP = wxNewId();
+const wxWindowID xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
+const wxWindowID xLightsFrame::ID_SHIFT_EFFECTS = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_SHIFT_SELECTED_EFFECTS = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_COLOURREPLACE = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM13 = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_CHECKSEQ = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_CLEANUPFILE = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_DOWNLOADSEQUENCES = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_BATCH_RENDER = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_BULKUPLOAD = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_HINKSPIX_EXPORT = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_RUN_SCRIPT = wxNewId();
+const wxWindowID xLightsFrame::ID_EXPORT_MODELS = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_EXPORT_CONTROLLER_CONNECTIONS = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_VIEW_LOG = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM18 = wxNewId();
+const wxWindowID xLightsFrame::iD_MNU_VENDORCACHEPURGE = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_PURGERENDERCACHE = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_CRASH = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_DUMPRENDERSTATE = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_GENERATE2DPATH = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_REMAPCUSTOM = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_GENERATELYRICS = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_PREPAREAUDIO = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_USER_DICT = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_XCAPTURE = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_XSCANNER = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM5 = wxNewId();
+const wxWindowID xLightsFrame::MNU_ID_ACLIGHTS = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_SHOWRAMPS = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_SAVE_PERSPECTIVE = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_SAVE_AS_PERSPECTIVE = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_LOAD_PERSPECTIVE = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_PERSPECTIVES_AUTOSAVE = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM7 = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_DISPLAY_ELEMENTS = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_TOGGLE_MODEL_PREVIEW = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_TOGGLE_HOUSE_PREVIEW = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM14 = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM15 = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM16 = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM9 = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM17 = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_VALUECURVES = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_COLOURDROPPER = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_SEARCH_EFFECTS = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_JUKEBOX = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_FINDDATA = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_SUPPRESSDOCK_HP = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_SUPPRESSDOCK_MP = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM3 = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_WINDOWS_DOCKALL = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM11 = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM10 = wxNewId();
+const wxWindowID xLightsFrame::ID_PLAY_FULL = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_1POINT5SPEED = wxNewId();
+const wxWindowID xLightsFrame::ID_MN_2SPEED = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_3SPEED = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_4SPEED = wxNewId();
+const wxWindowID xLightsFrame::ID_PLAY_3_4 = wxNewId();
+const wxWindowID xLightsFrame::ID_PLAY_1_2 = wxNewId();
+const wxWindowID xLightsFrame::ID_PLAY_1_4 = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_LOUDVOLUME = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_MEDVOLUME = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_QUIET = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_SUPERQUIET = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_SILENT = wxNewId();
+const wxWindowID xLightsFrame::ID_IMPORT_EFFECTS = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_TOD = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_MANUAL = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_ZOOM = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM1 = wxNewId();
+const wxWindowID xLightsFrame::idMenuHelpContent = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_HELP_FORMUM = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_VIDEOS = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_HELP_DOWNLOAD = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_HELP_RELEASE_NOTES = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_HELP_ISSUE = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_HELP_FACEBOOK = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_DONATE = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_UPDATE = wxNewId();
+const wxWindowID xLightsFrame::ID_TIMER_OutputTimer = wxNewId();
+const wxWindowID xLightsFrame::ID_TIMER_AutoSave = wxNewId();
+const wxWindowID xLightsFrame::ID_TIMER_EFFECT_SETTINGS = wxNewId();
+const wxWindowID xLightsFrame::ID_TIMER_RENDERSTATUS = wxNewId();
 //*)
 
 // For new sequencer
@@ -586,6 +587,10 @@ wxBEGIN_EVENT_TABLE(xlMacDockIcon, wxTaskBarIcon)
     SplashDialog* splash = nullptr;
 };
 
+xLightsFrame *xLightsFrame::GetFrame() {
+    return xLightsApp::__frame;
+}
+
 xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderOnlyMode) :
     _sequenceElements(this),
     jobPool("RenderPool"),
@@ -622,7 +627,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     //(*Initialize(xLightsFrame)
     wxBoxSizer* BoxSizer1;
-    wxButton* Button03;
     wxFlexGridSizer* FlexGridSizer9;
     wxFlexGridSizer* FlexGridSizerNetworks;
     wxFlexGridSizer* FlexGridSizerPreview;
@@ -678,7 +682,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM6, _("Models"), GetToolbarBitmapBundle("xlART_SEQUENCE_ELEMENTS"), wxNullBitmap, wxITEM_NORMAL, _("Display Elements"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM8, _("Effects"), GetToolbarBitmapBundle("xlART_EFFECTS"), wxNullBitmap, wxITEM_NORMAL, _("Effects"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM9, _("Effects Assistant"), GetToolbarBitmapBundle("xlART_EFFECTASSISTANT"), wxNullBitmap, wxITEM_NORMAL, _("Effects Assistant"), wxEmptyString, NULL);
-    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM10, _("Select Effects"), GetToolbarBitmapBundle("xlART_SELECTEFFECTS"), wxNullBitmap, wxITEM_NORMAL, _("Select Effects"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM10, _("Select Effects"), GetToolbarBitmapBundle("xlART_EFFECTASSISTANT"), wxNullBitmap, wxITEM_NORMAL, _("Select Effects"), wxEmptyString, NULL);
     WindowMgmtToolbar->Realize();
     MainAuiManager->AddPane(WindowMgmtToolbar, wxAuiPaneInfo().Name(_T("Windows Tool Bar")).ToolbarPane().Caption(_("Windows Tool Bar")).CloseButton(false).Layer(10).Position(12).Top().Gripper());
     EditToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_EDIT, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -688,37 +692,37 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MainAuiManager->AddPane(EditToolBar, wxAuiPaneInfo().Name(_T("Edit Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(5).Top().Gripper());
     ACToolbar = new xlAuiToolBar(this, ID_AUITOOLBAR_AC, wxPoint(1,30), wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     ChoiceParm1 = new wxChoice(ACToolbar, ID_CHOICE_PARM1, wxPoint(276,12), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PARM1"));
-    ChoiceParm1->SetSelection( ChoiceParm1->Append(_T("0")) );
-    ChoiceParm1->Append(_T("10"));
-    ChoiceParm1->Append(_T("20"));
-    ChoiceParm1->Append(_T("25"));
-    ChoiceParm1->Append(_T("30"));
-    ChoiceParm1->Append(_T("33"));
-    ChoiceParm1->Append(_T("40"));
-    ChoiceParm1->Append(_T("50"));
-    ChoiceParm1->Append(_T("60"));
-    ChoiceParm1->Append(_T("66"));
-    ChoiceParm1->Append(_T("70"));
-    ChoiceParm1->Append(_T("75"));
-    ChoiceParm1->Append(_T("80"));
-    ChoiceParm1->Append(_T("90"));
-    ChoiceParm1->Append(_T("100"));
+    ChoiceParm1->SetSelection( ChoiceParm1->Append(_("0")) );
+    ChoiceParm1->Append(_("10"));
+    ChoiceParm1->Append(_("20"));
+    ChoiceParm1->Append(_("25"));
+    ChoiceParm1->Append(_("30"));
+    ChoiceParm1->Append(_("33"));
+    ChoiceParm1->Append(_("40"));
+    ChoiceParm1->Append(_("50"));
+    ChoiceParm1->Append(_("60"));
+    ChoiceParm1->Append(_("66"));
+    ChoiceParm1->Append(_("70"));
+    ChoiceParm1->Append(_("75"));
+    ChoiceParm1->Append(_("80"));
+    ChoiceParm1->Append(_("90"));
+    ChoiceParm1->Append(_("100"));
     ChoiceParm2 = new wxChoice(ACToolbar, ID_CHOICE_PARM2, wxPoint(476,11), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PARM2"));
-    ChoiceParm2->Append(_T("0"));
-    ChoiceParm2->Append(_T("10"));
-    ChoiceParm2->Append(_T("20"));
-    ChoiceParm2->Append(_T("25"));
-    ChoiceParm2->Append(_T("30"));
-    ChoiceParm2->Append(_T("33"));
-    ChoiceParm2->Append(_T("40"));
-    ChoiceParm2->Append(_T("50"));
-    ChoiceParm2->Append(_T("60"));
-    ChoiceParm2->Append(_T("66"));
-    ChoiceParm2->Append(_T("70"));
-    ChoiceParm2->Append(_T("75"));
-    ChoiceParm2->Append(_T("80"));
-    ChoiceParm2->Append(_T("90"));
-    ChoiceParm2->SetSelection( ChoiceParm2->Append(_T("100")) );
+    ChoiceParm2->Append(_("0"));
+    ChoiceParm2->Append(_("10"));
+    ChoiceParm2->Append(_("20"));
+    ChoiceParm2->Append(_("25"));
+    ChoiceParm2->Append(_("30"));
+    ChoiceParm2->Append(_("33"));
+    ChoiceParm2->Append(_("40"));
+    ChoiceParm2->Append(_("50"));
+    ChoiceParm2->Append(_("60"));
+    ChoiceParm2->Append(_("66"));
+    ChoiceParm2->Append(_("70"));
+    ChoiceParm2->Append(_("75"));
+    ChoiceParm2->Append(_("80"));
+    ChoiceParm2->Append(_("90"));
+    ChoiceParm2->SetSelection( ChoiceParm2->Append(_("100")) );
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACDISABLED, _("Disable"), GetToolbarBitmapBundle("xlAC_DISABLED"), wxNullBitmap, wxITEM_CHECK, wxEmptyString, wxEmptyString, NULL);
     ACToolbar->AddSeparator();
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACSELECT, _("Select"), GetToolbarBitmapBundle("xlAC_SELECT"), wxNullBitmap, wxITEM_CHECK, _("Select - SHIFT L"), wxEmptyString, NULL);
@@ -759,8 +763,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     GridBagSizer1 = new wxGridBagSizer(0, 0);
     StaticText38 = new wxStaticText(PanelSetup, wxID_ANY, _("Show Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     GridBagSizer1->Add(StaticText38, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Button03 = new wxButton(PanelSetup, ID_BUTTON3, _("Change Permanently"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-    GridBagSizer1->Add(Button03, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_ChangeShowDirPermanently = new wxButton(PanelSetup, ID_BUTTON3, _("Change Permanently"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    GridBagSizer1->Add(Button_ChangeShowDirPermanently, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_CheckShowFolderTemporarily = new wxButton(PanelSetup, ID_BUTTON11, _("Change Temporarily"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
     GridBagSizer1->Add(Button_CheckShowFolderTemporarily, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_ChangeTemporarilyAgain = new wxButton(PanelSetup, ID_BUTTON13, _("Change Temporarily Again"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON13"));
@@ -770,8 +774,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     GridBagSizer1->Add(ShowDirectoryLabel, wxGBPosition(0, 4), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_BaseShowDirLabel = new wxStaticText(PanelSetup, ID_STATICTEXT2, _("Base Show Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     GridBagSizer1->Add(StaticText_BaseShowDirLabel, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_ChangeBaseShowDir = new wxButton(PanelSetup, ID_BUTTON14, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON14"));
-    GridBagSizer1->Add(Button_ChangeBaseShowDir, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(Button_ChangeBaseShowDir, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_OpenBaseShowDir = new wxButton(PanelSetup, ID_BUTTON17, _("Open"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON17"));
+    FlexGridSizer2->Add(Button_OpenBaseShowDir, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(FlexGridSizer2, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_ClearBaseShowDir = new wxButton(PanelSetup, ID_BUTTON15, _("Clear"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON15"));
     GridBagSizer1->Add(Button_ClearBaseShowDir, wxGBPosition(1, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_BaseShowDir = new wxStaticText(PanelSetup, ID_STATICTEXT3, _("No base show directory"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
@@ -787,20 +795,24 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     StaticBoxSizer1->Add(GridBagSizer1, 1, wxALL|wxEXPAND, 5);
     FlexGridSizerSetup->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, PanelSetup, _("Controllers"));
-    FlexGridSizerNetworks = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizerNetworks = new wxFlexGridSizer(0, 4, 0, 0);
     FlexGridSizerNetworks->AddGrowableCol(2);
     FlexGridSizerNetworks->AddGrowableRow(0);
     BoxSizer1 = new wxBoxSizer(wxVERTICAL);
     ButtonSaveSetup = new wxButton(PanelSetup, ID_BUTTON_SAVE_SETUP, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_SETUP"));
     BoxSizer1->Add(ButtonSaveSetup, 1, wxALL|wxEXPAND, 3);
+    BoxSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
     ButtonAddControllerSerial = new wxButton(PanelSetup, ID_BUTTON9, _("Add USB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
     BoxSizer1->Add(ButtonAddControllerSerial, 1, wxALL|wxEXPAND, 3);
-    ButtonAddControllerEthernet = new wxButton(PanelSetup, ID_BUTTON6, _("Add Ethernet"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
+    ButtonAddControllerEthernet = new wxButton(PanelSetup, ID_BUTTON6, _("Add Ethernet"), wxDefaultPosition, wxSize(98,28), 0, wxDefaultValidator, _T("ID_BUTTON6"));
     BoxSizer1->Add(ButtonAddControllerEthernet, 1, wxALL|wxEXPAND, 3);
     ButtonAddControllerNull = new wxButton(PanelSetup, ID_BUTTON10, _("Add Null"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
     BoxSizer1->Add(ButtonAddControllerNull, 1, wxALL|wxEXPAND, 3);
+    BoxSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
     ButtonDiscover = new wxButton(PanelSetup, ID_BUTTON5, _("Discover"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
     BoxSizer1->Add(ButtonDiscover, 1, wxALL|wxEXPAND, 3);
+    ButtonFPPConnect = new wxButton(PanelSetup, ID_BUTTON18, _("FPP Connect"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON18"));
+    BoxSizer1->Add(ButtonFPPConnect, 1, wxALL|wxEXPAND, 3);
     FlexGridSizerNetworks->Add(BoxSizer1, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 0);
     FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
     BitmapButtonMoveNetworkUp = new wxBitmapButton(PanelSetup, ID_BITMAPBUTTON1, GetButtonBitmapBundle("wxART_GO_UP"), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
@@ -810,50 +822,56 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     BitmapButtonMoveNetworkDown->SetToolTip(_("Move selected item down"));
     FlexGridSizer9->Add(BitmapButtonMoveNetworkDown, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerNetworks->Add(FlexGridSizer9, 1, wxBOTTOM|wxLEFT|wxALIGN_LEFT|wxALIGN_TOP, 10);
-    SplitterWindowControllers = new wxSplitterWindow(PanelSetup, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
-    SplitterWindowControllers->SetSashGravity(0.8);
-    Panel2 = new wxPanel(SplitterWindowControllers, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+    Panel2 = new wxPanel(PanelSetup, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     FlexGridSizerSetupControllers = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetupControllers->AddGrowableCol(0);
     FlexGridSizerSetupControllers->AddGrowableRow(0);
     Panel2->SetSizer(FlexGridSizerSetupControllers);
-    Panel5 = new wxPanel(SplitterWindowControllers, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxALWAYS_SHOW_SB, _T("ID_PANEL6"));
-    Panel5->SetMinSize(wxSize(20,-1));
+    FlexGridSizerSetupControllers->Fit(Panel2);
+    FlexGridSizerSetupControllers->SetSizeHints(Panel2);
+    FlexGridSizerNetworks->Add(Panel2, 1, wxALL|wxEXPAND, 2);
+    Panel5 = new wxPanel(PanelSetup, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxALWAYS_SHOW_SB|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL3"));
+    Panel5->SetMinSize(wxSize(200,-1));
+    Panel5->SetMaxSize(wxSize(200,-1));
     FlexGridSizerSetupRight = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetupRight->AddGrowableCol(0);
     FlexGridSizerSetupRight->AddGrowableRow(0);
     FlexGridSizerSetupProperties = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetupProperties->AddGrowableCol(0);
     FlexGridSizerSetupProperties->AddGrowableRow(0);
-    FlexGridSizerSetupRight->Add(FlexGridSizerSetupProperties, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizerSetupControllerButtons = new wxFlexGridSizer(1, 0, 0, 0);
+    FlexGridSizerSetupRight->Add(FlexGridSizerSetupProperties, 1, wxALL|wxEXPAND, 0);
+    FlexGridSizerSetupControllerButtons = new wxFlexGridSizer(2, 0, 0, 0);
     ButtonVisualise = new wxButton(Panel5, ID_BUTTON1, _("Visualise ..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizerSetupControllerButtons->Add(ButtonVisualise, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonUploadInput = new wxButton(Panel5, ID_BUTTON2, _("Upload Input"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     FlexGridSizerSetupControllerButtons->Add(ButtonUploadInput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonUploadOutput = new wxButton(Panel5, ID_BUTTON4, _("Upload Output"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    FlexGridSizerSetupControllerButtons->Add(ButtonUploadOutput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonOpen = new wxButton(Panel5, ID_BUTTON7, _("Open"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
     FlexGridSizerSetupControllerButtons->Add(ButtonOpen, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_OpenProxy = new wxButton(Panel5, ID_BUTTON12, _("Open Proxy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON12"));
-    FlexGridSizerSetupControllerButtons->Add(Button_OpenProxy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticTextDummy = new wxStaticText(Panel5, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    FlexGridSizerSetupControllerButtons->Add(StaticTextDummy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonControllerDelete = new wxButton(Panel5, ID_BUTTON8, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
     FlexGridSizerSetupControllerButtons->Add(ButtonControllerDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticTextDummy = new wxStaticText(Panel5, ID_STATICTEXT1, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizerSetupControllerButtons->Add(StaticTextDummy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerSetupRight->Add(FlexGridSizerSetupControllerButtons, 1, wxALL|wxEXPAND, 5);
+    ButtonUploadOutput = new wxButton(Panel5, ID_BUTTON4, _("Upload Output"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    FlexGridSizerSetupControllerButtons->Add(ButtonUploadOutput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_OpenProxy = new wxButton(Panel5, ID_BUTTON12, _("Open Proxy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON12"));
+    FlexGridSizerSetupControllerButtons->Add(Button_OpenProxy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerSetupRight->Add(FlexGridSizerSetupControllerButtons, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
     Panel5->SetSizer(FlexGridSizerSetupRight);
-    SplitterWindowControllers->SplitVertically(Panel2, Panel5);
-    SplitterWindowControllers->SetSashPosition(1000);
-    FlexGridSizerNetworks->Add(SplitterWindowControllers, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizerSetupRight->Fit(Panel5);
+    FlexGridSizerSetupRight->SetSizeHints(Panel5);
+    FlexGridSizerNetworks->Add(Panel5, 1, wxALL|wxEXPAND, 2);
     StaticBoxSizer2->Add(FlexGridSizerNetworks, 1, wxALL|wxEXPAND, 5);
     FlexGridSizerSetup->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
     PanelSetup->SetSizer(FlexGridSizerSetup);
+    FlexGridSizerSetup->Fit(PanelSetup);
+    FlexGridSizerSetup->SetSizeHints(PanelSetup);
     PanelPreview = new wxPanel(Notebook1, ID_PANEL_PREVIEW, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_PREVIEW"));
     FlexGridSizerPreview = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerPreview->AddGrowableCol(0);
     FlexGridSizerPreview->AddGrowableRow(0);
     PanelPreview->SetSizer(FlexGridSizerPreview);
+    FlexGridSizerPreview->Fit(PanelPreview);
+    FlexGridSizerPreview->SetSizeHints(PanelPreview);
     PanelSequencer = new wxPanel(Notebook1, XLIGHTS_SEQUENCER_TAB, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("XLIGHTS_SEQUENCER_TAB"));
     m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_DEFAULT);
     Notebook1->AddPage(PanelSetup, _("Controllers"), true);
@@ -871,11 +889,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     ProgressBar = new wxGauge(Panel1, ID_GAUGE1, 100, wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(100,-1)), 0, wxDefaultValidator, _T("ID_GAUGE1"));
     GaugeSizer->Add(ProgressBar, 0, wxEXPAND, 0);
     Panel1->SetSizer(GaugeSizer);
+    GaugeSizer->Fit(Panel1);
+    GaugeSizer->SetSizeHints(Panel1);
     StatusBarSizer->Add(Panel1, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     FileNameText = new wxStaticText(AUIStatusBar, ID_STATICTEXT7, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     StatusBarSizer->Add(FileNameText, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxEXPAND, 2);
     StatusBarSizer->AddGrowableRow(0);
     AUIStatusBar->SetSizer(StatusBarSizer);
+    StatusBarSizer->Fit(AUIStatusBar);
+    StatusBarSizer->SetSizeHints(AUIStatusBar);
     MainAuiManager->AddPane(AUIStatusBar, wxAuiPaneInfo().Name(_T("Status Bar")).DefaultPane().Caption(_("Status bar")).CaptionVisible(false).CloseButton(false).Bottom().DockFixed().Dockable(false).Floatable(false).FloatingPosition(wxPoint(0,0)).FloatingSize(wxSize(0,0)).Movable(false).PaneBorder(false));
     MainAuiManager->Update();
     MenuBar = new wxMenuBar();
@@ -1183,7 +1205,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_AUITOOLBARITEM6, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideDisplayElementsWindow);
     Connect(ID_AUITOOLBARITEM8, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemShowHideEffects);
     Connect(ID_AUITOOLBARITEM9, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
-    Connect(ID_AUITOOLBARITEM10,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideSelectEffectsWindow);
+    Connect(ID_AUITOOLBARITEM10, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideSelectEffectsWindow);
     Connect(ID_PASTE_BY_TIME, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPasteByTimeClick);
     Connect(ID_PASTE_BY_CELL, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPasteByCellClick);
     Connect(ID_AUITOOLBARITEM_ACDISABLED, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAC_DisableClick);
@@ -1210,6 +1232,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_BUTTON11, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_ChangeShowFolderTemporarily);
     Connect(ID_BUTTON13, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_ChangeTemporarilyAgainClick);
     Connect(ID_BUTTON14, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_ChangeBaseShowDirClick);
+    Connect(ID_BUTTON17, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_ChangeBaseShowDirClick);
     Connect(ID_BUTTON15, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_ClearBaseShowDirClick);
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnCheckBox_AutoUpdateBaseClick);
     Connect(ID_BUTTON16, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_UpdateBaseClick);
@@ -1218,14 +1241,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_BUTTON6, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerEthernetClick);
     Connect(ID_BUTTON10, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerNullClick);
     Connect(ID_BUTTON5, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonDiscoverClick);
+    Connect(ID_BUTTON18, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonFPPConnectClick);
     Connect(ID_BITMAPBUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveUpClick);
     Connect(ID_BITMAPBUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveDownClick);
     Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonVisualiseClick);
     Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonUploadInputClick);
-    Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonUploadOutputClick);
     Connect(ID_BUTTON7, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonOpenClick);
-    Connect(ID_BUTTON12, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_OpenProxyClick);
     Connect(ID_BUTTON8, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonControllerDeleteClick);
+    Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonUploadOutputClick);
+    Connect(ID_BUTTON12, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_OpenProxyClick);
     m_mgr->Connect(wxEVT_AUI_PANE_CLOSE, (wxObjectEventFunction)&xLightsFrame::OnPaneClose, NULL, this);
     PanelSequencer->Connect(wxEVT_PAINT, (wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint, NULL, this);
     Connect(ID_NOTEBOOK1, wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
@@ -1642,7 +1666,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     SetFixFileDirectories(mediaDirectories);
     wxString tbData = config->Read("ToolbarLocations");
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION)) {
+        const int size = AUIStatusBar->GetSize().GetHeight();
         MainAuiManager->LoadPerspective(tbData.Right(tbData.size() - 5));
+        MainAuiManager->GetPane("Status Bar").MinSize(wxSize(-1, size));
+        MainAuiManager->Update();
     }
     logger_base.debug("Perspectives loaded.");
 
@@ -1738,7 +1765,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     }
 
     if (wxDir::Exists(mAltBackupDir)) {
-        ObtainAccessToURL(mAltBackupDir);
+        if (!ObtainAccessToURL(mAltBackupDir, true)) {
+            std::string orig = mAltBackupDir;
+            PromptForDirectorySelection("Reselect Alternate Backup Directory", orig);
+            if (orig != mAltBackupDir) {
+                mAltBackupDir = orig;
+                config->Write(_("xLightsAltBackupDir"), mAltBackupDir);
+            }
+        }
         mAltBackupMenuItem->SetHelp(mAltBackupDir);
     } else {
         mAltBackupMenuItem->SetHelp("");
@@ -1812,9 +1846,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     InitEffectsPanel(EffectsPanel1);
     logger_base.debug("Effects panel initialised.");
 
-    auto consash = config->ReadLong("xLightsControllerSash", SplitterWindowControllers->GetSashPosition());
-    SplitterWindowControllers->SetSashPosition(consash);
-    logger_base.debug("Controller Sash Position: %d.", consash);
 
     EffectTreeDlg = nullptr; // must be before any call to SetDir
 
@@ -1824,7 +1855,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     if (ok && !dir.IsEmpty()) {
         if (!SetDir(dir, !showDirFromCommandLine)) {
             CurrentDir = "";
-            if (!PromptForShowDirectory(true)) {
+            if (!PromptForShowDirectory(true, dir)) {
                 CurrentDir = "";
                 splash.Hide();
                 wxMessageBox("Exiting as setting a show folder is not optional.");
@@ -1969,8 +2000,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
             }
         }
     });
-    
-    
+
+
     config->Read(_("xLightsVideoReaderAccelerated"), &_hwVideoAccleration, true);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
     VideoReader::InitHWAcceleration();
@@ -2021,6 +2052,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     config->Read("xLightsLinkedControllerUpload", &_linkedControllerUpload, "Inputs and Outputs");
     logger_base.debug("Linked controller upload: %s.", (const char*)_linkedControllerUpload.c_str());
+    
+    config->Read("xLightsModelRename", &_aliasRenameBehavior, "Always Prompt");
+    logger_base.debug("Model Rename Behavior: %s.", (const char*)_aliasRenameBehavior.c_str());
 
     std::thread th([this]() {
         try {
@@ -2127,8 +2161,6 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsPlayVolume", playVolume);
     config->Write("xLightsVideoExportCodec", _videoExportCodec);
     config->Write("xLightsVideoExportBitrate", _videoExportBitrate);
-
-    config->Write("xLightsControllerSash", SplitterWindowControllers->GetSashPosition());
 
     SaveDockable();
 
@@ -2314,6 +2346,16 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
     wxString hdg = wxString::Format(_("About xLights %s"), GetDisplayVersionString());
     wxString ver = wxString::Format(_("Version: %s\n%s"), GetDisplayVersionString(), wxVERSION_STRING);
+#if defined(_MSC_VER)
+    ver += wxString::Format("\nVisual C++ %d" ,_MSC_VER);
+#endif
+#if defined(__clang_version__)
+    ver += wxString::Format("\nClang %s", __clang_version__);
+#else
+#if defined(__GNUC__)//clang also defines this
+    ver += wxString::Format("\nGCC %d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+#endif
+#endif
     AboutDialog dlg(this);
 
     dlg.IconBitmap->SetIcon(wxArtProvider::GetIconBundle("xlART_xLights_Icons", wxART_FRAME_ICON).GetIcon(wxSize(128, 128)));
@@ -3264,6 +3306,11 @@ void xLightsFrame::OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event)
 {
+    if (readOnlyMode) {
+        DisplayError("Sequences cannot be opened in read only mode!", this);
+        return;
+    }
+
     OpenSequence("", nullptr);
 }
 
@@ -4445,7 +4492,11 @@ void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)
     if (mAltBackupDir == "") {
         return;
     }
-    ObtainAccessToURL(mAltBackupDir);
+    if (!ObtainAccessToURL(mAltBackupDir, true)) {
+        std::string orig = mAltBackupDir;
+        PromptForDirectorySelection("Reselect alternate backup directory", orig);
+        mAltBackupDir = orig;
+    }
     SaveWorking();
 
     DoAltBackup();
@@ -4491,6 +4542,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
         model_header_cols.push_back("Location Y (" + unitDescription + ")");
         model_header_cols.push_back("Location Z (" + unitDescription + ")");
     }
+    model_header_cols.push_back("Aliases");
 
     std::map<int, double> _model_col_widths;
     for (int i = 0; i < model_header_cols.size(); i++) {
@@ -4577,6 +4629,15 @@ void xLightsFrame::ExportModels(wxString const& filename)
                 worksheet_write_number(modelsheet, row, 32, ruler->Measure(position.y), format);
                 worksheet_write_number(modelsheet, row, 33, ruler->Measure(position.z), format);
             }
+            std::list<std::string> aliases = model->GetAliases();
+            if (!aliases.empty()) {
+                auto it = aliases.begin();
+                std::string initial = *it;
+                ++it;
+                std::string separator = ", ";
+                std::string a = (std::accumulate(it, aliases.end(), initial, [&separator](const std::string& a, const std::string& b) { return a + separator + b; }));
+                write_worksheet_string(modelsheet, row, 34, a, format, _model_col_widths);
+            };
 
             ++row;
 
@@ -4595,7 +4656,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
     }
 
     std::map<int, double> _group_col_widths;
-    const std::vector<std::string> groupHeader{ "Group Name", "Models", "Models Count", "Default Buffer W x H", "Preview" };
+    const std::vector<std::string> groupHeader{ "Group Name", "Models", "Models Count", "Default Buffer W x H", "Preview", "Aliases" };
     for (int i = 0; i < groupHeader.size(); i++) {
         worksheet_write_string(groupsheet, 0, i, groupHeader[i].c_str(), header_format);
         _group_col_widths[i] = groupHeader[i].size() + FACTOR; // estimate column width
@@ -4624,6 +4685,15 @@ void xLightsFrame::ExportModels(wxString const& filename)
             worksheet_write_number(groupsheet, row, 2, mg->ModelNames().size(), format);
             write_worksheet_string(groupsheet, row, 3, wxString::Format("%d x %d", w, h), format, _group_col_widths);
             write_worksheet_string(groupsheet, row, 4, model->GetLayoutGroup(), format, _group_col_widths);
+            std::list<std::string> aliases = model->GetAliases();
+            if (!aliases.empty()) {
+                auto it = aliases.begin();
+                std::string initial = *it;
+                ++it;
+                std::string separator = ", ";
+                std::string a = (std::accumulate(it, aliases.end(), initial,[&separator](const std::string& a, const std::string& b) { return a + separator + b; }));
+                write_worksheet_string(groupsheet, row, 5, a, format, _group_col_widths);
+            };
             ++row;
         }
     }
@@ -4863,6 +4933,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     size_t errcount = 0;
     size_t warncount = 0;
+    size_t toterrcount = 0;
+    size_t totwarncount = 0;
 
     wxFile f;
     wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
@@ -4892,6 +4964,10 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     } else {
         LogAndWrite(f, "Sequence: No sequence open.");
     }
+
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Network Checks");
 
     prog.Update(0, "Checking network");
     wxYield();
@@ -4941,6 +5017,15 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     size_t errcountsave = errcount;
     size_t warncountsave = warncount;
+    LogAndWrite(f, wxString::Format("\nSection Errors (Network): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+    toterrcount += errcount;
+    totwarncount += warncount;
+    errcount = 0;
+    warncount = 0;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Preference Checks");
 
     prog.Update(1, "Checking preferences");
     wxYield();
@@ -5021,11 +5106,21 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    LogAndWrite(f, wxString::Format("\nSection Errors (Preferences): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+    toterrcount += errcount;
+    totwarncount += warncount;
+    errcount = 0;
+    warncount = 0;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Inactive Controller Checks");
+
     prog.Update(3, "Checking controllers");
     wxYield();
 
     LogAndWrite(f, "");
-    LogAndWrite(f, "Inactive Controllers");
+    LogAndWrite(f, "Checking for inactive controllers");
 
     // Check for inactive outputs
     for (const auto& c : _outputManager.GetControllers()) {
@@ -5084,6 +5179,13 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    LogAndWrite(f, wxString::Format("\nSection Errors (Controllers): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+    toterrcount += errcount;
+    totwarncount += warncount;
+    errcount = 0;
+    warncount = 0;
+
     // Controller Checks
     // do these checks for all Managed Controllers
     std::list<Controller*> uniqueControllers;
@@ -5097,6 +5199,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     if (uniqueControllers.size() > 0) {
         LogAndWrite(f, "");
         LogAndWrite(f, "Controller Checks");
+        LogAndWrite(f, "");
 
         // controller ip address must only be on one output ... no duplicates
         for (const auto& it : uniqueControllers) {
@@ -5200,7 +5303,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
         // Apply the vendor specific validations
         for (const auto& it : _outputManager.GetControllers()) {
-            wxString msg = wxString::Format("        Applying controller rules for %s:%s:%s", it->GetName(), it->GetIP(), it->GetDescription());
+            wxString msg = wxString::Format("Applying controller rules for %s:%s:%s", it->GetName(), it->GetIP(), it->GetDescription());
             LogAndWrite(f, msg.ToStdString());
 
             std::string check;
@@ -5429,11 +5532,18 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
-    prog.Update(50, "Checking models");
-    wxYield();
+    LogAndWrite(f, wxString::Format("\nSection Errors (Controllers): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+    toterrcount += errcount;
+    totwarncount += warncount;
+    errcount = 0;
+    warncount = 0;
 
     LogAndWrite(f, "");
-    LogAndWrite(f, "Invalid start channels");
+    LogAndWrite(f, "Model Channel Checks");
+
+    prog.Update(50, "Checking models");
+    wxYield();
 
     for (const auto& it : AllModels) {
         if (it.second->GetDisplayAs() != "ModelGroup") {
@@ -6093,8 +6203,18 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    LogAndWrite(f, wxString::Format("\nSection Errors (Models): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+    toterrcount += errcount;
+    totwarncount += warncount;
+    errcount = 0;
+    warncount = 0;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Sequence problems");
+    LogAndWrite(f, "");
+
     if (CurrentSeqXmlFile != nullptr) {
-        LogAndWrite(f, "");
         LogAndWrite(f, "Uncommon and often undesirable settings");
 
         if (CurrentSeqXmlFile->GetRenderMode() == xLightsXmlFile::CANVAS_MODE) {
@@ -6219,11 +6339,19 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             warncountsave = warncount;
         }
 
-        prog.Update(70, "Checking effects");
-        wxYield();
+        LogAndWrite(f, wxString::Format("\nSection Errors (Sequence): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+        LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+        toterrcount += errcount;
+        totwarncount += warncount;
+        errcount = 0;
+        warncount = 0;
 
         LogAndWrite(f, "");
-        LogAndWrite(f, "Effect problems");
+        LogAndWrite(f, "Sequence effect problems");
+        LogAndWrite(f, "");
+
+        prog.Update(70, "Checking effects");
+        wxYield();
 
         // check all effects
         bool disabledEffects = false;
@@ -6291,11 +6419,18 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         errcountsave = errcount;
         warncountsave = warncount;
 
-        prog.Update(90, "Dumping used assets");
-        wxYield();
+        LogAndWrite(f, wxString::Format("\nSection Errors (Sequence): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+        LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+        toterrcount += errcount;
+        totwarncount += warncount;
+        errcount = 0;
+        warncount = 0;
 
         LogAndWrite(f, "");
-        LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+        LogAndWrite(f, "General Notes");
+
+        prog.Update(90, "Dumping used assets");
+        wxYield();
 
         LogAndWrite(f, "");
         LogAndWrite(f, "If you are planning on importing this sequence be aware the sequence relies on the following items that will not be imported.");
@@ -6317,17 +6452,15 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             wxString msg = wxString::Format("        Viewpoint: %s.", it);
             LogAndWrite(f, msg.ToStdString());
         }
-
-        LogAndWrite(f, "");
-        LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
-
     } else {
         LogAndWrite(f, "");
         LogAndWrite(f, "No sequence loaded so sequence checks skipped.");
     }
+    LogAndWrite(f, "");
+    LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
 
     LogAndWrite(f, "");
-    LogAndWrite(f, "Checking problems with file access times.");
+    LogAndWrite(f, "OS Checks");
 
     prog.Update(95, "Checking performance");
 
@@ -6393,9 +6526,12 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    LogAndWrite(f, wxString::Format("\nSection Errors (OS): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "=================================================================================================================");
     LogAndWrite(f, "");
-    LogAndWrite(f, "Check sequence done.");
-    LogAndWrite(f, wxString::Format("Errors: %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(f, "Check sequence completed.");
+    LogAndWrite(f, "");
+    LogAndWrite(f, wxString::Format("Total Errors: %u. Warnings: %u", (unsigned int)toterrcount, (unsigned int)totwarncount).ToStdString());
 
     prog.Update(100, "Done");
     wxYield();
@@ -7315,11 +7451,11 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     }
 
     wxFileName fn(CurrentSeqXmlFile->GetFullPath());
-    wxString filename = fn.GetName() + ".zip";
+    wxString filename = fn.GetName() + ".xsqz";
     wxString filePath = fn.GetPath() + wxFileName::GetPathSeparator() + filename;
 
     if (showDialogs) {
-        wxFileDialog fd(this, "Zip file to create.", CurrentDir, filename, "zip file(*.zip)|*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        wxFileDialog fd(this, "Zip file to create.", CurrentDir, filename, "zip file(*.zip;*.xsqz)|*.xsqz;*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
         if (fd.ShowModal() == wxID_CANCEL) {
             return "";
@@ -7561,7 +7697,7 @@ bool xLightsFrame::FilesMatch(const std::string& file1, const std::string& file2
     return (memcmp(buf1, buf2, sizeof(buf1)) == 0);
 }
 
-std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::string& subdirectory)
+std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::string& subdirectory, const bool reuse)
 {
     log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxFileName fn(file);
@@ -7588,13 +7724,15 @@ std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::s
     target += fn.GetFullName();
 
     int i = 1;
-    while (FileExists(target) && !FilesMatch(file, target)) {
+    while (FileExists(target) && !FilesMatch(file, target) && !reuse) {
         target = dir + wxFileName::GetPathSeparator() + fn.GetName() + "_" + wxString::Format("%d", i++) + "." + fn.GetExt();
     }
 
     if (!FileExists(target)) {
         logger_base.debug("Copying file %s to %s.", (const char*)file.c_str(), (const char*)target.c_str());
         wxCopyFile(file, target, false);
+    } else if (reuse) {
+        logger_base.debug("Reusing file %s for %s.", (const char*)target.c_str(), (const char*)file.c_str());
     }
 
     return target.ToStdString();
@@ -7715,10 +7853,13 @@ void xLightsFrame::ValidateWindow()
         Button_UpdateBase->Disable();
         Button_ClearBaseShowDir->Disable();
         CheckBox_AutoUpdateBase->Disable();
+        Button_OpenBaseShowDir->Disable();
     } else {
         Button_UpdateBase->Enable();
         Button_ClearBaseShowDir->Enable();
         CheckBox_AutoUpdateBase->Enable();
+        Button_OpenBaseShowDir->Enable();
+
     }
 }
 
@@ -8407,6 +8548,7 @@ void xLightsFrame::SetShowBaseShowFolder(bool b)
     StaticText_BaseShowDir->Show(b);
     CheckBox_AutoUpdateBase->Show(b);
     Button_ChangeBaseShowDir->Show(b);
+    Button_OpenBaseShowDir->Show(b);
     StaticText_BaseShowDirLabel->Show(b);
     FlexGridSizer1->Layout();
     GridBagSizer1->Layout();
@@ -9139,12 +9281,19 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
             m_mgr->Update();
             PlayToolBar->Refresh();
         } else if (type == "OPEN_SEQUENCE") {
+            if (readOnlyMode) {
+                DisplayError("Sequences cannot be opened in read only mode!", this);
+            } else
             OpenSequence("", nullptr);
         } else if (type == "CLOSE_SEQUENCE") {
             AskCloseSequence();
         } else if (type == "NEW_SEQUENCE") {
-            NewSequence();
-            EnableSequenceControls(true);
+            if (readOnlyMode) {
+                DisplayError("Sequences cannot be created in read only mode!", this);
+            } else {
+                NewSequence();
+                EnableSequenceControls(true);
+            }
         } else if (type == "PASTE_BY_CELL") {
             SetPasteByCell();
         } else if (type == "PASTE_BY_TIME") {
@@ -9185,8 +9334,12 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
             wxCommandEvent e;
             OnmAltBackupMenuItemSelected(e);
         } else if (type == "SELECT_SHOW_FOLDER") {
-            wxCommandEvent e;
-            OnMenuOpenFolderSelected(e);
+            if (readOnlyMode) {
+                DisplayError("Show folder cannot be changed in read only mode! Close and restart xLights.", this);
+            } else {
+                wxCommandEvent e;
+                OnMenuOpenFolderSelected(e);
+            }
         } else {
             return false;
         }
@@ -9260,7 +9413,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 
     wxString filename = wxFileSelector("Choose reaper file describing the changes required to the audio.",
                                        CurrentDir, wxEmptyString, "*.rrp",
-                                       "Reaper files (*.rpp)|*.rpp|xAudio files (*.xaudio)|*.xaudio|All files (*.*)|*.*",
+                                       "Reaper or xAudio files (*.rpp;*.xaudio)|*.rpp;*.xaudio|All files (*.*)|*.*",
                                        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
     if (filename != "") {
@@ -9286,19 +9439,22 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
         };
 
         std::list<musicEdit> edits;
-        wxFileName targetFile;
-        targetFile.SetPath(CurrentDir);
-
+        wxFileName targetFile(CurrentDir);
+        AudioManager *firstAudio = nullptr;
         if (filename.Lower().EndsWith(".rpp")) {
             wxFile reaper;
             if (reaper.Open(filename)) {
                 wxString reaperContent;
                 reaper.ReadAll(&reaperContent);
 
+                targetFile = wxFileName(filename);
+                
                 wxRegEx regexTgt("RENDER_FILE \\\"[^\\\"]*?\\/([^\\\"\\/]*)\\\"", wxRE_ADVANCED | wxRE_NEWLINE);
                 if (regexTgt.Matches(reaperContent)) {
-                    targetFile.SetName(regexTgt.GetMatch(reaperContent, 1));
+                    targetFile.SetFullName(regexTgt.GetMatch(reaperContent, 1));
                     logger_base.debug("    Target file: %s", (const char*)targetFile.GetFullPath().c_str());
+                } else {
+                    targetFile.SetExt("m4a");
                 }
 
                 wxRegEx regexPosition("POSITION ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
@@ -9483,43 +9639,55 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             outputLength = std::max(outputLength, it.start + it.length);
 
             if (sourceSongs.find(it.file) == sourceSongs.end()) {
-                wxString music = wxFileSelector("Choose your copy of " + it.file + ".",
-                                                CurrentDir, wxEmptyString, wxEmptyString,
-                                                "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.wmv;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg",
-                                                wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
-
-                if (music != "") {
-                    sourceSongs[it.file] = new AudioManager(music);
+                wxFileName fn = targetFile;
+                fn.SetFullName(it.file);
+                if (!fn.Exists()) {
+                    wxString music = wxFileSelector("Choose your copy of " + it.file + ".",
+                                                    fn.GetPath(), wxEmptyString, wxEmptyString,
+                                                    "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.wmv;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg",
+                                                    wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+                    if (music != "") {
+                        sourceSongs[it.file] = new AudioManager(music);
+                        // wait for song to load
+                        while (!sourceSongs[it.file]->IsDataLoaded()) {
+                            wxMilliSleep(100);
+                        }
+                    } else {
+                        sourceSongs[it.file] = nullptr;
+                    }
                 } else {
-                    sourceSongs[it.file] = nullptr;
+                    sourceSongs[it.file] = new AudioManager(fn.GetFullPath());
+                }
+                if (firstAudio == nullptr) {
+                    firstAudio = sourceSongs[it.file];
                 }
             }
         }
 
         bool ok = true;
 
-        long outputRate = -1;
+        long sampleRate = -1;
         for (const auto& it : sourceSongs) {
             if (it.second != nullptr) {
-                if (outputRate == -1) {
-                    outputRate = it.second->GetRate();
+                if (sampleRate == -1) {
+                    sampleRate = it.second->GetRate();
                 } else {
-                    if (ok && outputRate != it.second->GetRate()) {
+                    if (ok && sampleRate != it.second->GetRate()) {
                         logger_base.debug("Songs do not all have the same bitrate ... unable to do the required mixing.");
-                        wxMessageBox("In order to prepare the audio all the input songs must have the same bitrate.");
+                        wxMessageBox("In order to prepare the audio all the input songs must have the same sample rate.");
                         ok = false;
                     }
                 }
             }
         }
 
-        if (outputRate == -1) {
+        if (sampleRate == -1) {
             SetStatusText("Audio file creation failed - No input audio.");
             ok = false;
         }
 
         if (ok) {
-            long totalSamples = outputRate * outputLength;
+            long totalSamples = sampleRate * outputLength;
             logger_base.debug("    New file will:");
             logger_base.debug("        have %ld samples.", totalSamples);
             logger_base.debug("        be %0.3f seconds long.", outputLength);
@@ -9540,8 +9708,8 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                     SetStatusText("Combining audio clips.");
 
                     logger_base.debug("Processing sample from %s.", (const char*)it.file.c_str());
-                    long startOutput = outputRate * it.start;
-                    long outputSamples = outputRate * it.length;
+                    long startOutput = sampleRate * it.start;
+                    long outputSamples = sampleRate * it.length;
                     // logger_base.debug("    Sample Output Start %ld-%ld [%ld].", startOutput, startOutput + outputSamples - 1, outputSamples);
                     wxASSERT(startOutput + outputSamples - 1 <= totalSamples);
                     long startSample = audio->GetRate() * it.sourceoffset;
@@ -9636,6 +9804,15 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                 if (it > 1.0)
                     it = 1.0;
             }
+            
+#ifdef __WXOSX__
+            // Cannot generate MP3's, change to AAC/m4a (which has better quality anyway)
+            wxFileName fn = targetFile;
+            if (fn.GetExt() == "mp3") {
+                fn.SetExt("m4a");
+                targetFile = fn.GetFullPath();
+            }
+#endif
 
             if (FileExists(targetFile)) {
                 if (wxMessageBox(targetFile.GetFullPath() + " already exists. Do you want to overwrite it?", "Replace", wxYES_NO | wxCENTRE, this) == wxNO) {
@@ -9643,7 +9820,11 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                                     "Choose filename to save the audio as.",
                                     targetFile.GetPath(),
                                     targetFile.GetName(),
-                                    "MP3 Files|*.mp3",
+#ifdef __WXOSX__
+                                    "Audio Files|*.m4a",
+#else
+                                    "Audio Files|*.mp3;*.m4a",
+#endif
                                     wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
                     if (fd.ShowModal() == wxID_OK) {
@@ -9656,7 +9837,11 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             }
             SetStatusText("Saving output file.");
 
-            if (!AudioManager::CreateAudioFile(left, right, targetFile.GetFullPath(), outputRate)) {
+            if (!AudioManager::EncodeAudio(left,
+                               right,
+                               sampleRate,
+                               targetFile.GetFullPath(),
+                               firstAudio)) {
                 wxMessageBox("Error creating audio file. See log for details.");
                 SetStatusText("Audio file creation failed.");
             } else {
@@ -9737,6 +9922,16 @@ void xLightsFrame::SetLinkedControllerUpload(const wxString& e)
     config->Write("xLightsLinkedControllerUpload", _linkedControllerUpload);
     config->Flush();
     logger_base.info("Linked controller upload set to %s", (const char*)_linkedControllerUpload.c_str());
+}
+
+void xLightsFrame::SetRenameModelAliasPromptBehavior(const wxString& e)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _aliasRenameBehavior = e;
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsModelRename", _aliasRenameBehavior);
+    config->Flush();
+    logger_base.info("Rename Alias Prompt Behavior set to %s", (const char*)_aliasRenameBehavior.c_str());
 }
 
 void xLightsFrame::CollectUserEmail()
@@ -10283,4 +10478,15 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
     // - key bindings
 
     DoAllWork();
+}
+
+void xLightsFrame::UpdateReadOnlyState()
+{
+    // disable a bunch of things
+    ButtonSaveSetup->Enable(!readOnlyMode);
+    layoutPanel->ButtonSavePreview->Enable(!readOnlyMode);
+    Button_ChangeBaseShowDir->Enable(!readOnlyMode);
+    Button_ChangeTemporarilyAgain->Enable(!readOnlyMode);
+    Button_CheckShowFolderTemporarily->Enable(!readOnlyMode);
+    Button_ChangeShowDirPermanently->Enable(!readOnlyMode);
 }

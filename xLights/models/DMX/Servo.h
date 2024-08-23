@@ -12,6 +12,10 @@
 
 #include <wx/string.h>
 #include <glm/glm.hpp>
+
+#include "../PWMOutput.h"
+#include <map>
+
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
 class BaseObject;
@@ -25,7 +29,7 @@ class Servo
 
         void Init(BaseObject* base);
 
-        void AddTypeProperties(wxPropertyGridInterface* grid);
+        void AddTypeProperties(wxPropertyGridInterface* grid, bool pwm);
 
         int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
@@ -57,6 +61,8 @@ class Servo
         void SetPivotOffsetY(float val);
         void SetPivotOffsetZ(float val);
 
+        void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const;
+
     protected:
 
     private:
@@ -79,5 +85,12 @@ class Servo
     
         // used for display only in the previews
         int lastValue = 0;
+    
+    
+    int controller_min = 1000;
+    int controller_max = 2000;
+    bool controller_reverse = false;
+    std::string controller_zero = "Hold";
+    std::string controller_dataType = "Scaled";
 };
 

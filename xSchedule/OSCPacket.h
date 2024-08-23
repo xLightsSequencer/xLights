@@ -10,21 +10,19 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <string>
 #include <cstdint>
+#include <string>
 
 class OSCOptions;
 
-typedef enum
-{
+typedef enum {
     OSCNONE,
     OSCINT,
     OSCFLOAT,
     OSCSTRING
 } OSCTYPE;
 
-class OSCPacket
-{
+class OSCPacket {
     uint8_t* _buffer = nullptr;
     int _buffsize = 0;
     bool _isSync = false;
@@ -39,22 +37,35 @@ class OSCPacket
     std::string GetP(int p) const;
 
 public:
-
     OSCPacket(const std::string& path);
     OSCPacket(const std::string& path, int32_t value);
     OSCPacket(const std::string& path, float value);
     OSCPacket(uint8_t* buffer, int buffsize, OSCOptions* options, int frameMS);
     void AddParameter(OSCTYPE type, const std::string value);
-    bool IsSync() const { return _isSync; }
-    bool IsOk() const { return _isOk; }
-    std::string GetStepName() const { return _stepName; }
-    std::string GetTimingName() const { return _timingName; }
+    bool IsSync() const {
+        return _isSync;
+    }
+    bool IsOk() const {
+        return _isOk;
+    }
+    std::string GetStepName() const {
+        return _stepName;
+    }
+    std::string GetTimingName() const {
+        return _timingName;
+    }
     int GetMS(int lengthMS) const;
     virtual ~OSCPacket();
-    uint8_t* GetBuffer() const {return _buffer; }
-    int GetBuffSize() const { return _buffsize; };
+    uint8_t* GetBuffer() const {
+        return _buffer;
+    }
+    int GetBuffSize() const {
+        return _buffsize;
+    };
     void Send(const std::string& ip, int port, const std::string& localIP);
-    std::string GetPath() const { return _path; }
+    std::string GetPath() const {
+        return _path;
+    }
     static bool IsPathValid(const std::string& path);
     std::string GetP1() const;
     std::string GetP2() const;

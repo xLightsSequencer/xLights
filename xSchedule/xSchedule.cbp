@@ -460,6 +460,8 @@
 		<Unit filename="RemapDialog.h" />
 		<Unit filename="RemoteModeConfigDialog.cpp" />
 		<Unit filename="RemoteModeConfigDialog.h" />
+		<Unit filename="RGBEffects.cpp" />
+		<Unit filename="RGBEffects.h" />
 		<Unit filename="RunningSchedule.cpp" />
 		<Unit filename="RunningSchedule.h" />
 		<Unit filename="Schedule.cpp" />

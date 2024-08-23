@@ -526,8 +526,29 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "TIMING_SPLIT") {
                 SplitTimingMark();
-            }
-            else if (type == "ZOOM_IN") {
+            } else if (type == "EFFECTS_TO_TIMING") {
+                PanelEffectGrid->CreateTimingFromSelectedEffects();
+            } else if (type == "SELECT_TIMING_1") {
+                PanelRowHeadings->SelectTiming(0);
+            } else if (type == "SELECT_TIMING_2") {
+                PanelRowHeadings->SelectTiming(1);
+            } else if (type == "SELECT_TIMING_3") {
+                PanelRowHeadings->SelectTiming(2);
+            } else if (type == "SELECT_TIMING_4") {
+                PanelRowHeadings->SelectTiming(3);
+            } else if (type == "SELECT_TIMING_5") {
+                PanelRowHeadings->SelectTiming(4);
+            } else if (type == "SELECT_TIMING_6") {
+                PanelRowHeadings->SelectTiming(5);
+            } else if (type == "SELECT_TIMING_7") {
+                PanelRowHeadings->SelectTiming(6);
+            } else if (type == "SELECT_TIMING_8") {
+                PanelRowHeadings->SelectTiming(7);
+            } else if (type == "SELECT_TIMING_9") {
+                PanelRowHeadings->SelectTiming(8);
+            } else if (type == "SELECT_NO_TIMING") {
+                PanelRowHeadings->SelectTiming(-1);
+            } else if (type == "ZOOM_IN") {
                 PanelTimeLine->ZoomIn();
             }
             else if (type == "ZOOM_OUT") {
