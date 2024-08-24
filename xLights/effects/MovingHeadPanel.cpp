@@ -1616,7 +1616,6 @@ void MovingHeadPanel::OnButton_NoneClick(wxCommandEvent& event)
 {
     UncheckAllFixtures();
     UpdateColorPanel();
-    OnButton_ResetToDefaultClick(event);
 }
 
 void MovingHeadPanel::OnButton_EvensClick(wxCommandEvent& event)
