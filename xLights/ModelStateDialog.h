@@ -122,6 +122,7 @@ private:
     void OnSingleNodeGridLabelLeftClick(wxGridEvent& event);
     void OnNodeRangeGridLabelLeftClick(wxGridEvent& event);
     void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
+    void OnInit(wxInitDialogEvent& event);
     //*)
 
     void OnAddBtnPopup(wxCommandEvent& event);

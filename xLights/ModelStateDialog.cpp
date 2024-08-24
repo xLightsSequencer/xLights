@@ -123,6 +123,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
+	SplitterWindow1->SetMinimumPaneSize(100);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel3 = new wxPanel(SplitterWindow1, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -133,14 +134,14 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 	StaticText3 = new wxStaticText(Panel3, ID_STATICTEXT2, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer7->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	NameChoice = new wxChoice(Panel3, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
-	NameChoice->SetMinSize(wxDLG_UNIT(Panel3,wxSize(50,-1)));
+	NameChoice->SetMinSize(wxSize(50,-1));
 	FlexGridSizer7->Add(NameChoice, 1, wxALL|wxEXPAND, 5);
-	AddButton = new wxButton(Panel3, ID_BUTTON3, _("Add"), wxDefaultPosition, wxSize(88,34), 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	AddButton = new wxButton(Panel3, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	FlexGridSizer7->Add(AddButton, 1, wxTOP|wxBOTTOM|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	Button_Import = new wxButton(Panel3, ID_BUTTON_IMPORT, _T("..."), wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
 	Button_Import->SetMinSize(wxSize(20,-1));
 	FlexGridSizer7->Add(Button_Import, 1, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	DeleteButton = new wxButton(Panel3, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxSize(97,34), 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	DeleteButton = new wxButton(Panel3, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
 	FlexGridSizer7->Add(DeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer4->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	StateTypeChoice = new wxChoicebook(Panel3, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
@@ -152,10 +153,10 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer3->AddGrowableCol(1);
 	CustomColorSingleNode = new wxCheckBox(CoroPanel, ID_CHECKBOX1, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CustomColorSingleNode->SetValue(false);
-	FlexGridSizer3->Add(CustomColorSingleNode, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(CustomColorSingleNode, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_7Segment = new wxButton(CoroPanel, ID_BUTTON1, _("7 Segment Display"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer3->Add(Button_7Segment, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(Button_7Segment, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	SingleNodeGrid = new wxGrid(CoroPanel, ID_GRID_COROSTATES, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID_COROSTATES"));
 	SingleNodeGrid->CreateGrid(200,3);
@@ -179,7 +180,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer6->AddGrowableCol(1);
 	CustomColorNodeRanges = new wxCheckBox(NodeRangePanel, ID_CHECKBOX2, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CustomColorNodeRanges->SetValue(false);
-	FlexGridSizer6->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_OutputToLights = new wxCheckBox(NodeRangePanel, ID_CHECKBOX3, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	CheckBox_OutputToLights->SetValue(false);
 	FlexGridSizer6->Add(CheckBox_OutputToLights, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -241,6 +242,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 	Connect(ID_GRID3, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellChange);
 	Connect(ID_GRID3, wxEVT_GRID_SELECT_CELL, (wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellSelect);
 	Connect(ID_CHOICEBOOK1, wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&ModelStateDialog::OnStateTypeChoicePageChanged);
+	Connect(wxID_ANY, wxEVT_INIT_DIALOG, (wxObjectEventFunction)&ModelStateDialog::OnInit);
 	//*)
 
     model = nullptr;
@@ -278,10 +280,47 @@ ModelStateDialog::~ModelStateDialog()
 {
     //(*Destroy(ModelStateDialog)
     //*)
+
+    SaveWindowPosition("xLightsModelStateDialogPosition", this);
+    wxConfigBase* config = wxConfigBase::Get();
+    int const i = SplitterWindow1->GetSashPosition();
+    config->Write("ModelStateDialogSashPosition", i);
+    config->Flush();
     StopOutputToLights();
     if (_oldOutputToLights) {
         _outputManager->StartOutput();
     }
+}
+
+/*
+According to the wx forums, set size doesn't work in the object constructor
+because the wxWidget base class recalulates the size and layout,
+It will only works if you use OnInit event or call it later.
+*/
+void ModelStateDialog::OnInit(wxInitDialogEvent& event) {
+    SetSize(1200, 800);
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsModelStateDialogPosition", sz, loc);
+    if (loc.x != -1) {
+        if (sz.GetWidth() < 300)
+            sz.SetWidth(300);
+        if (sz.GetHeight() < 200)
+            sz.SetHeight(200);
+        SetPosition(loc);
+        SetSize(sz);
+    }
+    wxConfigBase* config = wxConfigBase::Get();
+    int h = config->ReadLong("ModelStateDialogSashPosition", 0);
+    if (h != 0) {
+        SplitterWindow1->SetSashPosition(h);
+    }
+    //if (NodesGrid && NodesGrid->GetNumberCols() > 0) {
+    //    NodesGrid->SetColSize(0, h - 210);
+    //}
+
+    EnsureWindowHeaderIsOnScreen(this);
+    Layout();
 }
 
 void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>> const& finfo) {
@@ -574,7 +613,7 @@ xlColor ModelStateDialog::GetRowColor(wxGrid* grid, int const row, bool const pr
     }
     if (prev) {
         return xlColor(255, 100, 255);
-    }    
+    }
     return xlWHITE;
 }
 
@@ -1339,13 +1378,13 @@ void ModelStateDialog::CopyStates(wxGridEvent& event)
                     if ("1" != stateData[name]["CustomColors"]) {
                         c = "";
                     }
-                    
+
                     std::string newname = "s" + std::to_string(stateIdx);
                     stateData[name].insert({ newname, val });
                     stateData[name].insert({ newname + "-Name", n });
                     stateData[name].insert({ newname + "-Color", c });
                     ++stateIdx;
-                } 
+                }
             }
         }
         SelectStateModel(name);
