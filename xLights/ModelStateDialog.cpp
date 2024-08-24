@@ -315,10 +315,6 @@ void ModelStateDialog::OnInit(wxInitDialogEvent& event) {
     if (h != 0) {
         SplitterWindow1->SetSashPosition(h);
     }
-    //if (NodesGrid && NodesGrid->GetNumberCols() > 0) {
-    //    NodesGrid->SetColSize(0, h - 210);
-    //}
-
     EnsureWindowHeaderIsOnScreen(this);
     Layout();
 }
