@@ -1392,8 +1392,18 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
         auto sp = cud.GetControllerSerialPort(1);
 
-        int rate = 250000;
-        if (Lower(sp->GetProtocol()) != "dmx") rate = _v4status["sr"].AsInt();
+        int rate = sp->GetFirstModel()->GetModel()->GetControllerProtocolSpeed();
+        if (Lower(sp->GetProtocol()) != "dmx") {
+            
+            if (rate == 250000) {
+                rate = _v4status["sr"].AsInt();
+            }
+
+            // for renard make sure rate is valid
+            if (rate != 19200 && rate != 38400 && rate != 57600 && rate != 115200) {
+                rate = 57600;
+			}
+        }
 
         int universe = 0;
         unsigned long startChannel = 0;
