@@ -93,7 +93,6 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent, const std::string& model, wxW
     ChoiceFormat->Append(_("HLS, Hinkle Lighte Sequencer *.hlsnc"));
     ChoiceFormat->Append(_("xLights/FPP, *.fseq"));
     ChoiceFormat->Append(_("Compressed Video, *.mp4"));
-    ChoiceFormat->Append(_("Uncompressed Video, *.mp4"));
     ChoiceFormat->Append(_("Uncompressed Video, *.avi"));
     ChoiceFormat->Append(_("Minleon Network Effects Controller, *.bin"));
     ChoiceFormat->Append(_("GIF Image, *.gif"));
@@ -115,7 +114,6 @@ void SeqExportDialog::ModelExportTypes(bool isgroup)
 {
     if (isgroup) {
         ChoiceFormat->Delete(ChoiceFormat->FindString(_("Compressed Video, *.mp4")));
-        ChoiceFormat->Delete(ChoiceFormat->FindString(_("Uncompressed Video, *.mp4")));
         int idx = ChoiceFormat->FindString(_("Uncompressed Video, *.avi"));
         if (idx != -1) {
             ChoiceFormat->Delete(idx);
@@ -197,8 +195,6 @@ void SeqExportDialog::SetDefaultName()
         name.SetExt("fseq");
     } else if (fmt == "Compressed Video, *.mp4") {
         name.SetExt("mp4");
-    } else if (fmt == "Uncompressed Video, *.mp4") {
-        name.SetExt("mp4");
     } else if (fmt == "Uncompressed Video, *.avi") {
         name.SetExt("avi");
     } else if (fmt == "Minleon Network Effects Controller, *.bin") {
@@ -244,8 +240,6 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.mp4)|*.mp4", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "Uncompressed Video, *.avi") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    } else if (fmt == "Uncompressed Video, *.mp4") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.mp4)|*.mp4", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "Minleon Network Effects Controller, *.bin") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Minleon Networks Effects Controller (*.bin)|*.bin", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "GIF Image, *.gif") {
