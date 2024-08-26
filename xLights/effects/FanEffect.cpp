@@ -147,6 +147,9 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
         double bufferMax = std::max(buffer.BufferHt, buffer.BufferWi);
         radius1 = radius1 * (bufferMax / 200.0); // 200 bc radius is half of the width
         radius2 = radius2 * (bufferMax / 200.0);
+
+        start_radius = start_radius * (bufferMax / 200.0);
+        end_radius = end_radius * (bufferMax / 200.0);
     }
 
     int xc_adj = (center_x-50)*buffer.BufferWi / 100;
