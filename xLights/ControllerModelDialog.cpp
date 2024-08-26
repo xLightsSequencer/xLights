@@ -3733,6 +3733,10 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
         protocol = wxString::Format("Protocol: %s\n", port->GetProtocol());
     }
 
+    if (!port->IsPixelProtocol() && port->GetFirstModel() != nullptr) {
+		protocol += wxString::Format("Rate: %d bps\n", port->GetFirstModel()->GetModel()->GetControllerProtocolSpeed());
+	}
+
     std::string vs;
     std::string sc;
     std::string sr;
