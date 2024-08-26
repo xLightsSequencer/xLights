@@ -2143,6 +2143,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
     config->Write("xLightsZoomMethodToCursor", _zoomMethodToCursor);
     config->Write("xLightsHidePresetPreview", _hidePresetPreview);
+    config->Write("xLightsSmallWaveform", _smallWaveform);
     config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
     config->Write("xLightsLowDefinitionRender", _lowDefinitionRender);
     config->Write("xLightsTimelineZooming", _timelineZooming);
