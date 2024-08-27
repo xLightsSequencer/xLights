@@ -13,7 +13,7 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
-					<minsize>100</minsize>
+					<minsize>400</minsize>
 					<orientation>vertical</orientation>
 					<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 					<object class="wxPanel" name="ID_PANEL5" variable="Panel3" member="yes">
