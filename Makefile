@@ -77,7 +77,7 @@ log4cpp: FORCE
 
 wxwidgets33: FORCE
 	@printf "Checking wxwidgets\n"
-	@if test "`wx-config --version`" != "3.4.0"; \
+	@if test "`wx-config --version`" != "3.3.0"; \
 		then if test ! -d wxWidgets-$(WXWIDGETS_TAG); \
 			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b $(WXWIDGETS_TAG) https://github.com/xLightsSequencer/wxWidgets wxWidgets-$(WXWIDGETS_TAG); \
 		fi; \
