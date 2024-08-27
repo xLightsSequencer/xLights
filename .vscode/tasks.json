@@ -1,0 +1,41 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "make build xLights",
+            "type": "shell",
+            "command": "",
+            "args": [
+                "make",
+                "xLights",
+                "debug",
+            ],
+            "group":  {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal":"always"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "make build All",
+            "type": "shell",
+            "command": "",
+            "args": [
+                "make",
+                "all",
+                "debug",
+            ],
+            "group":  {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal":"always"
+            },
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}
