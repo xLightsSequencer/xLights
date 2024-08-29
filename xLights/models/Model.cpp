@@ -549,8 +549,14 @@ void Model::Rename(std::string const& newName)
     name = Trim(newName);
     ModelXml->DeleteAttribute("name");
     ModelXml->AddAttribute("name", name);
+    bool shouldPrompt = modelManager.GetXLightsFrame()->GetRenameModelAliasPromptBehavior() == "Always Prompt";
+    
+    if( modelManager.GetXLightsFrame()->GetRenameModelAliasPromptBehavior() == "Skip New Models" ) {
+        if( oldname != modelManager.GetLastGeneratedModelName() )
+            shouldPrompt = true;
+    }
 
-    if (oldname != "" && newName != "Iamgoingtodeletethismodel" && modelManager.GetXLightsFrame()->GetRenameModelAliasPromptBehavior() == "Always Prompt" ) {
+    if (oldname != "" && newName != "Iamgoingtodeletethismodel" && shouldPrompt ) {
         if (wxMessageBox("Would you like to save the old name as an alias for this prop. This could be useful if you have sequences already sequenced against this prop using the old name.", "Save old name as alias", wxYES_NO | wxICON_QUESTION, GetModelManager().GetXLightsFrame()) == wxYES) {
             AddAlias("oldname:" + oldname);
         }
