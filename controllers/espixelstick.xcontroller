@@ -11,6 +11,7 @@
 			<AllInputUniversesMustBeSameSize/>
 			<UniversesMustBeSequential/>
 			<SupportsAutoLayout/>
+            <DDPStartsAtOne/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>gece</Protocol>
@@ -36,6 +37,7 @@
         <AllInputUniversesMustBeSameSize/>
         <UniversesMustBeSequential/>
         <SupportsAutoLayout/>
+        <DDPStartsAtOne/>
         <SupportsPixelPortEndNullPixels/>
         <NeedsDDPInputUpload/>
         <InputProtocols>
