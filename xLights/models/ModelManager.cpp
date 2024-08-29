@@ -1128,7 +1128,8 @@ bool ModelManager::RenameController(const std::string& oldName, const std::strin
 // generate the next similar model name to the candidateName we are given
 std::string ModelManager::GenerateModelName(const std::string& candidateName) const
 {
-    return GenerateObjectName(candidateName);
+    lastGeneratedModelName = GenerateObjectName(candidateName);
+    return GetLastGeneratedModelName();
 }
 
 Model* ModelManager::CreateDefaultModel(const std::string& type, const std::string& startChannel) const
