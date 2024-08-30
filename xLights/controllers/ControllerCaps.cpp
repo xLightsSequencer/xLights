@@ -386,6 +386,10 @@ bool ControllerCaps::SupportsAutoUpload() const {
     return DoesXmlNodeExist(_config, "SupportsAutoUpload");
 }
 
+bool ControllerCaps::DDPStartsAtOne() const {
+    return DoesXmlNodeExist(_config, "DDPStartsAtOne");
+}
+
 bool ControllerCaps::SupportsUniversePerString() const
 {
     return DoesXmlNodeExist(_config, "SupportsUniversePerString");

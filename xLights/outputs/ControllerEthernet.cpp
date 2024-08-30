@@ -273,6 +273,11 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                 ddpo->SetId(_outputManager->UniqueId());
             }
             SetId(ddpo->GetId());
+            
+            auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
+            if( c && c->DDPStartsAtOne() )
+                ddpo->SetKeepChannelNumber(false);
+            
         } else if (_type == OUTPUT_TWINKLY) {
             auto to = new TwinklyOutput();
             _outputs.push_back(to);
