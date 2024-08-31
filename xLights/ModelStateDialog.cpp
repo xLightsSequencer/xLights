@@ -73,6 +73,7 @@ const long ModelStateDialog::STATE_DIALOG_COPY = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_RENAME = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_SHIFT = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_REVERSE = wxNewId();
+const long ModelStateDialog::STATE_DIALOG_CLEAR_STATES = wxNewId();
 
 BEGIN_EVENT_TABLE(ModelStateDialog,wxDialog)
 	//(*EventTable(ModelStateDialog)
@@ -763,6 +764,7 @@ void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
                 NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
                 GetValue(NodeRangeGrid, event.GetRow(), event.GetCol(), stateData[name]);
                 dialog.Close();
+                ValidateWindow();
             }
         }
         if (wasOutputting)
@@ -827,9 +829,11 @@ void ModelStateDialog::OnNodeRangeGridCellSelect(wxGridEvent& event)
 void ModelStateDialog::OnNodeRangeGridCellRightClick(wxGridEvent& event)
 {
     wxMenu mnu;
-
+       
     mnu.Append(STATE_DIALOG_IMPORT_SUB, "Import SubModel");
     mnu.Append(STATE_DIALOG_COPY_STATES, "Copy States");
+    mnu.AppendSeparator();
+    mnu.Append(STATE_DIALOG_CLEAR_STATES, "Clear States");
 
     mnu.Bind(wxEVT_COMMAND_MENU_SELECTED, [gridevent = event, this](wxCommandEvent & rightClkEvent) mutable {
         OnGridPopup(rightClkEvent.GetId(), gridevent);
@@ -851,6 +855,7 @@ void ModelStateDialog::OnNodeRangeGridLabelLeftDClick(wxGridEvent& event)
             NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
             GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, stateData[name]);
             dialog.Close();
+            ValidateWindow();
         }
     }
     if (wasOutputting)
@@ -1048,6 +1053,8 @@ void ModelStateDialog::OnGridPopup(const int rightEventID, wxGridEvent& gridEven
         ImportSubmodel(gridEvent);
     } else if (rightEventID == STATE_DIALOG_COPY_STATES) {
         CopyStates(gridEvent);
+    } else if (rightEventID == STATE_DIALOG_CLEAR_STATES) {
+        ClearStates(gridEvent);
     }
 }
 
@@ -1103,6 +1110,7 @@ void ModelStateDialog::ImportSubmodel(wxGridEvent& event)
         NodeRangeGrid->Refresh();
         GetValue(NodeRangeGrid, event.GetRow(), CHANNEL_COL, stateData[name]);
         dlg.Close();
+        ValidateWindow();
     }
 }
 
@@ -1141,7 +1149,7 @@ void ModelStateDialog::OnAddBtnPopup(wxCommandEvent& event)
         ImportStates(filename);
     } else if (event.GetId() == STATE_DIALOG_COPY) {
         CopyStateData();
-    }    else if (event.GetId() == STATE_DIALOG_RENAME) {
+    } else if (event.GetId() == STATE_DIALOG_RENAME) {
         RenameState();
     } else if(event.GetId() == STATE_DIALOG_SHIFT) {
         ShiftStateNodes();
@@ -1355,6 +1363,7 @@ void ModelStateDialog::CopyStates(wxGridEvent& event)
     if (dlg.ShowModal() == wxID_OK) {
         wxArrayString allNodes;
         int stateIdx { 1 };
+
         for (auto const& idx : dlg.GetSelections()) {
             auto sd = stateData[choices.at(idx)];
             for (int x = 1; x <= 200; x++) {
@@ -1376,6 +1385,16 @@ void ModelStateDialog::CopyStates(wxGridEvent& event)
                     }
 
                     std::string newname = "s" + std::to_string(stateIdx);
+                    for (int x = stateIdx; x <= 200; x++) {
+                        if (stateData[name].contains(newname) ||
+                            stateData[name].contains(newname + "-Name") ||
+                            stateData[name].contains(newname + "-Color")) {
+                            ++stateIdx;
+                            newname = "s" + std::to_string(stateIdx);
+                        } else {
+                            break;
+                        }
+                    }
                     stateData[name].insert({ newname, val });
                     stateData[name].insert({ newname + "-Name", n });
                     stateData[name].insert({ newname + "-Color", c });
@@ -1401,6 +1420,7 @@ void ModelStateDialog::OnPreviewLeftUp(wxMouseEvent& event)
         m_creating_bound_rect = false;
 
         modelPreview->ReleaseMouse();
+        ValidateWindow();
     }
 }
 
@@ -1479,6 +1499,7 @@ void ModelStateDialog::OnPreviewLeftDClick(wxMouseEvent& event)
         NodeRangeGrid->Refresh();
         GetValue(NodeRangeGrid, row, CHANNEL_COL, stateData[name]);
     }
+    ValidateWindow();
 }
 
 void ModelStateDialog::OnPreviewMouseMove(wxMouseEvent& event)
@@ -1760,4 +1781,8 @@ void ModelStateDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
     else {
         StopOutputToLights();
     }
+}
+
+void ModelStateDialog::ClearStates(wxGridEvent& event) {
+    UpdateStateType();
 }

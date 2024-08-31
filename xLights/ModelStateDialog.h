@@ -99,6 +99,7 @@ protected:
     static const long STATE_DIALOG_RENAME;
     static const long STATE_DIALOG_SHIFT;
     static const long STATE_DIALOG_REVERSE;
+    static const long STATE_DIALOG_CLEAR_STATES;
 
 private:
     //(*Handlers(ModelStateDialog)
@@ -172,6 +173,7 @@ private:
     wxArrayString getModelList(ModelManager* modelManager);
 
     void CopyStates(wxGridEvent& event);
+    void ClearStates(wxGridEvent& event);
 
     void CopyStateData();
     void RenameState();
