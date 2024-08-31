@@ -206,6 +206,7 @@ protected:
     static const long SUBMODEL_DIALOG_IMPORT_MODEL;
     static const long SUBMODEL_DIALOG_IMPORT_FILE;
     static const long SUBMODEL_DIALOG_IMPORT_CUSTOM;
+    static const long SUBMODEL_DIALOG_IMPORT_LAYOUT;
     static const long SUBMODEL_DIALOG_IMPORT_CSV;
     static const long SUBMODEL_DIALOG_EXPORT_CSV;
     static const long SUBMODEL_DIALOG_EXPORT_XMODEL;
@@ -359,6 +360,9 @@ private:
 
     void OnTextCtrl_NameText_KillFocus(wxFocusEvent& event);
     void OnSubbufferSize(wxSizeEvent& event);
+
+    void ImportLayoutSubModel();
+    void ReadRGBEffectsFile(wxString const& filename);
 
     wxWindow* _parent = nullptr;
     xLightsFrame* xlights = nullptr;

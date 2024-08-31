@@ -52,7 +52,6 @@
 #include "xLightsVersion.h"
 #include "models/SubModel.h"
 #include "CheckboxSelectDialog.h"
-#include "TempFileManager.h"
 
 #include <log4cpp/Category.hh>
 
@@ -99,6 +98,7 @@ const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_MODEL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_FILE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CUSTOM = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CSV = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_LAYOUT = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_CSV = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_XMODEL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_TOOTHERS = wxNewId();
@@ -789,6 +789,7 @@ void SubModelsDialog::OnButtonImportClick(wxCommandEvent& event)
     wxMenu mnu;
     mnu.Append(SUBMODEL_DIALOG_IMPORT_MODEL, "Import SubModels From Model");
     mnu.Append(SUBMODEL_DIALOG_IMPORT_FILE, "Import SubModels From File");
+    mnu.Append(SUBMODEL_DIALOG_IMPORT_LAYOUT, "Import SubModels From Layout");
     if (_isMatrix) {
         mnu.Append(SUBMODEL_DIALOG_IMPORT_CUSTOM, "Import Custom Model Overlay");
     }
@@ -835,8 +836,9 @@ void SubModelsDialog::OnImportBtnPopup(wxCommandEvent& event)
         wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xModel Files (*.xmodel)|*.xmodel", wxFD_OPEN);
         if (filename.IsEmpty()) return;
         ImportCustomModel(filename);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_CSV) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_LAYOUT) {
+        ImportLayoutSubModel();
+    } else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_CSV) {
         wxString filename = wxFileSelector(_("Choose CSV file"), wxEmptyString, wxEmptyString, wxEmptyString, "CSV Files (*.csv)|*.csv", wxFD_OPEN);
         if (filename.IsEmpty()) return;
         ImportCSVSubModel(filename);
@@ -4390,4 +4392,56 @@ void SubModelsDialog::OnSplitterSashPosChanging(wxSplitterEvent& event) {
         NodesGrid->SetColSize(0, event.GetSashPosition() - 210);
     }
     Layout();
+}
+
+void SubModelsDialog::ImportLayoutSubModel() {
+#ifdef __WXOSX__
+    wxString const wildcard = "*.xml";
+#else
+    wxString const wildcard = "xlights_rgbeffects.xml";
+#endif
+    wxString const filename = wxFileSelector(_("Choose RGB Effects file to import from"), wxEmptyString,
+                                       XLIGHTS_RGBEFFECTS_FILE, wxEmptyString,
+                                       "RGB Effects Files (xlights_rgbeffects.xml)|" + wildcard,
+                                       wxFD_FILE_MUST_EXIST | wxFD_OPEN);
+    if (filename.IsEmpty()) {
+        return;
+    }
+    ReadRGBEffectsFile(filename);
+}
+
+void SubModelsDialog::ReadRGBEffectsFile(wxString const& filename) {
+    wxXmlDocument _doc;
+    _doc.Load(filename);
+    if (_doc.IsOk()) {
+        wxXmlNode* models = nullptr;
+        for (wxXmlNode* m = _doc.GetRoot(); m != nullptr; m = m->GetNext()) {
+            for (wxXmlNode* mm = m->GetChildren(); mm != nullptr; mm = mm->GetNext()) {
+                if (mm->GetName() == "models") {
+                    models = mm;
+                } 
+            }
+        }
+        wxArrayString choices;
+        if (models != nullptr) {
+            for (wxXmlNode* m = models->GetChildren(); m != nullptr; m = m->GetNext()) {
+                wxString const mn = m->GetAttribute("name");
+                choices.Add(mn);
+            }
+        } else {
+            return;
+        }
+        
+        choices.Sort();
+        wxSingleChoiceDialog dlg(GetParent(), "", "Select Model", choices);
+        if (dlg.ShowModal() == wxID_OK) {
+            for (wxXmlNode* m = models->GetChildren(); m != nullptr; m = m->GetNext()) {
+                wxString const mn = m->GetAttribute("name");
+                if (dlg.GetStringSelection() == mn) {
+                    ImportSubModelXML(m);
+                    break;
+                }
+            }
+        }
+    }
 }
