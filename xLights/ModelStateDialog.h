@@ -99,6 +99,7 @@ protected:
     static const long STATE_DIALOG_RENAME;
     static const long STATE_DIALOG_SHIFT;
     static const long STATE_DIALOG_REVERSE;
+    static const long STATE_DIALOG_CLEAR_SELECTED_ROWS;
     static const long STATE_DIALOG_CLEAR_STATES;
 
 private:
@@ -174,6 +175,7 @@ private:
 
     void CopyStates(wxGridEvent& event);
     void ClearStates(wxGridEvent& event);
+    void ClearSelectedStates(wxGridEvent& event);
 
     void CopyStateData();
     void RenameState();
