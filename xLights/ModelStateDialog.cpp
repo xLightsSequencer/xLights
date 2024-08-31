@@ -73,6 +73,7 @@ const long ModelStateDialog::STATE_DIALOG_COPY = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_RENAME = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_SHIFT = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_REVERSE = wxNewId();
+const long ModelStateDialog::STATE_DIALOG_CLEAR_SELECTED_ROWS = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_CLEAR_STATES = wxNewId();
 
 BEGIN_EVENT_TABLE(ModelStateDialog,wxDialog)
@@ -829,11 +830,12 @@ void ModelStateDialog::OnNodeRangeGridCellSelect(wxGridEvent& event)
 void ModelStateDialog::OnNodeRangeGridCellRightClick(wxGridEvent& event)
 {
     wxMenu mnu;
-       
+
     mnu.Append(STATE_DIALOG_IMPORT_SUB, "Import SubModel");
     mnu.Append(STATE_DIALOG_COPY_STATES, "Copy States");
     mnu.AppendSeparator();
-    mnu.Append(STATE_DIALOG_CLEAR_STATES, "Clear States");
+    mnu.Append(STATE_DIALOG_CLEAR_SELECTED_ROWS, "Clear Selected");
+    mnu.Append(STATE_DIALOG_CLEAR_STATES, "Clear All Rows");
 
     mnu.Bind(wxEVT_COMMAND_MENU_SELECTED, [gridevent = event, this](wxCommandEvent & rightClkEvent) mutable {
         OnGridPopup(rightClkEvent.GetId(), gridevent);
@@ -1055,6 +1057,8 @@ void ModelStateDialog::OnGridPopup(const int rightEventID, wxGridEvent& gridEven
         CopyStates(gridEvent);
     } else if (rightEventID == STATE_DIALOG_CLEAR_STATES) {
         ClearStates(gridEvent);
+    } else if (rightEventID == STATE_DIALOG_CLEAR_SELECTED_ROWS) {
+        ClearSelectedStates(gridEvent);
     }
 }
 
@@ -1785,4 +1789,31 @@ void ModelStateDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 
 void ModelStateDialog::ClearStates(wxGridEvent& event) {
     UpdateStateType();
+    ValidateWindow();
+}
+
+void ModelStateDialog::ClearSelectedStates(wxGridEvent& event) {
+
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name.empty()) {
+        return;
+    }
+
+    if (stateData[name]["Type"] != "NodeRange") {
+        return;
+    }
+    for (int k = 0; k < NodeRangeGrid->GetNumberCols(); k++) {
+        for (int i = NodeRangeGrid->GetNumberRows(); i >= 0; i--) {
+            if (NodeRangeGrid->IsInSelection(i, k)) {
+                NodeRangeGrid->SetCellValue(i, k, wxEmptyString);
+
+                if (k == COLOUR_COL) {
+                    NodeRangeGrid->SetCellBackgroundColour(i, k, *wxWHITE);
+                }
+                GetValue(NodeRangeGrid, i, k, stateData[name]);
+            }
+        }
+    }
+    ValidateWindow();
+    NodeRangeGrid->Refresh();
 }
