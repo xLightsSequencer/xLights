@@ -1208,7 +1208,7 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
         wxMessageBox(wxString::Format("The import sequence is using a newer version than you are currently using.  %s", xlf.GetVersion().ToStdString().c_str()));
     }
     if (_sequenceElements.GetFrequency() < xlf.GetFrequency()) {
-        wxMessageBox(wxString::Format("The import sequence is using a higher FPS that you are currently using. %d FPS", xlf.GetFrequency()));
+        wxMessageBox(wxString::Format("The import sequence is using a higher FPS than you are currently using. %d FPS", xlf.GetFrequency()));
     }
     bool supportsModelBlending = xlf.supportsModelBlending();
 
