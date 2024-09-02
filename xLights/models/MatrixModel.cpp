@@ -320,9 +320,9 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
             Nodes[n]->ActChan = stringStartChan[n];
             float sy = 0;
             for (auto& c : Nodes[n]->Coords) {
-                c.screenX = isBotToTop ? sx : (NumStrands * parm3) - sx - 1;
+                c.screenX = isBotToTop ? sx : NumStrands - sx - 1;
                 c.screenX -= ((float)NumStrands - 1.0) / 2.0;
-                c.screenY = sy - ((float)PixelsPerStrand - 1.0) / 2.0;
+                c.screenY = sy - ((float)PixelsPerStrand - 1.0) / 2.0 - 0.5;
                 c.screenZ = 0;
                 sy++;
                 if (sy >= PixelsPerStrand) {
