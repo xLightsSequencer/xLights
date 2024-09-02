@@ -478,9 +478,9 @@ void MatrixModel::InitHMatrix() {
             float sx = 0;
             for (auto& c : Nodes[n]->Coords)
             {
-                c.screenY = isBotToTop ? sy : (NumStrands * parm3) - sy - 1;
+                c.screenY = isBotToTop ? sy : NumStrands - sy - 1;
                 c.screenY -= ((float)NumStrands-1.0) / 2.0;
-                c.screenX = sx - ((float)PixelsPerStrand-1.0) / 2.0;
+                c.screenX = sx - ((float)PixelsPerStrand-1.0) / 2.0 - 0.5;
                 c.screenZ = 0;
                 sx++;
                 if (sx >= PixelsPerStrand)
