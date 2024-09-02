@@ -101,8 +101,8 @@ class RemoteFalcon
                             body += ",";
                         }
 
-                        body += wxString::Format("{\"playlistName\":\"" + val["steps"][i]["name"].AsString() + "\",\"playlistDuration\":%d}",
-                            wxAtoi(val["steps"][i]["lengthms"].AsString()) / 1000);
+                        body += wxString::Format("{\"playlistName\":\"" + val["steps"][i]["name"].AsString() + "\",\"playlistIndex\":%d, \"playlistDuration\":%d}",
+                            (i+1), wxAtoi(val["steps"][i]["lengthms"].AsString()) / 1000);
                     }
                 }
             }
