@@ -314,7 +314,6 @@
 						<object class="wxChoice" name="ID_CHOICE_ALIASPROMPT" variable="Choice_AliasPromptBehavior" member="yes">
 							<content>
 								<item>Always Prompt</item>
-								<item>Skip New Models</item>
 								<item>Always Yes</item>
 								<item>Always No</item>
 							</content>
