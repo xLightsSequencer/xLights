@@ -175,7 +175,6 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     FlexGridSizer7->Add(StaticText7, 1, wxALL|wxEXPAND, 5);
     Choice_AliasPromptBehavior = new wxChoice(this, ID_CHOICE_ALIASPROMPT, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_ALIASPROMPT"));
     Choice_AliasPromptBehavior->SetSelection( Choice_AliasPromptBehavior->Append(_("Always Prompt")) );
-    Choice_AliasPromptBehavior->Append(_("Skip New Models"));
     Choice_AliasPromptBehavior->Append(_("Always Yes"));
     Choice_AliasPromptBehavior->Append(_("Always No"));
     FlexGridSizer7->Add(Choice_AliasPromptBehavior, 1, wxALL|wxEXPAND, 5);
