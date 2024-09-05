@@ -10109,6 +10109,30 @@ void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent
     lxw_format* format = workbook_add_format(workbook);
     format_set_border(format, LXW_BORDER_THIN);
 
+    lxw_format* sr1_format = workbook_add_format(workbook);
+    format_set_bg_color(sr1_format, 0x99FF99);
+    format_set_border(sr1_format, LXW_BORDER_THIN);
+
+    lxw_format* sr2_format = workbook_add_format(workbook);
+    format_set_bg_color(sr2_format, 0xB896FF);
+    format_set_border(sr2_format, LXW_BORDER_THIN);
+
+    lxw_format* sr3_format = workbook_add_format(workbook);
+    format_set_bg_color(sr3_format, 0xFFC996);
+    format_set_border(sr3_format, LXW_BORDER_THIN);
+
+    lxw_format* sr4_format = workbook_add_format(workbook);
+    format_set_bg_color(sr4_format, 0x80FFFF);
+    format_set_border(sr4_format, LXW_BORDER_THIN);
+
+    lxw_format* sr5_format = workbook_add_format(workbook);
+    format_set_bg_color(sr5_format, 0xFF85FF);
+    format_set_border(sr5_format, LXW_BORDER_THIN);
+
+    lxw_format* sr6_format = workbook_add_format(workbook);
+    format_set_bg_color(sr6_format, 0xFFFF85);
+    format_set_border(sr6_format, LXW_BORDER_THIN);
+
     int row = 0;
     std::map<int, double> _col_widths;
 
@@ -10129,6 +10153,34 @@ void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent
             for (auto const& column : line) {
                 if (column.empty()) {
                     continue;
+                }
+                if (column.find("Remote A") != std::string::npos ||
+                    column.find("Remote G") != std::string::npos ||
+                    column.find("Remote M") != std::string::npos) {
+                    lformat = sr1_format;
+                }
+                if (column.find("Remote B") != std::string::npos ||
+                    column.find("Remote H") != std::string::npos ||
+                    column.find("Remote N") != std::string::npos) {
+                    lformat = sr2_format;
+                }
+                if (column.find("Remote C") != std::string::npos ||
+                    column.find("Remote I") != std::string::npos ||
+                    column.find("Remote O") != std::string::npos) {
+                    lformat = sr3_format;
+                }
+                if (column.find("Remote D") != std::string::npos ||
+                    column.find("Remote J") != std::string::npos ||
+                    column.find("Remote P") != std::string::npos) {
+                    lformat = sr4_format;
+                }
+                if (column.find("Remote E") != std::string::npos ||
+                    column.find("Remote K") != std::string::npos) {
+                    lformat = sr5_format;
+                }
+                if (column.find("Remote F") != std::string::npos ||
+                    column.find("Remote L") != std::string::npos) {
+                    lformat = sr6_format;
                 }
                 worksheet_write_string(worksheet, row, col, column.c_str(), lformat);
                 double width = column.size() + 1.3; // estimate column width

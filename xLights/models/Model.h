@@ -392,10 +392,12 @@ public:
     [[nodiscard]] int GetControllerEndNulls() const;
     [[nodiscard]] wxString GetControllerColorOrder() const;
     [[nodiscard]] int GetControllerGroupCount() const;
+    [[nodiscard]] float GetControllerGamma() const;
     void SetControllerStartNulls(int nulls);
     void SetControllerEndNulls(int nulls);
     void SetControllerColorOrder(wxString const& color);
     void SetControllerGroupCount(int grouping);
+    void SetControllerGamma(float gamma);
 
     bool IsAlias(const std::string& alias, bool oldnameOnly = false) const;
     void AddAlias(const std::string& alias);

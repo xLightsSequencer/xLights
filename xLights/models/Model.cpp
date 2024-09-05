@@ -7386,6 +7386,20 @@ void Model::SetControllerGroupCount(int grouping)
     IncrementChangeCount();
 }
 
+void Model::SetControllerGamma(float gamma) {
+    if (abs(gamma - wxAtof(GetControllerConnection()->GetAttribute("gamma", "0.0"))) < 0.01) {
+        return;
+    }
+    GetControllerConnection()->DeleteAttribute("gamma");
+    GetControllerConnection()->AddAttribute("gamma", wxString::Format("%f", gamma));
+
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetConnectionPixelGamma");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetConnectionPixelGamma");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetConnectionPixelGamma");
+    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetConnectionPixelGamma");
+    IncrementChangeCount();
+}
+
 void Model::ClearControllerBrightness()
 {
     if (GetControllerConnection()->HasAttribute("brightness")) {
@@ -7441,6 +7455,10 @@ std::string Model::GetShadowModelFor() const
 std::string Model::GetControllerName() const
 {
     return ModelXml->GetAttribute("Controller", "").Trim(true).Trim(false).ToStdString();
+}
+
+float Model::GetControllerGamma() const {
+    return wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
 }
 
 // std::list<std::string> Model::GetProtocols()
