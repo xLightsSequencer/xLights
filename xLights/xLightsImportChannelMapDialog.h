@@ -495,6 +495,7 @@ protected:
 		void OnTextCtrl_FindFromText(wxCommandEvent& event);
 		void OnTextCtrl_FindToText(wxCommandEvent& event);
 		void OnButton_UpdateAliasesClick(wxCommandEvent& event);
+		void OnClose(wxCloseEvent& event);
 		//*)
 
         void RightClickTimingTracks(wxContextMenuEvent& event);
