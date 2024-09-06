@@ -188,7 +188,7 @@ void WarpPanel::CheckTypeTreatment()
     wxString warpTreatment = Choice_Warp_Treatment->GetStringSelection();
 
     bool constantOnly = warpType == "water drops" || warpType == "single water drop" || warpType == "wavy" || warpType == "sample on" || warpType == "copy" || warpType == "mirror" || warpType == "flip";
-    if (constantOnly && warpTreatment != "constant")
+    if (constantOnly && !warpTreatment.IsEmpty() && warpTreatment != "constant")
     {
         Choice_Warp_Treatment->SetStringSelection("constant");
         wxBell();
