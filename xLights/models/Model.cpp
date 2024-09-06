@@ -5182,6 +5182,8 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
                 } else {
                     int s = Nodes[n - 1]->StringNum + 1;
                     wxString bgcolor = (s % 2 == 1) ? "#ADD8E6" : "#90EE90";
+                    if( IsDarkMode() )
+                        bgcolor = (s % 2 == 1) ? "#3F7C85" : "#962B09";
                     while (n > NodesPerString()) {
                         n -= NodesPerString();
                     }
