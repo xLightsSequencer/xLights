@@ -549,12 +549,17 @@ std::list<std::string> WarpEffect::CheckEffectSettings(const SettingsMap& settin
 void WarpEffect::SetDefaultParameters()
 {
     WarpPanel *p = (WarpPanel *)panel;
+    if (p == nullptr) {
+        return;
+    }
 
     p->BitmapButton_Warp_X->SetActive( false );
     p->BitmapButton_Warp_Y->SetActive( false );
 
-    p->Choice_Warp_Type->SetSelection( 0 );
-    p->Choice_Warp_Treatment->SetSelection( 0 );
+    if (p->Choice_Warp_Type->GetStringSelection() == "") {
+        SetChoiceValue(p->Choice_Warp_Type, "water drops");
+        SetChoiceValue(p->Choice_Warp_Treatment, "constant");
+    }
 
     SetSliderValue( p->Slider_Warp_X, 50 );
 
