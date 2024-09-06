@@ -52,45 +52,46 @@
 #include "xLightsVersion.h"
 #include "models/SubModel.h"
 #include "CheckboxSelectDialog.h"
+#include "VendorModelDialog.h"
 
 #include <log4cpp/Category.hh>
 
 wxDEFINE_EVENT(EVT_SMDROP, wxCommandEvent);
 
 //(*IdInit(SubModelsDialog)
-const long SubModelsDialog::ID_CHECKBOX2 = wxNewId();
-const long SubModelsDialog::ID_STATICTEXT1 = wxNewId();
-const long SubModelsDialog::ID_LISTCTRL_SUB_MODELS = wxNewId();
-const long SubModelsDialog::ID_SEARCHCTRL1 = wxNewId();
-const long SubModelsDialog::ID_BUTTON3 = wxNewId();
-const long SubModelsDialog::ID_BUTTON4 = wxNewId();
-const long SubModelsDialog::ID_BUTTONCOPY = wxNewId();
-const long SubModelsDialog::ID_BUTTON_EDIT = wxNewId();
-const long SubModelsDialog::ID_BUTTON_IMPORT = wxNewId();
-const long SubModelsDialog::ID_BUTTON10 = wxNewId();
-const long SubModelsDialog::ID_PANEL4 = wxNewId();
-const long SubModelsDialog::ID_STATICTEXT_NAME = wxNewId();
-const long SubModelsDialog::ID_TEXTCTRL_NAME = wxNewId();
-const long SubModelsDialog::ID_STATICTEXT2 = wxNewId();
-const long SubModelsDialog::ID_CHOICE_BUFFER_STYLE = wxNewId();
-const long SubModelsDialog::ID_CHECKBOX1 = wxNewId();
-const long SubModelsDialog::ID_GRID1 = wxNewId();
-const long SubModelsDialog::ID_BUTTON6 = wxNewId();
-const long SubModelsDialog::ID_BUTTON8 = wxNewId();
-const long SubModelsDialog::ID_BUTTON1 = wxNewId();
-const long SubModelsDialog::ID_BUTTON2 = wxNewId();
-const long SubModelsDialog::ID_BUTTON_MOVE_UP = wxNewId();
-const long SubModelsDialog::ID_BUTTON_MOVE_DOWN = wxNewId();
-const long SubModelsDialog::ID_BUTTON7 = wxNewId();
-const long SubModelsDialog::ID_BUTTON_SORT_ROW = wxNewId();
-const long SubModelsDialog::ID_BUTTON_DRAW_MODEL = wxNewId();
-const long SubModelsDialog::ID_PANEL2 = wxNewId();
-const long SubModelsDialog::ID_PANEL3 = wxNewId();
-const long SubModelsDialog::ID_NOTEBOOK1 = wxNewId();
-const long SubModelsDialog::ID_PANEL5 = wxNewId();
-const long SubModelsDialog::ID_PANEL1 = wxNewId();
-const long SubModelsDialog::ID_SPLITTERWINDOW1 = wxNewId();
-const long SubModelsDialog::ID_STATICTEXT3 = wxNewId();
+const wxWindowID SubModelsDialog::ID_CHECKBOX2 = wxNewId();
+const wxWindowID SubModelsDialog::ID_STATICTEXT1 = wxNewId();
+const wxWindowID SubModelsDialog::ID_LISTCTRL_SUB_MODELS = wxNewId();
+const wxWindowID SubModelsDialog::ID_SEARCHCTRL1 = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON3 = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON4 = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTONCOPY = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON_EDIT = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON_IMPORT = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON10 = wxNewId();
+const wxWindowID SubModelsDialog::ID_PANEL4 = wxNewId();
+const wxWindowID SubModelsDialog::ID_STATICTEXT_NAME = wxNewId();
+const wxWindowID SubModelsDialog::ID_TEXTCTRL_NAME = wxNewId();
+const wxWindowID SubModelsDialog::ID_STATICTEXT2 = wxNewId();
+const wxWindowID SubModelsDialog::ID_CHOICE_BUFFER_STYLE = wxNewId();
+const wxWindowID SubModelsDialog::ID_CHECKBOX1 = wxNewId();
+const wxWindowID SubModelsDialog::ID_GRID1 = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON6 = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON8 = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON1 = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON2 = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON_MOVE_UP = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON_MOVE_DOWN = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON7 = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON_SORT_ROW = wxNewId();
+const wxWindowID SubModelsDialog::ID_BUTTON_DRAW_MODEL = wxNewId();
+const wxWindowID SubModelsDialog::ID_PANEL2 = wxNewId();
+const wxWindowID SubModelsDialog::ID_PANEL3 = wxNewId();
+const wxWindowID SubModelsDialog::ID_NOTEBOOK1 = wxNewId();
+const wxWindowID SubModelsDialog::ID_PANEL5 = wxNewId();
+const wxWindowID SubModelsDialog::ID_PANEL1 = wxNewId();
+const wxWindowID SubModelsDialog::ID_SPLITTERWINDOW1 = wxNewId();
+const wxWindowID SubModelsDialog::ID_STATICTEXT3 = wxNewId();
 //*)
 const long SubModelsDialog::ID_TIMER1 = wxNewId();
 
@@ -99,6 +100,7 @@ const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_FILE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CUSTOM = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CSV = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_LAYOUT = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_DOWNLOAD = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_CSV = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_XMODEL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_TOOTHERS = wxNewId();
@@ -204,8 +206,6 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
 	FlexGridSizer10->Add(Button_Export, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Panel2->SetSizer(FlexGridSizer9);
-	FlexGridSizer9->Fit(Panel2);
-	FlexGridSizer9->SetSizeHints(Panel2);
 	FlexGridSizer2->Add(Panel2, 0, wxEXPAND, 0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
 	SplitterWindow1->SetSashGravity(0.5);
@@ -261,7 +261,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
 	FlexGridSizer5->Add(AddRowButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	DeleteRowButton = new wxButton(Panel1, ID_BUTTON2, _("Delete Row"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer5->Add(DeleteRowButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_MoveUp = new wxButton(Panel1, ID_BUTTON_MOVE_UP, _("^"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MOVE_UP"));
+	Button_MoveUp = new wxButton(Panel1, ID_BUTTON_MOVE_UP, _T("^"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MOVE_UP"));
 	FlexGridSizer5->Add(Button_MoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_MoveDown = new wxButton(Panel1, ID_BUTTON_MOVE_DOWN, _("v"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MOVE_DOWN"));
 	FlexGridSizer5->Add(Button_MoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -273,29 +273,21 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
 	FlexGridSizer5->Add(Button_Draw_Model, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 0);
 	Panel1->SetSizer(FlexGridSizer4);
-	FlexGridSizer4->Fit(Panel1);
-	FlexGridSizer4->SetSizeHints(Panel1);
 	SubBufferPanelHolder = new wxPanel(TypeNotebook, ID_PANEL3, wxPoint(90,10), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	SubBufferSizer = new wxFlexGridSizer(1, 1, 0, 0);
 	SubBufferSizer->AddGrowableCol(0);
 	SubBufferSizer->AddGrowableRow(0);
 	SubBufferPanelHolder->SetSizer(SubBufferSizer);
-	SubBufferSizer->Fit(SubBufferPanelHolder);
-	SubBufferSizer->SetSizeHints(SubBufferPanelHolder);
 	TypeNotebook->AddPage(Panel1, _("Node Ranges"), false);
 	TypeNotebook->AddPage(SubBufferPanelHolder, _("SubBuffer"), false);
 	FlexGridSizer3->Add(TypeNotebook, 1, wxALL|wxEXPAND, 0);
 	Panel3->SetSizer(FlexGridSizer3);
-	FlexGridSizer3->Fit(Panel3);
-	FlexGridSizer3->SetSizeHints(Panel3);
 	ModelPreviewPanelLocation = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	ModelPreviewPanelLocation->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(100,100)));
 	PreviewSizer = new wxFlexGridSizer(1, 1, 0, 0);
 	PreviewSizer->AddGrowableCol(0);
 	PreviewSizer->AddGrowableRow(0);
 	ModelPreviewPanelLocation->SetSizer(PreviewSizer);
-	PreviewSizer->Fit(ModelPreviewPanelLocation);
-	PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
 	SplitterWindow1->SplitVertically(Panel3, ModelPreviewPanelLocation);
 	FlexGridSizer2->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
@@ -311,44 +303,43 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
 	FlexGridSizer11->Add(NodeNumberText, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer11, 2, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	SetSizer(FlexGridSizer1);
 	Layout();
 	Center();
 
-	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnCheckBox_OutputToLightsClick);
-	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsBeginDrag);
-	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsItemSelect);
-	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsItemRClick);
-	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsKeyDown);
-	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsColumnClick);
-	Connect(ID_SEARCHCTRL1,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&SubModelsDialog::OnButton_SearchClick);
-	Connect(ID_SEARCHCTRL1,wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN,(wxObjectEventFunction)&SubModelsDialog::OnButton_SearchClick);
-	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddButtonClick);
-	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnDeleteButtonClick);
-	Connect(ID_BUTTONCOPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_Sub_CopyClick);
-	Connect(ID_BUTTON_EDIT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_EditClick);
-	Connect(ID_BUTTON_IMPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButtonImportClick);
-	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ExportClick);
-	Connect(ID_TEXTCTRL_NAME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SubModelsDialog::OnTextCtrl_NameText_Change);
-	Connect(ID_CHOICE_BUFFER_STYLE,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SubModelsDialog::OnChoiceBufferStyleSelect);
-	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnLayoutCheckboxClick);
-	Connect(ID_GRID1,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellRightClick);
-	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellLeftDClick);
-	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridLabelLeftClick);
-	Connect(ID_GRID1,wxEVT_GRID_LABEL_RIGHT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellRightClick);
-	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_DCLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridLabelLeftDClick);
-	Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellSelect);
-	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseNodesClick);
-	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseRowsClick);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddRowButtonClick);
-	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnDeleteRowButtonClick);
-	Connect(ID_BUTTON_MOVE_UP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_MoveUpClick);
-	Connect(ID_BUTTON_MOVE_DOWN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_MoveDownClick);
-	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseRowClick);
-	Connect(ID_BUTTON_SORT_ROW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_SortRowClick);
-	Connect(ID_BUTTON_DRAW_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_Draw_ModelClick);
-	Connect(ID_SPLITTERWINDOW1,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGING,(wxObjectEventFunction)&SubModelsDialog::OnSplitterSashPosChanging);
-	Connect(wxID_ANY,wxEVT_INIT_DIALOG,(wxObjectEventFunction)&SubModelsDialog::OnInit);
+	Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnCheckBox_OutputToLightsClick);
+	Connect(ID_LISTCTRL_SUB_MODELS, wxEVT_COMMAND_LIST_BEGIN_DRAG, (wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsBeginDrag);
+	Connect(ID_LISTCTRL_SUB_MODELS, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsItemSelect);
+	Connect(ID_LISTCTRL_SUB_MODELS, wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK, (wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsItemRClick);
+	Connect(ID_LISTCTRL_SUB_MODELS, wxEVT_COMMAND_LIST_KEY_DOWN, (wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsKeyDown);
+	Connect(ID_LISTCTRL_SUB_MODELS, wxEVT_COMMAND_LIST_COL_CLICK, (wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsColumnClick);
+	Connect(ID_SEARCHCTRL1, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&SubModelsDialog::OnButton_SearchClick);
+	Connect(ID_SEARCHCTRL1, wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN, (wxObjectEventFunction)&SubModelsDialog::OnButton_SearchClick);
+	Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnAddButtonClick);
+	Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnDeleteButtonClick);
+	Connect(ID_BUTTONCOPY, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnButton_Sub_CopyClick);
+	Connect(ID_BUTTON_EDIT, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnButton_EditClick);
+	Connect(ID_BUTTON_IMPORT, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnButtonImportClick);
+	Connect(ID_BUTTON10, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnButton_ExportClick);
+	Connect(ID_TEXTCTRL_NAME, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&SubModelsDialog::OnTextCtrl_NameText_Change);
+	Connect(ID_CHOICE_BUFFER_STYLE, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&SubModelsDialog::OnChoiceBufferStyleSelect);
+	Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnLayoutCheckboxClick);
+	Connect(ID_GRID1, wxEVT_GRID_CELL_RIGHT_CLICK, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellRightClick);
+	Connect(ID_GRID1, wxEVT_GRID_CELL_LEFT_DCLICK, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellLeftDClick);
+	Connect(ID_GRID1, wxEVT_GRID_LABEL_LEFT_CLICK, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridLabelLeftClick);
+	Connect(ID_GRID1, wxEVT_GRID_LABEL_RIGHT_CLICK, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellRightClick);
+	Connect(ID_GRID1, wxEVT_GRID_LABEL_LEFT_DCLICK, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridLabelLeftDClick);
+	Connect(ID_GRID1, wxEVT_GRID_SELECT_CELL, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellSelect);
+	Connect(ID_BUTTON6, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseNodesClick);
+	Connect(ID_BUTTON8, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseRowsClick);
+	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnAddRowButtonClick);
+	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnDeleteRowButtonClick);
+	Connect(ID_BUTTON_MOVE_UP, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnButton_MoveUpClick);
+	Connect(ID_BUTTON_MOVE_DOWN, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnButton_MoveDownClick);
+	Connect(ID_BUTTON7, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseRowClick);
+	Connect(ID_BUTTON_SORT_ROW, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnButton_SortRowClick);
+	Connect(ID_BUTTON_DRAW_MODEL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnButton_Draw_ModelClick);
+	Connect(ID_SPLITTERWINDOW1, wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGING, (wxObjectEventFunction)&SubModelsDialog::OnSplitterSashPosChanging);
+	Connect(wxID_ANY, wxEVT_INIT_DIALOG, (wxObjectEventFunction)&SubModelsDialog::OnInit);
 	//*)
 
     Connect(ID_NOTEBOOK1, wxEVT_NOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)& SubModelsDialog::OnTypeNotebookPageChanged);
@@ -790,6 +781,7 @@ void SubModelsDialog::OnButtonImportClick(wxCommandEvent& event)
     mnu.Append(SUBMODEL_DIALOG_IMPORT_MODEL, "Import SubModels From Model");
     mnu.Append(SUBMODEL_DIALOG_IMPORT_FILE, "Import SubModels From File");
     mnu.Append(SUBMODEL_DIALOG_IMPORT_LAYOUT, "Import SubModels From Layout");
+    mnu.Append(SUBMODEL_DIALOG_IMPORT_DOWNLOAD, "Import SubModels From Downloads");
     if (_isMatrix) {
         mnu.Append(SUBMODEL_DIALOG_IMPORT_CUSTOM, "Import Custom Model Overlay");
     }
@@ -842,6 +834,12 @@ void SubModelsDialog::OnImportBtnPopup(wxCommandEvent& event)
         wxString filename = wxFileSelector(_("Choose CSV file"), wxEmptyString, wxEmptyString, wxEmptyString, "CSV Files (*.csv)|*.csv", wxFD_OPEN);
         if (filename.IsEmpty()) return;
         ImportCSVSubModel(filename);
+    } else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_DOWNLOAD) {
+        wxString const filename = GetDownloadSubmodels();
+        if (filename.IsEmpty()){
+            return;
+        }
+        ImportSubModel(filename);
     }
 }
 
@@ -4444,4 +4442,24 @@ void SubModelsDialog::ReadRGBEffectsFile(wxString const& filename) {
             }
         }
     }
+}
+
+wxString SubModelsDialog::GetDownloadSubmodels() {
+    wxProgressDialog* prog = new wxProgressDialog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    prog->Show();
+    prog->CenterOnParent();
+    xLightsFrame* xlights = xLightsApp::GetFrame();
+    VendorModelDialog dlg(this, xlights->CurrentDir);
+    SetCursor(wxCURSOR_WAIT);
+    if (dlg.DlgInit(prog, 0, 99)) {
+        if (prog != nullptr) {
+            prog->Update(100);
+        }
+        dlg.Button_InsertModel->SetLabelText("Select Model");
+        SetCursor(wxCURSOR_DEFAULT);
+        if (dlg.ShowModal() == wxID_OK) {            
+            return dlg.GetModelFile();          
+        }
+    }
+    return wxString();
 }

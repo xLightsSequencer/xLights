@@ -23,6 +23,7 @@
 #include "models/CustomModel.h"
 #include "utils/string_utils.h"
 #include "xlColourData.h"
+#include "VendorModelDialog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -59,6 +60,8 @@ const wxWindowID ModelStateDialog::ID_GRID3 = wxNewId();
 const wxWindowID ModelStateDialog::ID_PANEL6 = wxNewId();
 const wxWindowID ModelStateDialog::ID_CHOICEBOOK1 = wxNewId();
 const wxWindowID ModelStateDialog::ID_PANEL5 = wxNewId();
+const wxWindowID ModelStateDialog::ID_STATICTEXT1 = wxNewId();
+const wxWindowID ModelStateDialog::ID_CHOICE_COLOR_DRAW = wxNewId();
 const wxWindowID ModelStateDialog::ID_PANEL_PREVIEW = wxNewId();
 const wxWindowID ModelStateDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
@@ -69,6 +72,7 @@ const long ModelStateDialog::STATE_DIALOG_IMPORT_ALL_SUB = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_COPY_STATES = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_IMPORT_MODEL = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_IMPORT_FILE = wxNewId();
+const long ModelStateDialog::STATE_DIALOG_IMPORT_DOWNLOAD = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_COPY = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_RENAME = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_SHIFT = wxNewId();
@@ -106,6 +110,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
     mPointSize(PIXEL_SIZE_ON_DIALOGS), _outputManager(outputManager)
 {
 	//(*Initialize(ModelStateDialog)
+	wxBoxSizer* BoxSizer1;
 	wxButton* AddButton;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
@@ -215,7 +220,15 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 	ModelPreviewPanelLocation = new wxPanel(SplitterWindow1, ID_PANEL_PREVIEW, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_PREVIEW"));
 	PreviewSizer = new wxFlexGridSizer(0, 1, 0, 0);
 	PreviewSizer->AddGrowableCol(0);
-	PreviewSizer->AddGrowableRow(0);
+	PreviewSizer->AddGrowableRow(1);
+	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
+	StaticText1 = new wxStaticText(ModelPreviewPanelLocation, ID_STATICTEXT1, _("Model Display"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	BoxSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	ChoiceColorDraw = new wxChoice(ModelPreviewPanelLocation, ID_CHOICE_COLOR_DRAW, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_COLOR_DRAW"));
+	ChoiceColorDraw->SetSelection( ChoiceColorDraw->Append(_("All Colors")) );
+	ChoiceColorDraw->Append(_("White Only"));
+	BoxSizer1->Add(ChoiceColorDraw, 1, wxALL|wxEXPAND, 5);
+	PreviewSizer->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ModelPreviewPanelLocation->SetSizer(PreviewSizer);
 	SplitterWindow1->SplitVertically(Panel3, ModelPreviewPanelLocation);
 	FlexGridSizer1->Add(SplitterWindow1, 0, wxEXPAND, 0);
@@ -244,6 +257,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 	Connect(ID_GRID3, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellChange);
 	Connect(ID_GRID3, wxEVT_GRID_SELECT_CELL, (wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellSelect);
 	Connect(ID_CHOICEBOOK1, wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&ModelStateDialog::OnStateTypeChoicePageChanged);
+	Connect(ID_CHOICE_COLOR_DRAW, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ModelStateDialog::OnChoiceColorDrawSelect);
 	Connect(wxID_ANY, wxEVT_INIT_DIALOG, (wxObjectEventFunction)&ModelStateDialog::OnInit);
 	//*)
 
@@ -620,34 +634,40 @@ void ModelStateDialog::SelectRow(wxGrid* grid, int const r) {
     _selected.clear();
     ClearNodeColor(model);
 
+    int const draw_mode = ChoiceColorDraw->GetCurrentSelection();
+
     if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
         if (r == -1) {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
-                xlColor const c = GetRowColor(grid, i, false, CustomColorSingleNode->IsChecked());
+                xlColor const c = GetRowColor(grid, i, false, draw_mode == 0 && CustomColorSingleNode->IsChecked());
                 SetSingleNodeColor(grid, i, c, true);
             }
         } else {
-            for (int i = 0; i < grid->GetNumberRows(); ++i) {
-                xlColor const c = GetRowColor(grid, i, r != i, CustomColorSingleNode->IsChecked());
-                SetSingleNodeColor(grid, i, c, false);
+            if (draw_mode == 0) {
+                for (int i = 0; i < grid->GetNumberRows(); ++i) {
+                    xlColor const c = GetRowColor(grid, i, r != i, CustomColorSingleNode->IsChecked());
+                    SetSingleNodeColor(grid, i, c, false);
+                }
             }
             // redo the selected row to ensure it is white
-            xlColor const cc = GetRowColor(grid, r, false, CustomColorSingleNode->IsChecked());
+            xlColor const cc = GetRowColor(grid, r, false, draw_mode == 0 && CustomColorSingleNode->IsChecked());
             SetSingleNodeColor(grid, r, cc, true);
         }
     } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
         if (r == -1) {
             for (int i = 0; i < grid->GetNumberRows(); ++i) {
-                xlColor const c = GetRowColor(grid, i, false, CustomColorNodeRanges->IsChecked());
+                xlColor const c = GetRowColor(grid, i, false, draw_mode == 0 && CustomColorNodeRanges->IsChecked());
                 SetNodeColor(grid, i, c, true);
             }
         } else {
-            for (int i = 0; i < grid->GetNumberRows(); ++i) {
-                xlColor const c = GetRowColor(grid, i, r != i, CustomColorNodeRanges->IsChecked());
-                SetNodeColor(grid, i, c, false);
+            if (draw_mode == 0) {
+                for (int i = 0; i < grid->GetNumberRows(); ++i) {
+                    xlColor const c = GetRowColor(grid, i, r != i, CustomColorNodeRanges->IsChecked());
+                    SetNodeColor(grid, i, c, false);
+                }
             }
             // redo the selected row to ensure it is white
-            xlColor const cc = GetRowColor(grid, r, false, CustomColorNodeRanges->IsChecked());
+            xlColor const cc = GetRowColor(grid, r, false, draw_mode == 0 && CustomColorNodeRanges->IsChecked());
             SetNodeColor(grid, r, cc, true);
         }
     }
@@ -884,6 +904,7 @@ void ModelStateDialog::OnButton_ImportClick(wxCommandEvent& event)
     mnu.Append(STATE_DIALOG_IMPORT_MODEL, "Import From Model");
     mnu.Append(STATE_DIALOG_IMPORT_FILE, "Import From File");
     mnu.Append(STATE_DIALOG_IMPORT_ALL_SUB, "Import From SubModels");
+    mnu.Append(STATE_DIALOG_IMPORT_DOWNLOAD, "Import From Downloads");
     mnu.AppendSeparator();
     mnu.Append(STATE_DIALOG_SHIFT, "Shift Nodes");
     mnu.Append(STATE_DIALOG_REVERSE, "Reverse Nodes");
@@ -1149,7 +1170,9 @@ void ModelStateDialog::OnAddBtnPopup(wxCommandEvent& event)
         ImportStatesFromModel();
     } else if (event.GetId() == STATE_DIALOG_IMPORT_FILE) {
         const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xModel Files (*.xmodel)|*.xmodel", wxFD_OPEN);
-        if (filename.IsEmpty()) return;
+        if (filename.IsEmpty()) {
+            return;
+        }
         ImportStates(filename);
     } else if (event.GetId() == STATE_DIALOG_COPY) {
         CopyStateData();
@@ -1161,6 +1184,12 @@ void ModelStateDialog::OnAddBtnPopup(wxCommandEvent& event)
         ReverseStateNodes();
     } else if (event.GetId() == STATE_DIALOG_IMPORT_ALL_SUB) {
         ImportStatesFromSubModels();
+    } else if (event.GetId() == STATE_DIALOG_IMPORT_DOWNLOAD) {
+        const wxString filename = GetDownloadStates();
+        if (filename.IsEmpty()) {
+            return;
+        }
+        ImportStates(filename);
     }
 }
 
@@ -1367,9 +1396,12 @@ void ModelStateDialog::CopyStates(wxGridEvent& event)
     if (dlg.ShowModal() == wxID_OK) {
         wxArrayString allNodes;
         int stateIdx { 1 };
-
         for (auto const& idx : dlg.GetSelections()) {
             auto sd = stateData[choices.at(idx)];
+            if (sd["CustomColors"] == "1") {
+                stateData[name]["CustomColors"] = "1";
+            }
+
             for (int x = 1; x <= 200; x++) {
                 std::string pname = "s" + std::to_string(x);
                 if (sd.find(pname) != end(sd) || sd.find(pname + "-Name") != end(sd) || sd.find(pname + "-Color") != end(sd)) {
@@ -1816,4 +1848,40 @@ void ModelStateDialog::ClearSelectedStates(wxGridEvent& event) {
     }
     ValidateWindow();
     NodeRangeGrid->Refresh();
+}
+
+wxString ModelStateDialog::GetDownloadStates() {
+    wxProgressDialog* prog = new wxProgressDialog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    prog->Show();
+    prog->CenterOnParent();
+    xLightsFrame* xlights = xLightsApp::GetFrame();
+    VendorModelDialog dlg(this, xlights->CurrentDir);
+    SetCursor(wxCURSOR_WAIT);
+    if (dlg.DlgInit(prog, 0, 99)) {
+        if (prog != nullptr) {
+            prog->Update(100);
+        }
+        dlg.Button_InsertModel->SetLabelText("Select Model");
+        SetCursor(wxCURSOR_DEFAULT);
+        if (dlg.ShowModal() == wxID_OK) {
+            return dlg.GetModelFile();
+        }
+    }
+    return wxString();
+}
+
+void ModelStateDialog::OnChoiceColorDrawSelect(wxCommandEvent& event) {
+    wxGrid* grid = nullptr;
+    if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
+        grid = SingleNodeGrid;
+    } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
+        grid = NodeRangeGrid;
+    } else {
+        return;
+    }
+    int const row = grid->GetGridCursorRow();
+    if (row < 0) {
+        return;
+    }
+    SelectRow(grid, row);
 }

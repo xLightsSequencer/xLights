@@ -243,7 +243,35 @@
 						<object class="wxFlexGridSizer" variable="PreviewSizer" member="no">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>0</growablerows>
+							<growablerows>1</growablerows>
+							<object class="sizeritem">
+								<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+											<label>Model Display</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxChoice" name="ID_CHOICE_COLOR_DRAW" variable="ChoiceColorDraw" member="yes">
+											<content>
+												<item>All Colors</item>
+												<item>White Only</item>
+											</content>
+											<selection>0</selection>
+											<handler function="OnChoiceColorDrawSelect" entry="EVT_CHOICE" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 					</object>
 				</object>

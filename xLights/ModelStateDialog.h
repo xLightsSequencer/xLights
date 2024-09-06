@@ -52,6 +52,7 @@ public:
     wxCheckBox* CheckBox_OutputToLights;
     wxCheckBox* CustomColorNodeRanges;
     wxCheckBox* CustomColorSingleNode;
+    wxChoice* ChoiceColorDraw;
     wxChoice* NameChoice;
     wxChoicebook* StateTypeChoice;
     wxGrid* NodeRangeGrid;
@@ -59,6 +60,7 @@ public:
     wxPanel* ModelPreviewPanelLocation;
     wxPanel* Panel3;
     wxSplitterWindow* SplitterWindow1;
+    wxStaticText* StaticText1;
     wxStaticText* StaticText3;
     //*)
 
@@ -85,6 +87,8 @@ protected:
     static const wxWindowID ID_PANEL6;
     static const wxWindowID ID_CHOICEBOOK1;
     static const wxWindowID ID_PANEL5;
+    static const wxWindowID ID_STATICTEXT1;
+    static const wxWindowID ID_CHOICE_COLOR_DRAW;
     static const wxWindowID ID_PANEL_PREVIEW;
     static const wxWindowID ID_SPLITTERWINDOW1;
     //*)
@@ -95,6 +99,7 @@ protected:
     static const long STATE_DIALOG_COPY_STATES;
     static const long STATE_DIALOG_IMPORT_MODEL;
     static const long STATE_DIALOG_IMPORT_FILE;
+    static const long STATE_DIALOG_IMPORT_DOWNLOAD;
     static const long STATE_DIALOG_COPY;
     static const long STATE_DIALOG_RENAME;
     static const long STATE_DIALOG_SHIFT;
@@ -125,6 +130,7 @@ private:
     void OnNodeRangeGridLabelLeftClick(wxGridEvent& event);
     void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
     void OnInit(wxInitDialogEvent& event);
+    void OnChoiceColorDrawSelect(wxCommandEvent& event);
     //*)
 
     void OnAddBtnPopup(wxCommandEvent& event);
@@ -172,6 +178,8 @@ private:
     std::string cleanSubName(std::string name);
     void AddStates(std::map<std::string, std::map<std::string, std::string>> const& states);
     wxArrayString getModelList(ModelManager* modelManager);
+
+    wxString GetDownloadStates();
 
     void CopyStates(wxGridEvent& event);
     void ClearStates(wxGridEvent& event);
