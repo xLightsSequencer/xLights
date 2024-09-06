@@ -91,6 +91,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
             return wxString::Format(wxT("String%i"), idx + 1).ToStdString();  // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
         }
         std::string ComputeStringStartNode(int x) const;
+        bool ComputeFurtherStringStartNodesFromString(int x) const;
         int GetCustomNodeStringNumber(int node) const;
 
         int _depth = 1;

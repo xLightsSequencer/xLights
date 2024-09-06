@@ -143,13 +143,15 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
                     ModelXml->AddAttribute(nm, val);
                 }
                 int v = wxAtoi(val);
-                if (v < 1) v = 1;
                 if (v > NodesPerString()) v = NodesPerString();
                 if (x == 0) {
                     psn->SetValue(v);
                 }
                 else {
-                    grid->AppendIn(p, new wxUIntProperty(nm, nm, v));
+                    auto localProp = new wxUIntProperty(nm, nm, v);
+                    grid->AppendIn(p, localProp);
+                    if( v == 0)
+                        grid->SetPropertyBackgroundColour(localProp, *wxRED);
                 }
             }
         }
@@ -215,7 +217,7 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         if (hasIndiv) {
             for (int x = 0; x < _strings; x++) {
                 wxString nm = StartNodeAttrName(x);
-                ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
+                ModelXml->AddAttribute(nm, x == 0 ? "1" : "0");
             }
         }
         IncrementChangeCount();
@@ -239,6 +241,14 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
 
         ModelXml->DeleteAttribute(nm);
         ModelXml->AddAttribute(nm, wxString::Format("%d", value));
+        
+        bool success = ComputeFurtherStringStartNodesFromString(string);
+        if( !success ) {
+            //Undo the changes that were done
+            ModelXml->DeleteAttribute(nm);
+            ModelXml->AddAttribute(nm, wxString::Format("%d", 0));
+            wxMessageBox(wxString::Format("Cannot start assigning nodes to strings out of order."), _("ERROR"));
+        }
 
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
@@ -1006,6 +1016,29 @@ std::string CustomModel::ComputeStringStartNode(int x) const
     float nodesPerString = (float)nodes / (float)strings;
 
     return std::to_string((int)(x * nodesPerString + 1));
+}
+
+bool CustomModel::ComputeFurtherStringStartNodesFromString(int string) const
+{
+    if ( string == 0 || string == 1 || string >= _strings) return true;
+    //get current and previous settings from XML
+    wxString nm_curr = StartNodeAttrName(string - 1);
+    wxString nm_prev = StartNodeAttrName(string - 2);
+    int startCurrent = wxAtoi(ModelXml->GetAttribute(nm_curr));
+    int startPrev = wxAtoi(ModelXml->GetAttribute(nm_prev));
+    if (startPrev == 0) return false;
+    int offset = startCurrent - startPrev;
+    //We know the jump count, set all the downstream ones accordingly
+    for ( int i = string; i < _strings; i++) {
+        wxString nextString = StartNodeAttrName(i);
+        int nextCount = startCurrent + offset;
+        startCurrent = nextCount;
+        if( wxAtoi(ModelXml->GetAttribute(nextString)) == 0 && nextCount < GetNodeCount() ) {
+            ModelXml->DeleteAttribute(nextString);
+            ModelXml->AddAttribute(nextString, wxString::Format("%d", nextCount));
+        }
+    }
+    return true;
 }
 
 int CustomModel::GetCustomNodeStringNumber(int node) const
