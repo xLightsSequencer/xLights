@@ -171,7 +171,7 @@ void PinwheelEffect::RenderNewMethod(Effect* effect, const SettingsMap& Settings
                     buffer.palette.GetSpatialColor(data.colorarray[ColorIdx], data.xc_adj + buffer.BufferWi / 2, data.yc_adj + buffer.BufferHt / 2,
                                                    x, y, round, data.max_radius, color);
                 }
-                buffer.SetPixel(x, y, color);
+                buffer.SetPixel(x, y, ALL_Z, color);
             }
         }
     }
@@ -243,7 +243,7 @@ void PinwheelEffect::RenderNewArms(RenderBuffer& buffer, PinwheelData &data) {
                          default:
                              break;
                      }
-                     buffer.SetPixelDirect(x, y, color);
+                         buffer.SetPixelDirect(x, y, ALL_Z, color);
                  }
              }
          }
@@ -358,7 +358,7 @@ void PinwheelEffect::Draw_arm(RenderBuffer& buffer,
                 hsv = color.asHSV();
                 adjustColor(pw3dType, color, hsv, buffer.allowAlpha, round);
             }
-            buffer.SetPixel(x, y, color);
+            buffer.SetPixel(x, y, ALL_Z, color);
         }
     }
 }

@@ -256,7 +256,7 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
                 if (transparency) {
                     col.alpha = 255 - transparency;
                 }
-                buffer.SetPixel(x, y, col);
+                    buffer.SetPixel(x, y, ALL_Z, col);
             }
         });
     } else {

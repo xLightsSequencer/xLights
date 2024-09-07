@@ -207,9 +207,9 @@ public:
     virtual std::list<std::string> CheckModelSettings() override;
     virtual const std::vector<std::string>& GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
     virtual const std::string AdjustBufferStyle(const std::string &style) const;
-    virtual void GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const;
+    virtual void GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int& BufferDp, int stagger) const;
     virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform,
-        std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep = false) const;
+        std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int& BufferDp, int stagger, bool deep = false) const;
     const ModelManager& GetModelManager() const { return modelManager; }
     virtual bool SupportsXlightsModel() { return false; }
     static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview);
@@ -279,10 +279,10 @@ protected:
     std::string ComputeStringStartChannel(int x);
     void ApplyTransform(const std::string& transform,
         std::vector<NodeBaseClassPtr>& Nodes,
-        int& bufferWi, int& bufferHi, int startNode = 0) const;
+        int& bufferWi, int& bufferHi, int& bufferDp, int startNode = 0) const;
     void AdjustForTransform(const std::string& transform,
-        int& bufferWi, int& bufferHi) const;
-    void DumpBuffer(std::vector<NodeBaseClassPtr>& newNodes, int bufferWi, int bufferHi) const;
+        int& bufferWi, int& bufferHi, int& bufferDp) const;
+    void DumpBuffer(std::vector<NodeBaseClassPtr>& newNodes, int bufferWi, int bufferHi, int bufferDp) const;
 
     // size of the default buffer
     int BufferHt = 0;
@@ -393,6 +393,9 @@ public:
     [[nodiscard]] wxString GetControllerColorOrder() const;
     [[nodiscard]] int GetControllerGroupCount() const;
     [[nodiscard]] float GetControllerGamma() const;
+    [[nodiscard]] virtual bool Supports3DBuffer() const {
+        return false;
+    }
     void SetControllerStartNulls(int nulls);
     void SetControllerEndNulls(int nulls);
     void SetControllerColorOrder(wxString const& color);

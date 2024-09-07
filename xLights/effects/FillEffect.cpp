@@ -238,7 +238,7 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             }
             for (int x = 0; x < buffer.BufferWi; x++)
             {
-                buffer.SetPixel(x, y_pos, color);
+                buffer.SetPixel(x, y_pos, ALL_Z, color);
             }
             if (BandSize > 0) {
                 UpdateFillColor(current_pos, current_color, colorcnt, color_size, 1);
@@ -274,7 +274,7 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             }
             for (int x = 0; x < buffer.BufferWi; x++)
             {
-                buffer.SetPixel(x, y_pos, color);
+                    buffer.SetPixel(x, y_pos, ALL_Z, color);
             }
             if (BandSize > 0) {
                 UpdateFillColor(current_pos, current_color, colorcnt, color_size, 1);
@@ -310,7 +310,7 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             }
             for (int y = 0; y < buffer.BufferHt; y++)
             {
-                buffer.SetPixel(x_pos, y, color);
+                    buffer.SetPixel(x_pos, y, ALL_Z, color);
             }
             if (BandSize > 0) {
                 UpdateFillColor(current_pos, current_color, colorcnt, color_size, 1);
@@ -346,7 +346,7 @@ void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             }
             for (int y = 0; y < buffer.BufferHt; y++)
             {
-                buffer.SetPixel(x_pos, y, color);
+                buffer.SetPixel(x_pos, y, ALL_Z, color);
             }
             if (BandSize > 0) {
                 UpdateFillColor(current_pos, current_color, colorcnt, color_size, 1);

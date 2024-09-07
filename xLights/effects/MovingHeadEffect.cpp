@@ -272,7 +272,7 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
                     if( colors.size() > 0 ) {
                         if( has_color_wheel ) {
                             xlColor c {GetWheelColor(eff_pos, colors)};
-                            buffer.SetPixel(0, 0, c);
+                            buffer.SetPixel(0, 0, 0, c);
                             auto shutter_chan = mhead->GetShutterChannel();
                             if (0 != shutter_chan && auto_shutter) {
                                 auto shutter_on = mhead->GetShutterOnValue();
@@ -280,7 +280,7 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
                             }
                         } else if (has_color) {
                             xlColor c {GetMultiColorBlend(eff_pos, colors, buffer)};
-                            buffer.SetPixel(0, 0, c);
+                            buffer.SetPixel(0, 0, 0, c);
                         }
                     }
                 }
@@ -371,7 +371,7 @@ void MovingHeadEffect::CalculateDimmer(double eff_pos, wxArrayString& dimmers, u
     msb_c.green = value;
     msb_c.blue = value;
 
-    buffer.SetPixel(dimmer_channel - 1, 0, msb_c, false, false, true);
+    buffer.SetPixel(dimmer_channel - 1, 0, 0, msb_c, false, false, true);
 }
 
 void MovingHeadEffect::GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer)
@@ -538,7 +538,7 @@ void MovingHeadEffect::CalculateColorWheelShutter(DmxColorAbility* mh_color, dou
     msb_c.green = value;
     msb_c.blue = value;
 
-    buffer.SetPixel(shutter_channel - 1, 0, msb_c, false, false, true);
+    buffer.SetPixel(shutter_channel - 1, 0, 0, msb_c, false, false, true);
 
     //vc.SaveXVC(xLightsFrame::CurrentDir.ToStdString() + "//test.xvc");//this changes the point locations for some reason, do after
 }
@@ -560,10 +560,10 @@ void MovingHeadEffect::WriteCmdToPixel(DmxMotorBase* motor, int value, RenderBuf
     int fine_channel = motor->GetChannelFine() - 1;
 
     if( coarse_channel >= 0 ) {
-        buffer.SetPixel(coarse_channel, 0, msb_c, false, false, true);
+        buffer.SetPixel(coarse_channel, 0, 0, msb_c, false, false, true);
     }
     if (fine_channel >= 0) {
-        buffer.SetPixel(fine_channel, 0, lsb_c, false, false, true);
+        buffer.SetPixel(fine_channel, 0, 0, lsb_c, false, false, true);
     }
 }
 

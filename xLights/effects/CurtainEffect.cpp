@@ -204,7 +204,7 @@ void CurtainEffect::DrawCurtain(RenderBuffer & buffer, bool LeftEdge, int xlimit
         int x = LeftEdge ? buffer.BufferWi - i - 1 : i;
         for (int y = buffer.BufferHt - 1; y >= 0; y--)
         {
-            buffer.SetPixel(x, y, color);
+                buffer.SetPixel(x, y, ALL_Z, color);
         }
     }
 
@@ -217,7 +217,7 @@ void CurtainEffect::DrawCurtain(RenderBuffer & buffer, bool LeftEdge, int xlimit
         if (LeftEdge) x = buffer.BufferWi - x - 1;
         for (int y = buffer.BufferHt - 1; y > SwagArray[i]; y--)
         {
-            buffer.SetPixel(x, y, color);
+            buffer.SetPixel(x, y, ALL_Z, color);
         }
     }
 }
@@ -231,7 +231,7 @@ void CurtainEffect::DrawCurtainVertical(RenderBuffer & buffer, bool topEdge, int
         int y = topEdge ? buffer.BufferHt - i - 1 : i;
         for (int x = buffer.BufferWi - 1; x >= 0; x--)
         {
-            buffer.SetPixel(x, y, color);
+            buffer.SetPixel(x, y, ALL_Z, color);
         }
     }
 
@@ -244,7 +244,7 @@ void CurtainEffect::DrawCurtainVertical(RenderBuffer & buffer, bool topEdge, int
         if (topEdge) y = buffer.BufferHt - y - 1;
         for (int x = buffer.BufferWi - 1; x > SwagArray[i]; x--)
         {
-            buffer.SetPixel(x, y, color);
+            buffer.SetPixel(x, y, ALL_Z, color);
         }
     }
 }

@@ -553,7 +553,7 @@ const std::vector<std::string> &CubeModel::GetBufferStyles() const {
     return CUBE_BUFFERSTYLES;
 }
 
-void CubeModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
+void CubeModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int& BufferDp, int stagger) const
 {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     int width = parm1;
@@ -564,104 +564,128 @@ void CubeModel::GetBufferSize(const std::string& tp, const std::string& camera, 
     {
         BufferWi = 1;
         BufferHi = 1;
+        BufferDp = 1;
     }
     else if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel")
     {
-        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
     }
     else if (type == "Horizontal Per Strand" || type == "Per Model Horizontal Per Strand" || type == "Horizontal Per Model/Strand" )
     {
         // FIXME Pretty sure this isnt right
         BufferHi = GetStrandLength(0);
         BufferWi = GetNumStrands();
+        BufferDp = 1;
     }
     else if (type == "Vertical Per Strand" || type == "Per Model Vertical Per Strand" || type == "Vertical Per Model/Strand")
     {
         // FIXME Pretty sure this isnt right
         BufferWi = GetStrandLength(0);
         BufferHi = GetNumStrands();
+        BufferDp = 1;
     }
     else if (type == "Stacked X Horizontally")
     {
         BufferHi = height;
         BufferWi = width * depth;
+        BufferDp = 1;
     }
     else if (type == "Stacked Y Horizontally")
     {
         BufferHi = depth;
         BufferWi = width * height;
+        BufferDp = 1;
     }
     else if (type == "Default" || type == "Stacked Z Horizontally")
     {
         BufferHi = height;
         BufferWi = width * depth;
+        BufferDp = 1;
     }
     else if (type == "Stacked X Vertically")
     {
         BufferHi = height * width;
         BufferWi = depth;
+        BufferDp = 1;
     }
     else if (type == "Stacked Y Vertically")
     {
         BufferHi = height * depth;
         BufferWi = width;
+        BufferDp = 1;
     }
     else if (type == "Stacked Z Vertically")
     {
         BufferWi = width;
         BufferHi = depth * height;
+        BufferDp = 1;
     }
     else if (type == "Overlaid X")
     {
         BufferWi = depth;
         BufferHi = height;
+        BufferDp = 1;
     }
     else if (type == "Overlaid Y")
     {
         BufferWi = width;
         BufferHi = depth;
+        BufferDp = 1;
     }
     else if (type == "Overlaid Z")
     {
         BufferWi = width;
         BufferHi = height;
+        BufferDp = 1;
     }
     else if (type == "Unique X and Y X")
     {
         BufferWi = height * width;
         BufferHi = depth * width;
+        BufferDp = 1;
     }
     else if (type == "Unique X and Y Y")
     {
         BufferWi = width * height;
         BufferHi = depth * height;
+        BufferDp = 1;
     }
     else if (type == "Unique X and Y Z")
     {
         BufferWi = width * depth;
         BufferHi = height * depth;
+        BufferDp = 1;
     }
     else if (type == "Left Side" || type == "Right Side")
     {
         BufferWi = depth;
         BufferHi = height;
+        BufferDp = 1;
     }
     else if (type == "Front Side" || type == "Back Side")
     {
         BufferWi = width;
         BufferHi = height;
+        BufferDp = 1;
     }
     else if (type == "Top Side" || type == "Bottom Side")
     {
         BufferWi = width;
         BufferHi = depth;
+        BufferDp = 1;
+    }
+    else if (type == "3D")
+    {
+        BufferWi = width;
+	    BufferHi = height;
+        BufferDp = depth;
     }
     else
     {
         wxASSERT(false);
     }
 
-    AdjustForTransform(transform, BufferWi, BufferHi);
+    AdjustForTransform(transform, BufferWi, BufferHi, BufferDp);
 }
 
 int CubeModel::GetNumPhysicalStrings() const 
@@ -677,7 +701,7 @@ int CubeModel::GetNumPhysicalStrings() const
     }
 }
 
-void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
+void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int& BufferDp, int stagger, bool deep) const
 {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
 
@@ -687,7 +711,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
 
     int oldNodes = Nodes.size();
 
-    Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi, stagger);
+    Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi, BufferDp, stagger);
 
     if (SingleNode || SingleChannel)
     {
@@ -708,24 +732,34 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
         return;
     }
 
-    GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+    GetBufferSize(type, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
 
     auto locations = BuildCube();
 
-    if (type == "Stacked X Horizontally")
+    if (type == "3D")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n) {
+            Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
+            Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
+            Nodes[n]->Coords[0].bufZ = std::get<2>(locations[n]);
+        }
+    }
+    else if (type == "Stacked X Horizontally")
+    {
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             Nodes[n]->Coords[0].bufX = depth - std::get<2>(locations[n]) - 1 + std::get<0>(locations[n]) * depth;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
+            Nodes[n]->Coords[0].bufZ = 0;
         }
     }
     else if (type == "Stacked Y Horizontally")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]) + (height - std::get<1>(locations[n]) -1) * width;
             Nodes[n]->Coords[0].bufY = std::get<2>(locations[n]);
+            Nodes[n]->Coords[0].bufZ = 0;
         }
     }
     else if (type == "Default" || type == "Stacked Z Horizontally")
@@ -735,19 +769,21 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
     else if (type == "Horizontal Per Strand" || type == "Per Model Horizontal Per Strand" || type == "Horizontal Per Model/Strand")
     {
         int sl = BufferHi;
-        for (auto n = oldNodes; n < Nodes.size(); n++)
+        for (auto n = oldNodes; n < Nodes.size(); ++n)
         {
             Nodes[n]->Coords[0].bufX = (n - oldNodes) / sl;
             Nodes[n]->Coords[0].bufY = (n - oldNodes) % sl;
+            Nodes[n]->Coords[0].bufZ = 0;
         }
     }
     else if (type == "Vertical Per Strand" || type == "Per Model Vertical Per Strand" || type == "Vertical Per Model/Strand")
     {
         int sl = BufferWi;
-        for (auto n = oldNodes; n < Nodes.size(); n++)
+        for (auto n = oldNodes; n < Nodes.size(); ++n)
         {
             Nodes[n]->Coords[0].bufX = (n - oldNodes) % sl;
             Nodes[n]->Coords[0].bufY = (n - oldNodes) / sl;
+            Nodes[n]->Coords[0].bufZ = 0;
         }
     }
     else if (type == "Stacked X Vertically")
@@ -756,46 +792,52 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
         {
             Nodes[n]->Coords[0].bufX = depth - std::get<2>(locations[n]) - 1;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + height * std::get<0>(locations[n]);
+            Nodes[n]->Coords[0].bufZ = 0;
         }
     }
     else if (type == "Stacked Y Vertically")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
             Nodes[n]->Coords[0].bufY = std::get<2>(locations[n]) + depth * (height - std::get<1>(locations[n]) - 1);
+            Nodes[n]->Coords[0].bufZ = 0;
         }
     }
     else if (type == "Stacked Z Vertically")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + depth * std::get<2>(locations[n]);
+            Nodes[n]->Coords[0].bufZ = 0;
         }
     }
     else if (type == "Overlaid X")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             Nodes[n]->Coords[0].bufX = depth - std::get<2>(locations[n]) - 1;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
+            Nodes[n]->Coords[0].bufZ = 0;
         }
     }
     else if (type == "Overlaid Y")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
             Nodes[n]->Coords[0].bufY = std::get<2>(locations[n]);
+            Nodes[n]->Coords[0].bufZ = 0;
         }
     }
     else if (type == "Overlaid Z")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
+            Nodes[n]->Coords[0].bufZ = 0;
         }
     }
     else if (type == "Unique X and Y X")
@@ -804,117 +846,132 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
         {
             Nodes[n]->Coords[0].bufX = depth - std::get<2>(locations[n]) - 1 + std::get<0>(locations[n]) * depth;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + std::get<0>(locations[n]) * height;
+            Nodes[n]->Coords[0].bufZ = 0;
         }
     }
     else if (type == "Unique X and Y Y")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]) + (height-std::get<1>(locations[n])-1) * width;
             Nodes[n]->Coords[0].bufY = std::get<2>(locations[n]) + (height - std::get<1>(locations[n]) - 1) * depth;
+            Nodes[n]->Coords[0].bufZ = 0;
         }
     }
     else if (type == "Unique X and Y Z")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]) + std::get<2>(locations[n]) * width;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + std::get<1>(locations[n]) * height;
+            Nodes[n]->Coords[0].bufZ = 0;
         }
     }
     else if (type == "Left Side")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             if (std::get<0>(locations[n]) == 0)
             {
                 Nodes[n]->Coords[0].bufX = depth - std::get<2>(locations[n]) - 1;
                 Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
+                Nodes[n]->Coords[0].bufZ = 0;
             }
             else
             {
                 Nodes[n]->Coords[0].bufX = -1;
                 Nodes[n]->Coords[0].bufY = -1;
+                Nodes[n]->Coords[0].bufZ = -1;
             }
         }
     }
     else if (type == "Right Side")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             if (std::get<0>(locations[n]) == width - 1)
             {
                 Nodes[n]->Coords[0].bufX = std::get<2>(locations[n]);
                 Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
+                Nodes[n]->Coords[0].bufZ = 0;
             }
             else
             {
                 Nodes[n]->Coords[0].bufX = -1;
                 Nodes[n]->Coords[0].bufY = -1;
+                Nodes[n]->Coords[0].bufZ = -1;
             }
         }
     }
     else if (type == "Front Side")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             if (std::get<2>(locations[n]) == 0)
             {
                 Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
                 Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
+                Nodes[n]->Coords[0].bufZ = 0;
             }
             else
             {
                 Nodes[n]->Coords[0].bufX = -1;
                 Nodes[n]->Coords[0].bufY = -1;
+                Nodes[n]->Coords[0].bufZ = -1;
             }
         }
     }
     else if(type == "Back Side")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             if (std::get<2>(locations[n]) == depth - 1)
             {
                 Nodes[n]->Coords[0].bufX = width - std::get<0>(locations[n]) - 1;
                 Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
+                Nodes[n]->Coords[0].bufZ = 0;
             }
             else
             {
                 Nodes[n]->Coords[0].bufX = -1;
                 Nodes[n]->Coords[0].bufY = -1;
+                Nodes[n]->Coords[0].bufZ = -1;
             }
         }
     }
     else if (type == "Top Side")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             if (std::get<1>(locations[n]) == height - 1)
             {
                 Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
                 Nodes[n]->Coords[0].bufY = std::get<2>(locations[n]);
+                Nodes[n]->Coords[0].bufZ = 0;
             }
             else
             {
                 Nodes[n]->Coords[0].bufX = -1;
                 Nodes[n]->Coords[0].bufY = -1;
+                Nodes[n]->Coords[0].bufZ = -1;
             }
         }
     }
     else if (type == "Bottom Side")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (size_t n = 0; n < Nodes.size(); ++n)
         {
             if (std::get<1>(locations[n]) == 0)
             {
                 Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
                 Nodes[n]->Coords[0].bufY = std::get<2>(locations[n]);
+                Nodes[n]->Coords[0].bufZ = 0;
             }
             else
             {
                 Nodes[n]->Coords[0].bufX = -1;
                 Nodes[n]->Coords[0].bufY = -1;
+                Nodes[n]->Coords[0].bufZ = -1;
             }
         }
     }
@@ -953,6 +1010,7 @@ void CubeModel::InitModel()
         {
             Nodes[n]->Coords[0].bufX = 0;
             Nodes[n]->Coords[0].bufY = 0;
+            Nodes[n]->Coords[0].bufZ = 0;
             Nodes[n]->Coords[0].screenX = std::get<0>(locations[n]) - width / 2;
             Nodes[n]->Coords[0].screenY = std::get<1>(locations[n]) - height / 2;
             Nodes[n]->Coords[0].screenZ = depth - std::get<2>(locations[n]) - 1 - depth / 2;
@@ -961,6 +1019,7 @@ void CubeModel::InitModel()
         {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]) + std::get<2>(locations[n]) * width;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
+            Nodes[n]->Coords[0].bufZ = 0;
             Nodes[n]->Coords[0].screenX = std::get<0>(locations[n]) - width / 2;
             Nodes[n]->Coords[0].screenY = std::get<1>(locations[n]) - height / 2;
             Nodes[n]->Coords[0].screenZ = depth - std::get<2>(locations[n]) - 1 - depth / 2;

@@ -327,16 +327,16 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             for (y = y1; y < y2; y++) {
                 int adjustedY = y + roundedWaveYOffset;
                 if (FillColor <= 0) { //default to this if no selection -DJ
-                    buffer.SetPixel(x, adjustedY, hsv0);  // fill with color 2
+                    buffer.SetPixel(x, adjustedY, ALL_Z, hsv0); // fill with color 2
                     //       hsv.hue=(double)(BufferHt-y)/deltay;
                 } else if (FillColor == 1) {
 
                     hsv.hue = (double)(y - y1) / deltay;
-                    buffer.SetPixel(x, adjustedY, hsv); // rainbow
+                    buffer.SetPixel(x, adjustedY, ALL_Z, hsv); // rainbow
                 } else if (FillColor == 2) {
                     hsv.hue = (double)(y - y1) / deltay;
                     buffer.GetMultiColorBlend(hsv.hue, false, color);
-                    buffer.SetPixel(x, adjustedY, color); // palete fill
+                        buffer.SetPixel(x, adjustedY, ALL_Z, color); // palete fill
                 }
             }
 
@@ -353,15 +353,15 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 for (y = y1; y < y2; y++) {
                     int adjustedY = y + roundedWaveYOffset;
                     if (FillColor <= 0) { //default to this if no selection -DJ
-                        buffer.SetPixel(x, adjustedY, hsv0);  // fill with color 2
+                        buffer.SetPixel(x, adjustedY, ALL_Z, hsv0); // fill with color 2
                     } else if (FillColor == 1) {
 
                         hsv.hue = (double)(y - y1) / deltay;
-                        buffer.SetPixel(x, adjustedY, hsv); // rainbow
+                            buffer.SetPixel(x, adjustedY, ALL_Z, hsv); // rainbow
                     } else if (FillColor == 2) {
                         hsv.hue = (double)(y - y1) / deltay;
                         buffer.GetMultiColorBlend(hsv.hue, false, color);
-                        buffer.SetPixel(x, adjustedY, color); // palete fill
+                        buffer.SetPixel(x, adjustedY, ALL_Z, color); // palete fill
                     }
                 }
             }

@@ -4581,8 +4581,8 @@ void xLightsFrame::ExportModels(wxString const& filename)
                 current = wxString::Format("%0.2f", (float)lightcount * AMPS_PER_PIXEL).ToStdString();
             }
 
-            int w, h;
-            model->GetBufferSize("Default", "2D", "None", w, h, 0);
+            int w, h, d;
+            model->GetBufferSize("Default", "2D", "None", w, h, d, 0);
             write_worksheet_string(modelsheet, row, 0, model->name, format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 1, model->GetShadowModelFor(), format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 2, model->description, format, _model_col_widths);
@@ -4599,7 +4599,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
             worksheet_write_number(modelsheet, row, 13, ch, format);
             write_worksheet_string(modelsheet, row, 14, wxString::Format("#%i:%i", stu, stuc), format, _model_col_widths);
             worksheet_write_number(modelsheet, row, 15, model->GetLastChannel() + 1, format);
-            write_worksheet_string(modelsheet, row, 16, wxString::Format("%i x %i", w, h), format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 16, wxString::Format("%i x %i x %i", w, h, d), format, _model_col_widths);
 
             write_worksheet_string(modelsheet, row, 17, model->GetLayoutGroup(), format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 18, model->GetControllerConnectionPortRangeString(), format, _model_col_widths);
@@ -4675,13 +4675,13 @@ void xLightsFrame::ExportModels(wxString const& filename)
                     models += ", " + it;
                 }
             }
-            int w, h;
-            model->GetBufferSize("Default", "2D", "None", w, h, 0);
+            int w, h, d;
+            model->GetBufferSize("Default", "2D", "None", w, h, d, 0);
 
             write_worksheet_string(groupsheet, row, 0, model->name, format, _group_col_widths);
             write_worksheet_string(groupsheet, row, 1, models, format, _group_col_widths);
             worksheet_write_number(groupsheet, row, 2, mg->ModelNames().size(), format);
-            write_worksheet_string(groupsheet, row, 3, wxString::Format("%d x %d", w, h), format, _group_col_widths);
+            write_worksheet_string(groupsheet, row, 3, wxString::Format("%d x %d x %d", w, h, d), format, _group_col_widths);
             write_worksheet_string(groupsheet, row, 4, model->GetLayoutGroup(), format, _group_col_widths);
             std::list<std::string> aliases = model->GetAliases();
             if (!aliases.empty()) {
@@ -5953,7 +5953,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                     std::vector<NodeBaseClassPtr> nodes;
                     int bufwi;
                     int bufhi;
-                    m->InitRenderBufferNodes("Default", "2D", "None", nodes, bufwi, bufhi, 0);
+                    int bufdp;
+                    m->InitRenderBufferNodes("Default", "2D", "None", nodes, bufwi, bufhi, bufdp, 0);
                     for (const auto& n : nodes) {
                         auto e = usedch.find(n->ActChan);
                         if (e != end(usedch)) {

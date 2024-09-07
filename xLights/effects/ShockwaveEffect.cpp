@@ -82,12 +82,12 @@ void ShockwaveEffect::SetDefaultParameters()
 
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
-void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
-{
+void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
     int cycles = SettingsMap.GetInt("SLIDER_Shockwave_Cycles", 1);
     double eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
     int center_x = GetValueCurveInt("Shockwave_CenterX", 50, SettingsMap, eff_pos, SHOCKWAVE_X_MIN, SHOCKWAVE_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int center_y = GetValueCurveInt("Shockwave_CenterY", 50, SettingsMap, eff_pos, SHOCKWAVE_Y_MIN, SHOCKWAVE_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int center_z = GetValueCurveInt("Shockwave_CenterZ", 50, SettingsMap, eff_pos, SHOCKWAVE_Z_MIN, SHOCKWAVE_Z_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int start_radius = GetValueCurveInt("Shockwave_Start_Radius", 0, SettingsMap, eff_pos, SHOCKWAVE_STARTRADIUS_MIN, SHOCKWAVE_STARTRADIUS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int end_radius = GetValueCurveInt("Shockwave_End_Radius", 0, SettingsMap, eff_pos, SHOCKWAVE_ENDRADIUS_MIN, SHOCKWAVE_ENDRADIUS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int start_width = GetValueCurveInt("Shockwave_Start_Width", 0, SettingsMap, eff_pos, SHOCKWAVE_STARTWIDTH_MIN, SHOCKWAVE_STARTWIDTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -117,6 +117,7 @@ void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
 
     int xc_adj = center_x * buffer.BufferWi / 100;
     int yc_adj = center_y * buffer.BufferHt / 100;
+    int zc_adj = center_z * buffer.BufferDp / 100;
 
     double radius1 = start_radius;
     double radius2 = end_radius;
@@ -136,31 +137,67 @@ void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
     radius2 = radius_center + half_width;
     radius1 = std::max(0.0, radius1);
 
-    for (int x = 0; x < buffer.BufferWi; x++) {
-        int x1 = x - xc_adj;
-        for (int y = 0; y < buffer.BufferHt; y++) {
-            int y1 = y - yc_adj;
-            double r = std::hypot(x1, y1);
-            if (r >= radius1 && r <= radius2) {
-                if (buffer.palette.IsSpatial(color_index)) {
-                    double theta = (((std::atan2(x1, y1) * 180.0 / PI)) + 180.0) / 360.0;
-                    buffer.palette.GetSpatialColor(color_index, radius1, 0, r, 0, theta, radius2, color);
-                    hsv = color.asHSV();
-                } else {
-                    hsv = color;
-                }
-                if (blend_edges) {
-                    double color_pct = 1.0 - std::abs(r - radius_center) / half_width;
-                    xlColor ncolor(color);
-                    if (buffer.allowAlpha) {
-                        ncolor.alpha = 255.0 * color_pct;
+    if (buffer.BufferDp == 1) {
+        for (int x = 0; x < buffer.BufferWi; x++) {
+            int x1 = x - xc_adj;
+            for (int y = 0; y < buffer.BufferHt; y++) {
+                int y1 = y - yc_adj;
+                double r = std::hypot(x1, y1);
+                if (r >= radius1 && r <= radius2) {
+                    if (buffer.palette.IsSpatial(color_index)) {
+                        double theta = (((std::atan2(x1, y1) * 180.0 / PI)) + 180.0) / 360.0;
+                        buffer.palette.GetSpatialColor(color_index, radius1, 0, r, 0, theta, radius2, color);
+                        hsv = color.asHSV();
                     } else {
-                        hsv.value = hsv.value * color_pct;
-                        ncolor = hsv;
+                        hsv = color;
                     }
-                    buffer.SetPixel(x, y, ncolor);
-                } else {
-                    buffer.SetPixel(x, y, color);
+                    if (blend_edges) {
+                        double color_pct = 1.0 - std::abs(r - radius_center) / half_width;
+                        xlColor ncolor(color);
+                        if (buffer.allowAlpha) {
+                            ncolor.alpha = 255.0 * color_pct;
+                        } else {
+                            hsv.value = hsv.value * color_pct;
+                            ncolor = hsv;
+                        }
+                        buffer.SetPixel(x, y, ALL_Z, ncolor);
+                    } else {
+                        buffer.SetPixel(x, y, ALL_Z, color);
+                    }
+                }
+            }
+        }
+    } else {
+        // 3D render of effect
+        for (int x = 0; x < buffer.BufferWi; ++x) {
+            int x1 = x - xc_adj;
+            for (int y = 0; y < buffer.BufferHt; ++y) {
+                int y1 = y - yc_adj;
+                for (int z = 0; z < buffer.BufferDp; ++z) {
+                    int z1 = z - zc_adj;
+                    double r = std::hypot(x1, y1, z1);
+                    if (r >= radius1 && r <= radius2) {
+                        if (buffer.palette.IsSpatial(color_index)) {
+                            double theta = (((std::atan2(x1, y1) * 180.0 / PI)) + 180.0) / 360.0;
+                            buffer.palette.GetSpatialColor(color_index, radius1, 0, r, 0, theta, radius2, color);
+                            hsv = color.asHSV();
+                        } else {
+                            hsv = color;
+                        }
+                        if (blend_edges) {
+                            double color_pct = 1.0 - std::abs(r - radius_center) / half_width;
+                            xlColor ncolor(color);
+                            if (buffer.allowAlpha) {
+                                ncolor.alpha = 255.0 * color_pct;
+                            } else {
+                                hsv.value = hsv.value * color_pct;
+                                ncolor = hsv;
+                            }
+                            buffer.SetPixel(x, y, z, ncolor);
+                        } else {
+                            buffer.SetPixel(x, y, z, color);
+                        }
+                    }
                 }
             }
         }

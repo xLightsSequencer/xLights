@@ -153,7 +153,9 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
                 if (current_pos < BandSize) {
                     buffer.palette.GetColor(current_color, color);
                 }
-                buffer.ProcessPixel(x_pos + xoffset_adj, corner_y2 + yoffset_adj, color, wrap_x, wrap_y);
+                for (int z = 0; z < buffer.BufferDp; ++z) {
+                    buffer.ProcessPixel(x_pos + xoffset_adj, corner_y2 + yoffset_adj, z, color, wrap_x, wrap_y);
+                }
                 UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1 * sign);
             }
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick * 2 * sign);
@@ -162,7 +164,9 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
                 if (current_pos < BandSize) {
                     buffer.palette.GetColor(current_color, color);
                 }
-                buffer.ProcessPixel(corner_x2 + xoffset_adj, y_pos + yoffset_adj, color, wrap_x, wrap_y);
+                for (int z = 0; z < buffer.BufferDp; ++z) {
+                    buffer.ProcessPixel(corner_x2 + xoffset_adj, y_pos + yoffset_adj, z, color, wrap_x, wrap_y);
+                }
                 UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1 * sign);
             }
         }
@@ -172,7 +176,9 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             if (current_pos < BandSize) {
                 buffer.palette.GetColor(current_color, color);
             }
-            buffer.ProcessPixel(x_pos + xoffset_adj, corner_y1 + yoffset_adj, color, wrap_x, wrap_y);
+            for (int z = 0; z < buffer.BufferDp; ++z) {
+                buffer.ProcessPixel(x_pos + xoffset_adj, corner_y1 + yoffset_adj, z, color, wrap_x, wrap_y);
+            }
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1*sign);
         }
         if (corner_y2 != corner_y1) {
@@ -182,7 +188,9 @@ void MarqueeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
                 if (current_pos < BandSize) {
                     buffer.palette.GetColor(current_color, color);
                 }
-                buffer.ProcessPixel(corner_x1 + xoffset_adj, y_pos + yoffset_adj, color, wrap_x, wrap_y);
+                for (int z = 0; z < buffer.BufferDp; ++z) {
+                    buffer.ProcessPixel(corner_x1 + xoffset_adj, y_pos + yoffset_adj, z, color, wrap_x, wrap_y);
+                }
                 UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1 * sign);
             }
         }

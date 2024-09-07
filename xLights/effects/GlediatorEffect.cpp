@@ -421,7 +421,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                     int y = (buffer.BufferHt - 1) - (j / buffer.BufferWi);
                     if (x < buffer.BufferWi && y < buffer.BufferHt && y >= 0)
                     {
-                        buffer.SetPixel(x, y, color);
+                        buffer.SetPixel(x, y, ALL_Z, color);
                     }
                 }
 
@@ -450,7 +450,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             {
                 for (int x = 0; x < buffer.BufferWi; x++)
                 {
-                    buffer.SetPixel(x, y, xlBLACK);
+                    buffer.SetPixel(x, y, ALL_Z, xlBLACK);
                 }
             }
             rendered = true;
@@ -473,7 +473,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                     int y = (buffer.BufferHt - 1) - (j / (buffer.BufferWi * 3));
                     if (x < buffer.BufferWi && y < buffer.BufferHt && y >= 0)
                     {
-                        buffer.SetPixel(x, y, color);
+                        buffer.SetPixel(x, y, ALL_Z, color);
                     }
                 }
 
@@ -489,7 +489,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             {
                 for (int x = 0; x < buffer.BufferWi; x++)
                 {
-                    buffer.SetPixel(x, y, xlRED);
+                    buffer.SetPixel(x, y, ALL_Z, xlRED);
                 }
             }
         }

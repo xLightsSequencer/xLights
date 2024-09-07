@@ -265,11 +265,11 @@ void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
             buffer.palette.GetHSV(cache->balls[ii]._colorindex, hsv);
             if (fade)
             {
-                buffer.DrawFadingCircle(cache->balls[ii]._x, cache->balls[ii]._y, cache->balls[ii]._radius, hsv, !bounce && !collide);
+                buffer.DrawFadingCircle(cache->balls[ii]._x, cache->balls[ii]._y, cache->balls[ii]._radius, hsv, ALL_Z, !bounce && !collide);
             }
             else
             {
-                buffer.DrawCircle(cache->balls[ii]._x, cache->balls[ii]._y, cache->balls[ii]._radius, hsv, !bubbles, !bounce && !collide);
+                buffer.DrawCircle(cache->balls[ii]._x, cache->balls[ii]._y, cache->balls[ii]._radius, hsv, ALL_Z, !bubbles, !bounce && !collide);
             }
         }
     }
@@ -311,7 +311,7 @@ void CirclesEffect::RenderRadial(RenderBuffer& buffer, int x, int y, int thickne
         }
         xlColor color(hsv);
         if (lastColor != color) {
-            buffer.DrawCircle(x, y, ii, hsv, true);
+            buffer.DrawCircle(x, y, ii, hsv, ALL_Z, true);
             lastColor = color;
         }
     }
@@ -343,7 +343,7 @@ void CirclesEffect::RenderMetaBalls(RenderBuffer& buffer, int numBalls, MetaBall
             }
             if (sum >= 0.90f)
             {
-                buffer.SetPixel(col, row, hsv);
+                buffer.SetPixel(col, row, ALL_Z, hsv);
             }
         }
     }

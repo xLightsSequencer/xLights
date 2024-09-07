@@ -12,15 +12,15 @@
 #include "ShapePanel.h"
 #include "TextEffect.h" // FontMapLock
 
-#include "../sequencer/Effect.h"
+#include "AudioManager.h"
+#include "UtilFunctions.h"
+#include "../ExternalHooks.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
+#include "../sequencer/Effect.h"
 #include "../sequencer/SequenceElements.h"
-#include "UtilFunctions.h"
-#include "AudioManager.h"
-#include "../ExternalHooks.h"
-#include "../xLightsMain.h" 
+#include "../xLightsMain.h"
 
 #include "nanosvg/src/nanosvg.h"
 
@@ -34,18 +34,16 @@
 
 #define REPEATTRIGGER 20
 
-ShapeEffect::ShapeEffect(int id) : RenderableEffect(id, "Shape", shape_16, shape_24, shape_32, shape_48, shape_64)
-{
-    //ctor
+ShapeEffect::ShapeEffect(int id) :
+    RenderableEffect(id, "Shape", shape_16, shape_24, shape_32, shape_48, shape_64) {
+    // ctor
 }
 
-ShapeEffect::~ShapeEffect()
-{
-    //dtor
+ShapeEffect::~ShapeEffect() {
+    // dtor
 }
 
-std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
-{
+std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Shape_UseMusic", false)) {
@@ -68,8 +66,7 @@ std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& setti
     return res;
 }
 
-std::list<std::string> ShapeEffect::GetFileReferences(Model* model, const SettingsMap& SettingsMap) const
-{
+std::list<std::string> ShapeEffect::GetFileReferences(Model* model, const SettingsMap& SettingsMap) const {
     std::list<std::string> res;
     if (SettingsMap["E_FILEPICKERCTRL_SVG"] != "") {
         res.push_back(SettingsMap["E_FILEPICKERCTRL_SVG"]);
@@ -77,8 +74,7 @@ std::list<std::string> ShapeEffect::GetFileReferences(Model* model, const Settin
     return res;
 }
 
-bool ShapeEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
-{
+bool ShapeEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) {
     bool rc = false;
     wxString file = SettingsMap["E_FILEPICKERCTRL_SVG"];
     if (FileExists(file)) {
@@ -91,44 +87,37 @@ bool ShapeEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& Setting
     return rc;
 }
 
-void ShapeEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
-{
+void ShapeEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) {
     wxString timing = effect->GetSettings().Get("E_CHOICE_Shape_FireTimingTrack", "");
 
-    if (timing.ToStdString() == oldname)
-    {
+    if (timing.ToStdString() == oldname) {
         effect->GetSettings()["E_CHOICE_Shape_FireTimingTrack"] = wxString(newname);
     }
 
     SetPanelTimingTracks();
 }
 
-void ShapeEffect::SetPanelStatus(Model *cls)
-{
+void ShapeEffect::SetPanelStatus(Model* cls) {
     SetPanelTimingTracks();
 }
 
-void ShapeEffect::SetPanelTimingTracks() const
-{
-    ShapePanel *fp = (ShapePanel*)panel;
-    if (fp == nullptr)
-    {
+void ShapeEffect::SetPanelTimingTracks() const {
+    ShapePanel* fp = (ShapePanel*)panel;
+    if (fp == nullptr) {
         return;
     }
 
-    if (mSequenceElements == nullptr)
-    {
+    if (mSequenceElements == nullptr) {
         return;
     }
 
     // Load the names of the timing tracks
     std::string timingtracks = "";
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
-    {
+    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
         Element* e = mSequenceElements->GetElement(i);
-        if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
-        {
-            if (timingtracks != "") timingtracks += "|";
+        if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            if (timingtracks != "")
+                timingtracks += "|";
             timingtracks += e->GetName();
         }
     }
@@ -138,29 +127,29 @@ void ShapeEffect::SetPanelTimingTracks() const
     wxPostEvent(fp, event);
 }
 
-xlEffectPanel *ShapeEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel* ShapeEffect::CreatePanel(wxWindow* parent) {
     return new ShapePanel(parent);
 }
 
-#define RENDER_SHAPE_CIRCLE     0
-#define RENDER_SHAPE_SQUARE     1
-#define RENDER_SHAPE_TRIANGLE   2
-#define RENDER_SHAPE_STAR       3
-#define RENDER_SHAPE_PENTAGON   4
-#define RENDER_SHAPE_HEXAGON    5
-#define RENDER_SHAPE_OCTAGON    6
-#define RENDER_SHAPE_HEART      7
-#define RENDER_SHAPE_TREE       8
-#define RENDER_SHAPE_CANDYCANE  9
-#define RENDER_SHAPE_SNOWFLAKE  10
-#define RENDER_SHAPE_CRUCIFIX   11
-#define RENDER_SHAPE_PRESENT    12
-#define RENDER_SHAPE_ELLIPSE    13
+#define RENDER_SHAPE_CIRCLE 0
+#define RENDER_SHAPE_SQUARE 1
+#define RENDER_SHAPE_TRIANGLE 2
+#define RENDER_SHAPE_STAR 3
+#define RENDER_SHAPE_PENTAGON 4
+#define RENDER_SHAPE_HEXAGON 5
+#define RENDER_SHAPE_OCTAGON 6
+#define RENDER_SHAPE_HEART 7
+#define RENDER_SHAPE_TREE 8
+#define RENDER_SHAPE_CANDYCANE 9
+#define RENDER_SHAPE_SNOWFLAKE 10
+#define RENDER_SHAPE_CRUCIFIX 11
+#define RENDER_SHAPE_PRESENT 12
+#define RENDER_SHAPE_ELLIPSE 13
 #define RENDER_SHAPE_EMOJI 14
 #define RENDER_SHAPE_SVG 15
 
 void ShapeEffect::SetDefaultParameters() {
-    ShapePanel *sp = (ShapePanel*)panel;
+    ShapePanel* sp = (ShapePanel*)panel;
     if (sp == nullptr) {
         return;
     }
@@ -204,10 +193,10 @@ void ShapeEffect::SetDefaultParameters() {
     sp->FilePickerCtrl_SVG->SetFileName(wxFileName(""));
 }
 
-struct ShapeData
-{
+struct ShapeData {
 private:
     xlColor _color;
+
 public:
     wxPoint _centre;
     wxSize _movement;
@@ -219,8 +208,7 @@ public:
     int _colourIndex;
     bool _holdColour;
 
-    ShapeData(wxPoint centre, float size, int oset, xlColor color, int shape, int angle, int speed, bool holdColour, int colourIndex)
-    {
+    ShapeData(wxPoint centre, float size, int oset, xlColor color, int shape, int angle, int speed, bool holdColour, int colourIndex) {
         _holdColour = holdColour;
         _colourIndex = colourIndex;
         _centre = centre;
@@ -234,20 +222,15 @@ public:
         _speed = speed;
     }
 
-    xlColor GetColour(const PaletteClass& palette)
-    {
-        if (_holdColour)
-        {
+    xlColor GetColour(const PaletteClass& palette) {
+        if (_holdColour) {
             return _color;
-        }
-        else
-        {
+        } else {
             return palette.GetColor(_colourIndex);
         }
     }
 
-    void Move()
-    {
+    void Move() {
         int x = _speed * cos(_angle);
         int y = _speed * sin(_angle);
         _movement.x += x;
@@ -256,25 +239,24 @@ public:
         _centre.y += y;
     }
 
-    void SetCentre(wxPoint centre)
-    {
+    void SetCentre(wxPoint centre) {
         _centre = centre;
         _centre.x += _movement.x;
         _centre.y += _movement.y;
     }
 };
 
-bool compare_shapes(const ShapeData* first, const ShapeData* second)
-{
+bool compare_shapes(const ShapeData* first, const ShapeData* second) {
     return first->_oset > second->_oset;
 }
 
 class ShapeRenderCache : public EffectRenderCache {
-
 public:
-    ShapeRenderCache() { _lastColorIdx = -1; _sinceLastTriggered = 0; }
-    virtual ~ShapeRenderCache()
-    {
+    ShapeRenderCache() {
+        _lastColorIdx = -1;
+        _sinceLastTriggered = 0;
+    }
+    virtual ~ShapeRenderCache() {
         DeleteShapes();
         if (_svgImage != nullptr) {
             nsvgDelete(_svgImage);
@@ -293,21 +275,19 @@ public:
     std::regex _filterRegex;
     bool _useRegex;
 
-    void SetFilter(const std::string& filterLabel, bool useRegex)
-    {
+    void SetFilter(const std::string& filterLabel, bool useRegex) {
         _filterLabel = filterLabel;
         _useRegex = useRegex;
         if (useRegex) {
             try {
                 _filterRegex = std::regex(filterLabel, std::regex_constants::extended);
-            } catch(std::exception&) {
+            } catch (std::exception&) {
                 _useRegex = false;
             }
         }
     }
 
-    bool IsLabelAMatch(const std::string& label)
-    {
+    bool IsLabelAMatch(const std::string& label) {
         if (_filterLabel == "")
             return true;
 
@@ -328,8 +308,7 @@ public:
         return false;
     }
 
-    void InitialiseSVG(const std::string filename)
-    {
+    void InitialiseSVG(const std::string filename) {
         if (_svgImage != nullptr) {
             nsvgDelete(_svgImage);
             _svgImage = nullptr;
@@ -343,48 +322,39 @@ public:
         }
     }
 
-    void AddShape(wxPoint centre, float size, xlColor color, int oset, int shape, int angle, int speed, bool randomMovement, bool holdColour, int colourIndex)
-    {
-        if (randomMovement)
-        {
+    void AddShape(wxPoint centre, float size, xlColor color, int oset, int shape, int angle, int speed, bool randomMovement, bool holdColour, int colourIndex) {
+        if (randomMovement) {
             speed = rand01() * (SHAPE_VELOCITY_MAX - SHAPE_VELOCITY_MIN) - SHAPE_VELOCITY_MIN;
             angle = rand01() * (SHAPE_DIRECTION_MAX - SHAPE_DIRECTION_MIN) - SHAPE_VELOCITY_MIN;
         }
         _shapes.push_back(new ShapeData(centre, size, oset, color, shape, angle, speed, holdColour, colourIndex));
     }
 
-    NSVGimage* GetImage()
-    {
+    NSVGimage* GetImage() {
         return _svgImage;
     }
 
-    void DeleteShapes()
-    {
-        while (_shapes.size() > 0)
-        {
+    void DeleteShapes() {
+        while (_shapes.size() > 0) {
             auto todelete = _shapes.front();
             _shapes.pop_front();
             delete todelete;
         }
     }
-    void RemoveOld(int maxAge)
-    {
+    void RemoveOld(int maxAge) {
         // old are always at the front of the list
-        while (_shapes.size() > 0 && _shapes.front()->_oset > maxAge)
-        {
+        while (_shapes.size() > 0 && _shapes.front()->_oset > maxAge) {
             auto todelete = _shapes.front();
             _shapes.pop_front();
             delete todelete;
         }
     }
-    void SortShapes()
-    {
+    void SortShapes() {
         _shapes.sort(compare_shapes);
     }
 };
 
-int ShapeEffect::DecodeShape(const std::string& shape)
-{
+int ShapeEffect::DecodeShape(const std::string& shape) {
     if (shape == "Circle") {
         return RENDER_SHAPE_CIRCLE;
     } else if (shape == "Square") {
@@ -424,7 +394,7 @@ int ShapeEffect::DecodeShape(const std::string& shape)
     return rand01() * 13; // exclude emoji
 }
 
-static int mapSkinTone(const std::string &v) {
+static int mapSkinTone(const std::string& v) {
     if (v == "Light") {
         return 0x1F3FB;
     } else if (v == "Medium Light") {
@@ -439,10 +409,10 @@ static int mapSkinTone(const std::string &v) {
     return 0;
 }
 
-void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-	float oset = buffer.GetEffectTimeIntervalPosition();
+void ShapeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
+    float oset = buffer.GetEffectTimeIntervalPosition();
 
-	std::string Object_To_DrawStr = SettingsMap["CHOICE_Shape_ObjectToDraw"];
+    std::string Object_To_DrawStr = SettingsMap["CHOICE_Shape_ObjectToDraw"];
     int thickness = GetValueCurveInt("Shape_Thickness", 1, SettingsMap, oset, SHAPE_THICKNESS_MIN, SHAPE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int points = SettingsMap.GetInt("SLIDER_Shape_Points", 5);
     bool randomLocation = SettingsMap.GetBool("CHECKBOX_Shape_RandomLocation", true);
@@ -474,7 +444,8 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     float sensitivity = (float)SettingsMap.GetInt("SLIDER_Shape_Sensitivity", 50) / 100.0;
     bool useTiming = SettingsMap.GetBool("CHECKBOX_Shape_FireTiming", false);
     wxString timing = SettingsMap.Get("CHOICE_Shape_FireTimingTrack", "");
-    if (timing == "") useTiming = false;
+    if (timing == "")
+        useTiming = false;
     if (useMusic) {
         if (buffer.GetMedia() != nullptr) {
             auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
@@ -484,7 +455,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         }
     }
 
-    ShapeRenderCache *cache = (ShapeRenderCache*)buffer.infoCache[id];
+    ShapeRenderCache* cache = (ShapeRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new ShapeRenderCache();
         buffer.infoCache[id] = cache;
@@ -496,7 +467,8 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     wxFontInfo& _font = cache->_font;
 
     float lifetimeFrames = (float)(buffer.curEffEndPer - buffer.curEffStartPer) * lifetime / 100.0;
-    if (lifetimeFrames < 1) lifetimeFrames = 1;
+    if (lifetimeFrames < 1)
+        lifetimeFrames = 1;
     float growthPerFrame = (float)growth / lifetimeFrames;
 
     if (buffer.needToInit) {
@@ -531,8 +503,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                 }
 
                 int os = 0;
-                if (startRandomly)
-                {
+                if (startRandomly) {
                     os = rand01() * lifetimeFrames;
                 }
 
@@ -549,46 +520,34 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         } else {
             // Load the names of the timing tracks
             Element* t = nullptr;
-            for (size_t l = 0; l < mSequenceElements->GetElementCount(); l++)
-            {
+            for (size_t l = 0; l < mSequenceElements->GetElementCount(); l++) {
                 Element* e = mSequenceElements->GetElement(l);
-                if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
-                {
-                    if (e->GetName() == timing)
-                    {
+                if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+                    if (e->GetName() == timing) {
                         t = e;
                         break;
                     }
                 }
             }
 
-            if (t == nullptr)
-            {
+            if (t == nullptr) {
                 // timing track not found ... this shouldnt happen
-            }
-            else
-            {
+            } else {
                 _sinceLastTriggered = 0;
                 EffectLayer* el = t->GetEffectLayer(0);
-                for (int j = 0; j < el->GetEffectCount(); j++)
-                {
+                for (int j = 0; j < el->GetEffectCount(); j++) {
                     Effect* ef = el->GetEffect(j);
-                    if (buffer.curPeriod == ef->GetStartTimeMS() / buffer.frameTimeInMs && cache->IsLabelAMatch(ef->GetEffectName()))
-                    {
+                    if (buffer.curPeriod == ef->GetStartTimeMS() / buffer.frameTimeInMs && cache->IsLabelAMatch(ef->GetEffectName())) {
                         wxPoint pt;
-                        if (randomLocation)
-                        {
+                        if (randomLocation) {
                             pt = wxPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
-                        }
-                        else
-                        {
+                        } else {
                             pt = wxPoint(xc, yc);
                         }
 
                         size_t colorcnt = buffer.GetColorCount();
                         _lastColorIdx++;
-                        if (_lastColorIdx >= colorcnt)
-                        {
+                        if (_lastColorIdx >= colorcnt) {
                             _lastColorIdx = 0;
                         }
 
@@ -598,29 +557,21 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                 }
             }
         }
-    }
-    else if (useMusic)
-    {
+    } else if (useMusic) {
         // only trigger a firework if music is greater than the sensitivity
-        if (f > sensitivity)
-        {
+        if (f > sensitivity) {
             // trigger if it was not previously triggered or has been triggered for REPEATTRIGGER frames
-            if (_sinceLastTriggered == 0 || _sinceLastTriggered > REPEATTRIGGER)
-            {
+            if (_sinceLastTriggered == 0 || _sinceLastTriggered > REPEATTRIGGER) {
                 wxPoint pt;
-                if (randomLocation)
-                {
+                if (randomLocation) {
                     pt = wxPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
-                }
-                else
-                {
+                } else {
                     pt = wxPoint(xc, yc);
                 }
 
                 size_t colorcnt = buffer.GetColorCount();
                 _lastColorIdx++;
-                if (_lastColorIdx >= colorcnt)
-                {
+                if (_lastColorIdx >= colorcnt) {
                     _lastColorIdx = 0;
                 }
 
@@ -629,35 +580,25 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 
             // if music is over the trigger level for REPEATTRIGGER frames then we will trigger another firework
             _sinceLastTriggered++;
-            if (_sinceLastTriggered > REPEATTRIGGER)
-            {
+            if (_sinceLastTriggered > REPEATTRIGGER) {
                 _sinceLastTriggered = 0;
             }
-        }
-        else
-        {
+        } else {
             // not triggered so clear last triggered counter
             _sinceLastTriggered = 0;
         }
-    }
-    else
-    {
-        for (int i = _shapes.size(); i < count; ++i)
-        {
+    } else {
+        for (int i = _shapes.size(); i < count; ++i) {
             wxPoint pt;
-            if (randomLocation)
-            {
+            if (randomLocation) {
                 pt = wxPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
-            }
-            else
-            {
+            } else {
                 pt = wxPoint(xc, yc);
             }
 
             size_t colorcnt = buffer.GetColorCount();
             _lastColorIdx++;
-            if (_lastColorIdx >= colorcnt)
-            {
+            if (_lastColorIdx >= colorcnt) {
                 _lastColorIdx = 0;
             }
 
@@ -673,15 +614,13 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     for (const auto& it : _shapes) {
         // if location is not random then update it to whatever the current location is
         // as it may be value curve controlled
-        if (!randomLocation)
-        {
+        if (!randomLocation) {
             it->SetCentre(wxPoint(xc, yc));
         }
 
         xlColor color = it->GetColour(buffer.palette);
 
-        if (fadeAway)
-        {
+        if (fadeAway) {
             float brightness = (float)(lifetimeFrames - it->_oset) / lifetimeFrames;
 
             // draw text does not respect alpha
@@ -694,8 +633,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             }
         }
 
-        switch (it->_shape)
-        {
+        switch (it->_shape) {
         case RENDER_SHAPE_SQUARE:
             Drawpolygon(buffer, it->_centre.x, it->_centre.y, it->_size, 4, color, thickness, rotation + 45.0);
             break;
@@ -742,9 +680,9 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         case RENDER_SHAPE_HEART:
             Drawheart(buffer, it->_centre.x, it->_centre.y, it->_size, color, thickness, rotation);
             break;
-		case RENDER_SHAPE_ELLIPSE:
-			Drawellipse(buffer, it->_centre.x, it->_centre.y, it->_size, points, color, thickness, rotation);
-			break;
+        case RENDER_SHAPE_ELLIPSE:
+            Drawellipse(buffer, it->_centre.x, it->_centre.y, it->_size, points, color, thickness, rotation);
+            break;
         default:
             wxASSERT(false);
             break;
@@ -755,11 +693,12 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         it->_oset++;
         it->_size += growthPerFrame;
 
-        if (it->_size < 0) it->_size = 0;
+        if (it->_size < 0)
+            it->_size = 0;
     }
 
     if (Object_To_Draw == RENDER_SHAPE_EMOJI) {
-        wxImage *i = buffer.GetTextDrawingContext()->FlushAndGetImage();
+        wxImage* i = buffer.GetTextDrawingContext()->FlushAndGetImage();
         unsigned char* data = i->GetData();
         unsigned char* alpha = i->HasAlpha() ? i->GetAlpha() : nullptr;
         int w = i->GetWidth();
@@ -778,11 +717,11 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                         c.alpha = 0;
                     }
                 }
-                buffer.GetPixel(x, y, c2);
+                buffer.GetPixel(x, y, 0, c2); // we always take it from z=0
                 if (c2 != xlBLACK) {
                     c.AlphaBlend(c2);
                 }
-                buffer.SetPixel(x, y, c);
+                buffer.SetPixel(x, y, ALL_Z, c);
                 cur += 3;
                 ++curA;
             }
@@ -792,37 +731,29 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     cache->RemoveOld(lifetimeFrames);
 }
 
-void ShapeEffect::Drawcircle(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const
-{
+void ShapeEffect::Drawcircle(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const {
     double interpolation = 0.75;
     double t = (double)thickness - 1.0 + interpolation;
-    for (double i = 0; i < t; i += interpolation)
-    {
-        if (radius >= 0)
-        {
-            for (double degrees = 0.0; degrees < 360.0; degrees += 1.0)
-            {
+    for (double i = 0; i < t; i += interpolation) {
+        if (radius >= 0) {
+            for (double degrees = 0.0; degrees < 360.0; degrees += 1.0) {
                 double radian = degrees * (M_PI / 180.0);
                 int x = std::round(radius * buffer.cos(radian)) + xc;
                 int y = std::round(radius * buffer.sin(radian)) + yc;
-                buffer.SetPixel(x, y, color);
+                buffer.SetPixel(x, y, ALL_Z, color);
             }
-        }
-        else
-        {
+        } else {
             break;
         }
         radius -= interpolation;
     }
 }
 
-bool ShapeEffect::areSame(double a, double b, float eps) const
-{
+bool ShapeEffect::areSame(double a, double b, float eps) const {
     return std::fabs(a - b) < eps;
 }
 
-bool ShapeEffect::areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, double eps) const
-{
+bool ShapeEffect::areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, double eps) const {
     // use dot product to determine if point are in a strait line
     auto [a_x, a_y] = a;
     auto [b_x, b_y] = b;
@@ -832,47 +763,39 @@ bool ShapeEffect::areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& 
     return std::abs(test) < eps;
 }
 
-void ShapeEffect::Drawellipse(RenderBuffer& buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation) const
-{
-	double interpolation = 0.75;
-	double t = (double)thickness - 1.0 + interpolation;
-	for (double i = 0; i < t; i += interpolation)
-	{
-		if (radius >= 0)
-		{
-			for (double degrees = 0.0; degrees < 360.0; degrees += 1.0)
-			{
-				double radian = (degrees) * (M_PI / 180.0);
-				double scaleMul = ((double)multipler/10.0);
-				double x = radius * cos(radian);
-				double y = (radius * scaleMul) * sin(radian);
+void ShapeEffect::Drawellipse(RenderBuffer& buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation) const {
+    double interpolation = 0.75;
+    double t = (double)thickness - 1.0 + interpolation;
+    for (double i = 0; i < t; i += interpolation) {
+        if (radius >= 0) {
+            for (double degrees = 0.0; degrees < 360.0; degrees += 1.0) {
+                double radian = (degrees) * (M_PI / 180.0);
+                double scaleMul = ((double)multipler / 10.0);
+                double x = radius * cos(radian);
+                double y = (radius * scaleMul) * sin(radian);
 
-				//now rotation
-				double radRot = (rotation) * (M_PI / 180.0);
-				double rx = (x * cos(radRot)) - (y * sin(radRot));
-				double ry = (y * cos(radRot)) + (x * sin(radRot));
+                // now rotation
+                double radRot = (rotation) * (M_PI / 180.0);
+                double rx = (x * cos(radRot)) - (y * sin(radRot));
+                double ry = (y * cos(radRot)) + (x * sin(radRot));
 
-				int xx = std::round(rx) + xc;
-				int yy = std::round(ry) + yc;
+                int xx = std::round(rx) + xc;
+                int yy = std::round(ry) + yc;
 
-				buffer.SetPixel(xx, yy, color);
-			}
-		}
-		else
-		{
-			break;
-		}
-		radius -= interpolation;
-	}
+                buffer.SetPixel(xx, yy, ALL_Z, color);
+            }
+        } else {
+            break;
+        }
+        radius -= interpolation;
+    }
 }
 
-void ShapeEffect::Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, int points, xlColor color, int thickness, double rotation) const
-{
+void ShapeEffect::Drawstar(RenderBuffer& buffer, int xc, int yc, double radius, int points, xlColor color, int thickness, double rotation) const {
     double interpolation = 0.6;
     double t = (double)thickness - 1.0 + interpolation;
     double offsetangle = 0.0;
-    switch (points)
-    {
+    switch (points) {
     case 5:
         offsetangle = 90.0 - 360.0 / 5.0;
         break;
@@ -886,17 +809,16 @@ void ShapeEffect::Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, 
         break;
     }
 
-    for (double i = 0; i < t; i += interpolation)
-    {
-        if (radius >= 0)
-        {
-            double InnerRadius = radius / 2.618034;    // divide by golden ratio squared
+    for (double i = 0; i < t; i += interpolation) {
+        if (radius >= 0) {
+            double InnerRadius = radius / 2.618034; // divide by golden ratio squared
 
             double increment = 360.0 / points;
 
             for (double degrees = 0.0; degrees < 361.0; degrees += increment) // 361 because it allows for small rounding errors
             {
-                if (degrees > 360.0) degrees = 360.0;
+                if (degrees > 360.0)
+                    degrees = 360.0;
                 double radian = (rotation + offsetangle + degrees) * (M_PI / 180.0);
                 int xouter = std::round(radius * buffer.cos(radian)) + xc;
                 int youter = std::round(radius * buffer.sin(radian)) + yc;
@@ -905,38 +827,35 @@ void ShapeEffect::Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, 
                 int xinner = std::round(InnerRadius * buffer.cos(radian)) + xc;
                 int yinner = std::round(InnerRadius * buffer.sin(radian)) + yc;
 
-                buffer.DrawLine(xinner, yinner, xouter, youter, color);
+                    buffer.DrawLine(xinner, yinner, xouter, youter, color, ALL_Z);
 
                 radian = (rotation + offsetangle + degrees - increment / 2.0) * (M_PI / 180.0);
                 xinner = std::round(InnerRadius * buffer.cos(radian)) + xc;
                 yinner = std::round(InnerRadius * buffer.sin(radian)) + yc;
 
-                buffer.DrawLine(xinner, yinner, xouter, youter, color);
+                    buffer.DrawLine(xinner, yinner, xouter, youter, color, ALL_Z);
 
-                if (degrees == 360.0) degrees = 361.0;
+                if (degrees == 360.0)
+                    degrees = 361.0;
             }
-        }
-        else
-        {
+        } else {
             break;
         }
         radius -= interpolation;
     }
 }
 
-void ShapeEffect::Drawpolygon(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, int thickness, double rotation) const
-{
+void ShapeEffect::Drawpolygon(RenderBuffer& buffer, int xc, int yc, double radius, int sides, xlColor color, int thickness, double rotation) const {
     double interpolation = 0.05;
     double t = (double)thickness - 1.0 + interpolation;
     double increment = 360.0 / sides;
 
-    for (double i = 0; i < t; i += interpolation)
-    {
-        if (radius >= 0)
-        {
+    for (double i = 0; i < t; i += interpolation) {
+        if (radius >= 0) {
             for (double degrees = 0.0; degrees < 361.0; degrees += increment) // 361 because it allows for small rounding errors
             {
-                if (degrees > 360.0) degrees = 360.0;
+                if (degrees > 360.0)
+                    degrees = 360.0;
                 double radian = (rotation + degrees) * M_PI / 180.0;
                 int x1 = std::round(radius * cos(radian)) + xc;
                 int y1 = std::round(radius * sin(radian)) + yc;
@@ -945,28 +864,24 @@ void ShapeEffect::Drawpolygon(RenderBuffer &buffer, int xc, int yc, double radiu
                 int x2 = std::round(radius * cos(radian)) + xc;
                 int y2 = std::round(radius * sin(radian)) + yc;
 
-                buffer.DrawLine(x1, y1, x2, y2, color);
+                    buffer.DrawLine(x1, y1, x2, y2, color, ALL_Z);
 
-                if (degrees == 360.0) degrees = 361.0;
+                if (degrees == 360.0)
+                    degrees = 361.0;
             }
-        }
-        else
-        {
+        } else {
             break;
         }
         radius -= interpolation;
     }
 }
 
-void ShapeEffect::Drawsnowflake(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, double rotation) const
-{
+void ShapeEffect::Drawsnowflake(RenderBuffer& buffer, int xc, int yc, double radius, int sides, xlColor color, double rotation) const {
     double increment = 360.0 / (sides * 2);
     double angle = rotation;
 
-    if (radius >= 0)
-    {
-        for (int i = 0; i < sides * 2; i++)
-        {
+    if (radius >= 0) {
+        for (int i = 0; i < sides * 2; i++) {
             double radian = angle * M_PI / 180.0;
 
             int x1 = std::round(radius * cos(radian)) + xc;
@@ -977,43 +892,39 @@ void ShapeEffect::Drawsnowflake(RenderBuffer &buffer, int xc, int yc, double rad
             int x2 = std::round(radius * cos(radian)) + xc;
             int y2 = std::round(radius * sin(radian)) + yc;
 
-            buffer.DrawLine(x1, y1, x2, y2, color);
+                buffer.DrawLine(x1, y1, x2, y2, color, ALL_Z);
 
             angle += increment;
         }
     }
 }
 
-void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const
-{
+void ShapeEffect::Drawheart(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const {
     double interpolation = 0.75;
     double t = (double)thickness - 1.0 + interpolation;
     double radRot = (rotation) * (M_PI / 180.0);
 
     double xincr = 0.01;
-    for (double x = -2.0; x <= 2.0; x += xincr)
-    {
+    for (double x = -2.0; x <= 2.0; x += xincr) {
         double y1 = std::sqrt(1.0 - (std::abs(x) - 1.0) * (std::abs(x) - 1.0));
         double y2 = std::acos(1.0 - std::abs(x)) - M_PI;
 
         double r = radius;
 
-        for (double i = 0.0; i < t; i += interpolation)
-        {
-            if (r >= 0.0)
-            {
-				double xx = (x * r) / 2.0;
-				double yy1 = (y1 * r) / 2.0;
-				double yy2 = (y2 * r) / 2.0;
+        for (double i = 0.0; i < t; i += interpolation) {
+            if (r >= 0.0) {
+                double xx = (x * r) / 2.0;
+                double yy1 = (y1 * r) / 2.0;
+                double yy2 = (y2 * r) / 2.0;
 
-				//now rotation
-				double rx1 = (xx * cos(radRot)) - (yy1 * sin(radRot)) + xc;
-				double ry1 = (yy1 * cos(radRot)) + (xx * sin(radRot)) + yc;
-				double rx2 = (xx * cos(radRot)) - (yy2 * sin(radRot)) + xc;
-				double ry2 = (yy2 * cos(radRot)) + (xx * sin(radRot)) + yc;
+                // now rotation
+                double rx1 = (xx * cos(radRot)) - (yy1 * sin(radRot)) + xc;
+                double ry1 = (yy1 * cos(radRot)) + (xx * sin(radRot)) + yc;
+                double rx2 = (xx * cos(radRot)) - (yy2 * sin(radRot)) + xc;
+                double ry2 = (yy2 * cos(radRot)) + (xx * sin(radRot)) + yc;
 
-                buffer.SetPixel(std::round(rx1), std::round(ry1), color);
-                buffer.SetPixel(std::round(rx2), std::round(ry2), color);
+                buffer.SetPixel(std::round(rx1), std::round(ry1), ALL_Z, color);
+                buffer.SetPixel(std::round(rx2), std::round(ry2), ALL_Z, color);
 
                 if (x + xincr > 2.0 || x == -2.0 + xincr) {
                     if (yy1 > yy2)
@@ -1022,12 +933,10 @@ void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, double radius,
                         // we have to rotate here as well
                         double rx1 = (xx * cos(radRot)) - (z * sin(radRot)) + xc;
                         double ry1 = (z * cos(radRot)) + (xx * sin(radRot)) + yc;
-                        buffer.SetPixel(std::round(rx1), std::round(ry1), color);
+                        buffer.SetPixel(std::round(rx1), std::round(ry1), ALL_Z, color);
                     }
                 }
-            }
-            else
-            {
+            } else {
                 break;
             }
             r -= interpolation;
@@ -1035,136 +944,116 @@ void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, double radius,
     }
 }
 
-void ShapeEffect::Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const
-{
-    struct line
-    {
+void ShapeEffect::Drawtree(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const {
+    struct line {
         wxPoint start;
         wxPoint end;
 
-        line(const wxPoint s, const wxPoint e)
-        {
+        line(const wxPoint s, const wxPoint e) {
             start = s;
             end = e;
         }
     };
 
-    const line points[] = {line(wxPoint(3,0), wxPoint(5,0)),
-                           line(wxPoint(5,0), wxPoint(5,3)),
-                           line(wxPoint(3,0), wxPoint(3,3)),
-                           line(wxPoint(0,3), wxPoint(8,3)),
-                           line(wxPoint(0,3), wxPoint(2,6)),
-                           line(wxPoint(8,3), wxPoint(6,6)),
-                           line(wxPoint(1,6), wxPoint(2,6)),
-                           line(wxPoint(6,6), wxPoint(7,6)),
-                           line(wxPoint(1,6), wxPoint(3,9)),
-                           line(wxPoint(7,6), wxPoint(5,9)),
-                           line(wxPoint(2,9), wxPoint(3,9)),
-                           line(wxPoint(5,9), wxPoint(6,9)),
-                           line(wxPoint(6,9), wxPoint(4,11)),
-                           line(wxPoint(2,9), wxPoint(4,11))
-    };
+    const line points[] = { line(wxPoint(3, 0), wxPoint(5, 0)),
+                            line(wxPoint(5, 0), wxPoint(5, 3)),
+                            line(wxPoint(3, 0), wxPoint(3, 3)),
+                            line(wxPoint(0, 3), wxPoint(8, 3)),
+                            line(wxPoint(0, 3), wxPoint(2, 6)),
+                            line(wxPoint(8, 3), wxPoint(6, 6)),
+                            line(wxPoint(1, 6), wxPoint(2, 6)),
+                            line(wxPoint(6, 6), wxPoint(7, 6)),
+                            line(wxPoint(1, 6), wxPoint(3, 9)),
+                            line(wxPoint(7, 6), wxPoint(5, 9)),
+                            line(wxPoint(2, 9), wxPoint(3, 9)),
+                            line(wxPoint(5, 9), wxPoint(6, 9)),
+                            line(wxPoint(6, 9), wxPoint(4, 11)),
+                            line(wxPoint(2, 9), wxPoint(4, 11)) };
     int count = sizeof(points) / sizeof(line);
 
     double interpolation = 0.75;
     double t = (double)thickness - 1.0 + interpolation;
 
-    for (double i = 0; i < t; i += interpolation)
-    {
-        if (radius >= 0)
-        {
-            for (int j = 0; j < count; ++j)
-            {
+    for (double i = 0; i < t; i += interpolation) {
+        if (radius >= 0) {
+            for (int j = 0; j < count; ++j) {
                 int x1 = std::round(((double)points[j].start.x - 4.0) / 11.0 * radius);
                 int y1 = std::round(((double)points[j].start.y - 4.0) / 11.0 * radius);
                 int x2 = std::round(((double)points[j].end.x - 4.0) / 11.0 * radius);
                 int y2 = std::round(((double)points[j].end.y - 4.0) / 11.0 * radius);
 
-				//now rotation
-				double radRot = (rotation) * (M_PI / 180.0);
-				double rx1 = (x1 * cos(radRot)) - (y1 * sin(radRot));
-				double ry1 = (y1 * cos(radRot)) + (x1 * sin(radRot));
-				double rx2 = (x2 * cos(radRot)) - (y2 * sin(radRot));
-				double ry2 = (y2 * cos(radRot)) + (x2 * sin(radRot));
-                buffer.DrawLine(xc + rx1, yc + ry1, xc + rx2, yc + ry2, color);
+                // now rotation
+                double radRot = (rotation) * (M_PI / 180.0);
+                double rx1 = (x1 * cos(radRot)) - (y1 * sin(radRot));
+                double ry1 = (y1 * cos(radRot)) + (x1 * sin(radRot));
+                double rx2 = (x2 * cos(radRot)) - (y2 * sin(radRot));
+                double ry2 = (y2 * cos(radRot)) + (x2 * sin(radRot));
+                buffer.DrawLine(xc + rx1, yc + ry1, xc + rx2, yc + ry2, color, ALL_Z);
             }
-        }
-        else
-        {
+        } else {
             break;
         }
         radius -= interpolation;
     }
 }
 
-void ShapeEffect::Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const
-{
-    struct line
-    {
+void ShapeEffect::Drawcrucifix(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const {
+    struct line {
         wxPoint start;
         wxPoint end;
 
-        line(const wxPoint s, const wxPoint e)
-        {
+        line(const wxPoint s, const wxPoint e) {
             start = s;
             end = e;
         }
     };
 
-    const line points[] = {line(wxPoint(2,0), wxPoint(2,6)),
-                           line(wxPoint(2,6), wxPoint(0,6)),
-                           line(wxPoint(0,6), wxPoint(0,7)),
-                           line(wxPoint(0,7), wxPoint(2,7)),
-                           line(wxPoint(2,7), wxPoint(2,10)),
-                           line(wxPoint(2,10), wxPoint(3,10)),
-                           line(wxPoint(3,10), wxPoint(3,7)),
-                           line(wxPoint(3,7), wxPoint(5,7)),
-                           line(wxPoint(5,7), wxPoint(5,6)),
-                           line(wxPoint(5,6), wxPoint(3,6)),
-                           line(wxPoint(3,6), wxPoint(3,0)),
-                           line(wxPoint(3,0), wxPoint(2,0))
-    };
+    const line points[] = { line(wxPoint(2, 0), wxPoint(2, 6)),
+                            line(wxPoint(2, 6), wxPoint(0, 6)),
+                            line(wxPoint(0, 6), wxPoint(0, 7)),
+                            line(wxPoint(0, 7), wxPoint(2, 7)),
+                            line(wxPoint(2, 7), wxPoint(2, 10)),
+                            line(wxPoint(2, 10), wxPoint(3, 10)),
+                            line(wxPoint(3, 10), wxPoint(3, 7)),
+                            line(wxPoint(3, 7), wxPoint(5, 7)),
+                            line(wxPoint(5, 7), wxPoint(5, 6)),
+                            line(wxPoint(5, 6), wxPoint(3, 6)),
+                            line(wxPoint(3, 6), wxPoint(3, 0)),
+                            line(wxPoint(3, 0), wxPoint(2, 0)) };
     int count = sizeof(points) / sizeof(line);
 
     double interpolation = 0.75;
     double t = (double)thickness - 1.0 + interpolation;
 
-    for (double i = 0; i < t; i += interpolation)
-    {
-        if (radius >= 0)
-        {
-            for (int j = 0; j < count; ++j)
-            {
+    for (double i = 0; i < t; i += interpolation) {
+        if (radius >= 0) {
+            for (int j = 0; j < count; ++j) {
                 int x1 = std::round(((double)points[j].start.x - 2.5) / 7.0 * radius);
                 int y1 = std::round(((double)points[j].start.y - 6.5) / 10.0 * radius);
                 int x2 = std::round(((double)points[j].end.x - 2.5) / 7.0 * radius);
                 int y2 = std::round(((double)points[j].end.y - 6.5) / 10.0 * radius);
 
-				//now rotation
-				double radRot = (rotation) * (M_PI / 180.0);
-				double rx1 = (x1 * cos(radRot)) - (y1 * sin(radRot));
-				double ry1 = (y1 * cos(radRot)) + (x1 * sin(radRot));
-				double rx2 = (x2 * cos(radRot)) - (y2 * sin(radRot));
-				double ry2 = (y2 * cos(radRot)) + (x2 * sin(radRot));
-                buffer.DrawLine(xc + rx1, yc + ry1, xc + rx2, yc + ry2, color);
+                // now rotation
+                double radRot = (rotation) * (M_PI / 180.0);
+                double rx1 = (x1 * cos(radRot)) - (y1 * sin(radRot));
+                double ry1 = (y1 * cos(radRot)) + (x1 * sin(radRot));
+                double rx2 = (x2 * cos(radRot)) - (y2 * sin(radRot));
+                double ry2 = (y2 * cos(radRot)) + (x2 * sin(radRot));
+                buffer.DrawLine(xc + rx1, yc + ry1, xc + rx2, yc + ry2, color, ALL_Z);
             }
-        }
-        else
-        {
+        } else {
             break;
         }
         radius -= interpolation;
     }
 }
 
-void ShapeEffect::Drawpresent(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const
-{
+void ShapeEffect::Drawpresent(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const {
     struct line {
         wxPoint start;
         wxPoint end;
 
-        line(const wxPoint s, const wxPoint e)
-        {
+        line(const wxPoint s, const wxPoint e) {
             start = s;
             end = e;
         }
@@ -1199,7 +1088,7 @@ void ShapeEffect::Drawpresent(RenderBuffer& buffer, int xc, int yc, double radiu
                 double rx2 = (x2 * cos(radRot)) - (y2 * sin(radRot));
                 double ry2 = (y2 * cos(radRot)) + (x2 * sin(radRot));
 
-                buffer.DrawLine(xc + rx1, yc + ry1, xc + rx2, yc + ry2, color);
+                    buffer.DrawLine(xc + rx1, yc + ry1, xc + rx2, yc + ry2, color, ALL_Z);
             }
         } else {
             break;
@@ -1208,14 +1097,12 @@ void ShapeEffect::Drawpresent(RenderBuffer& buffer, int xc, int yc, double radiu
     }
 }
 
-bool ShapeEffect::needToAdjustSettings(const std::string& version)
-{
+bool ShapeEffect::needToAdjustSettings(const std::string& version) {
     // give the base class a chance to adjust any settings
     return IsVersionOlder("2024.02", version);
 }
 
-void ShapeEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
-{
+void ShapeEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
     // give the base class a chance to adjust any settings
     if (RenderableEffect::needToAdjustSettings(version)) {
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
@@ -1232,8 +1119,7 @@ void ShapeEffect::adjustSettings(const std::string& version, Effect* effect, boo
     }
 }
 
-void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, wxFontInfo& font) const
-{
+void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, wxFontInfo& font) const {
     if (radius < 1)
         return;
 
@@ -1263,43 +1149,36 @@ void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius,
     context->SetOverlayMode(false);
 }
 
-static inline wxPoint2DDouble ScaleMovePoint(const wxPoint2DDouble pt, const wxPoint2DDouble imageCentre, const wxPoint2DDouble centre, float factor, float scaleTo)
-{
+static inline wxPoint2DDouble ScaleMovePoint(const wxPoint2DDouble pt, const wxPoint2DDouble imageCentre, const wxPoint2DDouble centre, float factor, float scaleTo) {
     return centre + ((pt - imageCentre) * factor * scaleTo * 10);
 }
 
-static inline uint8_t GetSVGRed(uint32_t colour)
-{
+static inline uint8_t GetSVGRed(uint32_t colour) {
     return (colour);
 }
 
-static inline uint8_t GetSVGGreen(uint32_t colour)
-{
+static inline uint8_t GetSVGGreen(uint32_t colour) {
     return (colour >> 8);
 }
 
-static inline uint8_t GetSVGBlue(uint32_t colour)
-{
+static inline uint8_t GetSVGBlue(uint32_t colour) {
     return (colour >> 16);
 }
 
-static inline uint8_t GetSVGAlpha(uint32_t colour)
-{
+static inline uint8_t GetSVGAlpha(uint32_t colour) {
     return (colour >> 24);
 }
 
-static inline uint32_t GetSVGExAlpha(uint32_t colour)
-{
+static inline uint32_t GetSVGExAlpha(uint32_t colour) {
     return (colour & 0xFFFFFF);
 }
 
-void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const
-{
+void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const {
     auto image = cache->GetImage();
     if (image == nullptr) {
-        for (size_t x = 0; x < buffer.BufferWi; ++ x) {
+        for (size_t x = 0; x < buffer.BufferWi; ++x) {
             for (size_t y = 0; y < buffer.BufferHt; ++y) {
-                buffer.SetPixel(x, y, xlRED);
+                buffer.SetPixel(x, y, ALL_Z, xlRED);
             }
         }
     } else {
@@ -1310,12 +1189,10 @@ void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc,
         wxPoint2DDouble imageCentre((float)image->width / 2.0, (float)image->height / 2.0);
 
         for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
-
             if (GetSVGExAlpha(shape->fill.color) != 0) {
                 if (shape->fill.type == 0) {
                     context->SetBrush(wxNullBrush);
-                }
-                else if (shape->fill.type == 1) {
+                } else if (shape->fill.type == 1) {
                     wxColor bc(GetSVGRed(shape->fill.color), GetSVGGreen(shape->fill.color), GetSVGBlue(shape->fill.color), /*shape->opacity * */ GetSVGAlpha(shape->fill.color) * color.alpha / 255);
                     wxBrush brush(bc, wxBrushStyle::wxBRUSHSTYLE_SOLID);
                     context->SetBrush(brush);
@@ -1364,7 +1241,8 @@ void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc,
                     wxPoint2DDouble cp2 = ScaleMovePoint(wxPoint2DDouble(p[4], ih - p[5]), imageCentre, centre, cache->_svgScaleBase, radius);
                     wxPoint2DDouble end = ScaleMovePoint(wxPoint2DDouble(p[6], ih - p[7]), imageCentre, centre, cache->_svgScaleBase, radius);
 
-                    if (i == 0) cpath.MoveToPoint(start);
+                    if (i == 0)
+                        cpath.MoveToPoint(start);
 
                     if (areCollinear(start, cp1, end, 0.001f) && areCollinear(start, cp2, end, 0.001f)) { // check if its a straight line
                         cpath.AddLineToPoint(end);
@@ -1377,7 +1255,7 @@ void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc,
                 if (path->closed) {
                     cpath.CloseSubpath();
                     context->FillPath(cpath, wxPolygonFillMode::wxODDEVEN_RULE);
-                } 
+                }
                 context->StrokePath(cpath);
             }
         }
@@ -1394,14 +1272,13 @@ void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc,
                 } else {
                     cc.Set(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), 255);
                 }
-                buffer.SetPixel(x, y, cc);
+                buffer.SetPixel(x, y, ALL_Z, cc);
             }
         }
     }
 }
 
-void ShapeEffect::Drawcandycane(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const
-{
+void ShapeEffect::Drawcandycane(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const {
     double originalRadius = radius;
     double interpolation = 0.75;
     double t = (double)thickness - 1.0 + interpolation;
@@ -1411,7 +1288,7 @@ void ShapeEffect::Drawcandycane(RenderBuffer& buffer, int xc, int yc, double rad
             int y1 = std::round((double)yc + originalRadius / 6.0);
             int y2 = std::round((double)yc - originalRadius / 2.0);
             int x = std::round((double)xc + radius / 2.0);
-            buffer.DrawLine(x, y1, x, y2, color);
+            buffer.DrawLine(x, y1, x, y2, color, ALL_Z);
 
             // draw the hook
             double r = radius / 3.0;
@@ -1419,7 +1296,7 @@ void ShapeEffect::Drawcandycane(RenderBuffer& buffer, int xc, int yc, double rad
                 double radian = degrees * (M_PI / 180.0);
                 x = std::round((r - interpolation) * buffer.cos(radian) + xc + originalRadius / 6.0);
                 int y = std::round((r - interpolation) * buffer.sin(radian) + y1);
-                buffer.SetPixel(x, y, color);
+                buffer.SetPixel(x, y, ALL_Z, color);
             }
         } else {
             break;

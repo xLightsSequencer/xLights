@@ -806,7 +806,8 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
 
     int origwidth;
     int origheight;
-    model->GetBufferSize("Default", "2D", "None", origwidth, origheight, 0);
+    int origdepth;
+    model->GetBufferSize("Default", "2D", "None", origwidth, origheight, origdepth, 0);
 
     int width = origwidth;
     int height = origheight;
@@ -1239,7 +1240,8 @@ void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, un
 
     int width;
     int height;
-    model->GetBufferSize("Default", "2D", "None", width, height, 0);
+    int depth;
+    model->GetBufferSize("Default", "2D", "None", width, height, depth, 0);
 
     // must be a multiple of 2
     logger_base.debug("   GIF dimensions %dx%d.", width, height);
@@ -1307,7 +1309,8 @@ void xLightsFrame::WriteMinleonNECModelFile(const wxString& filename, long numCh
 
     int width;
     int height;
-    model->GetBufferSize("Default", "2D", "None", width, height, 0);
+    int depth;
+    model->GetBufferSize("Default", "2D", "None", width, height, depth, 0);
 
     wxFile f;
     if (!f.Create(filename, true)) {

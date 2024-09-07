@@ -139,10 +139,12 @@ void WS2812FX::copyPixels(uint16_t dest, uint16_t src, uint16_t count)
     }
     for (size_t i = 0; i < count; i++) {
         xlColor c = cols[i];
-        for (size_t y = 0; y < _buffer->BufferHt; y++) {
-            _buffer->SetPixel(dest + i, y, c);
+        for (int z = 0; z < _buffer->BufferDp; ++z) {
+            for (size_t y = 0; y < _buffer->BufferHt; y++) {
+                _buffer->SetPixel(dest + i, y, z, c);
+            }
+            _buffer->SetTempPixel(dest + i, 0, z, c);
         }
-        _buffer->SetTempPixel(dest + i, 0, c);
     }
 }
 
@@ -1592,10 +1594,12 @@ void WS2812FX::SetBuffer(RenderBuffer* buffer)
 void WS2812FX::setPixelColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b, uint8_t w)
 {
     xlColor c(r, g, b);
-    for (size_t y = 0; y < _buffer->BufferHt; y++) {
-        _buffer->SetPixel(n, y, c);
+    for (int z = 0; z < _buffer->BufferDp; ++z) {
+        for (size_t y = 0; y < _buffer->BufferHt; y++) {
+            _buffer->SetPixel(n, y, z, c);
+        }
+        _buffer->SetTempPixel(n, 0, z, c);
     }
-    _buffer->SetTempPixel(n, 0, c);
 }
 
 void WS2812FX::fill(uint32_t c)

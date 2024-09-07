@@ -228,22 +228,24 @@ void CandyCaneModel::AddDimensionProperties(wxPropertyGridInterface* grid)
     }
 }
 
-void CandyCaneModel::GetBufferSize(const std::string &tp, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const {
+void CandyCaneModel::GetBufferSize(const std::string &tp, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int& BufferDp, int stagger) const {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     if (type == "Single Line") {
         BufferHi = 1;
+        BufferDp = 1;
         BufferWi = this->BufferWi * this->BufferHt;
-        AdjustForTransform(transform, BufferWi, BufferHi);
+        AdjustForTransform(transform, BufferWi, BufferHi, BufferDp);
     } else {
-        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
     }
 }
 
 void CandyCaneModel::InitRenderBufferNodes(const std::string &tp, const std::string &camera,  const std::string &transform,
-                                        std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, int stagger, bool deep) const {
+                                        std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, int&BufferDp, int stagger, bool deep) const {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     if (type == "Single Line") {
         BufferHi = 1;
+        BufferDp = 1;
         BufferWi = GetNodeCount();
 
         int NumCanes=parm1;
@@ -256,13 +258,14 @@ void CandyCaneModel::InitRenderBufferNodes(const std::string &tp, const std::str
                 for(size_t c=0; c < newNodes[cur]->Coords.size(); c++) {
                     newNodes[cur]->Coords[c].bufX=cur;
                     newNodes[cur]->Coords[c].bufY=0;
+                    newNodes[cur]->Coords[c].bufZ = 0;
                 }
                 cur++;
             }
         }
-        ApplyTransform(transform, newNodes, BufferWi, BufferHi);
+        ApplyTransform(transform, newNodes, BufferWi, BufferHi, BufferDp);
     } else {
-        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, stagger);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, BufferDp, stagger);
     }
 }
 

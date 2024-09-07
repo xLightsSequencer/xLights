@@ -11,9 +11,9 @@
 #include "SnowstormEffect.h"
 #include "SnowstormPanel.h"
 
-#include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
+#include "../sequencer/Effect.h"
 
 #include "../../include/snowstorm-16.xpm"
 #include "../../include/snowstorm-24.xpm"
@@ -21,32 +21,30 @@
 #include "../../include/snowstorm-48.xpm"
 #include "../../include/snowstorm-64.xpm"
 
-SnowstormEffect::SnowstormEffect(int id) : RenderableEffect(id, "Snowstorm", snowstorm_16, snowstorm_24, snowstorm_32, snowstorm_48, snowstorm_64)
-{
+SnowstormEffect::SnowstormEffect(int id) :
+    RenderableEffect(id, "Snowstorm", snowstorm_16, snowstorm_24, snowstorm_32, snowstorm_48, snowstorm_64) {
     tooltip = "Snow Storm";
 }
 
-SnowstormEffect::~SnowstormEffect() {}
+SnowstormEffect::~SnowstormEffect() {
+}
 
-xlEffectPanel *SnowstormEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel* SnowstormEffect::CreatePanel(wxWindow* parent) {
     return new SnowstormPanel(parent);
 }
 
-class SnowstormClass
-{
+class SnowstormClass {
 public:
     std::vector<wxPoint> points;
     HSVValue hsv;
-    int idx,ssDecay;
-    ~SnowstormClass()
-    {
+    int idx, ssDecay;
+    ~SnowstormClass() {
         points.clear();
     }
 };
 
 // 0 <= idx <= 7
-static wxPoint SnowstormVector(int idx)
-{
+static wxPoint SnowstormVector(int idx) {
     wxPoint xy;
     switch (idx) {
     case 0:
@@ -85,18 +83,15 @@ static wxPoint SnowstormVector(int idx)
     return xy;
 }
 
-static void SnowstormAdvance(RenderBuffer& buffer, SnowstormClass& ssItem)
-{
-    const int cnt = 8;  // # of integers in each set in arr[]
-    const int arr[] = { 30,20,10,5,0,5,10,20,20,15,10,10,10,10,10,15 }; // 2 sets of 8 numbers, each of which add up to 100
+static void SnowstormAdvance(RenderBuffer& buffer, SnowstormClass& ssItem) {
+    const int cnt = 8;                                                                 // # of integers in each set in arr[]
+    const int arr[] = { 30, 20, 10, 5, 0, 5, 10, 20, 20, 15, 10, 10, 10, 10, 10, 15 }; // 2 sets of 8 numbers, each of which add up to 100
     wxPoint adv = SnowstormVector(7);
     int i0 = ssItem.idx % 7 <= 4 ? 0 : cnt;
     int r = rand() % 100;
-    for (int i = 0, val = 0; i < cnt; i++)
-    {
+    for (int i = 0, val = 0; i < cnt; i++) {
         val += arr[i0 + i];
-        if (r < val)
-        {
+        if (r < val) {
             adv = SnowstormVector(i);
             break;
         }
@@ -110,23 +105,24 @@ static void SnowstormAdvance(RenderBuffer& buffer, SnowstormClass& ssItem)
     wxPoint xy = ssItem.points.back() + adv;
     xy.x %= buffer.BufferWi;
     xy.y %= buffer.BufferHt;
-    if (xy.x < 0) xy.x += buffer.BufferWi;
-    if (xy.y < 0) xy.y += buffer.BufferHt;
+    if (xy.x < 0)
+        xy.x += buffer.BufferWi;
+    if (xy.y < 0)
+        xy.y += buffer.BufferHt;
     ssItem.points.push_back(xy);
 }
 
 class SnowstormRenderCache : public EffectRenderCache {
 public:
-    SnowstormRenderCache() {};
-    virtual ~SnowstormRenderCache() {};
-    
+    SnowstormRenderCache(){};
+    virtual ~SnowstormRenderCache(){};
+
     int LastSnowstormCount;
     std::list<SnowstormClass> SnowstormItems;
 };
 
-void SnowstormEffect::SetDefaultParameters()
-{
-    SnowstormPanel *sp = (SnowstormPanel*)panel;
+void SnowstormEffect::SetDefaultParameters() {
+    SnowstormPanel* sp = (SnowstormPanel*)panel;
     if (sp == nullptr) {
         return;
     }
@@ -137,7 +133,6 @@ void SnowstormEffect::SetDefaultParameters()
 }
 
 void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
-
     int Count = SettingsMap.GetInt("SLIDER_Snowstorm_Count", 50);
     int TailLength = SettingsMap.GetInt("SLIDER_Snowstorm_Length", 50);
     int sSpeed = SettingsMap.GetInt("SLIDER_Snowstorm_Speed", 10);
@@ -148,7 +143,8 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
     buffer.palette.GetHSV(0, hsv0, progress);
     buffer.palette.GetHSV(1, hsv1, progress);
 
-    if (TailLength == 0) TailLength = 1;
+    if (TailLength == 0)
+        TailLength = 1;
 
     SnowstormRenderCache* cache = (SnowstormRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -162,8 +158,7 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
         // create snowstorm elements
         cache->LastSnowstormCount = Count;
         SnowstormItems.clear();
-        for (int i = 0; i < Count; i++)
-        {
+        for (int i = 0; i < Count; i++) {
             SnowstormClass ssItem;
             ssItem.idx = i;
             ssItem.ssDecay = 0;
@@ -187,9 +182,7 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
             }
             SnowstormItems.push_back(ssItem);
         }
-    }
-    else
-    {
+    } else {
         // This updates the colours where using colour curves
         for (auto& it : SnowstormItems) {
             int val = it.hsv.value;
@@ -200,13 +193,11 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
 
     // render Snowstorm Items
     for (auto& it : SnowstormItems) {
-        
         if (it.points.size() > TailLength) {
             if (it.ssDecay > TailLength) {
-                it.points.clear();  // start over
+                it.points.clear(); // start over
                 it.ssDecay = 0;
-            }
-            else if (rand() % 20 < sSpeed) {
+            } else if (rand() % 20 < sSpeed) {
                 it.ssDecay++;
             }
         }
@@ -216,8 +207,7 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
             xy.x = rand() % buffer.BufferWi;
             xy.y = rand() % buffer.BufferHt;
             it.points.push_back(xy);
-        }
-        else if (rand() % 20 < sSpeed) {
+        } else if (rand() % 20 < sSpeed) {
             SnowstormAdvance(buffer, it);
         }
 
@@ -227,12 +217,12 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
             if (buffer.allowAlpha) {
                 xlColor c(hsv);
                 c.alpha = 255.8 * (1.0 - double(sz - pt + it.ssDecay) / TailLength);
-                buffer.SetPixel(it.points[pt].x, it.points[pt].y, c);
-            }
-            else {
+                buffer.SetPixel(it.points[pt].x, it.points[pt].y, ALL_Z, c);
+            } else {
                 hsv.value = 1.0 - double(sz - pt + it.ssDecay) / TailLength;
-                if (hsv.value < 0.0) hsv.value = 0.0;
-                buffer.SetPixel(it.points[pt].x, it.points[pt].y, hsv);
+                if (hsv.value < 0.0)
+                    hsv.value = 0.0;
+                buffer.SetPixel(it.points[pt].x, it.points[pt].y, ALL_Z, hsv);
             }
         }
     }

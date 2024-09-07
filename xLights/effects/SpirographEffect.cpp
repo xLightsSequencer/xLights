@@ -135,7 +135,7 @@ void SpirographEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Re
         {
             int xx = x + w * buffer.cos(tt);
             int yy = y + w * buffer.sin(tt);
-            buffer.SetPixel(xx, yy, hsv);
+            buffer.SetPixel(xx, yy, ALL_Z, hsv);
         }
     }
 }

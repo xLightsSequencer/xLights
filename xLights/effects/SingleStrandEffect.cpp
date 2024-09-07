@@ -245,12 +245,12 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
             int mappedX = mapX(x, max, direction, second);
             if (mappedX >= 0 && mappedX < buffer.BufferWi) {
                 for (int y = 0; y < buffer.BufferHt; y++) {
-                    buffer.SetPixel(mappedX, y, color);
+                    buffer.SetPixel(mappedX, y, ALL_Z, color);
                 }
             }
             if (second >= 0 && second < buffer.BufferWi) {
                 for (int y = 0; y < buffer.BufferHt; y++) {
-                    buffer.SetPixel(second, y, color);
+                    buffer.SetPixel(second, y, ALL_Z, color);
                 }
             }
             x++;
@@ -275,13 +275,13 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
             int mappedX = mapX(x, max, direction, second);
             if (mappedX >= 0 && mappedX < buffer.BufferWi) {
                 for (int y = 0; y < buffer.BufferHt; y++) {
-                    buffer.SetPixel(mappedX, y, color);
+                    buffer.SetPixel(mappedX, y, ALL_Z, color);
                 }
             }
 
             if (second >= 0 && second < buffer.BufferWi) {
                 for (int y = 0; y < buffer.BufferHt; y++) {
-                    buffer.SetPixel(second, y, color);
+                    buffer.SetPixel(second, y, ALL_Z, color);
                 }
             }
             x--;
@@ -784,7 +784,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                 if (new_x >= 0 && new_x <= width) {
                     if (GroupAll) {
                         int y = 0;
-                        int mirrorx = buffer.BufferWi*buffer.BufferHt - new_x - 1;
+                        int mirrorx = buffer.BufferWi * buffer.BufferHt - new_x - 1;
                         int mirrory = 0;
 
                         y += new_x / buffer.BufferWi;
@@ -793,30 +793,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                         mirrorx = mirrorx % buffer.BufferWi;
                         if (Fade_Type != "None") {
                             xlColor c;
-                            buffer.GetPixel(new_x, y, c);
-                            if (c != xlBLACK) {
-                                if (buffer.allowAlpha) {
-                                    int a = color.alpha;
-                                    color = color.AlphaBlend(c);
-                                    color.alpha = c.alpha > a ? c.alpha : a;
-                                } else {
-                                    // only blend new fade types for hsv types to allow for backward compatabilty 
-                                    // overcomes leading black on bounce effects overriding trailing brightness
-                                    if (Fade_Type == "Middle" || Fade_Type == "From Tail" || Fade_Type == "Head and Tail") {
-                                        color = color.ChannelMax(c);
-                                    }
-                                }
-                            }
-                        }
-
-                        buffer.SetPixel(new_x, y, color); // Turn pixel on
-                        if (mirror) {
-                            buffer.SetPixel(mirrorx, mirrory, color); // Turn pixel on
-                        }
-                    } else {
-                        if (Fade_Type != "None") {
-                            xlColor c;
-                            buffer.GetPixel(new_x, 0, c);
+                            buffer.GetPixel(new_x, y, 0, c);
                             if (c != xlBLACK) {
                                 if (buffer.allowAlpha) {
                                     int a = color.alpha;
@@ -827,14 +804,37 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                                     // overcomes leading black on bounce effects overriding trailing brightness
                                     if (Fade_Type == "Middle" || Fade_Type == "From Tail" || Fade_Type == "Head and Tail") {
                                         color = color.ChannelMax(c);
-                                   }
+                                    }
+                                }
+                            }
+                        }
+
+                        buffer.SetPixel(new_x, y, ALL_Z, color); // Turn pixel on
+                        if (mirror) {
+                            buffer.SetPixel(mirrorx, mirrory, ALL_Z, color); // Turn pixel on
+                        }
+                    } else {
+                        if (Fade_Type != "None") {
+                            xlColor c;
+                            buffer.GetPixel(new_x, 0, 0, c);
+                            if (c != xlBLACK) {
+                                if (buffer.allowAlpha) {
+                                    int a = color.alpha;
+                                    color = color.AlphaBlend(c);
+                                    color.alpha = c.alpha > a ? c.alpha : a;
+                                } else {
+                                    // only blend new fade types for hsv types to allow for backward compatabilty
+                                    // overcomes leading black on bounce effects overriding trailing brightness
+                                    if (Fade_Type == "Middle" || Fade_Type == "From Tail" || Fade_Type == "Head and Tail") {
+                                        color = color.ChannelMax(c);
+                                    }
                                 }
                             }
                         }
                         for (int y = 0; y < buffer.BufferHt; y++) {
-                            buffer.SetPixel(new_x, y, color); // Turn pixel on
+                            buffer.SetPixel(new_x, y, ALL_Z, color); // Turn pixel on
                             if (mirror) {
-                                buffer.SetPixel(buffer.BufferWi - new_x - 1, y, color); // Turn pixel on
+                                buffer.SetPixel(buffer.BufferWi - new_x - 1, y, ALL_Z, color); // Turn pixel on
                             }
                         }
                     }

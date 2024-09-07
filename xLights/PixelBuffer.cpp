@@ -309,7 +309,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, foldIn(cb0, rb1, s, t, progress, isReverse));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, foldIn(cb0, rb1, s, t, progress, isReverse));
+                    }
                 }
             },
             25);
@@ -322,7 +324,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, foldOut(cb0, rb1, s, t, progress, isReverse));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, foldOut(cb0, rb1, s, t, progress, isReverse));
+                    }
                 }
             },
             25);
@@ -353,7 +357,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, dissolveIn(cb0, s, t, progress));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, dissolveIn(cb0, s, t, progress));
+                    }
                 }
             },
             25);
@@ -371,7 +377,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, dissolveOut(cb0, s, t, progress));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, dissolveOut(cb0, s, t, progress));
+                    }
                 }
             },
             25);
@@ -403,7 +411,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, circularSwirl(cb0, xy, speed, s, t, progress));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, circularSwirl(cb0, xy, speed, s, t, progress));
+                    }
                 }
             },
             25);
@@ -468,7 +478,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, bowTie(cb0, rb1, s, t, progress, bowTieAdjust, isReversed));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, bowTie(cb0, rb1, s, t, progress, bowTieAdjust, isReversed));
+                    }
                 }
             },
             25);
@@ -489,7 +501,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, zoomTransition(cb0, s, t, progress));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, zoomTransition(cb0, s, t, progress));
+                    }
                 }
             },
             25);
@@ -546,7 +560,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, doorway(cb0, rb1, s, t, progress));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, doorway(cb0, rb1, s, t, progress));
+                    }
                 }
             },
             25);
@@ -608,7 +624,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, blobs(cb0, rb1, s, t, progress, scale));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, blobs(cb0, rb1, s, t, progress, scale));
+                    }
                 }
             },
             25);
@@ -638,7 +656,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, pinwheelTransition(cb0, rb1, s, t, progress, adjust));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, pinwheelTransition(cb0, rb1, s, t, progress, adjust));
+                    }
                 }
             },
             25);
@@ -681,7 +701,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, starTransition(cb0, rb1, s, t, progress, numSegments, shouldReverse));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, starTransition(cb0, rb1, s, t, progress, numSegments, shouldReverse));
+                    }
                 }
             },
             25);
@@ -751,7 +773,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, swapTransition(cb0, rb1, s, t, progress));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, swapTransition(cb0, rb1, s, t, progress));
+                    }
                 }
             },
             25);
@@ -829,7 +853,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, shatterTransition(cb0, rb1, s, t, progress));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, shatterTransition(cb0, rb1, s, t, progress));
+                    }
                 }
             },
             25);
@@ -865,7 +891,9 @@ namespace {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, circlesTransition(cb0, rb1, s, t, progress, n));
+                    for (int z = 0; z < rb0.BufferDp; ++z) {
+                        rb0.SetPixel(x, y, z, circlesTransition(cb0, rb1, s, t, progress, n));
+                    }
                 }
             },
             25);
@@ -888,7 +916,7 @@ PixelBufferClass::~PixelBufferClass() {
     if (zbModel != nullptr) {
         delete zbModel;
     }
-    for (int x = 0; x < numLayers; x++) {
+    for (int x = 0; x < numLayers; ++x) {
         delete layers[x];
     }
     if (gpuRenderData) {
@@ -897,7 +925,7 @@ PixelBufferClass::~PixelBufferClass() {
 }
 
 void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
-    for (int x = 0; x < numLayers; x++) {
+    for (int x = 0; x < numLayers; ++x) {
         delete layers[x];
     }
     layers.clear();
@@ -912,10 +940,10 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
         if (x == (numLayers - 1)) {
             // for the model "blend" layer, use the "Single Line" style so none of the nodes will overlap with others
             // in the renderbuff which can occur if the group defaults to per-preview or similar
-            model->InitRenderBufferNodes("Single Line", "2D", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt, layers[x]->stagger);
+            model->InitRenderBufferNodes("Single Line", "2D", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt, layers[x]->BufferDp, layers[x]->stagger);
             layers[x]->bufferType = "Single Line";
         } else {
-            model->InitRenderBufferNodes("Default", "2D", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt, layers[x]->stagger);
+            model->InitRenderBufferNodes("Default", "2D", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt, layers[x]->BufferDp, layers[x]->stagger);
             layers[x]->bufferType = "Default";
         }
         layers[x]->camera = "2D";
@@ -948,7 +976,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
         layers[x]->BufferOffsetX = 0;
         layers[x]->BufferOffsetY = 0;
         layers[x]->stagger = 0;
-        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->bufferTransform, isNode);
+        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->BufferDp, layers[x]->bufferTransform, isNode);
         GPURenderUtils::setupRenderBuffer(this, &layers[x]->buffer, x);
     }
 }
@@ -959,8 +987,8 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
         wxASSERT(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame, this, m);
         buf->SetFrameTimeInMs(timing);
-        m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
-        buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
+        m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, buf->BufferDp, 0);
+        buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->BufferDp, "None");
         GPURenderUtils::setupRenderBuffer(this, buf, layer);
         layers[layer]->shallowModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
@@ -972,8 +1000,8 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
         wxASSERT(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame, this, m);
         buf->SetFrameTimeInMs(timing);
-        m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
-        buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
+        m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, buf->BufferDp, 0);
+        buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->BufferDp, "None");
         GPURenderUtils::setupRenderBuffer(this, buf, layer);
         layers[layer]->deepModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
@@ -1106,7 +1134,7 @@ double ColourDistance(xlColor e1, xlColor e2) {
     return sqrt((((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8));
 }
 
-void PixelBufferClass::mixColors(const wxCoord& x, const wxCoord& y, xlColor& fg, xlColor& bg, int layerNum) {
+void PixelBufferClass::mixColors(const wxCoord& x, const wxCoord& y, const wxCoord& z, xlColor& fg, xlColor& bg, int layerNum) {
     static const int n = 0; // increase to change the curve of the crossfade
 
     LayerInfo* layer = layers[layerNum];
@@ -1374,6 +1402,7 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool>& validLay
             } else {
                 int x = 0;
                 int y = 0;
+                int z = 0;
                 if (thelayer->buffer.Nodes[node]->Coords.size() > 1) {
                     color.Set(0, 0, 0, 0);
                     xlColor c2;
@@ -1384,14 +1413,16 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool>& validLay
                         auto coord = *it;
                         int x1 = coord.bufX;
                         int y1 = coord.bufY;
+                        int z1 = coord.bufZ;
 
-                        if (!thelayer->isMasked(x1, y1)) {
-                            thelayer->buffer.GetPixel(x1, y1, c2);
+                        if (!thelayer->isMasked(x1, y1, z1)) {
+                            thelayer->buffer.GetPixel(x1, y1, z1, c2);
                             if (c2.alpha != 0) {
                                 found = true;
                                 color = c2;
                                 x = x1;
                                 y = y1;
+                                z = z1;
                                 break;
                             }
                         }
@@ -1400,16 +1431,18 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool>& validLay
                         auto& coord = thelayer->buffer.Nodes[node]->Coords[0];
                         x = coord.bufX;
                         y = coord.bufY;
+                        z = coord.bufZ;
                     }
                 } else {
                     auto& coord = thelayer->buffer.Nodes[node]->Coords[0];
                     x = coord.bufX;
                     y = coord.bufY;
+                    z = coord.bufZ;
 
-                    if (thelayer->isMasked(x, y) || x < 0 || y < 0 || x >= thelayer->BufferWi || y >= thelayer->BufferHt) {
+                    if (thelayer->isMasked(x, y, z) || x < 0 || y < 0 || z < 0 || x >= thelayer->BufferWi || y >= thelayer->BufferHt || z >= thelayer->BufferDp) {
                         color.Set(0, 0, 0, 0);
                     } else {
-                        thelayer->buffer.GetPixel(x, y, color);
+                        thelayer->buffer.GetPixel(x, y, z, color);
                     }
                 }
                 // adjust for HSV adjustments
@@ -1512,7 +1545,7 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool>& validLay
                 }
 
                 if (cnt > 0) {
-                    mixColors(x, y, color, c, layer);
+                    mixColors(x, y, z, color, c, layer);
                 } else if (thelayer->fadeFactor != 1.0) {
                     // need to fade the first here as we're not mixing anything
                     HSVValue hsv = color.asHSV();
@@ -1534,31 +1567,32 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool>& validLay
     layers[saveLayer]->buffer.Nodes[node]->SetColor(c);
     if (saveToPixels) {
         for (auto &n : layers[saveLayer]->buffer.Nodes[node]->Coords) {
-            layers[saveLayer]->buffer.SetPixel(n.bufX, n.bufY, c, false, false, true);
+            layers[saveLayer]->buffer.SetPixel(n.bufX, n.bufY, n.bufZ, c, false, false, true);
         }
     }
 }
 
-void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vector<bool>& validLayers, int EffectPeriod) {
+void PixelBufferClass::GetMixedColor(int lx, int ly, int lz, xlColor& c, const std::vector<bool>& validLayers, int EffectPeriod) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int cnt = 0;
     c = xlBLACK;
     xlColor color;
 
-    for (int layer = numLayers - 1; layer >= 0; layer--) {
+    for (int layer = numLayers - 1; layer >= 0; --layer) {
         if (validLayers[layer]) {
             auto thelayer = layers[layer];
 
             int x = lx - thelayer->BufferOffsetX;
             int y = ly - thelayer->BufferOffsetY;
+            int z = lz;
 
             // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
             if (thelayer == nullptr) {
                 logger_base.crit("PixelBufferClass::GetMixedColor thelayer is nullptr ... this is going to crash.");
             }
 
-            if (x >= thelayer->BufferWi || y >= thelayer->BufferHt || x < 0 || y < 0) {
+            if (x >= thelayer->BufferWi || y >= thelayer->BufferHt || x < 0 || y < 0 || z >= thelayer->BufferDp || z < 0) {
                 // out of bounds
             } else {
                 int effStartPer, effEndPer;
@@ -1566,10 +1600,10 @@ void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vect
                 float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
                 offset = std::min(offset, 1.0f);
 
-                if (thelayer->isMasked(x, y) || x < 0 || y < 0 || x >= thelayer->BufferWi || y >= thelayer->BufferHt) {
+                if (thelayer->isMasked(x, y, z) || x < 0 || y < 0 || x >= thelayer->BufferWi || y >= thelayer->BufferHt || z < 0 || z >= thelayer->BufferDp) {
                     color.Set(0, 0, 0, 0);
                 } else {
-                    thelayer->buffer.GetPixel(x, y, color);
+                    thelayer->buffer.GetPixel(x, y, z, color);
                 }
 
                 float ha;
@@ -1667,7 +1701,7 @@ void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vect
                 }
 
                 if (cnt > 0) {
-                    mixColors(x, y, color, c, layer);
+                    mixColors(x, y, z, color, c, layer);
                 } else if (thelayer->fadeFactor != 1.0) {
                     // need to fade the first here as we're not mixing anything
                     HSVValue hsv = color.asHSV();
@@ -1979,31 +2013,33 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset) {
             u = (b - 1) / 2;
         }
         RenderBuffer orig(layer->buffer);
-        for (int x = 0; x < layer->BufferWi; x++) {
-            for (int y = 0; y < layer->BufferHt; y++) {
-                int r = 0;
-                int g = 0;
-                int b2 = 0;
-                int a = 0;
-                int sm = 0;
-                for (int i = x - d; i <= x + u; i++) {
-                    if (i >= 0 && i < layer->BufferWi) {
-                        for (int j = y - d; j <= y + u; j++) {
-                            if (j >= 0 && j < layer->BufferHt) {
-                                const xlColor& c = orig.GetPixel(i, j);
-                                r += c.red;
-                                g += c.green;
-                                b2 += c.blue;
-                                a += c.alpha;
-                                ++sm;
+        for (int x = 0; x < layer->BufferWi; ++x) {
+            for (int y = 0; y < layer->BufferHt; ++y) {
+                for (int z = 0; z < layer->BufferDp; ++z) {
+                    int r = 0;
+                    int g = 0;
+                    int b2 = 0;
+                    int a = 0;
+                    int sm = 0;
+                    for (int i = x - d; i <= x + u; i++) {
+                        if (i >= 0 && i < layer->BufferWi) {
+                            for (int j = y - d; j <= y + u; j++) {
+                                if (j >= 0 && j < layer->BufferHt) {
+                                    const xlColor& c = orig.GetPixel(i, j, z); // this is not blurring in depth
+                                    r += c.red;
+                                    g += c.green;
+                                    b2 += c.blue;
+                                    a += c.alpha;
+                                    ++sm;
+                                }
                             }
                         }
                     }
+                    if (sm == 0) {
+                        sm = 1;
+                    }
+                    layer->buffer.SetPixel(x, y, z, xlColor(r / sm, g / sm, b2 / sm, a / sm));
                 }
-                if (sm == 0) {
-                    sm = 1;
-                }
-                layer->buffer.SetPixel(x, y, xlColor(r / sm, g / sm, b2 / sm, a / sm));
             }
         }
     }
@@ -2373,10 +2409,10 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
 
         inf->BufferOffsetX = 0;
         inf->BufferOffsetY = 0;
-        model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->stagger, go_deep);
+        model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->BufferDp, inf->stagger, go_deep);
         if (origNodeCount != 0 && origNodeCount != inf->buffer.Nodes.size()) {
             inf->buffer.Nodes.clear();
-            model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->stagger, go_deep);
+            model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->BufferDp, inf->stagger, go_deep);
         }
 
         ComputeSubBuffer(subBuffer, inf->buffer.Nodes,
@@ -2421,7 +2457,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
         inf->stagger = stagger;
 
         // we create the buffer oversized to prevent issues
-        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->bufferTransform);
+        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->BufferDp, inf->bufferTransform);
         GPURenderUtils::setupRenderBuffer(this, &inf->buffer, layer);
 
         if (type.compare(0, 9, "Per Model") == 0 && model->GetDisplayAs() == "ModelGroup") {
@@ -2433,14 +2469,16 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
                     std::list<Model*>::iterator it_m = flat_models.begin();
                     for (const auto& it : inf->deepModelBuffers) {
                         std::string ntype = "Default"; // type.substr(10, type.length() - 10);
-                        int bw, bh;
+                        int bw, bh, bd;
                         it->Nodes.clear();
-                        (*it_m)->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh, 0);
+                        (*it_m)->InitRenderBufferNodes(ntype, camera, transform, it->Nodes, bw, bh, bd, 0);
                         if (bw == 0)
                             bw = 1; // zero sized buffers are a problem
                         if (bh == 0)
                             bh = 1;
-                        it->InitBuffer(bh, bw, transform);
+                        if (bd == 0)
+                            bd = 1;
+                        it->InitBuffer(bh, bw, bd, transform);
                         it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
                         GPURenderUtils::setupRenderBuffer(this, it.get(), layer);
                         ++it_m;
@@ -2452,14 +2490,16 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
                 if (gp != nullptr) {
                     int cnt = 0;
                     for (const auto& it : inf->shallowModelBuffers) {
-                        int bw, bh;
+                        int bw, bh, bd;
                         it->Nodes.clear();
-                        gp->ActiveModels()[cnt]->InitRenderBufferNodes(type, camera, transform, it->Nodes, bw, bh, 0);
+                        gp->ActiveModels()[cnt]->InitRenderBufferNodes(type, camera, transform, it->Nodes, bw, bh, bd, 0);
                         if (bw == 0)
                             bw = 1; // zero sized buffers are a problem
                         if (bh == 0)
                             bh = 1;
-                        it->InitBuffer(bh, bw, transform);
+                        if (bd == 0)
+                            bd = 1;
+                        it->InitBuffer(bh, bw, bd, transform);
                         it->SetAllowAlphaChannel(inf->buffer.allowAlpha);
                         GPURenderUtils::setupRenderBuffer(this, it.get(), layer);
                         ++cnt;
@@ -2513,9 +2553,9 @@ void PixelBufferClass::UnMergeBuffersForLayer(int layer) {
             for (const auto& mbnode : modelBuffer->Nodes) {
                 if (nc < layers[layer]->buffer.Nodes.size()) {
                     auto& node = layers[layer]->buffer.Nodes[nc];
-                    layers[layer]->buffer.GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
+                    layers[layer]->buffer.GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, node->Coords[0].bufZ, color);
                     for (const auto& coord : mbnode->Coords) {
-                        modelBuffer->SetPixel(coord.bufX, coord.bufY, color);
+                        modelBuffer->SetPixel(coord.bufX, coord.bufY, coord.bufZ, color);
                     }
                     nc++;
                 } else {
@@ -2553,9 +2593,9 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
         for (const auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             for (const auto& node : modelBuffer->Nodes) {
                 if (nc < layers[layer]->buffer.Nodes.size()) {
-                    modelBuffer->GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
+                    modelBuffer->GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, node->Coords[0].bufZ, color);
                     for (const auto& coord : layers[layer]->buffer.Nodes[nc]->Coords) {
-                        layers[layer]->buffer.SetPixel(coord.bufX, coord.bufY, color);
+                        layers[layer]->buffer.SetPixel(coord.bufX, coord.bufY, coord.bufZ, color);
                     }
                     nc++;
                 } else {
@@ -2686,7 +2726,7 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata) {
                 curve->reverse(color);
             }
             for (const auto& a : n->Coords) {
-                layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
+                layers[layer]->buffer.SetPixel(a.bufX, a.bufY, a.bufZ, color, false, false, true);
             }
         }
     } else {
@@ -2703,7 +2743,7 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata) {
                     curve->reverse(color);
                 }
                 for (const auto& a : n->Coords) {
-                    layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
+                    layers[layer]->buffer.SetPixel(a.bufX, a.bufY, a.bufZ, color, false, false, true);
                 }
             },
             500);
@@ -2727,14 +2767,20 @@ void PixelBufferClass::RotateX(RenderBuffer& buffer, GPURenderUtils::RotoZoomSet
         for (int x = pivot; x < buffer.BufferWi; ++x) {
             float tox = sine * (x - pivot) + pivot;
             for (int y = 0; y < buffer.BufferHt; ++y) {
-                buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+                for (int z = 0; z < buffer.BufferDp; ++z) {
+                    // This needs work to work better in 3D
+                    buffer.SetPixel(tox, y, z, orig.GetPixel(x, y, z));
+                }
             }
         }
 
         for (int x = pivot - 1; x >= 0; --x) {
             float tox = -1 * sine * (pivot - x) + pivot;
             for (int y = 0; y < buffer.BufferHt; ++y) {
-                buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+                for (int z = 0; z < buffer.BufferDp; ++z) {
+                    // This needs work to work better in 3D
+                    buffer.SetPixel(tox, y, z, orig.GetPixel(x, y, z));
+                }
             }
         }
     }
@@ -2756,14 +2802,20 @@ void PixelBufferClass::RotateY(RenderBuffer& buffer, GPURenderUtils::RotoZoomSet
         for (int y = pivot; y < buffer.BufferHt; ++y) {
             float toy = sine * (y - pivot) + pivot;
             for (int x = 0; x < buffer.BufferWi; ++x) {
-                buffer.SetPixel(x, toy, orig.GetPixel(x, y));
+                for (int z = 0; z < buffer.BufferDp; ++z) {
+                    // This needs work to work better in 3D
+                    buffer.SetPixel(x, toy, z, orig.GetPixel(x, y, z));
+                }
             }
         }
 
         for (int y = pivot - 1; y >= 0; --y) {
             float toy = -1 * sine * (pivot - y) + pivot;
             for (int x = 0; x < buffer.BufferWi; ++x) {
-                buffer.SetPixel(x, toy, orig.GetPixel(x, y));
+                for (int z = 0; z < buffer.BufferDp; ++z) {
+                    // This needs work to work better in 3D
+                    buffer.SetPixel(x, toy, z, orig.GetPixel(x, y, z));
+                }
             }
         }
     }
@@ -2792,19 +2844,21 @@ void PixelBufferClass::RotateZAndZoom(RenderBuffer& buffer, GPURenderUtils::Roto
         float anglesin = sin(-angle);
 
         buffer.Clear();
-        for (int x = 0; x < buffer.BufferWi; x++) {
+        for (int x = 0; x < buffer.BufferWi; ++x) {
             for (int i = 0; i < q; i++) {
-                for (int y = 0; y < buffer.BufferHt; y++) {
-                    orig.GetPixel(x, y, c);
-                    for (int j = 0; j < q; j++) {
-                        float xx = (float)x + ((float)i * inc) - xoff;
-                        float yy = (float)y + ((float)j * inc) - yoff;
-                        float u = xoff + anglecos * xx * zoom + anglesin * yy * zoom;
-                        if (u >= 0 && u < buffer.BufferWi) {
-                            float v = yoff + -anglesin * xx * zoom + anglecos * yy * zoom;
+                for (int y = 0; y < buffer.BufferHt; ++y) {
+                    for (int z = 0; z < buffer.BufferDp; ++z) {
+                        orig.GetPixel(x, y, z, c);
+                        for (int j = 0; j < q; j++) {
+                            float xx = (float)x + ((float)i * inc) - xoff;
+                            float yy = (float)y + ((float)j * inc) - yoff;
+                            float u = xoff + anglecos * xx * zoom + anglesin * yy * zoom;
+                            if (u >= 0 && u < buffer.BufferWi) {
+                                float v = yoff + -anglesin * xx * zoom + anglecos * yy * zoom;
 
-                            if (v >= 0 && v < buffer.BufferHt) {
-                                buffer.SetPixel(u, v, c);
+                                if (v >= 0 && v < buffer.BufferHt) {
+                                    buffer.SetPixel(u, v, z, c);
+                                }
                             }
                         }
                     }
@@ -2932,7 +2986,7 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer) {
     layers[layer]->buffer.Nodes.clear();
     layers[layer]->BufferOffsetX = 0;
     layers[layer]->BufferOffsetY = 0;
-    model->InitRenderBufferNodes(type, camera, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, layers[layer]->stagger);
+    model->InitRenderBufferNodes(type, camera, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, layers[layer]->BufferDp, layers[layer]->stagger);
     ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt,
                      layers[layer]->BufferOffsetX, layers[layer]->BufferOffsetY,
                      offset, layers[layer]->buffer.GetStartTimeMS(), layers[layer]->buffer.GetEndTimeMS());
@@ -2944,7 +2998,7 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer) {
     if (layers[layer]->buffer.BufferHt == 0)
         layers[layer]->buffer.BufferHt = 1;
 
-    layers[layer]->buffer.InitBuffer(layers[layer]->BufferHt, layers[layer]->BufferWi, transform);
+    layers[layer]->buffer.InitBuffer(layers[layer]->BufferHt, layers[layer]->BufferWi, layers[layer]->BufferDp, transform);
     GPURenderUtils::setupRenderBuffer(this, &layers[layer]->buffer, layer);
 }
 
@@ -3202,7 +3256,9 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
         for (int y = 0; y < BufferHt; ++y) {
             double dist = std::abs(y2_less_y1 * x - x2_less_x1 * y + offset) / p1_p2_len;
             uint8_t c = (dist > step) ? m1 : m2;
-            mask[x * BufferHt + y] = c;
+            for (int z = 0; z < BufferDp; ++z) {
+                mask[z * BufferWi * BufferHt + x * BufferHt + y] = c;
+            }
         }
     }
 }
@@ -3233,7 +3289,9 @@ void PixelBufferClass::LayerInfo::createCircleExplodeMask(bool out) {
     for (int x = 0; x < BufferWi; x++) {
         for (int y = 0; y < BufferHt; y++) {
             float radius = sqrt((x - (BufferWi / 2)) * (x - (BufferWi / 2)) + (y - (BufferHt / 2)) * (y - (BufferHt / 2)));
-            mask[x * BufferHt + y] = radius < rad ? m2 : m1;
+            for (int z = 0; z < BufferDp; ++z) {
+                mask[z * BufferWi * BufferHt + x * BufferHt + y] = radius < rad ? m2 : m1;
+            }
         }
     }
 }
@@ -3269,7 +3327,9 @@ void PixelBufferClass::LayerInfo::createSquareExplodeMask(bool out) {
             } else {
                 c = m2;
             }
-            mask[x * BufferHt + y] = c;
+            for (int z = 0; z < BufferDp; ++z) {
+                mask[z * BufferWi * BufferHt + x * BufferHt + y] = c;
+            }
         }
     }
 }
@@ -3338,7 +3398,9 @@ void PixelBufferClass::LayerInfo::createWipeMask(bool out) {
     // y = slope * x + y'
     for (int x = 0; x < BufferWi; x++) {
         for (int y = 0; y < BufferHt; y++) {
-            mask[x * BufferHt + y] = isLeft(start, end, wxPoint(x, y)) ? m1 : m2;
+            for (int z = 0; z < BufferDp; ++z) {
+                mask[z * BufferWi * BufferHt + x * BufferHt + y] = isLeft(start, end, wxPoint(x, y)) ? m1 : m2;
+            }
         }
     }
 }
@@ -3391,7 +3453,9 @@ void PixelBufferClass::LayerInfo::createClockMask(bool out) {
 
             bool s_lt_p = radianspixel > startradians;
             bool c_gt_p = radianspixel < currentradians;
-            mask[x * BufferHt + y] = (s_lt_p && c_gt_p) ? m2 : m1;
+            for (int z = 0; z < BufferDp; ++z) {
+                mask[z * BufferWi * BufferHt + x * BufferHt + y] = (s_lt_p && c_gt_p) ? m2 : m1;
+            }
         }
     }
 }
@@ -3436,7 +3500,9 @@ void PixelBufferClass::LayerInfo::createBlindsMask(bool out) {
                 c = (per - z - 1) < step ? m2 : m1;
             }
             for (int y = 0; y < BufferHt; y++) {
-                mask[x * BufferHt + y] = c;
+                for (int z = 0; z < BufferDp; ++z) {
+                    mask[z + BufferWi * BufferHt + x * BufferHt + y] = c;
+                }
             }
         }
     }
@@ -3482,7 +3548,9 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
     // set all the background first
     for (int x = 0; x < BufferWi; x++) {
         for (int y = 0; y < BufferHt; y++) {
-            mask[x * BufferHt + y] = m1;
+            for (int z = 0; z < BufferDp; ++z) {
+                mask[z * BufferWi * BufferHt + x * BufferHt + y] = m1;
+            }
         }
     }
 
@@ -3513,7 +3581,9 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
                 if ((x + k) < BufferWi) {
                     for (int l = 0; l < adjust; l++) {
                         if ((y + l) < BufferHt) {
-                            mask[(x + k) * BufferHt + y + l] = m2;
+                            for (int z = 0; z < BufferDp; ++z) {
+                                mask[z * BufferWi * BufferHt + (x + k) * BufferHt + y + l] = m2;
+                            }
                         }
                     }
                 }
@@ -3566,17 +3636,24 @@ void PixelBufferClass::LayerInfo::createSlideChecksMask(bool out) {
             if (yb % 2) {
                 if (xp >= (xper / 2)) {
                     int xp2 = xp - xper / 2;
-                    mask[xpos * BufferHt + y] = xp2 < step ? m2 : m1;
+                    for (int z = 0; z < BufferDp; ++z) {
+                        mask[z * BufferWi * BufferHt + xpos * BufferHt + y] = xp2 < step ? m2 : m1;
+                    }
                 } else {
                     int step2 = step - (xper / 2);
-                    mask[xpos * BufferHt + y] = xp < step2 ? m2 : m1;
+                    for (int z = 0; z < BufferDp; ++z) {
+                        mask[z * BufferWi * BufferHt + xpos * BufferHt + y] = xp < step2 ? m2 : m1;
+                    }
                 }
             } else {
-                mask[xpos * BufferHt + y] = xp < step ? m2 : m1;
+                for (int z = 0; z < BufferDp; ++z) {
+                    mask[z * BufferWi * BufferHt + xpos * BufferHt + y] = xp < step ? m2 : m1;
+                }
             }
         }
     }
 }
+
 void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
     // bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
@@ -3618,7 +3695,9 @@ void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
             if ((blind % 2 == 1) == out) {
                 xpos = BufferWi - x - 1;
             }
-            mask[xpos * BufferHt + y] = x <= step ? m2 : m1;
+            for (int z = 0; z < BufferDp; ++z) {
+                mask[z*BufferWi*BufferHt + xpos * BufferHt + y] = x <= step ? m2 : m1;
+            }
         }
     }
 }
@@ -3635,7 +3714,7 @@ namespace {
 void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, RenderBuffer* prevRB) {
     bool hasMask = false;
     if (inMaskFactor < 1.0 || outMaskFactor < 1.0) {
-        maskSize = BufferHt * BufferWi;
+        maskSize = BufferDp * BufferHt * BufferWi;
         if (maskSize > maskMaxSize) {
             maskMaxSize = maskSize;
             maskVector.resize(maskMaxSize);
@@ -3858,8 +3937,8 @@ void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
     }
 }
 
-bool PixelBufferClass::LayerInfo::isMasked(int x, int y) {
-    int idx = x * BufferHt + y;
+bool PixelBufferClass::LayerInfo::isMasked(int x, int y, int z) {
+    int idx = z * BufferWi*BufferHt + x * BufferHt + y;
     if (idx < maskSize) {
         return mask[idx] > 0;
     }

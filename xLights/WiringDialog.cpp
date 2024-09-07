@@ -160,7 +160,8 @@ void WiringDialog::SetData(Model* model)
     int nodes = model->GetNodeCount();
 
     std::vector<NodeBaseClassPtr> nodeList;
-    model->InitRenderBufferNodes("Per Preview", "2D", "None", nodeList, _cols, _rows, 0);
+    int dep;
+    model->InitRenderBufferNodes("Per Preview", "2D", "None", nodeList, _cols, _rows, dep, 0);
 
     float minx = 999999;
     float miny = 999999;

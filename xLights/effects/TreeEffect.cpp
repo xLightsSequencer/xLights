@@ -184,7 +184,7 @@ void TreeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             
             
             //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
-            buffer.SetPixel(x,y,color); // Turn pixel on
+            buffer.SetPixel(x, y, ALL_Z, color); // Turn pixel on
             
         }
     }

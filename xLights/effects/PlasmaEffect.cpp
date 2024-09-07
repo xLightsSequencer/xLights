@@ -164,7 +164,7 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
                     color.red=color.green=color.blue = (buffer.sin(vldpi) + 1) * 128;
                     break;
             }
-            buffer.SetPixel(x,y,color);
+                buffer.SetPixel(x, y, ALL_Z, color);
         }
     }, block);
 }

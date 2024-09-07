@@ -384,12 +384,12 @@ void PianoEffect::DrawTruePiano(RenderBuffer& buffer, std::list<std::pair<float,
                 if (fadeNotes) {
                     wkdcolour.alpha = GetKeyBrightness(pdata, i) * 255;
                     wkdcolour = wkdcolour.AlphaBlend(wkcolour);
-                    buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt * scale / 100, wkdcolour, false, true);
+                    buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt * scale / 100, wkdcolour, ALL_Z, false, true);
                 } else {
-                    buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt * scale / 100, wkdcolour, false);
+                    buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt * scale / 100, wkdcolour, ALL_Z, false);
                 }
             } else {
-                buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt * scale / 100, wkcolour, false);
+                buffer.DrawBox(x, 0, x + wkw, buffer.BufferHt * scale / 100, wkcolour, ALL_Z, false);
             }
             x += fwkw;
         }
@@ -399,7 +399,7 @@ void PianoEffect::DrawTruePiano(RenderBuffer& buffer, std::list<std::pair<float,
     if (border) {
         x = fwkw + truexoffset;
         for (int j = 0; j < wkcount; ++j) {
-            buffer.DrawLine(x, 0, x, buffer.BufferHt * scale / 100, kbcolour);
+            buffer.DrawLine(x, 0, x, buffer.BufferHt * scale / 100, kbcolour, ALL_Z);
             x += fwkw;
         }
     }
@@ -420,12 +420,12 @@ void PianoEffect::DrawTruePiano(RenderBuffer& buffer, std::list<std::pair<float,
                     if (fadeNotes) {
                         bkdcolour.alpha = GetKeyBrightness(pdata, i) * 255;
                         bkdcolour = bkdcolour.AlphaBlend(bkcolour);
-                        buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt * scale / 200, std::min(maxx, x + fwkw - BKADJUSTMENTWIDTH(fwkw)), buffer.BufferHt * scale / 100, bkdcolour, false, true);
+                        buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt * scale / 200, std::min(maxx, x + fwkw - BKADJUSTMENTWIDTH(fwkw)), buffer.BufferHt * scale / 100, bkdcolour, ALL_Z, false, true);
                     } else {
-                        buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt * scale / 200, std::min(maxx, x + fwkw - BKADJUSTMENTWIDTH(fwkw)), buffer.BufferHt * scale / 100, bkdcolour, false);
+                        buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt * scale / 200, std::min(maxx, x + fwkw - BKADJUSTMENTWIDTH(fwkw)), buffer.BufferHt * scale / 100, bkdcolour, ALL_Z, false);
                     }
                 } else {
-                    buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt * scale / 200, std::min(maxx, x + fwkw - BKADJUSTMENTWIDTH(fwkw)), buffer.BufferHt * scale / 100, bkcolour, false);
+                    buffer.DrawBox(x + BKADJUSTMENTWIDTH(fwkw), buffer.BufferHt * scale / 200, std::min(maxx, x + fwkw - BKADJUSTMENTWIDTH(fwkw)), buffer.BufferHt * scale / 100, bkcolour, ALL_Z, false);
                 }
                 if (!IsSharp(i + 1) && !IsSharp(i + 2)) {
                     x += fwkw + fwkw;
@@ -493,12 +493,12 @@ void PianoEffect::DrawBarsPiano(RenderBuffer& buffer, std::list<std::pair<float,
                 if (fadeNotes) {
                     wkdcolour.alpha = GetKeyBrightness(pdata, i) * 255;
                     wkdcolour = wkdcolour.AlphaBlend(wkcolour);
-                    buffer.DrawBox(x, 0, x + fwkw - 1, wkh, wkdcolour, true, true);
+                    buffer.DrawBox(x, 0, x + fwkw - 1, wkh, wkdcolour, ALL_Z, true, true);
                 } else {
-                    buffer.DrawBox(x, 0, x + fwkw - 1, wkh, wkdcolour, false);
+                    buffer.DrawBox(x, 0, x + fwkw - 1, wkh, wkdcolour, ALL_Z, false);
                 }
             } else {
-                buffer.DrawBox(x, 0, x + fwkw - 1, wkh, wkcolour, false);
+                buffer.DrawBox(x, 0, x + fwkw - 1, wkh, wkcolour, ALL_Z, false);
             }
             x += fwkw;
         } else {
@@ -507,12 +507,12 @@ void PianoEffect::DrawBarsPiano(RenderBuffer& buffer, std::list<std::pair<float,
                     if (fadeNotes) {
                         bkdcolour.alpha = GetKeyBrightness(pdata, i) * 255;
                         bkdcolour = bkdcolour.AlphaBlend(bkcolour);
-                        buffer.DrawBox(x, bkb, x + fwkw - 1, buffer.BufferHt * scale / 100, bkdcolour, false, true);
+                        buffer.DrawBox(x, bkb, x + fwkw - 1, buffer.BufferHt * scale / 100, bkdcolour, ALL_Z, false, true);
                     } else {
-                        buffer.DrawBox(x, bkb, x + fwkw - 1, buffer.BufferHt * scale / 100, bkdcolour, false);
+                        buffer.DrawBox(x, bkb, x + fwkw - 1, buffer.BufferHt * scale / 100, bkdcolour, ALL_Z, false);
                     }
                 } else {
-                    buffer.DrawBox(x, bkb, x + fwkw - 1, buffer.BufferHt * scale / 100, bkcolour, false);
+                    buffer.DrawBox(x, bkb, x + fwkw - 1, buffer.BufferHt * scale / 100, bkcolour, ALL_Z, false);
                 }
                 x += fwkw;
             }

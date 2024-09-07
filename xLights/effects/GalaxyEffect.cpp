@@ -231,19 +231,19 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
                     if (blend_edges) {
                         if (hsv.value > 0.0) {
                             if ((int)x1 >= 0 && (int)x1 < buffer.BufferWi && (int)y1 >= 0 && (int)y1 < buffer.BufferHt) {
-                                buffer.SetTempPixel((int)x1, (int)y1, color);
+                                    buffer.SetTempPixel((int)x1, (int)y1, 0, color);
                                 temp_colors_pct[(int)x1][(int)y1] = color_pct2;
                             }
                             if ((int)x2 >= 0 && (int)x2 < buffer.BufferWi && (int)y2 >= 0 && (int)y2 < buffer.BufferHt) {
-                                buffer.SetTempPixel((int)x2, (int)y2, color);
+                                    buffer.SetTempPixel((int)x2, (int)y2, 0, color);
                                 temp_colors_pct[(int)x2][(int)y2] = color_pct2;
                             }
                         }
                     } else {
                         hsv.value = full_brightness * color_pct2;
                         if (hsv.value > 0.0) {
-                            buffer.SetPixel(x1, y1, hsv);
-                            buffer.SetPixel(x2, y2, hsv);
+                            buffer.SetPixel(x1, y1, ALL_Z, hsv);
+                            buffer.SetPixel(x2, y2, ALL_Z, hsv);
                         }
                     }
                     if (r >= current_radius)
@@ -290,12 +290,12 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
             if (blend_edges) {
                 if (hsv.value > 0.0) {
                     if ((int)x1 >= 0 && (int)x1 < buffer.BufferWi && (int)y1 >= 0 && (int)y1 < buffer.BufferHt) {
-                        buffer.SetTempPixel((int)x1, (int)y1, color);
+                            buffer.SetTempPixel((int)x1, (int)y1, 0, color);
                         temp_colors_pct[(int)x1][(int)y1] = color_pct2;
                         pixel_age[(int)x1][(int)y1] = abs(adj_angle);
                     }
                     if ((int)x2 >= 0 && (int)x2 < buffer.BufferWi && (int)y2 >= 0 && (int)y2 < buffer.BufferHt) {
-                        buffer.SetTempPixel((int)x2, (int)y2, color);
+                            buffer.SetTempPixel((int)x2, (int)y2, 0, color);
                         temp_colors_pct[(int)x2][(int)y2] = color_pct2;
                         pixel_age[(int)x2][(int)y2] = abs(adj_angle);
                     }
@@ -303,8 +303,8 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
             } else {
                 hsv.value = full_brightness * color_pct2;
                 if (hsv.value > 0.0) {
-                    buffer.SetPixel(x1, y1, hsv);
-                    buffer.SetPixel(x2, y2, hsv);
+                    buffer.SetPixel(x1, y1, ALL_Z, hsv);
+                    buffer.SetPixel(x2, y2, ALL_Z, hsv);
                 }
             }
             if (r >= current_radius)
@@ -316,13 +316,13 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
             for (int x = 0; x < buffer.BufferWi; x++) {
                 for (int y = 0; y < buffer.BufferHt; y++) {
                     if (temp_colors_pct[x][y] > 0.0 && ((inward ? (pixel_age[x][y] - abs(adj_angle)) : (abs(adj_angle) - pixel_age[x][y])) >= 180.0)) {
-                        xlColor c_new;
-                        buffer.GetTempPixel(x, y, c_new);
-                        xlColor c_old;
-                        buffer.GetPixel(x, y, c_old);
-                        xlColor colour;
-                        buffer.Get2ColorAlphaBlend(c_old, c_new, temp_colors_pct[x][y], colour);
-                        buffer.SetPixel(x, y, colour);
+                            xlColor c_new;
+                            buffer.GetTempPixel(x, y, 0, c_new);
+                            xlColor c_old;
+                            buffer.GetPixel(x, y, 0, c_old);
+                            xlColor colour;
+                            buffer.Get2ColorAlphaBlend(c_old, c_new, temp_colors_pct[x][y], colour);
+                            buffer.SetPixel(x, y, ALL_Z, colour);
                         temp_colors_pct[x][y] = 0.0;
                         pixel_age[x][y] = 0.0;
                     }
@@ -366,19 +366,19 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
                     if (blend_edges) {
                         if (hsv.value > 0.0) {
                             if ((int)x1 >= 0 && (int)x1 < buffer.BufferWi && (int)y1 >= 0 && (int)y1 < buffer.BufferHt) {
-                                buffer.SetTempPixel((int)x1, (int)y1, color);
+                                    buffer.SetTempPixel((int)x1, (int)y1, 0, color);
                                 temp_colors_pct[(int)x1][(int)y1] = color_pct2;
                             }
                             if ((int)x2 >= 0 && (int)x2 < buffer.BufferWi && (int)y2 >= 0 && (int)y2 < buffer.BufferHt) {
-                                buffer.SetTempPixel((int)x2, (int)y2, color);
+                                    buffer.SetTempPixel((int)x2, (int)y2, 0, color);
                                 temp_colors_pct[(int)x2][(int)y2] = color_pct2;
                             }
                         }
                     } else {
                         hsv.value = full_brightness * color_pct2;
                         if (hsv.value > 0.0) {
-                            buffer.SetPixel(x1, y1, hsv);
-                            buffer.SetPixel(x2, y2, hsv);
+                            buffer.SetPixel(x1, y1, ALL_Z, hsv);
+                            buffer.SetPixel(x2, y2, ALL_Z, hsv);
                         }
                     }
                     if (r >= current_radius)
@@ -394,13 +394,13 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         parallel_for(0, buffer.BufferWi, [&buffer, &temp_colors_pct](int x) {
             for (int y = 0; y < buffer.BufferHt; y++) {
                 if (temp_colors_pct[x][y] > 0.0) {
-                    xlColor c_new;
-                    buffer.GetTempPixel(x, y, c_new);
-                    xlColor c_old;
-                    buffer.GetPixel(x, y, c_old);
-                    xlColor colour;
-                    buffer.Get2ColorAlphaBlend(c_old, c_new, temp_colors_pct[x][y], colour);
-                    buffer.SetPixel(x, y, colour);
+                        xlColor c_new;
+                        buffer.GetTempPixel(x, y, 0, c_new);
+                        xlColor c_old;
+                        buffer.GetPixel(x, y, 0, c_old);
+                        xlColor colour;
+                        buffer.Get2ColorAlphaBlend(c_old, c_new, temp_colors_pct[x][y], colour);
+                        buffer.SetPixel(x, y, ALL_Z, colour);
                 }
             }
         });

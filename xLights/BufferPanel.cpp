@@ -691,6 +691,11 @@ void BufferPanel::UpdateBufferStyles(const Model* model)
         }
         _mg = (model->GetDisplayAs() == "ModelGroup");
         sel = model->AdjustBufferStyle(sel);
+
+        if (model->Supports3DBuffer())
+        {
+            BufferStyleChoice->Append("3D");
+        }
     } else {
         _mg = false;
     }

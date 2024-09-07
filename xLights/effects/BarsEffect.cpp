@@ -219,7 +219,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 // down
                 for (int x = 0; x < buffer.BufferWi; ++x) {
                     GetSpatialColor(color, colorIdx, (float)x / (float)buffer.BufferWi, (float)(n % barHt) / (float)barHt, buffer, gradient, highlightColor, highlight, show3D, barHt, n, pct, color2);
-                    buffer.SetPixel(x, y, color);
+                        buffer.SetPixel(x, y, ALL_Z, color);
                 }
                 break;
             case 2:
@@ -227,8 +227,8 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 if (y <= newCenter) {
                     for (int x = 0; x < buffer.BufferWi; ++x) {
                         GetSpatialColor(color, colorIdx, (float)x / (float)buffer.BufferWi, (float)(n % barHt) / (float)barHt, buffer, gradient, highlightColor, highlight, show3D, barHt, n, pct, color2);
-                        buffer.SetPixel(x, y, color);
-                        buffer.SetPixel(x, newCenter + (newCenter - y), color);
+                            buffer.SetPixel(x, y, ALL_Z, color);
+                        buffer.SetPixel(x, newCenter + (newCenter - y), ALL_Z, color);
                     }
                 }
                 break;
@@ -237,8 +237,8 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 if (y >= newCenter) {
                     for (int x = 0; x < buffer.BufferWi; ++x) {
                         GetSpatialColor(color, colorIdx, (float)x / (float)buffer.BufferWi, (float)(n % barHt) / (float)barHt, buffer, gradient, highlightColor, highlight, show3D, barHt, n, pct, color2);
-                        buffer.SetPixel(x, y, color);
-                        buffer.SetPixel(x, newCenter + (newCenter - y), color);
+                        buffer.SetPixel(x, y, ALL_Z, color);
+                        buffer.SetPixel(x, newCenter + (newCenter - y), ALL_Z, color);
                     }
                 }
                 break;
@@ -246,7 +246,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 // up
                 for (int x = 0; x < buffer.BufferWi; ++x) {
                     GetSpatialColor(color, colorIdx, (float)x / (float)buffer.BufferWi, 1.0 - (float)(n % barHt) / (float)barHt, buffer, gradient, highlightColor, highlight, show3D, barHt, n, pct, color2);
-                    buffer.SetPixel(x, buffer.BufferHt - y - 1, color);
+                    buffer.SetPixel(x, buffer.BufferHt - y - 1, ALL_Z, color);
                 }
                 break;
             }
@@ -303,11 +303,11 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
             int position_x = width - x - 1 + NewCenter;
             for (int y = 0; y < height; ++y) {
                 GetSpatialColor(color, colorIdx, 1.0 - pct, (float)y / (float)height, buffer, gradient, highlightColor, highlight, show3D, BarWi, n, pct, color2);
-                if (direction == 12) {
-                    buffer.SetPixel(position_x, y, color);
-                } else {
-                    buffer.SetPixel(y, position_x, color);
-                }
+                    if (direction == 12) {
+                        buffer.SetPixel(position_x, y, ALL_Z, color);
+                    } else {
+                        buffer.SetPixel(y, position_x, ALL_Z, color);
+                    }
             }
         }
     } else {
@@ -362,7 +362,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 // right
                 for (int y = 0; y < buffer.BufferHt; ++y) {
                     GetSpatialColor(color, colorIdx, 1.0 - pct, (double)y / (double)buffer.BufferHt, buffer, gradient, highlightColor, highlight, show3D, barWi, n, pct, color2);
-                    buffer.SetPixel(buffer.BufferWi - x - 1, y, color);
+                        buffer.SetPixel(buffer.BufferWi - x - 1, y, ALL_Z, color);
                 }
                 break;
             case 6:
@@ -370,8 +370,8 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 if (x <= newCenter) {
                     for (int y = 0; y < buffer.BufferHt; ++y) {
                         GetSpatialColor(color, colorIdx, pct, (double)y / (double)buffer.BufferHt, buffer, gradient, highlightColor, highlight, show3D, barWi, n, pct, color2);
-                        buffer.SetPixel(x, y, color);
-                        buffer.SetPixel(newCenter + (newCenter - x), y, color);
+                            buffer.SetPixel(x, y, ALL_Z, color);
+                            buffer.SetPixel(newCenter + (newCenter - x), y, ALL_Z, color);
                     }
                 }
                 break;
@@ -380,8 +380,8 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 if (x >= newCenter) {
                     for (int y = 0; y < buffer.BufferHt; ++y) {
                         GetSpatialColor(color, colorIdx, pct, (double)y / (double)buffer.BufferHt, buffer, gradient, highlightColor, highlight, show3D, barWi, n, pct, color2);
-                        buffer.SetPixel(x, y, color);
-                        buffer.SetPixel(newCenter + (newCenter - x), y, color);
+                        buffer.SetPixel(x, y, ALL_Z, color);
+                            buffer.SetPixel(newCenter + (newCenter - x), y, ALL_Z, color);
                     }
                 }
                 break;
@@ -389,7 +389,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 // left
                 for (int y = 0; y < buffer.BufferHt; ++y) {
                     GetSpatialColor(color, colorIdx, pct, (double)y / (double)buffer.BufferHt, buffer, gradient, highlightColor, highlight, show3D, barWi, n, pct, color2);
-                    buffer.SetPixel(x, y, color);
+                        buffer.SetPixel(x, y, ALL_Z, color);
                 }
                 break;
             }

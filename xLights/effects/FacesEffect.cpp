@@ -654,12 +654,12 @@ void FacesEffect::drawline1(RenderBuffer& buffer, int Phoneme, int x1, int x2, i
     buffer.palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
 
     for (int x = x1 + 1; x < x2; x++) {
-        buffer.SetPixel(x, y2, hsv); // Turn pixel on
+        buffer.SetPixel(x, y2, ALL_Z, hsv); // Turn pixel on
     }
 
     for (int y = y2 + 1; y <= y1; y++) {
-        buffer.SetPixel(x1, y, hsv); // Left side of mouyh
-        buffer.SetPixel(x2, y, hsv); // rightside
+            buffer.SetPixel(x1, y, ALL_Z, hsv); // Left side of mouth
+            buffer.SetPixel(x2, y, ALL_Z, hsv); // rightside
     }
 }
 
@@ -668,13 +668,13 @@ void FacesEffect::drawline3(RenderBuffer& buffer, int Phoneme, int x1, int x2, i
     buffer.palette.GetHSV(ColorIdx, hsv);
 
     for (int y = y6 + 1; y < y7; y++) {
-        buffer.SetPixel(x1, y, hsv); // Left side of mouyh
-        buffer.SetPixel(x2, y, hsv); // rightside
+        buffer.SetPixel(x1, y, ALL_Z, hsv); // Left side of mouth
+        buffer.SetPixel(x2, y, ALL_Z, hsv); // rightside
     }
 
     for (int x = x1 + 1; x < x2; x++) {
-        buffer.SetPixel(x, y6, hsv); // Bottom
-        buffer.SetPixel(x, y7, hsv); // Bottom
+        buffer.SetPixel(x, y6, ALL_Z, hsv); // Bottom
+        buffer.SetPixel(x, y7, ALL_Z, hsv); // Bottom
     }
 }
 
@@ -689,7 +689,7 @@ void FacesEffect::facesCircle(RenderBuffer& buffer, int Phoneme, int xc, int yc,
         double t = ((double)degrees * PI) / 180.0;
         int x = (int)((double)xc + radius * cos(t));
         int y = (int)((double)yc + radius * sin(t));
-        buffer.SetPixel(x, y, hsv); // Bottom
+        buffer.SetPixel(x, y, ALL_Z, hsv); // Bottom
     }
 }
 
@@ -756,25 +756,25 @@ void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, c
      *
      */
     if (outline) {
-        for (int y = 3; y < BufferHt - 3; y++) {
-            buffer.SetPixel(0, y, hsvOutline);            // Left side of mouyh
-            buffer.SetPixel(BufferWi - 1, y, hsvOutline); // rightside
-        }
-        for (int x = 3; x < BufferWi - 3; x++) {
-            buffer.SetPixel(x, 0, hsvOutline);            // Bottom
-            buffer.SetPixel(x, BufferHt - 1, hsvOutline); // Bottom
-        }
-        buffer.SetPixel(2, 1, hsvOutline); // Bottom left
-        buffer.SetPixel(1, 2, hsvOutline); //
+            for (int y = 3; y < BufferHt - 3; y++) {
+            buffer.SetPixel(0, y, ALL_Z, hsvOutline);            // Left side of mouyh
+                buffer.SetPixel(BufferWi - 1, y, ALL_Z, hsvOutline); // rightside
+            }
+            for (int x = 3; x < BufferWi - 3; x++) {
+                buffer.SetPixel(x, 0, ALL_Z, hsvOutline);            // Bottom
+                buffer.SetPixel(x, BufferHt - 1, ALL_Z, hsvOutline); // Bottom
+            }
+            buffer.SetPixel(2, 1, ALL_Z, hsvOutline); // Bottom left
+            buffer.SetPixel(1, 2, ALL_Z, hsvOutline); //
 
-        buffer.SetPixel(BufferWi - 3, 1, hsvOutline); // Bottom Right
-        buffer.SetPixel(BufferWi - 2, 2, hsvOutline); //
+            buffer.SetPixel(BufferWi - 3, 1, ALL_Z, hsvOutline); // Bottom Right
+            buffer.SetPixel(BufferWi - 2, 2, ALL_Z, hsvOutline); //
 
-        buffer.SetPixel(BufferWi - 3, BufferHt - 2, hsvOutline); // Bottom Right
-        buffer.SetPixel(BufferWi - 2, BufferHt - 3, hsvOutline); //
+            buffer.SetPixel(BufferWi - 3, BufferHt - 2, ALL_Z, hsvOutline); // Bottom Right
+            buffer.SetPixel(BufferWi - 2, BufferHt - 3, ALL_Z, hsvOutline); //
 
-        buffer.SetPixel(2, BufferHt - 2, hsvOutline); // Bottom Right
-        buffer.SetPixel(1, BufferHt - 3, hsvOutline); //
+            buffer.SetPixel(2, BufferHt - 2, ALL_Z, hsvOutline); // Bottom Right
+            buffer.SetPixel(1, BufferHt - 3, ALL_Z, hsvOutline); //
     }
 }
 
@@ -902,7 +902,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     for (auto it = first_xy.begin(); it != first_xy.end(); ++it)
     {
         --(*it).x; // "A" = 1 = first col
-        buffer.SetPixel((*it).x, buffer.BufferHt - (*it).y, hsv); //only need to turn on first pixel for each face part
+            buffer.SetPixel((*it).x, buffer.BufferHt - (*it).y, ALL_Z, hsv); // only need to turn on first pixel for each face part
     }
 }
 
@@ -911,8 +911,6 @@ std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr,
     return wxString::Format("%d|%d|%s|%s|%s", bufferWi, bufferHt, dirstr, picture, stf).ToStdString();
 }
 
-
-
 static const std::string &findKey(const std::map<std::string, std::string> &m, const std::string &k, const std::string &dv = xlEMPTY_STRING) {
     const auto &v = m.find(k);
     if (v == m.end()) {
@@ -920,7 +918,6 @@ static const std::string &findKey(const std::map<std::string, std::string> &m, c
     }
     return v->second;
 }
-
 
 void FacesEffect::RenderFaces(RenderBuffer& buffer,
                               SequenceElements* elements, const std::string& faceDef,
@@ -1389,12 +1386,12 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                     int level = c.Red() + c.Green() + c.Blue();
                     if (level > transparentBlackLevel) {
                         c.alpha = ((int)alpha * c.alpha) / 255;
-                        buffer.SetPixel(x, y, c);
+                        buffer.SetPixel(x, y, ALL_Z, c);
                     }
                 } else {
                     auto c = crb->GetPixel(x, y);
                     c.alpha = ((int)alpha * c.alpha) / 255;
-                    buffer.SetPixel(x, y, c);
+                        buffer.SetPixel(x, y, ALL_Z, c);
                 }
             }
         }

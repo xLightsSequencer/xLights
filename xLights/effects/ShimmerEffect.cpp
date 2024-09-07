@@ -73,8 +73,7 @@ void ShimmerEffect::adjustSettings(const std::string &version, Effect *effect, b
     }
 }
 
-void ShimmerEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
-{
+void ShimmerEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Duty_Factor = GetValueCurveInt("Shimmer_Duty_Factor", 50, SettingsMap, oset, SHIMMER_DUTYFACTOR_MIN, SHIMMER_DUTYFACTOR_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool Use_All_Colors = SettingsMap.GetBool("CHECKBOX_Shimmer_Use_All_Colors", false);
@@ -132,7 +131,7 @@ void ShimmerEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
                 buffer.palette.GetSpatialColor(ColorIdx, (float)x / (float)buffer.BufferWi, (float)y / (float)buffer.BufferHt, color);
             }
 
-            buffer.SetPixel(x, y, color); // Turn pixel
+            buffer.SetPixel(x, y, ALL_Z, color); // Turn pixel
         }
     }
 }

@@ -217,7 +217,7 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
                     //  Now play Candle
                     xlColor c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
-                    buffer.SetPixel(x, y, c);
+                    buffer.SetPixel(x, y, ALL_Z, c);
                 }
             }
         });
@@ -236,7 +236,7 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         xlColor c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
         for (size_t y = 0; y < buffer.BufferHt; y++) {
             for (size_t x = 0; x < buffer.BufferWi; x++) {
-                buffer.SetPixel(x, y, c);
+                buffer.SetPixel(x, y, ALL_Z, c);
             }
         }
     }

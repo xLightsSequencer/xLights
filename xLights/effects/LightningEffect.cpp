@@ -65,7 +65,7 @@ namespace
         color2 = hsv2;
         color2 = hsv;
         for (;;) {
-            buffer.DrawHLine(y0, x0 - width, x0 + width, color);
+            buffer.DrawHLine(y0, x0 - width, x0 + width, color, ALL_Z);
             if (x0 == x1 && y0 == y1)
                 break;
             e2 = err;

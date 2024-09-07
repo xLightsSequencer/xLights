@@ -839,7 +839,7 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
             } else {
                 c.Set(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), 255);
             }
-            buffer.SetPixel(x, y, c);
+            buffer.SetPixel(x, y, ALL_Z, c);
         }
     }
 }

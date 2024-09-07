@@ -422,30 +422,30 @@ const std::string SubModel::AdjustBufferStyle(const std::string &style) const {
     return Model::AdjustBufferStyle(style);
 }
 
-void SubModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const {
+void SubModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int& BufferDp, int stagger) const {
     std::string ntype = type;
     bool isRanges = _type == "ranges";
     if (isRanges && (type == VERT_PER_STRAND || type == HORIZ_PER_STRAND)) {
         bool vert = _layout == "vertical";
         if (vert && (type == HORIZ_PER_STRAND)) {
-            Model::GetBufferSize("Default", camera, "Rotate CW 90", BufferWi, BufferHi, stagger);
-            AdjustForTransform(transform, BufferWi, BufferHi);
+            Model::GetBufferSize("Default", camera, "Rotate CW 90", BufferWi, BufferHi, BufferDp, stagger);
+            AdjustForTransform(transform, BufferWi, BufferHi, BufferDp);
         } else if (!vert && (type == VERT_PER_STRAND)) {
-            Model::GetBufferSize("Default", camera, "Rotate CC 90", BufferWi, BufferHi, stagger);
-            AdjustForTransform(transform, BufferWi, BufferHi);
+            Model::GetBufferSize("Default", camera, "Rotate CC 90", BufferWi, BufferHi, BufferDp, stagger);
+            AdjustForTransform(transform, BufferWi, BufferHi, BufferDp);
         } else {
-            Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+            Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
         }
     } else if (isRanges && (type == HORIZ_PER_MODELSTRAND || type == VERT_PER_MODELSTRAND || type == PERMODEL_HORIZ_PER_STRAND || type == PERMODEL_VERT_PER_STRAND)) {
         bool vert = _layout == "vertical";
         if (!vert && (type == HORIZ_PER_MODELSTRAND || type == PERMODEL_HORIZ_PER_STRAND)) {
-            Model::GetBufferSize("Default", camera, "Rotate CW 90", BufferWi, BufferHi, stagger);
-            AdjustForTransform(transform, BufferWi, BufferHi);
+            Model::GetBufferSize("Default", camera, "Rotate CW 90", BufferWi, BufferHi, BufferDp, stagger);
+            AdjustForTransform(transform, BufferWi, BufferHi, BufferDp);
         } else if (vert && (type == VERT_PER_MODELSTRAND || type == PERMODEL_VERT_PER_STRAND)) {
-            Model::GetBufferSize("Default", camera, "Rotate CC 90", BufferWi, BufferHi, stagger);
-            AdjustForTransform(transform, BufferWi, BufferHi);
+            Model::GetBufferSize("Default", camera, "Rotate CC 90", BufferWi, BufferHi, BufferDp, stagger);
+            AdjustForTransform(transform, BufferWi, BufferHi, BufferDp);
         } else {
-            Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+            Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
         }
     } else if (type == LEGACY_SINGLE_LINE) {
         std::vector<int> vsizes;
@@ -474,14 +474,15 @@ void SubModel::GetBufferSize(const std::string &type, const std::string &camera,
             }
         }
         BufferHi = 1;
+        BufferDp = 1;
         BufferWi = total;
-        AdjustForTransform(transform, BufferWi, BufferHi);
+        AdjustForTransform(transform, BufferWi, BufferHi, BufferDp);
     } else {
-        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
     }
 }
 void SubModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
-                                     std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, int stagger, bool deep) const {
+                                     std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, int& BufferDp, int stagger, bool deep) const {
     std::string ntype = type;
     bool isRanges = _type == "ranges";
     int firstNode = newNodes.size();
@@ -490,31 +491,31 @@ void SubModel::InitRenderBufferNodes(const std::string &type, const std::string 
         // these can be optimized as the default for "isRanges" is per strand.  We can use "default" or a simple rotate
         // to avoid re-calculating everything
         if (vert && (type == HORIZ_PER_STRAND)) {
-            Model::InitRenderBufferNodes("Dafault", camera, "None", newNodes, BufferWi, BufferHi, stagger, deep);
-            ApplyTransform("Rotate CW 90", newNodes, BufferWi, BufferHi, firstNode);
-            ApplyTransform(transform, newNodes, BufferWi, BufferHi);
+            Model::InitRenderBufferNodes("Dafault", camera, "None", newNodes, BufferWi, BufferHi, BufferDp, stagger, deep);
+            ApplyTransform("Rotate CW 90", newNodes, BufferWi, BufferHi, BufferDp, firstNode);
+            ApplyTransform(transform, newNodes, BufferWi, BufferHi, BufferDp);
         } else if (!vert && (type == VERT_PER_STRAND)) {
-            Model::InitRenderBufferNodes("Dafault", camera, "None", newNodes, BufferWi, BufferHi, stagger, deep);
-            ApplyTransform("Rotate CC 90", newNodes, BufferWi, BufferHi, firstNode);
-            ApplyTransform(transform, newNodes, BufferWi, BufferHi);
+            Model::InitRenderBufferNodes("Dafault", camera, "None", newNodes, BufferWi, BufferHi, BufferDp, stagger, deep);
+            ApplyTransform("Rotate CC 90", newNodes, BufferWi, BufferHi, BufferDp, firstNode);
+            ApplyTransform(transform, newNodes, BufferWi, BufferHi, BufferDp);
         } else {
             Model::InitRenderBufferNodes("Default", camera, transform, newNodes, BufferWi, BufferHi, stagger, deep);
         }
     } else if (isRanges && (type == HORIZ_PER_MODELSTRAND || type == VERT_PER_MODELSTRAND || type == PERMODEL_HORIZ_PER_STRAND || type == PERMODEL_VERT_PER_STRAND)) {
         bool vert = _layout == "vertical";
         if (!vert && (type == HORIZ_PER_MODELSTRAND || type == PERMODEL_HORIZ_PER_STRAND)) {
-            Model::InitRenderBufferNodes("Dafault", camera, "None", newNodes, BufferWi, BufferHi, stagger, deep);
-            ApplyTransform("Rotate CW 90", newNodes, BufferWi, BufferHi, firstNode);
-            ApplyTransform(transform, newNodes, BufferWi, BufferHi);
+            Model::InitRenderBufferNodes("Dafault", camera, "None", newNodes, BufferWi, BufferHi, BufferDp, stagger, deep);
+            ApplyTransform("Rotate CW 90", newNodes, BufferWi, BufferHi, BufferDp, firstNode);
+            ApplyTransform(transform, newNodes, BufferWi, BufferHi, BufferDp);
         } else if (vert && (type == VERT_PER_MODELSTRAND || type == PERMODEL_VERT_PER_STRAND)) {
-            Model::InitRenderBufferNodes("Dafault", camera, "None", newNodes, BufferWi, BufferHi, stagger, deep);
-            ApplyTransform("Rotate CC 90", newNodes, BufferWi, BufferHi, firstNode);
-            ApplyTransform(transform, newNodes, BufferWi, BufferHi);
+            Model::InitRenderBufferNodes("Dafault", camera, "None", newNodes, BufferWi, BufferHi, BufferDp, stagger, deep);
+            ApplyTransform("Rotate CC 90", newNodes, BufferWi, BufferHi, BufferDp, firstNode);
+            ApplyTransform(transform, newNodes, BufferWi, BufferHi, BufferDp);
         } else {
-            Model::InitRenderBufferNodes("Default", camera, transform, newNodes, BufferWi, BufferHi, stagger, deep);
+            Model::InitRenderBufferNodes("Default", camera, transform, newNodes, BufferWi, BufferHi, BufferDp, stagger, deep);
         }
     } else if (type == LEGACY_SINGLE_LINE) {
-        Model::InitRenderBufferNodes("Default", camera, "None", newNodes, BufferWi, BufferHi, stagger, deep);
+        Model::InitRenderBufferNodes("Default", camera, "None", newNodes, BufferWi, BufferHi, BufferDp, stagger, deep);
         std::vector<int> vsizes;
         std::vector<int> hsizes;
         bool vert = _layout == "vertical";
@@ -542,6 +543,7 @@ void SubModel::InitRenderBufferNodes(const std::string &type, const std::string 
         }
         BufferHi = 1;
         BufferWi = total;
+        BufferDp = 1;
         
         for (int n = firstNode; n < newNodes.size(); n++) {
             for (auto &c : newNodes[n]->Coords) {
@@ -565,10 +567,11 @@ void SubModel::InitRenderBufferNodes(const std::string &type, const std::string 
                 }
                 c.bufX = pos;
                 c.bufY = 0;
+                c.bufZ = 0;
             }
         }
-        ApplyTransform(transform, newNodes, BufferWi, BufferHi);
+        ApplyTransform(transform, newNodes, BufferWi, BufferHi, BufferDp);
     } else {
-        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, stagger, deep);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, BufferDp, stagger, deep);
     }
 }

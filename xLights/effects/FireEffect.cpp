@@ -120,19 +120,19 @@ static const FirePaletteClass FirePalette;
 
 // 0 <= x < BufferWi
 // 0 <= y < BufferHt
-void SetFireBuffer(int x, int y, int PaletteIdx, std::vector<int>& FireBuffer, int maxWi, int maxHi)
+void SetFireBuffer(int x, int y, int z, int PaletteIdx, std::vector<int>& FireBuffer, int maxWi, int maxHi, int maxDp)
 {
-    if (x >= 0 && x < maxWi && y >= 0 && y < maxHi) {
-        FireBuffer[y * maxWi + x] = PaletteIdx;
+    if (x >= 0 && x < maxWi && y >= 0 && y < maxHi && z >= 0 && z < maxDp) {
+        FireBuffer[z * maxWi*maxHi + y * maxWi + x] = PaletteIdx;
     }
 }
 
 // 0 <= x < BufferWi
 // 0 <= y < BufferHt
-int GetFireBuffer(int x, int y, std::vector<int>& FireBuffer, int maxWi, int maxHi)
+int GetFireBuffer(int x, int y, int z, std::vector<int>& FireBuffer, int maxWi, int maxHi, int maxDp)
 {
-    if (x >= 0 && x < maxWi && y >= 0 && y < maxHi) {
-        return FireBuffer[y * maxWi + x];
+    if (x >= 0 && x < maxWi && y >= 0 && y < maxHi && z >= 0 && z < maxDp) {
+        return FireBuffer[z * maxWi * maxHi + y * maxWi + x];
     }
     return -1;
 }
@@ -159,6 +159,7 @@ public:
 
     std::vector<int> FireBuffer;
     wxPoint maxBuffer;
+    int maxBufferZ = 0;
 };
 
 static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
@@ -236,10 +237,12 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         buffer.needToInit = false;
 
         cache->maxBuffer = buffer.GetMaxBuffer(SettingsMap);
+        cache->maxBufferZ = buffer.BufferDp;
         int w = std::max(buffer.BufferWi, cache->maxBuffer.x);
         int h = std::max(buffer.BufferHt, cache->maxBuffer.y);
+		int d = std::max(buffer.BufferDp, cache->maxBufferZ);
 
-        cache->FireBuffer.resize(w * h);
+        cache->FireBuffer.resize(w * h * d);
         for (size_t i = 0; i < cache->FireBuffer.size(); ++i) {
             cache->FireBuffer[i] = 0;
         }
@@ -248,57 +251,65 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
     }
     int maxMWi = cache->maxBuffer.x == -1 ? buffer.BufferWi : cache->maxBuffer.x;
     int maxMHt = cache->maxBuffer.y == -1 ? buffer.BufferHt : cache->maxBuffer.y;
+    int maxMDp = cache->maxBufferZ == -1 ? buffer.BufferDp : cache->maxBufferZ;
     if (loc == 2 || loc == 3) {
         std::swap(maxMHt, maxMWi);
     }
     if (maxMHt < 1) {
         maxMHt = 1;
     }
+    if (maxMDp < 1) {
+        maxMDp = 1;
+    }
 
-    if ((maxMHt * maxMWi) > cache->FireBuffer.size()) {
+    if ((maxMHt * maxMWi * maxMDp) > cache->FireBuffer.size()) {
         // this shouldn't happen, but just in case we'll do this as a safety measure
-        cache->FireBuffer.resize(maxMHt * maxMWi);
+        cache->FireBuffer.resize(maxMHt * maxMWi * maxMDp);
     }
     
     // build fire
     for (int x = 0; x < maxMWi; ++x) {
-        int r = x % 2 == 0 ? 190 + (rand() % 10) : 100 + (rand() % 50);
-        SetFireBuffer(x, 0, r, cache->FireBuffer, maxMWi, maxMHt);
+        for (int z = 0; z < maxMDp; ++z) {
+            int r = x % 2 == 0 ? 190 + (rand() % 10) : 100 + (rand() % 50);
+            SetFireBuffer(x, 0, z, r, cache->FireBuffer, maxMWi, maxMHt, maxMDp);
+        }
     }
     int step = 255 * 100 / curHt / HeightPct;
     for (int y = 1; y < maxMHt; ++y) {
         for (int x = 0; x < maxMWi; ++x) {
-            int v1 = GetFireBuffer(x - 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
-            int v2 = GetFireBuffer(x + 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
-            int v3 = GetFireBuffer(x, y - 1, cache->FireBuffer, maxMWi, maxMHt);
-            int v4 = GetFireBuffer(x, y - 1, cache->FireBuffer, maxMWi, maxMHt);
-            int n = 0;
-            int sum = 0;
-            if (v1 >= 0) {
-                sum += v1;
-                n++;
+            for (int z = 0; z < maxMDp; ++z) {
+                int v1 = GetFireBuffer(x - 1, y - 1, z, cache->FireBuffer, maxMWi, maxMHt, maxMDp);
+                int v2 = GetFireBuffer(x + 1, y - 1, z, cache->FireBuffer, maxMWi, maxMHt, maxMDp);
+                int v3 = GetFireBuffer(x, y - 1, z, cache->FireBuffer, maxMWi, maxMHt, maxMDp);
+                int v4 = GetFireBuffer(x, y - 1, z, cache->FireBuffer, maxMWi, maxMHt, maxMDp);
+                int n = 0;
+                int sum = 0;
+                if (v1 >= 0) {
+                    sum += v1;
+                    n++;
+                }
+                if (v2 >= 0) {
+                    sum += v2;
+                    n++;
+                }
+                if (v3 >= 0) {
+                    sum += v3;
+                    n++;
+                }
+                if (v4 >= 0) {
+                    sum += v4;
+                    n++;
+                }
+                int new_index = n > 0 ? sum / n : 0;
+                if (new_index > 0) {
+                    new_index += (rand() % 100 < 20) ? step : -step;
+                    if (new_index < 0)
+                        new_index = 0;
+                    if (new_index >= FirePalette.size())
+                        new_index = FirePalette.size() - 1;
+                }
+                SetFireBuffer(x, y, z, new_index, cache->FireBuffer, maxMWi, maxMHt, maxMDp);
             }
-            if (v2 >= 0) {
-                sum += v2;
-                n++;
-            }
-            if (v3 >= 0) {
-                sum += v3;
-                n++;
-            }
-            if (v4 >= 0) {
-                sum += v4;
-                n++;
-            }
-            int new_index = n > 0 ? sum / n : 0;
-            if (new_index > 0) {
-                new_index += (rand() % 100 < 20) ? step : -step;
-                if (new_index < 0)
-                    new_index = 0;
-                if (new_index >= FirePalette.size())
-                    new_index = FirePalette.size() - 1;
-            }
-            SetFireBuffer(x, y, new_index, cache->FireBuffer, maxMWi, maxMHt);
         }
     }
 
@@ -313,23 +324,25 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
             if (loc == 2 || loc == 3) {
                 std::swap(xp, yp);
             }
-            if (HueShift > 0) {
-                HSVValue hsv = FirePalette[GetFireBuffer(x, y, cache->FireBuffer, maxMWi, maxMHt)];
-                hsv.hue = hsv.hue + (HueShift / 100.0);
-                if (hsv.hue > 1.0)
-                    hsv.hue = 1.0;
-                if (buffer.allowAlpha) {
-                    xlColor c(hsv);
-                    c.alpha = FirePalette.asAlphaColor(GetFireBuffer(x, y, cache->FireBuffer, maxMWi, maxMHt)).Alpha();
-                    buffer.SetPixel(xp, yp, c);
+            for (int z = 0; z < buffer.BufferDp; ++z) {
+                if (HueShift > 0) {
+                    HSVValue hsv = FirePalette[GetFireBuffer(x, y, z, cache->FireBuffer, maxMWi, maxMHt, maxMDp)];
+                    hsv.hue = hsv.hue + (HueShift / 100.0);
+                    if (hsv.hue > 1.0)
+                        hsv.hue = 1.0;
+                    if (buffer.allowAlpha) {
+                        xlColor c(hsv);
+                        c.alpha = FirePalette.asAlphaColor(GetFireBuffer(x, y, z, cache->FireBuffer, maxMWi, maxMHt, maxMDp)).Alpha();
+                        buffer.SetPixel(xp, yp, z, c);
+                    } else {
+                        buffer.SetPixel(xp, yp, z, hsv);
+                    }
                 } else {
-                    buffer.SetPixel(xp, yp, hsv);
-                }
-            } else {
-                if (buffer.allowAlpha) {
-                    buffer.SetPixel(xp, yp, FirePalette.asAlphaColor(GetFireBuffer(x, y, cache->FireBuffer, maxMWi, maxMHt)));
-                } else {
-                    buffer.SetPixel(xp, yp, FirePalette.asColor(GetFireBuffer(x, y, cache->FireBuffer, maxMWi, maxMHt)));
+                    if (buffer.allowAlpha) {
+                        buffer.SetPixel(xp, yp, z, FirePalette.asAlphaColor(GetFireBuffer(x, y, z, cache->FireBuffer, maxMWi, maxMHt, maxMDp)));
+                    } else {
+                        buffer.SetPixel(xp, yp, z, FirePalette.asColor(GetFireBuffer(x, y, z, cache->FireBuffer, maxMWi, maxMHt, maxMDp)));
+                    }
                 }
             }
         }

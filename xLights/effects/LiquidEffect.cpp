@@ -347,7 +347,7 @@ void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColo
             size_t ct = *(count + offset);
             if (ct > 0)
             {
-                buffer.SetPixel(x, y, xlColor(
+                buffer.SetPixel(x, y, ALL_Z, xlColor(
                     *(red + offset) / ct,
                     *(green + offset) / ct,
                     *(blue + offset) / ct
@@ -381,11 +381,11 @@ void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColo
                 if (mixColors && ps->GetColorBuffer())
                 {
                     auto c = colorBuffer[i].GetColor();
-                    buffer.SetPixel(positionBuffer[i].x, positionBuffer[i].y, xlColor(c.r * 255, c.g * 255, c.b * 255));
+                        buffer.SetPixel(positionBuffer[i].x, positionBuffer[i].y, ALL_Z, xlColor(c.r * 255, c.g * 255, c.b * 255));
                 }
                 else
                 {
-                    buffer.SetPixel(positionBuffer[i].x, positionBuffer[i].y, color);
+                        buffer.SetPixel(positionBuffer[i].x, positionBuffer[i].y, ALL_Z, color);
                 }
             }
         }
@@ -396,15 +396,15 @@ void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColo
     {
         for (size_t y = 0; y < buffer.BufferHt; ++y) {
             for (size_t x = 0; x < buffer.BufferWi; ++x) {
-                if (buffer.GetPixel(x, y) == xlBLACK) {
-                    buffer.SetPixel(x, y, GetDespeckleColor(buffer, x, y, despeckle));
-                }
+                    if (buffer.GetPixel(x, y, 0) == xlBLACK) {
+                        buffer.SetPixel(x, y, ALL_Z, GetDespeckleColor(buffer, x, y, 0, despeckle));
+                    }
             }
         }
     }
 }
 
-xlColor LiquidEffect::GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y, int despeckle) const
+xlColor LiquidEffect::GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y, size_t z, int despeckle) const
 {
     int red = 0;
     int green = 0;
@@ -417,11 +417,17 @@ xlColor LiquidEffect::GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y
     int starty = y - 1;
     if (starty < 0) starty = 0;
 
+    int startz = z - 1;
+    if (startz < 0) startz = 0;
+
     int endx = x + 1;
     if (endx >= buffer.BufferWi) endx = buffer.BufferWi - 1;
 
     int endy = y + 1;
     if (endy >= buffer.BufferHt) endy = buffer.BufferHt - 1;
+
+    int endz = z + 1;
+    if (endz >= buffer.BufferDp) endz = buffer.BufferDp - 1;
 
     int blacks = 0;
 
@@ -429,21 +435,23 @@ xlColor LiquidEffect::GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y
     {
         for (int xx = startx; xx <= endx; ++xx)
         {
-            if (yy != y || xx != x) // dont evaluate the pixel itself
-            {
-                xlColor c = buffer.GetPixel(xx, yy);
-
-                // if any surrounding pixel is also black then we return black ... we only despeckly totally surrounded pixels
-                if (c == xlBLACK)
+            for (int zz = startz; zz <= endz; ++z) {
+                if (yy != y || xx != x || zz != z) // dont evaluate the pixel itself
                 {
-                    ++blacks;
-                    if (blacks >= despeckle) return xlBLACK;
-                }
+                    xlColor c = buffer.GetPixel(xx, yy, zz);
 
-                red += c.red;
-                green += c.green;
-                blue += c.blue;
-                ++count;
+                    // if any surrounding pixel is also black then we return black ... we only despeckly totally surrounded pixels
+                    if (c == xlBLACK) {
+                        ++blacks;
+                        if (blacks >= despeckle)
+                            return xlBLACK;
+                    }
+
+                    red += c.red;
+                    green += c.green;
+                    blue += c.blue;
+                    ++count;
+                }
             }
         }
     }

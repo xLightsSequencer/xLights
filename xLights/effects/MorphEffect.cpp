@@ -471,7 +471,7 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             if( buffer.allowAlpha ) {
                 tail_color.alpha = 255 * alpha_pct;
             }
-            buffer.DrawThickLine( (*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), tail_color, direction >= 0);
+            buffer.DrawThickLine((*v_lngx)[pos_a] + (repeat_x * repeat), (*v_lngy)[pos_a] + (repeat_y * repeat), (*v_shtx)[pos_b] + (repeat_x * repeat), (*v_shty)[pos_b] + (repeat_y * repeat), tail_color, ALL_Z, direction >= 0);
         }
 
         // draw the head
@@ -480,7 +480,7 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             double pct = ((total_length == 0) ? 0.0 : i / total_length);
             pos_a = i;
             pos_b = v_shtx->size() * pct;
-            buffer.DrawThickLine( (*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), head_color, direction >= 0);
+            buffer.DrawThickLine((*v_lngx)[pos_a] + (repeat_x * repeat), (*v_lngy)[pos_a] + (repeat_y * repeat), (*v_shtx)[pos_b] + (repeat_x * repeat), (*v_shty)[pos_b] + (repeat_y * repeat), head_color, ALL_Z, direction >= 0);
         }
     }
 }

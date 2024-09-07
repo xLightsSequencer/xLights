@@ -2313,8 +2313,8 @@ void xLightsFrame::ImportSuperStar(const wxFileName& filename)
         int y_offset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
         wxString blend = dlg.Choice_LayerBlend->GetStringSelection();
         Model* cls = GetModel(model->GetFullName());
-        int bw, bh;
-        cls->GetBufferSize("Default", "2D", "None", bw, bh, 0);
+        int bw, bh, bd;
+        cls->GetBufferSize("Default", "2D", "None", bw, bh, bd, 0);
         wxSize modelSize(bw, bh);
         ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, dlg.ImageResizeChoice->GetSelection(), modelSize, blend);
     }

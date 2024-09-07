@@ -355,35 +355,35 @@ void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug,
     cache->PictureName = filename;
 }
 
-void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y, xlColor c, bool transparentBlack, int transparentBlackLevel)
+void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y, int z, xlColor c, bool transparentBlack, int transparentBlackLevel)
 {
     if (transparentBlack)
     {
         int level = c.Red() + c.Green() + c.Blue();
         if (level > transparentBlackLevel)
         {
-            buffer.SetPixel(x, y, c);
+            buffer.SetPixel(x, y, z, c);
         }
     }
     else
     {
-        buffer.SetPixel(x, y, c);
+        buffer.SetPixel(x, y, z, c);
     }
 }
 
-void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y, xlColor c, bool wrap, bool transparentBlack, int transparentBlackLevel)
+void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y, int z, xlColor c, bool wrap, bool transparentBlack, int transparentBlackLevel)
 {
     if (transparentBlack)
     {
         int level = c.Red() + c.Green() + c.Blue();
         if (level > transparentBlackLevel)
         {
-            buffer.ProcessPixel(x, y, c, wrap);
+            buffer.ProcessPixel(x, y, z, c, wrap);
         }
     }
     else
     {
-        buffer.ProcessPixel(x, y, c, wrap);
+        buffer.ProcessPixel(x, y, z, c, wrap);
     }
 }
 
@@ -583,7 +583,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             int idx = curPeriod - curEffStartPer;
             if (idx < PixelsByFrame.size()) //TODO: wrap?
                 for (auto /*std::vector<std::pair<wxPoint, xlColour>>::iterator*/ it = PixelsByFrame[idx].begin(); it != PixelsByFrame[idx].end(); ++it) {
-                    SetTransparentBlackPixel(buffer, it->first.x, it->first.y, it->second, transparentBlack, transparentBlackLevel);
+                        SetTransparentBlackPixel(buffer, it->first.x, it->first.y, ALL_Z, it->second, transparentBlack, transparentBlackLevel);
                 }
             return;
         }
@@ -670,9 +670,9 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     }
 
     if (noImageFile) {
-        for (int x = 0; x < BufferWi; x++) {
-            for (int y = 0; y < BufferHt; y++) {
-                buffer.SetPixel(x, y, xlRED);
+        for (int x = 0; x < BufferWi; ++x) {
+            for (int y = 0; y < BufferHt; ++y) {
+                buffer.SetPixel(x, y, ALL_Z, xlRED);
             }
         }
         return;
@@ -817,130 +817,128 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                     c = xlBLACK;
                 }
 
-                switch (dir) {
-                case RENDER_PICTURE_LEFT: //0:
-                    SetTransparentBlackPixel(buffer, x + xoffset_adj + BufferWi - calc_position_wi, yoffset - y - yoffset_adj - 1, c, wrap_x, transparentBlack, transparentBlackLevel);
-                    break; // left
-                case RENDER_PICTURE_RIGHT: //1:
-                    SetTransparentBlackPixel(buffer, x + xoffset_adj + calc_position_wi - imgwidth, yoffset - y - yoffset_adj - 1, c, wrap_x, transparentBlack, transparentBlackLevel);
-                    break; // right
-                case RENDER_PICTURE_UP: //2:
-                case RENDER_PICTURE_UPONCE: //18
-                    SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, calc_position_ht - y - yoffset_adj, c, wrap_x, transparentBlack, transparentBlackLevel);
-                    break; // up
-                case RENDER_PICTURE_DOWN: //3:
-                case RENDER_PICTURE_DOWNONCE: //19
-                    SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, BufferHt + imght - y - yoffset_adj - calc_position_ht, c, wrap_x, transparentBlack, transparentBlackLevel);
-                    break; // down
-                case RENDER_PICTURE_UPLEFT: //5:
-                    SetTransparentBlackPixel(buffer, x + xoffset_adj + BufferWi - calc_position_wi, calc_position_ht - y - yoffset_adj, c, wrap_x, transparentBlack, transparentBlackLevel);
-                    break; // up-left
-                case RENDER_PICTURE_DOWNLEFT: //6:
-                    SetTransparentBlackPixel(buffer, x + xoffset_adj + BufferWi - calc_position_wi, BufferHt + imght - y - yoffset_adj - calc_position_ht, c, wrap_x, transparentBlack, transparentBlackLevel);
-                    break; // down-left
-                case RENDER_PICTURE_UPRIGHT: //7:
-                    SetTransparentBlackPixel(buffer, x + xoffset_adj + calc_position_wi - imgwidth, calc_position_ht - y - yoffset_adj, c, wrap_x, transparentBlack, transparentBlackLevel);
-                    break; // up-right
-                case RENDER_PICTURE_DOWNRIGHT: //8:
-                    SetTransparentBlackPixel(buffer, x + xoffset_adj + calc_position_wi - imgwidth, BufferHt + imght - y - yoffset_adj - calc_position_ht, c, wrap_x, transparentBlack, transparentBlackLevel);
-                    break; // down-right
+                    switch (dir) {
+                    case RENDER_PICTURE_LEFT: // 0:
+                        SetTransparentBlackPixel(buffer, x + xoffset_adj + BufferWi - calc_position_wi, yoffset - y - yoffset_adj - 1, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel);
+                        break;                 // left
+                    case RENDER_PICTURE_RIGHT: // 1:
+                        SetTransparentBlackPixel(buffer, x + xoffset_adj + calc_position_wi - imgwidth, yoffset - y - yoffset_adj - 1, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel);
+                        break;                  // right
+                    case RENDER_PICTURE_UP:     // 2:
+                    case RENDER_PICTURE_UPONCE: // 18
+                        SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, calc_position_ht - y - yoffset_adj, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel);
+                        break;                    // up
+                    case RENDER_PICTURE_DOWN:     // 3:
+                    case RENDER_PICTURE_DOWNONCE: // 19
+                        SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, BufferHt + imght - y - yoffset_adj - calc_position_ht, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel);
+                        break;                  // down
+                    case RENDER_PICTURE_UPLEFT: // 5:
+                        SetTransparentBlackPixel(buffer, x + xoffset_adj + BufferWi - calc_position_wi, calc_position_ht - y - yoffset_adj, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel);
+                        break;                    // up-left
+                    case RENDER_PICTURE_DOWNLEFT: // 6:
+                        SetTransparentBlackPixel(buffer, x + xoffset_adj + BufferWi - calc_position_wi, BufferHt + imght - y - yoffset_adj - calc_position_ht, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel);
+                        break;                   // down-left
+                    case RENDER_PICTURE_UPRIGHT: // 7:
+                        SetTransparentBlackPixel(buffer, x + xoffset_adj + calc_position_wi - imgwidth, calc_position_ht - y - yoffset_adj, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel);
+                        break;                     // up-right
+                    case RENDER_PICTURE_DOWNRIGHT: // 8:
+                        SetTransparentBlackPixel(buffer, x + xoffset_adj + calc_position_wi - imgwidth, BufferHt + imght - y - yoffset_adj - calc_position_ht, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel);
+                        break; // down-right
 
-                case RENDER_PICTURE_PEEKABOO_0: //10: //up+down 1x (peekaboo) -DJ
-                    SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, BufferHt + yoffset - y - yoffset_adj - 1, c, wrap_x, transparentBlack, transparentBlackLevel); // - BufferHt, c);
-                    break;
-                case RENDER_PICTURE_ZOOMIN: //12: //zoom in (explode) -DJ
-                    //TODO: use rescale or resize?
-                    SetTransparentBlackPixel(buffer, (x + xoffset_adj) * xscale, (BufferHt - 1 - y - yoffset_adj) * yscale, c, wrap_x, transparentBlack, transparentBlackLevel); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
-                    break;
-                case RENDER_PICTURE_PEEKABOO_90: //13: //peekaboo 90 -DJ
-                    SetTransparentBlackPixel(buffer, BufferWi + xoffset - y + xoffset_adj, x - yoffset - yoffset_adj, c, wrap_x, transparentBlack, transparentBlackLevel);
-                    break;
-                case RENDER_PICTURE_PEEKABOO_180: //14: //peekaboo 180 -DJ
-                    SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, y - yoffset - yoffset_adj, c, wrap_x, transparentBlack, transparentBlackLevel);
-                    break;
-                case RENDER_PICTURE_PEEKABOO_270: //15: //peekabo 270 -DJ
-                    SetTransparentBlackPixel(buffer, y - xoffset + xoffset_adj, BufferHt + yoffset + yoffset_adj - x, c, wrap_x, transparentBlack, transparentBlackLevel);
-                    break;
-                case RENDER_PICTURE_FLAGWAVE: //17: //flag wave in wind -DJ
-                {
-                    int waveY;
-                    if (BufferHt < 20) //small grid => small waves
+                    case RENDER_PICTURE_PEEKABOO_0:                                                                                                                                // 10: //up+down 1x (peekaboo) -DJ
+                        SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, BufferHt + yoffset - y - yoffset_adj - 1, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel); // - BufferHt, c);
+                        break;
+                    case RENDER_PICTURE_ZOOMIN: // 12: //zoom in (explode) -DJ
+                        // TODO: use rescale or resize?
+                        SetTransparentBlackPixel(buffer, (x + xoffset_adj) * xscale, (BufferHt - 1 - y - yoffset_adj) * yscale, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel); // CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
+                        break;
+                    case RENDER_PICTURE_PEEKABOO_90: // 13: //peekaboo 90 -DJ
+                        SetTransparentBlackPixel(buffer, BufferWi + xoffset - y + xoffset_adj, x - yoffset - yoffset_adj, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel);
+                        break;
+                    case RENDER_PICTURE_PEEKABOO_180: // 14: //peekaboo 180 -DJ
+                        SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, y - yoffset - yoffset_adj, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel);
+                        break;
+                    case RENDER_PICTURE_PEEKABOO_270: // 15: //peekabo 270 -DJ
+                        SetTransparentBlackPixel(buffer, y - xoffset + xoffset_adj, BufferHt + yoffset + yoffset_adj - x, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel);
+                        break;
+                    case RENDER_PICTURE_FLAGWAVE: // 17: //flag wave in wind -DJ
                     {
-                        waveN = (x - waveX) / waveW;
-                        waveY = !x ? 0 : (waveN & 1) ? -1 : 0;
-                    }
-                    else //larger grid => larger waves
+                        int waveY;
+                        if (BufferHt < 20) // small grid => small waves
+                        {
+                            waveN = (x - waveX) / waveW;
+                            waveY = !x ? 0 : (waveN & 1) ? -1
+                                                         : 0;
+                        } else // larger grid => larger waves
+                        {
+                            waveY = !x ? 0 : (waveN & 1) ? 0
+                                         : (waveN & 2)   ? -1
+                                                         : +1;
+                            if (waveX < 0)
+                                waveY *= -1;
+                        }
+                        SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, yoffset - y - yoffset_adj + waveY - 1, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel);
+                    } break;
+                    case RENDER_PICTURE_TILE_LEFT: // 21
                     {
-                        waveY = !x ? 0 : (waveN & 1) ? 0 : (waveN & 2) ? -1 : +1;
-                        if (waveX < 0) waveY *= -1;
-                    }
-                    SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, yoffset - y - yoffset_adj + waveY - 1, c, wrap_x, transparentBlack, transparentBlackLevel);
-                }
-                break;
-                case RENDER_PICTURE_TILE_LEFT: // 21
-                {
-                    int xmult = (buffer.BufferWi + 2 * imgwidth) / imgwidth;
-                    int ymult = (buffer.BufferHt + 2 * imght) / imght;
-                    int startx = xoffset_adj - (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth;
-                    int starty = yoffset_adj - imght;
-                    for (int xx = 0; xx < xmult; ++xx) {
-                        for (int yy = 0; yy < ymult; ++yy) {
-                            SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
-                                c, false, transparentBlack, transparentBlackLevel);
+                        int xmult = (buffer.BufferWi + 2 * imgwidth) / imgwidth;
+                        int ymult = (buffer.BufferHt + 2 * imght) / imght;
+                        int startx = xoffset_adj - (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth;
+                        int starty = yoffset_adj - imght;
+                        for (int xx = 0; xx < xmult; ++xx) {
+                            for (int yy = 0; yy < ymult; ++yy) {
+                                SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
+                                                         ALL_Z, c, false, transparentBlack, transparentBlackLevel);
+                            }
                         }
-                    }
-                }
-                break;
-                case RENDER_PICTURE_TILE_RIGHT: // 22
-                {
-                    int xmult = (buffer.BufferWi + 2 * imgwidth) / imgwidth;
-                    int ymult = (buffer.BufferHt + 2 * imght) / imght;
-                    int startx = xoffset_adj - imgwidth + (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth;
-                    int starty = yoffset_adj - imght;
-                    for (int xx = 0; xx < xmult; ++xx) {
-                        for (int yy = 0; yy < ymult; ++yy) {
-                            SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
-                                c, false, transparentBlack, transparentBlackLevel);
+                    } break;
+                    case RENDER_PICTURE_TILE_RIGHT: // 22
+                    {
+                        int xmult = (buffer.BufferWi + 2 * imgwidth) / imgwidth;
+                        int ymult = (buffer.BufferHt + 2 * imght) / imght;
+                        int startx = xoffset_adj - imgwidth + (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imgwidth;
+                        int starty = yoffset_adj - imght;
+                        for (int xx = 0; xx < xmult; ++xx) {
+                            for (int yy = 0; yy < ymult; ++yy) {
+                                SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
+                                                         ALL_Z, c, false, transparentBlack, transparentBlackLevel);
+                            }
                         }
-                    }
-                }
-                break;
-                case RENDER_PICTURE_TILE_DOWN: // 23
-                {
-                    int xmult = (buffer.BufferWi + 2 * imgwidth) / imgwidth;
-                    int ymult = (buffer.BufferHt + 2 * imght) / imght;
-                    int startx = xoffset_adj - imgwidth;
-                    int starty = yoffset_adj - (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght;
-                    for (int xx = 0; xx < xmult; ++xx) {
-                        for (int yy = 0; yy < ymult; ++yy) {
-                            SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
-                                c, false, transparentBlack, transparentBlackLevel);
+                    } break;
+                    case RENDER_PICTURE_TILE_DOWN: // 23
+                    {
+                        int xmult = (buffer.BufferWi + 2 * imgwidth) / imgwidth;
+                        int ymult = (buffer.BufferHt + 2 * imght) / imght;
+                        int startx = xoffset_adj - imgwidth;
+                        int starty = yoffset_adj - (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght;
+                        for (int xx = 0; xx < xmult; ++xx) {
+                            for (int yy = 0; yy < ymult; ++yy) {
+                                SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
+                                                         ALL_Z, c, false, transparentBlack, transparentBlackLevel);
+                            }
                         }
-                    }
-                }
-                break;
-                case RENDER_PICTURE_TILE_UP: // 24
-                {
-                    int xmult = (buffer.BufferWi + 2 * imgwidth) / imgwidth;
-                    int ymult = (buffer.BufferHt + 2 * imght) / imght;
-                    int startx = xoffset_adj - imgwidth;
-                    int starty = yoffset_adj - imght + (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght;
-                    for (int xx = 0; xx < xmult; ++xx) {
-                        for (int yy = 0; yy < ymult; ++yy) {
-                            SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
-                                c, false, transparentBlack, transparentBlackLevel);
+                    } break;
+                    case RENDER_PICTURE_TILE_UP: // 24
+                    {
+                        int xmult = (buffer.BufferWi + 2 * imgwidth) / imgwidth;
+                        int ymult = (buffer.BufferHt + 2 * imght) / imght;
+                        int startx = xoffset_adj - imgwidth;
+                        int starty = yoffset_adj - imght + (int)((float)(curPeriod - curEffStartPer) * movementSpeed) % imght;
+                        for (int xx = 0; xx < xmult; ++xx) {
+                            for (int yy = 0; yy < ymult; ++yy) {
+                                SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
+                                                         ALL_Z, c, false, transparentBlack, transparentBlackLevel);
+                            }
                         }
+                    } break;
+                    case RENDER_PICTURE_WIGGLE: // 11: //back+forth a little (wiggle) -DJ
+                                                //                     ProcessPixel(x + xoffset+xoffset_adj, yoffset - y - yoffset_adj, c, wrap_x);
+                                                //                     break;
+                    default:
+                        SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, yoffset + yoffset_adj - y - 1, ALL_Z, c, wrap_x, transparentBlack, transparentBlackLevel);
+                        break; // no movement - centered
                     }
                 }
-                break;
-                case RENDER_PICTURE_WIGGLE: //11: //back+forth a little (wiggle) -DJ
-                    //                    ProcessPixel(x + xoffset+xoffset_adj, yoffset - y - yoffset_adj, c, wrap_x);
-                    //                    break;
-                default:
-                    SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, yoffset + yoffset_adj - y - 1, c, wrap_x, transparentBlack, transparentBlackLevel);
-                    break; // no movement - centered
-                }
-            }
         }
     }
 
@@ -951,9 +949,11 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         for (int x = 0; x < BufferWi; x++) {
             for (int y = 0; y < BufferHt; y++) {
                 if (rand01() > 0.5) {
-                    buffer.GetPixel(x, y, color);
-                    if (color != xlBLACK) {
-                        buffer.ProcessPixel(x, y, c, false);
+                    for (int z = 0; z < buffer.BufferDp; ++z) {
+                        buffer.GetPixel(x, y, z, color);
+                        if (color != xlBLACK) {
+                            buffer.ProcessPixel(x, y, z, c, false);
+                        }
                     }
                 }
             }

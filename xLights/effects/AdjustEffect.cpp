@@ -139,7 +139,7 @@ void AdjustEffect::AdjustChannels(bool singleColour, int numChannels, RenderBuff
             c.red = value;
             c.green = value;
             c.blue = value;
-            buffer.SetPixel(i % buffer.BufferWi, i / buffer.BufferWi, c, false, true, true);
+            buffer.SetPixel((i % (buffer.BufferWi * buffer.BufferHt)) % buffer.BufferWi, (i % (buffer.BufferWi * buffer.BufferHt)) / buffer.BufferWi, i / (buffer.BufferWi * buffer.BufferHt), c, false, true, true);
         } else {
             if (i % 3 == 0)
                 c.red = value;
@@ -147,7 +147,7 @@ void AdjustEffect::AdjustChannels(bool singleColour, int numChannels, RenderBuff
                 c.green = value;
             else
                 c.blue = value;
-            buffer.SetPixel((i / 3) % buffer.BufferWi, (i / 3) / buffer.BufferWi, c);
+            buffer.SetPixel(((i / 3) % (buffer.BufferWi * buffer.BufferHt)) % buffer.BufferWi, ((i / 3) % (buffer.BufferWi * buffer.BufferHt)) / buffer.BufferWi, (i / 3) / (buffer.BufferWi * buffer.BufferHt), c);
         }
     }
 }

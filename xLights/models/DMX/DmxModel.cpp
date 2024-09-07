@@ -42,16 +42,18 @@ DmxModel::~DmxModel()
     //dtor
 }
 
-void DmxModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
+void DmxModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int& BufferDp, int stagger) const
 {
     BufferHi = 1;
     BufferWi = GetNodeCount();
+    BufferDp = 1;
 }
 
 void DmxModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform,
-    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, int& BufferDp, int stagger, bool deep) const
 {
     BufferHi = 1;
+    BufferDp = 1;
     BufferWi = GetNodeCount();
 
     for (int cur = 0; cur < BufferWi; cur++) {

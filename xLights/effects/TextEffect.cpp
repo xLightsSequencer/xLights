@@ -569,7 +569,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     }
                 }
                 cur += 3;
-                buffer.SetPixel(x, y, c);
+                buffer.SetPixel(x, y, ALL_Z, c);
             }
         }
     }
@@ -1645,12 +1645,12 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                             if (red == 255 && green == 255 && blue == 255) {
                                 if (rotate_90) {
                                     if (up) {
-                                        buffer.SetPixel(y_pos - y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (actual_width - 1 - x_pos + x_start_corner + OffsetTop), c, false);
+                                        buffer.SetPixel(y_pos - y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (actual_width - 1 - x_pos + x_start_corner + OffsetTop), ALL_Z, c, false);
                                     } else {
-                                        buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
+                                        buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), ALL_Z, c, false);
                                     }
                                 } else {
-                                    buffer.SetPixel(x_pos - x_start_corner + OffsetLeft, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
+                                    buffer.SetPixel(x_pos - x_start_corner + OffsetLeft, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, ALL_Z, c, false);
                                 }
                             }
                         }

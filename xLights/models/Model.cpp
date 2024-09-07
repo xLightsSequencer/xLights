@@ -3773,27 +3773,32 @@ const std::string& Model::NodeType(size_t nodenum) const
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->GetNodeType() : NodeBaseClass::RGB; // avoid memory access error if no nods -DJ
 }
 
-void Model::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& bufferWi, int& bufferHi, int stagger) const
+void Model::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& bufferWi, int& bufferHi, int& bufferDp, int stagger) const
 {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     if (type == DEFAULT) {
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
+        bufferDp = 1;
     } else if (type == SINGLE_LINE) {
         bufferHi = 1;
         bufferWi = Nodes.size();
+        bufferDp = 1;
     } else if (type == AS_PIXEL) {
         bufferHi = 1;
         bufferWi = 1;
+        bufferDp = 1;
     } else if (type == VERT_PER_STRAND || type == VERT_PER_MODELSTRAND) {
         bufferHi = GetNumStrands();
         bufferWi = 1;
+        bufferDp = 1;
         for (int x = 0; x < bufferHi; ++x) {
             bufferWi = std::max(bufferWi, GetStrandLength(x));
         }
     } else if (type == HORIZ_PER_STRAND || type == HORIZ_PER_MODELSTRAND) {
         bufferWi = GetNumStrands();
         bufferHi = 1;
+        bufferDp = 1;
         for (int x = 0; x < bufferWi; ++x) {
             bufferHi = std::max(bufferHi, GetStrandLength(x));
         }
@@ -3801,13 +3806,13 @@ void Model::GetBufferSize(const std::string& tp, const std::string& camera, cons
         // if (type == PER_PREVIEW) {
         // default is to go ahead and build the full node buffer
         std::vector<NodeBaseClassPtr> newNodes;
-        InitRenderBufferNodes(type, camera, "None", newNodes, bufferWi, bufferHi, stagger);
+        InitRenderBufferNodes(type, camera, "None", newNodes, bufferWi, bufferHi, bufferDp, stagger);
     }
-    AdjustForTransform(transform, bufferWi, bufferHi);
+    AdjustForTransform(transform, bufferWi, bufferHi, bufferDp);
 }
 
 void Model::AdjustForTransform(const std::string& transform,
-                               int& bufferWi, int& bufferHi) const
+                               int& bufferWi, int& bufferHi, int& bufferDp) const
 {
     if (transform == "Rotate CC 90" || transform == "Rotate CW 90") {
         int x = bufferHi;
@@ -3816,13 +3821,14 @@ void Model::AdjustForTransform(const std::string& transform,
     }
 }
 
-static inline void SetCoords(NodeBaseClass::CoordStruct& it2, int x, int y)
+static inline void SetCoords(NodeBaseClass::CoordStruct& it2, int x, int y, int z)
 {
     it2.bufX = x;
     it2.bufY = y;
+    it2.bufZ = z;
 }
 
-static inline void SetCoords(NodeBaseClass::CoordStruct& it2, int x, int y, int maxX, int maxY, int scale)
+static inline void SetCoords(NodeBaseClass::CoordStruct& it2, int x, int y, int z, int maxX, int maxY, int maxZ, int scale)
 {
     if (maxX != -1) {
         x = x * maxX;
@@ -3832,16 +3838,21 @@ static inline void SetCoords(NodeBaseClass::CoordStruct& it2, int x, int y, int 
         y = y * maxY;
         y = y / scale;
     }
+    if (maxZ != -1) {
+		z = z * maxZ;
+		z = z / scale;
+	}
     it2.bufX = x;
     it2.bufY = y;
+    it2.bufZ = z;
 }
 
 // this is really slow
-char GetPixelDump(int x, int y, std::vector<NodeBaseClassPtr>& newNodes)
+char GetPixelDump(int x, int y, int z, std::vector<NodeBaseClassPtr>& newNodes)
 {
     for (auto n = newNodes.begin(); n != newNodes.end(); ++n) {
         for (auto &c : (*n)->Coords) {
-            if (c.bufX == x && c.bufY == y) {
+            if (c.bufX == x && c.bufY == y && c.bufZ == z) {
                 return '*';
             }
         }
@@ -3851,23 +3862,25 @@ char GetPixelDump(int x, int y, std::vector<NodeBaseClassPtr>& newNodes)
 }
 
 void Model::DumpBuffer(std::vector<NodeBaseClassPtr>& newNodes,
-                       int bufferWi, int bufferHt) const
+                       int bufferWi, int bufferHt, int bufferDp) const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     logger_base.debug("Dumping render buffer for '%s':", (const char*)GetFullName().c_str());
-    for (int y = bufferHt - 1; y >= 0; y--) {
-        std::string line = "";
-        for (int x = 0; x < bufferWi; ++x) {
-            line += GetPixelDump(x, y, newNodes);
+    for (int z = 0; z < bufferDp; ++z) {
+        for (int y = bufferHt - 1; y >= 0; y--) {
+            std::string line = "";
+            for (int x = 0; x < bufferWi; ++x) {
+                line += GetPixelDump(x, y, z, newNodes);
+            }
+            logger_base.debug(">    %s", (const char*)line.c_str());
         }
-        logger_base.debug(">    %s", (const char*)line.c_str());
     }
 }
 
 void Model::ApplyTransform(const std::string& type,
                            std::vector<NodeBaseClassPtr>& newNodes,
-                           int& bufferWi, int& bufferHi, int startNode) const
+                           int& bufferWi, int& bufferHi, int& bufferDp, int startNode) const
 {
     //"Rotate CC 90", "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal", "Rotate CC 90 Flip Horizontal", "Rotate CW 90 Flip Horizontal"
     if (type == "None") {
@@ -3875,59 +3888,59 @@ void Model::ApplyTransform(const std::string& type,
     } else if (type == "Rotate 180") {
         for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
-                SetCoords(it2, bufferWi - it2.bufX - 1, bufferHi - it2.bufY - 1);
+                SetCoords(it2, bufferWi - it2.bufX - 1, bufferHi - it2.bufY - 1, it2.bufZ);
             }
         }
     } else if (type == "Flip Vertical") {
         for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
-                SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1);
+                SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1, it2.bufZ);
             }
         }
     } else if (type == "Flip Horizontal") {
         for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
-                SetCoords(it2, bufferWi - it2.bufX - 1, it2.bufY);
+                SetCoords(it2, bufferWi - it2.bufX - 1, it2.bufY, it2.bufZ);
             }
         }
     } else if (type == "Rotate CW 90") {
         for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
-                SetCoords(it2, bufferHi - it2.bufY - 1, it2.bufX);
+                SetCoords(it2, bufferHi - it2.bufY - 1, it2.bufX, it2.bufZ);
             }
         }
         std::swap(bufferWi, bufferHi);
     } else if (type == "Rotate CC 90") {
         for (int x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
-                SetCoords(it2, it2.bufY, bufferWi - it2.bufX - 1);
+                SetCoords(it2, it2.bufY, bufferWi - it2.bufX - 1, it2.bufZ);
             }
         }
         std::swap(bufferWi, bufferHi);
     } else if (type == "Rotate CC 90 Flip Horizontal") {
         for (int x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
-                SetCoords(it2, it2.bufY, bufferWi - it2.bufX - 1);
+                SetCoords(it2, it2.bufY, bufferWi - it2.bufX - 1, it2.bufZ);
             }
         }
         std::swap(bufferWi, bufferHi);
 
         for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
-                SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1);
+                SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1, it2.bufZ);
             }
         }
     } else if (type == "Rotate CW 90 Flip Horizontal") {
         for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
-                SetCoords(it2, bufferHi - it2.bufY - 1, it2.bufX);
+                SetCoords(it2, bufferHi - it2.bufY - 1, it2.bufX, it2.bufZ);
             }
         }
         std::swap(bufferWi, bufferHi);
 
         for (size_t x = 0; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
-                SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1);
+                SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1, it2.bufZ);
             }
         }
     }
@@ -3948,11 +3961,12 @@ const std::string Model::AdjustBufferStyle(const std::string &style) const {
 
 void Model::InitRenderBufferNodes(const std::string& tp, const std::string& camera,
                                   const std::string& transform,
-                                  std::vector<NodeBaseClassPtr>& newNodes, int& bufferWi, int& bufferHt, int stagger, bool deep) const
+                                  std::vector<NodeBaseClassPtr>& newNodes, int& bufferWi, int& bufferHt, int& bufferDp, int stagger, bool deep) const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     int firstNode = newNodes.size();
+    bufferDp = 1;
 
     // want to see if i can catch something that causes this to crash
     if (firstNode + Nodes.size() <= 0) {
@@ -3972,9 +3986,11 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
     if (type == DEFAULT) {
         bufferHt = this->BufferHt;
         bufferWi = this->BufferWi;
+        bufferDp = 1;
     } else if (type == SINGLE_LINE) {
         bufferHt = 1;
         bufferWi = newNodes.size();
+        bufferDp = 1;
         int cnt = 0;
         for (int x = firstNode; x < newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
@@ -3982,25 +3998,27 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                 wxASSERT(false);
             }
             for (auto& it2 : newNodes[x]->Coords) {
-                SetCoords(it2, cnt, 0);
+                SetCoords(it2, cnt, 0, 0);
             }
             cnt++;
         }
     } else if (type == AS_PIXEL) {
         bufferHt = 1;
         bufferWi = 1;
+        bufferDp = 1;
         for (int x = firstNode; x < newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
                 logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 wxASSERT(false);
             }
             for (auto& it2 : newNodes[x]->Coords) {
-                SetCoords(it2, 0, 0);
+                SetCoords(it2, 0, 0, 0);
             }
         }
     } else if (type == HORIZ_PER_STRAND || type == HORIZ_PER_MODELSTRAND) {
         bufferWi = GetNumStrands();
         bufferHt = 1;
+        bufferDp = 1;
         for (int x = 0; x < bufferWi; ++x) {
             bufferHt = std::max(bufferHt, GetStrandLength(x));
         }
@@ -4024,7 +4042,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                     wxASSERT(false);
                 }
                 for (auto& it2 : newNodes[x]->Coords) {
-                    SetCoords(it2, strand, cnt, -1, bufferHt, strandLen);
+                    SetCoords(it2, strand, cnt, 0, -1, bufferHt, -1, strandLen);
                 }
                 cnt++;
                 x++;
@@ -4033,6 +4051,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
     } else if (type == VERT_PER_STRAND || type == VERT_PER_MODELSTRAND) {
         bufferHt = GetNumStrands();
         bufferWi = 1;
+        bufferDp = 1;
         for (int x = 0; x < bufferHt; ++x) {
             bufferWi = std::max(bufferWi, GetStrandLength(x));
         }
@@ -4056,7 +4075,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                     wxASSERT(false);
                 }
                 for (auto& it2 : newNodes[x]->Coords) {
-                    SetCoords(it2, cnt, strand, bufferWi, -1, strandLen);
+                    SetCoords(it2, cnt, strand, 0, bufferWi, -1, -1, strandLen);
                 }
                 cnt++;
                 x++;
@@ -4100,8 +4119,8 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                 newNodes.reserve(nc);
             }
             for (Model* c : models) {
-                int bw, bh;
-                c->InitRenderBufferNodes("Per Preview No Offset", camera, transform, newNodes, bw, bh, stagger);
+                int bw, bh, bd;
+                c->InitRenderBufferNodes("Per Preview No Offset", camera, transform, newNodes, bw, bh, bd, stagger);
             }
         }
 
@@ -4244,7 +4263,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                     float sx = *itx / factor;
                     float sy = *ity / factor;
 
-                    SetCoords(it2, std::round(sx - offx), std::round(sy - offy));
+                    SetCoords(it2, std::round(sx - offx), std::round(sy - offy), 0);
                     if (it2.bufX > bufferWi) {
                         bufferWi = it2.bufX;
                     }
@@ -4270,10 +4289,12 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
             bufferHt = std::round(maxY - minY + 1.0f);
             bufferWi = std::round(maxX - minX + 1.0f);
         }
+        bufferDp = 1;
         // DumpBuffer(newNodes, bufferWi, bufferHt);
     } else {
         bufferHt = this->BufferHt;
         bufferWi = this->BufferWi;
+        bufferDp = this->BufferDp;
     }
 
     // Zero buffer sizes are bad
@@ -4286,6 +4307,10 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         logger_base.warn("Model::InitRenderBufferNodes BufferWi was 0 ... overridden to be 1.");
         bufferWi = 1;
     }
+    if (bufferDp == 0) {
+        logger_base.warn("Model::InitRenderBufferNodes BufferDp was 0 ... overridden to be 1.");
+        bufferDp = 1;
+    }
     if (bufferWi * bufferHt > 2100000) {
         if (bufferHt > 100000) {
             logger_base.warn("Model::InitRenderBufferNodes BufferHt was overly large ... overridden to be 100000.");
@@ -4297,7 +4322,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         }
     }
 
-    ApplyTransform(transform, newNodes, bufferWi, bufferHt);
+    ApplyTransform(transform, newNodes, bufferWi, bufferHt, bufferDp);
 }
 
 std::string Model::GetNextName()

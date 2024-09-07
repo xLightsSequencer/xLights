@@ -139,5 +139,5 @@ protected:
               int x2, int y2, int direction2, int velocity2, int flow2, int sourceSize2, bool flowMusic2,
               int x3, int y3, int direction3, int velocity3, int flow3, int sourceSize3, bool flowMusic3,
               int x4, int y4, int direction4, int velocity4, int flow4, int sourceSize4, bool flowMusic4, float time);
-    xlColor GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y, int despeckle) const;
+    xlColor GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y, size_t z, int despeckle) const;
 };

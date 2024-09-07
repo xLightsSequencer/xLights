@@ -17,37 +17,33 @@
 
 #include "GuitarEffect.h"
 #include "GuitarPanel.h"
-#include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
-#include "../xLightsXmlFile.h"
 #include "../UtilFunctions.h"
+#include "../sequencer/Effect.h"
+#include "../xLightsXmlFile.h"
 #include "models/Model.h"
 
-#include <string>
 #include <list>
+#include <string>
 
 #include <log4cpp/Category.hh>
 
-class GuitarTiming
-{
+class GuitarTiming {
 public:
     uint32_t _startMS = 0;
     uint32_t _endMS = 0;
     std::list<std::pair<uint8_t, uint8_t>> _fingerPos;
-    GuitarTiming(uint32_t start, uint32_t end)
-    {
+    GuitarTiming(uint32_t start, uint32_t end) {
         _startMS = start;
         _endMS = end;
     }
 
-    void AddFingerPos(uint8_t string, uint8_t pos)
-    {
+    void AddFingerPos(uint8_t string, uint8_t pos) {
         _fingerPos.push_back({ string, pos });
     }
 
-    int GetPositionCentre() const
-    {
+    int GetPositionCentre() const {
         int zeroCount = 0;
         int total = 0;
         for (auto const& v : _fingerPos) {
@@ -62,8 +58,7 @@ public:
         return total / (_fingerPos.size() - zeroCount);
     }
 
-    int GetSpread() const
-    {
+    int GetSpread() const {
         int min = -1;
         int max = -1;
 
@@ -81,8 +76,7 @@ public:
 };
 
 // These are the string notes when no finger is on the string
-typedef struct GuitarNotes
-{
+typedef struct GuitarNotes {
     uint8_t string;
     uint8_t fret;
     uint8_t note;
@@ -122,8 +116,7 @@ std::vector<GuitarNotes>
         { 4, 0, 76 }, // E5
     };
 
-class Chordx
-{
+class Chordx {
 public:
     std ::string _name;
     std::list<uint8_t> _notes;
@@ -216,7 +209,7 @@ std::list<Chordx> __bassChords = {
 
 std::list<Chordx> __banjoChords = {
     // Major Chords
-    { "CA", { 52, 57, 61, 64 }, { { 1, 2 }, { 2, 2 }, { 3, 2 }, { 4, 2 } } }, // A
+    { "CA", { 52, 57, 61, 64 }, { { 1, 2 }, { 2, 2 }, { 3, 2 }, { 4, 2 } } },  // A
     { "CA#", { 53, 58, 62, 65 }, { { 1, 3 }, { 2, 3 }, { 3, 3 }, { 4, 3 } } }, // A#
     { "CBB", { 53, 58, 62, 65 }, { { 1, 3 }, { 2, 3 }, { 3, 3 }, { 4, 3 } } }, // Bb
     { "CD", { 50, 57, 62, 66 }, { { 1, 0 }, { 2, 2 }, { 3, 3 }, { 4, 4 } } },  // D
@@ -225,25 +218,22 @@ std::list<Chordx> __banjoChords = {
     { "CG", { 50, 55, 59, 62 }, { { 1, 0 }, { 2, 0 }, { 3, 0 }, { 4, 0 } } },  // G
     // Minor Chords
     { "CAM", { 52, 57, 60, 64 }, { { 1, 2 }, { 2, 2 }, { 3, 1 }, { 4, 2 } } }, // Am
-    { "CDM", { 53, 57, 62, 65 }, { { 1, 3 }, { 2, 2 }, { 3, 3 }, { 4, 3 } } },  // Dm
-    { "CEM", { 52, 55, 59, 64 }, { { 1, 2 }, { 2, 0 }, { 3, 0 }, { 4, 2 } } },  // Em
+    { "CDM", { 53, 57, 62, 65 }, { { 1, 3 }, { 2, 2 }, { 3, 3 }, { 4, 3 } } }, // Dm
+    { "CEM", { 52, 55, 59, 64 }, { { 1, 2 }, { 2, 0 }, { 3, 0 }, { 4, 2 } } }, // Em
     // Seventh Chords
     { "CD7", { 50, 57, 60, 62 }, { { 1, 0 }, { 2, 2 }, { 3, 1 }, { 4, 0 } } }, // D7
-    { "CG7", { 50, 55, 59, 65 }, { { 1, 0 }, { 2, 0 }, { 3, 0 }, { 4, 3 } } },  // G7
+    { "CG7", { 50, 55, 59, 65 }, { { 1, 0 }, { 2, 0 }, { 3, 0 }, { 4, 3 } } }, // G7
 };
 
 std::list<Chordx> __violinChords = {};
 
-bool centresort(const GuitarTiming* first, const GuitarTiming* second)
-{
+bool centresort(const GuitarTiming* first, const GuitarTiming* second) {
     return first->GetPositionCentre() < second->GetPositionCentre();
 }
 
-class NoteTiming
-{
+class NoteTiming {
     // zero is an open string. 1 is longest and deepest, maxFrets is shortest and highest
-    int GetFretPos(uint8_t string, uint8_t note, const std::string& type, uint8_t maxFrets)
-    {
+    int GetFretPos(uint8_t string, uint8_t note, const std::string& type, uint8_t maxFrets) {
         auto base = NoteTiming::GetBaseNotes(type);
         if (base == nullptr)
             return -1;
@@ -269,8 +259,7 @@ public:
     std::list<uint8_t> _notes;
     std::list<GuitarTiming*> _possibleTimings;
 
-    NoteTiming(const NoteTiming& nt)
-    {
+    NoteTiming(const NoteTiming& nt) {
         _startMS = nt._startMS;
         _endMS = nt._endMS;
         _notes = nt._notes;
@@ -279,14 +268,12 @@ public:
         }
     }
 
-    void SetGuitarTiming(GuitarTiming* gt)
-    {
+    void SetGuitarTiming(GuitarTiming* gt) {
         ClearPossibleTimings();
         _possibleTimings.push_back(new GuitarTiming(*gt));
     }
 
-    static const std::vector<GuitarNotes>* GetBaseNotes(const std::string& type)
-    {
+    static const std::vector<GuitarNotes>* GetBaseNotes(const std::string& type) {
         if (type == "Guitar")
             return &guitar;
         else if (type == "Bass Guitar")
@@ -297,8 +284,7 @@ public:
             return &violin;
     }
 
-    static size_t GetStrings(const std::string& type)
-    {
+    static size_t GetStrings(const std::string& type) {
         auto base = GetBaseNotes(type);
         if (base == nullptr)
             return 0;
@@ -306,34 +292,29 @@ public:
         return base->size();
     }
 
-    NoteTiming(uint32_t start, uint32_t end)
-    {
+    NoteTiming(uint32_t start, uint32_t end) {
         _startMS = start;
         _endMS = end;
     }
 
-    NoteTiming(uint32_t start, uint32_t end, std::list<uint8_t> notes)
-    {
+    NoteTiming(uint32_t start, uint32_t end, std::list<uint8_t> notes) {
         _startMS = start;
         _endMS = end;
         _notes = notes;
     }
 
-    ~NoteTiming()
-    {
+    ~NoteTiming() {
         ClearPossibleTimings();
     }
 
-    void ClearPossibleTimings()
-    {
+    void ClearPossibleTimings() {
         while (_possibleTimings.size() > 0) {
             delete _possibleTimings.front();
             _possibleTimings.pop_front();
         }
     }
 
-    int PickTimingClosestTo(int centre, int& lastString)
-    {
+    int PickTimingClosestTo(int centre, int& lastString) {
         int ls = lastString;
         lastString = -1;
 
@@ -370,7 +351,7 @@ public:
         }
 
         // Use this to check the closest on different string code
-        ///if (different) {
+        /// if (different) {
         //    if ((*closestOnDifferentString)->_fingerPos.size() == 1 && ls == (*closestOnDifferentString)->_fingerPos.front().first) {
         //        int a = 0;
         //    }
@@ -406,9 +387,7 @@ public:
         return _possibleTimings.front()->GetPositionCentre();
     }
 
-    
-    bool listsMatch(const std::list<uint8_t>& list1, const std::list<uint8_t>& list2)
-    {
+    bool listsMatch(const std::list<uint8_t>& list1, const std::list<uint8_t>& list2) {
         // Check if both lists have the same size
         if (list1.size() != list2.size())
             return false;
@@ -424,8 +403,7 @@ public:
         return true;
     }
 
-    bool CheckChords(const std::string& type)
-    {
+    bool CheckChords(const std::string& type) {
         auto chords = __guitarChords;
 
         if (type == "Bass")
@@ -451,8 +429,7 @@ public:
         return false;
     }
 
-    void GeneratePossibleTimings(const std::string& type, uint8_t maxFrets)
-    {
+    void GeneratePossibleTimings(const std::string& type, uint8_t maxFrets) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         // if there are no notes it may be because the timings were set using SnnPnn
@@ -499,7 +476,7 @@ public:
 #ifdef FILTER_OUT_UPLAYABLE
                             found = true;
 #endif
-                            fns = s+1;
+                            fns = s + 1;
                             break;
                         }
                     }
@@ -525,32 +502,24 @@ public:
 
         bool allnotes = false;
         uint8_t max = 0;
-        for (auto& it : _possibleTimings)
-        {
+        for (auto& it : _possibleTimings) {
             if (it->_fingerPos.size() == _notes.size())
                 allnotes = true;
             if (it->_fingerPos.size() > max)
                 max = it->_fingerPos.size();
         }
 
-        if (allnotes)
-        {
+        if (allnotes) {
             // remove any possible timings not including all notes
             auto it = _possibleTimings.begin();
-            while (it != _possibleTimings.end())
-            {
-                if ((*it)->_fingerPos.size() != _notes.size())
-                {
+            while (it != _possibleTimings.end()) {
+                if ((*it)->_fingerPos.size() != _notes.size()) {
                     it = _possibleTimings.erase(it);
-                }
-                else
-                {
+                } else {
                     ++it;
                 }
             }
-        }
-        else
-        {
+        } else {
             // remove any possible timings not including the maximum notes
             auto it = _possibleTimings.begin();
             while (it != _possibleTimings.end()) {
@@ -562,8 +531,7 @@ public:
             }
         }
 
-        if (max != _notes.size())
-        {
+        if (max != _notes.size()) {
             logger_base.warn("One or more notes not found on %s at %lu.", (const char*)type.c_str(), _startMS);
         }
 
@@ -596,35 +564,27 @@ public:
 };
 
 GuitarEffect::GuitarEffect(int id) :
-    RenderableEffect(id, "Guitar", Guitar_16_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm) 
-{
-    //ctor
-	_panel = nullptr;
+    RenderableEffect(id, "Guitar", Guitar_16_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm) {
+    // ctor
+    _panel = nullptr;
 }
 
-GuitarEffect::~GuitarEffect()
-{
-    //dtor
+GuitarEffect::~GuitarEffect() {
+    // dtor
 }
 
-std::list<std::string> GuitarEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
-{
+std::list<std::string> GuitarEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    if (settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", "") == "")
-    {
+    if (settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", "") == "") {
         res.push_back(wxString::Format("    ERR: Guitar effect needs a timing track. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    }
-    else
-    {
+    } else {
         std::list<NoteTiming*> timings = LoadTimingTrack(settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), 50, "Guitar", 100, 6);
-        if (timings.size() == 0)
-        {
+        if (timings.size() == 0) {
             res.push_back(wxString::Format("    ERR: Guitar effect timing track '%s' has no notes. Model '%s', Start %s", settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
 
-        while (timings.size() > 0)
-        {
+        while (timings.size() > 0) {
             delete timings.front();
             timings.pop_front();
         }
@@ -633,21 +593,17 @@ std::list<std::string> GuitarEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-void GuitarEffect::SetPanelStatus(Model *cls)
-{
+void GuitarEffect::SetPanelStatus(Model* cls) {
     SetPanelTimingTracks();
 }
 
-void GuitarEffect::SetPanelTimingTracks()
-{
-    GuitarPanel *fp = (GuitarPanel*)panel;
-    if (fp == nullptr)
-    {
+void GuitarEffect::SetPanelTimingTracks() {
+    GuitarPanel* fp = (GuitarPanel*)panel;
+    if (fp == nullptr) {
         return;
     }
 
-    if (mSequenceElements == nullptr)
-    {
+    if (mSequenceElements == nullptr) {
         return;
     }
 
@@ -658,13 +614,13 @@ void GuitarEffect::SetPanelTimingTracks()
     wxPostEvent(fp, event);
 }
 
-xlEffectPanel *GuitarEffect::CreatePanel(wxWindow *parent) {
+xlEffectPanel* GuitarEffect::CreatePanel(wxWindow* parent) {
     _panel = new GuitarPanel(parent);
-	return _panel;
+    return _panel;
 }
 
 void GuitarEffect::SetDefaultParameters() {
-    GuitarPanel *pp = (GuitarPanel*)panel;
+    GuitarPanel* pp = (GuitarPanel*)panel;
     if (pp == nullptr) {
         return;
     }
@@ -681,19 +637,17 @@ void GuitarEffect::SetDefaultParameters() {
     SetPanelTimingTracks();
 }
 
-void GuitarEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
-{
+void GuitarEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) {
     wxString timing = effect->GetSettings().Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", "");
 
-    if (timing.ToStdString() == oldname)
-    {
+    if (timing.ToStdString() == oldname) {
         effect->GetSettings()["E_CHOICE_Guitar_MIDITrack_APPLYLAST"] = wxString(newname);
     }
 
     SetPanelTimingTracks();
 }
 
-void GuitarEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void GuitarEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
     RenderGuitar(buffer,
                  effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
                  std::string(SettingsMap.Get("CHOICE_Guitar_Type", "Guitar")),
@@ -708,39 +662,33 @@ void GuitarEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
                  SettingsMap.GetBool("CHECKBOX_VaryWaveLengthOnFret", false));
 }
 
-bool notesort(const NoteTiming* first, const NoteTiming* second)
-{
+bool notesort(const NoteTiming* first, const NoteTiming* second) {
     return first->_startMS < second->_startMS;
 }
 
-class GuitarCache : public EffectRenderCache
-{
+class GuitarCache : public EffectRenderCache {
 public:
-	GuitarCache() { };
-	virtual ~GuitarCache() { 
+    GuitarCache(){};
+    virtual ~GuitarCache() {
         ClearTimings();
     };
 
-    void ClearTimings()
-    {
+    void ClearTimings() {
         while (_notes.size() > 0) {
             delete _notes.front();
             _notes.pop_front();
         }
     }
 
-    void SetTimings(std::list<NoteTiming*>& notes, const std::string& type, uint8_t maxFrets)
-    {
+    void SetTimings(std::list<NoteTiming*>& notes, const std::string& type, uint8_t maxFrets) {
         ClearTimings();
-        for (auto& it : notes)
-        {
+        for (auto& it : notes) {
             _notes.push_back(new NoteTiming(*it));
         }
         ConvertToGuitarTiming(type, maxFrets);
     }
 
-    void ConvertToGuitarTiming(const std::string& type, uint8_t maxFrets)
-    {
+    void ConvertToGuitarTiming(const std::string& type, uint8_t maxFrets) {
         // sort the notes
         _notes.sort(notesort);
 
@@ -754,10 +702,8 @@ public:
         int lastString = -1;
         uint32_t lastEnd = 0;
         for (auto& it : _notes) {
-
             // if there is a gap in the notes then using the same string again is ok
-            if (it->_startMS > lastEnd)
-            {
+            if (it->_startMS > lastEnd) {
                 lastString = -1;
             }
 
@@ -776,12 +722,9 @@ public:
         }
     }
 
-    GuitarTiming* GetTimingAt(uint32_t ms)
-    {
-        for (const auto& it : _notes)
-        {
-            if (it->_startMS <= ms && it->_endMS > ms)
-            {
+    GuitarTiming* GetTimingAt(uint32_t ms) {
+        for (const auto& it : _notes) {
+            if (it->_startMS <= ms && it->_endMS > ms) {
                 if (it->_possibleTimings.size() > 0)
                     return it->_possibleTimings.front();
                 else
@@ -796,9 +739,8 @@ public:
     std::string _MIDItrack;
 };
 
-//render Guitar fx during sequence:
-void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements, const std::string& type, const std::string& MIDITrack, const std::string& stringAppearance, int maxFrets, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret)
-{
+// render Guitar fx during sequence:
+void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements, const std::string& type, const std::string& MIDITrack, const std::string& stringAppearance, int maxFrets, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret) {
     GuitarCache* cache = (GuitarCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new GuitarCache();
@@ -820,8 +762,7 @@ void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements
             cache->SetTimings(notes, type, maxFrets);
             elements->AddRenderDependency(MIDITrack, buffer.cur_model);
 
-            while (notes.size() > 0)
-            {
+            while (notes.size() > 0) {
                 delete notes.front();
                 notes.pop_front();
             }
@@ -839,13 +780,11 @@ void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements
     DrawGuitar(buffer, cache->GetTimingAt(time), stringAppearance, maxFrets, strings, showStrings, fade, collapse, stringWaveFactor, baseWaveFactor, varyWavelengthBasedOnFret);
 }
 
-inline uint32_t FlipY(uint32_t y, uint32_t height)
-{
+inline uint32_t FlipY(uint32_t y, uint32_t height) {
     return height - y - 1;
 }
 
-void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint32_t of, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse)
-{
+void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint32_t of, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse) {
     xlColor c;
     buffer.palette.GetColor(string % buffer.palette.Size(), c);
 
@@ -860,7 +799,7 @@ void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fr
     uint32_t maxX = ((maxFrets - fretPos) * buffer.BufferWi) / maxFrets;
     if (showStrings) {
         for (int x = maxX; x < buffer.BufferWi; ++x) {
-            buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), cc);
+            buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), ALL_Z, cc);
         }
     }
 
@@ -877,15 +816,14 @@ void GuitarEffect::DrawGuitarOn(RenderBuffer& buffer, uint8_t string, uint8_t fr
 
     for (uint32_t x = 0; x < maxX; ++x) {
         for (int y = start; y < start + height; ++y) {
-            buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
+            buffer.SetPixel(x, FlipY(y, buffer.BufferHt), ALL_Z, c);
         }
     }
 }
 
 #define WAVE_RAMP 3.0
 
-void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint32_t of, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret)
-{
+void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t fretPos, uint32_t timePos, uint32_t of, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret) {
     xlColor c;
     buffer.palette.GetColor(string % buffer.palette.Size(), c);
 
@@ -901,18 +839,16 @@ void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t 
 
     if (showStrings) {
         for (int x = maxX; x < buffer.BufferWi; ++x) {
-            buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), cc);
+            buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), ALL_Z, cc);
         }
     }
 
     double diffPerFret = 0.0;
-    if (varyWavelengthBasedOnFret)
-    {
+    if (varyWavelengthBasedOnFret) {
         diffPerFret = 0.3;
     }
 
     for (uint32_t x = 0; x < maxX; ++x) {
-
         // this foces the wave to zero near the ends
         double maxY = perString;
 
@@ -925,26 +861,24 @@ void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t 
             maxY *= (double)(maxX - x - 1) * 1.0 / WAVE_RAMP;
         }
 
-        #define WAVE_SPEED 2
+#define WAVE_SPEED 2
         uint32_t y = (maxY / 2.0) * sin((PI * 2.0 * cycles * (double)x / (((double)(strings - string - 1) * stringWaveFactor) + baseWaveFactor + (maxFrets - fretPos) * diffPerFret)) / maxX + (timePos * WAVE_SPEED));
         y += (perString / 2.0) + (perString * string);
-        buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
+        buffer.SetPixel(x, FlipY(y, buffer.BufferHt), ALL_Z, c);
     }
 }
 
-void GuitarEffect::DrawString(RenderBuffer& buffer, uint8_t string, uint8_t strings)
-{
+void GuitarEffect::DrawString(RenderBuffer& buffer, uint8_t string, uint8_t strings) {
     xlColor c;
     buffer.palette.GetColor(string, c);
 
     double perString = (float)buffer.BufferHt / strings;
     for (int x = 0; x < buffer.BufferWi; ++x) {
-        buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), c);
+        buffer.SetPixel(x, FlipY(perString * string + perString / 2, buffer.BufferHt), ALL_Z, c);
     }
 }
 
-void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const std::string& stringAppearance, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret)
-{
+void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const std::string& stringAppearance, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret) {
     if (pdata != nullptr) {
         uint32_t pos = (buffer.curPeriod * buffer.frameTimeInMs - pdata->_startMS) / buffer.frameTimeInMs;
         uint32_t len = (pdata->_endMS - pdata->_startMS) / buffer.frameTimeInMs;
@@ -977,70 +911,56 @@ void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const s
     }
 }
 
-std::vector<float> GuitarEffect::Parse(wxString& l)
-{
-	std::vector<float> res;
-	wxString s = l;
-	while (s.Len() != 0)
-	{
-		int end = s.First('\t');
-		if (end > 0)
-		{
-			res.push_back(wxAtof(s.SubString(0, end - 1)));
-			s = s.Right(s.Len() - end - 1);
-		}
-		else
-		{
-			res.push_back(wxAtof(s));
-			s = "";
-		}
-	}
+std::vector<float> GuitarEffect::Parse(wxString& l) {
+    std::vector<float> res;
+    wxString s = l;
+    while (s.Len() != 0) {
+        int end = s.First('\t');
+        if (end > 0) {
+            res.push_back(wxAtof(s.SubString(0, end - 1)));
+            s = s.Right(s.Len() - end - 1);
+        } else {
+            res.push_back(wxAtof(s));
+            s = "";
+        }
+    }
 
-	return res;
+    return res;
 }
 
-std::list<std::string> GuitarEffect::ExtractNotes(const std::string& label)
-{
+std::list<std::string> GuitarEffect::ExtractNotes(const std::string& label) {
     std::string n = label;
     std::transform(n.begin(), n.end(), n.begin(), ::toupper);
 
     std::list<std::string> res;
 
     std::string s = "";
-    for (const auto& it : n)
-    {
-        if (it == ':' || it == ' ' || it == ';' || it == ',')
-        {
-            if (s != "")
-            {
+    for (const auto& it : n) {
+        if (it == ':' || it == ' ' || it == ';' || it == ',') {
+            if (s != "") {
                 res.push_back(s);
                 s = "";
             }
-        }
-        else
-        {
+        } else {
             if ((it >= 'A' && it <= 'G') ||
                 (it == '#') ||
                 (it == 'S') ||
                 (it == 'P') ||
                 (it == 'M') ||
-                (it >= '0' && it <= '9'))
-            {
+                (it >= '0' && it <= '9')) {
                 s += it;
             }
         }
     }
 
-    if (s != "")
-    {
+    if (s != "") {
         res.push_back(s);
     }
 
     return res;
 }
 
-void GuitarEffect::ConvertStringPos(const std::string& note, uint8_t& string, uint8_t& pos)
-{
+void GuitarEffect::ConvertStringPos(const std::string& note, uint8_t& string, uint8_t& pos) {
     string = 0xFF;
     pos = 0xFF;
 
@@ -1053,8 +973,7 @@ void GuitarEffect::ConvertStringPos(const std::string& note, uint8_t& string, ui
     string = 0;
     uint32_t index = 1;
 
-    while (n[index] >= '0' && n[index] <= '9')
-    {
+    while (n[index] >= '0' && n[index] <= '9') {
         string *= 10;
         string += (uint8_t)(n[index] - '0');
         ++index;
@@ -1073,14 +992,12 @@ void GuitarEffect::ConvertStringPos(const std::string& note, uint8_t& string, ui
     }
 }
 
-int GuitarEffect::ConvertNote(const std::string& note)
-{
+int GuitarEffect::ConvertNote(const std::string& note) {
     std::string n = note;
     int nletter;
     std::transform(n.begin(), n.end(), n.begin(), ::toupper);
 
-    switch (n[0])
-    {
+    switch (n[0]) {
     case 'S':
     case 'P':
         return -1;
@@ -1105,53 +1022,47 @@ int GuitarEffect::ConvertNote(const std::string& note)
     case 'G':
         nletter = 7;
         break;
-    default:
-        {
-            int number = wxAtoi(n);
-            if (number < 0) number = 0;
-            if (number > 127) number = 127;
-            return number;
-        }
+    default: {
+        int number = wxAtoi(n);
+        if (number < 0)
+            number = 0;
+        if (number > 127)
+            number = 127;
+        return number;
+    }
     }
 
     n = n.substr(1);
     int sharp = 0;
-    if (n.find('#') != std::string::npos)
-    {
+    if (n.find('#') != std::string::npos) {
         sharp = 1;
-    }
-    else if (n.find('B') != std::string::npos)
-    {
+    } else if (n.find('B') != std::string::npos) {
         sharp = -1;
     }
 
     int octave = 4;
 
-    if (n != "")
-    {
-        if (n[0] == '#')
-        {
+    if (n != "") {
+        if (n[0] == '#') {
             n = n.substr(1);
-        }
-        else if (n[0] == 'B')
-        {
+        } else if (n[0] == 'B') {
             n = n.substr(1);
         }
     }
 
-    if (n != "")
-    {
+    if (n != "") {
         octave = wxAtoi(n);
     }
 
     int number = 12 + (octave * 12) + nletter + sharp;
-    if (number < 0) number = 0;
-    if (number > 127) number = 127;
+    if (number < 0)
+        number = 0;
+    if (number > 127)
+        number = 127;
     return number;
 }
 
-std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, int intervalMS, const std::string& type, uint8_t maxFrets, uint8_t strings)
-{
+std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, int intervalMS, const std::string& type, uint8_t maxFrets, uint8_t strings) {
     static log4cpp::Category& logger_Guitardata = log4cpp::Category::getInstance(std::string("log_Guitardata"));
 
     std::list<NoteTiming*> res;

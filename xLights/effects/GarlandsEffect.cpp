@@ -176,11 +176,11 @@ void GarlandsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
                 if (dir == 1 || dir == 2) {
                     yadj = buffMax - yadj - 1;
                 }
-                if (dir > 1) {
-                    buffer.SetPixel(yadj,x,color);
-                } else {
-                    buffer.SetPixel(x,yadj,color);
-                }
+                    if (dir > 1) {
+                        buffer.SetPixel(yadj, x, ALL_Z, color);
+                    } else {
+                        buffer.SetPixel(x, yadj, ALL_Z, color);
+                    }
             }
         }
     }

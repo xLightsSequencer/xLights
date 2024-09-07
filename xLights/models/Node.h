@@ -37,8 +37,12 @@ protected:
 public:
     // buffer and screen coordinates for displayed nodes
     struct CoordStruct {
-        int bufX, bufY;
-        float screenX = 0, screenY = 0, screenZ = 0;
+        int bufX = 0;
+        int bufY = 0;
+        int bufZ = 0;
+        float screenX = 0;
+        float screenY = 0;
+        float screenZ = 0;
     };
     
     class CoordVec {
@@ -189,7 +193,7 @@ public:
         if (c.name != nullptr) {
             name = new std::string(*(c.name));
         }
-        for (int x = 0; x < 3; x++) {
+        for (size_t x = 0; x < 3; ++x) {
             this->offsets[x] = c.offsets[x];
             this->c[x] = c.c[x];
         }
@@ -227,10 +231,11 @@ public:
     }
 
     // only for use in initializing the custom model
-    void AddBufCoord(unsigned short x, unsigned short y) {
+    void AddBufCoord(unsigned short x, unsigned short y, unsigned short z = 0) {
         CoordStruct c;
         c.bufX = x;
         c.bufY = y;
+        c.bufZ = z;
         c.screenZ = 0;
         Coords.push_back(c);
     }
@@ -247,7 +252,7 @@ public:
     }
 
     virtual void SetFromChannels(const unsigned char* buf) {
-        for (int x = 0; x < 3; x++) {
+        for (size_t x = 0; x < 3; ++x) {
             if (offsets[x] != 255) {
                 c[x] = buf[offsets[x]];
             }
@@ -255,7 +260,7 @@ public:
     }
 
     virtual void GetForChannels(unsigned char* buf) const {
-        for (int x = 0; x < 3; x++) {
+        for (size_t x = 0; x < 3; ++x) {
             if (offsets[x] != 255) {
                 buf[offsets[x]] = c[x];
             }

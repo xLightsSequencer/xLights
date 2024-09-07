@@ -697,18 +697,21 @@ public:
                         for (auto &a : rb.GetNodes()[n]->Coords) {
                             int x = a.bufX;
                             int y = a.bufY;
-                            if (x >= 0 && x < rb.BufferWi && y >= 0 && y < rb.BufferHt && y*rb.BufferWi + x < rb.GetPixelCount()) {
-                                done[y*rb.BufferWi+x] = true;
+                            int z = a.bufZ;
+                            if (x >= 0 && x < rb.BufferWi && y >= 0 && y < rb.BufferHt && z >= 0 && z < rb.BufferDp && z * rb.BufferWi*rb.BufferHt + y*rb.BufferWi + x < rb.GetPixelCount()) {
+                                done[z * rb.BufferWi * rb.BufferHt + y * rb.BufferWi + x] = true;
                             }
                         }
                     }, 500);
                     // now fill in any spaces in the buffer that don't have nodes mapped to them
                     parallel_for(0, rb.BufferHt, [&rb, &buffer, &done, &vl, frame](int y) {
                         xlColor c;
-                        for (int x = 0; x < rb.BufferWi; x++) {
-                            if (!done[y * rb.BufferWi + x]) {
-                                buffer->GetMixedColor(x, y, c, vl, frame);
-                                rb.SetPixel(x, y, c);
+                        for (int x = 0; x < rb.BufferWi; ++x) {
+                            for (int z = 0; z < rb.BufferDp; ++z) {
+                                if (!done[z * rb.BufferWi * rb.BufferHt + y * rb.BufferWi + x]) {
+                                    buffer->GetMixedColor(x, y, z, c, vl, frame);
+                                    rb.SetPixel(x, y, z, c);
+                                }
                             }
                         }
                         });

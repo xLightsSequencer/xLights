@@ -28,6 +28,8 @@
 #include "ColorCurve.h"
 #include "models/Node.h"
 
+#define ALL_Z -999998
+
 //added hash_map, queue, vector: -DJ
 #ifdef _MSC_VER
 #define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
@@ -447,7 +449,7 @@ public:
     RenderBuffer(xLightsFrame *frame, PixelBufferClass *pbc, const Model *m);
     ~RenderBuffer();
     RenderBuffer(RenderBuffer& buffer);
-    void InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform, bool nodeBuffer = false);
+    void InitBuffer(int newBufferHt, int newBufferWi, int newBufferDp, const std::string& bufferTransform, bool nodeBuffer = false);
     AudioManager* GetMedia() const;
     const Model* GetModel() const;
     const std::string &GetModelName() const;
@@ -469,44 +471,44 @@ public:
     long GetStartTimeMS() const { return curEffStartPer * frameTimeInMs; }
     long GetEndTimeMS() const { return curEffEndPer * frameTimeInMs; }
 
-    const xlColor &GetPixel(int x, int y) const;
-    void GetPixel(int x, int y, xlColor &color) const;
-    void SetPixel(int x, int y, const xlColor &color, bool wrap = false, bool useAlpha = false, bool dmx_ignore = false);
-    void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
+    const xlColor &GetPixel(int x, int y, int z = 0) const;
+    void GetPixel(int x, int y, int z, xlColor &color) const;
+    void SetPixel(int x, int y, int z, const xlColor &color, bool wrap = false, bool useAlpha = false, bool dmx_ignore = false);
+    void SetPixel(int x, int y, int z, const HSVValue& hsv, bool wrap = false);
 
     //optimized/direct versions only usable in cases where x/y are known to be within bounds
-    void SetPixelDirect(int x, int y, const xlColor &color) {
-        pixels[y * BufferWi + x] = color;
+    void SetPixelDirect(int x, int y, int z, const xlColor &color) {
+        pixels[z * BufferWi*BufferHt + y * BufferWi + x] = color;
     }
-    const xlColor& GetPixelDirect(int x, int y) const {
-        return pixels[y * BufferWi + x];
+    const xlColor& GetPixelDirect(int x, int y, int z = 0) const {
+        return pixels[z * BufferWi * BufferHt + y * BufferWi + x];
     }
 
     int GetNodeCount() const { return Nodes.size();}
     const std::vector<NodeBaseClassPtr>& GetNodes() const { return Nodes; }
     void SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore = false);
 
-    void CopyPixel(int srcx, int srcy, int destx, int desty);
-    void ProcessPixel(int x, int y, const xlColor &color, bool wrap_x = false, bool wrap_y = false);
+    void CopyPixel(int srcx, int srcy, int srcz, int destx, int desty, int destz);
+    void ProcessPixel(int x, int y, int z, const xlColor &color, bool wrap_x = false, bool wrap_y = false, bool wrap_z = false);
 
     void ClearTempBuf();
-    const xlColor &GetTempPixelRGB(int x, int y);
-    void SetTempPixel(int x, int y, const xlColor &color, int alpha);
-    void SetTempPixel(int x, int y, const xlColor &color);
-    void GetTempPixel(int x, int y, xlColor &color);
-    const xlColor &GetTempPixel(int x, int y);
+    const xlColor &GetTempPixelRGB(int x, int y, int z = 0) const;
+    void SetTempPixel(int x, int y, int z, const xlColor &color, int alpha);
+    void SetTempPixel(int x, int y, int z, const xlColor &color);
+    void GetTempPixel(int x, int y, int z, xlColor &color);
+    const xlColor &GetTempPixel(int x, int y, int z = 0) const;
 
     void Fill(const xlColor& color);
-    void DrawHLine(int y, int xstart, int xend, const xlColor& color, bool wrap = false);
-    void DrawVLine(int x, int ystart, int yend, const xlColor& color, bool wrap = false);
-    void DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap = false, bool useAlpha = false);
-    void DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap = false);
-    void DrawCircle(int xc, int yc, int r, const xlColor& color, bool filled = false, bool wrap = false);
-    void DrawLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool useAlpha = false);
-    void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, int thickness, bool useAlpha = false);
-    void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction);
+    void DrawHLine(int y, int xstart, int xend, const xlColor& color, int z, bool wrap = false);
+    void DrawVLine(int x, int ystart, int yend, const xlColor& color, int z, bool wrap = false);
+    void DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, int z, bool wrap = false, bool useAlpha = false);
+    void DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, int z, bool wrap = false);
+    void DrawCircle(int xc, int yc, int r, const xlColor& color, int z, bool filled = false, bool wrap = false);
+    void DrawLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, int z, bool useAlpha = false);
+    void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, int z, int thickness, bool useAlpha = false);
+    void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, int z, bool direction);
 
-    void FillConvexPoly(const std::vector<std::pair<int, int>>& poly, const xlColor& color);
+    void FillConvexPoly(const std::vector<std::pair<int, int>>& poly, const xlColor& color, int z);
 
     //approximation of sin/cos, but much faster
     static float sin(float rad);
@@ -542,9 +544,11 @@ public:
     void SetDisplayListRect(Effect *eff, int startIdx, float x1, float y1, float x2, float y2,
                             const xlColor &cx1y1, const xlColor &cx1y2,
                             const xlColor &cx2y1, const xlColor &cx2y2);
+    bool Is3D() const { return BufferDp > 1; }
 
     int BufferHt = 1;
     int BufferWi = 1;  // size of the buffer
+    int BufferDp = 1;  // depth of the buffer
 
 private:
     xlColorVector pixelVector; // this is the calculation buffer

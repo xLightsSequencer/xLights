@@ -869,7 +869,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                     auto p2 = std::next(p1);
                     while (p2 != l.end())
                     {
-                        buffer.DrawLine(p1->x, p1->y, p2->x, p2->y, color, true);
+                        buffer.DrawLine(p1->x, p1->y, p2->x, p2->y, color, ALL_Z, true);
                         ++p2;
                         ++p1;
                     }
@@ -942,14 +942,14 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                         int y1 = buffer.BufferHt / 2 + trueyoffset + lastVector * cos(toRadians(angle - angleper));
                         int x2 = buffer.BufferWi / 2 + truexoffset + vector * sin(toRadians(angle));
                         int y2 = buffer.BufferHt / 2 + trueyoffset + vector * cos(toRadians(angle));
-                        buffer.DrawLine(x1, y1, x2, y2, color);
+                        buffer.DrawLine(x1, y1, x2, y2, color, ALL_Z);
                         linePoints.push_back(wxPoint(x2, y2));
 
                         if (j == usebars - 1)
                         {
                             x1 = buffer.BufferWi / 2 + truexoffset + firstVector * sin(toRadians(angle + angleper));
                             y1 = buffer.BufferHt / 2 + trueyoffset + firstVector * cos(toRadians(angle + angleper));
-                            buffer.DrawLine(x2, y2, x1, y1, color);
+                            buffer.DrawLine(x2, y2, x1, y1, color, ALL_Z);
                             linePoints.push_back(wxPoint(x1, y1));
                         }
                     }
@@ -963,12 +963,12 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                     // draw lines to mid point of each column
                     if (lastColHeight >= 0)
                     {
-                        buffer.DrawLine(lastColX, lastColHeight, mid, colheight, color);
+                        buffer.DrawLine(lastColX, lastColHeight, mid, colheight, color, ALL_Z);
                     }
                     else if (j == usebars - 1)
                     {
                         // just draw a horizontal line
-                        buffer.DrawLine(0, colheight, cols - 1, colheight, color);
+                        buffer.DrawLine(0, colheight, cols - 1, colheight, color, ALL_Z);
                     }
 
                     lastColHeight = colheight;
@@ -987,7 +987,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                             xlColor color1;
                             // an alternate colouring
                             buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1, peak ? 1 : 0);
-                            buffer.SetPixel(x, y, color1);
+                            buffer.SetPixel(x, y, ALL_Z, color1);
                         }
 
                         if (peak)
@@ -995,7 +995,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                             int peakheight = buffer.BufferHt * p;
                             if (y >= peakheight)
                             {
-                                buffer.SetPixel(x, y, peakColour);
+                                buffer.SetPixel(x, y, ALL_Z, peakColour);
                                 break;
                             }
                         }
@@ -1039,7 +1039,7 @@ void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars, int
             for (int y = 0; y < colheight; y++) {
                 xlColor color1;
                 buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
-                buffer.SetPixel(x, y, color1);
+                buffer.SetPixel(x, y, ALL_Z, color1);
             }
         }
     }
@@ -1082,14 +1082,14 @@ void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars, int y
                 y = (float)trueyoffset + (float)buffer.BufferHt / 2.0 + min * ((float)buffer.BufferHt / 2.0);
             }
 
-            buffer.DrawLine(lastx, lasty, x, y, color);
+            buffer.DrawLine(lastx, lasty, x, y, color, ALL_Z);
 
             lasty = y;
             lastx = x;
 
             if (i == usebars - 1)
             {
-                buffer.DrawLine(lastx, lasty, buffer.BufferWi - 1, (float)trueyoffset + (float)buffer.BufferHt / 2.0, color);
+                buffer.DrawLine(lastx, lasty, buffer.BufferWi - 1, (float)trueyoffset + (float)buffer.BufferHt / 2.0, color, ALL_Z);
             }
 
             up = !up;
@@ -1121,7 +1121,7 @@ void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars, int y
                         xlColor color1;
                         //buffer.GetMultiColorBlend((double)y / (double)e, false, color1);
                         buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
-                        buffer.SetPixel(x, y + trueyoffset, color1);
+                        buffer.SetPixel(x, y + trueyoffset, ALL_Z, color1);
                     }
                     x++;
                 }
@@ -1164,7 +1164,7 @@ void VUMeterEffect::RenderTimingEventFrame(RenderBuffer& buffer, int usebars, in
                         {
                             buffer.GetMultiColorBlend(0, false, color1);
                         }
-                        buffer.SetPixel(x, y, color1);
+                        buffer.SetPixel(x, y, ALL_Z, color1);
                     }
                     x++;
                 }
@@ -1198,7 +1198,7 @@ void VUMeterEffect::RenderTimingEventFrame(RenderBuffer& buffer, int usebars, in
                                 {
                                     for (int y = 0; y < buffer.BufferHt; y++)
                                     {
-                                        buffer.SetPixel(x, y, color1);
+                                        buffer.SetPixel(x, y, ALL_Z, color1);
                                     }
                                     x++;
                                     left--;
@@ -1263,11 +1263,11 @@ void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int u
         {
             if ((nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2) && nCount % 2 == 0)
             {
-                buffer.SetPixel(buffer.BufferWi - (x + startX) - 1, y, color1);
+                buffer.SetPixel(buffer.BufferWi - (x + startX) - 1, y, ALL_Z, color1);
             }
             else
             {
-                buffer.SetPixel(x + startX, y, color1);
+                buffer.SetPixel(x + startX, y, ALL_Z, color1);
             }
         }
     }
@@ -1298,11 +1298,11 @@ void VUMeterEffect::RenderTimingEventTimedChaseFrame(RenderBuffer& buffer, int u
         buffer.GetMultiColorBlend((double)x / usebars, false, color1);
         for (int y = 0; y < buffer.BufferHt; y++) {           
             if (nType == RenderType::TIMING_EVENT_CHASE_FROM_MIDDLE) {  
-                buffer.SetPixel(std::round(buffer.BufferWi / 2) - (x + startX), y, color1);
-                buffer.SetPixel(std::round(buffer.BufferWi / 2) + (x + startX), y, color1);
+                buffer.SetPixel(std::round(buffer.BufferWi / 2) - (x + startX), y, ALL_Z, color1);
+                buffer.SetPixel(std::round(buffer.BufferWi / 2) + (x + startX), y, ALL_Z, color1);
             } else {
-                buffer.SetPixel(buffer.BufferWi - (x + startX) - 1, y, color1);
-                buffer.SetPixel((x + startX), y, color1);
+                buffer.SetPixel(buffer.BufferWi - (x + startX) - 1, y, ALL_Z, color1);
+                buffer.SetPixel((x + startX), y, ALL_Z, color1);
             }
         }
     }
@@ -1325,7 +1325,7 @@ void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer, int gain)
 	{
 		for (int y = 0; y < buffer.BufferHt; y++)
 		{
-			buffer.SetPixel(x, y, color1);
+            buffer.SetPixel(x, y, ALL_Z, color1);
 		}
 	}
 }
@@ -1374,7 +1374,7 @@ void VUMeterEffect::RenderDominantFrequencyColour(RenderBuffer& buffer, int sens
             {
                 for (int y = 0; y < buffer.BufferHt; y++)
                 {
-                    buffer.SetPixel(x, y, color1);
+                    buffer.SetPixel(x, y, ALL_Z, color1);
                 }
             }
         }
@@ -1398,7 +1398,7 @@ void VUMeterEffect::RenderOnColourFrame(RenderBuffer& buffer, int gain)
     {
         for (int y = 0; y < buffer.BufferHt; y++)
         {
-            buffer.SetPixel(x, y, color1);
+            buffer.SetPixel(x, y, ALL_Z, color1);
         }
     }
 }
@@ -1446,7 +1446,7 @@ void VUMeterEffect::RenderPulseFrame(RenderBuffer& buffer, int fadeframes, std::
         {
             for (int y = 0; y < buffer.BufferHt; y++)
             {
-                buffer.SetPixel(x, y, color1);
+                buffer.SetPixel(x, y, ALL_Z, color1);
             }
         }
     }
@@ -1482,7 +1482,7 @@ void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer &buffer, int usebars, 
 			{
 				for (int y = 0; y < buffer.BufferHt; y++)
 				{
-					buffer.SetPixel(x, y, color1);
+                    buffer.SetPixel(x, y, ALL_Z, color1);
 				}
 				x++;
 			}
@@ -1527,7 +1527,7 @@ void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, 
 			{
 				for (int y = 0; y < buffer.BufferHt; y++)
 				{
-					buffer.SetPixel(x, y, color1);
+                    buffer.SetPixel(x, y, ALL_Z, color1);
 				}
 			}
 		}
@@ -1574,7 +1574,7 @@ void VUMeterEffect::RenderLevelJumpFrame(RenderBuffer& buffer, int fadeframes, i
                 buffer.GetMultiColorBlend((float)y / (float)buffer.BufferHt, false, color1);
                 for (int x = 0; x < buffer.BufferWi; x++)
                 {
-                    buffer.SetPixel(x, y, color1);
+                    buffer.SetPixel(x, y, ALL_Z, color1);
                 }
             }
         }
@@ -1623,7 +1623,7 @@ void VUMeterEffect::RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadefr
             {
                 for (int y = 0; y < buffer.BufferHt; y++)
                 {
-                    buffer.SetPixel(x, y, color1);
+                    buffer.SetPixel(x, y, ALL_Z, color1);
                 }
             }
         }
@@ -1662,7 +1662,7 @@ void VUMeterEffect::RenderLevelColourFrame(RenderBuffer &buffer, int& colourinde
 
         for (int x = 0; x < buffer.BufferWi; x++) {
             for (int y = 0; y < buffer.BufferHt; y++) {
-                buffer.SetPixel(x, y, color1);
+                buffer.SetPixel(x, y, ALL_Z, color1);
             }
         }
     }
@@ -1687,11 +1687,11 @@ void VUMeterEffect::DrawCircle(RenderBuffer& buffer, int centerx, int centery, f
 					int y = sqrt(zz);
 					if (y + centery >= 0 && y + centery < buffer.BufferHt)
 					{
-						buffer.SetPixel(x, y + centery, color1);
+                        buffer.SetPixel(x, y + centery, ALL_Z, color1);
 					}
 					if (-y + centery >= 0 && -y + centery < buffer.BufferHt)
 					{
-						buffer.SetPixel(x, -y + centery, color1);
+                        buffer.SetPixel(x, -y + centery, ALL_Z, color1);
 					}
 				}
 			}
@@ -1708,11 +1708,11 @@ void VUMeterEffect::DrawCircle(RenderBuffer& buffer, int centerx, int centery, f
 					int x = sqrt(zz);
 					if (x + centerx >= 0 && x + centerx < buffer.BufferWi)
 					{
-						buffer.SetPixel(x + centerx, y, color1);
+                        buffer.SetPixel(x + centerx, y, ALL_Z, color1);
 					}
 					if (-x + centerx >= 0 && -x + centerx < buffer.BufferWi)
 					{
-						buffer.SetPixel(-x + centerx, y, color1);
+                        buffer.SetPixel(-x + centerx, y, ALL_Z, color1);
 					}
 				}
 			}
@@ -1759,13 +1759,13 @@ void VUMeterEffect::DrawStar(RenderBuffer& buffer, int centerx, int centery, flo
             int xinner = InnerRadius * cos(radian) + centerx;
             int yinner = InnerRadius * sin(radian) + centery;
 
-            buffer.DrawLine(xinner, yinner, xouter, youter, color1);
+            buffer.DrawLine(xinner, yinner, xouter, youter, color1, ALL_Z);
 
             radian = (offsetangle + degrees - increment / 2.0) * (M_PI / 180.0);
             xinner = InnerRadius * cos(radian) + centerx;
             yinner = InnerRadius * sin(radian) + centery;
 
-            buffer.DrawLine(xinner, yinner, xouter, youter, color1);
+            buffer.DrawLine(xinner, yinner, xouter, youter, color1, ALL_Z);
         }
     }
 }
@@ -1782,7 +1782,7 @@ void VUMeterEffect::DrawBox(RenderBuffer& buffer, int startx, int endx, int star
 				{
 					if (y >= 0 && y < buffer.BufferHt)
 					{
-						buffer.SetPixel(x, y, color1);
+                        buffer.SetPixel(x, y, ALL_Z, color1);
 					}
 				}
 			}
@@ -1790,11 +1790,11 @@ void VUMeterEffect::DrawBox(RenderBuffer& buffer, int startx, int endx, int star
 			{
 				if (starty >= 0 && starty < buffer.BufferHt)
 				{
-					buffer.SetPixel(x, starty, color1);
+                    buffer.SetPixel(x, starty, ALL_Z, color1);
 				}
 				if (endy >= 0 && endy < buffer.BufferHt)
 				{
-					buffer.SetPixel(x, endy, color1);
+                    buffer.SetPixel(x, endy, ALL_Z, color1);
 				}
 			}
 		}
@@ -1811,11 +1811,11 @@ void VUMeterEffect::DrawDiamond(RenderBuffer& buffer, int centerx, int centery, 
 
 			if (y + centery >= 0 && y + centery < buffer.BufferHt)
 			{
-				buffer.SetPixel(x + centerx, y + centery, color1);
+                buffer.SetPixel(x + centerx, y + centery, ALL_Z, color1);
 			}
 			if (-y + centery >= 0 && -y + centery < buffer.BufferHt)
 			{
-				buffer.SetPixel(x + centerx, -y + centery, color1);
+                buffer.SetPixel(x + centerx, -y + centery, ALL_Z, color1);
 			}
 		}
 	}
@@ -1840,7 +1840,7 @@ void VUMeterEffect::DrawSnowflake(RenderBuffer &buffer, int xc, int yc, double r
 			int x2 = std::round(radius * cos(radian)) + xc;
 			int y2 = std::round(radius * sin(radian)) + yc;
 
-			buffer.DrawLine(x1, y1, x2, y2, color);
+			buffer.DrawLine(x1, y1, x2, y2, color, ALL_Z);
 
 			angle += increment;
 		}
@@ -1866,14 +1866,14 @@ void VUMeterEffect::DrawHeart(RenderBuffer &buffer, int xc, int yc, double radiu
                 double xx1 = std::round((x * r) / 2.0) + xc;
                 double yy1 = ((y1 * r) / 2.0) + yc;
                 double yy2 = ((y2 * r) / 2.0) + yc;
-                buffer.SetPixel(xx1, std::round(yy1), color);
-				buffer.SetPixel(xx1, std::round(yy2), color);
+                buffer.SetPixel(xx1, std::round(yy1), ALL_Z, color);
+                buffer.SetPixel(xx1, std::round(yy2), ALL_Z, color);
                 if (x + xincr > 2.0 || x == -2.0 + xincr) {
                     if (yy1 > yy2)
                         std::swap(yy1, yy2);
 
                     for (double z = yy1; z < yy2; z += 0.5) {
-                        buffer.SetPixel(xx1, std::round(z), color);
+                        buffer.SetPixel(xx1, std::round(z), ALL_Z, color);
                     }
                 }
 			}
@@ -1930,7 +1930,7 @@ void VUMeterEffect::DrawTree(RenderBuffer &buffer, int xc, int yc, double radius
 				int y1 = std::round(((double)points[j].start.y - 4.0) / 11.0 * radius);
 				int x2 = std::round(((double)points[j].end.x - 4.0) / 11.0 * radius);
 				int y2 = std::round(((double)points[j].end.y - 4.0) / 11.0 * radius);
-				buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color);
+                buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color, ALL_Z);
 			}
 		}
 		else
@@ -1995,7 +1995,7 @@ void VUMeterEffect::DrawSVG(RenderBuffer& buffer, int xc, int yc, double radius,
     if (image == nullptr) {
         for (size_t x = 0; x < buffer.BufferWi; ++x) {
             for (size_t y = 0; y < buffer.BufferHt; ++y) {
-                buffer.SetPixel(x, y, xlRED);
+                buffer.SetPixel(x, y, ALL_Z, xlRED);
             }
         }
     } else {
@@ -2089,7 +2089,7 @@ void VUMeterEffect::DrawSVG(RenderBuffer& buffer, int xc, int yc, double radius,
                 } else {
                     cc.Set(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), 255);
                 }
-                buffer.SetPixel(x, y, cc);
+                buffer.SetPixel(x, y, ALL_Z, cc);
             }
         }
     }
@@ -2137,7 +2137,7 @@ void VUMeterEffect::DrawCrucifix(RenderBuffer &buffer, int xc, int yc, double ra
 				int y1 = std::round(((double)points[j].start.y - 6.5) / 10.0 * radius);
 				int x2 = std::round(((double)points[j].end.x - 2.5) / 7.0 * radius);
 				int y2 = std::round(((double)points[j].end.y - 6.5) / 10.0 * radius);
-				buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color);
+                buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color, ALL_Z);
 			}
 		}
 		else
@@ -2187,7 +2187,7 @@ void VUMeterEffect::DrawPresent(RenderBuffer &buffer, int xc, int yc, double rad
 				int y1 = std::round(((double)points[j].start.y - 5.5) / 10.0 * radius);
 				int x2 = std::round(((double)points[j].end.x - 5) / 7.0 * radius);
 				int y2 = std::round(((double)points[j].end.y - 5.5) / 10.0 * radius);
-				buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color);
+                buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color, ALL_Z);
 			}
 		}
 		else
@@ -2211,7 +2211,7 @@ void VUMeterEffect::DrawCandycane(RenderBuffer &buffer, int xc, int yc, double r
 			int y1 = std::round((double)yc + originalRadius / 6.0);
 			int y2 = std::round((double)yc - originalRadius / 2.0);
 			int x = std::round((double)xc + radius / 2.0);
-			buffer.DrawLine(x, y1, x, y2, color);
+            buffer.DrawLine(x, y1, x, y2, color, ALL_Z);
 
 			// draw the hook
 			double r = radius / 3.0;
@@ -2220,7 +2220,7 @@ void VUMeterEffect::DrawCandycane(RenderBuffer &buffer, int xc, int yc, double r
 				double radian = degrees * (M_PI / 180.0);
 				x = std::round((r - interpolation) * buffer.cos(radian) + xc + originalRadius / 6.0);
 				int y = std::round((r - interpolation) * buffer.sin(radian) + y1);
-				buffer.SetPixel(x, y, color);
+                buffer.SetPixel(x, y, ALL_Z, color);
 			}
 		}
 		else
@@ -2573,7 +2573,7 @@ void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer& buffer, int fallfra
                 buffer.GetMultiColorBlend((float)y / (float)buffer.BufferHt, false, color);
                 for (int x = 0; x < buffer.BufferWi; x++)
                 {
-                    buffer.SetPixel(x, y, color);
+                    buffer.SetPixel(x, y, ALL_Z, color);
                 }
             }
 
@@ -2605,7 +2605,7 @@ void VUMeterEffect::RenderTimingEventPulseFrame(RenderBuffer& buffer, int fadefr
             {
                 for (int x = 0; x < buffer.BufferWi; x++)
                 {
-                    buffer.SetPixel(x, y, color);
+                    buffer.SetPixel(x, y, ALL_Z, color);
                 }
             }
 
@@ -2637,7 +2637,7 @@ void VUMeterEffect::RenderTimingEventPulseColourFrame(RenderBuffer& buffer, int 
             {
                 for (int x = 0; x < buffer.BufferWi; x++)
                 {
-                    buffer.SetPixel(x, y, color);
+                    buffer.SetPixel(x, y, ALL_Z, color);
                 }
             }
 
@@ -2673,7 +2673,7 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer& buffer, int& colo
         {
             for (int y = 0; y < buffer.BufferHt; y++)
             {
-                buffer.SetPixel(x, y, color);
+                buffer.SetPixel(x, y, ALL_Z, color);
             }
         }
     }
@@ -2708,7 +2708,7 @@ void VUMeterEffect::RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int e
         {
             for (int y = 0; y < buffer.BufferHt; y++)
             {
-                buffer.SetPixel(x, y, color1);
+                buffer.SetPixel(x, y, ALL_Z, color1);
             }
         }
     }
@@ -2758,7 +2758,7 @@ void VUMeterEffect::RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadefram
                 {
                     for (int y = 0; y < buffer.BufferHt; y++)
                     {
-                        buffer.SetPixel(x, y, color1);
+                        buffer.SetPixel(x, y, ALL_Z, color1);
                     }
                 }
             }
@@ -2816,7 +2816,7 @@ void VUMeterEffect::RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframe
                     buffer.GetMultiColorBlend((float)y / (float)buffer.BufferHt, false, color1);
                     for (int x = 0; x < buffer.BufferWi; x++)
                     {
-                        buffer.SetPixel(x, y, color1);
+                        buffer.SetPixel(x, y, ALL_Z, color1);
                     }
                 }
             }
@@ -2867,7 +2867,7 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
             {
                 for (int y = 0; y < buffer.BufferHt; ++y)
                 {
-                    buffer.SetPixel(x, y, color1);
+                    buffer.SetPixel(x, y, ALL_Z, color1);
                 }
             }
         }
@@ -2922,7 +2922,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
 
                 for (int x = startx; x < endx; x++) {
                     for (int y = 0; y < buffer.BufferHt; y++) {
-                        buffer.SetPixel(x, y, color);
+                        buffer.SetPixel(x, y, ALL_Z, color);
                     }
                 }
 
@@ -2940,7 +2940,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
             if (bar >= 0) {
                 for (int x = startx; x < endx; x++) {
                     for (int y = 0; y < buffer.BufferHt; y++) {
-                        buffer.SetPixel(x, y, color);
+                        buffer.SetPixel(x, y, ALL_Z, color);
                     }
                 }
             }
@@ -2999,7 +2999,7 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer& buffer, int bars, int 
         if (bar >= 0) {
             for (int x = startx; x < endx; x++) {
                 for (int y = 0; y < buffer.BufferHt; ++y) {
-                    buffer.SetPixel(x, y, color1);
+                    buffer.SetPixel(x, y, ALL_Z, color1);
                 }
             }
         }

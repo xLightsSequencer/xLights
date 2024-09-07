@@ -329,12 +329,12 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                     msb_c.red = msb;
                     msb_c.green = msb;
                     msb_c.blue = msb;
-                    buffer.SetPixel(channel_coarse, 0, msb_c, false, false, true);
+                    buffer.SetPixel(channel_coarse, 0, 0, msb_c, false, false, true);
                     if (channel_fine >= 0) {
-                        buffer.SetPixel(channel_fine, 0, lsb_c, false, false, true);
+                        buffer.SetPixel(channel_fine, 0, 0, lsb_c, false, false, true);
                     }
                 } else {
-                    buffer.SetPixel(channel_coarse, 0, lsb_c, false, false, true);
+                    buffer.SetPixel(channel_coarse, 0, 0, lsb_c, false, false, true);
                 }
                 break;
             }

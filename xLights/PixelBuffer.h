@@ -64,42 +64,6 @@ private:
     public:
         LayerInfo(xLightsFrame* frame, PixelBufferClass *p, const Model *m) :
             buffer(frame, p, m) {
-            inMaskFactor = 1.0;
-            outMaskFactor = 1.0;
-            blur = 0;
-            rotation = 0.0f;
-            rotations = 0;
-            zoom = 1.0f;
-            zoomquality = 1;
-            rotationorder = "X, Y, Z";
-            pivotpointx = 50;
-            pivotpointy = 50;
-            xrotation = 0;
-            yrotation = 0;
-            xpivot = 50;
-            ypivot = 0;
-            sparkle_count = 0;
-            use_music_sparkle_count = false;
-            music_sparkle_count_factor = 1.0;
-            brightness = 100;
-            hueadjust = 0;
-            saturationadjust = 0;
-            valueadjust = 0;
-            contrast = 0;
-            fadeFactor = 1.0;
-            mixType = MixTypes::Mix_Normal;
-            effectMixThreshold = 0.0;
-            effectMixVaries = false;
-            canvas = false;
-            BufferHt = BufferWi = BufferOffsetX = BufferOffsetY = 0;
-            persistent = false;
-            modelBuffers = nullptr;
-            freezeAfterFrame = 10000;
-            suppressUntil = 0;
-            fadeInSteps = fadeOutSteps = 0;
-            inTransitionAdjust = outTransitionAdjust = 0;
-            inTransitionReverse = outTransitionReverse = false;
-            stagger = 0;
         }
         RenderBuffer buffer;
         std::string bufferType;
@@ -122,10 +86,11 @@ private:
         std::string xpivotValueCurve;
         std::string ypivotValueCurve;
         std::string rotoZoom;
-        int BufferHt;
-        int BufferWi;
-        int BufferOffsetX;
-        int BufferOffsetY;
+        int BufferHt = 0;
+        int BufferWi = 0;
+        int BufferDp = 0;
+        int BufferOffsetX = 0;
+        int BufferOffsetY = 0;
         ValueCurve BlurValueCurve;
         ValueCurve SparklesValueCurve;
         ValueCurve BrightnessValueCurve;
@@ -143,46 +108,46 @@ private:
         ValueCurve YPivotValueCurve;
         ValueCurve InTransitionAdjustValueCurve;
         ValueCurve OutTransitionAdjustValueCurve;
-        int sparkle_count;
+        int sparkle_count = 0;
         bool use_music_sparkle_count = false;
-        float music_sparkle_count_factor;
-        int blur;
-        int rotation;
-        int xrotation;
-        int yrotation;
-        float rotations;
-        float zoom;
-        int zoomquality;
-        std::string rotationorder;
-        int pivotpointx;
-        int pivotpointy;
-        int xpivot;
-        int ypivot;
-        int brightness;
-        int hueadjust;
-        int saturationadjust;
-        int valueadjust;
-        int contrast;
-        double fadeFactor = 1.0f;
-        MixTypes mixType;
-        float effectMixThreshold;
-        bool effectMixVaries;
+        float music_sparkle_count_factor = 1.0;
+        int blur = 0;
+        int rotation = 0;
+        int xrotation = 0;
+        int yrotation = 0;
+        float rotations = 0.0f;
+        float zoom = 1.0f;
+        int zoomquality = 1;
+        std::string rotationorder = "X, Y, Z";
+        int pivotpointx = 50;
+        int pivotpointy = 50;
+        int xpivot = 50;
+        int ypivot = 0;
+        int brightness = 100;
+        int hueadjust = 0;
+        int saturationadjust = 0;
+        int valueadjust = 0;
+        int contrast = 0;
+        double fadeFactor = 1.0;
+        MixTypes mixType = MixTypes::Mix_Normal;
+        float effectMixThreshold = 0.0f;
+        bool effectMixVaries = false;
         bool canvas = false;
         bool persistent = false;
         bool renderingDisabled = false;
-        int fadeInSteps;
-        int fadeOutSteps;
+        int fadeInSteps = 0;
+        int fadeOutSteps = 0;
         std::string inTransitionType;
         std::string outTransitionType;
         std::string type;
         std::string transform;
-        int inTransitionAdjust;
-        int outTransitionAdjust;
-        bool inTransitionReverse;
-        bool outTransitionReverse;
+        int inTransitionAdjust = 0;
+        int outTransitionAdjust = 0;
+        bool inTransitionReverse = false;
+        bool outTransitionReverse = false;
         float inMaskFactor = 1.0f;
         float outMaskFactor = 1.0f;
-        int stagger;
+        int stagger = 0;
 
         std::vector<std::unique_ptr<RenderBuffer>>* modelBuffers = nullptr;
         std::vector<std::unique_ptr<RenderBuffer>> shallowModelBuffers;
@@ -201,7 +166,7 @@ private:
 
         void renderTransitions(bool isFirstFrame, RenderBuffer* prevRB);
         void calculateMask(const std::string& type, bool mode, bool isFirstFrame);
-        bool isMasked(int x, int y);
+        bool isMasked(int x, int y, int z);
 
         void clear();
 
@@ -238,7 +203,7 @@ private:
     int frameTimeInMs = 50;
 
     // both fg and bg may be modified, bg will contain the new, mixed color to be the bg for the next mix
-    void mixColors(const wxCoord& x, const wxCoord& y, xlColor& fg, xlColor& bg, int layer);
+    void mixColors(const wxCoord& x, const wxCoord& y, const wxCoord& z, xlColor& fg, xlColor& bg, int layer);
     void reset(int layers, int timing, bool isNode = false);
     void Blur(LayerInfo* layer, float offset);
     void RotoZoom(LayerInfo* layer, float offset);
@@ -259,7 +224,7 @@ private:
 
 public:
     static std::vector<std::string> GetMixTypes();
-    void GetMixedColor(int x, int y, xlColor& c, const std::vector<bool>& validLayers, int EffectPeriod);
+    void GetMixedColor(int x, int y, int z, xlColor& c, const std::vector<bool>& validLayers, int EffectPeriod);
     void GetNodeChannelValues(size_t nodenum, unsigned char* buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char* buf);
     xlColor GetNodeColor(size_t nodenum) const;

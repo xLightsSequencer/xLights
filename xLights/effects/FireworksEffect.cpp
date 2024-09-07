@@ -492,7 +492,7 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         {
             for (auto p : it.GetParticles())
             {
-                buffer.SetPixel(p.GetX(), p.GetY(), p.GetColour(buffer.palette, buffer.allowAlpha));
+                buffer.SetPixel(p.GetX(), p.GetY(), ALL_Z, p.GetColour(buffer.palette, buffer.allowAlpha));
             }
 
             it.Advance();

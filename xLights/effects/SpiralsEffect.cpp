@@ -134,15 +134,15 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
                     if (buffer.allowAlpha) {
                         xlColor c(color);
                         c.alpha = 255.0 * f;
-                        buffer.SetPixel(x, y, c);
+                        buffer.SetPixel(x, y, ALL_Z, c);
                     } else {
                         HSVValue hsv;
                         buffer.Color2HSV(color, hsv);
                         hsv.value *= f;
-                        buffer.SetPixel(x, y, hsv);
+                        buffer.SetPixel(x, y, ALL_Z, hsv);
                     }
                 } else {
-                    buffer.SetPixel(x, y, color);
+                    buffer.SetPixel(x, y, ALL_Z, color);
                 }
             }
         };

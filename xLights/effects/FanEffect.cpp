@@ -241,7 +241,7 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
                                 color = hsv;
                             }
                         }
-                        buffer.SetPixel(x, y, color);
+                            buffer.SetPixel(x, y, ALL_Z, color);
                     }
                 }
             }

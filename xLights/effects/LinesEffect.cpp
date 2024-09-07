@@ -103,13 +103,13 @@ class LineObject
     {
         auto p1 = t.front();
         auto p2 = t.back();
-        buffer.DrawThickLine(p1._x, p1._y, p2._x, p2._y, c, thickness, true);
+        buffer.DrawThickLine(p1._x, p1._y, p2._x, p2._y, c, ALL_Z, thickness, true);
 
         if (t.size() > 2) {
             auto it1 = t.begin();
             auto it2 = std::next(t.begin());
             while (it2 != t.end()) {
-                buffer.DrawThickLine(it1->_x, it1->_y, it2->_x, it2->_y, c, thickness, true);
+                buffer.DrawThickLine(it1->_x, it1->_y, it2->_x, it2->_y, c, ALL_Z, thickness, true);
                 ++it1;
                 ++it2;
             }

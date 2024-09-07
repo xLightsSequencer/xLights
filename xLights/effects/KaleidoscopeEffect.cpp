@@ -399,7 +399,7 @@ void KaleidoscopeEffect::Render(Effect *eff, const SettingsMap &SettingsMap, Ren
                     auto source = GetSourceLocation(x, y, *edge, buffer.BufferWi, buffer.BufferHt);
                     if (source.first >= 0 && source.first < buffer.BufferWi && source.second >= 0 && source.second < buffer.BufferHt) {
                         if (currentUsed[source.first][source.second]) {
-                            buffer.SetPixel(x, y, buffer.GetPixel(source.first, source.second));
+                            buffer.SetPixel(x, y, ALL_Z, buffer.GetPixel(source.first, source.second, 0));
                             currentUsed[x][y] = true;
                             //set++;
                             setSinceBegin++;

@@ -405,7 +405,7 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             if (strobe[x].isByNode) {
                 buffer.SetNodePixel(strobe[x].x, color); // Turn pixel on
             } else {
-                buffer.SetPixel(strobe[x].x, strobe[x].y, color); // Turn pixel on
+                buffer.SetPixel(strobe[x].x, strobe[x].y, ALL_Z, color); // Turn pixel on
             }
         } else {
             buffer.palette.GetHSV(strobe[x].colorindex, hsv);
@@ -414,7 +414,7 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             if (strobe[x].isByNode) {
                 buffer.SetNodePixel(strobe[x].x, hsv); // Turn pixel on
             } else {
-                buffer.SetPixel(strobe[x].x, strobe[x].y, hsv); // Turn pixel on
+                buffer.SetPixel(strobe[x].x, strobe[x].y, ALL_Z, hsv); // Turn pixel on
             }
         }
     }, 500);

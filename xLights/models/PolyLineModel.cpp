@@ -78,12 +78,13 @@ bool PolyLineModel::IsNodeFirst(int n) const
 
 void PolyLineModel::InitRenderBufferNodes(const std::string& tp, const std::string& camera,
     const std::string& transform,
-    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, int& BufferDp, int stagger, bool deep) const
 {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
 
     if (type == "Line Segments" && hasIndivSeg) {
         BufferHi = num_segments;
+        BufferDp = 1;
         BufferWi = 0;
         for (int x = 0; x < num_segments; x++) {
             int w = polyLineSizes[x];
@@ -107,15 +108,16 @@ void PolyLineModel::InitRenderBufferNodes(const std::string& tp, const std::stri
                 for (size_t c = 0; c < CoordCount; c++) {
                     newNodes[idx]->Coords[c].bufX = location;
                     newNodes[idx]->Coords[c].bufY = m;
+                    newNodes[idx]->Coords[c].bufZ = 0;
                 }
                 idx++;
                 seg_idx++;
             }
         }
-        ApplyTransform(transform, newNodes, BufferWi, BufferHi);
+        ApplyTransform(transform, newNodes, BufferWi, BufferHi, BufferDp);
     }
     else {
-        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, stagger);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, BufferDp, stagger);
     }
 }
 

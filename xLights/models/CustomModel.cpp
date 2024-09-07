@@ -477,7 +477,7 @@ const std::vector<std::string>& CustomModel::GetBufferStyles() const
     return CUSTOM_BUFFERSTYLES;
 }
 
-void CustomModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
+void CustomModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int& BufferDp, int stagger) const
 {
     int width = parm1;
     int height = parm2;
@@ -492,7 +492,7 @@ void CustomModel::GetBufferSize(const std::string& tp, const std::string& camera
     else if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel" ||
         type == "Horizontal Per Strand" || type == "Vertical Per Strand" ||
         type == "Horizontal Per Model/Strand" || type == "Vertical Per Model/Strand") {
-        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
     }
     else if (type == "Stacked X Horizontally") {
         BufferHi = height;
@@ -542,24 +542,30 @@ void CustomModel::GetBufferSize(const std::string& tp, const std::string& camera
         BufferWi = width * depth;
         BufferHi = height * depth;
     }
+    else if (type == "3D")
+    {
+        BufferWi = width;
+        BufferHi = height;
+        BufferDp = depth;
+    }
     else {
         wxASSERT(false);
     }
 
-    AdjustForTransform(transform, BufferWi, BufferHi);
+    AdjustForTransform(transform, BufferWi, BufferHi, BufferDp);
 }
 
-void CustomModel::InitRenderBufferNodes(const std::string& tp, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
-{
+void CustomModel::InitRenderBufferNodes(const std::string& tp, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int& BufferDp, int stagger, bool deep) const {
     int width = parm1;
     int height = parm2;
     int depth = _depth;
+
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
 
     wxASSERT(width > 0 && height > 0 && depth > 0);
 
     int startNodeSize = Nodes.size();
-    Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi, stagger);
+    Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi, BufferDp, stagger);
 
     if ((SingleChannel || SingleNode) && IsMultiCoordsPerNode()) {
         // I am not 100% about this change but it makes sense to me
@@ -588,7 +594,7 @@ void CustomModel::InitRenderBufferNodes(const std::string& tp, const std::string
         return;
     }
 
-    GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+    GetBufferSize(type, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
     if (type == "Stacked X Horizontally") {
         for (auto n = 0; n < Nodes.size(); n++) {
             auto loc = FindNode(n, locations);
@@ -667,6 +673,15 @@ void CustomModel::InitRenderBufferNodes(const std::string& tp, const std::string
             auto loc = FindNode(n, locations);
             Nodes[n]->Coords[0].bufX = std::get<2>(loc) + std::get<0>(loc) * width;
             Nodes[n]->Coords[0].bufY = std::get<1>(loc) + (height - std::get<1>(loc) - 1) * height;
+        }
+    }
+    else if (type == "3D")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++) {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<0>(loc);
+            Nodes[n]->Coords[0].bufY = std::get<1>(loc);
+            Nodes[n]->Coords[0].bufZ = std::get<2>(loc);
         }
     }
     else {

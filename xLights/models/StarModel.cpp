@@ -83,39 +83,42 @@ const std::vector<std::string> &StarModel::GetBufferStyles() const {
     return STAR_BUFFER_STYLES;
 }
 
-void StarModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
+void StarModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int& BufferDp, int stagger) const
 {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     if (type == "Layer Star") {
         BufferHi = GetNumStrands();
         BufferWi = 0;
+        BufferDp = 1;
         for (int x = 0; x < BufferHi; x++) {
             int w = GetStarSize(x);
             if (w > BufferWi) {
                 BufferWi = w;
             }
         }
-        AdjustForTransform(transform, BufferWi, BufferHi);
+        AdjustForTransform(transform, BufferWi, BufferHi, BufferDp);
     }
     else if (SingleChannel || SingleNode) {
         BufferHi = GetNumStrands();
         BufferWi = 1;
-        AdjustForTransform(transform, BufferWi, BufferHi);
+        BufferDp = 1;
+        AdjustForTransform(transform, BufferWi, BufferHi, BufferDp);
     }
     else {
-        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
     }
 }
 
 void StarModel::InitRenderBufferNodes(const std::string& tp,
     const std::string& camera,
     const std::string& transform,
-    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
+    std::vector<NodeBaseClassPtr>& newNodes, int& BufferWi, int& BufferHi, int& BufferDp, int stagger, bool deep) const
 {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     if (type == "Layer Star") {
         BufferHi = GetNumStrands();
         BufferWi = 0;
+        BufferDp = 1;
         for (int x = 0; x < BufferHi; x++) {
             int w = GetStarSize(x);
             if (w > BufferWi) {
@@ -152,32 +155,35 @@ void StarModel::InitRenderBufferNodes(const std::string& tp,
                 for (auto& it : newNodes[n]->Coords) {
                     it.bufY = layer;
                     it.bufX = cnt * BufferWi / numlights;
+                    it.bufZ = 0;
                 }
             }
             start += numlights;
         }
-        ApplyTransform(transform, newNodes, BufferWi, BufferHi);
+        ApplyTransform(transform, newNodes, BufferWi, BufferHi, BufferDp);
     }
     else if (SingleChannel || SingleNode) {
         // I am not 100% about this change but it makes sense to me
         // While the custom model may have a height and width if it is single channel then the render buffer really should be Nodes x 1
         // and all nodes should point to one cell.
         // Without this change effects like twinkle do really strange things
-        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, stagger);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, BufferDp, stagger);
         BufferHi = Nodes.size();
         BufferWi = 1;
+        BufferDp = 1;
         int x = 0;
         for (auto& it : Nodes) {
             for (auto& it2 : it->Coords) {
                 it2.bufX = 0;
                 it2.bufY = x;
+                it2.bufZ = 0;
             }
             x++;
         }
         return;
     }
     else {
-        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, stagger);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi, BufferDp, stagger);
     }
 }
 

@@ -211,12 +211,12 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                     if (ColorScheme == 0)
                     {
                         hsv.hue=h;
-                        buffer.SetPixel(x,y,hsv);
+                        buffer.SetPixel(x, y, ALL_Z, hsv);
                     }
                     else
                     {
                         buffer.GetMultiColorBlend(h,false,color);
-                        buffer.SetPixel(x,y,color);
+                        buffer.SetPixel(x, y, ALL_Z, color);
                     }
                 }
             }
@@ -303,8 +303,7 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                         }
                         break;
                 }
-                
-                buffer.SetPixel(x,y,color);
+                    buffer.SetPixel(x, y, ALL_Z, color);
             }
         }
     }, block);

@@ -477,7 +477,10 @@ namespace
        {
            for (int xxx = 0; xxx < rb.BufferWi; ++xxx)
            {
-               rb.SetPixel(xxx, yyy, c);
+               for (int zzz = 0; zzz < rb.BufferDp; ++zzz)
+			   {
+				   rb.SetPixel(xxx, yyy, zzz, c);
+			   }
            }
        }
    }
@@ -492,7 +495,10 @@ namespace
             double t = double( y ) / ( rb.BufferHt - 1 );
             for ( int x = 0; x < rb.BufferWi; ++x ) {
                 double s = double( x ) / ( rb.BufferWi - 1 );
-                rb.SetPixel( x, y, transform( cb, s, t, params ) );
+                auto c = transform(cb, s, t, params);
+                for (int z = 0; z < rb.BufferDp; ++z) {
+					rb.SetPixel(x, y, z, c);
+				}
             }
         }, 25);
     }

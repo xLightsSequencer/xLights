@@ -471,14 +471,11 @@ void MusicEffect::RenderMorph(RenderBuffer &buffer, int x, int bars, int startNo
                     c.alpha = (1.0 -proportion) * 255;
                 }
 
-                if (up || !bounce)
-                {
-                    buffer.SetPixel(x, y, c);
-                }
-                else
-                {
-                    buffer.SetPixel(x, buffer.BufferHt - y - 1, c);
-                }
+                    if (up || !bounce) {
+                    buffer.SetPixel(x, y, ALL_Z, c);
+                    } else {
+                        buffer.SetPixel(x, buffer.BufferHt - y - 1, ALL_Z, c);
+                    }
             }
         }
     }
@@ -548,8 +545,8 @@ void MusicEffect::RenderCollide(RenderBuffer &buffer, int x, int bars, int start
                     c.alpha = progress * 255;
                 }
 
-                buffer.SetPixel(x, y, c);
-                buffer.SetPixel(x, mid - y + mid - 1, c);
+                    buffer.SetPixel(x, y, ALL_Z, c);
+                buffer.SetPixel(x, mid - y + mid - 1, ALL_Z, c);
             }
         }
     }
@@ -598,7 +595,7 @@ void MusicEffect::RenderOn(RenderBuffer &buffer, int x, int bars, int startNote,
                     c.alpha = (1.0 - progress) * 255;
                 }
 
-                buffer.SetPixel(x, y, c);
+                    buffer.SetPixel(x, y, ALL_Z, c);
             }
         }
     }

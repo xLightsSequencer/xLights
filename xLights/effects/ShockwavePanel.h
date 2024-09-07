@@ -39,6 +39,7 @@ class ShockwavePanel: public xlEffectPanel
 		BulkEditSlider* Slider_Shockwave_Accel;
 		BulkEditSlider* Slider_Shockwave_CenterX;
 		BulkEditSlider* Slider_Shockwave_CenterY;
+		BulkEditSlider* Slider_Shockwave_CenterZ;
 		BulkEditSlider* Slider_Shockwave_Cycles;
 		BulkEditSlider* Slider_Shockwave_End_Radius;
 		BulkEditSlider* Slider_Shockwave_End_Width;
@@ -47,6 +48,7 @@ class ShockwavePanel: public xlEffectPanel
 		BulkEditTextCtrl* TextCtrl_Shockwave_Cycles;
 		BulkEditValueCurveButton* BitmapButton_Shockwave_CenterX;
 		BulkEditValueCurveButton* BitmapButton_Shockwave_CenterY;
+		BulkEditValueCurveButton* BitmapButton_Shockwave_CenterZ;
 		BulkEditValueCurveButton* BitmapButton_Shockwave_End_Radius;
 		BulkEditValueCurveButton* BitmapButton_Shockwave_End_Width;
 		BulkEditValueCurveButton* BitmapButton_Shockwave_Start_Radius;
@@ -60,9 +62,11 @@ class ShockwavePanel: public xlEffectPanel
 		wxStaticText* StaticText159;
 		wxStaticText* StaticText166;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		xlLockButton* BitmapButton_Shockwave_Accel;
 		xlLockButton* BitmapButton_Shockwave_Center_X;
 		xlLockButton* BitmapButton_Shockwave_Center_Y;
+		xlLockButton* BitmapButton_Shockwave_Center_Z;
 		xlLockButton* BitmapButton_Shockwave_Cycles;
 		xlLockButton* BitmapButton_Shockwave_EndRadius;
 		xlLockButton* BitmapButton_Shockwave_EndWidth;
@@ -83,6 +87,11 @@ class ShockwavePanel: public xlEffectPanel
 		static const long ID_VALUECURVE_Shockwave_CenterY;
 		static const long IDD_TEXTCTRL_Shockwave_CenterY;
 		static const long ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY;
+		static const long ID_STATICTEXT2;
+		static const long ID_SLIDER_Shockwave_CenterZ;
+		static const long ID_VALUECURVE_Shockwave_CenterZ;
+		static const long IDD_TEXTCTRL_Shockwave_CenterZ;
+		static const long ID_BITMAPBUTTON_SLIDER_Shockwave_CenterZ;
 		static const long ID_STATICTEXT_Shockwave_Start_Radius;
 		static const long ID_SLIDER_Shockwave_Start_Radius;
 		static const long ID_VALUECURVE_Shockwave_Start_Radius;

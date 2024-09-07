@@ -109,6 +109,10 @@ public:
     virtual void SetEffectTimeRange(int startTimeMs, int endTimeMs)
     {}
     virtual wxString GetEffectString();
+    virtual bool Supports3DRendering() const
+	{
+		return false;
+	}
 
     // Methods for rendering the effect
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)

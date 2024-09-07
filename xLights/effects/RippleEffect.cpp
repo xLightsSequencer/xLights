@@ -476,15 +476,15 @@ static void buildSVG(RippleShapes &shapes, NSVGimage *image)
     }
 }
 
-static void DrawShape(RenderBuffer &buffer, ipointvec &points, const xlColor &color, bool close)
+static void DrawShape(RenderBuffer &buffer, ipointvec &points, int z, const xlColor &color, bool close)
 {
     if (points.empty())
         return;
     for (size_t i = 0; i < points.size() - 1; ++i) {
-        buffer.DrawLine(points[i].first, points[i].second, points[i + 1].first, points[i + 1].second, color);
+        buffer.DrawLine(points[i].first, points[i].second, points[i + 1].first, points[i + 1].second, color, z);
     }
     if (close) {
-        buffer.DrawLine(points[points.size() - 1].first, points[points.size() - 1].second, points[0].first, points[0].second, color);
+        buffer.DrawLine(points[points.size() - 1].first, points[points.size() - 1].second, points[0].first, points[0].second, color, z);
     }
 }
 
@@ -508,10 +508,10 @@ static bool isConvex(const ipointvec& q)
     return true;
 }
 
-static void FillSusQuad(RenderBuffer &buffer, const ipointvec& q, const xlColor &c)
+static void FillSusQuad(RenderBuffer &buffer, const ipointvec& q, int z, const xlColor &c)
 {
     if (isConvex(q)) {
-        buffer.FillConvexPoly(q, c);
+        buffer.FillConvexPoly(q, c, z);
         return;
     }
     // Hum the non-complex quad could be split in just the right place, which would be better.
@@ -519,13 +519,13 @@ static void FillSusQuad(RenderBuffer &buffer, const ipointvec& q, const xlColor 
     ipointvec tri2 = { q[0], q[1], q[3] };
     ipointvec tri3 = { q[0], q[2], q[3] };
     ipointvec tri4 = { q[1], q[2], q[3] };
-    buffer.FillConvexPoly(tri1, c);
-    buffer.FillConvexPoly(tri2, c);
-    buffer.FillConvexPoly(tri3, c);
-    buffer.FillConvexPoly(tri4, c);
+    buffer.FillConvexPoly(tri1, c, z);
+    buffer.FillConvexPoly(tri2, c, z);
+    buffer.FillConvexPoly(tri3, c, z);
+    buffer.FillConvexPoly(tri4, c, z);
 }
 
-static void DrawLine(RenderBuffer& buffer, const dpoint& p1, const dpoint& p2, const xlColor &c, bool thick = false)
+static void DrawLine(RenderBuffer& buffer, const dpoint& p1, const dpoint& p2, int z, const xlColor &c, bool thick = false)
 {
     ipointvec q(4);
     if (abs(p1.second - p2.second) > abs(p1.first - p2.first)) {
@@ -561,27 +561,27 @@ static void DrawLine(RenderBuffer& buffer, const dpoint& p1, const dpoint& p2, c
             q[3] = { round(p2.first), round(p2.second) - 1 };
         }
     }
-    buffer.FillConvexPoly(q, c);
+    buffer.FillConvexPoly(q, c, z);
     if (thick) {
-        buffer.SetPixel(round(p1.first), round(p1.second), c);
-        buffer.SetPixel(round(p2.first), round(p2.second), c);
+        buffer.SetPixel(round(p1.first), round(p1.second), z, c);
+        buffer.SetPixel(round(p2.first), round(p2.second), z, c);
     }
 }
 
-static void DrawShapeD(RenderBuffer& buffer, dpointvec& points, const xlColor& color, bool close, bool thick)
+static void DrawShapeD(RenderBuffer& buffer, dpointvec& points, int z, const xlColor& color, bool close, bool thick)
 {
     if (points.empty())
         return;
 
     for (size_t i = 0; i < points.size() - 1; ++i) {
-        DrawLine(buffer, { points[i].first, points[i].second }, { points[i + 1].first, points[i + 1].second }, color, thick);
+        DrawLine(buffer, { points[i].first, points[i].second }, { points[i + 1].first, points[i + 1].second }, z, color, thick);
     }
     if (close) {
-        DrawLine(buffer, { points[points.size() - 1].first, points[points.size() - 1].second }, { points[0].first, points[0].second }, color, thick);
+        DrawLine(buffer, { points[points.size() - 1].first, points[points.size() - 1].second }, { points[0].first, points[0].second }, z, color, thick);
     }
 }
 
-static void FillRegion(RenderBuffer& buffer, ipointvec& oldpoints, const ipointvec& newpoints, const xlColor& color, bool close = true)
+static void FillRegion(RenderBuffer& buffer, ipointvec& oldpoints, const ipointvec& newpoints, int z, const xlColor& color, bool close = true)
 {
     if (oldpoints.empty())
         return;
@@ -595,7 +595,7 @@ static void FillRegion(RenderBuffer& buffer, ipointvec& oldpoints, const ipointv
         quad[2] = newpoints[i + 1];
         quad[3] = newpoints[i];
 
-        FillSusQuad(buffer, quad, color);
+        FillSusQuad(buffer, quad, z, color);
     }
 
     if (close) {
@@ -604,7 +604,7 @@ static void FillRegion(RenderBuffer& buffer, ipointvec& oldpoints, const ipointv
         quad[2] = newpoints[0];
         quad[3] = newpoints[oldpoints.size() - 1];
 
-        FillSusQuad(buffer, quad, color);
+        FillSusQuad(buffer, quad, z, color);
     }
 }
 
@@ -759,7 +759,7 @@ static void drawRippleNew(
                 if (doInside && brX - delta > 0 && brY - delta > 0) {
                     ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation, true);
                     if (!oldptsinner.empty()) {
-                        FillRegion(buffer, oldptsinner[sn], ishp, fade ? fadeColor3D : fadeColor, closedShape);
+                        FillRegion(buffer, oldptsinner[sn], ishp, ALL_Z, fade ? fadeColor3D : fadeColor, closedShape);
                     }
                     oldptsinner[sn] = ishp;
                     if (lines) {
@@ -771,7 +771,7 @@ static void drawRippleNew(
                 if (doOutside && brX + delta > 0 && brY + delta > 0) {
                     ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation, true);
                     if (!oldptsouter[sn].empty()) {
-                        FillRegion(buffer, oldptsouter[sn], oshp, fade ? fadeColor3D : fadeColor, closedShape);
+                        FillRegion(buffer, oldptsouter[sn], oshp, ALL_Z, fade ? fadeColor3D : fadeColor, closedShape);
                     }
                     oldptsouter[sn] = oshp;
                     if (lines) {
@@ -780,10 +780,10 @@ static void drawRippleNew(
                 }
 
                 if (oldedgeinner[sn].size()) {
-                    DrawShapeD(buffer, oldedgeinner[sn], lineColor, closedShape, false);
+                    DrawShapeD(buffer, oldedgeinner[sn], ALL_Z, lineColor, closedShape, false);
                 }
                 if (oldedgeouter[sn].size()) {
-                    DrawShapeD(buffer, oldedgeouter[sn], lineColor, closedShape, false);
+                    DrawShapeD(buffer, oldedgeouter[sn], ALL_Z, lineColor, closedShape, false);
                 }
                 
                 oldedgeouter[sn] = nxtedgeouter[sn];
@@ -804,7 +804,7 @@ static void drawRippleNew(
                     }
                 }
 
-                FillRegion(buffer, oldptsinner[sn], oldptsouter[sn], fadeColor, closedShape);
+                FillRegion(buffer, oldptsinner[sn], oldptsouter[sn], ALL_Z, fadeColor, closedShape);
             }
         }
     }
@@ -842,11 +842,11 @@ static void drawRippleNew(
 
                 if (doInside && brX - delta > 0 && brY - delta > 0) {
                     ipointvec ishp = ScaleShape(points, brX - delta, brY - delta, xc, yc, rotation);
-                    DrawShape(buffer, ishp, (fade) ? fadeColor3D : lineColor, closedShape);
+                    DrawShape(buffer, ishp, ALL_Z, (fade) ? fadeColor3D : lineColor, closedShape);
                 }
                 if (doOutside && brX + delta > 0 && brY + delta > 0) {
                     ipointvec oshp = ScaleShape(points, brX + delta, brY + delta, xc, yc, rotation);
-                    DrawShape(buffer, oshp, (fade) ? fadeColor3D : lineColor, closedShape);
+                    DrawShape(buffer, oshp, ALL_Z, (fade) ? fadeColor3D : lineColor, closedShape);
                 }
             }
         }
@@ -874,15 +874,15 @@ static void drawRippleNew(
                 // Asked for a thicker shape
                 ipointvec inner = ScaleShape(points, std::max(brX - outline, 0.0), std::max(brY - outline, 0.0), sxc, syc, srotation, true);
                 ipointvec outer = ScaleShape(points, std::max(brX + outline, 0.0), std::max(brY + outline, 0.0), sxc, syc, srotation, true);
-                FillRegion(buffer, inner, outer, hsvs, closedShape);
+                FillRegion(buffer, inner, outer, ALL_Z, hsvs, closedShape);
 
                 // Default line drawn always
                 if (fill) {
                     dpointvec mshp = ScaleShapeD(points, brX, brY, sxc, syc, srotation);
-                    DrawShapeD(buffer, mshp, hsvs, closedShape, true);
+                    DrawShapeD(buffer, mshp, ALL_Z, hsvs, closedShape, true);
                 } else {
                     ipointvec mshp = ScaleShape(points, brX, brY, sxc, syc, srotation);
-                    DrawShape(buffer, mshp, hsvs, closedShape);
+                    DrawShape(buffer, mshp, ALL_Z, hsvs, closedShape);
                 }
             }
         }
@@ -1185,9 +1185,9 @@ void RippleEffect::Drawtriangle(RenderBuffer& buffer, int Movement, int xc, int 
             }
         }
 
-        buffer.DrawLine(xtop, ytop, xleft, yleft, color);
-        buffer.DrawLine(xtop, ytop, xright, yright, color);
-        buffer.DrawLine(xleft, yleft, xright, yright, color);
+        buffer.DrawLine(xtop, ytop, xleft, yleft, color, ALL_Z);
+        buffer.DrawLine(xtop, ytop, xright, yright, color, ALL_Z);
+        buffer.DrawLine(xleft, yleft, xright, yright, color, ALL_Z);
     }
 }
 
@@ -1206,22 +1206,22 @@ void RippleEffect::Drawsquare(RenderBuffer& buffer, int Movement, int x1, int x2
         }
         if (Movement == MOVEMENT_EXPLODE) {
             for (int y = y1 + i; y <= y2 - i; y++) {
-                buffer.SetPixel(x1 + i, y, color); // Turn pixel
-                buffer.SetPixel(x2 - i, y, color); // Turn pixel
+                buffer.SetPixel(x1 + i, y, ALL_Z, color); // Turn pixel
+                buffer.SetPixel(x2 - i, y, ALL_Z, color);   // Turn pixel
             }
             for (int x = x1 + i; x <= x2 - i; x++) {
-                buffer.SetPixel(x, y1 + i, color); // Turn pixel
-                buffer.SetPixel(x, y2 - i, color); // Turn pixel
+                buffer.SetPixel(x, y1 + i, ALL_Z, color); // Turn pixel
+                buffer.SetPixel(x, y2 - i, ALL_Z, color);   // Turn pixel
             }
         }
         if (Movement == MOVEMENT_IMPLODE) {
             for (int y = y2 + i; y >= y1 - i; y--) {
-                buffer.SetPixel(x1 - i, y, color); // Turn pixel
-                buffer.SetPixel(x2 + i, y, color); // Turn pixel
+                buffer.SetPixel(x1 - i, y, ALL_Z, color); // Turn pixel
+                buffer.SetPixel(x2 + i, y, ALL_Z, color);   // Turn pixel
             }
             for (int x = x2 + i; x >= x1 - i; x--) {
-                buffer.SetPixel(x, y1 - i, color); // Turn pixel
-                buffer.SetPixel(x, y2 + i, color); // Turn pixel
+                buffer.SetPixel(x, y1 - i, ALL_Z, color); // Turn pixel
+                buffer.SetPixel(x, y2 + i, ALL_Z, color);   // Turn pixel
             }
         }
     }
@@ -1251,7 +1251,7 @@ void RippleEffect::Drawcircle(RenderBuffer& buffer, int Movement, int xc, int yc
                 double radian = degrees * (M_PI / 180.0);
                 int x = radius * cos(radian) + xc;
                 int y = radius * sin(radian) + yc;
-                buffer.SetPixel(x, y, color); // Turn pixel
+                buffer.SetPixel(x, y, ALL_Z, color); // Turn pixel
             }
         }
     }
@@ -1316,13 +1316,13 @@ void RippleEffect::Drawstar(RenderBuffer& buffer, int Movement, int xc, int yc, 
                 int xinner = InnerRadius * cos(radian) + xc;
                 int yinner = InnerRadius * sin(radian) + yc;
 
-                buffer.DrawLine(xinner, yinner, xouter, youter, color);
+                buffer.DrawLine(xinner, yinner, xouter, youter, color, ALL_Z);
 
                 radian = (rotation + offsetangle + degrees - increment / 2.0) * (M_PI / 180.0);
                 xinner = InnerRadius * cos(radian) + xc;
                 yinner = InnerRadius * sin(radian) + yc;
 
-                buffer.DrawLine(xinner, yinner, xouter, youter, color);
+                    buffer.DrawLine(xinner, yinner, xouter, youter, color, ALL_Z);
             }
         }
     }
@@ -1371,7 +1371,7 @@ void RippleEffect::Drawpolygon(RenderBuffer& buffer, int Movement, int xc, int y
                 int x2 = std::round(radius * cos(radian)) + xc;
                 int y2 = std::round(radius * sin(radian)) + yc;
 
-                buffer.DrawLine(x1, y1, x2, y2, color);
+                buffer.DrawLine(x1, y1, x2, y2, color, ALL_Z);
 
                 if (degrees == 360.0)
                     degrees = 361.0;
@@ -1401,7 +1401,7 @@ void RippleEffect::Drawsnowflake(RenderBuffer& buffer, int Movement, int xc, int
             int x2 = std::round(radius * cos(radian)) + xc;
             int y2 = std::round(radius * sin(radian)) + yc;
 
-            buffer.DrawLine(x1, y1, x2, y2, color);
+            buffer.DrawLine(x1, y1, x2, y2, color, ALL_Z);
 
             angle += increment;
         }
@@ -1440,8 +1440,8 @@ void RippleEffect::Drawheart(RenderBuffer& buffer, int Movement, int xc, int yc,
                 double yy2 = (y2 * radius) / 2.0 + yc;
 
                 if (radius >= 0) {
-                    buffer.SetPixel(xx1, std::round(yy1), color);
-                    buffer.SetPixel(xx1, std::round(yy2), color);
+                    buffer.SetPixel(xx1, std::round(yy1), ALL_Z, color);
+                    buffer.SetPixel(xx1, std::round(yy2), ALL_Z, color);
 
                     if (x + xincr > 2.0 || x == -2.0 + xincr) {
 
@@ -1449,7 +1449,7 @@ void RippleEffect::Drawheart(RenderBuffer& buffer, int Movement, int xc, int yc,
                             std::swap(yy1, yy2);
 
                         for (double z = yy1; z < yy2; z += 0.5) {
-                            buffer.SetPixel(xx1, std::round(z), color);
+                            buffer.SetPixel(xx1, std::round(z), ALL_Z, color);
                         }
                     }
                 } else {
@@ -1513,7 +1513,7 @@ void RippleEffect::Drawtree(RenderBuffer& buffer, int Movement, int xc, int yc, 
                 int y1 = std::round(((double)points[j].start.y - 4.0) / 11.0 * radius);
                 int x2 = std::round(((double)points[j].end.x - 4.0) / 11.0 * radius);
                 int y2 = std::round(((double)points[j].end.y - 4.0) / 11.0 * radius);
-                buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color);
+                buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color, ALL_Z);
             }
         } else {
             break;
@@ -1570,7 +1570,7 @@ void RippleEffect::Drawcrucifix(RenderBuffer& buffer, int Movement, int xc, int 
                 int y1 = std::round(((double)points[j].start.y - 6.5) / 10.0 * radius);
                 int x2 = std::round(((double)points[j].end.x - 2.5) / 7.0 * radius);
                 int y2 = std::round(((double)points[j].end.y - 6.5) / 10.0 * radius);
-                buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color);
+                buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color, ALL_Z);
             }
         } else {
             break;
@@ -1624,7 +1624,7 @@ void RippleEffect::Drawpresent(RenderBuffer& buffer, int Movement, int xc, int y
                 int y1 = std::round(((double)points[j].start.y - 5.5) / 10.0 * radius);
                 int x2 = std::round(((double)points[j].end.x - 5) / 7.0 * radius);
                 int y2 = std::round(((double)points[j].end.y - 5.5) / 10.0 * radius);
-                buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color);
+                buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color, ALL_Z);
             }
         } else {
             break;
@@ -1656,7 +1656,7 @@ void RippleEffect::Drawcandycane(RenderBuffer& buffer, int Movement, int xc, int
             int y1 = std::round((double)yc + originalRadius / 6.0);
             int y2 = std::round((double)yc - originalRadius / 2.0);
             int x = std::round((double)xc + radius / 2.0);
-            buffer.DrawLine(x, y1, x, y2, color);
+            buffer.DrawLine(x, y1, x, y2, color, ALL_Z);
 
             // draw the hook
             double r = radius / 3.0;
@@ -1664,7 +1664,7 @@ void RippleEffect::Drawcandycane(RenderBuffer& buffer, int Movement, int xc, int
                 double radian = degrees * (M_PI / 180.0);
                 x = std::round((r)*buffer.cos(radian) + xc + originalRadius / 6.0);
                 int y = std::round((r)*buffer.sin(radian) + y1);
-                buffer.SetPixel(x, y, color);
+                buffer.SetPixel(x, y, ALL_Z, color);
             }
         } else {
             break;
