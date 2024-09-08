@@ -427,10 +427,9 @@ void xLightsFrame::OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event)
     PromptForShowDirectory(false);
 }
 
-bool xLightsFrame::OnButton_OpenBaseShowDirClick(wxCommandEvent& event) {
+void xLightsFrame::OnButton_OpenBaseShowDirClick(wxCommandEvent& event) {
     displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
     layoutPanel->ClearUndo();
-    return SetDir(_outputManager.GetBaseShowDir(), false);
 }
 
 void xLightsFrame::OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event)
