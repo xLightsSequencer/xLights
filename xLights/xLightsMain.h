@@ -634,8 +634,8 @@ public:
     void OnCheckBox_AutoUpdateBaseClick(wxCommandEvent& event);
     void OnButton_UpdateBaseClick(wxCommandEvent& event);
     void ShowHideSelectEffectsWindow(wxCommandEvent& event);
-    bool OnButton_OpenBaseShowDirClick(wxCommandEvent& event);
     void OnButtonFPPConnectClick(wxCommandEvent& event);
+    void OnButton_OpenBaseShowDirClick(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
