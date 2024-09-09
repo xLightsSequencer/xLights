@@ -139,6 +139,7 @@ class ControllerModelDialog: public wxDialog
         static const long CONTROLLER_ENDNULLS;
         static const long CONTROLLER_COLORORDER;
         static const long CONTROLLER_GROUPCOUNT;
+        static const long CONTROLLER_GAMMA;
 
 		wxBitmap RenderPicture(int startY, int startX, int width, int height, wxString const& pageName);
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);

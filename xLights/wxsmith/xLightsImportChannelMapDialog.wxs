@@ -4,6 +4,7 @@
 		<title>Map Channels</title>
 		<id_arg>0</id_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxFULL_REPAINT_ON_RESIZE</style>
+		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="OldSizer" member="yes">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -144,7 +145,6 @@
 									<object class="sizeritem">
 										<object class="wxCheckListBox" name="ID_CHECKLISTBOX1" variable="TimingTrackListBox" member="yes">
 											<style>wxVSCROLL</style>
-											<handler function="OnTimingTrackListBoxRightClick" entry="EVT_LISTBOX_DCLICK" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<option>1</option>
@@ -215,7 +215,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON6" variable="Button_UpdateAliases" member="yes">
-											<label>Update Model Aliases Using Mapping</label>
+											<label>Update All Aliases Using Mapping</label>
 											<handler function="OnButton_UpdateAliasesClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -238,7 +238,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON1" variable="Button01" member="no">
-											<label>Load Mapping</label>
+											<label>Load Map</label>
 											<handler function="LoadMapping" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -247,7 +247,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON2" variable="Button02" member="no">
-											<label>Save Mapping</label>
+											<label>Save Map</label>
 											<handler function="SaveMapping" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

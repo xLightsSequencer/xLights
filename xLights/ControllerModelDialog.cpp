@@ -42,6 +42,8 @@
 #include <log4cpp/Category.hh>
 #include <cmath>
 
+#include <xlsxwriter.h>
+
 //(*IdInit(ControllerModelDialog)
 const long ControllerModelDialog::ID_PANEL1 = wxNewId();
 const long ControllerModelDialog::ID_SCROLLBAR1 = wxNewId();
@@ -78,6 +80,7 @@ const long ControllerModelDialog::CONTROLLER_STARTNULLS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_ENDNULLS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_COLORORDER = wxNewId();
 const long ControllerModelDialog::CONTROLLER_GROUPCOUNT = wxNewId();
+const long ControllerModelDialog::CONTROLLER_GAMMA = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerModelDialog, wxDialog)
 //(*EventTable(ControllerModelDialog)
@@ -769,8 +772,11 @@ public:
                     dlg.SetSelection(selection);
                 }
                 if (dlg.ShowModal() == wxID_OK) {
-                    for (const auto& it : GetUDPort()->GetModels()) {
-                        it->GetModel()->SetSmartRemoteType(choices[dlg.GetSelection()]);
+                    int basePort = GetBasePort();
+                    for (uint8_t p = 0; p < 4; ++p) {
+                        for (const auto& it : _cud->GetControllerPixelPort(basePort + p)->GetModels()) {
+                            it->GetModel()->SetSmartRemoteType(choices[dlg.GetSelection()]);
+                        }
                     }
                 }
                 return true;
@@ -809,7 +815,7 @@ public:
                         continue;
                     }
                     it->GetModel()->SetSmartRemote(startId + 1);
-                    int max_cas = std::min(it->GetModel()->GetSRMaxCascade(), (int)std::ceil(it->GetModel()->GetNumStrings() / 4.0));
+                    int max_cas = std::min(it->GetModel()->GetSRMaxCascade(), (int)std::ceil(it->GetModel()->GetNumPhysicalStrings() / 4.0));
                     max_cas = std::max(max_cas, 1);
                     startId += max_cas;
                     if (startId >= sr_count) {
@@ -1532,6 +1538,9 @@ public:
                     mnu.Append(ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR, "Clear Brightness");
                 }
             }
+            if (_caps->SupportsPixelPortGamma()) {
+                mnu.Append(ControllerModelDialog::CONTROLLER_GAMMA, "Set Gamma");
+            }
             if (_caps->SupportsPixelPortNullPixels()) {
                 mnu.Append(ControllerModelDialog::CONTROLLER_STARTNULLS, "Set Start Nulls");
             }
@@ -1614,6 +1623,15 @@ public:
             wxNumberEntryDialog dlg(parent, "Enter the Group Count", "Group Count", "Model Group Count", GetModel()->GetControllerGroupCount(), 1, 500);
             if (dlg.ShowModal() == wxID_OK) {
                 GetModel()->SetControllerGroupCount(dlg.GetValue());
+            }
+            return true;
+        } else if (id == ControllerModelDialog::CONTROLLER_GAMMA) {
+            wxTextEntryDialog dialog(parent, "Enter the Model Gamma", "Gamma", wxString::Format("%.1f", GetModel()->GetControllerGamma()));
+            if (dialog.ShowModal() == wxID_OK) {
+                auto d_gamma = wxAtof(dialog.GetValue());
+                if (d_gamma > 0.1 && d_gamma < 100.0) {
+                    GetModel()->SetControllerGamma(d_gamma);
+                }
             }
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR) {
@@ -2613,37 +2631,123 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
     return bitmap;
 }
 
-void ControllerModelDialog::SaveCSV()
-{
+void ControllerModelDialog::SaveCSV() {
     wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
 
     wxString cleanName = _controller->GetShortDescription();
     cleanName.Replace(".", "_");
-    cleanName += ".csv";
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, cleanName, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    cleanName += ".xlsx";
+    wxString const filename = wxFileSelector(_("Save Controller Spreadsheet"), wxEmptyString, cleanName, wxEmptyString, "Export files (*.xlsx)|*.xlsx", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-    if (filename.IsEmpty())
-        return;
-
-    wxFile f(filename);
-
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    if (filename.IsEmpty()) {
         return;
     }
+   
+    lxw_workbook* workbook = workbook_new(filename.c_str());
+    lxw_worksheet* worksheet = workbook_add_worksheet(workbook, NULL);
 
-    wxString const header = _controller->GetShortDescription() + "\n";
-    f.Write(header);
-    int columSize = 0;
+    lxw_format* header_format = workbook_add_format(workbook);
+    format_set_align(header_format, LXW_ALIGN_CENTER);
+    format_set_align(header_format, LXW_ALIGN_VERTICAL_CENTER);
+    format_set_bold(header_format);
+    format_set_bg_color(header_format, LXW_COLOR_YELLOW);
+    format_set_border(header_format, LXW_BORDER_THIN);
+
+    lxw_format* first_format = workbook_add_format(workbook);
+    format_set_border(first_format, LXW_BORDER_MEDIUM);
+    format_set_bold(first_format);
+
+    lxw_format* format = workbook_add_format(workbook);
+    format_set_border(format, LXW_BORDER_THIN);
+
+    lxw_format* sr1_format = workbook_add_format(workbook);
+    format_set_bg_color(sr1_format, 0x99FF99);
+    format_set_border(sr1_format, LXW_BORDER_THIN);
+
+    lxw_format* sr2_format = workbook_add_format(workbook);
+    format_set_bg_color(sr2_format, 0xB896FF);
+    format_set_border(sr2_format, LXW_BORDER_THIN);
+
+    lxw_format* sr3_format = workbook_add_format(workbook);
+    format_set_bg_color(sr3_format, 0xFFC996);
+    format_set_border(sr3_format, LXW_BORDER_THIN);
+
+    lxw_format* sr4_format = workbook_add_format(workbook);
+    format_set_bg_color(sr4_format, 0x80FFFF);
+    format_set_border(sr4_format, LXW_BORDER_THIN);
+
+    lxw_format* sr5_format = workbook_add_format(workbook);
+    format_set_bg_color(sr5_format, 0xFF85FF);
+    format_set_border(sr5_format, LXW_BORDER_THIN);
+
+    lxw_format* sr6_format = workbook_add_format(workbook);
+    format_set_bg_color(sr6_format, 0xFFFF85);
+    format_set_border(sr6_format, LXW_BORDER_THIN);
+
+    int row{ 0 };
+    std::map<int, double> _col_widths;
+    int columSize{ 0 };
+
     std::vector<std::vector<std::string>> const lines = _cud->ExportAsCSV(ExportSettings::GetSettings(this), _controller->GetDefaultBrightnessUnderFullControl(), columSize);
-    for (const auto& line : lines) {
-        for (const auto& col : line) {
-            f.Write(col);
-            f.Write(',');
+
+    worksheet_merge_range(worksheet, row, 0, row, columSize, _controller->GetShortDescription().c_str(), header_format);
+    ++row;
+    auto lformat = first_format;
+
+    for (auto const& line : lines) {
+        for (int i = 1; i <= columSize; ++i) {
+            worksheet_write_blank(worksheet, row, i, lformat);
         }
-        f.Write('\n');
+        int col{ 0 };
+        for (auto const& column : line) {
+            if (column.empty()) {
+                continue;
+            }
+            if (column.find("Remote A") != std::string::npos || 
+                column.find("Remote G") != std::string::npos ||
+                column.find("Remote M") != std::string::npos) {
+                lformat = sr1_format;
+            }
+            if (column.find("Remote B") != std::string::npos ||
+                column.find("Remote H") != std::string::npos ||
+                column.find("Remote N") != std::string::npos) {
+                lformat = sr2_format;
+            }
+            if (column.find("Remote C") != std::string::npos ||
+                column.find("Remote I") != std::string::npos ||
+                column.find("Remote O") != std::string::npos) {
+                lformat = sr3_format;
+            }
+            if (column.find("Remote D") != std::string::npos ||
+                column.find("Remote J") != std::string::npos ||
+                column.find("Remote P") != std::string::npos) {
+                lformat = sr4_format;
+            }
+            if (column.find("Remote E") != std::string::npos ||
+                column.find("Remote K") != std::string::npos ) {
+                lformat = sr5_format;
+            }
+            if (column.find("Remote F") != std::string::npos ||
+                column.find("Remote L") != std::string::npos) {
+                lformat = sr6_format;
+            }
+            worksheet_write_string(worksheet, row, col, column.c_str(), lformat);
+            double const width = column.size() + 1.3; // estimate column width
+            if (_col_widths[col] < width) {
+                _col_widths[col] = width;
+                worksheet_set_column(worksheet, col, col, width, NULL);
+            }
+            ++col;
+        }
+        ++row;
+        lformat = format;
     }
-    f.Close();
+    
+    lxw_error const error = workbook_close(workbook);
+    if (error) {
+        DisplayError(wxString::Format("Unable to create Spreadsheet, Error %d = %s\n", error, lxw_strerror(error)).ToStdString());
+        return;
+    }
 }
 
 // Ensure DMX channels increase as you move left to right
@@ -3733,6 +3837,10 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
         protocol = wxString::Format("Protocol: %s\n", port->GetProtocol());
     }
 
+    if (!port->IsPixelProtocol() && port->GetFirstModel() != nullptr) {
+		protocol += wxString::Format("Rate: %d bps\n", port->GetFirstModel()->GetModel()->GetControllerProtocolSpeed());
+	}
+
     std::string vs;
     std::string sc;
     std::string sr;
@@ -4085,7 +4193,7 @@ void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
 
     wxMenu mnu;
     mnu.Append(CONTROLLERModel_PRINT, "Print");
-    mnu.Append(CONTROLLERModel_SAVE_CSV, "Save As CSV...");
+    mnu.Append(CONTROLLERModel_SAVE_CSV, "Save As Spreadsheet...");
 
     if (_cud->HasModels()) {
         mnu.Append(CONTROLLER_REMOVEALLMODELS, "Remove All Models From Controller");

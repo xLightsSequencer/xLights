@@ -2286,7 +2286,7 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
                     v["colorOrder"] = wxString("RGB");
                     v["invert"] = 0;
                     if (IsVersionAtLeast(8, 0)) {
-                        v["device"] = wxString::Format("HDMI-A-%d", port);
+                        v["device"] = wxString::Format("HDMI-A-%d", port + 1); //hdmi ports are 1 based, not 0 like fb
                     } else {
                         v["device"] = wxString::Format("fb%d", port);
                     }

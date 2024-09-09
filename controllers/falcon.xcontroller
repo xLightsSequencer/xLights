@@ -179,6 +179,7 @@
         <SupportsDefaultBrightness/>
         <MaxInputUniverses>192</MaxInputUniverses>
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
+		<PreferredInputProtocol>DDP</PreferredInputProtocol>
         <SerialProtocols>
             <Protocol>dmx</Protocol>
             <Protocol>renard</Protocol>
@@ -348,5 +349,22 @@
             <SupportsVirtualMatrix/>
             <SupportsAutoLayout/>
         </Variant>
+  </Controller>
+  <Controller Name="F-Prop">
+	    <Variant Name="">
+			<MaxPixelPort>2</MaxPixelPort>
+			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
+            <MaxSerialPort>0</MaxSerialPort>
+			<SupportsAutoLayout/>
+			<FPS40Pixels>680</FPS40Pixels>
+			<PixelProtocols>
+				<Protocol>ws2811</Protocol>
+			</PixelProtocols>
+			<ConfigDriver>Falcon</ConfigDriver>
+            <InputProtocols>
+                <Protocol>ddp</Protocol>
+            </InputProtocols>
+            <PreferredInputProtocol>DDP</PreferredInputProtocol>
+		</Variant>
   </Controller>
 </Vendor>

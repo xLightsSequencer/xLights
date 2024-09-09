@@ -899,6 +899,8 @@ public:
                         SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, -1, strand, inode, cleared);
                         if (xLights->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
                             SetCalOutputStatus(frame, -1, strand, inode);
+                            buffer->HandleLayerBlurZoom(frame, 0);
+                            buffer->HandleLayerTransitions(frame, 0);
                             //copy to output
                             std::vector<bool> valid(2, true);
                             buffer->SetColors(1, &((*seqData)[frame][0]));

@@ -72,6 +72,7 @@ public:
     bool SupportsRemotes() const;
     bool SupportsAutoLayout() const;
     bool SupportsAutoUpload() const;
+    bool DDPStartsAtOne() const;
     bool SupportsUniversePerString() const;
     bool SupportsMultipleSimultaneousOutputProtocols() const;
     bool SupportsMultipleSimultaneousInputProtocols() const;

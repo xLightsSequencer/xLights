@@ -666,7 +666,8 @@
 														<object class="sizeritem">
 															<object class="wxButton" name="ID_BUTTON17" variable="Button_OpenBaseShowDir" member="yes">
 																<label>Open</label>
-																<handler function="OnButton_ChangeBaseShowDirClick" entry="EVT_BUTTON" />
+																<tooltip>Open the base show folder</tooltip>
+																<handler function="OnButton_OpenBaseShowDirClick" entry="EVT_BUTTON" />
 															</object>
 															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 															<border>5</border>

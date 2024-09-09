@@ -130,6 +130,7 @@ static void clearUnusedProtocolProperties(wxXmlNode* node)
     }
     if (!isDMX) {
         node->DeleteAttribute("channel");
+        node->DeleteAttribute("Speed");
     }
 }
 
@@ -1056,7 +1057,45 @@ void Model::ClearIndividualStartChannels()
     wxASSERT(!ModelXml->HasAttribute(StartChanAttrName(MOST_STRINGS_WE_EXPECT))); // if this fires then # is not the right magic number
 }
 
-void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
+void Model::GetSerialProtocolSpeeds(const std::string& protocol, wxArrayString& cs, int& idxs) const {
+
+    if (protocol == "dmx") {
+        cs.push_back("250000");
+    } else 
+        if (protocol == "renard") {
+        cs.push_back("19200");
+        cs.push_back("38400");
+        cs.push_back("57600");
+        cs.push_back("115200");
+    } else if (protocol == "lor") {
+        cs.push_back("19200");
+        cs.push_back("57600");
+        cs.push_back("115200");
+        cs.push_back("500000");
+        cs.push_back("1000000");
+    } else {
+        cs.push_back("19200");
+        cs.push_back("57600");
+        cs.push_back("115200");
+        cs.push_back("250000");
+        cs.push_back("500000");
+        cs.push_back("1000000");
+    }
+
+    int protocolSpeed = GetControllerProtocolSpeed();
+
+    // now work out the index
+    int i = 0;
+    for (const auto& it : cs) {
+        if (wxAtoi(it) == protocolSpeed) {
+            idxs = i;
+            break;
+        }
+        ++i;
+    }
+}
+
+void Model::GetControllerProtocols(wxArrayString& cp, int& idx) 
 {
     auto caps = GetControllerCaps();
     Controller* c = GetController();
@@ -1159,6 +1198,10 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
     int idx = -1;
     GetControllerProtocols(cp, idx);
 
+    wxArrayString cs;
+    int idxs = -1;
+    GetSerialProtocolSpeeds(cp[idx], cs, idxs);
+
     if (IsPixelProtocol()) {
         int smartRemoteCount = 15;
         if (caps != nullptr) {
@@ -1224,6 +1267,14 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
             sp->SetAttribute("Max", caps->GetMaxSerialPortChannels());
         }
         sp->SetEditor("SpinCtrl");
+        if (cp[idx] != "dmx") {
+            // non dmx protocols support speeds
+            sp = grid->AppendIn(p, new wxEnumProperty("Speed", "ModelControllerConnectionSpeed", cs, wxArrayInt(), idxs));
+            if (cs.size() == 1 && idxs == 0) {
+                grid->DisableProperty(sp);
+            }
+        }
+
     } else if (IsPWMProtocol()) {
         if (DisplayAs.rfind("Dmx", 0) != 0) { //DMX models handle this themselves
             double gamma = wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
@@ -1751,6 +1802,12 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         return 0;
     } else if (event.GetPropertyName() == "MaxCascadeRemotes") {
         SetSRMaxCascade(event.GetValue().GetLong());
+        return 0;
+    } else if (event.GetPropertyName() == "ModelControllerConnectionSpeed") {
+        int sel = -1;
+        wxArrayString cs;
+        GetSerialProtocolSpeeds(GetControllerProtocol() , cs, sel);
+        SetControllerSerialProtocolSpeed(wxAtoi(cs[event.GetValue().GetLong()]));
         return 0;
     } else if (event.GetPropertyName() == "SmartRemoteType") {
         SetSmartRemoteType(GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString())));
@@ -7204,9 +7261,21 @@ void Model::SetControllerName(const std::string& controller)
     IncrementChangeCount();
 }
 
+void Model::SetControllerSerialProtocolSpeed(int speed) {
+
+        if (speed == wxAtoi(GetControllerConnection()->GetAttribute("Speed", "-1")))
+        return;
+
+    GetControllerConnection()->DeleteAttribute("Speed");
+        if (speed != 0) {
+            GetControllerConnection()->AddAttribute("Speed", wxString::Format("%d", speed));
+        }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetControllerSerialProtocolSpeed");
+}
+
 void Model::SetControllerProtocol(const std::string& protocol)
 {
-    if (protocol == ModelXml->GetAttribute("Protocol", "xyzzy_kw"))
+    if (protocol == GetControllerConnection()->GetAttribute("Protocol", "xyzzy_kw"))
         return;
 
     GetControllerConnection()->DeleteAttribute("Protocol");
@@ -7225,7 +7294,7 @@ void Model::SetControllerProtocol(const std::string& protocol)
 
 void Model::SetControllerPort(int port)
 {
-    if (port == wxAtoi(ModelXml->GetAttribute("Port", "-999")))
+    if (port == wxAtoi(GetControllerConnection()->GetAttribute("Port", "-999")))
         return;
 
     GetControllerConnection()->DeleteAttribute("Port");
@@ -7244,7 +7313,7 @@ void Model::SetControllerPort(int port)
 
 void Model::SetControllerBrightness(int brightness)
 {
-    if (brightness == wxAtoi(ModelXml->GetAttribute("brightness", "-1")))
+    if (brightness == wxAtoi(GetControllerConnection()->GetAttribute("brightness", "-1")))
         return;
 
     GetControllerConnection()->DeleteAttribute("brightness");
@@ -7259,7 +7328,7 @@ void Model::SetControllerBrightness(int brightness)
 
 void Model::SetControllerStartNulls(int nulls)
 {
-    if (nulls == wxAtoi(ModelXml->GetAttribute("nullNodes", "0"))) {
+    if (nulls == wxAtoi(GetControllerConnection()->GetAttribute("nullNodes", "0"))) {
         return;
     }
     GetControllerConnection()->DeleteAttribute("nullNodes");
@@ -7274,7 +7343,7 @@ void Model::SetControllerStartNulls(int nulls)
 
 void Model::SetControllerEndNulls(int nulls)
 {
-    if (nulls == wxAtoi(ModelXml->GetAttribute("endNullNodes", "0"))) {
+    if (nulls == wxAtoi(GetControllerConnection()->GetAttribute("endNullNodes", "0"))) {
         return;
     }
     GetControllerConnection()->DeleteAttribute("endNullNodes");
@@ -7289,7 +7358,7 @@ void Model::SetControllerEndNulls(int nulls)
 
 void Model::SetControllerColorOrder(wxString const& color)
 {
-    if (color == ModelXml->GetAttribute("colorOrder", "RGB")) {
+    if (color == GetControllerConnection()->GetAttribute("colorOrder", "RGB")) {
         return;
     }
     GetControllerConnection()->DeleteAttribute("colorOrder");
@@ -7314,6 +7383,20 @@ void Model::SetControllerGroupCount(int grouping)
     AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetConnectionPixelGroupCount");
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetConnectionPixelGroupCount");
     AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetConnectionPixelGroupCount");
+    IncrementChangeCount();
+}
+
+void Model::SetControllerGamma(float gamma) {
+    if (abs(gamma - wxAtof(GetControllerConnection()->GetAttribute("gamma", "0.0"))) < 0.01) {
+        return;
+    }
+    GetControllerConnection()->DeleteAttribute("gamma");
+    GetControllerConnection()->AddAttribute("gamma", wxString::Format("%f", gamma));
+
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetConnectionPixelGamma");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetConnectionPixelGamma");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetConnectionPixelGamma");
+    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetConnectionPixelGamma");
     IncrementChangeCount();
 }
 
@@ -7372,6 +7455,10 @@ std::string Model::GetShadowModelFor() const
 std::string Model::GetControllerName() const
 {
     return ModelXml->GetAttribute("Controller", "").Trim(true).Trim(false).ToStdString();
+}
+
+float Model::GetControllerGamma() const {
+    return wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
 }
 
 // std::list<std::string> Model::GetProtocols()
@@ -7485,6 +7572,11 @@ std::string Model::GetControllerProtocol() const
 {
     wxString s = GetControllerConnection()->GetAttribute("Protocol");
     return s.ToStdString();
+}
+
+int Model::GetControllerProtocolSpeed() const
+{
+    return wxAtoi(GetControllerConnection()->GetAttribute("Speed", "250000"));
 }
 
 int Model::GetControllerDMXChannel() const

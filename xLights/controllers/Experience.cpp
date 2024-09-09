@@ -81,10 +81,22 @@ int Experience::EncodeBrightness(int brightness) const
 
 int Experience::EncodeGamma(double gamma) const
 {
-    if (gamma > 3.0) {
-        return 3.0;
+    if (1.5 > gamma ) {
+        return 10;
     }
-    return gamma * 10;
+    if (2.15 > gamma) {
+        return 20;
+    }
+    if (2.4 > gamma) {
+        return 23;
+    }
+    if (2.65 > gamma) {
+        return 25;
+    }
+    if (2.9 > gamma) {
+        return 28;
+    }
+    return 30;
 }
 
 wxString Experience::EncodeColorOrder(std::string const& colorOrder) const
@@ -277,6 +289,9 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 }
                 if (pvs->_endNullPixelsSet) {
                     vs["en"] = pvs->_endNullPixels;
+                }
+                if (pvs->_channelsPerPixel == 1) {
+                    vs["st"] = "p2ac";
                 }
                 if (pvs->_colourOrderSet) {
                     vs["st"] = EncodeColorOrder(pvs->_colourOrder);

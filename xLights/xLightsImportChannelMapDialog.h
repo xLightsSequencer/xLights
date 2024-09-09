@@ -443,29 +443,29 @@ class xLightsImportChannelMapDialog: public wxDialog
 protected:
 
 		//(*Identifiers(xLightsImportChannelMapDialog)
-		static const long ID_SPINCTRL1;
-		static const long ID_CHECKBOX1;
-		static const long ID_CHECKBOX11;
-		static const long ID_CHECKBOX4;
-		static const long ID_CHECKBOX2;
-		static const long ID_STATICTEXT_BLEND_TYPE;
-		static const long ID_CHECKBOX3;
-		static const long ID_BUTTON_IMPORT_OPTIONS;
-		static const long ID_CHECKLISTBOX1;
-		static const long ID_STATICTEXT2;
-		static const long ID_TEXTCTRL2;
-		static const long ID_BUTTON3;
-		static const long ID_BUTTON4;
-		static const long ID_BUTTON6;
-		static const long ID_BUTTON5;
-		static const long ID_BUTTON1;
-		static const long ID_BUTTON2;
-		static const long ID_PANEL1;
-		static const long ID_STATICTEXT1;
-		static const long ID_TEXTCTRL1;
-		static const long ID_LISTCTRL1;
-		static const long ID_PANEL2;
-		static const long ID_SPLITTERWINDOW1;
+		static const wxWindowID ID_SPINCTRL1;
+		static const wxWindowID ID_CHECKBOX1;
+		static const wxWindowID ID_CHECKBOX11;
+		static const wxWindowID ID_CHECKBOX4;
+		static const wxWindowID ID_CHECKBOX2;
+		static const wxWindowID ID_STATICTEXT_BLEND_TYPE;
+		static const wxWindowID ID_CHECKBOX3;
+		static const wxWindowID ID_BUTTON_IMPORT_OPTIONS;
+		static const wxWindowID ID_CHECKLISTBOX1;
+		static const wxWindowID ID_STATICTEXT2;
+		static const wxWindowID ID_TEXTCTRL2;
+		static const wxWindowID ID_BUTTON3;
+		static const wxWindowID ID_BUTTON4;
+		static const wxWindowID ID_BUTTON6;
+		static const wxWindowID ID_BUTTON5;
+		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_BUTTON2;
+		static const wxWindowID ID_PANEL1;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_TEXTCTRL1;
+		static const wxWindowID ID_LISTCTRL1;
+		static const wxWindowID ID_PANEL2;
+		static const wxWindowID ID_SPLITTERWINDOW1;
 		//*)
 
         static const long ID_MNU_SELECTALL;
@@ -495,6 +495,7 @@ protected:
 		void OnTextCtrl_FindFromText(wxCommandEvent& event);
 		void OnTextCtrl_FindToText(wxCommandEvent& event);
 		void OnButton_UpdateAliasesClick(wxCommandEvent& event);
+		void OnClose(wxCloseEvent& event);
 		//*)
 
         void RightClickTimingTracks(wxContextMenuEvent& event);

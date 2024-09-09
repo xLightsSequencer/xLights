@@ -1155,10 +1155,8 @@ void CustomModelDialog::OnCheckBox_RearViewClick(wxCommandEvent& event)
 
 void CustomModelDialog::OnButtonCancelClick(wxCommandEvent& event)
 {
-    if (_changed)
-    {
-        if (wxMessageBox("Abandon changes to this custom model?", "Abandon changes", wxYES_NO, this) == wxNO)
-        {
+    if (_changed) {
+        if (wxMessageBox("Are you sure you want to discard your current custom model changes?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
             return;
         }
     }

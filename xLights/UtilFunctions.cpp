@@ -807,6 +807,9 @@ void SaveWindowPosition(const std::string& tag, wxWindow* window) {
 }
 
 void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position) {
+    if (wxGetKeyState(WXK_COMMAND) || wxGetKeyState(WXK_CONTROL)) {
+        return;
+    }
     wxConfigBase* config = wxConfigBase::Get();
 
     wxString pos = config->Read(tag, "");

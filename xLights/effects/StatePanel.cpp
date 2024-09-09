@@ -18,21 +18,26 @@
 #include <wx/intl.h>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(StatePanel)
-const long StatePanel::ID_STATICTEXT15 = wxNewId();
-const long StatePanel::ID_CHOICE_State_StateDefinition = wxNewId();
-const long StatePanel::IDD_RADIOBUTTON_State_State = wxNewId();
-const long StatePanel::ID_CHOICE_State_State = wxNewId();
-const long StatePanel::IDD_RADIOBUTTON_State_TimingTrack = wxNewId();
-const long StatePanel::ID_CHOICE_State_TimingTrack = wxNewId();
-const long StatePanel::ID_STATICTEXT_State_Mode = wxNewId();
-const long StatePanel::ID_CHOICE_State_Mode = wxNewId();
-const long StatePanel::ID_STATICTEXT_State_Color = wxNewId();
-const long StatePanel::ID_CHOICE_State_Color = wxNewId();
+const wxWindowID StatePanel::ID_STATICTEXT15 = wxNewId();
+const wxWindowID StatePanel::ID_CHOICE_State_StateDefinition = wxNewId();
+const wxWindowID StatePanel::IDD_RADIOBUTTON_State_State = wxNewId();
+const wxWindowID StatePanel::ID_CHOICE_State_State = wxNewId();
+const wxWindowID StatePanel::IDD_RADIOBUTTON_State_TimingTrack = wxNewId();
+const wxWindowID StatePanel::ID_CHOICE_State_TimingTrack = wxNewId();
+const wxWindowID StatePanel::ID_STATICTEXT_State_Mode = wxNewId();
+const wxWindowID StatePanel::ID_CHOICE_State_Mode = wxNewId();
+const wxWindowID StatePanel::ID_STATICTEXT_State_Color = wxNewId();
+const wxWindowID StatePanel::ID_CHOICE_State_Color = wxNewId();
+const wxWindowID StatePanel::ID_STATICTEXT1 = wxNewId();
+const wxWindowID StatePanel::ID_SLIDER_State_Fade_Time = wxNewId();
+const wxWindowID StatePanel::IDD_TEXTCTRL_State_Fade_Time = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(StatePanel,wxPanel)
@@ -47,6 +52,7 @@ StatePanel::StatePanel(wxWindow* parent) : xlEffectPanel(parent)
 
 	//(*Initialize(StatePanel)
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer47;
 	wxFlexGridSizer* FlexGridSizer97;
 	wxFlexGridSizer* FlexGridSizer98;
@@ -96,13 +102,23 @@ StatePanel::StatePanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_State_Color->Append(_("Allocate"));
 	FlexGridSizer1->Add(Choice_State_Color, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer47->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer2->AddGrowableCol(1);
+	StaticText3 = new wxStaticText(this, ID_STATICTEXT1, _("Fade(ms)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SLIDER_State_Fade_Time = new BulkEditSlider(this, ID_SLIDER_State_Fade_Time, 0, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_State_Fade_Time"));
+	SLIDER_State_Fade_Time->SetTickFreq(100);
+	SLIDER_State_Fade_Time->SetTick(1);
+	FlexGridSizer2->Add(SLIDER_State_Fade_Time, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_State_Fade_Time = new BulkEditTextCtrl(this, IDD_TEXTCTRL_State_Fade_Time, _T("0"), wxDefaultPosition, wxSize(45,-1), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_State_Fade_Time"));
+	TextCtrl_State_Fade_Time->SetMaxLength(4);
+	FlexGridSizer2->Add(TextCtrl_State_Fade_Time, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer47->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer47);
-	FlexGridSizer47->Fit(this);
-	FlexGridSizer47->SetSizeHints(this);
 
-	Connect(ID_CHOICE_State_StateDefinition,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&StatePanel::OnState_StateDefinitonChoiceSelect);
-	Connect(IDD_RADIOBUTTON_State_State,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StatePanel::OnMouthMovementTypeSelected);
-	Connect(IDD_RADIOBUTTON_State_TimingTrack,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StatePanel::OnMouthMovementTypeSelected);
+	Connect(ID_CHOICE_State_StateDefinition, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&StatePanel::OnState_StateDefinitonChoiceSelect);
+	Connect(IDD_RADIOBUTTON_State_State, wxEVT_COMMAND_RADIOBUTTON_SELECTED, (wxObjectEventFunction)&StatePanel::OnMouthMovementTypeSelected);
+	Connect(IDD_RADIOBUTTON_State_TimingTrack, wxEVT_COMMAND_RADIOBUTTON_SELECTED, (wxObjectEventFunction)&StatePanel::OnMouthMovementTypeSelected);
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&StatePanel::OnVCChanged, 0, this);

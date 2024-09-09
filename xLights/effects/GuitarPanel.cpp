@@ -31,25 +31,25 @@
 #include <log4cpp/Category.hh>
 
 //(*IdInit(GuitarPanel)
-const long GuitarPanel::ID_STATICTEXT_Guitar_Type = wxNewId();
-const long GuitarPanel::ID_CHOICE_Guitar_Type = wxNewId();
-const long GuitarPanel::ID_STATICTEXT_Guitar_MIDITrack_APPLYLAST = wxNewId();
-const long GuitarPanel::ID_CHOICE_Guitar_MIDITrack_APPLYLAST = wxNewId();
-const long GuitarPanel::ID_STATICTEXT1 = wxNewId();
-const long GuitarPanel::ID_CHOICE_StringAppearance = wxNewId();
-const long GuitarPanel::ID_STATICTEXT_Piano_Scale = wxNewId();
-const long GuitarPanel::ID_SLIDER_MaxFrets = wxNewId();
-const long GuitarPanel::IDD_TEXTCTRL_MaxFrets = wxNewId();
-const long GuitarPanel::ID_STATICTEXT2 = wxNewId();
-const long GuitarPanel::ID_SLIDER_BaseWaveFactor = wxNewId();
-const long GuitarPanel::IDD_TEXTCTRL_BaseWaveFactor = wxNewId();
-const long GuitarPanel::ID_STATICTEXT3 = wxNewId();
-const long GuitarPanel::ID_SLIDER_StringWaveFactor = wxNewId();
-const long GuitarPanel::IDD_TEXTCTRL_StringWaveFactor = wxNewId();
-const long GuitarPanel::ID_CHECKBOX_Fade = wxNewId();
-const long GuitarPanel::ID_CHECKBOX_Collapse = wxNewId();
-const long GuitarPanel::ID_CHECKBOX_ShowStrings = wxNewId();
-const long GuitarPanel::ID_CHECKBOX_VaryWaveLengthOnFret = wxNewId();
+const wxWindowID GuitarPanel::ID_STATICTEXT_Guitar_Type = wxNewId();
+const wxWindowID GuitarPanel::ID_CHOICE_Guitar_Type = wxNewId();
+const wxWindowID GuitarPanel::ID_STATICTEXT_Guitar_MIDITrack_APPLYLAST = wxNewId();
+const wxWindowID GuitarPanel::ID_CHOICE_Guitar_MIDITrack_APPLYLAST = wxNewId();
+const wxWindowID GuitarPanel::ID_STATICTEXT1 = wxNewId();
+const wxWindowID GuitarPanel::ID_CHOICE_StringAppearance = wxNewId();
+const wxWindowID GuitarPanel::ID_STATICTEXT_Piano_Scale = wxNewId();
+const wxWindowID GuitarPanel::ID_SLIDER_MaxFrets = wxNewId();
+const wxWindowID GuitarPanel::IDD_TEXTCTRL_MaxFrets = wxNewId();
+const wxWindowID GuitarPanel::ID_STATICTEXT2 = wxNewId();
+const wxWindowID GuitarPanel::ID_SLIDER_BaseWaveFactor = wxNewId();
+const wxWindowID GuitarPanel::IDD_TEXTCTRL_BaseWaveFactor = wxNewId();
+const wxWindowID GuitarPanel::ID_STATICTEXT3 = wxNewId();
+const wxWindowID GuitarPanel::ID_SLIDER_StringWaveFactor = wxNewId();
+const wxWindowID GuitarPanel::IDD_TEXTCTRL_StringWaveFactor = wxNewId();
+const wxWindowID GuitarPanel::ID_CHECKBOX_Fade = wxNewId();
+const wxWindowID GuitarPanel::ID_CHECKBOX_Collapse = wxNewId();
+const wxWindowID GuitarPanel::ID_CHECKBOX_ShowStrings = wxNewId();
+const wxWindowID GuitarPanel::ID_CHECKBOX_VaryWaveLengthOnFret = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(GuitarPanel,wxPanel)
@@ -83,7 +83,7 @@ GuitarPanel::GuitarPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer27->Add(Choice_Guitar_MIDITrack_APPLYLAST, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer27->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT1, _("String Appearance"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer27->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer27->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_StringAppearance = new wxChoice(this, ID_CHOICE_StringAppearance, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_StringAppearance"));
 	Choice_StringAppearance->SetSelection( Choice_StringAppearance->Append(_("On")) );
 	Choice_StringAppearance->Append(_("Wave"));
@@ -93,20 +93,20 @@ GuitarPanel::GuitarPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer27->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_MaxFrets = new BulkEditSlider(this, ID_SLIDER_MaxFrets, 19, 8, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MaxFrets"));
 	FlexGridSizer27->Add(Slider_MaxFrets, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_MaxFrets = new BulkEditTextCtrl(this, IDD_TEXTCTRL_MaxFrets, _("19"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_MaxFrets"));
+	TextCtrl_MaxFrets = new BulkEditTextCtrl(this, IDD_TEXTCTRL_MaxFrets, _T("19"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_MaxFrets"));
 	FlexGridSizer27->Add(TextCtrl_MaxFrets, 1, wxALL|wxEXPAND, 2);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT2, _("Base Wavelength"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer27->Add(StaticText3, 1, wxALL|wxEXPAND, 2);
 	Slider_BaseWaveFactor = new BulkEditSliderF1(this, ID_SLIDER_BaseWaveFactor, 10, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BaseWaveFactor"));
 	FlexGridSizer27->Add(Slider_BaseWaveFactor, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_BaseWaveFactor = new BulkEditTextCtrlF1(this, IDD_TEXTCTRL_BaseWaveFactor, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_BaseWaveFactor"));
+	TextCtrl_BaseWaveFactor = new BulkEditTextCtrlF1(this, IDD_TEXTCTRL_BaseWaveFactor, _T("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_BaseWaveFactor"));
 	TextCtrl_BaseWaveFactor->SetMaxLength(5);
 	FlexGridSizer27->Add(TextCtrl_BaseWaveFactor, 1, wxALL|wxEXPAND, 2);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT3, _("Vary Wavelength By String"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer27->Add(StaticText4, 1, wxALL|wxEXPAND, 2);
 	Slider_StringWaveFactor = new BulkEditSliderF1(this, ID_SLIDER_StringWaveFactor, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_StringWaveFactor"));
 	FlexGridSizer27->Add(Slider_StringWaveFactor, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_StringWaveFactor = new BulkEditTextCtrlF1(this, IDD_TEXTCTRL_StringWaveFactor, _("0.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_StringWaveFactor"));
+	TextCtrl_StringWaveFactor = new BulkEditTextCtrlF1(this, IDD_TEXTCTRL_StringWaveFactor, _T("0.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_StringWaveFactor"));
 	TextCtrl_StringWaveFactor->SetMaxLength(5);
 	FlexGridSizer27->Add(TextCtrl_StringWaveFactor, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer27->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -131,8 +131,6 @@ GuitarPanel::GuitarPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer27->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	FlexGridSizer42->Add(FlexGridSizer27, 0, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
-	FlexGridSizer42->Fit(this);
-	FlexGridSizer42->SetSizeHints(this);
 	//*)
 
     SetName("ID_PANEL_Guitar");
