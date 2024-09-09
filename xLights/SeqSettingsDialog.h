@@ -49,7 +49,7 @@ class SeqSettingsDialog: public wxDialog
 		wxBitmapButton* BitmapButton_Xml_Media_File;
 		wxButton* ButtonAddSubAudio;
 		wxButton* ButtonRemoveSubAudio;
-		wxButton* Button_AddMiliseconds;
+		wxButton* Button_AddMilliseconds;
 		wxButton* Button_Cancel;
 		wxButton* Button_Close;
 		wxButton* Button_Download;
@@ -76,6 +76,7 @@ class SeqSettingsDialog: public wxDialog
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
 		wxStaticText* StaticText_File;
 		wxStaticText* StaticText_Filename;
 		wxStaticText* StaticText_Info;
@@ -157,11 +158,11 @@ class SeqSettingsDialog: public wxDialog
 		static const wxWindowID ID_TEXTCTRL2;
 		static const wxWindowID ID_TEXTCTRL3;
 		static const wxWindowID ID_BUTTON1;
-    static const long ID_STATICTEXT2;
-		static const long ID_LISTBOX_SUB_AUDIO;
-		static const long ID_BUTTON_ADD_SUB_AUDIO;
-		static const long ID_BUTTON_REMOVE_SUB_AUDIO;
-		static const wxWindowID ID_BUTTON_AddMiliseconds;
+		static const wxWindowID ID_BUTTON_AddMilliseconds;
+		static const wxWindowID ID_STATICTEXT4;
+		static const wxWindowID ID_LISTBOX_SUB_AUDIO;
+		static const wxWindowID ID_BUTTON_ADD_SUB_AUDIO;
+		static const wxWindowID ID_BUTTON_REMOVE_SUB_AUDIO;
 		static const wxWindowID ID_STATICTEXT_Xml_Total_Length;
 		static const wxWindowID ID_TEXTCTRL_Xml_Seq_Duration;
 		static const wxWindowID ID_CHECKBOX_Overwrite_Tags;
@@ -273,7 +274,7 @@ class SeqSettingsDialog: public wxDialog
 		void OnButton_MusicOpenClick(wxCommandEvent& event);
 		void OnButtonAddSubAudioClick(wxCommandEvent& event);
 		void OnButtonRemoveSubAudioClick(wxCommandEvent& event);
-    void OnButton_AddMilisecondsClick(wxCommandEvent& event);
+		void OnButton_AddMillisecondsClick(wxCommandEvent& event);
 
 		//*)
 
