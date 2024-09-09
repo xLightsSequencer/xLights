@@ -605,6 +605,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
     Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated);
     Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_COL_CLICK, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
+    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnClose);
     //*)
 
     Connect(ID_CHECKLISTBOX1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickTimingTracks);
@@ -934,7 +935,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
     }
 
     _sortOrder = 1;
-    
+
     ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
     ListCtrl_Available->ShowSortIndicator(0, true);
 
@@ -1170,7 +1171,7 @@ xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::st
 void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 {
     if (_dirty) {
-        if (wxMessageBox("Are you sure you don't want to save your changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
+        if (wxMessageBox("Are you sure you want to leave WITHOUT saving your mapping changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
             return;
         }
     }
@@ -1810,7 +1811,7 @@ wxDataViewItem xLightsImportChannelMapDialog::GetPriorTreeItem(const wxDataViewI
 void xLightsImportChannelMapDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     if (_dirty) {
-        if (wxMessageBox("Are you sure you want to exit WITHOUT saving your mapping changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES) {
+        if (wxMessageBox("Are you sure you want to leave WITHOUT saving your mapping changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES) {
             EndDialog(wxID_OK);
         }
     } else {
@@ -1821,7 +1822,7 @@ void xLightsImportChannelMapDialog::OnButton_OkClick(wxCommandEvent& event)
 void xLightsImportChannelMapDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
     if (_dirty) {
-        if (wxMessageBox("Are you sure you dont want to save your changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES) {
+        if (wxMessageBox("Are you sure you want to cancel WITHOUT saving your mapping changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES) {
             EndDialog(wxID_CANCEL);
         }
 
@@ -2724,4 +2725,16 @@ void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& 
         }
     }
     xlights->SetStatusText(_("Update Aliases Done."));
+}
+
+void xLightsImportChannelMapDialog::OnClose(wxCloseEvent& event)
+{
+    if (_dirty) {
+        if (wxMessageBox("Are you sure you want to exit WITHOUT saving your mapping changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES) {
+            EndDialog(wxID_CANCEL);
+        }
+
+    } else {
+        EndDialog(wxID_CANCEL);
+    }
 }
