@@ -815,7 +815,7 @@ public:
                         continue;
                     }
                     it->GetModel()->SetSmartRemote(startId + 1);
-                    int max_cas = std::min(it->GetModel()->GetSRMaxCascade(), (int)std::ceil(it->GetModel()->GetNumStrings() / 4.0));
+                    int max_cas = std::min(it->GetModel()->GetSRMaxCascade(), (int)std::ceil(it->GetModel()->GetNumPhysicalStrings() / 4.0));
                     max_cas = std::max(max_cas, 1);
                     startId += max_cas;
                     if (startId >= sr_count) {
