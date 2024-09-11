@@ -6153,7 +6153,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         model = xlights->AllModels.CreateDefaultModel("Arches", startChannel);
 
         int h1 = 1;
-        model->InitializeLocation(h1, l, b, modelPreview);
+        UNUSED(model->InitializeLocation(h1, l, b, modelPreview));
         ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r - l));
         ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetRight(r);
         ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetLeft(l);
@@ -7957,4 +7957,45 @@ std::string Model::GetAttributesAsJSON() const
     }
     json += "}}";
     return json;
+}
+
+void Model::InitRenderBufferNodes3DFromScreenCoords(std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int& BufferDp) const {
+    double minx = 999999999;
+    double miny = 999999999;
+    double minz = 999999999;
+    double maxx = -999999999;
+    double maxy = -999999999;
+    double maxz = -999999999;
+
+    for (size_t n = 0; n < Nodes.size(); ++n) {
+        if (Nodes[n]->Coords[0].screenX < minx)
+            minx = Nodes[n]->Coords[0].screenX;
+        if (Nodes[n]->Coords[0].screenY < miny)
+            miny = Nodes[n]->Coords[0].screenY;
+        if (Nodes[n]->Coords[0].screenZ < minz)
+            minz = Nodes[n]->Coords[0].screenZ;
+        if (Nodes[n]->Coords[0].screenX > maxx)
+            maxx = Nodes[n]->Coords[0].screenX;
+        if (Nodes[n]->Coords[0].screenY > maxy)
+            maxy = Nodes[n]->Coords[0].screenY;
+        if (Nodes[n]->Coords[0].screenZ > maxz)
+            maxz = Nodes[n]->Coords[0].screenZ;
+    }
+
+    double w = maxx - minx;
+    double h = maxy - miny;
+    double d = maxz - minz;
+
+    double scalex = (double)(BufferWi - 1) / w;
+    double scaley = (double)(BufferHi - 1) / h;
+    double scalez = (double)(BufferDp - 1) / d;
+
+    for (size_t n = 0; n < Nodes.size(); ++n) {
+        Nodes[n]->Coords[0].bufX = (Nodes[n]->Coords[0].screenX - minx) * scalex;
+        Nodes[n]->Coords[0].bufY = (Nodes[n]->Coords[0].screenY - miny) * scaley;
+        Nodes[n]->Coords[0].bufZ = (Nodes[n]->Coords[0].screenZ - minz) * scalez;
+        wxASSERT(Nodes[n]->Coords[0].bufX >= 0 && Nodes[n]->Coords[0].bufX < BufferWi);
+        wxASSERT(Nodes[n]->Coords[0].bufY >= 0 && Nodes[n]->Coords[0].bufY < BufferHi);
+        wxASSERT(Nodes[n]->Coords[0].bufZ >= 0 && Nodes[n]->Coords[0].bufZ < BufferDp);
+    }
 }

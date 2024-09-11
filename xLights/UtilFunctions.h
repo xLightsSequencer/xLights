@@ -24,6 +24,8 @@
 #include <algorithm>
 #include <map>
 
+#define UNUSED(x) x
+
 #include <locale>
 #include <codecvt>
 

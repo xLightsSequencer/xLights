@@ -8,33 +8,30 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/tokenzr.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/msgdlg.h>
-#include <wx/log.h>
 #include <wx/filedlg.h>
+#include <wx/log.h>
+#include <wx/msgdlg.h>
+#include <wx/propgrid/advprops.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/tokenzr.h>
+#include <wx/xml/xml.h>
 
-#include "TreeModel.h"
+#include "CustomModel.h"
 #include "ModelScreenLocation.h"
-#include "../xLightsVersion.h"
-#include "../xLightsMain.h"
+#include "TreeModel.h"
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
-#include "CustomModel.h"
+#include "../xLightsMain.h"
+#include "../xLightsVersion.h"
 
-TreeModel::TreeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : MatrixModel(manager)
-{
-    treeType = 0;
-    degrees = 360;
+TreeModel::TreeModel(wxXmlNode* node, const ModelManager& manager, bool zeroBased) :
+    MatrixModel(manager) {
     screenLocation.SetSupportsZScaling(true);
     screenLocation.SetPreferredSelectionPlane(ModelScreenLocation::MSLPLANE::GROUND);
     SetFromXml(node, zeroBased);
 }
 
-TreeModel::~TreeModel()
-{
+TreeModel::~TreeModel() {
 }
 
 static const char* TREE_DIRECTION_VALUES[] = {
@@ -42,6 +39,28 @@ static const char* TREE_DIRECTION_VALUES[] = {
     "Vertical"
 };
 static wxPGChoices TREE_DIRECTIONS(wxArrayString(2, TREE_DIRECTION_VALUES));
+
+void TreeModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int& BufferDp, int stagger) const {
+    if (tp == "3D") {
+        BufferHi = this->BufferHt;
+        BufferWi = (int)((float)this->BufferWi * 1.5f);
+        BufferDp = BufferWi;
+
+        AdjustForTransform(transform, BufferWi, BufferHi, BufferDp);
+    } else {
+        return MatrixModel::GetBufferSize(tp, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
+    }
+}
+
+void TreeModel::InitRenderBufferNodes(const std::string& tp, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int& BufferDp, int stagger, bool deep) const {
+    MatrixModel::InitRenderBufferNodes(tp, camera, transform, Nodes, BufferWi, BufferHi, BufferDp, stagger, deep);
+
+    GetBufferSize(tp, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
+
+    if (tp == "3D" && Supports3DBuffer()) {
+        InitRenderBufferNodes3DFromScreenCoords(Nodes, BufferWi, BufferHi, BufferDp);
+    }
+}
 
 void TreeModel::InitModel() {
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
@@ -75,7 +94,7 @@ void TreeModel::InitModel() {
     rotation = wxAtof(ModelXml->GetAttribute("TreeRotation", "3"));
     spiralRotations = wxAtof(ModelXml->GetAttribute("TreeSpiralRotations", "0.0"));
     botTopRatio = wxAtof(ModelXml->GetAttribute("TreeBottomTopRatio", "6.0"));
-    perspective =  wxAtof(ModelXml->GetAttribute("TreePerspective", "0.2"));
+    perspective = wxAtof(ModelXml->GetAttribute("TreePerspective", "0.2"));
     screenLocation.SetPerspective2D(perspective);
     SetTreeCoord(degrees);
     InitSingleChannelModel();
@@ -83,8 +102,7 @@ void TreeModel::InitModel() {
 }
 
 // initialize screen coordinates for tree
-void TreeModel::SetTreeCoord(long degrees)
-{
+void TreeModel::SetTreeCoord(long degrees) {
     double bufferX, bufferY;
     if (BufferWi < 1)
         return;
@@ -255,29 +273,29 @@ void TreeModel::SetTreeCoord(long degrees)
     screenLocation.SetRenderSize(RenderWi, RenderHt, RenderWi);
 }
 
-int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+int TreeModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if (event.GetPropertyName() == "TreeStyle") {
         ModelXml->DeleteAttribute("DisplayAs");
-        wxPGProperty *p = grid->GetPropertyByName("TreeDegrees");
+        wxPGProperty* p = grid->GetPropertyByName("TreeDegrees");
         if (p != nullptr) {
             degrees = p->GetValue().GetLong();
         }
         switch (event.GetPropertyValue().GetLong()) {
-            case 0:
-                ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", degrees > 1 ? (int)degrees : 180));
-                treeType = 0;
-                break;
-            case 1:
-                ModelXml->AddAttribute("DisplayAs", "Tree Flat");
-                treeType = 1;
-                break;
-            case 2:
-                ModelXml->AddAttribute("DisplayAs", "Tree Ribbon");
-                treeType = 2;
-                break;
-            default:
-                wxASSERT(false);
-                break;
+        case 0:
+            ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", degrees > 1 ? (int)degrees : 180));
+            treeType = 0;
+            break;
+        case 1:
+            ModelXml->AddAttribute("DisplayAs", "Tree Flat");
+            treeType = 1;
+            break;
+        case 2:
+            ModelXml->AddAttribute("DisplayAs", "Tree Ribbon");
+            treeType = 2;
+            break;
+        default:
+            wxASSERT(false);
+            break;
         }
         if (p != nullptr) {
             p->Enable(treeType == 0);
@@ -325,7 +343,7 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         return 0;
     } else if (event.GetPropertyName() == "TreePerspective") {
         ModelXml->DeleteAttribute("TreePerspective");
-        ModelXml->AddAttribute("TreePerspective", wxString::Format("%f", (float)(event.GetPropertyValue().GetDouble()/10.0)));
+        ModelXml->AddAttribute("TreePerspective", wxString::Format("%f", (float)(event.GetPropertyValue().GetDouble() / 10.0)));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreePerspective");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreePerspective");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreePerspective");
@@ -343,17 +361,17 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
     return MatrixModel::OnPropertyGridChange(grid, event);
 }
 
-static const char* TREE_STYLES_VALUES[] = { 
-        "Round",
-        "Flat",
-        "Ribbon"
+static const char* TREE_STYLES_VALUES[] = {
+    "Round",
+    "Flat",
+    "Ribbon"
 };
 static wxPGChoices TREE_STYLES(wxArrayString(3, TREE_STYLES_VALUES));
 
-void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
+void TreeModel::AddStyleProperties(wxPropertyGridInterface* grid) {
     grid->Append(new wxEnumProperty("Type", "TreeStyle", TREE_STYLES, treeType));
 
-    wxPGProperty *p = grid->Append(new wxUIntProperty("Degrees", "TreeDegrees", treeType == 0 ? degrees : 180));
+    wxPGProperty* p = grid->Append(new wxUIntProperty("Degrees", "TreeDegrees", treeType == 0 ? degrees : 180));
     p->SetAttribute("Min", "1");
     p->SetAttribute("Max", "360");
     p->SetEditor("SpinCtrl");
@@ -382,7 +400,7 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
 
-    p = grid->Append(new wxFloatProperty("Perspective", "TreePerspective", treeType == 0 ? perspective*10 : 2));
+    p = grid->Append(new wxFloatProperty("Perspective", "TreePerspective", treeType == 0 ? perspective * 10 : 2));
     p->SetAttribute("Min", "0");
     p->SetAttribute("Max", "10");
     p->SetAttribute("Precision", 2);
@@ -401,12 +419,12 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     grid->Append(new wxEnumProperty("Strand Direction", "StrandDir", TREE_DIRECTIONS, vMatrix ? 1 : 0));
 }
 
-void TreeModel::ExportXlightsModel()
-{
+void TreeModel::ExportXlightsModel() {
     wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
     wxFile f(filename);
 
     if (!f.Create(filename, true) || !f.IsOpened()) {
@@ -466,18 +484,15 @@ void TreeModel::ExportXlightsModel()
         f.Write(aliases);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString face = SerialiseFace();
-    if (face != "")
-    {
+    if (face != "") {
         f.Write(face);
     }
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     wxString groups = SerialiseGroups();
@@ -489,8 +504,7 @@ void TreeModel::ExportXlightsModel()
     f.Close();
 }
 
-bool TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+bool TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
     if (root->GetName() == "treemodel") {
         wxString name = root->GetAttribute("name");
         wxString p1 = root->GetAttribute("parm1");
@@ -520,8 +534,7 @@ bool TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
-        if (sdr == "")
-        {
+        if (sdr == "") {
             sdr = TREE_DIRECTION_VALUES[1];
         }
 
@@ -566,8 +579,7 @@ bool TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
 }
 
 #define SCALE_FACTOR_3D (1.1)
-void TreeModel::ExportAsCustomXModel3D() const
-{
+void TreeModel::ExportAsCustomXModel3D() const {
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
