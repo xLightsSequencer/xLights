@@ -8,123 +8,120 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/log.h>
 #include <wx/filedlg.h>
+#include <wx/log.h>
 #include <wx/msgdlg.h>
+#include <wx/propgrid/advprops.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/xml/xml.h>
 
 #include "CubeModel.h"
-#include "ModelScreenLocation.h"
-#include "../xLightsVersion.h"
-#include "../xLightsMain.h"
-#include "UtilFunctions.h"
-#include "../outputs/OutputManager.h"
-#include "../outputs/Controller.h"
-#include "../ModelPreview.h"
 #include "CustomModel.h"
+#include "ModelScreenLocation.h"
+#include "UtilFunctions.h"
+#include "../ModelPreview.h"
+#include "../outputs/Controller.h"
+#include "../outputs/OutputManager.h"
+#include "../xLightsMain.h"
+#include "../xLightsVersion.h"
 
 #include <log4cpp/Category.hh>
 
-static std::vector<std::tuple<int, int, int, int>> transformations =
-{
-    { 1,0,-1,0 },   // FBL V FB          ok
-    { 0,0,-1,1 },   //     V LR          ok
-    { 0,-1,0,1 },   //     H FB          ok
-    { 0,0,0,0 },    //     H LR          ok
-    { -1,2,0,1 },   //     S FB          ok
-    { -1,-1,0,0 },  //     S LR          ok
-    { 1,0,-1,1 },   // FBR V FB          ok
-    { 0,0,-1,0 },   //     V LR          ok
-    { 0,-1,0,0 },   //     H FB          ok
-    { 0,0,0,1 },    //     H LR          ok
-    { -1,2,0,0 },   //     S FB          ok
-    { -1,-1,0,1 },  //     S LR          ok
-    { 1,0,1,1 },    // FTL V FB          ok
-    { 0,0,1,0 },    //     V LR          ok
-    { 0,-1,2,0 },   //     H FB          ok
-    { 0,0,2,1 },    //     H LR          ok
-    { -1,2,2,0 },   //     S FB          ok
-    { -1,-1,2,1 },  //     S LR          ok
-    { 1,0,1,0 },    // FTR V FB          ok
-    { 0,0,1,1 },    //     V LR          ok
-    { 0,-1,2,1 },   //     H FB          ok
-    { 0,0,2,0 },    //     H LR          ok
-    { -1,2,2,1 },   //     S FB          ok
-    { -1,-1,2,0 },  //     S LR          ok
-    { -1,0,-1,1 },  // BBL V FB          ok
-    { 0,2,1,0 },    //     V LR          ok
-    { 0,1,0,0 },    //     H FB          ok
-    { 0,2,0,1 },    //     H LR          ok
-    { -1,0,0,0 },   //     S FB          ok
-    { -1,1,0,1 },   //     S LR          ok
-    { -1,0,-1,0 },  // BBR V FB          ok
-    { 0,2,1,1 },    //     V LR          ok
-    { 0,1,0,1 },    //     H FB          ok
-    { 0,2,0,0 },    //     H LR          ok
-    { -1,0,0,1 },   //     S FB          ok
-    { -1,1,0,0 },   //     S LR          ok
-    { -1,0,1,0 },   // BTL V FB          ok
-    { 0,2,-1,1 },   //     V LR          ok
-    { 0,-1,2,0 },   //     H FB          ok
-    { 2,0,0,0 },    //     H LR          ok
-    { -1,2,2,0 },   //     S FB          ok
-    { 1,-1,0,0 },   //     S LR          ok
-    { -1,0,1,1 },   // BTR V FB          ok
-    { 0,2,-1,0 },   //     V LR          ok
-    { 0,-1,2,1 },   //     H FB          ok
-    { 2,0,0,1 },    //     H LR          ok
-    { -1,2,2,1 },   //     S FB          ok
-    { 1,-1,0,1 }    //     S LR          ok
+static std::vector<std::tuple<int, int, int, int>> transformations = {
+    { 1, 0, -1, 0 },  // FBL V FB          ok
+    { 0, 0, -1, 1 },  //     V LR          ok
+    { 0, -1, 0, 1 },  //     H FB          ok
+    { 0, 0, 0, 0 },   //     H LR          ok
+    { -1, 2, 0, 1 },  //     S FB          ok
+    { -1, -1, 0, 0 }, //     S LR          ok
+    { 1, 0, -1, 1 },  // FBR V FB          ok
+    { 0, 0, -1, 0 },  //     V LR          ok
+    { 0, -1, 0, 0 },  //     H FB          ok
+    { 0, 0, 0, 1 },   //     H LR          ok
+    { -1, 2, 0, 0 },  //     S FB          ok
+    { -1, -1, 0, 1 }, //     S LR          ok
+    { 1, 0, 1, 1 },   // FTL V FB          ok
+    { 0, 0, 1, 0 },   //     V LR          ok
+    { 0, -1, 2, 0 },  //     H FB          ok
+    { 0, 0, 2, 1 },   //     H LR          ok
+    { -1, 2, 2, 0 },  //     S FB          ok
+    { -1, -1, 2, 1 }, //     S LR          ok
+    { 1, 0, 1, 0 },   // FTR V FB          ok
+    { 0, 0, 1, 1 },   //     V LR          ok
+    { 0, -1, 2, 1 },  //     H FB          ok
+    { 0, 0, 2, 0 },   //     H LR          ok
+    { -1, 2, 2, 1 },  //     S FB          ok
+    { -1, -1, 2, 0 }, //     S LR          ok
+    { -1, 0, -1, 1 }, // BBL V FB          ok
+    { 0, 2, 1, 0 },   //     V LR          ok
+    { 0, 1, 0, 0 },   //     H FB          ok
+    { 0, 2, 0, 1 },   //     H LR          ok
+    { -1, 0, 0, 0 },  //     S FB          ok
+    { -1, 1, 0, 1 },  //     S LR          ok
+    { -1, 0, -1, 0 }, // BBR V FB          ok
+    { 0, 2, 1, 1 },   //     V LR          ok
+    { 0, 1, 0, 1 },   //     H FB          ok
+    { 0, 2, 0, 0 },   //     H LR          ok
+    { -1, 0, 0, 1 },  //     S FB          ok
+    { -1, 1, 0, 0 },  //     S LR          ok
+    { -1, 0, 1, 0 },  // BTL V FB          ok
+    { 0, 2, -1, 1 },  //     V LR          ok
+    { 0, -1, 2, 0 },  //     H FB          ok
+    { 2, 0, 0, 0 },   //     H LR          ok
+    { -1, 2, 2, 0 },  //     S FB          ok
+    { 1, -1, 0, 0 },  //     S LR          ok
+    { -1, 0, 1, 1 },  // BTR V FB          ok
+    { 0, 2, -1, 0 },  //     V LR          ok
+    { 0, -1, 2, 1 },  //     H FB          ok
+    { 2, 0, 0, 1 },   //     H LR          ok
+    { -1, 2, 2, 1 },  //     S FB          ok
+    { 1, -1, 0, 1 }   //     S LR          ok
 };
 
 static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = {
-        "Front Bottom Left",
-        "Front Bottom Right",
-        "Front Top Left",
-        "Front Top Right",
-        "Back Bottom Left",
-        "Back Bottom Right",
-        "Back Top Left",
-        "Back Top Right"
+    "Front Bottom Left",
+    "Front Bottom Right",
+    "Front Top Left",
+    "Front Top Right",
+    "Back Bottom Left",
+    "Back Bottom Right",
+    "Back Top Left",
+    "Back Top Right"
 };
 static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(8, TOP_BOT_LEFT_RIGHT_VALUES));
 
-static const char* CUBE_STYLES_VALUES[] = { 
-        "Vertical Front/Back",
-        "Vertical Left/Right",
-        "Horizontal Front/Back",
-        "Horizontal Left/Right",
-        "Stacked Front/Back",
-        "Stacked Left/Right"
+static const char* CUBE_STYLES_VALUES[] = {
+    "Vertical Front/Back",
+    "Vertical Left/Right",
+    "Horizontal Front/Back",
+    "Horizontal Left/Right",
+    "Stacked Front/Back",
+    "Stacked Left/Right"
 };
 static wxPGChoices CUBE_STYLES(wxArrayString(6, CUBE_STYLES_VALUES));
 
-static const char* STRAND_STYLES_VALUES[] = { 
-        "Zig Zag",
-        "No Zig Zag",
-        "Aternate Pixel"
+static const char* STRAND_STYLES_VALUES[] = {
+    "Zig Zag",
+    "No Zig Zag",
+    "Aternate Pixel"
 };
 static wxPGChoices STRAND_STYLES(wxArrayString(3, STRAND_STYLES_VALUES));
 
-CubeModel::CubeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
-{
+CubeModel::CubeModel(wxXmlNode* node, const ModelManager& manager, bool zeroBased) :
+    ModelWithScreenLocation(manager) {
     screenLocation.SetSupportsZScaling(true);
     Model::SetFromXml(node, zeroBased);
 }
 
-CubeModel::CubeModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
-{
+CubeModel::CubeModel(const ModelManager& manager) :
+    ModelWithScreenLocation(manager) {
 }
 
-CubeModel::~CubeModel()
-{
-    //dtor
+CubeModel::~CubeModel() {
+    // dtor
 }
 
-int CubeModel::CalcTransformationIndex() const
-{
+int CubeModel::CalcTransformationIndex() const {
     auto style = ModelXml->GetAttribute("Style", CUBE_STYLES.GetLabel(0));
     bool leftright = style.Contains("Left");
     bool horizontal = style.Contains("Horizontal");
@@ -132,8 +129,7 @@ int CubeModel::CalcTransformationIndex() const
     return (GetStartIndex() * CUBE_STYLES.GetCount()) + (horizontal << 1) + (stacked << 2) + leftright;
 }
 
-void CubeModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
+void CubeModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
     grid->Append(new wxEnumProperty("Starting Location", "CubeStart", TOP_BOT_LEFT_RIGHT, GetStartIndex()));
     grid->Append(new wxEnumProperty("Direction", "CubeStyle", CUBE_STYLES, GetStyleIndex()));
     grid->Append(new wxEnumProperty("Strand Style", "StrandPerLine", STRAND_STYLES, GetStrandStyleIndex()));
@@ -162,54 +158,44 @@ void CubeModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* 
     p->SetHelpString("This is typically the number of connections from the prop to your controller.");
 }
 
-int CubeModel::GetStrings() const
-{
+int CubeModel::GetStrings() const {
     return wxAtoi(ModelXml->GetAttribute("Strings", "1"));
 }
 
-int CubeModel::GetStartIndex() const
-{
+int CubeModel::GetStartIndex() const {
     auto start = ModelXml->GetAttribute("Start", "");
 
-    for (size_t i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++)
-    {
-        if (start == TOP_BOT_LEFT_RIGHT.GetLabel(i))
-        {
+    for (size_t i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++) {
+        if (start == TOP_BOT_LEFT_RIGHT.GetLabel(i)) {
             return i;
         }
     }
     return 0;
 }
 
-int CubeModel::GetStyleIndex() const
-{
+int CubeModel::GetStyleIndex() const {
     auto start = ModelXml->GetAttribute("Style", "");
 
-    for (size_t i = 0; i < CUBE_STYLES.GetCount(); i++)
-    {
-        if (start == CUBE_STYLES.GetLabel(i))
-        {
+    for (size_t i = 0; i < CUBE_STYLES.GetCount(); i++) {
+        if (start == CUBE_STYLES.GetLabel(i)) {
             return i;
         }
     }
     return 3;
 }
 
-int CubeModel::GetStrandStyleIndex() const
-{
+int CubeModel::GetStrandStyleIndex() const {
     auto start = ModelXml->GetAttribute("StrandPerLine", "Zig Zag");
 
-    for (size_t i = 0; i < STRAND_STYLES.GetCount(); i++)
-    {
-        if (start == STRAND_STYLES.GetLabel(i))
-        {
+    for (size_t i = 0; i < STRAND_STYLES.GetCount(); i++) {
+        if (start == STRAND_STYLES.GetLabel(i)) {
             return i;
         }
     }
     return 3;
 }
 
-int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+int CubeModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("CubeStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Start");
         ModelXml->AddAttribute("Start", TOP_BOT_LEFT_RIGHT.GetLabel(event.GetValue().GetLong()));
@@ -236,8 +222,7 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         return 0;
     } else if ("StrandPerLayer" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("StrandPerLayer");
-        if (event.GetPropertyValue().GetBool())
-        {
+        if (event.GetPropertyValue().GetBool()) {
             ModelXml->AddAttribute("StrandPerLayer", "TRUE");
         }
         IncrementChangeCount();
@@ -294,28 +279,22 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
     return Model::OnPropertyGridChange(grid, event);
 }
 
-std::tuple<int, int, int>& CubeModel::FlipX(std::tuple<int, int, int>& pt, int width) const
-{
+std::tuple<int, int, int>& CubeModel::FlipX(std::tuple<int, int, int>& pt, int width) const {
     auto& x = std::get<0>(pt);
     x = width - x - 1;
     return pt;
 }
 
 // +ve is clockwise assumes looking down on cube from top
-std::tuple<int, int, int>& CubeModel::RotateY90Degrees(std::tuple<int, int, int>& pt, int by, int width, int depth) const
-{
+std::tuple<int, int, int>& CubeModel::RotateY90Degrees(std::tuple<int, int, int>& pt, int by, int width, int depth) const {
     auto& x = std::get<0>(pt);
     auto& z = std::get<2>(pt);
-    for (int i = 0; i < abs(by); i++)
-    {
-        if (by > 0)
-        {
+    for (int i = 0; i < abs(by); i++) {
+        if (by > 0) {
             auto temp = z;
             z = width - x - 1;
             x = temp;
-        }
-        else
-        {
+        } else {
             auto temp = x;
             x = depth - z - 1;
             z = temp;
@@ -326,20 +305,15 @@ std::tuple<int, int, int>& CubeModel::RotateY90Degrees(std::tuple<int, int, int>
 }
 
 // +ve is clockwise assumes looking at cube from front
-std::tuple<int, int, int>& CubeModel::RotateZ90Degrees(std::tuple<int, int, int>& pt, int by, int width, int height) const
-{
+std::tuple<int, int, int>& CubeModel::RotateZ90Degrees(std::tuple<int, int, int>& pt, int by, int width, int height) const {
     auto& x = std::get<0>(pt);
     auto& y = std::get<1>(pt);
-    for (int i = 0; i < abs(by); i++)
-    {
-        if (by > 0)
-        {
+    for (int i = 0; i < abs(by); i++) {
+        if (by > 0) {
             auto temp = x;
             x = y;
             y = width - temp - 1;
-        }
-        else
-        {
+        } else {
             auto temp = x;
             x = height - y - 1;
             y = temp;
@@ -350,21 +324,16 @@ std::tuple<int, int, int>& CubeModel::RotateZ90Degrees(std::tuple<int, int, int>
 }
 
 // +ve is up assumes looking at cube from front
-std::tuple<int, int, int>& CubeModel::RotateX90Degrees(std::tuple<int, int, int>& pt, int by, int height, int depth) const
-{
+std::tuple<int, int, int>& CubeModel::RotateX90Degrees(std::tuple<int, int, int>& pt, int by, int height, int depth) const {
     auto& y = std::get<1>(pt);
     auto& z = std::get<2>(pt);
-    for (int i = 0; i < abs(by); i++)
-    {
-        if (by > 0)
-        {
+    for (int i = 0; i < abs(by); i++) {
+        if (by > 0) {
             // up
             auto temp = y;
             y = depth - z - 1;
             z = temp;
-        }
-        else
-        {
+        } else {
             // down
             auto temp = z;
             z = height - y - 1;
@@ -375,26 +344,23 @@ std::tuple<int, int, int>& CubeModel::RotateX90Degrees(std::tuple<int, int, int>
     return pt;
 }
 
-bool CubeModel::IsStrandPerLayer() const
-{
+bool CubeModel::IsStrandPerLayer() const {
     return ModelXml->GetAttribute("StrandPerLayer", "FALSE") == "TRUE";
 }
 
-std::string CubeModel::GetStartLocation() const
-{
+std::string CubeModel::GetStartLocation() const {
     return ModelXml->GetAttribute("Start", "") + " " + ModelXml->GetAttribute("Style", "");
 }
 
-std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int width = parm1;
     int height = parm2;
     int depth = parm3;
 
     std::vector<std::tuple<int, int, int>> nodes;
-    nodes.resize(width*height*depth);
+    nodes.resize(width * height * depth);
 
     bool strandPerLayer = IsStrandPerLayer();
     int strandStyle = GetStrandStyleIndex();
@@ -407,95 +373,88 @@ std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
 
     // pre-rotate the dimensions to compensate for the latter rotation
     // need to pre-rotate dimensions before we build the model
-    if (abs(zr) == 1) std::swap(width, height);
-    if (abs(yr) == 1) std::swap(width, depth);
-    if (abs(xr) == 1) std::swap(height, depth);
+    if (abs(zr) == 1)
+        std::swap(width, height);
+    if (abs(yr) == 1)
+        std::swap(width, depth);
+    if (abs(xr) == 1)
+        std::swap(height, depth);
 
     logger_base.debug("%s %s StrandStyle: %s StrandPerLayer: %d", (const char*)ModelXml->GetAttribute("Start", "").c_str(), (const char*)ModelXml->GetAttribute("Style", "").c_str(), (const char*)ModelXml->GetAttribute("StrandPerLine", "").c_str(), IsStrandPerLayer());
     logger_base.debug("%dx%dx%d -> (%d,%d,%d,%d) -> %dx%dx%d", parm1, parm2, parm3, xr, yr, zr, xf, width, height, depth);
 
-    for(int i = 0; i < width*height*depth; i++)
-    {
+    for (int i = 0; i < width * height * depth; i++) {
         int z = i / (width * height);
-        int baselayer = i % (width*height);
+        int baselayer = i % (width * height);
         int y = baselayer / width;
         int x;
-        if ((strandStyle == 1 || y % 2 == 0) && strandStyle != 2)
-        {
+        if ((strandStyle == 1 || y % 2 == 0) && strandStyle != 2) {
             x = baselayer % width;
-        }
-        else if (strandStyle == 2)
-        {
+        } else if (strandStyle == 2) {
             int pos = baselayer % width + 1;
-            if (pos <= (width + 1) / 2)
-            {
+            if (pos <= (width + 1) / 2) {
                 x = 2 * (pos - 1);
-            }
-            else
-            {
+            } else {
                 x = (width - pos) * 2 + 1;
             }
-        }
-        else
-        {
+        } else {
             x = width - baselayer % width - 1;
         }
 
-        if (!strandPerLayer)
-        {
+        if (!strandPerLayer) {
             // every 2nd layer starts at the top
-            if (z % 2 != 0)
-            {
+            if (z % 2 != 0) {
                 y = height - y - 1;
-                if (height % 2 != 0 && strandStyle == 0)
-                {
+                if (height % 2 != 0 && strandStyle == 0) {
                     x = width - x - 1;
                 }
             }
         }
 
-        std::tuple<int,int,int> node = { x,y,z };
+        std::tuple<int, int, int> node = { x, y, z };
         int w = width;
         int h = height;
         int d = depth;
         RotateX90Degrees(node, xr, h, d);
-        if (abs(xr) == 1) std::swap(h, d);
+        if (abs(xr) == 1)
+            std::swap(h, d);
         RotateY90Degrees(node, yr, w, d);
-        if (abs(yr) == 1) std::swap(w, d);
+        if (abs(yr) == 1)
+            std::swap(w, d);
         RotateZ90Degrees(node, zr, w, h);
-        if (abs(zr) == 1) std::swap(w, h);
+        if (abs(zr) == 1)
+            std::swap(w, h);
 
         wxASSERT(w == parm1 && h == parm2 && d == parm3);
 
-        if(xf > 0) FlipX(node, w);
+        if (xf > 0)
+            FlipX(node, w);
 
         nodes[i] = node;
     }
 
-    //DumpNodes(nodes, parm1, parm2, parm3);
+    // DumpNodes(nodes, parm1, parm2, parm3);
 
     return nodes;
 }
 
-int CubeModel::FindNodeIndex(std::vector<std::tuple<int, int, int>> nodes, int x, int y, int z) const
-{
+int CubeModel::FindNodeIndex(std::vector<std::tuple<int, int, int>> nodes, int x, int y, int z) const {
     int index = 0;
-    for (auto it: nodes)
-    {
+    for (auto it : nodes) {
         auto nx = std::get<0>(it);
         auto ny = std::get<1>(it);
         auto nz = std::get<2>(it);
 
-        if (nx == x && ny == y && nz == z) return index;
+        if (nx == x && ny == y && nz == z)
+            return index;
 
         index++;
     }
     return -1;
 }
 
-void CubeModel::DumpNode(const std::string desc, const std::tuple<int, int, int>& node, int width, int height, int depth) const
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+void CubeModel::DumpNode(const std::string desc, const std::tuple<int, int, int>& node, int width, int height, int depth) const {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     auto x = std::get<0>(node);
     auto y = std::get<1>(node);
@@ -504,27 +463,22 @@ void CubeModel::DumpNode(const std::string desc, const std::tuple<int, int, int>
     logger_base.debug("%s (%d,%d,%d) %dx%dx%d", (const char*)desc.c_str(), x, y, z, width, height, depth);
 }
 
-void CubeModel::DumpNodes(std::vector<std::tuple<int,int,int>> nodes, int width, int height, int depth) const
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+void CubeModel::DumpNodes(std::vector<std::tuple<int, int, int>> nodes, int width, int height, int depth) const {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    for (int z = 0; z < depth; z++)
-    {
+    for (int z = 0; z < depth; z++) {
         std::string out = "\n";
-        for (int y = height - 1; y >= 0; y--)
-        {
-            for (int x  = 0; x < width; x++)
-            {
+        for (int y = height - 1; y >= 0; y--) {
+            for (int x = 0; x < width; x++) {
                 out += wxString::Format("%d ", FindNodeIndex(nodes, x, y, z));
             }
             out += "\n";
         }
-        logger_base.debug("Layer: %d %s", z, (const char *)out.c_str());
+        logger_base.debug("Layer: %d %s", z, (const char*)out.c_str());
     }
 }
 
-static std::vector<std::string> CUBE_BUFFERSTYLES =
-{
+static std::vector<std::string> CUBE_BUFFERSTYLES = {
     "Default",
     "Per Preview",
     "Single Line",
@@ -549,160 +503,116 @@ static std::vector<std::string> CUBE_BUFFERSTYLES =
     "Bottom Side"
 };
 
-const std::vector<std::string> &CubeModel::GetBufferStyles() const {
+const std::vector<std::string>& CubeModel::GetBufferStyles() const {
     return CUBE_BUFFERSTYLES;
 }
 
-void CubeModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int& BufferDp, int stagger) const
-{
+void CubeModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int& BufferDp, int stagger) const {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     int width = parm1;
     int height = parm2;
     int depth = parm3;
 
-    if (SingleNode || SingleChannel)
-    {
+    if (SingleNode || SingleChannel) {
         BufferWi = 1;
         BufferHi = 1;
         BufferDp = 1;
-    }
-    else if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel")
-    {
+    } else if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel") {
         Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
-    }
-    else if (type == "Horizontal Per Strand" || type == "Per Model Horizontal Per Strand" || type == "Horizontal Per Model/Strand" )
-    {
+    } else if (type == "Horizontal Per Strand" || type == "Per Model Horizontal Per Strand" || type == "Horizontal Per Model/Strand") {
         // FIXME Pretty sure this isnt right
         BufferHi = GetStrandLength(0);
         BufferWi = GetNumStrands();
         BufferDp = 1;
-    }
-    else if (type == "Vertical Per Strand" || type == "Per Model Vertical Per Strand" || type == "Vertical Per Model/Strand")
-    {
+    } else if (type == "Vertical Per Strand" || type == "Per Model Vertical Per Strand" || type == "Vertical Per Model/Strand") {
         // FIXME Pretty sure this isnt right
         BufferWi = GetStrandLength(0);
         BufferHi = GetNumStrands();
         BufferDp = 1;
-    }
-    else if (type == "Stacked X Horizontally")
-    {
+    } else if (type == "Stacked X Horizontally") {
         BufferHi = height;
         BufferWi = width * depth;
         BufferDp = 1;
-    }
-    else if (type == "Stacked Y Horizontally")
-    {
+    } else if (type == "Stacked Y Horizontally") {
         BufferHi = depth;
         BufferWi = width * height;
         BufferDp = 1;
-    }
-    else if (type == "Default" || type == "Stacked Z Horizontally")
-    {
+    } else if (type == "Default" || type == "Stacked Z Horizontally") {
         BufferHi = height;
         BufferWi = width * depth;
         BufferDp = 1;
-    }
-    else if (type == "Stacked X Vertically")
-    {
+    } else if (type == "Stacked X Vertically") {
         BufferHi = height * width;
         BufferWi = depth;
         BufferDp = 1;
-    }
-    else if (type == "Stacked Y Vertically")
-    {
+    } else if (type == "Stacked Y Vertically") {
         BufferHi = height * depth;
         BufferWi = width;
         BufferDp = 1;
-    }
-    else if (type == "Stacked Z Vertically")
-    {
+    } else if (type == "Stacked Z Vertically") {
         BufferWi = width;
         BufferHi = depth * height;
         BufferDp = 1;
-    }
-    else if (type == "Overlaid X")
-    {
+    } else if (type == "Overlaid X") {
         BufferWi = depth;
         BufferHi = height;
         BufferDp = 1;
-    }
-    else if (type == "Overlaid Y")
-    {
+    } else if (type == "Overlaid Y") {
         BufferWi = width;
         BufferHi = depth;
         BufferDp = 1;
-    }
-    else if (type == "Overlaid Z")
-    {
+    } else if (type == "Overlaid Z") {
         BufferWi = width;
         BufferHi = height;
         BufferDp = 1;
-    }
-    else if (type == "Unique X and Y X")
-    {
+    } else if (type == "Unique X and Y X") {
         BufferWi = height * width;
         BufferHi = depth * width;
         BufferDp = 1;
-    }
-    else if (type == "Unique X and Y Y")
-    {
+    } else if (type == "Unique X and Y Y") {
         BufferWi = width * height;
         BufferHi = depth * height;
         BufferDp = 1;
-    }
-    else if (type == "Unique X and Y Z")
-    {
+    } else if (type == "Unique X and Y Z") {
         BufferWi = width * depth;
         BufferHi = height * depth;
         BufferDp = 1;
-    }
-    else if (type == "Left Side" || type == "Right Side")
-    {
+    } else if (type == "Left Side" || type == "Right Side") {
         BufferWi = depth;
         BufferHi = height;
         BufferDp = 1;
-    }
-    else if (type == "Front Side" || type == "Back Side")
-    {
+    } else if (type == "Front Side" || type == "Back Side") {
         BufferWi = width;
         BufferHi = height;
         BufferDp = 1;
-    }
-    else if (type == "Top Side" || type == "Bottom Side")
-    {
+    } else if (type == "Top Side" || type == "Bottom Side") {
         BufferWi = width;
         BufferHi = depth;
         BufferDp = 1;
-    }
-    else if (type == "3D")
-    {
+    } else if (type == "3D") {
         BufferWi = width;
-	    BufferHi = height;
+        BufferHi = height;
         BufferDp = depth;
-    }
-    else
-    {
+    } else {
         wxASSERT(false);
     }
 
     AdjustForTransform(transform, BufferWi, BufferHi, BufferDp);
 }
 
-int CubeModel::GetNumPhysicalStrings() const 
-{ 
+int CubeModel::GetNumPhysicalStrings() const {
     int ts = GetSmartTs();
     if (ts <= 1) {
         return GetStrings();
-    }
-    else {
+    } else {
         int strings = GetStrings() / ts;
-        if (strings == 0) strings = 1;
+        if (strings == 0)
+            strings = 1;
         return strings;
     }
 }
 
-void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int& BufferDp, int stagger, bool deep) const
-{
+void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int& BufferDp, int stagger, bool deep) const {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
 
     int width = parm1;
@@ -713,22 +623,17 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
 
     Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi, BufferDp, stagger);
 
-    if (SingleNode || SingleChannel)
-    {
+    if (SingleNode || SingleChannel) {
         wxASSERT(Nodes.size() - oldNodes == 1);
-    }
-    else
-    {
+    } else {
         wxASSERT(Nodes.size() - oldNodes == width * height * depth);
     }
 
-    if (SingleChannel || SingleNode)
-    {
+    if (SingleChannel || SingleNode) {
         return;
     }
 
-    if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel")
-    {
+    if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel") {
         return;
     }
 
@@ -736,287 +641,199 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
 
     auto locations = BuildCube();
 
-    if (type == "3D")
-    {
+    if (type == "3D") {
         for (size_t n = 0; n < Nodes.size(); ++n) {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
             Nodes[n]->Coords[0].bufZ = std::get<2>(locations[n]);
         }
-    }
-    else if (type == "Stacked X Horizontally")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
+    } else if (type == "Stacked X Horizontally") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
             Nodes[n]->Coords[0].bufX = depth - std::get<2>(locations[n]) - 1 + std::get<0>(locations[n]) * depth;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
             Nodes[n]->Coords[0].bufZ = 0;
         }
-    }
-    else if (type == "Stacked Y Horizontally")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
-            Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]) + (height - std::get<1>(locations[n]) -1) * width;
+    } else if (type == "Stacked Y Horizontally") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
+            Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]) + (height - std::get<1>(locations[n]) - 1) * width;
             Nodes[n]->Coords[0].bufY = std::get<2>(locations[n]);
             Nodes[n]->Coords[0].bufZ = 0;
         }
-    }
-    else if (type == "Default" || type == "Stacked Z Horizontally")
-    {
+    } else if (type == "Default" || type == "Stacked Z Horizontally") {
         // dont need to do anything
-    }
-    else if (type == "Horizontal Per Strand" || type == "Per Model Horizontal Per Strand" || type == "Horizontal Per Model/Strand")
-    {
+    } else if (type == "Horizontal Per Strand" || type == "Per Model Horizontal Per Strand" || type == "Horizontal Per Model/Strand") {
         int sl = BufferHi;
-        for (auto n = oldNodes; n < Nodes.size(); ++n)
-        {
+        for (auto n = oldNodes; n < Nodes.size(); ++n) {
             Nodes[n]->Coords[0].bufX = (n - oldNodes) / sl;
             Nodes[n]->Coords[0].bufY = (n - oldNodes) % sl;
             Nodes[n]->Coords[0].bufZ = 0;
         }
-    }
-    else if (type == "Vertical Per Strand" || type == "Per Model Vertical Per Strand" || type == "Vertical Per Model/Strand")
-    {
+    } else if (type == "Vertical Per Strand" || type == "Per Model Vertical Per Strand" || type == "Vertical Per Model/Strand") {
         int sl = BufferWi;
-        for (auto n = oldNodes; n < Nodes.size(); ++n)
-        {
+        for (auto n = oldNodes; n < Nodes.size(); ++n) {
             Nodes[n]->Coords[0].bufX = (n - oldNodes) % sl;
             Nodes[n]->Coords[0].bufY = (n - oldNodes) / sl;
             Nodes[n]->Coords[0].bufZ = 0;
         }
-    }
-    else if (type == "Stacked X Vertically")
-    {
-        for (auto n = 0; n < Nodes.size(); n++)
-        {
+    } else if (type == "Stacked X Vertically") {
+        for (auto n = 0; n < Nodes.size(); n++) {
             Nodes[n]->Coords[0].bufX = depth - std::get<2>(locations[n]) - 1;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + height * std::get<0>(locations[n]);
             Nodes[n]->Coords[0].bufZ = 0;
         }
-    }
-    else if (type == "Stacked Y Vertically")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
+    } else if (type == "Stacked Y Vertically") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
             Nodes[n]->Coords[0].bufY = std::get<2>(locations[n]) + depth * (height - std::get<1>(locations[n]) - 1);
             Nodes[n]->Coords[0].bufZ = 0;
         }
-    }
-    else if (type == "Stacked Z Vertically")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
+    } else if (type == "Stacked Z Vertically") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + depth * std::get<2>(locations[n]);
             Nodes[n]->Coords[0].bufZ = 0;
         }
-    }
-    else if (type == "Overlaid X")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
+    } else if (type == "Overlaid X") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
             Nodes[n]->Coords[0].bufX = depth - std::get<2>(locations[n]) - 1;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
             Nodes[n]->Coords[0].bufZ = 0;
         }
-    }
-    else if (type == "Overlaid Y")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
+    } else if (type == "Overlaid Y") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
             Nodes[n]->Coords[0].bufY = std::get<2>(locations[n]);
             Nodes[n]->Coords[0].bufZ = 0;
         }
-    }
-    else if (type == "Overlaid Z")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
+    } else if (type == "Overlaid Z") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
             Nodes[n]->Coords[0].bufZ = 0;
         }
-    }
-    else if (type == "Unique X and Y X")
-    {
-        for (size_t n = 0; n < Nodes.size(); n++)
-        {
+    } else if (type == "Unique X and Y X") {
+        for (size_t n = 0; n < Nodes.size(); n++) {
             Nodes[n]->Coords[0].bufX = depth - std::get<2>(locations[n]) - 1 + std::get<0>(locations[n]) * depth;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + std::get<0>(locations[n]) * height;
             Nodes[n]->Coords[0].bufZ = 0;
         }
-    }
-    else if (type == "Unique X and Y Y")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
-            Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]) + (height-std::get<1>(locations[n])-1) * width;
+    } else if (type == "Unique X and Y Y") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
+            Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]) + (height - std::get<1>(locations[n]) - 1) * width;
             Nodes[n]->Coords[0].bufY = std::get<2>(locations[n]) + (height - std::get<1>(locations[n]) - 1) * depth;
             Nodes[n]->Coords[0].bufZ = 0;
         }
-    }
-    else if (type == "Unique X and Y Z")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
+    } else if (type == "Unique X and Y Z") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]) + std::get<2>(locations[n]) * width;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + std::get<1>(locations[n]) * height;
             Nodes[n]->Coords[0].bufZ = 0;
         }
-    }
-    else if (type == "Left Side")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
-            if (std::get<0>(locations[n]) == 0)
-            {
+    } else if (type == "Left Side") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
+            if (std::get<0>(locations[n]) == 0) {
                 Nodes[n]->Coords[0].bufX = depth - std::get<2>(locations[n]) - 1;
                 Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
                 Nodes[n]->Coords[0].bufZ = 0;
-            }
-            else
-            {
+            } else {
                 Nodes[n]->Coords[0].bufX = -1;
                 Nodes[n]->Coords[0].bufY = -1;
                 Nodes[n]->Coords[0].bufZ = -1;
             }
         }
-    }
-    else if (type == "Right Side")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
-            if (std::get<0>(locations[n]) == width - 1)
-            {
+    } else if (type == "Right Side") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
+            if (std::get<0>(locations[n]) == width - 1) {
                 Nodes[n]->Coords[0].bufX = std::get<2>(locations[n]);
                 Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
                 Nodes[n]->Coords[0].bufZ = 0;
-            }
-            else
-            {
+            } else {
                 Nodes[n]->Coords[0].bufX = -1;
                 Nodes[n]->Coords[0].bufY = -1;
                 Nodes[n]->Coords[0].bufZ = -1;
             }
         }
-    }
-    else if (type == "Front Side")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
-            if (std::get<2>(locations[n]) == 0)
-            {
+    } else if (type == "Front Side") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
+            if (std::get<2>(locations[n]) == 0) {
                 Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
                 Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
                 Nodes[n]->Coords[0].bufZ = 0;
-            }
-            else
-            {
+            } else {
                 Nodes[n]->Coords[0].bufX = -1;
                 Nodes[n]->Coords[0].bufY = -1;
                 Nodes[n]->Coords[0].bufZ = -1;
             }
         }
-    }
-    else if(type == "Back Side")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
-            if (std::get<2>(locations[n]) == depth - 1)
-            {
+    } else if (type == "Back Side") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
+            if (std::get<2>(locations[n]) == depth - 1) {
                 Nodes[n]->Coords[0].bufX = width - std::get<0>(locations[n]) - 1;
                 Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
                 Nodes[n]->Coords[0].bufZ = 0;
-            }
-            else
-            {
+            } else {
                 Nodes[n]->Coords[0].bufX = -1;
                 Nodes[n]->Coords[0].bufY = -1;
                 Nodes[n]->Coords[0].bufZ = -1;
             }
         }
-    }
-    else if (type == "Top Side")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
-            if (std::get<1>(locations[n]) == height - 1)
-            {
+    } else if (type == "Top Side") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
+            if (std::get<1>(locations[n]) == height - 1) {
                 Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
                 Nodes[n]->Coords[0].bufY = std::get<2>(locations[n]);
                 Nodes[n]->Coords[0].bufZ = 0;
-            }
-            else
-            {
+            } else {
                 Nodes[n]->Coords[0].bufX = -1;
                 Nodes[n]->Coords[0].bufY = -1;
                 Nodes[n]->Coords[0].bufZ = -1;
             }
         }
-    }
-    else if (type == "Bottom Side")
-    {
-        for (size_t n = 0; n < Nodes.size(); ++n)
-        {
-            if (std::get<1>(locations[n]) == 0)
-            {
+    } else if (type == "Bottom Side") {
+        for (size_t n = 0; n < Nodes.size(); ++n) {
+            if (std::get<1>(locations[n]) == 0) {
                 Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
                 Nodes[n]->Coords[0].bufY = std::get<2>(locations[n]);
                 Nodes[n]->Coords[0].bufZ = 0;
-            }
-            else
-            {
+            } else {
                 Nodes[n]->Coords[0].bufX = -1;
                 Nodes[n]->Coords[0].bufY = -1;
                 Nodes[n]->Coords[0].bufZ = -1;
             }
         }
-    }
-    else
-    {
+    } else {
         wxASSERT(false);
     }
 }
 
-void CubeModel::InitModel()
-{
+void CubeModel::InitModel() {
     int width = parm1;
     int height = parm2;
     int depth = parm3;
 
-    if (SingleNode || SingleChannel)
-    {
+    if (SingleNode || SingleChannel) {
         SetNodeCount(1, 1, rgbOrder);
-    }
-    else
-    {
-        SetNodeCount(1, width*height*depth, rgbOrder);
+    } else {
+        SetNodeCount(1, width * height * depth, rgbOrder);
     }
 
     int chanPerNode = GetNodeChannelCount(StringType);
 
     auto locations = BuildCube();
 
-    SetStringStartChannels(false, GetStrings(), stringStartChan[0]+1 , NodesPerString() * chanPerNode);
+    SetStringStartChannels(false, GetStrings(), stringStartChan[0] + 1, NodesPerString() * chanPerNode);
 
-    for (size_t n = 0; n < Nodes.size(); n++)
-    {
+    for (size_t n = 0; n < Nodes.size(); n++) {
         Nodes[n]->ActChan = stringStartChan[0] + n * chanPerNode;
         Nodes[n]->StringNum = 1;
-        if (SingleNode)
-        {
+        if (SingleNode) {
             Nodes[n]->Coords[0].bufX = 0;
             Nodes[n]->Coords[0].bufY = 0;
             Nodes[n]->Coords[0].bufZ = 0;
             Nodes[n]->Coords[0].screenX = std::get<0>(locations[n]) - width / 2;
             Nodes[n]->Coords[0].screenY = std::get<1>(locations[n]) - height / 2;
             Nodes[n]->Coords[0].screenZ = depth - std::get<2>(locations[n]) - 1 - depth / 2;
-        }
-        else
-        {
+        } else {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]) + std::get<2>(locations[n]) * width;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
             Nodes[n]->Coords[0].bufZ = 0;
@@ -1029,8 +846,7 @@ void CubeModel::InitModel()
     if (Contains(CUBE_STYLES_VALUES[GetStyleIndex()], "Left/Right")) {
         _strandLength = width * height;
         _strands = depth;
-    }
-    else         {
+    } else {
         _strandLength = depth * height;
         _strands = width;
     }
@@ -1044,12 +860,12 @@ void CubeModel::InitModel()
     screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D
 }
 
-void CubeModel::ExportXlightsModel()
-{
+void CubeModel::ExportXlightsModel() {
     wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
     wxFile f(filename);
 
     if (!f.Create(filename, true) || !f.IsOpened()) {
@@ -1108,18 +924,15 @@ void CubeModel::ExportXlightsModel()
         f.Write(groups);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString face = SerialiseFace();
-    if (face != "")
-    {
+    if (face != "") {
         f.Write(face);
     }
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     ExportDimensions(f);
@@ -1127,8 +940,7 @@ void CubeModel::ExportXlightsModel()
     f.Close();
 }
 
-bool CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+bool CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
     if (root->GetName() == "Cubemodel") {
         wxString name = root->GetAttribute("name");
         wxString p1 = root->GetAttribute("parm1");
@@ -1196,8 +1008,7 @@ bool CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
     }
 }
 
-int CubeModel::MapToNodeIndex(int strand, int node) const
-{
+int CubeModel::MapToNodeIndex(int strand, int node) const {
     if (SingleChannel || SingleNode) {
         return node;
     } else {
@@ -1205,8 +1016,7 @@ int CubeModel::MapToNodeIndex(int strand, int node) const
     }
 }
 
-std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
-{
+std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager) {
     size_t NodeCount = GetNodeCount();
 
     std::vector<int> chmap;
@@ -1267,10 +1077,9 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
     return html;
 }
 
-void CubeModel::ExportAsCustomXModel3D() const
-{
+void CubeModel::ExportAsCustomXModel3D() const {
     wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (filename.IsEmpty())
@@ -1290,20 +1099,20 @@ void CubeModel::ExportAsCustomXModel3D() const
 
     auto locations = BuildCube();
 
-    std::vector < std::vector < std::vector<int>>> data;
+    std::vector<std::vector<std::vector<int>>> data;
 
     data.reserve(depth);
     for (int l = 0; l < depth; l++) {
-		std::vector < std::vector<int>> layer;
+        std::vector<std::vector<int>> layer;
         layer.reserve(height);
         for (int r = height - 1; r >= 0; r--) {
-			std::vector<int> row;
-			row.reserve(width);
-			for (int c = 0; c < width; c++) {
-				row.push_back(FindNodeIndex(locations, c, r, l) + 1);
-			}
-			layer.push_back(row);
-		}
+            std::vector<int> row;
+            row.reserve(width);
+            for (int c = 0; c < width; c++) {
+                row.push_back(FindNodeIndex(locations, c, r, l) + 1);
+            }
+            layer.push_back(row);
+        }
         data.push_back(layer);
     }
 
@@ -1369,8 +1178,7 @@ void CubeModel::ExportAsCustomXModel3D() const
     f.Close();
 }
 
-int CubeModel::NodesPerString() const
-{
+int CubeModel::NodesPerString() const {
     int strings = GetStrings();
     if (strings == 0)
         strings = 1;

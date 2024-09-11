@@ -8,32 +8,31 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/tokenzr.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/msgdlg.h>
-#include <wx/log.h>
 #include <wx/filedlg.h>
+#include <wx/log.h>
+#include <wx/msgdlg.h>
+#include <wx/propgrid/advprops.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/tokenzr.h>
+#include <wx/xml/xml.h>
 
-#include "SphereModel.h"
+#include "CustomModel.h"
 #include "ModelScreenLocation.h"
-#include "../xLightsVersion.h"
-#include "../xLightsMain.h"
+#include "SphereModel.h"
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
-#include "CustomModel.h"
+#include "../xLightsMain.h"
+#include "../xLightsVersion.h"
 
 #include <log4cpp/Category.hh>
 
-SphereModel::SphereModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : MatrixModel(manager)
-{
+SphereModel::SphereModel(wxXmlNode* node, const ModelManager& manager, bool zeroBased) :
+    MatrixModel(manager) {
     screenLocation.SetSupportsZScaling(true);
     SetFromXml(node, zeroBased);
 }
 
-SphereModel::~SphereModel()
-{
+SphereModel::~SphereModel() {
 }
 
 void SphereModel::InitModel() {
@@ -48,12 +47,73 @@ void SphereModel::InitModel() {
     DisplayAs = "Sphere";
 }
 
+void SphereModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int& BufferDp, int stagger) const {
+    if (tp == "3D") {
+        BufferHi = (int)((double)std::max(this->BufferHt, this->BufferWi) * 3) + 1;
+        BufferWi = BufferHi;
+        BufferDp = BufferWi;
+
+        AdjustForTransform(transform, BufferWi, BufferHi, BufferDp);
+    } else {
+        return MatrixModel::GetBufferSize(tp, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
+    }
+}
+
+void SphereModel::InitRenderBufferNodes(const std::string& tp, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int& BufferDp, int stagger, bool deep) const {
+
+    MatrixModel::InitRenderBufferNodes(tp, camera, transform, Nodes, BufferWi, BufferHi, BufferDp, stagger, deep);
+
+    GetBufferSize(tp, camera, transform, BufferWi, BufferHi, BufferDp, stagger);
+
+    if (tp == "3D") {
+        double minx = 999999999;
+        double miny = 999999999;
+        double minz = 999999999;
+        double maxx = -999999999;
+        double maxy = -999999999;
+        double maxz = -999999999;
+
+        for (size_t n = 0; n < Nodes.size(); ++n) {
+            if (Nodes[n]->Coords[0].screenX < minx)
+                minx = Nodes[n]->Coords[0].screenX;
+            if (Nodes[n]->Coords[0].screenY < miny)
+                miny = Nodes[n]->Coords[0].screenY;
+            if (Nodes[n]->Coords[0].screenZ < minz)
+                minz = Nodes[n]->Coords[0].screenZ;
+            if (Nodes[n]->Coords[0].screenX > maxx)
+                maxx = Nodes[n]->Coords[0].screenX;
+            if (Nodes[n]->Coords[0].screenY > maxy)
+                maxy = Nodes[n]->Coords[0].screenY;
+            if (Nodes[n]->Coords[0].screenZ > maxz)
+                maxz = Nodes[n]->Coords[0].screenZ;
+        }
+
+        double w = maxx - minx;
+        double h = maxy - miny;
+        double d = maxz - minz;
+
+        double scalex = (double)(BufferWi - 1) / w;
+        double scaley = (double)(BufferHi - 1) / h;
+        double scalez = (double)(BufferDp - 1) / d;
+
+        for (size_t n = 0; n < Nodes.size(); ++n) {
+            Nodes[n]->Coords[0].bufX = (Nodes[n]->Coords[0].screenX - minx) * scalex;
+            Nodes[n]->Coords[0].bufY = (Nodes[n]->Coords[0].screenY - miny) * scaley;
+            Nodes[n]->Coords[0].bufZ = (Nodes[n]->Coords[0].screenZ - minz) * scalez;
+            wxASSERT(Nodes[n]->Coords[0].bufX >= 0 && Nodes[n]->Coords[0].bufX < BufferWi);
+            wxASSERT(Nodes[n]->Coords[0].bufY >= 0 && Nodes[n]->Coords[0].bufY < BufferHi);
+            wxASSERT(Nodes[n]->Coords[0].bufZ >= 0 && Nodes[n]->Coords[0].bufZ < BufferDp);
+        }
+    }
+}
+
 void SphereModel::SetSphereCoord() {
+    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (BufferWi < 1) return;
-    if (BufferHt < 1) return; // June 27,2013. added check to not divide by zero
+    if (BufferWi < 1)
+        return;
+    if (BufferHt < 1)
+        return; // June 27,2013. added check to not divide by zero
 
     double RenderHt = (double)BufferHt / 1.8;
     double RenderWi = (double)RenderHt / 1.8;
@@ -62,27 +122,27 @@ void SphereModel::SetSphereCoord() {
     double Hradius = RenderWi / 2.0;
     double Vradius = RenderHt / 2.0;
 
-    //logger_base.debug("Buffer %d,%d Render %f,%f Radius %f,%f",
-    //    BufferWi, BufferHt,
-    //    (float)RenderWi, (float)RenderHt,
-    //    (float)Hradius, (float)Vradius);
+    // logger_base.debug("Buffer %d,%d Render %f,%f Radius %f,%f",
+    //     BufferWi, BufferHt,
+    //     (float)RenderWi, (float)RenderHt,
+    //     (float)Hradius, (float)Vradius);
 
     double remove = toRadians((360.0 - _sphereDegrees));
     double fudge = toRadians((360.0 - _sphereDegrees) / (double)BufferWi);
     double HStartAngle = Hradians / 4.0 + 0.003 - remove / 2.0;
     double HAngleIncr = (-Hradians + remove - fudge) / (double)BufferWi;
 
-    //logger_base.debug("Horizontal Start %d: +%f x %d",
-    //    (int)toDegrees(HStartAngle), (float)toDegrees(HAngleIncr), BufferWi);
+    // logger_base.debug("Horizontal Start %d: +%f x %d",
+    //     (int)toDegrees(HStartAngle), (float)toDegrees(HAngleIncr), BufferWi);
 
-    double VStartAngle = toRadians(_startLatitude-90);
-    double VAngleIncr = (toRadians(-1 * _startLatitude) + toRadians(_endLatitude)) / (BufferHt-1);
+    double VStartAngle = toRadians(_startLatitude - 90);
+    double VAngleIncr = (toRadians(-1 * _startLatitude) + toRadians(_endLatitude)) / (BufferHt - 1);
 
-    //logger_base.debug("Vertical Start %d: +%f x %d",
-    //    (int)toDegrees(VStartAngle), (float)toDegrees(VAngleIncr), BufferHt);
+    // logger_base.debug("Vertical Start %d: +%f x %d",
+    //     (int)toDegrees(VStartAngle), (float)toDegrees(VAngleIncr), BufferHt);
 
     size_t NodeCount = GetNodeCount();
-    for (size_t n = 0; n<NodeCount; n++) {
+    for (size_t n = 0; n < NodeCount; n++) {
         size_t CoordCount = GetCoordCount(n);
         for (size_t c = 0; c < CoordCount; c++) {
             double bufferX = Nodes[n]->Coords[c].bufX;
@@ -95,17 +155,17 @@ void SphereModel::SetSphereCoord() {
             Nodes[n]->Coords[c].screenZ = Hradius * sin(hangle) * sv;
             Nodes[n]->Coords[c].screenY = Vradius * cos(vangle);
 
-            //logger_base.debug("%d: %d,%d -> hangle %d vangle %d -> %f,%f,%f",
-            //    n,
-            //    (int)bufferX, (int)bufferY,
-            //    (int)toDegrees(hangle), (int)toDegrees(vangle),
-            //    Nodes[n]->Coords[c].screenX, Nodes[n]->Coords[c].screenY, Nodes[n]->Coords[c].screenZ);
+            // logger_base.debug("%d: %d,%d -> hangle %d vangle %d -> %f,%f,%f",
+            //     n,
+            //     (int)bufferX, (int)bufferY,
+            //     (int)toDegrees(hangle), (int)toDegrees(vangle),
+            //     Nodes[n]->Coords[c].screenX, Nodes[n]->Coords[c].screenY, Nodes[n]->Coords[c].screenZ);
         }
     }
     screenLocation.SetRenderSize(RenderWi, RenderHt, RenderWi);
 }
 
-int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+int SphereModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if (event.GetPropertyName() == "StartLatitude") {
         ModelXml->DeleteAttribute("StartLatitude");
         ModelXml->AddAttribute("StartLatitude", wxString::Format("%i", (int)event.GetPropertyValue().GetLong()));
@@ -114,8 +174,7 @@ int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::StartLatitude");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::StartLatitude");
         return 0;
-    }
-    else if (event.GetPropertyName() == "EndLatitude") {
+    } else if (event.GetPropertyName() == "EndLatitude") {
         ModelXml->DeleteAttribute("EndLatitude");
         ModelXml->AddAttribute("EndLatitude", wxString::Format("%i", (int)event.GetPropertyValue().GetLong()));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::EndLatitude");
@@ -123,8 +182,7 @@ int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::EndLatitude");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::EndLatitude");
         return 0;
-    }
-    else if (event.GetPropertyName() == "Degrees") {
+    } else if (event.GetPropertyName() == "Degrees") {
         ModelXml->DeleteAttribute("Degrees");
         ModelXml->AddAttribute("Degrees", wxString::Format("%i", (int)event.GetPropertyValue().GetLong()));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::Degrees");
@@ -137,8 +195,7 @@ int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     return MatrixModel::OnPropertyGridChange(grid, event);
 }
 
-void SphereModel::AddStyleProperties(wxPropertyGridInterface *grid) {
-
+void SphereModel::AddStyleProperties(wxPropertyGridInterface* grid) {
     wxPGProperty* p = grid->Append(new wxIntProperty("Degrees", "Degrees", _sphereDegrees));
     p->SetAttribute("Min", "45");
     p->SetAttribute("Max", "360");
@@ -155,19 +212,19 @@ void SphereModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->SetEditor("SpinCtrl");
 }
 
-void SphereModel::ExportXlightsModel()
-{
+void SphereModel::ExportXlightsModel() {
     wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
     wxFile f(filename);
-    
+
     if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
         return;
     }
-    
+
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString p3 = ModelXml->GetAttribute("parm3");
@@ -212,18 +269,15 @@ void SphereModel::ExportXlightsModel()
         f.Write(aliases);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString face = SerialiseFace();
-    if (face != "")
-    {
+    if (face != "") {
         f.Write(face);
     }
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     wxString groups = SerialiseGroups();
@@ -235,8 +289,7 @@ void SphereModel::ExportXlightsModel()
     f.Close();
 }
 
-bool SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+bool SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
     if (root->GetName() == "spheremodel") {
         wxString name = root->GetAttribute("name");
         wxString p1 = root->GetAttribute("parm1");
@@ -299,14 +352,13 @@ bool SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
     }
 }
 
-void SphereModel::ExportAsCustomXModel3D() const
-{
-
+void SphereModel::ExportAsCustomXModel3D() const {
     wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-    if (filename.IsEmpty()) return;
+    if (filename.IsEmpty())
+        return;
 
     wxFile f(filename);
     //    bool isnew = !FileExists(filename);
@@ -322,8 +374,7 @@ void SphereModel::ExportAsCustomXModel3D() const
     float maxy = -99999;
     float maxz = -99999;
 
-    for (auto& n : Nodes)
-    {
+    for (auto& n : Nodes) {
         minx = std::min(minx, n->Coords[0].screenX);
         miny = std::min(miny, n->Coords[0].screenY);
         minz = std::min(minz, n->Coords[0].screenZ);
@@ -345,14 +396,11 @@ void SphereModel::ExportAsCustomXModel3D() const
     }
 
     std::vector<std::vector<std::vector<int>>> data;
-    for (int l = 0; l < BufferWi * scaleFactor3D + 1; l++)
-    {
+    for (int l = 0; l < BufferWi * scaleFactor3D + 1; l++) {
         std::vector<std::vector<int>> layer;
-        for (int r = BufferHt * scaleFactor3D + 1; r >= 0; r--)
-        {
+        for (int r = BufferHt * scaleFactor3D + 1; r >= 0; r--) {
             std::vector<int> row;
-            for (int c = 0; c < BufferWi * scaleFactor3D + 1; c++)
-            {
+            for (int c = 0; c < BufferWi * scaleFactor3D + 1; c++) {
                 row.push_back(-1);
             }
             layer.push_back(row);
@@ -361,8 +409,7 @@ void SphereModel::ExportAsCustomXModel3D() const
     }
 
     int i = 1;
-    for (auto& n: Nodes)
-    {
+    for (auto& n : Nodes) {
         int xx = (scaleFactor3D * (float)BufferWi) * (n->Coords[0].screenX - minx) / w;
         int yy = (scaleFactor3D * (float)BufferHt) - (scaleFactor3D * (float)BufferHt * (n->Coords[0].screenY - miny) / h);
         int zz = (scaleFactor3D * (float)BufferWi) * (n->Coords[0].screenZ - minz) / d;
@@ -424,18 +471,15 @@ void SphereModel::ExportAsCustomXModel3D() const
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString face = SerialiseFace();
-    if (face != "")
-    {
+    if (face != "") {
         f.Write(face);
     }
     wxString state = SerialiseState();
-    if (state != "")
-    {
+    if (state != "") {
         f.Write(state);
     }
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
+    if (submodel != "") {
         f.Write(submodel);
     }
     ExportDimensions(f);
@@ -443,8 +487,7 @@ void SphereModel::ExportAsCustomXModel3D() const
     f.Close();
 }
 
-bool SphereModel::Find3DCustomModelScale(int scale, float minx, float miny, float minz, float w, float h, float d) const
-{
+bool SphereModel::Find3DCustomModelScale(int scale, float minx, float miny, float minz, float w, float h, float d) const {
     size_t nodeCount = GetNodeCount();
     if (nodeCount <= 1) {
         return true;

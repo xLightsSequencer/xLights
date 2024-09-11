@@ -376,7 +376,7 @@ void WS2812FX::service()
 {
     uint32_t nowUp = millis(); // Be aware, millis() rolls over every 49 days
     now = nowUp + timebase;
-    if (nowUp - _lastShow < MIN_SHOW_DELAY)
+    if (nowUp - _lastShow < (uint32_t)MIN_SHOW_DELAY)
         return;
     bool doShow = false;
 

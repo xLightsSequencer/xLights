@@ -29,8 +29,6 @@
 
 CustomModel::CustomModel(wxXmlNode *node, const ModelManager &manager,  bool zeroBased) : ModelWithScreenLocation(manager)
 {
-    _depth = 1;
-    _strings = 1;
     screenLocation.SetSupportsZScaling(true);
     screenLocation.SetStartOnXAxis(true);
     SetFromXml(node, zeroBased);
