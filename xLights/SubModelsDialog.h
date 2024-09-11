@@ -115,7 +115,7 @@ class SubModelsDialog : public wxDialog
 
     void StartOutputToLights();
     bool StopOutputToLights();
-
+    
 public:
     std::vector<SubModelInfo*> _subModels;
 
@@ -262,6 +262,7 @@ protected:
     void Select(const wxString &name);
     void SelectAll(const wxString &names);
     void UnSelectAll();
+    void applySubmodelRowLabels(const wxString &name);
 
     void Generate();
     void Aliases();
