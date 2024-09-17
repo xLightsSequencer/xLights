@@ -19,7 +19,6 @@
 #include <wx/artprov.h>
 
 #include "MainSequencer.h"
-#include "xLightsApp.h"
 #include "SequenceElements.h"
 #include "../xLightsMain.h"
 #include "TimeLine.h"
@@ -105,31 +104,11 @@ public:
     }
     virtual ~TimeDisplayControl(){};
 
-    void SetGLSize(int w, int h) {
-        SetMinSize(wxSize(w, h));
-
-        wxSize size = GetSize();
-        if (w == -1) w = size.GetWidth();
-        if (h == -1) h = size.GetHeight();
-
-        SetSize(w, h);
-        if (h > 50) {
-            newFontSize = 14;
-        } else if (h > 36) {
-            newFontSize = 10;
-        } else if (h > 25) {
-            newFontSize = 8;
-        } else {
-            newFontSize = 6;
-        }
-        Refresh();
-    }
-
     void SetSelected(const wxString &sel) {
         _selected = sel;
         Refresh();
     }
-    void SetLabels(const wxString &time, const wxString &fps) {
+    void SetLabels(const wxString &time, const wxString &fps = wxEmptyString) {
         _fps = fps;
         _time = time;
         render();
@@ -167,6 +146,20 @@ public:
         if (ctx == nullptr) {
             return;
         }
+        
+        int h = mWindowHeight;
+        if (!drawingUsingLogicalSize()) {
+            h /= GetContentScaleFactor();
+        }
+        if (h > 50) {
+            newFontSize = 14;
+        } else if (h > 27) {
+            newFontSize = 10;
+        } else if (h > 20) {
+            newFontSize = 8;
+        } else {
+            newFontSize = 6;
+        }
         ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
         
         float fs = translateToBacking(fontSize);
@@ -187,19 +180,20 @@ public:
         float x = mapLogicalToAbsolute(5);
         float perLine = mapLogicalToAbsolute(fontSize) * LINEGAP;
         float y = perLine;
+        if (mWindowHeight > (perLine * 3)) {
+            y += perLine / 2;
+        }
         float factor = drawingUsingLogicalSize() ? translateToBacking(1.0) : 1.0;
-        bool smallWaveForm = xLightsApp::GetFrame()->SmallWaveform();
-        if (smallWaveForm) y += 8;
         fi.populate(*vta, x, y, _time, factor);
         y += perLine;
-        // only display FPS if we have room
-        if ((y + perLine <= mWindowHeight)
-            || (_selected == "" && y <= mWindowHeight)) {
-            fi.populate(*vta, x, y, _fps, factor);
-            y += perLine;
-        }
         if (y <= mWindowHeight) {
             fi.populate(*vta, x, y, _selected, factor);
+            y += perLine;
+        }
+        // only display FPS if we have room
+        if (y <= mWindowHeight && !_fps.empty()) {
+            fi.populate(*vta, x, y, _fps, factor);
+            y += perLine;
         }
         ctx->enableBlending();
         ctx->drawTexture(vta, fontTexture, fgColor);
@@ -309,17 +303,14 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     logger_base.debug("                Create time display control");
     timeDisplay = new TimeDisplayControl(this, wxID_ANY);
     FlexGridSizer2->Add(timeDisplay, 1, wxALL |wxEXPAND, 0);
-    //FlexGridSizer2->AddGrowableRow(3);
+    FlexGridSizer2->AddGrowableRow(3);
 
     FlexGridSizer2->Fit(this);
     FlexGridSizer2->SetSizeHints(this);
 
-    if (smallWaveform)
-    {
+    if (smallWaveform) {
         SetSmallWaveform();
-    }
-    else
-    {
+    } else {
         SetLargeWaveform();
     }
 
@@ -378,9 +369,11 @@ void MainSequencer::UpdateTimeDisplay(int time_ms, float fps)
     seconds = seconds % 60;
     wxString play_time = wxString::Format("Time: %d:%02d.%02d", minutes, seconds, msec);
     wxString fpsStr;
+#ifdef __DEBUG__
     if (fps >= 0) {
         fpsStr = wxString::Format("FPS: %5.1f", fps);
     }
+#endif
     if (timeDisplay != nullptr) {
         timeDisplay->SetLabels(play_time, fpsStr);
     }
@@ -1205,7 +1198,6 @@ void MainSequencer::DoRedo(wxCommandEvent& event) {
 void MainSequencer::SetLargeWaveform()
 {
     PanelWaveForm->SetWaveFormSize(Waveform::GetLargeSize());
-    timeDisplay->SetGLSize(-1, Waveform::GetLargeSize() - 22);
     Layout();
     PanelWaveForm->Refresh();
     timeDisplay->Refresh();
@@ -1214,12 +1206,11 @@ void MainSequencer::SetLargeWaveform()
 void MainSequencer::SetSmallWaveform()
 {
     PanelWaveForm->SetWaveFormSize(Waveform::GetSmallSize());
-    timeDisplay->SetGLSize(-1, Waveform::GetSmallSize() - 22);
     Layout();
     PanelWaveForm->Refresh();
     timeDisplay->Refresh();
 }
-
+ 
 void MainSequencer::GetPresetData(wxString& copy_data)
 {
     if (PanelEffectGrid->IsACActive()) {
