@@ -919,21 +919,15 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
     }
     int r = event.GetRow();
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
-    if (sm != nullptr)
-    {
+    if (sm != nullptr) {
         int str = (int)sm->strands.size() - 1 - r;
-        if (str < 0)
-        {
+        if (str < 0) {
             logger_base.crit("SubModelsDialog::OnNodesGridCellChange submodel '%s' tried to access strand %d. This should have crashed.", (const char*)GetSelectedName().c_str(), str);
             wxASSERT(false);
-        }
-        else
-        {
+        } else {
             sm->strands[str] = NodesGrid->GetCellValue(r, 0);
         }
-    }
-    else
-    {
+    } else {
         logger_base.crit("SubModelsDialog::OnNodesGridCellChange submodel '%s' ... not found. This should have crashed.", (const char*)GetSelectedName().c_str());
         wxASSERT(false);
     }
@@ -950,9 +944,11 @@ void SubModelsDialog::OnNodesGridCellSelect(wxGridEvent& event)
 
 void SubModelsDialog::OnLayoutCheckboxClick(wxCommandEvent& event)
 {
-    SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
+    wxString name = GetSelectedName();
+    SubModelInfo* sm = GetSubModelInfo(name);
     if (sm != nullptr) {
         sm->vertical = LayoutCheckbox->GetValue();
+        applySubmodelRowLabels(name);
     }
 }
 
@@ -2164,6 +2160,30 @@ void SubModelsDialog::UnSelectAll()
         ListCtrl_SubModels->SetItemState(i, 0, wxLIST_STATE_SELECTED);
     }
 }
+void SubModelsDialog::applySubmodelRowLabels(const wxString &name) {
+    if (name == "") { return; }
+    SubModelInfo* sm = GetSubModelInfo(name);
+    for (int x = sm->strands.size() - 1; x >= 0; x--) {
+        int cellrow = (sm->strands.size() - 1) - x;
+        if (sm->vertical) {
+            if (x == 0) {
+                NodesGrid->SetRowLabelValue(cellrow, "Left");
+            } else if (x == sm->strands.size() - 1) {
+                NodesGrid->SetRowLabelValue(cellrow, "Right");
+            } else {
+                NodesGrid->SetRowLabelValue(cellrow, wxString::Format("Col %d", (x + 1)));
+            }
+        } else {
+            if (x == 0) {
+                NodesGrid->SetRowLabelValue(cellrow, "Bottom");
+            } else if (x == sm->strands.size() - 1) {
+                NodesGrid->SetRowLabelValue(cellrow, "Top");
+            } else {
+                NodesGrid->SetRowLabelValue(cellrow, wxString::Format("Line %d", (x + 1)));
+            }
+        }
+    }
+}
 
 void SubModelsDialog::Select(const wxString &name)
 {
@@ -2173,8 +2193,7 @@ void SubModelsDialog::Select(const wxString &name)
 
     int idx = GetSubModelInfoIndex(name);
 
-    for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); i++)
-    {
+    for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); i++) {
         ListCtrl_SubModels->SetItemState(i, (i == idx) ? wxLIST_STATE_SELECTED : 0, wxLIST_STATE_SELECTED);
     }
 
@@ -2196,21 +2215,9 @@ void SubModelsDialog::Select(const wxString &name)
         for (int x = sm->strands.size() - 1; x >= 0; x--) {
             int cellrow = (sm->strands.size() - 1) - x;
             NodesGrid->AppendRows(1);
-            if (x == 0)
-            {
-                NodesGrid->SetRowLabelValue(cellrow, "Bottom");
-            }
-            else if (x == sm->strands.size() - 1)
-            {
-                NodesGrid->SetRowLabelValue(cellrow, "Top");
-            }
-            else
-            {
-                NodesGrid->SetRowLabelValue(cellrow, wxString::Format("Line %d", (x + 1)));
-            }
             NodesGrid->SetCellValue(cellrow, 0, sm->strands[x]);
-
         }
+        applySubmodelRowLabels(name);
         NodesGrid->EndBatch();
         NodesGrid->GoToCell(0, 0);
         NodesGrid->ForceRefresh();
@@ -2235,8 +2242,7 @@ void SubModelsDialog::SelectAll(const wxString &names) {
     wxStringTokenizer tokenizer(names, ",");
     while (tokenizer.HasMoreTokens()) {
         int idx = GetSubModelInfoIndex(tokenizer.GetNextToken());
-        for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); i++)
-        {
+        for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); i++) {
             if (i==idx) {
                 ListCtrl_SubModels->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
             }
@@ -2323,7 +2329,6 @@ void SubModelsDialog::SelectRow(int r) {
 }
 
 bool SubModelsDialog::SetNodeColor(int row, xlColor const& c, bool highlight) {
-
     wxString v = NodesGrid->GetCellValue(row, 0);
     if (v.empty()) {
         return false;
@@ -2370,8 +2375,7 @@ bool SubModelsDialog::SetNodeColor(int row, xlColor const& c, bool highlight) {
 
 void SubModelsDialog::GenerateSegment(SubModelsDialog::SubModelInfo* sm, int segments, int segment, bool horizontal, int count)
 {
-    if (horizontal)
-    {
+    if (horizontal) {
         float perx = 100.0 / segments;
         int offset = segment % segments;
         float startx = offset * perx;
@@ -2386,9 +2390,7 @@ void SubModelsDialog::GenerateSegment(SubModelsDialog::SubModelInfo* sm, int seg
 
         sm->isRanges = false;
         sm->subBuffer = wxString::Format("%.2fx%.2fx%.2fx%.2f", startx, start, endx, end);
-    }
-    else
-    {
+    } else {
         float pery = 100.0 / segments;
         int offset = segment % segments;
         float starty = offset * pery;
@@ -3703,17 +3705,14 @@ void SubModelsDialog::ExportSubModels(wxString const& filename)
                 f.Write(",,,");
                 if (x == 0) {
                     f.Write("Bottom,");
-                }
-                else if (x == sm->strands.size() - 1) {
+                } else if (x == sm->strands.size() - 1) {
                     f.Write("Top,");
-                }
-                else {
+                } else {
                     f.Write(wxString::Format("Line %d,", (x + 1)));
                 }
                 f.Write("\"" + sm->strands[x] + "\"\n");
             }
-        }
-        else {
+        } else {
             f.Write(",,,");
             f.Write("SubBuffer,");
             f.Write("\"" + sm->subBuffer + "\"\n");
@@ -3760,8 +3759,7 @@ void SubModelsDialog::ExportSubModelAsxModel(wxString const& filename, const std
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 int n = wxAtoi(Trim(r));
                 if (n > 0) {
                     std::vector<wxPoint> pts;

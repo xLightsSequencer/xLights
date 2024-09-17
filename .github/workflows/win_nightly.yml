@@ -45,7 +45,7 @@ jobs:
       run: ISCC.exe xLights_4_64bit_VS.iss
 
     - name: Upload Installer
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: xLights_x64_Installer
         path: 'C:\xLights\build_scripts\msw\output\**'
