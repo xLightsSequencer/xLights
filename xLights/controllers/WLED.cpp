@@ -293,7 +293,7 @@ bool WLED::SetupInput(Controller* c, wxJSONValue& jsonVal, bool rgbw) {
     }
 
     //get previous RGB Mode
-    int rgbMode = jsonVal["if"]["live"]["dmx"]["mode"].AsInt();
+    //int rgbMode = jsonVal["if"]["live"]["dmx"]["mode"].AsInt();
 
     if (!controller->AllSameSize()) {
         DisplayError("Attempting to upload universes to the WLED controller that are not the same size.");
@@ -345,14 +345,14 @@ bool WLED::SetupInput(Controller* c, wxJSONValue& jsonVal, bool rgbw) {
         }
     }
 
-    //Turn On E131/DDP Multiple RGB Mode "DM=4", TODO: Support RGBW mode "DM=6"
-    if (rgbw) {
-        //_vid >= 2212222
-        rgbMode = 6;
-    } else {
-        rgbMode = 4;
-    }
-    jsonVal["if"]["live"]["dmx"]["mode"] = rgbMode;
+    //Turn On E131 Multiple RGB Mode "DM=4", TODO: Support RGBW mode "DM=6"
+    //if (rgbw) {
+    //    //_vid >= 2212222
+    //    rgbMode = 6;
+    //} else {
+    //    rgbMode = 4;
+    //}
+    //jsonVal["if"]["live"]["dmx"]["mode"] = rgbMode;
     return true;
 }
 
