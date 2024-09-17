@@ -5,6 +5,9 @@
 #include <vector>
 #include <map>
 
+// Uncomment to enable the code to create any missing FontInfo's
+//#define CREATE_MISSING_FONTS
+
 static int TEXTURE_IDX = 1;
 inline int NextFontTextureIdx() {
     TEXTURE_IDX++;
@@ -57,9 +60,7 @@ bool xlFontInfo::init(int size) {
         CASEFONT(56);
         CASEFONT(88);
         default:
-            //printf("No FONT!!!! %d\n", size);
-            //ForceCreate(size); return true;
-            return false;
+            return CreateMissingFont(size);
     }
 }
 
@@ -190,15 +191,12 @@ const xlFontInfo &xlFontInfo::FindFont(int size) {
 }
 
 
-#ifndef LINUX
 #define USEAA true
-#else
-#define USEAA false
-#endif
 #define NUMLINES 6
 #define NUMCHARS 16
 
-void xlFontInfo::ForceCreate(int size) {
+bool xlFontInfo::CreateMissingFont(int size) {
+#ifdef CREATE_MISSING_FONTS
     wxString faceName = "Gil Sans";
     
     bool useAA = USEAA;
@@ -390,4 +388,8 @@ void xlFontInfo::ForceCreate(int size) {
 
     FontInfoStruct fis(&data[0], maxH, maxW, maxD, widths);
     load(fis);
+    return true;
+#else
+    return false;
+#endif
 }
