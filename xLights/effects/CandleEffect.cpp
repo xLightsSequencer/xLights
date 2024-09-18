@@ -52,8 +52,17 @@ xlEffectPanel *CandleEffect::CreatePanel(wxWindow *parent) {
     return new CandlePanel(parent);
 }
 
-struct CandleState
-{
+class CandleState {
+public:
+    CandleState() {
+    }
+    void init() {
+        flamer = rand01() * 255;
+        flameprimer = rand01() * 255;
+        flameg = rand01() * flamer;
+        flameprimeg = rand01() * flameprimer;
+        wind = rand01() * 255;
+    }
     wxByte flameprimer;
     wxByte flamer;
     wxByte wind;
@@ -64,18 +73,12 @@ struct CandleState
 class CandleRenderCache : public EffectRenderCache
 {
 public:
-    std::map<int, CandleState*> _states;
+    std::vector<CandleState> _states;
     int maxWid;
 
     CandleRenderCache(){};
-    virtual ~CandleRenderCache()
-    {
-        while (_states.size() > 0) {
-            int index = _states.begin()->first;
-            CandleState* todelete = _states[index];
-            _states.erase(index);
-            delete todelete;
-        }
+    virtual ~CandleRenderCache() {
+        _states.clear();
     };
 };
 
@@ -148,22 +151,6 @@ void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_
     // We don't. It adds to the realism.
 }
 
-void InitialiseState(int node, std::map<int, CandleState*>& states)
-{
-    if (states.find(node) == states.end()) {
-        CandleState* state = new CandleState();
-        states[node] = state;
-    }
-
-    states[node]->flamer = rand01() * 255;
-    states[node]->flameprimer = rand01() * 255;
-
-    states[node]->flameg = rand01() * states[node]->flamer;
-    states[node]->flameprimeg = rand01() * states[node]->flameprimer;
-
-    states[node]->wind = rand01() * 255;
-}
-
 // 10 <= HeightPct <= 100
 void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
@@ -175,24 +162,24 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     bool perNode = SettingsMap.GetBool("CHECKBOX_PerNode", false);
 
     CandleRenderCache* cache = GetCache(buffer, id);
-    std::map<int, CandleState*>& states = cache->_states;
+    std::vector<CandleState>& states = cache->_states;
 
     if (buffer.needToInit) {
         buffer.needToInit = false;
 
+        int numStates = 1;
         if (perNode) {
             wxPoint maxBuffer = buffer.GetMaxBuffer(SettingsMap);
             int maxMWi = maxBuffer.x == -1 ? buffer.BufferWi : maxBuffer.x;
             int maxMHt = maxBuffer.y == -1 ? buffer.BufferHt : maxBuffer.y;
             cache->maxWid = maxMWi;
-            for (size_t x = 0; x < maxMWi; ++x) {
-                for (size_t y = 0; y < maxMHt; ++y) {
-                    size_t index = y * maxMWi + x;
-                    InitialiseState(index, states);
-                }
-            }
-        } else {
-            InitialiseState(0, states);
+            numStates = maxMWi * maxMHt;
+        }
+        if (numStates > states.size()) {
+            states.resize(numStates);
+        }
+        for (int x = 0; x < numStates; x++) {
+            states[x].init();
         }
     }
 
@@ -205,7 +192,7 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
                     // this should never happen
                     wxASSERT(false);
                 } else {
-                    CandleState* state = states[index];
+                    CandleState* state = &states[index];
 
                     Update(state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
                     Update(state->flameprimeg, state->flameg, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
@@ -222,7 +209,7 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
             }
         });
     } else {
-        CandleState* state = states[0];
+        CandleState* state = &states[0];
 
         Update(state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
         Update(state->flameprimeg, state->flameg, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
