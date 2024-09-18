@@ -1640,13 +1640,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     if (!xLightsApp::mediaDir.IsNull()) {
         md = xLightsApp::mediaDir;
         logger_base.debug("Media directory %s.", (const char*)md.c_str());
-        ObtainAccessToURL(md);
+        if (!ObtainAccessToURL(md)) {
+            std::string mds = md;
+            PromptForDirectorySelection("Reselect Media Directory", mds);
+        }
         mediaDirectories.push_back(md);
     } else if (config->Read(_("MediaDir"), &md)) {
         wxArrayString entries = wxSplit(md, '|', '\0');
         for (auto& d : entries) {
             std::string dstd = d.ToStdString();
-            ObtainAccessToURL(dstd);
+            if (!ObtainAccessToURL(dstd)) {
+                PromptForDirectorySelection("Reselect Media Directory", dstd);
+            }
             if (std::find(mediaDirectories.begin(), mediaDirectories.end(), dstd) == mediaDirectories.end()) {
                 mediaDirectories.push_back(dstd);
             }
