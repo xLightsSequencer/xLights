@@ -11,6 +11,41 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.16 September 18, 2024
+    - enh (derwin12)        Add copy model including submodels right click option
+    - enh (Kyle Grymonprez) Disable prompting for alias saving of newly generated models by default
+    - enh (Kyle Grymonprez) Node Layout: changing the background colors for dark mode
+    - enh (dkulp)           Make sure we have access to media directories, re-prompt if required
+    - enh (dkulp)           Optimize the init/cleanup of CandleEffect, particularly when applied to large groups
+    - enh (dkulp)           If submodel buffer is vertial, use left/col/right labels
+    - enh (derwin12)        Add RGB support to Image Model
+    - enh (derwin12/dkulp)  Various updates to Time Display if Small Waveform is used
+    - enh (derwin12)        Save Small Waveform preference
+    - enh (derwin12)        Make various abandon messages consistent
+    - enh (keith)           Add F-Prop as a dummy controller
+    - enh (scott)           Visualizer - change export from csv to xlsx and add coloring/formatting
+    - enh (scott)           Visualizer - add gamma
+    - enh (derwin12)        Import Dialog - verify imported sequence framerate and xLights version
+    - enh (scott)           SubModels Dialog: add import of submodels from another layout
+    - enh (scott)           Faces Dialog: add clear selected rows
+    - enh (scott)           States Dialog: add clear, fix validation on drag
+    - enh (scott)           States Dialog: add import from Vendor Dialog downloads
+    - enh (kylegrymonprez)  DDP: Controller config can mandate to not support "Keep Channel Numbers"
+    - enh (scott)           State Effect: Add fading
+    - enh (keith)           Allow setting serial port speed for Renard (Falcon controllers)
+    - enh (scott)           Remember position of State Dialog
+    - bug (MrPierreB)       Fix moving head effect to not reset effects when "None" selected
+    - bug (scott)           Fix Fan Effect: Fan Scale to Buffer giving unexpected results in some cases
+    - bug (dkulp)           Fix: blure/zoom on node level effects
+    - bug (dkulp)           FPP Connect: fix the HDMI connector index for FPP8
+    - bug (scott)           Experience Controllers: fix gamma rounding
+    - bug (keith)           Fix single channel matrix displaying in wrong location
+    - bug (scott)           WLED: Fix WRGB upload
+    - bug (derwin12)        Retain Warp settings when copying
+    - bug (derwin12)        Disable Update button for Base Showfolder
+    - bug (scott)           Hide Individual Start Channels for Cube Model
+    - bug (scott)           Experience Controllers: fix single channel models
+    - bug (Kyle Grymonprez) Fix crash on old DMX model
 2024.15 August 22, 2024
     - enh (kylegrymonprez)  Add ability to set the alias behavior for renaming models
     - enh (kylegrymonprez)  Add FPP Connect button to setup tab
