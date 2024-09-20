@@ -1067,7 +1067,8 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager) {
             int string = index / nodesPerString + 1;
             int nodenum = index % nodesPerString + 1;
             wxString bgcolor = string % 2 == 1 ? "#ADD8E6" : "#90EE90";
-
+            if( IsDarkMode() )
+                bgcolor = string % 2 == 1 ? "#3f7c85" : "#962B09";
             html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ds%d</td>", nodenum, string);
         }
         html += "</tr>";

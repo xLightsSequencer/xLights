@@ -1269,7 +1269,11 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
                     wxString value = _data[l][r][c];
                     if (!value.IsEmpty() && value != "0") {
                         if (_strings == 1) {
-                            html += wxString::Format("<td bgcolor='#ADD8E6'>n%s</td>", value);
+                            if( IsDarkMode() ) {
+                                html += wxString::Format("<td bgcolor='#962B09'>n%s</td>", value);
+                            } else {
+                                html += wxString::Format("<td bgcolor='#ADD8E6'>n%s</td>", value);
+                            }
                         }
                         else {
                             int string = GetCustomNodeStringNumber(wxAtoi(value));
@@ -1277,19 +1281,19 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
                             switch (string % 4)
                             {
                             case 0:
-                                bgcolor = "#eed1a4"; // yellow
+                                bgcolor = IsDarkMode() ? "#7a577a" : "#eed1a4"; // purple / yellow
                                 break;
                             case 1:
-                                bgcolor = "#8aa2bb"; // blue
+                                bgcolor = IsDarkMode() ? "#3f7c85" : "#8aa2bb"; // teal / blue
                                 break;
                             case 2:
-                                bgcolor = "#ec9396"; // red
+                                bgcolor = IsDarkMode() ? "#520120" : "#ec9396"; // maroon / red
                                 break;
                             case 3:
-                                bgcolor = "#86d0c3"; // green
+                                bgcolor = IsDarkMode() ? "#08403e" : "#86d0c3"; // dark teal / green
                                 break;
                             }
-                            html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ss%d</td>", value, string);
+                            html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ss%d</td>",value, string);
                         }
                     }
                     else {

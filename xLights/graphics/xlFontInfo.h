@@ -24,6 +24,7 @@ private:
     bool valid() const;
     bool init(int sz);
     bool load(const FontInfoStruct &fi);
+    bool CreateMissingFont(int size);
 
 
     int size;

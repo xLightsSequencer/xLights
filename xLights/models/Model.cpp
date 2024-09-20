@@ -549,8 +549,10 @@ void Model::Rename(std::string const& newName)
     name = Trim(newName);
     ModelXml->DeleteAttribute("name");
     ModelXml->AddAttribute("name", name);
-
-    if (oldname != "" && newName != "Iamgoingtodeletethismodel" && modelManager.GetXLightsFrame()->GetRenameModelAliasPromptBehavior() == "Always Prompt" ) {
+    bool shouldPrompt = modelManager.GetXLightsFrame()->GetRenameModelAliasPromptBehavior() == "Always Prompt" &&
+        oldname != modelManager.GetLastGeneratedModelName() ;
+    
+    if (oldname != "" && newName != "Iamgoingtodeletethismodel" && shouldPrompt ) {
         if (wxMessageBox("Would you like to save the old name as an alias for this prop. This could be useful if you have sequences already sequenced against this prop using the old name.", "Save old name as alias", wxYES_NO | wxICON_QUESTION, GetModelManager().GetXLightsFrame()) == wxYES) {
             AddAlias("oldname:" + oldname);
         }
@@ -5207,6 +5209,8 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
                 } else {
                     int s = Nodes[n - 1]->StringNum + 1;
                     wxString bgcolor = (s % 2 == 1) ? "#ADD8E6" : "#90EE90";
+                    if( IsDarkMode() )
+                        bgcolor = (s % 2 == 1) ? "#3F7C85" : "#962B09";
                     while (n > NodesPerString()) {
                         n -= NodesPerString();
                     }
@@ -6237,12 +6241,16 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
             }
         }
         model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
-        model->SetHcenterPos(x);
-        model->SetVcenterPos(y);
-        // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
-        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
+        if( model != nullptr ) {
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
+            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
+            model->SetLayoutGroup(lg);
+            model->Selected = true;
+        } else {
+            cancelled = true;
+        }
         return model;
     } else if (node->GetName() == "dmxgeneral") {
         // grab the attributes I want to keep

@@ -130,16 +130,15 @@ void xlMetalGraphicsContext::Commit(bool displayOnScreen, id<MTLBuffer> captureB
                            destinationBytesPerImage:bufferSize];
                 [blitCommandEncoder endEncoding];
             }
-            
-            [buffer commit];
 
             if (!displayOnScreen) {
+                [buffer commit];
                 [buffer waitUntilCompleted];
             } else if (!xlMetalCanvas::isInSyncPoint()) {
+                [buffer commit];
                 [drawable release];
                 drawable = nil;
             } else {
-                [buffer retain];
                 wxMetalCanvas::addToSyncPoint(buffer, drawable);
                 drawable = nil;
                 buffer = nil;
