@@ -466,6 +466,12 @@ void xlTimerThread::SetFudgeFactor(int ff)
 {
     _fudgefactor = ff;
 }
+
+int xLightsTimer::GetCurrentScreen() {
+    return -1;
+}
+
+
 #else
 xLightsTimer::xLightsTimer() {}
 xLightsTimer::~xLightsTimer() {}
@@ -475,5 +481,6 @@ void xLightsTimer::Notify() { RunInAutoReleasePool([this]() {wxTimer::Notify();}
 int xLightsTimer::GetInterval() const { return wxTimer::GetInterval(); }
 void xLightsTimer::DoSendTimer() {};
 void xLightsTimer::SetName(const std::string& name) {_name = name;}
+int xLightsTimer::GetCurrentScreen() { return -1; };
 
 #endif

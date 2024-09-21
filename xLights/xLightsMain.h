@@ -1640,8 +1640,9 @@ private:
     Model *playModel;
     int playType;
     int playStartMS;
-    std::list<FPSEvent> fpsEvents;
-    float _fps;
+    std::vector<std::list<FPSEvent>> fpsEvents;
+    std::vector<float> _fps;
+    int playCurFrame = -1;
     int playStartTime;
     int playOffsetTime;
     int playEndTime;
