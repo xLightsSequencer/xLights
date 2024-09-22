@@ -776,12 +776,12 @@ void xLightsApp::WipeSettings()
 
 bool xLightsApp::ProcessIdle() {
     uint64_t now = wxGetLocalTimeMillis().GetValue();
+    bool b = CurlManager::INSTANCE.processCurls();
     if (now > _nextIdleTime) {
         _nextIdleTime = now + 100;
-        return wxApp::ProcessIdle();
+        return wxApp::ProcessIdle() | b;
     }
-    CurlManager::INSTANCE.processCurls();
-    return false;
+    return b;
 }
 
 //global flags from command line:

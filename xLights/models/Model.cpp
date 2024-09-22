@@ -1060,16 +1060,14 @@ void Model::ClearIndividualStartChannels()
 }
 
 void Model::GetSerialProtocolSpeeds(const std::string& protocol, wxArrayString& cs, int& idxs) const {
-
-    if (protocol == "dmx") {
+    if (protocol == "dmx" || Contains(protocol, "DMX")) {
         cs.push_back("250000");
-    } else 
-        if (protocol == "renard") {
+    } else if (protocol == "renard" || protocol == "Renard") {
         cs.push_back("19200");
         cs.push_back("38400");
         cs.push_back("57600");
         cs.push_back("115200");
-    } else if (protocol == "lor") {
+    } else if (protocol == "lor" || protocol == "LOR") {
         cs.push_back("19200");
         cs.push_back("57600");
         cs.push_back("115200");
@@ -1202,7 +1200,9 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
 
     wxArrayString cs;
     int idxs = -1;
-    GetSerialProtocolSpeeds(cp[idx], cs, idxs);
+    if (idx >= 0 && idx < cp.size()) {
+        GetSerialProtocolSpeeds(cp[idx], cs, idxs);
+    }
 
     if (IsPixelProtocol()) {
         int smartRemoteCount = 15;
