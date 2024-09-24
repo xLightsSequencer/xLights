@@ -1269,7 +1269,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
             sp->SetAttribute("Max", caps->GetMaxSerialPortChannels());
         }
         sp->SetEditor("SpinCtrl");
-        if (cp[idx] != "dmx") {
+        if (cp[idx] != "dmx" || Contains(protocol, "DMX")) {
             // non dmx protocols support speeds
             sp = grid->AppendIn(p, new wxEnumProperty("Speed", "ModelControllerConnectionSpeed", cs, wxArrayInt(), idxs));
             if (cs.size() == 1 && idxs == 0) {
