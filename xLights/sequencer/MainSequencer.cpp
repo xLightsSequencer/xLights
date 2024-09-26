@@ -158,11 +158,13 @@ public:
         if (h > 50) {
             newFontSize = 14;
         } else if (h > 27) {
+            newFontSize = 11;
+        } else if (h > 24) {
             newFontSize = 10;
         } else if (h > 20) {
-            newFontSize = 8;
+            newFontSize = 9;
         } else {
-            newFontSize = 6;
+            newFontSize = 8;
         }
         ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
         
@@ -182,7 +184,7 @@ public:
 #define LINEGAP 1.2
         xlVertexTextureAccumulator *vta = ctx->createVertexTextureAccumulator();
         float x = mapLogicalToAbsolute(5);
-        float perLine = mapLogicalToAbsolute(fontSize) * LINEGAP;
+        float perLine = fi.getSize() * LINEGAP;
         float y = perLine;
         if (mWindowHeight > (perLine * 3)) {
             y += perLine / 2;

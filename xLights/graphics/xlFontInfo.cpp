@@ -6,7 +6,7 @@
 #include <map>
 
 // Uncomment to enable the code to create any missing FontInfo's
-//#define CREATE_MISSING_FONTS
+#define CREATE_MISSING_FONTS
 
 static int TEXTURE_IDX = 1;
 inline int NextFontTextureIdx() {
@@ -46,12 +46,16 @@ bool xlFontInfo::valid() const {
 bool xlFontInfo::init(int size) {
     this->size = size;
     switch (size) {
+        CASEFONT(8);
+        CASEFONT(9);
         CASEFONT(10);
+        CASEFONT(11);
         CASEFONT(12);
         CASEFONT(14);
         CASEFONT(16);
         CASEFONT(18);
         CASEFONT(20);
+        CASEFONT(22);
         CASEFONT(24);
         CASEFONT(28);
         CASEFONT(32);
