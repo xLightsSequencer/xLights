@@ -11,6 +11,7 @@
             <Port6>17</Port6>
             <Port7>5</Port7>
             <Port8>33</Port8>
+        </Variant>
     </Controller>
     <Controller Name="Advanced Duo">
         <Variant Name="" Base="WLED:ESP32WLEDSettings">
