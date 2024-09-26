@@ -1514,6 +1514,8 @@ void RowHeading::render( wxPaintEvent& event )
 #ifdef __LINUX__
     if(!IsShownOnScreen()) return;
 #endif
+    if (mSequenceElements->GetXLightsFrame()->GetMainSequencer() == nullptr) return;
+
     wxPaintDC dc(this);
 
     wxCoord w,h;

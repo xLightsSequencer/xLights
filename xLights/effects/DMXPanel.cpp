@@ -1159,6 +1159,10 @@ std::list<Model*> DMXPanel::GetActiveModels()
 {
 	std::list<Model*> res;
 
+	if (xLightsApp::GetFrame()->GetMainSequencer() == nullptr) {
+        return res;
+    }
+
 	auto effect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
 	if (effect != nullptr) {
 		if (effect->GetParentEffectLayer() != nullptr) {

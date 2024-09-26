@@ -466,6 +466,7 @@ void xlTimerThread::SetFudgeFactor(int ff)
 {
     _fudgefactor = ff;
 }
+
 #else
 xLightsTimer::xLightsTimer() {}
 xLightsTimer::~xLightsTimer() {}

@@ -44,8 +44,6 @@
 #define DoInAppPurchases(w)
 #define WXGLUnsetCurrentContext()
 #define GetOSFormattedClipboardData() ""
-#define StartGraphicsSyncPoint()
-#define EndGraphicsSyncPoint()
 #define SetThreadQOS(a)
 
 inline double xlOSGetMainScreenContentScaleFactor() { return 1.0; }

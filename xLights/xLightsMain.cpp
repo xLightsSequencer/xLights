@@ -613,7 +613,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     splash.Update();
     wxYield();
 
-    _fps = -1;
     mCurrentPerpective = nullptr;
     MenuItemPreviews = nullptr;
     _renderMode = renderOnlyMode;
@@ -2379,10 +2378,8 @@ void xLightsFrame::OnOutputTimerTrigger(wxTimerEvent& event)
     PushTraceContext();
     wxTimeSpan ts = wxDateTime::UNow() - starttime;
     long curtime = ts.GetMilliseconds().ToLong();
-    bool needTimer = _outputManager.IsOutputting();
+    bool needTimer = false;
     AddTraceMessage("OutputTimer");
-    _outputManager.StartFrame(curtime);
-    AddTraceMessage("Output frame started");
     if (Notebook1 != nullptr) {
         switch (Notebook1->GetSelection()) {
         case NEWSEQUENCER:
@@ -2393,17 +2390,18 @@ void xLightsFrame::OnOutputTimerTrigger(wxTimerEvent& event)
             }
             break;
         default:
+            if (_outputManager.IsOutputting()) {
+                needTimer = true;
+                _outputManager.StartFrame(curtime);
+                _outputManager.EndFrame();
+            }
             break;
         }
     }
-    AddTraceMessage("TimerRgbSeq called");
-    _outputManager.EndFrame();
-    AddTraceMessage("Output frame complete");
     if (!needTimer) {
         // printf("Stopping timer\n");
         StopOutputTimer();
     }
-
     PopTraceContext();
 }
 

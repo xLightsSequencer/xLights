@@ -930,7 +930,11 @@ void xLightsFrame::Scrub(wxCommandEvent& event)
     if (ms > CurrentSeqXmlFile->GetSequenceDurationMS()) ms = CurrentSeqXmlFile->GetSequenceDurationMS();
     if (frame >= _seqData.NumFrames()) frame = _seqData.NumFrames();
 
-    mainSequencer->UpdateTimeDisplay(ms, -1.0);
+    for (auto &f : _fps) {
+        f = -1;
+    }
+    playCurFrame = -1;
+    mainSequencer->UpdateTimeDisplay(ms, _fps);
 
     // update any video diaplay
     sequenceVideoPanel->UpdateVideo(ms);
@@ -1806,7 +1810,10 @@ void xLightsFrame::DoStopSequence()
 {
     if (CurrentSeqXmlFile == nullptr) return;
 
-    _fps = -1;
+    for (auto &f : _fps) {
+        f = -1;
+    }
+    playCurFrame = -1;
 	mLoopAudio = false;
     if( playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED ) {
         if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
@@ -1837,7 +1844,10 @@ void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)
 {
     if (CurrentSeqXmlFile == nullptr) return;
 
-    _fps = -1;
+    for (auto &f : _fps) {
+        f = -1;
+    }
+    playCurFrame = -1;
     if( playType == PLAY_TYPE_EFFECT_PAUSED || playType == PLAY_TYPE_EFFECT ) {
         playStartMS = -1;
     }
@@ -1858,7 +1868,10 @@ void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
 {
     if (CurrentSeqXmlFile == nullptr) return;
 
-    _fps = -1;
+    for (auto &f : _fps) {
+        f = -1;
+    }
+    playCurFrame = -1;
     int limit = mainSequencer->ScrollBarEffectsHorizontal->GetRange();
     mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(limit-1);
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
@@ -2331,12 +2344,41 @@ void xLightsFrame::SetPlayStatus(int status) {
 }
 void xLightsFrame::StartOutputTimer() {
     GPURenderUtils::prioritizeGraphics(true);
+    playCurFrame = -1;
     OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
 }
 void xLightsFrame::StopOutputTimer() {
     OutputTimer.Stop();
+    playCurFrame = -1;
     GPURenderUtils::prioritizeGraphics(false);
 }
+
+#ifdef XL_DRAWING_WITH_METAL
+static bool NeedToRenderFrame(wxMetalCanvas *w, const xLightsTimer& t, std::vector<bool> &didRender) {
+    int i = w->getScreenIndex();
+    if (i >= 0) {
+        if (i >= didRender.size()) {
+            didRender.resize(i + 1);
+        }
+        double f = t.presentTimeForScreen(i);
+        if (f > 0) {
+            bool b = w->startFrameForTime(f);
+            if (!b) {
+                return false;
+            }
+        }
+        didRender[i] = true;
+        return true;
+    }
+    return false;
+}
+#else
+static bool NeedToRenderFrame(wxWindow *w, const xLightsTimer& t, std::vector<bool> &didRender) {
+    didRender[0] = true;
+    return true;
+}
+#endif
+
 bool xLightsFrame::TimerRgbSeq(long msec)
 {
     //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2372,7 +2414,9 @@ bool xLightsFrame::TimerRgbSeq(long msec)
     // capture start time if necessary
     if (playStartMS == -1) {
         playStartMS = msec;
-        fpsEvents.clear();
+        for (auto &f : fpsEvents) {
+            f.clear();
+        }
     }
 
     // record current time
@@ -2396,18 +2440,6 @@ bool xLightsFrame::TimerRgbSeq(long msec)
         return true;
     }
 
-    
-    StartGraphicsSyncPoint();
-
-#if 0
-    std::array<uint32_t, 20> timePoints;
-    int currTimePoint = 0;
-#define DO_PRINT_TIMINGS
-#define RecordTimingCheckpoint() timePoints[currTimePoint++] = wxGetUTCTimeMillis().GetLo()
-#else
-#define RecordTimingCheckpoint()
-#endif
-
     int current_play_time = 0;
     if (playType == PLAY_TYPE_MODEL) {
         if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING) {
@@ -2423,28 +2455,37 @@ bool xLightsFrame::TimerRgbSeq(long msec)
                 DoPlaySequence();
                 curt = playStartTime;
                 current_play_time = curt;
-                fpsEvents.clear(); // we need to clear FPS data
-                // EndGraphicsSyncPoint();
+                for (auto &f : fpsEvents) {
+                    f.clear(); // we need to clear FPS data
+                }
                 // return true;
             } else {
                 playStartTime = playEndTime = 0;
                 playStartMS = -1;
                 wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
                 wxPostEvent(this, playEvent);
-                EndGraphicsSyncPoint();
                 //logger_base.debug("Stopping play");
                 return true;
             }
         }
     }
     
-    RecordTimingCheckpoint();
     int frame = curt / _seqData.FrameTime();
+    if (frame == playCurFrame) {
+        // same frame as before, no need to update anything
+        return true;
+    }
+    playCurFrame = frame;
+    
+    if (_outputManager.IsOutputting()) {
+        _outputManager.StartFrame(msec);
+    }
+    std::vector<bool> didRender(8);
     if (frame < _seqData.NumFrames()) {
         //logger_base.debug("Outputting Frame %d", frame);
         // have the frame, copy from SeqData
         TimerOutput(frame);
-        if (playModel != nullptr) {
+        if (playModel != nullptr && NeedToRenderFrame(_modelPreviewPanel, OutputTimer, didRender)) {
             int nn = playModel->GetNodeCount();
             for (int node = 0; node < nn; node++) {
                 int start = playModel->NodeStartChannel(node);
@@ -2454,70 +2495,69 @@ bool xLightsFrame::TimerRgbSeq(long msec)
             _modelPreviewPanel->setCurrentFrameTime(curt);
             playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
         }
-        RecordTimingCheckpoint();
-        _housePreviewPanel->GetModelPreview()->Render(curt, &_seqData[frame][0]);
-        RecordTimingCheckpoint();
+        if (NeedToRenderFrame(_housePreviewPanel->GetModelPreview(), OutputTimer, didRender)) {
+            _housePreviewPanel->GetModelPreview()->Render(curt, &_seqData[frame][0]);
+        }
 
         for (const auto& it : PreviewWindows) {
-            if (it->GetActive()) {
+            if (it->GetActive() && NeedToRenderFrame(it, OutputTimer, didRender)) {
                 it->Render(curt, &_seqData[frame][0]);
             }
         }
-        RecordTimingCheckpoint();
     }
-    //else
-    //{
-    //    logger_base.debug("Frame %d is out of range", frame);
-    //}
-    
+
     if (playType == PLAY_TYPE_MODEL) {
         wxASSERT(_seqData.FrameTime() != 0);
-        int frame = curt / _seqData.FrameTime();
-        fpsEvents.push_back(FPSEvent(frame));
-        size_t fpsSize = fpsEvents.size();
-        while (fpsSize > (2000 / _seqData.FrameTime())) {
-            fpsEvents.pop_front();
-            fpsSize--;
-        }
-        if (!fpsEvents.empty()) {
-            FPSEvent b = fpsEvents.front();
-            FPSEvent e = fpsEvents.back();
-            if (e.when == b.when) {
-                _fps = 0;
-            } else {
-                _fps = (float)((double)(fpsSize-1) * 1000.0) / ((e.when - b.when).GetMilliseconds().ToDouble());
+        if (NeedToRenderFrame(mainSequencer->PanelEffectGrid, OutputTimer, didRender)) {
+            bool reRender = mainSequencer->UpdateTimeDisplay(current_play_time, _fps, false);
+            if (reRender) {
+                GRAPHICS_BASE_CLASS *td = (GRAPHICS_BASE_CLASS*)mainSequencer->timeDisplay;
+                if (NeedToRenderFrame(td, OutputTimer, didRender)) {
+                    td->render();
+                }
             }
-            if ((frame % 200) == 0) {
-                static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-                logger_opengl.debug("Play fps  %f   (%u ms)", _fps, _seqData.FrameTime());
+            if (mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time)) {
+                if (NeedToRenderFrame(mainSequencer->PanelWaveForm, OutputTimer, didRender)) {
+                    mainSequencer->PanelWaveForm->UpdatePlayMarker();
+                    mainSequencer->PanelWaveForm->CheckNeedToScroll();
+                    mainSequencer->PanelEffectGrid->ForceRefresh();
+                }
+                wxASSERT(CurrentSeqXmlFile->GetFrameMS() != 0);
+                _housePreviewPanel->SetPositionFrames(current_play_time / CurrentSeqXmlFile->GetFrameMS());
             }
         }
-
-        RecordTimingCheckpoint();
-        mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
-        RecordTimingCheckpoint();
-        if (mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time)) {
-            mainSequencer->PanelWaveForm->UpdatePlayMarker();
-            mainSequencer->PanelWaveForm->CheckNeedToScroll();
-            mainSequencer->PanelEffectGrid->ForceRefresh();
-            wxASSERT(CurrentSeqXmlFile->GetFrameMS() != 0);
-            _housePreviewPanel->SetPositionFrames(current_play_time / CurrentSeqXmlFile->GetFrameMS());
-        }
-        RecordTimingCheckpoint();
         sequenceVideoPanel->UpdateVideo( current_play_time );
-        RecordTimingCheckpoint();
     }
-    EndGraphicsSyncPoint();
-#ifdef DO_PRINT_TIMINGS
-    timePoints[currTimePoint++] = wxGetUTCTimeMillis().GetLo();
-    printf("Frame %d \n", frame);
-    for (int x = 1; x < currTimePoint; x++) {
-        int r = timePoints[x];
-        int d = timePoints[x] - timePoints[x - 1];
-        int dt = timePoints[x] - timePoints[0];
-        printf("   %d:   %d      %d   %d\n", x, r, d, dt);
+// #define DO_FPS
+#ifdef DO_FPS
+    for (int x = 0; x < didRender.size(); x++) {
+        if (didRender[x]) {
+            if (x >= _fps.size()) {
+                fpsEvents.resize(x + 1);
+                _fps.resize(x + 1);
+            }
+            fpsEvents[x].push_back(FPSEvent(frame));
+            size_t fpsSize = fpsEvents[x].size();
+            while (fpsSize > (2000 / _seqData.FrameTime())) {
+                fpsEvents[x].pop_front();
+                fpsSize--;
+            }
+            if (!fpsEvents[x].empty()) {
+                FPSEvent b = fpsEvents[x].front();
+                FPSEvent e = fpsEvents[x].back();
+                if (e.when == b.when) {
+                    _fps[x] = 0;
+                } else {
+                    _fps[x] = (float)((double)(fpsSize-1) * 1000.0) / ((e.when - b.when).GetMilliseconds().ToDouble());
+                }
+            }
+
+        }
     }
 #endif
+    if (_outputManager.IsOutputting()) {
+        _outputManager.EndFrame();
+    }
     return true;
 }
 
