@@ -6,7 +6,7 @@
 #include <map>
 
 // Uncomment to enable the code to create any missing FontInfo's
-#define CREATE_MISSING_FONTS
+// #define CREATE_MISSING_FONTS
 
 static int TEXTURE_IDX = 1;
 inline int NextFontTextureIdx() {
