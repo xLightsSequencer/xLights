@@ -85,6 +85,7 @@
 						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_MinTiming" member="yes">
 							<value>1</value>
 							<min>1</min>
+							<enabled>0</enabled>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

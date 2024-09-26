@@ -70,6 +70,7 @@ MetronomeLabelDialog::MetronomeLabelDialog(int base_timing, wxWindow* parent,wxW
 	FlexGridSizer3->Add(StaticText_MinTiming, 1, wxTOP|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	SpinCtrl_MinTiming = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 1, _T("ID_SPINCTRL1"));
 	SpinCtrl_MinTiming->SetValue(_T("1"));
+    SpinCtrl_MinTiming->Disable();
 	FlexGridSizer3->Add(SpinCtrl_MinTiming, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_RandomTagsEnabled = new wxCheckBox(this, ID_CHECKBOX_RANDOMTAGS, _("Random Tags"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_RANDOMTAGS"));
 	CheckBox_RandomTagsEnabled->SetValue(false);
