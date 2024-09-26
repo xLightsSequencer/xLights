@@ -239,6 +239,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     bool const fullControl = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
     int const defaultBrightness = EncodeBrightness(controller->GetDefaultBrightnessUnderFullControl());
 
+    bool const has_eFuses = Lower(rules->GetCustomPropertyByPath("eFuses", "false")) == "true";
     logger_base.info("Initializing Pixel Output Information.");
     progress.Update(10, "Initializing Pixel Output Information.");
 
@@ -265,6 +266,9 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     for (int p = 1; p <= GetNumberOfPixelOutputs(); p++) {
         wxJSONValue port;
         port["long_range_port_index"].SetType(wxJSONTYPE_NULL);
+        if (has_eFuses) {
+            port["power_enabled"] = true;
+        }
         if (cud.HasPixelPort(p)) {
             UDControllerPort* portData = cud.GetControllerPixelPort(p);
             portData->CreateVirtualStrings(false, true);
@@ -301,6 +305,9 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             port["disabled"] = false;
             stringData["outputs"][p - 1] = port;
         } else {
+            if (has_eFuses) {
+                port["power_enabled"] = true;
+            }
             wxJSONValue vs;
             vs["sc"] = 0;
             vs["ec"] = 0;
@@ -314,6 +321,9 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         for (int subID = 0; subID < 4; ++subID) {
             wxJSONValue port;
             port["long_range_port_index"] = lrIdx;
+            if (has_eFuses) {
+                port["power_enabled"] = true;
+            }
             int portID = GetNumberOfPixelOutputs() + (lrIdx * 4) + subID + 1;
             //one based
             if (cud.HasPixelPort(portID)) {
@@ -351,7 +361,6 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                             vs["st"] = EncodeColorOrder(pvs->_colourOrder);
                         }
                     }
-
                     if (pvs->_smartRemote > 0) {
                         vs["ri"] = pvs->_smartRemote - 1;
                     }
@@ -361,6 +370,9 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 port["disabled"] = false;
                 stringData["outputs"][portID - 1] = port;
             } else {
+                if (has_eFuses) {
+                    port["power_enabled"] = true;
+                }
                 wxJSONValue vs;
                 vs["sc"] = 0;
                 vs["ec"] = 0;
@@ -401,14 +413,11 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         if (cud.HasSerialPort(sp)) {
             UDControllerPort* portData = cud.GetControllerSerialPort(sp);
             wxJSONValue vs;
-            
             vs["sc"] = portData->GetStartChannel() - startChannel + 1;
             vs["ec"] = portData->Channels();
-            
             sport["virtual_strings"].Append(vs);
             sport["disabled"] = false;
             stringData["outputs"][portID - 1] = sport;
-
             stringData["long_range_ports"][lrIdx]["number_of_receivers"] = 1;
             stringData["long_range_ports"][lrIdx]["type"] = wxString("dmx");
         } else {
