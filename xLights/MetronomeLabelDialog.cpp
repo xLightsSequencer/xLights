@@ -17,11 +17,15 @@
 //*)
 
 //(*IdInit(MetronomeLabelDialog)
-const long MetronomeLabelDialog::ID_STATICTEXT_DIALOGTEXT = wxNewId();
-const long MetronomeLabelDialog::ID_STATICTEXT_TIMING = wxNewId();
-const long MetronomeLabelDialog::ID_SPINCTRL_TIMING = wxNewId();
-const long MetronomeLabelDialog::ID_STATICTEXT_REPEATING = wxNewId();
-const long MetronomeLabelDialog::ID_SPINCTRL_REPEATING = wxNewId();
+const wxWindowID MetronomeLabelDialog::ID_STATICTEXT_DIALOGTEXT = wxNewId();
+const wxWindowID MetronomeLabelDialog::ID_STATICTEXT_TIMING = wxNewId();
+const wxWindowID MetronomeLabelDialog::ID_SPINCTRL_TIMING = wxNewId();
+const wxWindowID MetronomeLabelDialog::ID_STATICTEXT_REPEATING = wxNewId();
+const wxWindowID MetronomeLabelDialog::ID_SPINCTRL_REPEATING = wxNewId();
+const wxWindowID MetronomeLabelDialog::ID_CHECKBOX_RANDOMTIMING = wxNewId();
+const wxWindowID MetronomeLabelDialog::ID_STATICTEXT_MINTIMING = wxNewId();
+const wxWindowID MetronomeLabelDialog::ID_SPINCTRL1 = wxNewId();
+const wxWindowID MetronomeLabelDialog::ID_CHECKBOX_RANDOMTAGS = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(MetronomeLabelDialog,wxDialog)
@@ -33,6 +37,7 @@ MetronomeLabelDialog::MetronomeLabelDialog(int base_timing, wxWindow* parent,wxW
 {
 	//(*Initialize(MetronomeLabelDialog)
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxGridSizer* GridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
@@ -54,14 +59,32 @@ MetronomeLabelDialog::MetronomeLabelDialog(int base_timing, wxWindow* parent,wxW
 	SpinCtrlRepeating->SetValue(_T("4"));
 	GridSizer1->Add(SpinCtrlRepeating, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(GridSizer1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer3->AddGrowableCol(1);
+	FlexGridSizer3->AddGrowableCol(2);
+	CheckBox_RandomTiming = new wxCheckBox(this, ID_CHECKBOX_RANDOMTIMING, _("Random Timing"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_RANDOMTIMING"));
+	CheckBox_RandomTiming->SetValue(false);
+	CheckBox_RandomTiming->SetMinSize(wxSize(-1,-1));
+	FlexGridSizer3->Add(CheckBox_RandomTiming, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_MinTiming = new wxStaticText(this, ID_STATICTEXT_MINTIMING, _("Min Timing"), wxPoint(-1,-1), wxDefaultSize, 0, _T("ID_STATICTEXT_MINTIMING"));
+	FlexGridSizer3->Add(StaticText_MinTiming, 1, wxTOP|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	SpinCtrl_MinTiming = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 1, _T("ID_SPINCTRL1"));
+	SpinCtrl_MinTiming->SetValue(_T("1"));
+	FlexGridSizer3->Add(SpinCtrl_MinTiming, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_RandomTagsEnabled = new wxCheckBox(this, ID_CHECKBOX_RANDOMTAGS, _("Random Tags"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_RANDOMTAGS"));
+	CheckBox_RandomTagsEnabled->SetValue(false);
+	FlexGridSizer3->Add(CheckBox_RandomTagsEnabled, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
 	StdDialogButtonSizer1->Realize();
 	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
+
+	Connect(ID_CHECKBOX_RANDOMTIMING, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&MetronomeLabelDialog::OnCheckBox_RandomTimingClick);
+	Connect(ID_CHECKBOX_RANDOMTAGS, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&MetronomeLabelDialog::OnCheckBox_RandomTagsEnabledClick);
 	//*)
 	SpinCtrlTiming->SetRange(base_timing, SpinCtrlTiming->GetMax());
 	SpinCtrlTiming->SetValue( 10 * base_timing);
@@ -75,3 +98,11 @@ MetronomeLabelDialog::~MetronomeLabelDialog()
 	//*)
 }
 
+
+void MetronomeLabelDialog::OnCheckBox_RandomTimingClick(wxCommandEvent& event)
+{
+}
+
+void MetronomeLabelDialog::OnCheckBox_RandomTagsEnabledClick(wxCommandEvent& event)
+{
+}
