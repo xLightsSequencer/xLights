@@ -2450,7 +2450,7 @@ bool xLightsFrame::TimerRgbSeq(long msec)
         }
 
         // see if its time to stop model play
-        if (curt > playEndTime) {
+        if (curt >= playEndTime) {
             if (mLoopAudio) {
                 DoPlaySequence();
                 curt = playStartTime;
