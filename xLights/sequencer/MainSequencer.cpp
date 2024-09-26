@@ -163,8 +163,10 @@ public:
             newFontSize = 10;
         } else if (h > 20) {
             newFontSize = 9;
+        } else if (h > 14) {
+            newFontSize = 11; // drop the second line
         } else {
-            newFontSize = 8;
+            newFontSize = 10;
         }
         ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
         
