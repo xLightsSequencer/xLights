@@ -31,6 +31,7 @@
 							<value>50</value>
 							<min>1</min>
 							<max>60000</max>
+							<handler function="OnSpinCtrlTimingChange" entry="EVT_SPINCTRL" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>

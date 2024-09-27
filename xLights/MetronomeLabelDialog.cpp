@@ -84,6 +84,7 @@ MetronomeLabelDialog::MetronomeLabelDialog(int base_timing, wxWindow* parent,wxW
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->SetSizeHints(this);
 
+	Connect(ID_SPINCTRL_TIMING, wxEVT_COMMAND_SPINCTRL_UPDATED, (wxObjectEventFunction)&MetronomeLabelDialog::OnSpinCtrlTimingChange);
 	Connect(ID_CHECKBOX_RANDOMTIMING, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&MetronomeLabelDialog::OnCheckBox_RandomTimingClick);
 	Connect(ID_CHECKBOX_RANDOMTAGS, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&MetronomeLabelDialog::OnCheckBox_RandomTagsEnabledClick);
 	//*)
@@ -105,5 +106,9 @@ void MetronomeLabelDialog::OnCheckBox_RandomTimingClick(wxCommandEvent& event)
 }
 
 void MetronomeLabelDialog::OnCheckBox_RandomTagsEnabledClick(wxCommandEvent& event)
+{
+}
+
+void MetronomeLabelDialog::OnSpinCtrlTimingChange(wxSpinEvent& event)
 {
 }
