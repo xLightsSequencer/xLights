@@ -59,6 +59,7 @@ class MetronomeLabelDialog: public wxDialog
 		//(*Handlers(MetronomeLabelDialog)
 		void OnCheckBox_RandomTimingClick(wxCommandEvent& event);
 		void OnCheckBox_RandomTagsEnabledClick(wxCommandEvent& event);
+		void OnSpinCtrlTimingChange(wxSpinEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
