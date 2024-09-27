@@ -1,0 +1,78 @@
+<Vendor Name="GalloTech">
+    <AbstractVariant Name="BaseGalloTechSettings">
+        <!--SupportsPixelPortCommonSettings/-->
+        <SupportsPixelPortDirection/>
+        <SupportsPixelPortColourOrder/>
+        <SupportsPixelPortNullPixels/>
+        <SupportsUpload/>
+        <MaxInputUniverses>9</MaxInputUniverses>
+        <MaxSerialPortChannels>0</MaxSerialPortChannels>
+        <MaxPixelPortChannels>2400</MaxPixelPortChannels>
+        <AllInputUniversesMustBeSameSize/>
+        <UniversesMustBeSequential/>
+        <SupportsAutoLayout/>
+        <DDPStartsAtOne/>
+        <SupportsMultipleSimultaneousOutputProtocols/>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+            <Protocol>sk6812rgbw</Protocol>
+            <Protocol>apa109</Protocol>
+            <Protocol>tm1814</Protocol>
+            <Protocol>tm1829</Protocol>
+            <Protocol>ucs8903</Protocol>
+            <Protocol>ucs8904</Protocol>
+            <Protocol>ws2801</Protocol>
+            <Protocol>apa102</Protocol>
+            <Protocol>lpd8806</Protocol>
+            <Protocol>p9813</Protocol>
+            <Protocol>lpd6803</Protocol>
+        </PixelProtocols>
+        <SerialProtocols/>
+        <InputProtocols>
+            <Protocol>e131</Protocol>
+            <Protocol>ddp</Protocol>
+            <Protocol>artnet</Protocol>
+        </InputProtocols>
+        <ConfigDriver>GalloTech</ConfigDriver>
+    </AbstractVariant>
+    <AbstractVariant Name="ESP32GalloTechSettings" Base="GalloTech:BaseGalloTechSettings">
+        <MaxInputUniverses>24</MaxInputUniverses>
+        <MaxPixelPortChannels>3000</MaxPixelPortChannels>
+    </AbstractVariant>
+    <Controller Name="GalloTech">
+        <Variant Name="MICRO-GT" Base="GalloTech:ESP32GalloTechSettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+        </Variant>
+        <Variant Name="MINI-GT" Base="GalloTech:BaseGalloTechSettings">
+            <MaxPixelPort>3</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+            <Port2>1</Port2>
+            <Port3>3</Port3>
+        </Variant>
+        <Variant Name="GT8" Base="GalloTech:ESP32GalloTechSettings">
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>15</Port1>
+            <Port2>1</Port2>
+            <Port3>2</Port3>
+            <Port4>3</Port4>
+            <Port5>4</Port5>
+            <Port6>5</Port6>
+            <Port7>12</Port7>
+            <Port8>14</Port8>
+        </Variant>
+        <Variant Name="GT6-TR" Base="GalloTech:ESP32GalloTechSettings">
+            <MaxPixelPort>6</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>15</Port1>
+            <Port2>1</Port2>
+            <Port3>2</Port3>
+            <Port4>3</Port4>
+            <Port5>12</Port5>
+            <Port6>14</Port6>
+        </Variant>
+    </Controller>
+</Vendor>
