@@ -7,7 +7,24 @@ on:
     
   workflow_dispatch:
 jobs:
-           
+  build-linux:
+
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
+      - run: docker pull ghcr.io/xlightssequencer/xlights-build-docker:master
+      - run: docker run --name buildvm ghcr.io/xlightssequencer/xlights-build-docker:master /bin/bash Recipe.appimage
+      - run: 'docker cp buildvm:/xLights/xLights/AppImage/ /tmp/'
+      - run: ls -lh /tmp/AppImage
+
+      - uses: ncipollo/release-action@v1
+        with:
+           allowUpdates: true
+           artifacts: "/tmp/AppImage/*.AppImage"
+           token: ${{ secrets.GITHUB_TOKEN }}
+                    
   build-windows:
    runs-on: windows-2022
 
