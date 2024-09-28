@@ -679,6 +679,24 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "INSERT_LAYER_ABOVE") {
                 PanelEffectGrid->InsertEffectLayerAbove();
+            } else if (type == "INCREASE_SPEED") {
+                float t = mSequenceElements->GetXLightsFrame()->GetPlaySpeed();
+                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(t + 0.25);
+                mSequenceElements->GetXLightsFrame()->SetStatusText(wxString::Format("Speed now set %.2f ", t + 0.25));
+            } else if (type == "DECREASE_SPEED") {
+                float t = mSequenceElements->GetXLightsFrame()->GetPlaySpeed();
+                if (t > 0.50) {
+                    mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(t - 0.25);
+                    mSequenceElements->GetXLightsFrame()->SetStatusText(wxString::Format("Speed now set %.2f ", t - 0.25));
+                }
+            } else if (type == "PLAY_PRIOR_TAG") {
+                logger_base.debug("play prior tag");
+                wxCommandEvent playEvent(EVT_SEQUENCE_PRIOR_TAG);
+                wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
+            } else if (type == "PLAY_NEXT_TAG") {
+                logger_base.debug("play next tag");
+                wxCommandEvent playEvent(EVT_SEQUENCE_NEXT_TAG);
+                wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
             }
             else if (type == "AUDIO_FULL_SPEED") {
                 mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(1.0);

@@ -194,6 +194,35 @@ void TimeLine::GoToTag(int tag)
     }
 }
 
+int TimeLine::GetNextTag(int pos) {
+    int end = GetTimeLength();
+    int next = end;
+
+    for (const auto& it : _tagPositions) {
+        if (it != -1) {
+            if (it > pos && it < next) {
+                next = it;
+            }
+        }
+    }
+
+    return next;
+}
+
+int TimeLine::GetPriorTag(int pos) {
+    int prior = 0;
+
+    for (const auto& it : _tagPositions) {
+        if (it != -1) {
+            if (it < pos && it > prior) {
+                prior = it;
+            }
+        }
+    }
+
+    return prior;
+}
+
 int TimeLine::GetTagPosition(int tag)
 {
     // update it if it is outside the sequence

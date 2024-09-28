@@ -175,6 +175,8 @@ wxDECLARE_EVENT(EVT_SEQUENCE_FIRST_FRAME, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_LAST_FRAME, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_REWIND10, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_FFORWARD10, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SEQUENCE_NEXT_TAG, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SEQUENCE_PRIOR_TAG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_SEEKTO, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
@@ -464,6 +466,7 @@ public:
     void SuspendRender(bool suspend) { _suspendRender = suspend; }
     bool IsRenderSuspended() const { return _suspendRender; }
     void SetPlaySpeedTo(float speed);
+    float GetPlaySpeed();
 
     //(*Handlers(xLightsFrame)
     void OnQuit(wxCommandEvent& event);
@@ -1800,6 +1803,8 @@ private:
     void SequenceRewind10(wxCommandEvent& event);
     void SequenceFForward10(wxCommandEvent& event);
     void SequenceSeekTo(wxCommandEvent& event);
+    void SequencePriorTag(wxCommandEvent& event);
+    void SequenceNextTag(wxCommandEvent& event);
     void SequenceReplaySection(wxCommandEvent& event);
     void TogglePlay(wxCommandEvent& event);
     void ExportModel(wxCommandEvent& event);

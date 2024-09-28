@@ -399,6 +399,8 @@ wxDEFINE_EVENT(EVT_SEQUENCE_FIRST_FRAME, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_LAST_FRAME, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_REWIND10, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_FFORWARD10, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SEQUENCE_PRIOR_TAG, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SEQUENCE_NEXT_TAG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_SEEKTO, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
@@ -455,6 +457,8 @@ EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_FIRST_FRAME, xLightsFrame::SequenceFirstFrame
 EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_LAST_FRAME, xLightsFrame::SequenceLastFrame)
 EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_REWIND10, xLightsFrame::SequenceRewind10)
 EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_FFORWARD10, xLightsFrame::SequenceFForward10)
+EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_PRIOR_TAG, xLightsFrame::SequencePriorTag)
+EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_NEXT_TAG, xLightsFrame::SequenceNextTag)
 EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_SEEKTO, xLightsFrame::SequenceSeekTo)
 EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_REPLAY_SECTION, xLightsFrame::SequenceReplaySection)
 EVT_COMMAND(wxID_ANY, EVT_TOGGLE_PLAY, xLightsFrame::TogglePlay)
@@ -3531,6 +3535,10 @@ void xLightsFrame::SetGridNodeValues(bool b)
     mGridNodeValues = b;
     mainSequencer->PanelEffectGrid->SetEffectNodeValues(mGridNodeValues);
     mainSequencer->PanelEffectGrid->Refresh();
+}
+
+float xLightsFrame::GetPlaySpeed() {
+    return playSpeed;
 }
 
 void xLightsFrame::SetPlaySpeedTo(float speed)
