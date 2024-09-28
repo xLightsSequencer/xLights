@@ -124,6 +124,8 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "AUDIO_S_1_4_SPEED", KBSCOPE::Sequence },
     { "PRIOR_TAG", KBSCOPE::Sequence },
     { "NEXT_TAG", KBSCOPE::Sequence },
+    { "PLAY_PRIOR_TAG", KBSCOPE::Sequence },
+    { "PLAY_NEXT_TAG", KBSCOPE::Sequence },
     { "MODEL_TOGGLE", KBSCOPE::Sequence },
     { "MODEL_DISABLE", KBSCOPE::Sequence },
     { "MODEL_ENABLE", KBSCOPE::Sequence },
@@ -141,7 +143,9 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "SELECT_TIMING_7", KBSCOPE::Sequence },
     { "SELECT_TIMING_8", KBSCOPE::Sequence },
     { "SELECT_TIMING_9", KBSCOPE::Sequence },
-    { "SELECT_NO_TIMING", KBSCOPE::Sequence }
+    { "SELECT_NO_TIMING", KBSCOPE::Sequence },
+    { "INCREASE_SPEED", KBSCOPE::Sequence },
+    { "DECREASE_SPEED", KBSCOPE::Sequence }
 };
 
 static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
@@ -241,6 +245,8 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
     { "AUDIO_S_1_4_SPEED", "Playback audio at 1/4 speed." },
     { "PRIOR_TAG", "Jump to prior audio tag." },
     { "NEXT_TAG", "Jump to next audio tag." },
+    { "PLAY_PRIOR_TAG", "Play from prior audio tag." },
+    { "PLAY_NEXT_TAG", "Play from next audio tag." },
     { "MODEL_SUBMODELS", "Edit model submodels." },
     { "MODEL_FACES", "Edit model faces." },
     { "MODEL_STATES", "Edit model states." },
@@ -262,7 +268,9 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
     { "SELECT_TIMING_7", "Select seventh timing." },
     { "SELECT_TIMING_8", "Select eighth timing." },
     { "SELECT_TIMING_9", "Select ninth timing." },
-    { "SELECT_NO_TIMING", "Select no timing tracks." }
+    { "SELECT_NO_TIMING", "Select no timing tracks." },
+    { "INCREASE_SPEED", "Increase speed." },
+    { "DECREASE_SPEED", "Decrease speed." }
 };
 
 const std::vector<KeyBinding> DefaultBindings =
@@ -298,6 +306,8 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("", true, "AUDIO_S_1_4_SPEED", true, true),
     KeyBinding("", true, "PRIOR_TAG", true, true),
     KeyBinding("", true, "NEXT_TAG", true, true),
+    KeyBinding("", true, "INCREASE_SPEED", true, true),
+    KeyBinding("", true, "DECREASE_SPEED", true, true),
 
     KeyBinding("s", false, "SAVE_CURRENT_TAB", true),
     KeyBinding("", true, "SAVE_SEQUENCE", true),
@@ -466,6 +476,7 @@ KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool
     _id = __nextid++;
 
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug(">>>>testing");
 
     wxASSERT(KeyBindingTypes.size() > 0); // this can fail if someone reorders the constant creation so catch it
     auto it = std::find_if(begin(KeyBindingTypes), end(KeyBindingTypes), [type](const auto& kbt) { return kbt.first == type; });
@@ -478,6 +489,7 @@ KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool
     } else {
         _scope = it->second;
     }
+    logger_base.debug(">>>>testing 2");
     auto it2 = std::find_if(begin(keyBindingTips), end(keyBindingTips), [type](const auto& kbt) { return kbt.first == type; });
     if (it2 != keyBindingTips.end()) {
         _tip = it2->second;

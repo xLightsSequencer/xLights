@@ -256,7 +256,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                 int maxBrightness = 0;
                 if (drawColor) {
                     // Color Image mode selected. Convert image to grayscale image so custom color can be applied later
-                    for (int x = 0; x < img.GetWidth(); x++) { // dwe
+                    for (int x = 0; x < img.GetWidth(); x++) {
                         for (int y = 0; y < img.GetHeight(); y++) {
                             int r = img.GetRed(x, y);
                             int g = img.GetGreen(x, y);
