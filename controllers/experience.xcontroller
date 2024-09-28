@@ -19,6 +19,7 @@
 		<SupportsAutoLayout/>
 		<SupportsFullxLightsControl/>
 		<SupportsDefaultBrightness/>
+		<SupportsDefaultGamma/>
 		<PreferredInputProtocol>DDP</PreferredInputProtocol>
 		<PixelProtocols>
 			<Protocol>ws2811</Protocol>
