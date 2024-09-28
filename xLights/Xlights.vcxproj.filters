@@ -1996,7 +1996,6 @@
     <ClInclude Include="controllers\Gallotech.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    </ClInclude>
     <ClInclude Include="controllers\WLED.h">
       <Filter>Controllers</Filter>
     </ClInclude>
