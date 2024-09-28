@@ -885,7 +885,6 @@
     <ClCompile Include="cad\CADWriter.cpp">
       <Filter>cad</Filter>
     </ClCompile>
-     </ClCompile>
     <ClCompile Include="controllers\GalloTech.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
