@@ -1050,7 +1050,12 @@ void TimeLine::render( wxDC& dc ) {
 void TimeLine::DrawTag(wxDC& dc, int tag, int position, int y_bottom)
 {
     dc.SetPen(*wxBLUE_PEN);
-    dc.SetBrush(*wxLIGHT_GREY_BRUSH);
+
+    if( IsDarkMode() ) {
+        dc.SetBrush(*wxBLUE_BRUSH);
+    } else {
+        dc.SetBrush(*wxLIGHT_GREY_BRUSH);
+    }
 
     wxPoint points[5];
     points[0] = wxPoint(position+5, y_bottom -1);
