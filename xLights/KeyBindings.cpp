@@ -491,7 +491,6 @@ KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool
     _id = __nextid++;
 
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug(">>>>testing");
 
     wxASSERT(KeyBindingTypes.size() > 0); // this can fail if someone reorders the constant creation so catch it
     auto it = std::find_if(begin(KeyBindingTypes), end(KeyBindingTypes), [type](const auto& kbt) { return kbt.first == type; });
@@ -504,7 +503,6 @@ KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool
     } else {
         _scope = it->second;
     }
-    logger_base.debug(">>>>testing 2");
     auto it2 = std::find_if(begin(keyBindingTips), end(keyBindingTips), [type](const auto& kbt) { return kbt.first == type; });
     if (it2 != keyBindingTips.end()) {
         _tip = it2->second;
