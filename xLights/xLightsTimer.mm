@@ -62,7 +62,7 @@ void xLightsTimerDataImpl::releaseScreens() {
     if (@available(macOS 14.0, *)) {
         for (auto link : links) {
             [link setPaused:true];
-            [link removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+            [link invalidate];
             [link release];
         }
         links.clear();
