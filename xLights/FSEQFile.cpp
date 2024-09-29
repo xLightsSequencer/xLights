@@ -929,8 +929,8 @@ public:
             numBlocks = 1;
         }
         m_framesPerBlock = numFrames / numBlocks;
-        if (m_framesPerBlock < 10)
-            m_framesPerBlock = 10;
+        if (m_framesPerBlock < 2)
+            m_framesPerBlock = 2;
         m_curFrameInBlock = 0;
         m_curBlock = 0;
 
