@@ -1049,17 +1049,18 @@ void TimeLine::render( wxDC& dc ) {
 
 void TimeLine::DrawTag(wxDC& dc, int tag, int position, int y_bottom)
 {
-    const wxPen* pen_black = wxBLUE_PEN;
+    dc.SetPen(*wxBLUE_PEN);
+    dc.SetBrush(*wxLIGHT_GREY_BRUSH);
 
-    dc.SetPen(*pen_black);
-    dc.DrawLine(position-5, y_bottom - 1, position+5, y_bottom -1);
-    dc.DrawLine(position-5, y_bottom - 1, position-5, y_bottom - 12);
-    dc.DrawLine(position+5, y_bottom - 1, position+5, y_bottom - 12);
-    dc.DrawLine(position-5, y_bottom - 12, position, y_bottom - 15);
-    dc.DrawLine(position+5, y_bottom - 12, position, y_bottom - 15);
-#ifndef __LINUX__
-    dc.FloodFill(position, y_bottom - 6, *wxLIGHT_GREY);
-#endif
+    wxPoint points[5];
+    points[0] = wxPoint(position+5, y_bottom -1);
+    points[1] = wxPoint(position-5, y_bottom - 1);
+    points[2] = wxPoint(position-5, y_bottom - 12);
+    points[3] = wxPoint(position,   y_bottom - 15);
+    points[4] = wxPoint(position+5, y_bottom - 12);
+
+    dc.DrawPolygon(5, points, 0,0, wxWINDING_RULE);
+    dc.SetBrush(*wxBLACK_BRUSH);
     dc.DrawLabel(wxString::Format("%i", tag), wxRect(position - 4, y_bottom - 13, 10, 13), wxALIGN_CENTRE_HORIZONTAL | wxALIGN_CENTRE_VERTICAL);
 }
 
