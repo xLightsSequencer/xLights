@@ -1079,10 +1079,21 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
                             wxString msg = wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetTiming(), ms);
                             wxMessageBox(msg);
                         }
-                        wxString ttn = wxString::Format("%dms Metronome %d Tag", ms, dlg.GetTagCount());
+                        wxString ttn = wxString::Format("%s%dms Metronome %d Tag", dlg.IsRandomTiming() || dlg.IsRandomTags() ? "Random " : "", ms, dlg.GetTagCount());
+                        //Handle new random tag names
+                        if( (dlg.IsRandomTiming() || dlg.IsRandomTags()) && xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent) ) {
+                            int copyNum = 1;
+                            wxString new_ttn = ttn;
+                            do {
+                                wxString copyString =  wxString::Format(" (%d)", copyNum);
+                                new_ttn = ttn + copyString;
+                                copyNum++;
+                            } while (xml_file->TimingAlreadyExists(new_ttn.ToStdString(), xLightsParent));
+                            ttn = new_ttn;
+                        }
                         if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent))
                         {
-                            xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, dlg.GetTagCount(), xLightsParent);
+                            xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, dlg.GetTagCount(), xLightsParent, dlg.GetMinRandomTiming(), dlg.IsRandomTags());
                             AddTimingCell(ttn);
                         }
                     }

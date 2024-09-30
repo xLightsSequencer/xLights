@@ -103,6 +103,14 @@ MetronomeLabelDialog::~MetronomeLabelDialog()
 
 void MetronomeLabelDialog::OnCheckBox_RandomTimingClick(wxCommandEvent& event)
 {
+    //Set the spinctrl enable disabled based on the checkbox
+    
+    if( CheckBox_RandomTiming->IsChecked() ) {
+        SpinCtrl_MinTiming->Enable();
+        SpinCtrl_MinTiming->SetRange(1, SpinCtrlTiming->GetValue());
+    }
+    else
+        SpinCtrl_MinTiming->Disable();
 }
 
 void MetronomeLabelDialog::OnCheckBox_RandomTagsEnabledClick(wxCommandEvent& event)
@@ -111,4 +119,10 @@ void MetronomeLabelDialog::OnCheckBox_RandomTagsEnabledClick(wxCommandEvent& eve
 
 void MetronomeLabelDialog::OnSpinCtrlTimingChange(wxSpinEvent& event)
 {
+    if( CheckBox_RandomTiming->IsChecked() ) {
+        SpinCtrl_MinTiming->SetRange(1, SpinCtrlTiming->GetValue());
+        if( SpinCtrl_MinTiming->GetValue() > SpinCtrlTiming->GetValue() )
+            SpinCtrl_MinTiming->SetValue(SpinCtrlTiming->GetValue());
+
+    }
 }
