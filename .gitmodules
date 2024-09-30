@@ -1,3 +1,6 @@
+[submodule "dependencies/FFmpeg"]
+	path = dependencies/FFmpeg
+	url = https://github.com/FFmpeg/FFmpeg.git
 [submodule "dependencies/liquidfun"]
 	path = dependencies/liquidfun
 	url = https://github.com/google/liquidfun.git
