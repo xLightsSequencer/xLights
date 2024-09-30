@@ -787,10 +787,22 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                             {
                                 DisplayWarning(wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetTiming(), ms).ToStdString());
                             }
-                            wxString ttn = wxString::Format("%dms Metronome %d Tag", ms, dlg.GetTagCount());
+                            wxString ttn = wxString::Format("%s%dms Metronome %d Tag", dlg.IsRandomTiming() || dlg.IsRandomTags() ? "Random " : "", ms, dlg.GetTagCount());
+                            //Handle new random tag names
+                            if( (dlg.IsRandomTiming() || dlg.IsRandomTags()) && xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame()) ) {
+                                int copyNum = 1;
+                                wxString new_ttn = ttn;
+                                do {
+                                    wxString copyString =  wxString::Format(" (%d)", copyNum);
+                                    new_ttn = ttn + copyString;
+                                    copyNum++;
+                                } while (xml_file->TimingAlreadyExists(new_ttn.ToStdString(), mSequenceElements->GetXLightsFrame()));
+                                ttn = new_ttn;
+                            }
+                                
                             if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame()))
                             {
-                                xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, dlg.GetTagCount(), mSequenceElements->GetXLightsFrame());
+                                xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, dlg.GetTagCount(), mSequenceElements->GetXLightsFrame(), dlg.GetMinRandomTiming(), dlg.IsRandomTags());
                                 timing_added = true;
                             }
                         }

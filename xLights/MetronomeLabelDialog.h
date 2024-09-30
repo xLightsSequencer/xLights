@@ -38,7 +38,10 @@ class MetronomeLabelDialog: public wxDialog
 		//*)
 
 		[[nodiscard]] int GetTiming() const { return SpinCtrlTiming->GetValue(); }
-		[[nodiscard]] int GetTagCount() const { return SpinCtrlRepeating->GetValue(); } 
+		[[nodiscard]] int GetTagCount() const { return SpinCtrlRepeating->GetValue(); }
+        [[nodiscard]] int GetMinRandomTiming() const { return CheckBox_RandomTiming->IsChecked() ? SpinCtrl_MinTiming->GetValue() : -1; }
+        [[nodiscard]] bool IsRandomTags() const { return CheckBox_RandomTagsEnabled->IsChecked(); }
+        [[nodiscard]] bool IsRandomTiming() const { return CheckBox_RandomTiming->IsChecked(); }
 
 	protected:
 
