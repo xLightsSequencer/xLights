@@ -1204,7 +1204,7 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
     se.LoadSequencerFile(xlf, GetShowDirectory(), true);
     xlf.AdjustEffectSettingsForVersion(se, this);
 
-    if (IsVersionOlder(xlf.GetVersion(), xlights_version_string)) {
+    if (!IsVersionOlder(xlights_version_string, xlf.GetVersion())) {
         wxMessageBox(wxString::Format("The import sequence is using a newer version than you are currently using.  %s", xlf.GetVersion().ToStdString().c_str()));
     }
     if (_sequenceElements.GetFrequency() < xlf.GetFrequency()) {
