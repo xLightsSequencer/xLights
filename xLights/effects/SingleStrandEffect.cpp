@@ -714,29 +714,23 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
 
                         if (i <= middle_chase_index) {
                             // first half of the string
-                                color.alpha = 255.0 * ((max_chase_width - (2.0 * i) + 0.0)) / max_chase_width;
-                            
-
+                            color.alpha = 255.0 * ((max_chase_width - (2.0 * i) + 0.0)) / max_chase_width;
                         } else {
                             // second half of the string
                             if (  ((2.0 * i + 1.0 - max_chase_width) / max_chase_width) > 1.0 ) {
-                                    color.alpha = 255.0;
+                                color.alpha = 255.0;
                             } else {
                                 color.alpha = 255.0 * ((2 * i +1 - max_chase_width)) / max_chase_width;
                             }
                             
                         }
-                        if (i == i ) {
-                            color.alpha = color.alpha;
-                        }
-
                     } else {   // head tail not alpha 
                         HSVValue hsv1 = color.asHSV();
-                            if (i > middle_chase_index) {
-                                hsv1.value = orig_v - ((max_chase_width - (2.0 * i + 1.0)) / max_chase_width);
-                            } else {
-                                hsv1.value = ((max_chase_width - (2.0 * i)) / (max_chase_width));
-                            }
+                        if (i > middle_chase_index) {
+                            hsv1.value = orig_v - ((max_chase_width - (2.0 * i + 1.0)) / max_chase_width);
+                        } else {
+                            hsv1.value = ((max_chase_width - (2.0 * i)) / (max_chase_width));
+                        }
  
                         if (hsv1.value < 0.0) {
                             hsv1.value = 0.0;
@@ -762,10 +756,6 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                                 color.alpha = 255.0 * ((i + 1 - max_chase_width)) / (.5 * max_chase_width);
                             }
                         }
-                        if (i == i) {
-                            color.alpha = color.alpha;
-                        }
-
                     } else {  // middle not alpha blend
                         HSVValue hsv1 = color.asHSV();
                         if (i > middle_chase_index) {

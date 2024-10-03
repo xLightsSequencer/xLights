@@ -324,7 +324,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
             va->AddVertex(x4, y4, 0, 1.0, 1.0);
             va->AddVertex(x3, y3, 0, 1.0, 0.0);
 
-            preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+            preview->getCurrentSolidProgram()->addStep([=, this](xlGraphicsContext *ctx) {
                 ctx->drawTexture(va, texture, brightness, 255, 0, va->getCount());
                 if (drawColor) {
                     xlColor c;

@@ -137,7 +137,6 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
     float path_scale = 0.0f;
     float delta = 0.0f;
     float cycles = 1.0f;
-    wxPoint2DDouble path_pt;
     bool path_parsed = false;
     bool pan_path_active = true;
     bool tilt_path_active = true;
