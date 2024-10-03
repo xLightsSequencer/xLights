@@ -1029,7 +1029,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
                     wxString auName = shortName + ".au";
                     prgs.Update(count, "Generating AU File " + auName);
                     if (std::find(filesDone.begin(), filesDone.end(), auName) == filesDone.end()) {
-                        AudioLoader audioLoader(play.Audio.ToStdString(), true);
+                        AudioLoader audioLoader(play.Audio.ToStdString(), 44100, true);
                         worked &= audioLoader.loadAudioData();
 
                         if (worked) {
