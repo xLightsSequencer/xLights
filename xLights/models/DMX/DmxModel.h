@@ -50,8 +50,10 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual std::string GetDimension() const override { return ""; }
 
-        bool HasColorAbility() const { return nullptr != color_ability ; }
-        DmxColorAbility* GetColorAbility() const { return color_ability.get(); }
+        [[nodiscard]] bool HasColorAbility() const { return nullptr != color_ability ; }
+        [[nodiscard]] DmxColorAbility* GetColorAbility() const { return color_ability.get(); }
+        [[nodiscard]] bool HasPresetAbility() const { return nullptr != preset_ability ; }
+        [[nodiscard]] DmxPresetAbility* GetPresetAbility() const { return preset_ability.get(); }
         virtual void EnableFixedChannels(xlColorVector& pixelVector) const;
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return false; }
@@ -89,8 +91,8 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetChannelValue(int channel_coarse, int channel_fine);
        void SetNodeNames(const std::string& default_names, bool force = false);
 
-        std::unique_ptr<DmxColorAbility> color_ability;
-        std::unique_ptr<DmxPresetAbility> preset_ability;
+        std::unique_ptr<DmxColorAbility> color_ability{ nullptr };
+        std::unique_ptr<DmxPresetAbility> preset_ability{ nullptr };
 
     private:
 };

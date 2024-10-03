@@ -18,6 +18,9 @@
 #include "DMX/DmxColorAbilityCMY.h"
 #include "DMX/DmxColorAbilityRGB.h"
 #include "DMX/DmxColorAbilityWheel.h"
+#include "DMX/DmxPresetAbility.h"
+#include "DMX/DmxDimmerAbility.h"
+#include "DMX/DmxShutterAbility.h"
 #include "DMX/DmxMovingHeadAdv.h"
 #include "DMX/Mesh.h"
 #include "ThreePointScreenLocation.h"
@@ -117,6 +120,19 @@ constexpr auto OrientHomeAttribute    = "OrientHome";
 constexpr auto SlewLimitAttribute     = "SlewLimit";
 constexpr auto ReverseAttribute       = "Reverse";
 constexpr auto UpsideDownAttribute    = "UpsideDown";
+
+// DmxPresetAbility Attributes
+constexpr auto DmxPresetChannelAttribute = "DmxPresetChannel";
+constexpr auto DmxPresetValueAttribute = "DmxPresetValue";
+constexpr auto DmxPresetDescAttribute = "DmxPresetDesc";
+
+// DmxShutterAbility Attributes
+constexpr auto DmxShutterChannelAttribute = "DmxShutterChannel";
+constexpr auto DmxShutterOpenAttribute = "DmxShutterOpen";
+constexpr auto DmxShutterOnValueAttribute = "DmxShutterOnValue";
+
+// DmxDimmerAbility Attributes
+constexpr auto MhDimmerChannelAttribute = "MhDimmerChannel";
 
 // Arch Attributes
 constexpr auto ZigZagAttribute = "ZigZag";
@@ -282,6 +298,30 @@ struct XmlSerializingVisitor : BaseObjectVisitor
         node->AddChild(mesh_node);
     }
 
+    void AddPresetAttributes(const DmxPresetAbility* preset_channels, wxXmlNode* node) {
+        if (!preset_channels) {
+            return;
+        }
+        auto const& settings = preset_channels->GetPresetSettings();
+        int index { 0 };
+        for (auto const& it : settings) {
+            node->AddAttribute(XmlNodeKeys::DmxPresetChannelAttribute + std::to_string(index), std::to_string(it.DMXChannel));
+            node->AddAttribute(XmlNodeKeys::DmxPresetValueAttribute + std::to_string(index), std::to_string(it.DMXValue));
+            node->AddAttribute(XmlNodeKeys::DmxPresetDescAttribute + std::to_string(index), it.Description);
+            ++index;
+        }
+    }
+
+    void AddShutterAbilityAttributes(const DmxShutterAbility shutter, wxXmlNode* node) {
+        node->AddAttribute(XmlNodeKeys::DmxShutterChannelAttribute, std::to_string(shutter.GetShutterChannel()));
+        node->AddAttribute(XmlNodeKeys::DmxShutterOpenAttribute, std::to_string(shutter.GetShutterThreshold()));
+        node->AddAttribute(XmlNodeKeys::DmxShutterOnValueAttribute, std::to_string(shutter.GetShutterOnValue()));
+    }
+
+    void AddDimmerAbilityAttributes(const DmxDimmerAbility dimmer, wxXmlNode* node) {
+        node->AddAttribute(XmlNodeKeys::MhDimmerChannelAttribute, std::to_string(dimmer.GetDimmerChannel()));
+    }
+
     void Visit(const ArchesModel &arch) override
     {
         wxXmlNode *archNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
@@ -310,6 +350,9 @@ struct XmlSerializingVisitor : BaseObjectVisitor
         AddMeshAttributes(reinterpret_cast<Mesh*>(moving_head.GetBaseMesh()), mhNode);
         AddMeshAttributes(reinterpret_cast<Mesh*>(moving_head.GetYokeMesh()), mhNode);
         AddMeshAttributes(reinterpret_cast<Mesh*>(moving_head.GetHeadMesh()), mhNode);
+        AddDimmerAbilityAttributes(moving_head, mhNode);
+        AddShutterAbilityAttributes(moving_head, mhNode);
+        AddPresetAttributes(moving_head.GetPresetAbility(), mhNode);
         parentNode->AddChild(mhNode);
     }
 };
