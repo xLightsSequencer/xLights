@@ -2447,29 +2447,11 @@ void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview*
 
         bool cancelled = false;
         Model* model = xlights->AllModels.CreateDefaultModel("Custom", "1"); // start with a custom model
-        model->SetHcenterPos(x);
-        model->SetVcenterPos(y);
-        model->SetWidth(GetWidth(), true);
-        model->SetHeight(GetHeight(), true);
-        model->UpdateXmlWithScale();
-        if (dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation()) != nullptr) {
-            BoxedScreenLocation* sl = dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation());
-            sl->SetScale(1, 1);
-        }
         model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, m, xlights, "1", cancelled);
 
         if (!cancelled && model != nullptr) {
             x += 20;
             y += 20;
-            model->SetHcenterPos(x);
-            model->SetVcenterPos(y);
-            model->SetWidth(GetWidth(), true);
-            model->SetHeight(GetHeight(), true);
-            model->UpdateXmlWithScale();
-            if (dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation()) != nullptr) {
-                BoxedScreenLocation* sl = dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation());
-                sl->SetScale(1, 1);
-            }
             model->SetLayoutGroup(layoutGroup);
             model->Selected = false;
             float min_x = 0;
@@ -2478,6 +2460,15 @@ void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview*
             float max_y = 0;
             bool success = model->ImportXlightsModel(m, xlights, min_x, max_x, min_y, max_y);
             if (success) {
+		model->SetHcenterPos(x);
+ 		model->SetVcenterPos(y);
+ 		model->SetWidth(GetWidth(), true);
+ 		model->SetHeight(GetHeight(), true);
+ 		model->UpdateXmlWithScale();
+		if (dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation()) != nullptr) {
+		    BoxedScreenLocation* sl = dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation());
+		    sl->SetScale(1, 1);
+		}
                 model->SetControllerName(NO_CONTROLLER); // this will force the start channel to a non controller start channel ... then the user can associate them using visualiser
                 xlights->AllModels.AddModel(model);
                 AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::ImportExtraModels");
