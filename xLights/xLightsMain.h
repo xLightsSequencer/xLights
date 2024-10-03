@@ -1906,6 +1906,7 @@ public:
     bool IsInShowFolder(const std::string & file) const;
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
     ColorPanel* GetColorPanel() const { return colorPanel; }
+    JukeboxPanel* GetJukeboxPanel() const { return jukeboxPanel; }
 
     std::string GetEffectTextFromWindows(std::string &palette) const;
     void ValidatePanels();

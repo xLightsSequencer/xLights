@@ -21,6 +21,7 @@
 #include "MainSequencer.h"
 #include "SequenceElements.h"
 #include "../xLightsMain.h"
+#include "../JukeboxPanel.h"
 #include "TimeLine.h"
 #include "../UtilFunctions.h"
 #include "../xLightsVersion.h"
@@ -661,6 +662,31 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "PRIOR_TAG") {
                 PanelTimeLine->GoToPriorTag();
+            } else if (type == "JUKEBOX_BTN_1") {
+                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                if (jukeboxPanel != nullptr) {
+                    jukeboxPanel->PlayItem(1);
+                }
+            } else if (type == "JUKEBOX_BTN_2") {
+                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                if (jukeboxPanel != nullptr) {
+                    jukeboxPanel->PlayItem(2);
+                }
+            } else if (type == "JUKEBOX_BTN_3") {
+                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                if (jukeboxPanel != nullptr) {
+                    jukeboxPanel->PlayItem(3);
+                }
+            } else if (type == "JUKEBOX_BTN_4") {
+                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                if (jukeboxPanel != nullptr) {
+                    jukeboxPanel->PlayItem(4);
+                }
+            } else if (type == "JUKEBOX_BTN_5") {
+                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                if (jukeboxPanel != nullptr) {
+                    jukeboxPanel->PlayItem(5);
+                }
             }
             else if (type == "NEXT_TAG") {
                 PanelTimeLine->GoToNextTag();
