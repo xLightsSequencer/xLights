@@ -11,12 +11,14 @@
  **************************************************************/
 
 class ArchesModel;
+class DmxMovingHead;
 class DmxMovingHeadAdv;
 
 struct BaseObjectVisitor
 {
     virtual void Visit(const ArchesModel &arch) = 0;
     virtual void Visit(const DmxMovingHeadAdv &moving_head) = 0;
+    virtual void Visit(const DmxMovingHead& moving_head) = 0;
 
     virtual ~BaseObjectVisitor() {}
 };

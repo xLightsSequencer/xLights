@@ -30,6 +30,7 @@
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
+#include "../XmlSerializer.h"
 
 DmxMovingHead::DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased) :
     DmxMovingHeadComm(node, manager, zeroBased), hide_body(false), style_changed(false), dmx_style("Moving Head Top"),
@@ -1172,7 +1173,8 @@ void DmxMovingHead::Draw3DDMXHead(xlVertexColorAccumulator& va, const xlColor& c
 
 void DmxMovingHead::ExportXlightsModel()
 {
-    wxString name = ModelXml->GetAttribute("name");
+    wxASSERT(false);//shouldnt be used anymore
+    /* wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty())
@@ -1246,10 +1248,14 @@ void DmxMovingHead::ExportXlightsModel()
     //ExportDimensions(f);
     f.Write("</dmxmodel>");
     f.Close();
+    */
 }
 
 bool DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
+    if (XmlSerializer::IsXmlSerializerFormat(root)) {
+        return true;
+    }
     if (root->GetName() == "dmxmodel") {
         if (!ImportBaseParameters(root))
             return false;
