@@ -11,6 +11,7 @@
  **************************************************************/
 
 //(*Headers(MetronomeLabelDialog)
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
@@ -25,29 +26,43 @@ class MetronomeLabelDialog: public wxDialog
 		virtual ~MetronomeLabelDialog();
 
 		//(*Declarations(MetronomeLabelDialog)
+		wxCheckBox* CheckBox_RandomTagsEnabled;
+		wxCheckBox* CheckBox_RandomTiming;
 		wxSpinCtrl* SpinCtrlRepeating;
 		wxSpinCtrl* SpinCtrlTiming;
+		wxSpinCtrl* SpinCtrl_MinTiming;
 		wxStaticText* StaticTextDialogText;
 		wxStaticText* StaticTextRepeating;
 		wxStaticText* StaticTextTiming;
+		wxStaticText* StaticText_MinTiming;
 		//*)
 
 		[[nodiscard]] int GetTiming() const { return SpinCtrlTiming->GetValue(); }
-		[[nodiscard]] int GetTagCount() const { return SpinCtrlRepeating->GetValue(); } 
+		[[nodiscard]] int GetTagCount() const { return SpinCtrlRepeating->GetValue(); }
+        [[nodiscard]] int GetMinRandomTiming() const { return CheckBox_RandomTiming->IsChecked() ? SpinCtrl_MinTiming->GetValue() : -1; }
+        [[nodiscard]] bool IsRandomTags() const { return CheckBox_RandomTagsEnabled->IsChecked(); }
+        [[nodiscard]] bool IsRandomTiming() const { return CheckBox_RandomTiming->IsChecked(); }
 
 	protected:
 
 		//(*Identifiers(MetronomeLabelDialog)
-		static const long ID_STATICTEXT_DIALOGTEXT;
-		static const long ID_STATICTEXT_TIMING;
-		static const long ID_SPINCTRL_TIMING;
-		static const long ID_STATICTEXT_REPEATING;
-		static const long ID_SPINCTRL_REPEATING;
+		static const wxWindowID ID_STATICTEXT_DIALOGTEXT;
+		static const wxWindowID ID_STATICTEXT_TIMING;
+		static const wxWindowID ID_SPINCTRL_TIMING;
+		static const wxWindowID ID_STATICTEXT_REPEATING;
+		static const wxWindowID ID_SPINCTRL_REPEATING;
+		static const wxWindowID ID_CHECKBOX_RANDOMTIMING;
+		static const wxWindowID ID_STATICTEXT_MINTIMING;
+		static const wxWindowID ID_SPINCTRL1;
+		static const wxWindowID ID_CHECKBOX_RANDOMTAGS;
 		//*)
 
 	private:
 
 		//(*Handlers(MetronomeLabelDialog)
+		void OnCheckBox_RandomTimingClick(wxCommandEvent& event);
+		void OnCheckBox_RandomTagsEnabledClick(wxCommandEvent& event);
+		void OnSpinCtrlTimingChange(wxSpinEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
