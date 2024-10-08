@@ -162,6 +162,13 @@ AudioManager* RenderBuffer::GetMedia() const
 	return xLightsFrame::CurrentSeqXmlFile->GetMedia();
 }
 
+AudioManager* RenderBuffer::GetSubMedia(const std::string& audioFile) const {
+    if (xLightsFrame::CurrentSeqXmlFile == nullptr) {
+        return nullptr;
+    }
+    return xLightsFrame::CurrentSeqXmlFile->GetSubMedia(audioFile);
+}
+
 const Model* RenderBuffer::GetModel() const
 {
     return model;

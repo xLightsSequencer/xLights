@@ -477,7 +477,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     if (timing == "") useTiming = false;
     if (useMusic) {
         if (buffer.GetMedia() != nullptr) {
-            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod);
             if (pf != nullptr) {
                 f = pf->max;
             }
