@@ -78,6 +78,7 @@ void CircleModel::InitModel()
     if (GetLayerSizeCount() == 1) {
         SetLayerSize(0, parm1 * parm2);
     }
+    totalNodes = (int)GetLayerSizesTotalNodes();
 
     if (ModelXml->HasAttribute("InsideOut")) {
         insideOut = wxAtoi(ModelXml->GetAttribute("InsideOut"));
@@ -102,25 +103,28 @@ static wxPGChoices CIRCLE_START_LOCATION(wxArrayString(8, CIRCLE_START_LOCATION_
 
 void CircleModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
+    wxPGProperty* p;
+    AddLayerSizeProperty(grid);
+    p = grid->Append(new wxStringProperty("Total Nodes", "TotalNodes", wxString::Format("%d", totalNodes)));
+    p->SetHelpString("Total Nodes for this model");
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
 
     if (SingleNode) {
         p = grid->Append(new wxUIntProperty("Lights/String", "CircleLightCount", parm2));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 2000);
         p->SetEditor("SpinCtrl");
-    }
-    else {
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPGPropertyFlags::Hidden, true);
+    } else {
         p = grid->Append(new wxUIntProperty("Nodes/String", "CircleLightCount", parm2));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 2000);
         p->SetEditor("SpinCtrl");
         p->SetHelpString("This is typically the total number of pixels per #String.");
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPGPropertyFlags::Hidden, true);
     }
 
     p = grid->Append(new wxUIntProperty("Center %", "CircleCenterPercent", parm3));
@@ -128,8 +132,50 @@ void CircleModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
-    AddLayerSizeProperty(grid);
+    p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", parm1));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 100);
+    p->SetEditor("SpinCtrl");
+    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
 
+    if (parm1 == 1) {
+        // cant set start node
+    } else {
+        wxString nm = StartNodeAttrName(0);
+        bool hasIndiv = ModelXml->HasAttribute(nm);
+
+        p = grid->Append(new wxBoolProperty("Indiv Start Nodes", "ModelIndividualStartNodes", hasIndiv));
+        p->SetAttribute("UseCheckbox", true);
+
+        wxPGProperty* psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, wxAtoi(ModelXml->GetAttribute(nm, "1"))));
+        psn->SetAttribute("Min", 1);
+        psn->SetAttribute("Max", (int)GetNodeCount());
+        psn->SetEditor("SpinCtrl");
+
+        if (hasIndiv) {
+            int c = parm1;
+            for (int x = 0; x < c; ++x) {
+                nm = StartNodeAttrName(x);
+                std::string val = ModelXml->GetAttribute(nm, "").ToStdString();
+                if (val.empty()) {
+                    val = ComputeStringStartNode(x);
+                    ModelXml->DeleteAttribute(nm);
+                    ModelXml->AddAttribute(nm, val);
+                }
+                int v = wxAtoi(val);
+                if (v < 1) v = 1;
+                if (v > NodesPerString()) v = NodesPerString();
+                if (x == 0) {
+                    psn->SetValue(v);
+                } else {
+                    grid->AppendIn(p, new wxUIntProperty(nm, nm, v));
+                }
+            }
+        } else {
+            psn->Enable(false);
+        }
+    }
+    
     int start = IsLtoR ? 1 : 0;
     if (insideOut) {
         start += 2;
@@ -143,9 +189,24 @@ void CircleModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
 int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
     if ("CircleStringCount" == event.GetPropertyName()) {
+        int prvVal = wxAtoi(ModelXml->GetAttribute("parm1"));   //we never removed old custom strings.. now we do if/when you reduce the ports
+        int newVal = event.GetPropertyValue().GetLong();
+        if (newVal < prvVal) {
+            for (int i = newVal; i < prvVal; i++) {
+                wxString nm = StartNodeAttrName(i);
+                ModelXml->DeleteAttribute(nm);
+            }
+        }
         ModelXml->DeleteAttribute("parm1");
-        ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        //AdjustStringProperties(grid, parm1);
+        ModelXml->AddAttribute("parm1", wxString::Format("%d", newVal));
+        ModelXml->DeleteAttribute("parm2");
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)GetLayerSizesTotalNodes() / newVal));
+        if (ModelXml->HasAttribute("CustomStrings")) {
+            for (int x = 0; x < parm1; x++) {
+                ModelXml->DeleteAttribute(StartNodeAttrName(x));
+            }
+            ModelXml->DeleteAttribute("CustomStrings");
+        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStringCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStringCount");
@@ -183,17 +244,54 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         ModelXml->DeleteAttribute("Dir");
         ModelXml->DeleteAttribute("StartSide");
         ModelXml->DeleteAttribute("InsideOut");
-
         int v = event.GetValue().GetLong();
         ModelXml->AddAttribute("Dir", v & 0x1 ? "L" : "R");
         ModelXml->AddAttribute("StartSide", v < 4 ? "T" : "B");
         ModelXml->AddAttribute("InsideOut", v & 0x2 ? "1" : "0");
-
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleStart");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CircleModel::OnPropertyGridChange::CircleLayerSizes");
+        return 0;
+    } else if (event.GetPropertyName() == "ModelIndividualStartNodes") {
+        for (int x = 0; x < parm1; x++) {
+            wxString nm = StartNodeAttrName(x);
+            ModelXml->DeleteAttribute(nm);
+        }
+        for (int x = 0; x < parm1; x++) {
+            wxString nm = StartNodeAttrName(x);
+            ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
+        }
+        if (ModelXml->HasAttribute("CustomStrings")) {
+            ModelXml->DeleteAttribute("CustomStrings");
+        } else {
+            ModelXml->AddAttribute("CustomStrings", wxString::Format("%d", parm1));
+        }
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CircleModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CircleModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CircleModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        return 0;
+    } else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.Strings")) {
+        wxString s = event.GetPropertyName().substr(strlen("ModelIndividualStartNodes.Strings"));
+        int string = wxAtoi(s);
+        wxString nm = StartNodeAttrName(string - 1);
+        int value = event.GetValue().GetInteger();
+        if (value < 1) value = 1;
+        if (value > NodesPerString()) value = NodesPerString();
+        ModelXml->DeleteAttribute(nm);
+        ModelXml->AddAttribute(nm, wxString::Format("%d", value));
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CircleModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CircleModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CircleModel::OnPropertyGridChange::ModelIndividualStartNodes2");
         return 0;
     }
 
@@ -213,7 +311,7 @@ int CircleModel::maxSize() {
 void CircleModel::InitCircle()
 {
     int maxLights = 0;
-    int numLights = parm1 * parm2;
+    int numLights = totalNodes;
     int cnt = 0;
 
     if (GetLayerSizeCount() == 0) {
@@ -236,7 +334,8 @@ void CircleModel::InitCircle()
         }
     }
 
-    SetNodeCount(parm1, parm2, rgbOrder);
+    SetNodeCount(1, totalNodes, rgbOrder);
+
     SetBufferSize(GetLayerSizeCount(), maxLights);
     int LastStringNum = -1;
     int chan = 0;
@@ -276,6 +375,18 @@ void CircleModel::InitCircle()
             node++;
         }
         nodesToMap -= loop_count;
+    }
+
+    if (GetParm1() > 1) {       //this is only needed to get a visialisation of the strings in NodeView. Can easily be ignored.
+        Nodes[0]->StringNum = 0;
+        std::vector<int> result(stringStartChan.size(), -1);
+        result = stringStartChan;
+        std::transform(result.begin(), result.end(), result.begin(), [](int x) { return std::max(x - 1,0); });
+        result.push_back(Nodes[Nodes.size() - 1]->ActChan + 1);
+        for (int i = 1; i < Nodes.size(); ++i) {
+            auto it = std::lower_bound(result.begin(), result.end(), Nodes[i]->ActChan);
+            if (it != result.end()) Nodes[i]->StringNum = std::distance(result.begin(), it)-1;
+        }
     }
 }
 
@@ -443,12 +554,11 @@ bool CircleModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
     }
 }
 
-void CircleModel::OnLayerSizesChange(bool countChanged)
-{
-    // if string count is 1 then adjust nodes per string to match sum of nodes
-    if (parm1 == 1 && GetLayerSizeCount() > 0) {
+void CircleModel::OnLayerSizesChange(bool countChanged) {
+    if (GetLayerSizeCount() > 0) {
         ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)GetLayerSizesTotalNodes()));
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)GetLayerSizesTotalNodes()/parm1));
+        totalNodes = (int)GetLayerSizesTotalNodes();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnLayerSizesChange");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnLayerSizesChange");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnLayerSizesChange");
@@ -457,5 +567,26 @@ void CircleModel::OnLayerSizesChange(bool countChanged)
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CircleModel::OnLayerSizesChange");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CircleModel::OnLayerSizesChange");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CircleModel::OnLayerSizesChange");
+    }
+}
+
+std::string CircleModel::ComputeStringStartNode(int x) const {
+    if (x == 0)  return "1";
+
+    int strings = GetNumPhysicalStrings();
+    int nodes = GetNodeCount();
+    float nodesPerString = (float)nodes / (float)strings;
+
+    return std::to_string((int)(x * nodesPerString + 1));
+}
+
+int CircleModel::NodesPerString() const {
+    int nodes = GetChanCount() / std::max(GetChanCountPerNode(), 1);
+    int ts = GetSmartTs();
+
+    if (ts <= 1) {
+        return nodes;
+    } else {
+        return nodes * ts;
     }
 }
