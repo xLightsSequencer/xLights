@@ -273,6 +273,7 @@ class CustomModelDialog: public wxDialog
 
 		void GetMinMaxNode(long& min, long& max);
 		void Reverse();
+		void ReverseSubmodels();
         bool CheckScale(std::list<wxPoint>& points, float scale) const;
         void FlipHorizontal();
         void FlipVertical();

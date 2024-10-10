@@ -1679,10 +1679,49 @@ void CustomModelDialog::Reverse()
             }
         }
     }
+    if (wxMessageBox("Do you want to also reverse the submodels?\nThere is no way to undo it - other than to reverse again", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES) {
+        ReverseSubmodels();
+    }
 
     UpdateBackground();
     UpdatePreview();
     ValidateWindow();
+}
+
+void CustomModelDialog::ReverseSubmodels() {
+    long max = _model->GetNodeCount() + 1;
+
+    for (auto sm : _model->GetSubModels()) {
+        wxXmlNode* root = sm->GetModelXml();
+
+        if (root->GetName() == "subModel") {
+            const bool isRanges = root->GetAttribute("type", "") == "ranges";
+            if (isRanges) {
+                wxArrayString rows;
+                int line = 0;
+                while (root->HasAttribute(wxString::Format("line%d", line))) {
+                    auto l = root->GetAttribute(wxString::Format("line%d", line), "");
+                    wxString oldnodes = l;
+                    auto oldNodeArray = wxSplit(ExpandNodes(oldnodes), ',');
+                    wxArrayString newNodeArray;
+                    for (auto const& node : oldNodeArray) {
+                        long val;
+                        if (node.ToCLong(&val) == true) {
+                            long newVal = max - val;
+                            if (val == 0) {
+                                newVal = 0;
+                            }
+                            newNodeArray.Add( wxString::Format("%ld", newVal) );
+                        }
+                    }
+                    l = CompressNodes(wxJoin(newNodeArray, ','));
+                    root->DeleteAttribute(wxString::Format("line%d", line));
+                    root->AddAttribute(wxString::Format("line%d", line), l);
+                    line++;
+                }
+            }
+        }
+    }
 }
 
 bool CustomModelDialog::CheckScale(std::list<wxPoint>& points, float scale) const

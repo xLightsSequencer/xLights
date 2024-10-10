@@ -71,7 +71,7 @@ private:
     const std::string _layout;
     const std::string _type;
     const std::string _bufferStyle;
-    std::string _properyGridDisplay;
+    std::string _propertyGridDisplay;
     std::string _duplicateNodes;
     
     static std::vector<std::string> SUBMODEL_BUFFER_STYLES;

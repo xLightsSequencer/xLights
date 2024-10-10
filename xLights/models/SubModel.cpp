@@ -92,10 +92,10 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
             std::set<int> nodeIdx;
             while (n->HasAttribute(wxString::Format("line%d", line))) {
                 wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
-                if (_properyGridDisplay == "") {
-                    _properyGridDisplay = nodes;
+                if (_propertyGridDisplay == "") {
+                    _propertyGridDisplay = nodes;
                 } else {
-                    _properyGridDisplay = _properyGridDisplay + "," + nodes;
+                    _propertyGridDisplay = _propertyGridDisplay + "," + nodes;
                 }
                 wxStringTokenizer wtkz(nodes, ",");
                 while (wtkz.HasMoreTokens()) {
@@ -169,10 +169,10 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
             std::vector<int> nodeIndexes;
             while (n->HasAttribute(wxString::Format("line%d", line))) {
                 wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
-                if (_properyGridDisplay == "") {
-                    _properyGridDisplay = nodes;
+                if (_propertyGridDisplay == "") {
+                    _propertyGridDisplay = nodes;
                 } else {
-                    _properyGridDisplay = _properyGridDisplay + "," + nodes;
+                    _propertyGridDisplay = _propertyGridDisplay + "," + nodes;
                 }
                 wxStringTokenizer wtkz(nodes, ",");
                 while (wtkz.HasMoreTokens()) {
@@ -260,7 +260,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
     } else {
         // subbuffers cant generate duplicate nodes
         wxString range = n->GetAttribute("subBuffer");
-        _properyGridDisplay = range;
+        _propertyGridDisplay = range;
         float x1 = 0;
         float x2 = 100;
         float y1 = 0;
@@ -352,7 +352,7 @@ void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outpu
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
 
-    p = grid->Append(new wxStringProperty("SubModel", "SMN", _properyGridDisplay));
+    p = grid->Append(new wxStringProperty("SubModel", "SMN", _propertyGridDisplay));
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
 
