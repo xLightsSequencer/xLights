@@ -196,7 +196,7 @@ void ColorCurve::SetSerialisedValue(std::string k, std::string s)
     _values.sort();
 }
 
-void ColorCurve::SetType(std::string type)
+void ColorCurve::SetType(const std::string &type)
 {
     _type = type;
 }
