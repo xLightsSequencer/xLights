@@ -2716,7 +2716,7 @@ void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& 
             xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
             if (astrand->HasMapping() && !astrand->_mapping.empty()) {
                 auto sm0 = Split(astrand->_mapping, '/');
-                if ((sm0[1] != astrand->_strand) || (sm0[0] != m->_mapping)) {
+                if ((sm0[0] != m->_mapping) || ((sm0.size() > 1) && (sm0[1] != astrand->_strand))) {
                     auto sm = xlights->GetModel((astrand->_model + "/" + astrand->_strand));
                     if (sm != nullptr)
                         sm->AddAlias(astrand->_mapping);
