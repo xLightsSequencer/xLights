@@ -2357,6 +2357,21 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                         if (model->_mapping.empty() && lambda_model(model->_model, availName, extra1, extra2, aliases)) {
                             model->_mapping = ListCtrl_Available->GetItemText(j);
                             model->_mappingExists = true;
+                        } else { // match model to submodels
+                            logger_base.debug("Still looking..Checking submodels of [%s]", (const char*)model->_model.c_str());
+                            for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                                auto sm = model->GetNthChild(k);
+                                auto m = xlights->GetModel(model->_model);
+                                auto sm2 = m->GetSubModel(sm->_strand);
+                                if (sm2 != nullptr ) {
+                                    auto smAliases = sm2->GetAliases();
+                                    logger_base.debug("Strand [%s]", (const char*)sm->_strand.c_str());
+                                    if (sm != nullptr) {
+                                        if (model->_mapping.empty()) {
+                                            logger_base.debug("Checking parts ...sm=[%s] avail=[%s]", (const char*)sm->_strand.c_str(), (const char*)availName.c_str());
+                                            if (lambda_model(sm->_strand, availName, extra1, extra2, smAliases)) {
+                                                sm->_mapping = ListCtrl_Available->GetItemText(j);
+                                                sm->_mappingExists = true;
                         }
                         //for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
                         //    auto strand = model->GetNthChild(k);
