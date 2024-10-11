@@ -2353,47 +2353,28 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                                 }
                             }
                         }
-                    } else {
+                    } else { // match model to model
                         if (model->_mapping.empty() && lambda_model(model->_model, availName, extra1, extra2, aliases)) {
                             model->_mapping = ListCtrl_Available->GetItemText(j);
                             model->_mappingExists = true;
                         } else { // match model to submodels
-                            logger_base.debug("Still looking..Checking submodels of [%s]", (const char*)model->_model.c_str());
                             for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                                auto sm = model->GetNthChild(k);
                                 auto m = xlights->GetModel(model->_model);
+                                auto sm = model->GetNthChild(k);
                                 auto sm2 = m->GetSubModel(sm->_strand);
                                 if (sm2 != nullptr ) {
                                     auto smAliases = sm2->GetAliases();
-                                    logger_base.debug("Strand [%s]", (const char*)sm->_strand.c_str());
                                     if (sm != nullptr) {
                                         if (model->_mapping.empty()) {
-                                            logger_base.debug("Checking parts ...sm=[%s] avail=[%s]", (const char*)sm->_strand.c_str(), (const char*)availName.c_str());
                                             if (lambda_model(sm->_strand, availName, extra1, extra2, smAliases)) {
                                                 sm->_mapping = ListCtrl_Available->GetItemText(j);
                                                 sm->_mappingExists = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        //for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                        //    auto strand = model->GetNthChild(k);
-                        //    if (strand != nullptr) {
-                        //        if (strand->_mapping.empty() && lambda_strand(model->_model + "/" + strand->_strand, availName, extra1, extra2, aliases)) {
-                        //            strand->_mapping = ListCtrl_Available->GetItemText(j) + "/" + strand->_strand;
-                        //            strand->_mappingExists = true;
-                        //        }
-                        //        for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
-                        //            auto node = strand->GetNthChild(m);
-                        //            if (node != nullptr) {
-                        //                if (node->_mapping.empty()) {
-                        //                    if (lambda_node(model->_model + "/" + strand->_strand + "/" + node->_node, availName, extra1, extra2, aliases)) {
-                        //                        // matched to the node level
-                        //                        node->_mapping = ListCtrl_Available->GetItemText(j);
-                        //                        node->_mappingExists = true;
-                        //                    }
-                        //                }
-                        //            }
-                        //        }
-                        //     }
-                        //  }
                     }
                 }
             }
@@ -2731,7 +2712,7 @@ void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& 
             xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
             if (astrand->HasMapping() && !astrand->_mapping.empty()) {
                 auto sm0 = Split(astrand->_mapping, '/');
-                if ((sm0[1] != astrand->_strand) || (sm0[0] != m->_mapping)) {
+                if (((sm0.size() > 1 && (sm0[1] != astrand->_strand)) || (sm0[0] != m->_mapping))) {
                     auto sm = xlights->GetModel((astrand->_model + "/" + astrand->_strand));
                     if (sm != nullptr)
                         sm->AddAlias(astrand->_mapping);
