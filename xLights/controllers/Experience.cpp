@@ -238,6 +238,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 
     bool const fullControl = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
     int const defaultBrightness = EncodeBrightness(controller->GetDefaultBrightnessUnderFullControl());
+    int const defaultGamma = EncodeGamma(controller->GetDefaultGammaUnderFullControl());
 
     bool const has_eFuses = Lower(rules->GetCustomPropertyByPath("eFuses", "false")) == "true";
     logger_base.info("Initializing Pixel Output Information.");
@@ -282,6 +283,8 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 }
                 if (pvs->_gammaSet) {
                     vs["g"] = EncodeGamma(pvs->_gamma);
+                } else if (fullControl) {
+                    vs["g"] = defaultGamma;
                 }
                 if (pvs->_brightnessSet) {
                     vs["b"] = EncodeBrightness(pvs->_brightness);
@@ -345,6 +348,8 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                         }
                         if (pvs->_gammaSet) {
                             vs["g"] = EncodeGamma(pvs->_gamma);
+                        } else if (fullControl) {
+                            vs["g"] = defaultGamma;
                         }
                         if (pvs->_brightnessSet) {
                             vs["b"] = EncodeBrightness(pvs->_brightness);

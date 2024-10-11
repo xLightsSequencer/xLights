@@ -196,7 +196,7 @@ public:
         }
     }
 
-    void Set(xlColorVector& newcolors, xlColorCurveVector newcc)
+    void Set(const xlColorVector& newcolors, const xlColorCurveVector& newcc)
     {
         wxASSERT(newcolors.size() == newcc.size());
 
