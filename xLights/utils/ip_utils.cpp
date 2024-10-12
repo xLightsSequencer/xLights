@@ -16,7 +16,6 @@
 #include <wx/regex.h>
 #include <wx/sckaddr.h>
 
-#include <sys/socket.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 
