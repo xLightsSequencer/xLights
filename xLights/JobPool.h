@@ -51,6 +51,7 @@ protected:
     
 public:
     JobPool(const std::string &threadNameBase);
+    JobPool(const std::string &threadNameBase, int minThreads, int maxThreads);
     virtual ~JobPool();
     
     void PushJob(Job *job);

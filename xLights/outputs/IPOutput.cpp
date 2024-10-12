@@ -45,7 +45,12 @@ void IPOutput::Save(wxXmlNode* node) {
 IPOutput::IPOutput(wxXmlNode* node, bool isActive) : Output(node) {
 
     _ip = node->GetAttribute("ComPort", "").ToStdString();
-    if (isActive) _resolvedIp = ip_utils::ResolveIP(_ip);
+    if (isActive) {
+        _resolvedIp = _ip;
+        ip_utils::ResolveIP(_ip, [this](const std::string &r) {
+            _resolvedIp = r;
+        });
+    }
     _universe = wxAtoi(node->GetAttribute("BaudRate", "1"));
 }
 
@@ -129,10 +134,16 @@ Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy
 #pragma endregion 
 
 #pragma region Getters and Setters
-void IPOutput::SetIP(const std::string& ip, bool isActive) {
-
+void IPOutput::SetIP(const std::string& ip, bool isActive, bool resolve) {
     Output::SetIP(ip, isActive);
-    if (isActive) _resolvedIp = ip_utils::ResolveIP(_ip);
+    if (isActive) {
+        _resolvedIp = _ip;
+        if (resolve) {
+            ip_utils::ResolveIP(_ip, [this](const std::string &r) {
+                _resolvedIp = r;
+            });
+        }
+    }
 }
 #pragma endregion 
 

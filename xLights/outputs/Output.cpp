@@ -180,7 +180,7 @@ int Output::GetBaudRate() const {
     return _baudRate;
 }
 
-void Output::SetIP(const std::string& ip, bool isActive) {
+void Output::SetIP(const std::string& ip, bool isActive, bool resolve) {
     auto i = ip_utils::CleanupIP(ip);
     if (i != _ip) {
         _ip = i;

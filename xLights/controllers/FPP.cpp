@@ -3975,7 +3975,10 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
             if (eth->GetResolvedIP() == "") {
                 startAddresses.push_back(::Lower(eth->GetIP()));
             } else {
-                startAddresses.push_back(::Lower(eth->GetResolvedIP()));
+                // only add the instances where we were actually able to resolve an IP address
+                if (eth->IsActive() && (ip_utils::IsIPValid(eth->GetResolvedIP()) || eth->GetResolvedIP() != eth->GetIP())) {
+                    startAddresses.push_back(::Lower(eth->GetResolvedIP()));
+                }
             }
             if (eth->GetFPPProxy() != "") {
                 startAddresses.push_back(::Lower(ip_utils::ResolveIP(eth->GetFPPProxy())));

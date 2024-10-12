@@ -209,12 +209,20 @@ void ControllerEthernet::SetIP(const std::string& ip) {
     auto const& iip = ip_utils::CleanupIP(ip);
     if (_ip != iip) {
         _ip = iip;
-        if (IsActive()) _resolvedIp = ip_utils::ResolveIP(_ip);
+        if (IsActive()) {
+            _resolvedIp = _ip;
+            ip_utils::ResolveIP(_ip, [this](const std::string &r) {
+                _resolvedIp = r;
+                for (auto& it : GetOutputs()) {
+                    it->SetResolvedIP(_resolvedIp);
+                }
+            });
+        }
         _dirty = true;
         if (_outputManager != nullptr) _outputManager->UpdateUnmanaged();
 
         for (auto& it : GetOutputs()) {
-            it->SetIP(_ip, IsActive());
+            it->SetIP(_ip, IsActive(), false); // don't resolve as we'll set it above in the callback
             it->SetResolvedIP(_resolvedIp);
         }
     }
