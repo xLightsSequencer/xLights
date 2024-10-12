@@ -85,21 +85,25 @@
 		<Unit filename="../common/xlStackWalker.h" />
 		<Unit filename="../xLights/IPEntryDialog.cpp" />
 		<Unit filename="../xLights/IPEntryDialog.h" />
+		<Unit filename="../xLights/JobPool.cpp" />
+		<Unit filename="../xLights/JobPool.h" />
+		<Unit filename="../xLights/TraceLog.cpp" />
+		<Unit filename="../xLights/TraceLog.h" />
 		<Unit filename="../xLights/UtilFunctions.cpp" />
 		<Unit filename="../xLights/UtilFunctions.h" />
-        <Unit filename="../xLights/utils/Curl.cpp" />
-        <Unit filename="../xLights/utils/Curl.h" />
+		<Unit filename="../xLights/utils/Curl.cpp" />
+		<Unit filename="../xLights/utils/Curl.h" />
 		<Unit filename="../xLights/utils/ip_utils.cpp" />
 		<Unit filename="../xLights/utils/ip_utils.h" />
 		<Unit filename="../xLights/utils/string_utils.cpp" />
 		<Unit filename="../xLights/utils/string_utils.h" />
+		<Unit filename="../xLights/xLightsVersion.cpp" />
+		<Unit filename="../xLights/xLightsVersion.h" />
+		<Unit filename="../xSchedule/wxJSON/json_defs.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonreader.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonreader.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonval.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonval.h" />
-		<Unit filename="../xSchedule/wxJSON/json_defs.h" />
-		<Unit filename="../xLights/xLightsVersion.cpp" />
-		<Unit filename="../xLights/xLightsVersion.h" />
 		<Unit filename="ResultDialog.cpp" />
 		<Unit filename="ResultDialog.h" />
 		<Unit filename="UniverseEntryDialog.cpp" />
@@ -118,9 +122,6 @@
 		<Unit filename="xCaptureMain.cpp" />
 		<Unit filename="xCaptureMain.h" />
 		<Extensions>
-			<code_completion />
-			<envvars />
-			<debugger />
 			<lib_finder disable_auto="1" />
 			<wxsmith version="1">
 				<gui name="wxWidgets" src="xCaptureApp.cpp" main="xCaptureFrame" init_handlers="necessary" language="CPP" />
