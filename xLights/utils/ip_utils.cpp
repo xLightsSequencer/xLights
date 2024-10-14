@@ -16,8 +16,12 @@
 #include <wx/regex.h>
 #include <wx/sckaddr.h>
 
+#ifndef __WXMSW__
 #include <netdb.h>
 #include <arpa/inet.h>
+#else
+#include <ws2tcpip.h>
+#endif
 
 #include <map>
 #include <mutex>
