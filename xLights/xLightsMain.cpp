@@ -8851,7 +8851,7 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
         downloadUrl = downloadUrl + "xLights" + bit + "_" + dlv + ".exe";
 #else
         wxRegEx reVersion("^.*(2[0-9][0-9][0-9]\\.[0-9]*\\.?[0-9]?)[a-z]?[\\.-].*$");
-        wxString urlVersion = wxString(out_stream.GetString());
+        wxString urlVersion = ToWXString(resp);
         reVersion.Replace(&urlVersion, "\\1", 1);
 #endif
 
