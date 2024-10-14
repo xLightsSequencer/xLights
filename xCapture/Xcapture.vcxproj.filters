@@ -20,6 +20,8 @@
     <ClCompile Include="..\xLights\utils\Curl.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="..\xLights\JobPool.cpp" />
+    <ClCompile Include="..\xLights\TraceLog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
@@ -44,6 +46,8 @@
     <ClInclude Include="..\xLights\utils\Curl.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\xLights\JobPool.h" />
+    <ClInclude Include="..\xLights\TraceLog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
