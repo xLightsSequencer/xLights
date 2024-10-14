@@ -115,6 +115,7 @@
 #include "utils/ip_utils.h"
 #include "TempFileManager.h"
 #include "xlColourData.h"
+#include "utils/Curl.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -8765,39 +8766,34 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
 
     bool found_update = false;
 #ifdef LINUX
-    wxString hostname = wxT("www.adebenham.com");
-    wxString path = wxT("/wp-content/uploads/xlights/latest.php");
+    //wxString hostname = wxT("www.adebenham.com");
+    //wxString path = wxT("/wp-content/uploads/xlights/latest.php");
     wxString downloadUrl = wxT("https://github.com/xLightsSequencer/xLights/releases/latest");
     MenuItem_Update->Enable(true);
 #else
 #ifdef __WXOSX__
-    wxString hostname = _T("dankulp.com");
-    wxString path = _T("/xLightsLatest.php");
+    //wxString hostname = _T("dankulp.com");
+    //wxString path = _T("/xLightsLatest.php");
     wxString downloadUrl = wxT("http://dankulp.com/xlights/");
     if (MenuItem_Update)
         MenuItem_Update->Enable(true);
 #else
-    wxString hostname = _T("xlights.org");
-
-    // wxString path = _T("/downloads/");
+    //wxString hostname = _T("xlights.org");
+    //wxString path = _T("/downloads/");
     wxString downloadUrl = wxT("https://xlights.org/downloads/");
-    wxString path = _T("/releases/");
+    //wxString path = _T("/releases/");
     // wxString downloadUrl = wxT("https://xlights.org/releases/");
-
+    //wxString downloadUrl2 = wxT("https://github.com/xLightsSequencer/xLights/releases/latest");
     logger_base.debug("Downloading %s", (const char*)downloadUrl.c_str());
     MenuItem_Update->Enable(true);
 #endif
 #endif
-
-    wxHTTP get;
-    get.SetTimeout(5); // 5 seconds of timeout instead of 10 minutes ...
-    get.SetHeader("Cache-Control", "no-cache");
-
+    std::string resp;
     bool didConnect = false;
-
     for (int retry = 0; retry < maxRetries; retry++) {
         logger_base.debug("Attempting version update check %d/%d...", retry + 1, maxRetries);
-        if (get.Connect(hostname)) {
+        resp = Curl::HTTPSGet(downloadUrl);
+        if (!resp.empty()) {
             didConnect = true;
             break;
         } else {
@@ -8817,15 +8813,13 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
         return true;
     }
 
-    wxInputStream* httpStream = get.GetInputStream(path);
-    if (get.GetError() == wxPROTO_NOERR) {
+    if (!resp.empty()) {
         wxString res;
         wxString configver = wxT("");
-        wxStringOutputStream out_stream(&res);
-        httpStream->Read(out_stream);
+
 
 #ifdef __WXMSW__
-        wxString page = wxString(out_stream.GetString());
+        wxString page = ToWXString(resp);
 
         // logger_base.debug("    Download page: %s",
         //     (const char *)page.c_str());
@@ -8889,9 +8883,6 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
             wxMessageBox("Unable to read available versions.", "Version update check failed");
         }
     }
-
-    wxDELETE(httpStream);
-    get.Close();
     return found_update;
 }
 
