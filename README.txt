@@ -11,6 +11,27 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.17 October 14, 2024
+    - change(dkulp)         MacOS builds now require MacOS 11 or newer
+    - enh (dkulp)           Resolve hostnames in parallel at startup, much faster startup and FPP Connect
+    - enh (derwin12)        Add key bindings for Jukebox
+    - enh (derwin12)        Add key bindings for increase/descrease speed, prev/next tags
+    - enh (derwin12)        Optionally reverse submodels when reversing models
+    - enh (thekev)          Add support for default gamma with Experience controllers
+    - enh (dkulp)           FSEQ save - allow using more compression blocks for larger channel count sequences
+    - enh (derwin12)        Add validation of in/out fade times
+    - enh (dkulp)           More updates for small waveform time/selection display
+    - enh (scott)           Add support for Wasatch controllers
+    - bug (derwin12)        Fix display of timeline tags, fixes flood of error messages in logs
+    - bug (derwin12)        Fix crash when updating aliases on Strand mappings
+    - bug (scott)           Fix import of "old" moving head models
+    - bug (scott)           Fix HinksPix audio exporting
+    - bug (scott)           Fix DMX moving head advanced export missing parameters
+    - bug (derwin12)        Fix bug flagging versions when importing sequences from the same version
+    - bug (dkulp)           Fix crash on MacOS if monitor with a running preview is disconnected
+    - bug (derwin12)        Fix looping replay of selection not working with audio
+    - bug (dkulp)           Fix crashes on layout panel if protocol not set
+    - bug (Kyle Grymonprez) Fix "Open Base Show Directory" not working
 2024.16 September 18, 2024
     - enh (derwin12)        Add copy model including submodels right click option
     - enh (Kyle Grymonprez) Disable prompting for alias saving of newly generated models by default
