@@ -289,6 +289,21 @@ kernel void AdjustBrightnessContrast(constant LayerBlendingData &data,
     }
     result[index] = color;
 }
+kernel void AdjustBrightnessLevel(constant LayerBlendingData &data,
+                                  device uchar4* result,
+                                  uint index [[thread_position_in_grid]]) {
+    if (index > (uint)data.nodeCount) return;
+    uchar4 color = result[index];
+    uint8_t c = 0;
+    if (color.r > 25) ++c;
+    if (color.g > 25) ++c;
+    if (color.b > 25) ++c;
+    if (c == 0) {
+        return;
+    }
+    color /= {c, c, c, 1};
+    result[index] = color;
+}
 
 
 kernel void FirstLayerFade(constant LayerBlendingData &data,
@@ -389,6 +404,7 @@ kernel void Effect1_2_Function(constant LayerBlendingData &data,
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
         float emt, emtNot;
+        
         if (!data.effectMixVaries) {
             emt = data.effectMixThreshold;
             if ((emt > 0.000001) && (emt < 0.99999)) {

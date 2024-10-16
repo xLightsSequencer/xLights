@@ -142,6 +142,7 @@ struct LayerBlendingData {
     float fadeFactor;
     float effectMixThreshold;
     bool effectMixVaries;
+    bool brightnessLevel;
     int mixTypeData;
     
     int outputSparkleCount;
