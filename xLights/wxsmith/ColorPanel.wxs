@@ -57,8 +57,8 @@
 																		<object class="wxBitmapButton" name="ID_BITMAPBUTTON_ReverseColours" subclass="xlSizedBitmapButton" variable="BitmapButton_ReverseColours" member="yes">
 																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_reverse_xpm&quot;, wxART_BUTTON)' />
 																			<size>26,16</size>
-																			<handler function="OnBitmapButton_ReverseColoursClick" entry="EVT_BUTTON" />
 																			<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+																			<handler function="OnBitmapButton_ReverseColoursClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>2</border>
@@ -381,6 +381,29 @@
 													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOXBRIGHTNESSLEVEL" variable="CheckBoxBrightnessLevel" member="yes">
+													<label>Brightness Level</label>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
 											</object>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>

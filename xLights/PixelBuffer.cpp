@@ -948,6 +948,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
         layers[x]->BufferOffsetX = 0;
         layers[x]->BufferOffsetY = 0;
         layers[x]->stagger = 0;
+        layers[x]->brightnessLevel = false;
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->bufferTransform, isNode);
         GPURenderUtils::setupRenderBuffer(this, &layers[x]->buffer, x);
     }
@@ -1511,6 +1512,11 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool>& validLay
                     color.blue = std::min((int)f, 255);
                 }
 
+                // This adjusts the colour down so each pixel is emitting the same amount of light while respecting brightness.
+                if (layers[saveLayer]->brightnessLevel) {
+                    color.LevelColorBrightness();
+                }
+
                 if (cnt > 0) {
                     mixColors(x, y, color, c, layer);
                 } else if (thelayer->fadeFactor != 1.0) {
@@ -1533,7 +1539,7 @@ void PixelBufferClass::GetMixedColor(int node, const std::vector<bool>& validLay
     // set color for physical output
     layers[saveLayer]->buffer.Nodes[node]->SetColor(c);
     if (saveToPixels) {
-        for (auto &n : layers[saveLayer]->buffer.Nodes[node]->Coords) {
+        for (auto& n : layers[saveLayer]->buffer.Nodes[node]->Coords) {
             layers[saveLayer]->buffer.SetPixel(n.bufX, n.bufY, c, false, false, true);
         }
     }
@@ -2069,6 +2075,7 @@ static const std::string SLIDER_ChromaSensitivity("SLIDER_ChromaSensitivity");
 static const std::string CHECKBOX_Chroma("CHECKBOX_Chroma");
 static const std::string COLOURPICKERCTRL_ChromaColour("COLOURPICKERCTRL_ChromaColour");
 static const std::string COLOURPICKERCTRL_SparklesColour("COLOURPICKERCTRL_SparklesColour");
+static const std::string CHECKBOX_BrightnessLevel("CHECKBOXBRIGHTNESSLEVEL");
 static const std::string SLIDER_SparkleFrequency("SLIDER_SparkleFrequency");
 static const std::string CHECKBOX_MusicSparkles("CHECKBOX_MusicSparkles");
 static const std::string SLIDER_Brightness("SLIDER_Brightness");
@@ -2274,6 +2281,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
     inf->ypivot = settingsMap.GetInt(SLIDER_YPivot, 50);
     inf->sparkle_count = settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
     inf->use_music_sparkle_count = settingsMap.GetBool(CHECKBOX_MusicSparkles, false);
+    inf->brightnessLevel = settingsMap.GetBool(CHECKBOX_BrightnessLevel, false);
 
     inf->isChromaKey = settingsMap.GetBool(CHECKBOX_Chroma, false);
     inf->chromaSensitivity = settingsMap.GetInt(SLIDER_ChromaSensitivity, 1);

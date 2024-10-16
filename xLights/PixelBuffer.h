@@ -90,6 +90,7 @@ private:
             mixType = MixTypes::Mix_Normal;
             effectMixThreshold = 0.0;
             effectMixVaries = false;
+            brightnessLevel = false;
             canvas = false;
             BufferHt = BufferWi = BufferOffsetX = BufferOffsetY = 0;
             persistent = false;
@@ -154,6 +155,7 @@ private:
         float zoom;
         int zoomquality;
         std::string rotationorder;
+        bool brightnessLevel = false;
         int pivotpointx;
         int pivotpointy;
         int xpivot;

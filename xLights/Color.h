@@ -117,6 +117,23 @@ public:
         }
     }
 
+    // This levels the colour by counting the number of non-zero (actually over a base level) components and dividing by that number
+    void LevelColorBrightness()
+    {
+        uint8_t c = 0;
+        if (red > 25)
+            ++c;
+        if (green > 25)
+            ++c;
+        if (blue > 25)
+            ++c;
+        if (c == 0)
+            c = 1;
+        red = red / c;
+        green = green / c;
+        blue = blue / c;
+    }
+
     void Set(uint8_t r, uint8_t g, uint8_t b) {
         red = r;
         green = g;
