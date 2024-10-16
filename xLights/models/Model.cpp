@@ -3077,7 +3077,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
         if (v == "") {
             found = false;
         } else {
-            superStringColours.push_back(wxColour(v));
+            superStringColours.push_back(xlColor(v));
         }
         index++;
     }
