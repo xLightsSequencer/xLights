@@ -134,6 +134,7 @@ public:
         void SetButtonColor(int btn, const xlColor &v, bool notify = true);
 
 		//(*Declarations(ColorPanel)
+		BulkEditCheckBox* CheckBoxBrightnessLevel;
 		BulkEditCheckBox* CheckBox_EnableChromakey;
 		BulkEditCheckBox* CheckBox_MusicSparkles;
 		BulkEditColourPickerCtrl* ColourPickerCtrl_ChromaColour;
@@ -157,7 +158,6 @@ public:
 		BulkEditValueCurveButton* BitmapButton_SparkleFrequencyVC;
 		BulkEditValueCurveButton* BitmapButton_VCBrightness;
 		ColourList* BitmapButton_ColourChoice;
-		wxCheckBox* CheckBoxBrightnessLevel;
 		wxCheckBox* CheckBox_ResetColorPanel;
 		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* FlexGridSizer_Palette;

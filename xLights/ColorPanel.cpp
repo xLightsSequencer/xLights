@@ -382,12 +382,12 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	BitmapButton_Contrast = new xlLockButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_Contrast, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Contrast"));
 	BitmapButton_Contrast->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer2->Add(BitmapButton_Contrast, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer2->Add(0,0,1, wxALL|wxEXPAND, 5);
-	CheckBoxBrightnessLevel = new wxCheckBox(ColorScrollWindow, ID_CHECKBOXBRIGHTNESSLEVEL, _("Brightness Level"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXBRIGHTNESSLEVEL"));
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+	CheckBoxBrightnessLevel = new BulkEditCheckBox(ColorScrollWindow, ID_CHECKBOXBRIGHTNESSLEVEL, _("Brightness Level"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXBRIGHTNESSLEVEL"));
 	CheckBoxBrightnessLevel->SetValue(false);
 	FlexGridSizer2->Add(CheckBoxBrightnessLevel, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer2->Add(0,0,1, wxALL|wxEXPAND, 5);
-	FlexGridSizer2->Add(0,0,1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	FlexGridSizer4->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer12->AddGrowableCol(1);

@@ -388,7 +388,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxCheckBox" name="ID_CHECKBOXBRIGHTNESSLEVEL" variable="CheckBoxBrightnessLevel" member="yes">
+												<object class="wxCheckBox" name="ID_CHECKBOXBRIGHTNESSLEVEL" subclass="BulkEditCheckBox" variable="CheckBoxBrightnessLevel" member="yes">
 													<label>Brightness Level</label>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
