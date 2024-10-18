@@ -81,6 +81,8 @@ const long VUMeterPanel::ID_SLIDER_VUMeter_YOffset = wxNewId();
 const long VUMeterPanel::ID_VALUECURVE_VUMeter_YOffset = wxNewId();
 const long VUMeterPanel::IDD_TEXTCTRL_VUMeter_YOffset = wxNewId();
 const long VUMeterPanel::ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset = wxNewId();
+const long VUMeterPanel::ID_STATICTEXT6 = wxNewId();
+const long VUMeterPanel::ID_CHOICE_VUMeter_Audio = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(VUMeterPanel,wxPanel)
@@ -197,7 +199,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer31->Add(BitmapButton_VUMeter_Shape, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText17 = new wxStaticText(this, ID_STATICTEXT3, _("SVG File"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer31->Add(StaticText17, 1, wxALL|wxEXPAND, 2);
-	FilePickerCtrl_SVGFile = new BulkEditFilePickerCtrl(this, ID_FILEPICKERCTRL_SVGFile, wxEmptyString, _("Select a file"), _T("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_SVGFile"));
+	FilePickerCtrl_SVGFile = new BulkEditFilePickerCtrl(this, ID_FILEPICKERCTRL_SVGFile, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_SVGFile"));
 	FlexGridSizer31->Add(FilePickerCtrl_SVGFile, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxEXPAND, 5);
@@ -261,6 +263,11 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_VUMeter_YOffset = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset"));
 	BitmapButton_VUMeter_YOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_YOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText18 = new wxStaticText(this, ID_STATICTEXT6, _("Audio"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	FlexGridSizer31->Add(StaticText18, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_VUMeter_Audio = new BulkEditChoice(this, ID_CHOICE_VUMeter_Audio, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VUMeter_Audio"));
+	Choice_VUMeter_Audio->Disable();
+	FlexGridSizer31->Add(Choice_VUMeter_Audio, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);
 	FlexGridSizer42->Fit(this);
@@ -284,8 +291,9 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_BITMAPBUTTON_SLIDER_VUMeter_XOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_VUMeter_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
+	Connect(ID_CHOICE_VUMeter_Audio,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&VUMeterPanel::OnChoice_VUMeter_TypeSelect);
 	//*)
-    
+
     SetName("ID_PANEL_VUMeter");
 
     Choice_VUMeter_Type->Append(_("Spectrogram"));
@@ -363,7 +371,7 @@ void VUMeterPanel::ValidateWindow()
 {
     auto type = Choice_VUMeter_Type->GetStringSelection();
 
-    if (type == "Spectrogram" || 
+    if (type == "Spectrogram" ||
         type == "Spectrogram Peak" ||
         type == "Spectrogram Circle Line" ||
         type == "Spectrogram Line")
@@ -384,7 +392,7 @@ void VUMeterPanel::ValidateWindow()
         type == "Level Bar" ||
         type == "Level Random Bar" ||
         type == "Level Color" ||
-        type == "Level Pulse" || 
+        type == "Level Pulse" ||
         type == "Level Jump" ||
         type == "Level Jump 100" ||
         type == "Level Pulse Color" ||
@@ -463,11 +471,13 @@ void VUMeterPanel::ValidateWindow()
     {
         Slider_VUMeter_Sensitivity->Enable();
         TextCtrl_VUMeter_Sensitivity->Enable();
+        Choice_VUMeter_Audio->Enable();
     }
     else
     {
         Slider_VUMeter_Sensitivity->Disable();
         TextCtrl_VUMeter_Sensitivity->Disable();
+        Choice_VUMeter_Audio->Disable();
     }
 
     if (type == "Level Shape" ||
@@ -487,8 +497,8 @@ void VUMeterPanel::ValidateWindow()
     {
         Choice_VUMeter_Shape->Enable();
         auto shape = Choice_VUMeter_Shape->GetStringSelection();
-        if (shape == "Star" || 
-            shape == "Filled Star" || 
+        if (shape == "Star" ||
+            shape == "Filled Star" ||
 			shape == "Snowflake")
         {
             // we use bars to set number of points
@@ -558,7 +568,7 @@ void VUMeterPanel::ValidateWindow()
         TextCtrl_VUMeter_StartNote->Disable();
     }
 
-    if (type == "Spectrogram" || 
+    if (type == "Spectrogram" ||
         type == "Spectrogram Line" ||
         type == "Spectrogram Circle Line" ||
         type == "Spectrogram Peak" ||
@@ -587,6 +597,19 @@ void VUMeterPanel::ValidateWindow()
         BitmapButton_VUMeter_YOffsetVC->Disable();
         Slider_VUMeter_YOffset->Disable();
         TextCtrl_VUMeter_YOffset->Disable();
+    }
+
+     if (type.starts_with("Level") ||
+        type.starts_with("Note Level") ||
+        type.starts_with("Spectrogram") ||
+        type.starts_with("Dominant Frequency") ||
+        //type.ends_with("Waveform") ||
+        type.starts_with("Intensity") ||
+        type.ends_with("On") ||
+        type == "Volume Bars") {
+        Choice_VUMeter_Audio->Enable();
+    } else {
+        Choice_VUMeter_Audio->Disable();
     }
 
     Slider_VUMeter_StartNote->SetToolTip(wxString(DecodeMidi(Slider_VUMeter_StartNote->GetValue()).c_str()));

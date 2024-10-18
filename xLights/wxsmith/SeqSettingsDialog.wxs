@@ -230,20 +230,63 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxFlexGridSizer" variable="FlexGridSizer16" member="no">
-												<cols>3</cols>
+											<object class="wxButton" name="ID_BUTTON_AddMilliseconds" variable="Button_AddMilliseconds" member="yes">
+												<label>Add Milliseconds</label>
+												<handler function="OnButton_AddMillisecondsClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText5" member="yes">
+												<label>Sub Audio:</label>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+												<orient>wxVERTICAL</orient>
 												<object class="sizeritem">
-													<object class="wxButton" name="ID_BUTTON_AddMiliseconds" variable="Button_AddMiliseconds" member="yes">
-														<label>Add Miliseconds</label>
-														<size>143,23</size>
-														<handler function="OnButton_AddMilisecondsClick" entry="EVT_BUTTON" />
+													<object class="wxListBox" name="ID_LISTBOX_SUB_AUDIO" variable="ListBoxSubAudio" member="yes">
+														<default>-1</default>
+														<size>860,79</size>
 													</object>
-													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
+												<object class="sizeritem">
+													<object class="wxBoxSizer" variable="BoxSizer2" member="no">
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON_ADD_SUB_AUDIO" variable="ButtonAddSubAudio" member="yes">
+																<label>Add</label>
+																<handler function="OnButtonAddSubAudioClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL</flag>
+															<border>5</border>
+														</object>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON_REMOVE_SUB_AUDIO" variable="ButtonRemoveSubAudio" member="yes">
+																<label>Remove</label>
+																<handler function="OnButtonRemoveSubAudioClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+														</object>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+												</object>
 											</object>
-											<flag>wxLEFT</flag>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>

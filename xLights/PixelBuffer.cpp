@@ -2980,7 +2980,7 @@ void PixelBufferClass::HandleLayerTransitions(int EffectPeriod, int ii) {
     if (layers[ii]->use_music_sparkle_count &&
         layers[ii]->buffer.GetMedia() != nullptr) {
         float f = 0.0;
-        auto pf = layers[ii]->buffer.GetMedia()->GetFrameData(layers[ii]->buffer.curPeriod, "");
+        auto pf = layers[ii]->buffer.GetMedia()->GetFrameData(layers[ii]->buffer.curPeriod);
         if (pf != nullptr) {
             f = pf->max;
         }
