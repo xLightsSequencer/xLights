@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <list>
+#include <mutex>
 #include <shared_mutex>
 
 #include <wx/window.h>

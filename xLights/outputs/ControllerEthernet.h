@@ -13,6 +13,7 @@
 #include <list>
 #include <string>
 #include <future>
+#include <mutex>
 #include <shared_mutex>
 
 #include "Controller.h"
