@@ -13,6 +13,7 @@
 #include <list>
 #include <string>
 #include <future>
+#include <shared_mutex>
 
 #include "Controller.h"
 #include "IPOutput.h"
@@ -34,6 +35,7 @@ protected:
 #pragma region Member Variables
     std::string _ip;
     std::string _resolvedIp;
+    mutable std::shared_mutex _resolveMutex;
     std::string _type;
     std::string _forceLocalIP;
     bool _forceSizes = false;

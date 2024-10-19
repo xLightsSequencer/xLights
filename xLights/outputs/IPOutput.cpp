@@ -46,9 +46,9 @@ IPOutput::IPOutput(wxXmlNode* node, bool isActive) : Output(node) {
 
     _ip = node->GetAttribute("ComPort", "").ToStdString();
     if (isActive) {
-        _resolvedIp = _ip;
+        SetResolvedIP(_ip);
         ip_utils::ResolveIP(_ip, [this](const std::string &r) {
-            _resolvedIp = r;
+            SetResolvedIP(r);
         });
     }
     _universe = wxAtoi(node->GetAttribute("BaudRate", "1"));
@@ -57,14 +57,13 @@ IPOutput::IPOutput(wxXmlNode* node, bool isActive) : Output(node) {
 IPOutput::IPOutput() : Output() {
     _universe = 0;
     _ip = "";
-    _resolvedIp = "";
 }
 
 IPOutput::IPOutput(const IPOutput& from) :
     Output(from)
 {
     _ip = from._ip;
-    _resolvedIp = from._resolvedIp;
+    SetResolvedIP(from.GetResolvedIP());
     _universe = from._universe;
 }
 
@@ -137,10 +136,10 @@ Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy
 void IPOutput::SetIP(const std::string& ip, bool isActive, bool resolve) {
     Output::SetIP(ip, isActive);
     if (isActive) {
-        _resolvedIp = _ip;
+        SetResolvedIP(ip);
         if (resolve) {
             ip_utils::ResolveIP(_ip, [this](const std::string &r) {
-                _resolvedIp = r;
+                SetResolvedIP(r);
             });
         }
     }
@@ -151,7 +150,7 @@ void IPOutput::SetIP(const std::string& ip, bool isActive, bool resolve) {
 bool IPOutput::operator==(const IPOutput& output) const {
 
     if (GetType() != output.GetType()) return false;
-
-    return _universe == output.GetUniverse() && (_ip == output.GetIP() || _ip == output.GetResolvedIP() || _resolvedIp == output.GetIP() || _resolvedIp == output.GetResolvedIP());
+    std::string rip = GetResolvedIP();
+    return _universe == output.GetUniverse() && (_ip == output.GetIP() || _ip == output.GetResolvedIP() || rip == output.GetIP() || rip == output.GetResolvedIP());
 }
 #pragma endregion 

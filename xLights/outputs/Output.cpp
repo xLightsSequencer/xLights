@@ -88,6 +88,7 @@ Output::Output(wxXmlNode* node) {
 Output::Output() {
     _dirty = true;
     _ok = true;
+    _resolvedIp = "";
 }
 
 Output::~Output() {
@@ -185,6 +186,17 @@ void Output::SetIP(const std::string& ip, bool isActive, bool resolve) {
     if (i != _ip) {
         _ip = i;
         _resolvedIp = _ip;
+        _dirty = true;
+    }
+}
+std::string Output::GetResolvedIP() const {
+    std::shared_lock<std::shared_mutex> lock(_resolveMutex);
+    return _resolvedIp;
+}
+void Output::SetResolvedIP(const std::string& resolvedIP) {
+    std::unique_lock<std::shared_mutex> lock(_resolveMutex);
+    if (resolvedIP != _resolvedIp) {
+        _resolvedIp = resolvedIP;
         _dirty = true;
     }
 }

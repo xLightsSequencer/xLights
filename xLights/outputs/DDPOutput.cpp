@@ -429,7 +429,7 @@ bool DDPOutput::Open() {
 
     if (!_enabled) return true;
     if (_ip == "") return false;
-    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(GetResolvedIP())) return false;
 
     if (_fulldata != nullptr) delete _fulldata;
     _fulldata = (uint8_t*)malloc(_channels);

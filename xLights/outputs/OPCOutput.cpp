@@ -172,7 +172,7 @@ bool OPCOutput::Open() {
 
     if (!_enabled) return true;
     if (_ip == "") return false;
-    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(GetResolvedIP())) return false;
 
     _ok = IPOutput::Open();
     //if (_fppProxyOutput) {

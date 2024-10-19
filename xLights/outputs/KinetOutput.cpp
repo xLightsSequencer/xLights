@@ -192,7 +192,7 @@ std::string KinetOutput::GetExport() const {
 #pragma region Start and Stop
 bool KinetOutput::Open() {
     if (!_enabled) return true;
-    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(GetResolvedIP())) return false;
 
     _ok = IPOutput::Open();
 
