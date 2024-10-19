@@ -29,6 +29,7 @@
 #include "TestPreset.h"
 #include "../Parallel.h"
 #include "../UtilFunctions.h"
+#include "../utils/ip_utils.h"
 
 #include <numeric>
 
@@ -549,7 +550,7 @@ void OutputManager::AddController(Controller* controller, int pos)
 }
 
 void OutputManager::DeleteController(const std::string& controllerName) {
-
+    ip_utils::waitForAllToResolve();
     for (auto it = begin(_controllers); it != end(_controllers); ++it) {
         if ((*it)->GetName() == controllerName) {
             delete* it;
@@ -561,7 +562,7 @@ void OutputManager::DeleteController(const std::string& controllerName) {
 }
 
 void OutputManager::DeleteAllControllers() {
-
+    ip_utils::waitForAllToResolve();
     while (_controllers.size() > 0) {
         delete _controllers.front();
         _controllers.pop_front();

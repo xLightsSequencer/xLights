@@ -432,6 +432,9 @@ void JobPool::PushJobs(const std::list<Job *> &jobs) {
         signal.notify_one();
     }
 }
+bool JobPool::isEmpty() const {
+    return inFlight == 0;
+}
 
 void JobPool::Start(size_t poolSize, size_t minPoolSize)
 {

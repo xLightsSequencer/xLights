@@ -231,8 +231,7 @@ void ControllerEthernet::SetIP(const std::string& ip) {
 // because we dont resolve IPs on creation for inactive controllers then if the controller is set active we need to resolve it then
 void ControllerEthernet::PostSetActive()
 {
-    if (IsActive() && _ip != "" && _resolvedIp == "")
-    {
+    if (IsActive() && _ip != "" && _resolvedIp == "") {
         _resolvedIp = ip_utils::ResolveIP(_ip);
         for (auto& it : GetOutputs()) {
             it->SetResolvedIP(_resolvedIp);
@@ -240,7 +239,7 @@ void ControllerEthernet::PostSetActive()
     }
 }
 std::string ControllerEthernet::GetResolvedIP(bool forceResolve) const {
-    if (_resolvedIp == "" && _ip != "") {
+    if (_resolvedIp == "" && _ip != "" && forceResolve) {
         return ip_utils::ResolveIP(_ip);
     }
     return _resolvedIp;
@@ -728,6 +727,10 @@ Output::PINGSTATE ControllerEthernet::Ping() {
 }
 
 void ControllerEthernet::AsyncPing() {
+    if (!IsActive()) {
+        // don't ping in-active controllers
+        return;
+    }
 
     // if one is already running dont start another
     if (_asyncPing.valid() && _asyncPing.wait_for(std::chrono::microseconds(1)) == std::future_status::timeout) return;

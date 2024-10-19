@@ -64,6 +64,7 @@ public:
 
     virtual std::string GetThreadStatus();
     
+    bool isEmpty() const;
 private:
     friend class JobPoolWorker;
     void RemoveWorker(JobPoolWorker*);

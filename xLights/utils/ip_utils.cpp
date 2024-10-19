@@ -137,6 +137,7 @@ namespace ip_utils
     class ResolveJob : public Job {
     public:
         ResolveJob(const std::string &i,  std::function<void(const std::string &)> &f) : Job(), ip(i), func(f) {}
+        virtual bool DeleteWhenComplete() { return true; }
         virtual const std::string GetName() const {
             return "RESOLVE_POOL - " + ip;
         }
@@ -192,8 +193,8 @@ namespace ip_utils
         std::function<void(const std::string &)> func;
     };
 
+    static JobPool RESOLVE_POOL("RESOLVE_POOL", 0, 128);
     void ResolveIP(const std::string& ip, std::function<void(const std::string &)> &&func) {
-        static JobPool RESOLVE_POOL("RESOLVE_POOL", 0, 128);
         // Dont resolve partially entered ip addresses as these resolve into unexpected addresses
         if (IsIPValid(ip) || (ip == "MULTICAST") || ip == "" || StartsWith(ip, ".") || (ip[0] >= '0' && ip[0] <= '9')) {
             func(ip);
@@ -210,4 +211,10 @@ namespace ip_utils
         }
     }
 
+    void waitForAllToResolve() {
+        while (!RESOLVE_POOL.isEmpty()) {
+            wxMilliSleep(10);
+            wxYieldIfNeeded();
+        }
+    }
 };
