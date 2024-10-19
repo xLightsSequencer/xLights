@@ -4436,7 +4436,9 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         if (wi > 0 && ht > 0) {
             for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
                 if (modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected) {
-                    CreateUndoPoint("SingleModel", m->name, "location");
+                    if(!m->IsLocked()) {
+                        CreateUndoPoint("SingleModel", m->name, "location");
+                    }
                     modelPreview->GetModels()[i]->AddOffset(delta_x, delta_y, 0.0);
                     modelPreview->GetModels()[i]->UpdateXmlWithScale();
                     //SetupPropGrid(modelPreview->GetModels()[i]);
