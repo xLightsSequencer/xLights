@@ -254,7 +254,6 @@ void StarModel::InitModel()
     innerPercent = wxAtoi(ModelXml->GetAttribute("starCenterPercent", "-1"));
 
     if (parm3 < 2) parm3 = 2; // need at least 2 arms
-    SetNodeCount(parm1, parm2, rgbOrder);
 
     // Found a problem where a user had multiple layer sizes but just 1 string and set to RGB dumb string type.
     // I think the commented out code would fix this but I am not sure it would work in all situations.
@@ -272,14 +271,14 @@ void StarModel::InitModel()
     // each layer is then applied inside the prior one by some factor
     // the radius of the outer circle starts are bufferWi / 2
 
-    int numlights = parm1 * parm2;
-    if (numlights == 0) return;
     if (GetLayerSizeCount() == 0) {
         SetLayerSizeCount(1);
     }
     if (GetLayerSizeCount() == 1) {
-        SetLayerSize(0, numlights);
+        SetLayerSize(0, parm1 * parm2);
     }
+    totalNodes = (int)GetLayerSizesTotalNodes();
+    SetNodeCount(1, totalNodes, rgbOrder);
 
     int maxLightsOnLayer = 0;
     for (int l = 0; l < GetLayerSizeCount(); l++) {
@@ -378,8 +377,8 @@ void StarModel::InitModel()
 
                 while (curPos < segEndLen && currentNode < endNodeForLayer) {
 
-                    int currentString = currentNode / parm2;
-                    int nodeInString = currentNode % parm2;
+                    int currentString = currentNode / totalNodes;
+                    int nodeInString = currentNode % totalNodes;
                     if (nodeInString == 0 && currentString < GetNumStrings()) {
                         chan = stringStartChan[currentString];
                     }
@@ -416,8 +415,8 @@ void StarModel::InitModel()
 
         // handle any left over nodes
         for (int n = currentNode; n < Nodes.size(); n++) {
-            int currentString = n / parm2;
-            int nodeInString = n % parm2;
+            int currentString = n / totalNodes;
+            int nodeInString = n % totalNodes;
             if (nodeInString == 0) {
                 chan = stringStartChan[currentString];
             }
@@ -510,6 +509,19 @@ void StarModel::InitModel()
             innerRadius = outerRadius / starRatio;
         }
     }
+
+    if (GetParm1() > 1) { // this is only needed to get a visialisation of the strings in NodeView. Can easily be ignored.
+        Nodes[0]->StringNum = 0;
+        std::vector<int> result(stringStartChan.size(), -1);
+        result = stringStartChan;
+        std::transform(result.begin(), result.end(), result.begin(), [](int x) { return std::max(x - 1,0); });
+        result.push_back(Nodes[Nodes.size() - 1]->ActChan + 1);
+        for (int i = 1; i < Nodes.size(); ++i) {
+            auto it = std::lower_bound(result.begin(), result.end(), Nodes[i]->ActChan);
+            if (it != result.end()) Nodes[i]->StringNum = std::distance(result.begin(), it) - 1;
+        }
+    }
+
     GetModelScreenLocation().SetRenderSize(BufferWi, BufferHt, GetModelScreenLocation().GetRenderDp());
     screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
@@ -533,29 +545,81 @@ static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(12, TOP_BOT_LEFT_RIGHT_VALUE
 
 void StarModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 640);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
+    wxPGProperty* p;
+
+    AddLayerSizeProperty(grid);
+    p = grid->Append(new wxStringProperty("Total Nodes", "TotalNodes", wxString::Format("%d", totalNodes)));
+    p->SetHelpString("Total Nodes for this model");
+    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
 
     if (SingleNode) {
         p = grid->Append(new wxUIntProperty("Lights/String", "StarLightCount", parm2));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPGPropertyFlags::Hidden, true);
     } else {
         p = grid->Append(new wxUIntProperty("Nodes/String", "StarLightCount", parm2));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
         p->SetHelpString("This is typically the total number of pixels per #String.");
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPGPropertyFlags::Hidden, true);
     }
 
     p = grid->Append(new wxUIntProperty("# Points", "StarStrandCount", parm3));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", parm1));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 640);
+    p->SetEditor("SpinCtrl");
+    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
+
+    if (parm1 == 1) {
+        // cant set start node
+    } else {
+        wxString nm = StartNodeAttrName(0);
+        bool hasIndiv = ModelXml->HasAttribute(nm);
+
+        p = grid->Append(new wxBoolProperty("Indiv Start Nodes", "ModelIndividualStartNodes", hasIndiv));
+        p->SetAttribute("UseCheckbox", true);
+
+        wxPGProperty* psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, wxAtoi(ModelXml->GetAttribute(nm, "1"))));
+        psn->SetAttribute("Min", 1);
+        psn->SetAttribute("Max", (int)GetNodeCount());
+        psn->SetEditor("SpinCtrl");
+
+        if (hasIndiv) {
+            int c = parm1;
+            for (int x = 0; x < c; ++x) {
+                nm = StartNodeAttrName(x);
+                std::string val = ModelXml->GetAttribute(nm, "").ToStdString();
+                if (val.empty()) {
+                    val = ComputeStringStartNode(x);
+                    ModelXml->DeleteAttribute(nm);
+                    ModelXml->AddAttribute(nm, val);
+                }
+                int v = wxAtoi(val);
+                if (v < 1)
+                    v = 1;
+                if (v > NodesPerString())
+                    v = NodesPerString();
+                if (x == 0) {
+                    psn->SetValue(v);
+                } else {
+                    grid->AppendIn(p, new wxUIntProperty(nm, nm, v));
+                }
+            }
+        } else {
+            psn->Enable(false);
+        }
+    }
 
     int ssl = 0;
     for (size_t i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++) {
@@ -566,7 +630,6 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* 
     }
 
     grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, ssl));
-    AddLayerSizeProperty(grid);
 
     p = grid->Append(new wxFloatProperty("Outer to Inner Ratio", "StarRatio", starRatio));
     p->SetAttribute("Precision", 2);
@@ -584,9 +647,24 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* 
 int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
     if ("StarStringCount" == event.GetPropertyName()) {
+        int prvVal = wxAtoi(ModelXml->GetAttribute("parm1")); // we never removed old custom strings.. now we do if/when you reduce the ports
+        int newVal = event.GetPropertyValue().GetLong();
+        if (newVal < prvVal) {
+            for (int i = newVal; i < prvVal; i++) {
+                wxString nm = StartNodeAttrName(i);
+                ModelXml->DeleteAttribute(nm);
+            }
+        }
         ModelXml->DeleteAttribute("parm1");
-        ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        //AdjustStringProperties(grid, parm1);
+        ModelXml->AddAttribute("parm1", wxString::Format("%d", newVal));
+        ModelXml->DeleteAttribute("parm2");
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)GetLayerSizesTotalNodes() / newVal));
+        if (ModelXml->HasAttribute("CustomStrings")) {
+            for (int x = 0; x < parm1; x++) {
+                ModelXml->DeleteAttribute(StartNodeAttrName(x));
+            }
+            ModelXml->DeleteAttribute("CustomStrings");
+        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarStringCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::StarStringCount");
@@ -647,6 +725,47 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGri
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::StarRatio");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "StarModel::OnPropertyGridChange::StarRatio");
         return 0;
+    } else if (event.GetPropertyName() == "ModelIndividualStartNodes") {
+        for (int x = 0; x < parm1; x++) {
+            wxString nm = StartNodeAttrName(x);
+            ModelXml->DeleteAttribute(nm);
+        }
+        for (int x = 0; x < parm1; x++) {
+            wxString nm = StartNodeAttrName(x);
+            ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
+        }
+        if (ModelXml->HasAttribute("CustomStrings")) {
+            ModelXml->DeleteAttribute("CustomStrings");
+        } else {
+            ModelXml->AddAttribute("CustomStrings", wxString::Format("%d", parm1));
+        }
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "StarModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "StarModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "StarModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        return 0;
+    } else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.Strings")) {
+        wxString s = event.GetPropertyName().substr(strlen("ModelIndividualStartNodes.Strings"));
+        int string = wxAtoi(s);
+        wxString nm = StartNodeAttrName(string - 1);
+        int value = event.GetValue().GetInteger();
+        if (value < 1)
+            value = 1;
+        if (value > NodesPerString())
+            value = NodesPerString();
+        ModelXml->DeleteAttribute(nm);
+        ModelXml->AddAttribute(nm, wxString::Format("%d", value));
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "StarModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "StarModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "StarModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "StarModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        return 0;
     }
 
     return Model::OnPropertyGridChange(grid, event);
@@ -655,9 +774,10 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGri
 void StarModel::OnLayerSizesChange(bool countChanged)
 {
     // if string count is 1 then adjust nodes per string to match sum of nodes
-    if (parm1 == 1) {
+    if (GetLayerSizeCount() > 0) {
         ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)GetLayerSizesTotalNodes()));
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)GetLayerSizesTotalNodes()/parm1));
+        totalNodes = (int)GetLayerSizesTotalNodes();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnLayerSizesChange");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnLayerSizesChange");
@@ -820,5 +940,25 @@ bool StarModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
     } else {
         DisplayError("Failure loading Star model file.");
         return false;
+    }
+}
+std::string StarModel::ComputeStringStartNode(int x) const {
+    if (x == 0) return "1";
+
+    int strings = GetNumPhysicalStrings();
+    int nodes = GetNodeCount();
+    float nodesPerString = (float)nodes / (float)strings;
+
+    return std::to_string((int)(x * nodesPerString + 1));
+}
+
+int StarModel::NodesPerString() const {
+    int nodes = GetChanCount() / std::max(GetChanCountPerNode(), 1);
+    int ts = GetSmartTs();
+
+    if (ts <= 1) {
+        return nodes;
+    } else {
+        return nodes * ts;
     }
 }
