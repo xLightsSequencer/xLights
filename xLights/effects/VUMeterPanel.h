@@ -36,6 +36,7 @@ class VUMeterPanel: public xlEffectPanel
 		//(*Declarations(VUMeterPanel)
 		BulkEditCheckBox* CheckBox_LogarithmicXAxis;
 		BulkEditCheckBox* CheckBox_VUMeter_SlowDownFalls;
+		BulkEditChoice* Choice_VUMeter_Audio;
 		BulkEditChoice* Choice_VUMeter_Shape;
 		BulkEditChoice* Choice_VUMeter_TimingTrack;
 		BulkEditChoice* Choice_VUMeter_Type;
@@ -65,6 +66,7 @@ class VUMeterPanel: public xlEffectPanel
 		wxStaticText* StaticText15;
 		wxStaticText* StaticText16;
 		wxStaticText* StaticText17;
+		wxStaticText* StaticText18;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -141,6 +143,8 @@ class VUMeterPanel: public xlEffectPanel
 		static const long ID_VALUECURVE_VUMeter_YOffset;
 		static const long IDD_TEXTCTRL_VUMeter_YOffset;
 		static const long ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset;
+		static const long ID_STATICTEXT6;
+		static const long ID_CHOICE_VUMeter_Audio;
 		//*)
 
 	public:

@@ -744,7 +744,7 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
             // line movement based on music
             float f = 0.1f;
             if (buffer.GetMedia() != nullptr) {
-                auto p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+                auto p = buffer.GetMedia()->GetFrameData(buffer.curPeriod);
                 if (p != nullptr) {
                     f = p->max;
                 }
@@ -767,7 +767,7 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
             }
             float f = 0.1f;
             if (buffer.GetMedia() != nullptr) {
-                auto p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+                auto p = buffer.GetMedia()->GetFrameData(buffer.curPeriod);
                 if (p != nullptr) {
                     f = p->max;
                 }

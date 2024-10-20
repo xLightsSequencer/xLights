@@ -63,33 +63,36 @@ protected:
     static int DecodeShape(const std::string& shape);
 
     void Render(RenderBuffer& buffer, SequenceElements* elements,
-                int bars, const std::string& type, const std::string& timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset, int gain, bool logarithmicX, const std::string& filter, bool regex, const std::string& svgFile);
-    void RenderSpectrogramFrame(RenderBuffer& buffer, int bars, std::vector<float>& lastvalues, std::vector<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain, int sensitivity, std::list<std::vector<wxPoint>>& lineHistory) const;
-    void RenderVolumeBarsFrame(RenderBuffer& buffer, int bars, int gain);
+                int bars, const std::string& type, const std::string& timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote,
+                int xoffset, int yoffset, int gain, bool logarithmicX, const std::string& filter, bool regex, const std::string& svgFile, const std::string& audioFile);
+    void RenderSpectrogramFrame(RenderBuffer& buffer, int bars, std::vector<float>& lastvalues, std::vector<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, 
+        int startnote, int endnote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain, int sensitivity,
+        std::list<std::vector<wxPoint>>& lineHistory, const std::string& audioFile) const;
+    void RenderVolumeBarsFrame(RenderBuffer& buffer, int bars, int gain, const std::string& audioFile);
     void RenderWaveformFrame(RenderBuffer& buffer, int bars, int yoffset, int gain, bool frameDetail);
     void RenderTimingEventFrame(RenderBuffer& buffer, int bars, int type, std::string timingtrack, std::list<int>& timingmarks, const std::string& filter, bool regex);
     void RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int bars, int type, std::string timingtrack, int& nCount, const std::string& filter, bool regex);
     void RenderTimingEventTimedChaseFrame(RenderBuffer& buffer, int usebars, int nType, std::string timingtrack, int& nCount, const std::string& filter, bool regex);
-    void RenderOnFrame(RenderBuffer& buffer, int gain);
-    void RenderOnColourFrame(RenderBuffer& buffer, int gain);
+    void RenderOnFrame(RenderBuffer& buffer, int gain, const std::string& audioFile);
+    void RenderOnColourFrame(RenderBuffer& buffer, int gain, const std::string& audioFile);
     void RenderPulseFrame(RenderBuffer& buffer, int fadeframes, std::string timingtrack, int& lasttimingmark);
     void RenderTimingEventColourFrame(RenderBuffer& buffer, int& colourindex, std::string timingtrack, int sensitivity, const std::string& filter, bool regex);
-    void RenderLevelColourFrame(RenderBuffer& buffer, int& colourindex, int sensitivity, int& lasttimingmark, int gain);
-    void RenderIntensityWaveFrame(RenderBuffer& buffer, int bars, int gain);
-    void RenderLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain);
-    void RenderLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain, bool fullJump, float& lastVal);
-    void RenderLevelBarFrame(RenderBuffer& buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int gain, bool random);
+    void RenderLevelColourFrame(RenderBuffer& buffer, int& colourindex, int sensitivity, int& lasttimingmark, int gain, const std::string& audioFile);
+    void RenderIntensityWaveFrame(RenderBuffer& buffer, int bars, int gain, const std::string& audioFile);
+    void RenderLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain, const std::string& audioFile);
+    void RenderLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain, bool fullJump, float& lastVal, const std::string& audioFile);
+    void RenderLevelBarFrame(RenderBuffer& buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int gain, bool random, const std::string& audioFile);
     void RenderNoteLevelBarFrame(RenderBuffer& buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int startNote, int endNote, int gain, bool random);
-    void RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars, int gain, NSVGimage* svgFile);
+    void RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars, int gain, NSVGimage* svgFile, const std::string& audioFile);
     void RenderTimingEventPulseFrame(RenderBuffer& buffer, int fadeframes, std::string timingtrack, float& lastsize, const std::string& filter, bool regex);
     void RenderTimingEventPulseColourFrame(RenderBuffer& buffer, int fadeframes, std::string timingtrack, float& lastsize, int& colourindex, const std::string& filter, bool regex);
     void RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex, bool all, bool random, const std::string& filter, bool regex, bool bounce, int& lastDirection);
-    void RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote, int gain);
-    void RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain);
-    void RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain, bool fullJump, float& lastsize);
-    void RenderTimingEventJumpFrame(RenderBuffer& buffer, int fallframes, std::string timingtrack, float& lastval, bool useAudioLevel, int gain, const std::string& filter, bool regex);
-    void RenderLevelPulseColourFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int& colourindex, int gain);
-    void RenderDominantFrequencyColour(RenderBuffer& buffer, int sensitivity, int startNote, int endNote, bool gradient);
+    void RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote, int gain, const std::string& audioFile);
+    void RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain, const std::string& audioFile);
+    void RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain, bool fullJump, float& lastsize, const std::string& audioFile);
+    void RenderTimingEventJumpFrame(RenderBuffer& buffer, int fallframes, std::string timingtrack, float& lastval, bool useAudioLevel, int gain, const std::string& filter, bool regex, const std::string& audioFile);
+    void RenderLevelPulseColourFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int& colourindex, int gain, const std::string& audioFile);
+    void RenderDominantFrequencyColour(RenderBuffer& buffer, int sensitivity, int startNote, int endNote, bool gradient, const std::string& audioFile);
 
     void DrawBox(RenderBuffer& buffer, int startx, int endx, int starty, int endy, xlColor& color1);
     void DrawCircle(RenderBuffer& buffer, int x, int y, float radius, xlColor& color1);

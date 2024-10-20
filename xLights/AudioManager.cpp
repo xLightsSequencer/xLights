@@ -1621,9 +1621,9 @@ void ProgressFunction(wxProgressDialog* pd, int p) {
 }
 
 // Get the pre-prepared data for this frame
-const FrameData* AudioManager::GetFrameData(int frame, const std::string& timing, bool needNotes) {
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+const FrameData* AudioManager::GetFrameData(int frame, bool needNotes)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // Grab the lock so we can safely access the frame data
     std::shared_lock<std::shared_timed_mutex> lock(_mutex);
 
@@ -1657,9 +1657,10 @@ const FrameData* AudioManager::GetFrameData(int frame, const std::string& timing
     return nullptr;
 }
 
-const FrameData* AudioManager::GetFrameData(const std::string& timing, long ms, bool needNotes) {
+const FrameData* AudioManager::GetFrameData(long ms, bool needNotes)
+{
     int frame = ms / _intervalMS;
-    return GetFrameData(frame, timing, needNotes);
+    return GetFrameData(frame, needNotes);
 }
 
 // Constant Bitrate Detection Functions
