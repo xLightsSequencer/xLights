@@ -6,7 +6,7 @@
 		<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
 			<object class="sizeritem">
 				<object class="wxStaticText" name="wxID_ANY" variable="StaticText1" member="no">
-					<label>Tool Icon Size</label>
+					<label>Effect Icon Size</label>
 				</object>
 				<col>0</col>
 				<row>0</row>
