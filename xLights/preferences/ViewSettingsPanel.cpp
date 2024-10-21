@@ -24,15 +24,15 @@
 #include <wx/preferences.h>
 
 //(*IdInit(ViewSettingsPanel)
-const long ViewSettingsPanel::ID_CHOICE3 = wxNewId();
-const long ViewSettingsPanel::ID_CHOICE4 = wxNewId();
-const long ViewSettingsPanel::ID_CHOICE5 = wxNewId();
-const long ViewSettingsPanel::ID_CHECKBOX1 = wxNewId();
-const long ViewSettingsPanel::ID_CHECKBOX2 = wxNewId();
-const long ViewSettingsPanel::ID_CHECKBOX3 = wxNewId();
-const long ViewSettingsPanel::ID_CHOICE_TIMELINEZOOMING = wxNewId();
-const long ViewSettingsPanel::ID_CHECKBOX4 = wxNewId();
-const long ViewSettingsPanel::ID_CHECKBOX_ZoomMethod = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHOICE3 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHOICE4 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHOICE5 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHECKBOX1 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHECKBOX2 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHECKBOX3 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHOICE_TIMELINEZOOMING = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHECKBOX4 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHECKBOX_ZoomMethod = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ViewSettingsPanel, wxPanel)
@@ -52,7 +52,7 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
 
     Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
     GridBagSizer1 = new wxGridBagSizer(0, 0);
-    StaticText1 = new wxStaticText(this, wxID_ANY, _("Tool Icon Size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    StaticText1 = new wxStaticText(this, wxID_ANY, _("Effect Icon Size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     GridBagSizer1->Add(StaticText1, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ToolIconSizeChoice = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
     ToolIconSizeChoice->Append(_("Small"));
@@ -96,18 +96,16 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
     CheckBox_ZoomMethod->SetValue(true);
     GridBagSizer1->Add(CheckBox_ZoomMethod, wxGBPosition(8, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(GridBagSizer1);
-    GridBagSizer1->Fit(this);
-    GridBagSizer1->SetSizeHints(this);
 
-    Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnToolIconSizeChoiceSelect);
-    Connect(ID_CHOICE4,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnModelHandleSizeChoiceSelect);
-    Connect(ID_CHOICE5,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnEffectAssistChoiceSelect);
-    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnPlayControlsCheckBoxClick);
-    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnHousePreviewCheckBoxClick);
-    Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_BaseShowFolderClick);
-    Connect(ID_CHOICE_TIMELINEZOOMING,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnChoice_TimelineZoomingSelect);
-    Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnPresetPreviewCheckBoxClick);
-    Connect(ID_CHECKBOX_ZoomMethod,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_ZoomMethodClick);
+    Connect(ID_CHOICE3, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnToolIconSizeChoiceSelect);
+    Connect(ID_CHOICE4, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnModelHandleSizeChoiceSelect);
+    Connect(ID_CHOICE5, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnEffectAssistChoiceSelect);
+    Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnPlayControlsCheckBoxClick);
+    Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnHousePreviewCheckBoxClick);
+    Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_BaseShowFolderClick);
+    Connect(ID_CHOICE_TIMELINEZOOMING, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnChoice_TimelineZoomingSelect);
+    Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnPresetPreviewCheckBoxClick);
+    Connect(ID_CHECKBOX_ZoomMethod, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_ZoomMethodClick);
     //*)
 
 #ifdef _MSC_VER
