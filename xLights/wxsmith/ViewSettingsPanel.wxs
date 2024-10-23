@@ -27,7 +27,7 @@
 				</object>
 				<col>1</col>
 				<row>0</row>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -165,6 +165,35 @@
 				</object>
 				<col>0</col>
 				<row>8</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
+					<label>Group Center Crosshair Size</label>
+				</object>
+				<col>0</col>
+				<row>9</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE_CROSSHAIRSIZE" variable="CrosshairSizeChoice" member="yes">
+					<content>
+						<item>Large</item>
+						<item>Normal</item>
+						<item>Small</item>
+						<item>Tiny</item>
+						<item>None</item>
+					</content>
+					<selection>1</selection>
+					<tooltip>Control the size of the crosshair for group centering</tooltip>
+					<handler function="OnCrosshairSizeChoiceSelect" entry="EVT_CHOICE" />
+				</object>
+				<col>1</col>
+				<row>9</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
