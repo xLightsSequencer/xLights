@@ -473,8 +473,9 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         }
 
         // if fseq had media update xml
-        if (!CurrentSeqXmlFile->HasAudioMedia() && FileExists(media_file) && wxFileName(media_file).IsFileReadable()) {
-            CurrentSeqXmlFile->SetMediaFile(GetShowDirectory(), media_file.GetFullPath(), true);
+        wxString mfFP = media_file.GetFullPath();
+        if (!mfFP.empty() && !CurrentSeqXmlFile->HasAudioMedia() && FileExists(mfFP) && media_file.IsFileReadable()) {
+            CurrentSeqXmlFile->SetMediaFile(GetShowDirectory(), mfFP, true);
             int length_ms = CurrentSeqXmlFile->GetMedia()->LengthMS();
             CurrentSeqXmlFile->SetSequenceDurationMS(length_ms);
             playAnimation = false;

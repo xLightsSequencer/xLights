@@ -144,7 +144,6 @@ namespace ip_utils
         virtual void Process() {
             struct addrinfo hints, *res, *result;
             int errcode;
-            char addrstr[100];
             void *ptr;
 
             memset (&hints, 0, sizeof (hints));
@@ -160,8 +159,7 @@ namespace ip_utils
             } else {
                 res = result;
                 while (res)  {
-                    inet_ntop(res->ai_family, res->ai_addr->sa_data, addrstr, 100);
-                    
+                    char addrstr[100] = {0};
                     switch (res->ai_family) {
                         case AF_INET:
                             ptr = &((struct sockaddr_in *) res->ai_addr)->sin_addr;

@@ -238,7 +238,7 @@ void ControllerEthernet::SetIP(const std::string& ip) {
 void ControllerEthernet::PostSetActive()
 {
     std::unique_lock<std::shared_mutex> lock(_resolveMutex);
-    if (IsActive() && _ip != "" && _resolvedIp == "") {
+    if (IsActive() && !_ip.empty() && _resolvedIp.empty()) {
         _resolvedIp = ip_utils::ResolveIP(_ip);
         lock.unlock();
         std::shared_lock<std::shared_mutex> lock(_resolveMutex);
@@ -249,7 +249,7 @@ void ControllerEthernet::PostSetActive()
 }
 std::string ControllerEthernet::GetResolvedIP(bool forceResolve) const {
     std::shared_lock<std::shared_mutex> lock(_resolveMutex);
-    if (_resolvedIp == "" && _ip != "" && forceResolve) {
+    if (_resolvedIp.empty() && !_ip.empty() && forceResolve) {
         return ip_utils::ResolveIP(_ip);
     }
     return _resolvedIp;
