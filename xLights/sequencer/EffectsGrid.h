@@ -150,6 +150,7 @@ public:
     bool DoACDraw(bool keyboard = false, ACTYPE typeOverride = ACTYPE::NILTYPEOVERRIDE, ACSTYLE styleOverride = ACSTYLE::NILSTYLEOVERRIDE, ACTOOL toolOverride = ACTOOL::NILTOOLOVERRIDE, ACMODE modeOverride = ACMODE::NILMODEOVERRIDE);
 
     void AlignSelectedEffects(EFF_ALIGN_MODE align_mode);
+    void AlignSelectedEffectsToTimingMark();
 
     int GetEffectRow(Effect* ef);
     Effect* OldPaste(const wxString &data, const wxString &pasteDataVer);
@@ -385,6 +386,7 @@ private:
     static const long ID_GRID_MNU_ALIGN_MATCH_DURATION;
     static const long ID_GRID_MNU_ALIGN_START_TIMES_SHIFT;
     static const long ID_GRID_MNU_ALIGN_END_TIMES_SHIFT;
+    static const long ID_GRID_MNU_ALIGN_TO_TIMING_MARK;
     static const long ID_GRID_MNU_SPLIT_EFFECT;
     static const long ID_GRID_MNU_DUPLICATE_EFFECT;
     static const long ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT;

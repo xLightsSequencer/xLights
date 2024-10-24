@@ -99,6 +99,7 @@ const long EffectsGrid::ID_GRID_MNU_ALIGN_CENTERPOINTS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_MATCH_DURATION = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_START_TIMES_SHIFT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_END_TIMES_SHIFT = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_ALIGN_TO_TIMING_MARK = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_SPLIT_EFFECT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DUPLICATE_EFFECT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT = wxNewId();
@@ -405,6 +406,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
         wxMenuItem* menu_align_match_duration = mnuAlignment->Append(ID_GRID_MNU_ALIGN_MATCH_DURATION, "Align Match Duration");
         wxMenuItem* menu_align_start_times_shift = mnuAlignment->Append(ID_GRID_MNU_ALIGN_START_TIMES_SHIFT, "Shift Align Start Times");
         wxMenuItem* menu_align_end_times_shift = mnuAlignment->Append(ID_GRID_MNU_ALIGN_END_TIMES_SHIFT, "Shift Align End Times");
+        wxMenuItem* menu_align_to_timing_mark = mnuAlignment->Append(ID_GRID_MNU_ALIGN_TO_TIMING_MARK, "Align To Closest Timing Mark");
         mnuAlignment->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
         mnuLayer.AppendSubMenu(mnuAlignment, "Alignment");
         if ((mSelectedEffect == nullptr) || !MultipleEffectsSelected()) {
@@ -415,6 +417,10 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
             menu_align_match_duration->Enable(false);
             menu_align_start_times_shift->Enable(false);
             menu_align_end_times_shift->Enable(false);
+        }
+
+        if ((mSelectedEffect == nullptr && !MultipleEffectsSelected()) || GetActiveTimingElement() == nullptr) {
+            menu_align_to_timing_mark->Enable(false);
         }
 
         // Miscellaneous
@@ -764,6 +770,9 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
     } else if (id == ID_GRID_MNU_ALIGN_END_TIMES_SHIFT) {
         logger_base.debug("OnGridPopup - ALIGN_END_TIMES_SHIFT");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_END_TIMES_SHIFT);
+    } else if (id == ID_GRID_MNU_ALIGN_TO_TIMING_MARK) {
+        logger_base.debug("OnGridPopup - ID_GRID_MNU_ALIGN_TO_TIMING_MARK");
+        AlignSelectedEffectsToTimingMark();
     } else if (id == ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT) {
         logger_base.debug("OnGridPopup - CREATE_TIMING_FROM_EFFECT");
         CreateTimingFromSelectedEffects();
@@ -4491,6 +4500,47 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode) {
     }
     sendRenderDirtyEvent();
     xlights->DoForceSequencerRefresh();
+}
+
+void EffectsGrid::AlignSelectedEffectsToTimingMark() {
+    auto* timing = GetActiveTimingElement();
+    if (timing == nullptr) {
+        return;
+    }
+    auto* tel = timing->GetEffectLayer(0);
+    if (tel == nullptr) {
+        return;
+    }
+    auto GetClosestMark = [&tel](long timeMS) {
+        long closest = std::numeric_limits<long int>::max();
+        long closest_MS = std::numeric_limits<long int>::max();
+        for (int index = 0; index < tel->GetEffectCount(); index++) {
+            Effect* tim_ef = tel->GetEffect(index);
+            auto time_ms_st = abs(timeMS - tim_ef->GetStartTimeMS());
+            if (time_ms_st < closest) {
+                closest = time_ms_st;
+                closest_MS = tim_ef->GetStartTimeMS();
+            }
+            auto time_ms_end = abs(timeMS - tim_ef->GetEndTimeMS());
+            if (time_ms_end < closest) {
+                closest = time_ms_end;
+                closest_MS = tim_ef->GetEndTimeMS();
+            }
+        }
+        return closest_MS;
+    };
+
+    auto efs = GetSelectedEffects();
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+
+    for (auto* it :efs) {
+        mSequenceElements->get_undo_mgr().CaptureModifiedEffect(it->GetParentEffectLayer()->GetParentElement()->GetName(), it->GetParentEffectLayer()->GetIndex(), it);
+        auto const st = it->GetStartTimeMS();
+        auto closest_st = GetClosestMark(st);
+        auto closest_end = GetClosestMark(it->GetEndTimeMS());
+        it->SetStartTimeMS(closest_st);
+        it->SetEndTimeMS(closest_end);
+    }
 }
 
 bool EffectsGrid::PapagayoEffectsSelected() const {
