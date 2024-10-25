@@ -123,8 +123,8 @@ public:
         return lock;
     }
 
-    bool IsTimingLayer();
-    bool IsFixedTimingLayer();
+    bool IsTimingLayer() const;
+    bool IsFixedTimingLayer() const;
 
     void CleanupAfterRender();
     void NumberEffects();

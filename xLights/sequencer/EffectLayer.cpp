@@ -317,13 +317,13 @@ int EffectLayer::GetEffectCount() const
     return mEffects.size();
 }
 
-bool EffectLayer::IsTimingLayer()
+bool EffectLayer::IsTimingLayer() const
 {
     TimingElement* te = dynamic_cast<TimingElement*>(GetParentElement());
     return !(te == nullptr);
 }
 
-bool EffectLayer::IsFixedTimingLayer()
+bool EffectLayer::IsFixedTimingLayer() const
 {
     TimingElement* te = dynamic_cast<TimingElement*>(GetParentElement());
     return !(te == nullptr || !te->IsFixedTiming());

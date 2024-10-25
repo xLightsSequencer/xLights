@@ -45,6 +45,9 @@
 #include "effects/VideoEffect.h"
 #include "models/Model.h"
 
+#include <cmath>
+#include <limits>
+
 #include <log4cpp/Category.hh>
 
 #define EFFECT_RESIZE_NO 0
@@ -4504,24 +4507,24 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode) {
 
 void EffectsGrid::AlignSelectedEffectsToTimingMark() {
     auto* timing = GetActiveTimingElement();
-    if (timing == nullptr) {
+    if (nullptr == timing) {
         return;
     }
     auto* tel = timing->GetEffectLayer(0);
-    if (tel == nullptr) {
+    if (nullptr == tel) {
         return;
     }
-    auto GetClosestMark = [&tel](long timeMS) {
-        long closest = std::numeric_limits<long int>::max();
-        long closest_MS = std::numeric_limits<long int>::max();
+    auto GetClosestMark = [&tel](int const timeMS) {
+        int closest = std::numeric_limits<int>::max();
+        int closest_MS = std::numeric_limits<int>::max();
         for (int index = 0; index < tel->GetEffectCount(); index++) {
-            Effect* tim_ef = tel->GetEffect(index);
-            auto time_ms_st = abs(timeMS - tim_ef->GetStartTimeMS());
+            auto* tim_ef = tel->GetEffect(index);
+            auto const time_ms_st = std::abs(timeMS - tim_ef->GetStartTimeMS());
             if (time_ms_st < closest) {
                 closest = time_ms_st;
                 closest_MS = tim_ef->GetStartTimeMS();
             }
-            auto time_ms_end = abs(timeMS - tim_ef->GetEndTimeMS());
+            auto const time_ms_end = std::abs(timeMS - tim_ef->GetEndTimeMS());
             if (time_ms_end < closest) {
                 closest = time_ms_end;
                 closest_MS = tim_ef->GetEndTimeMS();
@@ -4529,18 +4532,51 @@ void EffectsGrid::AlignSelectedEffectsToTimingMark() {
         }
         return closest_MS;
     };
-
-    auto efs = GetSelectedEffects();
     mSequenceElements->get_undo_mgr().CreateUndoStep();
-
-    for (auto* it :efs) {
-        mSequenceElements->get_undo_mgr().CaptureModifiedEffect(it->GetParentEffectLayer()->GetParentElement()->GetName(), it->GetParentEffectLayer()->GetIndex(), it);
-        auto const st = it->GetStartTimeMS();
-        auto closest_st = GetClosestMark(st);
-        auto closest_end = GetClosestMark(it->GetEndTimeMS());
-        it->SetStartTimeMS(closest_st);
-        it->SetEndTimeMS(closest_end);
+    for (int i = 0; i < mSequenceElements->GetRowInformationSize(); i++) {
+        auto* el = mSequenceElements->GetEffectLayer(i);
+        auto const frame_ms = mSequenceElements->GetFrameMS();
+        for (int k = 0; k < 20; k++) {//crappy recursion
+            bool moved{ false };
+            for (auto* ef : el->GetEffects()) {
+                if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
+                    auto const st = ef->GetStartTimeMS();
+                    auto const end = ef->GetEndTimeMS();
+                    auto const closest_st = GetClosestMark(st);
+                    auto const closest_end = GetClosestMark(end);
+                    if (closest_st == std::numeric_limits<int>::max() ||
+                        closest_end == std::numeric_limits<int>::max()) {
+                        continue;
+                    }
+                    if (closest_st == closest_end) { // skip if new start and end are the same
+                        continue;
+                    }
+                    if (closest_st == st && closest_end == end) { // skip if nothing changed
+                        continue;
+                    }
+                    auto const has_pre = el->HitTestEffectBetweenTime(closest_st, st);
+                    auto const has_post = el->HitTestEffectBetweenTime(end, closest_end);
+                    if (has_pre && has_post) { // skip if another effect in the way
+                        continue;
+                    }
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(ef->GetParentEffectLayer()->GetParentElement()->GetName(), ef->GetParentEffectLayer()->GetIndex(), ef->GetID(), st, end);
+                    if (!has_pre && closest_st != st) {
+                        ef->SetStartTimeMS(closest_st);
+                        moved = true;
+                    }
+                    if (!has_post && closest_end != end) {
+                        ef->SetEndTimeMS(closest_end);
+                        moved = true;
+                    }
+                }
+            }
+            if (!moved) {
+                break;
+            }
+        }
     }
+
+    sendRenderDirtyEvent();
 }
 
 bool EffectsGrid::PapagayoEffectsSelected() const {
