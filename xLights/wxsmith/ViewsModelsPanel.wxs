@@ -165,7 +165,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON11" variable="Button_MakeMaster" member="yes">
-							<label>Make Master</label>
+							<label>Copy To Master</label>
+							<tooltip>Copy elements and ordering to your master render view</tooltip>
 							<handler function="OnButton_MakeMasterClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
