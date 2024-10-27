@@ -5,6 +5,7 @@
 		<SupportsPixelPortNullPixels/>
 		<SupportsPixelPortDirection/>
 		<SupportsPixelPortColourOrder/>
+		<SupportsPixelPortGrouping/>
 		<SupportsRemotes/>
 		<SupportsSmartRemotes>6</SupportsSmartRemotes>
 		<AllSmartRemoteTypesPerPortMustBeSame/>
