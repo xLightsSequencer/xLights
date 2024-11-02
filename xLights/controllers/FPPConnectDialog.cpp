@@ -279,6 +279,19 @@ void FPPConnectDialog::UpdateSeqCount()
     Selected_Label->SetLabel(wxString::Format("Selected: %u/%u", selected, items));
 }
 
+uint32_t FPPConnectDialog::GetSelectedSeqCount() {
+    uint32_t selected = 0;
+
+    auto item = CheckListBox_Sequences->GetFirstItem();
+    while (item.IsOk()) {
+        if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED)
+            selected++;
+        item = CheckListBox_Sequences->GetNextItem(item);
+    }
+
+    return selected;
+}
+
 void FPPConnectDialog::OnSequenceListToggled(wxDataViewEvent& event)
 {
     UpdateSeqCount();
@@ -993,13 +1006,15 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
         ++row;
     }
     row = 0;
+    uint32_t seqCountToUpload = GetSelectedSeqCount();
+    uint32_t seqCountUploaded = 0;
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED) {
             for (const auto& inst : instances) {
                 inst->updateProgress(0, true);
             }
-
+            seqCountUploaded++;
             wxString fseqRaw = CheckListBox_Sequences->GetItemText(item);
             std::string fseq = ToUTF8(fseqRaw);
             std::string media = ToUTF8(CheckListBox_Sequences->GetItemText(item, 2));
@@ -1054,7 +1069,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 }
                 if (!cancelled && uploadCount) {
                     if (prepareCount) {
-                        prgs->setActionLabel("Preparing FSEQ File for " + wxFileName(ToWXString(fseq)).GetFullName());
+                        prgs->setActionLabel("Preparing FSEQ File for " + wxFileName(ToWXString(fseq)).GetFullName() + " (" + std::to_string(seqCountUploaded) + "/" + std::to_string(seqCountToUpload) + ")");
                         for (const auto& inst : instances) {
                             inst->updateProgress(0, false);
                         }
@@ -1102,7 +1117,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         }
                     }
                     row = 0;
-                    prgs->setActionLabel("Uploading " + wxFileName(ToWXString(fseq)).GetFullName());
+                    prgs->setActionLabel("Uploading " + wxFileName(ToWXString(fseq)).GetFullName() + " (" + std::to_string(seqCountUploaded) + "/" + std::to_string(seqCountToUpload) + ")");
                     for (const auto& inst : instances) {
                         inst->updateProgress(0, false);
                     }
