@@ -28,6 +28,7 @@ class ViewSettingsPanel: public wxPanel
 
 		//(*Declarations(ViewSettingsPanel)
 		wxCheckBox* CheckBox_BaseShowFolder;
+		wxCheckBox* CheckBox_DisableKeyAcceleration;
 		wxCheckBox* CheckBox_PresetPreview;
 		wxCheckBox* CheckBox_ZoomMethod;
 		wxCheckBox* HousePreviewCheckBox;
@@ -44,15 +45,16 @@ class ViewSettingsPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(ViewSettingsPanel)
-		static const wxWindowID ID_CHOICE3;
-		static const wxWindowID ID_CHOICE4;
-		static const wxWindowID ID_CHOICE5;
-		static const wxWindowID ID_CHECKBOX1;
-		static const wxWindowID ID_CHECKBOX2;
-		static const wxWindowID ID_CHECKBOX3;
-		static const wxWindowID ID_CHOICE_TIMELINEZOOMING;
-		static const wxWindowID ID_CHECKBOX4;
-		static const wxWindowID ID_CHECKBOX_ZoomMethod;
+		static const long ID_CHOICE3;
+		static const long ID_CHOICE4;
+		static const long ID_CHOICE5;
+		static const long ID_CHECKBOX1;
+		static const long ID_CHECKBOX2;
+		static const long ID_CHECKBOX5;
+		static const long ID_CHECKBOX3;
+		static const long ID_CHOICE_TIMELINEZOOMING;
+		static const long ID_CHECKBOX4;
+		static const long ID_CHECKBOX_ZoomMethod;
 		//*)
 
 	private:
@@ -70,6 +72,7 @@ class ViewSettingsPanel: public wxPanel
 		void OnChoice_TimelineZoomingSelect(wxCommandEvent& event);
 		void OnPresetPreviewCheckBoxClick(wxCommandEvent& event);
 		void OnCheckBox_ZoomMethodClick(wxCommandEvent& event);
+		void OnCheckBox_DisableKeyAccelerationClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

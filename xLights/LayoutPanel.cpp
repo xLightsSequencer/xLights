@@ -6350,7 +6350,7 @@ void LayoutPanel::Nudge(int key)
             static int repeats = 0;
             static int lastKey = 0;
 
-            if (wxGetUTCTimeMillis() - lastTime > 500 || key != lastKey)
+            if (wxGetUTCTimeMillis() - lastTime > 500 || key != lastKey || xlights->IsDisableKeyAcceleration())
             {
                 lastDelta = 1.0;
                 repeats = 0;

@@ -1103,6 +1103,7 @@ public:
     bool _autoShowHousePreview = false;
     bool _zoomMethodToCursor = true;
     bool _hidePresetPreview = false;
+    bool _disableKeyAcceleration = false;
     bool _smallWaveform = false;
     bool _modelBlendDefaultOff = true;
     bool _lowDefinitionRender = false;
@@ -1283,8 +1284,10 @@ public:
     int AutoSaveInterval() const { return mAutoSaveInterval; }
     void SetAutoSaveInterval(int i);
 
+    bool IsDisableKeyAcceleration() const { return _disableKeyAcceleration; }
+    void SetDisableKeyAcceleration(bool b);
+
     bool IsSuppressFadeHints() const { return mSuppressFadeHints; }
-    bool SuppressFadeHints() const { return mSuppressFadeHints; }
     void SetSuppressFadeHints(bool b);
 
     bool IsSuppressColorWarn() const { return mSuppressColorWarn; }

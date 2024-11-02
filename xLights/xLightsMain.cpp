@@ -1559,6 +1559,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     logger_base.debug("Snap To Timing Marks: %s.", toStr(_snapToTimingMarks));
 
     config->Read("xLightsFSEQVersion", &_fseqVersion, 2);
+    logger_base.debug("FSEQ Save Version: %d.", _fseqVersion);
+
+    config->Read("xLightsDisableKeyAccelerations", &_disableKeyAcceleration, false);
+    logger_base.debug("Disable Key Accelerations: %s.", _disableKeyAcceleration ? "Y": "N");
 
     config->Read("xLightsTimelineZooming", &_timelineZooming, 0);
     config->Read("xLightsPlayVolume", &playVolume, 100);
@@ -2147,6 +2151,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsTimelineZooming", _timelineZooming);
     config->Write("xLightsSnapToTimingMarks", _snapToTimingMarks);
     config->Write("xLightsFSEQVersion", _fseqVersion);
+    config->Write("xLightsDisableKeyAccelerations", _disableKeyAcceleration);
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
@@ -9866,6 +9871,10 @@ void xLightsFrame::SetSuppressFadeHints(bool b)
 {
     mSuppressFadeHints = b;
     mainSequencer->PanelEffectGrid->Refresh();
+}
+
+void xLightsFrame::SetDisableKeyAcceleration(bool b) {
+    _disableKeyAcceleration = b;
 }
 
 void xLightsFrame::SetSuppressColorWarn(bool b)

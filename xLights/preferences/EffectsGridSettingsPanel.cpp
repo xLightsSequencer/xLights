@@ -108,7 +108,7 @@ bool EffectsGridSettingsPanel::TransferDataToWindow() {
     DoubleClickChoice->SetSelection(frame->TimingPlayOnDClick());
     SmallWaveformCheckBox->SetValue(frame->SmallWaveform());
     SnapToTimingCheckBox->SetValue(frame->SnapToTimingMarks());
-    TransistionMarksCheckBox->SetValue(!frame->SuppressFadeHints());
+    TransistionMarksCheckBox->SetValue(!frame->IsSuppressFadeHints());
     ColorUpdateWarnCheckBox->SetValue(frame->SuppressColorWarn());
     int gs = frame->GridSpacing();
     switch (gs) {
