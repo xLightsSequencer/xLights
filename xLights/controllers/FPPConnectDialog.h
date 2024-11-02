@@ -113,6 +113,7 @@ class FPPConnectDialog: public wxDialog
 		void DisplayDateModified(const wxString& filePath, wxTreeListItem &index) const;
 
 		void UpdateSeqCount();
+        uint32_t GetSelectedSeqCount();
         void OnSequenceListToggled(wxDataViewEvent& event);
     
         void doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload);
