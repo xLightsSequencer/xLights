@@ -2581,9 +2581,6 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     cud.Check(rules, check);
     cud.Dump();
 
-    wxFileName fnOrig;
-    fnOrig.AssignTempFileName("pixelOutputs");
-    std::string file = fnOrig.GetFullPath().ToStdString();
     wxJSONValue origJson;
     GetURLAsJSON("/api/channel/output/" + fppFileName, origJson, false);
     logger_base.debug("Original JSON");
@@ -2962,14 +2959,6 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     if (!origJson.IsSameAs(root)) {
         logger_base.debug("Uploading New JSON");
-        wxFileName fn;
-        fn.AssignTempFileName("pixelOutputs");
-        file = fn.GetFullPath().ToStdString();
-        wxFileOutputStream ufile(fn.GetFullPath());
-        wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
-        writer.Write(root, ufile);
-        ufile.Close();
-
         PostJSONToURL("/api/channel/output/" + fppFileName, root);
         SetRestartFlag();
     } else {
