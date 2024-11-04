@@ -771,7 +771,13 @@ void xLightsApp::WipeSettings()
     logger_base.info("Wiping settings.");
 
     wxConfigBase* config = wxConfigBase::Get();
-    config->DeleteAll();
+    //config->DeleteAll();
+#ifdef __WXOSX__
+    wxConfig *bookmarks = new wxConfig("xLights-Bookmarks");
+    bookmarks->DeleteAll();
+    bookmarks->Flush();
+    delete bookmarks;
+#endif
 }
 
 bool xLightsApp::ProcessIdle() {
