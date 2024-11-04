@@ -384,6 +384,11 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
 
     if (_outputManager.IsAutoUpdateFromBaseShowDir() && _outputManager.GetBaseShowDir() != "") {
         logger_base.debug("Updating from base folder on show folder open.");
+        if (!ObtainAccessToURL(_outputManager.GetBaseShowDir(), true)) {
+            std::string dstr = _outputManager.GetBaseShowDir();
+            PromptForDirectorySelection("Reselect Base Show Directory", dstr);
+            _outputManager.SetBaseShowDir(dstr);
+        }
         UpdateFromBaseShowFolder(false);
     }
 

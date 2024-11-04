@@ -4535,7 +4535,6 @@ void EffectsGrid::AlignSelectedEffectsToTimingMark() {
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     for (int i = 0; i < mSequenceElements->GetRowInformationSize(); i++) {
         auto* el = mSequenceElements->GetEffectLayer(i);
-        auto const frame_ms = mSequenceElements->GetFrameMS();
         for (int k = 0; k < 20; k++) {//crappy recursion
             bool moved{ false };
             for (auto* ef : el->GetEffects()) {
