@@ -1862,157 +1862,186 @@ void SeqSettingsDialog::OnButton_AddMilisecondsClick(wxCommandEvent& event) {
     const std::string pre = TextCtrl_Premiliseconds->GetValue().Trim(true).Trim(false);
     const std::string post = TextCtrl_Postmiliseconds->GetValue().Trim(true).Trim(false);
 
-    if ((pre != "") && (post != "")) {
-        std::string outputFile = "";
-        size_t lastDot = inputFile.find_last_of('.');
-        // If there is an extension, insert "silence" before the extension, else after
-        if (lastDot != std::string::npos) outputFile = inputFile.substr(0, lastDot) + "_" + pre + "_" + post + inputFile.substr(lastDot);
-        else outputFile = inputFile + "_" + pre + "_" + post;
-        wxFileName targetFile(outputFile);
-
-        struct musicEdit {
-            std::string file;
-            double start;
-            double length;
-            double sourceoffset;
-            double fadein;
-            double fadeout;
-            double volume;
-            bool crossfadein;
-            bool crossfadeout;
-            musicEdit(const std::string& f, double s, double l, double so, double fi, double fo, double v, bool cfi, bool cfo) :
-                file(f), start(s), length(l), sourceoffset(so), fadein(fi), fadeout(fo), volume(v), crossfadein(cfi), crossfadeout(cfo) {
-            }
-        };
-        std::list<musicEdit> edits;
-        AudioManager* firstAudio = nullptr;
-        edits.push_back(musicEdit(inFile.GetFullName(), 0, std::stof(pre) / 1000, 0, 0, 0, 0, false, false));
-        edits.push_back(musicEdit(inFile.GetFullName(), std::stof(pre) / 1000, std::stof(mp3dur), 0, 0, 0, 1, false, false));
-        edits.push_back(musicEdit(inFile.GetFullName(), std::stof(pre) / 1000 + std::stof(mp3dur), std::stof(post) / 1000, 0, 0, 0, 0, false, false));
-
-        wxString music = inputFile;
-
-        std::map<std::string, AudioManager*> sourceSongs;
-        double outputLength = 0;
-        long sampleRate = -1;
-        for (const auto& it : edits) {
-            outputLength = std::max(outputLength, it.start + it.length);
-            sourceSongs[it.file] = new AudioManager(music);
-            if (firstAudio == nullptr) {
-                firstAudio = sourceSongs[it.file];
-            }
-        }
-        for (const auto& it : sourceSongs) {
-            sampleRate = it.second->GetRate();
-        }
-
-        long totalSamples = sampleRate * outputLength;
-        std::vector<float> left(totalSamples);
-        std::vector<float> right(totalSamples);
-
-        for (const auto& it : edits) {
-            auto audio = sourceSongs[it.file];
-            if (audio != nullptr) {
-                if (audio->GetFrameInterval() < 0) {
-                    audio->SetFrameInterval(20);
-                }
-                audio->GetRawLeftData(audio->GetTrackSize() - 1);
-
-                long startOutput = sampleRate * it.start;
-                long outputSamples = sampleRate * it.length;
-                wxASSERT(startOutput + outputSamples - 1 <= totalSamples);
-                long startSample = audio->GetRate() * it.sourceoffset;
-                long inputSamples = audio->GetRate() * it.length;
-                wxASSERT(startSample + inputSamples - 1 < audio->GetTrackSize());
-                wxASSERT(inputSamples == outputSamples);
-
-                float* lsource = audio->GetRawLeftDataPtr(startSample);
-                float* rsource = audio->GetRawRightDataPtr(startSample);
-                long fadeinsamples = it.fadein * audio->GetRate();
-                long fadeoutsamples = it.fadeout * audio->GetRate();
-                long fadeoutstart = inputSamples - fadeoutsamples;
-
-                for (long i = 0; i < inputSamples; i++) {
-                    float l = lsource[i] * it.volume;
-                    float r;
-                    if (rsource != nullptr) {
-                        r = rsource[i] * it.volume;
-                    } else {
-                        r = l;
-                    }
-                    if (i < fadeinsamples) {
-                        if (it.crossfadein) {
-                            double f = log10((double)i / fadeinsamples + 0.1) * 10.0 / 11.0;
-                            if (f < 0)
-                                f = 0.0;
-                            if (f > 1)
-                                f = 1.0;
-                            l *= f;
-                            r *= f;
-                        } else {
-                            double f = pow(10.0, ((double)i / fadeinsamples - 1.0) - 0.1) * 1.1;
-                            if (f < 0)
-                                f = 0.0;
-                            if (f > 1)
-                                f = 1.0;
-                            l *= f;
-                            r *= f;
-                        }
-                    }
-                    if (i > fadeoutstart) {
-                        if (it.crossfadeout) {
-                            double f = 1.0 - log10((double)(inputSamples - i) / fadeinsamples + 0.1) * 10.0 / 11.0;
-                            if (f < 0)
-                                f = 0.0;
-                            if (f > 1)
-                                f = 1.0;
-                            l *= f;
-                            r *= f;
-                        } else {
-                            double f = 1.0 - pow(10.0, ((double)(inputSamples - i) / fadeinsamples - 1.0) - 0.1) * 1.1;
-                            if (f < 0)
-                                f = 0.0;
-                            if (f > 1)
-                                f = 1.0;
-                            l *= f;
-                            r *= f;
-                        }
-                    }
-                    left[startOutput + i] += l;
-                    right[startOutput + i] += r;
-                }
-            }
-        }
-
-        // Clip it
-        for (auto& it : left) {
-            if (it > 1.0)
-                it = 1.0;
-        }
-        for (auto& it : right) {
-            if (it > 1.0)
-                it = 1.0;
-        }
-
-    #ifdef __WXOSX__
-        // Cannot generate MP3's, change to AAC/m4a (which has better quality anyway)
-        wxFileName fn = targetFile;
-        if (fn.GetExt() == "mp3") {
-            fn.SetExt("m4a");
-            targetFile = fn.GetFullPath();
-        }
-    #endif
-
-        if (!AudioManager::EncodeAudio(left,
-                                       right,
-                                       sampleRate,
-                                       targetFile.GetFullPath(),
-                                       firstAudio)) {
-            wxMessageBox("Error creating audio file. See log for details.");
-        } else {
-            wxMessageBox("Audio file created successfully, " + targetFile.GetFullPath() + " Please choose the new media file for your sequence.");
-        }
-
-    } else
+    if (pre.empty() || post.empty()) {
         wxMessageBox("Invalid Pre/Post value(s). Neither can be blank, 0 is okay.");
+        return;
+    }
+    auto const f_pre = std::stof(pre);
+    auto const f_post = std::stof(post);
+    auto const f_mp3dur = std::stof(mp3dur);
+    if (fp_equal(0.0F, f_post) && fp_equal(0.0F, f_pre)) {
+        wxMessageBox("Pre and Post value(s) are Zero. Nothing to Do.");
+        return;
+    }
+    if (fp_equal(0.0F, f_mp3dur)) {
+        wxMessageBox("Audio Duration is Invalid.");
+        return;
+    }
+    if ((0.0F > f_post) || (0.0F > f_pre)) {
+        wxMessageBox("Pre and Post value(s) can't be less than Zero.");
+        return;
+    }
+
+    std::string outputFile;
+    size_t const lastDot = inputFile.find_last_of('.');
+    // If there is an extension, insert "silence" before the extension, else after
+    if (lastDot != std::string::npos) {
+        outputFile = inputFile.substr(0, lastDot) + "_" + pre + "_" + post + inputFile.substr(lastDot);
+    } else {
+        outputFile = inputFile + "_" + pre + "_" + post;
+    }
+    wxFileName targetFile(outputFile);
+
+    struct musicEdit {
+        std::string file;
+        double start;
+        double length;
+        double sourceoffset;
+        double fadein;
+        double fadeout;
+        double volume;
+        bool crossfadein;
+        bool crossfadeout;
+        musicEdit(const std::string& f, double s, double l, double so, double fi, double fo, double v, bool cfi, bool cfo) :
+            file(f), start(s), length(l), sourceoffset(so), fadein(fi), fadeout(fo), volume(v), crossfadein(cfi), crossfadeout(cfo) {
+        }
+    };
+    std::list<musicEdit> edits;
+    AudioManager* firstAudio = nullptr;
+    edits.push_back(musicEdit(inFile.GetFullName(), 0, f_pre / 1000, 0, 0, 0, 0, false, false));
+    edits.push_back(musicEdit(inFile.GetFullName(), f_pre / 1000, f_mp3dur, 0, 0, 0, 1, false, false));
+    edits.push_back(musicEdit(inFile.GetFullName(), f_pre / 1000 + f_mp3dur, f_post / 1000, 0, 0, 0, 0, false, false));
+
+    wxString music = inputFile;
+
+    std::map<std::string, AudioManager*> sourceSongs;
+    double outputLength{ 0.0 };
+    long sampleRate{ -1 };
+    for (const auto& it : edits) {
+        outputLength = std::max(outputLength, it.start + it.length);
+        sourceSongs[it.file] = new AudioManager(music);
+        if (firstAudio == nullptr) {
+            firstAudio = sourceSongs[it.file];
+        }
+    }
+    for (const auto& it : sourceSongs) {
+        sampleRate = it.second->GetRate();
+    }
+
+    long const totalSamples = sampleRate * outputLength;
+    std::vector<float> left(totalSamples);
+    std::vector<float> right(totalSamples);
+
+    for (const auto& it : edits) {
+        auto audio = sourceSongs[it.file];
+        if (audio != nullptr) {
+            if (audio->GetFrameInterval() < 0) {
+                audio->SetFrameInterval(20);
+            }
+            audio->GetRawLeftData(audio->GetTrackSize() - 1);
+
+            long const startOutput = sampleRate * it.start;
+            long const outputSamples = sampleRate * it.length;
+            wxASSERT(startOutput + outputSamples - 1 <= totalSamples);
+            long const startSample = audio->GetRate() * it.sourceoffset;
+            long const inputSamples = audio->GetRate() * it.length;
+            wxASSERT(startSample + inputSamples - 1 < audio->GetTrackSize());
+            wxASSERT(inputSamples == outputSamples);
+
+            float* lsource = audio->GetRawLeftDataPtr(startSample);
+            float* rsource = audio->GetRawRightDataPtr(startSample);
+            long const fadeinsamples = it.fadein * audio->GetRate();
+            long const fadeoutsamples = it.fadeout * audio->GetRate();
+            long const fadeoutstart = inputSamples - fadeoutsamples;
+
+            for (long i = 0; i < inputSamples; i++) {
+                float l = lsource[i] * it.volume;
+                float r;
+                if (rsource != nullptr) {
+                    r = rsource[i] * it.volume;
+                } else {
+                    r = l;
+                }
+                if (i < fadeinsamples) {
+                    if (it.crossfadein) {
+                        double f = log10((double)i / fadeinsamples + 0.1) * 10.0 / 11.0;
+                        if (f < 0) {
+                            f = 0.0;
+                        }
+                        if (f > 1) {
+                            f = 1.0;
+                        }
+                        l *= f;
+                        r *= f;
+                    } else {
+                        double f = pow(10.0, ((double)i / fadeinsamples - 1.0) - 0.1) * 1.1;
+                        if (f < 0) {
+                            f = 0.0;
+                        }
+                        if (f > 1) {
+                            f = 1.0;
+                        }
+                        l *= f;
+                        r *= f;
+                    }
+                }
+                if (i > fadeoutstart) {
+                    if (it.crossfadeout) {
+                        double f = 1.0 - log10((double)(inputSamples - i) / fadeinsamples + 0.1) * 10.0 / 11.0;
+                        if (f < 0) {
+                            f = 0.0;
+                        }
+                        if (f > 1) {
+                            f = 1.0;
+                        }
+                        l *= f;
+                        r *= f;
+                    } else {
+                        double f = 1.0 - pow(10.0, ((double)(inputSamples - i) / fadeinsamples - 1.0) - 0.1) * 1.1;
+                        if (f < 0) {
+                            f = 0.0;
+                        }
+                        if (f > 1) {
+                            f = 1.0;
+                        }
+                        l *= f;
+                        r *= f;
+                    }
+                }
+                left[startOutput + i] += l;
+                right[startOutput + i] += r;
+            }
+        }
+    }
+
+    // Clip it
+    for (auto& it : left) {
+        if (it > 1.0) {
+            it = 1.0;
+        }
+    }
+    for (auto& it : right) {
+        if (it > 1.0) {
+            it = 1.0;
+        }
+    }
+
+#ifdef __WXOSX__
+    // Cannot generate MP3's, change to AAC/m4a (which has better quality anyway)
+    wxFileName fn = targetFile;
+    if (fn.GetExt() == "mp3") {
+        fn.SetExt("m4a");
+        targetFile = fn.GetFullPath();
+    }
+#endif
+
+    if (!AudioManager::EncodeAudio(left,
+                                    right,
+                                    sampleRate,
+                                    targetFile.GetFullPath(),
+                                    firstAudio)) {
+        wxMessageBox("Error creating audio file. See log for details.");
+    } else {
+        wxMessageBox("Audio file created successfully, " + targetFile.GetFullPath() + " Please choose the new media file for your sequence.");
+    }
 }
