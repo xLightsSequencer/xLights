@@ -33,6 +33,8 @@
 #include "../../xSchedule/wxJSON/jsonwriter.h"
 #include <algorithm>
 #include "xlColourData.h"
+#include <string.h>
+
 
 #include <log4cpp/Category.hh>
 
@@ -582,7 +584,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     TextCtrl_FindFrom = new wxTextCtrl(Panel2, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
     FlexGridSizer3->Add(TextCtrl_FindFrom, 1, wxALL|wxEXPAND, 5);
     Sizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
-    ListCtrl_Available = new wxListCtrl(Panel2, ID_LISTCTRL1, wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(100,-1)), wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL1"));
+    ListCtrl_Available = new wxListCtrl(Panel2, ID_LISTCTRL1, wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(100,-1)), wxLC_REPORT|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL1"));
     Sizer2->Add(ListCtrl_Available, 1, wxALL|wxEXPAND, 5);
     Panel2->SetSizer(Sizer2);
     SplitterWindow1->SplitVertically(Panel1, Panel2);
@@ -2307,42 +2309,58 @@ void xLightsImportChannelMapDialog::DoAutoMap(
     std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>&)> lambda_node,
     const std::string& extra1, const std::string& extra2, const std::string& mg)
 {
+    bool selectMapAvail = ListCtrl_Available->GetSelectedItemCount() !=0;
+    bool selectMapTarget = TreeListCtrl_Mapping->GetSelectedItemsCount() != 0;
+    wxDataViewItemArray targetSelectedItems;
+    TreeListCtrl_Mapping->GetSelections(targetSelectedItems);
     for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
         auto model = _dataModel->GetNthChild(i);
         if (model != nullptr) {
 
-            auto aliases = model->GetAliases();
+            bool isTargetSelected = false;
+            auto index = (wxDataViewItem)model;
+            for (const wxDataViewItem& selectedItem : targetSelectedItems) {
+                isTargetSelected = (index.GetID() == selectedItem.GetID() ? true : false);
+                if (isTargetSelected) break;
+            }
 
-            if ((model->IsGroup() && (mg == "B" || mg == "G")) || (!model->IsGroup() && (mg == "B" || mg == "M"))) {
-                for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
-                    wxString const availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
-                    if (availName.Contains("/")) {
-                        wxArrayString const parts = wxSplit(availName, '/');
-                        if (lambda_model(model->_model, parts[0], extra1, extra2, aliases)) {
-                            // matched the model name ... need to look at strands and submodels
-                            for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                                auto strand = model->GetNthChild(k);
-                                if (strand != nullptr) {
-                                    if (lambda_strand(strand->_strand, parts[1], extra1, extra2, aliases)) {
-                                        // matched to the strand level
-                                        if (parts.size() == 2) {
-                                            if (strand->_mapping.empty()) {
-                                                strand->_mapping = ListCtrl_Available->GetItemText(j);
-                                                strand->_mappingExists = true;
-                                            }
-                                        } else {
-                                            // need to map the node level
-                                            for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
-                                                auto node = strand->GetNthChild(m);
-                                                if (node != nullptr) {
-                                                    if (node->_mapping.empty()) {
-                                                        if (lambda_node(node->_node, parts[2], extra1, extra2, aliases)) {
-                                                            // matched to the node level
-                                                            if (parts.size() == 3) {
-                                                                node->_mapping = ListCtrl_Available->GetItemText(j);
-                                                                node->_mappingExists = true;
-                                                            } else {
-                                                                wxASSERT(false);
+            if ((selectMapTarget && isTargetSelected) || !selectMapTarget) {
+                auto aliases = model->GetAliases();
+
+                if ((model->IsGroup() && (mg == "B" || mg == "G")) || (!model->IsGroup() && (mg == "B" || mg == "M"))) {
+                    for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
+                        bool isSourceSelected = ListCtrl_Available->GetItemState(j, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
+                        if ((selectMapAvail && isSourceSelected) || !selectMapAvail) {
+                            wxString const availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
+                            if (availName.Contains("/")) {
+                                wxArrayString const parts = wxSplit(availName, '/');
+                                if (lambda_model(model->_model, parts[0], extra1, extra2, aliases)) {
+                                    // matched the model name ... need to look at strands and submodels
+                                    for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                                        auto strand = model->GetNthChild(k);
+                                        if (strand != nullptr) {
+                                            if (lambda_strand(strand->_strand, parts[1], extra1, extra2, aliases)) {
+                                                // matched to the strand level
+                                                if (parts.size() == 2) {
+                                                    if (strand->_mapping.empty()) {
+                                                        strand->_mapping = ListCtrl_Available->GetItemText(j);
+                                                        strand->_mappingExists = true;
+                                                    }
+                                                } else {
+                                                    // need to map the node level
+                                                    for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
+                                                        auto node = strand->GetNthChild(m);
+                                                        if (node != nullptr) {
+                                                            if (node->_mapping.empty()) {
+                                                                if (lambda_node(node->_node, parts[2], extra1, extra2, aliases)) {
+                                                                    // matched to the node level
+                                                                    if (parts.size() == 3) {
+                                                                        node->_mapping = ListCtrl_Available->GetItemText(j);
+                                                                        node->_mappingExists = true;
+                                                                    } else {
+                                                                        wxASSERT(false);
+                                                                    }
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -2351,40 +2369,40 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                                         }
                                     }
                                 }
+                            } else {
+                                if (model->_mapping.empty() && lambda_model(model->_model, availName, extra1, extra2, aliases)) {
+                                    model->_mapping = ListCtrl_Available->GetItemText(j);
+                                    model->_mappingExists = true;
+                                }
+                                // for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                                //     auto strand = model->GetNthChild(k);
+                                //     if (strand != nullptr) {
+                                //         if (strand->_mapping.empty() && lambda_strand(model->_model + "/" + strand->_strand, availName, extra1, extra2, aliases)) {
+                                //             strand->_mapping = ListCtrl_Available->GetItemText(j) + "/" + strand->_strand;
+                                //             strand->_mappingExists = true;
+                                //         }
+                                //         for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
+                                //             auto node = strand->GetNthChild(m);
+                                //             if (node != nullptr) {
+                                //                 if (node->_mapping.empty()) {
+                                //                     if (lambda_node(model->_model + "/" + strand->_strand + "/" + node->_node, availName, extra1, extra2, aliases)) {
+                                //                         // matched to the node level
+                                //                         node->_mapping = ListCtrl_Available->GetItemText(j);
+                                //                         node->_mappingExists = true;
+                                //                     }
+                                //                 }
+                                //             }
+                                //         }
+                                //      }
+                                //   }
                             }
                         }
-                    } else {
-                        if (model->_mapping.empty() && lambda_model(model->_model, availName, extra1, extra2, aliases)) {
-                            model->_mapping = ListCtrl_Available->GetItemText(j);
-                            model->_mappingExists = true;
-                        }
-                        //for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                        //    auto strand = model->GetNthChild(k);
-                        //    if (strand != nullptr) {
-                        //        if (strand->_mapping.empty() && lambda_strand(model->_model + "/" + strand->_strand, availName, extra1, extra2, aliases)) {
-                        //            strand->_mapping = ListCtrl_Available->GetItemText(j) + "/" + strand->_strand;
-                        //            strand->_mappingExists = true;
-                        //        }
-                        //        for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
-                        //            auto node = strand->GetNthChild(m);
-                        //            if (node != nullptr) {
-                        //                if (node->_mapping.empty()) {
-                        //                    if (lambda_node(model->_model + "/" + strand->_strand + "/" + node->_node, availName, extra1, extra2, aliases)) {
-                        //                        // matched to the node level
-                        //                        node->_mapping = ListCtrl_Available->GetItemText(j);
-                        //                        node->_mappingExists = true;
-                        //                    }
-                        //                }
-                        //            }
-                        //        }
-                        //     }
-                        //  }
                     }
                 }
+            } else {
+                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
             }
-        } else {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
         }
     }
 }
