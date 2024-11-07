@@ -134,6 +134,10 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 if (colorOrder != "unknown") {
                     outputConfig["ports"][x]["models"][i]["colour_order"] = colorOrder;
                 }
+                else
+                {
+                    outputConfig["ports"][x]["models"][i]["colour_order"] = std::string("RGB");
+                }
                 i++;
             }
         }
