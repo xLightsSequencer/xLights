@@ -726,15 +726,21 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                         }
                     } else {   // head tail not alpha 
                         HSVValue hsv1 = color.asHSV();
-                        if (i > middle_chase_index) {
-                            hsv1.value = orig_v - ((max_chase_width - (2.0 * i + 1.0)) / max_chase_width);
+
+                        if (i <= middle_chase_index) {
+                            hsv1.value = orig_v * (1.0 - (2.0 * i) / max_chase_width);
                         } else {
-                            hsv1.value = ((max_chase_width - (2.0 * i)) / (max_chase_width));
+                            hsv1.value = orig_v * ((2.0 * (i - middle_chase_index)) / max_chase_width);
                         }
- 
+
+                        if (hsv1.value > orig_v) {
+                            hsv1.value = orig_v;
+                        }
+
                         if (hsv1.value < 0.0) {
                             hsv1.value = 0.0;
                         }
+
                         color = hsv1;
                     }
                 } else if (Fade_Type == "Middle") {
