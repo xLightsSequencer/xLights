@@ -1760,7 +1760,7 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
                 Controllers_PropertyEditor->Clear();
                 controller->AddProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
             }
-            controller->UpdateProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
+            controller->UpdateProperties(Controllers_PropertyEditor, &AllModels, expandProperties, &_outputModelManager);
 
             if (controller->IsFromBase()) {
                 Controllers_PropertyEditor->SetToolTip("This model comes from the base folder and its properties cannot be edited.");
