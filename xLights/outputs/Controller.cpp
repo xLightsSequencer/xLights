@@ -765,7 +765,7 @@ void Controller::AddVariants(wxPGProperty* p) {
 }
 
 
-void Controller::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
+void Controller::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager) {
     
     wxPGProperty* p = propertyGrid->GetProperty("ControllerName");
     if (p) p->SetValue(GetName());

@@ -255,6 +255,23 @@ std::string ControllerEthernet::GetResolvedIP(bool forceResolve) const {
     return _resolvedIp;
 }
 
+void ControllerEthernet::SetProtocolAndRebuildProperties(const std::string& protocol, wxPropertyGrid* grid, OutputModelManager* outputModelManager) {
+    if (_outputs.size() > 0) {
+        _outputs.front()->RemoveProperties(grid);
+    }
+    SetProtocol(protocol);
+
+    if (_outputs.size() > 0) {
+        std::list<wxPGProperty*> expandProperties;
+        auto before = grid->GetProperty("Managed");
+        _outputs.front()->AddProperties(grid, before, this, AllSameSize(), expandProperties);
+    }
+    outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol");
+    outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
+    outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
+    outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
+}
+
 void ControllerEthernet::SetProtocol(const std::string& protocol) {
 
     int totchannels = GetChannels();
@@ -964,15 +981,15 @@ bool ControllerEthernet::SupportsUniversePerString() const
     return false;
 }
 
-void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
-    Controller::UpdateProperties(propertyGrid, modelManager, expandProperties);
+void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager) {
+    Controller::UpdateProperties(propertyGrid, modelManager, expandProperties, outputModelManager);
     wxPGProperty *p = propertyGrid->GetProperty("Protocol");
     if (p) {
         wxPGChoices protocols = GetProtocols();
         p->SetChoices(protocols);
         if (EncodeChoices(protocols, _type) == -1) {
             p->SetChoiceSelection(0);
-            SetProtocol(Controller::DecodeChoices(protocols, 0));
+            SetProtocolAndRebuildProperties(Controller::DecodeChoices(protocols, 0), propertyGrid, outputModelManager);
         }
         else
         {
@@ -1179,23 +1196,8 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         return true;
     } else if (name == "Protocol") {
         auto protocols = GetProtocols();
-        
-        if (_outputs.size() > 0) {
-            wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
-            _outputs.front()->RemoveProperties(grid);
-        }
-        SetProtocol(Controller::DecodeChoices(protocols, event.GetValue().GetLong()));
-        
-        if (_outputs.size() > 0) {
-            wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
-            std::list<wxPGProperty *> expandProperties;
-            auto before = grid->GetProperty("Managed");
-            _outputs.front()->AddProperties(grid, before, this, AllSameSize(), expandProperties);
-        }
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
+        wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
+        SetProtocolAndRebuildProperties(Controller::DecodeChoices(protocols, event.GetValue().GetLong()), grid, outputModelManager);
         return true;
     } else if (name == "Universe") {
         int univ = event.GetValue().GetLong();
