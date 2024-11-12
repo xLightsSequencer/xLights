@@ -255,23 +255,6 @@ std::string ControllerEthernet::GetResolvedIP(bool forceResolve) const {
     return _resolvedIp;
 }
 
-void ControllerEthernet::SetProtocolAndRebuildProperties(const std::string& protocol, wxPropertyGrid* grid, OutputModelManager* outputModelManager) {
-    if (_outputs.size() > 0) {
-        _outputs.front()->RemoveProperties(grid);
-    }
-    SetProtocol(protocol);
-
-    if (_outputs.size() > 0) {
-        std::list<wxPGProperty*> expandProperties;
-        auto before = grid->GetProperty("Managed");
-        _outputs.front()->AddProperties(grid, before, this, AllSameSize(), expandProperties);
-    }
-    outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol");
-    outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
-    outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
-    outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
-}
-
 void ControllerEthernet::SetProtocol(const std::string& protocol) {
 
     int totchannels = GetChannels();
@@ -1412,6 +1395,23 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
+}
+
+void ControllerEthernet::SetProtocolAndRebuildProperties(const std::string& protocol, wxPropertyGrid* grid, OutputModelManager* outputModelManager) {
+    if (_outputs.size() > 0) {
+        _outputs.front()->RemoveProperties(grid);
+    }
+    SetProtocol(protocol);
+
+    if (_outputs.size() > 0) {
+        std::list<wxPGProperty*> expandProperties;
+        auto before = grid->GetProperty("Managed");
+        _outputs.front()->AddProperties(grid, before, this, AllSameSize(), expandProperties);
+    }
+    outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol");
+    outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
+    outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
+    outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
 }
 #endif
 
