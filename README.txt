@@ -11,6 +11,31 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.18 November 14, 2024
+    - enh (keith)           Add ability to "Level" the brightness of color components
+    - enh (scott)           Windows installer works on Arm64
+    - enh (dkulp)           Remove some optimizations that were helpful in the old 32bit builds, not for SSE/Neon (should help Galaxy, plasma, butterfly, etc...
+    - enh (scott)           Add align to closest timing mark for effects
+    - enh (scott)           Add group count support for Genius controllers
+    - enh (scott)           Ability to "invert" channels in DMX mapping
+    - enh (derwin12)        Add last render date to Batch Render dialog
+    - enh (keith)           Optionally disable key acceleration when nudging models on layout panel
+    - enh (scott)           Import layer names from original sequences
+    - enh (cybercop23)      Add sequence number progress indicator to FPP Connect
+    - enh (cybercop23)      Allow models to be "visualized" in either base or show folder
+    - enh (KyleGrymonprez)  Add rondomization functionality to metronome timing track generation
+    - enh (derwin12)        Add submodel support to auto mapping
+    - bug (dkulp)           Fix a potential crash when using host names instead of ip addresses from a base folder
+    - bug (scott)           Windows Upgrade Available notification not working
+    - bug (derwin12)        Don't trigger a save when clicking on a locked model
+    - bug (scott)           Add some internal checks to prevent overlapping and zero length effects
+    - bug (dkulp)           FPP Connect would not delete some tmp files
+    - bug (dkulp)           MacOS - also delete the bookmarks file when -w passed to reset permissions
+    - bug (dkulp)           MacOS - make sure we have access to the base directory, ask for permission if required
+    - bug (scott)           Fix crash with negative values in audio editor
+    - bug (MrPierreB)       Fix Single Strand Fade type "Head and Tail" for all blending types
+    - bug (PeteMatthews)    Fix color order inheritance issue on ILightThat controllers
+    - bug (degracode)       Fix problems with property grid now being updated when protocol switches to Twinkly
 2024.17 October 14, 2024
     - change(dkulp)         MacOS builds now require MacOS 11 or newer
     - enh (dkulp)           Resolve hostnames in parallel at startup, much faster startup and FPP Connect

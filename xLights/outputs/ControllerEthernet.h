@@ -25,6 +25,9 @@ class Output;
 // An ethernet controller sends data to a unique IP address
 class ControllerEthernet : public Controller
 {
+private:
+    void SetProtocolAndRebuildProperties(const std::string& protocol, wxPropertyGrid* grid, OutputModelManager* outputModelManager);
+
 protected:
 
 #pragma region Property Choices
@@ -163,7 +166,7 @@ public:
     #ifndef EXCLUDENETWORKUI
         bool SupportsUniversePerString() const;
     
-        virtual void UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
+        virtual void UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager) override;
         virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
         virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const override;

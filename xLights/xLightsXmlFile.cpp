@@ -3060,7 +3060,7 @@ void xLightsXmlFile::AddFixedTimingSection(const std::string& interval_name, xLi
     AddChildXmlNode(node, "EffectLayer");
 }
 
-void xLightsXmlFile::AddMetronomeLabelTimingSection(const std::string& interval_name, int interval, int count, xLightsFrame* xLightsParent)
+void xLightsXmlFile::AddMetronomeLabelTimingSection(const std::string& interval_name, int _interval, int count, xLightsFrame* xLightsParent, int minForRandomRange, bool randomLabels)
 {
     AddTimingDisplayElement(interval_name, "1", "0");
     wxXmlNode* node;
@@ -3072,12 +3072,20 @@ void xLightsXmlFile::AddMetronomeLabelTimingSection(const std::string& interval_
         int time {0};
         int id {0};
         int end_time = GetSequenceDurationMS();
+        int lastRandomState = -1;
         while (time < end_time)
         {
+            int interval = minForRandomRange == -1 ? _interval : intRand(minForRandomRange, _interval);
             int next_time = (time + interval <= end_time) ? time + interval : end_time;
             int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
             int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
-            effectLayer->AddEffect(0, std::to_string(id + 1), "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
+            if( randomLabels ) {
+                do {
+                    id = intRand(1, count);
+                } while( id == lastRandomState);
+                lastRandomState = id;
+            }
+            effectLayer->AddEffect(0, std::to_string(randomLabels ? id : id + 1), "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
             time += interval;
             id++;
             if (count != 0) {
@@ -3085,7 +3093,8 @@ void xLightsXmlFile::AddMetronomeLabelTimingSection(const std::string& interval_
             }
         }
     }
-    node = AddFixedTiming(interval_name, string_format("%d", interval));
+        
+    node = AddFixedTiming(interval_name, string_format("%d", _interval));
     
 
     AddChildXmlNode(node, "EffectLayer");

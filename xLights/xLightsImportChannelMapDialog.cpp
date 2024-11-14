@@ -2376,22 +2376,27 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                                 }
                             }
                         }
-                        if (model->_mapping.empty()) {
-                            for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
-                                wxString const availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
-                                for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                                    auto m = xlights->GetModel(model->_model);
-                                    auto sm = model->GetNthChild(k);
-                                    auto sm2 = m->GetSubModel(sm->_strand);
-                                    if (sm2 != nullptr) {
-                                        auto smAliases = sm2->GetAliases();
-                                        if (sm != nullptr) {
-                                            if (model->_mapping.empty()) {
-                                                if (lambda_model(sm->_strand, availName, extra1, extra2, smAliases)) {
-                                                    sm->_mapping = ListCtrl_Available->GetItemText(j);
-                                                    sm->_mappingExists = true;
-                                                }
-                                            }
+                    } else { // match model to model
+                        if (model->_mapping.empty() && lambda_model(model->_model, availName, extra1, extra2, aliases)) {
+                            model->_mapping = ListCtrl_Available->GetItemText(j);
+                            model->_mappingExists = true;
+                        }
+                    }
+                }
+                if (model->_mapping.empty()) {
+                    for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
+                        wxString const availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
+                        for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                            auto m = xlights->GetModel(model->_model);
+                            auto sm = model->GetNthChild(k);
+                            auto sm2 = m->GetSubModel(sm->_strand);
+                            if (sm2 != nullptr) {
+                                auto smAliases = sm2->GetAliases();
+                                if (sm != nullptr) {
+                                    if (model->_mapping.empty()) {
+                                        if (lambda_model(sm->_strand, availName, extra1, extra2, smAliases)) {
+                                            sm->_mapping = ListCtrl_Available->GetItemText(j);
+                                            sm->_mappingExists = true;
                                         }
                                     }
                                 }

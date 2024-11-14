@@ -818,64 +818,6 @@ size_t RenderBuffer::GetColorCount()
     return palette.Size();
 }
 
-class SinTable {
-public:
-    static constexpr float precision = 300.0f; // gradations per Pi, 942 entries of size float is under 4K or less than a memory page
-    static constexpr int modulus = (int)(M_PI * precision) + 1;
-    static constexpr int modulus2 = modulus * 2;
-
-    SinTable() {
-        for (int i = 0; i<modulus; i++) {
-            float f = i;
-            f /= precision;
-            table[i]=sinf(f);
-        }
-        /*
-        for (int x = -720; x <= 720; x++) {
-            float s = ((float)x)*3.14159f/180.0f;
-            printf("%d:\t%f\t%f\n", x, this->cos(s), cosf(s));
-        }
-         */
-    }
-    ~SinTable() {
-    }
-    float table[modulus]; // lookup table
-
-    float sinLookup(int a) {
-        if (a >= 0) {
-            int idx = a%(modulus2);
-            if (idx >= modulus) {
-                idx -= modulus;
-                return -table[idx];
-            }
-            return table[idx];
-        }
-        int idx = -a%(modulus2);
-        if (idx >= modulus) {
-            idx -= modulus;
-            return table[idx];
-        }
-        return -table[idx];
-    }
-    float sin(float rad) {
-        float idx = rad * precision + 0.5f;
-        return sinLookup((int)idx);
-    }
-    float cos(float a) {
-        return this->sin(a + M_PI_2);
-    }
-};
-static SinTable sinTable;
-
-float RenderBuffer::sin(float rad)
-{
-    return sinTable.sin(rad);
-}
-float RenderBuffer::cos(float rad)
-{
-    return sinTable.cos(rad);
-}
-
 // generates a random number between num1 and num2 inclusive
 double RenderBuffer::RandomRange(double num1, double num2) const
 {

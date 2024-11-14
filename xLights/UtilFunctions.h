@@ -23,6 +23,7 @@
 #include <string>
 #include <algorithm>
 #include <map>
+#include <limits>
 
 #include <locale>
 #include <codecvt>
@@ -96,6 +97,14 @@ inline int roundTo16(int i) {
 inline double rand01()
 {
     return (double)rand() / (double)RAND_MAX;
+}
+
+// checks if two floating point numbers are equal
+template<class Ty>
+    requires std::is_floating_point_v<Ty>
+[[nodiscard]] constexpr bool
+fp_equal(Ty a, Ty b, const Ty eps = std::numeric_limits<Ty>::epsilon()) {
+    return std::abs(a - b) <= (std::min(abs(a), std::abs(b)) * eps);
 }
 
 void SaveWindowPosition(const std::string& tag, wxWindow* window);

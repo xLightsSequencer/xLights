@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <stdint.h>
+#include <cmath>
 #include <map>
 #include <list>
 #include <vector>
@@ -509,10 +510,10 @@ public:
     void FillConvexPoly(const std::vector<std::pair<int, int>>& poly, const xlColor& color);
 
     //approximation of sin/cos, but much faster
-    static float sin(float rad);
-    static float cos(float rad);
-    static float cot(float rad) { return cos(rad) / sin(rad); }
-    static float acot(float rad) { return M_PI/2.0 - atan(rad); }
+    static inline float sin(float rad) { return std::sin(rad); }
+    static inline float cos(float rad) { return std::cos(rad); }
+    static inline float cot(float rad) { return std::cos(rad) / std::sin(rad); }
+    static inline float acot(float rad) { return M_PI/2.0 - std::atan(rad); }
 
     double calcAccel(double ratio, double accel);
 

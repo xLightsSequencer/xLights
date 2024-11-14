@@ -1176,6 +1176,7 @@ void MapXLightsEffects(Element* target,
         target->AddEffectLayer();
     }
     for (size_t x = 0; x < el->GetEffectLayerCount(); ++x) {
+        target->GetEffectLayer(x)->SetLayerName(el->GetEffectLayer(x)->GetLayerName());
         MapXLightsEffects(target->GetEffectLayer(x), el->GetEffectLayer(x), mapped, eraseExisting, xsqPkg, lock, mapping);
     }
 }
