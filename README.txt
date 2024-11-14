@@ -15,7 +15,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - enh (keith)           Add ability to "Level" the brightness of color components
     - enh (scott)           Windows installer works on Arm64
     - enh (dkulp)           Remove some optimizations that were helpful in the old 32bit builds, not for SSE/Neon (should help Galaxy, plasma, butterfly, etc...
-    - enh (scott)           Add align to closted timing mark for effects
+    - enh (scott)           Add align to closest timing mark for effects
     - enh (scott)           Add group count support for Genius controllers
     - enh (scott)           Ability to "invert" channels in DMX mapping
     - enh (derwin12)        Add last render date to Batch Render dialog
