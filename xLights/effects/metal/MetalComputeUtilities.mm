@@ -833,6 +833,10 @@ bool MetalRenderBufferComputeData::blur(int radius) {
         // Smallish buffer, overhead of sending to GPU will be more than the gain
         return false;
     }
+    if (renderBuffer->BufferHt > 16384 || renderBuffer->BufferWi > 16384) {
+        // max size of Textures on macOS
+        return false;
+    }
     @autoreleasepool {
         id<MTLCommandBuffer> commandBuffer = getCommandBuffer("-Blur");
         if (commandBuffer == nil) {
