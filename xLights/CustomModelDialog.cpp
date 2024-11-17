@@ -3282,6 +3282,17 @@ void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event
         }
     }
 
+    // Discovery returns results in an arbitrary order, so sort them lexicographically (and ignoring case)
+    std::sort(choices.begin(), choices.end(),
+              [](const auto& str1, const auto& str2) {
+                  return std::lexicographical_compare(
+                      std::begin(str1), std::end(str1),
+                      std::begin(str2), std::end(str2),
+                      [](const char& char1, const char& char2) {
+                          return tolower(char1) < tolower(char2);
+                      });
+              });
+
 #ifndef TEST_TWINKLY_FORMAT
     wxSingleChoiceDialog dlg(this, "Select controller to load from", "Download from controller", choices);
 
