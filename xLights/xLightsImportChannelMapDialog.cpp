@@ -452,6 +452,7 @@ const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON4 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON6 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON5 = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON7 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON1 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON2 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_PANEL1 = wxNewId();
@@ -489,9 +490,16 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     //(*Initialize(xLightsImportChannelMapDialog)
     wxButton* Button01;
     wxButton* Button02;
+    wxFlexGridSizer* FlexGridSizer10;
+    wxFlexGridSizer* FlexGridSizer12;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer4;
+    wxFlexGridSizer* FlexGridSizer5;
+    wxFlexGridSizer* FlexGridSizer6;
+    wxFlexGridSizer* FlexGridSizer7;
+    wxFlexGridSizer* FlexGridSizer8;
+    wxFlexGridSizer* FlexGridSizer9;
 
     Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxFULL_REPAINT_ON_RESIZE, _T("wxID_ANY"));
     OldSizer = new wxFlexGridSizer(0, 1, 0, 0);
@@ -500,6 +508,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
     SplitterWindow1->SetSashGravity(0.5);
     Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    Panel1->SetMinSize(wxSize(500,-1));
     Sizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     Sizer1->AddGrowableCol(0);
     Sizer1->AddGrowableRow(7);
@@ -539,7 +548,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     FlexGridSizerImportMedia->Add(ButtonImportOptions, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizerImportMedia, 1, wxALL|wxEXPAND, 1);
     TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, Panel1, _("Timing Tracks"));
-    TimingTrackListBox = new wxCheckListBox(Panel1, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
+    TimingTrackListBox = new wxCheckListBox(Panel1, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_MULTIPLE|wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
     TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxEXPAND, 0);
     Sizer1->Add(TimingTrackPanel, 0, wxEXPAND, 0);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -553,25 +562,41 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     SizerMap->AddGrowableCol(0);
     SizerMap->AddGrowableRow(0);
     Sizer1->Add(SizerMap, 0, wxEXPAND, 0);
-    FlexGridSizer2 = new wxFlexGridSizer(0, 8, 0, 0);
-    FlexGridSizer2->AddGrowableCol(2);
+    FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
+    FlexGridSizer2->AddGrowableCol(3);
+    FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_Ok = new wxButton(Panel1, ID_BUTTON3, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-    FlexGridSizer2->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer7->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Cancel = new wxButton(Panel1, ID_BUTTON4, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    FlexGridSizer2->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+    FlexGridSizer7->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer5->Add(FlexGridSizer7, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_UpdateAliases = new wxButton(Panel1, ID_BUTTON6, _("Update All Aliases Using Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
-    FlexGridSizer2->Add(Button_UpdateAliases, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer5->Add(Button_UpdateAliases, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(FlexGridSizer5, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_AutoMap = new wxButton(Panel1, ID_BUTTON5, _("Auto Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    FlexGridSizer2->Add(Button_AutoMap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(Button_AutoMap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer8->Add(FlexGridSizer6, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_AutoMapSel = new wxButton(Panel1, ID_BUTTON7, _("Auto Map Selected"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
+    FlexGridSizer8->Add(Button_AutoMapSel, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(FlexGridSizer8, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer10 = new wxFlexGridSizer(0, 3, 0, 0);
     Button01 = new wxButton(Panel1, ID_BUTTON1, _("Load Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer2->Add(Button01, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer10->Add(Button01, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer9->Add(FlexGridSizer10, 1, wxALIGN_LEFT, 5);
     Button02 = new wxButton(Panel1, ID_BUTTON2, _("Save Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    FlexGridSizer2->Add(Button02, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer9->Add(Button02, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(FlexGridSizer9, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer12->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(FlexGridSizer12, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
     Panel1->SetSizer(Sizer1);
     Panel2 = new wxPanel(SplitterWindow1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+    Panel2->SetMinSize(wxSize(400,-1));
     Sizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     Sizer2->AddGrowableCol(0);
     Sizer2->AddGrowableRow(1);
@@ -580,9 +605,9 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("Find:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_FindFrom = new wxTextCtrl(Panel2, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-    FlexGridSizer3->Add(TextCtrl_FindFrom, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer3->Add(TextCtrl_FindFrom, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
     Sizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
-    ListCtrl_Available = new wxListCtrl(Panel2, ID_LISTCTRL1, wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(100,-1)), wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL1"));
+    ListCtrl_Available = new wxListCtrl(Panel2, ID_LISTCTRL1, wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(100,-1)), wxLC_REPORT|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL1"));
     Sizer2->Add(ListCtrl_Available, 1, wxALL|wxEXPAND, 5);
     Panel2->SetSizer(Sizer2);
     SplitterWindow1->SplitVertically(Panel1, Panel2);
@@ -598,6 +623,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
     Connect(ID_BUTTON6, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick);
     Connect(ID_BUTTON5, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_AutoMapClick);
+    Connect(ID_BUTTON7, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_AutoMapSelClick);
     Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
     Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
     Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindFromText);
@@ -2305,45 +2331,89 @@ void xLightsImportChannelMapDialog::DoAutoMap(
     std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>&)> lambda_model,
     std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>&)> lambda_strand,
     std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>&)> lambda_node,
-    const std::string& extra1, const std::string& extra2, const std::string& mg)
+    const std::string& extra1, const std::string& extra2, const std::string& mg, const bool& select)
 {
+    bool selectMapAvail = (ListCtrl_Available->GetSelectedItemCount() != 0) && select;
+    bool selectMapTarget = (TreeListCtrl_Mapping->GetSelectedItemsCount() != 0) && select;
+    bool modelMapped = 0;
+    wxDataViewItemArray targetSelectedItems;
+    TreeListCtrl_Mapping->GetSelections(targetSelectedItems);
     for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
         auto model = _dataModel->GetNthChild(i);
         if (model != nullptr) {
+            bool isTargetSelected = false;
+            auto index = (wxDataViewItem)model;
+            for (const wxDataViewItem& selectedItem : targetSelectedItems) {
+                isTargetSelected = (index.GetID() == selectedItem.GetID() ? true : false);
+                if (isTargetSelected) break;
+            }
 
-            auto aliases = model->GetAliases();
-
-            if ((model->IsGroup() && (mg == "B" || mg == "G")) || (!model->IsGroup() && (mg == "B" || mg == "M"))) {
-                for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
-                    wxString const availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
-                    if (availName.Contains("/")) {
-                        wxArrayString const parts = wxSplit(availName, '/');
-                        if (lambda_model(model->_model, parts[0], extra1, extra2, aliases)) {
-                            // matched the model name ... need to look at strands and submodels
-                            for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                                auto strand = model->GetNthChild(k);
-                                if (strand != nullptr) {
-                                    if (lambda_strand(strand->_strand, parts[1], extra1, extra2, aliases)) {
-                                        // matched to the strand level
-                                        if (parts.size() == 2) {
-                                            if (strand->_mapping.empty()) {
-                                                strand->_mapping = ListCtrl_Available->GetItemText(j);
-                                                strand->_mappingExists = true;
-                                            }
-                                        } else {
-                                            // need to map the node level
-                                            for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
-                                                auto node = strand->GetNthChild(m);
-                                                if (node != nullptr) {
-                                                    if (node->_mapping.empty()) {
-                                                        if (lambda_node(node->_node, parts[2], extra1, extra2, aliases)) {
-                                                            // matched to the node level
-                                                            if (parts.size() == 3) {
-                                                                node->_mapping = ListCtrl_Available->GetItemText(j);
-                                                                node->_mappingExists = true;
-                                                            } else {
-                                                                wxASSERT(false);
+            if ((selectMapTarget && isTargetSelected) || !selectMapTarget) {
+                auto aliases = model->GetAliases();
+                if ((model->IsGroup() && (mg == "B" || mg == "G")) || (!model->IsGroup() && (mg == "B" || mg == "M"))) {
+                    for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
+                        bool isSourceSelected = ListCtrl_Available->GetItemState(j, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
+                        if ((selectMapAvail && isSourceSelected) || !selectMapAvail) {
+                            wxString const availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
+                            if (availName.Contains("/")) {
+                                wxArrayString const parts = wxSplit(availName, '/');
+                                if (lambda_model(model->_model, parts[0], extra1, extra2, aliases)) {
+                                    // matched the model name ... need to look at strands and submodels
+                                    for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                                        auto strand = model->GetNthChild(k);
+                                        if (strand != nullptr) {
+                                            if (lambda_strand(strand->_strand, parts[1], extra1, extra2, aliases)) {
+                                                // matched to the strand level
+                                                if (parts.size() == 2) {
+                                                    if (strand->_mapping.empty()) {
+                                                        strand->_mapping = ListCtrl_Available->GetItemText(j);
+                                                        strand->_mappingExists = true;
+                                                        modelMapped = 1;
+                                                    }
+                                                } else {
+                                                    // need to map the node level
+                                                    for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
+                                                        auto node = strand->GetNthChild(m);
+                                                        if (node != nullptr) {
+                                                            if (node->_mapping.empty()) {
+                                                                if (lambda_node(node->_node, parts[2], extra1, extra2, aliases)) {
+                                                                    // matched to the node level
+                                                                    if (parts.size() == 3) {
+                                                                        node->_mapping = ListCtrl_Available->GetItemText(j);
+                                                                        node->_mappingExists = true;
+                                                                    } else {
+                                                                        wxASSERT(false);
+                                                                    }
+                                                                }
                                                             }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else { // match model to model
+                                if (model->_mapping.empty() && lambda_model(model->_model, availName, extra1, extra2, aliases)) {
+                                    model->_mapping = ListCtrl_Available->GetItemText(j);
+                                    model->_mappingExists = true;
+                                }
+                            }
+                            if (model->_mapping.empty()) {
+                                for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
+                                    if ((selectMapAvail && isSourceSelected) || !selectMapAvail) {
+                                        wxString const availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
+                                        for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                                            auto m = xlights->GetModel(model->_model);
+                                            auto sm = model->GetNthChild(k);
+                                            auto sm2 = m->GetSubModel(sm->_strand);
+                                            if (sm2 != nullptr) {
+                                                auto smAliases = sm2->GetAliases();
+                                                if (sm != nullptr) {
+                                                    if (model->_mapping.empty()) {
+                                                        if (lambda_model(sm->_strand, availName, extra1, extra2, smAliases)) {
+                                                            sm->_mapping = ListCtrl_Available->GetItemText(j);
+                                                            sm->_mappingExists = true;
                                                         }
                                                     }
                                                 }
@@ -2353,38 +2423,12 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                                 }
                             }
                         }
-                    } else { // match model to model
-                        if (model->_mapping.empty() && lambda_model(model->_model, availName, extra1, extra2, aliases)) {
-                            model->_mapping = ListCtrl_Available->GetItemText(j);
-                            model->_mappingExists = true;
-                        }
                     }
                 }
-                if (model->_mapping.empty()) {
-                    for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
-                        wxString const availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
-                        for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                            auto m = xlights->GetModel(model->_model);
-                            auto sm = model->GetNthChild(k);
-                            auto sm2 = m->GetSubModel(sm->_strand);
-                            if (sm2 != nullptr) {
-                                auto smAliases = sm2->GetAliases();
-                                if (sm != nullptr) {
-                                    if (model->_mapping.empty()) {
-                                        if (lambda_model(sm->_strand, availName, extra1, extra2, smAliases)) {
-                                            sm->_mapping = ListCtrl_Available->GetItemText(j);
-                                            sm->_mappingExists = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            } else {
+                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
             }
-        } else {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
         }
     }
 }
@@ -2393,14 +2437,36 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
 {
     if (_dataModel == nullptr) return;
 
-    DoAutoMap(norm, norm, norm, "", "", "B");
-    DoAutoMap(aggressive, aggressive, aggressive, "", "", "B");
+    DoAutoMap(norm, norm, norm, "", "", "B", false);
+    DoAutoMap(aggressive, aggressive, aggressive, "", "", "B", false);
 
     auto maphints = xlights->CurrentDir + wxFileName::GetPathSeparator() + "maphints";
     if (wxDir::Exists(maphints)) {
         wxArrayString files;
         GetAllFilesInDir(maphints, files, "*.xmaphint");
         for (auto &filename : files) {
+            if (FileExists(filename)) {
+                loadMapHintsFile(filename);
+            }
+        }
+    }
+
+    TreeListCtrl_Mapping->Refresh();
+    MarkUsed();
+}
+
+void xLightsImportChannelMapDialog::OnButton_AutoMapSelClick(wxCommandEvent& event) {
+    if (_dataModel == nullptr)
+        return;
+
+    DoAutoMap(norm, norm, norm, "", "", "B", true);
+    DoAutoMap(aggressive, aggressive, aggressive, "", "", "B", true);
+
+    auto maphints = xlights->CurrentDir + wxFileName::GetPathSeparator() + "maphints";
+    if (wxDir::Exists(maphints)) {
+        wxArrayString files;
+        GetAllFilesInDir(maphints, files, "*.xmaphint");
+        for (auto& filename : files) {
             if (FileExists(filename)) {
                 loadMapHintsFile(filename);
             }
@@ -2566,7 +2632,7 @@ void xLightsImportChannelMapDialog::loadMapHintsFile(wxString const& filename) {
                 auto fromModel = n->GetAttribute("FromModel");
                 auto applyTo = n->GetAttribute("ApplyTo", "B");
                 if (toRegex != "" && fromModel != "") {
-                    DoAutoMap(regex, regex, norm, toRegex, fromModel, applyTo);
+                    DoAutoMap(regex, regex, norm, toRegex, fromModel, applyTo, false);
                 }
             }
         }

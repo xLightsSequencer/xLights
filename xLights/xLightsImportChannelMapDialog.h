@@ -398,6 +398,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 		//(*Declarations(xLightsImportChannelMapDialog)
 		wxButton* ButtonImportOptions;
 		wxButton* Button_AutoMap;
+		wxButton* Button_AutoMapSel;
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
 		wxButton* Button_UpdateAliases;
@@ -458,6 +459,7 @@ protected:
 		static const wxWindowID ID_BUTTON4;
 		static const wxWindowID ID_BUTTON6;
 		static const wxWindowID ID_BUTTON5;
+		static const wxWindowID ID_BUTTON7;
 		static const wxWindowID ID_BUTTON1;
 		static const wxWindowID ID_BUTTON2;
 		static const wxWindowID ID_PANEL1;
@@ -489,6 +491,7 @@ protected:
 		void OnListCtrl_AvailableColumnClick(wxListEvent& event);
 		void OnCheckBox_MapCCRStrandClick(wxCommandEvent& event);
 		void OnButton_AutoMapClick(wxCommandEvent& event);
+        void OnButton_AutoMapSelClick(wxCommandEvent& event);
 		void OnListCtrl_AvailableItemActivated(wxListEvent& event);
 		void OnButtonImportOptionsClick(wxCommandEvent& event);
 		void OnCheckBoxImportMediaClick(wxCommandEvent& event);
@@ -496,6 +499,7 @@ protected:
 		void OnTextCtrl_FindToText(wxCommandEvent& event);
 		void OnButton_UpdateAliasesClick(wxCommandEvent& event);
 		void OnClose(wxCloseEvent& event);
+		void OnInit(wxInitDialogEvent& event);
 		//*)
 
         void RightClickTimingTracks(wxContextMenuEvent& event);
@@ -515,7 +519,7 @@ protected:
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_model,
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_strand,
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_node,
-            const std::string& extra1, const std::string& extra2, const std::string& mg);
+            const std::string& extra1, const std::string& extra2, const std::string& mg, const bool& select);
 
 
         void LoadXMapMapping(wxString const& filename, bool hideWarnings);
