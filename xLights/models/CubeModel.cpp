@@ -1084,7 +1084,7 @@ bool CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         wxString dir = root->GetAttribute("Dir");
         wxString sn = root->GetAttribute("StrandNames");
         wxString nn = root->GetAttribute("NodeNames");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString da = root->GetAttribute("DisplayAs");
         wxString pc = root->GetAttribute("PixelCount");
         wxString pt = root->GetAttribute("PixelType");
@@ -1225,7 +1225,6 @@ void CubeModel::ExportAsCustomXModel3D() const
         return;
     }
 
-    wxString cm = "";
     int width = parm1;
     int height = parm2;
     int depth = parm3;

@@ -982,7 +982,7 @@ bool DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
             return false;
 
         wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
 
         wxString jo = root->GetAttribute("DmxJawOrient");
         wxString po = root->GetAttribute("DmxPanOrient");

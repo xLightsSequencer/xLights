@@ -172,7 +172,6 @@ void SeqExportDialog::SetDefaultName()
         fsd = cwd;
     }
     wxString curV = TextCtrlFilename->GetValue();
-    wxString fn = curV == "" ? cwd + wxFileName::GetPathSeparator() + _model : curV;
     wxFileName name(cwd, _model);
     if (fmt == "LOR. *.lms or *.las") {
         name.SetExt("lms");

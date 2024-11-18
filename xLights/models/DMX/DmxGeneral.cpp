@@ -125,7 +125,7 @@ bool DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
             return false;
 
         wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
 
         wxString sc = root->GetAttribute("DmxShutterChannel");
         wxString so = root->GetAttribute("DmxShutterOpen");

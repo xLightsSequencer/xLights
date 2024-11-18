@@ -588,7 +588,7 @@ bool DmxServo::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
             return false;
 
         wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString bits = ModelXml->GetAttribute("Bits16", "1");
         wxString brt = root->GetAttribute("Brightness", "100");
         wxString trans = root->GetAttribute("Transparency", "0");

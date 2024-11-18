@@ -6803,8 +6803,6 @@ void LayoutPanel::DeleteSelectedGroups()
 		}
 	}
 
-	wxString const namesToDelete = wxJoin(groupsToDelete, ',');
-
 	if (wxMessageBox("Are you sure you want to delete the following group(s)?:\n\n" + groupsToConfirm, "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
 
 		CreateUndoPoint("All", wxJoin(groupsToDelete, ','));

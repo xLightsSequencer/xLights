@@ -1412,7 +1412,7 @@ bool PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         wxString dir = root->GetAttribute("Dir");
         wxString sn = root->GetAttribute("StrandNames");
         wxString nn = root->GetAttribute("NodeNames");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString is = root->GetAttribute("IndivSegs");
         wxString pts = root->GetAttribute("NumPoints");
         wxString point_data = root->GetAttribute("PointData");

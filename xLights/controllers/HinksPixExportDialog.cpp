@@ -521,8 +521,6 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Scanning folder for sequences for FPP upload: %s", (const char*)dir.c_str());
 
-    const wxString fseqDir = xLightsFrame::FseqDir;
-
     wxDir directory;
     directory.Open(dir);
 
@@ -952,7 +950,6 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
             ++count;
             continue;
         }
-        wxString const ip = hix->GetIP();
 
         prgs.Update(++count, wxString::Format("Generating HinksPix Files for '%s'", hix->GetName()));
 

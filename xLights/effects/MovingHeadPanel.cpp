@@ -641,7 +641,6 @@ void MovingHeadPanel::LoadMHPreset(const std::string& fn)
         }
         else if (root->GetName() == "mhpathpreset")
         {
-            wxArrayString path_def;
             std::string data = root->GetAttribute("data");
             wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)FlexGridSizerPathPresets->GetItemCount());
             long id = wxNewId();
@@ -655,7 +654,6 @@ void MovingHeadPanel::LoadMHPreset(const std::string& fn)
         }
         else if (root->GetName() == "mhdimmerpreset")
         {
-            wxArrayString dimmer_def;
             std::string data = root->GetAttribute("data");
             wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)FlexGridSizerDimmerPresets->GetItemCount());
             long id = wxNewId();

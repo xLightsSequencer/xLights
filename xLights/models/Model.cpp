@@ -3039,8 +3039,6 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     }
     superStringColours.clear();
 
-    wxString channelstr;
-
     zeroBased = zb;
     ModelXml = ModelNode;
     StrobeRate = 0;
@@ -4748,11 +4746,10 @@ size_t Model::GetChannelCoords(wxArrayString& choices)
     //    if (choices3) choices3->Append(wxT("0: (none)"));
     size_t NodeCount = GetNodeCount();
     for (size_t n = 0; n < NodeCount; ++n) {
-        wxString newstr;
         //        debug(10, "model::node[%d/%d]: #coords %d, ach# %d, str %d", n, NodeCount, Nodes[n]->Coords.size(), Nodes[n]->StringNum, Nodes[n]->ActChan);
         if (Nodes[n]->Coords.empty())
             continue;
-        //        newstr = wxString::Format(wxT("%i"), GetNodeNumber(n));
+        //        wxString newstr = wxString::Format(wxT("%i"), GetNodeNumber(n));
         //        choices.Add(newstr);
         choices.Add(GetNodeXY(n));
         //        if (choices1) choices1->Append(newstr);

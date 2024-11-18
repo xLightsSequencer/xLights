@@ -282,8 +282,6 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
         return UploadInputUniversesEasyLights(controller, inputUniverses);
     }
 
-    wxString request;
-
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();
 
@@ -391,8 +389,6 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
 {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("HinksPix Inputs Upload: Uploading to %s", (const char*)_ip.c_str());
-
-        wxString request;
 
         auto const data = GetControllerData(902);
         if (data.empty()) {

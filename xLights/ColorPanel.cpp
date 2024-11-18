@@ -812,7 +812,7 @@ void ColorPanel::SetButtonColor(ColorCurveButton* btn, const std::string& cstr, 
 }
 
 wxString ColorPanel::GetRandomColorString() {
-    wxString ChildName,AttrName;
+    wxString AttrName;
     wxString ret;
     // get palette
     wxColour color;
@@ -891,7 +891,7 @@ std::string ColorPanel::GetCurrentPalette() const
 
 wxString ColorPanel::GetColorString(bool colourOnly)
 {
-    wxString s,ChildName,AttrName;
+    wxString s, AttrName;
     wxColour color;
     for (int i=0; i < PALETTE_SIZE; i++)
     {

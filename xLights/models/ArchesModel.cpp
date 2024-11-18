@@ -645,7 +645,7 @@ bool ArchesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         wxString dir = root->GetAttribute("Dir");
         wxString sn = root->GetAttribute("StrandNames");
         wxString nn = root->GetAttribute("NodeNames");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString da = root->GetAttribute("DisplayAs");
         wxString pc = root->GetAttribute("PixelCount");
         wxString pt = root->GetAttribute("PixelType");

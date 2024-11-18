@@ -87,7 +87,6 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     wxFileName effectsFile;
     effectsFile.AssignDir(CurrentDir);
     effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
-    wxString myString = "Hello";
     UnsavedRgbEffectsChanges = false;
 
     if (!FileExists(effectsFile)) {
@@ -1038,8 +1037,6 @@ void xLightsFrame::UpdateModelsList()
     AllModels.LoadGroups(ModelGroupsNode,
         modelPreview->GetVirtualCanvasWidth(),
         modelPreview->GetVirtualCanvasHeight());
-
-    wxString msg;
 
     // Add all models to default House Preview that are set to Default or All Previews
     for (const auto& it : AllModels) {

@@ -1498,7 +1498,6 @@ void EffectTreeDialog::PurgeDanglingGifs() {
 }
 
 void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
-    wxArrayString parms = wxSplit(event.GetString(), ',');
     int x = event.GetExtraLong() >> 16;
     int y = event.GetExtraLong() & 0xFFFF;
 

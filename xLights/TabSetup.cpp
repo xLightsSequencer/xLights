@@ -1817,7 +1817,6 @@ void xLightsFrame::ValidateControllerProperties() {
 
 void xLightsFrame::OnControllerPropertyGridCollapsed(wxPropertyGridEvent& event)
 {
-    wxString name = event.GetPropertyName();
     auto selections = GetSelectedControllerNames();
 
     if (selections.size() == 1) {
@@ -1831,7 +1830,6 @@ void xLightsFrame::OnControllerPropertyGridCollapsed(wxPropertyGridEvent& event)
 
 void xLightsFrame::OnControllerPropertyGridExpanded(wxPropertyGridEvent& event)
 {
-    wxString name = event.GetPropertyName();
     auto selections = GetSelectedControllerNames();
 
     if (selections.size() == 1) {

@@ -350,7 +350,6 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
 
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
-        auto seq = CheckListBox_Sequences->GetItemText(item);
         if (filelist.Index(CheckListBox_Sequences->GetItemText(item)) != wxNOT_FOUND) {
             CheckListBox_Sequences->CheckItem(item);
             break;

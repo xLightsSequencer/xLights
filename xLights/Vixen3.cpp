@@ -503,7 +503,6 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
     wxXmlDocument doc(filename);
 
     std::map<std::string, wxXmlNode*> effectSettings;
-    wxArrayString markNames;
     int unnamed = 1;
     for (wxXmlNode *n = doc.GetRoot(); n != nullptr; n = n->GetNext())
     {

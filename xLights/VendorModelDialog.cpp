@@ -1709,8 +1709,6 @@ void VendorModelDialog::OnTextCtrl_SearchText(wxCommandEvent& event)
 
 void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 {
-	wxString const searchFor = TextCtrl_Search->GetValue().Lower();
-
 	// cant search if tree is empty
 	if (TreeCtrl_Navigator->GetChildrenCount(TreeCtrl_Navigator->GetRootItem()) == 0)
 	{

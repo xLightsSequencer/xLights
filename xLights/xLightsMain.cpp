@@ -2829,7 +2829,6 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxString folderName;
     time_t cur;
     time(&cur);
     wxFileName newDirH;
@@ -2949,7 +2948,6 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool res = false;
-    wxString srcDirName = srcDir.GetNameWithSep();
     wxFileName srcFile;
     srcFile.SetPath(srcDir.GetNameWithSep());
 
@@ -4294,7 +4292,6 @@ void xLightsFrame::DoAltBackup(bool prompt)
         return;
     }
 
-    wxString folderName;
     time_t cur;
     time(&cur);
     wxFileName newDirH;
@@ -8819,7 +8816,6 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
     }
 
     if (!resp.empty()) {
-        wxString res;
         wxString configver = wxT("");
 
 

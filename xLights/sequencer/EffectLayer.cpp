@@ -794,7 +794,6 @@ void EffectLayer::GetMaximumRangeWithRightMovement(int index, int &toLeft, int &
 
 int EffectLayer::GetSelectedEffectCount()
 {
-    wxString s;
     int count=0;
     for(int i=0; i<mEffects.size();i++)
     {
@@ -808,7 +807,6 @@ int EffectLayer::GetSelectedEffectCount()
 
 int EffectLayer::GetTaggedEffectCount()
 {
-    wxString s;
     int count=0;
     for(int i=0; i<mEffects.size();i++)
     {

@@ -712,7 +712,6 @@ bool Curl::HTTPUploadFile(const std::string& url, const std::string& filename, c
 
     bool res = true;
     wxString fn;
-    wxString ext;
 
     for (int a = 0; a < filename.length(); a++) {
         wxChar ch = filename[a];

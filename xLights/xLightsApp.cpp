@@ -522,7 +522,7 @@ bool xLightsApp::OnInit()
 //check for options on command line: -DJ
 //TODO: maybe use wxCmdLineParser instead?
 //do this before instantiating xLightsFrame so it can use info gathered here
-    wxString unrecog, info;
+    wxString info;
 
     static const wxCmdLineEntryDesc cmdLineDesc [] =
     {

@@ -400,7 +400,7 @@ bool CircleModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
             ls = ReverseCSV(ls);
         }
         wxString io = root->GetAttribute("InsideOut");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString da = root->GetAttribute("DisplayAs");
         wxString pc = root->GetAttribute("PixelCount");
         wxString pt = root->GetAttribute("PixelType");

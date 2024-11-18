@@ -1931,8 +1931,8 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                 }
             }
         }
-        return changed;
     }
+    return changed;
 }
 
 bool ModelManager::Delete(const std::string& name)

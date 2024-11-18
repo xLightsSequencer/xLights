@@ -1204,7 +1204,7 @@ bool DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
             return false;
 
         wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
 
         wxString pdr = root->GetAttribute("DmxPanDegOfRot");
         wxString tdr = root->GetAttribute("DmxTiltDegOfRot");

@@ -537,10 +537,8 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
     if (_tendril == nullptr || buffer.needToInit) {
         buffer.needToInit = false;
         wxPoint startmiddle(buffer.BufferWi / 2 + truexoffset / 2, buffer.BufferHt / 2 + trueyoffset / 2);
-        wxPoint startmiddletop(buffer.BufferWi / 2 + truexoffset / 2, buffer.BufferHt + trueyoffset);
         wxPoint startmiddlebottom(buffer.BufferWi / 2 + truexoffset / 2, 0 + trueyoffset);
         wxPoint startbottomleft(0 + truexoffset, 0 + trueyoffset);
-        wxPoint starttopleft(0 + truexoffset, buffer.BufferHt + trueyoffset);
         wxPoint startmiddleleft(0 + truexoffset, buffer.BufferHt / 2 + trueyoffset / 2);
 
         if (_tendril != nullptr) {

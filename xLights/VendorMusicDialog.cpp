@@ -647,8 +647,6 @@ void VendorMusicDialog::OnTextCtrl_SearchText(wxCommandEvent& event)
 
 void VendorMusicDialog::OnButton_SearchClick(wxCommandEvent& event)
 {
-    wxString searchFor = TextCtrl_Search->GetValue().Lower();
-
     // cant search if tree is empty
     if (TreeCtrl_Navigator->GetChildrenCount(TreeCtrl_Navigator->GetRootItem()) == 0) {
         wxBell();

@@ -460,7 +460,7 @@ bool MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights,
         wxString dir = root->GetAttribute("Dir");
         wxString sn = root->GetAttribute("StrandNames");
         wxString nn = root->GetAttribute("NodeNames");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString pts = root->GetAttribute("NumPoints");
         wxString point_data = root->GetAttribute("PointData");
         wxString pc = root->GetAttribute("PixelCount");

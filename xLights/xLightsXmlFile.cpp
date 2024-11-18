@@ -897,7 +897,6 @@ bool xLightsXmlFile::LoadV3Sequence()
 
     if (!models_defined)  return false;  // no <tr> tag was found
 
-    wxString end_time;
     wxString last_time = "0";
     double time1;
 
@@ -1390,7 +1389,6 @@ wxString xLightsXmlFile::GetImageDir(wxWindow* parent)
 
     wxDirDialog* dlg = new wxDirDialog(parent, _("Select Directory for storing image files for this sequence"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
 
-    wxString newdir = wxEmptyString;
     if (dlg->ShowModal() != wxID_OK) {
         return wxEmptyString;
     }
@@ -1552,8 +1550,6 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
 void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
-    wxString line;
-
     for (size_t i = 0; i < filenames.Count(); ++i )
     {
         wxFileName next_file(filenames[i]);
@@ -1711,7 +1707,7 @@ wxString xLightsXmlFile::UniqueTimingName(xLightsFrame* xLightsParent, wxString 
 void xLightsXmlFile::ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent)
 {
     wxString name = UnXmlSafe(node->GetAttribute("name"));
-    wxString v = node->GetAttribute("SourceVersion");
+    //wxString v = node->GetAttribute("SourceVersion");
     wxString st = node->GetAttribute("subType");
 
     name = UniqueTimingName(xLightsParent, name);
@@ -1787,7 +1783,6 @@ void xLightsXmlFile::ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent
 void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     wxTextFile f;
-    wxString line;
 
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
@@ -2269,8 +2264,6 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxTextFile f;
-    wxString line;
-    wxString desc;
 
     xLightsParent->SetCursor(wxCURSOR_WAIT);
 
@@ -2396,8 +2389,6 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
 void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxTextFile f;
-    wxString line;
-    wxString desc;
 
     xLightsParent->SetCursor(wxCURSOR_WAIT);
     Element* element = nullptr;
@@ -3758,7 +3749,6 @@ void xLightsXmlFile::FixEffectPresets(wxXmlNode* effects_node)
 
                 wxString eff1, eff2, prefix;
                 wxString effect1, effect2;
-                wxString after;
                 int cnt=0;
                 while (!settings.IsEmpty()) {
                     wxString before = settings.BeforeFirst(',');

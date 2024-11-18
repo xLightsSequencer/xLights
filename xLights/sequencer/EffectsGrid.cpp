@@ -6015,7 +6015,6 @@ void EffectsGrid::DrawEffects(xlGraphicsContext* ctx) {
         if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             DrawTimingEffects(row);
         } else {
-            wxString name = ri->element->GetName();
             EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(ri);
             if (effectLayer == nullptr) {
                 continue;

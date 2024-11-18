@@ -1697,7 +1697,6 @@ void CustomModelDialog::ReverseSubmodels() {
         if (root->GetName() == "subModel") {
             const bool isRanges = root->GetAttribute("type", "") == "ranges";
             if (isRanges) {
-                wxArrayString rows;
                 int line = 0;
                 while (root->HasAttribute(wxString::Format("line%d", line))) {
                     auto l = root->GetAttribute(wxString::Format("line%d", line), "");

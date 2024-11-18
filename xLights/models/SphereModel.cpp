@@ -254,7 +254,7 @@ bool SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         wxString d = root->GetAttribute("Degrees", "360");
         wxString sn = root->GetAttribute("StrandNames");
         wxString nn = root->GetAttribute("NodeNames");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString da = root->GetAttribute("DisplayAs");
         wxString pc = root->GetAttribute("PixelCount");
         wxString pt = root->GetAttribute("PixelType");

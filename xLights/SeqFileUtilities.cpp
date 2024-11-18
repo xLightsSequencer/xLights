@@ -3291,7 +3291,7 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString thickness = parms[3];
             wxString vcThickness;
             thickness = RescaleWithRangeI(thickness, "E_VALUECURVE_Spirals_Thickness", 0, 100, 0, 100, vcThickness, SPIRALS_THICKNESS_MIN, SPIRALS_THICKNESS_MAX);
-            wxString thicknessChange = parms[4];
+            // wxString thicknessChange = parms[4]; //unused
             wxString blend = parms[5];
             wxString show3d = parms[6];
             wxString speed = parms[7];
@@ -3461,8 +3461,8 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             velocity = RescaleWithRangeI(velocity, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
             wxString fade = parms[3];
             fade = RescaleWithRangeI(fade, "IGNORE", 1, 100, 1, 100, vcCrap, -1, -1);
-            wxString pattern = parms[4];    // not used
-            wxString rateChange = parms[5]; // not used
+            //wxString pattern = parms[4];    // not used
+            //wxString rateChange = parms[5]; // not used
             settings += ",E_SLIDER_Fireworks_Explosions=" + explosionRate;
             settings += ",E_SLIDER_Fireworks_Count=" + particles;
             settings += ",E_SLIDER_Fireworks_Fade=" + fade;
@@ -3596,7 +3596,7 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString bend = parms[2];
             wxString vcBend;
             bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", -10, 10, -360, 360, vcBend, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX);
-            wxString colour = parms[3]; // not used
+            //wxString colour = parms[3]; // not used
             wxString CCW = parms[4];
             wxString speed = parms[5];
             wxString vcSpeed;
@@ -3678,7 +3678,7 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString speed = parms[6];
             speed = RescaleWithRangeI(speed, "IGNORE", 0, 50, 0, 50, vcCrap, -1, -1);
             if (parms.size() > 7) {
-                wxString unknown1 = parms[7]; // unused
+                //wxString unknown1 = parms[7]; // unused
             }
 
             settings += ",E_TEXTCTRL_Text=" + text;

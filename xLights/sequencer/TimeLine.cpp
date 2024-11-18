@@ -719,9 +719,7 @@ void TimeLine::ZoomOut()
 
 void TimeLine::ZoomIn()
 {
-    wxString s;
-    if (mZoomLevel > 0)
-    {
+    if (mZoomLevel > 0) {
         SetZoomLevel(mZoomLevel - 1);
     }
 }
@@ -949,7 +947,6 @@ void TimeLine::render( wxDC& dc ) {
 
     dc.SetBrush(brush);
     dc.SetPen(pen);
-    wxString format;
     int minutes=0;
     int seconds=0;
     int subsecs=0;

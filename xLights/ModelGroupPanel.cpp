@@ -899,7 +899,6 @@ bool MGTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
 
 void ModelGroupPanel::OnDrop(wxCommandEvent& event)
 {
-    wxArrayString parms = wxSplit(event.GetString(), ',');
     int x = event.GetExtraLong() >> 16;
     int y = event.GetExtraLong() & 0xFFFF;
 

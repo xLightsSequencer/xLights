@@ -301,7 +301,6 @@ xlEffectPanel::~xlEffectPanel() {
 
 void xlEffectPanel::AddListeners(wxWindow *ParentWin)
 {
-    wxString s;
     for (const auto& it : ParentWin->GetChildren()) {
         wxWindow *ChildWin = it;
         wxString ChildName = ChildWin->GetName();

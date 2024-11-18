@@ -116,7 +116,6 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     logger_base.debug("                Creating RowHeading");
 
     DOUBLE_BUFFER(this);
-    wxString tooltip;
 
     papagayo_icon = BitmapCache::GetPapgayoIcon();
     papagayox_icon = BitmapCache::GetPapgayoXIcon();

@@ -770,7 +770,7 @@ bool StarModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         wxString ssl = root->GetAttribute("StarStartLocation");
         wxString sn = root->GetAttribute("StrandNames");
         wxString nn = root->GetAttribute("NodeNames");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString da = root->GetAttribute("DisplayAs");
         wxString pc = root->GetAttribute("PixelCount");
         wxString pt = root->GetAttribute("PixelType");

@@ -885,7 +885,7 @@ bool DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
             return false;
 
         wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString bits = root->GetAttribute("Bits16", "1");
 
         // Add any model version conversion logic here

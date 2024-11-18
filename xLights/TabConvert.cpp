@@ -270,7 +270,6 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, unsigne
 
     */
 
-    wxString ChannelName, TestName;
     int channels_exported = 0;
     unsigned long rgb;
     wxFile f;
@@ -396,7 +395,6 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, unsigne
 
 void xLightsFrame::WriteHLSFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType* dataBuf)
 {
-    wxString ChannelName, TestName;
     int seqidx = 0;
 
     wxFile f;
@@ -1131,7 +1129,6 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
 
     if (presetNode != nullptr) {
         auto cp = presetNode->GetAttribute("settings");
-        auto v = presetNode->GetAttribute("xLightsVersion", "4.0");
 
         CopyFormat1 pd(cp);
         if (pd.IsOk()) {

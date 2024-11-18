@@ -182,7 +182,7 @@ void PaletteMgmtDialog::OnButtonDeleteClick(wxCommandEvent& event)
 
 void PaletteMgmtDialog::SavePalette(EffectsPanel* panel)
 {
-    wxString ChildName,AttrName;
+    wxString AttrName;
     wxColour color;
     wxString name = wxGetTextFromUser(_("Enter name for palette"), _("Save Color Palette"));
     name.Trim(true);

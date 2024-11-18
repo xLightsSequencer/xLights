@@ -1394,7 +1394,6 @@ void ModelStateDialog::CopyStates(wxGridEvent& event)
 
     wxMultiChoiceDialog dlg(GetParent(), "", "Select States", choices);
     if (dlg.ShowModal() == wxID_OK) {
-        wxArrayString allNodes;
         int stateIdx { 1 };
         for (auto const& idx : dlg.GetSelections()) {
             auto sd = stateData[choices.at(idx)];

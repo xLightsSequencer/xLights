@@ -809,7 +809,6 @@ static bool parse_model(const wxString& want_model)
         //NOTE: assumes phoneme/face mapping is consistent for any given model across groups, which should be the case since the lights don't move
         for (wxXmlNode* group = Presets->GetChildren(); group != nullptr; group = group->GetNext())
         {
-            wxString grpname = group->GetAttribute(wxT("name"));
             for (wxXmlNode* voice = group->GetChildren(); voice != nullptr; voice = voice->GetNext())
             {
                 wxString voice_name = NoInactive(voice->GetAttribute(wxT("name")));

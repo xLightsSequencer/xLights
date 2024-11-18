@@ -289,7 +289,7 @@ bool DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
             return false;
 
         wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
 
         wxString dbl = root->GetAttribute("DmxBeamLength", "1");
 

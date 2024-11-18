@@ -505,7 +505,7 @@ bool TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         wxString dir = root->GetAttribute("Dir");
         wxString sn = root->GetAttribute("StrandNames");
         wxString nn = root->GetAttribute("NodeNames");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString da = root->GetAttribute("DisplayAs");
         wxString tbtr = root->GetAttribute("TreeBottomTopRatio");
         wxString tp = root->GetAttribute("TreePerspective");
