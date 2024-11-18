@@ -587,10 +587,10 @@ void xlGridCanvasPictures::DrawPicturesEffect(xlGraphicsContext *ctx)
             delete imageCopy;
             imageCopy = nullptr;
         }
-        imageTexture = ctx->createTexture(image);
+        imageTexture = ctx->createTexture(image, "PictureCanvas");
 
         if (mCopyAvailable) {
-            imageCopy = ctx->createTexture(image_copy);
+            imageCopy = ctx->createTexture(image_copy, "PictureCanvasCopy");
         }
     }
     if (imageTexture == nullptr) {

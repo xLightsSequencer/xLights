@@ -1212,8 +1212,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
                 wxImage image(mBackgroundImage);
                 if (image.IsOk()) {
                     backgroundSize.Set(image.GetWidth(), image.GetHeight());
-                    background = currentContext->createTexture(image);
-                    background->Finalize();
+                    background = currentContext->createTexture(image, mBackgroundImage, true);
                     logger_base.debug("    Loaded.");
                 } else {
                     logger_base.debug("    Failed.");

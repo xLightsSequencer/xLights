@@ -61,9 +61,7 @@ xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(c
                 wxImage image(texName);
                 if (image.IsOk()) {
                     image = image.Mirror(false);
-                    materials[idx].texture = ctx->createTexture(image);
-                    materials[idx].texture->SetName(m.diffuse_texname);
-                    materials[idx].texture->Finalize();
+                    materials[idx].texture = ctx->createTexture(image, m.diffuse_texname, true);
                 }
             }
         }

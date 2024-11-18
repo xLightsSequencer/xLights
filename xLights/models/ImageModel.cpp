@@ -270,9 +270,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                 }
                 width = img.GetWidth();
                 height = img.GetHeight();
-                texture = ctx->createTexture(img);
-                texture->SetName(GetName());
-                texture->Finalize();
+                texture = ctx->createTexture(img, GetName(), true);
 
                 // Modify image for color overlay
                 if (drawColor) {
@@ -288,9 +286,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                         }
                     }
                 }
-                textureColorOverlay = ctx->createTexture(img);
-                textureColorOverlay->SetName(GetName() + "_color_overlay");
-                textureColorOverlay->Finalize();
+                textureColorOverlay = ctx->createTexture(img, GetName() + "_color_overlay", true);
             }
         }
         if (texture) {
@@ -421,9 +417,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
             width = img.GetWidth();
             height = img.GetHeight();
             hasAlpha = img.HasAlpha();
-            texture = ctx->createTexture(img);
-            texture->SetName(GetName());
-            texture->Finalize();
+            texture = ctx->createTexture(img, GetName(), true);
             _images[preview->GetName().ToStdString()] = texture;
 
             // Modify image for color overlay
@@ -440,9 +434,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
                     }
                 }
             }
-            textureColorOverlay = ctx->createTexture(img);
-            textureColorOverlay->SetName(GetName() + "_color_overlay");
-            textureColorOverlay->Finalize();
+            textureColorOverlay = ctx->createTexture(img, GetName() + "_color_overlay", true);
             _images[preview->GetName().ToStdString() + "_color_overlay"] = textureColorOverlay;
         }
     }

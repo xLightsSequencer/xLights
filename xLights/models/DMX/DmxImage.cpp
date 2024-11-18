@@ -337,7 +337,7 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *
                 (const char*)preview->GetName().c_str());
             wxImage img(_imageFile);
             if (img.IsOk()) {
-                xlTexture *t = preview->getCurrentGraphicsContext()->createTexture(img);
+                xlTexture *t = preview->getCurrentGraphicsContext()->createTexture(img, _imageFile, true);
                 _images[preview->GetName().ToStdString()] = t;
                 width = img.GetWidth();
                 height = img.GetHeight();

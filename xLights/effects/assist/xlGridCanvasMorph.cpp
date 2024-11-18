@@ -561,7 +561,7 @@ void xlGridCanvasMorph::CreateCornerTextures(xlGraphicsContext *ctx)
         }
     }
     for (int i = 0; i < 6; i++) {
-        mCornerTextures[i] = ctx->createTextureMipMaps(CORNER_IMAGES[i]);
+        mCornerTextures[i] = ctx->createTextureMipMaps(CORNER_IMAGES[i], "MorphCorner" + std::to_string(i));
     }
 }
 void xlGridCanvasMorph::render(wxPaintEvent& event)

@@ -836,8 +836,12 @@ class xlMetalTexture : public xlTexture {
 public:
     xlMetalTexture() : xlTexture(), texture(nil) {
     }
-    xlMetalTexture(const wxImage &image) : xlTexture(), texture(nil) {
+    xlMetalTexture(const wxImage &image, const std::string &name, bool finalize) : xlTexture(), texture(nil) {
+        SetName(name);
         LoadImage(image);
+        if (finalize) {
+            Finalize();
+        }
     }
     xlMetalTexture(int w, int h, bool bgr, bool alpha) {
         @autoreleasepool {
@@ -946,19 +950,24 @@ public:
             if (levels == 0) {
                 levels = 1;
             }
+            // Encode a blit pass to copy data from the source texture to the private texture.
+            std::string n2 = name + " Texture";
+            NSString *n = [NSString stringWithUTF8String:n2.c_str()];
+            id<MTLCommandBuffer> bltBuffer = [wxMetalCanvas::getBltCommandQueue() commandBuffer];
+            [bltBuffer pushDebugGroup:n];
+
             MTLTextureDescriptor *description = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
                                                                                                    width:textureSize.width
                                                                                                   height:textureSize.height
                                                                                                mipmapped:(levels > 1 ? true : false)];
             description.storageMode = MTLStorageModePrivate;
             id <MTLTexture> privateTexture = [wxMetalCanvas::getMTLDevice() newTextureWithDescriptor:description];
-            std::string n2 = name + " Texture";
-            NSString *n = [NSString stringWithUTF8String:n2.c_str()];
             [privateTexture setLabel:n];
 
-            // Encode a blit pass to copy data from the source texture to the private texture.
-            id<MTLCommandBuffer> bltBuffer = [wxMetalCanvas::getMTLCommandQueue() commandBuffer];
             id <MTLBlitCommandEncoder> blitCommandEncoder = [bltBuffer blitCommandEncoder];
+            n2 += "BltEncoder";
+            n = [NSString stringWithUTF8String:n2.c_str()];
+            [blitCommandEncoder setLabel:n];
             MTLOrigin textureOrigin = MTLOriginMake(0, 0, 0);
             MTLSize size = MTLSizeMake(textureSize.width, textureSize.height, 1);
             for (int l = 0; l < levels; l++ ) {
@@ -976,6 +985,7 @@ public:
             }
             [blitCommandEncoder optimizeContentsForGPUAccess:privateTexture];
             [blitCommandEncoder endEncoding];
+            [bltBuffer popDebugGroup];
             [bltBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb) {
                 // Private texture is populated, we can release the srcBuffer
                 [srcTexture release];
@@ -1020,15 +1030,16 @@ xlVertexTextureAccumulator *xlMetalGraphicsContext::createVertexTextureAccumulat
     return new xlMetalVertexTextureAccumulator();
 }
 
-xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) {
+xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxBitmap> &bitmaps, const std::string &name) {
     std::vector<wxImage> images;
     for (auto &a : bitmaps) {
         images.push_back(a.ConvertToImage());
     }
-    return createTextureMipMaps(images);
+    return createTextureMipMaps(images, name);
 }
-xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxImage> &images) {
+xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxImage> &images, const std::string &name) {
     xlMetalTexture *txt = new xlMetalTexture();
+    txt->SetName(name);
 
     @autoreleasepool {
         MTLTextureDescriptor * desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
@@ -1056,21 +1067,15 @@ xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<wxImag
             [txt->texture replaceRegion:region mipmapLevel:x withBytes:bytes bytesPerRow:rlen];
         }
         free(bytes);
-    }
-    return txt;
-}
-xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image, bool pvt, const std::string &name) {
-    xlMetalTexture *txt = new xlMetalTexture(image);
-    if (name != "") {
-        txt->SetName(name);
-    }
-    if (pvt) {
         txt->Finalize();
     }
     return txt;
 }
-xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image) {
-    return createTexture(image, false, "");
+xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image, bool pvt, const std::string &name) {
+   return new xlMetalTexture(image, name, pvt);
+}
+xlTexture *xlMetalGraphicsContext::createTexture(const wxImage &image, const std::string &name, bool finalize) {
+    return createTexture(image, finalize, name);
 }
 xlTexture *xlMetalGraphicsContext::createTexture(int w, int h, bool bgr, bool alpha) {
     return new xlMetalTexture(w, h, bgr, alpha);

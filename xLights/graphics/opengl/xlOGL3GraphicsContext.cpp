@@ -1198,15 +1198,17 @@ static void CreateOrUpdateTexture(const wxBitmap &bmp48,
         w = w / 2;
     }
 }
-xlTexture *xlOGL3GraphicsContext::createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) {
+xlTexture *xlOGL3GraphicsContext::createTextureMipMaps(const std::vector<wxBitmap> &bitmaps, const std::string &name) {
     xlGLTexture *t = new xlGLTexture(canvas->IsCoreProfile());
+    t->SetName(name);
     GLuint tid = 0;
     CreateOrUpdateTexture(bitmaps[0], bitmaps[1], bitmaps[2], &tid);
     t->_texId = tid;
     return t;
 }
-xlTexture *xlOGL3GraphicsContext::createTextureMipMaps(const std::vector<wxImage> &images) {
+xlTexture *xlOGL3GraphicsContext::createTextureMipMaps(const std::vector<wxImage> &images, const std::string &name) {
     xlGLTexture *t = new xlGLTexture(canvas->IsCoreProfile());
+    t->SetName(name);
     GLuint tid = 0;
     CreateOrUpdateTexture(wxBitmap(images[0]), wxBitmap(images[1]), wxBitmap(images[2]), &tid);
     t->_texId = tid;
@@ -1214,14 +1216,21 @@ xlTexture *xlOGL3GraphicsContext::createTextureMipMaps(const std::vector<wxImage
     t->height = images[0].GetHeight();
     return t;
 }
-xlTexture *xlOGL3GraphicsContext::createTexture(const wxImage &image) {
-    return new xlGLTexture(image, canvas->IsCoreProfile());
+xlTexture *xlOGL3GraphicsContext::createTexture(const wxImage &image, const std::string &name, bool finalize) {
+    xlTexture *t = new xlGLTexture(image, canvas->IsCoreProfile());
+    if (!name.empty()) {
+        t->SetName(name);
+    }
+    if (finalize) {
+        t->Finalize();
+    }
+    return t;
 }
 xlTexture *xlOGL3GraphicsContext::createTexture(int w, int h, bool bgr, bool alpha) {
     return new xlGLTexture(w, h, bgr, alpha, canvas->IsCoreProfile());
 }
 xlTexture *xlOGL3GraphicsContext::createTextureForFont(const xlFontInfo &font) {
-    return createTexture(font.getImage());
+    return createTexture(font.getImage(), "Font-" + std::to_string(font.getSize()));
 }
 xlGraphicsProgram *xlOGL3GraphicsContext::createGraphicsProgram() {
     return new xlGraphicsProgram(createVertexColorAccumulator());
