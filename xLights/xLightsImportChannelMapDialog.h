@@ -398,7 +398,6 @@ class xLightsImportChannelMapDialog: public wxDialog
 		//(*Declarations(xLightsImportChannelMapDialog)
 		wxButton* ButtonImportOptions;
 		wxButton* Button_AutoMap;
-		wxButton* Button_AutoMapSel;
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
 		wxButton* Button_UpdateAliases;
@@ -457,11 +456,10 @@ protected:
 		static const wxWindowID ID_TEXTCTRL2;
 		static const wxWindowID ID_BUTTON3;
 		static const wxWindowID ID_BUTTON4;
-		static const wxWindowID ID_BUTTON6;
 		static const wxWindowID ID_BUTTON5;
-		static const wxWindowID ID_BUTTON7;
-		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_BUTTON6;
 		static const wxWindowID ID_BUTTON2;
+		static const wxWindowID ID_BUTTON1;
 		static const wxWindowID ID_PANEL1;
 		static const wxWindowID ID_STATICTEXT1;
 		static const wxWindowID ID_TEXTCTRL1;
@@ -475,6 +473,8 @@ protected:
         static const long ID_MNU_COLLAPSEALL;
         static const long ID_MNU_EXPANDALL;
         static const long ID_MNU_SHOWALLMAPPED;
+        static const long ID_MNU_AUTOMAPSELECTED;
+        static const long ID_MNU_AUTOMAPSELECTED_AVAIL;
 
 	private:
         wxString FindTab(wxString &line);
@@ -504,6 +504,7 @@ protected:
 
         void RightClickTimingTracks(wxContextMenuEvent& event);
         void RightClickModels(wxDataViewEvent& event);
+        void RightClickModelsAvail(wxDataViewEvent& event);
         void CollapseAll();
         void ExpandAll();
         void ShowAllMapped();

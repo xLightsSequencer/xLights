@@ -450,11 +450,10 @@ const wxWindowID xLightsImportChannelMapDialog::ID_STATICTEXT2 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_TEXTCTRL2 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON4 = wxNewId();
-const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON6 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON5 = wxNewId();
-const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON7 = wxNewId();
-const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON1 = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON6 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON2 = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON1 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_PANEL1 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_STATICTEXT1 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_TEXTCTRL1 = wxNewId();
@@ -468,6 +467,8 @@ const long xLightsImportChannelMapDialog::ID_MNU_SELECTNONE = wxNewId();
 const long xLightsImportChannelMapDialog::ID_MNU_COLLAPSEALL = wxNewId();
 const long xLightsImportChannelMapDialog::ID_MNU_EXPANDALL = wxNewId();
 const long xLightsImportChannelMapDialog::ID_MNU_SHOWALLMAPPED = wxNewId();
+const long xLightsImportChannelMapDialog::ID_MNU_AUTOMAPSELECTED = wxNewId();
+
 
 BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
 //(*EventTable(xLightsImportChannelMapDialog)
@@ -571,24 +572,22 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     Button_Cancel = new wxButton(Panel1, ID_BUTTON4, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
     FlexGridSizer7->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer5->Add(FlexGridSizer7, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_UpdateAliases = new wxButton(Panel1, ID_BUTTON6, _("Update All Aliases Using Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
-    FlexGridSizer5->Add(Button_UpdateAliases, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer5, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
     Button_AutoMap = new wxButton(Panel1, ID_BUTTON5, _("Auto Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    FlexGridSizer6->Add(Button_AutoMap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(Button_AutoMap, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_UpdateAliases = new wxButton(Panel1, ID_BUTTON6, _("Update Aliases w/ Maps"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
+    FlexGridSizer6->Add(Button_UpdateAliases, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer8->Add(FlexGridSizer6, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_AutoMapSel = new wxButton(Panel1, ID_BUTTON7, _("Auto Map Selected"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
-    FlexGridSizer8->Add(Button_AutoMapSel, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer8, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer10 = new wxFlexGridSizer(0, 3, 0, 0);
-    Button01 = new wxButton(Panel1, ID_BUTTON1, _("Load Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer10->Add(Button01, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer9->Add(FlexGridSizer10, 1, wxALIGN_LEFT, 5);
+    FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
     Button02 = new wxButton(Panel1, ID_BUTTON2, _("Save Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    FlexGridSizer9->Add(Button02, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer10->Add(Button02, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button01 = new wxButton(Panel1, ID_BUTTON1, _("Load Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    FlexGridSizer10->Add(Button01, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer9->Add(FlexGridSizer10, 1, wxALIGN_LEFT, 5);
     FlexGridSizer2->Add(FlexGridSizer9, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer12->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -621,11 +620,10 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     Connect(ID_TEXTCTRL2, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindToText);
     Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_OkClick);
     Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
-    Connect(ID_BUTTON6, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick);
     Connect(ID_BUTTON5, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_AutoMapClick);
-    Connect(ID_BUTTON7, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_AutoMapSelClick);
-    Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
+    Connect(ID_BUTTON6, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick);
     Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
+    Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
     Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindFromText);
     Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_BEGIN_DRAG, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag);
     Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
@@ -635,6 +633,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     //*)
 
     Connect(ID_CHECKLISTBOX1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickTimingTracks);
+    Connect(ID_LISTCTRL1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickModelsAvail);
 
     SetSize(800, 600);
 
@@ -684,9 +683,17 @@ void xLightsImportChannelMapDialog::RightClickModels(wxDataViewEvent& event)
         mnuLayer.Append(ID_MNU_COLLAPSEALL, "Collapse All");
         mnuLayer.Append(ID_MNU_EXPANDALL, "Expand All");
         mnuLayer.Append(ID_MNU_SHOWALLMAPPED, "Show All Mapped Models");
+        mnuLayer.Append(ID_MNU_AUTOMAPSELECTED, "Auto Map Selected");
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupModels, nullptr, this);
         TreeListCtrl_Mapping->PopupMenu(&mnuLayer, event.GetPosition());
     }
+}
+
+void xLightsImportChannelMapDialog::RightClickModelsAvail(wxDataViewEvent& event) {
+        wxMenu mnuLayer;
+        mnuLayer.Append(ID_MNU_AUTOMAPSELECTED, "Auto Map Selected");
+        mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupModels, nullptr, this);
+        PopupMenu(&mnuLayer);
 }
 
 void xLightsImportChannelMapDialog::OnPopupModels(wxCommandEvent& event)
@@ -698,6 +705,8 @@ void xLightsImportChannelMapDialog::OnPopupModels(wxCommandEvent& event)
         CollapseAll();
     } else if (id == ID_MNU_SHOWALLMAPPED) {
         ShowAllMapped();
+    } else if (id == ID_MNU_AUTOMAPSELECTED) {
+        OnButton_AutoMapSelClick(event);
     }
 }
 

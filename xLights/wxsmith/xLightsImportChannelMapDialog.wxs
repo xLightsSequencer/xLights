@@ -222,15 +222,6 @@
 												<border>5</border>
 												<option>1</option>
 											</object>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON6" variable="Button_UpdateAliases" member="yes">
-													<label>Update All Aliases Using Mapping</label>
-													<handler function="OnButton_UpdateAliasesClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
 										</object>
 										<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
@@ -241,25 +232,25 @@
 											<cols>1</cols>
 											<object class="sizeritem">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
-													<cols>3</cols>
+													<cols>1</cols>
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON5" variable="Button_AutoMap" member="yes">
 															<label>Auto Map</label>
 															<handler function="OnButton_AutoMapClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
-												</object>
-												<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON7" variable="Button_AutoMapSel" member="yes">
-													<label>Auto Map Selected</label>
-													<handler function="OnButton_AutoMapSelClick" entry="EVT_BUTTON" />
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON6" variable="Button_UpdateAliases" member="yes">
+															<label>Update Aliases w/ Maps</label>
+															<handler function="OnButton_UpdateAliasesClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
 												</object>
 												<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
@@ -275,27 +266,27 @@
 											<cols>1</cols>
 											<object class="sizeritem">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
-													<cols>3</cols>
+													<cols>1</cols>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON2" variable="Button02" member="no">
+															<label>Save Map</label>
+															<handler function="SaveMapping" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON1" variable="Button01" member="no">
 															<label>Load Map</label>
 															<handler function="LoadMapping" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
 												</object>
 												<flag>wxALIGN_LEFT</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON2" variable="Button02" member="no">
-													<label>Save Map</label>
-													<handler function="SaveMapping" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
