@@ -28,7 +28,7 @@ public:
     IPOutput(wxXmlNode* node, bool isActive);
     IPOutput();
     IPOutput(const IPOutput& from);
-    virtual ~IPOutput() override {};
+    virtual ~IPOutput();
     virtual wxXmlNode* Save() override;
     #pragma endregion 
 

@@ -66,6 +66,8 @@ IPOutput::IPOutput(const IPOutput& from) :
     SetResolvedIP(from.GetResolvedIP());
     _universe = from._universe;
 }
+IPOutput::~IPOutput() {
+}
 
 wxXmlNode* IPOutput::Save() {
 

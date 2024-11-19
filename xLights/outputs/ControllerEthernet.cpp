@@ -729,9 +729,7 @@ Output::PINGSTATE ControllerEthernet::Ping() {
         }
         _lastPingResult = dynamic_cast<IPOutput*>(_outputs.front())->Ping(ip, GetFPPProxy());
     } else {
-        E131Output ipo;
-        ipo.SetIP(_ip, IsActive());
-        _lastPingResult = ipo.Ping(GetResolvedIP(true), GetFPPProxy());
+        _lastPingResult = IPOutput::Ping( ip_utils::ResolveIP(_ip), GetFPPProxy());
     }
     return GetLastPingState();
 }
