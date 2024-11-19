@@ -456,10 +456,10 @@ protected:
 		static const wxWindowID ID_TEXTCTRL2;
 		static const wxWindowID ID_BUTTON3;
 		static const wxWindowID ID_BUTTON4;
-		static const wxWindowID ID_BUTTON6;
 		static const wxWindowID ID_BUTTON5;
-		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_BUTTON6;
 		static const wxWindowID ID_BUTTON2;
+		static const wxWindowID ID_BUTTON1;
 		static const wxWindowID ID_PANEL1;
 		static const wxWindowID ID_STATICTEXT1;
 		static const wxWindowID ID_TEXTCTRL1;
@@ -473,6 +473,8 @@ protected:
         static const long ID_MNU_COLLAPSEALL;
         static const long ID_MNU_EXPANDALL;
         static const long ID_MNU_SHOWALLMAPPED;
+        static const long ID_MNU_AUTOMAPSELECTED;
+        static const long ID_MNU_AUTOMAPSELECTED_AVAIL;
 
 	private:
         wxString FindTab(wxString &line);
@@ -489,6 +491,7 @@ protected:
 		void OnListCtrl_AvailableColumnClick(wxListEvent& event);
 		void OnCheckBox_MapCCRStrandClick(wxCommandEvent& event);
 		void OnButton_AutoMapClick(wxCommandEvent& event);
+        void OnButton_AutoMapSelClick(wxCommandEvent& event);
 		void OnListCtrl_AvailableItemActivated(wxListEvent& event);
 		void OnButtonImportOptionsClick(wxCommandEvent& event);
 		void OnCheckBoxImportMediaClick(wxCommandEvent& event);
@@ -496,10 +499,12 @@ protected:
 		void OnTextCtrl_FindToText(wxCommandEvent& event);
 		void OnButton_UpdateAliasesClick(wxCommandEvent& event);
 		void OnClose(wxCloseEvent& event);
+		void OnInit(wxInitDialogEvent& event);
 		//*)
 
         void RightClickTimingTracks(wxContextMenuEvent& event);
         void RightClickModels(wxDataViewEvent& event);
+        void RightClickModelsAvail(wxDataViewEvent& event);
         void CollapseAll();
         void ExpandAll();
         void ShowAllMapped();
@@ -515,7 +520,7 @@ protected:
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_model,
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_strand,
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_node,
-            const std::string& extra1, const std::string& extra2, const std::string& mg);
+            const std::string& extra1, const std::string& extra2, const std::string& mg, const bool& select);
 
 
         void LoadXMapMapping(wxString const& filename, bool hideWarnings);
