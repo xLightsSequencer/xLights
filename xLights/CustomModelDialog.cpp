@@ -2877,14 +2877,14 @@ void CustomModelDialog::AddPage()
     grid->EnableDragGridSize(false);
     grid->EnableDragRowSize(false);
 
-    while (grid->GetNumberCols() < WidthSpin->GetValue())
-    {
-        grid->AppendCols();
+    int numColsToAdd = WidthSpin->GetValue() - grid->GetNumberCols();
+    if (numColsToAdd > 0) {
+        grid->AppendCols(numColsToAdd);
     }
 
-    while (grid->GetNumberRows() < HeightSpin->GetValue())
-    {
-        grid->AppendRows();
+    int numRowsToAdd = HeightSpin->GetValue() - grid->GetNumberRows();
+    if (numRowsToAdd > 0) {
+        grid->AppendRows(numRowsToAdd);
     }
 
     auto renderer = new wxModelGridCellRenderer(bkg_image, *grid);
