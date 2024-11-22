@@ -201,7 +201,10 @@ namespace ip_utils
         std::unique_lock<std::mutex> lock(__resolvedIPMapLock);
         std::string resolvedIp = __resolvedIPMap[ip];
         lock.unlock();
-        if (resolvedIp.empty()) {
+        if (resolvedIp.empty() || hasAlpha(ip)) {
+        std::string resolvedIp = __resolvedIPMap[ip];
+            if (hasAlpha(ip))
+                __resolvedIPMap.erase(ip);
             ResolveJob *job = new ResolveJob(ip, func);
             RESOLVE_POOL.PushJob(job);
         } else {

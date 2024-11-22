@@ -15,6 +15,7 @@
 #include <wx/filename.h>
 #include <wx/dir.h>
 
+#include "IPOutput.h"
 #include "OutputManager.h"
 #include "ControllerEthernet.h"
 #include "ControllerNull.h"
@@ -29,7 +30,8 @@
 #include "TestPreset.h"
 #include "../Parallel.h"
 #include "../UtilFunctions.h"
-#include "../utils/ip_utils.h"
+#include "utils/ip_utils.h"
+#include <wx/regex.h>
 
 #include <numeric>
 
@@ -1162,6 +1164,13 @@ bool OutputManager::StartOutput() {
         // make sure global FPP proxy is up to date ...
         it->SetGlobalFPPProxyIP(_globalFPPProxy);
         it->SetGlobalForceLocalIP(_globalForceLocalIP);
+
+        //try to refresh in case ctrl was turned on after xlights started
+        if (hasAlpha(it->GetResolvedIP())) {
+            IPOutput* ipOutput = dynamic_cast<IPOutput*>(it);
+            if (ipOutput) ipOutput->SetIP(it->GetResolvedIP(), true, true);
+            ip_utils::waitForAllToResolve();
+        }
 
         bool preok = ok;
         ok = it->Open() && ok;

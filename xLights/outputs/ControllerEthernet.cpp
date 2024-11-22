@@ -720,6 +720,16 @@ void ControllerEthernet::VMVChanged(wxPropertyGrid *grid)
 
 Output::PINGSTATE ControllerEthernet::Ping() {
 
+    if (hasAlpha(_resolvedIp)) {
+        for (auto& it : GetOutputs()) { // Get the actual IPOutput object
+            IPOutput* ipOutput = dynamic_cast<IPOutput*>(it);
+            if (ipOutput) {
+                ipOutput->SetIP(this->GetResolvedIP(), true, true); // Re-resolve IP
+                ip_utils::waitForAllToResolve();
+                _resolvedIp = it->GetResolvedIP();
+            }
+        }
+    }
     if (GetResolvedIP(false) == "MULTICAST") {
         _lastPingResult = Output::PINGSTATE::PING_UNAVAILABLE;
     } else if (_outputs.size() > 0) {
