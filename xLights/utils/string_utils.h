@@ -93,10 +93,13 @@ extern const wxString xlEMPTY_WXSTRING;
         return in.find(contains) != std::wstring::npos;
     }
 
-    inline bool hasAlpha(const std::string& str) noexcept 
-    {
-        std::regex pattern("[a-zA-Z]");
-        return std::regex_search(str, pattern);
+    inline bool hasAlpha(const std::string& s) {
+        for (auto c : s) {
+            if (std::isalpha(c)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     inline std::string StripAllBut(const std::string& in, const std::string& but)
