@@ -727,13 +727,11 @@ Controller* Model::GetController() const
 
 bool Model::IsAlias(const std::string& alias, bool oldnameOnly) const
 {
-    for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
-        if (x->GetName() == "Aliases") {
-            for (auto xx = x->GetChildren(); xx != nullptr; xx = xx->GetNext()) {
-                if ((!oldnameOnly && Lower(alias) == xx->GetAttribute("name").Lower()) || Lower("oldname:" + alias) == xx->GetAttribute("name").Lower()) {
-                    return true;
-                }
-            }
+    std::string lowAlias = Lower(alias);
+    std::string oldLowAlias = Lower("oldname:" + alias);
+    for (auto &a : GetAliases()) {
+        if ((!oldnameOnly && lowAlias == a) || oldLowAlias == a) {
+            return true;
         }
     }
     return false;
@@ -744,37 +742,41 @@ void Model::AddAlias(const std::string& alias)
     if (IsAlias(alias))
         return;
 
+    std::string lAlias = ::Lower(alias);
     // a model name cant be its own alias
-    if (Lower(alias) == Lower(Name()))
+    if (lAlias == Lower(Name()))
         return;
 
     for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
         if (x->GetName() == "Aliases") {
             auto n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
-            n->AddAttribute("name", Lower(alias));
+            n->AddAttribute("name", lAlias);
             x->AddChild(n);
             IncrementChangeCount();
+            aliases.emplace_back(lAlias);
             return;
         }
     }
-    auto aliases = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "Aliases");
+    auto aliasNode = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "Aliases");
     auto n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
-    n->AddAttribute("name", Lower(alias));
-    aliases->AddChild(n);
+    n->AddAttribute("name", lAlias);
+    aliasNode->AddChild(n);
+    aliases.emplace_back(lAlias);
     IncrementChangeCount();
-
-    ModelXml->AddChild(aliases);
+    ModelXml->AddChild(aliasNode);
 }
 
 void Model::DeleteAlias(const std::string& alias)
 {
+    std::string lAlias = ::Lower(alias);
     while (IsAlias(alias)) { // while should not be required ... but just in case it ever ends up there more than once
         for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
             if (x->GetName() == "Aliases") {
                 for (auto xx = x->GetChildren(); xx != nullptr; xx = xx->GetNext()) {
-                    if (Lower(alias) == xx->GetContent().Lower()) {
+                    if (lAlias == xx->GetContent().Lower()) {
                         x->RemoveChild(xx);
                         IncrementChangeCount();
+                        aliases.clear(); //will reload next get
                         return;
                     }
                 }
@@ -783,25 +785,24 @@ void Model::DeleteAlias(const std::string& alias)
     }
 }
 
-std::list<std::string> Model::GetAliases() const
+const std::list<std::string> &Model::GetAliases() const
 {
-    std::list<std::string> aliases;
-
+    if (aliases.empty()) {
         for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
             if (x->GetName() == "Aliases") {
                 for (auto xx = x->GetChildren(); xx != nullptr; xx = xx->GetNext()) {
-                    aliases.push_back(xx->GetAttribute("name"));
+                    aliases.emplace_back(Lower(xx->GetAttribute("name").ToStdString()));
                 }
             }
         }
-
+    }
     return aliases;
 }
 
-void Model::SetAliases(std::list<std::string>& aliases)
+void Model::SetAliases(const std::list<std::string>& aliases)
 {
     AddAlias("dummy"); // this ensures the owning element exists
-
+    this->aliases.clear();
     for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
         if (x->GetName() == "Aliases") {
             while (x->GetChildren() != nullptr)
@@ -811,6 +812,7 @@ void Model::SetAliases(std::list<std::string>& aliases)
                 auto n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
                 n->AddAttribute("name", Lower(it));
                 x->AddChild(n);
+                this->aliases.emplace_back(::Lower(it));
             }
         }
     }
@@ -3037,6 +3039,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
         delete subModels.back();
         subModels.pop_back();
     }
+    sortedSubModels.clear();
     superStringColours.clear();
 
     zeroBased = zb;
@@ -3369,16 +3372,16 @@ void Model::RemoveSubModel(const std::string& name)
         if (m->GetName() == name) {
             delete m;
             subModels.erase(a);
+            sortedSubModels.erase(name);
         }
     }
 }
 
 Model* Model::GetSubModel(const std::string& name) const
 {
-    for (auto a = subModels.begin(); a != subModels.end(); ++a) {
-        if ((*a)->GetName() == name) {
-            return *a;
-        }
+    auto it = sortedSubModels.find(name);
+    if (it != sortedSubModels.end()) {
+        return it->second;
     }
     return nullptr;
 }
@@ -3398,7 +3401,9 @@ std::string Model::GenerateUniqueSubmodelName(const std::string suggested) const
 
 void Model::ParseSubModel(wxXmlNode* node)
 {
-    subModels.push_back(new SubModel(this, node));
+    SubModel *sm = new SubModel(this, node);
+    subModels.push_back(sm);
+    sortedSubModels[sm->GetName()] = sm;
 }
 
 int Model::CalcCannelsPerString()

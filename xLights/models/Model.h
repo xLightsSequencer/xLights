@@ -336,7 +336,9 @@ protected:
     int rgbwHandlingType = 0;
     std::vector<xlColor> superStringColours;
 
+    mutable std::list<std::string> aliases;
     std::vector<Model*> subModels;
+    std::map<std::string, Model*> sortedSubModels;
     void ParseSubModel(wxXmlNode* subModelNode);
     void ColourClashingChains(wxPGProperty* p);
     [[nodiscard]] uint32_t ApplyLowDefinition(uint32_t val) const;
@@ -402,8 +404,8 @@ public:
     bool IsAlias(const std::string& alias, bool oldnameOnly = false) const;
     void AddAlias(const std::string& alias);
     void DeleteAlias(const std::string& alias);
-    [[nodiscard]] std::list<std::string> GetAliases() const;
-    void SetAliases(std::list<std::string>& aliases);
+    const std::list<std::string> &GetAliases() const;
+    void SetAliases(const std::list<std::string>& aliases);
 
     void GetPortSR(int string, int& outport, int& outsr) const;
     [[nodiscard]] char GetSmartRemoteLetter() const;

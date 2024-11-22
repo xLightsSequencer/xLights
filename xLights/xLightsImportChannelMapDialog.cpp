@@ -33,6 +33,7 @@
 #include "../../xSchedule/wxJSON/jsonwriter.h"
 #include <algorithm>
 #include "xlColourData.h"
+#include "utils/string_utils.h"
 
 #include <log4cpp/Category.hh>
 
@@ -208,9 +209,9 @@ int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataVie
 
         if (node1->_node != "" && node2->_node != "") {
             if (ascending) {
-                return NumberAwareStringCompare(node1->_node.ToStdString(), node2->_node.ToStdString());
+                return NumberAwareStringCompare(node1->_node, node2->_node);
             } else {
-                return NumberAwareStringCompareRev(node1->_node.ToStdString(), node2->_node.ToStdString());
+                return NumberAwareStringCompareRev(node1->_node, node2->_node);
             }
         } else if (node1->_strand != "" && node2->_strand != "") { // dont sort the submodels
             int idx1 = findChildIndex(node1->GetParent(), node1->_strand);
@@ -728,7 +729,7 @@ void xLightsImportChannelMapDialog::ExpandAll()
         _dataModel->GetChildren(models[i], strands);
         for (size_t j = 0; j < strands.size(); ++j) {
             xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
-            if (!(const char*)astrand->_strand.StartsWith((const wxString) "Strand")) {
+            if (!StartsWith(astrand->_strand, "Strand")) {
                 TreeListCtrl_Mapping->Expand(models[i]);
             }
         }
@@ -1178,19 +1179,19 @@ xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::st
 {
     for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
         xLightsImportModelNode* m = _dataModel->GetNthChild(i);
-        if (m->_model.ToStdString() == model) {
+        if (m->_model == model) {
             if (strand == "") {
                 return m;
             } else {
                 for (size_t j = 0; j < m->GetChildCount(); ++j) {
                     xLightsImportModelNode* s = m->GetNthChild(j);
-                    if (s->_strand.ToStdString() == strand) {
+                    if (s->_strand == strand) {
                         if (node == "") {
                             return s;
                         } else {
                             for (size_t k = 0; k < s->GetChildCount(); ++k) {
                                 xLightsImportModelNode* n = s->GetNthChild(k);
-                                if (n->_node.ToStdString() == node) {
+                                if (n->_node == node) {
                                     return n;
                                 }
                             }
@@ -2240,7 +2241,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
         auto model = _dataModel->GetNthChild(i);
         if (model->_mapping != "") {
             if (std::find(used.begin(), used.end(), model->_mapping) == used.end()) {
-                used.push_back(model->_mapping.ToStdString());
+                used.push_back(model->_mapping);
             }
         }
 
@@ -2248,7 +2249,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
             auto strand = model->GetNthChild(j);
             if (strand->_mapping != "") {
                 if (std::find(used.begin(), used.end(), strand->_mapping) == used.end()) {
-                    used.push_back(strand->_mapping.ToStdString());
+                    used.push_back(strand->_mapping);
                 }
             }
 
@@ -2256,7 +2257,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
                 auto node = strand->GetNthChild(k);
                 if (node->_mapping != "") {
                     if (std::find(used.begin(), used.end(), node->_mapping) == used.end()) {
-                        used.push_back(node->_mapping.ToStdString());
+                        used.push_back(node->_mapping);
                     }
                 }
             }
@@ -2411,19 +2412,17 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                             if (model->_mapping.empty()) {
                                 for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
                                     if ((selectMapAvail && isSourceSelected) || !selectMapAvail) {
-                                        wxString const availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
+                                        std::string const availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower().ToStdString();
+                                        auto m = xlights->GetModel(model->_model);
                                         for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                                            auto m = xlights->GetModel(model->_model);
                                             auto sm = model->GetNthChild(k);
-                                            auto sm2 = m->GetSubModel(sm->_strand);
-                                            if (sm2 != nullptr) {
-                                                auto smAliases = sm2->GetAliases();
-                                                if (sm != nullptr) {
-                                                    if (model->_mapping.empty()) {
-                                                        if (lambda_model(sm->_strand, availName, extra1, extra2, smAliases)) {
-                                                            sm->_mapping = ListCtrl_Available->GetItemText(j);
-                                                            sm->_mappingExists = true;
-                                                        }
+                                            if (sm != nullptr) {
+                                                auto sm2 = m->GetSubModel(sm->_strand);
+                                                if (sm2 != nullptr) {
+                                                    auto &smAliases = sm2->GetAliases();
+                                                    if (lambda_model(sm->_strand, availName, extra1, extra2, smAliases)) {
+                                                        sm->_mapping = ListCtrl_Available->GetItemText(j);
+                                                        sm->_mappingExists = true;
                                                     }
                                                 }
                                             }
@@ -2734,9 +2733,9 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
 {
     // find the first line starting with the text
     wxDataViewItem index = wxDataViewItem(0);
-    auto to = TextCtrl_FindTo->GetValue().Lower();
+    std::string to = TextCtrl_FindTo->GetValue().Lower().ToStdString();
 
-    if (to == "") {
+    if (to.empty()) {
         if (TreeListCtrl_Mapping->GetSelectedItemsCount() == 1) {
             // if there is a selection, scroll to it as that's the visible marker
             // at this point.
@@ -2753,8 +2752,7 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
     } else {
         for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
             xLightsImportModelNode* m = _dataModel->GetNthChild(i);
-
-            if (m->_model.Lower().StartsWith(to)) {
+            if (StartsWith(::Lower(m->_model), to)) {
                 index = (wxDataViewItem)m;
                 break;
             }
@@ -2764,7 +2762,7 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
         if (index.GetID() == 0) {
             for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
                 xLightsImportModelNode* m = _dataModel->GetNthChild(i);
-                if (m->_model.Lower().Contains(to)) {
+                if (Contains(::Lower(m->_model), to)) {
                     index = (wxDataViewItem)m;
                     break;
                 }
