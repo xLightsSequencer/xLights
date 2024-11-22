@@ -197,7 +197,6 @@ void Output::SetResolvedIP(const std::string& resolvedIP) {
     std::unique_lock<std::shared_mutex> lock(_resolveMutex);
     if (resolvedIP != _resolvedIp) {
         _resolvedIp = resolvedIP;
-        _dirty = true;
     }
 }
 

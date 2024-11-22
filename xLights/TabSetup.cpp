@@ -75,6 +75,12 @@ const long xLightsFrame::ID_NETWORK_UNLINKFROMBASE = wxNewId();
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event) {
     int id = event.GetId();
     wxString newdir = RecentShowFoldersMenu->GetLabel(id);
+    
+    if (!ObtainAccessToURL(newdir, true)) {
+        std::string dstr = newdir;
+        PromptForDirectorySelection("Reselect Show Directory", dstr);
+        newdir = dstr;
+    }
     SetDir(newdir, true);
 }
 void xLightsFrame::OnMRUSequence(wxCommandEvent& event) {
