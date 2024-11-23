@@ -43,7 +43,6 @@ void IPOutput::Save(wxXmlNode* node) {
 
 #pragma region Constructors and Destructors
 IPOutput::IPOutput(wxXmlNode* node, bool isActive) : Output(node) {
-
     _ip = node->GetAttribute("ComPort", "").ToStdString();
     if (isActive) {
         SetResolvedIP(_ip);
@@ -60,20 +59,19 @@ IPOutput::IPOutput() : Output() {
 }
 
 IPOutput::IPOutput(const IPOutput& from) :
-    Output(from)
-{
+    Output(from) {
     _ip = from._ip;
     SetResolvedIP(from.GetResolvedIP());
     _universe = from._universe;
 }
+
 IPOutput::~IPOutput() {
+    ip_utils::waitForAllToResolve();
 }
 
 wxXmlNode* IPOutput::Save() {
-
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
     Save(node);
-
     return node;
 }
 #pragma endregion 
@@ -124,8 +122,7 @@ Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy
         url += ip + "/";
         if (Curl::HTTPSGet(url, "", "", 2) != "") {
             return Output::PINGSTATE::PING_WEBOK;
-        }
-        else {
+        } else {
             return Output::PINGSTATE::PING_ALLFAILED;
         }
 #ifdef __WXMSW__
@@ -150,7 +147,6 @@ void IPOutput::SetIP(const std::string& ip, bool isActive, bool resolve) {
 
 #pragma region Operators
 bool IPOutput::operator==(const IPOutput& output) const {
-
     if (GetType() != output.GetType()) return false;
     std::string rip = GetResolvedIP();
     return _universe == output.GetUniverse() && (_ip == output.GetIP() || _ip == output.GetResolvedIP() || rip == output.GetIP() || rip == output.GetResolvedIP());

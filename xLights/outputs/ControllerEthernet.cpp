@@ -134,7 +134,7 @@ ControllerEthernet::ControllerEthernet(OutputManager* om, const ControllerEthern
 }
 
 ControllerEthernet::~ControllerEthernet() {
-
+    ip_utils::waitForAllToResolve();
     // wait for an active ping to finish
     if (_asyncPing.valid()) {
         _asyncPing.wait_for(std::chrono::seconds(2));

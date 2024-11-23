@@ -214,7 +214,7 @@ namespace ip_utils
 
     void waitForAllToResolve() {
         while (!RESOLVE_POOL.isEmpty()) {
-            wxMilliSleep(10);
+            wxMilliSleep(2);
             wxYieldIfNeeded();
         }
     }
