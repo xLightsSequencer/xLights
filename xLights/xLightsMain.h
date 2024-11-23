@@ -432,7 +432,7 @@ public:
                              const std::string& source,
                              SequenceElements& seqEl,
                              bool eraseExisting);
-    void SaveWorking();
+    bool SaveWorking();
     void SaveWorkingLayout();
     void PlayerError(const wxString& msg);
     void AskCloseSequence();

@@ -49,7 +49,7 @@ public:
     bool Open(const wxString& ShowDir, bool ignore_audio, const wxFileName& realFilename);
 
     void AddJukebox(wxXmlNode* node);
-    void Save(SequenceElements& elements);
+    bool Save(SequenceElements& elements);
     wxXmlDocument& GetXmlDocument()
     {
         return seqDocument;

@@ -4142,20 +4142,20 @@ void xLightsFrame::SaveWorkingLayout()
     SaveEffectsFile(true);
 }
 
-void xLightsFrame::SaveWorking()
+bool xLightsFrame::SaveWorking()
 {
     // dont save if no file in existence
     if (CurrentSeqXmlFile == nullptr)
-        return;
+        return true;
 
     // dont save if batch rendering
     if (_renderMode || _checkSequenceMode)
-        return;
+        return true;
 
     // dont save if currently saving
     std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
     if (!lock.owns_lock())
-        return;
+        return true;
 
     wxString p = CurrentSeqXmlFile->GetPath();
     wxString fn = CurrentSeqXmlFile->GetFullName();
@@ -4174,10 +4174,16 @@ void xLightsFrame::SaveWorking()
     CurrentSeqXmlFile->SetPath(ftmp.GetPath());
     CurrentSeqXmlFile->SetFullName(ftmp.GetFullName());
 
-    CurrentSeqXmlFile->Save(_sequenceElements);
+    bool b = CurrentSeqXmlFile->Save(_sequenceElements);
+    if (!b) {
+        wxMessageDialog msgDlg(this, "Error Saving Sequence to " + tmp,
+                               "Error Saving Sequence", wxOK | wxCENTRE);
+        msgDlg.ShowModal();
+    }
 
     CurrentSeqXmlFile->SetPath(p);
     CurrentSeqXmlFile->SetFullName(fn);
+    return b;
 }
 
 void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
@@ -4189,8 +4195,9 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
         wxStopWatch sw;
         if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
             if (_sequenceElements.GetChangeCount() != mLastAutosaveCount) {
-                SaveWorking();
-                mLastAutosaveCount = _sequenceElements.GetChangeCount();
+                if (SaveWorking()) {
+                    mLastAutosaveCount = _sequenceElements.GetChangeCount();
+                }
             } else {
                 logger_base.debug("    Autosave skipped ... no changes detected since last autosave.");
             }
@@ -4210,7 +4217,7 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
     } else {
         logger_base.debug("AutoSave skipped because sequence is playing or batch rendering or suspended.");
         if (mAutoSaveInterval > 0) {
-            AutoSaveTimer.StartOnce(10000); // try again in a short period of time as we did not actually save this time
+            AutoSaveTimer.StartOnce(1000); // try again in a short period of time as we did not actually save this time
         }
     }
 }

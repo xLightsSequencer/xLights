@@ -2631,7 +2631,7 @@ void xLightsXmlFile::AddJukebox(wxXmlNode* node)
 }
 
 // function used to save sequence data
-void xLightsXmlFile::Save(SequenceElements& seq_elements)
+bool xLightsXmlFile::Save(SequenceElements& seq_elements)
 {
     wxXmlNode* root = seqDocument.GetRoot();
 
@@ -2861,8 +2861,11 @@ void xLightsXmlFile::Save(SequenceElements& seq_elements)
     }
 #endif
 
-    seqDocument.Save(GetFullPath());
+    if (!seqDocument.Save(GetFullPath())) {
+        return false;
+    }
     MarkNewFileRevision(GetFullPath());
+    return true;
 }
 
 bool xLightsXmlFile::TimingAlreadyExists(const std::string & section, xLightsFrame* xLightsParent)
