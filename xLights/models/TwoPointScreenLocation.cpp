@@ -939,17 +939,17 @@ void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxBLUE);
+    prop->SetTextColour(BlueOrLightBlue());
     prop = propertyEditor->Append(new wxFloatProperty("Y2", "ModelY2", y2 + worldPos_y));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxBLUE);
+    prop->SetTextColour(BlueOrLightBlue());
     prop = propertyEditor->Append(new wxFloatProperty("Z2", "ModelZ2", z2 + worldPos_z));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxBLUE);
+    prop->SetTextColour(BlueOrLightBlue());
 }
 
 int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {

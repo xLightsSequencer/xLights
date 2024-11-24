@@ -1284,8 +1284,19 @@ void DumpBinary(uint8_t* buffer, size_t sz) {
 
 wxColor CyanOrBlue() {
     if (IsDarkMode()) {
-        // In Dark Mode blue is hard to read
+        // In Dark Mode blue is hard to read, use cyan for some things
         return *wxCYAN;
+    } else {
+        return *wxBLUE;
+    }
+}
+wxColor BlueOrLightBlue() {
+    if (IsDarkMode()) {
+        // In Dark Mode blue is hard to read, use a lighter blue if
+        // what is displayed really needs to be blue
+        // Use Royal Blue RGB
+        static const wxColor lightBlue(0x41, 0x69, 0xE1);
+        return lightBlue;
     } else {
         return *wxBLUE;
     }

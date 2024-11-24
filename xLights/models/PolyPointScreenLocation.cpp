@@ -1924,17 +1924,17 @@ void PolyPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface 
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Step", 0.5);
         prop->SetEditor("SpinCtrl");
-        prop->SetTextColour(*wxBLUE);
+        prop->SetTextColour(BlueOrLightBlue());
         prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Y%d", i+1), wxString::Format("ModelY%d", i+1), mPos[i].y + worldPos_y));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Step", 0.5);
         prop->SetEditor("SpinCtrl");
-        prop->SetTextColour(*wxBLUE);
+        prop->SetTextColour(BlueOrLightBlue());
         prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Z%d", i+1), wxString::Format("ModelZ%d", i+1), mPos[i].z + worldPos_z));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Step", 0.5);
         prop->SetEditor("SpinCtrl");
-        prop->SetTextColour(*wxBLUE);
+        prop->SetTextColour(BlueOrLightBlue());
     }
 }
 

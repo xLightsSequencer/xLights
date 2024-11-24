@@ -178,6 +178,7 @@ std::string ReverseCSV(const std::string& csv);
 void DumpBinary(uint8_t* buffer, size_t read);
 wxColor CyanOrBlue();
 wxColor LightOrMediumGrey();
+wxColor BlueOrLightBlue();
 bool IsFloat(const std::string& number);
 bool IsDarkMode();
 void SetSuppressDarkMode(bool suppress);
