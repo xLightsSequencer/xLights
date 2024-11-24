@@ -155,8 +155,8 @@ class ColorManager
 
             { ColorManager::ColorNames::COLOR_REFERENCE_EFFECT_DISABLED, "ReferenceEffectDisabled", "Disabled Reference Effect", xlColor(255, 255, 127), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
             { ColorManager::ColorNames::COLOR_WAVEFORM_MOUSE_MARKER, "WaveformMouseMarker", "Waveform Mouse Marker", xlColor(0, 0, 255), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
-            { ColorManager::ColorNames::COLOR_TEXT_UNSELECTED, "TextUnselected", "Unselected Text", xlLIGHT_GREY, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB },
-            { ColorManager::ColorNames::COLOR_TEXT_HIGHLIGHTED, "TextHighlighted", "Highlighted Text", xlBLUE, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB }
+            { ColorManager::ColorNames::COLOR_TEXT_UNSELECTED, "TextUnselected", "Unselected Text", xlBLACK, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB },
+            { ColorManager::ColorNames::COLOR_TEXT_HIGHLIGHTED, "TextHighlighted", "Highlighted Text", xlBLACK, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB }
         };
 
     protected:
