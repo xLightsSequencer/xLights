@@ -4215,7 +4215,15 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
             AutoSaveTimer.StartOnce(mAutoSaveInterval * 60000);
         }
     } else {
-        logger_base.debug("AutoSave skipped because sequence is playing or batch rendering or suspended.");
+        if (_renderMode) {
+            static bool logged = false;
+            if (!logged) {
+                logger_base.debug("AutoSave skipped because batch rendering.");
+                logged = true;
+            }
+        } else {
+            logger_base.debug("AutoSave skipped because sequence is playing or suspended.");
+        }
         if (mAutoSaveInterval > 0) {
             AutoSaveTimer.StartOnce(1000); // try again in a short period of time as we did not actually save this time
         }
