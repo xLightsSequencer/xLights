@@ -11,6 +11,21 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.19 November 24, 2024
+    - enh (cybercop23)      Re-attempt to resolve host names on CTRL-click or Test if not resolveable when xLights started
+    - enh (dkulp)           If a sequence cannot be saved, report the error to the user
+    - enh (dkulp)           Use better coloring in Dark mode for Import dialog and TwoPoint/PolyPoint model X/Y/Z coords
+    - enh (cybercop23)      Add Skip option to Discovery for controllers that match existing
+    - enh (cybercop23)      Add ability to highlight to/from models in Import dialog to only map that subset
+    - enh (degracode)       Sort controllers in Import from controller (Twinkly) dialog
+    - bug (degracode)       Fix how Custom Model grid is created to create all rows/cols in one call.  Much faster.
+    - bug (cybercop23)      Fix performance of AutoMap on Import Dialog
+    - bug (dkulp)           Fix some crashes if ip resolves are still outstanding when switching show directories or similar
+    - bug (dkulp)           Fix some issues trying to determine if a directory is writable
+    - bug (dkulp)           Make sure we can access/write to show directories when selected from Recents menu
+    - bug (dkulp)           Fix crash with Ethernet based controllers that don't have outputs (FPP Player Only for example)
+    - bug (dkulp)           Fix hang on MacOS when using a lot of Image models
+    - bug (dkulp)           Fix crash on MacOS with "Blur" when using large models in "Single Line" render styles
 2024.18 November 14, 2024
     - enh (keith)           Add ability to "Level" the brightness of color components
     - enh (scott)           Windows installer works on Arm64
