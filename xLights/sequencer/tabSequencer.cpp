@@ -3395,7 +3395,7 @@ std::map<int, std::vector<float>> xLightsFrame::LoadPolyphonicTranscription(Audi
         int frames = audio->LengthMS() / intervalMS;
 
         for (size_t i = 0; i < frames; i++) {
-            auto pdata = audio->GetFrameData(i, "", true);
+            auto pdata = audio->GetFrameData((int)i,true);
             if (pdata != nullptr) {
                 res[i*intervalMS] = pdata->notes;
             }

@@ -295,6 +295,110 @@ void xLightsXmlFile::ClearMediaFile()
     SetHeaderInfo(HEADER_INFO_TYPES::URL, "");
 }
 
+void xLightsXmlFile::AddSubMediaFile(const wxString& ShowDir, const wxString& filename)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto sub_media_file = FixFile(ShowDir, filename);
+    ObtainAccessToURL(sub_media_file.ToStdString());
+    if ((sub_media_file != wxEmptyString) && FileExists(sub_media_file) && wxIsReadable(sub_media_file)) {
+        logger_base.debug("SetMediaFile: Creating audio manager");
+        sub_audio.emplace_back(std::make_unique<AudioManager>(sub_media_file, GetFrameMS()));
+
+        wxXmlNode* root = seqDocument.GetRoot();
+        for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
+            if (e->GetName() == "SubMediaFiles") {
+                wxXmlNode* child = AddChildXmlNode(e, "SubMedia");
+                child->AddAttribute("fileName", sub_media_file);
+                return;
+            }
+        }
+        wxXmlNode* child = AddChildXmlNode(root, "SubMediaFiles");
+        wxXmlNode* c2 = AddChildXmlNode(child, "SubMedia");
+        c2->AddAttribute("fileName", sub_media_file);
+    }
+}
+
+void xLightsXmlFile::RemoveSubMediaFile(const wxString& filename)
+{
+    std::vector<std::unique_ptr<AudioManager>>::iterator object =
+        std::find_if(sub_audio.begin(), sub_audio.end(),
+                     [&](std::unique_ptr<AudioManager>& obj) { return obj->FileName() == filename; });
+    sub_audio.erase(std::remove(sub_audio.begin(), sub_audio.end(), *object));
+    //sub_audio.erase(std::remove_if(sub_audio.begin(), sub_audio.end(), [&](std::unique_ptr<AudioManager> x) {
+    //                    return x->FileName() == filename;
+    //          }),sub_audio.end());
+
+    wxXmlNode* root = seqDocument.GetRoot();
+    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
+        if (e->GetName() == "head") {
+            for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
+                if (element->GetName() == "subMediaFiles") {
+                    for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element ? element->GetNext() : nullptr) {
+                        if (element->GetName() == "subMedia") {
+                            wxString attr;
+                            element->GetAttribute("fileName", &attr);
+                            if (attr == filename) {
+                                e->RemoveChild(element);
+                                delete element;
+                                element = nullptr;
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void xLightsXmlFile::RemoveAllSubMediaFile()
+{
+    sub_audio.clear();
+
+    wxXmlNode* root = seqDocument.GetRoot();
+    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
+        if (e->GetName() == "SubMediaFiles") {
+            for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
+                e->RemoveChild(element);
+                delete element;
+                element = nullptr;
+            }
+        }
+    }
+}
+
+std::vector<wxString> xLightsXmlFile::GetSubMediaFiles() const
+{
+    std::vector<wxString> itemList;
+    for (std::unique_ptr<AudioManager> const& obj : sub_audio) {
+        itemList.push_back(wxString(obj->FileName()));
+    }
+    // std::transform(sub_audio.cbegin(), sub_audio.cend(), std::back_inserter(itemList),
+    //                [](auto* subAud) { return subAud->FileName(); });
+    return itemList;
+}
+
+std::vector<wxString> xLightsXmlFile::GetSubMediaNames() const
+{
+    std::vector<wxString> itemList;
+    for (std::unique_ptr<AudioManager> const& obj : sub_audio) {
+         itemList.push_back(wxFileName(wxString(obj->FileName())).GetName());
+    }
+    // std::transform(sub_audio.cbegin(), sub_audio.cend(), std::back_inserter(itemList),
+    //               [](auto* subAud) { return wxFileName(subAud->FileName()).GetName(); });
+    return itemList;
+}
+
+AudioManager* xLightsXmlFile::GetSubMedia(wxString const& name) const {
+    for (std::unique_ptr<AudioManager> const& obj : sub_audio) {
+        if (wxFileName(wxString(obj->FileName())).GetName() == name) {
+            return obj.get();
+        }
+    }
+    return audio;//failed use main
+}
+
 void xLightsXmlFile::SetRenderMode(const wxString& mode)
 {
     for (int i = 0; i < mDataLayers.GetNumLayers(); i++) {
@@ -828,7 +932,7 @@ void xLightsXmlFile::CreateNew()
     AddChildXmlNode(root, "ElementEffects");
     AddChildXmlNode(root, "TimingTags");
     AddChildXmlNode(root, "nextid", "1");
-
+    AddChildXmlNode(root, "SubMediaFiles");
     version_string = xlights_version_string;
 }
 
@@ -1089,6 +1193,8 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, co
     }
 
     std::string mediaFileName;
+    std::vector<std::string> subMedia;
+
     for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "head") {
             for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
@@ -1151,7 +1257,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, co
                             }
                         }
                     }
-                }
+                } 
                 else if (element->GetName() == "sequenceDuration") {
                     SetSequenceDuration(element->GetNodeContent());
                 }
@@ -1212,6 +1318,20 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, co
                     new_data_layer->SetLORConvertParams(atoi(lor_params.c_str()));
                 }
             }
+        } else if (e->GetName() == "SubMediaFiles") {
+            for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
+                if (element->GetName() == "SubMedia") {
+                    wxString attr;
+                    element->GetAttribute("fileName", &attr);
+                    if (!attr.IsEmpty()) {
+                        auto submediafile = FixFile(ShowDir, attr);
+                        wxFileName smf = submediafile;
+                        if (::FileExists(smf) && smf.IsFileReadable()) {
+                            subMedia.push_back(submediafile.ToStdString());
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -1224,6 +1344,10 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, co
     }
     else {
         logger_base.info("LoadSequence: No Audio loaded.");
+    }
+
+    for (auto const& sa : subMedia) {
+        sub_audio.emplace_back(std::make_unique<AudioManager>(sa, GetFrameMS()));
     }
 
     logger_base.info("LoadSequence: Sequence timing interval %dms.", GetFrameMS());

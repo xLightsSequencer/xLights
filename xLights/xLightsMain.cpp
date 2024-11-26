@@ -2663,9 +2663,11 @@ bool xLightsFrame::ForceEnableOutputs(bool startTimer)
 
 bool xLightsFrame::EnableOutputs(bool ignoreCheck)
 {
+#ifndef _DEBUG
     if (!ignoreCheck && _outputManager.IsOutputOpenInAnotherProcess()) {
         DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
     }
+#endif
     bool ok = ForceEnableOutputs();
     CheckBoxLightOutput->SetBitmap(GetToolbarBitmapBundle("xlART_OUTPUT_LIGHTS_ON"));
     CheckBoxLightOutput->SetValue(true);

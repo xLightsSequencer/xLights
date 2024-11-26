@@ -21,6 +21,7 @@
 #include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/gbsizer.h>
+#include <wx/listbox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -46,7 +47,9 @@ class SeqSettingsDialog: public wxDialog
 		//(*Declarations(SeqSettingsDialog)
 		wxBitmapButton* BitmapButton_ModifyTiming;
 		wxBitmapButton* BitmapButton_Xml_Media_File;
-		wxButton* Button_AddMiliseconds;
+		wxButton* ButtonAddSubAudio;
+		wxButton* ButtonRemoveSubAudio;
+		wxButton* Button_AddMilliseconds;
 		wxButton* Button_Cancel;
 		wxButton* Button_Close;
 		wxButton* Button_Download;
@@ -64,6 +67,7 @@ class SeqSettingsDialog: public wxDialog
 		wxCheckBox* CheckBox_Overwrite_Tags;
 		wxChoice* Choice_Xml_Seq_Type;
 		wxChoice* RenderModeChoice;
+		wxListBox* ListBoxSubAudio;
 		wxNotebook* Notebook_Seq_Settings;
 		wxPanel* PanelInfo;
 		wxPanel* PanelMetaData;
@@ -72,6 +76,7 @@ class SeqSettingsDialog: public wxDialog
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
 		wxStaticText* StaticText_File;
 		wxStaticText* StaticText_Filename;
 		wxStaticText* StaticText_Info;
@@ -153,7 +158,11 @@ class SeqSettingsDialog: public wxDialog
 		static const wxWindowID ID_TEXTCTRL2;
 		static const wxWindowID ID_TEXTCTRL3;
 		static const wxWindowID ID_BUTTON1;
-		static const wxWindowID ID_BUTTON_AddMiliseconds;
+		static const wxWindowID ID_BUTTON_AddMilliseconds;
+		static const wxWindowID ID_STATICTEXT4;
+		static const wxWindowID ID_LISTBOX_SUB_AUDIO;
+		static const wxWindowID ID_BUTTON_ADD_SUB_AUDIO;
+		static const wxWindowID ID_BUTTON_REMOVE_SUB_AUDIO;
 		static const wxWindowID ID_STATICTEXT_Xml_Total_Length;
 		static const wxWindowID ID_TEXTCTRL_Xml_Seq_Duration;
 		static const wxWindowID ID_CHECKBOX_Overwrite_Tags;
@@ -263,7 +272,10 @@ class SeqSettingsDialog: public wxDialog
 		void OnButton_EmailSendClick(wxCommandEvent& event);
 		void OnButton_WebsiteOpenClick(wxCommandEvent& event);
 		void OnButton_MusicOpenClick(wxCommandEvent& event);
-        void OnButton_AddMilisecondsClick(wxCommandEvent& event);
+		void OnButtonAddSubAudioClick(wxCommandEvent& event);
+		void OnButtonRemoveSubAudioClick(wxCommandEvent& event);
+		void OnButton_AddMillisecondsClick(wxCommandEvent& event);
+
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);

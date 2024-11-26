@@ -1803,7 +1803,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
                 // find the maximum of any intervening frames
                 float f = 0.0;
                 for (long ms = time; ms < time + msperPoint; ms += frameMS) {
-                    auto pf = __audioManager->GetFrameData("", ms + frameMS);
+                    auto pf = __audioManager->GetFrameData( ms + frameMS);
                     if (pf != nullptr) {
                         if (pf->max > f) {
                             f = pf->max;
@@ -1914,7 +1914,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         if (__audioManager != nullptr) {
             long time = (float)startMS + offset * (endMS - startMS);
             float f = 0.0;
-            auto pf = __audioManager->GetFrameData("", time);
+            auto pf = __audioManager->GetFrameData(time);
             if (pf != nullptr) {
                 f = ApplyGain(pf->max, GetParameter3());
                 if (_type == "Inverted Music") {

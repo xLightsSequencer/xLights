@@ -96,7 +96,7 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     if (reactToMusic) {
         float f = 0.0;
         if (buffer.GetMedia() != nullptr) {
-            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod);
             if (pf != nullptr) {
                 f = pf->max;
             }

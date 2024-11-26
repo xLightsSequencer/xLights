@@ -183,7 +183,7 @@ void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     if (SettingsMap.GetBool("CHECKBOX_Meteors_UseMusic", false)) {
         float f = 0.0;
         if (buffer.GetMedia() != nullptr) {
-            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod);
             if (pf != nullptr) {
                 f = pf->max;
             }

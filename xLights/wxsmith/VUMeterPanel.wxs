@@ -314,7 +314,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_SVGFile" subclass="BulkEditFilePickerCtrl" variable="FilePickerCtrl_SVGFile" member="yes" />
+						<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_SVGFile" subclass="BulkEditFilePickerCtrl" variable="FilePickerCtrl_SVGFile" member="yes">
+							<message></message>
+							<wildcard></wildcard>
+						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
@@ -566,6 +569,23 @@
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText18" member="yes">
+							<label>Audio</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE_VUMeter_Audio" subclass="BulkEditChoice" variable="Choice_VUMeter_Audio" member="yes">
+							<enabled>0</enabled>
+							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>

@@ -450,6 +450,7 @@ public:
     RenderBuffer(RenderBuffer& buffer);
     void InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform, bool nodeBuffer = false);
     AudioManager* GetMedia() const;
+    AudioManager* GetSubMedia(const std::string& audioFile) const;
     const Model* GetModel() const;
     const std::string &GetModelName() const;
     const wxString &GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const;
