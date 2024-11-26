@@ -3119,7 +3119,11 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
     } else if (inst->typeId >= 0x80 && inst->typeId <= 0x8F) {
         //falcon range
         if (created) {
-            inst->controller->SetProtocol(OUTPUT_E131);
+            if (inst->mode == "bridge") {
+                inst->controller->SetProtocol(OUTPUT_E131);
+            } else {
+                inst->controller->SetProtocol(OUTPUT_DDP);
+            }
             inst->SetVendor("Falcon");
             inst->SetModel(AfterLast(inst->platformModel, ' '));
             inst->controller->SetAutoLayout(true);
