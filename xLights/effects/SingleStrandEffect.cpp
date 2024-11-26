@@ -224,9 +224,11 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
 
     if (buffer.needToInit) {
         buffer.needToInit = false;
-        std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
-        int rects = (Skips_SkipSize + Skips_BandSize) * (buffer.curEffEndPer - buffer.curEffStartPer + 1);
-        eff->GetBackgroundDisplayList().resize(rects * 6);
+        if (eff->IsBackgroundDisplayListEnabled()) {
+            std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
+            int rects = (Skips_SkipSize + Skips_BandSize) * (buffer.curEffEndPer - buffer.curEffStartPer + 1);
+            eff->GetBackgroundDisplayList().resize(rects * 6);
+        }
     }
 
     int firstX = x;
@@ -291,7 +293,9 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
     max = Skips_SkipSize + Skips_BandSize - 1;
     if (max >= buffer.BufferWi) max = buffer.BufferWi - 1;
 
-    buffer.CopyPixelsToDisplayListX(eff, 0, 0, max);
+    if (eff->IsBackgroundDisplayListEnabled()) {
+        buffer.CopyPixelsToDisplayListX(eff, 0, 0, max);
+    }
 }
 
 class SingleStrandFXRenderCache : public EffectRenderCache
@@ -401,11 +405,24 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
 
     //chasesize is a value curve item and can change throughout the effect and thus
     //the number of rects could change
-    int rects = (chaseSize + 1) * (buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6;
+    int numRects = chaseSize;
+    int rectInc = 1;
+    if (chaseSize > MaxNodes) {
+        numRects = MaxNodes;
+    }
+    if (numRects > 32) {
+        rectInc = numRects / 32;
+    }
+    int rects = (numRects + rectInc) * (buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6 / rectInc;
+    if (!eff->IsBackgroundDisplayListEnabled()) {
+        rects = 0;
+    }
     if (buffer.needToInit || rects >= eff->GetBackgroundDisplayList().size()) {
         buffer.needToInit = false;
-        std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
-        eff->GetBackgroundDisplayList().resize(rects);
+        if (eff->IsBackgroundDisplayListEnabled()) {
+            std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
+            eff->GetBackgroundDisplayList().resize(rects);
+        }
     }
 
     bool Mirror = false;
@@ -534,7 +551,9 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
             draw_chase(buffer, DoubleEnd ? x - 1 * scaledChaseWidth : x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Fade_Type, bool(ChaseDirection) == DoubleEnd, Mirror);
         }
     }
-    buffer.CopyPixelsToDisplayListX(eff, 0, 0, chaseSize);
+    if (eff->IsBackgroundDisplayListEnabled()) {
+        buffer.CopyPixelsToDisplayListX(eff, 0, 0, numRects, rectInc);
+    }
 }
 
 void SingleStrandEffect::draw_chase(RenderBuffer& buffer,

@@ -3530,6 +3530,7 @@ void xLightsFrame::SetFrequency(int frequency)
 void xLightsFrame::SetGridIconBackgrounds(bool b)
 {
     mGridIconBackgrounds = b;
+    Effect::EnableBackgroundDisplayLists(b);
     mainSequencer->PanelEffectGrid->SetEffectIconBackground(mGridIconBackgrounds);
     mainSequencer->PanelEffectGrid->Refresh();
 }

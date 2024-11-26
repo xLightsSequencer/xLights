@@ -1534,6 +1534,9 @@ void RenderBuffer::SetDisplayListVRect(Effect *eff, int idx, float x1, float y1,
 void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, float x1, float y1, float x2, float y2,
                                     const xlColor &cx1y1, const xlColor &cx1y2,
                                     const xlColor &cx2y1, const xlColor &cx2y2) {
+    if (!eff->IsBackgroundDisplayListEnabled()) {
+        return;
+    }
 
     xlColor* colorMask = eff->GetColorMask();
     xlColor maskcx1y1 = cx1y1;
@@ -1568,6 +1571,9 @@ void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, float x1, float y1, 
 }
 
 void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex, int inc) {
+    if (!eff->IsBackgroundDisplayListEnabled()) {
+        return;
+    }
     std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
     int count = curEffEndPer - curEffStartPer + 1;
 

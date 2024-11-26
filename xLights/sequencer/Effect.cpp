@@ -172,6 +172,10 @@ void Effect::ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColor
 
 #pragma region Constructors and Destructors
 
+bool Effect::backgroundDisplayListsEnabled = true;
+
+
+
 // Used to create a temp copy of the effect in rendering only
 Effect::Effect(const Effect& ef)
 {

@@ -41,6 +41,7 @@ wxDECLARE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
 // An effect represents a generic effect
 class Effect
 {
+    static bool backgroundDisplayListsEnabled;
     int mID = 0;
     short mEffectIndex = -1;
     std::string *mName = nullptr;
@@ -152,13 +153,15 @@ public:
     xlDisplayList &GetBackgroundDisplayList() { return background; }
     const xlDisplayList &GetBackgroundDisplayList() const { return background; }
     bool HasBackgroundDisplayList() const {
-        std::lock_guard<std::recursive_mutex> lock(background.lock);
-        return !background.empty();
+        if (backgroundDisplayListsEnabled) {
+            std::lock_guard<std::recursive_mutex> lock(background.lock);
+            return !background.empty();
+        }
+        return false;
     }
 
     xlColor* GetColorMask() {
-        if (mColorMask.IsNilColor())
-        {
+        if (mColorMask.IsNilColor()) {
             return nullptr;
         }
         return &mColorMask;
@@ -169,6 +172,10 @@ public:
     bool GetFrame(RenderBuffer &buffer, RenderCache &renderCache);
     void AddFrame(RenderBuffer &buffer, RenderCache &renderCache);
     void PurgeCache(bool deleteCachefile = false);
+    
+    
+    static void EnableBackgroundDisplayLists(bool b) { backgroundDisplayListsEnabled = b; }
+    static bool IsBackgroundDisplayListEnabled() { return backgroundDisplayListsEnabled; }
 };
 
 bool operator<(const Effect &e1, const Effect &e2);

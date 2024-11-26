@@ -340,14 +340,16 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
             }
         }
     }
-    std::unique_lock<std::recursive_mutex> lock(effect->GetBackgroundDisplayList().lock);
-    effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);
-    int total = buffer.curEffEndPer - buffer.curEffStartPer + 1;
-    double x1 = double(buffer.curPeriod - buffer.curEffStartPer) / double(total);
-    double x2 = (buffer.curPeriod - buffer.curEffStartPer + 1.0) / double(total);
-    int idx = (buffer.curPeriod - buffer.curEffStartPer) * 6;
-    float pos = 1.0 - (position / 100.0);
-    buffer.SetDisplayListVRect(effect, idx, x1, pos - 0.02, x2, pos + 0.02, xlWHITE, xlWHITE);
+    if (effect->IsBackgroundDisplayListEnabled()) {
+        std::unique_lock<std::recursive_mutex> lock(effect->GetBackgroundDisplayList().lock);
+        effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);
+        int total = buffer.curEffEndPer - buffer.curEffStartPer + 1;
+        double x1 = double(buffer.curPeriod - buffer.curEffStartPer) / double(total);
+        double x2 = (buffer.curPeriod - buffer.curEffStartPer + 1.0) / double(total);
+        int idx = (buffer.curPeriod - buffer.curEffStartPer) * 6;
+        float pos = 1.0 - (position / 100.0);
+        buffer.SetDisplayListVRect(effect, idx, x1, pos - 0.02, x2, pos + 0.02, xlWHITE, xlWHITE);
+    }
 }
 
 void ServoEffect::SetPanelStatus(Model* cls) {
