@@ -1004,6 +1004,8 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
             wxDirDialog dlg(this, "Select SD Directory for " + hix->GetName(), drive, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
             if (dlg.ShowModal() == wxID_OK) {
                 drive = dlg.GetPath();
+            } else {
+                continue;
             }
             if (!ObtainAccessToURL(drive)) {
                 errorMsg = wxString::Format("Could not obtain write access for '%s'", drive);
