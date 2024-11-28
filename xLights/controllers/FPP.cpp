@@ -3964,12 +3964,13 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     for (auto& it : outputManager->GetControllers()) {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
         if (eth != nullptr && eth->GetIP() != "" && eth->GetIP() != "MULTICAST") {
-            if (eth->GetResolvedIP() == "") {
+            std::string resolvedIP = eth->GetResolvedIP(true);
+            if (resolvedIP == "") {
                 startAddresses.push_back(::Lower(eth->GetIP()));
             } else {
                 // only add the instances where we were actually able to resolve an IP address
-                if (eth->IsActive() && (ip_utils::IsIPValid(eth->GetResolvedIP()) || eth->GetResolvedIP() != eth->GetIP())) {
-                    startAddresses.push_back(::Lower(eth->GetResolvedIP()));
+                if (eth->IsActive() && (ip_utils::IsIPValid(resolvedIP) || resolvedIP != eth->GetIP())) {
+                    startAddresses.push_back(::Lower(resolvedIP));
                 }
             }
             if (eth->GetFPPProxy() != "") {
