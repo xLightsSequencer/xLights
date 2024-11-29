@@ -103,8 +103,8 @@ public:
     }
 };
 
-SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) :
-    SyncBase(sm, rm, options) {
+SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncBase(sm, rm, options, schm) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _supportsStepMMSSFormat = true;
@@ -248,6 +248,9 @@ void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t step
     default:
         break;
     }
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("ArtnetSync: %02d:%02d:%02d.%02d", buffer[17], buffer[16], buffer[15], buffer[14]);
 
     _artnetSocket->SendTo(_remoteAddr, &buffer[0], buffer.size());
 }

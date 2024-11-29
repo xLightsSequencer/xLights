@@ -178,8 +178,8 @@ public:
 };
 #endif
 
-SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) :
-    SyncBase(sm, rm, options) {
+SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager) :
+    SyncBase(sm, rm, options, schm) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _supportsStepMMSSFormat = true;

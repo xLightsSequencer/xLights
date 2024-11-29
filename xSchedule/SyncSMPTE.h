@@ -22,7 +22,7 @@ class SyncSMPTE : public SyncBase
 
     public:
 
-        SyncSMPTE(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager);
+        SyncSMPTE(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager);
         SyncSMPTE(SyncSMPTE&& from);
         virtual ~SyncSMPTE();
         virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno, int overridetimeSecs) const override;

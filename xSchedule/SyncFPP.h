@@ -22,8 +22,8 @@ class SyncFPP : public SyncBase {
 public:
     static void Ping(bool remote, const std::string& localIP);
 
-    SyncFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options) :
-        SyncBase(sm, rm, options) {
+    SyncFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm) :
+        SyncBase(sm, rm, options, schm) {
     }
     virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno, int overridetimeSecs) const override;
     virtual void SendStop() const override;
@@ -36,7 +36,7 @@ class SyncBroadcastFPP : public SyncFPP {
     virtual void SendFPPSync(const std::string& item, uint32_t stepMS, uint32_t frameMS) const override;
 
 public:
-    SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP);
+    SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP);
     SyncBroadcastFPP(SyncBroadcastFPP&& from) noexcept;
     virtual ~SyncBroadcastFPP();
     virtual std::string GetType() const override {
@@ -52,7 +52,7 @@ class SyncUnicastFPP : public SyncFPP {
     virtual void SendFPPSync(const std::string& item, uint32_t stepMS, uint32_t frameMS) const override;
 
 public:
-    SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP);
+    SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP);
     SyncUnicastFPP(SyncUnicastFPP&& from) noexcept;
     virtual ~SyncUnicastFPP();
     virtual std::string GetType() const override {
@@ -68,7 +68,7 @@ class SyncUnicastCSVFPP : public SyncFPP {
     virtual void SendFPPSync(const std::string& item, uint32_t stepMS, uint32_t frameMS) const override;
 
 public:
-    SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP);
+    SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP);
     SyncUnicastCSVFPP(SyncUnicastCSVFPP&& from) noexcept;
     virtual ~SyncUnicastCSVFPP();
     virtual std::string GetType() const override {
@@ -83,7 +83,7 @@ class SyncMulticastFPP : public SyncFPP {
     virtual void SendFPPSync(const std::string& item, uint32_t stepMS, uint32_t frameMS) const override;
 
 public:
-    SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP);
+    SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP);
     SyncMulticastFPP(SyncMulticastFPP&& from) noexcept;
     virtual ~SyncMulticastFPP();
     virtual std::string GetType() const override {

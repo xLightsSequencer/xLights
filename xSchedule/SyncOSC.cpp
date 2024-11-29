@@ -19,8 +19,8 @@
 #include "../xLights/UtilFunctions.h"
 #include <log4cpp/Category.hh>
 
-SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) :
-    SyncBase(mode, remoteMode, options) {
+SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncBase(mode, remoteMode, options, schm) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (mode == SYNCMODE::OSCMASTER) {
