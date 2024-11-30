@@ -870,13 +870,12 @@ static void drawRippleNew(
         }
 
         if (brX+outline > 0 && brY+outline > 0) {
-            if (outline > 0) {
-                if (outline > 1) {
-                    // Asked for a thicker shape
-                    ipointvec inner = ScaleShape(points, std::max(brX - outline, 0.0), std::max(brY - outline, 0.0), sxc, syc, srotation, true);
-                    ipointvec outer = ScaleShape(points, std::max(brX + outline, 0.0), std::max(brY + outline, 0.0), sxc, syc, srotation, true);
-                    FillRegion(buffer, inner, outer, hsvs, closedShape);
-                }
+            if (brX + outline > 0.75 || brY + outline > 0.75) {
+                // Asked for a thicker shape
+                ipointvec inner = ScaleShape(points, std::max(brX - outline, 0.0), std::max(brY - outline, 0.0), sxc, syc, srotation, true);
+                ipointvec outer = ScaleShape(points, std::max(brX + outline, 0.0), std::max(brY + outline, 0.0), sxc, syc, srotation, true);
+                FillRegion(buffer, inner, outer, hsvs, closedShape);
+
                 // Default line drawn always
                 if (fill) {
                     dpointvec mshp = ScaleShapeD(points, brX, brY, sxc, syc, srotation);
@@ -1684,17 +1683,16 @@ std::list<std::string> RippleEffect::GetFileReferences(Model* model, const Setti
 
 std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     std::string object = settings["E_CHOICE_Ripple_Object_To_Draw"];
     if (object == "SVG") {
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_Ripple_SVG", "");
-
         if (svgFilename == "" || !FileExists(svgFilename)) {
-            res.push_back(wxString::Format("    ERR: Ripple effect can't find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    ERR: Ripple effect can't find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         } else {
             if (!IsFileInShowDir(xLightsFrame::CurrentDir, svgFilename)) {
-                res.push_back(wxString::Format("    WARN: Ripple effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                res.push_back(wxString::Format("    WARN: Ripple effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
             }
         }
     }

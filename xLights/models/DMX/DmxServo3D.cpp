@@ -21,6 +21,7 @@
 #include "Mesh.h"
 #include "Servo.h"
 #include "ServoConfigDialog.h"
+#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -202,7 +203,8 @@ void DmxServo3d::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager*
     p->SetAttribute("UseCheckbox", true);
 
     for (const auto& it : servos) {
-        it->AddTypeProperties(grid);
+        ControllerCaps *caps = GetControllerCaps();
+        it->AddTypeProperties(grid, IsPWMProtocol() && caps != nullptr && caps->SupportsPWM());
     }
 
     for (const auto& it : static_meshs) {
@@ -602,7 +604,7 @@ void DmxServo3d::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* 
         boundingBox[4] = 0.5;
         boundingBox[5] = 0.5;
     }
-    sprogram->addStep([=](xlGraphicsContext* ctx) {
+    sprogram->addStep([is_3d, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
@@ -610,7 +612,7 @@ void DmxServo3d::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* 
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
-    tprogram->addStep([=](xlGraphicsContext* ctx) {
+    tprogram->addStep([is_3d, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
@@ -808,8 +810,11 @@ void DmxServo3d::ExportXlightsModel()
     if (filename.IsEmpty())
         return;
     wxFile f(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxservo3d \n");
 
@@ -873,13 +878,14 @@ void DmxServo3d::ExportXlightsModel()
     f.Close();
 }
 
-void DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "dmxservo3d" || root->GetName() == "dmxservo3axis") {
-        ImportBaseParameters(root);
+        if (!ImportBaseParameters(root))
+            return false;
 
         wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString bits = root->GetAttribute("Bits16", "1");
 
         // Add any model version conversion logic here
@@ -996,7 +1002,18 @@ void DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3d::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading DmxServo3d model file.");
+        return false;
+    }
+}
+
+
+void DmxServo3d::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
+    DmxModel::GetPWMOutputs(channels);
+    for (auto &s : servos) {
+        s->GetPWMOutputs(channels);
     }
 }

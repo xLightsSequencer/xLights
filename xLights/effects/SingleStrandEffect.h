@@ -97,15 +97,15 @@ protected:
     virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 
 private:
-    void RenderSingleStrandChase(RenderBuffer& buffer,
+    void RenderSingleStrandChase(RenderBuffer& buffer, Effect* eff,
                                  const std::string& ColorScheme, int Number_Chases, int chaseSize,
                                  const std::string& Chase_Type1,
-                                 bool Chase_3dFade1, bool Chase_Group_All,
+                                 const std::string& Fade_Type, bool Chase_Group_All,
                                  float chaseSpeed, float offset);
     void RenderSingleStrandSkips(RenderBuffer& buffer, Effect* eff, int Skips_BandSize,
                                  int Skips_SkipSize, int Skips_StartPos, const std::string& Skips_Direction, int advances);
     void RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, int intensity, int speed, const std::string& fx, const std::string& palette);
     void draw_chase(RenderBuffer& buffer,
                     int x, bool group, int ColorScheme, int Number_Chases, bool autoReverse, int width,
-                    int Color_Mix1, bool Chase_Fade3d1, int ChaseDirection, bool mirror);
+                    int Color_Mix1, const std::string& Fade_Type, int ChaseDirection, bool mirror);
 };

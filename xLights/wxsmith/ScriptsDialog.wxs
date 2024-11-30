@@ -21,8 +21,8 @@
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 					<sashgravity>0.700000</sashgravity>
-					<minpanesize>10</minpanesize>
 					<orientation>vertical</orientation>
+					<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 					<object class="wxListBox" name="ID_LISTBOX_SCRIPTS" variable="ListBoxScripts" member="yes">
 						<default>-1</default>
 						<pos>-237,-27</pos>

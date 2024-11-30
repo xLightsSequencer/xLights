@@ -83,11 +83,14 @@ Source: "../../xSchedule/RemoteFalcon/Release/RemoteFalcon.dll"; DestDir: "{app}
 ; Statically linked
 
 ; avlib - video and audio
-Source: "../../bin/avcodec-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin/avformat-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin/avutil-56.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin/swresample-3.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin/swscale-5.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin/avcodec-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin/avdevice-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin/avfilter-9.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin/avformat-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin/avutil-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin/postproc-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin/swresample-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin/swscale-7.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; SDL - audio playing
 Source: "../../bin/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
@@ -117,6 +120,9 @@ Source: "../../valuecurves/*.*"; DestDir: "{app}/valuecurves"   ; Flags: ignorev
 
 ; Mesh Objects
 Source: "../../meshobjects/*.*"; DestDir: "{app}/meshobjects"   ; Flags: ignoreversion recursesubdirs
+
+; MHPreset Objects
+Source: "../../mhpresets/*.*"; DestDir: "{app}/mhpresets"   ; Flags: ignoreversion recursesubdirs
 
 ; Controllers
 Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: ignoreversion recursesubdirs
@@ -152,8 +158,19 @@ Root: HKCU; Subkey: "Software\xCapture"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xScanner"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xFade"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSMSDaemon"; Flags: uninsdeletekey
-Root: HKCR; Subkey: ".xsq";                              ValueData: "{#MyTitleName}";          Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
-Root: HKCR; Subkey: "{#MyTitleName}";                    ValueData: "Program {#MyTitleName}";  Flags: uninsdeletekey;   ValueType: string;  ValueName: ""
-Root: HKCR; Subkey: "{#MyTitleName}\DefaultIcon";        ValueData: "{app}\{#MyTitleName}.exe,0";                          ValueType: string;  ValueName: ""
-Root: HKCR; Subkey: "{#MyTitleName}\shell\open\command"; ValueData: """{app}\{#MyTitleName}.exe"" ""%1""";                 ValueType: string;  ValueName: ""
+
+Root: HKCR; Subkey: ".xsq";                                ValueData: "xLights.Sequence";           Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "xLights.Sequence";                    ValueData: "xLights Sequence";           Flags: uninsdeletekey;   ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "xLights.Sequence\DefaultIcon";        ValueData: "{app}\{#MyTitleName}.exe,0"; Flags: uninsdeletekey;   ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "xLights.Sequence\shell\open\command"; ValueData: """{app}\{#MyTitleName}.exe"" ""%1"""; Flags: uninsdeletekey; ValueType: string; ValueName: ""
+
+Root: HKCR; Subkey: ".xsqz";                                       ValueData: "xLights.PackagedSequence";  Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "xLights.PackagedSequence";                    ValueData: "xLights Packaged Sequence";  Flags: uninsdeletekey;   ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "xLights.PackagedSequence\DefaultIcon";        ValueData: "{app}\{#MyTitleName}.exe,11"; Flags: uninsdeletekey;   ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "xLights.PackagedSequence\shell\open\command"; ValueData: """{app}\{#MyTitleName}.exe"" ""%1"""; Flags: uninsdeletekey; ValueType: string; ValueName: ""
+
+; delete old association
+Root: HKCR; Subkey: "{#MyTitleName}";                    Flags: deletekey
+Root: HKCR; Subkey: "{#MyTitleName}\DefaultIcon";        Flags: deletekey
+Root: HKCR; Subkey: "{#MyTitleName}\shell\open\command"; Flags: deletekey
 

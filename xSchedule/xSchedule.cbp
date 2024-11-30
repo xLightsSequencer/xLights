@@ -6,141 +6,6 @@
 		<Option pch_mode="0" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="MinGW_Debug">
-				<Option platforms="Windows;" />
-				<Option output="../bin/xSchedule" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_wd32" />
-				<Option type="0" />
-				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="2" />
-				<Compiler>
-					<Add option="-march=i586" />
-					<Add option="-pedantic" />
-					<Add option="-std=c++1z" />
-					<Add option="-g" />
-					<Add option="-pipe" />
-					<Add option="-mthreads" />
-					<Add option="-fno-keep-inline-dllexport" />
-					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
-					<Add option="-D__GNUWIN32__" />
-					<Add option="-D__WXMSW__" />
-					<Add option="-DWXUSINGDLL" />
-					<Add option="-D__WXDEBUG__" />
-					<Add option="-D_USE_MATH_DEFINES" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
-					<Add directory="$(#wx)/include" />
-					<Add directory="include" />
-					<Add directory="../xSchedule" />
-					<Add directory="../xLights/ffmpeg-dev/include" />
-					<Add directory="../include" />
-					<Add directory="../xLights" />
-				</Compiler>
-				<ResourceCompiler>
-					<Add directory="$(#wx)/include" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
-				</ResourceCompiler>
-				<Linker>
-					<Add option="-mthreads" />
-					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../bin/xSchedule.map" />
-					<Add option="-Wl,--large-address-aware" />
-					<Add option="-lz" />
-					<Add library="libwxmsw33ud.a" />
-					<Add library="libwxmsw33ud_gl.a" />
-					<Add library="../lib/windows/avcodec.lib" />
-					<Add library="../lib/windows/avformat.lib" />
-					<Add library="../lib/windows/avutil.lib" />
-					<Add library="../lib/windows/libSDL2.dll.a" />
-					<Add library="../lib/windows/swresample.lib" />
-					<Add library="../lib/windows/swscale.lib" />
-					<Add library="../lib/windows/liblog4cpp.lib" />
-					<Add library="../lib/windows/DbgHelp.Lib" />
-					<Add library="../lib/windows/iphlpapi.lib" />
-					<Add library="../lib/windows/Ws2_32.lib" />
-					<Add library="../lib/windows/libportmidi.a" />
-					<Add library="../lib/windows/libzstd_static.lib" />
-					<Add library="../lib/windows/libcurl.lib" />
-					<Add library="libwinmm.a" />
-					<Add directory="$(#wx)/lib/gcc_dll" />
-				</Linker>
-			</Target>
-			<Target title="MinGW_Release">
-				<Option platforms="Windows;" />
-				<Option output="../bin/xSchedule" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_wr32" />
-				<Option type="0" />
-				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="2" />
-				<Compiler>
-					<Add option="-march=i586" />
-					<Add option="-O2" />
-					<Add option="-pedantic" />
-					<Add option="-std=c++1z" />
-					<Add option="-m32" />
-					<Add option="-pipe" />
-					<Add option="-mthreads" />
-					<Add option="-static-libgcc" />
-					<Add option="-fno-keep-inline-dllexport" />
-					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
-					<Add option="-D__GNUWIN32__" />
-					<Add option="-D__WXMSW__" />
-					<Add option="-DWXUSINGDLL" />
-					<Add option="-DNDEBUG" />
-					<Add option="-D_USE_MATH_DEFINES" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
-					<Add directory="include" />
-					<Add directory="../xSchedule" />
-					<Add directory="../xLights/ffmpeg-dev/include" />
-					<Add directory="../include" />
-					<Add directory="../xLights" />
-					<Add directory="$(#wx)/include" />
-				</Compiler>
-				<ResourceCompiler>
-					<Add directory="$(#wx)/include" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
-				</ResourceCompiler>
-				<Linker>
-					<Add option="-O2" />
-					<Add option="-s" />
-					<Add option="-m32" />
-					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../bin/xSchedule.map" />
-					<Add option="-Wl,--large-address-aware" />
-					<Add option="-lpthread" />
-					<Add option="-lole32" />
-					<Add library="../lib/windows/avcodec.lib" />
-					<Add library="../lib/windows/avformat.lib" />
-					<Add library="../lib/windows/avutil.lib" />
-					<Add library="../lib/windows/imagehlp.lib" />
-					<Add library="../lib/windows/iphlpapi.lib" />
-					<Add library="../lib/windows/liblog4cpp.lib" />
-					<Add library="../lib/windows/libportmidi.a" />
-					<Add library="../lib/windows/libSDL2.dll.a" />
-					<Add library="../lib/windows/libzstd_static.lib" />
-					<Add library="libwinmm.a" />
-					<Add library="../lib/windows/libwxmsw33u_gl.a" />
-					<Add library="../lib/windows/swresample.lib" />
-					<Add library="../lib/windows/swscale.lib" />
-					<Add library="../lib/windows/Ws2_32.lib" />
-					<Add library="../lib/windows/libcurl.lib" />
-					<Add library="psapi" />
-					<Add library="../lib/windows/libz.a" />
-					<Add library="../lib/windows/libwxbase33u.a" />
-					<Add library="../lib/windows/libwxbase33u_net.a" />
-					<Add library="../lib/windows/libwxmsw33u_core.a" />
-					<Add library="../lib/windows/libwxscintilla.a" />
-					<Add library="../lib/windows/libwxregexu.a" />
-					<Add library="../lib/windows/libwxbase33u_xml.a" />
-					<Add library="../lib/windows/libwxtiff.a" />
-					<Add library="../lib/windows/libwxjpeg.a" />
-					<Add library="../lib/windows/libwxpng.a" />
-					<Add library="../lib/windows/libwxzlib.a" />
-					<Add library="../lib/windows/libwxmsw33u_qa.a" />
-					<Add library="../lib/windows/libwxexpat.a" />
-					<Add library="../lib/windows/libltc.a" />
-					<Add directory="../lib/windows" />
-				</Linker>
-			</Target>
 			<Target title="Linux_Debug">
 				<Option platforms="Unix;" />
 				<Option output="../bin/xSchedule" prefix_auto="1" extension_auto="1" />
@@ -151,7 +16,7 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
-					<Add option="-std=c++1z" />
+					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
@@ -188,7 +53,7 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-Wall" />
-					<Add option="-std=c++1z" />
+					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
@@ -213,80 +78,6 @@
 					<Add option="-lexpat" />
 					<Add option="-lporttime -lportmidi" />
 					<Add option="-rdynamic" />
-				</Linker>
-			</Target>
-			<Target title="64bit_MinGW_Release">
-				<Option platforms="Windows;" />
-				<Option output="../bin64/xSchedule" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_wr64" />
-				<Option type="0" />
-				<Option compiler="gnu_gcc_64bit_compiler" />
-				<Option projectLinkerOptionsRelation="2" />
-				<Compiler>
-					<Add option="-O2" />
-					<Add option="-pedantic" />
-					<Add option="-std=c++1z" />
-					<Add option="-m64" />
-					<Add option="-pipe" />
-					<Add option="-mthreads" />
-					<Add option="-static-libgcc" />
-					<Add option="-fno-keep-inline-dllexport" />
-					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
-					<Add option="-D__GNUWIN32__" />
-					<Add option="-D__WXMSW__" />
-					<Add option="-DWXUSINGDLL" />
-					<Add option="-DNDEBUG" />
-					<Add option="-D_USE_MATH_DEFINES" />
-					<Add directory="include" />
-					<Add directory="../xSchedule" />
-					<Add directory="../xLights/ffmpeg-dev/include" />
-					<Add directory="../include" />
-					<Add directory="../xLights" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
-					<Add directory="$(#wx)/include" />
-				</Compiler>
-				<ResourceCompiler>
-					<Add directory="$(#wx)/include" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
-				</ResourceCompiler>
-				<Linker>
-					<Add option="-O2" />
-					<Add option="-s" />
-					<Add option="-m64" />
-					<Add option="-lole32" />
-					<Add option="-Wl,-Map=../bin64/xSchedule.map" />
-					<Add option="-lpthread" />
-					<Add library="../lib/windows64/avcodec.lib" />
-					<Add library="../lib/windows64/avformat.lib" />
-					<Add library="../lib/windows64/avutil.lib" />
-					<Add library="../lib/windows64/iphlpapi.lib" />
-					<Add library="../lib/windows64/libimagehlp.a" />
-					<Add library="../lib/windows64/liblog4cpp.a" />
-					<Add library="../lib/windows64/libportmidi.a" />
-					<Add library="../lib/windows64/libSDL2.dll.a" />
-					<Add library="libwinmm.a" />
-					<Add library="../lib/windows64/libwxmsw33u_gl.a" />
-					<Add library="../lib/windows64/swresample.lib" />
-					<Add library="../lib/windows64/swscale.lib" />
-					<Add library="../lib/windows64/Ws2_32.lib" />
-					<Add library="../lib/windows64/libzstd_static.lib" />
-					<Add library="../lib/windows64/libcurl.lib" />
-					<Add library="psapi" />
-					<Add library="../lib/windows64/libz.a" />
-					<Add library="../lib/windows64/libwxbase33u.a" />
-					<Add library="../lib/windows64/libwxbase33u_net.a" />
-					<Add library="../lib/windows64/libwxmsw33u_core.a" />
-					<Add library="../lib/windows64/libwxscintilla.a" />
-					<Add library="../lib/windows64/libwxregexu.a" />
-					<Add library="../lib/windows64/libwxbase33u_xml.a" />
-					<Add library="../lib/windows64/libwxtiff.a" />
-					<Add library="../lib/windows64/libwxjpeg.a" />
-					<Add library="../lib/windows64/libwxpng.a" />
-					<Add library="../lib/windows64/libwxzlib.a" />
-					<Add library="../lib/windows64/libwxmsw33u_qa.a" />
-					<Add library="../lib/windows64/libwxexpat.a" />
-					<Add library="../lib/windows64/libltc.a" />
-					<Add directory="../lib/windows64" />
 				</Linker>
 			</Target>
 		</Build>
@@ -669,6 +460,8 @@
 		<Unit filename="RemapDialog.h" />
 		<Unit filename="RemoteModeConfigDialog.cpp" />
 		<Unit filename="RemoteModeConfigDialog.h" />
+		<Unit filename="RGBEffects.cpp" />
+		<Unit filename="RGBEffects.h" />
 		<Unit filename="RunningSchedule.cpp" />
 		<Unit filename="RunningSchedule.h" />
 		<Unit filename="Schedule.cpp" />

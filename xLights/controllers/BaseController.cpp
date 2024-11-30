@@ -34,6 +34,7 @@
 #include "SanDevices.h"
 #include "Minleon.h"
 #include "WLED.h"
+#include "ILightThat.h"
 #include "Experience.h"
 #include "utils/CurlManager.h"
 
@@ -93,6 +94,8 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
         bc = new Experience(ip, proxy);
     } else if (driver == "WLED") {
         bc = new WLED(ip, proxy);
+    } else if (driver == "ILightThat") {
+        bc = new ILightThat(ip, proxy);
     } else {
         logger_base.warn("Vendor not recognized ... assuming it is a FPP based vendor : %s.", (const char*)vendor.c_str());
         bc = new FPP(ip, proxy, caps->GetModel());

@@ -117,7 +117,7 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
 					<cols>1</cols>
-					<rows>6</rows>
+					<rows>7</rows>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON1" variable="Button_AddView" member="yes">
 							<label>Add</label>
@@ -165,11 +165,38 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON11" variable="Button_MakeMaster" member="yes">
-							<label>Make Master</label>
+							<label>Copy To Master</label>
+							<tooltip>Copy elements and ordering to your master render view</tooltip>
 							<handler function="OnButton_MakeMasterClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBoxSizer" variable="BoxSizer2" member="no">
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON_VIEWUP" variable="Button_ViewUp" member="yes">
+									<label>^</label>
+									<size>20,-1d</size>
+									<handler function="OnButtonView_UpClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON_VIEWDOWN" variable="Button_ViewDown" member="yes">
+									<label>v</label>
+									<size>20,-1d</size>
+									<handler function="OnButtonView_DownClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<option>1</option>
 					</object>
 				</object>

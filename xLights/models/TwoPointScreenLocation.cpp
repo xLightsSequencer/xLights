@@ -117,7 +117,6 @@ void TwoPointScreenLocation::Write(wxXmlNode *ModelXml) {
     ModelXml->DeleteAttribute("X2");
     ModelXml->DeleteAttribute("Y2");
     ModelXml->DeleteAttribute("Z2");
-    ModelXml->DeleteAttribute("Locked");
     ModelXml->AddAttribute("X2", std::to_string(x2));
     ModelXml->AddAttribute("Y2", std::to_string(y2));
     ModelXml->AddAttribute("Z2", std::to_string(z2));
@@ -892,7 +891,7 @@ wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, c
 void TwoPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
 {
     wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", RulerObject::Measure(origin, point2)));
-    //prop->ChangeFlag(wxPG_PROP_READONLY, true);
+    //prop->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
     prop->SetAttribute("Precision", 2);
     //prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 }
@@ -940,17 +939,17 @@ void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxBLUE);
+    prop->SetTextColour(BlueOrLightBlue());
     prop = propertyEditor->Append(new wxFloatProperty("Y2", "ModelY2", y2 + worldPos_y));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxBLUE);
+    prop->SetTextColour(BlueOrLightBlue());
     prop = propertyEditor->Append(new wxFloatProperty("Z2", "ModelZ2", z2 + worldPos_z));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxBLUE);
+    prop->SetTextColour(BlueOrLightBlue());
 }
 
 int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {

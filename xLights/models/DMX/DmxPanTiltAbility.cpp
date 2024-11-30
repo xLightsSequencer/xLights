@@ -26,44 +26,46 @@ DmxPanTiltAbility::~DmxPanTiltAbility()
 
 void DmxPanTiltAbility::AddPanTiltTypeProperties(wxPropertyGridInterface *grid) {
 
-    wxPGProperty* p = grid->Append(new wxUIntProperty("Pan Channel", "DmxPanChannel", pan_channel));
+    auto p = grid->Append(new wxPropertyCategory("Pan/Tilt Properties", "PanTiltProperties"));
+
+    p = grid->Append(new wxUIntProperty("Pan Channel", "DmxPanChannel", pan_motor->channel));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Pan Orientation", "DmxPanOrient", pan_orient));
+    p = grid->Append(new wxUIntProperty("Pan Orientation", "DmxPanOrient", pan_motor->orient));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 360);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxIntProperty("Pan Deg of Rot", "DmxPanDegOfRot", pan_deg_of_rot));
+    p = grid->Append(new wxIntProperty("Pan Deg of Rot", "DmxPanDegOfRot", pan_motor->deg_of_rot));
     p->SetAttribute("Min", -1000);
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxFloatProperty("Pan Slew Limit (deg/sec)", "DmxPanSlewLimit", pan_slew_limit));
+    p = grid->Append(new wxFloatProperty("Pan Slew Limit (deg/sec)", "DmxPanSlewLimit", pan_motor->slew_limit));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 500);
     p->SetAttribute("Precision", 2);
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Tilt Channel", "DmxTiltChannel", tilt_channel));
+    p = grid->Append(new wxUIntProperty("Tilt Channel", "DmxTiltChannel", tilt_motor->channel));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Tilt Orientation", "DmxTiltOrient", tilt_orient));
+    p = grid->Append(new wxUIntProperty("Tilt Orientation", "DmxTiltOrient", tilt_motor->orient));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 360);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxIntProperty("Tilt Deg of Rot", "DmxTiltDegOfRot", tilt_deg_of_rot));
+    p = grid->Append(new wxIntProperty("Tilt Deg of Rot", "DmxTiltDegOfRot", tilt_motor->deg_of_rot));
     p->SetAttribute("Min", -1000);
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxFloatProperty("Tilt Slew Limit (deg/sec)", "DmxTiltSlewLimit", tilt_slew_limit));
+    p = grid->Append(new wxFloatProperty("Tilt Slew Limit (deg/sec)", "DmxTiltSlewLimit", tilt_motor->slew_limit));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 500);
     p->SetAttribute("Precision", 2);

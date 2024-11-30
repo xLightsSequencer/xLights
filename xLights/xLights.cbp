@@ -6,163 +6,6 @@
 		<Option pch_mode="0" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="MinGW_Debug">
-				<Option platforms="Windows;" />
-				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_wd52" />
-				<Option type="0" />
-				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="2" />
-				<Compiler>
-					<Add option="-march=i586" />
-					<Add option="-pedantic" />
-					<Add option="-std=c++1z" />
-					<Add option="-m32" />
-					<Add option="-g" />
-					<Add option="-pipe" />
-					<Add option="-mthreads" />
-					<Add option="-std=gnu++17" />
-					<Add option="-fno-keep-inline-dllexport" />
-					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
-					<Add option="-D__GNUWIN32__" />
-					<Add option="-D__WXMSW__" />
-					<Add option="-DWXUSINGDLL" />
-					<Add option="-D__WXDEBUG__" />
-					<Add option="-D_USE_MATH_DEFINES" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
-					<Add directory="$(#wx)/include" />
-					<Add directory="include" />
-					<Add directory="sequencer" />
-					<Add directory="../xLights" />
-					<Add directory="effects" />
-					<Add directory="effects/" />
-					<Add directory="models" />
-					<Add directory="effects/assist" />
-					<Add directory="ffmpeg-dev/include" />
-					<Add directory="../include" />
-					<Add directory="models/" />
-					<Add directory="support" />
-					<Add directory="outputs" />
-					<Add directory="xLights" />
-					<Add directory="xLights/models" />
-				</Compiler>
-				<ResourceCompiler>
-					<Add directory="$(#wx)/include" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
-				</ResourceCompiler>
-				<Linker>
-					<Add option="-m32" />
-					<Add option="-mthreads" />
-					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../bin/xLights.map" />
-					<Add option="-lz" />
-					<Add option="-Wl,--large-address-aware" />
-					<Add library="libwxmsw31ud.a" />
-					<Add library="libwxmsw31ud_gl.a" />
-					<Add library="../lib/windows/DbgHelp.Lib" />
-					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/avcodec.lib" />
-					<Add library="../lib/windows/avformat.lib" />
-					<Add library="../lib/windows/avutil.lib" />
-					<Add library="../lib/windows/swresample.lib" />
-					<Add library="../lib/windows/libSDL2.dll.a" />
-					<Add library="../lib/windows/swscale.lib" />
-					<Add library="../lib/windows/liblog4cpp.lib" />
-					<Add library="../lib/windows/libliquidfund.a" />
-					<Add library="../lib/windows/iphlpapi.lib" />
-					<Add library="../lib/windows/WS2_32.Lib" />
-					<Add library="../lib/windows/libzstd_static.lib" />
-					<Add directory="$(#wx)/lib/gcc_dll" />
-				</Linker>
-			</Target>
-			<Target title="MinGW_Release">
-				<Option platforms="Windows;" />
-				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_wr32" />
-				<Option type="0" />
-				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="2" />
-				<Compiler>
-					<Add option="-O2" />
-					<Add option="-pedantic" />
-					<Add option="-std=c++1z" />
-					<Add option="-m32" />
-					<Add option="-pipe" />
-					<Add option="-mthreads" />
-					<Add option="-static-libgcc" />
-					<Add option="-fno-keep-inline-dllexport" />
-					<Add option="-Wno-attributes" />
-					<Add option="-D__GNUWIN32__" />
-					<Add option="-D__WXMSW__" />
-					<Add option="-DWXUSINGDLL" />
-					<Add option="-DNDEBUG" />
-					<Add option="-D_USE_MATH_DEFINES" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
-					<Add directory="$(#wx)/include" />
-					<Add directory="include" />
-					<Add directory="sequencer" />
-					<Add directory="../xLights" />
-					<Add directory="effects" />
-					<Add directory="effects/" />
-					<Add directory="models" />
-					<Add directory="effects/assist" />
-					<Add directory="ffmpeg-dev/include" />
-					<Add directory="../include" />
-					<Add directory="models/" />
-					<Add directory="support" />
-					<Add directory="outputs" />
-					<Add directory="xLights" />
-					<Add directory="xLights/models" />
-				</Compiler>
-				<ResourceCompiler>
-					<Add directory="$(#wx)/include" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
-				</ResourceCompiler>
-				<Linker>
-					<Add option="-O2" />
-					<Add option="-s" />
-					<Add option="-m32" />
-					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../bin/xLights.map" />
-					<Add option="-Wl,--large-address-aware" />
-					<Add option="-lpthread" />
-					<Add option="-lole32" />
-					<Add library="../lib/windows/libwxmsw31u_gl.a" />
-					<Add library="../lib/windows/DbgHelp.Lib" />
-					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/avcodec.lib" />
-					<Add library="../lib/windows/avformat.lib" />
-					<Add library="../lib/windows/avutil.lib" />
-					<Add library="../lib/windows/swresample.lib" />
-					<Add library="../lib/windows/libSDL2.dll.a" />
-					<Add library="../lib/windows/swscale.lib" />
-					<Add library="../lib/windows/liblog4cpp.lib" />
-					<Add library="../lib/windows/libliquidfun.a" />
-					<Add library="../lib/windows/iphlpapi.lib" />
-					<Add library="../lib/windows/WS2_32.Lib" />
-					<Add library="../lib/windows/libzstd_static.lib" />
-					<Add library="../lib/windows/LIBCURL.LIB" />
-					<Add library="Psapi" />
-					<Add library="../lib/windows/libz.a" />
-					<Add library="../lib/windows/libwxbase31u.a" />
-					<Add library="../lib/windows/libwxbase31u_net.a" />
-					<Add library="../lib/windows/libwxbase31u_xml.a" />
-					<Add library="../lib/windows/libwxexpat.a" />
-					<Add library="../lib/windows/libwxjpeg.a" />
-					<Add library="../lib/windows/libwxmsw31u_aui.a" />
-					<Add library="../lib/windows/libwxmsw31u_core.a" />
-					<Add library="../lib/windows/libwxmsw31u_html.a" />
-					<Add library="../lib/windows/libwxmsw31u_propgrid.a" />
-					<Add library="../lib/windows/libwxmsw31u_qa.a" />
-					<Add library="../lib/windows/libwxpng.a" />
-					<Add library="../lib/windows/libwxregexu.a" />
-					<Add library="../lib/windows/libwxscintilla.a" />
-					<Add library="../lib/windows/libwxtiff.a" />
-					<Add library="../lib/windows/libwxzlib.a" />
-					<Add directory="lib/windows" />
-					<Add directory="../lib/windows" />
-				</Linker>
-			</Target>
 			<Target title="Linux_Debug">
 				<Option platforms="Unix;" />
 				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
@@ -173,9 +16,8 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-Wall" />
-					<Add option="-std=c++1z" />
 					<Add option="-g" />
-					<Add option="-std=gnu++17" />
+					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
@@ -200,6 +42,7 @@
 					<Add directory="xLights/models" />
 					<Add directory="../dependencies/libxlsxwriter/include" />
 					<Add directory="../include/sol2-3.2.2" />
+					<Add directory="../dependencies" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -230,7 +73,7 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-Wall" />
-					<Add option="-std=gnu++17" />
+					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
@@ -255,6 +98,7 @@
 					<Add directory="xLights/models" />
 					<Add directory="../dependencies/libxlsxwriter/include" />
 					<Add directory="../include/sol2-3.2.2" />
+					<Add directory="../dependencies" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -273,162 +117,6 @@
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
 					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
-				</Linker>
-			</Target>
-			<Target title="64bit MinGW_Release">
-				<Option platforms="Windows;" />
-				<Option output="../bin64/xLights" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_wr64" />
-				<Option type="0" />
-				<Option compiler="gnu_gcc_64bit_compiler" />
-				<Option projectLinkerOptionsRelation="2" />
-				<Compiler>
-					<Add option="-O2" />
-					<Add option="-pedantic" />
-					<Add option="-std=c++1z" />
-					<Add option="-m64" />
-					<Add option="-pipe" />
-					<Add option="-mthreads" />
-					<Add option="-std=gnu++17" />
-					<Add option="-fno-keep-inline-dllexport" />
-					<Add option="-Wno-attributes" />
-					<Add option="-D__GNUWIN32__" />
-					<Add option="-D__WXMSW__" />
-					<Add option="-DWXUSINGDLL" />
-					<Add option="-DNDEBUG" />
-					<Add option="-D_USE_MATH_DEFINES" />
-					<Add option="-D__WIN64__" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
-					<Add directory="include" />
-					<Add directory="sequencer" />
-					<Add directory="../xLights" />
-					<Add directory="effects" />
-					<Add directory="effects/" />
-					<Add directory="models" />
-					<Add directory="effects/assist" />
-					<Add directory="ffmpeg-dev/include" />
-					<Add directory="../include" />
-					<Add directory="models/" />
-					<Add directory="support" />
-					<Add directory="outputs" />
-					<Add directory="xLights" />
-					<Add directory="xLights/models" />
-					<Add directory="$(#wx)/include" />
-				</Compiler>
-				<ResourceCompiler>
-					<Add directory="$(#wx)/include" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
-				</ResourceCompiler>
-				<Linker>
-					<Add option="-O2" />
-					<Add option="-s" />
-					<Add option="-m64" />
-					<Add option="-mthreads" />
-					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../bin64/xLights.map" />
-					<Add option="-lole32" />
-					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
-					<Add library="../lib/windows64/libDbgHelp.a" />
-					<Add library="../lib/windows64/libImageHlp.a" />
-					<Add library="../lib/windows64/avcodec.lib" />
-					<Add library="../lib/windows64/avformat.lib" />
-					<Add library="../lib/windows64/avutil.lib" />
-					<Add library="../lib/windows64/swresample.lib" />
-					<Add library="../lib/windows64/libSDL2.dll.a" />
-					<Add library="../lib/windows64/swscale.lib" />
-					<Add library="../lib/windows64/liblog4cpp.a" />
-					<Add library="../lib/windows64/libliquidfun.a" />
-					<Add library="../lib/windows64/iphlpapi.lib" />
-					<Add library="../lib/windows64/WS2_32.Lib" />
-					<Add library="../lib/windows64/libzstd_static.lib" />
-					<Add library="../lib/windows64/LIBCURL.LIB" />
-					<Add library="Psapi" />
-					<Add library="../lib/windows64/libz.a" />
-					<Add library="../lib/windows64/libwxbase31u.a" />
-					<Add library="../lib/windows64/libwxbase31u_net.a" />
-					<Add library="../lib/windows64/libwxbase31u_xml.a" />
-					<Add library="../lib/windows64/libwxexpat.a" />
-					<Add library="../lib/windows64/libwxjpeg.a" />
-					<Add library="../lib/windows64/libwxmsw31u_aui.a" />
-					<Add library="../lib/windows64/libwxmsw31u_core.a" />
-					<Add library="../lib/windows64/libwxmsw31u_html.a" />
-					<Add library="../lib/windows64/libwxmsw31u_propgrid.a" />
-					<Add library="../lib/windows64/libwxmsw31u_qa.a" />
-					<Add library="../lib/windows64/libwxpng.a" />
-					<Add library="../lib/windows64/libwxregexu.a" />
-					<Add library="../lib/windows64/libwxscintilla.a" />
-					<Add library="../lib/windows64/libwxtiff.a" />
-					<Add library="../lib/windows64/libwxzlib.a" />
-				</Linker>
-			</Target>
-			<Target title="64bit MinGW_Debug">
-				<Option platforms="Windows;" />
-				<Option output="../bin64/xLights" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_wd64" />
-				<Option type="0" />
-				<Option compiler="gnu_gcc_64bit_compiler" />
-				<Option projectLinkerOptionsRelation="2" />
-				<Compiler>
-					<Add option="-pedantic" />
-					<Add option="-std=c++1z" />
-					<Add option="-m64" />
-					<Add option="-g" />
-					<Add option="-pipe" />
-					<Add option="-mthreads" />
-					<Add option="-std=gnu++17" />
-					<Add option="-fno-keep-inline-dllexport" />
-					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
-					<Add option="-D__GNUWIN32__" />
-					<Add option="-D__WXMSW__" />
-					<Add option="-DWXUSINGDLL" />
-					<Add option="-D__WXDEBUG__" />
-					<Add option="-D_USE_MATH_DEFINES" />
-					<Add option="-D__WIN64__" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
-					<Add directory="include" />
-					<Add directory="sequencer" />
-					<Add directory="../xLights" />
-					<Add directory="effects" />
-					<Add directory="effects/" />
-					<Add directory="models" />
-					<Add directory="effects/assist" />
-					<Add directory="models/" />
-					<Add directory="ffmpeg-dev/include" />
-					<Add directory="../include" />
-					<Add directory="support" />
-					<Add directory="outputs" />
-					<Add directory="xLights" />
-					<Add directory="xLights/models" />
-					<Add directory="$(#wx)/include" />
-				</Compiler>
-				<ResourceCompiler>
-					<Add directory="$(#wx)/include" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
-				</ResourceCompiler>
-				<Linker>
-					<Add option="-m64" />
-					<Add option="-mthreads" />
-					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../bin64/xLights.map" />
-					<Add option="-lz" />
-					<Add library="libwxmsw31ud.a" />
-					<Add library="libwxmsw31ud_gl.a" />
-					<Add library="../lib/windows64/libdbghelp.a" />
-					<Add library="../lib/windows64/libimagehlp.a" />
-					<Add library="../lib/windows64/avcodec.lib" />
-					<Add library="../lib/windows64/avformat.lib" />
-					<Add library="../lib/windows64/avutil.lib" />
-					<Add library="../lib/windows64/libSDL2.dll.a" />
-					<Add library="../lib/windows64/swresample.lib" />
-					<Add library="../lib/windows64/swscale.lib" />
-					<Add library="../lib/windows64/liblog4cppd.a" />
-					<Add library="../lib/windows64/libliquidfun.a" />
-					<Add library="../lib/windows64/iphlpapi.lib" />
-					<Add library="../lib/windows64/WS2_32.Lib" />
-					<Add library="../lib/windows64/libzstd_static.lib" />
-					<Add library="../lib/windows64/LIBCURL.LIB" />
-					<Add library="Psapi" />
-					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
 		</Build>
@@ -539,6 +227,8 @@
 		<Unit filename="DuplicateDialog.h" />
 		<Unit filename="EditAliasesDialog.cpp" />
 		<Unit filename="EditAliasesDialog.h" />
+		<Unit filename="EditSubmodelAliasesDialog.cpp" />
+		<Unit filename="EditSubmodelAliasesDialog.h" />
 		<Unit filename="EffectAssist.cpp" />
 		<Unit filename="EffectAssist.h" />
 		<Unit filename="EffectIconPanel.cpp" />
@@ -723,6 +413,8 @@
 		<Unit filename="SevenSegmentDialog.h" />
 		<Unit filename="ShaderDownloadDialog.cpp" />
 		<Unit filename="ShaderDownloadDialog.h" />
+		<Unit filename="SpecialOptions.cpp" />
+		<Unit filename="SpecialOptions.h" />
 		<Unit filename="SplashDialog.cpp" />
 		<Unit filename="SplashDialog.h" />
 		<Unit filename="StartChannelDialog.cpp" />
@@ -836,6 +528,8 @@
 		<Unit filename="controllers/HinksPix.h" />
 		<Unit filename="controllers/HinksPixExportDialog.cpp" />
 		<Unit filename="controllers/HinksPixExportDialog.h" />
+		<Unit filename="controllers/ILightThat.cpp" />
+		<Unit filename="controllers/ILightThat.h" />
 		<Unit filename="controllers/J1Sys.cpp" />
 		<Unit filename="controllers/J1Sys.h" />
 		<Unit filename="controllers/Minleon.cpp" />
@@ -961,6 +655,25 @@
 		<Unit filename="effects/MorphEffect.h" />
 		<Unit filename="effects/MorphPanel.cpp" />
 		<Unit filename="effects/MorphPanel.h" />
+		<Unit filename="effects/MovingHeadEffect.cpp" />
+		<Unit filename="effects/MovingHeadEffect.h" />
+		<Unit filename="effects/MovingHeadPanel.cpp" />
+		<Unit filename="effects/MovingHeadPanel.h" />
+		<Unit filename="effects/MovingHeadPanels/MHColorPanel.h" />
+		<Unit filename="effects/MovingHeadPanels/MHColorWheelPanel.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MHColorWheelPanel.h" />
+		<Unit filename="effects/MovingHeadPanels/MHDimmerPresetBitmapButton.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MHDimmerPresetBitmapButton.h" />
+		<Unit filename="effects/MovingHeadPanels/MHPathPresetBitmapButton.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MHPathPresetBitmapButton.h" />
+		<Unit filename="effects/MovingHeadPanels/MHPresetBitmapButton.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MHPresetBitmapButton.h" />
+		<Unit filename="effects/MovingHeadPanels/MHRgbPickerPanel.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MHRgbPickerPanel.h" />
+		<Unit filename="effects/MovingHeadPanels/MovingHeadCanvasPanel.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MovingHeadCanvasPanel.h" />
+		<Unit filename="effects/MovingHeadPanels/MovingHeadDimmerPanel.cpp" />
+		<Unit filename="effects/MovingHeadPanels/MovingHeadDimmerPanel.h" />
 		<Unit filename="effects/MusicEffect.cpp" />
 		<Unit filename="effects/MusicEffect.h" />
 		<Unit filename="effects/MusicPanel.cpp" />
@@ -1119,6 +832,7 @@
 		<Unit filename="models/ArchesModel.h" />
 		<Unit filename="models/BaseObject.cpp" />
 		<Unit filename="models/BaseObject.h" />
+		<Unit filename="models/BaseObjectVisitor.h" />
 		<Unit filename="models/BoxedScreenLocation.cpp" />
 		<Unit filename="models/BoxedScreenLocation.h" />
 		<Unit filename="models/CandyCaneModel.cpp" />
@@ -1138,6 +852,8 @@
 		<Unit filename="models/DMX/DmxColorAbilityRGB.h" />
 		<Unit filename="models/DMX/DmxColorAbilityWheel.cpp" />
 		<Unit filename="models/DMX/DmxColorAbilityWheel.h" />
+		<Unit filename="models/DMX/DmxDimmerAbility.cpp" />
+		<Unit filename="models/DMX/DmxDimmerAbility.h" />
 		<Unit filename="models/DMX/DmxFloodArea.cpp" />
 		<Unit filename="models/DMX/DmxFloodArea.h" />
 		<Unit filename="models/DMX/DmxFloodlight.cpp" />
@@ -1148,10 +864,15 @@
 		<Unit filename="models/DMX/DmxImage.h" />
 		<Unit filename="models/DMX/DmxModel.cpp" />
 		<Unit filename="models/DMX/DmxModel.h" />
+		<Unit filename="models/DMX/DmxMotor.cpp" />
+		<Unit filename="models/DMX/DmxMotor.h" />
+		<Unit filename="models/DMX/DmxMotorBase.h" />
+		<Unit filename="models/DMX/DmxMotorPanTilt.h" />
 		<Unit filename="models/DMX/DmxMovingHead.cpp" />
 		<Unit filename="models/DMX/DmxMovingHead.h" />
-		<Unit filename="models/DMX/DmxMovingHead3D.cpp" />
-		<Unit filename="models/DMX/DmxMovingHead3D.h" />
+		<Unit filename="models/DMX/DmxMovingHeadAdv.cpp" />
+		<Unit filename="models/DMX/DmxMovingHeadAdv.h" />
+		<Unit filename="models/DMX/DmxMovingHeadComm.h" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.cpp" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.h" />
 		<Unit filename="models/DMX/DmxPresetAbility.cpp" />
@@ -1168,6 +889,14 @@
 		<Unit filename="models/DMX/DmxSkulltronix.h" />
 		<Unit filename="models/DMX/Mesh.cpp" />
 		<Unit filename="models/DMX/Mesh.h" />
+		<Unit filename="models/DMX/MovingHeads/MhChannel.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhChannel.h" />
+		<Unit filename="models/DMX/MovingHeads/MhChannelDialog.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhChannelDialog.h" />
+		<Unit filename="models/DMX/MovingHeads/MhFeature.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhFeature.h" />
+		<Unit filename="models/DMX/MovingHeads/MhFeatureDialog.cpp" />
+		<Unit filename="models/DMX/MovingHeads/MhFeatureDialog.h" />
 		<Unit filename="models/DMX/Servo.cpp" />
 		<Unit filename="models/DMX/Servo.h" />
 		<Unit filename="models/DMX/ServoConfigDialog.cpp" />
@@ -1241,6 +970,7 @@
 		<Unit filename="models/WindowFrameModel.h" />
 		<Unit filename="models/WreathModel.cpp" />
 		<Unit filename="models/WreathModel.h" />
+		<Unit filename="models/XmlSerializer.h" />
 		<Unit filename="outputs/ArtNetOutput.cpp" />
 		<Unit filename="outputs/ArtNetOutput.h" />
 		<Unit filename="outputs/Controller.cpp" />
@@ -1355,8 +1085,6 @@
 		<Unit filename="sequencer/Waveform.h" />
 		<Unit filename="sequencer/tabSequencer.cpp" />
 		<Unit filename="serial.h" />
-		<Unit filename="SpecialOptions.cpp" />
-		<Unit filename="SpecialOptions.h" />
 		<Unit filename="support/EzGrid.cpp" />
 		<Unit filename="support/EzGrid.h" />
 		<Unit filename="support/FastComboEditor.cpp" />
@@ -1453,6 +1181,7 @@
 		<Unit filename="wxsmith/DuplicateDialog.wxs" />
 		<Unit filename="wxsmith/DuplicatePanel.wxs" />
 		<Unit filename="wxsmith/EditAliasesDialog.wxs" />
+		<Unit filename="wxsmith/EditSubmodelAliasesDialog.wxs" />
 		<Unit filename="wxsmith/EffectAssist.wxs" />
 		<Unit filename="wxsmith/EffectIconPanel.wxs" />
 		<Unit filename="wxsmith/EffectTimingDialog.wxs" />
@@ -1499,6 +1228,8 @@
 		<Unit filename="wxsmith/MediaImportOptionsDialog.wxs" />
 		<Unit filename="wxsmith/MeteorsPanel.wxs" />
 		<Unit filename="wxsmith/MetronomeLabelDialog.wxs" />
+		<Unit filename="wxsmith/MhChannelDialog.wxs" />
+		<Unit filename="wxsmith/MhFeatureDialog.wxs" />
 		<Unit filename="wxsmith/ModelChainDialog.wxs" />
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
@@ -1507,6 +1238,7 @@
 		<Unit filename="wxsmith/ModelRemap.wxs" />
 		<Unit filename="wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
+		<Unit filename="wxsmith/MovingHeadPanel.wxs" />
 		<Unit filename="wxsmith/MultiControllerUploadDialog.wxs" />
 		<Unit filename="wxsmith/MusicPanel.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
@@ -1798,6 +1530,7 @@
 					<wxPanel wxs="wxsmith/RandomEffectsSettingsPanel.wxs" src="preferences/RandomEffectsSettingsPanel.cpp" hdr="preferences/RandomEffectsSettingsPanel.h" fwddecl="1" i18n="1" name="RandomEffectsSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ColorManagerSettingsPanel.wxs" src="preferences/ColorManagerSettingsPanel.cpp" hdr="preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SearchPanel.wxs" src="SearchPanel.cpp" hdr="SearchPanel.h" fwddecl="0" i18n="1" name="SearchPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/MovingHeadPanel.wxs" src="effects/MovingHeadPanel.cpp" hdr="effects/MovingHeadPanel.h" fwddecl="0" i18n="1" name="MovingHeadPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditColourPickerDialog.wxs" src="BulkEditColourPickerDialog.cpp" hdr="BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
@@ -1813,8 +1546,12 @@
 					<wxDialog wxs="wxsmith/FPPUploadProgressDialog.wxs" src="controllers/FPPUploadProgressDialog.cpp" hdr="controllers/FPPUploadProgressDialog.h" fwddecl="0" i18n="1" name="FPPUploadProgressDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AutoLabelDialog.wxs" src="AutoLabelDialog.cpp" hdr="AutoLabelDialog.h" fwddecl="0" i18n="1" name="AutoLabelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EditAliasesDialog.wxs" src="EditAliasesDialog.cpp" hdr="EditAliasesDialog.h" fwddecl="0" i18n="1" name="EditAliasesDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/EditSubmodelAliasesDialog.wxs" src="EditSubmodelAliasesDialog.cpp" hdr="EditSubmodelAliasesDialog.h" fwddecl="0" i18n="1" name="EditSubmodelAliasesDialog" language="CPP" />
 				</resources>
 			</wxsmith>
+			<code_completion />
+			<envvars />
+			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

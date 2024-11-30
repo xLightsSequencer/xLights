@@ -11,12 +11,12 @@
  **************************************************************/
 
  //(*Headers(ColorCurveDialog)
-#include <wx/button.h>
-#include <wx/choice.h>
-#include <wx/dialog.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-//*)
+ #include <wx/button.h>
+ #include <wx/choice.h>
+ #include <wx/dialog.h>
+ #include <wx/sizer.h>
+ #include <wx/stattext.h>
+ //*)
 
 #include <wx/colourdata.h>
 #include <wx/dir.h>
@@ -81,6 +81,7 @@ private:
     std::list<ccSortableColorPoint> _undo;
     int _start;
     int _end;
+    int _totalBorderWidth;
     Element* _timingElement;
 };
 

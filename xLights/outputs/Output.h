@@ -11,6 +11,8 @@
  **************************************************************/
 
 #include <list>
+#include <mutex>
+#include <shared_mutex>
 
 #include <wx/window.h>
 #include <wx/time.h>
@@ -51,12 +53,14 @@ class Controller;
 
 class Output
 {
-protected:
+private:
+    std::string _resolvedIp;
+    mutable std::shared_mutex _resolveMutex;
 
+protected:
 #pragma region Member Variables
     bool _dirty = false;
     std::string _ip;
-    std::string _resolvedIp;
     std::string _commPort;
     int32_t _channels = 0;
     int _baudRate = 0;
@@ -125,10 +129,10 @@ public:
     }
 
     std::string GetIP() const { return _ip; }
-    virtual void SetIP(const std::string& ip, bool isActive);
+    virtual void SetIP(const std::string& ip, bool isActive, bool resolve = true);
 
-    std::string GetResolvedIP() const { return _resolvedIp; }
-    void SetResolvedIP(const std::string& resolvedIP) { if (resolvedIP != _resolvedIp) { _resolvedIp = resolvedIP; _dirty = true; } }
+    std::string GetResolvedIP() const;
+    void SetResolvedIP(const std::string& resolvedIP);
 
     const std::string GetFPPProxyIP() const { return _fppProxy; }
     void SetFPPProxyIP(const std::string& ip) { _fppProxy = ip; }
@@ -146,7 +150,12 @@ public:
     virtual std::string GetUniverseString() const { return wxString::Format(wxT("%i"), GetUniverse()).ToStdString(); }
 
     int32_t GetChannels() const { return _channels; }
-    virtual void SetChannels(int32_t channels) { _channels = channels; _dirty = true; }
+    virtual void SetChannels(int32_t channels) {
+        if (_channels != channels) {
+            _channels = channels;
+            _dirty = true;
+        }
+    }
     virtual int GetMaxChannels() const = 0;
     virtual bool IsValidChannelCount(int32_t channelCount) const = 0;
 

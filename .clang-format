@@ -23,10 +23,10 @@ BreakBeforeBraces: Custom
 BraceWrapping:
   AfterEnum:       false
   AfterExternBlock: false
-  AfterClass:      true
+  AfterClass:      false
   AfterControlStatement: false
-  AfterFunction:   true
-  AfterNamespace:  true
+  AfterFunction:   false
+  AfterNamespace:  false
   AfterObjCDeclaration: false
   AfterStruct:     false
   AfterUnion:      false
@@ -85,7 +85,7 @@ SpacesInContainerLiterals: true
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-Standard:        Cpp11
+Standard:        c++20
 TabWidth:        4
 UseTab:          Never
 FixNamespaceComments: false

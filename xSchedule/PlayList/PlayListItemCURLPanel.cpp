@@ -16,6 +16,7 @@
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/tooltip.h>
 
 //(*IdInit(PlayListItemCURLPanel)
 const long PlayListItemCURLPanel::ID_STATICTEXT3 = wxNewId();
@@ -106,6 +107,8 @@ PlayListItemCURLPanel::PlayListItemCURLPanel(wxWindow* parent, PlayListItemCURL*
         Choice_ContentType->SetStringSelection(curl->GetContentType());
     }
 
+	wxToolTip::SetAutoPop(10000);
+
     ValidateWindow();
 }
 
@@ -119,6 +122,8 @@ PlayListItemCURLPanel::~PlayListItemCURLPanel()
     _curl->SetBody(TextCtrl_Body->GetValue().ToStdString());
     _curl->SetDelay(wxAtof(TextCtrl_Delay->GetValue())*1000);
     _curl->SetContentType(Choice_ContentType->GetStringSelection().ToStdString());
+
+	wxToolTip::SetAutoPop(-1);
 }
 
 void PlayListItemCURLPanel::ValidateWindow()

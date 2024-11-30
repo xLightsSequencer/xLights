@@ -15,6 +15,7 @@
 #include "DmxFloodlight.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxPresetAbility.h"
+#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../UtilFunctions.h"
 #include "../../xLightsMain.h"
@@ -36,11 +37,14 @@ void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
 
     DmxModel::AddTypeProperties(grid, outputManager);
     if (nullptr != color_ability) {
-        color_ability->AddColorTypeProperties(grid);
+        ControllerCaps *caps = GetControllerCaps();
+        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
     }
     AddShutterTypeProperties(grid);
 
-    auto p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
+    auto p = grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
+
+    p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 100);
     p->SetAttribute("Precision", 2);
@@ -156,7 +160,7 @@ void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
             int start = vac->getCount();
             DrawModel(vac, center, edge, is_3d ? beam_length * min_size : 0);
             int end = vac->getCount();
-            transparentProgram->addStep([=](xlGraphicsContext* ctx) {
+            transparentProgram->addStep([=, this](xlGraphicsContext* ctx) {
                 ctx->PushMatrix();
                 if (!is_3d) {
                     //not 3d, flatten to the 0 plane
@@ -245,9 +249,11 @@ void DmxFloodlight::ExportXlightsModel()
     if (filename.IsEmpty())
         return;
     wxFile f(filename);
-    //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+    
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
 
 
     wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
@@ -276,13 +282,14 @@ void DmxFloodlight::ExportXlightsModel()
     f.Close();
 }
 
-void DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "dmxmodel") {
-        ImportBaseParameters(root);
+        if (!ImportBaseParameters(root))
+            return false;
 
         wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
 
         wxString dbl = root->GetAttribute("DmxBeamLength", "1");
 
@@ -300,12 +307,15 @@ void DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxFloodlight::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxFloodlight::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading DmxFloodlight model file.");
+        return false;
     }
 }
 
-void DmxFloodlight::EnableFixedChannels(xlColorVector& pixelVector)
+void DmxFloodlight::EnableFixedChannels(xlColorVector& pixelVector) const
 {
     if (shutter_channel != 0 && shutter_on_value != 0) {
         if (Nodes.size() > shutter_channel - 1) {
@@ -324,4 +334,12 @@ std::vector<std::string> DmxFloodlight::GenerateNodeNames() const
         names[shutter_channel - 1] = "Shutter";
     }
     return names;
+}
+
+
+void DmxFloodlight::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
+    DmxModel::GetPWMOutputs(channels);
+    if (shutter_channel > 0) {
+        channels[shutter_channel] = PWMOutput(shutter_channel, PWMOutput::Type::LED, 1, "Shutter");
+    }
 }

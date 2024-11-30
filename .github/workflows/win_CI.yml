@@ -1,0 +1,92 @@
+name: Windows xLights CI
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '.github/workflows/*.yml'
+      - '.github/ISSUE_TEMPLATE/*.md'
+      - 'build_scripts/**'
+      - 'ci_scripts/**'
+      - 'cmudict/**'
+      - 'colorcurves/**'
+      - 'controllers/**'
+      - 'documentation/**'
+      - 'download/**'
+      - 'images/**'
+      - 'lib/windows/**'
+      - 'lib/windows64/**'
+      - 'meshobjects/**'
+      - 'palettes/**'
+      - 'scripts/**'
+      - 'songs/**'
+      - 'TipOfDay/**'
+      - 'valuecurves/**'
+      - 'xCapture/**'
+      - 'xFade/**'
+      - 'xlDo/**'
+      - 'xScanner/**'
+      - 'xSchedule/**'
+      - '*.md'
+      - '*.yml'
+      - '*.txt'
+      - '*.docx'
+      - 'README.*'
+  pull_request:
+    branches: [ master ]
+    paths-ignore:
+      - '.github/workflows/*.yml'
+      - '.github/ISSUE_TEMPLATE/*.md'
+      - 'build_scripts/**'
+      - 'ci_scripts/**'
+      - 'cmudict/**'
+      - 'colorcurves/**'
+      - 'controllers/**'
+      - 'documentation/**'
+      - 'download/**'
+      - 'images/**'
+      - 'meshobjects/**'
+      - 'palettes/**'
+      - 'scripts/**'
+      - 'songs/**'
+      - 'TipOfDay/**'
+      - 'valuecurves/**'
+      - 'xCapture/**'
+      - 'xFade/**'
+      - 'xlDo/**'
+      - 'xScanner/**'
+      - 'xSchedule/**'
+      - '*.md'
+      - '*.yml'
+      - '*.txt'
+      - '*.docx'
+      - 'README.*'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+    - name: Checkout xLights
+      uses: actions/checkout@master
+      with:
+          submodules: 'true'
+    - name: Setup msbuild
+      uses: microsoft/setup-msbuild@v1
+
+    - name: Download wxWidgets
+      run: 
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b master https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
+
+    - name: Build wxWidgets
+      working-directory: ..\wxWidgets\
+      run: msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
+      
+    - name: xLights
+      working-directory: xLights
+      run: msbuild /m:10 xLights.sln /p:Configuration="Release" -p:Platform="x64"
+      
+    - name: Upload xLights Exe
+      uses: actions/upload-artifact@v4
+      with:
+        name: xLights_Exe
+        path: 'xLights\x64\Release\**'

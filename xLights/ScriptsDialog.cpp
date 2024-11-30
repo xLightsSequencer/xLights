@@ -70,8 +70,7 @@ ScriptsDialog::ScriptsDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos
     FlexGridSizer1->AddGrowableRow(1);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Select the Lua Script to Run."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer1->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
-    SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-    SplitterWindow1->SetMinimumPaneSize(10);
+    SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
     SplitterWindow1->SetSashGravity(0.7);
     ListBoxScripts = new wxListBox(SplitterWindow1, ID_LISTBOX_SCRIPTS, wxPoint(-237,-27), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_SCRIPTS"));
     TextCtrlAbout = new wxTextCtrl(SplitterWindow1, ID_TEXTCTRL_ABOUT, wxEmptyString, wxPoint(49,15), wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_ABOUT"));
@@ -90,15 +89,14 @@ ScriptsDialog::ScriptsDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos
     TextCtrl_Log = new wxTextCtrl(this, ID_TEXTCTRL_LOG, wxEmptyString, wxDefaultPosition, wxSize(0,300), wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_LOG"));
     FlexGridSizer1->Add(TextCtrl_Log, 1, wxALL|wxEXPAND, 5);
     SetSizer(FlexGridSizer1);
-    SetSizer(FlexGridSizer1);
     Layout();
 
-    Connect(ID_LISTBOX_SCRIPTS,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&ScriptsDialog::OnListBoxScriptsSelect);
-    Connect(ID_LISTBOX_SCRIPTS,wxEVT_COMMAND_LISTBOX_DOUBLECLICKED,(wxObjectEventFunction)&ScriptsDialog::OnListBoxScriptsDClick);
-    Connect(ID_BUTTON_RUN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ScriptsDialog::OnButton_RunClick);
-    Connect(ID_BUTTON_REFRESH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ScriptsDialog::OnButton_RefreshClick);
-    Connect(ID_BUTTON_CLEAR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ScriptsDialog::OnButton_ClearClick);
-    Connect(ID_BUTTON_DOWNLOAD,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ScriptsDialog::OnButton_DownloadClick);
+    Connect(ID_LISTBOX_SCRIPTS, wxEVT_COMMAND_LISTBOX_SELECTED, (wxObjectEventFunction)&ScriptsDialog::OnListBoxScriptsSelect);
+    Connect(ID_LISTBOX_SCRIPTS, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, (wxObjectEventFunction)&ScriptsDialog::OnListBoxScriptsDClick);
+    Connect(ID_BUTTON_RUN, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ScriptsDialog::OnButton_RunClick);
+    Connect(ID_BUTTON_REFRESH, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ScriptsDialog::OnButton_RefreshClick);
+    Connect(ID_BUTTON_CLEAR, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ScriptsDialog::OnButton_ClearClick);
+    Connect(ID_BUTTON_DOWNLOAD, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ScriptsDialog::OnButton_DownloadClick);
     //*)
 
     Connect(ID_LISTBOX_SCRIPTS, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ScriptsDialog::OnListRClick);
@@ -171,6 +169,7 @@ void ScriptsDialog::OnPopup(wxCommandEvent& event)
     }else if (event.GetId() == ID_MCU_VIEWSCRIPTFOLDER) {
         int sel = ListBoxScripts->GetSelection();
         if (sel == wxNOT_FOUND) {
+            wxLaunchDefaultApplication(_runner->GetUserScriptFolder());
             return;
         }
         wxLaunchDefaultApplication(wxPathOnly(_scripts.at(sel)));

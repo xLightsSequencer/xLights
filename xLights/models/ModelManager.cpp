@@ -9,9 +9,11 @@
  **************************************************************/
 
 #include <wx/msgdlg.h>
+#include <wx/stdpaths.h>
 #include <wx/xml/xml.h>
 
 #include "ArchesModel.h"
+#include "BaseObject.h"
 #include "CandyCaneModel.h"
 #include "ChannelBlockModel.h"
 #include "CheckboxSelectDialog.h"
@@ -24,6 +26,7 @@
 #include "ModelGroup.h"
 #include "ModelManager.h"
 #include "MultiPointModel.h"
+#include "OutputModelManager.h"
 #include "Parallel.h"
 #include "PolyLineModel.h"
 #include "SingleLineModel.h"
@@ -45,7 +48,7 @@
 #include "DMX/DmxFloodlight.h"
 #include "DMX/DmxGeneral.h"
 #include "DMX/DmxMovingHead.h"
-#include "DMX/DmxMovingHead3D.h"
+#include "DMX/DmxMovingHeadAdv.h"
 #include "DMX/DmxServo.h"
 #include "DMX/DmxServo3D.h"
 #include "DMX/DmxSkull.h"
@@ -1127,7 +1130,8 @@ bool ModelManager::RenameController(const std::string& oldName, const std::strin
 // generate the next similar model name to the candidateName we are given
 std::string ModelManager::GenerateModelName(const std::string& candidateName) const
 {
-    return GenerateObjectName(candidateName);
+    lastGeneratedModelName = GenerateObjectName(candidateName);
+    return GetLastGeneratedModelName();
 }
 
 Model* ModelManager::CreateDefaultModel(const std::string& type, const std::string& startChannel) const
@@ -1200,7 +1204,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
         model = new DmxGeneral(node, *this, false);
-    } else if (type == "DmxMovingHead3D") {
+    } else if (type == "DmxMovingHeadAdv") {
         protocol = "";
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "8");
@@ -1208,7 +1212,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         node->AddAttribute("parm2", "1");
         node->DeleteAttribute("StringType");
         node->AddAttribute("StringType", "Single Color White");
-        model = new DmxMovingHead3D(node, *this, false);
+        model = new DmxMovingHeadAdv(node, *this, false);
     } else if (type == "DmxFloodlight") {
         protocol = "";
         node->DeleteAttribute("parm1");
@@ -1355,6 +1359,52 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     return model;
 }
 
+void ModelManager::MigrateDmxMotors(wxXmlNode *node) const
+{
+    // Migrate PanMotor settings
+    std::string new_name = "PanMotor";
+    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+    node->AddChild(new_node);
+    int channel = wxAtoi(node->GetAttribute("DmxPanChannel", "1"));
+    node->DeleteAttribute("DmxPanChannel");
+    new_node->AddAttribute("ChannelCoarse", wxString::Format("%d", channel));
+    int slew_limit = wxAtoi(node->GetAttribute("DmxPanSlewLimit", "180"));
+    node->DeleteAttribute("DmxPanSlewLimit");
+    new_node->AddAttribute("SlewLimit", wxString::Format("%d", slew_limit));
+    int range_of_motion = wxAtoi(node->GetAttribute("DmxPanDegOfRot", "540"));
+    node->DeleteAttribute("DmxPanDegOfRot");
+    new_node->AddAttribute("RangeOfMotion", wxString::Format("%d", std::abs(range_of_motion)));
+    if (range_of_motion < 0) {
+        node->DeleteAttribute("Reverse");
+        new_node->AddAttribute("Reverse", "1");
+    }
+    int orientation = 360 - wxAtoi(node->GetAttribute("DmxPanOrient", "0"));
+    if (orientation == 360) orientation = 0;
+    node->DeleteAttribute("DmxPanOrient");
+    new_node->AddAttribute("OrientZero", wxString::Format("%d", orientation));
+    // Migrate TiltMotor settings
+    new_name = "TiltMotor";
+    new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+    node->AddChild(new_node);
+    channel = wxAtoi(node->GetAttribute("DmxTiltChannel", "1"));
+    node->DeleteAttribute("DmxTiltChannel");
+    new_node->AddAttribute("ChannelCoarse", wxString::Format("%d", channel));
+    slew_limit = wxAtoi(node->GetAttribute("DmxTiltSlewLimit", "180"));
+    node->DeleteAttribute("DmxPanSlewLimit");
+    new_node->AddAttribute("SlewLimit", wxString::Format("%d", slew_limit));
+    range_of_motion = wxAtoi(node->GetAttribute("DmxTiltDegOfRot", "180"));
+    node->DeleteAttribute("DmxTiltDegOfRot");
+    new_node->AddAttribute("RangeOfMotion", wxString::Format("%d", std::abs(range_of_motion)));
+    if (range_of_motion < 0) {
+        node->DeleteAttribute("Reverse");
+        new_node->AddAttribute("Reverse", "1");
+    }
+    orientation = 360 - wxAtoi(node->GetAttribute("DmxTiltOrient", "0"));
+    if (orientation == 360) orientation = 0;
+    node->DeleteAttribute("DmxTiltOrient");
+    new_node->AddAttribute("OrientZero", wxString::Format("%d", orientation));
+}
+
 Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bool zeroBased) const
 {
     if (node->GetName() == "modelGroup") {
@@ -1363,6 +1413,9 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
         return grp;
     }
     std::string type = node->GetAttribute("DisplayAs").ToStdString();
+    if (type.empty()) {
+        if (Lower(node->GetName().ToStdString()) == "custommodel") type = "Custom";
+    }
 
     // Upgrade older DMX models
     if (type == "DMX") {
@@ -1371,29 +1424,109 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
             style == "Moving Head Side" ||
             style == "Moving Head Bars" ||
             style == "Moving Head TopBars" ||
-            style == "Moving Head SideBars") {
+            style == "Moving Head SideBars" ||
+            style == "Moving Head 3D") {
             type = "DmxMovingHead";
-        } else if (style == "Moving Head 3D") {
-            type = "DmxMovingHead3D";
+            MigrateDmxMotors(node);
         } else if (style == "Flood Light") {
             type = "DmxFloodlight";
         } else if (style == "Skulltronix Skull") {
             type = "DmxSkulltronix";
         } else {
             type = "DmxMovingHead";
+            MigrateDmxMotors(node);
         }
         node->DeleteAttribute("DisplayAs");
         node->AddAttribute("DisplayAs", type);
-    } else if (type == "DmxMovingHead3D") {
+    } else if (type == "DmxMovingHead") {
         std::string version = node->GetAttribute("versionNumber").ToStdString();
-        // After version 2020.3 the DmxMovingHead3D is being moved back to the DmxMovingHead class so the 3D version is mesh only
-        if (version == "4") {
-            type = "DmxMovingHead";
-            node->DeleteAttribute("DisplayAs");
-            node->AddAttribute("DisplayAs", type);
-            node->DeleteAttribute("DmxStyle");
-            node->AddAttribute("DmxStyle", "Moving Head 3D");
+        if (version <= "5") {
+            MigrateDmxMotors(node);
         }
+        else if (version == "6") {
+            // Reverse 2024.09 OrientZero settings
+            wxXmlNode* n = node->GetChildren();
+            while (n != nullptr) {
+                std::string name = n->GetName();
+                if ("PanMotor" == name || "TiltMotor" == name) {
+                    int orientation = 360 - wxAtoi(n->GetAttribute("OrientZero", "0"));
+                    if (orientation == 360) orientation = 0;
+                    n->DeleteAttribute("OrientZero");
+                    n->AddAttribute("OrientZero", wxString::Format("%d", orientation));
+                    int range_of_motion = wxAtoi(n->GetAttribute("RangeOfMotion", "540"));
+                    if (range_of_motion < 0) {
+                        n->DeleteAttribute("RangeOfMotion");
+                        n->AddAttribute("RangeOfMotion", wxString::Format("%d", std::abs(range_of_motion)));
+                        n->DeleteAttribute("Reverse");
+                        n->AddAttribute("Reverse", "1");
+                    }
+                }
+                n = n->GetNext();
+            }
+        }
+    } else if (type == "DmxMovingHeadAdv") {
+        std::string version = node->GetAttribute("versionNumber").ToStdString();
+        if (version == "6") {
+            // Fix 2024.09 negative range of motions
+            wxXmlNode* n = node->GetChildren();
+            while (n != nullptr) {
+                std::string name = n->GetName();
+                if ("PanMotor" == name || "TiltMotor" == name) {
+                    int range_of_motion = wxAtoi(n->GetAttribute("RangeOfMotion", "540"));
+                    if (range_of_motion < 0) {
+                        n->DeleteAttribute("RangeOfMotion");
+                        n->AddAttribute("RangeOfMotion", wxString::Format("%d", std::abs(range_of_motion)));
+                        n->DeleteAttribute("Reverse");
+                        n->AddAttribute("Reverse", "1");
+                    }
+                }
+                n = n->GetNext();
+            }
+        }
+    } else if (type == "DmxMovingHead3D") {
+        // After version 2024.5 the DmxMovingHead3D is being converted to the DmxMovingHeadAdv
+        type = "DmxMovingHeadAdv";
+        node->DeleteAttribute("DisplayAs");
+        node->AddAttribute("DisplayAs", type);
+        node->DeleteAttribute("DmxStyle");
+        float beam_length = wxAtof(node->GetAttribute("DmxBeamLength", "4.0"));
+        node->DeleteAttribute("DmxBeamLength");
+        node->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)(beam_length * 1.275f)));  // try to match old beam length
+        node->AddAttribute("DmxBeamYOffset", "0");
+        // Migrate Mesh settings
+        wxXmlNode* n = node->GetChildren();
+        while (n != nullptr) {
+            std::string name = n->GetName();
+            if ("BaseMesh" == name) {
+                n->SetName("YokeMesh");
+                std::string new_name = "BaseMesh";
+                wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+                new_node->AddAttribute("ObjFile", wxEmptyString);
+                node->AddChild(new_node);
+                break;
+            }
+            n = n->GetNext();
+        }
+        n = node->GetChildren();
+        while (n != nullptr) {
+            std::string name = n->GetName();
+            if ("HeadMesh" == name) {
+                wxString obj_path = "";
+                wxStandardPaths stdp = wxStandardPaths::Get();
+#ifndef __WXMSW__
+                obj_path = wxStandardPaths::Get().GetResourcesDir() + "/meshobjects/MovingHead3D/" + "MovingHead3DX_Head.obj";
+#else
+                obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/MovingHead3D/" + "MovingHead3DX_Head.obj";
+#endif
+                n->DeleteAttribute("ObjFile");
+                n->AddAttribute("ObjFile", obj_path);
+                n->DeleteAttribute("RotateY");
+                n->AddAttribute("RotateY", "90");
+                break;
+            }
+            n = n->GetNext();
+        }
+        MigrateDmxMotors(node);
     } else if (type == "DmxServo3Axis") {
         type = "DmxServo3d";
         node->DeleteAttribute("DisplayAs");
@@ -1419,8 +1552,8 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
         model = new DmxMovingHead(node, *this, zeroBased);
     } else if (type == "DmxGeneral") {
         model = new DmxGeneral(node, *this, zeroBased);
-    } else if (type == "DmxMovingHead3D") {
-        model = new DmxMovingHead3D(node, *this, zeroBased);
+    } else if (type == "DmxMovingHeadAdv") {
+        model = new DmxMovingHeadAdv(node, *this, zeroBased);
     } else if (type == "DmxFloodlight") {
         model = new DmxFloodlight(node, *this, zeroBased);
     } else if (type == "DmxFloodArea") {
@@ -1700,6 +1833,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
             if (curr == nullptr) {
                 // model does not exist
                 changed = true;
+                if (m->HasAttribute("FromBase")) m->DeleteAttribute("FromBase");
                 m->AddAttribute("FromBase", "1");
                 createAndAddModel(new wxXmlNode(*m), xlights->modelPreview->getWidth(), xlights->modelPreview->getHeight());
                 logger_base.debug("Adding model from base show folder: '%s'.", (const char*)name.c_str());
@@ -1712,10 +1846,31 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                 if (force || curr->IsFromBase()) {
                     // model does exist ... update it
                     if (force || curr->IsXmlChanged(m)) {
+                        if (m->HasAttribute("FromBase")) m->DeleteAttribute("FromBase");
                         m->AddAttribute("FromBase", "1");
+                        wxString port = "";
+                        for (wxXmlNode* p = curr->GetModelXml()->GetChildren(); p != nullptr; p = p->GetNext()) {
+                            if (p->GetName() == "ControllerConnection") port = p->GetAttribute("Port");
+                        }
+                        if (!port.empty()) {
+                            if (curr->GetModelXml()->GetAttribute("ModelChain") != "") {
+                                m->DeleteAttribute("ModelChain");
+                                m->AddAttribute("ModelChain", curr->GetModelXml()->GetAttribute("ModelChain"));
+                            }
+                            m->DeleteAttribute("StartChannel");
+                            m->AddAttribute("StartChannel", curr->GetModelXml()->GetAttribute("StartChannel"));
+                            m->DeleteAttribute("Controller");
+                            m->AddAttribute("Controller", curr->GetModelXml()->GetAttribute("Controller"));
+                        }
                         changed = true;
-                        Model  *newm = CreateModel(new wxXmlNode(*m));
+                        Model* newm = CreateModel(new wxXmlNode(*m));
+                        for (wxXmlNode* bp = m->GetChildren(); bp != nullptr; bp = bp->GetNext()) {
+                            if (bp->GetName() == "ControllerConnection") {
+                                if (!bp->HasAttribute("Port")) newm->SetControllerPort(wxAtoi(port));
+                            }
+                        }
                         ReplaceModel(name, newm);
+                        RecalcStartChannels();
                         logger_base.debug("Updating model from base show folder: '%s'.", (const char*)name.c_str());
                     }
                 } else {
@@ -1723,59 +1878,60 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                 }
             }
         }
-    }
+        if (modelgroups != nullptr) {
+            // compare model groups and load changes/new model groups
+            for (wxXmlNode* m = modelgroups->GetChildren(); m != nullptr; m = m->GetNext()) {
+                auto name = m->GetAttribute("name");
 
-    if (modelgroups != nullptr) {
-        // compare model groups and load changes/new model groups
-        for (wxXmlNode* m = modelgroups->GetChildren(); m != nullptr; m = m->GetNext()) {
-            auto name = m->GetAttribute("name");
+                auto curr = GetModel(name);
 
-            auto curr = GetModel(name);
-
-            if (curr == nullptr) {
-                changed = true;
-                m->AddAttribute("FromBase", "1");
-                createAndAddModel(new wxXmlNode(*m), xlights->modelPreview->getWidth(), xlights->modelPreview->getHeight());
-                logger_base.debug("Adding model group from base show folder: '%s'.", (const char*)name.c_str());
-            } else {
-
-                bool force = false;
-                if (prompt && !curr->IsFromBase()) {
-                    force = wxMessageBox(wxString::Format("Model Group %s found that clashes with base show directory. Do you want to take the base show directory version?", name), "Model group clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES;
-                }
-
-                // we only update existing models that came from the base via a previous import
-                if (force || curr->IsFromBase()) {
-                    auto mg = dynamic_cast<ModelGroup*>(curr);
-
-                    if (mg != nullptr) {
-                        // we need to merge in any models in the current rgbeffects file after the ones inhereted from the base
-                        auto models1 = m->GetAttribute("models");
-                        auto models2 = mg->ModelNames();
-                        std::string mm2 = "";
-                        for (const auto& it : models2) {
-                            if (mm2 != "")
-                                mm2 += ",";
-                            mm2 += it;
-                        }
-                        m->DeleteAttribute("models");
-                        m->AddAttribute("models", MergeModels(models1, mm2));
-                        if (force || curr->IsXmlChanged(m)) {
-                            m->AddAttribute("FromBase", "1");
-                            m->AddAttribute("BaseModels", models1); // keep a copy of the models from the base show folder as we may want to prevent these being removed
-                            changed = true;                            
-                            Model  *newm = CreateModel(new wxXmlNode(*m));
-                            ReplaceModel(name, newm);
-                            logger_base.debug("Updating model group from base show folder: '%s'.", (const char*)name.c_str());
-                        }
-                    }
+                if (curr == nullptr) {
+                    changed = true;
+                    if (m->HasAttribute("FromBase"))
+                        m->DeleteAttribute("FromBase");
+                    m->AddAttribute("FromBase", "1");
+                    createAndAddModel(new wxXmlNode(*m), xlights->modelPreview->getWidth(), xlights->modelPreview->getHeight());
+                    logger_base.debug("Adding model group from base show folder: '%s'.", (const char*)name.c_str());
                 } else {
-                    logger_base.debug("Model Group '%s' NOT updated from base show folder as it never came from there.", (const char*)name.c_str());
+                    bool force = false;
+                    if (prompt && !curr->IsFromBase()) {
+                        force = wxMessageBox(wxString::Format("Model Group %s found that clashes with base show directory. Do you want to take the base show directory version?", name), "Model group clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES;
+                    }
+
+                    // we only update existing models that came from the base via a previous import
+                    if (force || curr->IsFromBase()) {
+                        auto mg = dynamic_cast<ModelGroup*>(curr);
+
+                        if (mg != nullptr) {
+                            // we need to merge in any models in the current rgbeffects file after the ones inhereted from the base
+                            auto models1 = m->GetAttribute("models");
+                            auto models2 = mg->ModelNames();
+                            std::string mm2 = "";
+                            for (const auto& it : models2) {
+                                if (mm2 != "")
+                                    mm2 += ",";
+                                mm2 += it;
+                            }
+                            m->DeleteAttribute("models");
+                            m->AddAttribute("models", MergeModels(models1, mm2));
+                            if (force || curr->IsXmlChanged(m)) {
+                                if (m->HasAttribute("FromBase"))
+                                    m->DeleteAttribute("FromBase");
+                                m->AddAttribute("FromBase", "1");
+                                m->AddAttribute("BaseModels", models1); // keep a copy of the models from the base show folder as we may want to prevent these being removed
+                                changed = true;
+                                Model* newm = CreateModel(new wxXmlNode(*m));
+                                ReplaceModel(name, newm);
+                                logger_base.debug("Updating model group from base show folder: '%s'.", (const char*)name.c_str());
+                            }
+                        }
+                    } else {
+                        logger_base.debug("Model Group '%s' NOT updated from base show folder as it never came from there.", (const char*)name.c_str());
+                    }
                 }
             }
         }
     }
-
     return changed;
 }
 

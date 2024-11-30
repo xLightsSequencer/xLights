@@ -15,7 +15,7 @@
 #include <wx/renderer.h>
 #include <wx/event.h>
 
-wxDECLARE_EVENT(EVT_DELETE_ROW, wxCommandEvent);
+wxDECLARE_EVENT(EVT_GRID_ROW_CLICKED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_NAME_CHANGE, wxCommandEvent);
 
 class wxGridCellButtonRenderer : public wxGridCellRenderer
@@ -29,6 +29,8 @@ public:
     virtual wxGridCellRenderer *Clone() const;
 private:
     wxString m_strLabel;
+    void DrawCloseButton(wxDC& dc, const wxRect &rect);
+    void DrawTextButton(wxDC& dc, const wxRect &rect, wxGrid &grid);
 };
 
 
@@ -52,7 +54,7 @@ public:
 
 private:
     wxString m_strLabel;
-   wxButton *m_pButton;
+    wxButton *m_pButton;
 
     DECLARE_NO_COPY_CLASS(wxGridCellButtonEditor)
 };
@@ -60,14 +62,14 @@ private:
 class tmGrid : public wxGrid
 {
 public:
-   tmGrid(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize,
-      long style = wxWANTS_CHARS, const wxString& name = wxPanelNameStr);
-   virtual ~tmGrid();
-
-   void OnLeftClick(wxGridEvent &evt);
+    tmGrid(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize,
+           long style = wxWANTS_CHARS, const wxString& name = wxPanelNameStr);
+    virtual ~tmGrid();
+    
+    void OnLeftClick(wxGridEvent &evt);
     void OnCellChanged(wxGridEvent &evt);
-
-   static const long ID_GRID_RENDERER;
-
-   DECLARE_EVENT_TABLE()
+    
+    static const long ID_GRID_RENDERER;
+    
+    DECLARE_EVENT_TABLE()
 };

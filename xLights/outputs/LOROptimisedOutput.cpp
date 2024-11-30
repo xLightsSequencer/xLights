@@ -537,7 +537,7 @@ void LOROptimisedOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGPropert
         p->SetEditor("SpinCtrl");
 
         p = propertyGrid->AppendIn(p2, new wxStringProperty("Unit ID - Hex", wxString::Format("DeviceUnitIDHex/%d", i), wxString::Format("0x%02x", it->GetUnitId())));
-        p->ChangeFlag(wxPG_PROP_READONLY, true);
+        p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
         p->SetBackgroundColour(*wxLIGHT_GREY);
 
         if (!isPixie) {

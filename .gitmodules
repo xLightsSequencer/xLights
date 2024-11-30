@@ -30,3 +30,7 @@
 	path = dependencies/pybind11
 	url = https://github.com/pybind/pybind11.git
 	branch = stable
+[submodule "dependencies/nanosvg"]
+	path = dependencies/nanosvg
+	url = https://github.com/wxWidgets/nanosvg.git
+	branch = wx

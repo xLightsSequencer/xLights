@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmxservo3d 
+name="DmxServo3Axis" parm1="4" parm2="1" parm3="1" DisplayAs="DmxServo3d" StringType="Single Color White" Transparency="0" PixelSize="2" ModelBrightness="" Antialias="1" StartSide="B" Dir="L" StrandNames="" NodeNames="Servo1,-Servo1,Servo2,-Servo2" SourceVersion="2022.08" NumServos="2" NumStatic="1" NumMotion="2" Bits16="1" Servo1Linkage="" Mesh2Linkage="Mesh 1"  >
+<StaticMesh1 ObjFile="modeldownload/SimpleMovingHead/MovingHeadBase.obj"/>
+<MotionMesh1 ObjFile="modeldownload/SimpleMovingHead/MovingHeadYoke.obj"/>
+<MotionMesh2 OffsetY="17.0000" RotateX="90.00000000" ObjFile="modeldownload/SimpleMovingHead/MovingHead.obj"/>
+<Servo1 Channel="1" RangeOfMotion="360" ServoStyle="Rotate Y"/>
+<Servo2 Channel="3" ServoStyle="Rotate X"/>
+</dmxservo3d>

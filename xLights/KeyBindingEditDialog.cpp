@@ -183,7 +183,7 @@ void KeyBindingEditDialog::SetKeyBindingProperties() {
 	KeyBinding& b = _keyBindings->GetBinding(id);
 
 	wxPGProperty* p = _propertyGrid->Append(new wxStringProperty("Type", "KBType", b.GetType()));
-	p->ChangeFlag(wxPG_PROP_READONLY, true);
+	p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
 	p->SetHelpString(b.GetTip());
 
 	int k = b.GetKey();

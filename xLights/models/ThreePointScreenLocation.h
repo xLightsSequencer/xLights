@@ -38,33 +38,23 @@ public:
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual int MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) override;
     virtual float GetVScaleFactor() const override;
-    virtual float GetYShear() const override;
 
-    void SetHeight(float h) {
-        height = h;
-    }
-    float GetHeight() const {
-        return height;
-    }
+    void SetYShear( float shear_ ) { shear = shear_; }
+    virtual float GetYShear() const override { return supportsShear ? shear : 0.0f; }
+
     virtual void SetMWidth(float w) override;
-    virtual void SetMHeight(float h) override;
     virtual float GetMWidth() const override;
-    virtual float GetMHeight() const override;
-    void SetModelHandleHeight(bool b) {
-        modelHandlesHeight = b;
-    }
-    void SetSupportsShear(bool b) {
-        supportsShear = b;
-    }
-    void SetSupportsAngle(bool b) {
-        supportsAngle = b;
-    }
-    void SetAngle(int a) {
-        angle = a;
-    }
-    int GetAngle() const {
-        return angle;
-    }
+
+    virtual void SetMHeight(float h) override { height = h; }
+    virtual float GetMHeight() const override { return height; }
+
+    void SetModelHandleHeight(bool b) { modelHandleHeight = b; }
+    void SetSupportsAngle(bool b) { supportsAngle = b; }
+    void SetSupportsShear(bool b) { supportsShear = b; }
+
+    void SetAngle(int a) { angle = a; }
+    int GetAngle() const { return angle; }
+
     virtual float GetRealWidth() const override;
     virtual float GetRealHeight() const override;
 
@@ -78,7 +68,7 @@ public:
     virtual bool IsXYTransHandle() const override { return active_handle == SHEAR_HANDLE; }
 
 private:
-    bool modelHandlesHeight = false;
+    bool modelHandleHeight = false;
     bool supportsAngle = false;
     bool supportsShear = false;
     mutable glm::mat4 shearMatrix;

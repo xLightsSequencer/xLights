@@ -57,6 +57,9 @@ public:
         return false;
     }
 
+    void setProcessCallbacks(bool b) {
+        doCurlCallbacks = b;
+    }
 private:
     CurlManager();
     ~CurlManager();
@@ -66,6 +69,7 @@ private:
 
     CURLM* curlMulti = nullptr;
     int numCurls = 0;
+    bool doCurlCallbacks = true;
 
     class CurlInfo {
     public:

@@ -240,7 +240,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
     logger_base.debug("     Map Empty Channels? %s.", toStr(params.map_empty_channels));
     logger_base.debug("     Map No Network Channels? %s.", toStr(params.map_no_network_channels));
 
-    wxString NodeName, msg, deviceType, networkAsString;
+    wxString NodeName, deviceType, networkAsString;
     wxArrayString context;
     int unit, circuit, rampdiff;
     int i, twinklestate;
@@ -1148,7 +1148,6 @@ bool FileConverter::LoadVixenProfile(ConvertParameters& params, const wxString& 
 
 void FileConverter::ReadVixFile(ConvertParameters& params)
 {
-    wxString msg;
     std::vector<unsigned char> VixSeqData;
     wxArrayInt VixChannels;
     wxArrayString VixChannelNames;
@@ -1737,7 +1736,7 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
                     *t = count;
                     data += 4;
                     ++t;
-                    for (int x = 0; x < count; x++) {
+                    for (size_t x = 0; x < count; ++x) {
                         uint32_t sframe = a.second[x].first;
                         uint32_t eframe = a.second[x].second;
                         sframe /= stepTime;

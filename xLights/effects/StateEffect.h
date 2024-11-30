@@ -33,6 +33,7 @@ class StateEffect : public RenderableEffect
         virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:
         void RenderState(RenderBuffer &buffer, SequenceElements *elements, const std::string &faceDefintion,
-                         const std::string &Phoneme, const std::string &track, const std::string& mode, const std::string& colourmode);
-    std::string FindState(std::map<std::string, std::string>& map, std::string name);
+                         const std::string& Phoneme, const std::string& track, const std::string& mode, const std::string& colourmode, int fadeTime);
+        std::string FindState(std::map<std::string, std::string>& map, std::string name);
+        uint8_t CalculateAlpha(int fadeTime, int currentTime, int startTime, int endTime, RenderBuffer& buffer);
 };

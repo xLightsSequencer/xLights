@@ -274,8 +274,8 @@ ShaderDownloadDialog::ShaderDownloadDialog(wxWindow* parent, wxWindowID id, cons
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinSize(wxSize(10,10));
+	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
+	SplitterWindow1->SetMinimumPaneSize(10);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel3 = new wxPanel(SplitterWindow1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -288,13 +288,11 @@ ShaderDownloadDialog::ShaderDownloadDialog(wxWindow* parent, wxWindowID id, cons
 	ListView_Sites = new wxListView(Panel3, ID_LISTVIEW1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_ALIGN_LEFT|wxLC_NO_HEADER|wxLC_NO_SORT_HEADER|wxVSCROLL, wxDefaultValidator, _T("ID_LISTVIEW1"));
 	FlexGridSizer2->Add(ListView_Sites, 1, wxALL|wxEXPAND, 5);
 	Panel3->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(Panel3);
-	FlexGridSizer2->SetSizeHints(Panel3);
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(0);
-	StaticBitmap_VendorImage = new wxStaticBitmap(Panel1, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(300,300), wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
+	StaticBitmap_VendorImage = new wxStaticBitmap(Panel1, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(300,300), 0, _T("ID_STATICBITMAP1"));
 	StaticBitmap_VendorImage->SetMinSize(wxSize(256,128));
 	FlexGridSizer3->Add(StaticBitmap_VendorImage, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Details = new wxTextCtrl(Panel1, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
@@ -303,25 +301,22 @@ ShaderDownloadDialog::ShaderDownloadDialog(wxWindow* parent, wxWindowID id, cons
 	FlexGridSizer4->AddGrowableCol(1);
 	StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT4, _("Website:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	HyperlinkCtrl_Website = new wxHyperlinkCtrl(Panel1, ID_HYPERLINKCTRL4, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER, _T("ID_HYPERLINKCTRL4"));
+	HyperlinkCtrl_Website = new wxHyperlinkCtrl(Panel1, ID_HYPERLINKCTRL4, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxBORDER_NONE, _T("ID_HYPERLINKCTRL4"));
 	FlexGridSizer4->Add(HyperlinkCtrl_Website, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	Button_Download = new wxButton(Panel1, ID_BUTTON4, _("Download"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
 	FlexGridSizer3->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel1->SetSizer(FlexGridSizer3);
-	FlexGridSizer3->Fit(Panel1);
-	FlexGridSizer3->SetSizeHints(Panel1);
 	SplitterWindow1->SplitVertically(Panel3, Panel1);
 	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	SetSizer(FlexGridSizer1);
 	Layout();
 
-	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_ACTIVATED,(wxObjectEventFunction)&ShaderDownloadDialog::OnTreeCtrl_NavigatorItemActivated);
-	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&ShaderDownloadDialog::OnTreeCtrl_NavigatorSelectionChanged);
-	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ShaderDownloadDialog::OnListView_SitesItemActivated);
-	Connect(ID_HYPERLINKCTRL4,wxEVT_COMMAND_HYPERLINK,(wxObjectEventFunction)&ShaderDownloadDialog::OnHyperlinkCtrl_WebsiteClick);
-	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShaderDownloadDialog::OnButton_DownloadClick);
+	Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, (wxObjectEventFunction)&ShaderDownloadDialog::OnTreeCtrl_NavigatorItemActivated);
+	Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_SEL_CHANGED, (wxObjectEventFunction)&ShaderDownloadDialog::OnTreeCtrl_NavigatorSelectionChanged);
+	Connect(ID_LISTVIEW1, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&ShaderDownloadDialog::OnListView_SitesItemActivated);
+	Connect(ID_HYPERLINKCTRL4, wxEVT_COMMAND_HYPERLINK, (wxObjectEventFunction)&ShaderDownloadDialog::OnHyperlinkCtrl_WebsiteClick);
+	Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ShaderDownloadDialog::OnButton_DownloadClick);
 	//*)
 
     SetSize(800, 600);

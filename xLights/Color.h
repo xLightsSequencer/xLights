@@ -117,6 +117,23 @@ public:
         }
     }
 
+    // This levels the colour by counting the number of non-zero (actually over a base level) components and dividing by that number
+    void LevelColorBrightness()
+    {
+        uint8_t c = 0;
+        if (red > 25)
+            ++c;
+        if (green > 25)
+            ++c;
+        if (blue > 25)
+            ++c;
+        if (c == 0)
+            c = 1;
+        red = red / c;
+        green = green / c;
+        blue = blue / c;
+    }
+
     void Set(uint8_t r, uint8_t g, uint8_t b) {
         red = r;
         green = g;
@@ -231,6 +248,20 @@ public:
         float dg = green * a + bc.green * (1.0f - a);
         float db = blue * a + bc.blue * (1.0f - a);
         return xlColor((uint8_t)dr, (uint8_t)dg, (uint8_t)db);
+    }
+    
+        /** Blend this color onto the background **/
+    xlColor Blend(const xlColor& bc) const {
+      
+        int r = (red + bc.red) / 2;
+        int g = (green+ bc.green) / 2;
+        int b = (blue + bc.blue) / 2;
+        return xlColor(r, g, b);
+    }
+
+    /** Blend this color onto the background **/
+    xlColor ChannelMax(const xlColor& bc) const {
+        return xlColor(std::max(red,bc.red),std::max(green,bc.green),std::max(blue,bc.blue));
     }
     
     /** AlphaBlend the fg color onto this color **/

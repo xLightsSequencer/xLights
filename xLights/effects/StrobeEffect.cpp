@@ -31,12 +31,10 @@ StrobeEffect::~StrobeEffect()
 
 std::list<std::string> StrobeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
-
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Strobe_Music", false)) {
-        res.push_back(wxString::Format("    WARN: Strobe effect cant follow music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    WARN: Strobe effect cant follow music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
-
     return res;
 }
 
@@ -98,9 +96,9 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     if (reactToMusic) {
         float f = 0.0;
         if (buffer.GetMedia() != nullptr) {
-            std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
             if (pf != nullptr) {
-                f = *pf->cbegin();
+                f = pf->max;
             }
         }
         Number_Strobes *= f;

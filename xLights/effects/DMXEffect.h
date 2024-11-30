@@ -16,7 +16,7 @@
 #define DMX_MIN 0
 #define DMX_MAX 255
 
-constexpr int DMX_CHANNELS = 40;
+constexpr int DMX_CHANNELS = 48;
 
 class DMXEffect : public RenderableEffect
 {

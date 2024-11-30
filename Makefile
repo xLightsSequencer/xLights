@@ -25,7 +25,7 @@ SUDO		= `which sudo`
 
 SUBDIRS         = xLights xSchedule xCapture xFade xScanner xSchedule/xSMSDaemon xSchedule/RemoteFalcon
 
-WXWIDGETS_TAG=xlights_2024.01
+WXWIDGETS_TAG=xlights_2024.06
 
 .NOTPARALLEL:
 
@@ -132,6 +132,8 @@ install:
 	cp -r meshobjects/* $(DESTDIR)/${PREFIX}/share/xLights/meshobjects
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/valuecurves
 	cp -r valuecurves/* $(DESTDIR)/${PREFIX}/share/xLights/valuecurves
+	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/mhpresets
+	cp -r mhpresets/* $(DESTDIR)/${PREFIX}/share/xLights/mhpresets
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xSchedule/xScheduleWeb
 	cp -r bin/xScheduleWeb/* $(DESTDIR)/${PREFIX}/share/xSchedule/xScheduleWeb
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xScanner

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 class PixelBufferClass;
 class RenderBuffer;
@@ -26,9 +27,9 @@ public:
             INSTANCE->doCleanUp(c);
         }
     }
-    static void setupRenderBuffer(PixelBufferClass *parent, RenderBuffer *buffer) {
+    static void setupRenderBuffer(PixelBufferClass *parent, RenderBuffer *buffer, int layer) {
         if (INSTANCE) {
-            INSTANCE->doSetupRenderBuffer(parent, buffer);
+            INSTANCE->doSetupRenderBuffer(parent, buffer, layer);
         }
     }
 
@@ -81,6 +82,20 @@ public:
         }
         return false;
     };
+    
+    static bool Transitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) {
+        if (INSTANCE) {
+            return INSTANCE->doTransitions(pixelBuffer, layer, prevRB);
+        }
+        return false;
+    }
+    
+    static bool BlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
+        if (INSTANCE) {
+            return INSTANCE->doBlendLayers(pixelBuffer, effectPeriod, validLayers, saveLayer, saveToPixels);
+        }
+        return false;
+    }
 protected:
     GPURenderUtils() { INSTANCE = this; }
     virtual ~GPURenderUtils() { INSTANCE = nullptr; };
@@ -88,12 +103,15 @@ protected:
     virtual void enable(bool b) = 0;
     virtual void doCleanUp(PixelBufferClass *c) = 0;
     virtual void doCleanUp(RenderBuffer *c) = 0;
-    virtual void doSetupRenderBuffer(PixelBufferClass *parent, RenderBuffer *buffer) = 0;
+    virtual void doSetupRenderBuffer(PixelBufferClass *parent, RenderBuffer *buffer, int layer) = 0;
     virtual void doCommitRenderBuffer(RenderBuffer *buffer) = 0;
     virtual void doWaitForRenderCompletion(RenderBuffer *buffer) = 0;
 
     virtual bool doBlur(RenderBuffer *buffer, int radius) = 0;
     virtual bool doRotoZoom(RenderBuffer *buffer, RotoZoomSettings &settings) = 0;
+    virtual bool doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) = 0;
+    virtual bool doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) = 0;
+
     virtual void setPrioritizeGraphics(bool p) = 0;
 
 

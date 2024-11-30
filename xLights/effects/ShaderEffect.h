@@ -250,6 +250,7 @@ public:
             return 0xFFFF;
         return RenderableEffect::GetSettingVCDivisor(name);
     }
+    static unsigned programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCache *cache);
 
 protected:
     bool SetGLContext(ShaderRenderCache*);
@@ -262,7 +263,6 @@ protected:
         bool& s_shadersInit,
         unsigned& s_vertexArrayId, unsigned& s_vertexBufferId, unsigned& s_rbId, unsigned& s_fbId,
         unsigned& s_rbTex, int& s_rbWidth, int& s_rbHeight);
-    unsigned programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCache *cache);
 
     struct VertexTex
     {

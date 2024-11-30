@@ -5,6 +5,7 @@
 		<SupportsPixelPortNullPixels/>
 		<SupportsPixelPortDirection/>
 		<SupportsPixelPortColourOrder/>
+		<SupportsPixelPortGrouping/>
 		<SupportsRemotes/>
 		<SupportsSmartRemotes>6</SupportsSmartRemotes>
 		<AllSmartRemoteTypesPerPortMustBeSame/>
@@ -19,6 +20,7 @@
 		<SupportsAutoLayout/>
 		<SupportsFullxLightsControl/>
 		<SupportsDefaultBrightness/>
+		<SupportsDefaultGamma/>
 		<PreferredInputProtocol>DDP</PreferredInputProtocol>
 		<PixelProtocols>
 			<Protocol>ws2811</Protocol>
@@ -29,6 +31,7 @@
 		<InputProtocols>
 			<Protocol>e131</Protocol>
 			<Protocol>ddp</Protocol>
+			<Protocol>artnet</Protocol>
 		</InputProtocols>
 		<SmartRemoteTypes>
 			<Type>falcon_v2</Type>
@@ -57,12 +60,14 @@
 		<Variant Name="" Base="Experience Lights:BaseExperienceSettings">
 			<MaxPixelPort>24</MaxPixelPort>
 			<MaxSerialPort>2</MaxSerialPort>
+			<eFuses>true</eFuses>
 		</Variant>
 	</Controller>
 	<Controller Name="Genius Pro 32 Port">
 		<Variant Name="" Base="Experience Lights:BaseExperienceSettings">
 			<MaxPixelPort>40</MaxPixelPort>
 			<MaxSerialPort>2</MaxSerialPort>
+			<eFuses>true</eFuses>
 		</Variant>
 	</Controller>
 </Vendor>

@@ -55,9 +55,9 @@ private:
         const wxString& Line_orig,
         const std::string& fontString,
         int dir,
-        bool center, int Effect, int Countdown, int tspeed,
+        bool center, bool norepeat, int Effect, int Countdown, int tspeed,
         int startx, int starty, int endx, int endy,
-        bool isPixelBased) const;
+        bool isPixelBased, bool perWord) const;
     void RenderXLText(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer);
     void AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& settings, RenderBuffer& buffer,
         int txtLen, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop, int text_len, int char_width, int char_height, bool vertical, bool rotate_90) const;

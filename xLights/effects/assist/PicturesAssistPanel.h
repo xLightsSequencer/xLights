@@ -21,9 +21,12 @@
 #include "../../FlickerFreeBitmapButton.h"
 #include "xlGridCanvasPictures.h"
 #include "../../sequencer/Effect.h"
+#include "ColorPanel.h"
 
 class xlColorPicker;
 class xLightsFrame;
+
+class PAColourList;
 
 class PicturesAssistPanel: public wxPanel
 {
@@ -32,9 +35,17 @@ class PicturesAssistPanel: public wxPanel
 		PicturesAssistPanel(wxWindow* parent, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~PicturesAssistPanel();
 
+		std::list<std::string> _loadedPalettes;
+        wxString _lastShowDir;
         void ForceRefresh();
         void SetGridCanvas(xlGridCanvasPictures* canvas) { mGridCanvas = canvas; }
         void SetxLightsFrame(xLightsFrame* xlights_parent) { mxLightsParent = xlights_parent; }
+        void ValidateWindow();
+        void SetSwatchColor(const std::string& v, const int i);
+        wxFlexGridSizer* FlexGridSizer_Palette;
+        xlSizedBitmapButton* BitmapButton_DeletePalette;
+        xlSizedBitmapButton* BitmapButton_SavePalette;
+        wxBoxSizer* BoxSizer_PaletteButtons;
 
 		//(*Declarations(PicturesAssistPanel)
 		wxButton* Button_LoadImage;
@@ -59,31 +70,32 @@ class PicturesAssistPanel: public wxPanel
         static const long ID_BITMAPBUTTON_Paint_Eraser;
         static const long ID_BITMAPBUTTON_Paint_Eyedropper;
         static const long ID_BITMAPBUTTON_Paint_Selectcopy;
+        static const long ID_BITMAPBUTTON_COLOR_SWATCHES;
 
 		FlickerFreeBitmapButton* BitmapButton_Paint_Pencil;
 		FlickerFreeBitmapButton* BitmapButton_Paint_Eraser;
 		FlickerFreeBitmapButton* BitmapButton_Paint_Eyedropper;
 		FlickerFreeBitmapButton* BitmapButton_Paint_Selectcopy;
-
+        PAColourList* BitmapButton_ColourChoice;
 
 		//(*Identifiers(PicturesAssistPanel)
-		static const long ID_BUTTON_NewImage;
-		static const long ID_BUTTON_LoadImage;
-		static const long ID_BUTTON_SaveImage;
-		static const long ID_BUTTON_SaveAs;
-		static const long ID_BUTTON1;
-		static const long ID_STATICTEXT_CurrentImage;
-		static const long ID_STATICTEXT_ImageSize;
-		static const long ID_STATICTEXT_ModelSize;
-		static const long ID_PANEL_RightSide;
-		static const long ID_SCROLLED_EffectAssist;
-		static const long ID_PANEL1;
+		static const wxWindowID ID_BUTTON_NewImage;
+		static const wxWindowID ID_BUTTON_LoadImage;
+		static const wxWindowID ID_BUTTON_SaveImage;
+		static const wxWindowID ID_BUTTON_SaveAs;
+		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_STATICTEXT_CurrentImage;
+		static const wxWindowID ID_STATICTEXT_ImageSize;
+		static const wxWindowID ID_STATICTEXT_ModelSize;
+		static const wxWindowID ID_PANEL_RightSide;
+		static const wxWindowID ID_SCROLLED_EffectAssist;
+		static const wxWindowID ID_PANEL1;
 		//*)
+
 
 	private:
 
 		//(*Handlers(PicturesAssistPanel)
-		void OnResize(wxSizeEvent& event);
 		void OnButton_SaveImageClick(wxCommandEvent& event);
 		void OnButton_NewImageClick(wxCommandEvent& event);
 		void OnButton_LoadImageClick(wxCommandEvent& event);
@@ -96,11 +108,21 @@ class PicturesAssistPanel: public wxPanel
 		void OnBitmapButton_Paint_EraserClick(wxCommandEvent& event);
 		void OnBitmapButton_Paint_EyedropperClick(wxCommandEvent& event);
 		void OnBitmapButton_Paint_SelectcopyClick(wxCommandEvent& event);
+        wxString FindPaletteFile(const wxString& filename, const wxString& palette) const;
+        std::string GetCurrentPalette() const;
+        wxColour GetPaletteColor(int idx) const;
+        void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
+        void OnBitmapButton_DeletePaletteClick(wxCommandEvent& event);
 		void OnColorChange(wxCommandEvent& event);
 		void OnImageFileSelected(wxCommandEvent& event);
 		void OnImageSize(wxCommandEvent& event);
 		void OnEyedropperColor(wxCommandEvent& event);
         void OnWindowScrolled(wxScrollWinEvent &event);
+        void LoadPalettes(wxDir& directory, bool subdirs);
+        void LoadAllPalettes();
+        void SetDefaultPalette();
+        void OnColourChoiceDropDown(wxCommandEvent& WXUNUSED(event));
+        void OnColourChoiceSelect(wxCommandEvent& event);
 
         xLightsFrame* mxLightsParent;
         xlGridCanvasPictures* mGridCanvas;

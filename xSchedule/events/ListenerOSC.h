@@ -11,24 +11,25 @@
  **************************************************************/
 
 #include "ListenerBase.h"
-#include <string>
 #include <wx/wx.h>
+#include <string>
 
 class wxDatagramSocket;
 
-class ListenerOSC : public ListenerBase
-{
+class ListenerOSC : public ListenerBase {
     int _frameMS;
     wxDatagramSocket* _socket;
 
 public:
     ListenerOSC(ListenerManager* _listenerManager, const std::string& localIP);
-    virtual ~ListenerOSC() {}
+    virtual ~ListenerOSC() {
+    }
     virtual void Start() override;
     virtual void Stop() override;
-    virtual std::string GetType() const override { return "OSC"; }
+    virtual std::string GetType() const override {
+        return "OSC";
+    }
     virtual void StartProcess(const std::string& localIP) override;
     virtual void StopProcess() override;
     virtual void Poll() override;
 };
-

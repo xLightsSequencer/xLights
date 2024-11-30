@@ -320,9 +320,9 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
             Nodes[n]->ActChan = stringStartChan[n];
             float sy = 0;
             for (auto& c : Nodes[n]->Coords) {
-                c.screenX = isBotToTop ? sx : (NumStrands * parm3) - sx - 1;
+                c.screenX = isBotToTop ? sx : NumStrands - sx - 1;
                 c.screenX -= ((float)NumStrands - 1.0) / 2.0;
-                c.screenY = sy - ((float)PixelsPerStrand - 1.0) / 2.0;
+                c.screenY = sy - ((float)PixelsPerStrand - 1.0) / 2.0 - 0.5;
                 c.screenZ = 0;
                 sy++;
                 if (sy >= PixelsPerStrand) {
@@ -478,9 +478,9 @@ void MatrixModel::InitHMatrix() {
             float sx = 0;
             for (auto& c : Nodes[n]->Coords)
             {
-                c.screenY = isBotToTop ? sy : (NumStrands * parm3) - sy - 1;
+                c.screenY = isBotToTop ? sy : NumStrands - sy - 1;
                 c.screenY -= ((float)NumStrands-1.0) / 2.0;
-                c.screenX = sx - ((float)PixelsPerStrand-1.0) / 2.0;
+                c.screenX = sx - ((float)PixelsPerStrand-1.0) / 2.0 - 0.5;
                 c.screenZ = 0;
                 sx++;
                 if (sx >= PixelsPerStrand)
@@ -601,8 +601,12 @@ void MatrixModel::ExportXlightsModel()
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
-    //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+
+    if (!f.Create(filename, true) || !f.IsOpened()) {
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
+
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString p3 = ModelXml->GetAttribute("parm3");
@@ -641,6 +645,10 @@ void MatrixModel::ExportXlightsModel()
     f.Write(wxString::Format("LowDefinition=\"%s\" ", ld));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
+    wxString aliases = SerialiseAliases();
+    if (aliases != "") {
+        f.Write(aliases);
+    }
     wxString state = SerialiseState();
     if (state != "")
     {
@@ -669,7 +677,7 @@ void MatrixModel::ExportXlightsModel()
     f.Close();
 }
 
-void MatrixModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool MatrixModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "matrixmodel") {
         wxString name = root->GetAttribute("name");
@@ -685,7 +693,7 @@ void MatrixModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         wxString dir = root->GetAttribute("Dir");
         wxString sn = root->GetAttribute("StrandNames");
         wxString nn = root->GetAttribute("NodeNames");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString da = root->GetAttribute("DisplayAs");
         wxString pc = root->GetAttribute("PixelCount");
         wxString pt = root->GetAttribute("PixelType");
@@ -737,8 +745,10 @@ void MatrixModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::ImportXlightsModel");
+        return true;
     } else {
         DisplayError("Failure loading Matrix model file.");
+        return false;
     }
 }
 

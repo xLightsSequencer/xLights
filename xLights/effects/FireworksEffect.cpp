@@ -37,16 +37,13 @@ FireworksEffect::~FireworksEffect()
 
 std::list<std::string> FireworksEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    if (media == nullptr && settings.GetBool("E_CHECKBOX_Fireworks_UseMusic", false))
-    {
-        res.push_back(wxString::Format("    ERR: Fireworks effect cant grow to music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (media == nullptr && settings.GetBool("E_CHECKBOX_Fireworks_UseMusic", false)) {
+        res.push_back(wxString::Format("    ERR: Fireworks effect cant grow to music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
-
-    if (settings.GetBool("E_CHECKBOX_FIRETIMING", false) && settings.Get("E_CHOICE_FIRETIMINGTRACK","") == "")
-    {
-        res.push_back(wxString::Format("    ERR: Fireworks effect is meant to fire with timing track but no timing track selected. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (settings.GetBool("E_CHECKBOX_FIRETIMING", false) && settings.Get("E_CHOICE_FIRETIMINGTRACK","") == "") {
+        res.push_back(wxString::Format("    ERR: Fireworks effect is meant to fire with timing track but no timing track selected. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;
@@ -359,10 +356,9 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     if (useMusic)
     {
         if (buffer.GetMedia() != nullptr) {
-            std::list<float> const * const pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-            if (pf != nullptr)
-            {
-                f = *pf->cbegin();
+            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            if (pf != nullptr) {
+                f = pf->max;
             }
         }
     }

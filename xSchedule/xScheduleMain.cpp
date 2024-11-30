@@ -1768,6 +1768,8 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
             c->TempDisable(false);
         }
 
+        __schedule->GetSyncManager()->ReloadOptions();
+
         Schedule::SetCity(__schedule->GetOptions()->GetCity());
         __schedule->GetOutputManager()->SetParallelTransmission(__schedule->GetOptions()->IsParallelTransmission());
         OutputManager::SetRetryOpen(__schedule->GetOptions()->IsRetryOpen());

@@ -1269,7 +1269,7 @@ void ValueCurve::RenderType()
     _values.sort();
 }
 
-ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::string type, float parameter1, float parameter2, float parameter3, float parameter4, bool wrap, float divisor, const std::string& timingTrack)
+ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::string type, float parameter1, float parameter2, float parameter3, float parameter4, bool wrap, float divisor, const std::string& timingTrack, const std::string& filterLabelText, bool isFilterLabelRegex)
 {
     _type = type;
     _id = id;
@@ -1279,6 +1279,8 @@ ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::s
     _realValues = true;
     _divisor = divisor;
     _timingTrack = timingTrack;
+    _filterLabelText = filterLabelText;
+    _isFilterLabelRegex = isFilterLabelRegex;
     wxASSERT(_divisor == 1 || _divisor == 10 || _divisor == 100);
     _timeOffset = 0;
     _parameter1 = SafeParameter(1, parameter1);
@@ -1301,6 +1303,8 @@ void ValueCurve::SetDefault(float min, float max, int divisor)
         _max = max;
     }
     _timingTrack = "";
+    _filterLabelText = "";
+    _isFilterLabelRegex = false;
     _parameter1 = 0;
     _parameter2 = 0;
     _parameter3 = 0;
@@ -1324,6 +1328,8 @@ ValueCurve::ValueCurve(const std::string& s)
     _max = MAXVOIDF;
     _divisor = 1;
     _timingTrack = "";
+    _filterLabelText = "";
+    _isFilterLabelRegex = false;
     SetDefault();
     Deserialise(s);
 }
@@ -1354,6 +1360,8 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
         _timeOffset = 0;
         _wrap = false;
         _timingTrack = "";
+        _filterLabelText = "";
+        _isFilterLabelRegex = false;
 
         float oldmin = _min;
         float oldmax = _max;
@@ -1453,6 +1461,12 @@ std::string ValueCurve::Serialise()
         res += "Max=" + std::string(wxString::Format("%.2f", _max).c_str()) + "|";
         if (_timingTrack != "") {
             res += "TT=" + _timingTrack + "|";
+        }
+        if (_filterLabelText != "") {
+            res += "FT=" + _filterLabelText + "|";
+        }
+        if (_isFilterLabelRegex) {
+            res += "FLR=Y|";
         }
         if (_parameter1 != 0)
         {
@@ -1610,8 +1624,11 @@ void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
     }
     else if (k == "TT") {
         _timingTrack = s;
-    }
-    else if (k == "Min") {
+    } else if (k == "FT") {
+        _filterLabelText = s;
+    } else if (k == "FLR") {
+        _isFilterLabelRegex = (s == "Y");
+    } else if (k == "Min") {
         _min = std::strtof(s.c_str(), nullptr);
     } else if (k == "Max") {
         _max = std::strtof(s.c_str(), nullptr);
@@ -1696,20 +1713,19 @@ float ValueCurve::ApplyGain(float value, int gain) const
     return v;
 }
 
-int ValueCurve::GetPriorTimingMark(const std::string& timingTrack, int time, bool startsOnly)
-{
+int ValueCurve::GetPriorTimingMark(const std::string& timingTrack, int time, bool startsOnly, const std::string& filterLabelText, bool isFilterLabelRegex) {
     auto te = __sequenceElements->GetTimingElement(timingTrack);
     if (te != nullptr) {
         auto el = te->GetEffectLayer(0);
         if (el != nullptr) {
             if (startsOnly) {
-                auto e = el->GetEffectBeforeTime(time);
+                auto e = el->GetEffectBeforeTime(time, filterLabelText, isFilterLabelRegex);
                 if (e != nullptr) {
                     return e->GetStartTimeMS();
                 }
             }
             else {
-                auto e = el->GetEffectBeforeTime(time);
+                auto e = el->GetEffectBeforeTime(time, filterLabelText, isFilterLabelRegex);
                 if (e != nullptr) {
                     if (e->GetEndTimeMS() < time) {
                         return e->GetEndTimeMS();
@@ -1725,25 +1741,24 @@ int ValueCurve::GetPriorTimingMark(const std::string& timingTrack, int time, boo
     return -1;
 }
 
-int ValueCurve::GetSubsequentTimingMark(const std::string& timingTrack, int time, bool startsOnly)
-{
+int ValueCurve::GetSubsequentTimingMark(const std::string& timingTrack, int time, bool startsOnly, const std::string& filterLabelText, bool isFilterLabelRegex) {
     auto te = __sequenceElements->GetTimingElement(timingTrack);
     if (te != nullptr) {
         auto el = te->GetEffectLayer(0);
         if (el != nullptr) {
             if (startsOnly) {
-                auto e = el->GetEffectAfterTime(time);
+                auto e = el->GetEffectAfterTime(time, filterLabelText, isFilterLabelRegex);
                 if (e != nullptr) {
                     return e->GetStartTimeMS();
                 }
             }
             else {
-                auto e = el->GetEffectAtTime(time);
+                auto e = el->GetEffectAtTime(time, filterLabelText, isFilterLabelRegex);
                 if (e != nullptr) {
                     return e->GetEndTimeMS();
                 }
                 else {
-                    auto e = el->GetEffectAfterTime(time);
+                    auto e = el->GetEffectAfterTime(time, filterLabelText, isFilterLabelRegex);
                     if (e != nullptr) {
                         return e->GetStartTimeMS();
                     }
@@ -1788,10 +1803,10 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
                 // find the maximum of any intervening frames
                 float f = 0.0;
                 for (long ms = time; ms < time + msperPoint; ms += frameMS) {
-                    auto pf = __audioManager->GetFrameData(FRAMEDATATYPE::FRAMEDATA_HIGH, "", ms + frameMS);
+                    auto pf = __audioManager->GetFrameData("", ms + frameMS);
                     if (pf != nullptr) {
-                        if (*pf->begin() > f) {
-                            f = *pf->begin();
+                        if (pf->max > f) {
+                            f = pf->max;
                         }
                     }
                 }
@@ -1836,11 +1851,11 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         float max = (GetParameter2() - _min) / (_max - _min);
         bool up = false;
         long time = (float)startMS + offset * (endMS - startMS);
-        int next = GetSubsequentTimingMark(_timingTrack, startMS - 1, true);
+        int next = GetSubsequentTimingMark(_timingTrack, startMS - 1, true, _filterLabelText, _isFilterLabelRegex);
         if (next != -1) {
             while (next != -1 && next <= time) {
                 up = !up;
-                next = GetSubsequentTimingMark(_timingTrack, next + 1, false);
+                next = GetSubsequentTimingMark(_timingTrack, next + 1, false, _filterLabelText, _isFilterLabelRegex);
             }
         }
 
@@ -1855,7 +1870,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         float min = (GetParameter1() - _min) / (_max - _min);
         float max = (GetParameter2() - _min) / (_max - _min);
         long time = (float)startMS + offset * (endMS - startMS);
-        int prior = GetPriorTimingMark(_timingTrack, time + 1, true);
+        int prior = GetPriorTimingMark(_timingTrack, time + 1, true, _filterLabelText, _isFilterLabelRegex);
         if (prior == -1) {
             res = min;
         }
@@ -1874,12 +1889,12 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         float min = (GetParameter1() - _min) / (_max - _min);
         float max = (GetParameter2() - _min) / (_max - _min);
         long time = (float)startMS + offset * (endMS - startMS);
-        int prior = GetPriorTimingMark(_timingTrack, time + 1, true);
+        int prior = GetPriorTimingMark(_timingTrack, time + 1, true, _filterLabelText, _isFilterLabelRegex);
         if (prior == -1) {
             res = min;
         }
         else {
-            int next = GetSubsequentTimingMark(_timingTrack, time + 1, false);
+            int next = GetSubsequentTimingMark(_timingTrack, time + 1, false, _filterLabelText, _isFilterLabelRegex);
             if (next == 1) {
                 res = min;
             }
@@ -1899,9 +1914,9 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         if (__audioManager != nullptr) {
             long time = (float)startMS + offset * (endMS - startMS);
             float f = 0.0;
-            auto pf = __audioManager->GetFrameData(FRAMEDATATYPE::FRAMEDATA_HIGH, "", time);
+            auto pf = __audioManager->GetFrameData("", time);
             if (pf != nullptr) {
-                f = ApplyGain(*pf->begin(), GetParameter3());
+                f = ApplyGain(pf->max, GetParameter3());
                 if (_type == "Inverted Music") {
                     f = 1.0 - f;
                 }
@@ -2023,12 +2038,12 @@ void ValueCurve::RemoveExcessCustomPoints()
     }
 }
 
-void ValueCurve::SetValueAt(float offset, float value)
+void ValueCurve::SetValueAt(float offset, float value, bool force)
 {
     auto it = _values.begin();
     while (it != _values.end() && *it <= offset)
     {
-        if (*it == offset)
+        if (*it == offset && !force)
         {
             _values.remove(*it);
             break;

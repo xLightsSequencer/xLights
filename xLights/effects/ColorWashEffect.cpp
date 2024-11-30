@@ -241,21 +241,23 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     } else {
         orig = xlBLACK;
     }
-    std::unique_lock<std::recursive_mutex> lock(effect->GetBackgroundDisplayList().lock);
-    if (VertFade || HorizFade) {
-        effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6 * 2);
-        int total = buffer.curEffEndPer - buffer.curEffStartPer + 1;
-        double x1 = double(buffer.curPeriod - buffer.curEffStartPer) / double(total);
-        double x2 = (buffer.curPeriod - buffer.curEffStartPer + 1.0) / double(total);
-        int idx = (buffer.curPeriod - buffer.curEffStartPer) * 12;
-        buffer.SetDisplayListVRect(effect, idx, x1, 0.0, x2, 0.5,
-                                   xlBLACK, orig);
-        buffer.SetDisplayListVRect(effect, idx + 6, x1, 0.5, x2, 1.0,
-                                   orig, xlBLACK);
-    } else {
-        effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);
-        int midX = (StartX + endX) / 2;
-        int midY = (StartY + endY) / 2;
-        buffer.CopyPixelsToDisplayListX(effect, midY, midX, midX);
+    if (effect->IsBackgroundDisplayListEnabled()) {
+        std::unique_lock<std::recursive_mutex> lock(effect->GetBackgroundDisplayList().lock);
+        if (VertFade || HorizFade) {
+            effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6 * 2);
+            int total = buffer.curEffEndPer - buffer.curEffStartPer + 1;
+            double x1 = double(buffer.curPeriod - buffer.curEffStartPer) / double(total);
+            double x2 = (buffer.curPeriod - buffer.curEffStartPer + 1.0) / double(total);
+            int idx = (buffer.curPeriod - buffer.curEffStartPer) * 12;
+            buffer.SetDisplayListVRect(effect, idx, x1, 0.0, x2, 0.5,
+                                       xlBLACK, orig);
+            buffer.SetDisplayListVRect(effect, idx + 6, x1, 0.5, x2, 1.0,
+                                       orig, xlBLACK);
+        } else {
+            effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);
+            int midX = (StartX + endX) / 2;
+            int midY = (StartY + endY) / 2;
+            buffer.CopyPixelsToDisplayListX(effect, midY, midX, midX);
+        }
     }
 }

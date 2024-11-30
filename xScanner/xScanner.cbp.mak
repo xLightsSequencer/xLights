@@ -19,7 +19,7 @@ LIB =
 LDFLAGS = 
 
 INC_LINUX_DEBUG = $(INC) -Iinclude -I../xScanner -I../include -I../xLights
-CFLAGS_LINUX_DEBUG =  -Wall -std=gnu++17 -g `wx-config --version=3.3 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` -Winvalid-pch -DWX_PRECOMP -DLINUX -D__WXDEBUG__ -D__cdecl="" -DEXCLUDENETWORKUI -DDISCOVERYONLY
+CFLAGS_LINUX_DEBUG =  -Wall -std=gnu++20 -g `wx-config --version=3.3 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` -Winvalid-pch -DWX_PRECOMP -DLINUX -D__WXDEBUG__ -D__cdecl="" -DEXCLUDENETWORKUI -DDISCOVERYONLY
 RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
 LIBDIR_LINUX_DEBUG = $(LIBDIR)
@@ -30,7 +30,7 @@ DEP_LINUX_DEBUG =
 OUT_LINUX_DEBUG = ../bin/xScanner
 
 INC_LINUX_RELEASE = $(INC) -Iinclude -I../xScanner -I../include -I../xLights
-CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -std=gnu++17 -Wall `wx-config --version=3.3 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -D__cdecl='' -DEXCLUDENETWORKUI -DDISCOVERYONLY -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
+CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -std=gnu++20 -Wall `wx-config --version=3.3 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -D__cdecl='' -DEXCLUDENETWORKUI -DDISCOVERYONLY -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 LIBDIR_LINUX_RELEASE = $(LIBDIR)
@@ -426,6 +426,8 @@ $(OBJDIR_LINUX_RELEASE)/__/xLights/outputs/Controller.o: ../xLights/outputs/Cont
 clean_linux_release: 
 	rm -f $(OBJ_LINUX_RELEASE) $(OUT_LINUX_RELEASE)
 
+../xLights/outputs/xxxSerialOutput.cpp: ../xLights/OutputModelManager.h
+
 ../xLights/outputs/xxxEthernetOutput.cpp: ../xLights/UtilFunctions.h
 
 ../xLights/outputs/ZCPPOutput.cpp: ../xLights/UtilFunctions.h ../xLights/OutputModelManager.h ../xLights/ExternalHooks.h ../xLights/Discovery.h
@@ -458,6 +460,8 @@ ScanWork.cpp: ScanWork.h ../xLights/Parallel.h xScannerMain.h xScannerApp.h ../x
 
 ../xLights/xLightsVersion.cpp: ../xLights/xLightsVersion.h
 
+../xLights/utils/ip_utils.cpp: ../xLights/JobPool.h
+
 ../xLights/utils/CurlManager.cpp: ../xLights/xLightsVersion.h
 
 ../xLights/TraceLog.cpp: ../xLights/TraceLog.h
@@ -472,7 +476,7 @@ ScanWork.cpp: ScanWork.h ../xLights/Parallel.h xScannerMain.h xScannerApp.h ../x
 
 ../xLights/automation/automation.cpp: ../xLights/UtilFunctions.h
 
-../xLights/UtilFunctions.cpp: ../xLights/UtilFunctions.h ../xLights/xLightsVersion.h ../xLights/ExternalHooks.h
+../xLights/UtilFunctions.cpp: ../xLights/ExternalHooks.h ../xLights/UtilFunctions.h ../xLights/xLightsVersion.h
 
 ../xLights/outputs/ArtNetOutput.cpp: ../xLights/UtilFunctions.h ../xLights/OutputModelManager.h ../xLights/SpecialOptions.h ../xLights/Discovery.h
 
@@ -506,7 +510,7 @@ ScanWork.cpp: ScanWork.h ../xLights/Parallel.h xScannerMain.h xScannerApp.h ../x
 
 ../xLights/xLightsMain.h: ../xLights/PixelBuffer.h ../xLights/SequenceData.h ../xLights/xLightsTimer.h ../xLights/JobPool.h ../xLights/SequenceViewManager.h ../xLights/ColorManager.h ../xLights/ViewpointMgr.h ../xLights/PhonemeDictionary.h ../xLights/xLightsXmlFile.h ../xLights/RenderCache.h ../xLights/OutputModelManager.h ../xLights/SequencePackage.h ../xLights/ScriptsDialog.h ../xLights/TipOfTheDayDialog.h
 
-../xLights/PixelBuffer.h: ../xLights/RenderBuffer.h ../xLights/ValueCurve.h ../xLights/RenderUtils.h ../xLights/GPURenderUtils.h ../xLights/Color.h
+../xLights/PixelBuffer.h: ../xLights/Color.h ../xLights/GPURenderUtils.h ../xLights/RenderBuffer.h ../xLights/RenderUtils.h ../xLights/ValueCurve.h
 
 ../xLights/RenderBuffer.h: ../include/globals.h ../xLights/Color.h ../xLights/ColorCurve.h
 

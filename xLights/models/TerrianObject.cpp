@@ -138,7 +138,7 @@ void TerrianObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
         p = grid->Append(new wxStringProperty("Terrian Spacing", "RealSpacing",
             RulerObject::PrescaledMeasureDescription(RulerObject::Measure(spacing))
         ));
-        p->ChangeFlag(wxPG_PROP_READONLY, true);
+        p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     }
 }
@@ -279,9 +279,7 @@ bool TerrianObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
                 (const char *)preview->GetName().c_str());
             wxImage image(_imageFile);
             if (image.IsOk()) {
-                xlTexture *t = ctx->createTexture(image);
-                t->SetName(GetName());
-                t->Finalize();
+                xlTexture *t = ctx->createTexture(image, GetName(), true);
                 _images[preview->GetName().ToStdString()] = t;
                 img_width = image.GetWidth();
                 img_height = image.GetHeight();
@@ -395,18 +393,18 @@ bool TerrianObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
         }
     }
     if (grid) {
-        solid->addStep([=](xlGraphicsContext *ctx) {
+        solid->addStep([=, this](xlGraphicsContext *ctx) {
             ctx->drawLines(grid, gridColor);
         });
     }
     if (texture) {
         xlTexture *image = _images[preview->GetName().ToStdString()];
         if (transparency == 0) {
-            solid->addStep([=](xlGraphicsContext *ctx) {
+            solid->addStep([=, this](xlGraphicsContext *ctx) {
                 ctx->drawTexture(texture, image, brightness, 255, 0, texture->getCount());
             });
         } else {
-            transparent->addStep([=](xlGraphicsContext *ctx) {
+            transparent->addStep([=, this](xlGraphicsContext *ctx) {
                 int alpha = (100.0 - transparency) * 255.0 / 100.0;
                 ctx->drawTexture(texture, image, brightness, alpha, 0, texture->getCount());
             });

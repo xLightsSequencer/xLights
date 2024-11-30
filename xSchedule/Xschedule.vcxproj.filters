@@ -581,6 +581,7 @@
       <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\SpecialOptions.cpp" />
+    <ClCompile Include="RGBEffects.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\xlBaseApp.h" />
@@ -1154,6 +1155,7 @@
     <ClInclude Include="..\xLights\utils\CurlManager.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="RGBEffects.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="PlayList">

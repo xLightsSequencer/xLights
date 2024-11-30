@@ -19,9 +19,9 @@ public:
     virtual xlVertexColorAccumulator *createVertexColorAccumulator() override;
     virtual xlVertexTextureAccumulator *createVertexTextureAccumulator() override;
     virtual xlVertexIndexedColorAccumulator *createVertexIndexedColorAccumulator() override;
-    virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) override;
-    virtual xlTexture *createTextureMipMaps(const std::vector<wxImage> &images) override;
-    virtual xlTexture *createTexture(const wxImage &image) override;
+    virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps, const std::string &name) override;
+    virtual xlTexture *createTextureMipMaps(const std::vector<wxImage> &images, const std::string &name) override;
+    virtual xlTexture *createTexture(const wxImage &image, const std::string &name, bool finalize = false) override;
     virtual xlTexture *createTexture(int w, int h, bool bgr, bool alpha) override;
     virtual xlTexture *createTextureForFont(const xlFontInfo &font) override;
     virtual xlGraphicsProgram *createGraphicsProgram() override;
@@ -89,13 +89,14 @@ public:
     bool isValid();
     id<CAMetalDrawable> getDrawable() { return drawable; }
     id<MTLCommandBuffer> getCommandBuffer() { return buffer; }
+    id<MTLCommandBuffer> getImageCommandBuffer();
 protected:
     xlMetalCanvas *canvas;
     id<MTLCommandBuffer> buffer;
     id<MTLRenderCommandEncoder> encoder;
     id<CAMetalDrawable> drawable;
     id<MTLTexture> target;
-
+    
     xlGraphicsContext* drawPrimitive(MTLPrimitiveType type, xlVertexAccumulator *vac, const xlColor &c, int start, int count);
     xlGraphicsContext* drawPrimitive(MTLPrimitiveType type, xlVertexColorAccumulator *vac, int start, int count);
     xlGraphicsContext* drawPrimitive(MTLPrimitiveType type, xlVertexIndexedColorAccumulator *vac, int start, int count);

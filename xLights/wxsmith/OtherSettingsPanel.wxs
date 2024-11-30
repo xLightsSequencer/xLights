@@ -2,74 +2,72 @@
 <wxsmith>
 	<object class="wxPanel" name="OtherSettingsPanel">
 		<id_arg>0</id_arg>
+		<handler function="OnPaint" entry="EVT_PAINT" />
 		<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText2" member="yes">
-					<label>Link save:</label>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+					<cols>2</cols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText2" member="yes">
+							<label>Link save:</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE1" variable="Choice_LinkSave" member="yes">
+							<content>
+								<item>None</item>
+								<item>Controllers and Layout Tab</item>
+							</content>
+							<selection>0</selection>
+							<handler function="OnControlChanged" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<col>0</col>
-				<row>3</row>
+				<row>6</row>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE1" variable="Choice_LinkSave" member="yes">
-					<content>
-						<item>None</item>
-						<item>Controllers and Layout Tab</item>
-					</content>
-					<selection>0</selection>
-					<handler function="OnControlChanged" entry="EVT_CHOICE" />
-				</object>
-				<col>1</col>
-				<row>3</row>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText3" member="yes">
-					<label>Link controller upload:</label>
-				</object>
-				<col>0</col>
-				<row>4</row>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText1" member="no">
-					<label>eMail Address:</label>
-				</object>
-				<col>0</col>
-				<row>0</row>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="eMailTextControl" member="yes">
-					<value>noone@nowhere.xlights.org</value>
-					<size>150,-1d</size>
-					<handler function="OnControlChanged" entry="EVT_TEXT" />
-					<handler function="OnControlChanged" entry="EVT_TEXT_ENTER" />
-				</object>
-				<col>1</col>
-				<row>0</row>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="HardwareVideoDecodingCheckBox" member="yes">
-					<label>Hardware Video Decoding</label>
-					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
+				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+					<cols>2</cols>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX1" variable="HardwareVideoDecodingCheckBox" member="yes">
+							<label>Hardware Video Decoding</label>
+							<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE4" variable="HardwareVideoRenderChoice" member="yes">
+							<content>
+								<item>DirectX11</item>
+								<item>FFmpeg Auto</item>
+								<item>FFmpeg CUDA</item>
+								<item>FFmpeg QSV</item>
+								<item>FFmpeg Vulkan</item>
+								<item>FFmpeg AMF</item>
+								<item>FFmpeg DirectX11</item>
+							</content>
+							<selection>1</selection>
+							<handler function="OnControlChanged" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<col>0</col>
 				<row>1</row>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -77,8 +75,8 @@
 					<label>Shaders on Background Threads</label>
 					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 				</object>
-				<col>1</col>
-				<row>1</row>
+				<col>0</col>
+				<row>3</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -137,10 +135,10 @@
 						<option>1</option>
 					</object>
 				</object>
+				<rowspan>4</rowspan>
 				<col>1</col>
-				<row>2</row>
+				<row>1</row>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -164,8 +162,8 @@
 									<label>Exclude Audio</label>
 									<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 								</object>
-								<col>0</col>
-								<row>1</row>
+								<col>1</col>
+								<row>0</row>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
@@ -175,24 +173,10 @@
 						<option>1</option>
 					</object>
 				</object>
-				<col>0</col>
-				<row>2</row>
-				<flag>wxALL|wxALIGN_LEFT</flag>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE2" variable="Choice_LinkControllerUpload" member="yes">
-					<content>
-						<item>None</item>
-						<item>Inputs and Outputs</item>
-					</content>
-					<selection>0</selection>
-					<handler function="OnControlChanged" entry="EVT_CHOICE" />
-				</object>
+				<rowspan>2</rowspan>
 				<col>1</col>
-				<row>4</row>
+				<row>5</row>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -202,7 +186,7 @@
 					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 				</object>
 				<col>0</col>
-				<row>5</row>
+				<row>4</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -213,7 +197,7 @@
 					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 				</object>
 				<col>0</col>
-				<row>6</row>
+				<row>5</row>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
@@ -224,7 +208,7 @@
 					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 				</object>
 				<col>0</col>
-				<row>7</row>
+				<row>9</row>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
@@ -279,10 +263,112 @@
 						<option>1</option>
 					</object>
 				</object>
-				<rowspan>3</rowspan>
+				<rowspan>4</rowspan>
 				<col>1</col>
-				<row>5</row>
+				<row>7</row>
 				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+					<cols>2</cols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText3" member="yes">
+							<label>Link controller upload:</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE2" variable="Choice_LinkControllerUpload" member="yes">
+							<content>
+								<item>None</item>
+								<item>Inputs and Outputs</item>
+							</content>
+							<selection>0</selection>
+							<handler function="OnControlChanged" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<col>0</col>
+				<row>7</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+					<cols>2</cols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText7" member="yes">
+							<label>Model reanaming alias behavior:</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE_ALIASPROMPT" variable="Choice_AliasPromptBehavior" member="yes">
+							<content>
+								<item>Always Prompt</item>
+								<item>Always Yes</item>
+								<item>Always No</item>
+							</content>
+							<selection>0</selection>
+							<handler function="OnControlChanged" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<col>0</col>
+				<row>8</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+					<cols>2</cols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="wxID_ANY" variable="StaticText1" member="no">
+							<label>eMail Address:</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="eMailTextControl" member="yes">
+							<value>noone@nowhere.xlights.org</value>
+							<size>180,-1d</size>
+							<handler function="OnControlChanged" entry="EVT_TEXT" />
+							<handler function="OnControlChanged" entry="EVT_TEXT_ENTER" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>0</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX9" variable="GPURenderCheckbox" member="yes">
+					<label>GPU Rendering</label>
+					<checked>1</checked>
+					<tooltip>Some effects can be rendered on the GPU if this is enabled.</tooltip>
+					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>2</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

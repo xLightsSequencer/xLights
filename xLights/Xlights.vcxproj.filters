@@ -711,9 +711,6 @@
     <ClCompile Include="models\DMX\DmxPanTiltAbility.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="models\DMX\DmxMovingHead3D.cpp">
-      <Filter>Models\DMX</Filter>
-    </ClCompile>
     <ClCompile Include="models\DMX\DmxShutterAbility.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
@@ -1047,7 +1044,57 @@
     </ClCompile>
     <ClCompile Include="TempFileManager.cpp" />
     <ClCompile Include="xlColourData.cpp" />
+    <ClCompile Include="effects\MovingHeadEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanels\MovingHeadCanvasPanel.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\MovingHeads\MhChannel.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\MovingHeads\MhChannelDialog.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\MovingHeads\MhFeature.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\MovingHeads\MhFeatureDialog.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanels\MHRgbPickerPanel.cpp">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanels\MHPresetBitmapButton.cpp">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanels\MHPathPresetBitmapButton.cpp">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanels\MHColorWheelPanel.cpp">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxMotor.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxMovingHeadAdv.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
     <ClCompile Include="SpecialOptions.cpp" />
+    <ClCompile Include="controllers\ILightThat.cpp" />
+    <ClCompile Include="EditSubmodelAliasesDialog.cpp" />
+    <ClCompile Include="effects\MovingHeadPanels\MovingHeadDimmerPanel.cpp">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DMX\DmxDimmerAbility.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="effects\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1771,9 +1818,6 @@
     <ClInclude Include="models\DMX\DmxPanTiltAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="models\DMX\DmxMovingHead3D.h">
-      <Filter>Models\DMX</Filter>
-    </ClInclude>
     <ClInclude Include="models\DMX\DmxShutterAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
@@ -2108,6 +2152,30 @@
     </ClInclude>
     <ClInclude Include="TempFileManager.h" />
     <ClInclude Include="xlColourData.h" />
+    <ClInclude Include="controllers\ILightThat.h" />
+    <ClInclude Include="EditSubmodelAliasesDialog.h" />
+    <ClInclude Include="effects\MovingHeadEffect.h" />
+    <ClInclude Include="effects\MovingHeadPanel.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHColorPanel.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHColorWheelPanel.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHPathPresetBitmapButton.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHPresetBitmapButton.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHRgbPickerPanel.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MovingHeadCanvasPanel.h" />
+    <ClInclude Include="models\BaseObjectVisitor.h" />
+    <ClInclude Include="models\DMX\DmxMotor.h" />
+    <ClInclude Include="models\DMX\DmxMotorBase.h" />
+    <ClInclude Include="models\DMX\DmxMotorPanTilt.h" />
+    <ClInclude Include="models\DMX\DmxMovingHeadAdv.h" />
+    <ClInclude Include="models\DMX\DmxMovingHeadComm.h" />
+    <ClInclude Include="models\DMX\MovingHeads\MhChannel.h" />
+    <ClInclude Include="models\DMX\MovingHeads\MhChannelDialog.h" />
+    <ClInclude Include="models\DMX\MovingHeads\MhFeature.h" />
+    <ClInclude Include="models\DMX\MovingHeads\MhFeatureDialog.h" />
+    <ClInclude Include="models\XmlSerializer.h" />
+    <ClInclude Include="models\DMX\DmxDimmerAbility.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2151,6 +2219,9 @@
     </Filter>
     <Filter Include="graphics\opengl\GL">
       <UniqueIdentifier>{6ee588bc-dc96-462e-b373-e36fbb8a27e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\MovingHeadPanels">
+      <UniqueIdentifier>{dea5bd41-37f4-437f-872b-6b26dc00a5c9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

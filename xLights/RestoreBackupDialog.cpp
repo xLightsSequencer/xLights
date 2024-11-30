@@ -121,9 +121,8 @@ RestoreBackupDialog::RestoreBackupDialog(wxString const& showDir, wxString const
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxSize(602,134), wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinSize(wxSize(900,400));
-	SplitterWindow1->SetMinimumPaneSize(100);
+	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxSize(602,134), wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
+	SplitterWindow1->SetMinimumPaneSize(900);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer2 = new wxFlexGridSizer(2, 1, 0, 0);
@@ -135,12 +134,9 @@ RestoreBackupDialog::RestoreBackupDialog(wxString const& showDir, wxString const
 	ListBoxBackups->SetMinSize(wxSize(250,400));
 	FlexGridSizer2->Add(ListBoxBackups, 0, wxEXPAND, 0);
 	Panel1->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(Panel1);
-	FlexGridSizer2->SetSizeHints(Panel1);
 	Notebook1 = new wxNotebook(SplitterWindow1, ID_NOTEBOOK1, wxPoint(545,100), wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
 	Notebook1->SetMinSize(wxSize(600,400));
-	SplitterWindow2 = new wxSplitterWindow(Notebook1, ID_SPLITTERWINDOW2, wxPoint(57,24), wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW2"));
-	SplitterWindow2->SetMinimumPaneSize(10);
+	SplitterWindow2 = new wxSplitterWindow(Notebook1, ID_SPLITTERWINDOW2, wxPoint(57,24), wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW2"));
 	SplitterWindow2->SetSashGravity(0.6);
 	CheckListBoxLayout = new wxCheckListBox(SplitterWindow2, ID_CHECKLISTBOX_LAYOUT, wxPoint(42,42), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_LAYOUT"));
 	CheckListBoxLayout->SetMinSize(wxSize(0,300));
@@ -158,16 +154,15 @@ RestoreBackupDialog::RestoreBackupDialog(wxString const& showDir, wxString const
 	BoxSizer1->Add(StaticTextBackUpFolder, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonRun = new wxButton(this, ID_BUTTON_RUN, _("Restore Files"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RUN"));
 	BoxSizer1->Add(ButtonRun, 0, wxALL, 5);
-	BoxSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BoxSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
-	SetSizer(FlexGridSizer1);
 	SetSizer(FlexGridSizer1);
 	Layout();
 
-	Connect(ID_LISTBOX_BACKUPS,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&RestoreBackupDialog::OnListBoxBackupsSelect);
-	Connect(ID_CHECKLISTBOX_LAYOUT,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&RestoreBackupDialog::OnCheckListBoxLayoutToggled);
-	Connect(ID_CHECKLISTBOX_SEQUENCES,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&RestoreBackupDialog::OnCheckListBoxSequencesToggled);
-	Connect(ID_BUTTON_RUN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RestoreBackupDialog::OnButtonRunClick);
+	Connect(ID_LISTBOX_BACKUPS, wxEVT_COMMAND_LISTBOX_SELECTED, (wxObjectEventFunction)&RestoreBackupDialog::OnListBoxBackupsSelect);
+	Connect(ID_CHECKLISTBOX_LAYOUT, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, (wxObjectEventFunction)&RestoreBackupDialog::OnCheckListBoxLayoutToggled);
+	Connect(ID_CHECKLISTBOX_SEQUENCES, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, (wxObjectEventFunction)&RestoreBackupDialog::OnCheckListBoxSequencesToggled);
+	Connect(ID_BUTTON_RUN, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RestoreBackupDialog::OnButtonRunClick);
 	//*)
     SetEscapeId(wxID_CANCEL);
 

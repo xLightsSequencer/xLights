@@ -10,6 +10,9 @@
 
 #include "tmGridCell.h"
 
+#include "utils/string_utils.h"
+#include <wx/renderer.h>
+
 wxGridCellButtonRenderer::
 wxGridCellButtonRenderer(wxString label)
 {
@@ -26,16 +29,11 @@ const long tmGrid::ID_GRID_RENDERER = wxNewId();
 void wxGridCellButtonRenderer::
 Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected)
 {
-#ifndef __linux__
-   // DrawTitleBarBitmap() is only available on MSW and OS X according to wx/renderer.h
-   wxRendererNative::Get().DrawTitleBarBitmap(&grid, dc, rect, wxTITLEBAR_BUTTON_CLOSE, wxCONTROL_CURRENT);
-   //wxRendererNative::Get().DrawPushButton(&grid, dc, rect, wxCONTROL_CURRENT);
-#endif
-   wxFont font = grid.GetFont();
-   dc.SetFont(font);
-   int x = rect.x + 10;
-   int y = rect.y + 1;
-   dc.DrawText(m_strLabel, x, y);
+    if( m_strLabel == xlEMPTY_STRING ) {
+        DrawCloseButton(dc, rect);
+    } else {
+        DrawTextButton(dc, rect, grid);
+    }
 }
 
 wxSize wxGridCellButtonRenderer::
@@ -144,7 +142,7 @@ OnLeftClick(wxGridEvent &evt)
 {
     SetGridCursor(evt.GetRow(), evt.GetCol());
     //wxCommandEvent myevent(wxEVT_COMMAND_BUTTON_CLICKED, evt.GetRow());
-    wxCommandEvent myevent(EVT_DELETE_ROW, evt.GetRow());
+    wxCommandEvent myevent(EVT_GRID_ROW_CLICKED, evt.GetRow());
     wxPostEvent(this, myevent);
     //evt.Skip();
     //evt.StopPropagation();
@@ -155,5 +153,46 @@ OnCellChanged(wxGridEvent &evt)
 {
     //SetGridCursor(evt.GetRow(), evt.GetCol());
     wxCommandEvent myevent(EVT_NAME_CHANGE, evt.GetRow());
+    myevent.SetInt(evt.GetCol());
     wxPostEvent(this, myevent);
+}
+
+void wxGridCellButtonRenderer::DrawCloseButton(wxDC& dc, const wxRect &rect)
+{
+//#ifdef __WXMSW__
+//        // DrawTitleBarBitmap() is only available on MSW and OS X according to wx/renderer.h
+ //   wxRendererNative::Get().DrawTitleBarBitmap(grid->parrent(), dc, rect, wxTITLEBAR_BUTTON_CLOSE, wxCONTROL_CURRENT);
+//#else
+    // Drawing manually on macOS cause wxWidgets was not producing a good result
+    wxColour glyphColor("#FF605C");
+    wxColour lineColor(0,0,0);
+    wxRect circleRect(rect);
+    circleRect.Deflate(2);
+    wxDCBrushChanger setBrush(dc, glyphColor);
+    wxDCPenChanger setPen(dc, glyphColor);
+    dc.DrawEllipse(circleRect);
+    wxRect centerRect(rect);
+    centerRect.Deflate(5);
+    centerRect.height++;
+    centerRect.width++;
+    dc.SetPen(lineColor);
+    dc.DrawLine(centerRect.GetTopLeft(), centerRect.GetBottomRight());
+    dc.DrawLine(centerRect.GetTopRight(), centerRect.GetBottomLeft());
+//#endif
+}
+
+void wxGridCellButtonRenderer::DrawTextButton(wxDC& dc, const wxRect &rect, wxGrid &grid)
+{
+    // DrawPushButton looks terrible on Mac
+    //wxRendererNative::Get().DrawPushButton(&grid, dc, rect, wxCONTROL_ISDEFAULT);
+
+    wxColour interiorColor = wxColour(80, 80, 80);
+    wxDCBrushChanger setBrush(dc, interiorColor);
+    wxDCPenChanger setPen(dc, interiorColor);
+    dc.DrawRectangle(rect);
+    wxFont font = grid.GetFont();
+    dc.SetFont(font);
+    int x = rect.x + 10;
+    int y = rect.y + 1;
+    dc.DrawText(m_strLabel, x, y);
 }

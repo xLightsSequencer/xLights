@@ -9,18 +9,17 @@
  **************************************************************/
 
 #include "SyncMIDI.h"
-#include "ScheduleOptions.h"
-#include "events/ListenerManager.h"
-#include "wxMIDI/src/wxMidi.h"
 #include "ScheduleManager.h"
+#include "ScheduleOptions.h"
 #include "PlayList/PlayList.h"
 #include "PlayList/PlayListStep.h"
+#include "events/ListenerManager.h"
+#include "wxMIDI/src/wxMidi.h"
 
-#include <log4cpp/Category.hh>
 #include "../xLights/UtilFunctions.h"
+#include <log4cpp/Category.hh>
 
-class MIDITimecodeThread : public wxThread
-{
+class MIDITimecodeThread : public wxThread {
     std::atomic<bool> _stop;
     SyncMIDI* _syncMidi = nullptr;
     std::atomic<bool> _running;
@@ -29,8 +28,7 @@ class MIDITimecodeThread : public wxThread
     bool _toSendStop = false; // prevents us sending multiple stops
 
 public:
-    MIDITimecodeThread(SyncMIDI* syncMIDI, ScheduleManager* scheduleManager)
-    {
+    MIDITimecodeThread(SyncMIDI* syncMIDI, ScheduleManager* scheduleManager) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         _suspend = false;
@@ -39,64 +37,51 @@ public:
         _syncMidi = syncMIDI;
         _scheduleManager = scheduleManager;
 
-        if (Run() != wxTHREAD_NO_ERROR)
-        {
+        if (Run() != wxTHREAD_NO_ERROR) {
             logger_base.error("Failed to start MIDI Timecode thread");
-        }
-        else
-        {
+        } else {
             logger_base.info("MIDI Timecode thread created.");
         }
     }
-    virtual ~MIDITimecodeThread()
-    {
+    virtual ~MIDITimecodeThread() {
         Stop();
     }
 
-    void Stop()
-    {
+    void Stop() {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("MIDI Timecode thread stopping.");
         _stop = true;
     }
 
-    void UpdateSyncMIDI(SyncMIDI* syncMIDI)
-    {
+    void UpdateSyncMIDI(SyncMIDI* syncMIDI) {
         _suspend = true;
         wxMilliSleep(100); // ensure it is suspended ... this is lazy ... i really should use sync objects
         _syncMidi = syncMIDI;
         _suspend = false;
     }
 
-    void* Entry()
-    {
+    void* Entry() {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         wxLongLong last = 0;
         double interval = _syncMidi->GetInterval() * 1000.0; // quarter frame messages
         _running = true;
-        while (!_stop)
-        {
-            if (!_suspend)
-            {
+        while (!_stop) {
+            if (!_suspend) {
                 long long sleepfor = 0;
 
-                if (wxGetUTCTimeUSec() - last > interval)
-                {
+                if (wxGetUTCTimeUSec() - last > interval) {
                     // get our absolute position
                     PlayList* pl = _scheduleManager->GetRunningPlayList();
-                    if (pl != nullptr)
-                    {
+                    if (pl != nullptr) {
                         // sent a sync
                         auto ms = pl->GetPosition();
                         auto stepno = pl->GetRunningStepIndex();
                         auto stepms = pl->GetRunningStep() == nullptr ? 0 : pl->GetRunningStep()->GetPosition();
-                        _syncMidi->SendSync(0, 0, stepms, ms, "", "", "", "", stepno);
+                        auto basesecs = pl->GetRunningStep() == nullptr ? -1 : pl->GetRunningStep()->GetBaseTimeCodeTime();
+                        _syncMidi->SendSync(0, 0, stepms, ms, "", "", "", "", stepno, basesecs);
                         _toSendStop = true;
-                    }
-                    else
-                    {
-                        if (_toSendStop)
-                        {
+                    } else {
+                        if (_toSendStop) {
                             _syncMidi->SendStop();
                             _toSendStop = false;
                         }
@@ -106,8 +91,7 @@ public:
                     last = wxGetUTCTimeUSec().GetValue();
                 }
 
-                if (sleepfor > 0)
-                {
+                if (sleepfor > 0) {
                     wxMicroSleep(sleepfor);
                 }
             }
@@ -119,8 +103,7 @@ public:
 };
 
 #ifdef USE_CLOCK_THREAD
-class MIDIClockThread : public wxThread
-{
+class MIDIClockThread : public wxThread {
     std::atomic<bool> _stop;
     SyncMIDI* _syncMidi = nullptr;
     std::atomic<bool> _running;
@@ -128,8 +111,7 @@ class MIDIClockThread : public wxThread
     ScheduleManager* _scheduleManager = nullptr;
 
 public:
-    MIDIClockThread(SyncMIDI* syncMIDI, ScheduleManager* scheduleManager)
-    {
+    MIDIClockThread(SyncMIDI* syncMIDI, ScheduleManager* scheduleManager) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         _suspend = false;
@@ -138,37 +120,30 @@ public:
         _syncMidi = syncMIDI;
         _scheduleManager = scheduleManager;
 
-        if (Run() != wxTHREAD_NO_ERROR)
-        {
+        if (Run() != wxTHREAD_NO_ERROR) {
             logger_base.error("Failed to start MIDI Clock thread");
-        }
-        else
-        {
+        } else {
             logger_base.info("MIDI Clock thread created.");
         }
     }
-    virtual ~MIDIClockThread()
-    {
+    virtual ~MIDIClockThread() {
         Stop();
     }
 
-    void Stop()
-    {
+    void Stop() {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("MIDI Clock thread stopping.");
         _stop = true;
     }
 
-    void UpdateSyncMIDI(SyncMIDI* syncMIDI)
-    {
+    void UpdateSyncMIDI(SyncMIDI* syncMIDI) {
         _suspend = true;
         wxMilliSleep(100); // ensure it is suspended ... this is lazy ... i really should use sync objects
         _syncMidi = syncMIDI;
         _suspend = false;
     }
 
-    void* Entry()
-    {
+    void* Entry() {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         wxLongLong last = 0;
         double interval = 1000000.0 / 24.0; // 88 BPM, 24 frames per second
@@ -203,8 +178,8 @@ public:
 };
 #endif
 
-SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager) : SyncBase(sm, rm, options)
-{
+SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager) :
+    SyncBase(sm, rm, options, schm) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _supportsStepMMSSFormat = true;
@@ -221,8 +196,7 @@ SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, L
                     delete _midi;
                     _midi = nullptr;
                     logger_base.error("MIDI failed to open as a timecode master: %d", err);
-                }
-                else {
+                } else {
                     logger_base.debug("MIDI opened as a timecode master");
                     // Start the sending thread
                     _threadTimecode = new MIDITimecodeThread(this, listenerManager->GetScheduleManager());
@@ -230,8 +204,7 @@ SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, L
                     _threadClock = new MIDIClockThread(this, listenerManager->GetScheduleManager());
 #endif
                 }
-            }
-            else {
+            } else {
                 delete _midi;
                 _midi = nullptr;
                 logger_base.debug("Attempt to use input MIDI device as a timecode master. Device must be an output device.");
@@ -245,8 +218,8 @@ SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, L
     }
 }
 
-SyncMIDI::SyncMIDI(SyncMIDI&& from) : SyncBase(from)
-{
+SyncMIDI::SyncMIDI(SyncMIDI&& from) :
+    SyncBase(from) {
     _threadTimecode = from._threadTimecode;
     from._threadTimecode = nullptr; // this is a transfer of ownership
     if (_threadTimecode != nullptr) {
@@ -267,11 +240,10 @@ SyncMIDI::SyncMIDI(SyncMIDI&& from) : SyncBase(from)
     _timeCodeOffset = from._timeCodeOffset;
 }
 
-SyncMIDI::~SyncMIDI()
-{
+SyncMIDI::~SyncMIDI() {
     // close the sending thread
     if (_threadTimecode != nullptr) {
-        //logger_base.debug("MIDI Timecode stopping.");
+        // logger_base.debug("MIDI Timecode stopping.");
         _threadTimecode->Stop();
         _threadTimecode->Delete();
         _threadTimecode = nullptr;
@@ -280,7 +252,7 @@ SyncMIDI::~SyncMIDI()
 #ifdef USE_CLOCK_THREAD
     // close the sending thread
     if (_threadClock != nullptr) {
-        //logger_base.debug("MIDI Clock stopping.");
+        // logger_base.debug("MIDI Clock stopping.");
         _threadClock->Stop();
         _threadClock->Delete();
         _threadClock = nullptr;
@@ -297,8 +269,7 @@ SyncMIDI::~SyncMIDI()
     }
 }
 
-double SyncMIDI::GetInterval()
-{
+double SyncMIDI::GetInterval() {
     switch (_timeCodeFormat) {
     default:
     case TIMECODEFORMAT::F24: // 24 fps
@@ -314,11 +285,11 @@ double SyncMIDI::GetInterval()
     return 1000.0 / 25.0;
 }
 
-void SyncMIDI::SendClock() const
-{
+void SyncMIDI::SendClock() const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (_midi == nullptr) return;
+    if (_midi == nullptr)
+        return;
 
     wxMidiShortMessage msg(0xF8, 0, 0);
     msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
@@ -331,25 +302,27 @@ void SyncMIDI::SendClock() const
     }
 }
 
-void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const
-{
+void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno, int overridetimeSecs) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static size_t lastmsec = 999999999;
     static bool firstquarterframe = true;
 
-    if (_midi == nullptr) return;
+    if (_midi == nullptr)
+        return;
 
     bool dosend = false;
-    if (playlistMS == 0) dosend = true;
+    if (playlistMS == 0)
+        dosend = true;
 
     if (!dosend) {
-        //if (msec - lastmsec > 1000)
+        // if (msec - lastmsec > 1000)
         {
             dosend = true;
         }
     }
 
-    if (!dosend) return;
+    if (!dosend)
+        return;
 
     bool sendresync = false;
     if (playlistMS - lastmsec < 0 || playlistMS - lastmsec > 1000) {
@@ -367,8 +340,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
 #endif
             _midi->Write(&msg);
         }
-    }
-    else if (playlistMS == 0xFFFFFFFF) {
+    } else if (playlistMS == 0xFFFFFFFF) {
         lastmsec = 999999999;
         wxMidiShortMessage msg(0xFC, 0, 0);
         msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
@@ -389,11 +361,15 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
     if (sendresync) {
         uint8_t buffer[10];
         size_t ms = playlistMS;
-        if (_useStepMMSSFormat && _supportsStepMMSSFormat) {
-            ms = stepMS;
-        }
 
-        ms += _timeCodeOffset;
+        if (overridetimeSecs >= 0) {
+            ms += overridetimeSecs * 1000;
+        } else {
+            if (_useStepMMSSFormat && _supportsStepMMSSFormat) {
+                ms = stepMS;
+            }
+            ms += _timeCodeOffset;
+        }
 
         buffer[0] = 0xF0;
         buffer[1] = 0x7F;
@@ -401,9 +377,9 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
         buffer[3] = 0x01;
         buffer[4] = 0x01;
 
-        buffer[5] = (static_cast<int>(_timeCodeFormat) << 5) + GetHours(ms, stepno); // hour
-        buffer[6] = GetMinutes(ms); // minute
-        buffer[7] = GetSeconds(ms); // seconds
+        buffer[5] = (static_cast<int>(_timeCodeFormat) << 5) + GetHours(ms, stepno, overridetimeSecs); // hour
+        buffer[6] = GetMinutes(ms);                                                                    // minute
+        buffer[7] = GetSeconds(ms);                                                                    // seconds
         ms = ms % 1000;
 
         switch (_timeCodeFormat) {
@@ -429,15 +405,18 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
             _midi->Write(buffer, wxMidiSystem::GetInstance()->GetTime());
         }
         firstquarterframe = true;
-    }
-    else {
+    } else {
         size_t ms = playlistMS;
-        if (_useStepMMSSFormat && _supportsStepMMSSFormat) {
-            ms = stepMS;
+        if (overridetimeSecs >= 0) {
+            ms += overridetimeSecs * 1000;
+        } else {
+            if (_useStepMMSSFormat && _supportsStepMMSSFormat) {
+                ms = stepMS;
+            }
+            ms += _timeCodeOffset;
         }
-        ms += _timeCodeOffset;
 
-        int hours = (static_cast<int>(_timeCodeFormat) << 5) + GetHours(ms, stepno);
+        int hours = (static_cast<int>(_timeCodeFormat) << 5) + GetHours(ms, stepno, overridetimeSecs);
         int mins = GetMinutes(ms);
         int secs = GetSeconds(ms);
         ms = ms % 1000;
@@ -489,8 +468,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
                     _midi->Write(&msg);
                 }
             }
-        }
-        else {
+        } else {
             for (int i = 4; i < 8; i++) {
                 switch (i) {
                 case 4:
@@ -525,8 +503,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
     }
 }
 
-uint8_t SyncMIDI::GetTimeCodeBits() const
-{
+uint8_t SyncMIDI::GetTimeCodeBits() const {
     switch (_timeCodeFormat) {
     default:
     case TIMECODEFORMAT::F24: // 24 fps
@@ -542,7 +519,6 @@ uint8_t SyncMIDI::GetTimeCodeBits() const
     return 2;
 }
 
-void SyncMIDI::SendStop() const
-{
-    SendSync(50, 0, 0, 0xFFFFFFFF, "", "", "", "", 0);
+void SyncMIDI::SendStop() const {
+    SendSync(50, 0, 0, 0xFFFFFFFF, "", "", "", "", 0, 0);
 }

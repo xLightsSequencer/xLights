@@ -11,8 +11,8 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
-					<minpanesize>100</minpanesize>
 					<orientation>vertical</orientation>
+					<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 					<object class="wxPanel" name="ID_PANEL5" variable="Panel3" member="yes">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 							<cols>1</cols>
@@ -99,7 +99,7 @@
 																<label>Force Custom Colors</label>
 																<handler function="OnCustomColorCheckboxClick" entry="EVT_CHECKBOX" />
 															</object>
-															<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
 															<option>1</option>
 														</object>
@@ -134,6 +134,7 @@
 																<handler function="OnSingleNodeGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
 																<handler function="OnSingleNodeGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGED" />
 																<handler function="OnSingleNodeGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+																<handler function="OnSingleNodeGridResize" entry="EVT_SIZE" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<option>1</option>
@@ -194,7 +195,7 @@
 														<object class="sizeritem">
 															<object class="wxGrid" name="ID_GRID3" variable="NodeRangeGrid" member="yes">
 																<cols>2</cols>
-																<rows>18</rows>
+																<rows>28</rows>
 																<labelrowheight>20</labelrowheight>
 																<labelcolwidth>150</labelcolwidth>
 																<defaultcolsize>200</defaultcolsize>
@@ -221,6 +222,16 @@
 																	<item>Eyes - Closed</item>
 																	<item>Eyes - Closed 2</item>
 																	<item>Eyes - Closed 3</item>
+																	<item>Mouth - AI 2</item>
+																	<item>Mouth - E 2</item>
+																	<item>Mouth - etc 2</item>
+																	<item>Mouth - FV 2</item>
+																	<item>Mouth - L 2</item>
+																	<item>Mouth - MBP 2</item>
+																	<item>Mouth - O 2</item>
+																	<item>Mouth - rest 2</item>
+																	<item>Mouth - U 2</item>
+																	<item>Mouth - WQ 2</item>
 																</rowlabels>
 																<minsize>-1,200d</minsize>
 																<handler function="OnNodeRangeGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
@@ -229,6 +240,7 @@
 																<handler function="OnNodeRangeGridLabelLeftDClick" entry="EVT_CMD_GRID_LABEL_LEFT_DCLICK" />
 																<handler function="OnNodeRangeGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGED" />
 																<handler function="OnNodeRangeGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+																<handler function="OnNodeRangeGridResize" entry="EVT_SIZE" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<option>1</option>
@@ -263,6 +275,7 @@
 														<object class="sizeritem">
 															<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
 																<cols>3</cols>
+																<growablecols>1</growablecols>
 																<object class="sizeritem">
 																	<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
 																		<label>Image Placement:</label>
@@ -282,7 +295,7 @@
 																		<selection>0</selection>
 																		<handler function="OnMatricImagePlacementChoiceSelect" entry="EVT_CHOICE" />
 																	</object>
-																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																	<flag>wxALL|wxEXPAND</flag>
 																	<border>5</border>
 																	<option>1</option>
 																</object>
@@ -296,7 +309,7 @@
 																	<option>1</option>
 																</object>
 															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
 															<option>1</option>
 														</object>
@@ -329,6 +342,7 @@
 																<handler function="OnMatrixModelsGridLabelLeftDClick" entry="EVT_CMD_GRID_LABEL_LEFT_DCLICK" />
 																<handler function="OnMatrixModelsGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGED" />
 																<handler function="OnMatrixModelsGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+																<handler function="OnMatrixModelsGridResize" entry="EVT_SIZE" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<option>1</option>

@@ -69,96 +69,87 @@ VendorMusicDialog::VendorMusicDialog(wxWindow* parent, wxWindowID id, const wxPo
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
 
-    Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxRESIZE_BORDER | wxCLOSE_BOX | wxMAXIMIZE_BOX, _T("id"));
-    SetClientSize(wxSize(800, 600));
+    Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
+    SetClientSize(wxSize(800,600));
     Move(wxDefaultPosition);
-    SetMinSize(wxSize(800, 400));
+    SetMinSize(wxSize(800,400));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
-    SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-    SplitterWindow1->SetMinSize(wxSize(10, 10));
+    SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
+    SplitterWindow1->SetMinimumPaneSize(10);
     SplitterWindow1->SetSashGravity(0.5);
     Panel3 = new wxPanel(SplitterWindow1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
     FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer2->AddGrowableCol(0);
     FlexGridSizer2->AddGrowableRow(0);
-    TreeCtrl_Navigator = new wxTreeCtrl(Panel3, ID_TREECTRL1, wxDefaultPosition, wxSize(200, -1), wxTR_FULL_ROW_HIGHLIGHT | wxTR_HIDE_ROOT | wxTR_ROW_LINES | wxTR_SINGLE | wxTR_DEFAULT_STYLE | wxVSCROLL | wxHSCROLL, wxDefaultValidator, _T("ID_TREECTRL1"));
-    FlexGridSizer2->Add(TreeCtrl_Navigator, 1, wxALL | wxEXPAND, 5);
+    TreeCtrl_Navigator = new wxTreeCtrl(Panel3, ID_TREECTRL1, wxDefaultPosition, wxSize(200,-1), wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_SINGLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_TREECTRL1"));
+    FlexGridSizer2->Add(TreeCtrl_Navigator, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer7->AddGrowableCol(0);
     TextCtrl_Search = new wxTextCtrl(Panel3, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
-    FlexGridSizer7->Add(TextCtrl_Search, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer7->Add(TextCtrl_Search, 1, wxALL|wxEXPAND, 5);
     Button_Search = new wxButton(Panel3, ID_BUTTON2, _("Search"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    FlexGridSizer7->Add(Button_Search, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(FlexGridSizer7, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer7->Add(Button_Search, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
     Panel3->SetSizer(FlexGridSizer2);
-    FlexGridSizer2->Fit(Panel3);
-    FlexGridSizer2->SetSizeHints(Panel3);
     Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer3->AddGrowableCol(0);
     FlexGridSizer3->AddGrowableRow(0);
     NotebookPanels = new wxNotebook(Panel1, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
-    PanelVendor = new wxPanel(NotebookPanels, ID_PANEL2, wxPoint(43, 60), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+    PanelVendor = new wxPanel(NotebookPanels, ID_PANEL2, wxPoint(43,60), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer4->AddGrowableCol(0);
     FlexGridSizer4->AddGrowableRow(1);
-    StaticBitmap_VendorImage = new wxStaticBitmap(PanelVendor, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(256, 128), wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
-    StaticBitmap_VendorImage->SetMinSize(wxSize(256, 128));
-    FlexGridSizer4->Add(StaticBitmap_VendorImage, 1, wxALL | wxEXPAND, 5);
-    TextCtrl_VendorDetails = new wxTextCtrl(PanelVendor, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY | wxTE_LEFT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-    FlexGridSizer4->Add(TextCtrl_VendorDetails, 1, wxALL | wxEXPAND, 5);
+    StaticBitmap_VendorImage = new wxStaticBitmap(PanelVendor, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(256,128), 0, _T("ID_STATICBITMAP1"));
+    StaticBitmap_VendorImage->SetMinSize(wxSize(256,128));
+    FlexGridSizer4->Add(StaticBitmap_VendorImage, 1, wxALL|wxEXPAND, 5);
+    TextCtrl_VendorDetails = new wxTextCtrl(PanelVendor, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+    FlexGridSizer4->Add(TextCtrl_VendorDetails, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer5->AddGrowableCol(1);
     FlexGridSizer5->AddGrowableRow(0);
     StaticText6 = new wxStaticText(PanelVendor, ID_STATICTEXT8, _("Facebook:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-    FlexGridSizer5->Add(StaticText6, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-    HyperlinkCtrl_Facebook = new wxHyperlinkCtrl(PanelVendor, ID_HYPERLINKCTRL4, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU | wxHL_ALIGN_LEFT | wxNO_BORDER, _T("ID_HYPERLINKCTRL4"));
-    FlexGridSizer5->Add(HyperlinkCtrl_Facebook, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer5->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    HyperlinkCtrl_Facebook = new wxHyperlinkCtrl(PanelVendor, ID_HYPERLINKCTRL4, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxBORDER_NONE, _T("ID_HYPERLINKCTRL4"));
+    FlexGridSizer5->Add(HyperlinkCtrl_Facebook, 1, wxALL|wxEXPAND, 5);
     StaticText2 = new wxStaticText(PanelVendor, ID_STATICTEXT4, _("Website:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-    FlexGridSizer5->Add(StaticText2, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-    HyperlinkCtrl_Website = new wxHyperlinkCtrl(PanelVendor, ID_HYPERLINKCTRL2, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU | wxHL_ALIGN_LEFT | wxNO_BORDER, _T("ID_HYPERLINKCTRL2"));
-    FlexGridSizer5->Add(HyperlinkCtrl_Website, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer5->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    HyperlinkCtrl_Website = new wxHyperlinkCtrl(PanelVendor, ID_HYPERLINKCTRL2, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxBORDER_NONE, _T("ID_HYPERLINKCTRL2"));
+    FlexGridSizer5->Add(HyperlinkCtrl_Website, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
     PanelVendor->SetSizer(FlexGridSizer4);
-    FlexGridSizer4->Fit(PanelVendor);
-    FlexGridSizer4->SetSizeHints(PanelVendor);
-    Panel_Item = new wxPanel(NotebookPanels, ID_PANEL4, wxPoint(41, 9), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+    Panel_Item = new wxPanel(NotebookPanels, ID_PANEL4, wxPoint(41,9), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
     FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer6->AddGrowableCol(0);
     FlexGridSizer6->AddGrowableRow(0);
-    TextCtrl_ModelDetails = new wxTextCtrl(Panel_Item, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY | wxTE_LEFT, wxDefaultValidator, _T("ID_TEXTCTRL2"));
-    FlexGridSizer6->Add(TextCtrl_ModelDetails, 1, wxALL | wxEXPAND, 5);
+    TextCtrl_ModelDetails = new wxTextCtrl(Panel_Item, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+    FlexGridSizer6->Add(TextCtrl_ModelDetails, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer8->AddGrowableCol(1);
     StaticText1 = new wxStaticText(Panel_Item, ID_STATICTEXT1, _("Video:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer8->Add(StaticText1, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-    HyperlinkCtrl_VideoLink = new wxHyperlinkCtrl(Panel_Item, ID_HYPERLINKCTRL1, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU | wxHL_ALIGN_LEFT | wxNO_BORDER, _T("ID_HYPERLINKCTRL1"));
-    FlexGridSizer8->Add(HyperlinkCtrl_VideoLink, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer8->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    HyperlinkCtrl_VideoLink = new wxHyperlinkCtrl(Panel_Item, ID_HYPERLINKCTRL1, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxBORDER_NONE, _T("ID_HYPERLINKCTRL1"));
+    FlexGridSizer8->Add(HyperlinkCtrl_VideoLink, 1, wxALL|wxEXPAND, 5);
     StaticText5 = new wxStaticText(Panel_Item, ID_STATICTEXT7, _("Web Link:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-    FlexGridSizer8->Add(StaticText5, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-    HyperlinkCtrl_WebLink = new wxHyperlinkCtrl(Panel_Item, ID_HYPERLINKCTRL3, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU | wxHL_ALIGN_LEFT | wxNO_BORDER, _T("ID_HYPERLINKCTRL3"));
-    FlexGridSizer8->Add(HyperlinkCtrl_WebLink, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer8->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    HyperlinkCtrl_WebLink = new wxHyperlinkCtrl(Panel_Item, ID_HYPERLINKCTRL3, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxBORDER_NONE, _T("ID_HYPERLINKCTRL3"));
+    FlexGridSizer8->Add(HyperlinkCtrl_WebLink, 1, wxALL|wxEXPAND, 5);
     StaticText3 = new wxStaticText(Panel_Item, ID_STATICTEXT2, _("Music Link:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer8->Add(StaticText3, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-    HyperlinkCtrl_MusicLink = new wxHyperlinkCtrl(Panel_Item, ID_HYPERLINKCTRL5, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU | wxHL_ALIGN_LEFT | wxNO_BORDER, _T("ID_HYPERLINKCTRL5"));
-    FlexGridSizer8->Add(HyperlinkCtrl_MusicLink, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer6->Add(FlexGridSizer8, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer8->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    HyperlinkCtrl_MusicLink = new wxHyperlinkCtrl(Panel_Item, ID_HYPERLINKCTRL5, _("https://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxBORDER_NONE, _T("ID_HYPERLINKCTRL5"));
+    FlexGridSizer8->Add(HyperlinkCtrl_MusicLink, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer6->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
     Button_Download = new wxButton(Panel_Item, ID_BUTTON1, _("Download"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer6->Add(Button_Download, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel_Item->SetSizer(FlexGridSizer6);
-    FlexGridSizer6->Fit(Panel_Item);
-    FlexGridSizer6->SetSizeHints(Panel_Item);
     NotebookPanels->AddPage(PanelVendor, _("Vendor"), false);
     NotebookPanels->AddPage(Panel_Item, _("Item"), false);
-    FlexGridSizer3->Add(NotebookPanels, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer3->Add(NotebookPanels, 1, wxALL|wxEXPAND, 5);
     Panel1->SetSizer(FlexGridSizer3);
-    FlexGridSizer3->Fit(Panel1);
-    FlexGridSizer3->SetSizeHints(Panel1);
     SplitterWindow1->SplitVertically(Panel3, Panel1);
-    FlexGridSizer1->Add(SplitterWindow1, 1, wxALL | wxEXPAND, 5);
-    SetSizer(FlexGridSizer1);
+    FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
     SetSizer(FlexGridSizer1);
     Layout();
 
@@ -656,8 +647,6 @@ void VendorMusicDialog::OnTextCtrl_SearchText(wxCommandEvent& event)
 
 void VendorMusicDialog::OnButton_SearchClick(wxCommandEvent& event)
 {
-    wxString searchFor = TextCtrl_Search->GetValue().Lower();
-
     // cant search if tree is empty
     if (TreeCtrl_Navigator->GetChildrenCount(TreeCtrl_Navigator->GetRootItem()) == 0) {
         wxBell();
@@ -712,6 +701,20 @@ void VendorMusicDialog::OnButton_SearchClick(wxCommandEvent& event)
                 return;
             }
 
+            wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(current);
+            if (tid != nullptr) {
+                if (((MSLVendorBaseTreeItemData*)tid)->GetType() == "SequenceLyric") {
+                    auto doc = ((MSLSequenceLyricTreeItemData*)tid)->GetSequenceLyric();
+                    if (((wxString)doc->_creator).Lower().Contains(TextCtrl_Search->GetValue().Lower())) {
+                        TreeCtrl_Navigator->SelectItem(current);
+                        TreeCtrl_Navigator->EnsureVisible(current);
+                        if (current == start) {
+                            wxBell();
+                        }
+                        return;
+                    }
+                }
+            }
         } while (current != start);
         wxBell();
     }

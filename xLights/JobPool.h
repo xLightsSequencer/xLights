@@ -51,10 +51,11 @@ protected:
     
 public:
     JobPool(const std::string &threadNameBase);
+    JobPool(const std::string &threadNameBase, int minThreads, int maxThreads);
     virtual ~JobPool();
     
     void PushJob(Job *job);
-    void PushJobs(std::list<Job *> jobs);
+    void PushJobs(const std::list<Job *> &jobs);
     int size() const { return (int)threads.size(); }
     int maxSize() const { return maxNumThreads; }
     virtual void Start(size_t poolSize = 1, size_t minPoolSize = 0);
@@ -63,6 +64,7 @@ public:
 
     virtual std::string GetThreadStatus();
     
+    bool isEmpty() const;
 private:
     friend class JobPoolWorker;
     void RemoveWorker(JobPoolWorker*);

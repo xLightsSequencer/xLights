@@ -15,8 +15,10 @@
 class wxChoice;
 class wxFlexGridSizer;
 class wxRadioButton;
+class wxSlider;
 class wxStaticBoxSizer;
 class wxStaticText;
+class wxTextCtrl;
 //*)
 
 class StateEffect;
@@ -42,28 +44,34 @@ class StatePanel: public xlEffectPanel
 		BulkEditChoice* Choice_State_Color;
 		BulkEditChoice* Choice_State_Mode;
 		BulkEditChoice* Choice_State_TimingTrack;
+		BulkEditSlider* SLIDER_State_Fade_Time;
 		BulkEditStateChoice* Choice_StateDefinitonChoice;
+		BulkEditTextCtrl* TextCtrl_State_Fade_Time;
 		wxChoice* Choice_State_State;
 		wxRadioButton* RadioButton1;
 		wxRadioButton* RadioButton2;
 		wxStaticText* StaticText14;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		//*)
 
 	protected:
 
 		//(*Identifiers(StatePanel)
-		static const long ID_STATICTEXT15;
-		static const long ID_CHOICE_State_StateDefinition;
-		static const long IDD_RADIOBUTTON_State_State;
-		static const long ID_CHOICE_State_State;
-		static const long IDD_RADIOBUTTON_State_TimingTrack;
-		static const long ID_CHOICE_State_TimingTrack;
-		static const long ID_STATICTEXT_State_Mode;
-		static const long ID_CHOICE_State_Mode;
-		static const long ID_STATICTEXT_State_Color;
-		static const long ID_CHOICE_State_Color;
+		static const wxWindowID ID_STATICTEXT15;
+		static const wxWindowID ID_CHOICE_State_StateDefinition;
+		static const wxWindowID IDD_RADIOBUTTON_State_State;
+		static const wxWindowID ID_CHOICE_State_State;
+		static const wxWindowID IDD_RADIOBUTTON_State_TimingTrack;
+		static const wxWindowID ID_CHOICE_State_TimingTrack;
+		static const wxWindowID ID_STATICTEXT_State_Mode;
+		static const wxWindowID ID_CHOICE_State_Mode;
+		static const wxWindowID ID_STATICTEXT_State_Color;
+		static const wxWindowID ID_CHOICE_State_Color;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_SLIDER_State_Fade_Time;
+		static const wxWindowID IDD_TEXTCTRL_State_Fade_Time;
 		//*)
 
 	public:

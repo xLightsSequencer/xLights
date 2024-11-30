@@ -674,9 +674,10 @@ void BufferPanel::UpdateCamera(const Model* model)
             Choice_PerPreviewCamera->SetStringSelection(mg->GetDefaultCamera());
             _defaultCamera = mg->GetDefaultCamera();
         }
+        _mg = (model->GetDisplayAs() == "ModelGroup");
+    } else {
+        _mg = false;
     }
-
-    _mg = (model->GetDisplayAs() == "ModelGroup");
 }
 
 void BufferPanel::UpdateBufferStyles(const Model* model)
@@ -688,13 +689,17 @@ void BufferPanel::UpdateBufferStyles(const Model* model)
         for (const auto& it : types) {
             BufferStyleChoice->Append(it);
         }
+        _mg = (model->GetDisplayAs() == "ModelGroup");
+        sel = model->AdjustBufferStyle(sel);
+    } else {
+        _mg = false;
     }
     if (BufferStyleChoice->IsEmpty()) {
         BufferStyleChoice->Append("Default");
+        BufferStyleChoice->Append("Per Preview");
+        BufferStyleChoice->Append("As Pixel");
     }
     BufferStyleChoice->SetStringSelection(sel);
-
-    _mg = (model->GetDisplayAs() == "ModelGroup");
 }
 
 void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
@@ -711,6 +716,8 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
         }
         if (BufferStyleChoice->IsEmpty()) {
             BufferStyleChoice->Append("Default");
+            BufferStyleChoice->Append("Per Preview");
+            BufferStyleChoice->Append("As Pixel");
         }
 
         Choice_PerPreviewCamera->SetStringSelection("2D");
@@ -794,13 +801,9 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
 void BufferPanel::ValidateWindow()
 {
     auto bs = BufferStyleChoice->GetStringSelection();
-    if (bs == "Per Preview" ||
-        bs == "Per Model Per Preview")
-    {
+    if (bs == "Per Preview" || bs == "Per Model Per Preview") {
         Choice_PerPreviewCamera->Enable();
-    }
-    else
-    {
+    } else {
         Choice_PerPreviewCamera->Disable();
     }
 
@@ -814,77 +817,56 @@ void BufferPanel::ValidateWindow()
         //|| bs == "Vertical Per Model"
         //|| bs == "Horizontal Per Model/Strand"
         //|| bs == "Vertical Per Model/Strand"
-        ))
-    {
+         )) {
         SpinCtrl_BufferStagger->Enable();
-    }
-    else
-    {
+    } else {
         SpinCtrl_BufferStagger->Disable();
     }
 
-    if (BitmapButton_Blur->GetValue()->IsActive())
-    {
+    if (BitmapButton_Blur->GetValue()->IsActive()) {
         Slider_EffectBlur->Disable();
         TextCtrl_EffectBlur->Disable();
-    }
-    else
-    {
+    } else {
         Slider_EffectBlur->Enable();
         TextCtrl_EffectBlur->Enable();
     }
 
-    if (BitmapButton_VCRotation->GetValue()->IsActive())
-    {
+    if (BitmapButton_VCRotation->GetValue()->IsActive()) {
         Slider_Rotation->Disable();
         TextCtrl_Rotation->Disable();
-    }
-    else
-    {
+    } else {
         Slider_Rotation->Enable();
         TextCtrl_Rotation->Enable();
     }
 
-    if (BitmapButton_VCZoom->GetValue()->IsActive())
-    {
+    if (BitmapButton_VCZoom->GetValue()->IsActive()) {
         Slider_Zoom->Disable();
         TextCtrl_Zoom->Disable();
-    }
-    else
-    {
+    } else {
         Slider_Zoom->Enable();
         TextCtrl_Zoom->Enable();
     }
 
-    if (BitmapButton_VCRotations->GetValue()->IsActive())
-    {
+    if (BitmapButton_VCRotations->GetValue()->IsActive()) {
         Slider_Rotations->Disable();
         TextCtrl_Rotations->Disable();
-    }
-    else
-    {
+    } else {
         Slider_Rotations->Enable();
         TextCtrl_Rotations->Enable();
     }
 
-    if (BitmapButton_VCPivotPointX->GetValue()->IsActive())
-    {
+    if (BitmapButton_VCPivotPointX->GetValue()->IsActive()) {
         Slider_PivotPointX->Disable();
         TextCtrl_PivotPointX->Disable();
-    }
-    else
-    {
+    } else {
         Slider_PivotPointX->Enable();
         TextCtrl_PivotPointX->Enable();
     }
 
-    if (BitmapButton_VCPivotPointY->GetValue()->IsActive())
-    {
+    if (BitmapButton_VCPivotPointY->GetValue()->IsActive()) {
         Slider_PivotPointY->Disable();
         TextCtrl_PivotPointY->Disable();
-    }
-    else
-    {
+    } else {
         Slider_PivotPointY->Enable();
         TextCtrl_PivotPointY->Enable();
     }

@@ -26,6 +26,9 @@
 
 #ifndef __XL_EXTERNAL_HOOKS__
 
+#include <string>
+#include <list>
+
 #include <functional>
 #include <wx/file.h>
 #include <wx/filename.h>
@@ -41,12 +44,10 @@
 #define DoInAppPurchases(w)
 #define WXGLUnsetCurrentContext()
 #define GetOSFormattedClipboardData() ""
-#define StartGraphicsSyncPoint()
-#define EndGraphicsSyncPoint()
 #define SetThreadQOS(a)
 
 inline double xlOSGetMainScreenContentScaleFactor() { return 1.0; }
-inline bool ObtainAccessToURL(const std::string &path) { return true; }
+inline bool ObtainAccessToURL(const std::string &path, bool enforceWritable = false) { return true; }
 inline bool IsFromAppStore() { return false; }
 inline void AdjustColorToDeviceColorspace(const wxColor& c, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a) { r = c.Red(); g = c.Green(); b = c.Blue(); a = c.Alpha();}
 inline bool IsMouseEventFromTouchpad() { return false; }
@@ -70,5 +71,8 @@ inline void SetButtonBackground(wxButton* b, const wxColour& c, int bgType)
     b->SetBackgroundColour(c);
     b->Refresh();
 }
+inline void MarkNewFileRevision(const std::string &path, int retainMax = 15) {}
+inline std::list<std::string> GetFileRevisions(const std::string &path) { return std::list<std::string>(); }
+inline std::string GetURLForRevision(const std::string &path, const std::string &rev) { return path; }
 
 #endif

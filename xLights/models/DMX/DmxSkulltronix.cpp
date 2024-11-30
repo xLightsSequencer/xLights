@@ -192,7 +192,7 @@ void DmxSkulltronix::AddTypeProperties(wxPropertyGridInterface* grid, OutputMana
     p->SetEditor("SpinCtrl");
 
     if (nullptr != color_ability) {
-        color_ability->AddColorTypeProperties(grid);
+        color_ability->AddColorTypeProperties(grid, false);
     }
 }
 
@@ -351,15 +351,17 @@ void DmxSkulltronix::InitModel()
     screenLocation.SetRenderSize(1, 1);
 
     color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+    pan_motor = std::make_unique<DmxMotorPanTilt>();
+    tilt_motor = std::make_unique<DmxMotorPanTilt>();
 
-    pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "13"));
-    pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "90"));
-    pan_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxPanDegOfRot", "180"));
-    pan_slew_limit = wxAtof(ModelXml->GetAttribute("DmxPanSlewLimit", "0"));
-    tilt_channel = wxAtoi(ModelXml->GetAttribute("DmxTiltChannel", "19"));
-    tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "315"));
-    tilt_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxTiltDegOfRot", "90"));
-    tilt_slew_limit = wxAtof(ModelXml->GetAttribute("DmxTiltSlewLimit", "0"));
+    pan_motor->channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "13"));
+    pan_motor->orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "90"));
+    pan_motor->deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxPanDegOfRot", "180"));
+    pan_motor->slew_limit = wxAtof(ModelXml->GetAttribute("DmxPanSlewLimit", "0"));
+    tilt_motor->channel = wxAtoi(ModelXml->GetAttribute("DmxTiltChannel", "19"));
+    tilt_motor->orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "315"));
+    tilt_motor->deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxTiltDegOfRot", "90"));
+    tilt_motor->slew_limit = wxAtof(ModelXml->GetAttribute("DmxTiltSlewLimit", "0"));
     tilt_min_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMinLimit", "442"));
     tilt_max_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMaxLimit", "836"));
     pan_min_limit = wxAtoi(ModelXml->GetAttribute("DmxPanMinLimit", "250"));
@@ -402,7 +404,7 @@ void DmxSkulltronix::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsConte
         boundingBox[4] = 0.5;
         boundingBox[5] = 0.5;
     }
-    sprogram->addStep([=](xlGraphicsContext* ctx) {
+    sprogram->addStep([=, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
@@ -410,7 +412,7 @@ void DmxSkulltronix::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsConte
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
-    tprogram->addStep([=](xlGraphicsContext* ctx) {
+    tprogram->addStep([=, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
@@ -1102,9 +1104,11 @@ void DmxSkulltronix::ExportXlightsModel()
     if (filename.IsEmpty())
         return;
     wxFile f(filename);
-    //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
@@ -1193,13 +1197,14 @@ void DmxSkulltronix::ExportXlightsModel()
     f.Close();
 }
 
-void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "dmxmodel") {
-        ImportBaseParameters(root);
+        if (!ImportBaseParameters(root))
+            return false;
 
         wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
 
         wxString pdr = root->GetAttribute("DmxPanDegOfRot");
         wxString tdr = root->GetAttribute("DmxTiltDegOfRot");
@@ -1282,7 +1287,10 @@ void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkulltronix::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading DmxSkulltronix model file.");
+        return false;
     }
 }

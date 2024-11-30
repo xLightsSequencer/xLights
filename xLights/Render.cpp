@@ -32,8 +32,6 @@
 
 #define END_OF_RENDER_FRAME INT_MAX
 
-//other common strings
-static const std::string STR_EMPTY("");
 
 class EffectLayerInfo {
 public:
@@ -548,13 +546,15 @@ public:
     }
 
     bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
-        wxStopWatch sw;
         bool effectsToUpdate = false;
         Effect* tempEffect = nullptr;
         int numLayers = el->GetEffectLayerCount();
 
+        std::vector<bool> partOfCanvas;
+        partOfCanvas.resize(info.validLayers.size());
         for (int x = 0; x < info.validLayers.size(); x++) {
             info.validLayers[x] = false;
+            partOfCanvas[x] = false;
         }
 
         // To support canvas mix type we must render them bottom to top
@@ -652,25 +652,38 @@ public:
 
             if (!freeze) {
                 // Mix canvas pre-loads the buffer with data from underlying layers
-                if (buffer->IsCanvasMix(layer) && layer < numLayers - 1) {
+                if (buffer->IsCanvasMix(layer) && layer < numLayers - 1 && !buffer->IsRenderingDisabled(layer)) {
                     maybeWaitForFrame(frame);
 
                     auto vl = info.validLayers;
+                    bool doBlendLayer = false;
                     if (info.settingsMaps[layer].Get("LayersSelected", "") != "") {
                         // remove from valid layers any layers we dont need to include
-                        wxArrayString ls = wxSplit(info.settingsMaps[layer].Get("LayersSelected", ""), '|');
+                        std::vector<std::string> ls;
+                        Split(info.settingsMaps[layer].Get("LayersSelected", ""), '|', ls);
+                        if (!ls.empty() && ls.back() == "Blend") {
+                            doBlendLayer = true;
+                            ls.pop_back();
+                        }
                         for (int i = layer + 1; i < vl.size(); i++) {
                             if (vl[i]) {
                                 bool found = false;
                                 for (auto it = ls.begin(); !found && it != ls.end(); ++it) {
-                                    if (wxAtoi(*it) + layer + 1 == i) {
+                                    if (std::atoi((*it).c_str()) + layer + 1 == i) {
                                         found = true;
                                     }
                                 }
                                 if (!found) {
                                     vl[i] = false;
+                                } else {
+                                    partOfCanvas[i] = true;
                                 }
                             }
+                        }
+                        if (doBlendLayer) {
+                            buffer->SetColors(numLayers, &((*seqData)[frame][0]));
+                            vl[numLayers] = true;
+                            blend = false;
                         }
                     }
 
@@ -678,9 +691,17 @@ public:
                     RenderBuffer& rb = buffer->BufferForLayer(layer, -1);
 
                     // I have to calc the output here to apply blend, rotozoom and transitions
-                    buffer->CalcOutput(frame, vl, layer);
+                    buffer->CalcOutput(frame, vl, layer, true);
                     std::vector<uint8_t> done(rb.GetPixelCount());
-                    rb.CopyNodeColorsToPixels(done);
+                    parallel_for(0, rb.GetNodes().size(), [&](int n) {
+                        for (auto &a : rb.GetNodes()[n]->Coords) {
+                            int x = a.bufX;
+                            int y = a.bufY;
+                            if (x >= 0 && x < rb.BufferWi && y >= 0 && y < rb.BufferHt && y*rb.BufferWi + x < rb.GetPixelCount()) {
+                                done[y*rb.BufferWi+x] = true;
+                            }
+                        }
+                    }, 500);
                     // now fill in any spaces in the buffer that don't have nodes mapped to them
                     parallel_for(0, rb.BufferHt, [&rb, &buffer, &done, &vl, frame](int y) {
                         xlColor c;
@@ -700,8 +721,9 @@ public:
 
                 if (suppress) {
                     info.validLayers[layer] = false;
-                } else {
+                } else if (info.validLayers[layer]) {
                     buffer->HandleLayerBlurZoom(frame, layer);
+                    buffer->HandleLayerTransitions(frame, layer);
                 }
             } else {
                 info.validLayers[layer] = true;
@@ -713,17 +735,19 @@ public:
         if (effectsToUpdate) {
             maybeWaitForFrame(frame);
             SetCalOutputStatus(frame, info.submodel, strand, -1);
+            for (int x = 0; x < partOfCanvas.size(); x++) {
+                // if the layer was used for a canvas effect, we don't want it
+                // reblended in
+                if (partOfCanvas[x]) {
+                    info.validLayers[x] = false;
+                }
+            }
             if (blend) {
                 buffer->SetColors(numLayers, &((*seqData)[frame][0]));
                 info.validLayers[numLayers] = true;
             }
             buffer->CalcOutput(frame, info.validLayers);
             buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
-        }
-
-        if (sw.Time() > 500) {
-            RenderBuffer& b = buffer->BufferForLayer(0, -1);
-            renderLog.info("*** Frame #%d at %dms render on model %s (%dx%d) took more than 1/2s => %dms.", frame, frame * b.frameTimeInMs, (const char *)el->GetName().c_str(), b.BufferWi, b.BufferHt, sw.Time());
         }
 
         if (tempEffect != nullptr)
@@ -875,6 +899,8 @@ public:
                         SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, -1, strand, inode, cleared);
                         if (xLights->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
                             SetCalOutputStatus(frame, -1, strand, inode);
+                            buffer->HandleLayerBlurZoom(frame, 0);
+                            buffer->HandleLayerTransitions(frame, 0);
                             //copy to output
                             std::vector<bool> valid(2, true);
                             buffer->SetColors(1, &((*seqData)[frame][0]));
@@ -930,14 +956,20 @@ public:
 private:
 
     void initialize(int layer, int frame, Effect *el, SettingsMap &settingsMap, PixelBufferClass *buffer) {
+        bool layerEnabled = true;
         if (el == nullptr || el->GetEffectIndex() == -1) {
             settingsMap.clear();
+            layerEnabled = false;
         } else {
+            auto e = el->GetParentEffectLayer()->GetParentElement();
+            if (e != nullptr) {
+                layerEnabled = !e->IsRenderDisabled();
+            }
             loadSettingsMap(el->GetEffectName(),
                             el,
                             settingsMap);
         }
-        buffer->SetLayerSettings(layer, settingsMap);
+        buffer->SetLayerSettings(layer, settingsMap, layerEnabled);
         if (el != nullptr) {
             xlColorVector newcolors;
             xlColorCurveVector newcc;
@@ -1972,26 +2004,22 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     int cpn = job->getBuffer()->GetChanCountPerNode();
 
     if (doRender) {
-        // always render the whole model
-        job->setRenderRange(0, _seqData.NumFrames());
-        job->setPreviousFrameDone(END_OF_RENDER_FRAME);
-        job->addNext(&wait);
-        jobPool.PushJob(job);
-        //wait to complete
-        while (!wait.checkIfDone(_seqData.NumFrames())) {
+        RenderAll();
+        // Render all to capture any effects at the group levels
+        // wait to complete
+        while (mRendering) {
             wxYield();
         }
-    } else {
-        Model* m2 = GetModel(model);
-        for (size_t frame = 0; frame < _seqData.NumFrames(); ++frame) {
-            for (size_t x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
-                //chan in main buffer
-                int ostart = m2->NodeStartChannel(x);
-                int nstart = job->getBuffer()->NodeStartChannel(x);
-                //copy to render buffer for export
-                job->getBuffer()->SetNodeChannelValues(x, &_seqData[frame][ostart]);
-                job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
-            }
+    }
+    Model* m2 = GetModel(model);
+    for (size_t frame = 0; frame < _seqData.NumFrames(); ++frame) {
+        for (size_t x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
+            //chan in main buffer
+            int ostart = m2->NodeStartChannel(x);
+            int nstart = job->getBuffer()->NodeStartChannel(x);
+            //copy to render buffer for export
+            job->getBuffer()->SetNodeChannelValues(x, &_seqData[frame][ostart]);
+            job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
         }
     }
     delete job;
@@ -2100,8 +2128,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
 
     // dont render disabled effects
     if (effectObj == nullptr) return false;
-    if (effectObj->IsRenderDisabled()) return false;
-
+    
     if (layer >= buffer.GetLayerCount()) {
         logger_base.error("Model %s Effect %s at frame %d tried to render on a layer %d that does not exist (Only %d found).",
             (const char*)buffer.GetModel()->GetName().c_str(), (const char*)effectObj->GetEffectName().c_str(), period, layer + 1, buffer.GetLayerCount());
@@ -2109,6 +2136,10 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
         return false;
     }
 
+    if (buffer.IsRenderingDisabled(layer)) {
+        return false;
+    }
+    
     if (buffer.BufferForLayer(layer, -1).BufferHt == 0 || buffer.BufferForLayer(layer, -1).BufferWi == 0) {
         return false;
     }
@@ -2227,7 +2258,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                             }
 
                             wxStopWatch sw;
-                            if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap)) {
+                            if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap) && _renderCache.IsEnabled()) {
                                 if (!effectObj->GetFrame(*rb, _renderCache)) {
                                     reff->Render(effectObj, SettingsMap, *rb);
                                     GPURenderUtils::waitForRenderCompletion(rb);

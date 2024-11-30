@@ -52,6 +52,7 @@
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsVersion.h"
 #include "../xLightsXmlFile.h"
+#include "XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 
@@ -103,6 +104,8 @@ static const std::string SINGLE_LINE("Single Line");
 static const std::string AS_PIXEL("As Pixel");
 static const std::string VERT_PER_STRAND("Vertical Per Strand");
 static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");
+static const std::string HORIZ_PER_MODELSTRAND("Horizontal Per Model/Strand");
+static const std::string VERT_PER_MODELSTRAND("Vertical Per Model/Strand");
 
 static const std::string PER_PREVIEW_NO_OFFSET("Per Preview No Offset");
 
@@ -127,14 +130,15 @@ static void clearUnusedProtocolProperties(wxXmlNode* node)
     }
     if (!isDMX) {
         node->DeleteAttribute("channel");
+        node->DeleteAttribute("Speed");
     }
 }
 
 static const std::string EFFECT_PREVIEW_CACHE("ModelPreviewEffectCache");
-static const std::string MODEL_PREVIEW_CACHE_2D("ModelPreviewCache3D");
-static const std::string MODEL_PREVIEW_CACHE_3D("ModelPreviewCache2D");
-static const std::string LAYOUT_PREVIEW_CACHE_2D("LayoutPreviewCache3D");
-static const std::string LAYOUT_PREVIEW_CACHE_3D("LayoutPreviewCache2D");
+static const std::string MODEL_PREVIEW_CACHE_2D("ModelPreviewCache2D");
+static const std::string MODEL_PREVIEW_CACHE_3D("ModelPreviewCache3D");
+static const std::string LAYOUT_PREVIEW_CACHE_2D("LayoutPreviewCache2D");
+static const std::string LAYOUT_PREVIEW_CACHE_3D("LayoutPreviewCache3D");
 
 Model::Model(const ModelManager& manager) :
     modelManager(manager)
@@ -195,10 +199,9 @@ public:
                               wxPGProperty* WXUNUSED(property)) override
     {
         ModelFaceDialog dlg(propGrid, _outputManager);
-        dlg.SetFaceInfo(m_model, m_model->faceInfo);
+        dlg.SetFaceInfo(m_model, m_model->GetFaceInfo());
         if (dlg.ShowModal() == wxID_OK) {
-            m_model->faceInfo.clear();
-            dlg.GetFaceInfo(m_model->faceInfo);
+            m_model->SetFaceInfo(dlg.GetFaceInfo());
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
@@ -245,10 +248,9 @@ public:
                               wxPGProperty* WXUNUSED(property)) override
     {
         ModelStateDialog dlg(propGrid, _outputManager);
-        dlg.SetStateInfo(m_model, m_model->stateInfo);
+        dlg.SetStateInfo(m_model, m_model->GetStateInfo());
         if (dlg.ShowModal() == wxID_OK) {
-            m_model->stateInfo.clear();
-            dlg.GetStateInfo(m_model->stateInfo);
+            m_model->SetStateInfo(dlg.GetStateInfo());
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
@@ -547,11 +549,17 @@ void Model::Rename(std::string const& newName)
     name = Trim(newName);
     ModelXml->DeleteAttribute("name");
     ModelXml->AddAttribute("name", name);
-
-    if (oldname != "") {
+    bool shouldPrompt = modelManager.GetXLightsFrame()->GetRenameModelAliasPromptBehavior() == "Always Prompt" &&
+        oldname != modelManager.GetLastGeneratedModelName() ;
+    
+    if (oldname != "" && newName != "Iamgoingtodeletethismodel" && shouldPrompt ) {
         if (wxMessageBox("Would you like to save the old name as an alias for this prop. This could be useful if you have sequences already sequenced against this prop using the old name.", "Save old name as alias", wxYES_NO | wxICON_QUESTION, GetModelManager().GetXLightsFrame()) == wxYES) {
             AddAlias("oldname:" + oldname);
         }
+    }
+    
+    if( modelManager.GetXLightsFrame()->GetRenameModelAliasPromptBehavior() == "Always Yes" ) {
+        AddAlias("oldname:" + oldname);
     }
 }
 
@@ -719,13 +727,11 @@ Controller* Model::GetController() const
 
 bool Model::IsAlias(const std::string& alias, bool oldnameOnly) const
 {
-    for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
-        if (x->GetName() == "Aliases") {
-            for (auto xx = x->GetChildren(); xx != nullptr; xx = xx->GetNext()) {
-                if ((!oldnameOnly && Lower(alias) == xx->GetAttribute("name").Lower()) || Lower("oldname:" + alias) == xx->GetAttribute("name").Lower()) {
-                    return true;
-                }
-            }
+    std::string lowAlias = Lower(alias);
+    std::string oldLowAlias = Lower("oldname:" + alias);
+    for (auto &a : GetAliases()) {
+        if ((!oldnameOnly && lowAlias == a) || oldLowAlias == a) {
+            return true;
         }
     }
     return false;
@@ -736,37 +742,41 @@ void Model::AddAlias(const std::string& alias)
     if (IsAlias(alias))
         return;
 
+    std::string lAlias = ::Lower(alias);
     // a model name cant be its own alias
-    if (Lower(alias) == Lower(Name()))
+    if (lAlias == Lower(Name()))
         return;
 
     for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
         if (x->GetName() == "Aliases") {
             auto n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
-            n->AddAttribute("name", Lower(alias));
+            n->AddAttribute("name", lAlias);
             x->AddChild(n);
             IncrementChangeCount();
+            aliases.emplace_back(lAlias);
             return;
         }
     }
-    auto aliases = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "Aliases");
+    auto aliasNode = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "Aliases");
     auto n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
-    n->AddAttribute("name", Lower(alias));
-    aliases->AddChild(n);
+    n->AddAttribute("name", lAlias);
+    aliasNode->AddChild(n);
+    aliases.emplace_back(lAlias);
     IncrementChangeCount();
-
-    ModelXml->AddChild(aliases);
+    ModelXml->AddChild(aliasNode);
 }
 
 void Model::DeleteAlias(const std::string& alias)
 {
+    std::string lAlias = ::Lower(alias);
     while (IsAlias(alias)) { // while should not be required ... but just in case it ever ends up there more than once
         for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
             if (x->GetName() == "Aliases") {
                 for (auto xx = x->GetChildren(); xx != nullptr; xx = xx->GetNext()) {
-                    if (Lower(alias) == xx->GetContent().Lower()) {
+                    if (lAlias == xx->GetContent().Lower()) {
                         x->RemoveChild(xx);
                         IncrementChangeCount();
+                        aliases.clear(); //will reload next get
                         return;
                     }
                 }
@@ -775,25 +785,24 @@ void Model::DeleteAlias(const std::string& alias)
     }
 }
 
-std::list<std::string> Model::GetAliases() const
+const std::list<std::string> &Model::GetAliases() const
 {
-    std::list<std::string> aliases;
-
-    for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
-        if (x->GetName() == "Aliases") {
-            for (auto xx = x->GetChildren(); xx != nullptr; xx = xx->GetNext()) {
-                aliases.push_back(xx->GetAttribute("name"));
+    if (aliases.empty()) {
+        for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
+            if (x->GetName() == "Aliases") {
+                for (auto xx = x->GetChildren(); xx != nullptr; xx = xx->GetNext()) {
+                    aliases.emplace_back(Lower(xx->GetAttribute("name").ToStdString()));
+                }
             }
         }
     }
-
     return aliases;
 }
 
-void Model::SetAliases(std::list<std::string>& aliases)
+void Model::SetAliases(const std::list<std::string>& aliases)
 {
     AddAlias("dummy"); // this ensures the owning element exists
-
+    this->aliases.clear();
     for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
         if (x->GetName() == "Aliases") {
             while (x->GetChildren() != nullptr)
@@ -803,6 +812,7 @@ void Model::SetAliases(std::list<std::string>& aliases)
                 auto n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
                 n->AddAttribute("name", Lower(it));
                 x->AddChild(n);
+                this->aliases.emplace_back(::Lower(it));
             }
         }
     }
@@ -954,7 +964,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         p = grid->Append(new wxStringProperty("In Model Groups", "MGS", mgs));
         p->SetHelpString(mgscr);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPG_PROP_READONLY, true);
+        p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
     }
 
     AddControllerProperties(grid);
@@ -1008,22 +1018,28 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
 
     p = grid->Append(new wxPropertyCategory("Appearance", "ModelAppearance"));
     sp = grid->AppendIn(p, new wxBoolProperty("Active", "Active", IsActive()));
+    sp->SetHelpString("If unchecked the model will not be shown in the layout screen.");
     sp->SetAttribute("UseCheckbox", true);
     sp = grid->AppendIn(p, new wxUIntProperty("Pixel Size", "ModelPixelSize", pixelSize));
     sp->SetAttribute("Min", 1);
     sp->SetAttribute("Max", 300);
     sp->SetEditor("SpinCtrl");
+    sp->SetHelpString("By increasing the pixel size, the appearance of the element can be made to display a bigger size.");
 
-    grid->AppendIn(p, new wxEnumProperty("Pixel Style", "ModelPixelStyle", PIXEL_STYLES, wxArrayInt(), (int)_pixelStyle));
+    sp = grid->AppendIn(p, new wxEnumProperty("Pixel Style", "ModelPixelStyle", PIXEL_STYLES, wxArrayInt(), (int)_pixelStyle));
+    sp->SetHelpString("A visual representation of a pixel.");
     sp = grid->AppendIn(p, new wxUIntProperty("Transparency", "ModelPixelTransparency", transparency));
+    sp->SetHelpString("Adjust how opaque the element is on the display.");
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 100);
     sp->SetEditor("SpinCtrl");
     sp = grid->AppendIn(p, new wxUIntProperty("Black Transparency", "ModelPixelBlackTransparency", blackTransparency));
+    sp->SetHelpString("Adjust how transparent the element is on the display.");
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 100);
     sp->SetEditor("SpinCtrl");
-    grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", modelTagColour));
+    sp = grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", modelTagColour));
+    sp->SetHelpString("A visual color assigned to the model in the model list.");
     UpdateControllerProperties(grid);
     DisableUnusedProperties(grid);
 
@@ -1045,7 +1061,43 @@ void Model::ClearIndividualStartChannels()
     wxASSERT(!ModelXml->HasAttribute(StartChanAttrName(MOST_STRINGS_WE_EXPECT))); // if this fires then # is not the right magic number
 }
 
-void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
+void Model::GetSerialProtocolSpeeds(const std::string& protocol, wxArrayString& cs, int& idxs) const {
+    if (protocol == "dmx" || Contains(protocol, "DMX")) {
+        cs.push_back("250000");
+    } else if (protocol == "renard" || protocol == "Renard") {
+        cs.push_back("19200");
+        cs.push_back("38400");
+        cs.push_back("57600");
+        cs.push_back("115200");
+    } else if (protocol == "lor" || protocol == "LOR") {
+        cs.push_back("19200");
+        cs.push_back("57600");
+        cs.push_back("115200");
+        cs.push_back("500000");
+        cs.push_back("1000000");
+    } else {
+        cs.push_back("19200");
+        cs.push_back("57600");
+        cs.push_back("115200");
+        cs.push_back("250000");
+        cs.push_back("500000");
+        cs.push_back("1000000");
+    }
+
+    int protocolSpeed = GetControllerProtocolSpeed();
+
+    // now work out the index
+    int i = 0;
+    for (const auto& it : cs) {
+        if (wxAtoi(it) == protocolSpeed) {
+            idxs = i;
+            break;
+        }
+        ++i;
+    }
+}
+
+void Model::GetControllerProtocols(wxArrayString& cp, int& idx) 
 {
     auto caps = GetControllerCaps();
     Controller* c = GetController();
@@ -1136,6 +1188,8 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
             sp->SetAttribute("Max", caps->GetMaxLEDPanelMatrixPort());
         } else if (IsVirtualMatrixProtocol()) {
             sp->SetAttribute("Max", caps->GetMaxVirtualMatrixPort());
+        } else if (IsPWMProtocol()) {
+            sp->SetAttribute("Max", caps->GetMaxPWMPort());
         } else {
             sp->SetAttribute("Max", MOST_CONTROLLER_PORTS_WE_EXPECT);
         }
@@ -1145,6 +1199,12 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
     wxArrayString cp;
     int idx = -1;
     GetControllerProtocols(cp, idx);
+
+    wxArrayString cs;
+    int idxs = -1;
+    if (idx >= 0 && idx < cp.size()) {
+        GetSerialProtocolSpeeds(cp[idx], cs, idxs);
+    }
 
     if (IsPixelProtocol()) {
         int smartRemoteCount = 15;
@@ -1170,7 +1230,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                     } else {
                         std::string type = GetSmartRemoteType();
                         auto smt = grid->AppendIn(p, new wxStringProperty("Smart Remote Type", "SmartRemoteType", type));
-                        smt->ChangeFlag(wxPG_PROP_READONLY, true);
+                        smt->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
                         smt->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
                     }
                 }
@@ -1211,6 +1271,30 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
             sp->SetAttribute("Max", caps->GetMaxSerialPortChannels());
         }
         sp->SetEditor("SpinCtrl");
+        if (cp[idx] != "dmx" || Contains(protocol, "DMX")) {
+            // non dmx protocols support speeds
+            sp = grid->AppendIn(p, new wxEnumProperty("Speed", "ModelControllerConnectionSpeed", cs, wxArrayInt(), idxs));
+            if (cs.size() == 1 && idxs == 0) {
+                grid->DisableProperty(sp);
+            }
+        }
+
+    } else if (IsPWMProtocol()) {
+        if (DisplayAs.rfind("Dmx", 0) != 0) { //DMX models handle this themselves
+            double gamma = wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
+            auto sp2 = grid->AppendIn(sp, new wxFloatProperty("Gamma", "ModelControllerConnectionPixelGamma", gamma));
+            sp2->SetAttribute("Min", 0.1);
+            sp2->SetAttribute("Max", 5.0);
+            sp2->SetAttribute("Precision", 1);
+            sp2->SetAttribute("Step", 0.1);
+            sp2->SetEditor("SpinCtrl");
+            
+            sp2 = grid->AppendIn(sp, new wxUIntProperty("Brightness", "ModelControllerConnectionPixelBrightness",
+                                                        wxAtoi(GetControllerConnection()->GetAttribute("brightness", "100"))));
+            sp2->SetAttribute("Min", 0);
+            sp2->SetAttribute("Max", 100);
+            sp2->SetEditor("SpinCtrl");
+        }
     } else if (IsPixelProtocol()) {
         if (caps == nullptr || caps->SupportsPixelPortNullPixels()) {
             sp = grid->AppendIn(p, new wxBoolProperty("Set Start Null Pixels", "ModelControllerConnectionPixelSetNullNodes", node->HasAttribute("nullNodes")));
@@ -1663,6 +1747,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
                         SetControllerProtocol("Virtual Matrix");
                     } else if (caps->SupportsLEDPanelMatrix()) {
                         SetControllerProtocol("LED Panel Matrix");
+                    } else if (caps->SupportsPWM()) {
+                        SetControllerProtocol("PWM");
                     }
                 }
                 protocolChanged = true;
@@ -1720,6 +1806,12 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         return 0;
     } else if (event.GetPropertyName() == "MaxCascadeRemotes") {
         SetSRMaxCascade(event.GetValue().GetLong());
+        return 0;
+    } else if (event.GetPropertyName() == "ModelControllerConnectionSpeed") {
+        int sel = -1;
+        wxArrayString cs;
+        GetSerialProtocolSpeeds(GetControllerProtocol() , cs, sel);
+        SetControllerSerialProtocolSpeed(wxAtoi(cs[event.GetValue().GetLong()]));
         return 0;
     } else if (event.GetPropertyName() == "SmartRemoteType") {
         SetSmartRemoteType(GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString())));
@@ -2262,8 +2354,7 @@ void Model::AdjustStringProperties(wxPropertyGridInterface* grid, int newNum)
     }
 }
 
-void Model::ParseFaceInfo(wxXmlNode* f, std::map<std::string, std::map<std::string, std::string>>& faceInfo)
-{
+void Model::ParseFaceInfo(wxXmlNode* f, FaceStateData& faceInfo) {
     std::string name = f->GetAttribute("Name", "SingleNode").ToStdString();
     std::string type = f->GetAttribute("Type", "SingleNode").ToStdString();
     if (name == "") {
@@ -2299,8 +2390,7 @@ void Model::ParseFaceInfo(wxXmlNode* f, std::map<std::string, std::map<std::stri
     }
 }
 
-void Model::WriteFaceInfo(wxXmlNode* rootXml, const std::map<std::string, std::map<std::string, std::string>>& faceInfo)
-{
+void Model::WriteFaceInfo(wxXmlNode* rootXml, const FaceStateData& faceInfo) {
     if (!faceInfo.empty()) {
         for (const auto& it : faceInfo) {
             wxXmlNode* f = new wxXmlNode(rootXml, wxXML_ELEMENT_NODE, "faceInfo");
@@ -2327,53 +2417,76 @@ void Model::AddState(wxXmlNode* n)
     UpdateStateInfoNodes();
 }
 
-void Model::ImportShadowModels(wxXmlNode* n, xLightsFrame* xlights)
+void Model::AddModelAliases(wxXmlNode* n) {
+    // can't be sure of the order of tags in xml and we don't want to ask twice, so setup breadcrumbs to ensure a single prompt
+    if (importAliases == false) {
+        if (skipImportAliases != true) {
+            if (wxMessageBox("Should I import aliases from the base model?", "Import Aliases?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+                importAliases = true;
+            } else {
+                skipImportAliases = true;
+            }
+        }
+    }
+    if (importAliases == true) {
+        std::list<std::string> aliases;
+        for (auto a = n->GetChildren(); a != nullptr; a = a->GetNext()) {
+            aliases.push_back(a->GetAttribute("name"));
+        }
+        SetAliases(aliases);
+    }
+}
+
+void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    int x = 500;
-    int y = 800;
+    int x = GetHcenterPos();
+    int y = GetVcenterPos();
 
     // import the shadow models as well
     for (auto m = n->GetChildren(); m != nullptr; m = m->GetNext()) {
-        Model* model = nullptr;
-        if (m->GetName() == "matrixmodel") {
-            logger_base.debug("Importing shadow matrix model.");
 
-            // grab the attributes I want to keep
-            model = xlights->AllModels.CreateDefaultModel("Matrix", "1");
-        } else if (m->GetName() == "custommodel") {
-            logger_base.debug("Importing shadow custom model.");
-            model = xlights->AllModels.CreateDefaultModel("Custom", "1");
-        } else {
-            logger_base.error("Importing of shadow models of type %s not yet supported.", (const char*)m->GetName().c_str());
-            continue;
-        }
-        if (model != nullptr) {
+        bool cancelled = false;
+        Model* model = xlights->AllModels.CreateDefaultModel("Custom", "1"); // start with a custom model
+        model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, m, xlights, "1", cancelled);
+
+        if (!cancelled && model != nullptr) {
             x += 20;
             y += 20;
-            model->SetHcenterPos(x);
-            model->SetVcenterPos(y);
-            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
-            model->SetWidth(100, true);
-            model->SetHeight(100, true);
-            model->UpdateXmlWithScale();
-            model->SetLayoutGroup("Unassigned");
+            model->SetLayoutGroup(layoutGroup);
             model->Selected = false;
             float min_x = 0;
             float min_y = 0;
             float max_x = 0;
             float max_y = 0;
-            model->ImportXlightsModel(m, xlights, min_x, max_x, min_y, max_y);
-            model->SetControllerName(NO_CONTROLLER); // this will force the start channel to a non controller start channel ... then the user can associate them using visualiser
-            xlights->AllModels.AddModel(model);
-            AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::ImportShadowModels");
-            AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::ImportShadowModels");
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::ImportShadowModels");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::ImportShadowModels");
-            AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "Model::ImportShadowModels");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::ImportShadowModels");
-            IncrementChangeCount();
+            bool success = model->ImportXlightsModel(m, xlights, min_x, max_x, min_y, max_y);
+            if (success) {
+		model->SetHcenterPos(x);
+ 		model->SetVcenterPos(y);
+ 		model->SetWidth(GetWidth(), true);
+ 		model->SetHeight(GetHeight(), true);
+ 		model->UpdateXmlWithScale();
+		if (dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation()) != nullptr) {
+		    BoxedScreenLocation* sl = dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation());
+		    sl->SetScale(1, 1);
+		}
+                model->SetControllerName(NO_CONTROLLER); // this will force the start channel to a non controller start channel ... then the user can associate them using visualiser
+                xlights->AllModels.AddModel(model);
+                AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::ImportExtraModels");
+                AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::ImportExtraModels");
+                AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::ImportExtraModels");
+                AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::ImportExtraModels");
+                AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "Model::ImportExtraModels");
+                AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::ImportExtraModels");
+                IncrementChangeCount();
+            } else {
+                // remove model that failed to import
+                logger_base.error("Unable to import %s.", (const char*)m->GetName().c_str());
+                delete model;
+            }
+        } else {
+            logger_base.error("Unable to import %s. Create failed.", (const char*)m->GetName().c_str());
         }
     }
 }
@@ -2388,7 +2501,35 @@ void Model::AddSubmodel(wxXmlNode* n)
     for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
         f->AddAttribute(a->GetName(), a->GetValue());
     }
-}
+
+    // can't be sure of the order of tags in xml and we don't want to ask twice, so setup breadcrumbs to ensure a single prompt
+    if (importAliases == false) {
+        if (skipImportAliases != true) {
+            if (wxMessageBox("Should I import aliases from the base model?", "Import Aliases?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+                importAliases = true;
+            } else {
+                skipImportAliases = true;
+            }
+        }
+    }
+    if (importAliases == true) {
+        std::list<std::string> smaliases;
+        for (auto a = n->GetChildren(); a != nullptr; a = a->GetNext()) {
+             if (a->GetName() == "Aliases") {
+                 for (auto sma = a->GetChildren(); sma != nullptr; sma = sma->GetNext()) {
+                     smaliases.push_back(sma->GetAttribute("name"));
+                 }
+                 wxXmlNode* smf = new wxXmlNode(wxXML_ELEMENT_NODE, "Aliases");
+                 for (const auto& it : smaliases) {
+                     auto smn = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
+                     smn->AddAttribute("name", Lower(it));
+                     smf->AddChild(smn);
+                 }
+                 f->AddChild(smf);
+             }
+         }
+     }
+ }
 
 wxString Model::SerialiseFace() const
 {
@@ -2485,8 +2626,7 @@ void Model::UpdateStateInfoNodes()
     }
 }
 
-void Model::ParseStateInfo(wxXmlNode* f, std::map<std::string, std::map<std::string, std::string>>& stateInfo)
-{
+void Model::ParseStateInfo(wxXmlNode* f, FaceStateData& stateInfo) {
     std::string name = f->GetAttribute("Name", "SingleNode").ToStdString();
     std::string type = f->GetAttribute("Type", "SingleNode").ToStdString();
     if (name == "") {
@@ -2512,8 +2652,7 @@ void Model::ParseStateInfo(wxXmlNode* f, std::map<std::string, std::map<std::str
     }
 }
 
-void Model::WriteStateInfo(wxXmlNode* rootXml, const std::map<std::string, std::map<std::string, std::string>>& stateInfo, bool forceCustom)
-{
+void Model::WriteStateInfo(wxXmlNode* rootXml, const FaceStateData& stateInfo, bool forceCustom) {
     if (!stateInfo.empty()) {
         for (const auto& it : stateInfo) {
             std::string name = it.first;
@@ -2625,11 +2764,6 @@ std::string Model::ComputeStringStartChannel(int i)
         }
     }
     return wxString::Format("%d", startChannel);
-}
-
-int Model::GetNumStrands() const
-{
-    return 1;
 }
 
 bool Model::ModelRenamed(const std::string& oldName, const std::string& newName)
@@ -2905,9 +3039,8 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
         delete subModels.back();
         subModels.pop_back();
     }
+    sortedSubModels.clear();
     superStringColours.clear();
-
-    wxString channelstr;
 
     zeroBased = zb;
     ModelXml = ModelNode;
@@ -2945,7 +3078,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
         if (v == "") {
             found = false;
         } else {
-            superStringColours.push_back(wxColour(v));
+            superStringColours.push_back(xlColor(v));
         }
         index++;
     }
@@ -2980,6 +3113,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     tempstr = ModelNode->GetAttribute("parm3");
     tempstr.ToLong(&parm3);
     tempstr = ModelNode->GetAttribute("StrandNames");
+    _strandNamesString = tempstr;
     strandNames.clear();
     while (tempstr.size() > 0) {
         std::string t2 = tempstr.ToStdString();
@@ -2995,6 +3129,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
         strandNames.push_back(t2);
     }
     tempstr = ModelNode->GetAttribute("NodeNames");
+    _nodeNamesString = tempstr;
     nodeNames.clear();
     while (tempstr.size() > 0) {
         std::string t2 = tempstr.ToStdString();
@@ -3014,9 +3149,11 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     std::string dependsonmodel;
     int32_t StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel", "1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
     tempstr = ModelNode->GetAttribute("Dir");
+    _dir = tempstr;
     IsLtoR = tempstr != "R";
     if (ModelNode->HasAttribute("StartSide")) {
         tempstr = ModelNode->GetAttribute("StartSide");
+        _startSide = tempstr;
         isBotToTop = (tempstr == "B");
     } else {
         isBotToTop = true;
@@ -3047,11 +3184,6 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     GetModelScreenLocation().Read(ModelNode);
 
     InitModel();
-
-    size_t NodeCount = GetNodeCount();
-    for (size_t i = 0; i < NodeCount; ++i) {
-        Nodes[i]->sparkle = rand() % 10000;
-    }
 
     wxXmlNode* f = ModelNode->GetChildren();
     faceInfo.clear();
@@ -3240,16 +3372,16 @@ void Model::RemoveSubModel(const std::string& name)
         if (m->GetName() == name) {
             delete m;
             subModels.erase(a);
+            sortedSubModels.erase(name);
         }
     }
 }
 
 Model* Model::GetSubModel(const std::string& name) const
 {
-    for (auto a = subModels.begin(); a != subModels.end(); ++a) {
-        if ((*a)->GetName() == name) {
-            return *a;
-        }
+    auto it = sortedSubModels.find(name);
+    if (it != sortedSubModels.end()) {
+        return it->second;
     }
     return nullptr;
 }
@@ -3269,7 +3401,9 @@ std::string Model::GenerateUniqueSubmodelName(const std::string suggested) const
 
 void Model::ParseSubModel(wxXmlNode* node)
 {
-    subModels.push_back(new SubModel(this, node));
+    SubModel *sm = new SubModel(this, node);
+    subModels.push_back(sm);
+    sortedSubModels[sm->GetName()] = sm;
 }
 
 int Model::CalcCannelsPerString()
@@ -3313,10 +3447,6 @@ int Model::FindNodeAtXY(int bufx, int bufy)
     return -1;
 }
 
-void Model::InitModel()
-{
-}
-
 void Model::GetNodeChannelValues(size_t nodenum, unsigned char* buf)
 {
     wxASSERT(nodenum < Nodes.size()); // trying to catch an error i can see in crash reports
@@ -3345,13 +3475,11 @@ xlColor Model::GetNodeColor(size_t nodenum) const
     return color;
 }
 
-xlColor Model::GetNodeMaskColor(size_t nodenum) const
+const xlColor &Model::GetNodeMaskColor(size_t nodenum) const
 {
     if (nodenum >= Nodes.size())
         return xlWHITE; // this shouldnt happen but it does if you have a custom model with no nodes in it
-    xlColor color;
-    Nodes[nodenum]->GetMaskColor(color);
-    return color;
+    return Nodes[nodenum]->GetMaskColor();
 }
 
 void Model::SetNodeColor(size_t nodenum, const xlColor& c)
@@ -3365,8 +3493,8 @@ void Model::SetNodeColor(size_t nodenum, const xlColor& c)
 bool Model::IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2)
 {
     if (nodeNum < Nodes.size()) {
-        for (auto a = Nodes[nodeNum]->Coords.begin(); a != Nodes[nodeNum]->Coords.end(); ++a) {
-            if (a->bufX >= x1 && a->bufX <= x2 && a->bufY >= y1 && a->bufY <= y2) {
+        for (auto &a : Nodes[nodeNum]->Coords) {
+            if (a.bufX >= x1 && a.bufX <= x2 && a.bufY >= y1 && a.bufY <= y2) {
                 return true;
             }
         }
@@ -3433,7 +3561,11 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     } else if (s[0] == '>') {
         return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
     } else if (s[0] == '@') {
-        return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
+        if (HasIndividualStartChannels()) {
+            return s;
+        } else {
+            return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
+        };
     } else if (s[0] == '!') {
         return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
     } else if (s[0] == '#') {
@@ -3561,7 +3693,7 @@ uint32_t Model::GetFirstChannel() const
     return FirstChan;
 }
 
-unsigned int Model::GetNumChannels()
+unsigned int Model::GetNumChannels() const
 {
     return GetLastChannel() - GetFirstChannel() + 1;
 }
@@ -3626,6 +3758,7 @@ int32_t Model::NodeStartChannel(size_t nodenum) const
 {
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->ActChan : 0; // avoid memory access error if no nods -DJ
 }
+
 int32_t Model::NodeEndChannel(size_t nodenum) const
 {
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->ActChan + Nodes[nodenum]->GetChanCount() - 1 : 0; // avoid memory access error if no nods -DJ
@@ -3636,8 +3769,9 @@ const std::string& Model::NodeType(size_t nodenum) const
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->GetNodeType() : NodeBaseClass::RGB; // avoid memory access error if no nods -DJ
 }
 
-void Model::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& bufferWi, int& bufferHi, int stagger) const
+void Model::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& bufferWi, int& bufferHi, int stagger) const
 {
+    std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     if (type == DEFAULT) {
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
@@ -3647,13 +3781,13 @@ void Model::GetBufferSize(const std::string& type, const std::string& camera, co
     } else if (type == AS_PIXEL) {
         bufferHi = 1;
         bufferWi = 1;
-    } else if (type == VERT_PER_STRAND) {
+    } else if (type == VERT_PER_STRAND || type == VERT_PER_MODELSTRAND) {
         bufferHi = GetNumStrands();
         bufferWi = 1;
         for (int x = 0; x < bufferHi; ++x) {
             bufferWi = std::max(bufferWi, GetStrandLength(x));
         }
-    } else if (type == HORIZ_PER_STRAND) {
+    } else if (type == HORIZ_PER_STRAND || type == HORIZ_PER_MODELSTRAND) {
         bufferWi = GetNumStrands();
         bufferHi = 1;
         for (int x = 0; x < bufferWi; ++x) {
@@ -3702,8 +3836,8 @@ static inline void SetCoords(NodeBaseClass::CoordStruct& it2, int x, int y, int 
 char GetPixelDump(int x, int y, std::vector<NodeBaseClassPtr>& newNodes)
 {
     for (auto n = newNodes.begin(); n != newNodes.end(); ++n) {
-        for (auto c = (*n)->Coords.begin(); c != (*n)->Coords.end(); ++c) {
-            if (c->bufX == x && c->bufY == y) {
+        for (auto &c : (*n)->Coords) {
+            if (c.bufX == x && c.bufY == y) {
                 return '*';
             }
         }
@@ -3729,58 +3863,58 @@ void Model::DumpBuffer(std::vector<NodeBaseClassPtr>& newNodes,
 
 void Model::ApplyTransform(const std::string& type,
                            std::vector<NodeBaseClassPtr>& newNodes,
-                           int& bufferWi, int& bufferHi) const
+                           int& bufferWi, int& bufferHi, int startNode) const
 {
     //"Rotate CC 90", "Rotate CW 90", "Rotate 180", "Flip Vertical", "Flip Horizontal", "Rotate CC 90 Flip Horizontal", "Rotate CW 90 Flip Horizontal"
     if (type == "None") {
         return;
     } else if (type == "Rotate 180") {
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, bufferWi - it2.bufX - 1, bufferHi - it2.bufY - 1);
             }
         }
     } else if (type == "Flip Vertical") {
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1);
             }
         }
     } else if (type == "Flip Horizontal") {
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, bufferWi - it2.bufX - 1, it2.bufY);
             }
         }
     } else if (type == "Rotate CW 90") {
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, bufferHi - it2.bufY - 1, it2.bufX);
             }
         }
         std::swap(bufferWi, bufferHi);
     } else if (type == "Rotate CC 90") {
-        for (int x = 0; x < newNodes.size(); ++x) {
+        for (int x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, it2.bufY, bufferWi - it2.bufX - 1);
             }
         }
         std::swap(bufferWi, bufferHi);
     } else if (type == "Rotate CC 90 Flip Horizontal") {
-        for (int x = 0; x < newNodes.size(); ++x) {
+        for (int x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, it2.bufY, bufferWi - it2.bufX - 1);
             }
         }
         std::swap(bufferWi, bufferHi);
 
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1);
             }
         }
     } else if (type == "Rotate CW 90 Flip Horizontal") {
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, bufferHi - it2.bufY - 1, it2.bufX);
             }
@@ -3795,12 +3929,25 @@ void Model::ApplyTransform(const std::string& type,
     }
 }
 
-void Model::InitRenderBufferNodes(const std::string& type, const std::string& camera,
+const std::string Model::AdjustBufferStyle(const std::string &style) const {
+    auto styles = GetBufferStyles();
+    if (std::find(styles.begin(), styles.end(), style) == styles.end()) {
+        if (style.substr(0, 9) == "Per Model") {
+            return style.substr(10);
+        } else {
+            return "Default";
+        }
+    }
+    return style;
+}
+
+
+void Model::InitRenderBufferNodes(const std::string& tp, const std::string& camera,
                                   const std::string& transform,
                                   std::vector<NodeBaseClassPtr>& newNodes, int& bufferWi, int& bufferHt, int stagger, bool deep) const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+    std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     int firstNode = newNodes.size();
 
     // want to see if i can catch something that causes this to crash
@@ -3847,7 +3994,7 @@ void Model::InitRenderBufferNodes(const std::string& type, const std::string& ca
                 SetCoords(it2, 0, 0);
             }
         }
-    } else if (type == HORIZ_PER_STRAND) {
+    } else if (type == HORIZ_PER_STRAND || type == HORIZ_PER_MODELSTRAND) {
         bufferWi = GetNumStrands();
         bufferHt = 1;
         for (int x = 0; x < bufferWi; ++x) {
@@ -3879,7 +4026,7 @@ void Model::InitRenderBufferNodes(const std::string& type, const std::string& ca
                 x++;
             }
         }
-    } else if (type == VERT_PER_STRAND) {
+    } else if (type == VERT_PER_STRAND || type == VERT_PER_MODELSTRAND) {
         bufferHt = GetNumStrands();
         bufferWi = 1;
         for (int x = 0; x < bufferHt; ++x) {
@@ -4134,6 +4281,16 @@ void Model::InitRenderBufferNodes(const std::string& type, const std::string& ca
     if (bufferWi == 0) {
         logger_base.warn("Model::InitRenderBufferNodes BufferWi was 0 ... overridden to be 1.");
         bufferWi = 1;
+    }
+    if (bufferWi * bufferHt > 2100000) {
+        if (bufferHt > 100000) {
+            logger_base.warn("Model::InitRenderBufferNodes BufferHt was overly large ... overridden to be 100000.");
+            bufferHt = 100000;
+        }
+        if (bufferWi > 100000) {
+            logger_base.warn("Model::InitRenderBufferNodes BufferWi was overly large ... overridden to be 100000.");
+            bufferWi = 100000;
+        }
     }
 
     ApplyTransform(transform, newNodes, bufferWi, bufferHt);
@@ -4544,7 +4701,7 @@ int Model::GetNodeStringNumber(size_t nodenum) const
 
 void Model::GetNode3DScreenCoords(int nodeidx, std::vector<std::tuple<float, float, float>>& pts)
 {
-    for (int x = 0; x < Nodes[nodeidx]->Coords.size(); ++x) {
+    for (size_t x = 0; x < Nodes[nodeidx]->Coords.size(); ++x) {
         pts.push_back(std::make_tuple(Nodes[nodeidx]->Coords[x].screenX, Nodes[nodeidx]->Coords[x].screenY, Nodes[nodeidx]->Coords[x].screenZ));
     }
 }
@@ -4553,12 +4710,12 @@ void Model::GetNodeCoords(int nodeidx, std::vector<wxPoint>& pts)
 {
     if (nodeidx >= Nodes.size())
         return;
-    for (int x = 0; x < Nodes[nodeidx]->Coords.size(); ++x) {
+    for (size_t x = 0; x < Nodes[nodeidx]->Coords.size(); ++x) {
         pts.push_back(wxPoint(Nodes[nodeidx]->Coords[x].bufX, Nodes[nodeidx]->Coords[x].bufY));
     }
 }
 
-bool Model::IsCustom(void)
+bool Model::IsCustom()
 {
     return (DisplayAs == "Custom");
 }
@@ -4594,11 +4751,10 @@ size_t Model::GetChannelCoords(wxArrayString& choices)
     //    if (choices3) choices3->Append(wxT("0: (none)"));
     size_t NodeCount = GetNodeCount();
     for (size_t n = 0; n < NodeCount; ++n) {
-        wxString newstr;
         //        debug(10, "model::node[%d/%d]: #coords %d, ach# %d, str %d", n, NodeCount, Nodes[n]->Coords.size(), Nodes[n]->StringNum, Nodes[n]->ActChan);
         if (Nodes[n]->Coords.empty())
             continue;
-        //        newstr = wxString::Format(wxT("%i"), GetNodeNumber(n));
+        //        wxString newstr = wxString::Format(wxT("%i"), GetNodeNumber(n));
         //        choices.Add(newstr);
         choices.Add(GetNodeXY(n));
         //        if (choices1) choices1->Append(newstr);
@@ -4756,10 +4912,10 @@ void Model::ExportAsCustomXModel() const
 
     wxFile f(filename);
     //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-
-    wxString cm = "";
+        return;
+    }
 
     float minsx = 99999;
     float minsy = 99999;
@@ -4801,7 +4957,7 @@ void Model::ExportAsCustomXModel() const
     sizey *= scale;
 
     int* nodeLayout = (int*)malloc(sizey * sizex * sizeof(int));
-    memset(nodeLayout, 0x00, sizey * sizex * sizeof(int));
+    memset(nodeLayout, 0xFF, sizey * sizex * sizeof(int));
 
     for (int i = 0; i < nodeCount; ++i) {
         int x = (Nodes[i]->Coords[0].screenX - minx) * scale;
@@ -4809,18 +4965,17 @@ void Model::ExportAsCustomXModel() const
         nodeLayout[y * sizex + x] = i + 1;
     }
 
-    for (int i = 0; i < sizey * sizex; ++i) {
-        if (i != 0) {
-            if (i % sizex == 0) {
-                cm += ";";
-            } else {
-                cm += ",";
-            }
-        }
-        if (nodeLayout[i] != 0) {
-            cm += wxString::Format("%i", nodeLayout[i]);
-        }
-    }
+    std::vector<std::vector<std::vector<int>>> data;
+
+    auto layer = std::vector<std::vector<int>>();
+    for (int y = 0; y < sizey; ++y) {
+		std::vector<int> row;
+		for (int x = 0; x < sizex; ++x) {
+                row.push_back(nodeLayout[y * sizex + x]);
+		}
+		layer.push_back(row);
+	}
+    data.push_back(layer);
 
     free(nodeLayout);
 
@@ -4836,6 +4991,7 @@ void Model::ExportAsCustomXModel() const
     wxString pc = ModelXml->GetAttribute("PixelCount");
     wxString pt = ModelXml->GetAttribute("PixelType");
     wxString psp = ModelXml->GetAttribute("PixelSpacing");
+    wxString lg = ModelXml->GetAttribute("LayoutGroup");
 
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
@@ -4856,8 +5012,12 @@ void Model::ExportAsCustomXModel() const
         f.Write(wxString::Format("PixelType=\"%s\" ", pt));
     if (psp != "")
         f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
+    f.Write(wxString::Format("LayoutGroup=\"%s\" ", lg));
     f.Write("CustomModel=\"");
-    f.Write(cm);
+    f.Write(CustomModel::ToCustomModel(data));
+    f.Write("\" ");
+    f.Write("CustomModelCompressed=\"");
+    f.Write(CustomModel::ToCompressed(data));
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(ExportSuperStringColors());
@@ -5017,6 +5177,8 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
                 } else {
                     int s = Nodes[n - 1]->StringNum + 1;
                     wxString bgcolor = (s % 2 == 1) ? "#ADD8E6" : "#90EE90";
+                    if( IsDarkMode() )
+                        bgcolor = (s % 2 == 1) ? "#3F7C85" : "#962B09";
                     while (n > NodesPerString()) {
                         n -= NodesPerString();
                     }
@@ -5182,13 +5344,14 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
         int buffFirst = -1;
         int buffLast = -1;
         bool left = true;
+        int nodeRenderOrder = NodeRenderOrder();
         // int lastChan = -999;
         while (first < last) {
             int n;
             if (left) {
                 n = first;
                 first++;
-                if (NodeRenderOrder() == 1) {
+                if (nodeRenderOrder == 1) {
                     if (buffFirst == -1) {
                         buffFirst = Nodes[n]->Coords[0].bufX;
                     }
@@ -5202,7 +5365,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
                 if (buffLast == -1) {
                     buffLast = Nodes[n]->Coords[0].bufX;
                 }
-                if (last > 0 && buffFirst != Nodes[last - 1]->Coords[0].bufX) {
+                if (last > 0 && buffLast != Nodes[last - 1]->Coords[0].bufX) {
                     left = true;
                 }
             }
@@ -5242,7 +5405,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
 
             // lastChan = Nodes[n]->ActChan;
         }
-        cache->program->addStep([=](xlGraphicsContext* ctx) {
+        cache->program->addStep([=, this](xlGraphicsContext* ctx) {
             if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                 ctx->drawTriangles(cache->vica, 0, cache->vica->getCount());
             } else {
@@ -5308,7 +5471,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
         cache->va->Finalize(false);
     }
 
-    p->addStep([=](xlGraphicsContext* ctx) {
+    p->addStep([=, this](xlGraphicsContext* ctx) {
         // cache has the model in model coordinates
         // we need to scale/translate/etc.... to world
         ctx->PushMatrix();
@@ -5561,12 +5724,14 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
             int buffFirst = -1;
             int buffLast = -1;
             bool left = true;
+            
+            int nodeRenderOrder = NodeRenderOrder();
             while (first < last) {
                 int n;
                 if (left) {
                     n = first;
                     ++first;
-                    if (NodeRenderOrder() == 1) {
+                    if (nodeRenderOrder == 1) {
                         if (buffFirst == -1) {
                             buffFirst = Nodes[n]->Coords[0].bufX;
                         }
@@ -5580,7 +5745,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                     if (buffLast == -1) {
                         buffLast = Nodes[n]->Coords[0].bufX;
                     }
-                    if (last > 0 && buffFirst != Nodes[last - 1]->Coords[0].bufX) {
+                    if (last > 0 && buffLast != Nodes[last - 1]->Coords[0].bufX) {
                         left = true;
                     }
                 }
@@ -5597,7 +5762,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                                                         Nodes[n]->model->_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE ||
                                                         Nodes[n]->model->_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH)) {
                             int count = cache->vica->getCount();
-                            cache->program->addStep([=](xlGraphicsContext* ctx) {
+                            cache->program->addStep([=, this](xlGraphicsContext* ctx) {
                                 if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                                     ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                                 } else {
@@ -5626,7 +5791,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
             }
             if (int(cache->vica->getCount()) > startVertex) {
                 int count = cache->vica->getCount();
-                cache->program->addStep([=](xlGraphicsContext* ctx) {
+                cache->program->addStep([=, this](xlGraphicsContext* ctx) {
                     if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                         ctx->drawTriangles(cache->vica, startVertex, count - startVertex);
                     } else {
@@ -5665,7 +5830,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
             cache->vica->FlushColors(0, maxFlush);
         }
 
-        preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
+        preview->getCurrentSolidProgram()->addStep([=, this](xlGraphicsContext* ctx) {
             // cache has the model in model coordinates
             // we need to scale/translate/etc.... to world
             ctx->PushMatrix();
@@ -5834,11 +5999,14 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
 {
     bool merge = false;
     bool showPopup = true;
+    importAliases = 0;
     for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext()) {
         if (n->GetName() == "stateInfo") {
             AddState(n);
         } else if (n->GetName() == "subModel") {
             AddSubmodel(n);
+        } else if (n->GetName() == "Aliases") {
+            AddModelAliases(n);
         } else if (n->GetName() == "faceInfo") {
             AddFace(n);
         } else if (n->GetName() == "ControllerConnection") {
@@ -5852,8 +6020,8 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
         } else if (n->GetName() == "modelGroup") {
             AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
                            xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname, merge, showPopup);
-        } else if (n->GetName() == "shadowmodels") {
-            ImportShadowModels(n, xlights);
+        } else if (n->GetName().Lower() == "shadowmodels") {
+            ImportExtraModels(n, xlights, xlights->GetLayoutPreview(), "Unassigned");
         } else if (n->GetName() == "dimensions") {
             if (RulerObject::GetRuler() != nullptr) {
                 std::string units = n->GetAttribute("units", "mm");
@@ -5862,13 +6030,312 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
                 float depth = wxAtof(n->GetAttribute("depth", "0"));
                 ApplyDimensions(units, width, height, depth, min_x, max_x, min_y, max_y);
             }
+        } else if (n->GetName().Lower() == "associatedmodels") {
+            ImportExtraModels(n, xlights, xlights->GetLayoutPreview(), GetLayoutGroup());
         }
     }
 }
 
+Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, const std::string& startChannel, bool& cancelled) const {
+
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // check for XmlSerializer format
+    if (XmlSerializer::IsXmlSerializerFormat(node)) {
+        auto n = node;
+        if (node->GetName() == "models") {
+            n = node->GetChildren();
+        }
+        // grab the attributes I want to keep
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto x = model->GetHcenterPos();
+        auto y = model->GetVcenterPos();
+        auto lg = model->GetLayoutGroup();
+
+        XmlSerializer serializer;
+        model = serializer.DeserializeModel(n, xlights);
+
+        model->SetHcenterPos(x);
+        model->SetVcenterPos(y);
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
+    }
+
+    if (node->GetName() == "custommodel") {
+        return model;
+    } else if (node->GetName() == "polylinemodel") {
+        // not a custom model so delete the default model that was created
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto lg = model->GetLayoutGroup();
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to PolyLine");
+            delete model;
+        }
+        model = xlights->AllModels.CreateDefaultModel("Poly Line", startChannel);
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
+    } else if (node->GetName() == "multipointmodel") {
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto lg = model->GetLayoutGroup();
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to MultiPoint");
+            delete model;
+        }
+        model = xlights->AllModels.CreateDefaultModel("MultiPoint", startChannel);
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
+    } else if (node->GetName() == "matrixmodel") {
+        // grab the attributes I want to keep
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto x = model->GetHcenterPos();
+        auto y = model->GetVcenterPos();
+        //auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
+        //auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
+        auto lg = model->GetLayoutGroup();
+
+        // not a custom model so delete the default model that was created
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to Matrix");
+            delete model;
+        }
+        model = xlights->AllModels.CreateDefaultModel("Matrix", startChannel);
+        model->SetHcenterPos(x);
+        model->SetVcenterPos(y);
+        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
+    } else if (node->GetName() == "archesmodel") {
+        // grab the attributes I want to keep
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        int l = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetLeft();
+        int r = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetRight();
+        int t = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetTop();
+        int b = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetBottom();
+        auto lg = model->GetLayoutGroup();
+
+        // not a custom model so delete the default model that was created
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to Arches");
+            delete model;
+        }
+        model = xlights->AllModels.CreateDefaultModel("Arches", startChannel);
+
+        int h1 = 1;
+        model->InitializeLocation(h1, l, b, modelPreview);
+        ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r - l));
+        ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetRight(r);
+        ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetLeft(l);
+        ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetBottom(b);
+        ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMHeight(2 * (float)std::abs(t - b) / (float)std::abs(r - l));
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
+    } else if (node->GetName() == "starmodel") {
+        // grab the attributes I want to keep
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto x = model->GetHcenterPos();
+        auto y = model->GetVcenterPos();
+        //auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
+        //auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
+        auto lg = model->GetLayoutGroup();
+
+        // not a custom model so delete the default model that was created
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to Star");
+            delete model;
+        }
+        model = xlights->AllModels.CreateDefaultModel("Star", startChannel);
+        model->SetHcenterPos(x);
+        model->SetVcenterPos(y);
+        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
+    } else if (node->GetName() == "treemodel") {
+        // grab the attributes I want to keep
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto x = model->GetHcenterPos();
+        auto y = model->GetVcenterPos();
+        //auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
+        //auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
+        auto lg = model->GetLayoutGroup();
+
+        // not a custom model so delete the default model that was created
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to Tree");
+            delete model;
+        }
+        model = xlights->AllModels.CreateDefaultModel("Tree", startChannel);
+        model->SetHcenterPos(x);
+        model->SetVcenterPos(y);
+        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
+    } else if (node->GetName() == "dmxmodel") {
+        // grab the attributes I want to keep
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto x = model->GetHcenterPos();
+        auto y = model->GetVcenterPos();
+        auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
+        auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
+        auto lg = model->GetLayoutGroup();
+
+        std::string dmx_type = node->GetAttribute("DisplayAs");
+        // not a custom model so delete the default model that was created
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
+            delete model;
+        }
+        // Upgrade older DMX models
+        if (dmx_type == "DMX") {
+            std::string style = node->GetAttribute("DmxStyle", "DMX");
+            if (style == "Moving Head Top" ||
+                style == "Moving Head Side" ||
+                style == "Moving Head Bars" ||
+                style == "Moving Head TopBars" ||
+                style == "Moving Head SideBars") {
+                dmx_type = "DmxMovingHead";
+            } else if (style == "Moving Head 3D") {
+                dmx_type = "DmxMovingHeadAdv";
+            } else if (style == "Flood Light") {
+                dmx_type = "DmxFloodlight";
+            } else if (style == "Skulltronix Skull") {
+                dmx_type = "DmxSkulltronix";
+            }
+        }
+        model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
+        if( model != nullptr ) {
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
+            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
+            model->SetLayoutGroup(lg);
+            model->Selected = true;
+        } else {
+            cancelled = true;
+        }
+        return model;
+    } else if (node->GetName() == "dmxgeneral") {
+        // grab the attributes I want to keep
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto x = model->GetHcenterPos();
+        auto y = model->GetVcenterPos();
+        auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
+        auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
+        auto lg = model->GetLayoutGroup();
+
+        std::string dmx_type = node->GetAttribute("DisplayAs");
+        // not a custom model so delete the default model that was created
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
+            delete model;
+        }
+        model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
+        model->SetHcenterPos(x);
+        model->SetVcenterPos(y);
+        // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
+    } else if (node->GetName() == "dmxservo") {
+        // grab the attributes I want to keep
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
+        auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
+        auto x = model->GetHcenterPos();
+        auto y = model->GetVcenterPos();
+        auto lg = model->GetLayoutGroup();
+
+        std::string dmx_type = node->GetAttribute("DisplayAs");
+        // not a custom model so delete the default model that was created
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
+            delete model;
+        }
+        model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
+        model->SetHcenterPos(x);
+        model->SetVcenterPos(y);
+        // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
+    } else if (node->GetName() == "dmxservo3axis" ||
+               node->GetName() == "dmxservo3d") {
+        // grab the attributes I want to keep
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto x = model->GetHcenterPos();
+        auto y = model->GetVcenterPos();
+        auto lg = model->GetLayoutGroup();
+
+        std::string dmx_type = node->GetAttribute("DisplayAs");
+        // not a custom model so delete the default model that was created
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
+            delete model;
+        }
+        model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
+        model->SetHcenterPos(x);
+        model->SetVcenterPos(y);
+        model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(1, 1, 1));
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
+    } else if (node->GetName() == "circlemodel") {
+        // grab the attributes I want to keep
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto x = model->GetHcenterPos();
+        auto y = model->GetVcenterPos();
+        auto lg = model->GetLayoutGroup();
+
+        // not a custom model so delete the default model that was created
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to Circle");
+            delete model;
+        }
+        model = xlights->AllModels.CreateDefaultModel("Circle", startChannel);
+        model->SetHcenterPos(x);
+        model->SetVcenterPos(y);
+        //((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
+    } else if (node->GetName() == "spheremodel") {
+        // grab the attributes I want to keep
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto x = model->GetHcenterPos();
+        auto y = model->GetVcenterPos();
+        auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
+        auto lg = model->GetLayoutGroup();
+
+        // not a custom model so delete the default model that was created
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to Sphere");
+            delete model;
+        }
+        model = xlights->AllModels.CreateDefaultModel("Sphere", startChannel);
+        model->SetHcenterPos(x);
+        model->SetVcenterPos(y);
+        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
+    } else {
+        logger_base.error("GetXlightsModel no code to convert to " + node->GetName());
+        xlights->AddTraceMessage("GetXlightsModel no code to convert to " + node->GetName());
+        cancelled = true;
+    }
+    return model;
+}
+
 Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxXmlDocument doc;
     bool docLoaded = false;
     if (last_model.empty()) {
@@ -6178,7 +6645,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                         delete model;
                     }
                     if (isMovingHead) {
-                        model = xlights->AllModels.CreateDefaultModel("DmxMovingHead3D", startChannel);
+                        model = xlights->AllModels.CreateDefaultModel("DmxMovingHeadAdv", startChannel);
                     } else {
                         model = xlights->AllModels.CreateDefaultModel("DmxMovingHead", startChannel);
                         model->GetModelXml()->DeleteAttribute("DmxStyle");
@@ -6291,271 +6758,10 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
     if (doc.IsOk()) {
         wxXmlNode* root = doc.GetRoot();
 
-        if (root->GetName() == "custommodel") {
-            return model;
-        } else if (root->GetName() == "polylinemodel") {
-            // not a custom model so delete the default model that was created
-            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto lg = model->GetLayoutGroup();
-            if (model != nullptr) {
-                xlights->AddTraceMessage("GetXlightsModel converted model to PolyLine");
-                delete model;
-            }
-            model = xlights->AllModels.CreateDefaultModel("Poly Line", startChannel);
-            model->SetLayoutGroup(lg);
-            model->Selected = true;
-            return model;
-        } else if (root->GetName() == "multipointmodel") {
-            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto lg = model->GetLayoutGroup();
-            if (model != nullptr) {
-                xlights->AddTraceMessage("GetXlightsModel converted model to MultiPoint");
-                delete model;
-            }
-            model = xlights->AllModels.CreateDefaultModel("MultiPoint", startChannel);
-            model->SetLayoutGroup(lg);
-            model->Selected = true;
-            return model;
-        } else if (root->GetName() == "matrixmodel") {
-            // grab the attributes I want to keep
-            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterPos();
-            auto y = model->GetVcenterPos();
-            auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
-            auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-            auto lg = model->GetLayoutGroup();
+        model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, root, xlights, "1", cancelled);
 
-            // not a custom model so delete the default model that was created
-            if (model != nullptr) {
-                xlights->AddTraceMessage("GetXlightsModel converted model to Matrix");
-                delete model;
-            }
-            model = xlights->AllModels.CreateDefaultModel("Matrix", startChannel);
-            model->SetHcenterPos(x);
-            model->SetVcenterPos(y);
-            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
-            model->SetLayoutGroup(lg);
-            model->Selected = true;
+        if (!cancelled)
             return model;
-        } else if (root->GetName() == "archesmodel") {
-            // grab the attributes I want to keep
-            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            int l = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetLeft();
-            int r = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetRight();
-            int t = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetTop();
-            int b = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetBottom();
-            auto lg = model->GetLayoutGroup();
-
-            // not a custom model so delete the default model that was created
-            if (model != nullptr) {
-                xlights->AddTraceMessage("GetXlightsModel converted model to Arches");
-                delete model;
-            }
-            model = xlights->AllModels.CreateDefaultModel("Arches", startChannel);
-
-            int h1 = 1;
-            model->InitializeLocation(h1, l, b, modelPreview);
-            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r - l));
-            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetRight(r);
-            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetLeft(l);
-            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetBottom(b);
-            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetHeight(2 * (float)std::abs(t - b) / (float)std::abs(r - l));
-            model->SetLayoutGroup(lg);
-            model->Selected = true;
-            return model;
-        } else if (root->GetName() == "starmodel") {
-            // grab the attributes I want to keep
-            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterPos();
-            auto y = model->GetVcenterPos();
-            auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
-            auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-            auto lg = model->GetLayoutGroup();
-
-            // not a custom model so delete the default model that was created
-            if (model != nullptr) {
-                xlights->AddTraceMessage("GetXlightsModel converted model to Star");
-                delete model;
-            }
-            model = xlights->AllModels.CreateDefaultModel("Star", startChannel);
-            model->SetHcenterPos(x);
-            model->SetVcenterPos(y);
-            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
-            model->SetLayoutGroup(lg);
-            model->Selected = true;
-            return model;
-        } else if (root->GetName() == "treemodel") {
-            // grab the attributes I want to keep
-            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterPos();
-            auto y = model->GetVcenterPos();
-            auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
-            auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-            auto lg = model->GetLayoutGroup();
-
-            // not a custom model so delete the default model that was created
-            if (model != nullptr) {
-                xlights->AddTraceMessage("GetXlightsModel converted model to Tree");
-                delete model;
-            }
-            model = xlights->AllModels.CreateDefaultModel("Tree", startChannel);
-            model->SetHcenterPos(x);
-            model->SetVcenterPos(y);
-            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
-            model->SetLayoutGroup(lg);
-            model->Selected = true;
-            return model;
-        } else if (root->GetName() == "dmxmodel") {
-            // grab the attributes I want to keep
-            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterPos();
-            auto y = model->GetVcenterPos();
-            auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
-            auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-            auto lg = model->GetLayoutGroup();
-
-            std::string dmx_type = root->GetAttribute("DisplayAs");
-            // not a custom model so delete the default model that was created
-            if (model != nullptr) {
-                xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
-                delete model;
-            }
-            // Upgrade older DMX models
-            if (dmx_type == "DMX") {
-                std::string style = root->GetAttribute("DmxStyle", "DMX");
-                if (style == "Moving Head Top" ||
-                    style == "Moving Head Side" ||
-                    style == "Moving Head Bars" ||
-                    style == "Moving Head TopBars" ||
-                    style == "Moving Head SideBars") {
-                    dmx_type = "DmxMovingHead";
-                } else if (style == "Moving Head 3D") {
-                    dmx_type = "DmxMovingHead3D";
-                } else if (style == "Flood Light") {
-                    dmx_type = "DmxFloodlight";
-                } else if (style == "Skulltronix Skull") {
-                    dmx_type = "DmxSkulltronix";
-                }
-            }
-            model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
-            model->SetHcenterPos(x);
-            model->SetVcenterPos(y);
-            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
-            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
-            model->SetLayoutGroup(lg);
-            model->Selected = true;
-            return model;
-        } else if (root->GetName() == "dmxgeneral") {
-            // grab the attributes I want to keep
-            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterPos();
-            auto y = model->GetVcenterPos();
-            auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
-            auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-            auto lg = model->GetLayoutGroup();
-
-            std::string dmx_type = root->GetAttribute("DisplayAs");
-            // not a custom model so delete the default model that was created
-            if (model != nullptr) {
-                xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
-                delete model;
-            }
-            model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
-            model->SetHcenterPos(x);
-            model->SetVcenterPos(y);
-            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
-            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
-            model->SetLayoutGroup(lg);
-            model->Selected = true;
-            return model;
-        } else if (root->GetName() == "dmxservo") {
-            // grab the attributes I want to keep
-            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
-            auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-            auto x = model->GetHcenterPos();
-            auto y = model->GetVcenterPos();
-            auto lg = model->GetLayoutGroup();
-
-            std::string dmx_type = root->GetAttribute("DisplayAs");
-            // not a custom model so delete the default model that was created
-            if (model != nullptr) {
-                xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
-                delete model;
-            }
-            model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
-            model->SetHcenterPos(x);
-            model->SetVcenterPos(y);
-            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
-            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
-            model->SetLayoutGroup(lg);
-            model->Selected = true;
-            return model;
-        } else if (root->GetName() == "dmxservo3axis" ||
-                   root->GetName() == "dmxservo3d") {
-            // grab the attributes I want to keep
-            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterPos();
-            auto y = model->GetVcenterPos();
-            auto lg = model->GetLayoutGroup();
-
-            std::string dmx_type = root->GetAttribute("DisplayAs");
-            // not a custom model so delete the default model that was created
-            if (model != nullptr) {
-                xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
-                delete model;
-            }
-            model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
-            model->SetHcenterPos(x);
-            model->SetVcenterPos(y);
-            model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(1, 1, 1));
-            model->SetLayoutGroup(lg);
-            model->Selected = true;
-            return model;
-        } else if (root->GetName() == "circlemodel") {
-            // grab the attributes I want to keep
-            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterPos();
-            auto y = model->GetVcenterPos();
-            auto lg = model->GetLayoutGroup();
-
-            // not a custom model so delete the default model that was created
-            if (model != nullptr) {
-                xlights->AddTraceMessage("GetXlightsModel converted model to Circle");
-                delete model;
-            }
-            model = xlights->AllModels.CreateDefaultModel("Circle", startChannel);
-            model->SetHcenterPos(x);
-            model->SetVcenterPos(y);
-            //((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
-            model->SetLayoutGroup(lg);
-            model->Selected = true;
-            return model;
-        } else if (root->GetName() == "spheremodel") {
-            // grab the attributes I want to keep
-            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterPos();
-            auto y = model->GetVcenterPos();
-            auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
-            auto lg = model->GetLayoutGroup();
-
-            // not a custom model so delete the default model that was created
-            if (model != nullptr) {
-                xlights->AddTraceMessage("GetXlightsModel converted model to Sphere");
-                delete model;
-            }
-            model = xlights->AllModels.CreateDefaultModel("Sphere", startChannel);
-            model->SetHcenterPos(x);
-            model->SetVcenterPos(y);
-            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
-            model->SetLayoutGroup(lg);
-            model->Selected = true;
-            return model;
-        } else {
-            logger_base.error("GetXlightsModel no code to convert to " + root->GetName());
-            xlights->AddTraceMessage("GetXlightsModel no code to convert to " + root->GetName());
-            cancelled = true;
-        }
     }
     return model;
 }
@@ -6582,6 +6788,28 @@ wxString Model::SerialiseSubmodel() const
     return res;
 }
 
+wxString Model::SerialiseAliases() const {
+    wxString alias = "";
+
+    wxXmlNode* root = GetModelXml();
+    wxXmlNode* child = root->GetChildren();
+    while (child != nullptr) {
+        if (child->GetName() == "Aliases") {
+            wxXmlDocument new_doc;
+            new_doc.SetRoot(new wxXmlNode(*child));
+            wxStringOutputStream stream;
+            new_doc.Save(stream);
+            wxString s = stream.GetString();
+            s = s.SubString(s.Find("\n") + 1, s.Length()); // skip over xml format header
+            alias += s;
+            break;
+        }
+        child = child->GetNext();
+    }
+
+    return alias;
+}
+
 wxString Model::CreateBufferAsSubmodel() const
 {
     int buffW = GetDefaultBufferWi();
@@ -6591,6 +6819,12 @@ wxString Model::CreateBufferAsSubmodel() const
     for (uint32_t i = 0; i < nodeCount; ++i) {
         int bufx = Nodes[i]->Coords[0].bufX;
         int bufy = Nodes[i]->Coords[0].bufY;
+        if (bufy > nodearray.size() || bufy < 0) {
+            continue;
+        }
+        if (bufx > nodearray[bufy].size() || bufx < 0) {
+            continue;
+        }
         nodearray[bufy][bufx] = wxString::Format("%d", i + 1);
     }
     wxXmlNode* child = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
@@ -6639,7 +6873,7 @@ std::list<std::string> Model::CheckModelSettings()
 
 bool Model::IsControllerConnectionValid() const
 {
-    return ((IsPixelProtocol() || IsSerialProtocol() || IsMatrixProtocol()) && GetControllerPort(1) > 0);
+    return ((IsPixelProtocol() || IsSerialProtocol() || IsMatrixProtocol() || IsPWMProtocol()) && GetControllerPort(1) > 0);
 }
 
 void Model::SetTagColour(wxColour colour)
@@ -7028,9 +7262,21 @@ void Model::SetControllerName(const std::string& controller)
     IncrementChangeCount();
 }
 
+void Model::SetControllerSerialProtocolSpeed(int speed) {
+
+        if (speed == wxAtoi(GetControllerConnection()->GetAttribute("Speed", "-1")))
+        return;
+
+    GetControllerConnection()->DeleteAttribute("Speed");
+        if (speed != 0) {
+            GetControllerConnection()->AddAttribute("Speed", wxString::Format("%d", speed));
+        }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetControllerSerialProtocolSpeed");
+}
+
 void Model::SetControllerProtocol(const std::string& protocol)
 {
-    if (protocol == ModelXml->GetAttribute("Protocol", "xyzzy_kw"))
+    if (protocol == GetControllerConnection()->GetAttribute("Protocol", "xyzzy_kw"))
         return;
 
     GetControllerConnection()->DeleteAttribute("Protocol");
@@ -7049,7 +7295,7 @@ void Model::SetControllerProtocol(const std::string& protocol)
 
 void Model::SetControllerPort(int port)
 {
-    if (port == wxAtoi(ModelXml->GetAttribute("Port", "-999")))
+    if (port == wxAtoi(GetControllerConnection()->GetAttribute("Port", "-999")))
         return;
 
     GetControllerConnection()->DeleteAttribute("Port");
@@ -7068,7 +7314,7 @@ void Model::SetControllerPort(int port)
 
 void Model::SetControllerBrightness(int brightness)
 {
-    if (brightness == wxAtoi(ModelXml->GetAttribute("brightness", "-1")))
+    if (brightness == wxAtoi(GetControllerConnection()->GetAttribute("brightness", "-1")))
         return;
 
     GetControllerConnection()->DeleteAttribute("brightness");
@@ -7083,7 +7329,7 @@ void Model::SetControllerBrightness(int brightness)
 
 void Model::SetControllerStartNulls(int nulls)
 {
-    if (nulls == wxAtoi(ModelXml->GetAttribute("nullNodes", "0"))) {
+    if (nulls == wxAtoi(GetControllerConnection()->GetAttribute("nullNodes", "0"))) {
         return;
     }
     GetControllerConnection()->DeleteAttribute("nullNodes");
@@ -7098,7 +7344,7 @@ void Model::SetControllerStartNulls(int nulls)
 
 void Model::SetControllerEndNulls(int nulls)
 {
-    if (nulls == wxAtoi(ModelXml->GetAttribute("endNullNodes", "0"))) {
+    if (nulls == wxAtoi(GetControllerConnection()->GetAttribute("endNullNodes", "0"))) {
         return;
     }
     GetControllerConnection()->DeleteAttribute("endNullNodes");
@@ -7113,7 +7359,7 @@ void Model::SetControllerEndNulls(int nulls)
 
 void Model::SetControllerColorOrder(wxString const& color)
 {
-    if (color == ModelXml->GetAttribute("colorOrder", "RGB")) {
+    if (color == GetControllerConnection()->GetAttribute("colorOrder", "RGB")) {
         return;
     }
     GetControllerConnection()->DeleteAttribute("colorOrder");
@@ -7128,7 +7374,7 @@ void Model::SetControllerColorOrder(wxString const& color)
 
 void Model::SetControllerGroupCount(int grouping)
 {
-    if (grouping == wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "1"))) {
+    if (grouping == wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "0"))) {
         return;
     }
     GetControllerConnection()->DeleteAttribute("groupCount");
@@ -7138,6 +7384,20 @@ void Model::SetControllerGroupCount(int grouping)
     AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetConnectionPixelGroupCount");
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetConnectionPixelGroupCount");
     AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetConnectionPixelGroupCount");
+    IncrementChangeCount();
+}
+
+void Model::SetControllerGamma(float gamma) {
+    if (abs(gamma - wxAtof(GetControllerConnection()->GetAttribute("gamma", "0.0"))) < 0.01) {
+        return;
+    }
+    GetControllerConnection()->DeleteAttribute("gamma");
+    GetControllerConnection()->AddAttribute("gamma", wxString::Format("%f", gamma));
+
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetConnectionPixelGamma");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetConnectionPixelGamma");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetConnectionPixelGamma");
+    AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::SetConnectionPixelGamma");
     IncrementChangeCount();
 }
 
@@ -7196,6 +7456,10 @@ std::string Model::GetShadowModelFor() const
 std::string Model::GetControllerName() const
 {
     return ModelXml->GetAttribute("Controller", "").Trim(true).Trim(false).ToStdString();
+}
+
+float Model::GetControllerGamma() const {
+    return wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
 }
 
 // std::list<std::string> Model::GetProtocols()
@@ -7309,6 +7573,11 @@ std::string Model::GetControllerProtocol() const
 {
     wxString s = GetControllerConnection()->GetAttribute("Protocol");
     return s.ToStdString();
+}
+
+int Model::GetControllerProtocolSpeed() const
+{
+    return wxAtoi(GetControllerConnection()->GetAttribute("Speed", "250000"));
 }
 
 int Model::GetControllerDMXChannel() const
@@ -7471,7 +7740,8 @@ void Model::RestoreDisplayDimensions()
 // This is deliberately ! serial so that it defaults to thinking it is pixel
 bool Model::IsPixelProtocol() const
 {
-    return GetControllerPort(1) != 0 && !::IsSerialProtocol(GetControllerProtocol()) && !::IsMatrixProtocol(GetControllerProtocol());
+    const std::string p = GetControllerProtocol();
+    return GetControllerPort(1) != 0 && !::IsSerialProtocol(p) && !::IsMatrixProtocol(p) && !::IsPWMProtocol(p);
 }
 bool Model::IsSerialProtocol() const
 {
@@ -7489,6 +7759,31 @@ bool Model::IsVirtualMatrixProtocol() const
 {
     return GetControllerPort(1) != 0 && ::IsVirtualMatrixProtocol(GetControllerProtocol());
 }
+bool Model::IsPWMProtocol() const
+{
+    return GetControllerPort(1) != 0 && ::IsPWMProtocol(GetControllerProtocol());
+}
+
+std::vector<PWMOutput> Model::GetPWMOutputs() const {
+    std::vector<PWMOutput> ret;
+    if (IsPWMProtocol()) {
+        int cur = 1;
+        for (auto &n : Nodes) {
+            for (int x = 0; x < n->GetChanCount(); x++) {
+                std::string label = n->GetName();
+                if (label.empty()) {
+                    label = "LED-" + std::to_string(cur) + "-" + n->GetNodeType()[x];
+                }
+                float g = wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
+                int b = wxAtoi(GetControllerConnection()->GetAttribute("brightness", "100"));
+                ret.emplace_back(n->ActChan + 1, PWMOutput::Type::LED, 1, label, b, g);
+            }
+            cur++;
+        }
+    }
+    return ret;
+}
+
 
 std::vector<std::string> Model::GetSmartRemoteTypes() const
 {
@@ -7583,11 +7878,11 @@ bool wxDropPatternProperty::ValidateValue(wxVariant& value, wxPGValidationInfo& 
     return true;
 }
 
-void Model::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool Model::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     // these have already been dealt with
     if (EndsWith(filename, "gdtf"))
-        return;
+        return false;
 
     std::string lower = Lower(filename);
     if (!EndsWith(lower, "xmodel")) {
@@ -7596,16 +7891,17 @@ void Model::ImportXlightsModel(std::string const& filename, xLightsFrame* xlight
             return cm->ImportLORModel(filename, xlights, min_x, max_x, min_y, max_y);
         }
         DisplayError("Attempt to import non-xmodel onto a non custom model.");
-        return;
+        return false;
     }
 
     wxXmlDocument doc(filename);
     if (doc.IsOk()) {
         wxXmlNode* root = doc.GetRoot();
-        ImportXlightsModel(root, xlights, min_x, max_x, min_y, max_y);
-    } else {
-        DisplayError("Failure loading model file: " + filename);
+        return ImportXlightsModel(root, xlights, min_x, max_x, min_y, max_y);
     }
+
+    DisplayError("Failure loading model file: " + filename);
+    return false;
 }
 
 std::string Model::GetAttributesAsJSON() const

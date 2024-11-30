@@ -48,6 +48,8 @@ class OutputManager;
 
 wxDECLARE_EVENT(EVT_GRID_KEY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SWITCH_GRID, wxCommandEvent);
+wxDECLARE_EVENT(EVT_UNDO_GRID, wxCommandEvent);
+wxDECLARE_EVENT(EVT_REDO_GRID, wxCommandEvent);
 
 class CustomModelDialog: public wxDialog
 {
@@ -59,15 +61,15 @@ class CustomModelDialog: public wxDialog
 	float _saveCentreX = 0.0;
 	float _saveCentreY = 0.0;
 	float _saveCentreZ = 0.0;
-	std::string _saveModelData;
+    std::vector<std::vector<std::vector<int>>> _saveModelData;
     CustomModel* _model = nullptr;
     bool _changed = false;
     wxTimer timer1;
     bool _oldOutputToLights = false;
     OutputManager* _outputManager = nullptr;
 
-    std::string GetModelData();
-    void UpdatePreview(int width, int height, int depth, const std::string& modelData);
+    std::vector<std::vector<std::vector<int>>> GetModelData();
+    void UpdatePreview(int width, int height, int depth, const std::vector<std::vector<std::vector<int>>>& modelData);
     void UpdatePreview();
     void ValidateWindow();
 	void CreateSubmodelFromLayer(int layer);
@@ -266,9 +268,12 @@ class CustomModelDialog: public wxDialog
 		void OnGridCustomCellLeftClick(wxGridEvent& event);
 		void OnGridKeyDown(wxKeyEvent& event);
 		void OnSwitchGrid(wxCommandEvent& event);
+        void OnUndoGrid(wxCommandEvent& event);
+        void OnRedoGrid(wxCommandEvent& event);
 
 		void GetMinMaxNode(long& min, long& max);
 		void Reverse();
+		void ReverseSubmodels();
         bool CheckScale(std::list<wxPoint>& points, float scale) const;
         void FlipHorizontal();
         void FlipVertical();

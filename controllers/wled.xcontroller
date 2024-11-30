@@ -11,6 +11,7 @@
         <AllInputUniversesMustBeSameSize/>
         <UniversesMustBeSequential/>
         <SupportsAutoLayout/>
+        <DDPStartsAtOne/>
         <SupportsMultipleSimultaneousOutputProtocols/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
@@ -174,14 +175,6 @@
             <Port2>33</Port2>
             <Port3>16</Port3>
             <Port4>4</Port4>
-        </Variant>
-    </Controller>
-	<Controller Name="RGB2Go-Duo2Go">
-        <Variant Name="" Base="WLED:BaseWLEDSettings">
-            <MaxPixelPort>2</MaxPixelPort>
-            <MaxSerialPort>0</MaxSerialPort>
-            <Port1>2</Port1>
-            <Port2>1</Port2>
         </Variant>
     </Controller>
 </Vendor>

@@ -88,6 +88,7 @@ public:
     int GetHandleScale() const;
 
     void DrawGroupCentre(float x, float y);
+    void SetCenterOffset(ModelGroup* mg, int x, int y);
     void Render();
     void Render(uint32_t frameTime, const unsigned char *data, bool swapBuffers=true);
     void RenderModels(const std::vector<Model*>& models, bool selected, bool showFirstPixel);
@@ -218,6 +219,12 @@ private:
     bool m_wheel_down = false;
     int m_last_mouse_x = 0;
     int m_last_mouse_y = 0;
+    
+    float last_minx = 0.0f;
+    float last_miny = 0.0f;
+    float last_maxx = 0.0f;
+    float last_maxy = 0.0f;
+
     glm::mat4 ViewMatrix;
     glm::mat4 ProjMatrix;
     glm::mat4 ProjViewMatrix;

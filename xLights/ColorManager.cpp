@@ -101,6 +101,24 @@ void ColorManager::RestoreSnapshot()
 	}
 }
 
+wxColor ColorManager::CyanOrBlueOverride() {
+    const xlColor* color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_TEXT_HIGHLIGHTED);
+    if (color->asWxColor() == *wxBLACK) {
+        return CyanOrBlue();
+    } else {
+        return color->asWxColor();
+    }
+}
+
+wxColor ColorManager::LightOrMediumGreyOverride() {
+    const xlColor* color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_TEXT_UNSELECTED);
+    if (color->asWxColor() == *wxBLACK) {
+        return LightOrMediumGrey();
+    } else {
+        return color->asWxColor();
+    }
+}
+
 void ColorManager::SetNewColor(std::string name, xlColor& color)
 {
     std::string color_name = name;
@@ -208,7 +226,7 @@ void ColorManager::Load(wxXmlNode* colors_node)
 {
 	if (colors_node != nullptr)
 	{
-        colors.clear();
+        ResetDefaults();
         for (wxXmlNode* c = colors_node->GetChildren(); c != nullptr; c = c->GetNext())
         {
             std::string name = c->GetName().ToStdString();

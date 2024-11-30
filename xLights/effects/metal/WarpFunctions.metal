@@ -9,7 +9,7 @@ constant int DissolvePatternHeight = 512;
 constant float PI = 3.14159;
 
 
-float dissolveTex(float s, float t, device uchar* dissolvePattern) {
+float dissolveTex(float s, float t, const device uchar* dissolvePattern) {
     s = clamp(s, 0.0, 1.0);
     t = clamp(t, 0.0, 1.0);
 
@@ -20,7 +20,7 @@ float dissolveTex(float s, float t, device uchar* dissolvePattern) {
     val = val / 255.0f;
     return val;
 }
-float2 noiseVec(float2 p, device uchar* dissolvePattern) {
+float2 noiseVec(float2 p, const device uchar* dissolvePattern) {
     float noiseColor = dissolveTex(p.x, p.y, dissolvePattern);
     return float2( noiseColor, noiseColor);
 }
@@ -33,7 +33,7 @@ uchar lerp(uchar a, uchar b, float progress) {
 uchar4 lerp(uchar4 a, uchar4 b, float progress) {
     return {lerp(a.r, b.r, progress), lerp(a.g, b.g, progress), lerp(a.b, b.b, progress), 255};
 }
-float noise(float2 p, device uchar* dissolvePattern) {
+float noise(float2 p, const device uchar* dissolvePattern) {
     float2 i, f;
     float xint, yint;
     f.x = modf(p.x, xint);
@@ -97,7 +97,7 @@ kernel void WarpEffectMirror(constant WarpData &data,
 }
 kernel void WarpEffectCopy(constant WarpData &data,
                            device uchar4* result,
-                           device uchar4* src,
+                           const device uchar4* src,
                            uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -156,8 +156,8 @@ int tex2DBlack(float2 uv, int width, int height) {
 
 kernel void WarpEffectWavy(constant WarpData &data,
                            device uchar4* result,
-                           device uchar4* src,
-                           device uchar* dissolvePattern,
+                           const device uchar4* src,
+                           const device uchar* dissolvePattern,
                            uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -203,7 +203,7 @@ float getDropletHeight(const float2 uv, const float2 dropletPosition, float time
 
 kernel void WarpEffectSingleWaterDrop(constant WarpData &data,
                                       device uchar4* result,
-                                      device uchar4* src,
+                                      const device uchar4* src,
                                       uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -230,7 +230,7 @@ float genWave( float len, float speed, float time ) {
 }
 kernel void WarpEffectWaterDrops(constant WarpData &data,
                                  device uchar4* result,
-                                 device uchar4* src,
+                                 const device uchar4* src,
                                  uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -253,7 +253,7 @@ kernel void WarpEffectWaterDrops(constant WarpData &data,
 
 kernel void WarpEffectDissolve(constant WarpData &data,
                                device uchar4* result,
-                               device uchar* dissolvePattern,
+                               const device uchar* dissolvePattern,
                                uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -273,7 +273,7 @@ kernel void WarpEffectDissolve(constant WarpData &data,
 
 kernel void WarpEffectRipple(constant WarpData &data,
                              device uchar4* result,
-                             device uchar4* src,
+                             const device uchar4* src,
                              uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -302,8 +302,8 @@ kernel void WarpEffectRipple(constant WarpData &data,
 
 kernel void WarpEffectDrop(constant WarpData &data,
                            device uchar4* result,
-                           device uchar4* src,
-                           device uchar* dissolvePattern,
+                           const device uchar4* src,
+                           const device uchar* dissolvePattern,
                            uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -320,7 +320,7 @@ kernel void WarpEffectDrop(constant WarpData &data,
 
 kernel void WarpEffectCircleSwirl(constant WarpData &data,
                                   device uchar4* result,
-                                  device uchar4* src,
+                                  const device uchar4* src,
                                   uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -375,7 +375,7 @@ kernel void WarpEffectCircleReveal(constant WarpData &data,
 }
 kernel void WarpEffectBandedSwirl(constant WarpData &data,
                                   device uchar4* result,
-                                  device uchar4* src,
+                                  const device uchar4* src,
                                   uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;

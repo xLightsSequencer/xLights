@@ -187,6 +187,12 @@ void UndoManager::CaptureModifiedEffect( const std::string &element_name, int la
     UndoStep* action = new UndoStep(UNDO_EFFECT_MODIFIED, effect_undo_action);
     mUndoSteps.push_back(action);
 }
+void UndoManager::CancelLastStep() {
+    if (!mUndoSteps.empty()) {
+        delete mUndoSteps.back();
+        mUndoSteps.pop_back();
+    }
+}
 
 void UndoManager::UndoLastStep()
 {

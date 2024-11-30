@@ -62,6 +62,9 @@ class TextPanel: public xlEffectPanel
 		virtual void ValidateWindow() override;
 
 		//(*Declarations(TextPanel)
+		BulkEditCheckBox* CheckBox_NoRepeat;
+		BulkEditCheckBox* CheckBox_TextToCenter;
+		BulkEditCheckBox* CheckBox_Text_Color_PerWord;
 		BulkEditCheckBox* CheckBox_Text_PixelOffsets;
 		BulkEditChoice* Choice_Text_Count;
 		BulkEditChoice* Choice_Text_Dir;
@@ -117,6 +120,7 @@ class TextPanel: public xlEffectPanel
 		static const long ID_CHOICE_Text_Dir;
 		static const long ID_BITMAPBUTTON_CHOICE_Text_Dir;
 		static const long ID_CHECKBOX_TextToCenter;
+		static const long ID_CHECKBOX_TextNoRepeat;
 		static const long ID_BITMAPBUTTON_TextToCenter;
 		static const long ID_STATICTEXT_Text_Speed;
 		static const long IDD_SLIDER_Text_Speed;
@@ -129,6 +133,7 @@ class TextPanel: public xlEffectPanel
 		static const long ID_CHOICE_Text_Count;
 		static const long ID_BITMAPBUTTON_CHOICE_Text_Count;
 		static const long ID_CHECKBOX_Text_PixelOffsets;
+		static const long ID_CHECKBOX_Text_Color_PerWord;
 		static const long ID_STATICTEXT_Text_XStart;
 		static const long ID_SLIDER_Text_XStart;
 		static const long IDD_TEXTCTRL_Text_XStart;
@@ -154,6 +159,7 @@ class TextPanel: public xlEffectPanel
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		void OnTextCtrl_TextText(wxCommandEvent& event);
 		void OnChoice_LyricTrackSelect(wxCommandEvent& event);
+		void OnChoice_Text_DirSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

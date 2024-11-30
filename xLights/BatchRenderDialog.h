@@ -87,7 +87,8 @@ protected:
 		void OnInit(wxInitDialogEvent& event);
 		//*)
 
-		void DisplayDateModified(std::string const& fileName, wxTreeListItem& index) const;
+        void DisplayDateModified(std::string const& fileName, wxTreeListItem& index) const;
+        void DisplayDateRendered(std::string const& fileName, wxTreeListItem& item) const;
 
         void ValidateWindow();
         uint32_t UpdateCount();

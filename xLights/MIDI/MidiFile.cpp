@@ -2038,7 +2038,7 @@ int MidiFile::getAbsoluteTickTime(double starttime) {
       buildTimeMap();
       if (timemapvalid == 0) {
          if (timemapvalid == 0) {
-            return -1.0;    // something went wrong
+            return -1;    // something went wrong
          }
       }
    }
@@ -2106,7 +2106,7 @@ int MidiFile::getTotalTimeInTicks(void) {
    if (oldTimeState == TIME_STATE_DELTA) {
       deltaTicks();
    }
-   int output = 0.0;
+   int output = 0;
    for (int i=0; i<(int)events.size(); i++) {
       if (events[i]->last().tick > output) {
          output = events[i]->last().tick;

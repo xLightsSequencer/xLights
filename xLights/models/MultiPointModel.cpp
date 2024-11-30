@@ -444,7 +444,7 @@ void MultiPointModel::DeleteHandle(int handle_) {
     GetModelScreenLocation().DeleteHandle(handle);
 }
 
-void MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "multipointmodel") {
         wxString name = root->GetAttribute("name");
@@ -460,7 +460,7 @@ void MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights,
         wxString dir = root->GetAttribute("Dir");
         wxString sn = root->GetAttribute("StrandNames");
         wxString nn = root->GetAttribute("NodeNames");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString pts = root->GetAttribute("NumPoints");
         wxString point_data = root->GetAttribute("PointData");
         wxString pc = root->GetAttribute("PixelCount");
@@ -501,8 +501,11 @@ void MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights,
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading MultiPoint model file.");
+        return false;
     }
 }
 
@@ -514,9 +517,12 @@ void MultiPointModel::ExportXlightsModel()
     if (filename.IsEmpty())
         return;
     wxFile f(filename);
-    //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
+
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString p3 = ModelXml->GetAttribute("parm3");
@@ -552,6 +558,10 @@ void MultiPointModel::ExportXlightsModel()
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
+    wxString aliases = SerialiseAliases();
+    if (aliases != "") {
+        f.Write(aliases);
+    }
     wxString state = SerialiseState();
     if (state != "") {
         f.Write(state);

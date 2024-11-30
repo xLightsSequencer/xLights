@@ -321,8 +321,12 @@ void GenericVideoExporter::initializeAudio(const AVCodec* codec)
     audio_st->id = _formatContext->nb_streams - 1;
 
     _audioCodecContext = ::avcodec_alloc_context3(codec);
+#if LIBAVUTIL_VERSION_MAJOR < 57
     _audioCodecContext->channels = 2;
     _audioCodecContext->channel_layout = AV_CH_LAYOUT_STEREO;
+#else
+    _audioCodecContext->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
+#endif
     _audioCodecContext->sample_rate = _outParams.audioSampleRate;
     _audioCodecContext->sample_fmt = AV_SAMPLE_FMT_FLTP;
     _audioCodecContext->bit_rate = 128000;
@@ -387,8 +391,12 @@ void GenericVideoExporter::initializeFrames()
         _audioFrame = ::av_frame_alloc();
         _audioFrame->format = AV_SAMPLE_FMT_FLTP;
         _audioFrame->nb_samples = _audioCodecContext->frame_size;
-        _audioFrame->channel_layout = AV_CH_LAYOUT_STEREO;
+#if LIBAVUTIL_VERSION_MAJOR < 57
         _audioFrame->channels = 2;
+        _audioFrame->channel_layout = AV_CH_LAYOUT_STEREO;
+#else
+        _audioFrame->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
+#endif
         _audioFrame->sample_rate = _outParams.audioSampleRate;
         status = ::av_frame_get_buffer(_audioFrame, 0);
         if (status != 0) {

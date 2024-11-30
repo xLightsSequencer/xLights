@@ -75,6 +75,12 @@ const long xLightsFrame::ID_NETWORK_UNLINKFROMBASE = wxNewId();
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event) {
     int id = event.GetId();
     wxString newdir = RecentShowFoldersMenu->GetLabel(id);
+    
+    if (!ObtainAccessToURL(newdir, true)) {
+        std::string dstr = newdir;
+        PromptForDirectorySelection("Reselect Show Directory", dstr);
+        newdir = dstr;
+    }
     SetDir(newdir, true);
 }
 void xLightsFrame::OnMRUSequence(wxCommandEvent& event) {
@@ -142,9 +148,13 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
     MenuFile->FindItem(ID_MENUITEM_OPENRECENTSEQUENCE)->Enable(cnt != 0);
 }
 
-
 bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
 {
+    if (readOnlyMode) {
+        wxMessageBox("Show directory cannot be changed in read only mode.", "Read Only Mode", wxICON_INFORMATION | wxOK);
+        return false;
+    }
+    
     wxString nd = newdir;
     if (nd.EndsWith(wxFileName::GetPathSeparator()))
         nd = nd.SubString(0, nd.size() - 2);
@@ -154,6 +164,11 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         return false;
     }
 
+    if (!ObtainAccessToURL(newdir, true)) {
+        return false;
+    }
+
+    
     layoutPanel->ClearSelectedModelGroup();
 
     // delete any views that were added to the menu
@@ -252,7 +267,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         return false;
     }
 
-    ObtainAccessToURL(nd.ToStdString());
+    ObtainAccessToURL(nd.ToStdString(), true);
 
     // update UI
     CheckBoxLightOutput->SetValue(false);
@@ -375,6 +390,11 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
 
     if (_outputManager.IsAutoUpdateFromBaseShowDir() && _outputManager.GetBaseShowDir() != "") {
         logger_base.debug("Updating from base folder on show folder open.");
+        if (!ObtainAccessToURL(_outputManager.GetBaseShowDir(), true)) {
+            std::string dstr = _outputManager.GetBaseShowDir();
+            PromptForDirectorySelection("Reselect Base Show Directory", dstr);
+            _outputManager.SetBaseShowDir(dstr);
+        }
         UpdateFromBaseShowFolder(false);
     }
 
@@ -418,6 +438,12 @@ void xLightsFrame::OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event)
     PromptForShowDirectory(false);
 }
 
+void xLightsFrame::OnButton_OpenBaseShowDirClick(wxCommandEvent& event) {
+    displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
+    layoutPanel->ClearUndo();
+    SetDir(_outputManager.GetBaseShowDir(), false);
+}
+
 void xLightsFrame::OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event)
 {
     if (Button_CheckShowFolderTemporarily->GetLabel() == "Change Temporarily") {
@@ -432,15 +458,28 @@ void xLightsFrame::OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event)
     }
 }
 
-bool xLightsFrame::PromptForShowDirectory(bool permanent) {
+bool xLightsFrame::PromptForDirectorySelection(const std::string &msg, std::string &dir) {
+    wxDirDialog DirDialog1(this, msg, dir, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+    while (true) {
+        if (DirDialog1.ShowModal() == wxID_OK) {
+            dir = DirDialog1.GetPath();
+            ObtainAccessToURL(dir, true);
+            return true;
+        }
+        DirDialog1.SetPath(dir);
+    }
+}
 
-    wxDirDialog DirDialog1(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+
+bool xLightsFrame::PromptForShowDirectory(bool permanent, const std::string &defaultDir) {
+
+    wxDirDialog DirDialog1(this, _("Select Show Directory"), defaultDir, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
 
     while (DirDialog1.ShowModal() == wxID_OK) {
         bool dirOK = true;
         AbortRender(); // make sure nothing is still rendering
         wxString newdir = DirDialog1.GetPath();
-        ObtainAccessToURL(newdir);
+        ObtainAccessToURL(newdir, true);
         if (newdir == CurrentDir) return true;
 
         if (ShowFolderIsInBackup(newdir.ToStdString())) {
@@ -1302,6 +1341,7 @@ void xLightsFrame::EnableNetworkChanges() {
     BitmapButtonMoveNetworkUp->Enable(flag);
     BitmapButtonMoveNetworkDown->Enable(flag);
     ButtonDiscover->Enable(flag);
+    ButtonFPPConnect->Enable(flag);
     ButtonSaveSetup->Enable(!CurrentDir.IsEmpty());
     CheckBoxLightOutput->Enable(!CurrentDir.IsEmpty());
     BitmapButtonMoveNetworkDown->Enable(flag);
@@ -1310,6 +1350,9 @@ void xLightsFrame::EnableNetworkChanges() {
 }
 
 #pragma region Left Buttons
+void xLightsFrame::OnButtonFPPConnectClick(wxCommandEvent& event) {
+    this->OnMenuItem_FPP_ConnectSelected(event);
+}
 void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1345,9 +1388,15 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
                 if (eth != nullptr
                     && eth->GetName() == it->GetName()
                     && eth->GetProtocol() == it->GetProtocol()) {
-                    if (wxMessageBox("The discovered controller matches an existing controller name but has a different IP address. Do you want to update the IP address for that existing controller in xLights?", "Mismatch IP", wxYES_NO, this) == wxYES) {
+                    wxMessageDialog dialog(nullptr, "The discovered controller (" + eth->GetName() + "/" + eth->GetIP() + ") matches an existing controller name but has a different IP address (" + it->GetIP() + "). Do you want to update the IP address for that existing controller in xLights?", "Mismatch IP", wxYES_NO | wxCANCEL | wxICON_QUESTION);
+                    dialog.SetYesNoCancelLabels("Yes", "Add New", "Skip");
+                    int result = dialog.ShowModal();
+                    if (result == wxID_YES) {
                         updated = true;
                         eth->SetIP(it->GetIP());
+                        found = true;
+                    } else if (result == wxID_CANCEL) {
+                        updated = true;
                         found = true;
                     }
                 }
@@ -1365,7 +1414,8 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
                 && it->GetName() != c.front()->GetName()
                 && c.front()->GetProtocol() == it->GetProtocol()) {
                 // existing zcpp with same ip but different name ... maybe we should update the name
-                if (wxMessageBox("The discovered controller matches an existing controller IP address but has a different name. Do you want to update the name for the existing controller in xLights?", "Mismatch controller name", wxYES_NO, this) == wxYES) {
+                if (wxMessageBox("The discovered controller (" + c.front()->GetName() + ") matches an existing controller IP address but has a different name (" + it->GetName() + "). Do you want to update the name for the existing controller in xLights?", "Mismatch controller name", wxYES_NO, this) == wxYES)
+                    {
                     renames[c.front()->GetName()] = it->GetName();
                     c.front()->SetName(it->GetName());
                     found = true;
@@ -1449,7 +1499,6 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         Connect(ID_List_Controllers, wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&xLightsFrame::OnListControllersRClick);
         Connect(ID_List_Controllers, wxEVT_LIST_COL_CLICK, (wxObjectEventFunction)&xLightsFrame::OnListControllersColClick);
         Connect(ID_List_Controllers, wxEVT_LIST_ITEM_RIGHT_CLICK, (wxObjectEventFunction)&xLightsFrame::OnListControllersItemRClick);
-        Connect(ID_List_Controllers, wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemSelectedControllers);
         Connect(ID_List_Controllers, wxEVT_LIST_ITEM_DESELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemDeselectedControllers);
         Connect(ID_List_Controllers, wxEVT_LIST_BEGIN_DRAG, (wxObjectEventFunction)&xLightsFrame::OnListItemBeginDragControllers);
         Connect(ID_List_Controllers, wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemSelectedControllers);
@@ -1459,6 +1508,12 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         List_Controllers->AppendColumn("Address");
         List_Controllers->AppendColumn("Universes/Id");
         List_Controllers->AppendColumn("Channels");
+        List_Controllers->AppendColumn("Vendor");
+        List_Controllers->AppendColumn("Model");
+        List_Controllers->AppendColumn("Variant");
+        List_Controllers->AppendColumn("Active");
+        List_Controllers->AppendColumn("Auto Layout");
+        List_Controllers->AppendColumn("Auto Size");
         List_Controllers->AppendColumn("Description");
 
         ButtonAddControllerEthernet->SetToolTip("Use this button to add E1.31, Artnet, DDP and ZCPP controllers.");
@@ -1481,9 +1536,9 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         Controllers_PropertyEditor->Connect(wxEVT_PG_ITEM_EXPANDED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridExpanded, 0, this);
         Controllers_PropertyEditor->SetValidationFailureBehavior(wxPGVFBFlags::MarkCell | wxPGVFBFlags::Beep);
 
-        Controllers_PropertyEditor->AddActionTrigger(wxPGKeyboardActions::NextProperty, WXK_RETURN);
+        Controllers_PropertyEditor->AddActionTrigger(wxPGKeyboardAction::NextProperty, WXK_RETURN);
         Controllers_PropertyEditor->DedicateKey(WXK_RETURN);
-        Controllers_PropertyEditor->AddActionTrigger(wxPGKeyboardActions::NextProperty, WXK_TAB);
+        Controllers_PropertyEditor->AddActionTrigger(wxPGKeyboardAction::NextProperty, WXK_TAB);
         Controllers_PropertyEditor->DedicateKey(WXK_TAB);
     }
 
@@ -1504,12 +1559,17 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         if (std::find(begin(selections), end(selections), it->GetName()) != selections.end()) {
             List_Controllers->SetItemState(row, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
         }
-        //List_Controllers->SetItem(row, 1, it->GetColumn6Label());
         List_Controllers->SetItem(row, 1, it->GetColumn1Label());
         List_Controllers->SetItem(row, 2, it->GetColumn2Label());
         List_Controllers->SetItem(row, 3, it->GetColumn3Label());
         List_Controllers->SetItem(row, 4, it->GetColumn4Label());
         List_Controllers->SetItem(row, 5, it->GetColumn5Label());
+        List_Controllers->SetItem(row, 6, it->GetColumn6Label());
+        List_Controllers->SetItem(row, 7, it->GetColumn7Label());
+        List_Controllers->SetItem(row, 8, it->GetColumn8Label());
+        List_Controllers->SetItem(row, 9, it->GetColumn9Label());
+        List_Controllers->SetItem(row, 10, it->GetColumn10Label());
+        List_Controllers->SetItem(row, 11, it->GetColumn11Label());
         if (it->IsFromBase())
         {
             if (it->IsActive()) {
@@ -1525,13 +1585,13 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
 
     auto sz = 0;
     for (int i = 0; i < List_Controllers->GetColumnCount() - 1; i++) {
-        List_Controllers->SetColumnWidth(i, wxLIST_AUTOSIZE);
-        if (List_Controllers->GetColumnWidth(i) < 100) List_Controllers->SetColumnWidth(i, 100);
+        List_Controllers->SetColumnWidth(i, wxLIST_AUTOSIZE_USEHEADER);
+        //if (List_Controllers->GetColumnWidth(i) < 75) List_Controllers->SetColumnWidth(i, 75);
         sz += List_Controllers->GetColumnWidth(i);
     }
 
     int lc = List_Controllers->GetColumnCount() - 1;
-    List_Controllers->SetColumnWidth(lc, wxLIST_AUTOSIZE);
+    List_Controllers->SetColumnWidth(lc, wxLIST_AUTOSIZE_USEHEADER);
     if (List_Controllers->GetColumnWidth(lc) < 100) List_Controllers->SetColumnWidth(lc, 100);
 
     if (sz + List_Controllers->GetColumnWidth(lc) < List_Controllers->GetSize().GetWidth()) {
@@ -1545,13 +1605,6 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         FlexGridSizerSetupControllerButtons->Add(LedPing, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
         LedPing->Show();
 
-        if (StaticTextDummy != nullptr) {
-            // I remove the static text as this was the only way I seem to be able to make the LED visible
-            FlexGridSizerSetupControllerButtons->Detach(StaticTextDummy);
-            Panel5->RemoveChild(StaticTextDummy);
-            delete StaticTextDummy;
-            StaticTextDummy = nullptr;
-        }
     }
 
     // try to ensure what should be visible is visible in roughly the same part of the screen
@@ -1564,6 +1617,8 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         List_Controllers->EnsureVisible(itemSelected);
     }
 
+    Panel2->SetMinSize(wxSize(400, -1));
+    Panel5->SetMinSize(this->FromDIP(wxSize(380, -1)));
     List_Controllers->Thaw();
 
     Panel2->Layout();
@@ -1718,7 +1773,7 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
                 Controllers_PropertyEditor->Clear();
                 controller->AddProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
             }
-            controller->UpdateProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
+            controller->UpdateProperties(Controllers_PropertyEditor, &AllModels, expandProperties, &_outputModelManager);
 
             if (controller->IsFromBase()) {
                 Controllers_PropertyEditor->SetToolTip("This model comes from the base folder and its properties cannot be edited.");
@@ -1775,7 +1830,6 @@ void xLightsFrame::ValidateControllerProperties() {
 
 void xLightsFrame::OnControllerPropertyGridCollapsed(wxPropertyGridEvent& event)
 {
-    wxString name = event.GetPropertyName();
     auto selections = GetSelectedControllerNames();
 
     if (selections.size() == 1) {
@@ -1789,7 +1843,6 @@ void xLightsFrame::OnControllerPropertyGridCollapsed(wxPropertyGridEvent& event)
 
 void xLightsFrame::OnControllerPropertyGridExpanded(wxPropertyGridEvent& event)
 {
-    wxString name = event.GetPropertyName();
     auto selections = GetSelectedControllerNames();
 
     if (selections.size() == 1) {

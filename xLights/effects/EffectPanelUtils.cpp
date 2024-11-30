@@ -301,7 +301,6 @@ xlEffectPanel::~xlEffectPanel() {
 
 void xlEffectPanel::AddListeners(wxWindow *ParentWin)
 {
-    wxString s;
     for (const auto& it : ParentWin->GetChildren()) {
         wxWindow *ChildWin = it;
         wxString ChildName = ChildWin->GetName();
@@ -321,6 +320,8 @@ void xlEffectPanel::AddListeners(wxWindow *ParentWin)
             Connect(ChildWin->GetId(),wxEVT_CHOICE,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
         } else if (ChildName.StartsWith("ID_CHECKBOX")) {
             Connect(ChildWin->GetId(),wxEVT_CHECKBOX,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
+        } else if (ChildName.StartsWith("ID_TOGGLEBUTTON")) {
+            Connect(ChildWin->GetId(),wxEVT_TOGGLEBUTTON,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
         } else if (ChildName.StartsWith("ID_RADIOBUTTON")) {
             Connect(ChildWin->GetId(),wxEVT_RADIOBUTTON,(wxObjectEventFunction)&xlEffectPanel::HandleCommandChange);
         } else if (ChildName.StartsWith("ID_FILEPICKER") || ChildName.StartsWith("ID_0FILEPICKER")) {
@@ -389,4 +390,9 @@ void xlEffectPanel::HandleColorChange(wxColourPickerEvent& event) { event.Skip(t
 const wxBitmapBundle& xlEffectPanel::GetValueCurveNotSelectedBitmap() {
     static wxBitmapBundle bundle = wxArtProvider::GetBitmapBundle("xlART_valuecurve_notselected", wxART_BUTTON);
     return bundle;
+}
+
+
+LinkedToggleButton::LinkedToggleButton(wxWindow* parent, wxWindowID id, const wxString& label, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name) : wxBitmapToggleButton(parent, id, wxArtProvider::GetBitmapBundle("xlART_UNLINKED"), pos, size, style, validator, name) {
+    this->SetBitmapPressed(wxArtProvider::GetBitmapBundle("xlART_LINKED"));
 }

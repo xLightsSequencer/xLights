@@ -70,7 +70,7 @@ protected:
     bool _tempDisable = false;
     bool _fromBase = false;
 
-    std::map<std::string, std::string> _runtimeProperties;  // place to store various properties/state/etc that may be needed at runtime
+    std::map<std::string, std::string> _extraProperties;  
 #pragma endregion
 
 public:
@@ -100,7 +100,7 @@ public:
     #pragma region Getters and Setters
     Output* GetOutput(int outputNumber) const; // output number is zero based
     Output* GetOutput(int32_t absoluteChannel, int32_t& startChannel) const;
-    std::list<Output*> GetOutputs() const { return _outputs; }
+    const std::list<Output*> &GetOutputs() const { return _outputs; }
     int GetOutputCount() const { return _outputs.size(); }
     Output* GetFirstOutput() const { wxASSERT(_outputs.size() > 0); return _outputs.front(); }
 
@@ -190,14 +190,14 @@ public:
 
     Output::PINGSTATE GetLastPingState() const { return _lastPingResult; }
 
-    const std::string &GetRuntimeProperty(const std::string &p, const std::string &def = "") const {
-        const auto &a = _runtimeProperties.find(p);
-        if (a != _runtimeProperties.end()) {
+    const std::string &GetExtraProperty(const std::string &p, const std::string &def = "") const {
+        const auto &a = _extraProperties.find(p);
+        if (a != _extraProperties.end()) {
             return a->second;
         }
         return def;
     }
-    void SetRuntimeProperty(const std::string &p, const std::string &v) { _runtimeProperties[p] = v;}
+    void SetExtraProperty(const std::string &p, const std::string &v) { _extraProperties[p] = v;}
     #pragma endregion
 
     #pragma region Virtual Functions
@@ -272,8 +272,13 @@ public:
     virtual std::string GetColumn2Label() const { return ""; }
     virtual std::string GetColumn3Label() const { return GetUniverseString(); }
     virtual std::string GetColumn4Label() const { return wxString::Format("%ld [%ld-%ld]", (long)GetChannels(), (long)GetStartChannel(), (long)GetEndChannel()); }
-    virtual std::string GetColumn5Label() const { return GetDescription(); }
-    virtual std::string GetColumn6Label() const { return wxString::Format("%d", GetId()); }
+    virtual std::string GetColumn5Label() const { return GetVendor(); }
+    virtual std::string GetColumn6Label() const { return GetModel(); }
+    virtual std::string GetColumn7Label() const { return GetVariant(); }
+    virtual std::string GetColumn8Label() const { return DecodeActiveState(GetActive()); }
+    virtual std::string GetColumn9Label() const { return toStr(IsAutoLayout()); }
+    virtual std::string GetColumn10Label() const { return toStr(IsAutoSize()); }
+    virtual std::string GetColumn11Label() const { return GetDescription(); }
 
     virtual Output::PINGSTATE Ping() { _lastPingResult = Output::PINGSTATE::PING_UNAVAILABLE; return GetLastPingState(); }
     virtual void AsyncPing() { _lastPingResult = Output::PINGSTATE::PING_UNKNOWN; }
@@ -296,7 +301,7 @@ public:
         void AddModels(wxPGProperty* property, wxPGProperty* vp);
         void AddVariants(wxPGProperty* property);
 
-        virtual void UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties);
+        virtual void UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager);
         virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties);
 	    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager);
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const;

@@ -253,8 +253,10 @@ void HousePreviewPanel::SetDurationFrames(int frames)
 
 void HousePreviewPanel::SetPositionFrames(int frames)
 {
-    SliderPosition->SetValue(frames);
-    StaticText_Time->SetLabel(FORMATTIME(frames * _xLights->CurrentSeqXmlFile->GetFrameMS()));
+    if (_showToolbar) {
+        SliderPosition->SetValue(frames);
+        StaticText_Time->SetLabel(FORMATTIME(frames * _xLights->CurrentSeqXmlFile->GetFrameMS()));
+    }
 }
 
 void HousePreviewPanel::OnSliderPositionCmdSliderUpdated(wxScrollEvent& event)

@@ -51,6 +51,7 @@
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_Number_Chases" variable="StaticText60" member="yes">
 										<label>Number Chases</label>
+										<tooltip>Number of chases within the string, may overlap if chase size is greater than can fit.</tooltip>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -108,6 +109,7 @@
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_Color_Mix1" variable="StaticText9" member="yes">
 										<label>Chase Size</label>
+										<tooltip>Size of the effect in percentage of the string, will overlap if the number of chases are larger than can fit.  3 chases + &gt; 33.3 percent = overlap</tooltip>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -154,7 +156,6 @@
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -217,6 +218,7 @@
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
 										<label>Offset</label>
+										<tooltip>Offset by the percentage of the string, will loop &gt; +/- 100</tooltip>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -310,9 +312,32 @@
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
+										<label>Fade</label>
+										<tooltip>From Head - Brightest at the start, From Tail - Brightest and the end, Head and Tail - Brightest at both ends, Middle - Brightest in the middle</tooltip>
+									</object>
+									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxChoice" name="ID_CHOICE_Fade_Type" subclass="BulkEditChoice" variable="Choice_Fade_Type" member="yes">
+										<content>
+											<item>None</item>
+											<item>From Head</item>
+											<item>From Tail</item>
+											<item>Head and Tail</item>
+											<item>Middle</item>
+										</content>
+										<selection>0</selection>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -322,24 +347,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Chase_3dFade1" subclass="BulkEditCheckBox" variable="CheckBox_Chase_3dFade1" member="yes">
-										<label>3d Fade</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1" subclass="xlLockButton" variable="BitmapButton_Chase_3dFade1" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Fade_Type" subclass="xlLockButton" variable="BitmapButton_Choice_Fade_Type" member="yes">
 										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -352,7 +363,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxCheckBox" name="ID_CHECKBOX_Chase_Group_All" subclass="BulkEditCheckBox" variable="CheckBox_Chase_Group_All" member="yes">
-										<label>Group All Arches</label>
+										<label>Group All Strands</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>

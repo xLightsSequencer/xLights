@@ -404,9 +404,12 @@ bool Mesh::GetExists(BaseObject* base, xlGraphicsContext *ctx) {
     return mesh3d != nullptr;
 }
 
-void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram,
-                glm::mat4& base_matrix, glm::mat4& motion_matrix,
-                bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z, bool rotation, bool use_pivot)
+void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, glm::mat4& base_matrix, glm::mat4& motion_matrix, bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z, bool rotation, bool use_pivot)
+{
+    Draw(base, preview, sprogram, tprogram, base_matrix, motion_matrix, 0, 0, 0, show_empty, pivot_offset_x, pivot_offset_y, pivot_offset_z, rotation, use_pivot);
+}
+
+void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, glm::mat4& base_matrix, glm::mat4& trans_matrix, float xrot, float yrot, float zrot, bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z, bool rotation, bool use_pivot)
 {
     if (!obj_loaded) {
         loadObject(base, preview->getCurrentGraphicsContext());
@@ -416,18 +419,18 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *spro
     if (obj_loaded) {
         glm::mat4 Identity = glm::mat4(1.0f);
         glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scalex * rscale, scaley * rscale, scalez * rscale));
-        glm::mat4 rx = glm::rotate(Identity, glm::radians(rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::mat4 ry = glm::rotate(Identity, glm::radians(rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
-        glm::quat rotate_quat = glm::quat_cast(rx * ry * rz);
+        glm::mat4 rx = glm::rotate(Identity, glm::radians(rotatex + xrot), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 ry = glm::rotate(Identity, glm::radians(rotatey + yrot), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez + zrot), glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 rotationMatrix = rz * ry * rx;
         glm::mat4 translationMatrix = glm::translate(Identity, glm::vec3(offset_x, offset_y, offset_z));
         glm::mat4 m;
         if (rotation) {
             glm::mat4 pivotToZero = glm::translate(Identity, glm::vec3(-pivot_offset_x, -pivot_offset_y, -pivot_offset_z));
             glm::mat4 pivotBack = glm::translate(Identity, glm::vec3(pivot_offset_x, pivot_offset_y, pivot_offset_z));
-            m = base_matrix * translationMatrix * pivotBack * motion_matrix * pivotToZero * glm::toMat4(rotate_quat) * scalingMatrix;
+            m = base_matrix * translationMatrix * pivotBack * trans_matrix * pivotToZero * rotationMatrix * scalingMatrix;
         } else {
-            m = base_matrix * translationMatrix * motion_matrix * glm::toMat4(rotate_quat) * scalingMatrix;
+            m = base_matrix * translationMatrix * trans_matrix * rotationMatrix * scalingMatrix;
         }
 
         if (controls_size) {
@@ -488,7 +491,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *spro
         }
 
         int end = vac->getCount();
-        sprogram->addStep([=](xlGraphicsContext *ctx) {
+        sprogram->addStep([=, this](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
             ctx->ApplyMatrix(m);
             if (mesh_only) {
@@ -506,7 +509,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *spro
             ctx->PopMatrix();
         });
         if (!mesh_only) {
-            tprogram->addStep([=](xlGraphicsContext *ctx) {
+            tprogram->addStep([=, this](xlGraphicsContext *ctx) {
                 ctx->PushMatrix();
                 ctx->ApplyMatrix(m);
                 ctx->drawMeshTransparents(mesh3d, this->brightness);

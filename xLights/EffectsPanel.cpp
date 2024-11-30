@@ -57,7 +57,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager, wxTimer *ti
     FlexGridSizer1->Add(EffectChoicebook, 1, wxRIGHT|wxEXPAND, 2);
     SetSizer(FlexGridSizer1);
 
-    Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&EffectsPanel::EffectSelected);
+    Connect(ID_CHOICEBOOK1, wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&EffectsPanel::EffectSelected);
     //*)
 
     Connect(EffectChoicebook->GetChoiceCtrl()->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&EffectsPanel::OnRightDownChoice, nullptr, this);
@@ -75,7 +75,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager, wxTimer *ti
         fgs->Add(panel, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 2);
 
         sw->SetSizer(fgs);
-	sw->SetScrollRate(5, 5);
+        sw->SetScrollRate(5, 5);
         fgs->Fit(sw);
         fgs->SetSizeHints(sw);
 
@@ -143,10 +143,11 @@ void EffectsPanel::ValidateWindow()
     }
 }
 
-void EffectsPanel::SetEffectPanelStatus(Model *cls, const wxString &name) {
+void EffectsPanel::SetEffectPanelStatus(Model *cls, const wxString &name, int startTimeMs, int endTimeMs) {
     RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
     if (eff != nullptr) {
         eff->SetPanelStatus(cls);
+        eff->SetEffectTimeRange(startTimeMs, endTimeMs);
 	}
 }
 
@@ -246,7 +247,7 @@ wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxStri
 // modifed for partially random, allow random colors also -DJ
 wxString EffectsPanel::GetRandomEffectString(int effidx)
 {
-    wxString s,ChildName,AttrName;
+    wxString s;
     wxString prefix=",E_";
 
     // get effect controls

@@ -3,7 +3,6 @@
 #include "MetalEffectDataTypes.h"
 
 #include "../../RenderBuffer.h"
-#include "DissolveTransitionPattern.h"
 #include <array>
 
 class MetalWarpEffectData {
@@ -24,19 +23,8 @@ public:
         functions[WarpEffect::WarpType::CIRCLE_REVEAL] = MetalComputeUtilities::INSTANCE.FindComputeFunction("WarpEffectCircleReveal");
         functions[WarpEffect::WarpType::CIRCULAR_SWIRL] = MetalComputeUtilities::INSTANCE.FindComputeFunction("WarpEffectCircleSwirl");
         functions[WarpEffect::WarpType::BANDED_SWIRL] = MetalComputeUtilities::INSTANCE.FindComputeFunction("WarpEffectBandedSwirl");
-
-        int bufferSize = DissolvePatternWidth * DissolvePatternHeight;
-        dissolvePatternBuffer = [[MetalComputeUtilities::INSTANCE.device
-                                       newBufferWithBytes:DissolveTransitonPattern
-                                                   length:bufferSize
-                                                  options:MTLResourceStorageModeShared] retain];
-
-        [dissolvePatternBuffer setLabel:@"DissolveTransitonPattern"];
     }
     ~MetalWarpEffectData() {
-        if (dissolvePatternBuffer != nil) {
-            [dissolvePatternBuffer release];
-        }
         for (auto &f : functions) {
             if (f != nil) {
                 [f release];
@@ -118,7 +106,7 @@ public:
                 ++curIdx;
             }
             if (requiresDissolvePattern(style)) {
-                [computeEncoder setBuffer:dissolvePatternBuffer offset:0 atIndex:curIdx];
+                [computeEncoder setBuffer:MetalComputeUtilities::INSTANCE.dissolveBuffer offset:0 atIndex:curIdx];
                 ++curIdx;
             }
             
@@ -134,7 +122,6 @@ public:
         }
         return true;
     }
-    id<MTLBuffer> dissolvePatternBuffer = nil;
     std::array<id<MTLComputePipelineState>, WarpEffect::WarpType::COUNT_WARP_STYLES> functions;
 };
 

@@ -387,8 +387,9 @@ void SpinnerModel::InitModel() {
     DisplayAs = "Spinner";
 }
 
-void SpinnerModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
+void SpinnerModel::InitRenderBufferNodes(const std::string &tp, const std::string &camera, const std::string &transform,
     std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi, int stagger, bool deep) const {
+    std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     if (type == "Single Line") {
         BufferHi = 1;
         BufferWi = GetNodeCount();
@@ -542,9 +543,9 @@ void SpinnerModel::SetSpinnerCoord() {
     float min = 99999;
     float max = -9999;
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
-        for (auto it2 = (*it)->Coords.begin(); it2 != (*it)->Coords.end(); ++it2) {
-            min = std::min(min, it2->screenY);
-            max = std::max(max, it2->screenY);
+        for (auto it2 : (*it)->Coords) {
+            min = std::min(min, it2.screenY);
+            max = std::max(max, it2.screenY);
         }
     }
 }

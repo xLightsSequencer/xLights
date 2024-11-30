@@ -71,12 +71,14 @@ const long RowHeading::ID_ROW_MNU_CUT_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_CUT_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_MODEL = wxNewId();
+const long RowHeading::ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_RENDERENABLE_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_RENDERDISABLE_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_ROW_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_MODEL_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_DELETE_MODEL_SUBMODEL_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_MODEL_STRAND_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_MODEL_NODE_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SELECT_ROW_EFFECTS = wxNewId();
@@ -102,6 +104,7 @@ const long RowHeading::ID_ROW_MNU_REMOVE_TIMING_PHONEMES = wxNewId();
 const long RowHeading::ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES = wxNewId();
 const long RowHeading::ID_ROW_MNU_HIDEALLTIMING = wxNewId();
 const long RowHeading::ID_ROW_MNU_SHOWALLTIMING = wxNewId();
+const long RowHeading::ID_ROW_MNU_SETLAYERNAME = wxNewId();
 
 int DEFAULT_ROW_HEADING_HEIGHT = 22;
 
@@ -113,7 +116,6 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     logger_base.debug("                Creating RowHeading");
 
     DOUBLE_BUFFER(this);
-    wxString tooltip;
 
     papagayo_icon = BitmapCache::GetPapgayoIcon();
     papagayox_icon = BitmapCache::GetPapgayoXIcon();
@@ -258,6 +260,28 @@ void RowHeading::mouseLeftDown(wxMouseEvent& event)
     }
 }
 
+void RowHeading::SelectTiming(int timing) {
+
+    if (timing >= 0) {
+        auto te = mSequenceElements->GetTimingElement(timing);
+        if (te != nullptr) {
+            mSequenceElements->DeactivateAllTimingElements();
+            te->SetActive(true);
+            mSequenceElements->SetSelectedTimingRow(timing);
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        } else {
+            timing = -1;
+        }
+    }
+    if (timing == -1) {
+        mSequenceElements->DeactivateAllTimingElements();
+        mSequenceElements->SetSelectedTimingRow(-1);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    }
+}
+
 void RowHeading::ToggleExpand(Element* element)
 {
     if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
@@ -331,6 +355,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                         mnuLayer.Append(ID_ROW_MNU_DELETE_LAYERS, "Delete Multiple Layers");
                         mnuLayer.Append(ID_ROW_MNU_DELETE_UNUSEDLAYERS, "Delete Unused Layers");
                     }
+                    mnuLayer.Append(ID_ROW_MNU_SETLAYERNAME, "Edit Layer Name");
                     mnuLayer.AppendSeparator();
                 }
                 if (mSequenceElements->GetHiddenTimingCount() > 0 && mSequenceElements->GetCurrentView() == MASTER_VIEW) {
@@ -349,8 +374,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     if (ri->strandIndex >= 0) {
                         mnuLayer.Append(ID_ROW_MNU_TOGGLE_NODES, "Toggle Nodes");
                     }
-                }
-                else {
+                } else {
                     mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS, "Toggle Models");
                 }
                 mnuLayer.Append(ID_ROW_MNU_SHOW_EFFECTS, "Show All Effects");
@@ -411,6 +435,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 modelMenu->Append(ID_ROW_MNU_CUT_MODEL, "Cut Effects");
                 rowMenu->Append(ID_ROW_MNU_COPY_ROW, "Copy Effects");
                 modelMenu->Append(ID_ROW_MNU_COPY_MODEL, "Copy Effects");
+                modelMenu->Append(ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS, "Copy Effects incl SubModels");
                 wxMenuItem* menu_paste = rowMenu->Append(ID_ROW_MNU_PASTE_ROW, "Paste Effects");
                 wxMenuItem* menu_pastem = modelMenu->Append(ID_ROW_MNU_PASTE_MODEL, "Paste Effects");
                 if (!mCanPaste) {
@@ -420,6 +445,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 rowMenu->Append(ID_ROW_MNU_DELETE_ROW_EFFECTS, "Delete Effects");
                 rowMenu->Append(ID_ROW_MNU_CREATE_TIMING_FROM_EFFECTS, "Create Timing From Effects");
                 modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_EFFECTS, "Delete Effects");
+                modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_SUBMODEL_EFFECTS, "Delete SubModel Effects");
                 modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_STRAND_EFFECTS, "Delete Strand Effects");
                 modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_NODE_EFFECTS, "Delete Node Effects");
 
@@ -432,8 +458,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 mnuLayer.AppendSubMenu(rowMenu, "Row");
                 rowMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
                 modelMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
-            }
-            else {
+            } else {
                 EffectLayer* el = element->GetEffectLayer(ri->layerIndex);
                 if (el != nullptr) {
                     mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK, "Add Timing Track");
@@ -545,6 +570,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             }
 
             if (answer == wxYES) {
+                mSequenceElements->GetXLightsFrame()->AbortRender();
                 element->RemoveEffectLayer(layerIndex);
                 wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
                 wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -581,6 +607,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     }
                 }
                 if (deleteLayers == true) {
+                    mSequenceElements->GetXLightsFrame()->AbortRender();
                     for (int deleteLayer = startDeleteLayer; deleteLayer >= layerIndex; deleteLayer--) {
                         element->RemoveEffectLayer(deleteLayer);
                     }
@@ -604,6 +631,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 if (element->GetEffectLayerCount() == 1) {
                     // last layer ... dont delete it
                 } else {
+                    mSequenceElements->GetXLightsFrame()->AbortRender();
                     element->RemoveEffectLayer(i);
                     --i;
                     deleted = true;
@@ -613,6 +641,17 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (deleted) {
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
+        }
+    } else if (id == ID_ROW_MNU_SETLAYERNAME) {
+        if (mSequenceElements->GetVisibleRowInformation(mSelectedRow) != nullptr) {
+            std::string layerName = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->layerName;
+            std::string name = wxGetTextFromUser("What is the new name of the layer?", "Layer Name", layerName).ToStdString();
+            name = RemoveUnsafeXmlChars(name);
+            if (name != layerName) {
+                element->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(mSelectedRow)->layerIndex)->SetLayerName(name);
+                wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+                wxPostEvent(GetParent(), eventRowHeaderChanged);
+            }
         }
     } else if (id == ID_ROW_MNU_ADD_TIMING_TRACK) {
         bool timing_added = false;
@@ -626,7 +665,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (xml_file->GetFrequency() < 20) {
             dialog.RemoveChoice("50ms");
         }
-
+        
         VAMPPluginDialog vamp(this);
         std::list<std::string> plugins;
         if (xml_file->HasAudioMedia()) {
@@ -639,14 +678,14 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 }
             }
         }
-
+        
         dialog.Fit();
         OptimiseDialogPosition(&dialog);
-
+        
         wxString name = "";
         if (dialog.ShowModal() == wxID_OK) {
             std::string selected_timing = dialog.GetTiming().ToStdString();
-
+            
             if (selected_timing == "Download Queen Mary Vamp plugins for audio analysis") {
                 DownloadVamp();
             } else {
@@ -662,14 +701,14 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     OptimiseDialogPosition(&te);
                     while (first || xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || selected_timing == "") {
                         first = false;
-
+                        
                         auto base = selected_timing;
-
+                        
                         int suffix = 2;
                         while (xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame())) {
                             selected_timing = wxString::Format("%s_%d", base, suffix++);
                         }
-
+                        
                         te.SetValue(selected_timing);
                         if (te.ShowModal() == wxID_OK) {
                             selected_timing = te.GetValue();
@@ -679,26 +718,31 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                             break;
                         }
                     }
-
+                    
                     if (selected_timing != "") {
                         xml_file->AddNewTimingSection(selected_timing, mSequenceElements->GetXLightsFrame(), subType);
                         timing_added = true;
                     }
-
+                    
                 } else if (selected_timing == "Empty") {
                     bool first = true;
                     wxTextEntryDialog te(this, "Enter a name for the timing track", wxGetTextFromUserPromptStr, selected_timing);
+                    selected_timing = RemoveUnsafeXmlChars(selected_timing);
                     OptimiseDialogPosition(&te);
-                    while (first || xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || selected_timing == "") {
+                    while (first || 
+                           xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) || 
+                           xml_file->TimingMatchesModelName(selected_timing, mSequenceElements->GetXLightsFrame()) ||
+                           selected_timing == "") {
                         first = false;
-
+                        
                         auto base = selected_timing;
-
+                        
                         int suffix = 2;
-                        while (xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame())) {
+                        while (xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) ||
+                               xml_file->TimingMatchesModelName(selected_timing, mSequenceElements->GetXLightsFrame())) {
                             selected_timing = wxString::Format("%s_%d", base, suffix++);
                         }
-
+                        
                         te.SetValue(selected_timing);
                         if (te.ShowModal() == wxID_OK) {
                             selected_timing = te.GetValue();
@@ -708,7 +752,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                             break;
                         }
                     }
-
+                    
                     if (selected_timing != "") {
                         xml_file->AddFixedTimingSection(selected_timing, mSequenceElements->GetXLightsFrame());
                         timing_added = true;
@@ -721,7 +765,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                         OptimiseDialogPosition(&dlg);
                         if (dlg.ShowModal() == wxID_OK) {
                             int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
-
+                            
                             if (ms != dlg.GetValue()) {
                                 DisplayWarning(wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms).ToStdString());
                             }
@@ -737,15 +781,27 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                         if (dlg.ShowModal() == wxID_OK)
                         {
                             int ms = (dlg.GetTiming() + base_timing / 2) / base_timing * base_timing;
-
+                            
                             if (ms != dlg.GetTiming())
                             {
-                               DisplayWarning(wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetTiming(), ms).ToStdString());
+                                DisplayWarning(wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetTiming(), ms).ToStdString());
                             }
-                            wxString ttn = wxString::Format("%dms Metronome %d Tag", ms, dlg.GetTagCount());
+                            wxString ttn = wxString::Format("%s%dms Metronome %d Tag", dlg.IsRandomTiming() || dlg.IsRandomTags() ? "Random " : "", ms, dlg.GetTagCount());
+                            //Handle new random tag names
+                            if( (dlg.IsRandomTiming() || dlg.IsRandomTags()) && xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame()) ) {
+                                int copyNum = 1;
+                                wxString new_ttn = ttn;
+                                do {
+                                    wxString copyString =  wxString::Format(" (%d)", copyNum);
+                                    new_ttn = ttn + copyString;
+                                    copyNum++;
+                                } while (xml_file->TimingAlreadyExists(new_ttn.ToStdString(), mSequenceElements->GetXLightsFrame()));
+                                ttn = new_ttn;
+                            }
+                                
                             if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame()))
                             {
-                                xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, dlg.GetTagCount(), mSequenceElements->GetXLightsFrame());
+                                xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, dlg.GetTagCount(), mSequenceElements->GetXLightsFrame(), dlg.GetMinRandomTiming(), dlg.IsRandomTags());
                                 timing_added = true;
                             }
                         }
@@ -759,7 +815,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             }
         }
         dialog.Destroy();
-
+        
         if (timing_added) {
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -834,6 +890,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                             wxString td = wxString(tee->GetExport().c_str());
                             f.Write("<timing ");
                             f.Write(wxString::Format("name=\"%s\" ", XmlSafe(tee->GetName())));
+                            f.Write(wxString::Format("subType=\"%s\" ", tee->GetSubType()));
                             f.Write(wxString::Format("SourceVersion=\"%s\">\n", v));
                             f.Write(td);
                             f.Write("</timing>\n");
@@ -981,9 +1038,16 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         copyRowEvent.SetString("All");
         wxPostEvent(GetParent(), copyRowEvent);
         mCanPaste = true;
+    } else if (id == ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS) {
+        wxCommandEvent copyRowEvent(EVT_COPY_MODEL_EFFECTS);
+        copyRowEvent.SetInt(mSelectedRow);
+        copyRowEvent.SetString("AllInclSub");
+        wxPostEvent(GetParent(), copyRowEvent);
+        mCanPaste = true;
     } else if (id == ID_ROW_MNU_DELETE_ROW_EFFECTS) {
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
+        mSequenceElements->GetXLightsFrame()->AbortRender();
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         if (layer_index < element->GetEffectLayerCount()) {
             if (ri->nodeIndex == -1) {
@@ -1010,6 +1074,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
     } else if (id == ID_ROW_MNU_ROW_CONVERTTOPERMODEL) {
         mSequenceElements->get_undo_mgr().CreateUndoStep();
+        mSequenceElements->GetXLightsFrame()->AbortRender();
         if (layer_index < element->GetEffectLayerCount()) {
             if (ri->nodeIndex == -1) {
                 element->GetEffectLayer(layer_index)->ConvertEffectsToPerModel(mSequenceElements->get_undo_mgr());
@@ -1023,14 +1088,17 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
+        mSequenceElements->GetXLightsFrame()->RenderEffectForModel(element->GetModelName(), 0, 99999999);
     } else if (id == ID_ROW_MNU_MODEL_CONVERTTOPERMODEL) {
         mSequenceElements->get_undo_mgr().CreateUndoStep();
+        mSequenceElements->GetXLightsFrame()->AbortRender();
         for (int i = 0; i < element->GetEffectLayerCount(); i++) {
             element->GetEffectLayer(i)->ConvertEffectsToPerModel(mSequenceElements->get_undo_mgr());
         }
 
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
+        mSequenceElements->GetXLightsFrame()->RenderEffectForModel(element->GetModelName(), 0, 99999999);
     } else if (id == ID_ROW_MNU_SELECT_MODEL_EFFECTS) {
         for (int i = 0; i < element->GetEffectLayerCount(); i++) {
             element->GetEffectLayer(i)->SelectAllEffects();
@@ -1043,15 +1111,39 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
         mSequenceElements->get_undo_mgr().CreateUndoStep();
+        mSequenceElements->GetXLightsFrame()->AbortRender();
         for (int i = 0; i < element->GetEffectLayerCount(); ++i) {
             if (element->GetEffectLayer(i)->GetEffectCount() > 0) {
                 element->GetEffectLayer(i)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
+            }
+        }
+    } else if (id == ID_ROW_MNU_DELETE_MODEL_SUBMODEL_EFFECTS) {
+        wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
+        m_parent->ProcessWindowEvent(eventUnSelected);
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+        mSequenceElements->GetXLightsFrame()->AbortRender();
+        ModelElement* me = dynamic_cast<ModelElement*>(element);
+        if (me == nullptr) {
+            SubModelElement* se = dynamic_cast<SubModelElement*>(element);
+            me = se->GetModelElement();
+        }
+        if (me != nullptr) {
+            for (size_t s = 0; s < me->GetSubModelCount(); ++s) {
+                auto se = me->GetSubModel(s);
+                if (se != nullptr) {
+                    for (int i = 0; i < se->GetEffectLayerCount(); ++i) {
+                        if (se->GetEffectLayer(i)->GetEffectCount() > 0) {
+                            se->GetEffectLayer(i)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
+                        }
+                    }
+                }
             }
         }
     } else if (id == ID_ROW_MNU_DELETE_MODEL_STRAND_EFFECTS) {
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
         mSequenceElements->get_undo_mgr().CreateUndoStep();
+        mSequenceElements->GetXLightsFrame()->AbortRender();
         auto me = dynamic_cast<ModelElement*>(element);
         if (me != nullptr) {
             for (size_t s = 0; s < me->GetStrandCount(); ++s) {
@@ -1433,6 +1525,8 @@ void RowHeading::render( wxPaintEvent& event )
 #ifdef __LINUX__
     if(!IsShownOnScreen()) return;
 #endif
+    if (mSequenceElements->GetXLightsFrame()->GetMainSequencer() == nullptr) return;
+
     wxPaintDC dc(this);
 
     wxCoord w,h;
@@ -1484,7 +1578,7 @@ void RowHeading::render( wxPaintEvent& event )
             prefix = "  ";
         }
         if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING && rowInfo->element->GetEffectLayerCount() > 1) {
-            layers = wxString::Format(" [%d]", (int)rowInfo->element->GetEffectLayerCount());
+            layers = wxString::Format(" [%d] ", (int)rowInfo->element->GetEffectLayerCount());
         }
         xlColor rowHeaderColor = GetHeaderColor(rowInfo, dragRow);
         wxBrush brush2(rowHeaderColor.asWxColor(), wxBRUSHSTYLE_SOLID);
@@ -1541,16 +1635,26 @@ void RowHeading::render( wxPaintEvent& event )
                 if (rowInfo->nodeIndex >= 0) {
                     dc.DrawLabel(prefix + "     " + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 } else if (rowInfo->layerIndex == 0) {
-                    dc.DrawLabel(prefix + "  " + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                    wxString lay = prefix + "  " + name + layers;
+                    if (!rowInfo->layerName.empty()) {
+                        lay += rowInfo->layerName;
+                    }
+                    dc.DrawLabel(lay, r, wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 } else {
                     dc.SetPen(*wxBLUE_PEN);
-                    wxString lay = wxString::Format("   [%d]", rowInfo->layerIndex + 1);
+                    wxString lay = wxString::Format("   [%d] ", rowInfo->layerIndex + 1);
+                    if (!rowInfo->layerName.empty()) {
+                        lay += rowInfo->layerName;
+                    }
                     dc.DrawLabel(lay, r, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
                 }
             } else {
                 wxRect r(DEFAULT_ROW_HEADING_MARGIN, startY, w - DEFAULT_ROW_HEADING_MARGIN, DEFAULT_ROW_HEADING_HEIGHT);
                 dc.SetPen(*wxBLUE_PEN);
-                wxString lay = wxString::Format("   [%d]", rowInfo->layerIndex + 1);
+                wxString lay = wxString::Format("   [%d] ", rowInfo->layerIndex + 1);
+                if (!rowInfo->layerName.empty()) {
+                    lay += rowInfo->layerName;
+                }
                 dc.DrawLabel(lay, r, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
             }
             dc.SetPen(penOutline);
@@ -1565,34 +1669,31 @@ void RowHeading::render( wxPaintEvent& event )
                 int toprow = mSequenceElements->GetFirstVisibleModelRow();
                 int parent = toprow + rowInfo->RowNumber;
                 bool done = false;
-                while (!done && parent >= 0)
-                {
+                while (!done && parent >= 0) {
                     auto maybeParent = mSequenceElements->GetRowInformationFromRow(parent);
-                    if (maybeParent != nullptr && maybeParent->element->GetType() == ElementType::ELEMENT_TYPE_MODEL && !maybeParent->submodel)
-                    {
+                    if (maybeParent != nullptr && maybeParent->element->GetType() == ElementType::ELEMENT_TYPE_MODEL && !maybeParent->submodel) {
                         done = true;
-                    }
-                    else
-                    {
+                    } else {
                         parent--;
                     }
                 }
 
-                if (done)
-                {
+                if (done) {
                     Model* pm = mSequenceElements->GetXLightsFrame()->AllModels[mSequenceElements->GetRowInformationFromRow(parent)->element->GetModelName()];
-                    if (pm != nullptr && pm->GetDisplayAs() == "ModelGroup")
-                    {
+                    if (pm != nullptr && pm->GetDisplayAs() == "ModelGroup") {
                         name = rowInfo->element->GetFullName();
-                        if (prefix.size() >= 3)
-                        {
+                        if (prefix.size() >= 3) {
                             prefix = prefix.substr(3);
                         }
                     }
                 }
             }
             wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
-            dc.DrawLabel(prefix + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+            wxString lay = prefix + name + layers;
+            if (!rowInfo->layerName.empty()) {
+                lay += rowInfo->layerName;
+            }
+            dc.DrawLabel(lay, r, wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
 
         if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {

@@ -70,20 +70,6 @@ class SubModelTextDropTarget : public wxTextDropTarget
         wxString _type;
 };
 
-//https://forums.wxwidgets.org/viewtopic.php?f=20&t=41045
-class StretchGrid : public wxGrid
-{
-public:
-    StretchGrid (wxWindow *parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-	       long style = wxWANTS_CHARS, const wxString& name = wxGridNameStr);
-    ~StretchGrid ();
-
-protected:
-    void OnGridWindowSize (wxSizeEvent& event);
-    void OnColHeaderSize (wxGridSizeEvent& event);
-    void AutoSizeLastCol ();
-};
-
 class SubModelsDialog : public wxDialog
 {
     struct SubModelInfo {
@@ -129,7 +115,7 @@ class SubModelsDialog : public wxDialog
 
     void StartOutputToLights();
     bool StopOutputToLights();
-
+    
 public:
     std::vector<SubModelInfo*> _subModels;
 
@@ -142,7 +128,6 @@ public:
     void Save();
 
     //(*Declarations(SubModelsDialog)
-    StretchGrid* NodesGrid;
     wxButton* AddButton;
     wxButton* AddRowButton;
     wxButton* ButtonCopy;
@@ -163,6 +148,7 @@ public:
     wxChoice* ChoiceBufferStyle;
     wxFlexGridSizer* PreviewSizer;
     wxFlexGridSizer* SubBufferSizer;
+    wxGrid* NodesGrid;
     wxListCtrl* ListCtrl_SubModels;
     wxNotebook* TypeNotebook;
     wxPanel* ModelPreviewPanelLocation;
@@ -181,39 +167,39 @@ public:
 protected:
 
     //(*Identifiers(SubModelsDialog)
-    static const long ID_CHECKBOX2;
-    static const long ID_STATICTEXT1;
-    static const long ID_LISTCTRL_SUB_MODELS;
-    static const long ID_SEARCHCTRL1;
-    static const long ID_BUTTON3;
-    static const long ID_BUTTON4;
-    static const long ID_BUTTONCOPY;
-    static const long ID_BUTTON_EDIT;
-    static const long ID_BUTTON_IMPORT;
-    static const long ID_BUTTON10;
-    static const long ID_PANEL4;
-    static const long ID_STATICTEXT_NAME;
-    static const long ID_TEXTCTRL_NAME;
-    static const long ID_STATICTEXT2;
-    static const long ID_CHOICE_BUFFER_STYLE;
-    static const long ID_CHECKBOX1;
-    static const long ID_GRID1;
-    static const long ID_BUTTON6;
-    static const long ID_BUTTON8;
-    static const long ID_BUTTON1;
-    static const long ID_BUTTON2;
-    static const long ID_BUTTON_MOVE_UP;
-    static const long ID_BUTTON_MOVE_DOWN;
-    static const long ID_BUTTON7;
-    static const long ID_BUTTON_SORT_ROW;
-    static const long ID_BUTTON_DRAW_MODEL;
-    static const long ID_PANEL2;
-    static const long ID_PANEL3;
-    static const long ID_NOTEBOOK1;
-    static const long ID_PANEL5;
-    static const long ID_PANEL1;
-    static const long ID_SPLITTERWINDOW1;
-    static const long ID_STATICTEXT3;
+    static const wxWindowID ID_CHECKBOX2;
+    static const wxWindowID ID_STATICTEXT1;
+    static const wxWindowID ID_LISTCTRL_SUB_MODELS;
+    static const wxWindowID ID_SEARCHCTRL1;
+    static const wxWindowID ID_BUTTON3;
+    static const wxWindowID ID_BUTTON4;
+    static const wxWindowID ID_BUTTONCOPY;
+    static const wxWindowID ID_BUTTON_EDIT;
+    static const wxWindowID ID_BUTTON_IMPORT;
+    static const wxWindowID ID_BUTTON10;
+    static const wxWindowID ID_PANEL4;
+    static const wxWindowID ID_STATICTEXT_NAME;
+    static const wxWindowID ID_TEXTCTRL_NAME;
+    static const wxWindowID ID_STATICTEXT2;
+    static const wxWindowID ID_CHOICE_BUFFER_STYLE;
+    static const wxWindowID ID_CHECKBOX1;
+    static const wxWindowID ID_GRID1;
+    static const wxWindowID ID_BUTTON6;
+    static const wxWindowID ID_BUTTON8;
+    static const wxWindowID ID_BUTTON1;
+    static const wxWindowID ID_BUTTON2;
+    static const wxWindowID ID_BUTTON_MOVE_UP;
+    static const wxWindowID ID_BUTTON_MOVE_DOWN;
+    static const wxWindowID ID_BUTTON7;
+    static const wxWindowID ID_BUTTON_SORT_ROW;
+    static const wxWindowID ID_BUTTON_DRAW_MODEL;
+    static const wxWindowID ID_PANEL2;
+    static const wxWindowID ID_PANEL3;
+    static const wxWindowID ID_NOTEBOOK1;
+    static const wxWindowID ID_PANEL5;
+    static const wxWindowID ID_PANEL1;
+    static const wxWindowID ID_SPLITTERWINDOW1;
+    static const wxWindowID ID_STATICTEXT3;
     //*)
     static const long ID_TIMER1;
 
@@ -221,10 +207,13 @@ protected:
     static const long SUBMODEL_DIALOG_IMPORT_FILE;
     static const long SUBMODEL_DIALOG_IMPORT_CUSTOM;
     static const long SUBMODEL_DIALOG_IMPORT_CSV;
+    static const long SUBMODEL_DIALOG_IMPORT_LAYOUT;
+    static const long SUBMODEL_DIALOG_IMPORT_DOWNLOAD;
     static const long SUBMODEL_DIALOG_EXPORT_CSV;
     static const long SUBMODEL_DIALOG_EXPORT_XMODEL;
     static const long SUBMODEL_DIALOG_EXPORT_TOOTHERS;
     static const long SUBMODEL_DIALOG_GENERATE;
+    static const long SUBMODEL_DIALOG_ALIASES;
     static const long SUBMODEL_DIALOG_SHIFT;
     static const long SUBMODEL_DIALOG_FLIP_HOR;
     static const long SUBMODEL_DIALOG_FLIP_VER;
@@ -273,8 +262,10 @@ protected:
     void Select(const wxString &name);
     void SelectAll(const wxString &names);
     void UnSelectAll();
+    void applySubmodelRowLabels(const wxString &name);
 
     void Generate();
+    void Aliases();
     void Shift();
     void FlipHorizontal();
     void FlipVertical();
@@ -347,6 +338,7 @@ private:
     void OnInit(wxInitDialogEvent& event);
     void OnNodesGridCellRightClick(wxGridEvent& event);
     void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
+    void OnSplitterSashPosChanging(wxSplitterEvent& event);
     //*)
 
     void OnCancel(wxCloseEvent& event);
@@ -371,11 +363,16 @@ private:
     void OnTextCtrl_NameText_KillFocus(wxFocusEvent& event);
     void OnSubbufferSize(wxSizeEvent& event);
 
+    void ImportLayoutSubModel();
+    void ReadRGBEffectsFile(wxString const& filename);
+
+    wxString GetDownloadSubmodels();
+
     wxWindow* _parent = nullptr;
-    xLightsFrame* xlights = nullptr;
 
     void OnDrop(wxCommandEvent& event);
     //void OnGridChar(wxKeyEvent& event);
+    bool shouldProcessGridCellChanged = true;
 
     DECLARE_EVENT_TABLE()
 };

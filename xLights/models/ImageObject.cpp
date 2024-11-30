@@ -125,9 +125,7 @@ bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphics
                 (const char *)preview->GetName().c_str());
             wxImage image(_imageFile);
             if (image.IsOk()) {
-                xlTexture *t = ctx->createTexture(image);
-                t->SetName(GetName());
-                t->Finalize();
+                xlTexture *t = ctx->createTexture(image, GetName(), true);
                 _images[preview->GetName().ToStdString()] = t;
                 width = image.GetWidth();
                 height = image.GetHeight();
@@ -176,7 +174,7 @@ bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphics
         float a = (100.0 - transparency) * 255.0 / 100.0;
         uint8_t alpha = a;
 
-        program->addStep([=](xlGraphicsContext *ctx) {
+        program->addStep([=, this](xlGraphicsContext *ctx) {
             ctx->drawTexture(va, image, brightness, alpha, 0, va->getCount());
             delete va;
         });

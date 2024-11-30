@@ -82,26 +82,28 @@ public:
 #define MODEL_IMAGE 3
 
 //(*IdInit(ViewsModelsPanel)
-const long ViewsModelsPanel::ID_BUTTON3 = wxNewId();
-const long ViewsModelsPanel::ID_BUTTON4 = wxNewId();
-const long ViewsModelsPanel::ID_BUTTON5 = wxNewId();
-const long ViewsModelsPanel::ID_BUTTON6 = wxNewId();
-const long ViewsModelsPanel::ID_BUTTON_TOP = wxNewId();
-const long ViewsModelsPanel::ID_BUTTON9 = wxNewId();
-const long ViewsModelsPanel::ID_BUTTON10 = wxNewId();
-const long ViewsModelsPanel::ID_BUTTON_BOTTOM = wxNewId();
-const long ViewsModelsPanel::ID_BUTTON1 = wxNewId();
-const long ViewsModelsPanel::ID_BUTTON2 = wxNewId();
-const long ViewsModelsPanel::ID_BUTTON7 = wxNewId();
-const long ViewsModelsPanel::ID_BUTTON8 = wxNewId();
-const long ViewsModelsPanel::ID_BUTTON_IMPORT = wxNewId();
-const long ViewsModelsPanel::ID_BUTTON11 = wxNewId();
-const long ViewsModelsPanel::ID_STATICTEXT1 = wxNewId();
-const long ViewsModelsPanel::ID_LISTCTRL_VIEWS = wxNewId();
-const long ViewsModelsPanel::ID_STATICTEXT2 = wxNewId();
-const long ViewsModelsPanel::ID_LISTCTRL_MODELS = wxNewId();
-const long ViewsModelsPanel::ID_LISTCTRL1 = wxNewId();
-const long ViewsModelsPanel::ID_STATICTEXT3 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON3 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON4 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON5 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON6 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON_TOP = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON9 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON10 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON_BOTTOM = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON1 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON2 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON7 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON8 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON_IMPORT = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON11 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON_VIEWUP = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_BUTTON_VIEWDOWN = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_STATICTEXT1 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_LISTCTRL_VIEWS = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_STATICTEXT2 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_LISTCTRL_MODELS = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_LISTCTRL1 = wxNewId();
+const wxWindowID ViewsModelsPanel::ID_STATICTEXT3 = wxNewId();
 //*)
 
 const long ViewsModelsPanel::ID_MODELS_UNDO = wxNewId();
@@ -121,6 +123,7 @@ const long ViewsModelsPanel::ID_MODELS_SORTBYTYPE = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTMODELSUNDERTHISGROUP = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_BUBBLEUPGROUPS = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGMSIZE = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGMCOUNT = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYSCGMSIZE = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYCPGMSIZE = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYMASTERVIEW = wxNewId();
@@ -138,6 +141,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
 {
 	//(*Initialize(ViewsModelsPanel)
 	wxBoxSizer* BoxSizer1;
+	wxBoxSizer* BoxSizer2;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer8;
 	wxGridBagSizer* GridBagSizer1;
@@ -148,19 +152,19 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
 	FlexGridSizer5->AddGrowableRow(0);
 	FlexGridSizer5->Add(-1,-1,5, wxALL|wxEXPAND, 2);
 	BoxSizer1 = new wxBoxSizer(wxVERTICAL);
-	Button_AddAll = new wxButton(this, ID_BUTTON3, _(">>"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	Button_AddAll = new wxButton(this, ID_BUTTON3, _T(">>"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	BoxSizer1->Add(Button_AddAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_AddSelected = new wxButton(this, ID_BUTTON4, _(">"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	Button_AddSelected = new wxButton(this, ID_BUTTON4, _T(">"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON4"));
 	BoxSizer1->Add(Button_AddSelected, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_RemoveSelected = new wxButton(this, ID_BUTTON5, _("<"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	Button_RemoveSelected = new wxButton(this, ID_BUTTON5, _T("<"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON5"));
 	BoxSizer1->Add(Button_RemoveSelected, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_RemoveAll = new wxButton(this, ID_BUTTON6, _("<<"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON6"));
+	Button_RemoveAll = new wxButton(this, ID_BUTTON6, _T("<<"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON6"));
 	BoxSizer1->Add(Button_RemoveAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BoxSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_Top = new wxButton(this, ID_BUTTON_TOP, _("^^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON_TOP"));
+	Button_Top = new wxButton(this, ID_BUTTON_TOP, _T("^^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON_TOP"));
 	Button_Top->SetToolTip(_("Move to Top of List"));
 	BoxSizer1->Add(Button_Top, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_MoveUp = new wxButton(this, ID_BUTTON9, _("^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON9"));
+	Button_MoveUp = new wxButton(this, ID_BUTTON9, _T("^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON9"));
 	BoxSizer1->Add(Button_MoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_MoveDown = new wxButton(this, ID_BUTTON10, _("v"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON10"));
 	BoxSizer1->Add(Button_MoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -168,7 +172,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
 	BoxSizer1->Add(Button_Bottom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5->Add(BoxSizer1, 1, wxALL|wxEXPAND, 0);
 	GridBagSizer1->Add(FlexGridSizer5, wxGBPosition(1, 1), wxGBSpan(3, 1), wxEXPAND, 0);
-	FlexGridSizer8 = new wxFlexGridSizer(6, 1, 0, 0);
+	FlexGridSizer8 = new wxFlexGridSizer(7, 1, 0, 0);
 	Button_AddView = new wxButton(this, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer8->Add(Button_AddView, 1, wxALL|wxEXPAND, 2);
 	Button_DeleteView = new wxButton(this, ID_BUTTON2, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
@@ -179,8 +183,15 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
 	FlexGridSizer8->Add(ButtonClone, 1, wxALL|wxEXPAND, 2);
 	ButtonImport = new wxButton(this, ID_BUTTON_IMPORT, _("Import..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
 	FlexGridSizer8->Add(ButtonImport, 1, wxALL|wxEXPAND, 2);
-	Button_MakeMaster = new wxButton(this, ID_BUTTON11, _("Make Master"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
+	Button_MakeMaster = new wxButton(this, ID_BUTTON11, _("Copy To Master"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
+	Button_MakeMaster->SetToolTip(_("Copy elements and ordering to your master render view"));
 	FlexGridSizer8->Add(Button_MakeMaster, 1, wxALL|wxEXPAND, 2);
+	BoxSizer2 = new wxBoxSizer(wxHORIZONTAL);
+	Button_ViewUp = new wxButton(this, ID_BUTTON_VIEWUP, _T("^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON_VIEWUP"));
+	BoxSizer2->Add(Button_ViewUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_ViewDown = new wxButton(this, ID_BUTTON_VIEWDOWN, _("v"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON_VIEWDOWN"));
+	BoxSizer2->Add(Button_ViewDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(BoxSizer2, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	GridBagSizer1->Add(FlexGridSizer8, wxGBPosition(1, 3), wxDefaultSpan, wxALL|wxEXPAND, 2);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("View:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	GridBagSizer1->Add(StaticText1, wxGBPosition(0, 2), wxDefaultSpan, wxALL, 2);
@@ -199,34 +210,36 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
 	GridBagSizer1->Add(StaticText3, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxEXPAND, 2);
 	SetSizer(GridBagSizer1);
 
-	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddAllClick);
-	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddSelectedClick);
-	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_RemoveSelectedClick);
-	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_RemoveAllClick);
-	Connect(ID_BUTTON_TOP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_TopClick);
-	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MoveUpClick);
-	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MoveDownClick);
-	Connect(ID_BUTTON_BOTTOM,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_BottomClick);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddViewClick);
-	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_DeleteViewClick);
-	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonRenameClick);
-	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonCloneClick);
-	Connect(ID_BUTTON_IMPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonImportClick);
-	Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MakeMasterClick);
-	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemSelect);
-	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemDClick);
-	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsKeyDown);
-	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsBeginDrag);
-	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsItemSelect);
-	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlModelsItemActivated);
-	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlModelsItemRClick);
-	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsKeyDown);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsBeginDrag);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsItemSelect);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsItemActivated);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsKeyDown);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsColumnClick);
-	Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&ViewsModelsPanel::OnLeftUp);
+	Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddAllClick);
+	Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddSelectedClick);
+	Connect(ID_BUTTON5, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButton_RemoveSelectedClick);
+	Connect(ID_BUTTON6, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButton_RemoveAllClick);
+	Connect(ID_BUTTON_TOP, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButton_TopClick);
+	Connect(ID_BUTTON9, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButton_MoveUpClick);
+	Connect(ID_BUTTON10, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButton_MoveDownClick);
+	Connect(ID_BUTTON_BOTTOM, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButton_BottomClick);
+	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddViewClick);
+	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButton_DeleteViewClick);
+	Connect(ID_BUTTON7, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButtonRenameClick);
+	Connect(ID_BUTTON8, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButtonCloneClick);
+	Connect(ID_BUTTON_IMPORT, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButtonImportClick);
+	Connect(ID_BUTTON11, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButton_MakeMasterClick);
+	Connect(ID_BUTTON_VIEWUP, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButtonView_UpClick);
+	Connect(ID_BUTTON_VIEWDOWN, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ViewsModelsPanel::OnButtonView_DownClick);
+	Connect(ID_LISTCTRL_VIEWS, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemSelect);
+	Connect(ID_LISTCTRL_VIEWS, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemDClick);
+	Connect(ID_LISTCTRL_VIEWS, wxEVT_COMMAND_LIST_KEY_DOWN, (wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsKeyDown);
+	Connect(ID_LISTCTRL_MODELS, wxEVT_COMMAND_LIST_BEGIN_DRAG, (wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsBeginDrag);
+	Connect(ID_LISTCTRL_MODELS, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsItemSelect);
+	Connect(ID_LISTCTRL_MODELS, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlModelsItemActivated);
+	Connect(ID_LISTCTRL_MODELS, wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK, (wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlModelsItemRClick);
+	Connect(ID_LISTCTRL_MODELS, wxEVT_COMMAND_LIST_KEY_DOWN, (wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsKeyDown);
+	Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_BEGIN_DRAG, (wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsBeginDrag);
+	Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsItemSelect);
+	Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsItemActivated);
+	Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_KEY_DOWN, (wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsKeyDown);
+	Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_COL_CLICK, (wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsColumnClick);
+	Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&ViewsModelsPanel::OnLeftUp);
 	//*)
 
     Connect(wxID_ANY, EVT_VMDROP, (wxObjectEventFunction)&ViewsModelsPanel::OnDrop);
@@ -482,6 +495,26 @@ bool ViewsModelsPanel::IsModelAGroup(const std::string& modelname) const
     return false;
 }
 
+int ViewsModelsPanel::GetPixelCount(const std::string& modelname) {
+    int pixelCount = 0;
+
+    if (IsModelAGroup(modelname)) {
+        wxArrayString groupModels;
+        groupModels = GetGroupModels(modelname);
+        for (const auto& m : groupModels) {
+            pixelCount += GetPixelCount(m);
+        }
+    } else {
+        int modelPixels = 0;
+        auto model = _xlFrame->AllModels.GetModel(modelname);
+        if (model != nullptr) {
+            modelPixels += model->GetNodeCount();
+        }
+        pixelCount += modelPixels;
+    }
+    return pixelCount;
+}
+
 wxArrayString ViewsModelsPanel::GetGroupModels(const std::string& group) const
 {
     wxArrayString res;
@@ -620,7 +653,7 @@ void ViewsModelsPanel::RemoveSelectedModels()
             // we need to unselect the current effect because we may be about to delete it
             wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
             wxPostEvent(GetParent(), eventUnSelected);
-            
+
             for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
                 if (IsItemSelected(ListCtrlModels, i)) {
                     // Got a selected item so handle it
@@ -892,11 +925,15 @@ void ViewsModelsPanel::ValidateWindow()
         Button_DeleteView->Enable(false);
         ButtonRename->Enable(false);
         Button_MakeMaster->Enable(false);
+        Button_ViewUp->Enable(false);
+        Button_ViewDown->Enable(false);
     }
     else {
         Button_DeleteView->Enable(true);
         ButtonRename->Enable(true);
         Button_MakeMaster->Enable(true);
+        Button_ViewUp->Enable(true);
+        Button_ViewDown->Enable(true);
     }
 
     if (GetSelectedItemCount() > 0) {
@@ -1395,6 +1432,7 @@ void ViewsModelsPanel::OnListCtrlModelsItemRClick(wxListEvent& event)
     mnuSort->Append(ID_MODELS_SORTBYNAME, "By Name")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYNAMEGM, "By Name But Groups At Top")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYNAMEGMSIZE, "By Name But Groups At Top by Size")->Enable(models > 0);
+    mnuSort->Append(ID_MODELS_SORTBYNAMEGMCOUNT, "By Name But Groups At Top by Node Count")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYCPGM, "By Controller/Port But Groups At Top")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYCPGMSIZE, "By Controller/Port But Groups At Top by Size")->Enable(models > 0);
     mnuSort->Append(ID_MODELS_SORTBYSCGM, "By Start Channel But Groups At Top")->Enable(models > 0);
@@ -1466,7 +1504,10 @@ void ViewsModelsPanel::OnModelsPopup(wxCommandEvent& event)
         SortModelsBubbleUpGroups();
     }
     else if (id == ID_MODELS_SORTBYNAMEGMSIZE) {
-        SortModelsByNameGM(true);
+        SortModelsByNameGM(true, false);
+    }
+    else if (id == ID_MODELS_SORTBYNAMEGMCOUNT) {
+        SortModelsByNameGM(false, true);
     }
     else if (id == ID_MODELS_SORTBYCPGMSIZE) {
         SortModelsByCPGM(true);
@@ -1596,7 +1637,7 @@ void ViewsModelsPanel::SetMasterViewModels(const wxArrayString& models)
     }
 }
 
-void ViewsModelsPanel::SortModelsByNameGM(bool sortGroupsBySize)
+void ViewsModelsPanel::SortModelsByNameGM(bool sortGroupsBySize, bool sortGroupsByCount)
 {
     SaveUndo();
 
@@ -1614,26 +1655,41 @@ void ViewsModelsPanel::SortModelsByNameGM(bool sortGroupsBySize)
 
     wxArrayString groups;
     wxArrayString modelsOnly;
+    std::vector<std::pair<std::string, int>> nodeCounts;
 
     for (const auto& it : modelArray) {
         if (IsModelAGroup(it.ToStdString())) {
             groups.push_back(it);
+            if (sortGroupsByCount) {
+                int res = GetPixelCount(it.ToStdString());
+                nodeCounts.push_back(std::make_pair(it, res));
+            }
         }
         else {
             modelsOnly.push_back(it);
         }
     }
 
-    if (!sortGroupsBySize) {
+    if (!sortGroupsBySize && !sortGroupsByCount) {
         groups.Sort(wxStringNumberAwareStringCompare);
-    }
-    else {
-        //groups with more models to the top, i.e whole house models
-        auto sortRuleLambda = [this](wxString const& s1, wxString const& s2) -> bool {
-            return GetGroupModels(s1).GetCount() > GetGroupModels(s2).GetCount();
-        };
+    } else {
+        if (sortGroupsBySize) {
+            // groups with more models to the top, i.e whole house models
+            auto sortRuleLambda = [this](wxString const& s1, wxString const& s2) -> bool {
+                return GetGroupModels(s1).GetCount() > GetGroupModels(s2).GetCount();
+            };
 
-        std::sort(groups.begin(), groups.end(), sortRuleLambda);
+            std::sort(groups.begin(), groups.end(), sortRuleLambda);
+        } else {
+            // groups with more pixels to the top, i.e whole house models regardless of groups in groups
+            std::sort(nodeCounts.begin(), nodeCounts.end(), [](const auto& a, const auto& b) {
+                return a.second > b.second;
+            });
+            groups.Clear();
+            for (const auto& pair : nodeCounts) {
+                groups.Add(pair.first);
+            }
+        }
     }
     modelsOnly.Sort(wxStringNumberAwareStringCompare);
 
@@ -2104,7 +2160,6 @@ bool MyTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
 
 void ViewsModelsPanel::OnDrop(wxCommandEvent& event)
 {
-    wxArrayString parms = wxSplit(event.GetString(), ',');
     int x = event.GetExtraLong() >> 16;
     int y = event.GetExtraLong() & 0xFFFF;
 
@@ -2327,6 +2382,36 @@ void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
     }
 }
 
+void ViewsModelsPanel::OnButtonView_DownClick(wxCommandEvent& event) {
+    if (_seqData == nullptr || _seqData->NumFrames() == 0)
+        return;
+
+    size_t idx = ListCtrlViews->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    if (idx != -1 && idx < ListCtrlViews->GetItemCount() - 1) {
+        _sequenceViewManager->MoveViewDown(idx);
+        MarkViewsChanged();
+        PopulateViews();
+        ListCtrlViews->SetItemState(idx + 1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+        ValidateWindow();
+    }
+}
+
+void ViewsModelsPanel::OnButtonView_UpClick(wxCommandEvent& event) {
+    if (_seqData == nullptr || _seqData->NumFrames() == 0)
+        return;
+
+    size_t idx = ListCtrlViews->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    if (idx > 1) {
+        _sequenceViewManager->MoveViewUp(idx);
+        MarkViewsChanged();
+        PopulateViews();
+        ListCtrlViews->SetItemState(idx - 1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    }
+    ValidateWindow();
+}
+
 void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 {
     if (GetSelectionIsMixed()) return;
@@ -2487,7 +2572,7 @@ void ViewsModelsPanel::RemoveModelFromLists(const std::string& modelName)
     }
 }
 
-void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
+void ViewsModelsPanel::DoMakeMaster()
 {
     // this should never happen
     if (_sequenceElements == nullptr || _sequenceViewManager == nullptr) return;
@@ -2500,7 +2585,7 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
     if (view != nullptr) {
         auto models = view->GetModels();
 
-//        bool hadEffects = false;
+        //        bool hadEffects = false;
         std::vector<std::string> hadEffects;
         for (int i = 0; i < _sequenceElements->GetElementCount(MASTER_VIEW); ++i) {
             std::string name = _sequenceElements->GetElement(i)->GetFullName();
@@ -2517,16 +2602,16 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
                         --i;
                     }
                     else {
-//                        hadEffects = true;
+                        //                        hadEffects = true;
                         hadEffects.push_back(name);
                     }
                 }
             }
         }
 
-//        if (hadEffects) {
+        //        if (hadEffects) {
         if (hadEffects.size()) { //show which one(s)
-//            DisplayWarning("One or more models had effects on them so they were not removed.");
+            //            DisplayWarning("One or more models had effects on them so they were not removed.");
             std::string msg = std::to_string(hadEffects.size()) + " model";
             if (hadEffects.size() != 1) msg += "s"; //OCD/grammar police :P
             msg += " had effects, were not removed: ";
@@ -2556,6 +2641,11 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
 
         ValidateWindow();
     }
+}
+
+void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
+{
+    DoMakeMaster();
 }
 
 int wxCALLBACK MyCompareFunctionVMPAsc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)

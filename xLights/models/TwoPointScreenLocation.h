@@ -81,6 +81,10 @@ public:
     void UpdateBoundingBox();
 
     virtual float GetYShear() const {return 0.0;}
+    
+    float GetX2() const {return x2;}
+    float GetY2() const {return y2;}
+    float GetZ2() const {return z2;}
 
     virtual int GetDefaultHandle() const override { return END_HANDLE; }
     virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_TRANSLATE; }

@@ -4,6 +4,8 @@
 		<title>Map Channels</title>
 		<id_arg>0</id_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxFULL_REPAINT_ON_RESIZE</style>
+		<handler function="OnInit" entry="EVT_INIT_DIALOG" />
+		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="OldSizer" member="yes">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -11,7 +13,9 @@
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 					<orientation>vertical</orientation>
+					<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
+						<minsize>500,-1</minsize>
 						<object class="wxFlexGridSizer" variable="Sizer1" member="yes">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
@@ -142,7 +146,8 @@
 									<label>Timing Tracks</label>
 									<object class="sizeritem">
 										<object class="wxCheckListBox" name="ID_CHECKLISTBOX1" variable="TimingTrackListBox" member="yes">
-											<style>wxVSCROLL</style>
+											<style>wxLB_MULTIPLE|wxVSCROLL</style>
+											<handler function="OnTimingTrackListBoxToggled" entry="EVT_CHECKLISTBOX" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<option>1</option>
@@ -186,67 +191,118 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-									<cols>8</cols>
-									<growablecols>2</growablecols>
+									<cols>4</cols>
+									<growablecols>3</growablecols>
 									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON3" variable="Button_Ok" member="yes">
-											<label>Ok</label>
-											<handler function="OnButton_OkClick" entry="EVT_BUTTON" />
+										<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+											<cols>1</cols>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+													<cols>3</cols>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON3" variable="Button_Ok" member="yes">
+															<label>Ok</label>
+															<handler function="OnButton_OkClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON4" variable="Button_Cancel" member="yes">
+															<label>Cancel</label>
+															<handler function="OnButton_CancelClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
 										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON4" variable="Button_Cancel" member="yes">
-											<label>Cancel</label>
-											<handler function="OnButton_CancelClick" entry="EVT_BUTTON" />
+										<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
+											<cols>1</cols>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+													<cols>1</cols>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON5" variable="Button_AutoMap" member="yes">
+															<label>Auto Map</label>
+															<handler function="OnButton_AutoMapClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON6" variable="Button_UpdateAliases" member="yes">
+															<label>Update Aliases w/ Maps</label>
+															<handler function="OnButton_UpdateAliasesClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
 										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="spacer">
-										<flag>wxALL|wxEXPAND</flag>
+										<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON6" variable="Button_UpdateAliases" member="yes">
-											<label>Update Model Aliases Using Mapping</label>
-											<handler function="OnButton_UpdateAliasesClick" entry="EVT_BUTTON" />
+										<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
+											<cols>1</cols>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
+													<cols>1</cols>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON2" variable="Button02" member="no">
+															<label>Save Map</label>
+															<handler function="SaveMapping" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON1" variable="Button01" member="no">
+															<label>Load Map</label>
+															<handler function="LoadMapping" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALIGN_LEFT</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
 										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON5" variable="Button_AutoMap" member="yes">
-											<label>Auto Map</label>
-											<handler function="OnButton_AutoMapClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="spacer">
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON1" variable="Button01" member="no">
-											<label>Load Mapping</label>
-											<handler function="LoadMapping" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON2" variable="Button02" member="no">
-											<label>Save Mapping</label>
-											<handler function="SaveMapping" entry="EVT_BUTTON" />
+										<object class="wxFlexGridSizer" variable="FlexGridSizer12" member="no">
+											<cols>3</cols>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
@@ -259,6 +315,7 @@
 						</object>
 					</object>
 					<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
+						<minsize>400,-1</minsize>
 						<object class="wxFlexGridSizer" variable="Sizer2" member="yes">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
@@ -279,7 +336,7 @@
 										<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_FindFrom" member="yes">
 											<handler function="OnTextCtrl_FindFromText" entry="EVT_TEXT" />
 										</object>
-										<flag>wxALL|wxEXPAND</flag>
+										<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
@@ -291,7 +348,7 @@
 							<object class="sizeritem">
 								<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListCtrl_Available" member="yes">
 									<size>100,-1d</size>
-									<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL</style>
+									<style>wxLC_REPORT|wxVSCROLL</style>
 									<handler function="OnListCtrl_AvailableBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 									<handler function="OnListCtrl_AvailableItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
 									<handler function="OnListCtrl_AvailableItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />

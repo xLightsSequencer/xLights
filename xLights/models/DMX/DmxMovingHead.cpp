@@ -22,15 +22,18 @@
 #include "DmxColorAbilityCMY.h"
 #include "DmxColorAbilityWheel.h"
 #include "DmxPresetAbility.h"
+#include "DmxMotorPanTilt.h"
 #include "../ModelScreenLocation.h"
+#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
+#include "../XmlSerializer.h"
 
-DmxMovingHead::DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-  : DmxModel(node, manager, zeroBased), hide_body(false), style_changed(false), dmx_style("Moving Head Top"),
+DmxMovingHead::DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased) :
+    DmxMovingHeadComm(node, manager, zeroBased), hide_body(false), style_changed(false), dmx_style("Moving Head Top"),
     dmx_style_val(0), beam_length(4)
 {
     beam_width = GetDefaultBeamWidth();
@@ -39,6 +42,7 @@ DmxMovingHead::DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool 
 
 DmxMovingHead::~DmxMovingHead()
 {
+
     //dtor
 }
 
@@ -96,6 +100,8 @@ public:
 
 static wxPGChoices DMX_STYLES;
 
+static wxPGChoices DMX_FIXTURES;
+
 enum DMX_STYLE {
     DMX_STYLE_MOVING_HEAD_TOP,
     DMX_STYLE_MOVING_HEAD_SIDE,
@@ -118,19 +124,39 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
 
     grid->Append(new wxEnumProperty("DMX Style", "DmxStyle", DMX_STYLES, dmx_style_val));
 
+    if (DMX_FIXTURES.GetCount() == 0) {
+        DMX_FIXTURES.Add("MH1");
+        DMX_FIXTURES.Add("MH2");
+        DMX_FIXTURES.Add("MH3");
+        DMX_FIXTURES.Add("MH4");
+        DMX_FIXTURES.Add("MH5");
+        DMX_FIXTURES.Add("MH6");
+        DMX_FIXTURES.Add("MH7");
+        DMX_FIXTURES.Add("MH8");
+    }
+
+    grid->Append(new wxEnumProperty("Fixture", "DmxFixture", DMX_FIXTURES, fixture_val));
+
     DmxModel::AddTypeProperties(grid, outputManager);
 
     wxPGProperty* p = grid->Append(new wxBoolProperty("Hide Body", "HideBody", hide_body));
     p->SetAttribute("UseCheckbox", true);
 
-    AddPanTiltTypeProperties(grid);
+    pan_motor->AddTypeProperties(grid);
+    tilt_motor->AddTypeProperties(grid);
 
     if (nullptr != color_ability) {
+        grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
         int selected = DMX_COLOR_TYPES.Index(color_ability->GetTypeName());
         grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES, selected));
-        color_ability->AddColorTypeProperties(grid);
+        ControllerCaps *caps = GetControllerCaps();
+        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
     }
+    AddDimmerTypeProperties(grid);
     AddShutterTypeProperties(grid);
+    grid->Collapse("DmxDimmerProperties");
+
+    p = grid->Append(new wxPropertyCategory("Beam Properties", "BeamProperties"));
 
     p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
     p->SetAttribute("Min", 0);
@@ -145,6 +171,8 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
     p->SetAttribute("Precision", 2);
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
+    
+    grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
 
 int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
@@ -153,11 +181,19 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         return 0;
     }
 
-    if (OnPanTiltPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (pan_motor->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
+        return 0;
+    }
+
+    if (tilt_motor->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
         return 0;
     }
 
     if (OnShutterPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        return 0;
+    }
+
+    if (OnDimmerPropertyGridChange(grid, event, ModelXml, this) == 0) {
         return 0;
     }
 
@@ -231,6 +267,14 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
         return 0;
+    } else if ("DmxFixture" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxFixture");
+        fixture_val = event.GetPropertyValue().GetLong();
+        dmx_fixture = FixtureIDtoString(fixture_val);
+        ModelXml->AddAttribute("DmxFixture", dmx_fixture);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DmxFixture");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DmxFixture");
+        return 0;
     }
 
     return DmxModel::OnPropertyGridChange(grid, event);
@@ -238,12 +282,10 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
 
 void DmxMovingHead::InitModel() {
     DmxModel::InitModel();
-    if (DisplayAs != "DmxMovingHead3D") {
-        DisplayAs = "DmxMovingHead";
-        screenLocation.SetRenderSize(1, 1, 1);
-        if (screenLocation.GetScaleZ() < 1.0) {
-            screenLocation.SetScaleZ(1.0);
-        }
+    DisplayAs = "DmxMovingHead";
+    screenLocation.SetRenderSize(1, 1, 1);
+    if (screenLocation.GetScaleZ() < 1.0) {
+        screenLocation.SetScaleZ(1.0);
     }
     StringType = "Single Color White";
     parm2 = 1;
@@ -261,14 +303,49 @@ void DmxMovingHead::InitModel() {
         color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
     }
 
-    pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "0"));
-	pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "0"));
-	pan_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxPanDegOfRot", "540"));
-	pan_slew_limit = wxAtof(ModelXml->GetAttribute("DmxPanSlewLimit", "0"));
-	tilt_channel = wxAtoi(ModelXml->GetAttribute("DmxTiltChannel", "0"));
-	tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "0"));
-	tilt_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxTiltDegOfRot", "180"));
-	tilt_slew_limit = wxAtof(ModelXml->GetAttribute("DmxTiltSlewLimit", "0"));
+    wxXmlNode* n = ModelXml->GetChildren();
+    while (n != nullptr) {
+        std::string name = n->GetName();
+
+        if ("PanMotor" == name) {
+             if (pan_motor == nullptr) {
+                pan_motor = std::make_unique<DmxMotor>(n, name);
+             }
+        } else if ("TiltMotor" == name) {
+            if (tilt_motor == nullptr) {
+                tilt_motor = std::make_unique<DmxMotor>(n, name);
+            }
+        }
+        n = n->GetNext();
+    }
+
+    // create pan motor
+    if (pan_motor == nullptr) {
+        std::string new_name = "PanMotor";
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+        ModelXml->AddChild(new_node);
+        pan_motor = std::make_unique<DmxMotor>(new_node, new_name);
+        pan_motor->SetChannelCoarse(1);
+        new_node->AddAttribute("RangeOfMotion", "540");
+        new_node->AddAttribute("OrientHome", "90");
+        new_node->AddAttribute("SlewLimit", "180");
+    }
+
+    // create tilt motor
+    if (tilt_motor == nullptr) {
+        std::string new_name = "TiltMotor";
+        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
+        ModelXml->AddChild(new_node);
+        new_node->AddAttribute("OrientHome", "90");
+        new_node->AddAttribute("SlewLimit", "180");
+        tilt_motor = std::make_unique<DmxMotor>(new_node, new_name);
+        tilt_motor->SetChannelCoarse(3);
+    }
+
+    pan_motor->Init(this);
+    tilt_motor->Init(this);
+
+    dimmer_channel = wxAtoi(ModelXml->GetAttribute("MhDimmerChannel", "0"));
 	shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
 	shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
     shutter_on_value = wxAtoi(ModelXml->GetAttribute("DmxShutterOnValue", "0"));
@@ -294,6 +371,13 @@ void DmxMovingHead::InitModel() {
     if (dmx_style.empty()) {
         dmx_style = "Moving Head Top";
     }
+
+    dmx_fixture = ModelXml->GetAttribute("DmxFixture", "MH1");
+    fixture_val = FixtureStringtoID(dmx_fixture);
+
+    if (dmx_fixture.empty()) {
+        dmx_fixture = "MH1";
+    }
 }
 
 void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
@@ -315,7 +399,7 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
         boundingBox[4] = 0.5;
         boundingBox[5] = 0.5;
     }
-    sprogram->addStep([=](xlGraphicsContext* ctx) {
+    sprogram->addStep([is_3d, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane
@@ -324,7 +408,7 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
-    tprogram->addStep([=](xlGraphicsContext* ctx) {
+    tprogram->addStep([is_3d, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane
@@ -417,11 +501,20 @@ std::list<std::string> DmxMovingHead::CheckModelSettings()
 
     int nodeCount = Nodes.size();
 
-    if (pan_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s pan channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), pan_channel, nodeCount));
+    if (pan_motor->GetChannelCoarse() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s pan motor coarse is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannelCoarse(), nodeCount));
     }
-    if (tilt_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s tilt channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), tilt_channel, nodeCount));
+
+    if (pan_motor->GetChannelFine() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s pan motor fine is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannelFine(), nodeCount));
+    }
+
+    if (tilt_motor->GetChannelCoarse() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s tilt motor coarse is assigned to channel %d but the model only has %d channels.", GetName(), tilt_motor->GetChannelCoarse(), nodeCount));
+    }
+
+    if (tilt_motor->GetChannelFine() > nodeCount) {
+        res.push_back(wxString::Format("    ERR: Model %s tilt motor fine is assigned to channel %d but the model only has %d channels.", GetName(), tilt_motor->GetChannelFine(), nodeCount));
     }
 
     res.splice(res.end(), DmxModel::CheckModelSettings());
@@ -430,12 +523,29 @@ std::list<std::string> DmxMovingHead::CheckModelSettings()
 
 void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
 {
-    size_t NodeCount = Nodes.size();
+    if (pan_motor->GetChannelCoarse() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (pan_motor->GetChannelFine() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (tilt_motor->GetChannelCoarse() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+    if (tilt_motor->GetChannelFine() > Nodes.size()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
 
-    if (pan_channel > NodeCount ||
-        tilt_channel > NodeCount ||
-        !color_ability->IsValidModelSettings(this) ||
-        !preset_ability->IsValidModelSettings(this)) {
+    size_t NodeCount = Nodes.size();
+    if ((( nullptr != color_ability ) && !color_ability->IsValidModelSettings(this)) ||
+        !preset_ability->IsValidModelSettings(this) ||
+        shutter_channel > NodeCount ||
+        dimmer_channel > NodeCount )
+    {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
@@ -456,6 +566,16 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     int trans = color == xlBLACK ? blackTransparency : transparency;
 
     xlColor beam_color = color_ability->GetBeamColor(Nodes);
+
+    // apply dimmer to beam
+    if (dimmer_channel > 0 && active) {
+        xlColor proxy;
+        Nodes[dimmer_channel - 1]->GetColor(proxy);
+        HSVValue hsv = proxy.asHSV();
+        beam_color.red = (beam_color.red * hsv.value);
+        beam_color.blue = (beam_color.blue * hsv.value);
+        beam_color.green = (beam_color.green * hsv.value);
+    }
 
     if (!active) {
         beam_color = xlWHITE;
@@ -481,20 +601,16 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     }
 
     float pan_angle = 0;
-    if (pan_channel > 0 && pan_channel <= NodeCount && active) {
-        Nodes[pan_channel - 1]->GetColor(color_angle);
-        pan_angle = (color_angle.red / 255.0f) * pan_deg_of_rot + pan_orient;
-    } else {
-        pan_angle = pan_orient;
+    if (pan_motor->GetChannelCoarse() > 0 && active) {
+        pan_angle = -1.0f * pan_motor->GetPosition(GetChannelValue(pan_motor->GetChannelCoarse() - 1, pan_motor->GetChannelFine() - 1));
     }
+    pan_angle -= pan_motor->GetOrientZero();
 
     float tilt_angle = 0;
-    if (tilt_channel > 0 && tilt_channel <= NodeCount && active) {
-        Nodes[tilt_channel - 1]->GetColor(color_angle);
-        tilt_angle = (color_angle.red / 255.0f) * tilt_deg_of_rot + tilt_orient;
-    } else {
-        tilt_angle = tilt_orient;
+    if (tilt_motor->GetChannelCoarse() > 0 && active) {
+        tilt_angle = -1.0f * tilt_motor->GetPosition(GetChannelValue(tilt_motor->GetChannelCoarse() - 1, tilt_motor->GetChannelFine() - 1));
     }
+    tilt_angle -= tilt_motor->GetOrientZero();
 
     uint32_t ms = preview->getCurrentFrameTime();
     uint32_t time_delta = 0;
@@ -511,8 +627,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
 
     if (time_delta != 0 && active) {
         // pan slew limiting
-        if (pan_slew_limit > 0.0f) {
-            float slew_limit = pan_slew_limit * (float)time_delta / 1000.0f;
+        if (pan_motor->GetSlewLimit() > 0.0f) {
+            float slew_limit = pan_motor->GetSlewLimit() * (float)time_delta / 1000.0f;
             float pan_delta = pan_angle - old_pan_angle;
             if (std::abs(pan_delta) > slew_limit) {
                 if (pan_delta < 0) {
@@ -527,8 +643,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
 
     if (time_delta != 0 && active) {
         // tilt slew limiting
-        if (tilt_slew_limit > 0.0f) {
-            float slew_limit = tilt_slew_limit * (float)time_delta / 1000.0f;
+        if (tilt_motor->GetSlewLimit() > 0.0f) {
+            float slew_limit = tilt_motor->GetSlewLimit() * (float)time_delta / 1000.0f;
             float tilt_delta = tilt_angle - old_tilt_angle;
             if (std::abs(tilt_delta) > slew_limit) {
                 if (tilt_delta < 0) {
@@ -540,14 +656,14 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     }
 
     // Determine if we need to flip the beam
-    float tilt_pos = RenderBuffer::cos(ToRadians(tilt_angle)) * 0.9f;
-    if (tilt_pos < 0) {
+    float tilt_pos = RenderBuffer::cos(ToRadians(tilt_angle));
+    if (tilt_pos < 0.0f) {
         if (pan_angle >= 180.0f) {
             pan_angle -= 180.0f;
         } else {
             pan_angle += 180.0f;
         }
-        tilt_pos *= -1;
+        tilt_pos *= -1.0f;
     }
 
     float angle;
@@ -699,9 +815,9 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
             float val = (float)proxy.red;
             float offsetx = val / 255.0f * 0.8f;
             if (color_ability->ApplyChannelTransparency(proxy, trans, i)) {
-            } else if (i == pan_channel) {
+            } else if (i == pan_motor->GetChannelCoarse()) {
                 proxy = pink;
-            } else if (i == tilt_channel) {
+            } else if (i == tilt_motor->GetChannelCoarse()) {
                 proxy = turqoise;
             } else {
                 proxy = ccolor;
@@ -1057,15 +1173,18 @@ void DmxMovingHead::Draw3DDMXHead(xlVertexColorAccumulator& va, const xlColor& c
 
 void DmxMovingHead::ExportXlightsModel()
 {
-    wxString name = ModelXml->GetAttribute("name");
+    wxASSERT(false);//shouldnt be used anymore
+    /* wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty())
         return;
     wxFile f(filename);
-    //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+    
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
@@ -1086,8 +1205,8 @@ void DmxMovingHead::ExportXlightsModel()
     wxString sv = ModelXml->GetAttribute("DmxShutterOnValue", "0");
     wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "4");
     wxString dbw = ModelXml->GetAttribute("DmxBeamWidth", "30");
-
     wxString dct = ModelXml->GetAttribute("DmxColorType", "0");
+    wxString dfx = ModelXml->GetAttribute("DmxFixture", "MH1");
 
     if (s.empty()) {
         s = "Moving Head Top";
@@ -1108,8 +1227,8 @@ void DmxMovingHead::ExportXlightsModel()
     f.Write(wxString::Format("DmxShutterOnValue=\"%s\" ", sv));
     f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
     f.Write(wxString::Format("DmxBeamWidth=\"%s\" ", dbw));
-
     f.Write(wxString::Format("DmxColorType=\"%s\" ", dct));
+    f.Write(wxString::Format("DmxFixture=\"%s\" ", dfx));
     color_ability->ExportParameters(f,ModelXml);
 
     f.Write(" >\n");
@@ -1129,15 +1248,20 @@ void DmxMovingHead::ExportXlightsModel()
     //ExportDimensions(f);
     f.Write("</dmxmodel>");
     f.Close();
+    */
 }
 
-void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
+    if (XmlSerializer::IsXmlSerializerFormat(root)) {
+        return true;
+    }
     if (root->GetName() == "dmxmodel") {
-        ImportBaseParameters(root);
+        if (!ImportBaseParameters(root))
+            return false;
 
         wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
 
         wxString s = root->GetAttribute("DmxStyle");
         wxString pdr = root->GetAttribute("DmxPanDegOfRot");
@@ -1156,6 +1280,7 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         wxString dbl = root->GetAttribute("DmxBeamLength", "4");
         wxString dbw = root->GetAttribute("DmxBeamWidth", "30");
         wxString dct = root->GetAttribute("DmxColorType", "0");
+        wxString dfx = root->GetAttribute("DmxFixture", "MH1");
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
@@ -1177,6 +1302,7 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         SetProperty("DmxBeamLength", dbl);
         SetProperty("DmxBeamWidth", dbw);
         SetProperty("DmxColorType", dct);
+        SetProperty("DmxFixture", dfx);
 
         int color_type = wxAtoi(dct);
         if (color_type == 0) {
@@ -1197,12 +1323,15 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHead::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading DmxMovingHead model file.");
+        return false;
     }
 }
 
-void DmxMovingHead::EnableFixedChannels(xlColorVector& pixelVector)
+void DmxMovingHead::EnableFixedChannels(xlColorVector& pixelVector) const
 {
     if (shutter_channel != 0 && shutter_on_value != 0) {
         if (Nodes.size() > shutter_channel - 1) {
@@ -1220,11 +1349,17 @@ std::vector<std::string> DmxMovingHead::GenerateNodeNames() const
     if (0 != shutter_channel && shutter_channel < names.size()) {
         names[shutter_channel - 1] = "Shutter";
     }
-    if (0 != pan_channel && pan_channel < names.size()) {
-        names[pan_channel - 1] = "Pan";
+    if (0 != pan_motor->GetChannelCoarse() && pan_motor->GetChannelCoarse() < names.size()) {
+        names[pan_motor->GetChannelCoarse() - 1] = "Pan";
     }
-    if (0 != tilt_channel && tilt_channel < names.size()) {
-        names[tilt_channel - 1] = "Tilt";
+    if (0 != tilt_motor->GetChannelCoarse() && tilt_motor->GetChannelCoarse() < names.size()) {
+        names[tilt_motor->GetChannelCoarse() - 1] = "Tilt";
+    }
+    if (0 != pan_motor->GetChannelFine() && pan_motor->GetChannelFine() < names.size()) {
+        names[pan_motor->GetChannelFine() - 1] = "Pan Fine";
+    }
+    if (0 != tilt_motor->GetChannelFine() && tilt_motor->GetChannelFine() < names.size()) {
+        names[tilt_motor->GetChannelFine() - 1] = "Tilt Fine";
     }
 
     if (nullptr != color_ability) {

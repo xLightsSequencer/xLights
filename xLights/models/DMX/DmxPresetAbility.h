@@ -41,10 +41,11 @@ public:
     virtual void InitPreset(wxXmlNode* ModelXml);
     virtual void SetPresetValues(xlColorVector& pixelVector) const;
 
-    virtual void AddProperties(wxPropertyGridInterface* grid) const;
+    virtual void AddProperties(wxPropertyGridInterface* grid, wxXmlNode* ModelXml);
     virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base);
     [[nodiscard]] virtual std::list<std::string> CheckModelSettings(Model* m) const;
     [[nodiscard]] virtual bool IsValidModelSettings(Model* m) const;
+    [[nodiscard]] std::vector<PresetSetting> const& GetPresetSettings() const { return presets; };
     virtual void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const;
     virtual void ImportParameters(wxXmlNode* ImportXml, Model* m) const;
     virtual void SetNodeNames(std::vector<std::string> & names) const;

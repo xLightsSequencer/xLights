@@ -1,5 +1,5 @@
 /* XPM */
-static char * xs_brightness_up[] = {
+static const char * xs_brightness_up[] = {
 "32 32 2 1",
 " 	c None",
 ".	c #6AC259",

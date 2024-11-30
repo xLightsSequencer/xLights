@@ -106,6 +106,8 @@ public:
     {}
     virtual void SetPanelStatus(Model* cls)
     {}
+    virtual void SetEffectTimeRange(int startTimeMs, int endTimeMs)
+    {}
     virtual wxString GetEffectString();
 
     // Methods for rendering the effect
@@ -117,11 +119,7 @@ public:
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) = 0;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
     {}
-    virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
-    {
-        std::list<std::string> res;
-        return res;
-    };
+    virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache);
 
     virtual bool CanBeRandom()
     {
@@ -136,6 +134,7 @@ public:
 
     virtual bool needToAdjustSettings(const std::string& version);
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true);
+    virtual void AdjustSettingsAfterSplit(Effect *first, Effect *second) {}
 
     virtual AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame);
     virtual bool HasAssistPanel()
@@ -144,7 +143,6 @@ public:
     }
 
     static std::string UpgradeValueCurve(EffectManager* effectManager, const std::string& name, const std::string& value, const std::string& effectName);
-
 protected:
     static void SetSliderValue(wxSlider* slider, int value);
     static void SetSpinValue(wxSpinCtrl* spin, int value);

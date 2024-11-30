@@ -354,7 +354,7 @@ bool CurlManager::doProcessCurls() {
     int stillRunning = 0;
     std::unique_lock<std::mutex> l(lock);
     mc = curl_multi_perform(curlMulti, &stillRunning);
-    if (stillRunning != numCurls) {
+    if (doCurlCallbacks && stillRunning != numCurls) {
         CURLMsg* m = nullptr;
         do {
             int msgq = 0;

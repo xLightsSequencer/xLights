@@ -82,6 +82,7 @@ class ViewsModelsPanel : public wxPanel
     void MarkViewsChanged();
     void AddViewToList(const wxString& viewName, bool isChecked);
     bool IsModelAGroup(const std::string& modelname) const;
+    int GetPixelCount(const std::string& modelname);
     void DeleteSelectedView();
     int GetTimingCount();
     static bool IsItemSelected(wxListCtrl* ctrl, int item);
@@ -94,7 +95,7 @@ class ViewsModelsPanel : public wxPanel
     void SelectUsedModels();
     void SelectAllModels();
     void SortModelsByName();
-    void SortModelsByNameGM(bool sortGroupsBySize = false);
+    void SortModelsByNameGM(bool sortGroupsBySize = false, bool sortGroupsByCount = false);
     void SortModelsByCPGM(bool sortGroupsBySize = false);
     void SortModelsBySCGM(bool sortGroupsBySize = false);
     void SortModelsByMasterView();
@@ -138,6 +139,7 @@ public:
     void OnListCtrlItemCheck(wxCommandEvent& event);
     void UpdateModelsForSelectedView();
     void RemoveModelFromLists(const std::string& modelName);
+    void DoMakeMaster();
 
     //(*Declarations(ViewsModelsPanel)
     wxButton* ButtonClone;
@@ -154,6 +156,8 @@ public:
     wxButton* Button_RemoveAll;
     wxButton* Button_RemoveSelected;
     wxButton* Button_Top;
+    wxButton* Button_ViewDown;
+    wxButton* Button_ViewUp;
     wxCheckedListCtrl* ListCtrlModels;
     wxCheckedListCtrl* ListCtrlViews;
     wxListCtrl* ListCtrlNonModels;
@@ -165,26 +169,28 @@ public:
 protected:
 
     //(*Identifiers(ViewsModelsPanel)
-    static const long ID_BUTTON3;
-    static const long ID_BUTTON4;
-    static const long ID_BUTTON5;
-    static const long ID_BUTTON6;
-    static const long ID_BUTTON_TOP;
-    static const long ID_BUTTON9;
-    static const long ID_BUTTON10;
-    static const long ID_BUTTON_BOTTOM;
-    static const long ID_BUTTON1;
-    static const long ID_BUTTON2;
-    static const long ID_BUTTON7;
-    static const long ID_BUTTON8;
-    static const long ID_BUTTON_IMPORT;
-    static const long ID_BUTTON11;
-    static const long ID_STATICTEXT1;
-    static const long ID_LISTCTRL_VIEWS;
-    static const long ID_STATICTEXT2;
-    static const long ID_LISTCTRL_MODELS;
-    static const long ID_LISTCTRL1;
-    static const long ID_STATICTEXT3;
+    static const wxWindowID ID_BUTTON3;
+    static const wxWindowID ID_BUTTON4;
+    static const wxWindowID ID_BUTTON5;
+    static const wxWindowID ID_BUTTON6;
+    static const wxWindowID ID_BUTTON_TOP;
+    static const wxWindowID ID_BUTTON9;
+    static const wxWindowID ID_BUTTON10;
+    static const wxWindowID ID_BUTTON_BOTTOM;
+    static const wxWindowID ID_BUTTON1;
+    static const wxWindowID ID_BUTTON2;
+    static const wxWindowID ID_BUTTON7;
+    static const wxWindowID ID_BUTTON8;
+    static const wxWindowID ID_BUTTON_IMPORT;
+    static const wxWindowID ID_BUTTON11;
+    static const wxWindowID ID_BUTTON_VIEWUP;
+    static const wxWindowID ID_BUTTON_VIEWDOWN;
+    static const wxWindowID ID_STATICTEXT1;
+    static const wxWindowID ID_LISTCTRL_VIEWS;
+    static const wxWindowID ID_STATICTEXT2;
+    static const wxWindowID ID_LISTCTRL_MODELS;
+    static const wxWindowID ID_LISTCTRL1;
+    static const wxWindowID ID_STATICTEXT3;
     //*)
 
     static const long ID_MODELS_UNDO;
@@ -204,6 +210,7 @@ protected:
     static const long ID_MODELS_SORTMODELSUNDERTHISGROUP;
     static const long ID_MODELS_BUBBLEUPGROUPS;
     static const long ID_MODELS_SORTBYNAMEGMSIZE;
+    static const long ID_MODELS_SORTBYNAMEGMCOUNT;
     static const long ID_MODELS_SORTBYCPGMSIZE;
     static const long ID_MODELS_SORTBYSCGMSIZE;
     static const long ID_MODELS_SORTBYMASTERVIEW;
@@ -241,6 +248,8 @@ private:
     void OnButton_TopClick(wxCommandEvent& event);
     void OnButtonImportClick(wxCommandEvent& event);
     void OnButton_BottomClick(wxCommandEvent& event);
+    void OnButtonView_UpClick(wxCommandEvent& event);
+    void OnButtonView_DownClick(wxCommandEvent& event);
     //*)
 
     void OnDrop(wxCommandEvent& event);

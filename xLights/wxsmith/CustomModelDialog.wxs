@@ -364,6 +364,7 @@
 					<object class="sizeritem">
 						<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 							<sashpos>30</sashpos>
+							<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 							<object class="wxPanel" name="ID_PANEL2" variable="Panel11" member="yes">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
 									<cols>1</cols>

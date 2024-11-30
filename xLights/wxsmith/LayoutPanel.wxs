@@ -11,6 +11,7 @@
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW2" variable="SplitterWindow2" member="yes">
 					<minsize>10</minsize>
 					<orientation>vertical</orientation>
+					<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 					<handler function="OnSplitterWindowSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
 					<object class="wxPanel" name="ID_PANEL5" variable="LeftPanel" member="yes">
 						<object class="wxFlexGridSizer" variable="LeftPanelSizer" member="no">
@@ -20,6 +21,7 @@
 							<object class="sizeritem">
 								<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="ModelSplitter" member="yes">
 									<minsize>100</minsize>
+									<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 									<handler function="OnModelSplitterSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
 									<object class="wxPanel" name="ID_PANEL3" variable="FirstPanel" member="yes">
 										<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
@@ -51,44 +53,37 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-									<cols>1</cols>
+								<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+									<cols>3</cols>
 									<object class="sizeritem">
-										<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-											<cols>3</cols>
-											<object class="sizeritem">
-												<object class="wxCheckBox" name="ID_CHECKBOX_3D" variable="CheckBox_3D" member="yes">
-													<label>3D</label>
-													<handler function="OnCheckBox_3DClick" entry="EVT_CHECKBOX" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxCheckBox" name="ID_CHECKBOXOVERLAP" variable="CheckBoxOverlap" member="yes">
-													<label>Overlap checks enabled</label>
-													<handler function="OnCheckBoxOverlapClick" entry="EVT_CHECKBOX" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>1</border>
-												<option>1</option>
-											</object>
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_SAVE_PREVIEW" variable="ButtonSavePreview" member="yes">
-											<label>Save</label>
-											<handler function="OnButtonSavePreviewClick" entry="EVT_BUTTON" />
+										<object class="wxCheckBox" name="ID_CHECKBOX_3D" variable="CheckBox_3D" member="yes">
+											<label>3D</label>
+											<handler function="OnCheckBox_3DClick" entry="EVT_CHECKBOX" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOXOVERLAP" variable="CheckBoxOverlap" member="yes">
+											<label>Overlap checks enabled</label>
+											<handler function="OnCheckBoxOverlapClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>1</border>
+										<option>1</option>
+									</object>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON_SAVE_PREVIEW" variable="ButtonSavePreview" member="yes">
+									<label>Save</label>
+									<handler function="OnButtonSavePreviewClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
 								<option>1</option>
 							</object>
 						</object>

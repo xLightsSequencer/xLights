@@ -49,6 +49,7 @@ public:
         eff_MARQUEE,
         eff_METEORS,
         eff_MORPH,
+        eff_MOVINGHEAD,
         eff_MUSIC,
         eff_PIANO,
         eff_PICTURES,

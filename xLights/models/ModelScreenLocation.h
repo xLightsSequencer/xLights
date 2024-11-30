@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#define CUR_MODEL_POS_VER      "5"
+#define CUR_MODEL_POS_VER      "7"
 
 #define NO_HANDLE              -1
 #define CENTER_HANDLE          0

@@ -172,7 +172,7 @@ bool OPCOutput::Open() {
 
     if (!_enabled) return true;
     if (_ip == "") return false;
-    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(GetResolvedIP())) return false;
 
     _ok = IPOutput::Open();
     //if (_fppProxyOutput) {
@@ -321,12 +321,12 @@ void OPCOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, Mo
     if (p) {
         p->SetValue(GetChannels());
         if (ce->IsAutoSize()) {
-            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
         } else {
             p->SetEditor("SpinCtrl");
-            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
             p->SetHelpString("");
         }

@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <stdint.h>
+#include <cmath>
 #include <map>
 #include <list>
 #include <vector>
@@ -47,6 +48,7 @@
 
 class AudioManager;
 class xLightsFrame;
+class DmxModel;
 enum class HEADER_INFO_TYPES;
 
 // eventually this will go in some header..
@@ -67,6 +69,7 @@ class Effect;
 class SettingsMap;
 class SequenceElements;
 class MetalRenderBufferComputeData;
+class PixelBufferClass;
 
 
 class DrawingContext {
@@ -194,7 +197,7 @@ public:
         }
     }
 
-    void Set(xlColorVector& newcolors, xlColorCurveVector newcc)
+    void Set(const xlColorVector& newcolors, const xlColorCurveVector& newcc)
     {
         wxASSERT(newcolors.size() == newcc.size());
 
@@ -442,14 +445,13 @@ public:
 
 class /*NCCDLLEXPORT*/ RenderBuffer {
 public:
-    RenderBuffer(xLightsFrame *frame);
+    RenderBuffer(xLightsFrame *frame, PixelBufferClass *pbc, const Model *m);
     ~RenderBuffer();
     RenderBuffer(RenderBuffer& buffer);
     void InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform, bool nodeBuffer = false);
     AudioManager* GetMedia() const;
-    Model* GetModel() const;
-    Model* GetPermissiveModel() const; // gets the model even if it is a submodel/strand
-    std::string GetModelName() const;
+    const Model* GetModel() const;
+    const std::string &GetModelName() const;
     const wxString &GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const;
 
     void AlphaBlend(const RenderBuffer& src);
@@ -460,7 +462,7 @@ public:
     void SetAllowAlphaChannel(bool a);
     bool IsDmxBuffer() const { return dmx_buffer; }
 
-    void SetState(int period, bool reset, const std::string& model_name);
+    void SetState(int period, bool reset);
 
     void SetEffectDuration(int startMsec, int endMsec);
     void GetEffectPeriods(int& curEffStartPer, int& curEffEndPer) const;  // nobody wants endPer?
@@ -482,8 +484,8 @@ public:
     }
 
     int GetNodeCount() const { return Nodes.size();}
+    const std::vector<NodeBaseClassPtr>& GetNodes() const { return Nodes; }
     void SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore = false);
-    void CopyNodeColorsToPixels(std::vector<uint8_t> &done);
 
     void CopyPixel(int srcx, int srcy, int destx, int desty);
     void ProcessPixel(int x, int y, const xlColor &color, bool wrap_x = false, bool wrap_y = false);
@@ -508,10 +510,10 @@ public:
     void FillConvexPoly(const std::vector<std::pair<int, int>>& poly, const xlColor& color);
 
     //approximation of sin/cos, but much faster
-    static float sin(float rad);
-    static float cos(float rad);
-    static float cot(float rad) { return cos(rad) / sin(rad); }
-    static float acot(float rad) { return M_PI/2.0 - atan(rad); }
+    static inline float sin(float rad) { return std::sin(rad); }
+    static inline float cos(float rad) { return std::cos(rad); }
+    static inline float cot(float rad) { return std::cos(rad) / std::sin(rad); }
+    static inline float acot(float rad) { return M_PI/2.0 - std::atan(rad); }
 
     double calcAccel(double ratio, double accel);
 
@@ -559,6 +561,7 @@ public:
     void CopyTempBufToPixels();
     void CopyPixelsToTempBuf();
     wxPoint GetMaxBuffer(const SettingsMap& SettingsMap) const;
+    void EnableFixedDMXChannels(const DmxModel* dmx);
 
     PaletteClass palette;
     bool _nodeBuffer = false;
@@ -587,6 +590,8 @@ public:
     void *gpuRenderData = nullptr;
 
 private:
+    PixelBufferClass *parent;
+    const Model *model;
     friend class PixelBufferClass;
     std::vector<NodeBaseClassPtr> Nodes;
     PathDrawingContext *_pathDrawingContext = nullptr;
@@ -594,4 +599,6 @@ private:
 
     void SetPixelDMXModel(int x, int y, const xlColor& color);
     void Forget();
+    
+    friend class MetalPixelBufferComputeData;
 };

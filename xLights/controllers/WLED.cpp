@@ -172,7 +172,7 @@ WLEDOutput* WLED::ExtractOutputJSON(wxJSONValue const& jsonVal, int port, Contro
     return output;
 }
 
-void WLED::UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int startNumber) const {
+void WLED::UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int startNumber, bool& rgbw) const {
 
     if (pd != nullptr) {
         const std::string direction = stringData->GetFirstModel()->GetDirection("unknown");
@@ -204,6 +204,9 @@ void WLED::UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int star
 
         if (pd->pixels != stringData->Pixels()) {
             pd->pixels = stringData->Pixels();
+        }
+        if (GetChannelsPerPixel(stringData->GetProtocol()) == 4) {
+            rgbw = true;
         }
 
         pd->upload = true;
@@ -282,7 +285,7 @@ bool WLED::PostJSON(wxJSONValue const& jsonVal) {
     return false;
 }
 
-bool WLED::SetupInput(Controller* c, wxJSONValue& jsonVal) {
+bool WLED::SetupInput(Controller* c, wxJSONValue& jsonVal, bool rgbw) {
     ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c);
     if (controller == nullptr) {
         DisplayError(wxString::Format("%s is not a WLED controller.", c->GetName().c_str()));
@@ -290,7 +293,7 @@ bool WLED::SetupInput(Controller* c, wxJSONValue& jsonVal) {
     }
 
     //get previous RGB Mode
-    int rgbMode = jsonVal["if"]["live"]["dmx"]["mode"].AsInt();
+    //int rgbMode = jsonVal["if"]["live"]["dmx"]["mode"].AsInt();
 
     if (!controller->AllSameSize()) {
         DisplayError("Attempting to upload universes to the WLED controller that are not the same size.");
@@ -342,11 +345,14 @@ bool WLED::SetupInput(Controller* c, wxJSONValue& jsonVal) {
         }
     }
 
-    //Turn On E131/DDP Multiple RGB Mode "DM=4", TODO: Support RGBW mode "DM=6"
-    if (rgbMode < 4) {
-        rgbMode = 4;
-    }
-    jsonVal["if"]["live"]["dmx"]["mode"] = rgbMode;
+    //Turn On E131 Multiple RGB Mode "DM=4", TODO: Support RGBW mode "DM=6"
+    //if (rgbw) {
+    //    //_vid >= 2212222
+    //    rgbMode = 6;
+    //} else {
+    //    rgbMode = 4;
+    //}
+    //jsonVal["if"]["live"]["dmx"]["mode"] = rgbMode;
     return true;
 }
 
@@ -380,12 +386,20 @@ int WLED::EncodeColorOrder(const std::string& colorOrder) const {
     wxString c(colorOrder);
     c = c.Lower();
 
-    if (c == "grb") return 0;
-    if (c == "rgb") return 1;
-    if (c == "brg") return 2;
-    if (c == "rbg") return 3;
-    if (c == "bgr") return 4;
-    if (c == "gbr") return 5;
+    if (c == "grb" || c == "grbw") return 0;
+    if (c == "rgb" || c == "rgbw") return 1;
+    if (c == "brg" || c == "brgw") return 2;
+    if (c == "rbg" || c == "rbgw") return 3;
+    if (c == "bgr" || c == "bgrw") return 4;
+    if (c == "gbr" || c == "gbrw") return 5;
+
+    if (c == "wrgb") return 34;//tested
+
+    if (c == "wgrb") return 36;//random guesses, WLED settings makes no sense
+    if (c == "wbrg") return 37;
+    if (c == "wrbg") return 32;
+    if (c == "wbgr") return 35;
+    if (c == "wgbr") return 33;
 
     wxASSERT(false);
     return 1;
@@ -474,13 +488,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         return false;
     }
 
-    bool worked = SetupInput(controller, val);
-    if (!worked) {
-        progress.Update(100, "Aborting.");
-        return false;
-    }
-
-    worked = ParseOutputJSON(val, maxPort, caps);
+    bool worked = ParseOutputJSON(val, maxPort, caps);
     if (!worked) {
         DisplayError("Unable to Parse JSON.", parent);
         progress.Update(100, "Aborting.");
@@ -491,7 +499,8 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     progress.Update(20, "Figuring Out Pixel Output Information.");
 
     //loop to setup string outputs
-    int totalCount = 0;
+    int totalCount { 0 };
+    bool rgbw{ false };
     for (int port = 1; port <= maxPort; port++) {
         WLEDOutput* pixOut = FindPortData(port);
         if(pixOut == nullptr) {
@@ -499,7 +508,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         }
         if (cud.HasPixelPort(port)) {
             UDControllerPort* portData = cud.GetControllerPixelPort(port);
-            UpdatePortData(pixOut, portData, totalCount);
+            UpdatePortData(pixOut, portData, totalCount, rgbw);
             totalCount += pixOut->pixels;
         }
     }
@@ -511,6 +520,14 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
 
     if (!worked) {
         logger_base.error("Error Updating to WLED controller, JSON:%s.", (const char*)page.c_str());
+    }
+
+    logger_base.info("Updating Input Information.");
+    progress.Update(50, "Updating Input Information.");
+    worked = SetupInput(controller, val, rgbw);
+    if (!worked) {
+        progress.Update(100, "Aborting.");
+        return false;
     }
 
     logger_base.info("Uploading JSON to WLED.");

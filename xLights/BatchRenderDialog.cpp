@@ -28,6 +28,7 @@
 #include "ExternalHooks.h"
 #include "UtilFunctions.h"
 #include "globals.h"
+#include "xLightsMain.h"
 
 //(*IdInit(BatchRenderDialog)
 const long BatchRenderDialog::ID_CHOICE_FILTER = wxNewId();
@@ -100,15 +101,15 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 	FlexGridSizer3->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
+    FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	Center();
 
-	Connect(ID_CHOICE_FILTER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BatchRenderDialog::OnFilterChoiceSelect);
-	Connect(ID_CHOICE_FOLDER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BatchRenderDialog::OnFolderChoiceSelect);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BatchRenderDialog::OnButton_OkClick);
-	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BatchRenderDialog::OnButton_CancelClick);
-	Connect(wxID_ANY,wxEVT_INIT_DIALOG,(wxObjectEventFunction)&BatchRenderDialog::OnInit);
+    Connect(ID_CHOICE_FILTER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BatchRenderDialog::OnFilterChoiceSelect);
+    Connect(ID_CHOICE_FOLDER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BatchRenderDialog::OnFolderChoiceSelect);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BatchRenderDialog::OnButton_OkClick);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BatchRenderDialog::OnButton_CancelClick);
+    Connect(wxID_ANY,wxEVT_INIT_DIALOG,(wxObjectEventFunction)&BatchRenderDialog::OnInit);
 	//*)
 
     CheckListBox_Sequences = new wxTreeListCtrl(this, wxID_ANY,
@@ -119,7 +120,10 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
     CheckListBox_Sequences->AppendColumn("Sequence", wxCOL_WIDTH_AUTOSIZE,
                                          wxALIGN_LEFT,
                                          wxCOL_RESIZABLE | wxCOL_SORTABLE);
-    CheckListBox_Sequences->AppendColumn("Modified Date", wxCOL_WIDTH_AUTOSIZE,
+    CheckListBox_Sequences->AppendColumn("  Modified Date  ", wxCOL_WIDTH_AUTOSIZE,
+                                         wxALIGN_CENTER,
+                                         wxCOL_RESIZABLE | wxCOL_SORTABLE);
+    CheckListBox_Sequences->AppendColumn("Last Render Date", wxCOL_WIDTH_AUTOSIZE,
                                          wxALIGN_LEFT,
                                          wxCOL_RESIZABLE | wxCOL_SORTABLE);
 
@@ -136,6 +140,7 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
     FlexGridSizer1->SetSizeHints(this);
 
     SetEscapeId(Button_Cancel->GetId());
+    Button_Ok->SetDefault();
     ValidateWindow();
 }
 
@@ -321,6 +326,7 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
             if (isFileInFolder(name)) {
                 wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), name);
                 DisplayDateModified(a, item);
+                DisplayDateRendered(a, item);
             }
             break;
         case 1:
@@ -328,6 +334,7 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
             if (!name.StartsWith("Backup/") && !name.StartsWith("Backup\\") && !name.Contains("\\Backup\\") && !name.Contains("/Backup/") && isFileInFolder(name)) {
                 wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), name);
                 DisplayDateModified(a, item);
+                DisplayDateRendered(a, item);
             }
             break;
         case 2:
@@ -335,6 +342,7 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
             if (!name.Contains("/") && !name.Contains("\\")) {
                 wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), name);
                 DisplayDateModified(a, item);
+                DisplayDateRendered(a, item);
             }
             break;
         }
@@ -342,7 +350,6 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
 
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
-        auto seq = CheckListBox_Sequences->GetItemText(item);
         if (filelist.Index(CheckListBox_Sequences->GetItemText(item)) != wxNOT_FOUND) {
             CheckListBox_Sequences->CheckItem(item);
             break;
@@ -451,6 +458,20 @@ void BatchRenderDialog::DisplayDateModified(std::string const& fileName, wxTreeL
 {
     if (FileExists(showDirectory + wxFileName::GetPathSeparator() + fileName)) {
         wxDateTime last_modified_time(wxFileModificationTime(showDirectory + wxFileName::GetPathSeparator() + fileName));
-        CheckListBox_Sequences->SetItemText(item, 1, last_modified_time.Format(wxT("%Y-%m-%d %H:%M:%S")));
+        CheckListBox_Sequences->SetItemText(item, 1, last_modified_time.Format(wxT(" %Y-%m-%d %H:%M:%S ")));
+    }
+}
+
+void BatchRenderDialog::DisplayDateRendered(std::string const& fileName, wxTreeListItem& item) const {
+    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
+
+    wxString fseqName = showDirectory + wxFileName::GetPathSeparator() + fileName.substr(0, fileName.length() - 4) + ".fseq";
+    if (frame->GetFseqDirectory() != showDirectory || !FileExists(fseqName)) {
+        fseqName = wxString(frame->GetFseqDirectory()) + wxFileName::GetPathSeparator() + fileName.substr(0, fileName.length() - 4) + ".fseq";
+    }
+
+    if (FileExists(fseqName)) {
+        wxDateTime last_modified_time(wxFileModificationTime(fseqName));
+        CheckListBox_Sequences->SetItemText(item, 2, last_modified_time.Format(wxT(" %Y-%m-%d %H:%M:%S ")));
     }
 }

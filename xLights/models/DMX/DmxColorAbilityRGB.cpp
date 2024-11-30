@@ -16,7 +16,7 @@
 #include "../BaseObject.h"
 #include "../Model.h"
 
-#include "../../Color.h"
+
 #include "../Node.h"
 
 void DmxColorAbilityRGB::InitColor( wxXmlNode* ModelXml)
@@ -25,11 +25,59 @@ void DmxColorAbilityRGB::InitColor( wxXmlNode* ModelXml)
     green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "2"));
     blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "3"));
     white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
+    
+    red_brightness = wxAtoi(ModelXml->GetAttribute("DmxRedBrightness", "100"));
+    green_brightness = wxAtoi(ModelXml->GetAttribute("DmxGreenBrightness", "100"));
+    blue_brightness = wxAtoi(ModelXml->GetAttribute("DmxBlueBrightness", "100"));
+    white_brightness = wxAtoi(ModelXml->GetAttribute("DmxWhiteBrightness", "100"));
+
+    red_gamma = wxAtof(ModelXml->GetAttribute("DmxRedGamma", "1.0"));
+    green_gamma = wxAtof(ModelXml->GetAttribute("DmxGreenGamma", "1.0"));
+    blue_gamma = wxAtof(ModelXml->GetAttribute("DmxBlueGamma", "1.0"));
+    white_gamma = wxAtof(ModelXml->GetAttribute("DmxWhiteGamma", "1.0"));
+}
+
+void DmxColorAbilityRGB::SetRedChannel( wxXmlNode* ModelXml, int chan )
+{
+    red_channel = chan;
+    ModelXml->DeleteAttribute("DmxRedChannel");
+    ModelXml->AddAttribute("DmxRedChannel", wxString::Format("%d", red_channel));
+}
+
+void DmxColorAbilityRGB::SetGreenChannel( wxXmlNode* ModelXml, int chan )
+{
+    green_channel = chan;
+    ModelXml->DeleteAttribute("DmxGreenChannel");
+    ModelXml->AddAttribute("DmxGreenChannel", wxString::Format("%d", green_channel));
+}
+
+void DmxColorAbilityRGB::SetBlueChannel( wxXmlNode* ModelXml, int chan )
+{
+    blue_channel = chan;
+    ModelXml->DeleteAttribute("DmxBlueChannel");
+    ModelXml->AddAttribute("DmxBlueChannel", wxString::Format("%d", blue_channel));
+}
+
+void DmxColorAbilityRGB::SetWhiteChannel( wxXmlNode* ModelXml, int chan )
+{
+    white_channel = chan;
+    ModelXml->DeleteAttribute("DmxWhiteChannel");
+    ModelXml->AddAttribute("DmxWhiteChannel", wxString::Format("%d", white_channel));
 }
 
 bool DmxColorAbilityRGB::IsColorChannel(uint32_t channel) const
 {
     return (red_channel == channel || green_channel == channel || blue_channel == channel || white_channel == channel);
+}
+
+int DmxColorAbilityRGB::GetNumChannels() const
+{
+    int num_channels = 0;
+    num_channels += red_channel > 0 ? 1 : 0;
+    num_channels += green_channel > 0 ? 1 : 0;
+    num_channels += blue_channel > 0 ? 1 : 0;
+    num_channels += white_channel > 0 ? 1 : 0;
+    return num_channels;
 }
 
 void DmxColorAbilityRGB::SetColorPixels(const xlColor& color, xlColorVector& pixelVector) const
@@ -93,63 +141,112 @@ bool DmxColorAbilityRGB::IsValidModelSettings(Model* m) const
         white_channel < nodeCount + 1);
 }
 
-void DmxColorAbilityRGB::AddColorTypeProperties(wxPropertyGridInterface *grid) const {
+void DmxColorAbilityRGB::AddColorTypeProperties(wxPropertyGridInterface *grid, bool pwm) const {
 
-    wxPGProperty* p = grid->Append(new wxUIntProperty("Red Channel", "DmxRedChannel", red_channel));
+    auto p = grid->Append(new wxUIntProperty("Red Channel", "DmxRedChannel", red_channel));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
+    if (pwm) {
+        p = grid->Append(new wxUIntProperty("   PWM Red Brightness", "DmxRedBrightness", red_brightness));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 200);
+        p->SetEditor("SpinCtrl");
+        
+        p = grid->Append(new wxFloatProperty("   PWM Red Gamma", "DmxRedGamma", red_gamma));
+        p->SetAttribute("Min", 0.1F);
+        p->SetAttribute("Max", 5.0F);
+        p->SetEditor("SpinCtrlDouble");
+    }
 
     p = grid->Append(new wxUIntProperty("Green Channel", "DmxGreenChannel", green_channel));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
+    if (pwm) {
+        p = grid->Append(new wxUIntProperty("   PWM Green Brightness", "DmxGreenBrightness", green_brightness));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 200);
+        p->SetEditor("SpinCtrl");
+        
+        p = grid->Append(new wxFloatProperty("   PWM Green Gamma", "DmxGreenGamma", green_gamma));
+        p->SetAttribute("Min", 0.1F);
+        p->SetAttribute("Max", 5.0F);
+        p->SetEditor("SpinCtrlDouble");
+    }
 
     p = grid->Append(new wxUIntProperty("Blue Channel", "DmxBlueChannel", blue_channel));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
+    if (pwm) {
+        p = grid->Append(new wxUIntProperty("   PWM Blue Brightness", "DmxBlueBrightness", blue_brightness));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 200);
+        p->SetEditor("SpinCtrl");
+        
+        p = grid->Append(new wxFloatProperty("   PWM Blue Gamma", "DmxBlueGamma", blue_gamma));
+        p->SetAttribute("Min", 0.1F);
+        p->SetAttribute("Max", 5.0F);
+        p->SetEditor("SpinCtrlDouble");
+    }
 
     p = grid->Append(new wxUIntProperty("White Channel", "DmxWhiteChannel", white_channel));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
-}
+    if (pwm) {
+        p = grid->Append(new wxUIntProperty("   PWM White Brightness", "DmxWhiteBrightness", white_brightness));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 200);
+        p->SetEditor("SpinCtrl");
+        
+        p = grid->Append(new wxFloatProperty("   PWM White Gamma", "DmxWhiteGamma", white_gamma));
+        p->SetAttribute("Min", 0.1F);
+        p->SetAttribute("Max", 5.0F);
+        p->SetEditor("SpinCtrlDouble");
+    }
 
+}
+static std::string mapColorString(const std::string &s) {
+    if (StartsWith(s, "Red")) {
+        return "Red";
+    }
+    if (StartsWith(s, "Green")) {
+        return "Green";
+    }
+    if (StartsWith(s, "Blue")) {
+        return "Blue";
+    }
+    if (StartsWith(s, "White")) {
+        return "White";
+    }
+    return xlEMPTY_STRING;
+}
 int DmxColorAbilityRGB::OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) {
 
-    if ("DmxRedChannel" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxRedChannel");
-        ModelXml->AddAttribute("DmxRedChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DMXRedChannel");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DMXRedChannel");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DMXRedChannel");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DMXRedChannel");
-        return 0;
-    } else if ("DmxGreenChannel" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxGreenChannel");
-        ModelXml->AddAttribute("DmxGreenChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DMXGreenChannel");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DMXGreenChannel");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DMXGreenChannel");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DMXGreenChannel");
-        return 0;
-    } else if ("DmxBlueChannel" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxBlueChannel");
-        ModelXml->AddAttribute("DmxBlueChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DMXBlueChannel");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DMXBlueChannel");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DMXBlueChannel");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DMXBlueChannel");
-        return 0;
-    } else if ("DmxWhiteChannel" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxWhiteChannel");
-        ModelXml->AddAttribute("DmxWhiteChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DMXWhiteChannel");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DMXWhiteChannel");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DMXWhiteChannel");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DMXWhiteChannel");
-        return 0;
+    std::string propName = event.GetPropertyName();
+    if (StartsWith(propName, "Dmx")) {
+        std::string color = mapColorString(propName.substr(3));
+        if (!color.empty()) {
+            if (EndsWith(propName, "Channel") || EndsWith(propName, "Brightness")) {
+                ModelXml->DeleteAttribute(propName);
+                ModelXml->AddAttribute(propName, wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+                base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::" + propName);
+                base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::" + propName);
+                base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::" + propName);
+                base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::" + propName);
+                return 0;
+            } else if (EndsWith(propName, "Gamma")) {
+                ModelXml->DeleteAttribute(propName);
+                ModelXml->AddAttribute(propName, wxString::Format("%0.3f", (float)event.GetPropertyValue().GetDouble()));
+                base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::" + propName);
+                base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::" + propName);
+                base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::" + propName);
+                base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::" + propName);
+                return 0;
+            }
+        }
     }
     return -1;
 }
@@ -298,18 +395,33 @@ void DmxColorAbilityRGB::ImportParameters(wxXmlNode* ImportXml, Model* m) const
     m->SetProperty("DmxWhiteChannel", wc);
 }
 
-void DmxColorAbilityRGB::SetNodeNames(std::vector<std::string>& names) const
+void DmxColorAbilityRGB::SetNodeNames(std::vector<std::string>& names, const std::string &pfx) const
 {
     if (CheckChannel(red_channel , names.size())) {
-        names[red_channel - 1] = "Red";
+        names[red_channel - 1] = pfx + "Red";
     }
     if (CheckChannel( blue_channel , names.size())) {
-        names[blue_channel - 1] = "Blue";
+        names[blue_channel - 1] = pfx + "Blue";
     }
     if (CheckChannel( green_channel , names.size())) {
-        names[green_channel - 1] = "Green";
+        names[green_channel - 1] = pfx + "Green";
     }
     if (CheckChannel( white_channel , names.size())) {
-        names[white_channel - 1] = "White";
+        names[white_channel - 1] = pfx + "White";
+    }
+}
+
+void DmxColorAbilityRGB::GetPWMOutputs(std::map<uint32_t, PWMOutput> &map) const {
+    if (red_channel > 0) {
+        map[red_channel] = PWMOutput(red_channel, PWMOutput::Type::LED, 1, "Red", red_brightness, red_gamma);
+    }
+    if (green_channel > 0) {
+        map[green_channel] = PWMOutput(green_channel, PWMOutput::Type::LED, 1, "Green", green_brightness, green_gamma);
+    }
+    if (blue_channel > 0) {
+        map[blue_channel] = PWMOutput(blue_channel, PWMOutput::Type::LED, 1, "Blue", blue_brightness, blue_gamma);
+    }
+    if (white_channel > 0) {
+        map[white_channel] = PWMOutput(white_channel, PWMOutput::Type::LED, 1, "White", white_brightness, white_gamma);
     }
 }

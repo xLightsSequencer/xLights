@@ -17,7 +17,7 @@
 						<object class="sizeritem">
 							<object class="wxGrid" name="ID_GRID1" variable="Grid1" member="yes">
 								<cols>4</cols>
-								<rows>40</rows>
+								<rows>48</rows>
 								<defaultcolsize>150</defaultcolsize>
 								<collabels>
 									<item>Map From</item>

@@ -89,8 +89,11 @@ class ModelManager : public ObjectManager
         int GetPreviewWidth() const { return previewWidth; }
         int GetPreviewHeight() const { return previewHeight; }
         bool MergeFromBase(const std::string& baseShowDir, bool prompt);
+        std::string GetLastGeneratedModelName() const { return lastGeneratedModelName; }
 
     private:
+
+    void MigrateDmxMotors(wxXmlNode *node) const;
 
     wxXmlNode *layoutsNode = nullptr;
     OutputManager* _outputManager = nullptr;
@@ -100,5 +103,6 @@ class ModelManager : public ObjectManager
     std::map<std::string, Model *> models;
     mutable std::recursive_mutex _modelMutex;
     std::atomic<bool> _modelsLoading;
+    mutable std::string lastGeneratedModelName = "";
 };
 

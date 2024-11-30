@@ -85,9 +85,13 @@ class FPPConnectDialog: public wxDialog
 		void OnAddFPPButtonClick(wxCommandEvent& event);
 		void OnChoiceFolderSelect(wxCommandEvent& event);
 		void OnChoiceFilterSelect(wxCommandEvent& event);
-        void LocationPopupMenu(wxContextMenuEvent& event);
-        void OnLocationPopupClick(wxCommandEvent &evt);
-        //*)
+		void LocationPopupMenu(wxContextMenuEvent& event);
+		void OnLocationPopupClick(wxCommandEvent& event);
+		void UploadPopupMenu(wxContextMenuEvent& event);
+		void OnUploadPopupClick(wxCommandEvent& event);
+		void CapePopupMenu(wxContextMenuEvent& event);
+		void OnCapePopupClick(wxCommandEvent& event);
+		//*)
 
         void LoadSequencesFromFolder(wxString dir) const;
         void LoadSequences();
@@ -109,6 +113,7 @@ class FPPConnectDialog: public wxDialog
 		void DisplayDateModified(const wxString& filePath, wxTreeListItem &index) const;
 
 		void UpdateSeqCount();
+        uint32_t GetSelectedSeqCount();
         void OnSequenceListToggled(wxDataViewEvent& event);
     
         void doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload);

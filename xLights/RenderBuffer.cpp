@@ -162,30 +162,13 @@ AudioManager* RenderBuffer::GetMedia() const
 	return xLightsFrame::CurrentSeqXmlFile->GetMedia();
 }
 
-Model* RenderBuffer::GetModel() const
+const Model* RenderBuffer::GetModel() const
 {
-    // this only returns a model or model group
-    if (cur_model.find("/") != std::string::npos) {
-        return nullptr;
-    }
-    return frame->AllModels[cur_model];
+    return model;
 }
 
-Model* RenderBuffer::GetPermissiveModel() const
+const std::string &RenderBuffer::GetModelName() const
 {
-    // This will return models, model groups or submodels and strands
-    return frame->AllModels.GetModel(cur_model);
-}
-
-std::string RenderBuffer::GetModelName() const
-{
-    Model* m = GetPermissiveModel();
-
-    if (m != nullptr)
-    {
-        return m->GetFullName();
-    }
-
     return cur_model;
 }
 
@@ -714,8 +697,11 @@ void TextDrawingContext::GetTextExtents(const wxString &msg, wxArrayDouble &exte
 }
 
 
-RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
+RenderBuffer::RenderBuffer(xLightsFrame *f, PixelBufferClass *p, const Model *m) : frame(f), parent(p)
 {
+    model = m == nullptr ? p->GetModel() : m;
+    cur_model = model->GetFullName();
+    dmx_buffer = model->GetDisplayAs().rfind("Dmx", 0) == 0;
     BufferHt = 0;
     BufferWi = 0;
     curPeriod = 0;
@@ -724,7 +710,6 @@ RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
     fadeinsteps = 0;
     fadeoutsteps = 0;
     allowAlpha = false;
-    dmx_buffer = false;
     needToInit = true;
     _nodeBuffer = false;
     frameTimeInMs = 50;
@@ -831,64 +816,6 @@ void RenderBuffer::SetPalette(xlColorVector& newcolors, xlColorCurveVector& newc
 size_t RenderBuffer::GetColorCount()
 {
     return palette.Size();
-}
-
-class SinTable {
-public:
-    static constexpr float precision = 300.0f; // gradations per Pi, 942 entries of size float is under 4K or less than a memory page
-    static constexpr int modulus = (int)(M_PI * precision) + 1;
-    static constexpr int modulus2 = modulus * 2;
-
-    SinTable() {
-        for (int i = 0; i<modulus; i++) {
-            float f = i;
-            f /= precision;
-            table[i]=sinf(f);
-        }
-        /*
-        for (int x = -720; x <= 720; x++) {
-            float s = ((float)x)*3.14159f/180.0f;
-            printf("%d:\t%f\t%f\n", x, this->cos(s), cosf(s));
-        }
-         */
-    }
-    ~SinTable() {
-    }
-    float table[modulus]; // lookup table
-
-    float sinLookup(int a) {
-        if (a >= 0) {
-            int idx = a%(modulus2);
-            if (idx >= modulus) {
-                idx -= modulus;
-                return -table[idx];
-            }
-            return table[idx];
-        }
-        int idx = -a%(modulus2);
-        if (idx >= modulus) {
-            idx -= modulus;
-            return table[idx];
-        }
-        return -table[idx];
-    }
-    float sin(float rad) {
-        float idx = rad * precision + 0.5f;
-        return sinLookup((int)idx);
-    }
-    float cos(float a) {
-        return this->sin(a + M_PI_2);
-    }
-};
-static SinTable sinTable;
-
-float RenderBuffer::sin(float rad)
-{
-    return sinTable.sin(rad);
-}
-float RenderBuffer::cos(float rad)
-{
-    return sinTable.cos(rad);
 }
 
 // generates a random number between num1 and num2 inclusive
@@ -1093,22 +1020,6 @@ void RenderBuffer::SetNodePixel(int nodeNum, const xlColor &color, bool dmx_igno
         }
     }
 }
-
-void RenderBuffer::CopyNodeColorsToPixels(std::vector<uint8_t> &done) {
-    parallel_for(0, Nodes.size(), [&](int n) {
-        xlColor c;
-        Nodes[n]->GetColor(c);
-        for (auto &a : Nodes[n]->Coords) {
-            int x = a.bufX;
-            int y = a.bufY;
-            if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixelVector.size()) {
-                pixels[y*BufferWi+x] = c;
-                done[y*BufferWi+x] = true;
-            }
-        }
-    }, 500);
-}
-
 
 //copy src to dest: -DJ
 void RenderBuffer::CopyPixel(int srcx, int srcy, int destx, int desty)
@@ -1474,7 +1385,8 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixelVector.size()) {
         color = pixels[pidx];
     } else {
-        color = xlBLACK;
+        color = this->allowAlpha ? xlCLEAR : xlBLACK;
+        
     }
 }
 
@@ -1483,7 +1395,7 @@ const xlColor& RenderBuffer::GetPixel(int x, int y) const {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < pixelVector.size()) {
         return pixels[pidx];
     }
-    return xlBLACK;
+    return this->allowAlpha ? xlCLEAR : xlBLACK;
 }
 
 // 0,0 is lower left
@@ -1512,7 +1424,7 @@ const xlColor& RenderBuffer::GetTempPixel(int x, int y) {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbufVector.size()) {
         return tempbuf[y * BufferWi + x];
     }
-    return xlBLACK;
+    return this->allowAlpha ? xlCLEAR : xlBLACK;
 }
 
 const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
@@ -1520,10 +1432,10 @@ const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < tempbufVector.size()) {
         return tempbuf[y * BufferWi + x];
     }
-    return xlBLACK;
+    return this->allowAlpha ? xlCLEAR : xlBLACK;
 }
 
-void RenderBuffer::SetState(int period, bool ResetState, const std::string& model_name)
+void RenderBuffer::SetState(int period, bool ResetState)
 {
     if (ResetState) {
         needToInit = true;
@@ -1531,16 +1443,6 @@ void RenderBuffer::SetState(int period, bool ResetState, const std::string& mode
     curPeriod = period;
     curPeriod = period;
     palette.UpdateForProgress(GetEffectTimeIntervalPosition());
-    if (cur_model != model_name) {
-        cur_model = model_name;
-        dmx_buffer = false;
-        Model* m = GetModel();
-        if (m != nullptr) {
-            if (m->GetDisplayAs().rfind("Dmx", 0) == 0) {
-                dmx_buffer = true;
-            }
-        }
-    }
 }
 
 void RenderBuffer::ClearTempBuf()
@@ -1632,6 +1534,9 @@ void RenderBuffer::SetDisplayListVRect(Effect *eff, int idx, float x1, float y1,
 void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, float x1, float y1, float x2, float y2,
                                     const xlColor &cx1y1, const xlColor &cx1y2,
                                     const xlColor &cx2y1, const xlColor &cx2y2) {
+    if (!eff->IsBackgroundDisplayListEnabled()) {
+        return;
+    }
 
     xlColor* colorMask = eff->GetColorMask();
     xlColor maskcx1y1 = cx1y1;
@@ -1666,6 +1571,9 @@ void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, float x1, float y1, 
 }
 
 void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex, int inc) {
+    if (!eff->IsBackgroundDisplayListEnabled()) {
+        return;
+    }
     std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
     int count = curEffEndPer - curEffStartPer + 1;
 
@@ -1695,12 +1603,9 @@ double RenderBuffer::calcAccel(double ratio, double accel)
     double new_accel2 = 1.5 + (ratio * new_accel1);
     double final_accel = pct_accel * new_accel2 + (1.0 - pct_accel) * new_accel1;
 
-    if( accel > 0 )
-    {
+    if( accel > 0 ) {
         return std::pow(ratio, final_accel);
-    }
-    else
-    {
+    } else {
         return (1.0 - std::pow(1.0 - ratio, new_accel1));
     }
 }
@@ -1709,6 +1614,8 @@ double RenderBuffer::calcAccel(double ratio, double accel)
 RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &buffer.pixels[buffer.pixelVector.size()])
 {
     _isCopy = true;
+    parent = buffer.parent;
+    model = buffer.model;
     frame = buffer.frame;
     curPeriod = buffer.curPeriod;
     curEffStartPer = buffer.curEffStartPer;
@@ -1740,7 +1647,7 @@ void RenderBuffer::Forget()
 
 void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
 {
-    Model* model_info = GetModel();
+    const Model* model_info = GetModel();
     if (model_info != nullptr) {
         if (x != 0 || y != 0) return;  //Only render colors for the first pixel
 
@@ -1748,11 +1655,19 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
             pixels[0] = color;
             return;
         }
-        DmxModel* dmx = (DmxModel*)model_info;
-        if (dmx->HasColorAbility()) {
-            DmxColorAbility* dmx_color = dmx->GetColorAbility();
-            dmx_color->SetColorPixels(color,pixelVector);
+        const DmxModel* dmx = dynamic_cast<const DmxModel*>(model_info);
+        if (dmx != nullptr)  {
+            if (dmx->HasColorAbility()) {
+                DmxColorAbility* dmx_color = dmx->GetColorAbility();
+                dmx_color->SetColorPixels(color,pixelVector);
+            }
+            dmx->EnableFixedChannels(pixelVector);
         }
+    }
+}
+
+void RenderBuffer::EnableFixedDMXChannels(const DmxModel* dmx) {
+    if (dmx != nullptr) {
         dmx->EnableFixedChannels(pixelVector);
     }
 }

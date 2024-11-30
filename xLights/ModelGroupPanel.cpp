@@ -122,6 +122,7 @@ const long ModelGroupPanel::ID_LISTCTRL2 = wxNewId();
 const long ModelGroupPanel::ID_MNU_CLEARALL = wxNewId();
 const long ModelGroupPanel::ID_MNU_COPY = wxNewId();
 const long ModelGroupPanel::ID_MNU_SORTBYNAME = wxNewId();
+const long ModelGroupPanel::ID_MNU_SORTBYLOCATION = wxNewId();
 
 BEGIN_EVENT_TABLE(ModelGroupPanel,wxPanel)
 	//(*EventTable(ModelGroupPanel)
@@ -194,12 +195,12 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
 	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("X"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
 	FlexGridSizer4->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_XCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL2, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -1000, 1000, 0, _T("ID_SPINCTRL2"));
+	SpinCtrl_XCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL2, _T("0"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, -5000, 5000, 0, _T("ID_SPINCTRL2"));
 	SpinCtrl_XCentreOffset->SetValue(_T("0"));
 	FlexGridSizer4->Add(SpinCtrl_XCentreOffset, 1, wxALL|wxEXPAND, 2);
 	StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
 	FlexGridSizer4->Add(StaticText11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_YCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -1000, 1000, 0, _T("ID_SPINCTRL3"));
+	SpinCtrl_YCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, -5000, 5000, 0, _T("ID_SPINCTRL3"));
 	SpinCtrl_YCentreOffset->SetValue(_T("0"));
 	FlexGridSizer4->Add(SpinCtrl_YCentreOffset, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer6->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
@@ -316,6 +317,13 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 
     mdt = new MGTextDropTarget(this, ListBoxAddToModelGroup, "NonModelGroup");
     ListBoxAddToModelGroup->SetDropTarget(mdt);
+
+    // This section is to get the enter key working so it will latch the values in the spin controls
+    // Problem is the event seems to only trigger if the wxTE_PROCESS_ENTER style is added to the control
+    // but CodeBlocks does not appear to offer that flag for the wxSpinCtrl even though its in the documentation.
+    // So if someone regenerates this file that manual change will get lost.
+    Connect(ID_SPINCTRL2, wxEVT_TEXT_ENTER, (wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrlTextEnter);
+    Connect(ID_SPINCTRL3, wxEVT_TEXT_ENTER, (wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrlTextEnter);
 
     _dragRowModel = false;
     _dragRowNonModel = false;
@@ -699,7 +707,7 @@ void ModelGroupPanel::OnButtonDownClick(wxCommandEvent& event)
     MoveSelectedModelsTo(unselected);
 }
 
-void ModelGroupPanel::SaveGroupChanges()
+void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
 {
     ModelGroup *g = (ModelGroup*)mModels[mGroup];
 
@@ -708,6 +716,10 @@ void ModelGroupPanel::SaveGroupChanges()
     mModels.GetXLightsFrame()->AbortRender();
 
     wxXmlNode *e = g->GetModelXml();
+
+    if (centreUpdate) {
+        e->DeleteAttribute("centreDefined");
+    }
 
     wxString ModelsInGroup = "";
     for (int i = 0; i < ListBoxModelsInGroup->GetItemCount(); i++) {
@@ -887,7 +899,6 @@ bool MGTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
 
 void ModelGroupPanel::OnDrop(wxCommandEvent& event)
 {
-    wxArrayString parms = wxSplit(event.GetString(), ',');
     int x = event.GetExtraLong() >> 16;
     int y = event.GetExtraLong() & 0xFFFF;
 
@@ -1242,12 +1253,12 @@ void ModelGroupPanel::OnListBoxAddToModelGroupItemDeselect(wxListEvent& event)
 
 void ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange(wxSpinEvent& event)
 {
-    SaveGroupChanges();
+    SaveGroupChanges(true);
 }
 
 void ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange(wxSpinEvent& event)
 {
-    SaveGroupChanges();
+    SaveGroupChanges(true);
 }
 
 void ModelGroupPanel::OnListBoxModelsInGroupItemRClick(wxListEvent& event)
@@ -1257,6 +1268,7 @@ void ModelGroupPanel::OnListBoxModelsInGroupItemRClick(wxListEvent& event)
     if(ListBoxModelsInGroup->GetItemCount() != 0) {
         mnu.AppendSeparator();
         mnu.Append(ID_MNU_SORTBYNAME, "Sort By Name");
+        mnu.Append(ID_MNU_SORTBYLOCATION, "Sort By Location");
         mnu.AppendSeparator();
         mnu.Append(ID_MNU_CLEARALL, "Clear");
     }
@@ -1283,6 +1295,8 @@ void ModelGroupPanel::OnPopup(wxCommandEvent& event)
     }
     else if (id == ID_MNU_SORTBYNAME) {
         SortModelsByName();
+    } else if (id == ID_MNU_SORTBYLOCATION) {
+        SortModelsByLocation();
     }
 }
 
@@ -1325,6 +1339,44 @@ void ModelGroupPanel::SortModelsByName()
     models.Sort(wxStringNumberAwareStringCompare);
     for (int i = 0; i < models.size(); ++i) {
         ListBoxModelsInGroup->InsertItem(i, models[i]);
+    }
+    SaveGroupChanges();
+    UpdatePanel(mGroup);
+}
+
+void ModelGroupPanel::SortModelsByLocation()
+{
+    ModelGroup* g = (ModelGroup*)mModels[mGroup];
+    if (g == nullptr)
+        return;
+    std::vector<std::pair<wxString, float>> modelPos;
+
+    for (int i = ListBoxModelsInGroup->GetItemCount(); i >= 0; --i) {
+        wxString const modelName = ListBoxModelsInGroup->GetItemText(i, 0);
+        Model* model = mModels[modelName];
+        float pos;
+        if (model != nullptr) {
+            if (model->GetDisplayAs() == "ModelGroup") {
+                Model* m = dynamic_cast<ModelGroup*>(model)->GetFirstModel();
+                if (m == nullptr)
+                    m = model;
+                pos = m->GetLeft();
+            } else {
+                pos = model->GetLeft();
+            }
+        } else {
+            pos = 0;
+        }
+        modelPos.push_back(std::make_pair(modelName, pos));
+
+        ListBoxModelsInGroup->SetItemState(i, 0, wxLIST_STATE_SELECTED);
+        ListBoxModelsInGroup->DeleteItem(i);
+    }
+    std::sort(modelPos.begin(), modelPos.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.second < rhs.second;
+    });
+    for (int i = 0; i < modelPos.size(); ++i) {
+        ListBoxModelsInGroup->InsertItem(i, modelPos[i].first);
     }
     SaveGroupChanges();
     UpdatePanel(mGroup);
@@ -1383,4 +1435,10 @@ void ModelGroupPanel::OnButtonAliasesClick(wxCommandEvent& event)
     EditAliasesDialog dlg(this, g);
 
     dlg.ShowModal();
+}
+
+void ModelGroupPanel::OnSpinCtrlTextEnter(wxCommandEvent& evt)
+{
+    wxWindow* win = dynamic_cast<wxWindow*>(evt.GetEventObject());
+    win->Navigate();
 }

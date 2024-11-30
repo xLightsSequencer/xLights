@@ -57,9 +57,14 @@ class SequencePackage {
         bool HasRGBEffects() const;
         bool HasMissingMedia() const;
         bool ModelsChanged() const;
+        void SetLeaveFiles(bool leave) {
+         _leaveFiles = leave;
+        }
+        std::string GetTempShowFolder() const;
         SeqPkgImportOptions* GetImportOptions();
         wxFileName& GetXsqFile();
         wxXmlDocument& GetRgbEffectsFile();
+        std::string GetTempDir() const;
 
         std::string FixAndImportMedia(Effect* mappedEffect, EffectLayer *target);
         void ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, const std::string& faceName);
@@ -75,7 +80,9 @@ class SequencePackage {
         wxFileName      _tempDir;
         wxXmlDocument   _rgbEffects;
         wxFileName      _xlNetworks;
-        wxFileName      _pkgRoot;
+        wxFileName _xlEffects;
+        wxFileName _pkgRoot;
+        bool _leaveFiles = false;
         std::list<std::string> _missingMedia;
         std::map<std::string, wxFileName> _media;
         bool _modelsChanged = false;

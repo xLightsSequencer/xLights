@@ -102,7 +102,7 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 
 	This API is used to trigger an action by the scheduler. Some are simple actions, but some are complex compound actions. 
 	
-		Stop All Now
+		Stop all now
 			Stops all playing playlists and all active schedules. If you have songs queued it will empty the queue.
 
 		Stop	

@@ -74,8 +74,9 @@ Instructions for other Linux distributions will vary.
 
      Example commands to install packages on Fedora 38
 
-     Fedora 38+ defaults to "ffmpeg-free" library to switch to full ffmpeg run:
+     Fedora 38+ defaults to "ffmpeg-free" library to switch to full ffmpeg run, add rpmfusion repo first:
 
+        sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
         sudo dnf swap ffmpeg-free ffmpeg --allowerasing
      
      Note: with Fedora cbp2make is not avalible in an offical repo, you must build and install it manually:

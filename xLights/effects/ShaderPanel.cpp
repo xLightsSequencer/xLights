@@ -213,6 +213,7 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
         if (BuildUI(FilePickerCtrl1->GetFileName().GetFullPath(), &((xLightsFrame*)xLightsApp::GetFrame())->GetSequenceElements())) {
             last = newf;
         }
+        FilePickerCtrl1->Enable(true); // force a validate
     }
     else {
         Freeze();

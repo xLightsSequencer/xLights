@@ -63,7 +63,7 @@
 				<object class="wxSlider" name="ID_SLIDER_Twinkle_Steps" subclass="BulkEditSlider" variable="Slider_Twinkle_Steps" member="yes">
 					<value>30</value>
 					<min>2</min>
-					<max>200</max>
+					<max>400</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

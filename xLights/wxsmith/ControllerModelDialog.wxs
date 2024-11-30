@@ -14,9 +14,8 @@
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 					<sashpos>1000</sashpos>
 					<sashgravity>1.000000</sashgravity>
-					<minpanesize>50</minpanesize>
 					<orientation>vertical</orientation>
-					<style>wxSP_3D|wxTAB_TRAVERSAL</style>
+					<style>wxSP_3D|wxSP_LIVE_UPDATE|wxTAB_TRAVERSAL</style>
 					<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
 							<cols>2</cols>

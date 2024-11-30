@@ -59,7 +59,6 @@ void DragValueCurveBitmapButton::OnMouseLeftDown(wxMouseEvent& event)
         return;
     }
 
-    wxString data;
     wxTextDataObject dragData(_vc);
 
 #ifdef __linux__

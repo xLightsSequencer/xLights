@@ -178,16 +178,16 @@ void SketchEffect::adjustSettings(const std::string& version, Effect* effect, bo
 std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     wxLogNull logNo; // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (!xLightsFrame::IsCheckSequenceOptionDisabled("SketchImage")) {
         wxString filename = settings.Get("E_FILEPICKER_SketchBackground", "");
         if (filename == "" || !FileExists(filename)) {
             // this is only a warning as it does not affect rendering
-            res.push_back(wxString::Format("    WARN: Sketch effect cant find image file '%s'. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    WARN: Sketch effect cant find image file '%s'. Model '%s', Start %s", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         } else {
             if (!IsFileInShowDir(xLightsFrame::CurrentDir, filename.ToStdString())) {
-                res.push_back(wxString::Format("    WARN: Sketch effect image file '%s' not under show directory. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                res.push_back(wxString::Format("    WARN: Sketch effect image file '%s' not under show directory. Model '%s', Start %s", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
             }
         }
     }

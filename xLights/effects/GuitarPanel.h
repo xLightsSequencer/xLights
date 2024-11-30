@@ -60,25 +60,25 @@ class GuitarPanel: public xlEffectPanel
 	protected:
 
 		//(*Identifiers(GuitarPanel)
-		static const long ID_STATICTEXT_Guitar_Type;
-		static const long ID_CHOICE_Guitar_Type;
-		static const long ID_STATICTEXT_Guitar_MIDITrack_APPLYLAST;
-		static const long ID_CHOICE_Guitar_MIDITrack_APPLYLAST;
-		static const long ID_STATICTEXT1;
-		static const long ID_CHOICE_StringAppearance;
-		static const long ID_STATICTEXT_Piano_Scale;
-		static const long ID_SLIDER_MaxFrets;
-		static const long IDD_TEXTCTRL_MaxFrets;
-		static const long ID_STATICTEXT2;
-		static const long ID_SLIDER_BaseWaveFactor;
-		static const long IDD_TEXTCTRL_BaseWaveFactor;
-		static const long ID_STATICTEXT3;
-		static const long ID_SLIDER_StringWaveFactor;
-		static const long IDD_TEXTCTRL_StringWaveFactor;
-		static const long ID_CHECKBOX_Fade;
-		static const long ID_CHECKBOX_Collapse;
-		static const long ID_CHECKBOX_ShowStrings;
-		static const long ID_CHECKBOX_VaryWaveLengthOnFret;
+		static const wxWindowID ID_STATICTEXT_Guitar_Type;
+		static const wxWindowID ID_CHOICE_Guitar_Type;
+		static const wxWindowID ID_STATICTEXT_Guitar_MIDITrack_APPLYLAST;
+		static const wxWindowID ID_CHOICE_Guitar_MIDITrack_APPLYLAST;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_CHOICE_StringAppearance;
+		static const wxWindowID ID_STATICTEXT_Piano_Scale;
+		static const wxWindowID ID_SLIDER_MaxFrets;
+		static const wxWindowID IDD_TEXTCTRL_MaxFrets;
+		static const wxWindowID ID_STATICTEXT2;
+		static const wxWindowID ID_SLIDER_BaseWaveFactor;
+		static const wxWindowID IDD_TEXTCTRL_BaseWaveFactor;
+		static const wxWindowID ID_STATICTEXT3;
+		static const wxWindowID ID_SLIDER_StringWaveFactor;
+		static const wxWindowID IDD_TEXTCTRL_StringWaveFactor;
+		static const wxWindowID ID_CHECKBOX_Fade;
+		static const wxWindowID ID_CHECKBOX_Collapse;
+		static const wxWindowID ID_CHECKBOX_ShowStrings;
+		static const wxWindowID ID_CHECKBOX_VaryWaveLengthOnFret;
 		//*)
 
 	public:

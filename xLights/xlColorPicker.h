@@ -21,6 +21,10 @@ class xlColorPicker: public wxPanel
 		virtual ~xlColorPicker();
 
         virtual void SetColor(xlColor& color ) = 0;
+        virtual int GetActiveButton() = 0;
+        virtual wxColour GetButtonColor(int p) = 0;
+        virtual void SetButtonColor(int p, xlColor& color) = 0;
+        virtual void ResetPanel() = 0;
         const xlColor& GetColor() { return mCurrentColor; }
 
         virtual void NotifyColorChange() = 0;

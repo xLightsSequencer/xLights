@@ -12,6 +12,7 @@
 			<object class="sizeritem">
 				<object class="wxCheckListBox" name="ID_CHECKLISTBOXITEMS" variable="CheckListBox_Items" member="yes">
 					<size>-1,300</size>
+					<style>wxLB_EXTENDED</style>
 					<handler function="OnCheckListBox_ItemsToggled" entry="EVT_CHECKLISTBOX" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

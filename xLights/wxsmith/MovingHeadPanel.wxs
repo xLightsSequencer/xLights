@@ -1,0 +1,928 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="MovingHeadPanel">
+		<id_arg>0</id_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer_Main" member="yes">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizerFixtures" member="no">
+					<cols>1</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizerFixturesLabel" member="no">
+							<cols>3</cols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT_Fixtures" variable="StaticTextFixtures" member="yes">
+									<label>Fixtures</label>
+									<font>
+										<size>12</size>
+										<style>normal</style>
+										<weight>normal</weight>
+										<underlined>0</underlined>
+										<family>swiss</family>
+										<face>Arial</face>
+									</font>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+									<cols>6</cols>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_All" variable="Button_All" member="yes">
+											<label>All</label>
+											<size>25,-1d</size>
+											<handler function="OnButton_AllClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_None" variable="Button_None" member="yes">
+											<label>None</label>
+											<size>25,-1d</size>
+											<handler function="OnButton_NoneClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_Evens" variable="Button_Evens" member="yes">
+											<label>Evens</label>
+											<size>25,-1d</size>
+											<handler function="OnButton_EvensClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_Odds" variable="Button_Odds" member="yes">
+											<label>Odds</label>
+											<size>25,-1d</size>
+											<handler function="OnButton_OddsClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxLEFT|wxRIGHT|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizerFixturesSelection" member="no">
+							<cols>8</cols>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="IDD_CHECKBOX_MH1" variable="CheckBox_MH1" member="yes">
+									<label>1</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="IDD_CHECKBOX_MH2" variable="CheckBox_MH2" member="yes">
+									<label>2</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="IDD_CHECKBOX_MH3" variable="CheckBox_MH3" member="yes">
+									<label>3</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="IDD_CHECKBOX_MH4" variable="CheckBox_MH4" member="yes">
+									<label>4</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="IDD_CHECKBOX_MH5" variable="CheckBox_MH5" member="yes">
+									<label>5</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="IDD_CHECKBOX_MH6" variable="CheckBox_MH6" member="yes">
+									<label>6</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="IDD_CHECKBOX_MH7" variable="CheckBox_MH7" member="yes">
+									<label>7</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="IDD_CHECKBOX_MH8" variable="CheckBox_MH8" member="yes">
+									<label>8</label>
+									<handler function="OnCheckBox_MHClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
+					<handler function="OnNotebook1PageChanged" entry="EVT_NOTEBOOK_PAGE_CHANGED" />
+					<object class="notebookpage">
+						<object class="wxPanel" name="ID_PANEL_Position" variable="PanelPosition" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizerPosition" member="yes">
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerPositionCanvas" member="yes">
+										<cols>1</cols>
+										<rows>1</rows>
+										<growablecols>0</growablecols>
+										<growablerows>0</growablerows>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerPositionPan" member="no">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_Pan" variable="Label_Pan" member="yes">
+												<label>Pan (deg):</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPan" subclass="BulkEditSliderF1" variable="Slider_MHPan" member="yes">
+												<min>-1800</min>
+												<max>1800</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MHPan" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHPan" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPan" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHPan" member="no">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerPositionTilt" member="no">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_Tilt" variable="Label_Tilt" member="yes">
+												<label>Tilt (deg): </label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHTilt" subclass="BulkEditSliderF1" variable="Slider_MHTilt" member="yes">
+												<min>-1800</min>
+												<max>1800</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MHTilt" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHTilt" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHTilt" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHTilt" member="no">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PanOffset" member="no">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_PanOffset" variable="Label_PanOffset" member="yes">
+												<label>Fan Pan:  </label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPanOffset" subclass="BulkEditSliderF1" variable="Slider_MHPanOffset" member="yes">
+												<min>-1800</min>
+												<max>1800</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MHPanOffset" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHPanOffset" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPanOffset" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHPanOffset" member="no">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_TiltOffset" member="no">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_TiltOffset" variable="Label_TiltOffset" member="yes">
+												<label>Fan Tilt:   </label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHTiltOffset" subclass="BulkEditSliderF1" variable="Slider_MHTiltOffset" member="yes">
+												<min>-1800</min>
+												<max>1800</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MHTiltOffset" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHTiltOffset" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+												<handler function="OnValueCurve_MHTiltOffsetClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHTiltOffset" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHTiltOffset" member="no">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_Groupings" member="no">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_Groupings" variable="StaticText_Groupings" member="yes">
+												<label>Groupings:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHGroupings" subclass="BulkEditSlider" variable="Slider_MHGroupings" member="yes">
+												<value>1</value>
+												<min>1</min>
+												<max>6</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MHGroupings" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHGroupings" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHGroupings" subclass="BulkEditTextCtrl" variable="TextCtrl_MHGroupings" member="no">
+												<value>1</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerCycles" member="no">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_MHCycles" variable="StaticText_MHCycles" member="yes">
+												<label>Cycles:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHCycles" subclass="BulkEditSliderF1" variable="Slider_MHCycles" member="yes">
+												<value>1</value>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHCycles" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHCycles" member="no">
+												<value>1</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxButton" name="ID_BUTTON_SavePreset" variable="ButtonSavePreset" member="yes">
+										<label>Save Preset</label>
+										<handler function="OnButtonSavePresetClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerPresets" member="yes">
+										<cols>3</cols>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Position</label>
+					</object>
+					<object class="notebookpage">
+						<object class="wxPanel" name="ID_PANEL_Dimmer" variable="PanelDimmer" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizerDimmer" member="no">
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerDimmerCanvas" member="yes">
+										<cols>1</cols>
+										<rows>1</rows>
+										<growablecols>0</growablecols>
+										<growablerows>0</growablerows>
+									</object>
+									<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+										<cols>4</cols>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_DimmerOn" variable="ButtonDimmerOn" member="yes">
+												<label>On</label>
+												<handler function="OnButtonDimmerOnClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_DimmerOff" variable="ButtonDimmerOff" member="yes">
+												<label>Off</label>
+												<handler function="OnButtonDimmerOffClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxButton" name="ID_BUTTON_SaveDimmerPreset" variable="ButtonSaveDimmerPreset" member="yes">
+										<label>Save Preset</label>
+										<handler function="OnButtonSaveDimmerPresetClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerDimmerPresets" member="yes">
+										<cols>4</cols>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Dimmer</label>
+					</object>
+					<object class="notebookpage">
+						<object class="wxPanel" name="ID_PANEL_Pathing" variable="PanelPathing" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizerPathing" member="yes">
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerPathCanvas" member="yes">
+										<cols>1</cols>
+										<rows>1</rows>
+										<growablecols>0</growablecols>
+										<growablerows>0</growablerows>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PathButtons" member="no">
+										<cols>4</cols>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_MHPathContinue" variable="Button_MHPathContinue" member="yes">
+												<label>Continue</label>
+												<size>36,-1d</size>
+												<handler function="OnButton_MHPathContinueClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_MHPathClear" variable="Button_MHPathClear" member="yes">
+												<label>Clear</label>
+												<size>36,-1d</size>
+												<handler function="OnButton_MHPathClearClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_MHPathClose" variable="Button_MHPathClose" member="yes">
+												<label>Close</label>
+												<size>36,-1d</size>
+												<handler function="OnButton_MHPathCloseClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_MHPathDef" variable="TextCtrl_MHPathDef" member="yes">
+												<size>20,-1</size>
+												<hidden>1</hidden>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_PathScale" variable="Label_PathScale" member="yes">
+												<label>Scale:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPathScale" subclass="BulkEditSliderF1" variable="Slider_MHPathScale" member="yes">
+												<min>-100</min>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MHPathScale" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHPathScale" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPathScale" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHPathScale" member="yes">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PathControls" member="no">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_TimeOffset" variable="Label_TimeOffset" member="yes">
+												<label>Time Offset:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHTimeOffset" subclass="BulkEditSliderF1" variable="Slider_MHTimeOffset" member="yes">
+												<min>-1000</min>
+												<max>1000</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MHTimeOffset" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHTimeOffset" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHTimeOffset" subclass="BulkEditTextCtrlF1" variable="TextCtrl_MHTimeOffset" member="yes">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerIgnoreBoxes" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_MHIgnorePan" subclass="BulkEditCheckBox" variable="CheckBox_MHIgnorePan" member="yes">
+												<label>Ignore Pan</label>
+												<handler function="OnCheckBox_MHIgnorePanClick" entry="EVT_CHECKBOX" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_MHIgnoreTilt" subclass="BulkEditCheckBox" variable="CheckBox_MHIgnoreTilt" member="yes">
+												<label>Ignore Tilt</label>
+												<handler function="OnCheckBox_MHIgnoreTiltClick" entry="EVT_CHECKBOX" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxButton" name="ID_BUTTON_SavePathPreset" variable="ButtonSavePathPreset" member="yes">
+										<label>Save Preset</label>
+										<handler function="OnButtonSavePathPresetClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerPathPresets" member="yes">
+										<cols>4</cols>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Pathing</label>
+					</object>
+					<object class="notebookpage">
+						<object class="wxPanel" name="ID_PANEL_Control" variable="PanelControl" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizerControl" member="no">
+								<cols>1</cols>
+								<rows>1</rows>
+								<growablecols>0</growablecols>
+								<growablerows>0</growablerows>
+								<object class="sizeritem">
+									<object class="wxNotebook" name="ID_NOTEBOOK2" variable="Notebook2" member="yes">
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL_Color" variable="PanelColor" member="yes">
+												<object class="wxFlexGridSizer" variable="FlexGridSizerColorMain" member="no">
+													<cols>1</cols>
+													<rows>2</rows>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="FlexGridSizerColor" member="yes">
+															<cols>1</cols>
+															<rows>1</rows>
+															<growablecols>0</growablecols>
+															<growablerows>0</growablerows>
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="FlexGridSizerColorSliders" member="no">
+															<cols>1</cols>
+															<rows>1</rows>
+															<growablecols>0</growablecols>
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Color</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL_ColorWheel" variable="PanelColorWheel" member="yes">
+												<hidden>1</hidden>
+												<object class="wxFlexGridSizer" variable="FlexGridSizerColorWheelMain" member="no">
+													<cols>1</cols>
+													<rows>2</rows>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="FlexGridSizerColorWheel" member="yes">
+															<cols>1</cols>
+															<rows>1</rows>
+															<growablecols>0</growablecols>
+															<growablerows>0</growablerows>
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="FlexGridSizerColorWheelSliders" member="no">
+															<cols>1</cols>
+															<rows>1</rows>
+															<growablecols>0</growablecols>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_AUTO_SHUTTER" variable="CheckBoxAutoShutter" member="yes">
+																	<label>Auto Shutter</label>
+																	<handler function="OnCheckBoxAutoShutterClick" entry="EVT_CHECKBOX" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>ColorWheel</label>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Control</label>
+					</object>
+					<object class="notebookpage">
+						<object class="wxPanel" name="ID_PANEL1" variable="PanelStatus" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<growablerows>0</growablerows>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Status" variable="TextCtrl_Status" member="yes">
+										<style>wxTE_MULTILINE</style>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxButton" name="ID_BUTTON_ResetToDefault" variable="Button_ResetToDefault" member="yes">
+										<label>Reset to Default</label>
+										<handler function="OnButton_ResetToDefaultClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Status</label>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer_Positions" member="no">
+					<cols>8</cols>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH1_Settings" variable="TextCtrl_MH1_Settings" member="yes">
+							<size>20,-1</size>
+							<hidden>1</hidden>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH2_Settings" variable="TextCtrl_MH2_Settings" member="yes">
+							<size>20,-1</size>
+							<hidden>1</hidden>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH3_Settings" variable="TextCtrl_MH3_Settings" member="yes">
+							<size>20,-1</size>
+							<hidden>1</hidden>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH4_Settings" variable="TextCtrl_MH4_Settings" member="yes">
+							<size>20,-1</size>
+							<hidden>1</hidden>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH5_Settings" variable="TextCtrl_MH5_Settings" member="yes">
+							<size>20,-1</size>
+							<hidden>1</hidden>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH6_Settings" variable="TextCtrl_MH6_Settings" member="yes">
+							<size>20,-1</size>
+							<hidden>1</hidden>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH7_Settings" variable="TextCtrl_MH7_Settings" member="yes">
+							<size>20,-1</size>
+							<hidden>1</hidden>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_MH8_Settings" variable="TextCtrl_MH8_Settings" member="yes">
+							<size>20,-1</size>
+							<hidden>1</hidden>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

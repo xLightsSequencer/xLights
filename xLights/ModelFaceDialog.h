@@ -91,34 +91,34 @@ class ModelFaceDialog : public wxDialog
     static const long FACES_DIALOG_SHIFT;
     static const long FACES_DIALOG_REVERSE;
 
-    void SetFaceInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>>& info);
-    void GetFaceInfo(std::map<std::string, std::map<std::string, std::string>>& info);
+    void SetFaceInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>> const& info);
+    [[nodiscard]] std::map<std::string, std::map<std::string, std::string>> GetFaceInfo() const;
 
 protected:
     //(*Identifiers(ModelFaceDialog)
-    static const long ID_STATICTEXT2;
-    static const long ID_CHOICE3;
-    static const long ID_BUTTON3;
-    static const long ID_BUTTON_IMPORT;
-    static const long ID_BUTTON4;
-    static const long ID_PANEL4;
-    static const long ID_CHECKBOX1;
-    static const long ID_GRID_COROFACES;
-    static const long ID_PANEL2;
-    static const long ID_PANEL8;
-    static const long ID_CHECKBOX2;
-    static const long ID_CHECKBOX3;
-    static const long ID_GRID3;
-    static const long ID_PANEL6;
-    static const long ID_PANEL7;
-    static const long ID_CHOICE2;
-    static const long ID_BUTTON1;
-    static const long ID_GRID1;
-    static const long ID_PANEL3;
-    static const long ID_CHOICEBOOK1;
-    static const long ID_PANEL5;
-    static const long ID_PANEL1;
-    static const long ID_SPLITTERWINDOW1;
+    static const wxWindowID ID_STATICTEXT2;
+    static const wxWindowID ID_CHOICE3;
+    static const wxWindowID ID_BUTTON3;
+    static const wxWindowID ID_BUTTON_IMPORT;
+    static const wxWindowID ID_BUTTON4;
+    static const wxWindowID ID_PANEL4;
+    static const wxWindowID ID_CHECKBOX1;
+    static const wxWindowID ID_GRID_COROFACES;
+    static const wxWindowID ID_PANEL2;
+    static const wxWindowID ID_PANEL8;
+    static const wxWindowID ID_CHECKBOX2;
+    static const wxWindowID ID_CHECKBOX3;
+    static const wxWindowID ID_GRID3;
+    static const wxWindowID ID_PANEL6;
+    static const wxWindowID ID_PANEL7;
+    static const wxWindowID ID_CHOICE2;
+    static const wxWindowID ID_BUTTON1;
+    static const wxWindowID ID_GRID1;
+    static const wxWindowID ID_PANEL3;
+    static const wxWindowID ID_CHOICEBOOK1;
+    static const wxWindowID ID_PANEL5;
+    static const wxWindowID ID_PANEL1;
+    static const wxWindowID ID_SPLITTERWINDOW1;
     //*)
     static const long ID_TIMER1;
 
@@ -149,6 +149,9 @@ private:
     void OnButtonImportClick(wxCommandEvent& event);
     void OnMatrixModelsGridLabelLeftDClick(wxGridEvent& event);
     void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
+    void OnMatrixModelsGridResize(wxSizeEvent& event);
+    void OnSingleNodeGridResize(wxSizeEvent& event);
+    void OnNodeRangeGridResize(wxSizeEvent& event);
     //*)
 
     void OnAddBtnPopup(wxCommandEvent& event);
@@ -183,7 +186,7 @@ private:
     wxString getSubmodelNodes(Model* sm);
     void ImportFaces(const wxString& filename);
     void ImportFacesFromModel();
-    void AddFaces(std::map<std::string, std::map<std::string, std::string>> faces);
+    void AddFaces(std::map<std::string, std::map<std::string, std::string>> const& faces);
     wxArrayString getModelList(ModelManager* modelManager);
     void CopyFaceData();
     void RenameFace();

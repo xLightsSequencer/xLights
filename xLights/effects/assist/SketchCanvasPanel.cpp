@@ -33,14 +33,14 @@ namespace
 }
 
 BEGIN_EVENT_TABLE(SketchCanvasPanel, wxPanel)
-EVT_PAINT(SketchCanvasPanel::OnSketchPaint)
-EVT_KEY_DOWN(SketchCanvasPanel::OnSketchKeyDown)
-EVT_LEFT_DOWN(SketchCanvasPanel::OnSketchLeftDown)
-EVT_LEFT_UP(SketchCanvasPanel::OnSketchLeftUp)
-EVT_MOTION(SketchCanvasPanel::OnSketchMouseMove)
-EVT_ENTER_WINDOW(SketchCanvasPanel::OnSketchEntered)
-EVT_MOUSEWHEEL(SketchCanvasPanel::OnSketchMouseWheel)
-EVT_MIDDLE_DOWN(SketchCanvasPanel::OnSketchMidDown)
+    EVT_PAINT(SketchCanvasPanel::OnSketchPaint)
+    EVT_KEY_DOWN(SketchCanvasPanel::OnSketchKeyDown)
+    EVT_LEFT_DOWN(SketchCanvasPanel::OnSketchLeftDown)
+    EVT_LEFT_UP(SketchCanvasPanel::OnSketchLeftUp)
+    EVT_MOTION(SketchCanvasPanel::OnSketchMouseMove)
+    EVT_ENTER_WINDOW(SketchCanvasPanel::OnSketchEntered)
+    EVT_MOUSEWHEEL(SketchCanvasPanel::OnSketchMouseWheel)
+    EVT_MIDDLE_DOWN(SketchCanvasPanel::OnSketchMidDown)
 END_EVENT_TABLE()
 
 SketchCanvasPanel::SketchCanvasPanel(ISketchCanvasParent* sketchCanvasParent, wxWindow* parent, wxWindowID id /*=wxID_ANY*/, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*=wxDefaultSize*/) :
@@ -63,7 +63,7 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
 
     pdc.SetPen(*wxLIGHT_GREY_PEN);
     pdc.DrawRectangle(borderRect);
-
+    
     if (m_drawGrid) {
         for (int i = 0; i < 9; ++i) {
             wxPoint2DDouble start_x(0.1 * (float)i + 0.1, 0);
@@ -75,6 +75,7 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
             } else {
                 pdc.SetPen(*wxLIGHT_GREY_PEN);
             }
+            
             pdc.DrawLine(NormalizedToUI2(start_x), NormalizedToUI2(end_x));
             pdc.DrawLine(NormalizedToUI2(start_y), NormalizedToUI2(end_y));
         }
@@ -625,11 +626,11 @@ void SketchCanvasPanel::UpdateHandlesForPath(long pathIndex)
             m_ClosedState = SketchCanvasPathState::LineToNewPoint;
             break;
         case SegmentType::Quadratic:
-            m_handles.pop_back();
+            //m_handles.pop_back();//this causes crashes for missing array index for me... SEH
             m_ClosedState = SketchCanvasPathState::QuadraticCurveToNewPoint;
             break;
         case SegmentType::Cubic:
-            m_handles.pop_back();
+            //m_handles.pop_back();//this causes crashes for missing array index for me... SEH
             m_ClosedState = SketchCanvasPathState::CubicCurveToNewPoint;
             break;
         case SegmentType::Unknown:

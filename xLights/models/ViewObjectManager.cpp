@@ -214,6 +214,7 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
             if (curr == nullptr) {
                 // model does not exist
                 changed = true;
+                if (o->HasAttribute("FromBase")) o->DeleteAttribute("FromBase");
                 o->AddAttribute("FromBase", "1");
                 createAndAddObject(new wxXmlNode(*o));
                 logger_base.debug("Adding object from base show folder: '%s'.", (const char*)name.c_str());
@@ -226,6 +227,7 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
                 if (force || curr->IsFromBase()) {
                     // model does exist ... update it
                     if (force || curr->IsXmlChanged(o)) {
+                        if (o->HasAttribute("FromBase")) o->DeleteAttribute("FromBase");
                         o->AddAttribute("FromBase", "1");
                         changed = true;
                         Delete(name);

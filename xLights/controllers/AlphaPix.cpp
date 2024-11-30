@@ -256,9 +256,6 @@ AlphaPixOutput* AlphaPix::ExtractOutputDataV2(const wxString& page, int port) {
 }
 
 AlphaPixSerial* AlphaPix::ExtractSerialData(const wxString& page, int port) {
-
-    const wxString p(page);
-
     AlphaPixSerial* serial = new AlphaPixSerial(port);
     if (_modelnum == 4) {
         serial->enabled = ExtractDMXEnabled(page, "Rever5");

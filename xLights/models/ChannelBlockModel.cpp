@@ -188,14 +188,14 @@ void ChannelBlockModel::InitModel() {
         else {
             offset = (float)1 / (float)num / 2.0;
         }
-        for (auto coord = node->get()->Coords.begin(); coord != node->get()->Coords.end(); ++coord) {
-            coord->screenY = 0;
+        for (auto &coord : node->get()->Coords) {
+            coord.screenY = 0;
             if (num > 1) {
-                coord->screenX = (float)coord->bufX + (float)count / (float)num + offset;
+                coord.screenX = (float)coord.bufX + (float)count / (float)num + offset;
                 count++;
             }
             else {
-                coord->screenX = coord->bufX + offset;
+                coord.screenX = coord.bufX + offset;
             }
         }
     }
@@ -228,8 +228,8 @@ void ChannelBlockModel::InitChannelBlock() {
         wxString nm = ChanColorAttrName(n);
         std::string val = ModelXml->GetAttribute("ChannelProperties." + nm).ToStdString();
         xlColor c = xlColor(val);
-        Nodes[n]->SetMaskColor(c);
         NodeClassCustom* ncc = dynamic_cast<NodeClassCustom*>(Nodes[n].get());
+        ncc->SetMaskColor(c);
         ncc->SetCustomColor(c);
     }
 }

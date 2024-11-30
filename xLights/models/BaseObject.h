@@ -12,6 +12,7 @@
 
 #include <string>
 #include "../OutputModelManager.h"
+#include "BaseObjectVisitor.h"
 #include "ModelScreenLocation.h"
 #include <glm/mat3x3.hpp>
 
@@ -93,6 +94,8 @@ public:
     const std::string &GetName() const { return name;}
     const std::string& GetDisplayAs() const { return DisplayAs; }
 
+    void SetDisplayAs(const std::string& type) { DisplayAs = type; }
+
     wxXmlNode* GetModelXml() const;
     virtual void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false) = 0;
 
@@ -108,6 +111,9 @@ public:
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
 
 	virtual void UpdateXmlWithScale() = 0;
+    
+    virtual bool SupportsVisitors() {return false;}
+    virtual void Accept(BaseObjectVisitor &visitor) const {};
 
     bool IsActive() const { return _active; }
     void SetActive(bool active);

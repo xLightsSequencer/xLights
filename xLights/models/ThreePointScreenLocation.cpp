@@ -92,7 +92,7 @@ void ThreePointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* p
     wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight", 
                                                                      (width * height) / 2.0 * factor
                                                                     ));
-    prop->ChangeFlag(wxPG_PROP_READONLY, true);
+    prop->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
     prop->SetAttribute("Precision", 2);
     prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 }
@@ -218,7 +218,7 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
 
     glm::mat4 scalingMatrix;
-    if (modelHandlesHeight) {
+    if (modelHandleHeight) {
         scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
     } else {
         scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley * height, scalez));
@@ -282,19 +282,9 @@ void ThreePointScreenLocation::SetMWidth(float w)
     TwoPointScreenLocation::SetMWidth(w);
 }
 
-void ThreePointScreenLocation::SetMHeight(float h)
-{
-    height = h;
-}
-
 float ThreePointScreenLocation::GetMWidth() const
 {
     return TwoPointScreenLocation::GetMWidth();
-}
-
-float ThreePointScreenLocation::GetMHeight() const
-{
-    return height;
 }
 
 void ThreePointScreenLocation::SetActiveHandle(int handle)
@@ -337,7 +327,10 @@ void ThreePointScreenLocation::SetActiveAxis(MSLAXIS axis)
 bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const {
     if (active_handle != -1) {
 
-        float ymax = RenderHt;
+        float HandleHt = RenderHt;
+        if (HandleHt > RenderWi)
+            HandleHt = RenderWi;
+        float ymax = HandleHt;
         
         auto vac = program->getAccumulator();
         int startVertex = vac->getCount();
@@ -345,7 +338,7 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
 
         float x = RenderWi / 2;
         if (supportsAngle) {
-            ymax = RenderHt * height;
+            ymax = HandleHt * height;
             rotate_point(RenderWi / 2.0, 0, toRadians(angle), x, ymax);
         }
 
@@ -399,7 +392,10 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
     float sx1 = center.x;
     float sy1 = center.y;
 
-    float ymax = RenderHt;
+    float HandleHt = RenderHt;
+    if (HandleHt > RenderWi)
+        HandleHt = RenderWi;
+    float ymax = HandleHt;
 
     auto vac = program->getAccumulator();
     int startVertex = vac->getCount();
@@ -407,7 +403,7 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
 
     float x = RenderWi / 2;
     if (supportsAngle) {
-        ymax = RenderHt * height;
+        ymax = HandleHt * height;
         rotate_point(RenderWi / 2.0, 0, toRadians(angle), x, ymax);
     }
 
@@ -467,7 +463,10 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
         float posx = ray_origin.x - center.x;
         float posy = ray_origin.y - center.y;
 
-        float ymax = RenderHt;
+        float HandleHt = RenderHt;
+        if (HandleHt > RenderWi)
+            HandleHt = RenderWi;
+        float ymax = HandleHt;
         if (ymax < 0.01f) {
             ymax = 0.01f;
         }
@@ -490,7 +489,7 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
                 angle = (int)(angle / 5) * 5;
             }
             float length = std::sqrt(posy*posy + posx * posx);
-            height = length / (RenderHt * scaley);
+            height = length / (HandleHt * scaley);
         } else if (supportsShear) {
             glm::mat4 m = glm::inverse(matrix);
             glm::vec3 v = glm::vec3(m * glm::vec4(ray_origin, 1.0f));
@@ -504,7 +503,7 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
             } else if (shear > 3.0f) {
                 shear = 3.0f;
             }
-            height = posy / (RenderHt * scaley);
+            height = posy / (HandleHt * scaley);
         } else {
             height = height * posy / ymax;
         }
@@ -547,7 +546,10 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
             //float posx = saved_position.x + drag_delta.x - center.x;
             //float posy = saved_position.y + drag_delta.y - center.y;
 
-            float ymax = RenderHt;
+            float HandleHt = RenderHt;
+            if (HandleHt > RenderWi)
+                HandleHt = RenderWi;
+            float ymax = HandleHt;
             if (ymax < 0.01f) {
                 ymax = 0.01f;
             }
@@ -570,7 +572,7 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
                     angle = (int)(angle / 5) * 5;
                 }
                 float length = std::sqrt(posy*posy + posx * posx);
-                height = length / (RenderHt * scaley);
+                height = length / (HandleHt * scaley);
             }
             else if (supportsShear) {
                 glm::mat4 m = glm::inverse(matrix);
@@ -587,7 +589,7 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
                 else if (shear > 3.0f) {
                     shear = 3.0f;
                 }
-                height = posy / (RenderHt * scaley);
+                height = posy / (HandleHt * scaley);
             }
             else {
                 height = height * posy / ymax;
@@ -646,17 +648,10 @@ int ThreePointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &r
     return TwoPointScreenLocation::MoveHandle3D(scale, handle, rot, mov);
 }
 float ThreePointScreenLocation::GetVScaleFactor() const {
-    if (modelHandlesHeight) {
+    if (modelHandleHeight) {
         return 1.0;
     }
     return height;
-}
-
-float ThreePointScreenLocation::GetYShear() const {
-    if (supportsShear) {
-        return shear;
-    }
-    return 0.0;
 }
 
 void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
@@ -668,7 +663,7 @@ void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClass
         if (draw_3d) {
             shearMatrix = glm::mat4(glm::shearY(glm::mat3(1.0f), GetYShear()));
             glm::mat4 scalingMatrix;
-            if (modelHandlesHeight) {
+            if (modelHandleHeight) {
                 scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
             }
             else {

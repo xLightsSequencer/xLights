@@ -929,8 +929,8 @@ public:
             numBlocks = 1;
         }
         m_framesPerBlock = numFrames / numBlocks;
-        if (m_framesPerBlock < 10)
-            m_framesPerBlock = 10;
+        if (m_framesPerBlock < 2)
+            m_framesPerBlock = 2;
         m_curFrameInBlock = 0;
         m_curBlock = 0;
 
@@ -1140,16 +1140,15 @@ public:
     }
     void compressData(ZSTD_CStream* m_cctx, ZSTD_inBuffer_s& input, ZSTD_outBuffer_s& output) {
         ZSTD_compressStream2(m_cctx, &output, &input, ZSTD_e_continue);
-        int count = input.pos;
-        int total = input.size;
+        size_t count = input.pos;
+        size_t total = input.size;
         uint8_t* curData = (uint8_t*)input.src;
         while (count < total) {
-            count += input.pos;
             curData += input.pos;
             input.src = curData;
             input.size -= input.pos;
             input.pos = 0;
-            if (output.pos) {
+            if (output.pos > V2FSEQ_OUT_BUFFER_FLUSH_SIZE) {
                 write(output.dst, output.pos);
                 output.pos = 0;
             }
@@ -1224,7 +1223,7 @@ public:
             ZSTD_inBuffer_s input = {
                 0, 0, 0
             };
-            while(ZSTD_compressStream2(m_cctx, &m_outBuffer, &input, ZSTD_e_end) > 0) {
+            while (ZSTD_compressStream2(m_cctx, &m_outBuffer, &input, ZSTD_e_end) > 0) {
                 write(m_outBuffer.dst, m_outBuffer.pos);
                 m_outBuffer.pos = 0;
             }

@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "DmxColorAbility.h"
+#include "../../Color.h"
 #include <optional>
 
 class wxPropertyGridInterface;
@@ -30,15 +31,15 @@ struct WheelColor
 class DmxColorAbilityWheel : public DmxColorAbility
 {
     public:
-    DmxColorAbilityWheel(wxXmlNode* ModelXml) :
-        DmxColorAbility()
-    {
-        InitColor(ModelXml);
-    };
+        DmxColorAbilityWheel(wxXmlNode* ModelXml) :
+            DmxColorAbility()
+        {
+            InitColor(ModelXml);
+        };
         void InitColor( wxXmlNode* ModelXml) override;
         bool IsColorChannel(uint32_t channel)const override;
         void SetColorPixels(const xlColor& color, xlColorVector & pixelVector ) const override;
-        void AddColorTypeProperties(wxPropertyGridInterface *grid)const override;
+        void AddColorTypeProperties(wxPropertyGridInterface *grid, bool pwm)const override;
         int OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) override;
         std::list<std::string> CheckModelSettings(Model *m) const override;
         bool IsValidModelSettings(Model* m) const override;
@@ -50,11 +51,22 @@ class DmxColorAbilityWheel : public DmxColorAbility
         std::string GetTypeName() const override{ return "ColorWheel" ;};
         void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const override;
         void ImportParameters(wxXmlNode* ImportXml, Model* m) const override;
-        void SetNodeNames(std::vector<std::string> & names) const override;
+        void SetNodeNames(std::vector<std::string> & names, const std::string &pfx = "") const override;
+        int GetNumChannels() const override;
+        [[nodiscard]] uint32_t GetWheelChannel() const { return wheel_channel; }
+        [[nodiscard]] uint32_t GetDimmerChannel() const { return dimmer_channel; }
+        [[nodiscard]] uint32_t GetWheelDelay() const { return wheel_delay; }
+        [[nodiscard]] xlColorVector GetColors() const override;
+        [[nodiscard]] std::vector<WheelColor> const& GetWheelColorSettings() const { return colors; };
+        [[nodiscard]] size_t GetColorWheelColorSize() const { return colors.size(); };
+        [[nodiscard]] int GetDMXWheelIndex(xlColor const& color) const;
+
+        virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &map) const override;
 
     private:
         uint32_t wheel_channel;
         uint32_t dimmer_channel;
+        uint32_t wheel_delay;
         std::vector<WheelColor> colors;
 
         std::optional<xlColor> GetDMXWheelValue(xlColor const & color) const;

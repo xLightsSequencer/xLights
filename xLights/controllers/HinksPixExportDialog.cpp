@@ -521,8 +521,6 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Scanning folder for sequences for FPP upload: %s", (const char*)dir.c_str());
 
-    const wxString fseqDir = xLightsFrame::FseqDir;
-
     wxDir directory;
     directory.Open(dir);
 
@@ -952,7 +950,6 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
             ++count;
             continue;
         }
-        wxString const ip = hix->GetIP();
 
         prgs.Update(++count, wxString::Format("Generating HinksPix Files for '%s'", hix->GetName()));
 
@@ -1029,7 +1026,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
                     wxString auName = shortName + ".au";
                     prgs.Update(count, "Generating AU File " + auName);
                     if (std::find(filesDone.begin(), filesDone.end(), auName) == filesDone.end()) {
-                        AudioLoader audioLoader(play.Audio.ToStdString(), true);
+                        AudioLoader audioLoader(play.Audio.ToStdString(), 44100, true);
                         worked &= audioLoader.loadAudioData();
 
                         if (worked) {
@@ -1103,7 +1100,11 @@ void HinksPixExportDialog::OnButtonAddPlaylistClick(wxCommandEvent& event)
 {
     wxTextEntryDialog dlg(this, "Playlist Name", "Enter Playlist Name", "MAIN");
     if (dlg.ShowModal() == wxID_OK) {
-        wxString n = dlg.GetValue();
+        wxString n = dlg.GetValue().Trim().Trim(false);
+        if (n.IsEmpty()) {
+            DisplayError("Playlist Name Cannot be Empty", this);
+            return;
+        }
         if (auto playlistRef = GetPlayList(n); playlistRef) {
             DisplayError("Playlist Name Already Exists", this);
             return;
@@ -1688,6 +1689,8 @@ void HinksPixExportDialog::StoreToObjectSchedule()
         return GridSchedule->GetCellValue(row, static_cast<int>(col));
     };
 
+    auto playLists = ChoicePlaylists->GetStrings();
+
     for (int row = 0; row <rows; ++row)
     {
         auto day = GridSchedule->GetRowLabelValue(row);
@@ -1699,6 +1702,10 @@ void HinksPixExportDialog::StoreToObjectSchedule()
             auto st_min = GetCell(row, ScheduleColumn::StartMin);
             auto ed_hr = GetCell(row, ScheduleColumn::EndHour);
             auto ed_min = GetCell(row, ScheduleColumn::EndMin);
+
+            if (std::find(playLists.begin(), playLists.end(), play) == playLists.end()) {
+                continue;//skip removed playlists
+            }
 
             ScheduleItem item(play);
             item.StartHour = wxAtoi(st_hr);
@@ -1765,6 +1772,9 @@ void HinksPixExportDialog::RedrawSchedules()
             auto playLists = ChoicePlaylists->GetStrings();
 
             for (auto const& item : sch.GetSortedSchedule()) {
+                if (std::find(playLists.begin(), playLists.end(), item.Playlist) == playLists.end()) {
+                    continue; // skip removed playlists
+                }
                 DrawPlaylistItem(day, item);
                 playLists.erase(std::remove(playLists.begin(), playLists.end(), item.Playlist), playLists.end());
             }

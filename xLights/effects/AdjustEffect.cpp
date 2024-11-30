@@ -43,7 +43,7 @@ xlEffectPanel *AdjustEffect::CreatePanel(wxWindow *parent) {
 
 std::list<std::string> AdjustEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("T_CHECKBOX_Canvas", "0") == "0") {
         res.push_back(wxString::Format("    WARN: Canvas mode not enabled on a Adjust effect. Without canvas mode Adjust is unlikely to do anything useful. Effect: Adjust, Model: %s, Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
@@ -157,8 +157,8 @@ void AdjustEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     int num_channels = 0;
     std::string string_type = "";
 
-    Model* model_info = buffer.GetModel();
-    if (model_info == nullptr)
+    const Model* model_info = buffer.GetModel();
+    if (model_info == nullptr || !buffer.dmx_buffer)
         num_channels = buffer.BufferWi * buffer.BufferHt * 3;
     else {
         num_channels = model_info->GetNumChannels();

@@ -31,7 +31,7 @@ EditAliasesDialog::EditAliasesDialog(wxWindow* parent, Model* m, wxWindowID id, 
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	ListBoxAliases = new wxListBox(this, ID_LISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SINGLE|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX1"));
+	ListBoxAliases = new wxListBox(this, ID_LISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SINGLE, wxDefaultValidator, _T("ID_LISTBOX1"));
 	FlexGridSizer1->Add(ListBoxAliases, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	ButtonAdd = new wxButton(this, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -62,6 +62,7 @@ EditAliasesDialog::EditAliasesDialog(wxWindow* parent, Model* m, wxWindowID id, 
         ListBoxAliases->Append(it);
 	}
 
+    SetSizerAndFit(FlexGridSizer1);
 	SetEscapeId(ID_BUTTON4);
 
 	ValidateWindow();
@@ -93,7 +94,7 @@ void EditAliasesDialog::OnButtonAddClick(wxCommandEvent& event)
         auto add = te.GetValue().Lower();
 
         bool found = false;
-        for (int i = 0; !found && i < ListBoxAliases->GetCount(); ++i) {
+        for (size_t i = 0; !found && i < ListBoxAliases->GetCount(); ++i) {
             if (ListBoxAliases->GetString(i) == add)
                 found = true;
         }
@@ -116,7 +117,7 @@ void EditAliasesDialog::OnButtonDeleteClick(wxCommandEvent& event)
 void EditAliasesDialog::OnButtonOkClick(wxCommandEvent& event)
 {
     std::list<std::string> aliases;
-    for (int i = 0; i < ListBoxAliases->GetCount(); ++i)
+    for (size_t i = 0; i < ListBoxAliases->GetCount(); ++i)
 	{
         aliases.push_back(ListBoxAliases->GetString(i));
 	}

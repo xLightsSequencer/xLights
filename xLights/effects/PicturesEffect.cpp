@@ -53,41 +53,33 @@ PicturesEffect::~PicturesEffect()
 std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     wxString pictureFilename = settings.Get("E_FILEPICKER_Pictures_Filename", "");
 
-    if (pictureFilename == "" || !FileExists(pictureFilename))
-    {
-        res.push_back(wxString::Format("    ERR: Picture effect cant find image file '%s'. Model '%s', Start %s", pictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    }
-    else
-    {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, pictureFilename.ToStdString()))
-        {
-            res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", pictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (pictureFilename == "" || !FileExists(pictureFilename)) {
+        res.push_back(wxString::Format("    ERR: Picture effect cant find image file '%s'. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    } else {
+        if (!IsFileInShowDir(xLightsFrame::CurrentDir, pictureFilename.ToStdString())) {
+            res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
 
         int imageCount = wxImage::GetImageCount(pictureFilename);
-        if (imageCount <= 0)
-        {
-            res.push_back(wxString::Format("    ERR: Picture effect '%s' contains no images. Image invalid. Model '%s', Start %s", pictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        if (imageCount <= 0) {
+            res.push_back(wxString::Format("    ERR: Picture effect '%s' contains no images. Image invalid. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
 
-        if (!renderCache)
-        {
+        if (!renderCache) {
             wxImage i;
             i.LoadFile(pictureFilename);
-            if (i.IsOk())
-            {
+            if (i.IsOk()) {
                 int ih = i.GetHeight();
                 int iw = i.GetWidth();
 
 #define IMAGESIZETHRESHOLD 10
-                if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi())
-                {
+                if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi()) {
                     float scale = std::max((float)ih / model->GetDefaultBufferHt(), (float)iw / model->GetDefaultBufferWi());
-                    res.push_back(wxString::Format("    WARN: Picture effect image file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '%s', Start %s", pictureFilename, scale, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                    res.push_back(wxString::Format("    WARN: Picture effect image file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '%s', Start %s", pictureFilename, scale, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                 }
             }
         }

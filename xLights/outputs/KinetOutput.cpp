@@ -192,7 +192,7 @@ std::string KinetOutput::GetExport() const {
 #pragma region Start and Stop
 bool KinetOutput::Open() {
     if (!_enabled) return true;
-    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(GetResolvedIP())) return false;
 
     _ok = IPOutput::Open();
 
@@ -308,12 +308,12 @@ void KinetOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, 
     if (p) {
         p->SetValue((int)c->GetOutputs().size());
         if (c->IsAutoSize()) {
-            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("Universes Count cannot be changed when an output is set to Auto Size.");
         } else {
             p->SetEditor("SpinCtrl");
-            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
             p->SetHelpString("");
         }
@@ -330,13 +330,13 @@ void KinetOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, 
     p = propertyGrid->GetProperty("IndivSizes");
     if (p) {
         if (ce->IsAutoSize()) {
-            p->ChangeFlag(wxPG_PROP_READONLY, true);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("Individual Sizes cannot be changed when an output is set to Auto Size.");
         } else {
             bool v = !ce->AllSameSize() || ce->IsForcingSizes() || ce->IsUniversePerString();
             p->SetValue(v);
-            p->ChangeFlag(wxPG_PROP_READONLY, false);
+            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
             p->SetHelpString("");
         }
@@ -377,12 +377,12 @@ void KinetOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, 
             p->Hide(false);
             p->SetValue(GetChannels());
             if (ce->IsAutoSize()) {
-                p->ChangeFlag(wxPG_PROP_READONLY, true);
+                p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
                 p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
             } else {
                 p->SetEditor("SpinCtrl");
-                p->ChangeFlag(wxPG_PROP_READONLY, false);
+                p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
                 p->SetHelpString("");
             }
@@ -414,7 +414,7 @@ void KinetOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *befo
     p->SetAttribute("Max", 1000);
 
     p = propertyGrid->Insert(before, new wxStringProperty("Ports", "UniversesDisplay", ""));
-    p->ChangeFlag(wxPG_PROP_READONLY, true);
+    p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
 

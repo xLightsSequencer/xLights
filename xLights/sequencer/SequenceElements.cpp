@@ -724,7 +724,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
             StrandElement* se = (StrandElement*)effectLayer->GetParentElement();
             EffectLayer* neffectLayer = se->GetNodeLayer(wxAtoi(effect->GetAttribute(STR_INDEX)), true);
             if (effect->GetAttribute(STR_NAME, STR_EMPTY) != STR_EMPTY) {
-                ((NodeLayer*)neffectLayer)->SetName(effect->GetAttribute(STR_NAME).ToStdString());
+                ((NodeLayer*)neffectLayer)->SetNodeName(effect->GetAttribute(STR_NAME).ToStdString());
             }
 
             LoadEffects(neffectLayer, type, effect, effectStrings, colorPalettes);
@@ -908,6 +908,9 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                     }
                                 }
                                 if (effectLayer != nullptr) {
+                                    if (effectLayerNode->HasAttribute("layerName")) {
+                                        effectLayer->SetLayerName(effectLayerNode->GetAttribute("layerName"));
+                                    }
                                     loaded += LoadEffects(effectLayer, elementNode->GetAttribute(STR_TYPE).ToStdString(), effectLayerNode, effectStrings, colorPalettes, importing);
                                     if (count) {
                                         GetXLightsFrame()->SetStatusText(wxString::Format("Effects Loaded: %i%%.", loaded * 100 / count));
@@ -1172,6 +1175,7 @@ void addSubModelElement(SubModelElement* elem,
             ri.element = elem;
             ri.displayName = elem->GetFullName();
             ri.Collapsed = elem->GetCollapsed();
+            ri.layerName = elem->GetEffectLayer(j)->GetLayerName();
             ri.colorIndex = 0;
             ri.layerIndex = j;
             ri.Index = rowIndex++;
@@ -1184,6 +1188,7 @@ void addSubModelElement(SubModelElement* elem,
         ri.element = elem;
         ri.Collapsed = elem->GetCollapsed();
         ri.displayName = elem->GetFullName();
+        ri.layerName = elem->GetEffectLayer(0)->GetLayerName();
         ri.colorIndex = 0;
         ri.layerIndex = 0;
         ri.Index = rowIndex++;
@@ -1209,6 +1214,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
             Row_Information_Struct ri;
             ri.element = elem;
             ri.displayName = elem->GetName();
+            ri.layerName = elem->GetEffectLayer(j)->GetLayerName();
             ri.Collapsed = elem->GetCollapsed();
             ri.colorIndex = 0;
             ri.layerIndex = j;
@@ -1222,6 +1228,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
         ri.element = elem;
         ri.Collapsed = elem->GetCollapsed();
         ri.displayName = elem->GetName();
+        ri.layerName = elem->GetEffectLayer(0)->GetLayerName();
         ri.colorIndex = 0;
         ri.layerIndex = 0;
         ri.Index = rowIndex++;
@@ -1270,6 +1277,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
                 ri.element = se;
                 ri.Collapsed = se->GetCollapsed();
                 ri.displayName = se->GetName();
+                ri.layerName = se->GetEffectLayer(x)->GetLayerName();
 
                 ri.colorIndex = 0;
                 ri.layerIndex = x;
@@ -1288,7 +1296,8 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
                     Row_Information_Struct ri;
                     ri.element = se;
                     ri.Collapsed = ste->ShowNodes();
-                    ri.displayName = ste->GetNodeLayer(n)->GetName();
+                    ri.displayName = ste->GetNodeLayer(n)->GetNodeName();
+                    ri.layerName = se->GetEffectLayer(0)->GetLayerName();
                     ri.colorIndex = 0;
                     ri.layerIndex = 0;
                     ri.Index = rowIndex++;
@@ -1330,6 +1339,7 @@ void SequenceElements::addTimingElement(TimingElement* elem, std::vector<Row_Inf
         ri.element = elem;
         ri.Collapsed = elem->GetCollapsed();
         ri.displayName = elem->GetName();
+        ri.layerName = "";
         ri.colorIndex = timingColorIndex;
         ri.layerIndex = 0;
         if (selectedTimingRow < 0) {

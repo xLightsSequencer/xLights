@@ -40,7 +40,7 @@ class MainSequencer: public wxPanel
 		virtual ~MainSequencer();
 		void SetSequenceElements(SequenceElements* elements);
         void UpdateEffectGridVerticalScrollBar();
-        void UpdateTimeDisplay(int time_ms, float fps);
+        bool UpdateTimeDisplay(int time_ms, const std::vector<float> &fps, bool render = true);
         void UpdateSelectedDisplay(int selected);
         bool GetSelectedEffectsData(wxString& copy_data);
         bool GetACEffectsData(wxString& copy_data);
@@ -115,14 +115,14 @@ class MainSequencer: public wxPanel
 	protected:
 
 		//(*Identifiers(MainSequencer)
-		static const long ID_CHOICE_VIEW_CHOICE;
-		static const long ID_PANEL1;
-		static const long ID_PANEL3;
-		static const long ID_PANEL6;
-		static const long ID_PANEL2;
-		static const long ID_SCROLLBAR_EFFECTS_VERTICAL;
-		static const long ID_CHECKBOX1;
-		static const long ID_SCROLLBAR_EFFECT_GRID_HORZ;
+		static const wxWindowID ID_CHOICE_VIEW_CHOICE;
+		static const wxWindowID ID_PANEL1;
+		static const wxWindowID ID_PANEL3;
+		static const wxWindowID ID_PANEL6;
+		static const wxWindowID ID_PANEL2;
+		static const wxWindowID ID_SCROLLBAR_EFFECTS_VERTICAL;
+		static const wxWindowID ID_CHECKBOX1;
+		static const wxWindowID ID_SCROLLBAR_EFFECT_GRID_HORZ;
 		//*)
 
 	private:

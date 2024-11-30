@@ -35,10 +35,10 @@ class SingleStrandPanel: public xlEffectPanel
 		virtual void ValidateWindow() override;
 
 		//(*Declarations(SingleStrandPanel)
-		BulkEditCheckBox* CheckBox_Chase_3dFade1;
 		BulkEditCheckBox* CheckBox_Chase_Group_All;
 		BulkEditChoice* Choice_Chase_Type1;
 		BulkEditChoice* Choice_FX_Palette;
+		BulkEditChoice* Choice_Fade_Type;
 		BulkEditChoice* Choice_SingleStrand_Colors;
 		BulkEditChoice* Choice_SingleStrand_FX;
 		BulkEditChoice* Choice_Skips_Direction;
@@ -77,12 +77,13 @@ class SingleStrandPanel: public xlEffectPanel
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText60;
 		wxStaticText* StaticText61;
+		wxStaticText* StaticText6;
 		wxStaticText* StaticText9;
 		xlLockButton* BitmapButton_ChaseRotations;
-		xlLockButton* BitmapButton_Chase_3dFade1;
 		xlLockButton* BitmapButton_Chase_Group_All;
 		xlLockButton* BitmapButton_Chase_Offset;
 		xlLockButton* BitmapButton_Chase_Type1;
+		xlLockButton* BitmapButton_Choice_Fade_Type;
 		xlLockButton* BitmapButton_Color_Mix1;
 		xlLockButton* BitmapButton_Number_Chases;
 		xlLockButton* BitmapButton_SingleStrand_Colors;
@@ -122,8 +123,9 @@ class SingleStrandPanel: public xlEffectPanel
 		static const long ID_STATICTEXT_Chase_Type1;
 		static const long ID_CHOICE_Chase_Type1;
 		static const long ID_BITMAPBUTTON_CHOICE_Chase_Type1;
-		static const long ID_CHECKBOX_Chase_3dFade1;
-		static const long ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1;
+		static const long ID_STATICTEXT6;
+		static const long ID_CHOICE_Fade_Type;
+		static const long ID_BITMAPBUTTON_CHOICE_Fade_Type;
 		static const long ID_CHECKBOX_Chase_Group_All;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Chase_Group_All;
 		static const long ID_PANEL3;

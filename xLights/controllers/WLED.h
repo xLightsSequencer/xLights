@@ -28,8 +28,8 @@ class WLED : public BaseController
     #pragma endregion
 
     #pragma region Private Functions
-    bool SetupInput(Controller* controller, wxJSONValue &jsonVal);
-    void UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int startNumber) const;
+    bool SetupInput(Controller* controller, wxJSONValue& jsonVal, bool rgbw);
+    void UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int startNumber, bool& rgbw) const;
 
     WLEDOutput* FindPortData(int port);
 

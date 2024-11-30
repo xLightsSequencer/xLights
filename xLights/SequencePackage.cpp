@@ -71,7 +71,7 @@ SequencePackage::SequencePackage(const wxFileName& fileName, xLightsFrame* xligh
 {
     _xlights = xlights;
 
-    if (fileName.GetExt() == "zip" || fileName.GetExt() == "piz") {
+    if (fileName.GetExt() == "zip" || fileName.GetExt() == "piz" || fileName.GetExt() == "xsqz") {
         _xsqOnly = false;
         _pkgFile = fileName;
     } else {
@@ -83,13 +83,16 @@ SequencePackage::SequencePackage(const wxFileName& fileName, xLightsFrame* xligh
 SequencePackage::~SequencePackage()
 {
     // cleanup extracted files
-    if (!_xsqOnly && _tempDir.Exists()) {
+    if (!_xsqOnly && _tempDir.Exists() && !_leaveFiles) {
         wxDir::Remove(_tempDir.GetFullPath(), wxPATH_RMDIR_RECURSIVE);
     }
 }
 
 void SequencePackage::InitDefaultImportOptions()
 {
+    if (_xlights == nullptr)
+        return;
+
     // Set default target media directories based on a few assumptions. User
     // can still change these in the Mapping Dialog to whatever they would like.
 
@@ -215,6 +218,7 @@ void SequencePackage::Extract()
                             wxXmlDocument rgbEffects;
                             if (rgbEffects.Load(fnOutput.GetFullPath())) {
                                 _rgbEffects = rgbEffects;
+                                _xlEffects = fnOutput.GetFullPath();
                                 _pkgRoot = fnOutput.GetPath();
                                 _hasRGBEffects = true;
                             }
@@ -264,6 +268,7 @@ void SequencePackage::FindRGBEffectsFile()
     if( wxFile::Exists(showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml")) {
         wxXmlDocument rgbEffects;
         if (rgbEffects.Load(showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml")) {
+            _xlEffects = showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml";
             _rgbEffects = rgbEffects;
             _hasRGBEffects = true;
         }
@@ -307,6 +312,14 @@ wxFileName& SequencePackage::GetXsqFile()
 wxXmlDocument& SequencePackage::GetRgbEffectsFile()
 {
     return _rgbEffects;
+}
+
+std::string SequencePackage::GetTempShowFolder() const
+{
+    return wxPathOnly(_xlEffects.GetFullPath()).ToStdString();
+}
+std::string SequencePackage::GetTempDir() const {
+    return _tempDir.GetFullPath().ToStdString();
 }
 
 bool SequencePackage::ModelsChanged() const
@@ -399,12 +412,15 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
 
 void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, const std::string& faceName)
 {
+    if (_xlights == nullptr)
+        return;
+
     auto targetModelName = target->GetParentElement()->GetModelName();
     auto srcModelName = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetModelName();
     Model* targetModel = _xlights->AllModels[targetModelName];
 
-    const auto& faceInfo = targetModel->faceInfo.find(faceName);
-    if (faceInfo != targetModel->faceInfo.end()) {
+    const auto& faceInfo = targetModel->GetFaceInfo().find(faceName);
+    if (faceInfo != targetModel->GetFaceInfo().end()) {
         // face already defined don't overwrite it
         return;
     }

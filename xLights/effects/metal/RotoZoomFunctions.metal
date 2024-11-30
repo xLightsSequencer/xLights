@@ -25,7 +25,7 @@ kernel void RotoZoomBlank(constant RotoZoomData &data,
 }
 kernel void RotoZoomRotateX(constant RotoZoomData &data,
                             device uchar4* result,
-                            device uchar4* src,
+                            const device uchar4* src,
                             uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -48,7 +48,7 @@ kernel void RotoZoomRotateX(constant RotoZoomData &data,
 
 kernel void RotoZoomRotateY(constant RotoZoomData &data,
                             device uchar4* result,
-                            device uchar4* src,
+                            const device uchar4* src,
                             uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
@@ -73,7 +73,7 @@ kernel void RotoZoomRotateY(constant RotoZoomData &data,
 
 kernel void RotoZoomRotateZ(constant RotoZoomData &data,
                             device uchar4* result,
-                            device uchar4* src,
+                            const device uchar4* src,
                             uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;

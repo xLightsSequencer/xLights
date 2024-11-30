@@ -170,6 +170,8 @@ xlColorPickerFields::xlColorPickerFields(wxWindow* parent, wxWindowID id,const w
 	RadioButton_SwatchMarker->Disable();
 	GridBagSizer1->Add(RadioButton_SwatchMarker, wxGBPosition(12, 1), wxDefaultSpan, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	SetSizer(GridBagSizer1);
+	GridBagSizer1->Fit(this);
+	GridBagSizer1->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_Swatch1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xlColorPickerFields::OnBitmapButton_SwatchClick);
 	Connect(ID_SLIDER_Left,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnSliderLeftCmdSliderUpdated);
@@ -195,9 +197,9 @@ xlColorPickerFields::xlColorPickerFields(wxWindow* parent, wxWindowID id,const w
 	Connect(ID_BITMAPBUTTON_Swatch8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xlColorPickerFields::OnBitmapButton_SwatchClick);
 	//*)
 
-	Panel_Slider->SetType(xlColorCanvas::DisplayType::TYPE_SLIDER);
-	SliderLeft->SetValue(0);
-	SliderRight->SetValue(0);
+    Panel_Slider->SetType(xlColorCanvas::DisplayType::TYPE_SLIDER);
+    SliderLeft->SetValue(0);
+    SliderRight->SetValue(0);
     Panel_Palette->SetHSV(Panel_Slider->GetHSV());
     mActiveButton = BitmapButton_Swatch1;
 }
@@ -208,16 +210,62 @@ xlColorPickerFields::~xlColorPickerFields()
 	//*)
 }
 
-void xlColorPickerFields::SetColor(xlColor& color )
+void xlColorPickerFields::ResetPanel()
+{
+    Panel_Slider->SetType(xlColorCanvas::DisplayType::TYPE_SLIDER);
+    SliderLeft->SetValue(0);
+    SliderRight->SetValue(0);
+    Panel_Palette->SetHSV(Panel_Slider->GetHSV());
+    mActiveButton = BitmapButton_Swatch1;
+    GridBagSizer1->SetItemPosition(RadioButton_SwatchMarker, wxGBPosition(12, 1));
+    GridBagSizer1->Layout();
+    mCurrentColor = mActiveButton->GetBackgroundColour();
+    NotifyColorChange();
+    Refresh(false);
+    Update();
+}
+
+#define PALETTE_SIZE 8
+
+int xlColorPickerFields::GetActiveButton()
+{
+    for (int x = 1; x <= PALETTE_SIZE; x++) {
+        wxString ids = wxString::Format("ID_BITMAPBUTTON_Swatch%d", (x));
+        wxWindow* btn = wxWindow::FindWindowByName(ids, this);
+        if (btn == mActiveButton) {
+            return x;
+        }
+    }
+    return 0;
+}
+
+wxColour xlColorPickerFields::GetButtonColor(const int idx)
+{
+    wxString ids = wxString::Format("ID_BITMAPBUTTON_Swatch%d", (idx));
+    wxWindow* btn = wxWindow::FindWindowByName(ids, this);
+    return btn->GetBackgroundColour();
+}
+void xlColorPickerFields::SetButtonColor(int selected_column, xlColor& c)
+{
+    wxString ids = wxString::Format("ID_BITMAPBUTTON_Swatch%d", (selected_column));
+    wxWindow* btn = wxWindow::FindWindowByName(ids, this);
+    btn->SetBackgroundColour(c.asWxColor());
+    NotifyColorChange();
+}
+
+void xlColorPickerFields::SetColor(xlColor& color)
 {
     mActiveButton->SetBackgroundColour(color.asWxColor());
     Panel_CurrentColor->SetBackgroundColour(color.asWxColor());
     mCurrentColor = color;
     Panel_Slider->SetRGB(mCurrentColor);
     Panel_Palette->SetRGB(mCurrentColor);
+    UpdateTextFields();
     int position = GetSliderPos();
     SliderLeft->SetValue(position);
     SliderRight->SetValue(position);
+    GridBagSizer1->Layout();
+    NotifyColorChange();
     Refresh(false);
     Update();
 }
@@ -434,6 +482,10 @@ void xlColorPickerFields::OnTextCtrl_Text(wxCommandEvent& event)
     int position = GetSliderPos();
     SliderLeft->SetValue(position);
     SliderRight->SetValue(position);
+    mCurrentColor = Panel_Slider->GetRGB();
+    Panel_CurrentColor->SetBackgroundColour(mCurrentColor.asWxColor());
+    mActiveButton->SetBackgroundColour(mCurrentColor.asWxColor());
+    NotifyColorChange();
     Refresh(false);
     Update();
 }
@@ -467,6 +519,7 @@ void xlColorPickerFields::OnBitmapButton_SwatchClick(wxCommandEvent& event)
     int position = GetSliderPos();
     SliderLeft->SetValue(position);
     SliderRight->SetValue(position);
+    UpdateTextFields();
     NotifyColorChange();
     Refresh(false);
     Update();

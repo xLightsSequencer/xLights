@@ -39,11 +39,10 @@ MusicEffect::~MusicEffect()
 
 std::list<std::string> MusicEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
-    std::list<std::string> res;
+    std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    if (media == nullptr)
-    {
-        res.push_back(wxString::Format("    ERR: Music effect is pointless if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    if (media == nullptr) {
+        res.push_back(wxString::Format("    ERR: Music effect is pointless if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;
@@ -356,28 +355,22 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
     // go through each frame and extract the data i need
     for (int f = buffer.curEffStartPer; f <= buffer.curEffEndPer; ++f)
     {
-        std::list<float> const * const pdata = buffer.GetMedia()->GetFrameData(f, FRAMEDATATYPE::FRAMEDATA_VU, "");
+        auto pdata = buffer.GetMedia()->GetFrameData(f, "");
 
-        if (pdata != nullptr)
-        {
-            auto pn = pdata->cbegin();
+        if (pdata != nullptr) {
+            auto pn = pdata->vu.cbegin();
 
             // skip to start note
-            for (int i = 0; i < startNote && pn != pdata->end(); ++i)
-            {
+            for (int i = 0; i < startNote && pn != pdata->vu.end(); ++i) {
                 ++pn;
             }
-
-            for (int b = 0; b < bars && pn != pdata->end(); ++b)
-            {
+            for (int b = 0; b < bars && pn != pdata->vu.end(); ++b) {
                 float val = 0.0;
                 int thisper = static_cast<int>(notesperbar);
-                if (logarithmicX)
-                {
+                if (logarithmicX) {
                     thisper = LogarithmicScale::GetLogSum(b + 1) - LogarithmicScale::GetLogSum(b);
                 }
-                for (auto n = 0; n < thisper && pn != pdata->end(); ++n)
-                {
+                for (auto n = 0; n < thisper && pn != pdata->vu.end(); ++n) {
                     val = std::max(val, *pn);
                     ++pn;
                 }

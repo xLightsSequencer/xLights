@@ -46,6 +46,8 @@ const long BarsPanel::ID_VALUECURVE_Bars_Center = wxNewId();
 const long BarsPanel::ID_TEXTCTRL_Bars_Center = wxNewId();
 const long BarsPanel::ID_CHECKBOX_Bars_Highlight = wxNewId();
 const long BarsPanel::ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight = wxNewId();
+const long BarsPanel::ID_CHECKBOX_Bars_UseFirstColorForHighlight = wxNewId();
+const long BarsPanel::ID_BITMAPBUTTON_CHECKBOX_Bars_UseFirstColorForHighlight = wxNewId();
 const long BarsPanel::ID_CHECKBOX_Bars_3D = wxNewId();
 const long BarsPanel::ID_BITMAPBUTTON_CHECKBOX_Bars_3D = wxNewId();
 const long BarsPanel::ID_CHECKBOX_Bars_Gradient = wxNewId();
@@ -72,6 +74,7 @@ BarsPanel::BarsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	xlLockButton* BitmapButton_Gradient;
 	xlLockButton* BitmapButton_Highlight;
 	xlLockButton* BitmapButton_PaletteRep;
+	xlLockButton* BitmapButton_UseFirstColorForHighlight;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer35 = new wxFlexGridSizer(0, 3, wxDLG_UNIT(this,wxSize(0,0)).GetWidth(), 0);
@@ -145,6 +148,12 @@ BarsPanel::BarsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	BitmapButton_Highlight = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight"));
 	BitmapButton_Highlight->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer10->Add(BitmapButton_Highlight, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	CheckBox_UseFirstColorForHighlight = new BulkEditCheckBox(this, ID_CHECKBOX_Bars_UseFirstColorForHighlight, _("Use First Color for Highlight"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Bars_UseFirstColorForHighlight"));
+	CheckBox_UseFirstColorForHighlight->SetValue(false);
+	FlexGridSizer10->Add(CheckBox_UseFirstColorForHighlight, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_UseFirstColorForHighlight = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Bars_UseFirstColorForHighlight, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Bars_UseFirstColorForHighlight"));
+	BitmapButton_UseFirstColorForHighlight->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+	FlexGridSizer10->Add(BitmapButton_UseFirstColorForHighlight, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	CheckBox_Bars_3D = new BulkEditCheckBox(this, ID_CHECKBOX_Bars_3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Bars_3D"));
 	CheckBox_Bars_3D->SetValue(false);
 	FlexGridSizer10->Add(CheckBox_Bars_3D, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -159,6 +168,8 @@ BarsPanel::BarsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer10->Add(BitmapButton_Gradient, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer35->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer35);
+	FlexGridSizer35->Fit(this);
+	FlexGridSizer35->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_Bars_BarCount,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Bars_BarCount,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
@@ -166,7 +177,6 @@ BarsPanel::BarsPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Connect(ID_CHOICE_Bars_Direction,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BarsPanel::OnChoice_Bars_DirectionSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_Bars_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Bars_Center,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_Gradient,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
 	//*)

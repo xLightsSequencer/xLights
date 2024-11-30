@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <string>
+#include <functional>
 
 namespace ip_utils
 {
@@ -19,5 +20,8 @@ namespace ip_utils
 	bool IsIPValidOrHostname(const std::string &ip, bool iponly = false);
 	std::string CleanupIP(const std::string& ip);
 	std::string ResolveIP(const std::string& ip);
+
+    void ResolveIP(const std::string& ip, std::function<void(const std::string &)> &&func);
+    void waitForAllToResolve();
 
 };

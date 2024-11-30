@@ -17,7 +17,7 @@
 
 IciclesModel::IciclesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
-    screenLocation.SetHeight(-0.5);
+    screenLocation.SetMHeight(-0.5);
     screenLocation.SetSupportsShear(true);
     SetFromXml(node, zeroBased);
 }

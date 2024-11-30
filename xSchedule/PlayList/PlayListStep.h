@@ -41,6 +41,7 @@ protected:
     wxUint32 _pause;
     wxUint32 _id;
     wxUint32 _suspend;
+    int _baseTimeCodeTime = -1;
     int _loops = 0;
     bool _everyStep = false;
     bool _everyStepExcludeFirst = false;
@@ -81,6 +82,18 @@ public:
     std::string GetNameNoTime();
     std::string GetRawName() const { return _name; }
     void SetName(const std::string& name) { if (_name != name) { _name = name; ++_changeCount; } }
+    void SetBaseTimeCodeTime(int time) {
+        if (_baseTimeCodeTime != time) {
+            _baseTimeCodeTime = time;
+            ++_changeCount;
+        }
+    }
+    int GetBaseTimeCodeTime() const {
+        return _baseTimeCodeTime;
+    }
+    bool IsBaseTimeCodeOverride() const {
+        return _baseTimeCodeTime >= 0;
+    }
     void Start(int _loops);
     bool IsSimple();
     int GetLoopsLeft() const { return _loops; }

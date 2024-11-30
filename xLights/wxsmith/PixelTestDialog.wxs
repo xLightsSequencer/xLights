@@ -14,6 +14,7 @@
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 					<orientation>vertical</orientation>
+					<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
 						<pos>95,46</pos>
 						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
@@ -693,6 +694,46 @@
 											</object>
 										</object>
 										<label>RGB Cycle</label>
+									</object>
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL12" variable="PanelController" member="yes">
+											<object class="wxFlexGridSizer" variable="FlexGridSizer17" member="no">
+												<cols>1</cols>
+												<object class="sizeritem">
+													<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText8" member="yes">
+														<label>Function</label>
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxRadioButton" name="ID_RADIOBUTTON_CONTROLLER_OFF" variable="RadioButton_Controller_Off" member="yes">
+														<label>Off</label>
+													</object>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxRadioButton" name="ID_RADIOBUTTON_CONTROLLER_CYCLEPORTS" variable="RadioButton_Controller_CyclePorts" member="yes">
+														<label>Port Cycle</label>
+													</object>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxRadioButton" name="ID_RADIOBUTTON_CONTROLLER_PIXELCOUNT" variable="RadioButton_Controller_PixelCount" member="yes">
+														<label>10 Pixel Blocks</label>
+													</object>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+											</object>
+										</object>
+										<label>Controller</label>
 									</object>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

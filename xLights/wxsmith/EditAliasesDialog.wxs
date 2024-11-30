@@ -11,7 +11,7 @@
 			<object class="sizeritem">
 				<object class="wxListBox" name="ID_LISTBOX1" variable="ListBoxAliases" member="yes">
 					<default>-1</default>
-					<style>wxLB_SINGLE|wxLB_SORT</style>
+					<style>wxLB_SINGLE</style>
 					<handler function="OnListBoxAliasesSelect" entry="EVT_LISTBOX" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

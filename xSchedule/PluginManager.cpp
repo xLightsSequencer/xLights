@@ -85,10 +85,26 @@ void PluginManager::ScanFolder(const std::string& folder)
     wxArrayString files;
     wxDir::GetAllFiles(folder, &files, filespec);
 
+    // avfilter-9 causes the problem
+    std::vector<wxString> fileList = { "avcodec-58", "avcodec-59", "avcodec-60", "avdevice-60",
+                                       "avfilter-9", "avformat-58", "avformat-59", "avformat-60",
+                                       "avutil-56", "avutil-57", "avutil-58",
+                                       "hidapi", "libcurl-x64", "libgcc_s_seh-1", "log4cpp",
+                                       "liblog4cpp", "liblog4cppd", "libstdc++-6", "libwinpthread-1",
+                                       "postproc-57", "SDL2", "LIBCURL", "libgcc_s_dw2-1",
+                                       "swresample-3", "swresample-4",
+                                       "swscale-5", "swscale-6", "swscale-7" };
+
     for (auto f : files)
     {
         logger_base.debug("   Examining " + f);
 
+        wxFileName filen(f);
+        auto it = std::find(fileList.begin(), fileList.end(), (const char*)filen.GetName().c_str());
+        if (it != fileList.end()) {
+            logger_base.debug("   Ignored.");
+            continue;
+        }
         // load the dll
         wxDynamicLibrary* dl = new wxDynamicLibrary();
         dl->Load(f);

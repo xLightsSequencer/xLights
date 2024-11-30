@@ -43,7 +43,16 @@ wxDateTime Schedule::GetNextFireTime() const
     // int minute = now.GetMinute();
 
     res.SetMinute(start.GetMinute());
-    res.Subtract(wxTimeSpan(1));
+
+    if (_fireFrequency == "Fire every 90 minutes") {
+        res.SetHour(start.GetHour());
+        while (res <= now) {
+            res.Add(wxTimeSpan(1, 30));
+        }
+    } else {
+        res.Subtract(wxTimeSpan(1));
+    }
+
     if (_fireFrequency == "Fire every hour")
     {
         while (res <= now) {
@@ -444,9 +453,17 @@ bool Schedule::ShouldFire() const
 
     if (_fireFrequency == "Fire every hour") {
         fire = false;
-        if (minute == start.GetMinute() ||
+        if (minute == start.GetMinute() &&
             gap.IsLongerThan(wxTimeSpan(0, 59, 59, 0)) &&
             gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0,59,59,0))) {
+            fire = true;
+        }
+    } 
+    else if (_fireFrequency == "Fire every 90 minutes") {
+        fire = false;
+        if ((minute == start.GetMinute() || minute == (start.GetMinute() + 90) % 60) &&
+            gap.IsLongerThan(wxTimeSpan(0, 89, 59, 0)) &&
+            gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0, 89, 59, 0))) {
             fire = true;
         }
     }

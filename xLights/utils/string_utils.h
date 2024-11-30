@@ -13,6 +13,7 @@
 #include <numeric>
 #include <string>
 #include <vector>
+#include <regex>
 
 #include <wx/string.h>
 
@@ -90,6 +91,15 @@ extern const wxString xlEMPTY_WXSTRING;
     inline bool Contains(const std::wstring& in, const std::wstring& contains) noexcept
     {
         return in.find(contains) != std::wstring::npos;
+    }
+
+    inline bool hasAlpha(const std::string& s) {
+        for (auto c : s) {
+            if (std::isalpha(c)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     inline std::string StripAllBut(const std::string& in, const std::string& but)
@@ -239,17 +249,18 @@ extern const wxString xlEMPTY_WXSTRING;
         return r;
     }
 
-    inline std::string Join(std::vector<std::string> const &strings, std::string delim)
+    template <class T>
+    inline std::string Join(T const &strings, std::string delim)
     {
         if (strings.empty()) {
             return std::string();
         }
-     
-        return std::accumulate(strings.begin() + 1, strings.end(), strings[0],
+        auto begin = strings.begin();
+        ++begin;
+        return std::accumulate(begin, strings.end(), strings.front(),
             [&delim](std::string x, std::string y) {
                 return x + delim + y;
             }
         );
     }
-
 //};

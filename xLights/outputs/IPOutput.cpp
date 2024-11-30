@@ -43,31 +43,35 @@ void IPOutput::Save(wxXmlNode* node) {
 
 #pragma region Constructors and Destructors
 IPOutput::IPOutput(wxXmlNode* node, bool isActive) : Output(node) {
-
     _ip = node->GetAttribute("ComPort", "").ToStdString();
-    if (isActive) _resolvedIp = ip_utils::ResolveIP(_ip);
+    if (isActive) {
+        SetResolvedIP(_ip);
+        ip_utils::ResolveIP(_ip, [this](const std::string &r) {
+            SetResolvedIP(r);
+        });
+    }
     _universe = wxAtoi(node->GetAttribute("BaudRate", "1"));
 }
 
 IPOutput::IPOutput() : Output() {
     _universe = 0;
     _ip = "";
-    _resolvedIp = "";
 }
 
 IPOutput::IPOutput(const IPOutput& from) :
-    Output(from)
-{
+    Output(from) {
     _ip = from._ip;
-    _resolvedIp = from._resolvedIp;
+    SetResolvedIP(from.GetResolvedIP());
     _universe = from._universe;
 }
 
-wxXmlNode* IPOutput::Save() {
+IPOutput::~IPOutput() {
+    ip_utils::waitForAllToResolve();
+}
 
+wxXmlNode* IPOutput::Save() {
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
     Save(node);
-
     return node;
 }
 #pragma endregion 
@@ -118,8 +122,7 @@ Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy
         url += ip + "/";
         if (Curl::HTTPSGet(url, "", "", 2) != "") {
             return Output::PINGSTATE::PING_WEBOK;
-        }
-        else {
+        } else {
             return Output::PINGSTATE::PING_ALLFAILED;
         }
 #ifdef __WXMSW__
@@ -129,18 +132,23 @@ Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy
 #pragma endregion 
 
 #pragma region Getters and Setters
-void IPOutput::SetIP(const std::string& ip, bool isActive) {
-
+void IPOutput::SetIP(const std::string& ip, bool isActive, bool resolve) {
     Output::SetIP(ip, isActive);
-    if (isActive) _resolvedIp = ip_utils::ResolveIP(_ip);
+    if (isActive) {
+        SetResolvedIP(ip);
+        if (resolve) {
+            ip_utils::ResolveIP(_ip, [this](const std::string &r) {
+                SetResolvedIP(r);
+            });
+        }
+    }
 }
 #pragma endregion 
 
 #pragma region Operators
 bool IPOutput::operator==(const IPOutput& output) const {
-
     if (GetType() != output.GetType()) return false;
-
-    return _universe == output.GetUniverse() && (_ip == output.GetIP() || _ip == output.GetResolvedIP() || _resolvedIp == output.GetIP() || _resolvedIp == output.GetResolvedIP());
+    std::string rip = GetResolvedIP();
+    return _universe == output.GetUniverse() && (_ip == output.GetIP() || _ip == output.GetResolvedIP() || rip == output.GetIP() || rip == output.GetResolvedIP());
 }
 #pragma endregion 

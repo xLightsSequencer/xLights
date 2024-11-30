@@ -90,7 +90,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include;..\include\ffmpeg-5\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.2.2\;..\dependencies\pybind11\include;$(Python_ROOT_DIR)\include</IncludePath>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include;..\include\ffmpeg-6\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.2.2\;..\dependencies\pybind11\include;$(Python_ROOT_DIR)\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\lib\windows;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
@@ -101,7 +101,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include\ffmpeg-5\include;..\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\include\sol2-3.2.2\;..\dependencies\lua\src;..\dependencies\pybind11\include;$(Python_ROOT_DIR)\include</IncludePath>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include\ffmpeg-6\include;..\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\include\sol2-3.2.2\;..\dependencies\lua\src;..\dependencies\pybind11\include;$(Python_ROOT_DIR)\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
@@ -115,7 +115,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);IGNORE_VENDORS;$(DefineConstants);</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
@@ -167,7 +167,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
@@ -190,7 +190,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" %(AdditionalOptions)</AdditionalOptions>
       <ExceptionHandling>Async</ExceptionHandling>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -248,6 +248,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="automation\LuaRunner.cpp" />
     <ClCompile Include="automation\PythonRunner.cpp" />
     <ClCompile Include="automation\xLightsAutomations.cpp" />
+    <ClCompile Include="controllers\ILightThat.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditColourPickerDialog.cpp" />
     <ClCompile Include="BulkEditComboDialog.cpp" />
@@ -293,6 +294,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="DragValueCurveBitmapButton.cpp" />
     <ClCompile Include="DuplicateDialog.cpp" />
     <ClCompile Include="EditAliasesDialog.cpp" />
+    <ClCompile Include="EditSubmodelAliasesDialog.cpp" />
     <ClCompile Include="effects\AdjustEffect.cpp" />
     <ClCompile Include="effects\AdjustPanel.cpp" />
     <ClCompile Include="effects\assist\SketchAssistPanel.cpp" />
@@ -305,6 +307,15 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="effects\KaleidoscopePanel.cpp" />
     <ClCompile Include="effects\LinesEffect.cpp" />
     <ClCompile Include="effects\LinesPanel.cpp" />
+    <ClCompile Include="effects\MovingHeadEffect.cpp" />
+    <ClCompile Include="effects\MovingHeadPanel.cpp" />
+    <ClCompile Include="effects\MovingHeadPanels\MHColorWheelPanel.cpp" />
+    <ClCompile Include="effects\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp" />
+    <ClCompile Include="effects\MovingHeadPanels\MHPathPresetBitmapButton.cpp" />
+    <ClCompile Include="effects\MovingHeadPanels\MHPresetBitmapButton.cpp" />
+    <ClCompile Include="effects\MovingHeadPanels\MHRgbPickerPanel.cpp" />
+    <ClCompile Include="effects\MovingHeadPanels\MovingHeadCanvasPanel.cpp" />
+    <ClCompile Include="effects\MovingHeadPanels\MovingHeadDimmerPanel.cpp" />
     <ClCompile Include="effects\ShaderEffect.cpp" />
     <ClCompile Include="effects\ShaderPanel.cpp" />
     <ClCompile Include="effects\ShapeEffect.cpp" />
@@ -341,6 +352,13 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="IPEntryDialog.cpp" />
     <ClCompile Include="MetronomeLabelDialog.cpp" />
     <ClCompile Include="models\DMX\DmxColorAbilityCMY.cpp" />
+    <ClCompile Include="models\DMX\DmxDimmerAbility.cpp" />
+    <ClCompile Include="models\DMX\DmxMotor.cpp" />
+    <ClCompile Include="models\DMX\DmxMovingHeadAdv.cpp" />
+    <ClCompile Include="models\DMX\MovingHeads\MhChannel.cpp" />
+    <ClCompile Include="models\DMX\MovingHeads\MhChannelDialog.cpp" />
+    <ClCompile Include="models\DMX\MovingHeads\MhFeature.cpp" />
+    <ClCompile Include="models\DMX\MovingHeads\MhFeatureDialog.cpp" />
     <ClCompile Include="SpecialOptions.cpp" />
     <ClCompile Include="TempFileManager.cpp" />
     <ClCompile Include="utils\CurlManager.cpp" />
@@ -371,7 +389,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="models\DMX\DmxImage.cpp" />
     <ClCompile Include="models\DMX\DmxModel.cpp" />
     <ClCompile Include="models\DMX\DmxMovingHead.cpp" />
-    <ClCompile Include="models\DMX\DmxMovingHead3D.cpp" />
     <ClCompile Include="models\DMX\DmxPanTiltAbility.cpp" />
     <ClCompile Include="models\DMX\DmxPresetAbility.cpp" />
     <ClCompile Include="models\DMX\DmxServo.cpp" />
@@ -742,6 +759,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="automation\automation.h" />
     <ClInclude Include="automation\LuaRunner.h" />
     <ClInclude Include="automation\PythonRunner.h" />
+    <ClInclude Include="controllers\ILightThat.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditColourPickerDialog.h" />
     <ClInclude Include="BulkEditComboDialog.h" />
@@ -787,6 +805,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="DragValueCurveBitmapButton.h" />
     <ClInclude Include="DuplicateDialog.h" />
     <ClInclude Include="EditAliasesDialog.h" />
+    <ClInclude Include="EditSubmodelAliasesDialog.h" />
     <ClInclude Include="effects\AdjustEffect.h" />
     <ClInclude Include="effects\AdjustPanel.h" />
     <ClInclude Include="effects\assist\AssistPanel.h" />
@@ -804,6 +823,14 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="effects\KaleidoscopePanel.h" />
     <ClInclude Include="effects\LinesEffect.h" />
     <ClInclude Include="effects\LinesPanel.h" />
+    <ClInclude Include="effects\MovingHeadEffect.h" />
+    <ClInclude Include="effects\MovingHeadPanel.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHColorPanel.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHColorWheelPanel.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHPathPresetBitmapButton.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHPresetBitmapButton.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MHRgbPickerPanel.h" />
+    <ClInclude Include="effects\MovingHeadPanels\MovingHeadCanvasPanel.h" />
     <ClInclude Include="effects\ShaderEffect.h" />
     <ClInclude Include="effects\ShaderPanel.h" />
     <ClInclude Include="effects\ShapeEffect.h" />
@@ -835,7 +862,19 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
     <ClInclude Include="MetronomeLabelDialog.h" />
+    <ClInclude Include="models\BaseObjectVisitor.h" />
     <ClInclude Include="models\DMX\DmxColorAbilityCMY.h" />
+    <ClInclude Include="models\DMX\DmxDimmerAbility.h" />
+    <ClInclude Include="models\DMX\DmxMotor.h" />
+    <ClInclude Include="models\DMX\DmxMotorBase.h" />
+    <ClInclude Include="models\DMX\DmxMotorPanTilt.h" />
+    <ClInclude Include="models\DMX\DmxMovingHeadAdv.h" />
+    <ClInclude Include="models\DMX\DmxMovingHeadComm.h" />
+    <ClInclude Include="models\DMX\MovingHeads\MhChannel.h" />
+    <ClInclude Include="models\DMX\MovingHeads\MhChannelDialog.h" />
+    <ClInclude Include="models\DMX\MovingHeads\MhFeature.h" />
+    <ClInclude Include="models\DMX\MovingHeads\MhFeatureDialog.h" />
+    <ClInclude Include="models\XmlSerializer.h" />
     <ClInclude Include="TempFileManager.h" />
     <ClInclude Include="utils\CurlManager.h" />
     <ClInclude Include="utils\ip_utils.h" />
@@ -865,7 +904,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="models\DMX\DmxImage.h" />
     <ClInclude Include="models\DMX\DmxModel.h" />
     <ClInclude Include="models\DMX\DmxMovingHead.h" />
-    <ClInclude Include="models\DMX\DmxMovingHead3D.h" />
     <ClInclude Include="models\DMX\DmxPanTiltAbility.h" />
     <ClInclude Include="models\DMX\DmxPresetAbility.h" />
     <ClInclude Include="models\DMX\DmxServo.h" />

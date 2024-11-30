@@ -223,7 +223,24 @@
 							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_Bars_UseFirstColorForHighlight" subclass="BulkEditCheckBox" variable="CheckBox_UseFirstColorForHighlight" member="yes">
+							<label>Use First Color for Highlight</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_UseFirstColorForHighlight" subclass="xlLockButton" variable="BitmapButton_UseFirstColorForHighlight" member="no">
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+							<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>1</border>

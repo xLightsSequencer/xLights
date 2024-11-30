@@ -26,12 +26,13 @@
 #include "effects/DMXEffect.h"
 
 std::atomic_int EffectLayer::exclusive_index(0);
-const std::string NamedLayer::NO_NAME("");
+const std::string EffectLayer::NO_NAME("");
 
 EffectLayer::EffectLayer(Element* parent)
 {
     mParentElement = parent;
     mIndex = exclusive_index++;
+    name = nullptr;
 }
 
 EffectLayer::~EffectLayer()
@@ -43,6 +44,9 @@ EffectLayer::~EffectLayer()
     while (!mEffectsToDelete.empty()) {
         delete *mEffectsToDelete.begin();
         mEffectsToDelete.pop_front();
+    }
+    if (name != nullptr) {
+        delete name;
     }
 }
 
@@ -313,13 +317,13 @@ int EffectLayer::GetEffectCount() const
     return mEffects.size();
 }
 
-bool EffectLayer::IsTimingLayer()
+bool EffectLayer::IsTimingLayer() const
 {
     TimingElement* te = dynamic_cast<TimingElement*>(GetParentElement());
     return !(te == nullptr);
 }
 
-bool EffectLayer::IsFixedTimingLayer()
+bool EffectLayer::IsFixedTimingLayer() const
 {
     TimingElement* te = dynamic_cast<TimingElement*>(GetParentElement());
     return !(te == nullptr || !te->IsFixedTiming());
@@ -337,107 +341,93 @@ bool EffectLayer::HitTestEffectByTime(int timeMS, int& index) const
     return false;
 }
 
-bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS) const
-{
-    for (int i = 0; i < mEffects.size(); i++)
-    {
+bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS) const {
+    for (int i = 0; i < mEffects.size(); i++) {
         if ((mEffects[i]->GetStartTimeMS() > t1MS && mEffects[i]->GetStartTimeMS() < t2MS) ||
             (mEffects[i]->GetEndTimeMS() > t1MS && mEffects[i]->GetEndTimeMS() < t2MS) ||
-            (mEffects[i]->GetStartTimeMS() == t1MS && mEffects[i]->GetEndTimeMS() == t2MS))
-        {
+            (mEffects[i]->GetStartTimeMS() == t1MS && mEffects[i]->GetEndTimeMS() == t2MS)) {
             return true;
         }
     }
     return false;
 }
 
-Effect* EffectLayer::GetEffectBeforeTime(int ms) const
+Effect* EffectLayer::GetEffectBeforeTime(int ms, const std::string& filterText, bool isFilterTextRegex) const
 {
     int i;
-    for (i = 0; i < mEffects.size(); i++) {
-        if (mEffects[i]->GetStartTimeMS() >= ms) {
+    for (i = 0; i < mEffects.size(); ++i) {
+        if (mEffects[i]->GetStartTimeMS() >= ms && mEffects[i]->FilteredIn(filterText, isFilterTextRegex)) {
             break;
         }
     }
-    if (i == 0) {
+    while (i > 0) {
+		if (mEffects[i - 1]->FilteredIn(filterText, isFilterTextRegex)) {
+			return mEffects[i - 1];
+		}
+		--i;
+	}
+    return nullptr;
+}
+
+Effect* EffectLayer::GetEffectAfterTime(int ms, const std::string& filterText, bool isFilterTextRegex) const {
+    int i;
+    for (i = 0; i < mEffects.size(); ++i) {
+        if (mEffects[i]->GetStartTimeMS() > ms && mEffects[i]->FilteredIn(filterText, isFilterTextRegex)) {
+            break;
+        }
+    }
+    while (i < mEffects.size()) {
+        if (mEffects[i]->FilteredIn(filterText, isFilterTextRegex)) {
+            return mEffects[i];
+        }
+        ++i;
+    }
+    return nullptr;
+}
+
+Effect* EffectLayer::GetEffectAtTime(int timeMS, const std::string& filterText, bool isFilterTextRegex) const {
+    for (int i = 0; i < mEffects.size(); ++i) {
+        if (timeMS >= mEffects[i]->GetStartTimeMS() &&
+            timeMS <= mEffects[i]->GetEndTimeMS() && mEffects[i]->FilteredIn(filterText, isFilterTextRegex)) {
+            return mEffects[i];
+        }
+    }
+    return nullptr;
+}
+
+Effect* EffectLayer::GetEffectStartingAtTime(int timeMS, const std::string& filterText, bool isFilterTextRegex) const {
+    for (int i = 0; i < mEffects.size(); ++i) {
+        if (timeMS == mEffects[i]->GetStartTimeMS() && mEffects[i]->FilteredIn(filterText, isFilterTextRegex)) {
+            return mEffects[i];
+        }
+    }
+    return nullptr;
+}
+
+Effect* EffectLayer::GetEffectBeforeEmptyTime(int ms) const {
+    int i;
+    for (i = mEffects.size() - 1; i >= 0; --i) {
+        if (mEffects[i]->GetEndTimeMS() < ms) {
+            break;
+        }
+    }
+    if (i < 0) {
         return nullptr;
     } else {
-        return mEffects[i - 1];
+        return mEffects[i];
     }
 }
 
-Effect* EffectLayer::GetEffectAfterTime(int ms) const
-{
+Effect* EffectLayer::GetEffectAfterEmptyTime(int ms) const {
     int i;
-    for (i = 0; i < mEffects.size(); i++) {
+    for (i = 0; i < mEffects.size(); ++i) {
         if (mEffects[i]->GetStartTimeMS() > ms) {
             break;
         }
     }
-    if (i >= mEffects.size()) {
+    if (i == mEffects.size()) {
         return nullptr;
     } else {
-        return mEffects[i];
-    }
-}
-
-Effect* EffectLayer::GetEffectAtTime(int timeMS) const
-{
-    for (int i = 0; i < mEffects.size(); i++) {
-        if (timeMS >= mEffects[i]->GetStartTimeMS() &&
-            timeMS <= mEffects[i]->GetEndTimeMS()) {
-            return mEffects[i];
-        }
-    }
-    return nullptr;
-}
-
-Effect* EffectLayer::GetEffectStartingAtTime(int timeMS) const
-{
-    for (int i = 0; i < mEffects.size(); i++) {
-        if (timeMS == mEffects[i]->GetStartTimeMS()) {
-            return mEffects[i];
-        }
-    }
-    return nullptr;
-}
-
-Effect* EffectLayer::GetEffectBeforeEmptyTime(int ms) const
-{
-    int i;
-    for (i = mEffects.size() - 1; i >= 0; i--)
-    {
-        if (mEffects[i]->GetEndTimeMS() < ms)
-        {
-            break;
-        }
-    }
-    if (i < 0)
-    {
-        return nullptr;
-    }
-    else
-    {
-        return mEffects[i];
-    }
-}
-
-Effect* EffectLayer::GetEffectAfterEmptyTime(int ms) const
-{
-    int i;
-    for (i = 0; i < mEffects.size(); i++)
-    {
-        if (mEffects[i]->GetStartTimeMS() > ms)
-        {
-            break;
-        }
-    }
-    if (i == mEffects.size())
-    {
-        return nullptr;
-    }
-    else
-    {
         return mEffects[i];
     }
 }
@@ -804,7 +794,6 @@ void EffectLayer::GetMaximumRangeWithRightMovement(int index, int &toLeft, int &
 
 int EffectLayer::GetSelectedEffectCount()
 {
-    wxString s;
     int count=0;
     for(int i=0; i<mEffects.size();i++)
     {
@@ -818,7 +807,6 @@ int EffectLayer::GetSelectedEffectCount()
 
 int EffectLayer::GetTaggedEffectCount()
 {
-    wxString s;
     int count=0;
     for(int i=0; i<mEffects.size();i++)
     {

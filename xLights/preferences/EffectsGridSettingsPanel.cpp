@@ -30,6 +30,7 @@ const long EffectsGridSettingsPanel::ID_CHECKBOX3 = wxNewId();
 const long EffectsGridSettingsPanel::ID_STATICTEXT1 = wxNewId();
 const long EffectsGridSettingsPanel::ID_CHECKBOX4 = wxNewId();
 const long EffectsGridSettingsPanel::ID_CHECKBOX6 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX5 = wxNewId();
 const long EffectsGridSettingsPanel::ID_CHOICE2 = wxNewId();
 //*)
 
@@ -72,6 +73,9 @@ EffectsGridSettingsPanel::EffectsGridSettingsPanel(wxWindow* parent, xLightsFram
 	TransistionMarksCheckBox = new wxCheckBox(this, ID_CHECKBOX6, _("Display Transition Marks"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
 	TransistionMarksCheckBox->SetValue(true);
 	GridBagSizer1->Add(TransistionMarksCheckBox, wxGBPosition(6, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	ColorUpdateWarnCheckBox = new wxCheckBox(this, ID_CHECKBOX5, _("Hide Color Update Warning"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
+	ColorUpdateWarnCheckBox->SetValue(false);
+	GridBagSizer1->Add(ColorUpdateWarnCheckBox, wxGBPosition(7, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	DoubleClickChoice = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
 	DoubleClickChoice->Append(_("Edit Text"));
 	DoubleClickChoice->SetSelection( DoubleClickChoice->Append(_("Play Timing")) );
@@ -86,6 +90,7 @@ EffectsGridSettingsPanel::EffectsGridSettingsPanel(wxWindow* parent, xLightsFram
 	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnSnapToTimingCheckBoxClick);
 	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnSmallWaveformCheckBoxClick);
 	Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnTransistionMarksCheckBoxClick);
+	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnColorUpdateWarnCheckBoxClick);
 	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnDoubleClickChoiceSelect);
 	//*)
 }
@@ -103,7 +108,8 @@ bool EffectsGridSettingsPanel::TransferDataToWindow() {
     DoubleClickChoice->SetSelection(frame->TimingPlayOnDClick());
     SmallWaveformCheckBox->SetValue(frame->SmallWaveform());
     SnapToTimingCheckBox->SetValue(frame->SnapToTimingMarks());
-    TransistionMarksCheckBox->SetValue(!frame->SuppressFadeHints());
+    TransistionMarksCheckBox->SetValue(!frame->IsSuppressFadeHints());
+    ColorUpdateWarnCheckBox->SetValue(frame->SuppressColorWarn());
     int gs = frame->GridSpacing();
     switch (gs) {
         case 48:
@@ -150,6 +156,7 @@ bool EffectsGridSettingsPanel::TransferDataFromWindow() {
     frame->SetSmallWaveform(SmallWaveformCheckBox->IsChecked());
     frame->SetSnapToTimingMarks(SnapToTimingCheckBox->IsChecked());
     frame->SetSuppressFadeHints(!TransistionMarksCheckBox->IsChecked());
+    frame->SetSuppressColorWarn(ColorUpdateWarnCheckBox->IsChecked());
     return true;
 }
 
@@ -197,6 +204,13 @@ void EffectsGridSettingsPanel::OnTransistionMarksCheckBoxClick(wxCommandEvent& e
 }
 
 void EffectsGridSettingsPanel::OnDoubleClickChoiceSelect(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void EffectsGridSettingsPanel::OnColorUpdateWarnCheckBoxClick(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

@@ -624,7 +624,9 @@ void WiringDialog::RightClick(wxContextMenuEvent& event)
     mnuLayer.AppendSeparator();
     mnuLayer.Append(ID_MNU_EXPORT, "Export");
     mnuLayer.Append(ID_MNU_EXPORTLARGE, "Export Large");
+#ifdef _DEBUG
     mnuLayer.Append(ID_MNU_EXPORTDXF, "Export as DXF");
+#endif
     mnuLayer.Append(ID_MNU_PRINT, "Print");
     mnuLayer.AppendSeparator();
     auto dark = mnuLayer.Append(ID_MNU_DARK, "Dark", "", wxITEM_RADIO);
@@ -700,7 +702,8 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
     }
     else if (id == ID_MNU_PRINT)
     {
-        static wxPrintDialogData printDialogData;
+        wxPrintData printdata;
+        static wxPrintDialogData printDialogData(printdata);
         wxPrinter printer(&printDialogData);
 
         ColorTheme _prePrintTheme = _selectedTheme;

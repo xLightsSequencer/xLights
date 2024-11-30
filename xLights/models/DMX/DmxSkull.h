@@ -120,6 +120,9 @@ class DmxSkull : public DmxModel
             return eye_lr_servo == nullptr ? 0 : eye_lr_servo->GetMaxLimit();
         }
 
+        virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
+
+        virtual std::vector<std::string> GenerateNodeNames() const override;
     protected:
         enum SERVO_TYPE {
             JAW,
@@ -138,7 +141,7 @@ class DmxSkull : public DmxModel
         float GetServoPos(Servo* _servo, bool active);
 
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
         virtual std::list<std::string> CheckModelSettings() override;
 
         Mesh* head_mesh = nullptr;

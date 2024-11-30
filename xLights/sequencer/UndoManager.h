@@ -109,6 +109,7 @@ class UndoManager
         bool CanRedo();
         void SetCaptureUndo( bool value );
         bool GetCaptureUndo() { return mCaptureUndo; }
+        void CancelLastStep();
         std::string GetUndoString();
         std::string GetRedoString();
 

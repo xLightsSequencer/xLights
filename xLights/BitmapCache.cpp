@@ -126,6 +126,7 @@
 #include "../include/xLights-64.xpm"
 #include "../include/xLights-128.xpm"
 #include "../include/splashimage.h"
+#include "../include/link_svgs.h"
 
 #include "../include/fpp_icon.h"
 
@@ -361,6 +362,8 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
         return CreateBitmapBundleFromXPMs(sz, id, {effsettings_16, effsettings_24, effsettings_32, effsettings_48, effsettings_64});
     } else if ("xlART_EFFECTASSISTANT" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {effassistant_16, effassistant_24, effassistant_32, effassistant_48, effassistant_64});
+    } else if ("xlART_SELECTEFFECTS" == id) {
+        return CreateBitmapBundleFromXPMs(sz, id, {seleffects_16, seleffects_24, seleffects_32, seleffects_48, seleffects_64});
     } else if ("xlART_MODEL_PREVIEW" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {model_preview_16, model_preview_24, model_preview_32, model_preview_48, model_preview_64});
     } else if ("xlART_HOUSE_PREVIEW" == id) {
@@ -461,7 +464,7 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
         return CreateBitmapBundleFromXPMs(sz, id, {cube_icon_16_xpm, cube_icon_16_xpm, cube_icon_64_xpm, cube_icon_64_xpm, cube_icon_64_xpm});
     } else if ("xlART_CUSTOM_ICON" == id || "xlART_Custom_ICON" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {custom_icon_16_xpm, custom_icon_16_xpm, custom_icon_64_xpm, custom_icon_64_xpm, custom_icon_64_xpm});
-    } else if ("xlART_DMX_ICON" == id || "xlART_DMXFloodlight_ICON" == id || "xlART_DMXMovingHead_ICON" == id || "xlART_DMXMovingHead3D_ICON" == id || "xlART_DMXSkull_ICON" == id) {
+    } else if ("xlART_DMX_ICON" == id || "xlART_DMXFloodlight_ICON" == id || "xlART_DMXMovingHead_ICON" == id || "xlART_DMXMovingHeadAdv_ICON" == id || "xlART_DMXSkull_ICON" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {dmx_icon_16_xpm, dmx_icon_16_xpm, dmx_icon_64_xpm, dmx_icon_64_xpm, dmx_icon_64_xpm});
     } else if ("xlART_ICICLE_ICON" == id || "xlART_Icicles_ICON" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {icicle_icon_16_xpm, icicle_icon_16_xpm, icicle_icon_64_xpm, icicle_icon_64_xpm, icicle_icon_64_xpm});
@@ -563,6 +566,10 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
         return CreateBitmapBundleFromPNGs(id, lynx_png, sizeof(lynx_png));
     } else if ("xlART_xLights_SlashImage" == id) {
         return CreateBitmapBundleFromPNGs(id, xl_splashimage_png, sizeof(xl_splashimage_png));
+    } else if ("xlART_LINKED" == id) {
+        return wxBitmapBundle::FromSVG(linkSVG, sizeof(linkSVG), wxSize(16, 16));
+    } else if ("xlART_UNLINKED" == id) {
+        return wxBitmapBundle::FromSVG(unlinkSVG, sizeof(unlinkSVG), wxSize(16, 16));
     }
     return wxBitmapBundle();
 }
@@ -591,9 +598,6 @@ wxIconBundle xlArtProvider::CreateIconBundle(const wxArtID& id,
     }
     return wxNullIconBundle;
 }
-
-
-
 
 wxBitmapBundle BitmapCache::GetPapgayoIcon() {
     return CreateBitmapBundleFromXPMs(16, "Papagayo", {papagayo_16, papagayo_64, papagayo_64, papagayo_64, papagayo_64});
