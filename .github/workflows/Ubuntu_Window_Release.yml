@@ -37,7 +37,7 @@ jobs:
 
     - name: Download wxWidgets
       run: 
-        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2024.06 https://github.com/xLightsSequencer/wxWidgets C:/wxWidgets/
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2024.20 https://github.com/xLightsSequencer/wxWidgets C:/wxWidgets/
 
     - name: Build wxWidgets
       working-directory: C:/wxWidgets/

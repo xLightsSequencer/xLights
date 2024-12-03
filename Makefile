@@ -25,7 +25,7 @@ SUDO		= `which sudo`
 
 SUBDIRS         = xLights xSchedule xCapture xFade xScanner xSchedule/xSMSDaemon xSchedule/RemoteFalcon
 
-WXWIDGETS_TAG=xlights_2024.06
+WXWIDGETS_TAG=xlights_2024.20
 
 .NOTPARALLEL:
 
