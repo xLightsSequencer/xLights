@@ -24,6 +24,13 @@ enum class FPP_TYPE { FPP,
                       ESPIXELSTICK,
                       GENIUS };
 
+enum class ReceiverType {
+    Standard = 0,
+    v1 = 1,
+    v2 = 2,
+    FalconV5 = 3
+};
+
 class FPP : public BaseController
 {
     public:
@@ -134,6 +141,9 @@ class FPP : public BaseController
 
     static void TypeIDtoControllerType(int typeId, FPP* inst);
     static std::list<FPP*> GetInstances(wxWindow* frame, OutputManager* outputManager);
+
+    static ReceiverType DecodeReceiverType(const std::string& type);
+    static ReceiverType DecodeReceiverType(int type);
 
 #ifndef DISCOVERYONLY
     wxJSONValue CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);

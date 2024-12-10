@@ -2759,7 +2759,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vsname += "F";
                 }
                 if (pvs->_smartRemote >= 1) {
-                    if (pvs->_smartRemoteType.find("v2") != std::string::npos) {
+                    auto const diff_type = DecodeReceiverType(pvs->_smartRemoteType);
+                    if (diff_type == ReceiverType::FalconV5) {
+                        stringData["outputs"][port->GetPort() - 1]["differentialType"] = 10;
+                    } else if(diff_type == ReceiverType::v2) {
                         stringData["outputs"][port->GetPort() - 1]["differentialType"] = 4;
                     } else {
                         stringData["outputs"][port->GetPort() - 1]["differentialType"] = 1;
@@ -2792,7 +2795,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         if ((x & 0x3) == 0) {
             //need to check the group of 4 to see if we need a smartRemote or not
             int remoteType = 0;
-            bool remoteTypeV2 = false;
+            ReceiverType receiverType{ ReceiverType::Standard };
             for (int z = 0; z < 4; z++) {
                 if ((x + z) < maxport) {
                     if (stringData["outputs"][x + z].HasMember("virtualStringsF")) {
@@ -2808,13 +2811,14 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     } else if (stringData["outputs"][x+z].HasMember("differentialType")) {
                         remoteType = std::max(remoteType, 1);
                     }
-                    if (stringData["outputs"][x + z].HasMember("differentialType") &&
-                        stringData["outputs"][x + z]["differentialType"].AsLong() > 3) {
-                        remoteTypeV2 = true;
+                    if (stringData["outputs"][x + z].HasMember("differentialType") ) {
+                        receiverType = DecodeReceiverType(stringData["outputs"][x + z]["differentialType"].AsLong());
                     }
                 }
             }
-            if (remoteTypeV2) {
+            if (ReceiverType::FalconV5 == receiverType) {
+                remoteType += 9;
+            } else if (ReceiverType::v2 == receiverType) {
                 remoteType += 3;
             }
             if (remoteType) {
@@ -3963,9 +3967,9 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     // show network to be easier to do
     for (auto& it : outputManager->GetControllers()) {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr && eth->GetIP() != "" && eth->GetIP() != "MULTICAST") {
+        if (eth != nullptr && !eth->GetIP().empty() && eth->GetIP() != "MULTICAST") {
             std::string resolvedIP = eth->GetResolvedIP(true);
-            if (resolvedIP == "") {
+            if (resolvedIP.empty()) {
                 startAddresses.push_back(::Lower(eth->GetIP()));
             } else {
                 // only add the instances where we were actually able to resolve an IP address
@@ -3973,7 +3977,7 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
                     startAddresses.push_back(::Lower(resolvedIP));
                 }
             }
-            if (eth->GetFPPProxy() != "") {
+            if (!eth->GetFPPProxy().empty()) {
                 startAddresses.push_back(::Lower(ip_utils::ResolveIP(eth->GetFPPProxy())));
             }
         }
@@ -3992,7 +3996,7 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     for (const auto& a : startAddressesForced) {
         for (const auto& fpp : instances) {
             if (case_insensitive_match(a, fpp->hostName) || case_insensitive_match(a, fpp->ipAddress)) {
-                if (newForce != "") {
+                if (!newForce.empty()) {
                     newForce.append(",");
                 }
                 newForce.append(a);
@@ -4005,4 +4009,31 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     }
 
     return instances;
+}
+
+
+ReceiverType FPP::DecodeReceiverType(const std::string& type) {
+    if (type.find("v1") != std::string::npos) {
+        return ReceiverType::v1;
+    }
+    if (type.find("v2") != std::string::npos) {
+        return ReceiverType::v2;
+    }
+    if (type.find("v5") != std::string::npos) {
+        return ReceiverType::FalconV5;
+    }
+    return ReceiverType::Standard;
+}
+
+ReceiverType FPP::DecodeReceiverType(int type) {
+    if (9 < type) {
+        return ReceiverType::FalconV5;
+    }
+    if (3 < type) {
+        return ReceiverType::v2;
+    }
+    if (0 < type) {
+        return ReceiverType::v1;
+    }
+    return ReceiverType::Standard;
 }
