@@ -647,12 +647,15 @@ void ModelFaceDialog::OnMatrixModelsGridCellChange(wxGridEvent& event)
         value = value.Truncate(value.size()-1);
     }
 
-    TryToFindPath(value);
+    if (!value.IsEmpty()) {
+        TryToFindPath(value);
+    }
 
     faceData[name][key.ToStdString()] = value;
     MatrixModelsGrid->SetCellValue(r, c, value);
-
-    TryToSetAllMatrixModels(name, key.ToStdString(), value, r, c);
+    if (!value.IsEmpty()) {
+        TryToSetAllMatrixModels(name, key.ToStdString(), value, r, c);
+    }
     ValidateMatrixGrid(r, c);
 }
 
@@ -815,6 +818,9 @@ void ModelFaceDialog::DoSetMatrixModels(wxFileName fn, std::string actualkey, st
 
 void ModelFaceDialog::TryToFindPath(wxString& filename) const
 {
+    if (filename.IsEmpty()) {
+        return;
+    }
     if (FileExists(filename)) {
         return;
     }
@@ -844,6 +850,9 @@ void ModelFaceDialog::TryToFindPath(wxString& filename) const
 
 void ModelFaceDialog::TryToSetAllMatrixModels(std::string name, std::string key, std::string new_filename, int row, int col)
 {
+    if (new_filename.empty()) {
+        return;
+    }
     wxFileName fn = wxFileName(new_filename);
 
     std::string k = ExtractKey(key);
