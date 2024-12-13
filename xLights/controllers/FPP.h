@@ -142,8 +142,8 @@ class FPP : public BaseController
     static void TypeIDtoControllerType(int typeId, FPP* inst);
     static std::list<FPP*> GetInstances(wxWindow* frame, OutputManager* outputManager);
 
-    static ReceiverType DecodeReceiverType(const std::string& type);
-    static ReceiverType DecodeReceiverType(int type);
+    static ReceiverType DecodeReceiverType(const std::string& type, bool supportsV5);
+    static ReceiverType DecodeReceiverType(int type, bool supportsV5);
 
 #ifndef DISCOVERYONLY
     wxJSONValue CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
@@ -197,7 +197,7 @@ private:
 
     bool IsCompatible(const ControllerCaps *rules,
                       std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,
-                      std::string &driver);
+                      std::string& driver, bool& supportsV5Receivers);
 
     class PlaylistEntry {
     public:

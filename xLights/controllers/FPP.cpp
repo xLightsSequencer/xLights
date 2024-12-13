@@ -2068,7 +2068,7 @@ static bool mergeSerialInto(wxJSONValue &otherDmxData, wxJSONValue &otherOrigRoo
 
 bool FPP::IsCompatible(const ControllerCaps *rules,
                        std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,
-                       std::string &driver) {
+                       std::string& driver, bool& supportsV5Receivers) {
     if (origMod == "") {
         Controller::ConvertOldTypeToVendorModel(origId, origVend, origMod, origVar);
     }
@@ -2124,6 +2124,9 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
                 if (val.HasMember("driver")) {
                     driver = val["driver"].AsString();
                 }
+                if (val.HasMember("falconV5ListenerConfig")) {
+                    supportsV5Receivers = true;;
+                }
             } else {
                 found = false;
             }
@@ -2144,7 +2147,6 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
     }
     return true;
 }
-
 
 #ifndef DISCOVERYONLY
 bool FPP::UploadPanelOutputs(ModelManager* allmodels,
@@ -2634,8 +2636,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     maxport = cud.GetMaxPixelPort(); // 1 based
 
     std::string fppDriver = rules->GetCustomPropertyByPath("fppStringDriverType");
+    bool supportsV5Receivers{false};
     if (fppFileName == "co-bbbStrings") {
-        if (!IsCompatible(rules, controllerVendor, controllerModel, controllerVariant, origSubType, fppDriver)) {
+        if (!IsCompatible(rules, controllerVendor, controllerModel, controllerVariant, origSubType, fppDriver, supportsV5Receivers)) {
             return true;
         }
         if (fppDriver.empty()) {
@@ -2759,7 +2762,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vsname += "F";
                 }
                 if (pvs->_smartRemote >= 1) {
-                    auto const diff_type = DecodeReceiverType(pvs->_smartRemoteType);
+                    auto const diff_type = DecodeReceiverType(pvs->_smartRemoteType, supportsV5Receivers);
                     if (diff_type == ReceiverType::FalconV5) {
                         stringData["outputs"][port->GetPort() - 1]["differentialType"] = 10;
                     } else if(diff_type == ReceiverType::v2) {
@@ -2812,7 +2815,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                         remoteType = std::max(remoteType, 1);
                     }
                     if (stringData["outputs"][x + z].HasMember("differentialType") ) {
-                        receiverType = DecodeReceiverType(stringData["outputs"][x + z]["differentialType"].AsLong());
+                        receiverType = DecodeReceiverType(stringData["outputs"][x + z]["differentialType"].AsLong(), supportsV5Receivers);
                     }
                 }
             }
@@ -4012,7 +4015,7 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
 }
 
 
-ReceiverType FPP::DecodeReceiverType(const std::string& type) {
+ReceiverType FPP::DecodeReceiverType(const std::string& type, bool supportsV5) {
     if (type.find("v1") != std::string::npos) {
         return ReceiverType::v1;
     }
@@ -4020,13 +4023,17 @@ ReceiverType FPP::DecodeReceiverType(const std::string& type) {
         return ReceiverType::v2;
     }
     if (type.find("v5") != std::string::npos) {
-        return ReceiverType::FalconV5;
+        if (supportsV5) {
+            return ReceiverType::FalconV5;
+        } else {
+            return ReceiverType::v2;
+        }
     }
     return ReceiverType::Standard;
 }
 
-ReceiverType FPP::DecodeReceiverType(int type) {
-    if (9 < type) {
+ReceiverType FPP::DecodeReceiverType(int type, bool supportsV5) {
+    if (9 < type && supportsV5) {
         return ReceiverType::FalconV5;
     }
     if (3 < type) {

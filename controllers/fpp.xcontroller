@@ -94,6 +94,7 @@
         <SmartRemoteTypes>
             <Type>falcon_v1</Type>
             <Type>fpp_v2</Type>
+            <Type>falcon_v5</Type>
         </SmartRemoteTypes>
         <fppStringFileName>co-bbbStrings</fppStringFileName>
     </AbstractVariant>
