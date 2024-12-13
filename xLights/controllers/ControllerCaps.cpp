@@ -727,6 +727,9 @@ std::string ControllerCaps::GetConfigDriver() const
     return GetXmlNodeContent(_config, "ConfigDriver", "");
 }
 
+bool ControllerCaps::DisableMonitoring() const {
+    return DoesXmlNodeExist(_config, "DisableMonitoring");
+}
 
 std::vector<std::string> ControllerCaps::GetSmartRemoteTypes() const {
     if (!SupportsSmartRemotes()) {

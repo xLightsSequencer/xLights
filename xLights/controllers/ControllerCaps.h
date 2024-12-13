@@ -145,6 +145,7 @@ public:
     
     
     std::string GetConfigDriver() const;
+    bool DisableMonitoring() const;
 
     void Dump() const;
     
