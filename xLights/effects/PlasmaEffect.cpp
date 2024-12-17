@@ -100,7 +100,7 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
 
     int block = buffer.BufferHt * buffer.BufferWi > 100 ? 1 : -1;
     parallel_for(0, buffer.BufferWi, [&] (int x) {
-        double rx = ((float)x / (buffer.BufferWi - 1)); // rx is now in the range 0.0 to 1.0
+        double rx = buffer.BufferWi <= 0 ? 0.0f : ((float)x / (buffer.BufferWi - 1)); // rx is now in the range 0.0 to 1.0
         double rx2 = rx * rx;
         double cx = rx + .5*sin_time_5;
         double cx2 = cx*cx;
@@ -113,7 +113,7 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         {
             // reference: http://www.bidouille.org/prog/plasma
 
-            double ry = ((float)y/(buffer.BufferHt-1)) ;
+            double ry = buffer.BufferHt <= 1 ? 0.0f : ((float)y/(buffer.BufferHt-1)) ;
             double v = v1;
 
             //  second equation

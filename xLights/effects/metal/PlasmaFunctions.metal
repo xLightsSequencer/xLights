@@ -35,7 +35,7 @@ uchar4 plasma_getMultiColorBlend(constant PlasmaData &data, half n, bool circula
 float plasmaCalc_vldpi(constant PlasmaData &data, uint32_t x, uint32_t y) {
     float time = data.time;
     
-    float rx = data.width > 0 ? ((float)x / (float)(data.width - 1)) : 0.0; // rx is now in the range 0.0 to 1.0
+    float rx = data.width > 1 ? ((float)x / (float)(data.width - 1)) : 0.0; // rx is now in the range 0.0 to 1.0
     float rx2 = rx * rx;
     float cx = rx + 0.5f * data.sin_time_5;
     float cx2 = cx*cx;
@@ -43,7 +43,7 @@ float plasmaCalc_vldpi(constant PlasmaData &data, uint32_t x, uint32_t y) {
 
     // 1st equation
     float v = sin(rx * 10.0f + time);
-    float ry = data.height > 0 ? ((float)y/(float)(data.height - 1)) : 0;
+    float ry = data.height > 1 ? ((float)y/(float)(data.height - 1)) : 0;
 
     //  second equation
     v += sin(10.0f*(rx*data.sin_time_2+ry*data.cos_time_3)+time);
