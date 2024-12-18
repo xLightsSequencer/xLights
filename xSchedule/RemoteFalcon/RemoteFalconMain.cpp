@@ -581,12 +581,21 @@ void RemoteFalconFrame::GetAndPlaySong(const std::string& playing)
     }
 
     if (nextSong != "" && nextSong != "null" && playing != nextSong) {
-        AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking xSchedule to play " + nextSong);
-        auto result = xSchedule::EnqueuePlaylistStep(_playlist, nextSong);
+        std::string songresult;
+        if (_options.GetImmediatelyInterrupt()) {
+            AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking xSchedule to immediately play " + nextSong);
+           // xSchedule::NextStepinPlayList();
+            songresult = xSchedule::EnqueuePlaylistStep(_playlist, nextSong);
+        } else {
+            AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking xSchedule to play at end of step: " + nextSong);
+            songresult = xSchedule::EnqueuePlaylistStepAtEndOfStep(_playlist, nextSong);
+            std::this_thread::sleep_for(std::chrono::milliseconds(_options.GetLeadTime() * 1000 + 200));
+        }
+        
         if (_mode != "voting") {
             //auto result = xSchedule::PlayPlayListStep(_playlist, nextSong);
-            AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + result);
-            if (result == "{\"result\":\"ok\"}") {
+            AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + songresult);
+            if (songresult == "{\"result\":\"ok\"}") {
                 AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking remote falcon to take the song off the queue as it is now playing.");
                 AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + _remoteFalcon->UpdatePlaylistQueue());
             } else {
