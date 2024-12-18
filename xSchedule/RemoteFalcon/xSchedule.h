@@ -88,6 +88,12 @@ public:
 	{
 		return Action("Enqueue playlist step", playlist + "," + step);
 	}
+    static std::string EnqueuePlaylistStepAtEndOfStep(const std::string& playlist, const std::string& step) {
+        return Action("Run command at end of current step", "Enqueue playlist step," + playlist + "," + step);
+    }
+    static std::string NextStepinPlayList() {
+        return Action("Next step in current playlist");
+    }
     static std::string PlayEffect(const std::string& playlist, const std::string& step, EFFECT_MODE mode) {
 		switch (mode) {
         case EFFECT_MODE::EM_PLAY_IMMEDIATELY:
