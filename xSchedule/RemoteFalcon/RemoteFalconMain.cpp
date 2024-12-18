@@ -536,13 +536,13 @@ void RemoteFalconFrame::GetMode()
 
     if (_subdomain == "")         {
         MenuItem_VisitorWebPage->Enable(false);
-        HyperlinkCtrl1->SetLabel("https://remotefalcon.com");
-        HyperlinkCtrl1->SetURL("https://remotefalcon.com");
+        HyperlinkCtrl1->SetLabel("https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
+        HyperlinkCtrl1->SetURL("https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
     }
     else         {
         MenuItem_VisitorWebPage->Enable();
-        HyperlinkCtrl1->SetLabel("https://" + _subdomain + ".remotefalcon.com");
-        HyperlinkCtrl1->SetURL("https://" + _subdomain + ".remotefalcon.com");
+        HyperlinkCtrl1->SetLabel("https://" + _subdomain + "." + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
+        HyperlinkCtrl1->SetURL("https://" + _subdomain + "." + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
         AddMessage(MESSAGE_LEVEL::ML_INFO, "SUBDOMAIN: " + _subdomain);
     }
 }
@@ -825,12 +825,12 @@ void RemoteFalconFrame::OnTimer_UpdatePlaylistTrigger(wxTimerEvent& event)
 
 void RemoteFalconFrame::OnMenuItem_RFWebSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser(_("https://remotefalcon.com"));
+    ::wxLaunchDefaultBrowser(_("https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com")));
 }
 
 void RemoteFalconFrame::OnMenuItem_VisitorWebPageSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser("https://" + _subdomain + ".remotefalcon.com");
+    ::wxLaunchDefaultBrowser("https://" + _subdomain + "." + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
 }
 
 void RemoteFalconFrame::OnHyperlinkCtrl1Click(wxCommandEvent& event)

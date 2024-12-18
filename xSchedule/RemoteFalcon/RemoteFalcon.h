@@ -33,7 +33,7 @@ class RemoteFalcon
 
         RemoteFalcon(const RemoteFalconOptions& options) {
             __token = options.GetToken();
-            _URLBase = SpecialOptions::GetOption("RemoteFalconURL", "https://remotefalcon.com") + "/remotefalcon/api";
+            _URLBase = SpecialOptions::GetOption("RemoteFalconLocalIP", "https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com")) + SpecialOptions::GetOption("RemoteFalconAPI", "/remotefalcon/api");
         }
 
         void SetToken(const std::string& token)
