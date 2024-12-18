@@ -69,6 +69,16 @@ class RemoteFalcon
             return Curl::HTTPSPost(_URLBase + "/updatePlaylistQueue", t, "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 
+        std::string PurgeQueue() {
+            std::string t = wxString::Format("{\"remoteToken\":\"%s\"}", __token);
+            return Curl::HTTPSDelete(_URLBase + "/purgeQueue", t, "", "", "JSON", 10, { { "remotetoken", __token } });
+        }
+
+        std::string EnableMangaedPSA(bool enable) {
+            std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"managedPsaEnabled\":\"%s\"}", __token, enable ? _("Y") : _("N"));
+            return Curl::HTTPSPost(_URLBase + "/updateManagedPsa", t, "", "", "JSON", 10, { { "remotetoken", __token } });
+        }
+
         std::string EnableViewerControl(bool enable)
         {
             std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"viewerControlEnabled\":\"%s\"}", __token, enable ? _("Y") : _("N"));
