@@ -35,4 +35,18 @@
             <Port8>33</Port8>
         </Variant>
     </Controller>
+    <Controller Name="RGB2Go-Octa2Go">
+        <Variant Name="" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+            <Port2>13</Port2>
+            <Port3>12</Port3>
+            <Port4>14</Port4>
+            <Port5>4</Port5>
+            <Port6>16</Port6>
+            <Port7>32</Port7>
+            <Port8>33</Port8>
+        </Variant>
+    </Controller>
 </Vendor>
