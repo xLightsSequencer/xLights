@@ -262,10 +262,10 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
 
     if (_options.GetClearQueueOnStart()) {
         AddMessage(MESSAGE_LEVEL::ML_INFO, "Clearing remote falcon list of songs.");
-        int tries = 100;
+        int tries = 10;
         bool done = false;
         do {
-            auto res = _remoteFalcon->UpdatePlaylistQueue();
+            auto res = _remoteFalcon->PurgeQueue();
             AddMessage(MESSAGE_LEVEL::ML_INFO, "    " + res);
 
             wxJSONReader reader;
@@ -273,7 +273,7 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
             reader.Parse(res, &val);
 
             if (!val.IsNull()) {
-                if (val["message"].AsString() == "Queue Empty") {
+                if (val["message"].AsString() == "Success") {
                     done = true;
                 }
                 else if (val["message"].AsString() == "Unauthorized") {
