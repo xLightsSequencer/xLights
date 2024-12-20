@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="ShowFolderSearchDialog">
+		<title>Find Show Folder Dialog</title>
+		<size>400,400d</size>
+		<minsize>800,400</minsize>
+		<id_arg>0</id_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<rows>3</rows>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxListCtrl" name="ID_LISTCTRL_FOLDERS" variable="ListCtrl_Folders" member="yes">
+					<style>wxLC_REPORT|wxLC_SINGLE_SEL</style>
+					<handler function="OnListCtrl_FoldersItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+				</object>
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT_BACKUPFOLDER" variable="StaticTextBackUpFolder" member="yes">
+					<label></label>
+					<style>wxALIGN_LEFT</style>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_TEMP" variable="ButtonTemp" member="yes">
+							<label>Change Temporary</label>
+							<handler function="OnButtonTempClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_PERMANENT" variable="ButtonPermanent" member="yes">
+							<label>Change Permanently</label>
+							<handler function="OnButtonPermanentClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_OPEN" variable="ButtonOpen" member="yes">
+							<label>Open in Explorer</label>
+							<handler function="OnButtonOpenClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL</flag>
+						<border>5</border>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

@@ -427,6 +427,7 @@ public:
     void ImportLSP(const wxFileName &filename);
     void ImportVsa(const wxFileName &filename);
     void ImportSuperStar(const wxFileName &filename);
+    void ImportMidi(const wxFileName& filename);
     void CloneXLightsEffects(EffectLayer* target, EffectLayer* src, bool eraseExisting);
     bool CloneXLightsEffects(const std::string& target,
                              const std::string& source,
@@ -639,6 +640,7 @@ public:
     void ShowHideSelectEffectsWindow(wxCommandEvent& event);
     void OnButtonFPPConnectClick(wxCommandEvent& event);
     void OnButton_OpenBaseShowDirClick(wxCommandEvent& event);
+    void OnMenuItemFindShowFolderSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -788,6 +790,7 @@ public:
     static const wxWindowID ID_MENUITEM_CONVERT;
     static const wxWindowID ID_MNU_PREPAREAUDIO;
     static const wxWindowID ID_MENU_USER_DICT;
+    static const wxWindowID ID_MENU_FIND_SHOW_FOLDER;
     static const wxWindowID ID_MNU_XSCHEDULE;
     static const wxWindowID ID_MENU_XCAPTURE;
     static const wxWindowID ID_MNU_XSCANNER;
@@ -944,6 +947,7 @@ public:
     wxMenuItem* MenuItemEffectDropper;
     wxMenuItem* MenuItemEffectSettings;
     wxMenuItem* MenuItemFindData;
+    wxMenuItem* MenuItemFindShowFolder;
     wxMenuItem* MenuItemHinksPixExport;
     wxMenuItem* MenuItemHousePreview;
     wxMenuItem* MenuItemJukebox;

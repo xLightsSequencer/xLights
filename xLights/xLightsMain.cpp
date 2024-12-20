@@ -78,6 +78,7 @@
 #include "ShaderDownloadDialog.h"
 #include "SpecialOptions.h"
 #include "SplashDialog.h"
+#include "ShowFolderSearchDialog.h"
 #include "TopEffectsPanel.h"
 #include "TraceLog.h"
 #include "UpdaterDialog.h"
@@ -274,6 +275,7 @@ const wxWindowID xLightsFrame::ID_MNU_GENERATELYRICS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_PREPAREAUDIO = wxNewId();
 const wxWindowID xLightsFrame::ID_MENU_USER_DICT = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_FIND_SHOW_FOLDER = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
 const wxWindowID xLightsFrame::ID_MENU_XCAPTURE = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_XSCANNER = wxNewId();
@@ -696,37 +698,37 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MainAuiManager->AddPane(EditToolBar, wxAuiPaneInfo().Name(_T("Edit Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(5).Top().Gripper());
     ACToolbar = new xlAuiToolBar(this, ID_AUITOOLBAR_AC, wxPoint(1,30), wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     ChoiceParm1 = new wxChoice(ACToolbar, ID_CHOICE_PARM1, wxPoint(276,12), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PARM1"));
-    ChoiceParm1->SetSelection( ChoiceParm1->Append(_("0")) );
-    ChoiceParm1->Append(_("10"));
-    ChoiceParm1->Append(_("20"));
-    ChoiceParm1->Append(_("25"));
-    ChoiceParm1->Append(_("30"));
-    ChoiceParm1->Append(_("33"));
-    ChoiceParm1->Append(_("40"));
-    ChoiceParm1->Append(_("50"));
-    ChoiceParm1->Append(_("60"));
-    ChoiceParm1->Append(_("66"));
-    ChoiceParm1->Append(_("70"));
-    ChoiceParm1->Append(_("75"));
-    ChoiceParm1->Append(_("80"));
-    ChoiceParm1->Append(_("90"));
-    ChoiceParm1->Append(_("100"));
+    ChoiceParm1->SetSelection( ChoiceParm1->Append(_T("0")) );
+    ChoiceParm1->Append(_T("10"));
+    ChoiceParm1->Append(_T("20"));
+    ChoiceParm1->Append(_T("25"));
+    ChoiceParm1->Append(_T("30"));
+    ChoiceParm1->Append(_T("33"));
+    ChoiceParm1->Append(_T("40"));
+    ChoiceParm1->Append(_T("50"));
+    ChoiceParm1->Append(_T("60"));
+    ChoiceParm1->Append(_T("66"));
+    ChoiceParm1->Append(_T("70"));
+    ChoiceParm1->Append(_T("75"));
+    ChoiceParm1->Append(_T("80"));
+    ChoiceParm1->Append(_T("90"));
+    ChoiceParm1->Append(_T("100"));
     ChoiceParm2 = new wxChoice(ACToolbar, ID_CHOICE_PARM2, wxPoint(476,11), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PARM2"));
-    ChoiceParm2->Append(_("0"));
-    ChoiceParm2->Append(_("10"));
-    ChoiceParm2->Append(_("20"));
-    ChoiceParm2->Append(_("25"));
-    ChoiceParm2->Append(_("30"));
-    ChoiceParm2->Append(_("33"));
-    ChoiceParm2->Append(_("40"));
-    ChoiceParm2->Append(_("50"));
-    ChoiceParm2->Append(_("60"));
-    ChoiceParm2->Append(_("66"));
-    ChoiceParm2->Append(_("70"));
-    ChoiceParm2->Append(_("75"));
-    ChoiceParm2->Append(_("80"));
-    ChoiceParm2->Append(_("90"));
-    ChoiceParm2->SetSelection( ChoiceParm2->Append(_("100")) );
+    ChoiceParm2->Append(_T("0"));
+    ChoiceParm2->Append(_T("10"));
+    ChoiceParm2->Append(_T("20"));
+    ChoiceParm2->Append(_T("25"));
+    ChoiceParm2->Append(_T("30"));
+    ChoiceParm2->Append(_T("33"));
+    ChoiceParm2->Append(_T("40"));
+    ChoiceParm2->Append(_T("50"));
+    ChoiceParm2->Append(_T("60"));
+    ChoiceParm2->Append(_T("66"));
+    ChoiceParm2->Append(_T("70"));
+    ChoiceParm2->Append(_T("75"));
+    ChoiceParm2->Append(_T("80"));
+    ChoiceParm2->Append(_T("90"));
+    ChoiceParm2->SetSelection( ChoiceParm2->Append(_T("100")) );
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACDISABLED, _("Disable"), GetToolbarBitmapBundle("xlAC_DISABLED"), wxNullBitmap, wxITEM_CHECK, wxEmptyString, wxEmptyString, NULL);
     ACToolbar->AddSeparator();
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACSELECT, _("Select"), GetToolbarBitmapBundle("xlAC_SELECT"), wxNullBitmap, wxITEM_CHECK, _("Select - SHIFT L"), wxEmptyString, NULL);
@@ -1025,6 +1027,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Menu1->Append(MenuItem_PrepareAudio);
     MenuItemUserDict = new wxMenuItem(Menu1, ID_MENU_USER_DICT, _("User Lyric Dictionary"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItemUserDict);
+    MenuItemFindShowFolder = new wxMenuItem(Menu1, ID_MENU_FIND_SHOW_FOLDER, _("Search for Show Folders"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItemFindShowFolder);
     Menu1->AppendSeparator();
     MenuItem_xSchedule = new wxMenuItem(Menu1, ID_MNU_XSCHEDULE, _("xSchedu&le"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_xSchedule);
@@ -1290,6 +1294,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_MENUITEM_CONVERT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MNU_PREPAREAUDIO, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_PrepareAudioSelected);
     Connect(ID_MENU_USER_DICT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemUserDictSelected);
+    Connect(ID_MENU_FIND_SHOW_FOLDER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemFindShowFolderSelected);
     Connect(ID_MNU_XSCHEDULE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScheduleSelected);
     Connect(ID_MENU_XCAPTURE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_xCaptureSelected);
     Connect(ID_MNU_XSCANNER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScannerSelected);
@@ -10556,4 +10561,10 @@ void xLightsFrame::UpdateReadOnlyState()
     Button_ChangeTemporarilyAgain->Enable(!readOnlyMode);
     Button_CheckShowFolderTemporarily->Enable(!readOnlyMode);
     Button_ChangeShowDirPermanently->Enable(!readOnlyMode);
+}
+
+void xLightsFrame::OnMenuItemFindShowFolderSelected(wxCommandEvent& event)
+{
+    ShowFolderSearchDialog dlg(this);
+    dlg.ShowModal();
 }

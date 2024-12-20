@@ -1318,6 +1318,10 @@
 					<label>User Lyric Dictionary</label>
 					<handler function="OnMenuItemUserDictSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MENU_FIND_SHOW_FOLDER" variable="MenuItemFindShowFolder" member="yes">
+					<label>Search for Show Folders</label>
+					<handler function="OnMenuItemFindShowFolderSelected" entry="EVT_MENU" />
+				</object>
 				<object class="separator" />
 				<object class="wxMenuItem" name="ID_MNU_XSCHEDULE" variable="MenuItem_xSchedule" member="yes">
 					<label>xSchedu&amp;le</label>

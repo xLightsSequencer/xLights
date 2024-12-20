@@ -1095,6 +1095,7 @@
     <ClCompile Include="effects\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp">
       <Filter>Effects\MovingHeadPanels</Filter>
     </ClCompile>
+    <ClCompile Include="ShowFolderSearchDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2154,20 +2155,12 @@
     <ClInclude Include="xlColourData.h" />
     <ClInclude Include="controllers\ILightThat.h" />
     <ClInclude Include="EditSubmodelAliasesDialog.h" />
-    <ClInclude Include="effects\MovingHeadEffect.h" />
-    <ClInclude Include="effects\MovingHeadPanel.h" />
-    <ClInclude Include="effects\MovingHeadPanels\MHColorPanel.h" />
-    <ClInclude Include="effects\MovingHeadPanels\MHColorWheelPanel.h" />
     <ClInclude Include="effects\MovingHeadPanels\MHPathPresetBitmapButton.h" />
     <ClInclude Include="effects\MovingHeadPanels\MHPresetBitmapButton.h" />
-    <ClInclude Include="effects\MovingHeadPanels\MHRgbPickerPanel.h" />
-    <ClInclude Include="effects\MovingHeadPanels\MovingHeadCanvasPanel.h" />
     <ClInclude Include="models\BaseObjectVisitor.h" />
     <ClInclude Include="models\DMX\DmxMotor.h" />
     <ClInclude Include="models\DMX\DmxMotorBase.h" />
     <ClInclude Include="models\DMX\DmxMotorPanTilt.h" />
-    <ClInclude Include="models\DMX\DmxMovingHeadAdv.h" />
-    <ClInclude Include="models\DMX\DmxMovingHeadComm.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhChannel.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhChannelDialog.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhFeature.h" />
@@ -2176,6 +2169,31 @@
     <ClInclude Include="models\DMX\DmxDimmerAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
+    <ClInclude Include="effects\MovingHeadEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxMovingHeadAdv.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxMovingHeadComm.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MovingHeadCanvasPanel.h">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MHRgbPickerPanel.h">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MHColorWheelPanel.h">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MHColorPanel.h">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="ShowFolderSearchDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
