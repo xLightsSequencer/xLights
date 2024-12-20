@@ -427,7 +427,6 @@ public:
     void ImportLSP(const wxFileName &filename);
     void ImportVsa(const wxFileName &filename);
     void ImportSuperStar(const wxFileName &filename);
-    void ImportMidi(const wxFileName& filename);
     void CloneXLightsEffects(EffectLayer* target, EffectLayer* src, bool eraseExisting);
     bool CloneXLightsEffects(const std::string& target,
                              const std::string& source,
