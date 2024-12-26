@@ -262,33 +262,23 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
 
     if (_options.GetClearQueueOnStart()) {
         AddMessage(MESSAGE_LEVEL::ML_INFO, "Clearing remote falcon list of songs.");
-        int tries = 10;
-        bool done = false;
-        do {
-            auto res = _remoteFalcon->PurgeQueue();
-            AddMessage(MESSAGE_LEVEL::ML_INFO, "    " + res);
 
-            wxJSONReader reader;
-            wxJSONValue val;
-            reader.Parse(res, &val);
+        auto res = _remoteFalcon->PurgeQueue();
 
-            if (!val.IsNull()) {
-                if (val["message"].AsString() == "Success") {
-                    done = true;
-                }
-                else if (val["message"].AsString() == "Unauthorized") {
-                    tries = 1;
-                    AddMessage(MESSAGE_LEVEL::ML_ERROR, "Error: " + val["message"].AsString());
-                }
+        wxJSONReader reader;
+        wxJSONValue val;
+        reader.Parse(res, &val);
+
+        if (!val.IsNull()) {
+            if (val["message"].AsString() == "Success") {
+                AddMessage(MESSAGE_LEVEL::ML_INFO, "Cleared remote falcon list of songs.");
+            } else {
+                AddMessage(MESSAGE_LEVEL::ML_ERROR, "Error: " + val["message"].AsString());
             }
-            tries--;
-        } while (!done && tries > 0);
-
-        if (tries == 0) {
-            logger_base.warn("RemoteFalcon failed to clear existing list of songs.");
+        } else {
+            AddMessage(MESSAGE_LEVEL::ML_ERROR, "Error: " + val["message"].AsString());
         }
     }
-
     ValidateWindow();
 }
 
