@@ -706,7 +706,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     viewpoint_mgr.Save(&EffectsXml);
 
     wxFileName effectsFile;
-    effectsFile.AssignDir(CurrentDir);
+    effectsFile.AssignDir(wxFileName::GetTempDir());
     if (backup) {
         effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE_BACKUP));
     } else {
@@ -725,6 +725,9 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     if (!backup) {
 #ifndef __WXOSX__
         SaveModelsFile();
+	wxFileName efFinal = effectsFile;
+	efFinal.Assign(CurrentDir, effectsFile.GetName(), effectsFile.GetExt());
+	wxRenameFile(effectsFile.GetFullPath(), efFinal.GetFullPath());
 #endif
         UnsavedRgbEffectsChanges = false;
     }
