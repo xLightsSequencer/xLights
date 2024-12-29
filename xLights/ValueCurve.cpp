@@ -2202,18 +2202,19 @@ void ValueCurve::ScaleAndOffsetValues(float scale, int offset)
     if (offset == 0 && abs(scale - 1.0) < 0.0001) {
         return;
     }
-
+    float range = _max - _min;
     auto ScaleVal = [&](float val) 
     {
-        float newVal = (val * (scale * _divisor )) + (offset * _divisor);
+        const float valScaled = val * range;//0-255
+        float newVal = (valScaled * (scale * _divisor)) + (offset * _divisor);
         newVal = std::min(newVal, _max);
         newVal = std::max(newVal, _min);
-        return (val * scale ) + offset;
+        return newVal / range;
     };
 
     std::vector<int> parametersToScale;
-
     if (_type == "Custom") {
+        //custom values are 0-1
         for (auto& it : _values) {
             it.y = ScaleVal(it.y);
         }
