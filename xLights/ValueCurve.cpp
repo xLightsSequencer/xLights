@@ -23,6 +23,8 @@
 
 #include <log4cpp/Category.hh>
 
+#include <limits>
+
 AudioManager* ValueCurve::__audioManager = nullptr;
 SequenceElements* ValueCurve::__sequenceElements = nullptr;
 
@@ -2203,7 +2205,11 @@ void ValueCurve::ScaleAndOffsetValues(float scale, int offset)
         return;
     }
     float range = _max - _min;
-    auto ScaleVal = [&](float val) 
+    if (std::abs(range) <= std::numeric_limits<float>::epsilon()) {
+        wxASSERT(false); // should be zero
+        return;
+    }
+    auto ScaleVal = [&](float val) -> float
     {
         const float valScaled = val * range;//0-255
         float newVal = (valScaled * (scale * _divisor)) + (offset * _divisor);
