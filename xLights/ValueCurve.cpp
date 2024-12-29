@@ -2206,7 +2206,7 @@ void ValueCurve::ScaleAndOffsetValues(float scale, int offset)
     }
     float range = _max - _min;
     if (std::abs(range) <= std::numeric_limits<float>::epsilon()) {
-        wxASSERT(false); // should be zero
+        wxASSERT(false); // shouldn't be zero
         return;
     }
     auto ScaleVal = [&](float val) -> float
