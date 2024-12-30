@@ -2204,14 +2204,9 @@ void ValueCurve::ScaleAndOffsetValues(float scale, int offset)
     if (offset == 0 && abs(scale - 1.0) < 0.0001) {
         return;
     }
-    float range = _max - _min;
-    if (std::abs(range) <= std::numeric_limits<float>::epsilon()) {
-        wxASSERT(false); // shouldn't be zero
-        return;
-    }
-    auto ScaleVal = [&](float val) -> float
-    {
-        const float valScaled = val * range;//0-255
+    
+    auto ScaleVal = [&](float val, float range) -> float {
+        const float valScaled = val * range;
         float newVal = (valScaled * (scale * _divisor)) + (offset * _divisor);
         newVal = std::min(newVal, _max);
         newVal = std::max(newVal, _min);
@@ -2220,9 +2215,14 @@ void ValueCurve::ScaleAndOffsetValues(float scale, int offset)
 
     std::vector<int> parametersToScale;
     if (_type == "Custom") {
-        //custom values are 0-1
+        // custom values are 0-1, so we need to scale them
+        float range = _max - _min;
+        if (std::abs(range) <= std::numeric_limits<float>::epsilon()) {
+            wxASSERT(false); // shouldn't be zero
+            return;
+        }
         for (auto& it : _values) {
-            it.y = ScaleVal(it.y);
+            it.y = ScaleVal(it.y, range);
         }
     } else if (_type == "Flat") {
         parametersToScale.push_back(1);
@@ -2244,20 +2244,20 @@ void ValueCurve::ScaleAndOffsetValues(float scale, int offset)
         parametersToScale.push_back(3);
         parametersToScale.push_back(4);
     }
-
+    //_parameter1 are min to max
     for (int param : parametersToScale) {
         switch (param) {
         case 1:
-            _parameter1 = ScaleVal(_parameter1);
+            _parameter1 = ScaleVal(_parameter1, 1.0F);
             break;
         case 2:
-            _parameter2 = ScaleVal(_parameter2);
+            _parameter2 = ScaleVal(_parameter2, 1.0F);
             break;
         case 3:
-            _parameter3 = ScaleVal(_parameter3);
+            _parameter3 = ScaleVal(_parameter3, 1.0F);
             break;
         case 4:
-            _parameter4 = ScaleVal(_parameter4);
+            _parameter4 = ScaleVal(_parameter4, 1.0F);
             break;
         }
     }    
