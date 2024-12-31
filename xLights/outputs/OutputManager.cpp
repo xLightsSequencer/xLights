@@ -14,6 +14,7 @@
 #include <wx/config.h>
 #include <wx/filename.h>
 #include <wx/dir.h>
+#include <wx/wfstream.h>
 
 #include "IPOutput.h"
 #include "OutputManager.h"
@@ -429,8 +430,14 @@ bool OutputManager::Save() {
         root->AddChild(it->Save());
     }
 
-    if (doc.Save(_filename)) {
+    wxFileOutputStream fout(_filename);
+    wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
+    if (doc.Save(*bout)) {
         _dirty = false;
+    }
+    delete bout;
+    if (!fout.Close()) {
+        _dirty = true;
     }
 
     return (_dirty == false);

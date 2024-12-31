@@ -13,6 +13,7 @@
 #include <wx/clipbrd.h>
 #include <wx/xml/xml.h>
 #include <wx/config.h>
+#include <wx/wfstream.h>
 
 #include "xLightsMain.h"
 #include "SeqSettingsDialog.h"
@@ -713,7 +714,20 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
     }
 
-    if (!EffectsXml.Save(effectsFile.GetFullPath())) {
+    wxFileOutputStream fout(effectsFile.GetFullPath());
+    wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
+
+    if (!EffectsXml.Save(*bout)) {
+        if (backup) {
+            logger_base.warn("Unable to save backup of RGB effects file");
+        } else {
+            DisplayError("Unable to save RGB effects file", this);
+        }
+        delete bout;
+        return false;
+    }
+    delete bout;
+    if (!fout.Close()) {
         if (backup) {
             logger_base.warn("Unable to save backup of RGB effects file");
         } else {
@@ -721,7 +735,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         }
         return false;
     }
-
+    
     if (!backup) {
 #ifndef __WXOSX__
         SaveModelsFile();
