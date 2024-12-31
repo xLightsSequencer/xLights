@@ -11,6 +11,25 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2024.20 December 31, 2024
+    - enh (dkulp)           Performance - if effect backgrounds are turned off, don't waste time/memory calculating them during render
+    - enh (cyercop23)       Scripting - add command to get fseq dir from preferences
+    - enh (scott)           Controllers - Add V5 Receiver types to K16 controllers
+    - enh (scott)           Add "Degrees" tag to Moving Head model attributes
+    - enh (scott)           Add ability to disable monitorying by default for certain controllers
+    - enh (scott)           New tool to process log files to find recently used show folders
+    - enh (scott)           Sort Backups folder list
+    - enh (dkulp)           Use buffering when writing xml/xsq files to hopefully speed up saving to slow storage (NAS)
+    - enh (degracode)       Bars effect - performance improvement by not recalculating spatial for every pixel
+    - bug (scott)           Model Face dialog - don't search for face file if the grid attribute is empty (performance)
+    - bug (dkulp)           FPP Connect - fix some issues if FPP has a UI password set
+    - bug (scott)           HinksPix - Make sure Input Mode is set on every upload
+    - bug (dkulp)           Fix some divide by 0 issues in PlasmaEffect, particularly with single line buffers
+    - bug (scott)           Various operations on DMX/MovingHeads can result in Value Curves being deleted
+    - bug (derwin12)        HinksPix - exit upload if SD card selection is cancelled
+    - bug (keith)           xScanner - fix a crash
+    - bug (keith)           xSchedule - fix timecode options needing a restart to take effect
+    - enh (dev8edss)        xSchedule - several RemoteFalcon updates
 2024.19 November 24, 2024
     - enh (cybercop23)      Re-attempt to resolve host names on CTRL-click or Test if not resolveable when xLights started
     - enh (dkulp)           If a sequence cannot be saved, report the error to the user
