@@ -31,14 +31,14 @@
 #include "xLightsMain.h"
 
 //(*IdInit(BatchRenderDialog)
-const long BatchRenderDialog::ID_CHOICE_FILTER = wxNewId();
-const long BatchRenderDialog::ID_CHOICE_FOLDER = wxNewId();
-const long BatchRenderDialog::ID_STATICTEXT1 = wxNewId();
-const long BatchRenderDialog::ID_TEXTCTRL1 = wxNewId();
-const long BatchRenderDialog::ID_CHECKBOX1 = wxNewId();
-const long BatchRenderDialog::ID_PANEL_HOLDER = wxNewId();
-const long BatchRenderDialog::ID_BUTTON1 = wxNewId();
-const long BatchRenderDialog::ID_BUTTON2 = wxNewId();
+const wxWindowID BatchRenderDialog::ID_CHOICE_FILTER = wxNewId();
+const wxWindowID BatchRenderDialog::ID_CHOICE_FOLDER = wxNewId();
+const wxWindowID BatchRenderDialog::ID_STATICTEXT1 = wxNewId();
+const wxWindowID BatchRenderDialog::ID_TEXTCTRL1 = wxNewId();
+const wxWindowID BatchRenderDialog::ID_CHECKBOX1 = wxNewId();
+const wxWindowID BatchRenderDialog::ID_PANEL_HOLDER = wxNewId();
+const wxWindowID BatchRenderDialog::ID_BUTTON1 = wxNewId();
+const wxWindowID BatchRenderDialog::ID_BUTTON2 = wxNewId();
 //*)
 
 const long BatchRenderDialog::ID_MNU_SELECTALL = wxNewId();
@@ -74,8 +74,7 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 	StaticText1 = new wxStaticText(this, wxID_ANY, _("Filter:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FilterChoice = new wxChoice(this, ID_CHOICE_FILTER, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FILTER"));
-	FilterChoice->Append(_("Recursive Search"));
-	FilterChoice->SetSelection( FilterChoice->Append(_("Recursive Search - No Backups")) );
+	FilterChoice->SetSelection( FilterChoice->Append(_("Recursive Search")) );
 	FilterChoice->Append(_("Only Show Directory"));
 	FlexGridSizer2->Add(FilterChoice, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, wxID_ANY, _("Folder:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -101,15 +100,14 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 	FlexGridSizer3->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-    FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	Center();
 
-    Connect(ID_CHOICE_FILTER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BatchRenderDialog::OnFilterChoiceSelect);
-    Connect(ID_CHOICE_FOLDER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BatchRenderDialog::OnFolderChoiceSelect);
-    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BatchRenderDialog::OnButton_OkClick);
-    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BatchRenderDialog::OnButton_CancelClick);
-    Connect(wxID_ANY,wxEVT_INIT_DIALOG,(wxObjectEventFunction)&BatchRenderDialog::OnInit);
+	Connect(ID_CHOICE_FILTER, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&BatchRenderDialog::OnFilterChoiceSelect);
+	Connect(ID_CHOICE_FOLDER, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&BatchRenderDialog::OnFolderChoiceSelect);
+	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&BatchRenderDialog::OnButton_OkClick);
+	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&BatchRenderDialog::OnButton_CancelClick);
+	Connect(wxID_ANY, wxEVT_INIT_DIALOG, (wxObjectEventFunction)&BatchRenderDialog::OnInit);
 	//*)
 
     CheckListBox_Sequences = new wxTreeListCtrl(this, wxID_ANY,
@@ -196,6 +194,13 @@ void BatchRenderDialog::GetSeqList(const wxString& folder)
 {
     wxArrayString files;
     GetAllFilesInDir(folder, files, "*.x*", wxDIR_DEFAULT);
+    for (size_t i = 0; i < files.size(); /* no increment here */) {
+        if (files[i].StartsWith("Backup/") || files[i].StartsWith("Backup\\") || files[i].Contains("\\Backup\\") || files[i].Contains("/Backup/")) {
+            files.RemoveAt(i);
+        } else {
+            ++i; // Only increment if no removal
+        }
+    }
     files.Sort();
     for (size_t x = 0; x < files.size(); x++) {
         wxString name = files[x];
@@ -330,14 +335,6 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
             }
             break;
         case 1:
-            FolderChoice->Enable();
-            if (!name.StartsWith("Backup/") && !name.StartsWith("Backup\\") && !name.Contains("\\Backup\\") && !name.Contains("/Backup/") && isFileInFolder(name)) {
-                wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), name);
-                DisplayDateModified(a, item);
-                DisplayDateRendered(a, item);
-            }
-            break;
-        case 2:
             FolderChoice->Disable();
             if (!name.Contains("/") && !name.Contains("\\")) {
                 wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), name);
