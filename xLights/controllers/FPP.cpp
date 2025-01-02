@@ -89,6 +89,18 @@ static std::set<std::string> FPP_VIDEO_EXT = {
     "mpg", "MPG", "mpeg", "MPEG"
 };
 
+struct FPPDInfo {
+    std::string hostname;
+    std::string ip;
+    std::string uuid;
+
+    bool operator<(const FPPDInfo& other) const {
+        // Custom comparison operator for uniqueness and sorting
+        return std::tie(hostname, ip, uuid) <
+               std::tie(other.hostname, other.ip, other.uuid);
+    }
+};
+std::set<FPPDInfo> fppDiscInfo;
 
 FPP::FPP(const std::string& ad) :
     BaseController(ad, ""), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), fppType(FPP_TYPE::FPP) {
@@ -3169,7 +3181,9 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         std::string uuid = system.HasMember("uuid") ? ToUTF8(system["uuid"].AsString()) : (system.HasMember("UUID") ? ToUTF8(system["UUID"].AsString()) : "");
         
         logger_base.info("Processing ip: %s   host: %s    uuid: %s", address.c_str(), hostName.c_str(), uuid.c_str());
-        
+        if (!uuid.empty()) {
+            fppDiscInfo.insert({ hostName, address, uuid });
+        }
         if (address == "null" || hostName == "null") {
             continue;
         }
@@ -3309,6 +3323,11 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 });
             }
        }
+        //for (const auto& [ip, hostAnduuid] : fppDiscInfo) {
+       for (const auto& info : fppDiscInfo) {
+            //logger_base.info("IP: %s, HostName: %s, UUID: %s", info.hostname.ToStdString().c_str(), hostAnduuid.first.ToStdString().c_str(), hostAnduuid.second.ToStdString().c_str());
+           logger_base.info("HostName: %s, UUID: %s, IP: %s", info.hostname.c_str(), info.uuid.c_str(), info.ip.c_str());
+        }
    }
 }
 static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const std::string &proxies) {

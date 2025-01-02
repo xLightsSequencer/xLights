@@ -85,12 +85,16 @@ class FPPConnectDialog: public wxDialog
 		void OnAddFPPButtonClick(wxCommandEvent& event);
 		void OnChoiceFolderSelect(wxCommandEvent& event);
 		void OnChoiceFilterSelect(wxCommandEvent& event);
-		void LocationPopupMenu(wxContextMenuEvent& event);
-		void OnLocationPopupClick(wxCommandEvent& event);
+		void HostSortMenu(wxContextMenuEvent& event);
+        void IPSortMenu(wxContextMenuEvent& event);
+		void OnHostSortClick(wxCommandEvent& event);
+        void OnIPSortClick(wxCommandEvent& event);
 		void UploadPopupMenu(wxContextMenuEvent& event);
 		void OnUploadPopupClick(wxCommandEvent& event);
 		void CapePopupMenu(wxContextMenuEvent& event);
 		void OnCapePopupClick(wxCommandEvent& event);
+        void MediaPopupMenu(wxContextMenuEvent& event);
+        void OnMediaPopupClick(wxCommandEvent& event);
 		//*)
 
         void LoadSequencesFromFolder(wxString dir) const;
@@ -117,6 +121,7 @@ class FPPConnectDialog: public wxDialog
         void OnSequenceListToggled(wxDataViewEvent& event);
     
         void doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload);
+        std::vector<int> SplitIP(const wxString& ip) const; 
 
 		DECLARE_EVENT_TABLE()
 };
