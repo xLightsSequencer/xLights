@@ -482,9 +482,11 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         }
         auto link1 = new wxHyperlinkCtrl(FPPInstanceList, wxID_ANY, inst->hostName, lhn, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE, "ID_HOSTNAME_" + rowStr);
         link1->SetNormalColour(CyanOrBlue());
+        link1->SetVisitedColour(CyanOrBlue());
         FPPInstanceSizer->Add(link1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
         auto link2 = new wxHyperlinkCtrl(FPPInstanceList, wxID_ANY, inst->ipAddress, lip, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE, "ID_IP_" + rowStr);
         link2->SetNormalColour(CyanOrBlue());
+        link2->SetVisitedColour(CyanOrBlue());
         FPPInstanceSizer->Add(link2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
 
         auto label = new wxStaticText(FPPInstanceList, wxID_ANY, inst->description, wxDefaultPosition, wxDefaultSize, 0, "ID_DESCRIPTION_" + rowStr);
