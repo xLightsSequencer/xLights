@@ -6,6 +6,7 @@
 
 //(*Headers(FPPConnectDialog)
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/panel.h>
@@ -36,6 +37,8 @@ class FPPConnectDialog: public wxDialog
 		//(*Declarations(FPPConnectDialog)
 		wxButton* AddFPPButton;
 		wxButton* Button_Upload;
+		wxButton* ReDiscover;
+		wxCheckBox* KeepWinOpen;
 		wxChoice* ChoiceFilter;
 		wxChoice* ChoiceFolder;
 		wxFlexGridSizer* FPPInstanceSizer;
@@ -53,17 +56,19 @@ class FPPConnectDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(FPPConnectDialog)
-		static const long ID_SCROLLEDWINDOW1;
-		static const long ID_STATICTEXT1;
-		static const long ID_CHOICE_FILTER;
-		static const long ID_STATICTEXT2;
-		static const long ID_CHOICE_FOLDER;
-		static const long ID_STATICTEXT3;
-		static const long ID_PANEL2;
-		static const long ID_PANEL1;
-		static const long ID_SPLITTERWINDOW1;
-		static const long ID_BUTTON1;
-		static const long ID_BUTTON_Upload;
+		static const wxWindowID ID_SCROLLEDWINDOW1;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_CHOICE_FILTER;
+		static const wxWindowID ID_STATICTEXT2;
+		static const wxWindowID ID_CHOICE_FOLDER;
+		static const wxWindowID ID_STATICTEXT3;
+		static const wxWindowID ID_PANEL2;
+		static const wxWindowID ID_PANEL1;
+		static const wxWindowID ID_SPLITTERWINDOW1;
+		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_BUTTON2;
+		static const wxWindowID ID_CHECKBOX1;
+		static const wxWindowID ID_BUTTON_Upload;
 		//*)
 
         static const long ID_MNU_SELECTALL;
@@ -83,6 +88,7 @@ class FPPConnectDialog: public wxDialog
 		void OnClose(wxCloseEvent& event);
 		void SequenceListPopup(wxTreeListEvent& event);
 		void OnAddFPPButtonClick(wxCommandEvent& event);
+        void OnFPPReDiscoverClick(wxCommandEvent& event);
 		void OnChoiceFolderSelect(wxCommandEvent& event);
 		void OnChoiceFilterSelect(wxCommandEvent& event);
 		void HostSortMenu(wxContextMenuEvent& event);

@@ -1878,6 +1878,7 @@ private:
     static const long ID_NETWORK_UNLINKFROMBASE;
     static const long ID_NETWORK_INACTIVE;
     static const long ID_NETWORK_DELETE;
+    static const long ID_NETWORK_UPLOADOUTPUT;
 
     #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 
