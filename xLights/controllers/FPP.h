@@ -67,6 +67,7 @@ class FPP : public BaseController
     std::string controllerVendor;
     std::string controllerModel;
     std::string controllerVariant;
+    bool upload;
 
     wxWindow *parent = nullptr;
     void setProgress(FPPUploadProgressDialog*d, wxGauge *g) { progressDialog = d; progress = g; }
@@ -238,4 +239,8 @@ static inline bool sortByName(const FPP* i, const FPP* j)
 static inline bool sortByIP(const FPP* i, const FPP* j)
 {
     return i->ipAddress < j->ipAddress;
+}
+
+static inline bool sortByUpload(const FPP* i, const FPP* j) {
+    return i->upload < j->upload;
 }
