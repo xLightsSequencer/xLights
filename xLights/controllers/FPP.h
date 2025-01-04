@@ -233,7 +233,15 @@ static inline int case_insensitive_match(std::string s1, std::string s2)
 
 static inline bool sortByName(const FPP* i, const FPP* j)
 {
-    return i->hostName < j->hostName;
+    std::string lowerI = i->hostName;
+    std::string lowerJ = j->hostName;
+
+    std::transform(lowerI.begin(), lowerI.end(), lowerI.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    std::transform(lowerJ.begin(), lowerJ.end(), lowerJ.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+
+    return lowerI < lowerJ;
 }
 
 static inline bool sortByIP(const FPP* i, const FPP* j)
