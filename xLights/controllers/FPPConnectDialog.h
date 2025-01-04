@@ -71,11 +71,7 @@ class FPPConnectDialog: public wxDialog
 		static const wxWindowID ID_BUTTON_Upload;
 		//*)
 
-        static const long ID_MNU_SELECTALL;
-        static const long ID_MNU_SELECTNONE;
-        static const long ID_MNU_SELECTHIGH;
-        static const long ID_MNU_DESELECTHIGH;
-        static const long ID_FPP_INSTANCE_LIST;
+
 
     
         std::list<FPP*> instances;
@@ -128,6 +124,9 @@ class FPPConnectDialog: public wxDialog
     
         void doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload);
         std::vector<int> SplitIP(const wxString& ip) const; 
+
+        void SelectBatchRenderSeq();
+        void SelectIPsWithSubnet();
 
 		DECLARE_EVENT_TABLE()
 };

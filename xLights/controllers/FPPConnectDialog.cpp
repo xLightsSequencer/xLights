@@ -9,6 +9,7 @@
 #include <wx/config.h>
 #include <wx/dir.h>
 #include <wx/hyperlink.h>
+#include <wx/choicdlg.h>
 
 #include "FPPConnectDialog.h"
 #include "xLightsMain.h"
@@ -53,12 +54,7 @@ const wxWindowID FPPConnectDialog::ID_CHECKBOX1 = wxNewId();
 const wxWindowID FPPConnectDialog::ID_BUTTON_Upload = wxNewId();
 //*)
 
-const long FPPConnectDialog::ID_MNU_SELECTALL = wxNewId();
-const long FPPConnectDialog::ID_MNU_SELECTNONE = wxNewId();
-const long FPPConnectDialog::ID_MNU_SELECTHIGH = wxNewId();
-const long FPPConnectDialog::ID_MNU_DESELECTHIGH = wxNewId();
-const long FPPConnectDialog::ID_FPP_INSTANCE_LIST = wxNewId();
-
+static const long ID_FPP_INSTANCE_LIST = wxNewId();
 
 static const long ID_POPUP_MNU_SORT_NAME = wxNewId();
 static const long ID_POPUP_MNU_SORT_IP = wxNewId();
@@ -68,6 +64,10 @@ static const long ID_POPUP_MNU_SORT_UPLOAD = wxNewId();
 static const long ID_POPUP_MNU_CAPE_SELECT_ALL = wxNewId();
 static const long ID_POPUP_MNU_CAPE_DESELECT_ALL = wxNewId();
 static const long ID_POPUP_MNU_MEDIA_DESELECT_ALL = wxNewId();
+static const long ID_POPUP_MNU_SELECT_HIGH = wxNewId();
+static const long ID_POPUP_MNU_DESELECT_HIGH = wxNewId();
+static const long ID_POPUP_MNU_SELECT_BATCH = wxNewId();
+static const long ID_POPUP_MNU_SELECT_SUBNET = wxNewId();
 
 wxString locationSortCol = "ip";
 
@@ -386,8 +386,8 @@ void FPPConnectDialog::IPSortMenu(wxContextMenuEvent& event) {
 void FPPConnectDialog::CapePopupMenu(wxContextMenuEvent& event)
 {
     wxMenu mnu;
-    mnu.Append(ID_POPUP_MNU_CAPE_SELECT_ALL, "Select All");
-    mnu.Append(ID_POPUP_MNU_CAPE_DESELECT_ALL, "Deselect All");
+    mnu.Append(ID_POPUP_MNU_SELECT_ALL, "Select All");
+    mnu.Append(ID_POPUP_MNU_DESELECT_ALL, "Deselect All");
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FPPConnectDialog::OnCapePopupClick), NULL, this);
     PopupMenu(&mnu);
 }
@@ -400,9 +400,9 @@ void FPPConnectDialog::OnCapePopupClick(wxCommandEvent& event)
         if (inst->fppType == FPP_TYPE::FPP) {
             if (inst->supportedForFPPConnect()) {
                 std::string rowStr = std::to_string(row);
-                if (event.GetId() == ID_POPUP_MNU_CAPE_SELECT_ALL) {
+                if (event.GetId() == ID_POPUP_MNU_SELECT_ALL) {
                     SetCheckValue(UPLOAD_CONTROLLER_COL + rowStr, true);
-                } else if (event.GetId() == ID_POPUP_MNU_CAPE_DESELECT_ALL) {
+                } else if (event.GetId() == ID_POPUP_MNU_DESELECT_ALL) {
                     SetCheckValue(UPLOAD_CONTROLLER_COL + rowStr, false);
                 }
             }
@@ -416,36 +416,75 @@ void FPPConnectDialog::UploadPopupMenu(wxContextMenuEvent& event) {
     mnu.Append(ID_POPUP_MNU_SELECT_ALL, "Select All");
     mnu.Append(ID_POPUP_MNU_DESELECT_ALL, "Deselect All");
     mnu.Append(ID_POPUP_MNU_SORT_UPLOAD, "Sort");
+    mnu.Append(ID_POPUP_MNU_SELECT_SUBNET, "Select Subnet");
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FPPConnectDialog::OnUploadPopupClick), NULL, this);
     PopupMenu(&mnu);
 }
 
 void FPPConnectDialog::OnUploadPopupClick(wxCommandEvent& event) {
+    if (ID_POPUP_MNU_SELECT_SUBNET == event.GetId()) {
+        SelectIPsWithSubnet();
+        return;
+    }
     if (event.GetId() == ID_POPUP_MNU_SORT_UPLOAD) {
         instances.sort(sortByUpload);
         PopulateFPPInstanceList();
-    } else {
-        int row = 0;
-        for (const auto& inst : instances) {
-            std::string l = inst->hostName + " - " + inst->ipAddress;
-            if (inst->fppType == FPP_TYPE::FPP) {
-                if (inst->supportedForFPPConnect()) {
-                    std::string rowStr = std::to_string(row);
-                    if (event.GetId() == ID_POPUP_MNU_SELECT_ALL) {
-                        SetCheckValue(CHECK_COL + rowStr, true);
-                    } else if (event.GetId() == ID_POPUP_MNU_DESELECT_ALL) {
-                        SetCheckValue(CHECK_COL + rowStr, false);
-                    }
+        return;
+    }
+      int row = 0;
+      for (const auto& inst : instances) {
+          std::string l = inst->hostName + " - " + inst->ipAddress;
+          if (inst->fppType == FPP_TYPE::FPP) {
+              if (inst->supportedForFPPConnect()) {
+                  std::string rowStr = std::to_string(row);
+                  if (event.GetId() == ID_POPUP_MNU_SELECT_ALL) {
+                      SetCheckValue(CHECK_COL + rowStr, true);
+                  } else if (event.GetId() == ID_POPUP_MNU_DESELECT_ALL) {
+                      SetCheckValue(CHECK_COL + rowStr, false);
+                  }
+              }
+          }
+          row++;
+      }
+}
+
+void FPPConnectDialog::SelectIPsWithSubnet() {
+    wxArrayString subs;
+    for (const auto& inst : instances) {
+
+        wxString const& sub_net = BeforeLast(inst->ipAddress, '.') + ".0";
+        if (wxNOT_FOUND == subs.Index(sub_net)) {
+            subs.push_back(sub_net);
+        }
+    }
+    wxString const& message = "Select Subnet";
+    wxSingleChoiceDialog dlg(this, message, message, subs);
+
+    if (dlg.ShowModal() != wxID_OK) {
+       // return dlg.GetStringSelection();
+        return;
+    }
+
+    std::string const& subnet = dlg.GetStringSelection();
+    int row { 0 };
+    for (const auto& inst : instances) {
+        if (inst->fppType == FPP_TYPE::FPP) {
+            if (inst->supportedForFPPConnect()) {
+                std::string rowStr = std::to_string(row);
+                if (IsInSameSubnet(subnet, inst->ipAddress)) {
+                    SetCheckValue(CHECK_COL + rowStr, true);
+                } else {
+                    SetCheckValue(CHECK_COL + rowStr, false);
                 }
             }
-            row++;
-        }
+        } 
+        row++;
     }
 }
 
 void FPPConnectDialog::MediaPopupMenu(wxContextMenuEvent& event) {
     wxMenu mnu;
-    mnu.Append(ID_POPUP_MNU_MEDIA_DESELECT_ALL, "Deselect All");
+    mnu.Append(ID_POPUP_MNU_DESELECT_ALL, "Deselect All");
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FPPConnectDialog::OnMediaPopupClick), NULL, this);
     PopupMenu(&mnu);
 }
@@ -457,7 +496,7 @@ void FPPConnectDialog::OnMediaPopupClick(wxCommandEvent& event) {
         if (inst->fppType == FPP_TYPE::FPP) {
             if (inst->supportedForFPPConnect()) {
                 std::string rowStr = std::to_string(row);
-                if (event.GetId() == ID_POPUP_MNU_MEDIA_DESELECT_ALL) {
+                if (event.GetId() == ID_POPUP_MNU_DESELECT_ALL) {
                     SetCheckValue(MEDIA_COL + rowStr, false);
                 }
             }
@@ -670,22 +709,74 @@ void FPPConnectDialog::AddInstanceRow(const FPP &inst) {
 void FPPConnectDialog::OnPopup(wxCommandEvent &event)
 {
     int id = event.GetId();
+    if (ID_POPUP_MNU_SELECT_BATCH == id) {
+        SelectBatchRenderSeq();
+        return;
+    }
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         bool isChecked = CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED;
         bool isSelected = CheckListBox_Sequences->IsSelected(item);
-        if (id == ID_MNU_SELECTALL && !isChecked) {
+        if (id == ID_POPUP_MNU_SELECT_ALL && !isChecked) {
             CheckListBox_Sequences->CheckItem(item);
-        } else if (id == ID_MNU_SELECTNONE && isChecked) {
+        } else if (id == ID_POPUP_MNU_DESELECT_ALL && isChecked) {
             CheckListBox_Sequences->UncheckItem(item);
-        } else if (id == ID_MNU_SELECTHIGH && isSelected) {
+        } else if (id == ID_POPUP_MNU_SELECT_HIGH && isSelected) {
             CheckListBox_Sequences->CheckItem(item);
-        } else if (id == ID_MNU_DESELECTHIGH && isSelected) {
+        } else if (id == ID_POPUP_MNU_DESELECT_HIGH && isSelected) {
             CheckListBox_Sequences->UncheckItem(item);
         }
         item = CheckListBox_Sequences->GetNextItem(item);
     }
     UpdateSeqCount();
+}
+
+void FPPConnectDialog::SelectBatchRenderSeq() {
+
+    wxConfigBase* config = wxConfigBase::Get();
+    if (nullptr == config) {
+        return;
+    }
+    wxString itcsv;
+    config->Read("BatchRendererItemList", &itcsv, "");
+
+    if (!itcsv.IsEmpty()) {
+        auto const& savedBatchItems = wxSplit(itcsv, ',');
+        xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
+        wxString const& showDirectory = frame->GetShowDirectory();
+        wxString const& fseqDirectory = frame->GetFseqDirectory();
+
+        if (savedBatchItems.empty()) {
+            return;
+        }
+        auto uitem = CheckListBox_Sequences->GetFirstItem();
+        while (uitem.IsOk()) {
+            auto const& isChecked = CheckListBox_Sequences->GetCheckedState(uitem) == wxCHK_CHECKED;
+            if (isChecked) {
+                CheckListBox_Sequences->UncheckItem(uitem);
+            } 
+            uitem = CheckListBox_Sequences->GetNextItem(uitem);
+        }
+        for (auto const& bat_seq : savedBatchItems) {
+            auto const& xsqName = showDirectory + wxFileName::GetPathSeparator() + bat_seq;
+            wxFileName fseqFile(xsqName);
+            fseqFile.SetExt("fseq");
+            
+            if (fseqDirectory != showDirectory) {
+                fseqFile.SetPath(fseqDirectory);
+            }
+            auto const& fseqName = fseqFile.GetFullPath();
+            auto item = CheckListBox_Sequences->GetFirstItem();
+            while (item.IsOk()) {
+                if (CheckListBox_Sequences->GetItemText(item) == fseqName) {
+                    CheckListBox_Sequences->CheckItem(item);
+                    break;
+                }
+                item = CheckListBox_Sequences->GetNextItem(item);
+            }
+        }
+        UpdateSeqCount();
+    }
 }
 
 FPPConnectDialog::~FPPConnectDialog()
@@ -1508,10 +1599,11 @@ void FPPConnectDialog::OnClose(wxCloseEvent& event)
 void FPPConnectDialog::SequenceListPopup(wxTreeListEvent& event)
 {
     wxMenu mnu;
-    mnu.Append(ID_MNU_SELECTALL, "Select All");
-    mnu.Append(ID_MNU_SELECTNONE, "Clear Selections");
-    mnu.Append(ID_MNU_SELECTHIGH, "Select Highlighted");
-    mnu.Append(ID_MNU_DESELECTHIGH, "Deselect Highlighted");
+    mnu.Append(ID_POPUP_MNU_SELECT_ALL, "Select All");
+    mnu.Append(ID_POPUP_MNU_DESELECT_ALL, "Clear Selections");
+    mnu.Append(ID_POPUP_MNU_SELECT_HIGH, "Select Highlighted");
+    mnu.Append(ID_POPUP_MNU_DESELECT_HIGH, "Deselect Highlighted");
+    mnu.Append(ID_POPUP_MNU_SELECT_BATCH, "Select Batch Render");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&FPPConnectDialog::OnPopup, nullptr, this);
     PopupMenu(&mnu);
 }
