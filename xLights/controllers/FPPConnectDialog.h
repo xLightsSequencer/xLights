@@ -28,6 +28,7 @@ class FPPConnectDialog: public wxDialog
 {
     void SaveSettings(bool onlyInsts = false);
     void ApplySavedHostSettings();
+    wxString Fixitup(wxString val);
 
 	public:
 

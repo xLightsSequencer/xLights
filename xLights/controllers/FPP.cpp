@@ -3845,6 +3845,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 FPP *fpp = new FPP(res->ip, res->proxy, res->pixelControllerType);
                 fpp->ipAddress = res->ip;//not needed, in constructor
                 fpp->hostName = res->hostname;
+                fpp->uuid = res->uuid;
                 fpp->description = res->description;
                 fpp->platform = res->platform;
                 fpp->model = res->platformModel;
@@ -3874,6 +3875,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
             } else {
                 setIfEmpty(fpp->proxy, res->proxy);
                 setIfEmpty(fpp->hostName, res->hostname);
+                setIfEmpty(fpp->uuid, res->uuid);
                 setIfEmpty(fpp->description, res->description);
                 setIfEmpty(fpp->platform, res->platform);
                 setIfEmpty(fpp->model, res->platformModel);

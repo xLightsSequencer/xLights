@@ -1520,11 +1520,8 @@ void FPPConnectDialog::SaveSettings(bool onlyInsts)
     int row = 0;
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
-        wxString keyPostfx = inst->ipAddress;
-        keyPostfx.Replace(":", "_");
-        keyPostfx.Replace("/", "_");
-        keyPostfx.Replace("\\", "_");
-        keyPostfx.Replace(".", "_");
+        wxString keyPostfx = (inst->uuid.empty() ? inst->ipAddress : inst->uuid);
+        keyPostfx = Fixitup(keyPostfx);
         config->Write("FPPConnectUpload_" + keyPostfx, GetCheckValue(CHECK_COL + rowStr));
         config->Write("FPPConnectUploadMedia_" + keyPostfx, GetCheckValue(MEDIA_COL + rowStr));
         config->Write("FPPConnectUploadFSEQType_" + keyPostfx, GetChoiceValueIndex(FSEQ_COL + rowStr));
@@ -1537,59 +1534,65 @@ void FPPConnectDialog::SaveSettings(bool onlyInsts)
     config->Flush();
 }
 
+wxString FPPConnectDialog::Fixitup(wxString val) {
+    val.Replace(":", "_");
+    val.Replace("/", "_");
+    val.Replace("\\", "_");
+    val.Replace(".", "_");
+    return val;
+}
+
 void FPPConnectDialog::ApplySavedHostSettings()
 {
-    /*
-     static const std::string CHECK_COL = "ID_UPLOAD_";
-     static const std::string FSEQ_COL = "ID_FSEQTYPE_";
-     static const std::string MEDIA_COL = "ID_MEDIA_";
-     static const std::string MODELS_COL = "ID_MODELS_";
-     static const std::string UDP_COL = "ID_UDPOUT_";
-     static const std::string PLAYLIST_COL = "ID_PLAYLIST_";
-     static const std::string UPLOAD_CONTROLLER_COL = "ID_CONTROLLER_";
-     */
-
-
     wxConfigBase* config = wxConfigBase::Get();
     if (config != nullptr) {
         int row = 0;
         for (const auto& inst : instances) {
             std::string rowStr = std::to_string(row);
-            wxString keyPostfx = inst->ipAddress;
-            keyPostfx.Replace(":", "_");
-            keyPostfx.Replace("/", "_");
-            keyPostfx.Replace("\\", "_");
-            keyPostfx.Replace(".", "_");
 
             bool bval;
             int lval;
-            if (config->Read("FPPConnectUpload_" + keyPostfx, &bval)) {
+            if (config->Read("FPPConnectUpload_" + Fixitup(inst->uuid), &bval)) {
+                SetCheckValue(CHECK_COL + rowStr, bval);
+                inst->upload = bval;
+            } else if (config->Read("FPPConnectUpload_" + Fixitup(inst->ipAddress), &bval)) {
                 SetCheckValue(CHECK_COL + rowStr, bval);
                 inst->upload = bval;
             }
-            if (config->Read("FPPConnectUploadFSEQType_" + keyPostfx, &lval)) {
+            if (config->Read("FPPConnectUploadFSEQType_" + Fixitup(inst->uuid), &lval)) {
                 SetChoiceValueIndex(FSEQ_COL + rowStr, lval);
+            } else if (config->Read("FPPConnectUploadFSEQType_" + Fixitup(inst->ipAddress), &lval)) {
+                SetCheckValue(FSEQ_COL + rowStr, lval);
             }
-            if (config->Read("FPPConnectUploadMedia_" + keyPostfx, &bval)) {
+            if (config->Read("FPPConnectUploadMedia_" + Fixitup(inst->uuid), &bval)) {
+                SetCheckValue(MEDIA_COL + rowStr, bval);
+            } else if (config->Read("FPPConnectUploadMedia_" + Fixitup(inst->ipAddress), &bval)) {
                 SetCheckValue(MEDIA_COL + rowStr, bval);
             }
-            if (config->Read("FPPConnectUploadModels_" + keyPostfx, &lval)) {
+            if (config->Read("FPPConnectUploadModels_" + Fixitup(inst->uuid), &lval)) {
                 SetChoiceValueIndex(MODELS_COL + rowStr, lval);
+            } else if (config->Read("FPPConnectUploadModels_" + Fixitup(inst->ipAddress), &lval)) {
+                SetCheckValue(MODELS_COL + rowStr, lval);
             }
-            if (config->Read("FPPConnectUploadUDPOut_" + keyPostfx, &lval)) {
+            if (config->Read("FPPConnectUploadUDPOut_" + Fixitup(inst->uuid), &lval)) {
                 SetChoiceValueIndex(UDP_COL + rowStr, lval);
+            } else if (config->Read("FPPConnectUploadUDPOut_" + Fixitup(inst->ipAddress), &lval)) {
+                SetCheckValue(UDP_COL + rowStr, lval);
             }
-            if (config->Read("FPPConnectUploadPixelOut_" + keyPostfx, &bval)) {
+            if (config->Read("FPPConnectUploadPixelOut_" + Fixitup(inst->uuid), &bval)) {
+                SetCheckValue(UPLOAD_CONTROLLER_COL + rowStr, bval);
+            } else if (config->Read("FPPConnectUploadPixelOut_" + Fixitup(inst->ipAddress), &bval)) {
                 SetCheckValue(UPLOAD_CONTROLLER_COL + rowStr, bval);
             }
-            if (config->Read("FPPConnectUploadProxy_" + keyPostfx, &bval)) {
+            if (config->Read("FPPConnectUploadProxy_" + Fixitup(inst->uuid), &bval)) {
+                SetCheckValue(PROXY_COL + rowStr, bval);
+            } else if (config->Read("FPPConnectUploadProxy_" + Fixitup(inst->ipAddress), &bval)) {
                 SetCheckValue(PROXY_COL + rowStr, bval);
             }
             row++;
         }
     }
 }
-
 
 void FPPConnectDialog::OnClose(wxCloseEvent& event)
 {

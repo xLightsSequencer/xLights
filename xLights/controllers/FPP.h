@@ -250,5 +250,5 @@ static inline bool sortByIP(const FPP* i, const FPP* j)
 }
 
 static inline bool sortByUpload(const FPP* i, const FPP* j) {
-    return i->upload < j->upload;
+    return i->upload > j->upload;
 }
