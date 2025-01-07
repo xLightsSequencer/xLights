@@ -266,6 +266,12 @@ public:
         return (cc[idx].IsActive() && cc[idx].GetTimeCurve() != TC_TIME);
     }
 
+    bool IsGradient(size_t idx) const {
+        if (idx >= color.size())
+            return false;
+        return (cc[idx].IsActive() && cc[idx].GetTimeCurve() == TC_TIME);
+    }
+
     bool IsRadial(size_t idx) const
     {
         if (idx >= color.size())
