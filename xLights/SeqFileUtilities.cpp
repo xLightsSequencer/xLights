@@ -1183,8 +1183,6 @@ void MapXLightsEffects(Element* target,
 
 void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& mapFile)
 {
-    wxStopWatch sw; // start a stopwatch timer
-
     SequencePackage xsqPkg(filename, this);
 
     if (xsqPkg.IsPkg()) {
@@ -1221,8 +1219,7 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
     }
     ImportXLights(se, elements, xsqPkg, supportsModelBlending, true, false, false, mapFile);
 
-    float elapsedTime = sw.Time() / 1000.0; // msec => sec
-    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    SetStatusText(wxString::Format("'%s' imported.", filename.GetPath()));
 }
 
 ModelElement* AddModel(Model* m, SequenceElements& se)
@@ -1761,8 +1758,6 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    wxStopWatch sw; // start a stopwatch timer
-
     logger_base.debug("Importing vixen file %s.", (const char*)filename.GetFullName().c_str());
 
     std::vector<unsigned char> VixSeqData;
@@ -1987,14 +1982,11 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
         }
     }
 
-    float elapsedTime = sw.Time() / 1000.0; // msec => sec
-    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    SetStatusText(wxString::Format("'%s' imported.", filename.GetPath()));
 }
 
 void xLightsFrame::ImportHLS(const wxFileName& filename)
 {
-    wxStopWatch sw; // start a stopwatch timer
-
     wxFileName xml_file(filename);
     wxXmlDocument input_xml;
     wxString xml_doc = xml_file.GetFullPath();
@@ -2149,14 +2141,11 @@ void xLightsFrame::ImportHLS(const wxFileName& filename)
         }
     }
 
-    float elapsedTime = sw.Time() / 1000.0; // msec => sec
-    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    SetStatusText(wxString::Format("'%s' imported.", filename.GetPath()));
 }
 
 void xLightsFrame::ImportLMS(const wxFileName& filename)
 {
-    wxStopWatch sw; // start a stopwatch timer
-
     wxFileName xml_file(filename);
     wxXmlDocument input_xml;
     wxString xml_doc = xml_file.GetFullPath();
@@ -2165,14 +2154,11 @@ void xLightsFrame::ImportLMS(const wxFileName& filename)
     if (!input_xml.Load(fin))
         return;
     ImportLMS(input_xml, filename);
-    float elapsedTime = sw.Time() / 1000.0; // msec => sec
-    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    SetStatusText(wxString::Format("'%s' imported.", filename.GetPath()));
 }
 
 void xLightsFrame::ImportLPE(const wxFileName& filename)
 {
-    wxStopWatch sw; // start a stopwatch timer
-
     wxFileName xml_file(filename);
     wxXmlDocument input_xml;
     wxString xml_doc = xml_file.GetFullPath();
@@ -2181,14 +2167,11 @@ void xLightsFrame::ImportLPE(const wxFileName& filename)
     if (!input_xml.Load(fin))
         return;
     ImportLPE(input_xml, filename);
-    float elapsedTime = sw.Time() / 1000.0; // msec => sec
-    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath()));
 }
 
 void xLightsFrame::ImportS5(const wxFileName& filename)
 {
-    wxStopWatch sw; // start a stopwatch timer
-
     wxFileName xml_file(filename);
     wxXmlDocument input_xml;
     wxString xml_doc = xml_file.GetFullPath();
@@ -2197,8 +2180,7 @@ void xLightsFrame::ImportS5(const wxFileName& filename)
     if (!input_xml.Load(fin))
         return;
     ImportS5(input_xml, filename);
-    float elapsedTime = sw.Time() / 1000.0; // msec => sec
-    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+    SetStatusText(wxString::Format("'%s' imported.", filename.GetPath()));
 }
 
 void AdjustAllTimings(wxXmlNode* input_xml, int offset)
