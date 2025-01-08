@@ -1150,7 +1150,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuHelp->Append(MenuItem_TOD);
     MenuItem_UserManual = new wxMenuItem(MenuHelp, ID_MNU_MANUAL, _("User Manual"), wxEmptyString, wxITEM_NORMAL);
     MenuHelp->Append(MenuItem_UserManual);
-    MenuItem_Zoom = new wxMenuItem(MenuHelp, ID_MNU_ZOOM, _("Zoom"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem_Zoom = new wxMenuItem(MenuHelp, ID_MNU_ZOOM, _("Zoom Room Help"), _("Access the free Zoom Room for Help"), wxITEM_NORMAL);
     MenuHelp->Append(MenuItem_Zoom);
     MenuItem_ShowKeyBindings = new wxMenuItem(MenuHelp, ID_MENUITEM1, _("Key Bindings"), wxEmptyString, wxITEM_NORMAL);
     MenuHelp->Append(MenuItem_ShowKeyBindings);

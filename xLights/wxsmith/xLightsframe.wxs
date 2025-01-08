@@ -1587,7 +1587,8 @@
 					<handler function="OnMenuItem_UserManualSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_ZOOM" variable="MenuItem_Zoom" member="yes">
-					<label>Zoom</label>
+					<label>Zoom Room Help</label>
+					<help>Access the free Zoom Room for Help.</help>
 					<handler function="OnMenuItem_ZoomSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MENUITEM1" variable="MenuItem_ShowKeyBindings" member="yes">
