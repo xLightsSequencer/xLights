@@ -725,7 +725,7 @@ void FPPConnectDialog::SelectBatchRenderSeq() {
     config->Read("BatchRendererItemList", &itcsv, "");
 
     if (!itcsv.IsEmpty()) {
-        auto const& savedBatchItems = wxSplit(itcsv, ',');
+        auto const& savedBatchItems = wxSplit(itcsv, '|');
         xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
         wxString const& showDirectory = frame->GetShowDirectory();
         wxString const& fseqDirectory = frame->GetFseqDirectory();
