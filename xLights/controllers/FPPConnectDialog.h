@@ -126,7 +126,7 @@ class FPPConnectDialog: public wxDialog
         void doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload);
         std::vector<int> SplitIP(const wxString& ip) const; 
 
-        void SelectBatchRenderSeq();
+        void SequenceSelector(const std::string regexKey);
         void SelectIPsWithSubnet();
 
 		DECLARE_EVENT_TABLE()

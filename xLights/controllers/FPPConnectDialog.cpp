@@ -67,6 +67,7 @@ static const long ID_POPUP_MNU_MEDIA_DESELECT_ALL = wxNewId();
 static const long ID_POPUP_MNU_SELECT_HIGH = wxNewId();
 static const long ID_POPUP_MNU_DESELECT_HIGH = wxNewId();
 static const long ID_POPUP_MNU_SELECT_BATCH = wxNewId();
+static const long ID_POPUP_MNU_SELECT_FAILED = wxNewId();
 static const long ID_POPUP_MNU_SELECT_SUBNET = wxNewId();
 
 wxString locationSortCol = "ip";
@@ -710,7 +711,11 @@ void FPPConnectDialog::OnPopup(wxCommandEvent &event)
 {
     int id = event.GetId();
     if (ID_POPUP_MNU_SELECT_BATCH == id) {
-        SelectBatchRenderSeq();
+        SequenceSelector("BatchRendererItemList");
+        return;
+    }
+    if (ID_POPUP_MNU_SELECT_FAILED == id) {
+        SequenceSelector("FPPConnectFailedList");
         return;
     }
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
@@ -731,22 +736,22 @@ void FPPConnectDialog::OnPopup(wxCommandEvent &event)
     UpdateSeqCount();
 }
 
-void FPPConnectDialog::SelectBatchRenderSeq() {
+void FPPConnectDialog::SequenceSelector(const std::string regexKey) {
 
     wxConfigBase* config = wxConfigBase::Get();
     if (nullptr == config) {
         return;
     }
     wxString itcsv;
-    config->Read("BatchRendererItemList", &itcsv, "");
+    config->Read(regexKey, &itcsv, "");
 
     if (!itcsv.IsEmpty()) {
-        auto const& savedBatchItems = wxSplit(itcsv, ',');
+        auto const& list = wxSplit(itcsv, ',');
         xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
         wxString const& showDirectory = frame->GetShowDirectory();
         wxString const& fseqDirectory = frame->GetFseqDirectory();
 
-        if (savedBatchItems.empty()) {
+        if (list.empty()) {
             return;
         }
         auto uitem = CheckListBox_Sequences->GetFirstItem();
@@ -757,8 +762,8 @@ void FPPConnectDialog::SelectBatchRenderSeq() {
             } 
             uitem = CheckListBox_Sequences->GetNextItem(uitem);
         }
-        for (auto const& bat_seq : savedBatchItems) {
-            auto const& xsqName = showDirectory + wxFileName::GetPathSeparator() + bat_seq;
+        for (auto const& seq : list) {
+            auto const& xsqName = showDirectory + wxFileName::GetPathSeparator() + seq;
             wxFileName fseqFile(xsqName);
             fseqFile.SetExt("fseq");
             
@@ -1069,6 +1074,14 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     Button_Upload->Enable(false);
     AddFPPButton->Enable(false);
 
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr) {
+        config->Write("FPPConnectFailedList", "");
+    }
+    config->Flush();
+    for (const auto& inst : instances) {
+		inst->faileduploads.clear();
+	}
 
     std::vector<bool> doUpload(instances.size());
     int row = 0;
@@ -1394,6 +1407,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
 
 
     std::string messages;
+    wxString failedUploadsList;
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
         if (inst->fppType == FPP_TYPE::FPP) {
@@ -1418,8 +1432,25 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 messages += "\n";
             }
         }
+        if (!inst->faileduploads.empty()) {
+            for (auto& m : inst->faileduploads) {
+                if (failedUploadsList.empty()) {
+                    failedUploadsList = m;
+                } else {
+                    failedUploadsList += ",";
+                    failedUploadsList += m;
+                }
+			}
+		}
         row++;
     }
+    if (!failedUploadsList.empty()) {
+        wxConfigBase* config = wxConfigBase::Get();
+        if (config != nullptr) {
+            config->Write("FPPConnectFailedList", failedUploadsList);
+        }
+        config->Flush();
+    };
     xLightsFrame* xlframe = static_cast<xLightsFrame*>(GetParent());
     if (messages != "") {
         xlframe->SetStatusText("FPP Connect Upload had errors or warnings", 0);
@@ -1607,6 +1638,7 @@ void FPPConnectDialog::SequenceListPopup(wxTreeListEvent& event)
     mnu.Append(ID_POPUP_MNU_SELECT_HIGH, "Select Highlighted");
     mnu.Append(ID_POPUP_MNU_DESELECT_HIGH, "Deselect Highlighted");
     mnu.Append(ID_POPUP_MNU_SELECT_BATCH, "Select Batch Render");
+    mnu.Append(ID_POPUP_MNU_SELECT_FAILED, "Select Failed Uploads");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&FPPConnectDialog::OnPopup, nullptr, this);
     PopupMenu(&mnu);
 }

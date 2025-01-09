@@ -75,6 +75,7 @@ class FPP : public BaseController
 
     
     std::list<std::string> messages;
+    std::list<std::string> faileduploads;
     int defaultConnectTimeout = 2000;
 
     std::map<int, int> GetExpansionPorts(ControllerCaps* caps) const;
