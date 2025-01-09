@@ -348,7 +348,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
         double x2 = (buffer.curPeriod - buffer.curEffStartPer + 1.0) / double(total);
         int idx = (buffer.curPeriod - buffer.curEffStartPer) * 6;
         float pos = 1.0 - (position / 100.0);
-        buffer.SetDisplayListVRect(effect, idx, x1, pos - 0.02, x2, pos + 0.02, xlWHITE, xlWHITE);
+        buffer.SetDisplayListVRect(effect, idx, x1, pos - 0.028, x2, pos + 0.028, xlYELLOW, xlYELLOW);
     }
 }
 
