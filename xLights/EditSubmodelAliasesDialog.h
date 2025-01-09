@@ -2,6 +2,7 @@
 #define EDITSUBMODELALIASESDIALOG_H
 
 //(*Headers(EditSubmodelAliasesDialog)
+#include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
 #include <wx/listbox.h>
@@ -17,6 +18,8 @@ public:
     virtual ~EditSubmodelAliasesDialog();
 
     //(*Declarations(EditSubmodelAliasesDialog)
+    wxBitmapButton* ButtonMoveDown;
+    wxBitmapButton* ButtonMoveUp;
     wxButton* ButtonAdd;
     wxButton* ButtonCancel;
     wxButton* ButtonDelete;
@@ -30,11 +33,13 @@ protected:
     void ValidateWindow();
 
     //(*Identifiers(EditSubmodelAliasesDialog)
-    static const long ID_LISTBOX1;
-    static const long ID_BUTTON1;
-    static const long ID_BUTTON2;
-    static const long ID_BUTTON3;
-    static const long ID_BUTTON4;
+    static const wxWindowID ID_LISTBOX1;
+    static const wxWindowID ID_BITMAPBUTTONUP;
+    static const wxWindowID ID_BITMAPBUTTONDOWN;
+    static const wxWindowID ID_BUTTON1;
+    static const wxWindowID ID_BUTTON2;
+    static const wxWindowID ID_BUTTON3;
+    static const wxWindowID ID_BUTTON4;
     //*)
 
 private:
@@ -44,6 +49,8 @@ private:
     void OnButtonOkClick(wxCommandEvent& event);
     void OnButtonCancelClick(wxCommandEvent& event);
     void OnListBoxAliasesSelect(wxCommandEvent& event);
+    void OnButtonMoveUpClick(wxCommandEvent& event);
+    void OnButtonMoveDownClick(wxCommandEvent& event);
     //*)
 
     DECLARE_EVENT_TABLE()
