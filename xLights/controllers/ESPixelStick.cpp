@@ -464,11 +464,15 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
 
         GetOutputConfig(outputConfig);
 
-        if (outputConfig.HasMember("channels")) {
-            wxJSONValue& channels = outputConfig["channels"];
-            for (const auto& key : channels.GetMemberNames()) {
-                wxJSONValue& channel = channels[key];
-                if (channel.HasMember("type")) channel["type"] = 0;         // disable all outputs, since used ones will be re-enabled next
+        if (controller->IsFullxLightsControl()) {
+            if (outputConfig.HasMember("channels")) {
+                wxJSONValue& channels = outputConfig["channels"];
+                for (const auto& key : channels.GetMemberNames()) {
+                    wxJSONValue& channel = channels[key];
+                    if (channel.HasMember("type"))
+                        channel["type"] = 0; // disable all outputs, since used ones will be re-enabled next
+                }
+                changed = true;
             }
         }
 
