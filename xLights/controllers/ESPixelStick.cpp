@@ -464,6 +464,18 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
 
         GetOutputConfig(outputConfig);
 
+        if (controller->IsFullxLightsControl()) {
+            if (outputConfig.HasMember("channels")) {
+                wxJSONValue& channels = outputConfig["channels"];
+                for (const auto& key : channels.GetMemberNames()) {
+                    wxJSONValue& channel = channels[key];
+                    if (channel.HasMember("type"))
+                        channel["type"] = 0; // disable all outputs, since used ones will be re-enabled next
+                }
+                changed = true;
+            }
+        }
+
         for (int x = 0; x < cud.GetMaxPixelPort(); x++) {
             if (cud.HasPixelPort(x + 1)) {
                 UDControllerPort* port = cud.GetControllerPixelPort(x + 1);
@@ -475,11 +487,18 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 int groupCount{ -1 };
                 int startNulls{ -1 };
                 int endNulls{ -1 };
+                int zigzag{ -1 };
                 auto s = port->GetModels().front();
                 if (s) {
                     brightness = s->GetBrightness(-1);
-                    colorOrder = MapV4ColorOrder(s->GetColourOrder(""));
+                    if (brightness < 0 && controller->IsFullxLightsControl()) {
+                        brightness = controller->GetDefaultBrightnessUnderFullControl();
+                    };
                     gamma = s->GetGamma(-1.0F);
+                    if (gamma < 0 && controller->IsFullxLightsControl()) {
+  						gamma = controller->GetDefaultGammaUnderFullControl();
+					};
+                    colorOrder = MapV4ColorOrder(s->GetColourOrder(""));
                     int gc = s->GetGroupCount(-1);
                     if (gc == 0) {
                         gc = 1;
@@ -487,6 +506,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                     groupCount = gc;
                     startNulls = s->GetStartNullPixels(-1);
                     endNulls = s->GetEndNullPixels(-1);
+                    zigzag = s->GetZigZag(1);
                 }
 
                 std::string outidx = std::to_string(x);
@@ -543,6 +563,13 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                             outputConfig["channels"][outidx][curIdx]["group_size"] = s_groupCount;
                         }
                     }
+                    if (zigzag != -1) {
+						std::string const s_zigzag = std::to_string(zigzag);
+                        if (s_zigzag != outputConfig["channels"][outidx][curIdx]["zig_size"].AsString()) {
+							changed = true;
+							outputConfig["channels"][outidx][curIdx]["zig_size"] = s_zigzag;
+						}
+					}
                     if (startNulls != -1) {
                         std::string const s_startNulls = std::to_string(startNulls);
                         if (s_startNulls != outputConfig["channels"][outidx][curIdx]["prependnullcount"].AsString()) {
