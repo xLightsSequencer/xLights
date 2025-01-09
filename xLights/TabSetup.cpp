@@ -70,6 +70,7 @@ const long xLightsFrame::ID_NETWORK_ACTIVEXLIGHTS = wxNewId();
 const long xLightsFrame::ID_NETWORK_INACTIVE = wxNewId();
 const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
 const long xLightsFrame::ID_NETWORK_UNLINKFROMBASE = wxNewId();
+const long xLightsFrame::ID_NETWORK_UPLOADOUTPUT = wxNewId();
 
 #pragma region Show Directory
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event) {
@@ -2198,6 +2199,8 @@ void xLightsFrame::OnListControllersItemRClick(wxListEvent& event) {
     bool allSelectedControllersFromBase = std::all_of(selectedControllers.begin(), selectedControllers.end(), [](const Controller* controller) { return controller->IsFromBase(); });
     bool enableActivateMenuItems = selectedControllers.size() > 0 && !anySelectedControllersFromBase;
     bool enableUnlinkFromBaseMenuItem = selectedControllers.size() > 0 && allSelectedControllersFromBase;
+    bool anySelectedControllersSupportUpload = std::any_of(selectedControllers.begin(), selectedControllers.end(), [](const Controller* controller) { return controller->SupportsUpload(); });
+    bool enableUploadMenuItem = selectedControllers.size() == 1 && anySelectedControllersSupportUpload;
 
     mnu.Append(ID_NETWORK_ADDETHERNET, ethernet)->Enable(ButtonAddControllerSerial->IsEnabled());
     mnu.Append(ID_NETWORK_ADDNULL, "Insert NULL")->Enable(ButtonAddControllerSerial->IsEnabled());
@@ -2207,6 +2210,7 @@ void xLightsFrame::OnListControllersItemRClick(wxListEvent& event) {
     mnu.Append(ID_NETWORK_INACTIVE, "Inactivate")->Enable(ButtonAddControllerSerial->IsEnabled() && enableActivateMenuItems);
     mnu.Append(ID_NETWORK_DELETE, "Delete")->Enable(ButtonAddControllerSerial->IsEnabled());
     mnu.Append(ID_NETWORK_UNLINKFROMBASE, "Unlink from Base Show Folder")->Enable(ButtonAddControllerSerial->IsEnabled() && enableUnlinkFromBaseMenuItem);
+    mnu.Append(ID_NETWORK_UPLOADOUTPUT, "Upload Output")->Enable(ButtonAddControllerSerial->IsEnabled() && enableUploadMenuItem);
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnListControllerPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -2273,6 +2277,9 @@ void xLightsFrame::OnListControllerPopup(wxCommandEvent& event) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:DELETE");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:DELETE");
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:DELETE");
+    }
+    else if (id == ID_NETWORK_UPLOADOUTPUT) {
+        OnButtonUploadOutputClick(event);
     }
 }
 #pragma endregion

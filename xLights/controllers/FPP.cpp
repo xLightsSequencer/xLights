@@ -778,8 +778,10 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
                     logger_base.debug("Renaming done.");
                 }
             }
+            logger_base.debug(utfFilename + " upload complete to " + this->hostName + " (" + this->ipAddress + "). Bytes sent:" + std::to_string(data->totalWritten) + ".");
         } else {
             messages.push_back("ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code));
+            faileduploads.push_back(filename);
             logger_base.warn("Did not get 200 response code:  %d", response_code);
         }
         
@@ -840,7 +842,8 @@ int progress_callback(void *clientp,
 
 void prepareCurlForMulti(V7ProgressStruct *ps) {
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     constexpr uint64_t BLOCK_SIZE = 16*1024*1024;
     CurlManager::CurlPrivateData *cpd = nullptr;
     CURL *curl = CurlManager::INSTANCE.createCurl(ps->fullUrl, &cpd, true);
@@ -869,6 +872,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
     if (read != remaining) {
         logger_curl.info("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
         ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
+        ps->instance->faileduploads.push_back(ps->filename);
     }
     std::string contentSizeHeader = "Content-Length: " + std::to_string(remaining);
     headers = curl_slist_append(headers, contentSizeHeader.c_str());
@@ -898,6 +902,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
             ++ps->errorCount;
         } else if (response_code != 200) {
             ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + ". Response code: " + std::to_string(response_code));
+            ps->instance->faileduploads.push_back(ps->filename);
             cancelled = true;
         } else {
             ps->offset += remaining;
@@ -905,6 +910,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
         uint64_t pct = (ps->offset * 1000) / ps->length;
         cancelled |= ps->instance->updateProgress(pct, false);
         if (cancelled || ps->offset >= ps->length) {
+            logger_base.debug(ps->filename + " upload complete to " + ps->instance->hostName + " (" + ps->instance->ipAddress + "). Bytes sent:" + std::to_string(ps->length) + ".");
             delete ps;
         } else {
             prepareCurlForMulti(ps);
@@ -3845,6 +3851,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 FPP *fpp = new FPP(res->ip, res->proxy, res->pixelControllerType);
                 fpp->ipAddress = res->ip;//not needed, in constructor
                 fpp->hostName = res->hostname;
+                fpp->uuid = res->uuid;
                 fpp->description = res->description;
                 fpp->platform = res->platform;
                 fpp->model = res->platformModel;
@@ -3874,6 +3881,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
             } else {
                 setIfEmpty(fpp->proxy, res->proxy);
                 setIfEmpty(fpp->hostName, res->hostname);
+                setIfEmpty(fpp->uuid, res->uuid);
                 setIfEmpty(fpp->description, res->description);
                 setIfEmpty(fpp->platform, res->platform);
                 setIfEmpty(fpp->model, res->platformModel);

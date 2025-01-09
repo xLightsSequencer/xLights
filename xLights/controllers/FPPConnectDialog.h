@@ -6,6 +6,7 @@
 
 //(*Headers(FPPConnectDialog)
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/panel.h>
@@ -27,6 +28,7 @@ class FPPConnectDialog: public wxDialog
 {
     void SaveSettings(bool onlyInsts = false);
     void ApplySavedHostSettings();
+    wxString Fixitup(wxString val);
 
 	public:
 
@@ -36,6 +38,8 @@ class FPPConnectDialog: public wxDialog
 		//(*Declarations(FPPConnectDialog)
 		wxButton* AddFPPButton;
 		wxButton* Button_Upload;
+		wxButton* ReDiscover;
+		wxCheckBox* KeepWinOpen;
 		wxChoice* ChoiceFilter;
 		wxChoice* ChoiceFolder;
 		wxFlexGridSizer* FPPInstanceSizer;
@@ -63,6 +67,8 @@ class FPPConnectDialog: public wxDialog
 		static const wxWindowID ID_PANEL1;
 		static const wxWindowID ID_SPLITTERWINDOW1;
 		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_BUTTON2;
+		static const wxWindowID ID_CHECKBOX1;
 		static const wxWindowID ID_BUTTON_Upload;
 		//*)
 
@@ -79,6 +85,7 @@ class FPPConnectDialog: public wxDialog
 		void OnClose(wxCloseEvent& event);
 		void SequenceListPopup(wxTreeListEvent& event);
 		void OnAddFPPButtonClick(wxCommandEvent& event);
+        void OnFPPReDiscoverClick(wxCommandEvent& event);
 		void OnChoiceFolderSelect(wxCommandEvent& event);
 		void OnChoiceFilterSelect(wxCommandEvent& event);
 		void HostSortMenu(wxContextMenuEvent& event);
@@ -119,7 +126,7 @@ class FPPConnectDialog: public wxDialog
         void doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload);
         std::vector<int> SplitIP(const wxString& ip) const; 
 
-        void SelectBatchRenderSeq();
+        void SequenceSelector(const std::string regexKey);
         void SelectIPsWithSubnet();
 
 		DECLARE_EVENT_TABLE()
