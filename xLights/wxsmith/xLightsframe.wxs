@@ -1189,6 +1189,11 @@
 					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_PASTE&quot;)' />
 				</object>
 				<object class="separator" />
+				<object class="wxMenuItem" name="ID_SHIFT_EFFECTS_AND_TIMING" variable="MenuItemShiftEffectsAndTiming" member="yes">
+					<label>Shift Effects And Timing</label>
+					<help>Use this options to shift all timing and effects in the sequence.</help>
+					<handler function="OnMenuItemShiftEffectsAndTimingSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_SHIFT_EFFECTS" variable="MenuItemShiftEffects" member="yes">
 					<label>Shift Effects</label>
 					<help>Use this options to shift all effects in the sequence.</help>
