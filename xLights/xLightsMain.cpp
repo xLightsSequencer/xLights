@@ -246,6 +246,7 @@ const wxWindowID xLightsFrame::ID_MENUITEM_RECENTFOLDERS = wxNewId();
 const wxWindowID xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const wxWindowID xLightsFrame::ID_FILE_RESTOREBACKUP = wxNewId();
 const wxWindowID xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
+const wxWindowID xLightsFrame::ID_SHIFT_EFFECTS_AND_TIMING = wxNewId();
 const wxWindowID xLightsFrame::ID_SHIFT_EFFECTS = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_SHIFT_SELECTED_EFFECTS = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_COLOURREPLACE = wxNewId();
@@ -961,6 +962,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuItem36->SetBitmap(GetMenuItemBitmapBundle("wxART_PASTE"));
     Menu3->Append(MenuItem36);
     Menu3->AppendSeparator();
+    MenuItemShiftEffectsAndTiming = new wxMenuItem(Menu3, ID_SHIFT_EFFECTS_AND_TIMING, _("Shift Effects And Timing"), _("Use this options to shift all timing and effects in the sequence."), wxITEM_NORMAL);
+    Menu3->Append(MenuItemShiftEffectsAndTiming);
     MenuItemShiftEffects = new wxMenuItem(Menu3, ID_SHIFT_EFFECTS, _("Shift Effects"), _("Use this options to shift all effects in the sequence."), wxITEM_NORMAL);
     Menu3->Append(MenuItemShiftEffects);
     MenuItemShiftSelectedEffects = new wxMenuItem(Menu3, ID_MNU_SHIFT_SELECTED_EFFECTS, _("Shift Selected Effects"), wxEmptyString, wxITEM_NORMAL);
@@ -1265,6 +1268,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_FILE_RESTOREBACKUP, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemRestoreBackupSelected);
     Connect(ID_FILE_ALTBACKUP, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnmAltBackupMenuItemSelected);
     Connect(wxID_EXIT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnQuit);
+    Connect(ID_SHIFT_EFFECTS_AND_TIMING, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftEffectsAndTimingSelected);
     Connect(ID_SHIFT_EFFECTS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftEffectsSelected);
     Connect(ID_MNU_SHIFT_SELECTED_EFFECTS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftSelectedEffectsSelected);
     Connect(ID_MNU_COLOURREPLACE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_ColorReplaceSelected);
@@ -7190,6 +7194,54 @@ void xLightsFrame::ExportEffects(wxString const& filename)
     f.Close();
 }
 
+void xLightsFrame::OnMenuItemShiftEffectsAndTimingSelected(wxCommandEvent& event)
+{
+    if (CurrentSeqXmlFile == nullptr)
+        return;
+    wxTextEntryDialog ted(this, "Enter the number of milliseconds to shift all effects and timing marks:\n\n"
+        "Note: Will be rounded to the nearest timing interval.\n"
+        "      This operation cannot be reversed with Undo.\n"
+        "      Effects shifted left may be truncated or deleted.",
+        "Shift Effects And Timings", "", wxOK | wxCANCEL | wxCENTER);
+    if (ted.ShowModal() == wxID_OK) {
+        int milliseconds = wxAtoi(ted.GetValue());
+        if (CurrentSeqXmlFile->GetSequenceLoaded()) {
+            wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+            int ms = wxAtoi(mss);
+            milliseconds /= ms;
+            milliseconds *= ms;
+        }
+        for (int elem = 0; elem < _sequenceElements.GetElementCount(MASTER_VIEW); elem++) {
+            Element* ele = _sequenceElements.GetElement(elem, MASTER_VIEW);
+            for (int layer = 0; layer < ele->GetEffectLayerCount(); layer++) {
+                EffectLayer* el = ele->GetEffectLayer(layer);
+                ShiftEffectsOnLayer(el, milliseconds);
+            }
+            if (ele->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                ModelElement* me = dynamic_cast<ModelElement*>(ele);
+                for (int i = 0; i < me->GetStrandCount(); ++i) {
+                    Element* se = me->GetStrand(i);
+                    StrandElement* ste = dynamic_cast<StrandElement*>(se);
+                    for (int k = 0; k < ste->GetNodeLayerCount(); ++k) {
+                        NodeLayer* nl = ste->GetNodeLayer(k, false);
+                        if (nl != nullptr) {
+                            ShiftEffectsOnLayer(nl, milliseconds);
+                        }
+                    }
+                }
+                for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i) {
+                    Element* se = me->GetSubModel(i);
+                    for (int layer = 0; layer < se->GetEffectLayerCount(); layer++) {
+                        EffectLayer* sel = se->GetEffectLayer(layer);
+                        ShiftEffectsOnLayer(sel, milliseconds);
+                    }
+                }
+            }
+        }
+        mainSequencer->PanelEffectGrid->Refresh();
+    }
+}
+
 void xLightsFrame::OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event)
 {
     wxTextEntryDialog ted(this, "Enter the number of milliseconds to shift the selected effects:\n\n"
@@ -7256,9 +7308,11 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
         }
         for (int elem = 0; elem < _sequenceElements.GetElementCount(MASTER_VIEW); elem++) {
             Element* ele = _sequenceElements.GetElement(elem, MASTER_VIEW);
-            for (int layer = 0; layer < ele->GetEffectLayerCount(); layer++) {
-                EffectLayer* el = ele->GetEffectLayer(layer);
-                ShiftEffectsOnLayer(el, milliseconds);
+            if (ele->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+                for (int layer = 0; layer < ele->GetEffectLayerCount(); layer++) {
+                    EffectLayer* el = ele->GetEffectLayer(layer);
+                    ShiftEffectsOnLayer(el, milliseconds);
+                }
             }
             if (ele->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 ModelElement* me = dynamic_cast<ModelElement*>(ele);
