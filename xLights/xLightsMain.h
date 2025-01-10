@@ -640,6 +640,7 @@ public:
     void OnButtonFPPConnectClick(wxCommandEvent& event);
     void OnButton_OpenBaseShowDirClick(wxCommandEvent& event);
     void OnMenuItemFindShowFolderSelected(wxCommandEvent& event);
+    void OnMenuItemShiftEffectsAndTimingSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -760,6 +761,7 @@ public:
     static const wxWindowID ID_FILE_BACKUP;
     static const wxWindowID ID_FILE_RESTOREBACKUP;
     static const wxWindowID ID_FILE_ALTBACKUP;
+    static const wxWindowID ID_SHIFT_EFFECTS_AND_TIMING;
     static const wxWindowID ID_SHIFT_EFFECTS;
     static const wxWindowID ID_MNU_SHIFT_SELECTED_EFFECTS;
     static const wxWindowID ID_MNU_COLOURREPLACE;
@@ -959,6 +961,7 @@ public:
     wxMenuItem* MenuItemSearchEffects;
     wxMenuItem* MenuItemSelectEffect;
     wxMenuItem* MenuItemShiftEffects;
+    wxMenuItem* MenuItemShiftEffectsAndTiming;
     wxMenuItem* MenuItemShiftSelectedEffects;
     wxMenuItem* MenuItemUserDict;
     wxMenuItem* MenuItemValueCurves;

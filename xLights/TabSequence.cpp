@@ -1675,6 +1675,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItem_ImportEffects->Enable(false);
         MenuItemShiftEffects->Enable(false);
         MenuItemShiftSelectedEffects->Enable(false);
+        MenuItemShiftEffectsAndTiming->Enable(false);
         MenuItem_ColorReplace->Enable(false);
         if (revertToMenuItem) revertToMenuItem->Enable(false);
     }
