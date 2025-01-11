@@ -3906,6 +3906,7 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 setIfEmpty(fpp->controllerVendor, res->vendor);
                 setIfEmpty(fpp->controllerModel, res->model);
                 setIfEmpty(fpp->controllerVariant, res->variant);
+
                 setIfEmpty(fpp->minorVersion, res->minorVersion);
                 setIfEmpty(fpp->patchVersion, res->patchVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
