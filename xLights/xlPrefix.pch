@@ -13,6 +13,8 @@
 #ifdef __WXMAC__
 #include "OpenGL/gl3.h"
 #define __gl_h_
+
+#define HASISPC 1
 #endif
 
 

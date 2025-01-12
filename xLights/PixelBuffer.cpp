@@ -22,6 +22,7 @@
 
 #include "DissolveTransitionPattern.h"
 #include "GPURenderUtils.h"
+#include "effects/ispc/ISPCComputeUtilities.h"
 #include "Parallel.h"
 #include "UtilFunctions.h"
 #include <cmath>
@@ -3078,7 +3079,8 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& val
         }
         sparkles = &sparklesVector[0];
     }
-    if (!GPURenderUtils::BlendLayers(this, EffectPeriod, validLayers, saveLayer, saveToPixels)) {
+    if (!GPURenderUtils::BlendLayers(this, EffectPeriod, validLayers, saveLayer, saveToPixels)
+        && !ISPCComputeUtilities::INSTANCE.blendLayers(this, EffectPeriod, validLayers, saveLayer, saveToPixels)) {
         for (int ii = (numLayers - 1); ii >= 0; --ii) {
             if (!validLayers[ii]) {
                 continue;

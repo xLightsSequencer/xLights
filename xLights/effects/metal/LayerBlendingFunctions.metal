@@ -128,7 +128,7 @@ kernel void GetColorsForNodes(constant LayerBlendingData &data,
             uchar4 c = src[nidx];
             
             x = nidx % data.bufferWi;
-            y = nidx / data.bufferHi;
+            y = nidx / data.bufferWi;
             midx = x * data.bufferHi + y;
             
             if (c.a > 0 && (!data.useMask || mask[midx] == 0)) {

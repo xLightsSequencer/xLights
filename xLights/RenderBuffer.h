@@ -559,7 +559,8 @@ private:
     xlColor *pixels = nullptr;
     xlColor *tempbuf = nullptr;
 
-    friend class MetalRenderBufferComputeData;
+    std::vector<uint32_t> blendBuffer;
+    std::vector<uint32_t> indexVector;
 public:
     uint32_t GetPixelCount() { return pixelVector.size(); }
     xlColor *GetPixels() { return pixels; }
@@ -608,4 +609,6 @@ private:
     void Forget();
     
     friend class MetalPixelBufferComputeData;
+    friend class MetalRenderBufferComputeData;
+    friend class ISPCComputeUtilities;
 };

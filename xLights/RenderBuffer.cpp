@@ -787,6 +787,7 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
         bool resetTPtr = tempbufVector.size() == 0 || tempbuf == &tempbufVector[0];
         pixelVector.resize(NumPixels);
         tempbufVector.resize(NumPixels);
+        blendBuffer.resize(NumPixels);
         if (resetPtr) {
             // If the pixels or tempbuf ptr did not point to the first element
             // originally, then it is pointing into GPU memory and we need
@@ -798,6 +799,42 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
             tempbuf = &tempbufVector[0];
         }
     }
+    
+    int indexCount = Nodes.size();
+    for (auto &n : Nodes) {
+        if (n->Coords.size() > 1) {
+            indexCount += n->Coords.size() + 1;
+        }
+    }
+    if (indexVector.size() < indexCount) {
+        indexVector.resize(indexCount);
+    }
+    int idx = 0;
+    int extraIdx = Nodes.size();
+    for (auto &n : Nodes) {
+        if (n->Coords.size() > 1) {
+            indexVector[idx] = extraIdx | 0x80000000;
+            int countIdx = extraIdx++;
+            indexVector[countIdx] = n->Coords.size();
+            for (auto &c : n->Coords) {
+                if (c.bufY < 0 || c.bufY >= BufferHt ||
+                    c.bufX < 0 || c.bufX >= BufferWi ) {
+                    indexVector[countIdx] -= 1;
+                } else {
+                    int32_t pidx = c.bufY * BufferWi + c.bufX;
+                    indexVector[extraIdx++] = pidx;
+                }
+            }
+        } else if (n->Coords[0].bufY < 0 || n->Coords[0].bufY >= BufferHt ||
+                   n->Coords[0].bufX < 0 || n->Coords[0].bufX >= BufferWi ) {
+            indexVector[idx] = -1;
+        } else {
+            int32_t pidx = n->Coords[0].bufY * BufferWi + n->Coords[0].bufX;
+            indexVector[idx] = pidx;
+        }
+        ++idx;
+    }
+    
     isTransformed = (bufferTransform != "None");
 }
 
