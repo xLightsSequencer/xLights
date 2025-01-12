@@ -1705,7 +1705,6 @@ void CustomModel::ExportXlightsModel()
     }
     wxString state = SerialiseState();
     if (state != "") {
-        state.Replace("&", "&amp;", true);
         f.Write(state);
     }
     wxString submodel = SerialiseSubmodel();
