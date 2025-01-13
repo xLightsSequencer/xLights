@@ -2543,6 +2543,7 @@ wxString Model::SerialiseFace() const
             }
             res += "/>\n";
         }
+        res.Replace("&", "&amp;", true);
     }
 
     return res;
@@ -2685,6 +2686,7 @@ wxString Model::SerialiseState() const
             }
             res += "/>\n";
         }
+        res.Replace("&", "&amp;", true);
     }
 
     return res;
