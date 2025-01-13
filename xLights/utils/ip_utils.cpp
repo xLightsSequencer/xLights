@@ -200,22 +200,24 @@ namespace ip_utils
         }
         std::unique_lock<std::mutex> lock(__resolvedIPMapLock);
         std::string resolvedIp = __resolvedIPMap[ip];
-        lock.unlock();
         if (resolvedIp.empty() || hasAlpha(ip)) {
-        std::string resolvedIp = __resolvedIPMap[ip];
             if (hasAlpha(ip))
                 __resolvedIPMap.erase(ip);
+
+            lock.unlock();
             ResolveJob *job = new ResolveJob(ip, func);
             RESOLVE_POOL.PushJob(job);
         } else {
+            lock.unlock();
             func(resolvedIp);
         }
     }
 
     void waitForAllToResolve() {
-        while (!RESOLVE_POOL.isEmpty()) {
+        int count = 0;
+        while (!RESOLVE_POOL.isEmpty() && count < 10000) {
             wxMilliSleep(2);
-            wxYieldIfNeeded();
+            //wxYieldIfNeeded();
         }
     }
 };
