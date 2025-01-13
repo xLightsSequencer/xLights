@@ -1251,8 +1251,7 @@ void EffectLayer::ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& und
     }
 }
 
-void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::tuple<int, int, float, int>>& dmxmappings, const EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
-{
+void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings, const EffectManager& effectManager, RangeAccumulator& rangeAccumulator) {
     DMXEffect* dmx = static_cast<DMXEffect*>(effectManager.GetEffect("DMX"));
 
     for (int i = 0; i < mEffects.size(); i++) {

@@ -1583,8 +1583,7 @@ void MainSequencer::ApplyButtonPressToSelected(const std::string& effectName, co
     return PanelEffectGrid->ApplyButtonPressToSelected(effectName, id);
 }
 
-void MainSequencer::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int>>& dmxmappings)
-{
+void MainSequencer::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings) {
     return PanelEffectGrid->RemapSelectedDMXEffectValues(dmxmappings);
 }
 

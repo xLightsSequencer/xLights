@@ -51,7 +51,7 @@ RemapDMXChannelsDialog::RemapDMXChannelsDialog(wxWindow* parent, wxWindowID id,c
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(0);
 	Grid1 = new wxGrid(ScrolledWindow1, ID_GRID1, wxDefaultPosition, wxSize(609,400), 0, _T("ID_GRID1"));
-	Grid1->CreateGrid(48,4);
+	Grid1->CreateGrid(48,5);
 	Grid1->EnableEditing(true);
 	Grid1->EnableGridLines(true);
 	Grid1->SetDefaultColSize(150, true);
@@ -59,6 +59,7 @@ RemapDMXChannelsDialog::RemapDMXChannelsDialog(wxWindow* parent, wxWindowID id,c
 	Grid1->SetColLabelValue(1, _("Map To"));
 	Grid1->SetColLabelValue(2, _("Scale"));
 	Grid1->SetColLabelValue(3, _("Offset"));
+	Grid1->SetColLabelValue(4, _("Invert"));
 	Grid1->SetDefaultCellFont( Grid1->GetFont() );
 	Grid1->SetDefaultCellTextColour( Grid1->GetForegroundColour() );
 	FlexGridSizer3->Add(Grid1, 0, wxEXPAND, 0);
@@ -92,12 +93,15 @@ RemapDMXChannelsDialog::RemapDMXChannelsDialog(wxWindow* parent, wxWindowID id,c
     wxGridCellAttr *ca = new wxGridCellAttr();
     ca->SetKind(wxGridCellAttr::wxAttrKind::Col);
     ca->SetReadOnly();
-    Grid1->SetColAttr(0, ca);
+    Grid1->SetColAttr(DMXMappingColumns::From, ca);
 
-    Grid1->SetColFormatFloat(2,3,2);
-    Grid1->SetColFormatNumber(3);
-    Grid1->SetColSize(2, 75);
-    Grid1->SetColSize(3, 75);
+    Grid1->SetColFormatFloat(DMXMappingColumns::Scale, 3, 2);
+    Grid1->SetColFormatNumber(DMXMappingColumns::Offset);
+    Grid1->SetColSize(DMXMappingColumns::Scale, 75);
+    Grid1->SetColSize(DMXMappingColumns::Offset, 75);
+
+	wxArrayString invert_options{ "Copy", "Check", "Uncheck" };
+    wxGridCellChoiceEditor* invert_editor = new wxGridCellChoiceEditor(invert_options);
 
     wxArrayString mapTo;
     for (int i = 0; i < 48; i++)
@@ -107,6 +111,8 @@ RemapDMXChannelsDialog::RemapDMXChannelsDialog(wxWindow* parent, wxWindowID id,c
         Grid1->SetCellValue(i, DMXMappingColumns::To, mapTo[i]);
         Grid1->SetCellValue(i, DMXMappingColumns::Scale, "1.00");
         Grid1->SetCellValue(i, DMXMappingColumns::Offset, "0");
+        Grid1->SetCellValue(i, DMXMappingColumns::Invert, invert_options.front());
+        Grid1->SetCellEditor(i, DMXMappingColumns::Invert, invert_editor);
     }
     wxGridCellChoiceEditor *editor = new wxGridCellChoiceEditor(mapTo);
     Grid1->SetDefaultEditor(editor);
@@ -137,11 +143,12 @@ void RemapDMXChannelsDialog::OnButton_SaveMappingClick(wxCommandEvent& event)
 		if (output.IsOk()) {
 			wxTextOutputStream text(output);
 			for (int i = 0; i < Grid1->GetNumberRows(); i++) {
-				text.WriteString(wxString::Format("%s,%s,%s,%s\n", 
+				text.WriteString(wxString::Format("%s,%s,%s,%s,%s\n", 
 					Grid1->GetCellValue(i, DMXMappingColumns::From),
 					Grid1->GetCellValue(i, DMXMappingColumns::To),
 					Grid1->GetCellValue(i, DMXMappingColumns::Scale), 
-					Grid1->GetCellValue(i, DMXMappingColumns::Offset)));
+					Grid1->GetCellValue(i, DMXMappingColumns::Offset),
+					Grid1->GetCellValue(i, DMXMappingColumns::Invert)));
 			}
 			output.Close();
 		}
@@ -168,11 +175,16 @@ int RemapDMXChannelsDialog::GetChanOffset(int idx)
 	return wxAtoi(Grid1->GetCellValue(idx, DMXMappingColumns::Offset));
 }
 
+wxString RemapDMXChannelsDialog::GetChanInvert(int idx) {
+    return Grid1->GetCellValue(idx, DMXMappingColumns::Invert);
+}
+
 bool RemapDMXChannelsDialog::DoMapping(int idx)
 {
 	return Grid1->GetCellValue(idx, DMXMappingColumns::From) != Grid1->GetCellValue(idx, DMXMappingColumns::To)
 		|| GetChanOffset(idx) != 0 
-		|| abs(GetChanScale(idx) - 1.0) > 0.0001;
+		|| abs(GetChanScale(idx) - 1.0) > 0.0001 
+		|| GetChanInvert(idx) != "Copy";
 }
 
 int RemapDMXChannelsDialog::GetToChannel(int idx)
@@ -196,24 +208,29 @@ void RemapDMXChannelsDialog::OnButton_LoadMappingClick(wxCommandEvent& event)
 			auto line = text.ReadLine();
 			while (line != "" && i < Grid1->GetNumberRows()) {
 				auto const ll = wxSplit(line, ',');
-				if (ll.size() == 2 || ll.size() == 4) {
+                if (ll.size() == 2 || ll.size() == 4 || ll.size() == 5) {
                     if (Grid1->GetCellValue(i, DMXMappingColumns::From) == ll[0]) {
 						if (IsValidRemapping(ll[1])) {
                             Grid1->SetCellValue(i, DMXMappingColumns::To, ll[1]);
-                            if (ll.size() == 4) {
+                            if (ll.size() == 4 || ll.size() == 5) {
                                 Grid1->SetCellValue(i, DMXMappingColumns::Scale, ll[2]);
                                 Grid1->SetCellValue(i, DMXMappingColumns::Offset, ll[3]);
                             }
+                            if (ll.size() == 5) {
+                                Grid1->SetCellValue(i, DMXMappingColumns::Invert, ll[4]);
+                            }
 						}
-					}
-					else {
+					} else {
 						for (int ii = 0; ii < Grid1->GetNumberRows(); ii++) {
                             if (Grid1->GetCellValue(ii, DMXMappingColumns::From) == ll[0]) {
 								if (IsValidRemapping(ll[1])) {
                                     Grid1->SetCellValue(ii, DMXMappingColumns::To, ll[1]);
-                                    if (ll.size() == 4) {
+                                    if (ll.size() == 4 || ll.size() == 5) {
                                         Grid1->SetCellValue(ii, DMXMappingColumns::Scale, ll[2]);
                                         Grid1->SetCellValue(ii, DMXMappingColumns::Offset, ll[3]);
+                                    }
+                                    if (ll.size() == 5) {
+                                        Grid1->SetCellValue(i, DMXMappingColumns::Invert, ll[4]);
                                     }
 								}
 								ii = Grid1->GetNumberRows();

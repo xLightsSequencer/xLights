@@ -1065,6 +1065,13 @@ void DMXPanel::OnButtonRemapClick(wxCommandEvent& event)
                 int offset {dlg.GetChanOffset(i)};
                 int new_value = ((double)sliders[from] * scale) + offset;
 
+                auto const& inv = dlg.GetChanInvert(i);
+                if (inv == "Check") {
+                    checks[from] = true;
+                } else if (inv == "Uncheck") {
+                    checks[from] = false;
+                }
+
                 text->SetValue(wxString::Format("%d", new_value));
                 slider->SetValue(new_value);
                 check_box->SetValue(checks[from]);
@@ -1104,13 +1111,13 @@ void DMXPanel::OnChoicePopup(wxCommandEvent& event)
     RemapDMXChannelsDialog dlg(this);
     if (dlg.ShowModal() == wxID_OK)
     {
-        std::vector<std::tuple<int, int, float, int>> dmxmappings;
+        std::vector<std::tuple<int, int, float, int, wxString>> dmxmappings;
 
         for (int i = 0; i < DMX_CHANNELS; i++)
         {
             if (dlg.DoMapping(i))
             {
-                dmxmappings.push_back(std::make_tuple( i + 1,dlg.GetToChannel(i), dlg.GetChanScale(i), dlg.GetChanOffset(i) ));
+                dmxmappings.push_back(std::make_tuple(i + 1, dlg.GetToChannel(i), dlg.GetChanScale(i), dlg.GetChanOffset(i), dlg.GetChanInvert(i)));
             }
         }
 

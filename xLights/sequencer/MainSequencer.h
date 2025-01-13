@@ -59,7 +59,7 @@ class MainSequencer: public wxPanel
         void ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
         std::list<std::string> GetUniqueEffectPropertyValues(const std::string& id);
         void ApplyButtonPressToSelected(const std::string& effectName, const std::string id);
-        void RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int>>& dmxmappings);
+        void RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings);
         void ConvertSelectedEffectsTo(const std::string& effectName);
         Effect* SelectEffectUsingDescription(std::string description);
         Effect* SelectEffectUsingElementLayerTime(std::string element, int layer, int time);
