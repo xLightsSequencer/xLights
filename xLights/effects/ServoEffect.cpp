@@ -340,7 +340,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
             }
         }
     }
-    if (effect->IsBackgroundDisplayListEnabled()) {
+    if (effect->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
         std::unique_lock<std::recursive_mutex> lock(effect->GetBackgroundDisplayList().lock);
         effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);
         int total = buffer.curEffEndPer - buffer.curEffStartPer + 1;

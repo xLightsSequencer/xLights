@@ -224,7 +224,7 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
 
     if (buffer.needToInit) {
         buffer.needToInit = false;
-        if (eff->IsBackgroundDisplayListEnabled()) {
+        if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
             std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
             int rects = (Skips_SkipSize + Skips_BandSize) * (buffer.curEffEndPer - buffer.curEffStartPer + 1);
             eff->GetBackgroundDisplayList().resize(rects * 6);
@@ -293,7 +293,7 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
     max = Skips_SkipSize + Skips_BandSize - 1;
     if (max >= buffer.BufferWi) max = buffer.BufferWi - 1;
 
-    if (eff->IsBackgroundDisplayListEnabled()) {
+    if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
         buffer.CopyPixelsToDisplayListX(eff, 0, 0, max);
     }
 }
@@ -414,12 +414,12 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
         rectInc = numRects / 32;
     }
     int rects = (numRects + rectInc) * (buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6 / rectInc;
-    if (!eff->IsBackgroundDisplayListEnabled()) {
+    if (!eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
         rects = 0;
     }
     if (buffer.needToInit || rects >= eff->GetBackgroundDisplayList().size()) {
         buffer.needToInit = false;
-        if (eff->IsBackgroundDisplayListEnabled()) {
+        if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
             std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
             eff->GetBackgroundDisplayList().resize(rects);
         }
@@ -551,7 +551,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
             draw_chase(buffer, DoubleEnd ? x - 1 * scaledChaseWidth : x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Fade_Type, bool(ChaseDirection) == DoubleEnd, Mirror);
         }
     }
-    if (eff->IsBackgroundDisplayListEnabled()) {
+    if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
         buffer.CopyPixelsToDisplayListX(eff, 0, 0, numRects, rectInc);
     }
 }

@@ -261,13 +261,13 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
     }
 
     if (shimmer || cycles != 1.0 || gradientcolour || spatialcolour) {
-        if (eff->IsBackgroundDisplayListEnabled()) {
+        if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
             std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
             eff->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);
             buffer.CopyPixelsToDisplayListX(eff, 0, 0, 0);
         }
     } else if (buffer.needToInit) {
-        if (eff->IsBackgroundDisplayListEnabled()) {
+        if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
             std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
             eff->GetBackgroundDisplayList().resize(6);
             if (start == 100 && end == 100) {

@@ -963,6 +963,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
         GPURenderUtils::setupRenderBuffer(this, buf, layer);
+        buf->perModelIndex = layers[layer]->shallowModelBuffers.size();
         layers[layer]->shallowModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
@@ -976,6 +977,7 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
         GPURenderUtils::setupRenderBuffer(this, buf, layer);
+        buf->perModelIndex = layers[layer]->deepModelBuffers.size();
         layers[layer]->deepModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }

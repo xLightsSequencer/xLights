@@ -595,6 +595,7 @@ public:
     //place for GPU Renderers to attach extra data/objects it needs
     void *gpuRenderData = nullptr;
 
+    uint32_t perModelIndex = 0;
 private:
     PixelBufferClass *parent;
     const Model *model;
