@@ -810,6 +810,10 @@
 		<Unit filename="effects/assist/xlGridCanvasMorph.h" />
 		<Unit filename="effects/assist/xlGridCanvasPictures.cpp" />
 		<Unit filename="effects/assist/xlGridCanvasPictures.h" />
+		<Unit filename="effects/ispc/ISPCComputeUtilities.cpp" />
+		<Unit filename="effects/ispc/ISPCComputeUtilities.h" />
+		<Unit filename="effects/ispc/LayerBlendingFunctions.ispc" />
+		<Unit filename="effects/ispc/LayerBlendingFunctions.ispc.h" />
 		<Unit filename="graphics/opengl/DrawGLUtils.cpp" />
 		<Unit filename="graphics/opengl/DrawGLUtils.h" />
 		<Unit filename="graphics/opengl/xlGLCanvas.cpp" />
@@ -1553,9 +1557,6 @@
 					<wxDialog wxs="wxsmith/ShowFolderSearchDialog.wxs" src="ShowFolderSearchDialog.cpp" hdr="ShowFolderSearchDialog.h" fwddecl="0" i18n="1" name="ShowFolderSearchDialog" language="CPP" />
 				</resources>
 			</wxsmith>
-			<code_completion />
-			<envvars />
-			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
