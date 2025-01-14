@@ -26,10 +26,20 @@ SUDO		= `which sudo`
 SUBDIRS         = xLights xSchedule xCapture xFade xScanner xSchedule/xSMSDaemon xSchedule/RemoteFalcon
 
 WXWIDGETS_TAG=xlights_2024.20
+ISPC_VERSION=1.25.3
+ISPC_ARCH=$(shell uname -m)
+
+ifeq '$(ISPC_ARCH)' 'aarch64'
+ISPC_URL=https://github.com/ispc/ispc/releases/download/v${ISPC_VERSION}/ispc-v${ISPC_VERSION}-linux.aarch64.tar.gz
+ISPC_DIR=ispc-v${ISPC_VERSION}-linux.aarch64
+else
+ISPC_URL=https://github.com/ispc/ispc/releases/download/v${ISPC_VERSION}/ispc-v${ISPC_VERSION}-linux.tar.gz
+ISPC_DIR=ispc-v${ISPC_VERSION}-linux
+endif
 
 .NOTPARALLEL:
 
-all: wxwidgets33 log4cpp cbp2make linkliquid libxlsxwriter makefile subdirs
+all: wxwidgets33 log4cpp cbp2make linkliquid libxlsxwriter ispc makefile subdirs
 
 #############################################################################
 
@@ -89,6 +99,16 @@ wxwidgets33: FORCE
 		$(SUDO) ${MAKE} install DESTDIR=$(DESTDIR); \
 		echo Completed build/install of wxwidgets; \
         fi
+
+ispc: FORCE	
+	@printf "Checking ispc\n"
+	@if test "`./ispc --version`" != "$(ISPC_VERSION)"; \
+		then if test ! -f ispc-$(ISPC_VERSION).tar.gz; \
+			then echo Downloading iscp $(ISPC_URL); curl -L -o ispc-$(ISPC_VERSION).tar.gz $(ISPC_URL) ; \
+		fi; \
+		tar -xzf ispc-$(ISPC_VERSION).tar.gz; \
+		ln -s -f $(ISPC_DIR)/bin/ispc ispc; \
+		fi
 
 
 #############################################################################
@@ -175,6 +195,7 @@ xLights/xLights.cbp.mak: xLights/xLights.cbp
 		| sed \
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
+			-e "s#all: linux_debug linux_release#include ../build_scripts/linux/*.mak\n\nall: linux_debug linux_release#" \
 		> xLights/xLights.cbp.mak
 
 xSchedule/xSchedule.cbp.mak: xSchedule/xSchedule.cbp

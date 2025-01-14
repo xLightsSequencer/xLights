@@ -16,6 +16,10 @@
 
 ISPCComputeUtilities ISPCComputeUtilities::INSTANCE;
 
+#ifndef __WXMSW__
+//  #define HASISPC
+#endif
+
 
 #ifdef HASISPC
 #include "LayerBlendingFunctions.ispc.h"

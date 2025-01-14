@@ -812,7 +812,10 @@
 		<Unit filename="effects/assist/xlGridCanvasPictures.h" />
 		<Unit filename="effects/ispc/ISPCComputeUtilities.cpp" />
 		<Unit filename="effects/ispc/ISPCComputeUtilities.h" />
-		<Unit filename="effects/ispc/LayerBlendingFunctions.ispc" />
+		<Unit filename="effects/ispc/LayerBlendingFunctions.ispc">
+			<Option link="1" />
+			<Option compiler="gcc" use="0" buildCommand="../ispc-v1.25.3-linux.aarch64/bin/ispc -o $object $file" />
+		</Unit>
 		<Unit filename="effects/ispc/LayerBlendingFunctions.ispc.h" />
 		<Unit filename="graphics/opengl/DrawGLUtils.cpp" />
 		<Unit filename="graphics/opengl/DrawGLUtils.h" />
