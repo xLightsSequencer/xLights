@@ -3830,13 +3830,27 @@ inline void setIfEmpty(uint32_t &val, uint32_t nv) {
     }
 }
 
-void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager) {
+void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, OutputManager* outputManager) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::unordered_set<std::string> configuredIPs;
+    bool foundActiveController = false;
+    uint16_t activePlayerCount = 0;
+    std::unordered_set<std::string> allProxyList;
+    std::map<std::string, std::string> configuredIPs;
+    if (discovery.GetOutputManager()->GetGlobalFPPProxy() != "") {
+        auto ip = ip_utils::ResolveIP(discovery.GetOutputManager()->GetGlobalFPPProxy());
+        allProxyList.insert(ip);
+    };
     for (auto& it : discovery.GetOutputManager()->GetControllers()) {
-		auto c = dynamic_cast<ControllerEthernet*>(it);
-            configuredIPs.insert(c->GetResolvedIP());
-	}
+        auto c = dynamic_cast<ControllerEthernet*>(it);
+        configuredIPs[c->GetResolvedIP()] = c->GetIP();
+        if (!c->GetFPPProxy().empty()) {
+            auto ip = ip_utils::ResolveIP(c->GetFPPProxy());
+            allProxyList.insert(ip);
+        }
+        if (Controller::DecodeActiveState(c->GetActive()) == "Active") {
+            foundActiveController = true;
+        }
+    }
     for (auto res : discovery.GetResults()) {
         if (::supportedForFPPConnect(res, outputManager)) {
             logger_base.info("FPP Discovery - Found Supported FPP Instance: %s (u: %s)(h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
@@ -3887,6 +3901,15 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 if (res->extraData.HasMember("cape")) {
                     fpp->capeInfo = res->extraData["cape"];
                 }
+                auto it = configuredIPs.find(res->ip);
+                if (it != configuredIPs.end()) {
+                    if (allProxyList.count(it->first) > 0 || allProxyList.count(it->second) > 0) {
+                        fpp->isaProxy = true;
+                    }
+                }
+                if (StartsWith(res->mode, "player")) {
+                    activePlayerCount++;
+                };
                 instances.push_back(fpp);
             } else if (!skipit) {
                 fpp->ipAddress = res->ip;
@@ -3906,7 +3929,6 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 setIfEmpty(fpp->controllerVendor, res->vendor);
                 setIfEmpty(fpp->controllerModel, res->model);
                 setIfEmpty(fpp->controllerVariant, res->variant);
-
                 setIfEmpty(fpp->minorVersion, res->minorVersion);
                 setIfEmpty(fpp->patchVersion, res->patchVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
@@ -3922,6 +3944,11 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
             }
         } else {
             logger_base.info("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());
+        }
+    }
+    for (auto f : instances) {
+        if (activePlayerCount == 1 && StartsWith(f->mode, "player")) {
+            f->solePlayer = true;
         }
     }
 }
