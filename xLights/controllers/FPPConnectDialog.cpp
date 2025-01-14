@@ -689,7 +689,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
     ApplySavedHostSettings();
 
     FPPInstanceList->FitInside();
-    FPPInstanceList->SetScrollRate(10, 10);
+    FPPInstanceList->SetScrollRate(100, 100);
     FPPInstanceList->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
     FPPInstanceList->Thaw();
 }
