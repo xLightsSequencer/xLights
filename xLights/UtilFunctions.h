@@ -49,6 +49,7 @@ bool IsVersionOlder(const std::string &compare, const std::string &version);
 std::string JSONSafe(const std::string& s);
 std::string UnXmlSafe(const std::string &s);
 std::string XmlSafe(const std::string& s);
+bool IsXmlSafe(const std::string& s);
 std::string RemoveUnsafeXmlChars(const std::string& s);
 std::string EscapeCSV(const std::string& s);
 std::string EscapeRegex(const std::string& s);
