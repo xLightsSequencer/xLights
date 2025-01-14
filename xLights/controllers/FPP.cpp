@@ -3186,7 +3186,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         std::string hostName = system[HostNameKey].IsNull() ? "" : ToUTF8(system[HostNameKey].AsString());
         std::string uuid = system.HasMember("uuid") ? ToUTF8(system["uuid"].AsString()) : (system.HasMember("UUID") ? ToUTF8(system["UUID"].AsString()) : "");
         
-        logger_base.info("Processing ip: %s   host: %s    uuid: %s", address.c_str(), hostName.c_str(), uuid.c_str());
+        //logger_base.info("Processing ip: %s   host: %s    uuid: %s", address.c_str(), hostName.c_str(), uuid.c_str());
         if (!uuid.empty()) {
             fppDiscInfo.insert({ hostName, address, uuid });
         }
@@ -3329,11 +3329,6 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 });
             }
        }
-        //for (const auto& [ip, hostAnduuid] : fppDiscInfo) {
-       for (const auto& info : fppDiscInfo) {
-            //logger_base.info("IP: %s, HostName: %s, UUID: %s", info.hostname.ToStdString().c_str(), hostAnduuid.first.ToStdString().c_str(), hostAnduuid.second.ToStdString().c_str());
-           logger_base.info("HostName: %s, UUID: %s, IP: %s", info.hostname.c_str(), info.uuid.c_str(), info.ip.c_str());
-        }
    }
 }
 static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const std::string &proxies) {
@@ -3572,8 +3567,8 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
         snprintf(ip, sizeof(ip), "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
         //printf("Ping %s\n", ip);
         if (strcmp(ip, "0.0.0.0")) {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.info("FPP Discovery - Received Ping response from %s", ip);
+            //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            //logger_base.info("FPP Discovery - Received Ping response from %s", ip);
             AddTraceMessage("Received UDP result " + std::string(ip));
 
             //we found a system!!!
@@ -3835,19 +3830,48 @@ inline void setIfEmpty(uint32_t &val, uint32_t nv) {
     }
 }
 
-void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager) {
+void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, OutputManager* outputManager) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool foundActiveController = false;
+    uint16_t activePlayerCount = 0;
+    std::unordered_set<std::string> allProxyList;
+    std::map<std::string, std::string> configuredIPs;
+    if (discovery.GetOutputManager()->GetGlobalFPPProxy() != "") {
+        auto ip = ip_utils::ResolveIP(discovery.GetOutputManager()->GetGlobalFPPProxy());
+        allProxyList.insert(ip);
+    };
+    for (auto& it : discovery.GetOutputManager()->GetControllers()) {
+        auto c = dynamic_cast<ControllerEthernet*>(it);
+        configuredIPs[c->GetResolvedIP()] = c->GetIP();
+        if (!c->GetFPPProxy().empty()) {
+            auto ip = ip_utils::ResolveIP(c->GetFPPProxy());
+            allProxyList.insert(ip);
+        }
+        if (Controller::DecodeActiveState(c->GetActive()) == "Active") {
+            foundActiveController = true;
+        }
+    }
     for (auto res : discovery.GetResults()) {
         if (::supportedForFPPConnect(res, outputManager)) {
-            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s (h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
+            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s (u: %s)(h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
             FPP *fpp = nullptr;
+            bool skipit = false;
 
             for (auto f : instances) {
                 if (f->ipAddress == res->ip) {
                     fpp = f;
                 }
+                if (!res->uuid.empty() && f->uuid == res->uuid) {
+                    if (configuredIPs.count(res->ip) > 0) {
+                        logger_base.info("FPP Discovery - Found Configured IP - %s for the same UUID - %s. Going to use this instead.", res->ip.c_str(), res->uuid.c_str());
+                        fpp = f;
+                    } else {
+                        skipit = true;
+                    }
+                }
             }
-            if (fpp == nullptr) {
+
+            if (!skipit && fpp == nullptr) {
                 FPP *fpp = new FPP(res->ip, res->proxy, res->pixelControllerType);
                 fpp->ipAddress = res->ip;//not needed, in constructor
                 fpp->hostName = res->hostname;
@@ -3877,8 +3901,18 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 if (res->extraData.HasMember("cape")) {
                     fpp->capeInfo = res->extraData["cape"];
                 }
+                auto it = configuredIPs.find(res->ip);
+                if (it != configuredIPs.end()) {
+                    if (allProxyList.count(it->first) > 0 || allProxyList.count(it->second) > 0) {
+                        fpp->isaProxy = true;
+                    }
+                }
+                if (StartsWith(res->mode, "player")) {
+                    activePlayerCount++;
+                };
                 instances.push_back(fpp);
-            } else {
+            } else if (!skipit) {
+                fpp->ipAddress = res->ip;
                 setIfEmpty(fpp->proxy, res->proxy);
                 setIfEmpty(fpp->hostName, res->hostname);
                 setIfEmpty(fpp->uuid, res->uuid);
@@ -3895,7 +3929,6 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 setIfEmpty(fpp->controllerVendor, res->vendor);
                 setIfEmpty(fpp->controllerModel, res->model);
                 setIfEmpty(fpp->controllerVariant, res->variant);
-
                 setIfEmpty(fpp->minorVersion, res->minorVersion);
                 setIfEmpty(fpp->patchVersion, res->patchVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
@@ -3911,6 +3944,11 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
             }
         } else {
             logger_base.info("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());
+        }
+    }
+    for (auto f : instances) {
+        if (activePlayerCount == 1 && StartsWith(f->mode, "player")) {
+            f->solePlayer = true;
         }
     }
 }

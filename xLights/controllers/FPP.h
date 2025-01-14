@@ -59,6 +59,8 @@ class FPP : public BaseController
 
     std::string proxy;
     std::set<std::string> proxies;
+    bool isaProxy = false;
+    bool solePlayer = false;
 
     std::string username;
     std::string password;

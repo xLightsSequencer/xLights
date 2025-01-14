@@ -620,9 +620,14 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             Choice1->Append(_("Proxied"));
             Choice1->SetSelection(0);
             FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-
+            if (inst->solePlayer) {
+				SetChoiceValueIndex(UDP_COL + rowStr, 1);
+			} else if (inst->isaProxy) {
+				SetChoiceValueIndex(UDP_COL + rowStr, 2);
+			}
             wxCheckBox* CheckBoxProxy = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, PROXY_COL + rowStr);
             FPPInstanceSizer->Add(CheckBoxProxy, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+			CheckBoxProxy->SetValue(inst->isaProxy);
 
             //playlist combo box
             if (StartsWith(inst->mode, "player")) {
@@ -684,7 +689,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
     ApplySavedHostSettings();
 
     FPPInstanceList->FitInside();
-    FPPInstanceList->SetScrollRate(10, 10);
+    FPPInstanceList->SetScrollRate(100, 100);
     FPPInstanceList->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
     FPPInstanceList->Thaw();
 }
@@ -1553,13 +1558,36 @@ void FPPConnectDialog::SaveSettings(bool onlyInsts)
         std::string rowStr = std::to_string(row);
         wxString keyPostfx = (inst->uuid.empty() ? inst->ipAddress : inst->uuid);
         keyPostfx = Fixitup(keyPostfx);
-        config->Write("FPPConnectUpload_" + keyPostfx, GetCheckValue(CHECK_COL + rowStr));
-        config->Write("FPPConnectUploadMedia_" + keyPostfx, GetCheckValue(MEDIA_COL + rowStr));
-        config->Write("FPPConnectUploadFSEQType_" + keyPostfx, GetChoiceValueIndex(FSEQ_COL + rowStr));
-        config->Write("FPPConnectUploadModels_" + keyPostfx, GetChoiceValueIndex(MODELS_COL + rowStr));
-        config->Write("FPPConnectUploadUDPOut_" + keyPostfx, GetChoiceValueIndex(UDP_COL + rowStr));
-        config->Write("FPPConnectUploadPixelOut_" + keyPostfx, GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr));
-        config->Write("FPPConnectUploadProxy_" + keyPostfx, GetCheckValue(PROXY_COL + rowStr));
+        bool bval;
+        int lval;
+        // only save the settings if they are different from defaults, or if previously changed and saved - this will help new users with auto setting up UPD & proxy
+        if (GetCheckValue(CHECK_COL + rowStr) != false || config->Read("FPPConnectUpload_" + Fixitup(inst->uuid), &bval)) {
+            config->Write("FPPConnectUpload_" + keyPostfx, GetCheckValue(CHECK_COL + rowStr));
+        }
+        if (GetCheckValue(MEDIA_COL + rowStr) != false || config->Read("FPPConnectUploadMedia_" + Fixitup(inst->uuid), &bval)) {
+            config->Write("FPPConnectUploadMedia_" + keyPostfx, GetCheckValue(MEDIA_COL + rowStr));
+        }
+        if (inst->fppType == FPP_TYPE::FPP && inst->supportedForFPPConnect()) {
+            if (GetChoiceValueIndex(FSEQ_COL + rowStr) != 2 || config->Read("FPPConnectUploadFSEQType_" + Fixitup(inst->uuid), &lval)) {
+                config->Write("FPPConnectUploadFSEQType_" + keyPostfx, GetChoiceValueIndex(FSEQ_COL + rowStr));
+            }
+        } else if (inst->fppType == FPP_TYPE::FALCONV4V5) {
+            if (GetChoiceValueIndex(FSEQ_COL + rowStr) != 2 || config->Read("FPPConnectUploadFSEQType_" + Fixitup(inst->uuid), &lval)) {
+                config->Write("FPPConnectUploadFSEQType_" + keyPostfx, GetChoiceValueIndex(FSEQ_COL + rowStr));
+            }
+        }
+        if (GetChoiceValueIndex(MODELS_COL + rowStr) != 0 || config->Read("FPPConnectUploadModels_" + Fixitup(inst->uuid), &lval)) {
+            config->Write("FPPConnectUploadModels_" + keyPostfx, GetChoiceValueIndex(MODELS_COL + rowStr));
+        }
+        if (GetChoiceValueIndex(UDP_COL + rowStr) > 0 || config->Read("FPPConnectUploadUDPOut_" + Fixitup(inst->uuid), &lval)) {
+            config->Write("FPPConnectUploadUDPOut_" + keyPostfx, GetChoiceValueIndex(UDP_COL + rowStr));
+        }
+        if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) != false || config->Read("FPPConnectUploadPixelOut_" + Fixitup(inst->uuid), &bval)) {
+            config->Write("FPPConnectUploadPixelOut_" + keyPostfx, GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr));
+        }
+        if (GetCheckValue(PROXY_COL + rowStr) != false || config->Read("FPPConnectUploadProxy_" + Fixitup(inst->uuid), &bval)) {
+            config->Write("FPPConnectUploadProxy_" + keyPostfx, GetCheckValue(PROXY_COL + rowStr));
+        }
         row++;
     }
     config->Flush();
