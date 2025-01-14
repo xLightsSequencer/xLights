@@ -156,6 +156,13 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
         return;
     }
 
+    wxJSONValue config;
+
+    if (!GetJSONData(GetConfigURL(), config)) {
+        logger_base.error("Error connecting to Genius controller on %s.", (const char*)_ip.c_str());
+        return;
+    }
+
     if (data.Size() > 0) {
         // decode controller type
         _model = data["system"]["controller_model_name"].AsString();
@@ -176,6 +183,9 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
         _connected = false;
         logger_base.error("Error connecting to Genius controller on %s.", (const char*)_ip.c_str());
         DisplayError(wxString::Format("Error connecting to Genius controller on %s.", _ip).ToStdString());
+    }
+    if (config.Size() > 0) {
+        _opMode = config["system"]["operating_mode"].AsString();
     }
 }
 
@@ -227,7 +237,7 @@ int32_t Experience::SetInputUniverses(wxJSONValue& data, Controller* controller)
         data["inputs"] = universes;
         data["system"]["operating_mode"] = out->GetType() == OUTPUT_E131 ? wxString("e1.31") : wxString("artnet");
     } else if (out->GetType() == OUTPUT_DDP) {
-        data["system"]["operating_mode"] = wxString("ddp");
+        data["system"]["operating_mode"] = wxString(_opMode);
         DDPOutput* ddp = (DDPOutput*)out;
         if (ddp->IsKeepChannelNumbers()) {
             data["system"]["start_channel"] = startChannel;
