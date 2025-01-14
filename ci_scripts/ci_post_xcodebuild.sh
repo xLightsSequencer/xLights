@@ -6,7 +6,8 @@
 # considering how often we release.
 git fetch --tags -f --deepen 200 origin ${CI_COMMIT}
 git status | head -n 1 | tee WhatToTest.en-US.txt
-git log $(git describe --abbrev=0 HEAD^)..HEAD --oneline | colrm 1 10 | tee -a WhatToTest.en-US.txt
+git log $(git describe --abbrev=0 HEAD^)..HEAD --format="%s (%aN)" | tee -a WhatToTest.en-US.txt
+
 
 if [[ -d "$CI_APP_STORE_SIGNED_APP_PATH" ]]; then
     TESTFLIGHT_DIR_PATH=../TestFlight
