@@ -32,7 +32,7 @@ inline uint8 alpha(const uint32 c) {
     return (c >> 24) & 0xFF;
 }
 inline uint32 fromComponents(const uint8 r, const uint8 g, const uint8 b, const uint8 a) {
-    return (((int32)a) << 24) | (((int32)b) << 16) |  (((int32)b) << 8) |  (int32)r;
+    return (((int32)a) << 24) | (((int32)b) << 16) |  (((int32)g) << 8) |  (int32)r;
 }
 
 inline HSVColor toHSV(const uint32 &c)
