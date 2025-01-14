@@ -547,6 +547,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="effects\FX.cpp" />
     <ClCompile Include="effects\GuitarEffect.cpp" />
     <ClCompile Include="effects\GuitarPanel.cpp" />
+    <ClCompile Include="effects\ispc\ISPCComputeUtilities.cpp" />
     <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
     <ClCompile Include="effects\KaleidoscopePanel.cpp" />
     <ClCompile Include="effects\LinesEffect.cpp" />
@@ -1064,6 +1065,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="effects\FX.h" />
     <ClInclude Include="effects\GuitarEffect.h" />
     <ClInclude Include="effects\GuitarPanel.h" />
+    <ClInclude Include="effects\ispc\ISPCComputeUtilities.h" />
+    <ClInclude Include="effects\ispc\LayerBlendingFunctions.ispc.h" />
     <ClInclude Include="effects\KaleidoscopeEffect.h" />
     <ClInclude Include="effects\KaleidoscopePanel.h" />
     <ClInclude Include="effects\LinesEffect.h" />

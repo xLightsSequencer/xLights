@@ -1096,6 +1096,9 @@
       <Filter>Effects\MovingHeadPanels</Filter>
     </ClCompile>
     <ClCompile Include="ShowFolderSearchDialog.cpp" />
+    <ClCompile Include="effects\ispc\ISPCComputeUtilities.cpp">
+      <Filter>Effects\ispc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2194,6 +2197,12 @@
       <Filter>Effects\MovingHeadPanels</Filter>
     </ClInclude>
     <ClInclude Include="ShowFolderSearchDialog.h" />
+    <ClInclude Include="effects\ispc\ISPCComputeUtilities.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ispc\LayerBlendingFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2240,6 +2249,9 @@
     </Filter>
     <Filter Include="Effects\MovingHeadPanels">
       <UniqueIdentifier>{dea5bd41-37f4-437f-872b-6b26dc00a5c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\ispc">
+      <UniqueIdentifier>{6b247f11-eaa7-479e-9e82-e1369cd64fad}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
