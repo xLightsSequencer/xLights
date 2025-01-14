@@ -142,7 +142,7 @@ namespace ip_utils
             return "RESOLVE_POOL - " + ip;
         }
         virtual void Process() {
-            struct addrinfo hints, *res, *result;
+            struct addrinfo hints, *res, *result = nullptr;
             int errcode;
             void *ptr;
 
