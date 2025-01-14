@@ -36,6 +36,7 @@ class Experience : public BaseController
     int _numberOfRemoteOutputs{ 0 };
     int _numberOfSerialOutputs{ 0 };
     bool _has_efuses{ false };
+    std::string _opMode = "ddp";
 
 #pragma endregion
 
