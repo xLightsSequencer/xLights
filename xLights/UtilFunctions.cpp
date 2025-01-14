@@ -541,6 +541,20 @@ std::string XmlSafe(const std::string& s) {
     return res;
 }
 
+bool IsXmlSafe(const std::string& s) {
+    bool res = true;
+    for (auto c = s.begin(); c != s.end(); ++c) {
+        if ((int)(*c) < 32 || (int)(*c) > 127) {
+            res = false;
+        } else if (*c == ',') {
+            res = false;
+        } else if (*c == '\'') {
+            res = false;
+        }
+    }
+    return res;
+}
+
 // This takes a string and removes all problematic characters from it for an XML file
 std::string RemoveUnsafeXmlChars(const std::string& s) {
     std::string res;
