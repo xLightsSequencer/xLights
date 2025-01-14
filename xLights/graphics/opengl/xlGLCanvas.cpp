@@ -130,18 +130,30 @@ static wxGLAttributes GetAttributes(int &zdepth, bool only2d) {
         return atts;
     }
                
+    atts.Reset();
     atts.PlatformDefaults()
         .RGBA()
         .MinRGBA(8, 8, 8, 8)
         .DoubleBuffer()
         .EndList();
-    if (!wxGLCanvas::IsDisplaySupported(atts)) {
-        atts.Reset();
-        atts.PlatformDefaults()
-            .RGBA()
-            .DoubleBuffer()
-            .EndList();
+    if (wxGLCanvas::IsDisplaySupported(atts)) {
+        return atts;
     }
+
+    atts.Reset();
+    atts.PlatformDefaults()
+        .RGBA()
+        .DoubleBuffer()
+        .EndList();
+    if (wxGLCanvas::IsDisplaySupported(atts)) {
+        return atts;
+    }
+
+    logger_opengl.debug("Could not find an attribs thats working, using platform defaults");
+    atts.Reset();
+    atts.PlatformDefaults()
+        .Defaults()
+        .EndList();
     return atts;
 }
 
