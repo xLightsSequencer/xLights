@@ -32,10 +32,14 @@ ISPC_ARCH=$(shell uname -m)
 ifeq '$(ISPC_ARCH)' 'aarch64'
 ISPC_URL=https://github.com/ispc/ispc/releases/download/v${ISPC_VERSION}/ispc-v${ISPC_VERSION}-linux.aarch64.tar.gz
 ISPC_DIR=ispc-v${ISPC_VERSION}-linux.aarch64
+WXWIDGETS_CANVAS_FLAGS=--enable-glcanvasegl
 else
 ISPC_URL=https://github.com/ispc/ispc/releases/download/v${ISPC_VERSION}/ispc-v${ISPC_VERSION}-linux.tar.gz
 ISPC_DIR=ispc-v${ISPC_VERSION}-linux
+WXWIDGETS_CANVAS_FLAGS=--disable-glcanvasegl
 endif
+
+
 
 .NOTPARALLEL:
 
@@ -92,7 +96,7 @@ wxwidgets33: FORCE
 			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b $(WXWIDGETS_TAG) https://github.com/xLightsSequencer/wxWidgets wxWidgets-$(WXWIDGETS_TAG); \
 		fi; \
 		cd wxWidgets-$(WXWIDGETS_TAG); \
-		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-sdltest --with-gtk=3 --disable-glcanvasegl --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
+		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-sdltest --with-gtk=3 $(WXWIDGETS_CANVAS_FLAGS) --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
 		echo Building wxwidgets; \
 		${MAKE} -j 4 -s; \
 		echo Installing wxwidgets; \
