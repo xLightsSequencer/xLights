@@ -4396,7 +4396,7 @@ effects/ServoEffect.cpp: ../include/servo-16.xpm ../include/servo-24.xpm ../incl
 
 effects/RipplePanel.cpp: effects/RipplePanel.h effects/EffectPanelUtils.h effects/RippleEffect.h
 
-effects/ShaderPanel.cpp: effects/ShaderPanel.h effects/ShaderEffect.h BulkEditControls.h effects/EffectPanelUtils.h ShaderDownloadDialog.h ExternalHooks.h xLightsMain.h xLightsApp.h TimingPanel.h
+effects/ShaderPanel.cpp: effects/ShaderPanel.h effects/ShaderEffect.h BulkEditControls.h effects/EffectPanelUtils.h ShaderDownloadDialog.h ExternalHooks.h xLightsMain.h xLightsApp.h TimingPanel.h UtilFunctions.h
 
 effects/RenderableEffect.cpp: effects/RenderableEffect.h sequencer/Effect.h effects/EffectManager.h effects/assist/xlGridCanvasEmpty.h UtilFunctions.h ExternalHooks.h sequencer/SequenceElements.h ValueCurveButton.h PixelBuffer.h effects/FanEffect.h effects/SpiralsEffect.h effects/PinwheelEffect.h effects/EffectPanelUtils.h ColorPanel.h BufferPanel.h TimingPanel.h BitmapCache.h xLightsApp.h xLightsMain.h models/SubModel.h
 
@@ -4470,7 +4470,7 @@ effects/MovingHeadPanels/MHColorWheelPanel.cpp: UtilFunctions.h
 
 effects/PinwheelEffect.cpp: effects/PinwheelEffect.h effects/PinwheelPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/pinwheel-16.xpm ../include/pinwheel-24.xpm ../include/pinwheel-32.xpm ../include/pinwheel-48.xpm ../include/pinwheel-64.xpm Parallel.h
 
-effects/PicturesPanel.cpp: effects/PicturesPanel.h effects/PicturesEffect.h effects/EffectPanelUtils.h effects/GIFImage.h ExternalHooks.h
+effects/PicturesPanel.cpp: effects/PicturesPanel.h effects/PicturesEffect.h effects/EffectPanelUtils.h effects/GIFImage.h ExternalHooks.h UtilFunctions.h
 
 effects/PicturesPanel.h: BulkEditControls.h effects/EffectPanelUtils.h
 
