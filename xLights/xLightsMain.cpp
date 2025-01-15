@@ -4899,8 +4899,13 @@ void LogAndWrite(wxFile& f, const std::string& msg)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("CheckSequence: " + msg);
     if (f.IsOpened()) {
-        f.Write(msg + "\r\n");
+        f.Write(msg + "<br>");
     }
+}
+
+void LogAndWrite(const std::string& msg) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("CheckSequence: " + msg);
 }
 
 // recursively check whether a start channel refers to a model in a way that creates a referencing loop
@@ -4945,6 +4950,14 @@ bool compare_modelstartchannel(const Model* first, const Model* second)
     return firstmodelstart < secondmodelstart;
 }
 
+std::string FormatSectionSummary(const std::string& section, int errcount, int warncount)
+{
+    wxString darkCol = (!IsDarkMode() ? "#000000" : "#FFFFFF");
+    wxString errCol = (errcount == 0) ? darkCol : "#FF0000";
+    wxString warnCol = (warncount == 0) ? darkCol : "#9ACD32";
+    return wxString::Format("<h4>Section Errors \(%s\) <span style='color:%s;'>%d</span>. Warnings  <span style='color:%s;'>%d</span>.</h4><br>", section, errCol, errcount, warnCol,  warncount).ToStdString();
+}
+
 std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4958,9 +4971,11 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     size_t warncount = 0;
     size_t toterrcount = 0;
     size_t totwarncount = 0;
+    wxString darkCol = (IsDarkMode() ? "#333334" : "#FFFFFF");
+    wxString darkTextCol = (IsDarkMode() ? "#FFFFFF" : "#000000");
 
     wxFile f;
-    wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
+    wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".html";
     TempFileManager::GetTempFileManager().AddTempFile(filename);
 
     if (writeToFile || displayInEditor) {
@@ -4974,8 +4989,32 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     wxProgressDialog prog("Check Sequence", "", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     prog.Show();
 
-    LogAndWrite(f, "Checking sequence.");
-    LogAndWrite(f, "");
+    f.Write("<html><head><title>Check Sequence</title></head><body><br>" \
+            "<style> " \
+            "  body { font-family: 'Courier New', Courier, monospace; font-size: 10pt; color: " + darkTextCol + "; background-color: " + darkCol + "; }" \
+            "  details { border: 1px solid #aaa; border-radius: 4px; padding: 0.5em 0.5em 0.5em; } " \
+            "  summary { font-weight: bold; cursor: pointer; } " \
+            "  summary::-webkit-details-marker { display:none; } " \
+            "  ul li a { color: " + darkTextCol + "; text-decoration: none; }" \
+            "  ul li a:visited { color: " + darkTextCol + "; }" \
+            "</style>" \
+            "<h1 id=\"top\">Check Sequence Report</h1>" \
+            "<div style='border: 1px solid #aaa; border-radius: 4px; padding: 10px; margin: 10px auto; width: fit-content;'>" \
+            "  <ul style=\"list-style-type:none; padding:0; margin:0; display:flex;\">" \
+            "    <li style=\"margin-right:10px;\">Shortcuts:  <a href=\"#network\">  Network  |</a></li>" \
+            "    <li style=\"margin-right:10px;\"><a href=\"#preferences\">  Preferences  |</a></li>" \
+            "    <li style=\"margin-right:10px;\"><a href=\"#controllers\">  Controller Checks  |</a></li>" \
+            "    <li style=\"margin-right:10px;\"><a href=\"#models\">  Model Checks  |</a></li>" \
+            "    <li style=\"margin-right:10px;\"><a href=\"#sequence\">  Sequence Problems  |</a></li>" \
+            "    <li style=\"margin-right:10px;\"><a href=\"#general\">  General Notes  |</a></li>" \
+            "    <li style=\"margin-right:10px;\"><a href=\"#other\">  OS/Other  |</a></li>" \
+            "    <li style=\"margin-right:10px;\"><a href=\"#end\">  Summary</a></li>" \
+            "  </ul>" \
+            "</div>" \
+            "<br>");
+
+    LogAndWrite("Checking sequence.");
+    LogAndWrite("");
 
     LogAndWrite(f, "Show folder: " + GetShowDirectory());
     LogAndWrite(f, "");
@@ -4989,8 +5028,9 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     }
 
     LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
-    LogAndWrite(f, "");
-    LogAndWrite(f, "Network Checks");
+    LogAndWrite("");
+    LogAndWrite("Network Checks");
+    f.Write("<h2 id=\"network\">Network Checks <a href=\"#top\" style=\"font-size:small; color: " + darkTextCol + ";\">(Top)</a></h2>");
 
     prog.Update(0, "Checking network");
     wxYield();
@@ -5040,15 +5080,18 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     size_t errcountsave = errcount;
     size_t warncountsave = warncount;
-    LogAndWrite(f, wxString::Format("\nSection Errors (Network): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    LogAndWrite(wxString::Format("\nSection Errors (Network): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    f.Write(FormatSectionSummary("Network", errcount, warncount));
+    f.Write("</div>");
     LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
     toterrcount += errcount;
     totwarncount += warncount;
     errcount = 0;
     warncount = 0;
 
-    LogAndWrite(f, "");
-    LogAndWrite(f, "Preference Checks");
+    LogAndWrite("");
+    LogAndWrite("Preference Checks");
+    f.Write("<h2 id=\"preferences\">Preference Checks <a href=\"#top\" style=\"font-size:small; color: " + darkTextCol + ";\">(Top)</a></h2>");
 
     prog.Update(1, "Checking preferences");
     wxYield();
@@ -5129,20 +5172,23 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
-    LogAndWrite(f, wxString::Format("\nSection Errors (Preferences): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    f.Write(FormatSectionSummary("Preferences", errcount, warncount));
+    LogAndWrite(wxString::Format("\nSection Errors (Preferences): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
     LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
     toterrcount += errcount;
     totwarncount += warncount;
     errcount = 0;
     warncount = 0;
 
-    LogAndWrite(f, "");
-    LogAndWrite(f, "Inactive Controller Checks");
+    f.Write("<h2 id=\"controllers\">Controllers Checks <a href=\"#top\" style=\"font-size:small; color: " + darkTextCol + ";\">(Top)</a></h2>");
+    f.Write("<h3>Inactive Controller Checks</h3>"); 
+    LogAndWrite("");
+    LogAndWrite("Inactive Controller Checks");
 
     prog.Update(3, "Checking controllers");
     wxYield();
 
-    LogAndWrite(f, "");
+    LogAndWrite("");
     LogAndWrite(f, "Checking for inactive controllers");
 
     // Check for inactive outputs
@@ -5201,8 +5247,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     }
     errcountsave = errcount;
     warncountsave = warncount;
-
-    LogAndWrite(f, wxString::Format("\nSection Errors (Controllers): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    f.Write(FormatSectionSummary("Controllers", errcount, warncount));
+    LogAndWrite(wxString::Format("\nSection Errors (Controllers): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
     LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
     toterrcount += errcount;
     totwarncount += warncount;
@@ -5220,9 +5266,10 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     }
 
     if (uniqueControllers.size() > 0) {
-        LogAndWrite(f, "");
-        LogAndWrite(f, "Controller Checks");
-        LogAndWrite(f, "");
+        LogAndWrite("");
+        LogAndWrite("Controller Checks");
+        LogAndWrite("");
+        f.Write("<h3>Controller Checks</h3>"); 
 
         // controller ip address must only be on one output ... no duplicates
         for (const auto& it : uniqueControllers) {
@@ -5327,7 +5374,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         // Apply the vendor specific validations
         for (const auto& it : _outputManager.GetControllers()) {
             wxString msg = wxString::Format("Applying controller rules for %s:%s:%s", it->GetName(), it->GetIP(), it->GetDescription());
-            LogAndWrite(f, msg.ToStdString());
+            //LogAndWrite(f, msg.ToStdString());
 
             std::string check;
             UDController edc(it, &_outputManager, &AllModels, false);
@@ -5337,7 +5384,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             if (fcr != nullptr) {
                 edc.Check(fcr, check);
             } else {
-                LogAndWrite(f, "Unknown controller vendor.");
+                LogAndWrite(f, msg + " --> Error: Unknown controller vendor.");
             }
             if (check != "") {
                 LogAndWrite(f, check);
@@ -5554,16 +5601,17 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     }
     errcountsave = errcount;
     warncountsave = warncount;
-
-    LogAndWrite(f, wxString::Format("\nSection Errors (Controllers): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    f.Write(FormatSectionSummary("Controllers", errcount, warncount));
+    LogAndWrite(wxString::Format("\nSection Errors (Controllers): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
     LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
     toterrcount += errcount;
     totwarncount += warncount;
     errcount = 0;
     warncount = 0;
 
-    LogAndWrite(f, "");
-    LogAndWrite(f, "Model Channel Checks");
+    LogAndWrite("");
+    LogAndWrite("Model Channel Checks");
+    f.Write("<h2 id=\"models\">Model Channel Check <a href=\"#top\" style=\"font-size:small; color: " + darkTextCol + ";\">(Top)</a></h2>");
 
     prog.Update(50, "Checking models");
     wxYield();
@@ -6098,8 +6146,10 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     warncountsave = warncount;
 
     // Check for submodels with duplicate nodes
-    LogAndWrite(f, "");
-    LogAndWrite(f, "SubModels with duplicate nodes");
+    LogAndWrite("");
+    LogAndWrite("SubModels with duplicate nodes");
+
+    f.Write("<br><body><details><summary>SubModels with duplicate nodes</summary><div>");
 
     for (const auto& it : AllModels) {
         if (it.second->GetDisplayAs() != "ModelGroup") {
@@ -6116,6 +6166,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             }
         }
     }
+
+    f.Write("</div></details></body>");
 
     if (errcount + warncount == errcountsave + warncountsave) {
         LogAndWrite(f, "    No problems found");
@@ -6226,16 +6278,18 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
-    LogAndWrite(f, wxString::Format("\nSection Errors (Models): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    f.Write(FormatSectionSummary("Models", errcount, warncount));
+    LogAndWrite(wxString::Format("\nSection Errors (Models): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
     LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
     toterrcount += errcount;
     totwarncount += warncount;
     errcount = 0;
     warncount = 0;
 
-    LogAndWrite(f, "");
-    LogAndWrite(f, "Sequence problems");
-    LogAndWrite(f, "");
+    LogAndWrite("");
+    LogAndWrite("Sequence problems");
+    f.Write("<h2 id=\"sequence\">Sequence Problems <a href=\"#top\" style=\"font-size:small; color: " + darkTextCol + ";\">(Top)</a></h2>");
+    LogAndWrite("");
 
     if (CurrentSeqXmlFile != nullptr) {
         LogAndWrite(f, "Uncommon and often undesirable settings");
@@ -6362,7 +6416,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             warncountsave = warncount;
         }
 
-        LogAndWrite(f, wxString::Format("\nSection Errors (Sequence): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+        f.Write(FormatSectionSummary("Sequence", errcount, warncount));
+        LogAndWrite(wxString::Format("\nSection Errors (Sequence): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
         LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
         toterrcount += errcount;
         totwarncount += warncount;
@@ -6442,7 +6497,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         errcountsave = errcount;
         warncountsave = warncount;
 
-        LogAndWrite(f, wxString::Format("\nSection Errors (Sequence): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+        f.Write(FormatSectionSummary("Sequences", errcount, warncount));
+        LogAndWrite(wxString::Format("\nSection Errors (Sequence): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
         LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
         toterrcount += errcount;
         totwarncount += warncount;
@@ -6451,6 +6507,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
         LogAndWrite(f, "");
         LogAndWrite(f, "General Notes");
+        f.Write("<h2 id=\"general\">General Notes <a href=\"#top\" style=\"font-size:small; color: " + darkTextCol + ";\">(Top)</a></h2>");
 
         prog.Update(90, "Dumping used assets");
         wxYield();
@@ -6482,8 +6539,9 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogAndWrite(f, "");
     LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
 
-    LogAndWrite(f, "");
-    LogAndWrite(f, "OS Checks");
+    LogAndWrite("");
+    LogAndWrite("OS Checks");
+    f.Write("<h2 id=\"other\">OS/Other Checks <a href=\"#top\" style=\"font-size:small; color: " + darkTextCol + ";\">(Top)</a></h2>");
 
     prog.Update(95, "Checking performance");
 
@@ -6549,12 +6607,19 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     errcountsave = errcount;
     warncountsave = warncount;
 
-    LogAndWrite(f, wxString::Format("\nSection Errors (OS): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
+    f.Write(FormatSectionSummary("OS", errcount, warncount));
+    LogAndWrite(wxString::Format("\nSection Errors (OS): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
     LogAndWrite(f, "=================================================================================================================");
     LogAndWrite(f, "");
-    LogAndWrite(f, "Check sequence completed.");
-    LogAndWrite(f, "");
-    LogAndWrite(f, wxString::Format("Total Errors: %u. Warnings: %u", (unsigned int)toterrcount, (unsigned int)totwarncount).ToStdString());
+    LogAndWrite("Check sequence completed.");
+    f.Write("<h2 id=\"end\">Summary <a href=\"#top\" style=\"font-size:small; color: " + darkTextCol + ";\">(Top)</a></h2>");
+    LogAndWrite("");
+    LogAndWrite(wxString::Format("Total Errors: %u. Warnings: %u", (unsigned int)toterrcount, (unsigned int)totwarncount).ToStdString());
+
+    wxString errCol = (toterrcount == 0) ? "#000000" : "#FF0000";
+    wxString warnCol = (totwarncount == 0) ? "#000000" : "#9ACD32";
+    f.Write("<h3>" + wxString::Format("Total Errors: <span style='color:%s;'>%d</span>. Warnings:  <span style='color:%s;'>%d</span>.<br>", errCol, (unsigned int)toterrcount, warnCol, (unsigned int)totwarncount).ToStdString());    
+    f.Write("</body></html>");
 
     prog.Update(100, "Done");
     wxYield();
@@ -6564,7 +6629,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         f.Close();
 
         if (displayInEditor) {
-            wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+            wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("html");
             if (ft != nullptr) {
                 wxString command = ft->GetOpenCommand(filename);
 
