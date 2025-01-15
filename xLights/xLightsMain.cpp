@@ -5165,12 +5165,14 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogAndWrite(f, "");
     LogAndWrite(f, "Multiple outputs sending to same destination");
 
-    std::list<std::string> used;
+    std::list<std::string> usedIPUniverse;
+    std::list<std::string> usedIPProtocol;
+    std::list<std::string> usedSerial;
     for (const auto& o : _outputManager.GetAllOutputs()) {
         if (o->IsIpOutput() && (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET || o->GetType() == OUTPUT_KINET)) {
             std::string usedval = o->GetIP() + "|" + o->GetUniverseString();
 
-            if (std::find(used.begin(), used.end(), usedval) != used.end()) {
+            if (std::find(usedIPUniverse.begin(), usedIPUniverse.end(), usedval) != usedIPUniverse.end()) {
                 int32_t sc;
                 auto c = _outputManager.GetController(o->GetStartChannel(), sc);
 
@@ -5181,17 +5183,31 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             } else {
-                used.push_back(usedval);
+                usedIPUniverse.push_back(usedval);
             }
         } else if (o->IsSerialOutput()) {
             if (o->GetCommPort() != "NotConnected") {
-                if (std::find(used.begin(), used.end(), o->GetCommPort()) != used.end()) {
+                if (std::find(usedSerial.begin(), usedSerial.end(), o->GetCommPort()) != usedSerial.end()) {
                     wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s'.", (const char*)o->GetType().c_str(), (const char*)o->GetCommPort().c_str());
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 } else {
-                    used.push_back(o->GetCommPort());
+                    usedSerial.push_back(o->GetCommPort());
                 }
+            }
+        }
+
+        if (o->IsIpOutput()) {
+            std::string usedval = o->GetIP() + "|" + o->GetType();
+            for (const auto& it : usedIPProtocol) {
+                if (Contains(it, o->GetIP()) && it != usedval) {
+                    wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same IP address '%s' with different protocols.", (const char*)o->GetIP().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+            }
+            if (std::find(usedIPProtocol.begin(), usedIPProtocol.end(), usedval) == usedIPProtocol.end()) {
+				usedIPProtocol.push_back(usedval);
             }
         }
     }
