@@ -3159,8 +3159,6 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
 }
 
 static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsString) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxJSONValue origJson;
     wxJSONReader reader;
     bool parsed = reader.Parse(systemsString, &origJson) == 0;

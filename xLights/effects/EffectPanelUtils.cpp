@@ -204,7 +204,7 @@ void EffectPanelUtils::enableControlsByName(wxWindow *window, const wxString &na
         w->Enable(enable);
     }
     wxString n2 = "IDD_" + name.SubString(3, name.size());
-    w = window->FindWindow(name);
+    w = window->FindWindow(n2);
     if (w != nullptr) {
         w->Enable(enable);
     }

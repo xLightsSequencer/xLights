@@ -104,7 +104,6 @@ void ShowFolderSearchDialog::ValidateWindow()
 
 wxString ShowFolderSearchDialog::FindLogFolder() const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString dir;
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);

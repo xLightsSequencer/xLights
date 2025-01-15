@@ -4955,7 +4955,7 @@ std::string FormatSectionSummary(const std::string& section, int errcount, int w
     wxString darkCol = (!IsDarkMode() ? "#000000" : "#FFFFFF");
     wxString errCol = (errcount == 0) ? darkCol : "#FF0000";
     wxString warnCol = (warncount == 0) ? darkCol : "#9ACD32";
-    return wxString::Format("<h4>Section Errors \(%s\) <span style='color:%s;'>%d</span>. Warnings  <span style='color:%s;'>%d</span>.</h4><br>", section, errCol, errcount, warnCol,  warncount).ToStdString();
+    return wxString::Format("<h4>Section Errors (%s) <span style='color:%s;'>%d</span>. Warnings  <span style='color:%s;'>%d</span>.</h4><br>", section, errCol, errcount, warnCol,  warncount).ToStdString();
 }
 
 std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
@@ -4975,7 +4975,10 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     wxString darkTextCol = (IsDarkMode() ? "#FFFFFF" : "#000000");
 
     wxFile f;
-    wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".html";
+    wxFileName fnTemp;
+    fnTemp.AssignTempFileName("xLightsCheckSequence");
+    wxFileName fn(GetShowDirectory(), fnTemp.GetFullName() + ".html");
+    wxString filename = fn.GetFullPath();
     TempFileManager::GetTempFileManager().AddTempFile(filename);
 
     if (writeToFile || displayInEditor) {
