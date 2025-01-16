@@ -1119,9 +1119,8 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Automation:setModelProperty");
         std::string response = wxString::Format("{\"msg\":\"Set Model Property.\",\"worked\":\"%s\"}", JSONSafe(toStr(m != nullptr)));
         return sendResponse(response, "", 200, true);
-    } else if (cmd == "getfseqdirectory") {
-        std::string json =  wxString::Format("{\"folder\":\"%s\"}", JSONSafe(GetFseqDirectory()));
-        return sendResponse(json, "", 200, true);
+    } else if (cmd == "getFseqDirectory") {
+        return sendResponse(JSONSafe(GetFseqDirectory()), "folder", 200, false);
     }
     return false;
 }

@@ -389,3 +389,14 @@ Command
     {"cmd":"setModelProperty","model":"model name","key":"ModelControllerConnectionPort","data":"5"}
 Response
     {"res":200, "msg":"Set Model Property.","worked":"true"}
+
+Get current show folder.
+Command
+	{"cmd":"getShowFolder"}
+Response
+    {"res":200, "folder":"C:\ShowFolder"}
+Get the fseq directory from preferences.
+Command
+	{"cmd":"getFseqDirectory"}
+Response
+    {"res":200, "folder":"C:\ShowFolder"}
