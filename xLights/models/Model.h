@@ -404,6 +404,7 @@ public:
     bool IsAlias(const std::string& alias, bool oldnameOnly = false) const;
     void AddAlias(const std::string& alias);
     void DeleteAlias(const std::string& alias);
+    bool DeleteAllAliases();
     const std::list<std::string> &GetAliases() const;
     void SetAliases(const std::list<std::string>& aliases);
 

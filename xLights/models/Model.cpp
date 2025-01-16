@@ -785,6 +785,24 @@ void Model::DeleteAlias(const std::string& alias)
     }
 }
 
+bool Model::DeleteAllAliases() {
+    bool changed = false;
+    for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
+        if (x->GetName() == "Aliases") {
+            ModelXml->RemoveChild(x);
+            changed = true;
+        } else if (x->GetName() == "subModel") {
+            for (auto sm = x->GetChildren(); sm != nullptr; sm = sm->GetNext()) {
+                if (sm->GetName() == "Aliases") {
+                    x->RemoveChild(sm);
+                    changed = true;
+                }
+			}
+        }
+    }
+    return changed;
+}
+
 const std::list<std::string> &Model::GetAliases() const
 {
     if (aliases.empty()) {
