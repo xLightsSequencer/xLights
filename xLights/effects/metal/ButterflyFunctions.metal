@@ -5,13 +5,58 @@ using namespace metal;
 
 #include "MetalEffectDataTypes.h"
 
-constant half4 K = half4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
 constant float pi2 = 3.14159*2.0;
 
 uchar4 hsv2rgb(half3 c) {
-    half3 p = abs(fract(c.xxx + K.xyz) * 6.0h - K.www);
-    c = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0h, 1.0h), c.y);
-    return uchar4(c.r * 255.0h, c.g * 255.0h, c.b * 255.0h, 255);
+    float3 rgb;
+    half h = c.r;
+    half s = c.g;
+    half v = c.b;
+    if (0.0f == s) {
+        rgb.r = v;
+        rgb.g = v;
+        rgb.b = v;
+    } else { // not grey
+        half hue = h * 6.0h;      // sector 0 to 5
+        int i = (int)floor(hue);
+        half f = hue - (half)i;   // fractional part of h
+        half p = v * (1.0h - s);
+
+        switch (i) {
+         case 0:
+             rgb.r = v;
+             rgb.g = v * (1.0h - s * (1.0h - f));
+             rgb.b = p;
+             break;
+         case 1:
+             rgb.r = v * (1.0h - s * f);
+             rgb.g = v;
+             rgb.b = p;
+             break;
+         case 2:
+             rgb.r = p;
+             rgb.g = v;
+             rgb.b = v * (1.0h - s * (1.0h - f));
+             break;
+         case 3:
+             rgb.r = p;
+             rgb.g = v * (1.0h - s * f);
+             rgb.b = v;
+             break;
+         case 4:
+             rgb.r = v * (1.0h - s * (1.0h - f));
+             rgb.g = p;
+             rgb.b = v;
+             break;
+         default:    // case 5:
+             rgb.r = v;
+             rgb.g = p;
+             rgb.b = v * (1.0h - s * f);
+             break;
+        }
+    }
+    rgb *= 255.0;
+    return uchar4(rgb.x, rgb.y, rgb.z, 255);
 }
 
 uint8_t channelBlend(uint8_t c1, uint8_t c2, half ratio) {

@@ -24,6 +24,11 @@
 
 #include "../Parallel.h"
 
+#ifdef __WXOSX__
+#include "ispc/ButterflyFunctions.ispc.h"
+#define HASISPC
+#endif
+
 ButterflyEffect::ButterflyEffect(int i) : RenderableEffect(i, "Butterfly", butterfly_16, butterfly_24, butterfly_32, butterfly_48, butterfly_64)
 {
     //ctor
@@ -76,6 +81,7 @@ void ButterflyEffect::SetDefaultParameters() {
     SetSliderValue(bp->Slider_Butterfly_Speed, 10);
 }
 
+
 void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
@@ -96,6 +102,55 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     const int frame=(buffer.BufferHt * curState / 200)%maxframe;
     const size_t colorcnt=buffer.GetColorCount();
     const double offset = (ButterflyDirection==1 ? -1 : 1) * double(curState)/200.0;
+
+#ifdef HASISPC
+    if (Style < 6) {
+        ispc::ButterflyData data;
+        data.offset = offset;
+        data.chunks = Chunks;
+        data.skip = Skip;
+        data.curState = curState;
+        data.colorScheme = ColorScheme;
+        data.width = buffer.BufferWi;
+        data.height = buffer.BufferHt;
+        data.numColors = colorcnt;
+        for (int x = 0; x < colorcnt; x++) {
+            const xlColor &c = buffer.palette.GetColor(x);
+            data.colors[x].v[0] = c.red;
+            data.colors[x].v[1] = c.green;
+            data.colors[x].v[2] = c.blue;
+            data.colors[x].v[3] = c.alpha;
+        }
+        int max = buffer.BufferHt * buffer.BufferWi;
+        constexpr int bfBlockSize = 4096;
+        int blocks = max / bfBlockSize + 1;
+        parallel_for(0, blocks, [&data, &buffer, max, Style](int y) {
+            int start = y * bfBlockSize;
+            int end = start + bfBlockSize;
+            if (end > max) {
+                end = max;
+            }
+            switch (Style) {
+                case 1:
+                    ButterflyEffectStyle1(data, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+                    break;
+                case 2:
+                    ButterflyEffectStyle2(data, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+                    break;
+                case 3:
+                    ButterflyEffectStyle3(data, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+                    break;
+                case 4:
+                    ButterflyEffectStyle4(data, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+                    break;
+                case 5:
+                    ButterflyEffectStyle5(data, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+                    break;
+            }
+        });
+        return;
+    }
+#endif
     const int xc=buffer.BufferWi/2;
     const int yc=buffer.BufferHt/2;
     int block = buffer.BufferHt * buffer.BufferWi > 100 ? 1 : -1;
