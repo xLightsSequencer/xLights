@@ -24,7 +24,7 @@
 
 #include "../Parallel.h"
 
-#ifdef __WXOSX__
+#ifndef __WXMSW__
 #include "ispc/ButterflyFunctions.ispc.h"
 #define HASISPC
 #endif

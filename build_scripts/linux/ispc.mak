@@ -15,3 +15,6 @@ $(OBJDIR_LINUX_RELEASE)/%.o: %.ispc
 
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/effects/ispc/LayerBlendingFunctions.o
 OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/effects/ispc/LayerBlendingFunctions.o
+
+OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/effects/ispc/ButterflyFunctions.o
+OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/effects/ispc/ButterflyFunctions.o

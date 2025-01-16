@@ -810,6 +810,9 @@
 		<Unit filename="effects/assist/xlGridCanvasMorph.h" />
 		<Unit filename="effects/assist/xlGridCanvasPictures.cpp" />
 		<Unit filename="effects/assist/xlGridCanvasPictures.h" />
+		<Unit filename="effects/ispc/ButterflyFunctions.ispc">
+			<Option link="1" />
+		</Unit>
 		<Unit filename="effects/ispc/ISPCComputeUtilities.cpp" />
 		<Unit filename="effects/ispc/ISPCComputeUtilities.h" />
 		<Unit filename="effects/ispc/LayerBlendingFunctions.ispc">
