@@ -1318,9 +1318,11 @@ public:
     int EffectAssistMode() const { return mEffectAssistMode;}
     void SetEffectAssistMode(int i);
 
-    int GetModelHandleScale() const { return _modelHandleSize; }
-    int ModelHandleSize() const { return _modelHandleSize;}
+    int GetModelHandleSize() const { return _modelHandleSize; }
     void SetModelHandleSize(int i);
+
+    int GetCrosshairSize() const { return _crosshairSize; }
+    void SetCrosshairSize(int i);
 
     const wxArrayString &RandomEffectsToUse() const { return _randomEffectsToUse;}
     void SetRandomEffectsToUse(const wxArrayString &e);
@@ -1630,6 +1632,7 @@ private:
     int abortedRenderJobs = 0;
     bool mSaveFseqOnSave;
     int _modelHandleSize = 1;
+    int _crosshairSize = 1;
 
     class RenderTree {
     public:
