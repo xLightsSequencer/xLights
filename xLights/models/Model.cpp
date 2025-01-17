@@ -1336,6 +1336,10 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
+        } else {
+            if (node->HasAttribute("brightness")) {
+                node->DeleteAttribute("brightness");
+            }
         }
 
         if (caps == nullptr || caps->SupportsPixelPortGamma()) {
@@ -1352,6 +1356,10 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
+        } else {
+            if (node->HasAttribute("gamma")) {
+                node->DeleteAttribute("gamma");
+            }
         }
 
         if (caps == nullptr || caps->SupportsPixelPortColourOrder()) {
@@ -1363,7 +1371,11 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
-        }
+        } else {
+            if (node->HasAttribute("colorOrder")) {
+                node->DeleteAttribute("colorOrder");
+            }
+        } 
 
         if (caps == nullptr || caps->SupportsPixelPortDirection()) {
             sp = grid->AppendIn(p, new wxBoolProperty("Set Pixel Direction", "ModelControllerConnectionPixelSetDirection", node->HasAttribute("reverse")));
@@ -1374,19 +1386,27 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
-        }
+        } else {
+            if (node->HasAttribute("reverse")) {
+                node->DeleteAttribute("reverse");
+            }
+        } 
 
         if (caps == nullptr || caps->SupportsPixelPortGrouping()) {
             sp = grid->AppendIn(p, new wxBoolProperty("Set Group Count", "ModelControllerConnectionPixelSetGroupCount", node->HasAttribute("groupCount")));
             sp->SetAttribute("UseCheckbox", true);
             auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Group Count", "ModelControllerConnectionPixelGroupCount",
                                                              wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "1"))));
-            sp2->SetAttribute("Min", 0);
+            sp2->SetAttribute("Min", 1);
             sp2->SetAttribute("Max", 500);
             sp2->SetEditor("SpinCtrl");
             if (!node->HasAttribute("groupCount")) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
+            }
+        } else {
+            if (node->HasAttribute("groupCount")) {
+                node->DeleteAttribute("groupCount");
             }
         }
 
@@ -1401,6 +1421,10 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
             if (!node->HasAttribute("zigZag")) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
+            }
+        } else {
+            if (node->HasAttribute("zigZag")) {
+                node->DeleteAttribute("zigZag");
             }
         }
 
@@ -2025,8 +2049,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
         grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->AddAttribute("groupCount", "0");
-            prop->SetValueFromInt(0);
+            GetControllerConnection()->AddAttribute("groupCount", "1");
+            prop->SetValueFromInt(1);
             grid->Expand(event.GetProperty());
         } else {
             grid->Collapse(event.GetProperty());
