@@ -2,9 +2,9 @@
 ISPC_ARCH=$(shell uname -m)
 
 ifeq '$(ISPC_ARCH)' 'aarch64'
-ISPC_FLAGS=--target-os=linux --target=neon-i32x8 --arch=aarch64
+ISPC_FLAGS=--target-os=linux --target=neon-i32x8 --arch=aarch64 -fPIC
 else
-ISPC_FLAGS=--target-os=linux --target=sse2-i32x8 --target=avx2-i32x8 --target=avx2-i32x16 --target=avx512icl-x32 --arch=x86_64
+ISPC_FLAGS=--target-os=linux --target=sse2-i32x8 --target=avx2-i32x8 --target=avx2-i32x16 --target=avx512icl-x32 --arch=x86_64 -fPIC
 endif
 
 $(OBJDIR_LINUX_DEBUG)/%.o: %.ispc
