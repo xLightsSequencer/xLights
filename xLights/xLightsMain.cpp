@@ -1494,6 +1494,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     mAltBackupDir = "";
     mIconSize = 16;
     _modelHandleSize = 1;
+    _crosshairSize = 1;
 
     _acParm1Intensity = 100;
     _acParm1RampUp = 0;
@@ -1751,6 +1752,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     config->Read("xLightsModelHandleSize", &_modelHandleSize, 1);
     logger_base.debug("Model Handle Size: %d.", _modelHandleSize);
+
+    config->Read("xLightsCrosshairSize", &_crosshairSize, 1);
+    logger_base.debug("Group View Crosshair Size: %d.", _crosshairSize);
 
     config->Read("xLightsBackupOnSave", &mBackupOnSave, false);
     logger_base.debug("Backup on save: %s.", toStr(mBackupOnSave));
@@ -2167,6 +2171,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsAltBackupDir", mAltBackupDir);
     config->Write("xFadePort", _xFadePort);
     config->Write("xLightsModelHandleSize", _modelHandleSize);
+    config->Write("xLightsCrosshairSize", _crosshairSize);
     config->Write("xLightsPlayVolume", playVolume);
     config->Write("xLightsVideoExportCodec", _videoExportCodec);
     config->Write("xLightsVideoExportBitrate", _videoExportBitrate);
@@ -9965,6 +9970,11 @@ void xLightsFrame::OnMenuItem_UserManualSelected(wxCommandEvent& event)
 void xLightsFrame::SetModelHandleSize(int i)
 {
     _modelHandleSize = i;
+    layoutPanel->Refresh();
+}
+
+void xLightsFrame::SetCrosshairSize(int i) {
+    _crosshairSize = i;
     layoutPanel->Refresh();
 }
 
