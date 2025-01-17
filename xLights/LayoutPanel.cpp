@@ -192,6 +192,7 @@ const long LayoutPanel::ID_MNU_EDIT_SUBMODEL_ALIAS = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_EMPTY_MODEL_GROUPS = wxNewId();
+const long LayoutPanel::ID_MNU_DELETE_ALL_ALIASES = wxNewId();
 const long LayoutPanel::ID_MNU_RENAME_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_CLONE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_BULKEDIT_GROUP_TAGCOLOR = wxNewId();
@@ -7703,6 +7704,33 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
     } else if (id == ID_MNU_DELETE_MODEL_GROUP) {
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL_GROUP");
         DeleteSelectedGroups();
+    } else if (id == ID_MNU_DELETE_ALL_ALIASES) {
+        logger_base.debug("LayoutPanel::Popup DELETE_ALL_ALIASES");
+        if (wxMessageBox("This will remove aliases from *all* models, groups and submodels.\n Do you wish to continue?", "Delete all Aliases...", wxYES_NO, this) == wxYES) {
+            bool deleted = false;
+            bool rc = false;
+            for (const auto& m : xlights->AllModels) {
+                if (m.second->GetDisplayAs() == "ModelGroup") {
+                    ModelGroup* mg = dynamic_cast<ModelGroup*>(m.second);
+                    rc = mg->DeleteAllAliases();
+                    deleted = deleted || rc;
+                } else {
+                    Model* mm = dynamic_cast<Model*>(m.second);
+                    rc = mm->DeleteAllAliases();
+                    deleted = deleted || rc;
+                    for (auto sm : mm->GetSubModels()) {
+                        SubModel* s = dynamic_cast<SubModel*>(m.second);
+                        if (s != nullptr) {
+                            rc = s->DeleteAllAliases();
+                            deleted = deleted || rc;
+                        }
+                    }
+                }
+            }
+            if (deleted) {
+                xlights->MarkEffectsFileDirty();
+            }
+        }
     } else if (id == ID_MNU_DELETE_EMPTY_MODEL_GROUPS) {
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_EMPTY_MODEL_GROUPS");
 
@@ -8543,6 +8571,8 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     }
 
     mnuContext.Append(ID_MNU_DELETE_EMPTY_MODEL_GROUPS, "Delete Empty Groups");
+
+    mnuContext.Append(ID_MNU_DELETE_ALL_ALIASES, "Delete All Aliases");
 
     if (selectedTreeGroups.size() > 1) {
         mnuContext.AppendSeparator();
