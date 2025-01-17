@@ -92,14 +92,8 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     const int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
     int ColorScheme = GetButterflyColorScheme(SettingsMap["CHOICE_Butterfly_Colors"]);
     int ButterflyDirection = SettingsMap["CHOICE_Butterfly_Direction"] == "Reverse" ? 1 : 0;
-    
-    static const double pi2=6.283185307;
-    //  These are for Plasma effect
-    static const double pi=3.1415926535897932384626433832;
-    
-    const int maxframe=buffer.BufferHt*2;
+
     const int curState = (buffer.curPeriod - buffer.curEffStartPer) * butterFlySpeed * buffer.frameTimeInMs / 50;
-    const int frame=(buffer.BufferHt * curState / 200)%maxframe;
     const size_t colorcnt=buffer.GetColorCount();
     const double offset = (ButterflyDirection==1 ? -1 : 1) * double(curState)/200.0;
 
@@ -160,6 +154,12 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         }
     });
 #else
+    static const double pi2=6.283185307;
+    //  These are for Plasma effect
+    static const double pi=3.1415926535897932384626433832;
+    const int maxframe=buffer.BufferHt*2;
+    const int frame=(buffer.BufferHt * curState / 200)%maxframe;
+
     const int xc=buffer.BufferWi/2;
     const int yc=buffer.BufferHt/2;
     int block = buffer.BufferHt * buffer.BufferWi > 100 ? 1 : -1;
