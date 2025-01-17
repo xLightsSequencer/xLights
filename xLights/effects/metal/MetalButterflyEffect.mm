@@ -18,6 +18,11 @@ public:
         functions[3] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectStyle3");
         functions[4] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectStyle4");
         functions[5] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectStyle5");
+        functions[6] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectPlasmaStyles");
+        functions[7] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectPlasmaStyles");
+        functions[8] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectPlasmaStyles");
+        functions[9] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectPlasmaStyles");
+        functions[10] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectPlasmaStyles");
     }
     ~MetalButterflyEffectData() {
         for (auto &f : functions) {
@@ -119,6 +124,17 @@ void MetalButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap
     rdata.chunks = Chunks;
     rdata.skip = Skip;
     rdata.colorScheme = ColorScheme;
+    rdata.plasmaStyle = Style;
+    if (Style > 5) {
+        // slightly different setup for "plasmas"
+        int state = (buffer.curPeriod - buffer.curEffStartPer); // frames 0 to N
+        double Speed_plasma = (Style == 10) ? (101-butterFlySpeed)*3 : (101-butterFlySpeed)*5;
+        double time = (state+1.0)/Speed_plasma;
+        rdata.plasmaTime = time;
+    } else {
+        rdata.plasmaTime = 0.0;
+    }
+    
     for (int x = 0; x < rdata.numColors; x++) {
         rdata.colors[x] = buffer.palette.GetColor(x).asChar4();
     }

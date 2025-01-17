@@ -13,13 +13,19 @@ struct ButterflyData
     uint16 height;
     uint16 numColors;
 
+    float plasmaTime;
+    int plasmaStyle;
 };
 
 
+const uniform float pi = 3.14159;
 const uniform float pi2 = 3.14159*2.0;
            
 inline uint8<4> hsv2rgb(float16 h, float16 s, float16 v) {
     float16<3> rgb;
+    h = clamp(h, 0.0f16, 1.0f16);
+    s = clamp(s, 0.0f16, 1.0f16);
+    v = clamp(v, 0.0f16, 1.0f16);
     if (0.0f == s) {
         rgb.r = v;
         rgb.g = v;
@@ -31,6 +37,7 @@ inline uint8<4> hsv2rgb(float16 h, float16 s, float16 v) {
         float16 p = v * (1.0f16 - s);
 
         switch (i) {
+            case 6:
             case 0:
                 rgb.r = v;
                 rgb.g = v * (1.0f16 - s * (1.0f16 - f));
@@ -226,5 +233,80 @@ export void ButterflyEffectStyle5(const uniform ButterflyData &data,
                 result[index] = getMultiColorBlend(data, h, false);
             }
         }
+    }
+}
+
+
+export void ButterflyEffectPlasmaStyles(const uniform ButterflyData &data,
+                                    uniform int startIdx, uniform int endIdx,
+                                    uniform uint8<4> result[]) {
+    uniform float16 invh = rcp((uniform float16)data.height);
+    uniform float16 invw = rcp((uniform float16)data.width);
+    uniform float16 time = data.plasmaTime;
+    uniform const float16 onehalf = 1.0 / 2.0;
+    uniform const float16 onethird = 1.0 / 3.0;
+    uniform float16 halfTime = time / 2.0;
+    uniform float16 thirdTime = time / 3.0;
+    uniform float16 fifthTime = time / 5.0;
+    uniform float16 chunks = data.chunks;
+
+    foreach (index = startIdx...endIdx) {
+        int32 y = index / data.width;
+        int32 x = index - (y * data.width);
+        float16 v = 0;
+
+        float16 rx = ((float16)x) * invw - 0.5f16;
+        float16 ry = ((float16)y) * invh - 0.5f16;
+
+        // 1st equation
+        v = sin(rx * 10.0f16 + time);
+                
+        //  second equation
+        v += sin(10.0f16 * (rx * sin(halfTime) + ry * cos(thirdTime)) + time);
+                
+        //  third equation
+        float cx = rx + 0.5f16 * sin(fifthTime);
+        float cy = ry + 0.5f16 * cos(thirdTime);
+        v += sin(sqrt(100*((cx*cx)+(cy*cy))+1+time));
+                                
+        v += sin(rx + time);
+        v += sin((ry + time) * onehalf);
+        v += sin((rx + ry + time) * onehalf);
+        
+        v += sin(sqrt(rx * rx + ry * ry + 1.0) + time);
+        v = v * onehalf;
+                
+        uint8<4> color;
+        color.a = 255;
+        switch (data.plasmaStyle) {
+            case 6:
+                color.r = (sin(v * chunks * pi) + 1.0f16) * 128.0f16;
+                color.g= (cos(v * chunks * pi) + 1.0f16) * 128.0f16;
+                color.b = 0;
+            break;
+            case 7:
+                color.r = 1;
+                color.g = (cos(v * chunks * pi) + 1.0f16) * 128.0f16;
+                color.b = (sin(v * chunks * pi) + 1.0f16) * 128.0f16;
+                break;
+            case 8:
+                color.r = (sin(v * chunks * pi) + 1.0f16) * 128.0f16;
+                color.g= (sin(v * chunks * pi + 2.0f16 * pi * onethird) + 1.0f16) * 128.0f16;
+                color.b =(sin(v * chunks * pi + 4.0f16 * pi * onethird) + 1.0f16) * 128.0f16;
+                break;
+            case 9:
+                color.r = color.g = color.b = (sin(v * chunks * pi) + 1.0f16) * 128.0f16;
+                break;
+            case 10:
+                if (data.numColors >= 2) {
+                    float16 h = sin(v * chunks * pi + 2.0f16 * pi * onethird) + 0.5f16;
+                    color = getMultiColorBlend(data, h, false);
+                } else {
+                    color.r = 0; color.g = 0; color.b = 0;
+                }
+                break;
+        }
+        result[index] = color;
+
     }
 }

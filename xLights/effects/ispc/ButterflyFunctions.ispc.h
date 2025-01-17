@@ -59,6 +59,8 @@ struct ButterflyData {
     uint16_t width;
     uint16_t height;
     uint16_t numColors;
+    float plasmaTime;
+    int32_t plasmaStyle;
 };
 #endif
 
@@ -69,6 +71,11 @@ struct ButterflyData {
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 extern "C" {
 #endif // __cplusplus
+#if defined(__cplusplus)
+    extern void ButterflyEffectPlasmaStyles(const struct ButterflyData &data, int32_t startIdx, int32_t endIdx, uint8_t4   * result);
+#else
+    extern void ButterflyEffectPlasmaStyles(const struct ButterflyData *data, int32_t startIdx, int32_t endIdx, uint8_t4   * result);
+#endif // ButterflyEffectPlasmaStyles function declaraion
 #if defined(__cplusplus)
     extern void ButterflyEffectStyle1(const struct ButterflyData &data, int32_t startIdx, int32_t endIdx, uint8_t4   * result);
 #else
