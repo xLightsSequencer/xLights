@@ -2186,10 +2186,16 @@ void ControllerModelDialog::ReloadModels()
                             sh += ", ";
                         sh += it;
                     }
-                    check += "WARN: " + it.second->Name() + " is shadowed by " + sh + ".\n ";
+                    check += "WARN: " + it.second->Name() + " is shadowed by " + sh + ".\n";
                 }
             }
         }
+    }
+    if (!_autoLayout) {
+        check += "WARN: Auto Layout not set. Some functionality disabled.\n";
+    }
+    if (!_controller->IsAutoSize()) {
+        check += "WARN: Auto Size not set. Some functionality disabled.\n";
     }
 
     TextCtrl_Check->SetValue(check);
