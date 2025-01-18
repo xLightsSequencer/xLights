@@ -819,7 +819,8 @@ void DrawLabel(TextDrawingContext *dc,
                             }
                             dc->DrawText(c, loc, y);
                         }
-                        if ((perWord && c == ' ') || (!perWord && c != ' ')) {
+                        if ((perWord && c == ' ' && x1 + 1 < curLine.size() && curLine[x1 + 1] != ' ') ||
+                            (!perWord && c != ' ')) {
                             curPos++;
                         }
                     }
@@ -1623,7 +1624,8 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                 OffsetTop += font->GetHeight() + 1;
             } else {
                 buffer.palette.GetColor(curPos % num_colors, c);
-                if ((perWord && text[i] == ' ') || (!perWord && text[i] != ' ')) {
+                if ((perWord && text[i] == ' ' && i + 1 < text.size() && text[i + 1] != ' ') || 
+                    (!perWord && text[i] != ' ')) {
                     curPos++;
                 }
                 char ascii = text[i];
