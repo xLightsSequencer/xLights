@@ -23,6 +23,13 @@
 
 #include "../Parallel.h"
 
+
+#ifndef __WXMSW__
+#include "ispc/PlasmaFunctions.ispc.h"
+#define HASISPC
+#endif
+
+
 PlasmaEffect::PlasmaEffect(int id) : RenderableEffect(id, "Plasma", plasma_16, plasma_24, plasma_32, plasma_48, plasma_64)
 {
     //ctor
@@ -81,8 +88,6 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     int PlasmaDirection = 0; //fixme?
     const int ColorScheme = GetPlasmaColorScheme(SettingsMap["CHOICE_Plasma_Color"]);
 
-    //  These are for Plasma effect
-    static const double pi=3.1415926535897932384626433832;
 
     int curState = (buffer.curPeriod - buffer.curEffStartPer) * PlasmaSpeed * buffer.frameTimeInMs / 50;
     double offset=double(curState)/200.0;
@@ -96,6 +101,58 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     const double sin_time_5 = buffer.sin(time / 5);
     const double cos_time_3 = buffer.cos(time / 3);
     const double sin_time_2 = buffer.sin(time / 2);
+    
+    
+#ifdef HASISPC
+    ispc::PlasmaData rdata;
+    rdata.width = buffer.BufferWi;
+    rdata.height = buffer.BufferHt;
+    rdata.state = state;
+    rdata.Style = Style;
+    rdata.Line_Density = Line_Density;
+    rdata.sin_time_5 = sin_time_5;
+    rdata.cos_time_3 = cos_time_3;
+    rdata.sin_time_2 = sin_time_2;
+    rdata.time = time;
+
+    rdata.numColors = buffer.palette.Size();
+    for (int x = 0; x < rdata.numColors; x++) {
+        const xlColor &c = buffer.palette.GetColor(x);
+        rdata.colors[x].v[0] = c.red;
+        rdata.colors[x].v[1] = c.green;
+        rdata.colors[x].v[2] = c.blue;
+        rdata.colors[x].v[3] = c.alpha;
+    }
+    int max = buffer.BufferHt * buffer.BufferWi;
+    constexpr int bfBlockSize = 4096;
+    int blocks = max / bfBlockSize + 1;
+    parallel_for(0, blocks, [&rdata, &buffer, max, ColorScheme](int y) {
+        int start = y * bfBlockSize;
+        int end = start + bfBlockSize;
+        if (end > max) {
+            end = max;
+        }
+        switch (ColorScheme) {
+            case 0:
+                ispc::PlasmaEffectStyle0(rdata, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+                break;
+            case 1:
+                ispc::PlasmaEffectStyle1(rdata, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+                break;
+            case 2:
+                ispc::PlasmaEffectStyle2(rdata, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+                break;
+            case 3:
+                ispc::PlasmaEffectStyle3(rdata, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+                break;
+            case 4:
+                ispc::PlasmaEffectStyle4(rdata, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+                break;
+        }
+    });
+#else
+    //  These are for Plasma effect
+    static const double pi=3.1415926535897932384626433832;
     static const double pi3 = pi / 3.0;
 
     int block = buffer.BufferHt * buffer.BufferWi > 100 ? 1 : -1;
@@ -167,4 +224,5 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
             buffer.SetPixel(x,y,color);
         }
     }, block);
+#endif
 }

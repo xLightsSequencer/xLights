@@ -24,6 +24,11 @@
 
 #include "../Parallel.h"
 
+#ifndef __WXMSW__
+#include "ispc/PinwheelFunctions.ispc.h"
+#define HASISPC
+#endif
+
 PinwheelEffect::PinwheelEffect(int id) : RenderableEffect(id, "Pinwheel", pinwheel_16, pinwheel_24, pinwheel_32, pinwheel_48, pinwheel_64)
 {
     //ctor
@@ -182,6 +187,49 @@ void PinwheelEffect::RenderNewMethod(Effect* effect, const SettingsMap& Settings
     }
 }
 void PinwheelEffect::RenderNewArms(RenderBuffer& buffer, PinwheelData &data) {
+    
+#ifdef HASISPC
+    if (!data.hasSpacial) {
+        ispc::PinwheelData rdata;
+        rdata.width = buffer.BufferWi;
+        rdata.height = buffer.BufferHt;
+        rdata.pinwheel_arms = data.pinwheel_arms;
+        rdata.xc_adj = data.xc_adj;
+        rdata.yc_adj = data.yc_adj;
+        rdata.degrees_per_arm = data.degrees_per_arm;
+        rdata.pinwheel_twist = data.pinwheel_twist;
+        rdata.max_radius= data.max_radius;
+        rdata.poffset = data.poffset;
+        rdata.pw3dType = data.pw3dType;
+        rdata.pinwheel_rotation = data.pinwheel_rotation;
+        rdata.tmax = data.tmax;
+        rdata.pos = data.pos;
+        rdata.allowAlpha = buffer.allowAlpha;
+        rdata.numColors = data.colorsAsColor.size();
+        
+        std::vector<ispc::float3> colorsAsHSV;
+        colorsAsHSV.resize(rdata.numColors);
+        for (int x = 0; x < rdata.numColors; x++) {
+            colorsAsHSV[x] = {(float)data.colorsAsHSV[x].hue, (float)data.colorsAsHSV[x].saturation, (float)data.colorsAsHSV[x].value};
+        }
+        rdata.colorsAsColor = (ispc::uint8_t4*)&data.colorsAsColor[0];
+        rdata.colorsAsHSV = &colorsAsHSV[0];
+        
+        int max = buffer.BufferHt * buffer.BufferWi;
+        constexpr int bfBlockSize = 4096;
+        int blocks = max / bfBlockSize + 1;
+        parallel_for(0, blocks, [&rdata, &buffer, max](int y) {
+            int start = y * bfBlockSize;
+            int end = start + bfBlockSize;
+            if (end > max) {
+                end = max;
+            }
+            
+            PinwheelEffectStyle0(rdata, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+        });
+        return;
+    }
+#endif
     //for (int x = 0; x < buffer.BufferWi; x++) {
     parallel_for(0, buffer.BufferHt, [&buffer, &data](int y) {
         int y1 = y - data.yc_adj - (buffer.BufferHt / 2);
