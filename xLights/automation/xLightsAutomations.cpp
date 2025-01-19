@@ -872,6 +872,22 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         models = "[" + models + "]";
         return sendResponse(models, "models", 200, true);
         
+    } else if (cmd == "deleteAllAliases") {
+        std::string models;
+        bool deleted = false;
+        for (auto m = (&AllModels)->begin(); m != (&AllModels)->end(); ++m) {
+            bool ret = m->second->DeleteAllAliases();
+            if (ret) {
+                models += (deleted ? ", " : "") + JSONSafe(m->first);
+                deleted = deleted || ret;
+            }
+        }
+        if (deleted) {
+            MarkEffectsFileDirty();
+            return sendResponse("\"" + models + "\"", "models", 200, true);
+        } else {
+        	return sendResponse("No aliases found to delete.", "msg", 503, false);
+		}
     } else if (cmd == "getViews") {
         std::string views; 
         if (CurrentSeqXmlFile == nullptr) {
