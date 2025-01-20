@@ -83,14 +83,16 @@ export void PinwheelEffectStyle0(const uniform PinwheelData &data,
                                   uniform int startIdx, uniform int endIdx,
                                   uniform uint8<4> result[])
 {
-    uniform float rszw = rcp((uniform float)data.width);
+    uniform float width = data.width;
+    uniform float rszw = 1.0 / width;
     uniform float sz = data.height + data.width;
     uniform float rsz = rcp(sz) * PI * 2.0;
 
     foreach (index = startIdx...endIdx) {
-        float y = ((float)index) * rszw;
-        float x = index - (floor(y) * data.width);
-        
+        float fidx = index;
+        float y = (floor)(fidx * rszw + 0.00001);
+        float x = fidx - (y * width);
+
         float y1 = y - data.yc_adj - ((float)data.height / 2.0f);
         float x1 = x - data.xc_adj - ((float)data.width / 2.0f);
         float r = sqrt((x1*x1) + (y1*y1));

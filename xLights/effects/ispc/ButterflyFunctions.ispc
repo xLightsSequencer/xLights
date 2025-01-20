@@ -97,14 +97,17 @@ uint8<4> getMultiColorBlend(const uniform ButterflyData &data, float n, bool cir
 export void ButterflyEffectStyle1(const uniform ButterflyData &data,
                                   uniform int startIdx, uniform int endIdx,
                                   uniform uint8<4> result[]) {
-    uniform float rszw = rcp((uniform float)data.width);
     uniform float sz = data.height + data.width;
     uniform float rsz = rcp(sz) * pi2;
     uniform float offset = (uniform float)data.offset;
+    uniform float width = data.width;
+    uniform float rszw = 1.0 / width;
 
     foreach (index = startIdx...endIdx) {
-        float y = ((float)index) * rszw;
-        float x = index - (floor(y) * data.width);
+        float fidx = index;
+        float y = (floor)(fidx * rszw + 0.00001);
+        float x = fidx - (y * width);
+
         float x2 = x * x;
         float y2 = y * y;
         float n = abs((x2 - y2) * sin(offset + ((x+y)*rsz)));
@@ -123,13 +126,15 @@ export void ButterflyEffectStyle1(const uniform ButterflyData &data,
 export void ButterflyEffectStyle2(const uniform ButterflyData &data,
                                   uniform int startIdx, uniform int endIdx,
                                   uniform uint8<4> result[]) {
-    uniform float rszw = rcp((uniform float)data.width);
+    uniform float width = data.width;
+    uniform float rszw = 1.0 / width;
     uniform int maxframe = data.height * 2;
     uniform int frame = (data.height * data.curState / 200) % maxframe;
 
     foreach (index = startIdx...endIdx) {
-        float y = ((float)index) * rszw;
-        float x = index - (floor(y) * data.width);
+        float fidx = index;
+        float y = (floor)(fidx * rszw + 0.00001);
+        float x = fidx - (y * width);
 
         float f = (frame < data.height) ? frame + 1 : maxframe - frame;
         float x1= (x - (float)(data.width)/2.0)/f;
@@ -149,13 +154,15 @@ export void ButterflyEffectStyle2(const uniform ButterflyData &data,
 export void ButterflyEffectStyle3(const uniform ButterflyData &data,
                                   uniform int startIdx, uniform int endIdx,
                                   uniform uint8<4> result[]) {
-    uniform float rszw = rcp((uniform float)data.width);
+    uniform float width = data.width;
+    uniform float rszw = 1.0 / width;
     uniform int maxframe = data.height * 2;
     uniform int frame = (data.height * data.curState / 200) % maxframe;
     
     foreach (index = startIdx...endIdx) {
-        float y = ((float)index) * rszw;
-        float x = index - (floor(y) * data.width);
+        float fidx = index;
+        float y = (floor)(fidx * rszw + 0.00001);
+        float x = fidx - (y * width);
 
         float f = (frame < maxframe/2) ? frame + 1 : maxframe - frame;
         f = f * 0.1 + (float)(data.height)/60.0;
@@ -178,13 +185,15 @@ export void ButterflyEffectStyle4(const uniform ButterflyData &data,
                                   uniform int startIdx, uniform int endIdx,
                                   uniform uint8<4> result[]) {
 
-    uniform float rszw = rcp((uniform float)data.width);
+    uniform float width = data.width;
+    uniform float rszw = 1.0 / width;
     uniform float sz = data.height + data.width;
     uniform float rsz = rcp(sz) * pi2;
 
     foreach (index = startIdx...endIdx) {
-        float y = ((float)index) * rszw;
-        float x = index - (floor(y) * data.width);
+        float fidx = index;
+        float y = (floor)(fidx * rszw + 0.00001);
+        float x = fidx - (y * width);
 
         float n = ((x*x - y*y) * sin(data.offset + ((x+y)*rsz)));
         float d = x*x + y*y;
@@ -210,11 +219,13 @@ export void ButterflyEffectStyle5(const uniform ButterflyData &data,
                                   uniform int startIdx, uniform int endIdx,
                                   uniform uint8<4> result[]) {
 
-    uniform float rszw = rcp((uniform float)data.width);
+    uniform float width = data.width;
+    uniform float rszw = 1.0 / width;
     foreach (index = startIdx...endIdx) {
-        float y = ((float)index) * rszw;
-        float x = index - (floor(y) * data.width);
-        
+        float fidx = index;
+        float y = (floor)(fidx * rszw + 0.00001);
+        float x = fidx - (y * width);
+
         int yi = (int)y;
         int xi = (int)x;
 
@@ -240,7 +251,8 @@ export void ButterflyEffectStyle5(const uniform ButterflyData &data,
 export void ButterflyEffectPlasmaStyles(const uniform ButterflyData &data,
                                     uniform int startIdx, uniform int endIdx,
                                     uniform uint8<4> result[]) {
-    uniform float rszw = rcp((uniform float)data.width);
+    uniform float width = data.width;
+    uniform float rszw = 1.0 / width;
     uniform float invh = rcp((uniform float)data.height);
     uniform float invw = rcp((uniform float)data.width);
     uniform float time = data.plasmaTime;
@@ -252,8 +264,9 @@ export void ButterflyEffectPlasmaStyles(const uniform ButterflyData &data,
     uniform float chunks = data.chunks;
 
     foreach (index = startIdx...endIdx) {
-        float y = ((float)index) * rszw;
-        float x = index - (floor(y) * data.width);
+        float fidx = index;
+        float y = (floor)(fidx * rszw + 0.00001);
+        float x = fidx - (y * width);
         float v = 0;
 
         float rx = x * invw - 0.5;

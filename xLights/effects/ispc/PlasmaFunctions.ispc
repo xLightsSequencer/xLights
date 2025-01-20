@@ -78,12 +78,14 @@ export void PlasmaEffectStyle0(const uniform PlasmaData &data,
                                   uniform uint8<4> result[]) {
     const uniform float pi3 = PI / 3.0;
     const uniform float pi2 = PI * 2.0;
-    uniform float rszw = rcp((uniform float)data.width);
+    uniform float width = data.width;
+    uniform float rszw = 1.0 / width;
 
     foreach (index = startIdx...endIdx) {
-        float y = ((float)index) * rszw;
-        float x = index - (floor(y) * data.width);
-        
+        float fidx = index;
+        float y = (floor)(fidx * rszw + 0.00001);
+        float x = fidx - (y * width);
+
         float vldpi = plasmaCalc_vldpi(data, x, y);
         float h = (sin (vldpi + 2.0 * pi3) + 1.0) * 0.5;
         result[index] = plasma_getMultiColorBlend(data, h, false);
@@ -97,11 +99,13 @@ export void PlasmaEffectStyle1(const uniform PlasmaData &data,
                                   uniform uint8<4> result[]) {
     const uniform float pi3 = PI / 3.0;
     const uniform float pi2 = PI * 2.0;
-    uniform float rszw = rcp((uniform float)data.width);
+    uniform float width = data.width;
+    uniform float rszw = 1.0 / width;
 
     foreach (index = startIdx...endIdx) {
-        float y = ((float)index) * rszw;
-        float x = index - (floor(y) * data.width);
+        float fidx = index;
+        float y = (floor)(fidx * rszw + 0.00001);
+        float x = fidx - (y * width);
         float vldpi = plasmaCalc_vldpi(data, x, y);
         uint8<4> ret;
         ret.r = (sin(vldpi) + 1.0) * 255.0 / 2.0;
@@ -119,11 +123,13 @@ export void PlasmaEffectStyle2(const uniform PlasmaData &data,
                                   uniform uint8<4> result[]) {
     const uniform float pi3 = PI / 3.0;
     const uniform float pi2 = PI * 2.0;
-    uniform float rszw = rcp((uniform float)data.width);
+    uniform float width = data.width;
+    uniform float rszw = 1.0 / width;
 
     foreach (index = startIdx...endIdx) {
-        float y = ((float)index) * rszw;
-        float x = index - (floor(y) * data.width);
+        float fidx = index;
+        float y = (floor)(fidx * rszw + 0.00001);
+        float x = fidx - (y * width);
 
         float vldpi = plasmaCalc_vldpi(data, x, y);
         uint8<4> ret;
@@ -142,11 +148,13 @@ export void PlasmaEffectStyle3(const uniform PlasmaData &data,
                                   uniform uint8<4> result[]) {
     const uniform float pi3 = PI / 3.0;
     const uniform float pi2 = PI * 2.0;
-    uniform float rszw = rcp((uniform float)data.width);
+    uniform float width = data.width;
+    uniform float rszw = 1.0 / width;
 
     foreach (index = startIdx...endIdx) {
-        float y = ((float)index) * rszw;
-        float x = index - (floor(y) * data.width);
+        float fidx = index;
+        float y = (floor)(fidx * rszw + 0.00001);
+        float x = fidx - (y * width);
 
         float vldpi = plasmaCalc_vldpi(data, x, y);
         
@@ -166,11 +174,13 @@ export void PlasmaEffectStyle4(const uniform PlasmaData &data,
                                   uniform uint8<4> result[]) {
     const uniform float pi3 = PI / 3.0;
     const uniform float pi2 = PI * 2.0;
-    uniform float rszw = rcp((uniform float)data.width);
+    uniform float width = data.width;
+    uniform float rszw = 1.0 / width;
 
     foreach (index = startIdx...endIdx) {
-        float y = ((float)index) * rszw;
-        float x = index - (floor(y) * data.width);
+        float fidx = index;
+        float y = (floor)(fidx * rszw + 0.00001);
+        float x = fidx - (y * width);
         float vldpi = plasmaCalc_vldpi(data, x, y);
 
         uint8<4> ret;
