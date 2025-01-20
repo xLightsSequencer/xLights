@@ -11,6 +11,43 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.01 January 20, 2024
+    - enh (dkulp)           MacOS/Linux - start using ISPC to use SIMD/SSE/AVX/NEON for certain effect renderings
+                                - Butterfly effect ported to ISPC
+                                - Plasma effect ported to ISPC
+                                - Non-spacial color Pinwheel effect ported to ISPC
+                                - Layer Blending ported to ISPC
+    - enh (dkulp)           Butterfly Effect - add styles >5 to Metal rendering
+    - enh (cybercop23)      FPP Connect - split ip and hostname to separate columns, clickable links for each
+    - enh (scott)           FPP Connect - add selection options for subnet, add select all/deselect all for cape
+    - enh (scott)           FPP Connect - more sequence selection options, select based on last batch render
+    - enh (cybercop23)      FPP Connect - add re-discover button to re-run discovery
+    - enh (cybercop23)      FPP Connect - allow option to keep dialog open after uploads complete
+    - enh (cybercop23)      FPP Connect - de-duplicate FPP isntanced based on UUID
+    - enh (derwin12)        Import Mapping Dialog - remove useless timer
+    - enh (derwin12)        On Effect - show gradient in background
+    - enh (derwin12)        Servo Effect - servo background is clearer and more distinquishable
+    - enh (cybercop23)      ESPixelStick v4 - bunch of updates to make upload to ESPixelSticks more reliable
+    - enh (scott)           DMX Remap Dialog - Add Copy/Check/Uncheck to Invert Setting
+    - enh (derwin12)        Effect Settings - filename controls set background to yellow if invalid characters are used
+    - enh (keith)           Controller Properties - provide better warnings/indicators if multiple controllers are configured with same IP
+    - enh (cybercop23)      Check Sequence - move to simple HTML to make report easier to navigate
+    - enh (derwin12)        Layout Tab - add preference to hide/size the Group Crosshair
+    - enh (derwin12)        Layout Tab - Remove invalid controller properies/settings if controller is changed
+    - enh (derwin12)        Layout Tab - add ability to export/import native icicles model
+    - enh (derwin12)        Model Properties - add ability to re-order the aliases
+    - enh (cybercop23)      Model Properties - add ability (and Lua script) to delete all aliases
+    - bug (cybercop23)      Batch Render - don't list sequences in backup directories
+    - bug (scott)           Fix preview/model import crash if click select sibling on a preview
+    - bug (dkulp)           Fix a crash at startup if controllers in base directories are using hostnames
+    - bug (dkulp)           Fix a crash with single strand effect used in a group with "Per Model" render styles
+    - bug (dkulp)           Fix a potential crash if a controller hostname cannot be resolved
+    - bug (dkulp)           Fix a crash if using Linux in parallels if EGL is required
+    - bug (dkulp)           Fix a crash on Linux if MovingHeadPanel is resized before being placed on screen (startup)
+    - bug (dkulp)           Fix incompatability with Ubuntu 22.04 and Debian 12
+    - bug (derwin12)        Fix getFseqDir Lua command to match conventions, update docs
+    - bug (cybercop23)      Experience Controllers - retain/support Remote/Standalone modes
+    - bug (dkulp)           Butteryfly Effect - clamp HSV->RGB routines to 0..1 for Hue
 2024.20 December 31, 2024
     - enh (dkulp)           Performance - if effect backgrounds are turned off, don't waste time/memory calculating them during render
     - enh (cyercop23)       Scripting - add command to get fseq dir from preferences
