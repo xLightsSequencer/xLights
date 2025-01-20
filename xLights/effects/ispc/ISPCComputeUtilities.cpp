@@ -166,6 +166,8 @@ bool ISPCComputeUtilities::blendLayers(PixelBufferClass *pixelBuffer, int effect
         data.effectMixThreshold = layer->outputEffectMixThreshold;
         data.effectMixVaries = layer->effectMixVaries;
         data.fadeFactor = layer->fadeFactor;
+        data.startNode = 0;
+        data.endNode = data.nodeCount;
         ispc::PutColorsForNodes(data, target, tmpBufferBlend, nullptr, &layer->buffer.indexVector[0]);
     }
     
