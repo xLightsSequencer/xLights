@@ -31,11 +31,11 @@ GET /closeSequence - closes the sequence
     force=true to close even if there are unsaved changes
 
 GET /newSequence
-    Needs two query params:
+    Needs either duration or media query params:
     duration=  Time in seconds
     media= Media filename
     frameMS= frame time in MS (typically 25 or 50 or 0) optional
-    view= view to use for mast view ("Empty", "All Models" or a valid view name) optional
+    view= view to use for master view ("Empty", "All Models" or a valid view name) optional
 
 GET /saveSequence
     seq=  Sequence name to save as, don't specify to use current name

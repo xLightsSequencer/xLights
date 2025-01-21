@@ -569,13 +569,17 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 
         wxFileName name_and_path(media);
         MediaLoad(name_and_path);
-        EndModal(wxID_OK);
+        if (wizard_active) {
+            EndModal(wxID_OK);
+        }
 
     } else if (durationMS != 0) {
         float d = (float)(durationMS) / 1000.0f;
         TextCtrl_Xml_Seq_Duration->SetValue(wxString::Format("%f", d));
         UpdateSequenceTiming();
-        EndModal(wxID_OK);
+        if (wizard_active) {
+            EndModal(wxID_OK);
+        }
     }
 }
 
