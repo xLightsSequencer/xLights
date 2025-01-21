@@ -194,11 +194,15 @@
 // key/value containers (see the docs: wxJSON internals: array and hash_map
 #undef wxJSON_USE_STL
 #if defined( wxUSE_STL ) && wxUSE_STL == 1
-// #define wxJSON_USE_STL
+#ifdef __WXMSW__
+#define wxJSON_USE_STL
+#endif
 #endif
 #ifndef wxJSON_USE_STL
 #if wxUSE_STD_CONTAINERS
-// #define wxJSON_USE_STL
+#ifdef __WXMSW__
+ #define wxJSON_USE_STL
+#endif
 #endif
 #endif
 
