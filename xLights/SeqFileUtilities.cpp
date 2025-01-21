@@ -110,6 +110,13 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
         return;
     }
 
+    bool wizardactive;
+    if (media.empty() && durationMS == 0) {
+        wizardactive = true;
+    } else {
+        wizardactive = false;
+    }
+
     // assign global xml file object
     wxFileName xml_file;
     xml_file.SetPath(CurrentDir);
@@ -119,10 +126,13 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
         CurrentSeqXmlFile->setSupportsModelBlending(false);
     }
 
-    SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT(""), _defaultSeqView, true, media, durationMS);
-    setting_dlg.Fit();
-    int ret_code = setting_dlg.ShowModal();
-    if (ret_code == wxID_CANCEL) {
+    SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT(""), _defaultSeqView, wizardactive, media, durationMS);
+    int ret_code = wxID_ANY;
+    if(wizardactive) {
+        setting_dlg.Fit();
+        ret_code = setting_dlg.ShowModal();
+    }
+    if (wizardactive && ret_code == wxID_CANCEL) {
         delete CurrentSeqXmlFile;
         CurrentSeqXmlFile = nullptr;
         return;
