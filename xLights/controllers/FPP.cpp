@@ -3268,6 +3268,9 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 if (found->typeId == 0) {
                     found->typeId = inst.typeId;
                 }
+                if (found->uuid == "") {
+                    found->uuid = inst.uuid;
+                }
                 if (inst.ranges.size() > found->ranges.size()) {
                     //if the json has the ranges, use it as the json can have a more exact set of ranges
                     //the Ping packet is limited to either 40 (v2) or 120 (v3) characters so

@@ -73,6 +73,14 @@ namespace ip_utils
         return false;
     }
 
+    bool IsValidHostname(const std::string& ip) {
+        static wxRegEx hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
+
+        wxString ips = wxString(ip).Trim(false).Trim(true);
+        
+        return hostAddr.Matches(ips);
+    }
+
     std::string CleanupIP(const std::string& ip)
     {
         bool hasChar = false;

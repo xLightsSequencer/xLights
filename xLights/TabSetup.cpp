@@ -1357,29 +1357,95 @@ void xLightsFrame::OnButtonFPPConnectClick(wxCommandEvent& event) {
 void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Running controller discovery.");
+    logger_base.debug("[Discovery] Running controller discovery.");
     SetStatusText("Running controller discovery ...");
     SetCursor(wxCURSOR_WAIT);
 
     bool hasChanges = false;
 
     Discovery discovery(this, &_outputManager);
-    ArtNetOutput::PrepareDiscovery(discovery);
-    ZCPPOutput::PrepareDiscovery(discovery);
-    DDPOutput::PrepareDiscovery(discovery);
-    TwinklyOutput::PrepareDiscovery(discovery);
     FPP::PrepareDiscovery(discovery);
+    ArtNetOutput::PrepareDiscovery(discovery);
+    TwinklyOutput::PrepareDiscovery(discovery);
     Pixlite16::PrepareDiscovery(discovery);
+    DDPOutput::PrepareDiscovery(discovery);
     discovery.Discover();
+
+    SetStatusText("Processing discovered controllers...");
+    logger_base.debug("[Discovery] Processing discovered controllers...");
+    struct FPPDiscInfo {
+        std::string hostname;
+        std::string ip;
+        std::string uuid;
+        int ipsPerUUID;
+        bool isUniqueHostname;
+        bool isPingable;
+
+        bool operator<(const FPPDiscInfo& other) const {
+            return std::tie(hostname, ip, uuid) < std::tie(other.hostname, other.ip, other.uuid);
+        }
+    };
+    std::vector<FPPDiscInfo> fppDiscInfo;
+
+    for (const auto& it : discovery.GetResults()) {
+        if (!it->ip.empty() && it->controller != nullptr) {
+            fppDiscInfo.push_back({it->hostname, it->ip, it->uuid, 0, true, true});
+        }
+    }
+
+    std::map<std::string, int> ipsPerUUID;
+    std::map<std::string, std::set<std::string>> uniqueHostnames;
+    for (const auto& info : fppDiscInfo) {
+        if (!info.uuid.empty()) {
+            ipsPerUUID[info.uuid]++;
+        }
+        if (!info.hostname.empty()) {
+            uniqueHostnames[info.hostname].insert(info.uuid);
+        }
+    }
+
+    std::string dupHostnames;
+    std::map<std::string, bool> isPingable;
+    for (auto& it : fppDiscInfo) {
+        it.ipsPerUUID = ipsPerUUID[it.uuid];
+        if (it.ipsPerUUID > 1) {
+            auto res = IPOutput::Ping(it.ip, "");
+            it.isPingable = (IPOutput::Ping(it.ip, "") == Output::PINGSTATE::PING_OK);
+        }
+        isPingable[it.ip] = it.isPingable;
+        it.isUniqueHostname = (uniqueHostnames[it.hostname].size() == 1);
+        if (uniqueHostnames[it.hostname].size() > 1) {
+            if (dupHostnames.find(it.hostname) == std::string::npos) {
+                dupHostnames += it.hostname + ",";
+            }
+        }
+    }
+
+    if (!dupHostnames.empty()) {
+        dupHostnames.pop_back();
+        wxMessageBox("Found the same hostname(s) for multiple devices (" + dupHostnames + "). This is really not good. Names should be unique across all devices. Make sure you rename your default FPP instances. Be careful to read through the prompts that may come up to ensure the proper controllers are added.", "Multiple Hostnames", wxOK);
+    }
 
     std::map<std::string, std::string> renames;
     bool found = false;
 
     for (int x = 0; x < discovery.GetResults().size(); x++) {
         auto discovered = discovery.GetResults()[x];
+        logger_base.debug("[Discovery] Processing: %s  IP: %s", discovered->hostname.c_str(), discovered->ip.c_str());
+        SetStatusText("Processing controller " + discovered->hostname + " IP:" + discovered->ip + " ...");
+
         if (!discovered->controller) {
             continue;
         }
+
+        if (discovered->typeId > 0 && discovered->typeId < 0x80) {
+            discovered->controller->SetActive("xLights Only");
+            if (discovered->controller->GetVendor().empty()) {
+                discovered->controller->SetVendor("FPP");
+                discovered->controller->SetModel(StartsWith(discovered->mode, "player") ? "FPP Player Only" : "");
+            }
+        }
+
         ControllerEthernet *it = discovered->controller;
         auto c = _outputManager.GetControllers(it->GetIP());
         if (c.size() == 0) {
@@ -1389,16 +1455,26 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
                 if (eth != nullptr
                     && eth->GetName() == it->GetName()
                     && eth->GetProtocol() == it->GetProtocol()) {
-                    wxMessageDialog dialog(nullptr, "The discovered controller (" + eth->GetName() + "/" + eth->GetIP() + ") matches an existing controller name but has a different IP address (" + it->GetIP() + "). Do you want to update the IP address for that existing controller in xLights?", "Mismatch IP", wxYES_NO | wxCANCEL | wxICON_QUESTION);
-                    dialog.SetYesNoCancelLabels("Yes", "Add New", "Skip");
-                    int result = dialog.ShowModal();
-                    if (result == wxID_YES) {
-                        updated = true;
-                        eth->SetIP(it->GetIP());
-                        found = true;
-                    } else if (result == wxID_CANCEL) {
+                    if (ip_utils::IsValidHostname(eth->GetIP())) {
                         updated = true;
                         found = true;
+                    } else {
+                        if (isPingable[it->GetIP()]) {
+                            wxMessageDialog dialog(nullptr, "The discovered controller (" + it->GetIP() + ") matches an existing controller name (" + eth->GetName() + "/" + eth->GetIP() + "). Do you want to update the IP address of controller?", "Mismatch IP", wxYES_NO | wxCANCEL | wxICON_QUESTION);
+                            dialog.SetYesNoCancelLabels("Yes", "Add New", "Skip");
+                            int result = dialog.ShowModal();
+                            if (result == wxID_YES) {
+                                updated = true;
+                                eth->SetIP(it->GetIP());
+                                found = true;
+                            } else if (result == wxID_CANCEL) {
+                                updated = true;
+                                found = true;
+                            }
+                        } else {
+                            updated = true;
+                            found = true;
+                        }
                     }
                 }
             }
@@ -1406,7 +1482,19 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
                 // we need to ensure the id is still unique
                 it->EnsureUniqueId();
                 it->EnsureUniqueName();
-                _outputManager.AddController(it);
+
+                if (isPingable[it->GetIP()]) {
+                    std::string hostName = discovered->hostname;
+                    logger_base.debug("[Discovery] Adding: %s at: %s", hostName.c_str(), it->GetIP().c_str());
+                    if (!hostName.empty()) {
+                        if (ip_utils::ResolveIP(hostName + ".local") != hostName + ".local") {
+                            it->SetIP(::Lower(hostName) + ".local");
+                        } else if (ip_utils::ResolveIP(hostName) != hostName) {
+                            it->SetIP(::Lower(hostName));
+                        }
+                    }
+                    _outputManager.AddController(it);
+                }
                 discovered->controller = nullptr;
                 found = true;
             }
@@ -1446,7 +1534,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButton_DiscoverClick");
     }
     SetStatusText("Discovery complete.");
-    logger_base.debug("Controller discovery complete.");
+    logger_base.debug("[Discovery] Controller discovery complete.");
 }
 
 void xLightsFrame::OnButtonDeleteAllControllersClick(wxCommandEvent& event) {
