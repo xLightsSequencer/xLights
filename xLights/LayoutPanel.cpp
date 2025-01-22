@@ -7719,7 +7719,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
                     rc = mm->DeleteAllAliases();
                     deleted = deleted || rc;
                     for (auto sm : mm->GetSubModels()) {
-                        SubModel* s = dynamic_cast<SubModel*>(m.second);
+                        SubModel* s = dynamic_cast<SubModel*>(sm);
                         if (s != nullptr) {
                             rc = s->DeleteAllAliases();
                             deleted = deleted || rc;
