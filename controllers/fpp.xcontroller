@@ -44,6 +44,7 @@
         <SupportsDefaultBrightness/>
         <SupportsDefaultGamma/>
         <PreferredInputProtocol>DDP</PreferredInputProtocol>
+		<PreferredState>xLights Only</PreferredState>
         <ConfigDriver>FPP</ConfigDriver>
 		<FPS40Pixels>800</FPS40Pixels>
 		<FPS40Pixels_SR>720</FPS40Pixels_SR>

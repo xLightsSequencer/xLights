@@ -722,6 +722,10 @@ std::string ControllerCaps::GetPreferredInputProtocol() const
     return GetXmlNodeContent(_config, "PreferredInputProtocol", "");
 }
 
+std::string ControllerCaps::GetPreferredState() const {
+    return GetXmlNodeContent(_config, "PreferredState", "");
+}
+
 std::string ControllerCaps::GetConfigDriver() const
 {
     return GetXmlNodeContent(_config, "ConfigDriver", "");
