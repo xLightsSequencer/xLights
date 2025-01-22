@@ -1184,6 +1184,9 @@ public:
     bool GridIconBackgrounds() const { return mGridIconBackgrounds;}
     void SetGridIconBackgrounds(bool b);
 
+    bool ShowGroupEffectIndicator() const { return mShowGroupEffectIndicator;}
+    void SetShowGroupEffectIndicator(bool b);
+
     bool SmallWaveform() const { return _smallWaveform; }
     void SetSmallWaveform(bool b);
 
@@ -1627,6 +1630,7 @@ private:
     int mIconSize;
     int mGridSpacing;
     bool mGridIconBackgrounds;
+    bool mShowGroupEffectIndicator = true;
     bool mTimingPlayOnDClick;
     bool mGridNodeValues;
     int mEffectAssistMode = 0;

@@ -1838,6 +1838,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     SetGridIconBackgrounds(mGridIconBackgrounds);
     logger_base.debug("Grid icon backgrounds: %s.", toStr(mGridIconBackgrounds));
 
+    config->Read("xLightsGroupEffectIndicator", &mShowGroupEffectIndicator, true);
+    SetShowGroupEffectIndicator(mShowGroupEffectIndicator);
+    logger_base.debug("Group Effect Indicators: %s.", toStr(mShowGroupEffectIndicator));
+
     config->Read("xLightsTimingPlayOnDClick", &mTimingPlayOnDClick, true);
     SetTimingPlayOnDClick(mTimingPlayOnDClick);
     logger_base.debug("Timing Play on DClick: %s.", toStr(mTimingPlayOnDClick));
@@ -2139,6 +2143,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsIconSize", mIconSize);
     config->Write("xLightsGridSpacing", mGridSpacing);
     config->Write("xLightsGridIconBackgrounds", mGridIconBackgrounds);
+    config->Write("xLightsGroupEffectIndicator", mShowGroupEffectIndicator);
     config->Write("xLightsTimingPlayOnDClick", mTimingPlayOnDClick);
     config->Write("xLightsGridNodeValues", mGridNodeValues);
     config->Write("xLightsRenderOnSave", mRenderOnSave);
@@ -3547,6 +3552,12 @@ void xLightsFrame::SetGridIconBackgrounds(bool b)
     Effect::EnableBackgroundDisplayLists(b);
     mainSequencer->PanelEffectGrid->SetEffectIconBackground(mGridIconBackgrounds);
     mainSequencer->PanelEffectGrid->Refresh();
+}
+void xLightsFrame::SetShowGroupEffectIndicator(bool b)
+{
+    mShowGroupEffectIndicator = b;
+    mainSequencer->PanelRowHeadings->SetShowGroupEffectIndicator(mShowGroupEffectIndicator);
+    mainSequencer->PanelRowHeadings->Refresh();
 }
 
 void xLightsFrame::SetGridNodeValues(bool b)

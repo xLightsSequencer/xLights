@@ -1738,11 +1738,8 @@ void RowHeading::render( wxPaintEvent& event )
                 }
 
                 bool hasEffects = rowInfo->element->HasEffects();
-                if (!hasEffects && m->GetDisplayAs() == "ModelGroup")
-                {
+                if (!hasEffects && groupEffectIndicator && m->GetDisplayAs() == "ModelGroup") {
                     // model groups are only marked if model group has direct effects or the model with effects is otherwise hidden in the view
-                    hasEffects = rowInfo->element->HasEffects();
-
                     int view = mSequenceElements->GetCurrentView();
                     ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
                     auto models = mg->ModelNames();
