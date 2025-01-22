@@ -123,6 +123,11 @@ extern "C" {
     extern void GetColorsISPCKernel(const struct LayerBlendingData *data, uint32_t * result, const uint32_t * src, const uint8_t * mask, const uint32_t * indexes);
 #endif // GetColorsISPCKernel function declaraion
 #if defined(__cplusplus)
+    extern void GetColorsISPCKernelSimple(const struct LayerBlendingData &data, uint32_t * result, const uint32_t * src, const uint8_t * mask, const uint32_t * indexes);
+#else
+    extern void GetColorsISPCKernelSimple(const struct LayerBlendingData *data, uint32_t * result, const uint32_t * src, const uint8_t * mask, const uint32_t * indexes);
+#endif // GetColorsISPCKernelSimple function declaraion
+#if defined(__cplusplus)
     extern void HighlightFunction(const struct LayerBlendingData &data, uint32_t * result, const uint32_t * src, const uint32_t * indexes);
 #else
     extern void HighlightFunction(const struct LayerBlendingData *data, uint32_t * result, const uint32_t * src, const uint32_t * indexes);
@@ -177,6 +182,11 @@ extern "C" {
 #else
     extern void PutColorsForNodes(const struct LayerBlendingData *data, uint32_t * result, const uint32_t * src, const uint8_t * mask, const uint32_t * indexes);
 #endif // PutColorsForNodes function declaraion
+#if defined(__cplusplus)
+    extern void PutColorsForNodesSimple(const struct LayerBlendingData &data, uint32_t * result, const uint32_t * src, const uint8_t * mask, const uint32_t * indexes);
+#else
+    extern void PutColorsForNodesSimple(const struct LayerBlendingData *data, uint32_t * result, const uint32_t * src, const uint8_t * mask, const uint32_t * indexes);
+#endif // PutColorsForNodesSimple function declaraion
 #if defined(__cplusplus)
     extern void Reveal12Function(const struct LayerBlendingData &data, uint32_t * result, const uint32_t * src, const uint32_t * indexes);
 #else

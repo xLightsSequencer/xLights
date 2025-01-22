@@ -123,7 +123,11 @@ bool ISPCComputeUtilities::blendLayers(PixelBufferClass *pixelBuffer, int effect
             
             // first, we grab the color for the node from the buffer for the layer and into a single [] of colors matching the nodes
             const uint32_t *src = (const uint32_t *)layer->buffer.pixels;
-            ispc::GetColorsISPCKernel(data, (uint32_t*)result, src, layer->mask, &layer->buffer.indexVector[0]);
+            if (layer->buffer.allSimpleIndex && !data.useMask)  {
+                ispc::GetColorsISPCKernelSimple(data, (uint32_t*)result, src, layer->mask, &layer->buffer.indexVector[0]);
+            } else {
+                ispc::GetColorsISPCKernel(data, (uint32_t*)result, src, layer->mask, &layer->buffer.indexVector[0]);
+            }
         }
     }
     constexpr int maxPerBlock = 4096;
@@ -168,7 +172,11 @@ bool ISPCComputeUtilities::blendLayers(PixelBufferClass *pixelBuffer, int effect
         data.fadeFactor = layer->fadeFactor;
         data.startNode = 0;
         data.endNode = data.nodeCount;
-        ispc::PutColorsForNodes(data, target, tmpBufferBlend, nullptr, &layer->buffer.indexVector[0]);
+        if (!data.useMask && layer->buffer.allSimpleIndex) {
+            ispc::PutColorsForNodesSimple(data, target, tmpBufferBlend, nullptr, &layer->buffer.indexVector[0]);
+        } else {
+            ispc::PutColorsForNodes(data, target, tmpBufferBlend, nullptr, &layer->buffer.indexVector[0]);
+        }
     }
     
     xlColor *colors = (xlColor*)(&pixelBuffer->blendDataBuffer[0]);

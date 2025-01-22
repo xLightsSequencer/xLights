@@ -561,6 +561,7 @@ private:
 
     std::vector<uint32_t> blendBuffer;
     std::vector<uint32_t> indexVector;
+    bool allSimpleIndex = true;
 public:
     uint32_t GetPixelCount() { return pixelVector.size(); }
     xlColor *GetPixels() { return pixels; }
