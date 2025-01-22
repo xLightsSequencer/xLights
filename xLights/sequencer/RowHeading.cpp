@@ -84,6 +84,7 @@ const long RowHeading::ID_ROW_MNU_DELETE_MODEL_NODE_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SELECT_ROW_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SELECT_MODEL_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SELECT_TIMING_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS = wxNewId();
 const long RowHeading::ID_ROW_MNU_MODEL_CONVERTTOPERMODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_ROW_CONVERTTOPERMODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_RENDERENABLE_ALL = wxNewId();
@@ -470,6 +471,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     if (mSequenceElements->GetCurrentView() == MASTER_VIEW) {
                         mnuLayer.Append(ID_ROW_MNU_HIDEALLTIMING, "Hide All Timing Tracks");
                     }
+                    mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS, "Add Timing Tracks to All Views");
                     mnuLayer.Append(ID_ROW_MNU_SELECT_TIMING_EFFECTS, "Select Timing Marks");
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
                     mnuLayer.AppendSeparator();
@@ -1106,6 +1108,17 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_SELECT_TIMING_EFFECTS) {
         for (int i = 0; i < element->GetEffectLayerCount(); i++) {
             element->GetEffectLayer(i)->SelectAllEffects();
+        }
+    } else if (id == ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS) {
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+        mSequenceElements->GetXLightsFrame()->AbortRender();
+        for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
+            Element* e = mSequenceElements->GetElement(i);
+            if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+                if (e->GetVisible()) {
+                    mSequenceElements->AddTimingToAllViews(e->GetName());
+                }
+            }
         }
     } else if (id == ID_ROW_MNU_DELETE_MODEL_EFFECTS) {
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
