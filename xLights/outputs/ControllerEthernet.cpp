@@ -723,6 +723,10 @@ void ControllerEthernet::VMVChanged(wxPropertyGrid *grid)
                     SetProtocol(prefer);
                 }
             }
+            auto const& state = c->GetPreferredState();
+            if (!state.empty()) {
+                SetActive(state);
+            }
         }
     }
 }

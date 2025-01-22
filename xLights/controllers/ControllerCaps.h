@@ -133,6 +133,7 @@ public:
     std::string GetID() const;
 
     std::string GetPreferredInputProtocol() const;
+    std::string GetPreferredState() const;
 
     std::vector<std::string> GetInputProtocols() const;
     std::vector<std::string> GetPixelProtocols() const;
