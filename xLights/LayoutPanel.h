@@ -27,6 +27,7 @@ class wxStaticText;
 #include "wxCheckedListCtrl.h"
 #include <wx/treelist.h>
 #include <wx/treectrl.h>
+#include <wx/dataview.h>
 #include <wx/xml/xml.h>
 #include <glm/glm.hpp>
 
