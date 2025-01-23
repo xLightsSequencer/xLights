@@ -1410,7 +1410,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         it.ipsPerUUID = ipsPerUUID[it.uuid];
         if (it.ipsPerUUID > 1) {
             auto res = IPOutput::Ping(it.ip, "");
-            it.isPingable = (IPOutput::Ping(it.ip, "") == Output::PINGSTATE::PING_OK);
+            it.isPingable = (res == Output::PINGSTATE::PING_OK);
         }
         isPingable[it.ip] = it.isPingable;
         it.isUniqueHostname = (uniqueHostnames[it.hostname].size() == 1);

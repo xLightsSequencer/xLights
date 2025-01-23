@@ -20,6 +20,7 @@
 #include "CircleModel.h"
 #include "CubeModel.h"
 #include "CustomModel.h"
+#include "ExternalHooks.h"
 #include "IciclesModel.h"
 #include "ImageModel.h"
 #include "Model.h"
@@ -251,7 +252,7 @@ void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
     std::function<void(wxXmlNode*&, int)> f = [this, previewW, previewH](wxXmlNode* e, int idx) {
         createAndAddModel(e, previewW, previewH);
     };
-    parallel_for(modelsToLoad, f);
+    RunInAutoReleasePool([&]() {parallel_for(modelsToLoad, f);});
     // printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
     logger_base.debug("Models loaded in %ldms", timer.Time());
     _modelsLoading = false;

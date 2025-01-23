@@ -229,9 +229,7 @@ export void PutColorsForNodesSimple(uniform const LayerBlendingData &data,
 {
     foreach (index = data.startNode...data.endNode) {
         uint32 idx = indexes[index];
-        if (idx == 0xFFFFFFFF) {
-            result[idx] = ZERO_COLOR;
-        } else {
+        if (!(idx & 0x80000000)) {
             result[idx] = src[index];
         }
     }
@@ -245,23 +243,25 @@ export void PutColorsForNodes(uniform const LayerBlendingData &data,
     foreach (index = data.startNode...data.endNode) {
         uint32 idx = indexes[index];
         if (idx == 0xFFFFFFFF) {
-            result[idx] = ZERO_COLOR;
+            // not in the output
         } else if (idx & 0x80000000) {
             idx &= 0x7FFFFFFF;
             int cnt = indexes[idx++];
             for (int n = 0; n < cnt; n++) {
                 int nidx = indexes[idx + n];
-                if (data.useMask && mask) {
-                    int32 x = nidx / data.bufferHi;
-                    int32 y = nidx - (x * data.bufferHi);
-                    int32 midx = x * data.bufferHi + y;
-                    if (mask[idx] > 0) {
-                        result[nidx] = ZERO_COLOR;
+                if (nidx >= 0) {
+                    if (data.useMask && mask) {
+                        int32 x = nidx / data.bufferHi;
+                        int32 y = nidx - (x * data.bufferHi);
+                        int32 midx = x * data.bufferHi + y;
+                        if (mask[midx] > 0) {
+                            result[nidx] = ZERO_COLOR;
+                        } else {
+                            result[nidx] = src[index];
+                        }
                     } else {
                         result[nidx] = src[index];
                     }
-                } else {
-                    result[nidx] = src[index];
                 }
             }
         } else if (data.useMask && mask) {
