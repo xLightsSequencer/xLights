@@ -605,6 +605,8 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
         tree = new wxTreeListCtrl(panel, ID_TREELISTVIEW_MODELS,
                                   wxDefaultPosition, wxDefaultSize,
                                   style, "ID_TREELISTVIEW_MODELS");
+    TreeListMiewInternalModel = tree->GetDataView()->GetModel();
+    TreeListMiewInternalModel->IncRef();
     tree->SetImages(m_imageList);
 
     tree->AppendColumn(MODELCOLNAME,
@@ -797,6 +799,8 @@ LayoutPanel::~LayoutPanel()
     }
     TreeListViewModels->SetItemComparator(nullptr);
     TreeListViewModels->DeleteAllItems();
+    TreeListMiewInternalModel->DecRef();
+
 	//(*Destroy(LayoutPanel)
 	//*)
 }
@@ -1183,6 +1187,8 @@ std::string LayoutPanel::TreeModelName(const Model* model, bool fullname)
 
 void LayoutPanel::FreezeTreeListView() {
     TreeListViewModels->Freeze();
+    TreeListViewModels->GetDataView()->AssociateModel(nullptr);
+
     //turn off the column width auto-resize.  Makes it REALLY slow to populate the tree
     TreeListViewModels->SetColumnWidth(0, TreeListViewModels->GetColumnWidth(0));
     TreeListViewModels->SetColumnWidth(3, TreeListViewModels->GetColumnWidth(3));
@@ -1197,10 +1203,11 @@ void LayoutPanel::FreezeTreeListView() {
         //then turn it off again so platforms that DO support this can benefit
         TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
     }
-    
 }
 
 void LayoutPanel::ThawTreeListView() {
+    TreeListViewModels->GetDataView()->AssociateModel(TreeListMiewInternalModel);
+
     //turn the sorting back on
     TreeListViewModels->SetItemComparator(&comparator);
     if (treeSorted) {
@@ -1219,6 +1226,7 @@ void LayoutPanel::ThawTreeListView() {
     }
     TreeListViewModels->SetColumnWidth(0, i);
     TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
+    
     TreeListViewModels->Thaw();
     TreeListViewModels->Refresh();
 }

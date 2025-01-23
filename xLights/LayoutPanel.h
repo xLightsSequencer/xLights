@@ -118,6 +118,7 @@ class LayoutPanel: public wxPanel
 		wxScrolledWindow* ViewObjectWindow = nullptr;
 		wxScrolledWindow* ModelGroupWindow = nullptr;
 		wxTreeListCtrl* TreeListViewModels = nullptr;
+        wxDataViewModel* TreeListMiewInternalModel = nullptr;
 
 	protected:
 
