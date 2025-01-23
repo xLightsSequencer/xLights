@@ -36,7 +36,7 @@ WXWIDGETS_CANVAS_FLAGS=--enable-glcanvasegl
 else
 ISPC_URL=https://github.com/ispc/ispc/releases/download/v${ISPC_VERSION}/ispc-v${ISPC_VERSION}-linux.tar.gz
 ISPC_DIR=ispc-v${ISPC_VERSION}-linux
-WXWIDGETS_CANVAS_FLAGS=--disable-glcanvasegl
+WXWIDGETS_CANVAS_FLAGS=--enable-glcanvasegl
 endif
 
 
