@@ -14,7 +14,7 @@
 #include <wx/panel.h>
 class wxCheckBox;
 class wxChoice;
-class wxGridSizer;
+class wxFlexGridSizer;
 class wxStaticText;
 //*)
 
@@ -71,6 +71,7 @@ class EffectsGridSettingsPanel: public wxPanel
 		void OnDoubleClickChoiceSelect(wxCommandEvent& event);
 		void OnColorUpdateWarnCheckBoxClick(wxCommandEvent& event);
 		void OnGroupEffectIndicatorClick(wxCommandEvent& event);
+		void OnPaint(wxPaintEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
