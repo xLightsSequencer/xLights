@@ -1202,15 +1202,18 @@ void LayoutPanel::FreezeTreeListView() {
         //then turn it off again so platforms that DO support this can benefit
         TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
     }
-    
+#ifndef __WXMSW__
     // dis-associate the model so the adds/removes will be a ton faster
     TreeListViewModels->GetDataView()->AssociateModel(nullptr);
+#endif
 }
 
 void LayoutPanel::ThawTreeListView(const std::list<wxTreeListItem> &toExpand) {
+#ifndef __WXMSW__
     // re-associate the model
     TreeListViewModels->GetDataView()->AssociateModel(TreeListMiewInternalModel);
-    
+#endif
+
     // Only set the column sizes the very first time we load it
     if (_firstTreeLoad) {
         _firstTreeLoad = false;
