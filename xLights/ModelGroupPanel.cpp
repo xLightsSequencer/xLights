@@ -764,7 +764,7 @@ void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
     }
     e->AddAttribute("TagColour", ColourPickerCtrl_ModelGroupTagColour->GetColour().GetAsString());
     g->Reset();
-    layoutPanel->ModelGroupUpdated(g, true); // if i dont set this to true then it leaves the house preview with a pointer to an invalid model which crashes
+    layoutPanel->ModelGroupUpdated(g);
 }
 
 void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
@@ -772,7 +772,7 @@ void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
     ModelGroup *g = (ModelGroup*)mModels[mGroup];
     std::string layout_group = std::string(ChoicePreviews->GetString(ChoicePreviews->GetCurrentSelection()).mb_str());
     mModels[mGroup]->SetLayoutGroup(layout_group);
-    layoutPanel->ModelGroupUpdated(g, true);
+    layoutPanel->ModelGroupUpdated(g);
 }
 
 void ModelGroupPanel::OnSizeSpinCtrlChange(wxSpinEvent& event)

@@ -323,7 +323,7 @@ class LayoutPanel: public wxPanel
         void updatePropertyGrid();
         void ClearSelectedModelGroup();
 
-        void ModelGroupUpdated(ModelGroup *group, bool full_refresh);
+        void ModelGroupUpdated(ModelGroup *group);
         bool HandleLayoutKeyBinding(wxKeyEvent& event);
 
         void OnListCharHook(wxKeyEvent& event);
@@ -333,7 +333,7 @@ class LayoutPanel: public wxPanel
 
     protected:
         void FreezeTreeListView();
-        void ThawTreeListView();
+        void ThawTreeListView(const std::list<wxTreeListItem> &toExpand);
         void SetTreeListViewItemText(wxTreeListItem &item, int col, const wxString &txt);
 
         void SaveModelsListColumns();
@@ -554,7 +554,7 @@ class LayoutPanel: public wxPanel
         void SelectBaseObject3D();
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
         wxTreeListCtrl* CreateTreeListCtrl(long style, wxPanel* panel);
-        int AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName = false);
+        int AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, std::list<wxTreeListItem> &toExpand, int nativeOrder, bool fullName = false);
         void RenameModelInTree(Model* model, const std::string& new_name);
         void DisplayAddObjectPopup();
         void OnAddObjectPopup(wxCommandEvent& event);

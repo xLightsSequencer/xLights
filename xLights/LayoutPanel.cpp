@@ -1187,7 +1187,6 @@ std::string LayoutPanel::TreeModelName(const Model* model, bool fullname)
 
 void LayoutPanel::FreezeTreeListView() {
     TreeListViewModels->Freeze();
-    TreeListViewModels->GetDataView()->AssociateModel(nullptr);
 
     //turn off the column width auto-resize.  Makes it REALLY slow to populate the tree
     TreeListViewModels->SetColumnWidth(0, TreeListViewModels->GetColumnWidth(0));
@@ -1203,10 +1202,33 @@ void LayoutPanel::FreezeTreeListView() {
         //then turn it off again so platforms that DO support this can benefit
         TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
     }
+    
+    // dis-associate the model so the adds/removes will be a ton faster
+    TreeListViewModels->GetDataView()->AssociateModel(nullptr);
 }
 
-void LayoutPanel::ThawTreeListView() {
+void LayoutPanel::ThawTreeListView(const std::list<wxTreeListItem> &toExpand) {
+    // re-associate the model
     TreeListViewModels->GetDataView()->AssociateModel(TreeListMiewInternalModel);
+    
+    // Only set the column sizes the very first time we load it
+    if (_firstTreeLoad) {
+        _firstTreeLoad = false;
+
+        TreeListViewModels->SetColumnWidth(1, wxCOL_WIDTH_AUTOSIZE);
+        int width = TreeListViewModels->GetColumnWidth(1);
+        if (width < 20) {
+            width = TreeListViewModels->WidthFor(STARTCHANCOLNAME);
+        }
+        TreeListViewModels->SetColumnWidth(1, width);
+
+        TreeListViewModels->SetColumnWidth(2, wxCOL_WIDTH_AUTOSIZE);
+        width = TreeListViewModels->GetColumnWidth(2);
+        if (width < 20) {
+            width = TreeListViewModels->WidthFor(STARTCHANCOLNAME);
+        }
+        TreeListViewModels->SetColumnWidth(2, width);
+    }
 
     //turn the sorting back on
     TreeListViewModels->SetItemComparator(&comparator);
@@ -1227,6 +1249,10 @@ void LayoutPanel::ThawTreeListView() {
     TreeListViewModels->SetColumnWidth(0, i);
     TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
     
+    for (auto &i : toExpand) {
+        TreeListViewModels->Expand(i);
+    }
+    
     TreeListViewModels->Thaw();
     TreeListViewModels->Refresh();
 }
@@ -1245,6 +1271,7 @@ void LayoutPanel::refreshModelList() {
     logger_work.debug("        refreshModelList.");
     wxStopWatch sw;
 
+    std::list<wxTreeListItem> toExpand;
     FreezeTreeListView();
 
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
@@ -1283,7 +1310,7 @@ void LayoutPanel::refreshModelList() {
             }
         }
     }
-    ThawTreeListView();
+    ThawTreeListView(toExpand);
 
     if (sw.Time() > 500)
         logger_base.debug("        LayoutPanel::refreshModelList took %lums", sw.Time());
@@ -1293,23 +1320,21 @@ void LayoutPanel::RenameModelInTree(Model *model, const std::string& new_name)
 {
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
           item.IsOk();
-          item = TreeListViewModels->GetNextItem(item) )
-    {
+          item = TreeListViewModels->GetNextItem(item) ) {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
         if (data != nullptr && data->GetModel() == model) {
-            if (model->IsActive())
-            {
+            if (model->IsActive()) {
                 SetTreeListViewItemText(item, 0, new_name);
-            }
-            else
-            {
+            } else {
                 SetTreeListViewItemText(item, 0, "<" + new_name + ">");
             }
         }
     }
 }
 
-int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName) {
+int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded,
+                                std::list<wxTreeListItem> &toExpand,
+                                int nativeOrder, bool fullName) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (model == nullptr) {
@@ -1338,7 +1363,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
     }
 
     for (int x = 0; x < model->GetNumSubModels(); x++) {
-        AddModelToTree(model->GetSubModel(x), &item, false, x);
+        AddModelToTree(model->GetSubModel(x), &item, false, toExpand, x);
     }
 
     if( model->GetDisplayAs() == "ModelGroup" ) {
@@ -1351,14 +1376,14 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
             } else if (m == grp) {
                 logger_base.error("Model group contains itself. '%s'", (const char *)grp->GetName().c_str());
             } else {
-                AddModelToTree(m, &item, false, i, true);
+                AddModelToTree(m, &item, false, toExpand, i, true);
                 i++;
             }
         }
     }
-
-    if (expanded) TreeListViewModels->Expand(item);
-
+    if (expanded) {
+        toExpand.push_back(item);
+    }
     return 0;
 }
 
@@ -1377,6 +1402,20 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStopWatch sw;
 
+    std::list<std::string> expanded;
+    std::list<wxTreeListItem> toExpand;
+    if (full_refresh) {
+        // need to save the "expanded" state prior to freeze as freezing will disconnect the model from the view
+        // and the query will fail/always return false
+        wxTreeListItem item = TreeListViewModels->GetFirstChild(TreeListViewModels->GetRootItem());
+        while (item.IsOk()) {
+            if (TreeListViewModels->IsExpanded(item)) {
+                expanded.push_back(TreeListViewModels->GetItemText(item));
+            }
+            item = TreeListViewModels->GetNextSibling(item);
+        }
+    }
+    
     FreezeTreeListView();
 
     std::vector<Model *> dummy_models;
@@ -1402,18 +1441,6 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
 
     if (full_refresh) {
         UnSelectAllModels();
-
-        //delete all items will attempt to resort as each item is deleted, however, our Model pointers
-        //stored in the items may be invalid
-        wxTreeListItem child = TreeListViewModels->GetFirstItem();
-        std::list<std::string> expanded;
-        while (child.IsOk()) {
-            if (TreeListViewModels->IsExpanded(child)) {
-                expanded.push_back(TreeListViewModels->GetItemText(child));
-            }
-            TreeListViewModels->DeleteItem(child);
-            child = TreeListViewModels->GetFirstItem();
-        }
         TreeListViewModels->DeleteAllItems();
 
         wxTreeListItem root = TreeListViewModels->GetRootItem();
@@ -1424,7 +1451,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
                 if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
                     || (model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
                     bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
-                    AddModelToTree(model, &root, expand, 0);
+                    AddModelToTree(model, &root, expand, toExpand, 0);
                 }
             }
         }
@@ -1434,33 +1461,14 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             Model *model = it;
             if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
                 bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
-                AddModelToTree(model, &root, expand, 0);
+                AddModelToTree(model, &root, expand, toExpand, 0);
             }
-        }
-
-        // Only set the column sizes the very first time we load it
-        if (_firstTreeLoad) {
-            _firstTreeLoad = false;
-
-            TreeListViewModels->SetColumnWidth(1, wxCOL_WIDTH_AUTOSIZE);
-            int width = TreeListViewModels->GetColumnWidth(1);
-            if (width < 20) {
-                width = TreeListViewModels->WidthFor(STARTCHANCOLNAME);
-            }
-            TreeListViewModels->SetColumnWidth(1, width);
-
-            TreeListViewModels->SetColumnWidth(2, wxCOL_WIDTH_AUTOSIZE);
-            width = TreeListViewModels->GetColumnWidth(2);
-            if (width < 20) {
-                width = TreeListViewModels->WidthFor(STARTCHANCOLNAME);
-            }
-            TreeListViewModels->SetColumnWidth(2, width);
         }
 
     }
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UpdateModelList");
 
-    ThawTreeListView();
+    ThawTreeListView(toExpand);
 
     if (sw.Time() > 500)
         logger_base.debug("        LayoutPanel::UpdateModelList took %lums", sw.Time());
@@ -8826,7 +8834,7 @@ void LayoutPanel::HandleSelectionChanged() {
         logger_base.debug("        LayoutPanel::HandleSelectionChanged took %lums", sw.Time());
 }
 
-void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
+void LayoutPanel::ModelGroupUpdated(ModelGroup *grp) {
 
     if (grp == nullptr) return;
 
@@ -8835,80 +8843,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::ModelGroupUpdated");
 
     std::vector<Model *> models;
-    UpdateModelList(full_refresh, models);
-
-    // Not sure why this was here as I commented this out in older build and didn't notice any different,
-    // just commenting out for now in case I missed something as it was causing issues with tree selection
-    //UnSelectAllModels();
-
-    if (full_refresh) return;
-
-    FreezeTreeListView();
-
-    std::vector<Model *> modelsToAdd(models);
-
-    wxTreeListItem root = TreeListViewModels->GetRootItem();
-    std::vector<wxTreeListItem> toRemove;
-
-    for (wxTreeListItem item = TreeListViewModels->GetFirstItem(); item.IsOk(); item = TreeListViewModels->GetNextItem(item))
-    {
-        ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-        if (data != nullptr && data->GetModel() != nullptr) {
-            if (data->GetModel()->GetFullName() == grp->GetFullName())
-            {
-                bool expanded = TreeListViewModels->IsExpanded(item);
-                wxTreeListItem child = TreeListViewModels->GetFirstChild(item);
-                while (child.IsOk()) {
-                    TreeListViewModels->DeleteItem(child);
-                    child = TreeListViewModels->GetFirstChild(item);
-                }
-                int i = 0;
-                for (const auto& it : grp->ModelNames()) {
-                    Model *m = xlights->AllModels[it];
-                    if (m != nullptr) {
-                        if (currentLayoutGroup == "All Models" ||
-                            m->GetLayoutGroup() == currentLayoutGroup ||
-                            (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned"))
-                        {
-                            AddModelToTree(m, &item, false, i, true);
-                        }
-                        if (m->DisplayAs == "SubModel"
-                            && std::find(modelsToAdd.begin(), modelsToAdd.end(), m) != modelsToAdd.end()) {
-                            modelsToAdd.erase(std::find(modelsToAdd.begin(), modelsToAdd.end(), m));
-                        }
-                        i++;
-                    }
-                }
-                if (expanded) {
-                    TreeListViewModels->Expand(item);
-                }
-            }
-            else if (data->GetModel()->GetDisplayAs() != "ModelGroup"
-                && data->GetModel()->GetDisplayAs() != "SubModel") {
-                if (std::find(models.begin(), models.end(), data->GetModel()) == models.end()) {
-                    toRemove.push_back(item);
-                }
-            }
-            wxTreeListItem parent = TreeListViewModels->GetItemParent(item);
-            if (!parent.IsOk() || parent == root) {
-                //root item, see if we have this
-                if (std::find(modelsToAdd.begin(), modelsToAdd.end(), data->GetModel()) != modelsToAdd.end()) {
-                    modelsToAdd.erase(std::find(modelsToAdd.begin(), modelsToAdd.end(), data->GetModel()));
-                }
-            }
-        }
-    }
-
-    for (const auto& a : toRemove) {
-        TreeListViewModels->DeleteItem(a);
-    }
-
-    for (const auto& a : modelsToAdd) {
-        TreeListViewModels->GetRootItem();
-        AddModelToTree(a, &root, false, 0);
-    }
-
-    ThawTreeListView();
+    UpdateModelList(true, models);
 }
 
 CopyPasteBaseObject::~CopyPasteBaseObject()
