@@ -1517,6 +1517,21 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         List_Controllers->AppendColumn("Auto Size");
         List_Controllers->AppendColumn("Description");
 
+        wxConfigBase* config = wxConfigBase::Get();
+        if (config != nullptr) {
+            wxString co;
+            config->Read("ControllerTabColumnOrder", &co, "0,1,2,3,4,5,6,7,8,9,10,11");
+            wxArrayString tokens = wxSplit(co, ',');
+            wxArrayInt controllerTabColumns;
+            for (const auto& token : tokens) {
+                int value;
+                if (token.ToInt(&value)) {
+                    controllerTabColumns.Add(static_cast<int>(value));
+                }
+            }
+            List_Controllers->SetColumnsOrder(controllerTabColumns);
+        }
+
         ButtonAddControllerEthernet->SetToolTip("Use this button to add E1.31, Artnet, DDP and ZCPP controllers.");
         ButtonAddControllerNull->SetToolTip("Use this button to add channels that you never want to send to a controller.");
         ButtonAddControllerSerial->SetToolTip("Use this button to add typically USB attached Serial/RS485 devices running protocols like DMX, LOR, and Renard.");

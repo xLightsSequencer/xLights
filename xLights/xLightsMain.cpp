@@ -2171,6 +2171,12 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsVideoExportCodec", _videoExportCodec);
     config->Write("xLightsVideoExportBitrate", _videoExportBitrate);
 
+    wxString colOrd;
+    for (int c : List_Controllers->GetColumnsOrder()) {
+        colOrd += wxString::Format("%d", c) + ",";
+    }
+    config->Write("ControllerTabColumnOrder", colOrd.RemoveLast());
+
     SaveDockable();
 
     xlColourData::INSTANCE.Save(config);
