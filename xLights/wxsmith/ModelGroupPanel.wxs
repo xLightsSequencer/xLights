@@ -93,7 +93,7 @@
 								<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SizeSpinCtrl" member="yes">
 									<value>400</value>
 									<min>10</min>
-									<max>2000</max>
+									<max>4000</max>
 									<handler function="OnSizeSpinCtrlChange" entry="EVT_SPINCTRL" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
