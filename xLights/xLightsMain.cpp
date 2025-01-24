@@ -7971,7 +7971,12 @@ void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event
     logger_base.debug("Cleaning up file locations.");
     CleanupRGBEffectsFileLocations();
     if (CurrentSeqXmlFile != nullptr) {
+        SetStatusText("Cleaning up file locations.");
         CleanupSequenceFileLocations();
+        SetStatusText("Cleaning up file locations ... DONE.");
+        wxBell();
+    } else {
+        wxMessageBox("You must have a sequence opened in order to run Cleanup File Locations.", "Missing Sequence", wxOK);
     }
     logger_base.debug("Cleaning up file locations ... DONE.");
 }
