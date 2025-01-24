@@ -1,4 +1,6 @@
 
+#include "SpacialColors.ispc.h"
+
 struct PinwheelData {
     uint32 width;
     uint32 height;
@@ -17,9 +19,13 @@ struct PinwheelData {
     float pos;
     
     int32 allowAlpha;
+    uint32 numColors;
     uint8<4> *colorsAsColor;
     float<3> *colorsAsHSV;
-    uint16 numColors;
+    bool      colorIsSpacial[8];
+    uint32    *colorarray;
+    
+    void*    bufferData;
 };
 
 inline uint8<4> hsv2rgb(const float<3> &hsv, uint8 alph = 255) {
@@ -78,7 +84,6 @@ inline uint8<4> hsv2rgb(const float<3> &hsv, uint8 alph = 255) {
     return ret;
 }
 
-
 export void PinwheelEffectStyle0(const uniform PinwheelData &data,
                                   uniform int startIdx, uniform int endIdx,
                                   uniform uint8<4> result[])
@@ -107,6 +112,7 @@ export void PinwheelEffectStyle0(const uniform PinwheelData &data,
             } else {
                 theta = data.pos - theta + (data.tmax / 2) + data.poffset;
             }
+
             theta = theta + 540.0;
             int t2 = (int)theta % data.degrees_per_arm;
             if (t2 <= data.tmax) {
@@ -114,7 +120,15 @@ export void PinwheelEffectStyle0(const uniform PinwheelData &data,
                 t2 = abs(t2 - (data.tmax / 2)) * 2;
                 int ColorIdx2 = ((int)((theta / data.degrees_per_arm))) % data.pinwheel_arms;
                 uint8<4> color = data.colorsAsColor[ColorIdx2];
-                if (!data.allowAlpha) {
+                if (data.colorIsSpacial[ColorIdx2]) {
+                    color = getSpacialColor(data.bufferData, data.colorarray[ColorIdx2],
+                                            data.xc_adj + data.width / 2,
+                                            data.yc_adj + data.height / 2,
+                                            x, y, round, data.max_radius);
+                    if (!data.allowAlpha) {
+                        hsv = data.colorsAsHSV[ColorIdx2];
+                    }
+                } else if (!data.allowAlpha) {
                     hsv = data.colorsAsHSV[ColorIdx2];
                 }
                 switch (data.pw3dType) {

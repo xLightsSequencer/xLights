@@ -187,49 +187,47 @@ void PinwheelEffect::RenderNewMethod(Effect* effect, const SettingsMap& Settings
     }
 }
 void PinwheelEffect::RenderNewArms(RenderBuffer& buffer, PinwheelData &data) {
-    
 #ifdef HASISPC
-    if (!data.hasSpacial) {
-        ispc::PinwheelData rdata;
-        rdata.width = buffer.BufferWi;
-        rdata.height = buffer.BufferHt;
-        rdata.pinwheel_arms = data.pinwheel_arms;
-        rdata.xc_adj = data.xc_adj;
-        rdata.yc_adj = data.yc_adj;
-        rdata.degrees_per_arm = data.degrees_per_arm;
-        rdata.pinwheel_twist = data.pinwheel_twist;
-        rdata.max_radius= data.max_radius;
-        rdata.poffset = data.poffset;
-        rdata.pw3dType = data.pw3dType;
-        rdata.pinwheel_rotation = data.pinwheel_rotation;
-        rdata.tmax = data.tmax;
-        rdata.pos = data.pos;
-        rdata.allowAlpha = buffer.allowAlpha;
-        rdata.numColors = data.colorsAsColor.size();
-        
-        std::vector<ispc::float3> colorsAsHSV;
-        colorsAsHSV.resize(rdata.numColors);
-        for (int x = 0; x < rdata.numColors; x++) {
-            colorsAsHSV[x] = {(float)data.colorsAsHSV[x].hue, (float)data.colorsAsHSV[x].saturation, (float)data.colorsAsHSV[x].value};
-        }
-        rdata.colorsAsColor = (ispc::uint8_t4*)&data.colorsAsColor[0];
-        rdata.colorsAsHSV = &colorsAsHSV[0];
-        
-        int max = buffer.BufferHt * buffer.BufferWi;
-        constexpr int bfBlockSize = 4096;
-        int blocks = max / bfBlockSize + 1;
-        parallel_for(0, blocks, [&rdata, &buffer, max](int y) {
-            int start = y * bfBlockSize;
-            int end = start + bfBlockSize;
-            if (end > max) {
-                end = max;
-            }
-            
-            PinwheelEffectStyle0(rdata, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
-        });
-        return;
+    ispc::PinwheelData rdata;
+    rdata.width = buffer.BufferWi;
+    rdata.height = buffer.BufferHt;
+    rdata.pinwheel_arms = data.pinwheel_arms;
+    rdata.xc_adj = data.xc_adj;
+    rdata.yc_adj = data.yc_adj;
+    rdata.degrees_per_arm = data.degrees_per_arm;
+    rdata.pinwheel_twist = data.pinwheel_twist;
+    rdata.max_radius= data.max_radius;
+    rdata.poffset = data.poffset;
+    rdata.pw3dType = data.pw3dType;
+    rdata.pinwheel_rotation = data.pinwheel_rotation;
+    rdata.tmax = data.tmax;
+    rdata.pos = data.pos;
+    rdata.allowAlpha = buffer.allowAlpha;
+    rdata.numColors = data.colorsAsColor.size();
+    rdata.colorarray = &data.colorarray[0];
+    
+    std::vector<ispc::float3> colorsAsHSV;
+    colorsAsHSV.resize(rdata.numColors);
+    for (int x = 0; x < rdata.numColors; x++) {
+        colorsAsHSV[x] = {(float)data.colorsAsHSV[x].hue, (float)data.colorsAsHSV[x].saturation, (float)data.colorsAsHSV[x].value};
+        rdata.colorIsSpacial[x] = data.colorIsSpacial[x];
     }
-#endif
+    rdata.colorsAsColor = (ispc::uint8_t4*)&data.colorsAsColor[0];
+    rdata.colorsAsHSV = &colorsAsHSV[0];
+    rdata.bufferData = (void*)&buffer;
+    
+    int max = buffer.BufferHt * buffer.BufferWi;
+    constexpr int bfBlockSize = 4096;
+    int blocks = max / bfBlockSize + 1;
+    parallel_for(0, blocks, [&rdata, &buffer, max](int y) {
+        int start = y * bfBlockSize;
+        int end = start + bfBlockSize;
+        if (end > max) {
+            end = max;
+        }
+        PinwheelEffectStyle0(rdata, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+    });
+#else
     //for (int x = 0; x < buffer.BufferWi; x++) {
     parallel_for(0, buffer.BufferHt, [&buffer, &data](int y) {
         int y1 = y - data.yc_adj - (buffer.BufferHt / 2);
@@ -253,7 +251,9 @@ void PinwheelEffect::RenderNewArms(RenderBuffer& buffer, PinwheelData &data) {
                      int ColorIdx2 = ((int)((theta / data.degrees_per_arm))) % data.pinwheel_arms;
                      xlColor color = data.colorsAsColor[ColorIdx2];
                      if (data.colorIsSpacial[ColorIdx2]) {
-                         buffer.palette.GetSpatialColor(data.colorarray[ColorIdx2], 
+                         
+                         
+                         buffer.palette.GetSpatialColor(data.colorarray[ColorIdx2],
                                                         data.xc_adj + buffer.BufferWi / 2,
                                                         data.yc_adj + buffer.BufferHt / 2, 
                                                         x, y, round, data.max_radius, color);
@@ -297,6 +297,7 @@ void PinwheelEffect::RenderNewArms(RenderBuffer& buffer, PinwheelData &data) {
          }
      }
      , 5);
+#endif
 }
 void PinwheelEffect::RenderOldMethod(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();

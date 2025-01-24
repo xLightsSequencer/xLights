@@ -73,9 +73,23 @@ struct PinwheelData {
     float tmax;
     float pos;
     int32_t allowAlpha;
+    uint32_t numColors;
     uint8_t4   * colorsAsColor;
     float3   * colorsAsHSV;
-    uint16_t numColors;
+    bool colorIsSpacial[8];
+    uint32_t * colorarray;
+    void * bufferData;
+};
+#endif
+
+#ifndef __ISPC_STRUCT_v16_varying_SpacialData__
+#define __ISPC_STRUCT_v16_varying_SpacialData__
+__ISPC_ALIGNED_STRUCT__(64) v16_varying_SpacialData {
+    __ISPC_ALIGN__(64)     uint32_t colorIdx[16];
+    __ISPC_ALIGN__(64)     float x[16];
+    __ISPC_ALIGN__(64)     float y[16];
+    __ISPC_ALIGN__(64)     float r[16];
+    __ISPC_ALIGN__(64)     uint32_t result[16];
 };
 #endif
 

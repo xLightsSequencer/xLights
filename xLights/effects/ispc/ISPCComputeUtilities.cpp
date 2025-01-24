@@ -25,6 +25,64 @@ ISPCComputeUtilities ISPCComputeUtilities::INSTANCE;
 #include "LayerBlendingFunctions.ispc.h"
 
 
+#ifndef __ISPC_ALIGN__
+#if defined(__clang__) || !defined(_MSC_VER)
+// Clang, GCC, ICC
+#define __ISPC_ALIGN__(s) __attribute__((aligned(s)))
+#define __ISPC_ALIGNED_STRUCT__(s) struct __ISPC_ALIGN__(s)
+#else
+// Visual Studio
+#define __ISPC_ALIGN__(s) __declspec(align(s))
+#define __ISPC_ALIGNED_STRUCT__(s) __ISPC_ALIGN__(s) struct
+#endif
+#endif
+
+#ifndef __ISPC_STRUCT_v8_varying_SpacialData__
+#define __ISPC_STRUCT_v8_varying_SpacialData__
+__ISPC_ALIGNED_STRUCT__(32) v8_varying_SpacialData {
+    __ISPC_ALIGN__(32)     uint32_t colorIdx[8];
+    __ISPC_ALIGN__(32)     float x[8];
+    __ISPC_ALIGN__(32)     float y[8];
+    __ISPC_ALIGN__(32)     float r[8];
+    __ISPC_ALIGN__(32)     uint32_t result[8];
+};
+#endif
+#ifndef __ISPC_STRUCT_v16_varying_SpacialData__
+#define __ISPC_STRUCT_v16_varying_SpacialData__
+__ISPC_ALIGNED_STRUCT__(64) v16_varying_SpacialData {
+    __ISPC_ALIGN__(64)     uint32_t colorIdx[16];
+    __ISPC_ALIGN__(64)     float x[16];
+    __ISPC_ALIGN__(64)     float y[16];
+    __ISPC_ALIGN__(64)     float r[16];
+    __ISPC_ALIGN__(64)     uint32_t result[16];
+};
+#endif
+extern "C" {
+    void getSpacialColorForGang(void *buffer, float xcenter, float ycenter, float maxradius, int active, int pc, void *d) {
+        RenderBuffer *b = (RenderBuffer*)buffer;
+        if (pc == 8) {
+            v8_varying_SpacialData *data = (v8_varying_SpacialData*)d;
+            for (int i = 0; i < pc; i++) {
+                if ((active & (1 << i)) != 0) {
+                    xlColor c;
+                    b->palette.GetSpatialColor(data->colorIdx[i], xcenter, ycenter, data->x[i], data->y[i], data->r[i], maxradius, c);
+                    data->result[i] = c.GetRGBA();
+                }
+            }
+        } else if (pc == 16) {
+            v16_varying_SpacialData *data = (v16_varying_SpacialData*)d;
+            for (int i = 0; i < pc; i++) {
+                if ((active & (1 << i)) != 0) {
+                    xlColor c;
+                    b->palette.GetSpatialColor(data->colorIdx[i], xcenter, ycenter, data->x[i], data->y[i], data->r[i], maxradius, c);
+                    data->result[i] = c.GetRGBA();
+                }
+            }
+        }
+    }
+}
+
+
 class ISPCBlendFunctionInfo {
 public:
     ISPCBlendFunctionInfo(const char *fn, std::function<void(const struct ispc::LayerBlendingData &, uint32_t * result, const uint32_t *, const uint32_t *)>  &&f, int mtd = 0) : name(fn), mixTypeData(mtd), function(f) {
