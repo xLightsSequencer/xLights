@@ -43,7 +43,7 @@ MetalPixelBufferComputeData::~MetalPixelBufferComputeData() {
 }
 
 bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
-    if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < 1024) {
+    if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < 2048) {
         return false;
     }
     for (int l = validLayers.size() - 1; l >= 0; --l) {

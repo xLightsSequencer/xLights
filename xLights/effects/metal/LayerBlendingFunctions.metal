@@ -153,7 +153,7 @@ kernel void PutColorsForNodes(constant LayerBlendingData &data,
     if (index > (uint)data.nodeCount) return;
     int32_t idx = indexes[index];
     if (idx == -1) {
-        result[idx] = {0, 0, 0, 0};
+        //result[idx] = {0, 0, 0, 0};
     } else if (idx & 0x80000000) {
         idx &= 0x7FFFFFFF;
         int cnt = indexes[idx++];
