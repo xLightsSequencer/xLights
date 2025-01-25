@@ -206,14 +206,15 @@ void PinwheelEffect::RenderNewArms(RenderBuffer& buffer, PinwheelData &data) {
     rdata.numColors = data.colorsAsColor.size();
     rdata.colorarray = &data.colorarray[0];
     
-    std::vector<ispc::float3> colorsAsHSV;
-    colorsAsHSV.resize(rdata.numColors);
+    std::vector<ispc::float3> colorsAsHSV(rdata.numColors);
+    std::vector<uint8_t> colorIsSpacial(rdata.numColors);
     for (int x = 0; x < rdata.numColors; x++) {
         colorsAsHSV[x] = {(float)data.colorsAsHSV[x].hue, (float)data.colorsAsHSV[x].saturation, (float)data.colorsAsHSV[x].value};
-        rdata.colorIsSpacial[x] = data.colorIsSpacial[x];
+        colorIsSpacial[x] = data.colorIsSpacial[x] ? 1 : 0;
     }
     rdata.colorsAsColor = (ispc::uint8_t4*)&data.colorsAsColor[0];
     rdata.colorsAsHSV = &colorsAsHSV[0];
+    rdata.colorIsSpacial = &colorIsSpacial[0];
     rdata.bufferData = (void*)&buffer;
     
     int max = buffer.BufferHt * buffer.BufferWi;

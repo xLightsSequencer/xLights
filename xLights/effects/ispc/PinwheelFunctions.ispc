@@ -22,7 +22,7 @@ struct PinwheelData {
     uint32 numColors;
     uint8<4> *colorsAsColor;
     float<3> *colorsAsHSV;
-    bool      colorIsSpacial[8];
+    uint8     *colorIsSpacial;
     uint32    *colorarray;
     
     void*    bufferData;
@@ -120,11 +120,11 @@ export void PinwheelEffectStyle0(const uniform PinwheelData &data,
                 t2 = abs(t2 - (data.tmax / 2)) * 2;
                 int ColorIdx2 = ((int)((theta / data.degrees_per_arm))) % data.pinwheel_arms;
                 uint8<4> color = data.colorsAsColor[ColorIdx2];
-                if (data.colorIsSpacial[ColorIdx2]) {
+                if (data.colorIsSpacial[ColorIdx2] > 0) {
                     color = getSpacialColor(data.bufferData, data.colorarray[ColorIdx2],
                                             data.xc_adj + data.width / 2,
                                             data.yc_adj + data.height / 2,
-                                            x, y, round, data.max_radius);
+                                            x, y, round, data.max_radius);                                            
                     if (!data.allowAlpha) {
                         hsv = data.colorsAsHSV[ColorIdx2];
                     }

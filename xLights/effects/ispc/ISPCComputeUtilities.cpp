@@ -58,7 +58,7 @@ __ISPC_ALIGNED_STRUCT__(64) v16_varying_SpacialData {
 };
 #endif
 extern "C" {
-    void getSpacialColorForGang(void *buffer, float xcenter, float ycenter, float maxradius, int active, int pc, void *d) {
+    uint32_t getSpacialColorForGang(void *buffer, float xcenter, float ycenter, float maxradius, int active, int pc, void *d) {
         RenderBuffer *b = (RenderBuffer*)buffer;
         if (pc == 8) {
             v8_varying_SpacialData *data = (v8_varying_SpacialData*)d;
@@ -79,6 +79,7 @@ extern "C" {
                 }
             }
         }
+        return 0;
     }
 }
 

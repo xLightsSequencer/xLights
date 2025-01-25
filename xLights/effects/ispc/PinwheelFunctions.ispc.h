@@ -76,7 +76,7 @@ struct PinwheelData {
     uint32_t numColors;
     uint8_t4   * colorsAsColor;
     float3   * colorsAsHSV;
-    bool colorIsSpacial[8];
+    uint8_t * colorIsSpacial;
     uint32_t * colorarray;
     void * bufferData;
 };
