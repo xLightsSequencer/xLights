@@ -6668,19 +6668,9 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         f.Close();
 
         if (displayInEditor) {
-            wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("html");
-            if (ft != nullptr) {
-                wxString command = ft->GetOpenCommand(filename);
-
-                if (command == "") {
-                    DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
-                } else {
-                    logger_base.debug("Viewing xLights Check Sequence results %s. Command: '%s'", (const char*)filename.c_str(), (const char*)command.c_str());
-                    wxUnsetEnv("LD_PRELOAD");
-                    wxExecute(command);
-                }
-                delete ft;
-            } else {
+            wxUnsetEnv("LD_PRELOAD");
+            logger_base.debug("Viewing xLights Check Sequence results %s.", (const char*)filename.c_str());
+            if (!wxLaunchDefaultApplication(filename)) {
                 DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
             }
         }
