@@ -298,7 +298,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file) {
         return file;
     }
 
-    if (file.find("/meshobjects/")) {
+    if (file.find("/meshobjects/") != std::string::npos) {
 #ifndef __WXMSW__
             return wxStandardPaths::Get().GetResourcesDir() + file.substr(file.find("/meshobjects/"));
 #else
