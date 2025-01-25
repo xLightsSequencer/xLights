@@ -298,6 +298,15 @@ wxString FixFile(const wxString& ShowDir, const wxString& file) {
         return file;
     }
 
+    if (file.find("/meshobjects/")) {
+#ifndef __WXMSW__
+            return wxStandardPaths::Get().GetResourcesDir() + file.substr(file.find("/meshobjects/"));
+#else
+            wxStandardPaths stdp = wxStandardPaths::Get();
+            return wxFileName(stdp.GetExecutablePath()).GetPath() + file.substr(file.find("/meshobjects/"));
+#endif
+    }
+
     std::unique_lock<std::recursive_mutex> lock(__fixFilesMutex);
 
     // Lookup previous mappings as this is faster
