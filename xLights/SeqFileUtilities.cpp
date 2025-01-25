@@ -576,13 +576,15 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
 void xLightsFrame::AddToMRU(const std::string& filename)
 {
-    if (mruFiles.Index(filename) != wxNOT_FOUND) {
-        mruFiles.Remove(filename);
-    }
-    if (mruFiles.empty()) {
-        mruFiles.push_back(filename);
-    } else {
-        mruFiles.Insert(filename, 0);
+    if (!_renderMode) {
+        if (mruFiles.Index(filename) != wxNOT_FOUND) {
+            mruFiles.Remove(filename);
+        }
+        if (mruFiles.empty()) {
+            mruFiles.push_back(filename);
+        } else {
+            mruFiles.Insert(filename, 0);
+        }
     }
 }
 
