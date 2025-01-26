@@ -93,6 +93,9 @@ class MainSequencer: public wxPanel
         void ToggleModelPreview();
         void TouchPlayControl(const std::string &event);
 
+        int GetSelectedRow() const { return _mSelectedRow; }
+        void SetSelectedRow(int row) { _mSelectedRow = row; }
+
     //(*Declarations(MainSequencer)
     EffectsGrid* PanelEffectGrid;
     RowHeading* PanelRowHeadings;
@@ -157,4 +160,5 @@ class MainSequencer: public wxPanel
         bool mCanUndo;
         bool mPasteByCell;
         std::string _savedTopModel;
+        int _mSelectedRow = -1;
 };
