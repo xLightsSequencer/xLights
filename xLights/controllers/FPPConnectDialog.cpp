@@ -523,7 +523,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
     for (const auto& c : instances) discoveredControllers.push_back(c->ipAddress);
     for (const auto& ctrl : this->_outputManager->GetControllers()) {
         auto c = dynamic_cast<ControllerEthernet*>(ctrl);
-        if (c != nullptr) {
+        if (c != nullptr && c->GetActive() == Controller::ACTIVESTATE::ACTIVEINXLIGHTSONLY) {
             if (std::find(discoveredControllers.begin(), discoveredControllers.end(), c->GetResolvedIP()) == discoveredControllers.end()) {
                 FPP* missing = new FPP(c->GetResolvedIP());
                 missing->hostName = c->GetResolvedIP();
@@ -572,7 +572,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
                 doUploadCheckbox->SetValue(false);
                 doUploadCheckbox->Enable(false);
 
-                label = new wxStaticText(FPPInstanceList, wxID_ANY, "Missing or Unsupported", wxDefaultPosition, wxDefaultSize, 0, "ID_STATIC_TEXT_FS_" + rowStr);
+                label = new wxStaticText(FPPInstanceList, wxID_ANY, "Unavailable/Unsupported", wxDefaultPosition, wxDefaultSize, 0, "ID_STATIC_TEXT_FS_" + rowStr);
                 FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             } else {
                 wxChoice *Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, FSEQ_COL + rowStr);
