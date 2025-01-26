@@ -413,7 +413,7 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
     if (numRects > 32) {
         rectInc = numRects / 32;
     }
-    int rects = (numRects + rectInc) * (buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6 / rectInc;
+    int rects = (std::floor(numRects / rectInc) + 1) * (buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6;
     if (!eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
         rects = 0;
     }

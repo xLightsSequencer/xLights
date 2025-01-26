@@ -1629,7 +1629,7 @@ void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex
 
         int idx = cur * count + (curPeriod - curEffStartPer);
         cur++;
-        SetDisplayListHRect(eff, idx*6, x, y, x2, y2, c, c);
+        SetDisplayListHRect(eff, idx * 6, x, y, x2, y2, c, c);
     }
 }
 
