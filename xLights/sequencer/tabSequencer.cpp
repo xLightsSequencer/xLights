@@ -1674,7 +1674,7 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
+			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, false);
             _housePreviewPanel->EnablePlayControls("Play", true);
