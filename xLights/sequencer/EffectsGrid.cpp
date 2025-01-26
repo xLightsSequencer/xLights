@@ -6166,7 +6166,7 @@ void EffectsGrid::DrawEffects(xlGraphicsContext* ctx) {
                 }
 
                 int drawIcon = 1;
-                if (mGridIconBackgrounds && (ri->nodeIndex == -1 || !mGridNodeValues)) {
+                if (mGridIconBackgrounds && (ri->nodeIndex == -1 || !mGridNodeValues) && !(xlights->_renderMode)) {
                     drawIcon = DrawEffectBackground(ri, e, x3, y1, x4, y2, backgrounds);
                 }
                 if (mGridNodeValues && ri->nodeIndex != -1) {

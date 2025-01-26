@@ -1750,27 +1750,29 @@ void RowHeading::render( wxPaintEvent& event )
                     }
                 }
 
-                bool hasEffects = rowInfo->element->HasEffects();
-                if (!hasEffects && groupEffectIndicator && m->GetDisplayAs() == "ModelGroup") {
-                    // model groups are only marked if model group has direct effects or the model with effects is otherwise hidden in the view
-                    int view = mSequenceElements->GetCurrentView();
-                    ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
-                    auto models = mg->ModelNames();
-                    for (auto it = models.begin(); !hasEffects && it != models.end(); ++it) {
-                        ModelElement* mm = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(*it));
+                if (!mSequenceElements->GetXLightsFrame()->_renderMode) {
+                    bool hasEffects = rowInfo->element->HasEffects();
+                    if (!hasEffects && groupEffectIndicator && m->GetDisplayAs() == "ModelGroup") {
+                        // model groups are only marked if model group has direct effects or the model with effects is otherwise hidden in the view
+                        int view = mSequenceElements->GetCurrentView();
+                        ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
+                        auto models = mg->ModelNames();
+                        for (auto it = models.begin(); !hasEffects && it != models.end(); ++it) {
+                            ModelElement* mm = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(*it));
 
-                        if (mm != nullptr && !ModelInView(*it, view)) {
-                            hasEffects = mm->HasEffects();
+                            if (mm != nullptr && !ModelInView(*it, view)) {
+                                hasEffects = mm->HasEffects();
+                            }
                         }
                     }
-                }
 
-                if (hasEffects) {
-                    dc.SetPen(effectNoticePen);
-                    dc.SetBrush(effectNoticeBrush);
-                    dc.DrawRectangle(getWidth() - effectNoticeWidth, startY, effectNoticeWidth, getHeight());
-                    dc.SetPen(penOutline);
-                    dc.SetBrush(brush2);
+                    if (hasEffects) {
+                        dc.SetPen(effectNoticePen);
+                        dc.SetBrush(effectNoticeBrush);
+                        dc.DrawRectangle(getWidth() - effectNoticeWidth, startY, effectNoticeWidth, getHeight());
+                        dc.SetPen(penOutline);
+                        dc.SetBrush(brush2);
+                    }
                 }
             }
         } else if (rowInfo->element->GetType()== ElementType::ELEMENT_TYPE_TIMING) {
