@@ -255,9 +255,9 @@ void ISPCComputeUtilities::blendLayers(PixelBufferClass *pixelBuffer, int effect
             uint32_t * result = (uint32_t *)&tmpBufferLayer[0];
 
             ispc::LayerBlendingData data;
-            data.nodeCount = start;
-            data.startNode = end;
-            data.endNode = layer->buffer.GetNodeCount();
+            data.startNode = start;
+            data.endNode = end;
+            data.nodeCount = layer->buffer.GetNodeCount();
             data.bufferHi = layer->buffer.BufferHt;
             data.bufferWi = layer->buffer.BufferWi;
             data.useMask = layer->maskSize > 0;
