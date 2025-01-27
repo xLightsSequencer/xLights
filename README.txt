@@ -11,6 +11,31 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.02 January 27, 2024
+    - enh (cybercop23)      Clicking in sequencer should properly highlight the row
+    - enh (cybercop23)      Enable replay button without needing to first hit play
+    - enh (cybercop23)      Add ability to remove model(s) from existing groups from popup menus
+    - enh (cybercop23)      Add popup menu option to add timing track to all views
+    - enh (cybercop23)      Sort and restore controler tab column order
+    - enh (derwin12)        Increase maximum size of group buffers
+    - enh (cybercop23)      Add status message/indicator during Cleanup File Locations
+    - enh (cybercop23)      FPP Connect - show FPP instances that are configured, but could not be found
+    - enh (cybercop23)      Discovery - better job of finding duplicates, matching existing controller, etc...
+    - enh (dkulp)           Pinwheel Effect - "spacial colors" now supported by ispc rendering
+    - enh (dkulp)           Much faster populating of Model List on Layout tab (Mac/Linux)
+    - enh (dkulp)           Add libsecret to Linux builds so wxSecretStore should work (passwords for FPP Connect)
+    - enh (dkulp)           Add setting to disable the effect indicator for deep groups
+    - enh (cybercop23)      Set discovered FPP instances to xLights Only by default
+    - bug (derwin12)        Limit the splitter on the submodel dialog from collapsing all the way
+    - bug (derwin12)        Fix "newSequence" Lua call
+    - bug (cybercop23)      Don't report if Sketch effect background is missing
+    - bug (cybercop23)      Map meshobjects to proper resources directory during filename fixups
+    - bug (dkulp)           Fix background display issues/fragments when using Single Strand Chase effect
+    - bug (dkulp)           Aliases may not have been properly removed from SubModels
+    - bug (dkulp)           Fix sparkle/brightness/contrast rendering with ispc
+    - bug (derwin12)        Fix problems opening HTML check sequence report in some cases
+    - bug (dkulp)           Don't pollute the recent sequences list during batch render
+    - bug (dkulp)           Fix some crashes with canvas mode effects with ispc rendering
 2025.01 January 20, 2024
     - enh (dkulp)           MacOS/Linux - start using ISPC to use SIMD/SSE/AVX/NEON for certain effect renderings
                                 - Butterfly effect ported to ISPC
