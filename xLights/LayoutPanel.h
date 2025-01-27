@@ -342,6 +342,7 @@ class LayoutPanel: public wxPanel
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
         void CreateModelGroupFromSelected();
         void AddSelectedToExistingGroups();
+        void RemoveSelectedFromExistingGroups();
         void BulkEditControllerName();
         void BulkEditActive(bool active);
         void BulkEditTagColour();
@@ -539,6 +540,7 @@ class LayoutPanel: public wxPanel
         static const long ID_MNU_MAKEALLSCNOTOVERLAPPING;
         static const long ID_MNU_ADD_MODEL_GROUP;
         static const long ID_MNU_ADD_TO_EXISTING_GROUPS;
+        static const long ID_MNU_REMOVE_FROM_EXISTING_GROUPS;
         static const long ID_MNU_BULKEDIT_GROUP_TAGCOLOR;
         static const long ID_MNU_BULKEDIT_GROUP_PREVIEW;
         static const long ID_MNU_EDIT_SUBMODEL_ALIAS;
