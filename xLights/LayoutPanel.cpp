@@ -202,6 +202,7 @@ const long LayoutPanel::ID_MNU_MAKEALLSCVALID = wxNewId();
 const long LayoutPanel::ID_MNU_MAKEALLSCNOTOVERLAPPING = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_TO_EXISTING_GROUPS = wxNewId();
+const long LayoutPanel::ID_MNU_REMOVE_FROM_EXISTING_GROUPS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETE_ACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RENAME_ACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
@@ -2299,6 +2300,52 @@ void LayoutPanel::AddSelectedToExistingGroups() {
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::AddSelectedToExistingGroups");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::AddSelectedToExistingGroups");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::AddSelectedToExistingGroups", nullptr, nullptr, selectgroupName);
+        }
+    }
+}
+
+
+void LayoutPanel::RemoveSelectedFromExistingGroups() {
+
+    std::string selectedModel = this->selectedBaseObject->name;
+    Model* sourceModel = xlights->GetModel(selectedModel);
+    if (sourceModel != nullptr) {
+        auto inModelGroups = sourceModel->GetModelManager().GetGroupsContainingModel(sourceModel);
+        if (!inModelGroups.empty()) {
+            wxArrayString choices;
+            for (const auto& it : inModelGroups) {
+                choices.Add(it);
+            }
+            wxMultiChoiceDialog dlg(this, "Select groups to remove model from", "Model in Groups", choices);
+            OptimiseDialogPosition(&dlg);
+            
+            bool reload = false;
+            if (dlg.ShowModal() == wxID_OK) {
+                for (auto const& idx : dlg.GetSelections()) {
+                    std::string groupName = choices.at(idx).ToStdString();
+                    Model* grp = xlights->GetModel(groupName);
+                    if (grp != nullptr) {
+                        wxXmlNode* node = grp->GetModelXml();
+                        wxArrayString models = wxSplit(node->GetAttribute("models", ""), ',');
+                        for (const auto& m : models) {
+                            if (m == selectedModel) {
+                                models.Remove(selectedModel);
+                                wxString xmlModels = wxJoin(models, ',');
+                                node->DeleteAttribute("models");
+                                node->AddAttribute("models", xmlModels);
+                                reload = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (reload) {
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::RemoveSelectedFromExistingGroups");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::RemoveSelectedFromExistingGroups");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::RemoveSelectedFromExistingGroups", nullptr, nullptr, selectedModel);
+            }
         }
     }
 }
@@ -4591,6 +4638,9 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
                 break;
             }
         }
+        if (selectedTreeModels.size() == 1) {
+            menu.Append(ID_MNU_REMOVE_FROM_EXISTING_GROUPS, "Remove from Existing Groups");
+        }
         menu.Append(ID_PREVIEW_MODEL_CREATEGROUP, "Create Group");
         menu.AppendSeparator();
         menu.Append(ID_PREVIEW_FLIP_HORIZONTAL, "Flip Horizontal")->Enable(!selectedBaseObject->IsFromBase());
@@ -4965,6 +5015,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         CreateModelGroupFromSelected();
     } else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUPS) {
         AddSelectedToExistingGroups();
+    } else if (event.GetId() == ID_MNU_REMOVE_FROM_EXISTING_GROUPS) {
+        RemoveSelectedFromExistingGroups();
     } else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW) {
         ShowWiring();
     } else if (event.GetId() == ID_PREVIEW_MODEL_CAD_EXPORT) {
@@ -7502,6 +7554,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         CreateModelGroupFromSelected();
     } else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUPS) {
         AddSelectedToExistingGroups();
+    } else if (event.GetId() == ID_MNU_REMOVE_FROM_EXISTING_GROUPS) {
+        RemoveSelectedFromExistingGroups();
     } else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW) {
         ShowWiring();
     } else if (event.GetId() == ID_PREVIEW_MODEL_CAD_EXPORT) {
@@ -8569,6 +8623,9 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                 mnuContext.Append(ID_MNU_ADD_TO_EXISTING_GROUPS, "Add Selections to Existing Groups");
                 break;
             }
+        }
+        if (selectedTreeModels.size() == 1) {
+            mnuContext.Append(ID_MNU_REMOVE_FROM_EXISTING_GROUPS, "Remove from Existing Groups");
         }
         mnuContext.Append(ID_PREVIEW_MODEL_CREATEGROUP, "Create Group from Selections");
     }
