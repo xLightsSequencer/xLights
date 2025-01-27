@@ -12,7 +12,6 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2025.02 January 27, 2024
-    - enh (cybercop23)      Clicking in sequencer should properly highlight the row
     - enh (cybercop23)      Enable replay button without needing to first hit play
     - enh (cybercop23)      Add ability to remove model(s) from existing groups from popup menus
     - enh (cybercop23)      Add popup menu option to add timing track to all views

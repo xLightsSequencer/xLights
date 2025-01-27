@@ -1540,7 +1540,6 @@ void RowHeading::render( wxPaintEvent& event )
 #endif
     if (mSequenceElements->GetXLightsFrame()->GetMainSequencer() == nullptr) return;
 
-    SetSelectedRow(mSequenceElements->GetXLightsFrame()->GetMainSequencer()->GetSelectedRow());
     wxPaintDC dc(this);
 
     wxCoord w,h;
