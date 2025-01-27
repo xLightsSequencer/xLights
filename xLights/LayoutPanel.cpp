@@ -2268,6 +2268,7 @@ void LayoutPanel::AddSelectedToExistingGroups() {
     bool reload = false;
 
     if (dlg.ShowModal() == wxID_OK) {
+        xlights->AbortRender();
         for (auto const& idx : dlg.GetSelections()) {
             std::string groupName = choices.at(idx).ToStdString();
 
@@ -2321,6 +2322,7 @@ void LayoutPanel::RemoveSelectedFromExistingGroups() {
             
             bool reload = false;
             if (dlg.ShowModal() == wxID_OK) {
+                xlights->AbortRender();
                 for (auto const& idx : dlg.GetSelections()) {
                     std::string groupName = choices.at(idx).ToStdString();
                     Model* grp = xlights->GetModel(groupName);
