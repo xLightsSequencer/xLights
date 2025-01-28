@@ -1557,7 +1557,6 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
     int row = GetRow(event.GetY());
     if (row >= mSequenceElements->GetVisibleRowInformationSize() || row < 0)
         return;
-    ((MainSequencer*)mParent)->SetSelectedRow(row);
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     mSequenceElements->get_undo_mgr().SetCaptureUndo(true);
     int effectIndex;
