@@ -24,10 +24,7 @@
 
 #include "../Parallel.h"
 
-#ifndef __WXMSW__
 #include "ispc/PinwheelFunctions.ispc.h"
-#define HASISPC
-#endif
 
 PinwheelEffect::PinwheelEffect(int id) : RenderableEffect(id, "Pinwheel", pinwheel_16, pinwheel_24, pinwheel_32, pinwheel_48, pinwheel_64)
 {
