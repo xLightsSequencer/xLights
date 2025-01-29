@@ -607,8 +607,7 @@ export void Unmask2Function(uniform const LayerBlendingData &data,
                 HSVColor hsv0 = toHSV(fg);
                 // if effect 2 is non black
                 hsv0.z = hsv1.z;
-                fromHSV(hsv1, bg);
-                result[index] = bg;
+                result[index] = fromHSV(hsv0);
             } else {
                 result[index] = BLACK_COLOR;
             }
