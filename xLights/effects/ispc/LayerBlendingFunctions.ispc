@@ -353,14 +353,15 @@ export void ApplySparkles(uniform const LayerBlendingData &data,
 
 export void AdjustBrightnessContrast(uniform const LayerBlendingData &data,
                                     uniform uint32 result[]) {
-    float b = data.brightness;
-    float c = data.contrast;
+    uniform float b = data.brightness;
+    b /= 100.0;
+    uniform float c = data.contrast;
     if (data.contrast != 0) {
-    foreach (index = data.startNode...data.endNode) {
+        foreach (index = data.startNode...data.endNode) {
             uint32 color = result[index];
             // contrast is not 0, can handle brightness change at same time
             HSVColor hsv = toHSV(color);
-            hsv.z = hsv.z * (b / 100.0);
+            hsv.z = hsv.z * b;
 
             // Apply Contrast
             if (hsv.z < 0.5) {
@@ -376,11 +377,10 @@ export void AdjustBrightnessContrast(uniform const LayerBlendingData &data,
                 hsv.z = 1.0;
             result[index] = fromHSV(hsv, alpha(color));
         }
-    } else if (b != 100) {
-    foreach (index = data.startNode...data.endNode) {
+    } else if (data.brightness != 100) {
+        foreach (index = data.startNode...data.endNode) {
             uint32 color = result[index];
             // just brightness
-            b /= 100.0f;
             float f = red(color) * b;
             uint8 red = (uint8)min(f, 255.0);
             f = green(color) * b;
@@ -607,7 +607,7 @@ export void Unmask2Function(uniform const LayerBlendingData &data,
                 HSVColor hsv0 = toHSV(fg);
                 // if effect 2 is non black
                 hsv0.z = hsv1.z;
-                fromHSV(hsv1, bg);
+                fromHSV(hsv0, bg);
                 result[index] = bg;
             } else {
                 result[index] = BLACK_COLOR;
