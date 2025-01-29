@@ -20,7 +20,11 @@ static const wxString xlights_version_string  = "2025.02.2";
 #ifdef DEBUG
 static const wxString xlights_qualifier       = " DEBUG";
 #else
-static const wxString xlights_qualifier       = ""; // " BETA,ALPHA,PROD";
+#ifdef HASISPC
+static const wxString xlights_qualifier       = "-ISPC"; // " BETA,ALPHA,PROD";
+#else
+static const wxString xlights_qualifier       = "-ISPC"; // " BETA,ALPHA,PROD";
+#endif
 #endif
 static const wxString xlights_build_date      = __DATE__;
 	
