@@ -218,7 +218,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>HASISPC;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);wxUSE_WEBP</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);wxUSE_WEBP</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX"</AdditionalOptions>
@@ -344,7 +344,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>HASISPC;NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" %(AdditionalOptions)</AdditionalOptions>

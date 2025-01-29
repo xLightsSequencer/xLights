@@ -25,6 +25,7 @@
 #include "../Parallel.h"
 
 #include "ispc/PinwheelFunctions.ispc.h"
+#define HASISPC
 
 PinwheelEffect::PinwheelEffect(int id) : RenderableEffect(id, "Pinwheel", pinwheel_16, pinwheel_24, pinwheel_32, pinwheel_48, pinwheel_64)
 {
