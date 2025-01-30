@@ -598,6 +598,7 @@ export void Unmask2Function(uniform const LayerBlendingData &data,
                                 uniform uint32 result[],
                                 const uniform uint32 src[],
                                 const uniform uint32 indexes[]) {
+                                
     foreach (index = data.startNode...data.endNode) {
         uint32 fg = src[index];
         if (!data.isChromaKey || !applyChroma(data, fg)) {
@@ -607,8 +608,7 @@ export void Unmask2Function(uniform const LayerBlendingData &data,
                 HSVColor hsv0 = toHSV(fg);
                 // if effect 2 is non black
                 hsv0.z = hsv1.z;
-                fromHSV(hsv0, bg);
-                result[index] = bg;
+                result[index] = fromHSV(hsv0);
             } else {
                 result[index] = BLACK_COLOR;
             }
@@ -668,8 +668,7 @@ export void Shadow_1on2Function(uniform const LayerBlendingData &data,
             }
             // hsv1.value = hsv0.value;
             // hsv1.saturation = hsv0.saturation;
-            fromHSV(hsv1, bg);
-            result[index] = bg;
+            result[index] = fromHSV(hsv1);
         }
     }
 }
@@ -688,8 +687,7 @@ export void Shadow_2on1Function(uniform const LayerBlendingData &data,
             if (hsv1.z > 0.0) {
                 hsv0.x = hsv0.x + (hsv1.z * (hsv0.x - hsv1.x)) / 2.0;
             }
-            fromHSV(hsv0, bg);
-            result[index] = bg;
+            result[index] = fromHSV(hsv0);
         }
     }
 }
