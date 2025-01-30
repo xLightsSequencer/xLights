@@ -25,7 +25,6 @@
 #include "../Parallel.h"
 
 #include "ispc/PinwheelFunctions.ispc.h"
-#define HASISPC
 
 PinwheelEffect::PinwheelEffect(int id) : RenderableEffect(id, "Pinwheel", pinwheel_16, pinwheel_24, pinwheel_32, pinwheel_48, pinwheel_64)
 {
@@ -185,7 +184,6 @@ void PinwheelEffect::RenderNewMethod(Effect* effect, const SettingsMap& Settings
     }
 }
 void PinwheelEffect::RenderNewArms(RenderBuffer& buffer, PinwheelData &data) {
-#ifdef HASISPC
     ispc::PinwheelData rdata;
     rdata.width = buffer.BufferWi;
     rdata.height = buffer.BufferHt;
@@ -226,77 +224,6 @@ void PinwheelEffect::RenderNewArms(RenderBuffer& buffer, PinwheelData &data) {
         }
         PinwheelEffectStyle0(rdata, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
     });
-#else
-    //for (int x = 0; x < buffer.BufferWi; x++) {
-    parallel_for(0, buffer.BufferHt, [&buffer, &data](int y) {
-        int y1 = y - data.yc_adj - (buffer.BufferHt / 2);
-         HSVValue hsv;
-         for (int x = 0; x < buffer.BufferWi; x++) {
-             int x1 = x - data.xc_adj - (buffer.BufferWi / 2);
-             float r = std::sqrt(x1*x1 + y1*y1);
-             if (r <= data.max_radius) {
-                 float degrees_twist = (r / data.max_radius) * data.pinwheel_twist;
-                 float theta = (std::atan2(x1, y1) * 180 / 3.14159) + degrees_twist;
-                 if (data.pinwheel_rotation == 1) { // do we have CW rotation
-                     theta = data.pos + theta + (data.tmax / 2) + data.poffset;
-                 } else {
-                     theta = data.pos - theta + (data.tmax / 2) + data.poffset;
-                 }
-                 theta = theta + 540.0;
-                 int t2 = (int)theta % data.degrees_per_arm;
-                 if (t2 <= data.tmax) {
-                     float round = (float)t2 / (float)data.tmax;
-                     t2 = std::abs(t2 - (data.tmax / 2)) * 2;
-                     int ColorIdx2 = ((int)((theta / data.degrees_per_arm))) % data.pinwheel_arms;
-                     xlColor color = data.colorsAsColor[ColorIdx2];
-                     if (data.colorIsSpacial[ColorIdx2]) {
-                         
-                         
-                         buffer.palette.GetSpatialColor(data.colorarray[ColorIdx2],
-                                                        data.xc_adj + buffer.BufferWi / 2,
-                                                        data.yc_adj + buffer.BufferHt / 2, 
-                                                        x, y, round, data.max_radius, color);
-                         if (!buffer.allowAlpha) {
-                             hsv = color.asHSV();
-                         }
-                     } else if (!buffer.allowAlpha) {
-                         hsv = data.colorsAsHSV[ColorIdx2];
-                     }
-                     switch (data.pw3dType) {
-                         case PW_3D:
-                             if (buffer.allowAlpha) {
-                                 color.alpha = 255.0 * ((data.tmax - t2) / data.tmax);
-                             } else {
-                                 hsv.value = hsv.value * ((data.tmax - t2) / data.tmax);
-                                 color = hsv;
-                             }
-                             break;
-                         case PW_3D_Inverted:
-                             if (buffer.allowAlpha) {
-                                 color.alpha = 255.0 * ((t2) / data.tmax);
-                             } else {
-                                 hsv.value = hsv.value * ((t2) / data.tmax);
-                                 color = hsv;
-                             }
-                             break;
-                         case PW_SWEEP:
-                             if (buffer.allowAlpha) {
-                                 color.alpha = 255.0 * (1.0 - round);
-                             } else {
-                                 hsv.value = hsv.value * (1.0 - round);
-                                 color = hsv;
-                             }
-                             break;
-                         default:
-                             break;
-                     }
-                     buffer.SetPixelDirect(x, y, color);
-                 }
-             }
-         }
-     }
-     , 5);
-#endif
 }
 void PinwheelEffect::RenderOldMethod(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();

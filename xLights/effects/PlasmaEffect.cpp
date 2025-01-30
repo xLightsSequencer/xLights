@@ -23,9 +23,7 @@
 
 #include "../Parallel.h"
 
-
 #include "ispc/PlasmaFunctions.ispc.h"
-#define HASISPC
 
 
 PlasmaEffect::PlasmaEffect(int id) : RenderableEffect(id, "Plasma", plasma_16, plasma_24, plasma_32, plasma_48, plasma_64)
@@ -99,9 +97,7 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     const double sin_time_5 = buffer.sin(time / 5);
     const double cos_time_3 = buffer.cos(time / 3);
     const double sin_time_2 = buffer.sin(time / 2);
-    
-    
-#ifdef HASISPC
+
     ispc::PlasmaData rdata;
     rdata.width = buffer.BufferWi;
     rdata.height = buffer.BufferHt;
@@ -148,79 +144,4 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
                 break;
         }
     });
-#else
-    //  These are for Plasma effect
-    static const double pi=3.1415926535897932384626433832;
-    static const double pi3 = pi / 3.0;
-
-    int block = buffer.BufferHt * buffer.BufferWi > 100 ? 1 : -1;
-    parallel_for(0, buffer.BufferWi, [&] (int x) {
-        double rx = buffer.BufferWi <= 0 ? 0.0f : ((float)x / (buffer.BufferWi - 1)); // rx is now in the range 0.0 to 1.0
-        double rx2 = rx * rx;
-        double cx = rx + .5*sin_time_5;
-        double cx2 = cx*cx;
-        double sin_rx_time = buffer.sin(rx + time);
-
-        // 1st equation
-        double v1 = buffer.sin(rx * 10 + time);
-
-        for (int y=0; y<buffer.BufferHt; y++)
-        {
-            // reference: http://www.bidouille.org/prog/plasma
-
-            double ry = buffer.BufferHt <= 1 ? 0.0f : ((float)y/(buffer.BufferHt-1)) ;
-            double v = v1;
-
-            //  second equation
-            v+=buffer.sin (10*(rx*sin_time_2+ry*cos_time_3)+time);
-
-            //  third equation
-            double cy=ry+.5*cos_time_3;
-            v+=buffer.sin ( sqrt((Style*50)*((cx2)+(cy*cy))+time));
-
-            //    vec2 c = v_coords * u_k - u_k/2.0;
-            v += sin_rx_time;
-            v += buffer.sin ((ry+time)/2.0);
-            v += buffer.sin ((rx+ry+time)/2.0);
-            //   c += u_k/2.0 * vec2(buffer.sin (u_time/3.0), buffer.cos (u_time/2.0));
-            v += buffer.sin (sqrt(rx2+ry*ry)+time);
-            v = v/2.0;
-            // vec3 col = vec3(1, buffer.sin (PI*v), buffer.cos (PI*v));
-            //   gl_FragColor = vec4(col*.5 + .5, 1);
-
-            double vldpi = v*Line_Density*pi;
-
-            xlColor color;
-            switch (ColorScheme)
-            {
-                case PLASMA_NORMAL_COLORS:
-                    {
-                        double h = (buffer.sin (vldpi + 2 * pi3) + 1) * 0.5;
-                        buffer.GetMultiColorBlend(h,false,color);
-                    }
-                    break;
-                case PLASMA_PRESET1:
-                    color.red = (buffer.sin (vldpi) + 1) * 128;
-                    color.green = (buffer.cos (vldpi) + 1) * 128;
-                    color.blue = 0;
-                    break;
-                case PLASMA_PRESET2:
-                    color.red = 1;
-                    color.green = (buffer.cos (vldpi) + 1) * 128;
-                    color.blue = (buffer.sin (vldpi) + 1) * 128;
-                    break;
-
-                case PLASMA_PRESET3:
-                    color.red = (buffer.sin (vldpi) + 1) * 128;
-                    color.green = (buffer.sin (vldpi + 2 * pi3) + 1) * 128;
-                    color.blue = (buffer.sin (vldpi + 4 * pi3) + 1) * 128;
-                    break;
-                case PLASMA_PRESET4:
-                    color.red=color.green=color.blue = (buffer.sin(vldpi) + 1) * 128;
-                    break;
-            }
-            buffer.SetPixel(x,y,color);
-        }
-    }, block);
-#endif
 }

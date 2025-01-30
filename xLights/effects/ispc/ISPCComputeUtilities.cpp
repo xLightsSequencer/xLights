@@ -16,10 +16,7 @@
 
 ISPCComputeUtilities ISPCComputeUtilities::INSTANCE;
 
-#define HASISPC
 
-
-#ifdef HASISPC
 #include "LayerBlendingFunctions.ispc.h"
 
 
@@ -337,19 +334,3 @@ void ISPCComputeUtilities::blendLayers(PixelBufferClass *pixelBuffer, int effect
         }
     }
 }
-
-
-#else
-
-
-ISPCComputeUtilities::ISPCComputeUtilities() : data(nullptr) {
-}
-ISPCComputeUtilities::~ISPCComputeUtilities() {
-}
-bool ISPCComputeUtilities::blendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
-    return false;
-}
-void ISPCComputeUtilities::blendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, int start, int end) {
-}
-
-#endif
