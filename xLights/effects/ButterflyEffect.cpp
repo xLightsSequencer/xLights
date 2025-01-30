@@ -24,10 +24,8 @@
 
 #include "../Parallel.h"
 
-#ifndef __WXMSW__
 #include "ispc/ButterflyFunctions.ispc.h"
 #define HASISPC
-#endif
 
 ButterflyEffect::ButterflyEffect(int i) : RenderableEffect(i, "Butterfly", butterfly_16, butterfly_24, butterfly_32, butterfly_48, butterfly_64)
 {

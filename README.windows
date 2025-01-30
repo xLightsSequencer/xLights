@@ -108,3 +108,16 @@ Here are the steps to Code::Blocks for Editing .wxs files in Windows.
      by double-clicking on the .cbp file in the xLights directory.
      Then Open a Dialog, Panel, or Frame in the Left Panel to edit it.
 
+
+Instructions for Setting up ISPC for Windows
+============================================
+
+ISPC is a compiler for a variant of the C programming language, with extensions for "single program, multiple data" (SPMD) programming. 
+It is used in xLights for the generation of AVX1, AVX2, SEE2 and SSE4 optimized code.
+
+  a) Download ISPC from
+        https://github.com/ispc/ispc/releases/download/v1.25.3/ispc-v1.25.3-windows.zip
+
+  b) Extract the zip file to a folder of your choice.
+
+  c) Add the path to the ISPC executable to your PATH environment variable.

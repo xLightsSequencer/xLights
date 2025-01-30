@@ -24,10 +24,8 @@
 #include "../Parallel.h"
 
 
-#ifndef __WXMSW__
 #include "ispc/PlasmaFunctions.ispc.h"
 #define HASISPC
-#endif
 
 
 PlasmaEffect::PlasmaEffect(int id) : RenderableEffect(id, "Plasma", plasma_16, plasma_24, plasma_32, plasma_48, plasma_64)

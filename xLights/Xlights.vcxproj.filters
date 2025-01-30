@@ -2203,6 +2203,10 @@
     <ClInclude Include="effects\ispc\LayerBlendingFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
+    <ClInclude Include="effects\ispc\ButterflyFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\PinwheelFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\PlasmaFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\SpacialColors.ispc.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2261,5 +2265,11 @@
     <Text Include="..\documentation\xlDo Commands.txt">
       <Filter>automation</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="effects\ispc\LayerBlendingFunctions.ispc" />
+    <CustomBuild Include="effects\ispc\ButterflyFunctions.ispc" />
+    <CustomBuild Include="effects\ispc\PinwheelFunctions.ispc" />
+    <CustomBuild Include="effects\ispc\PlasmaFunctions.ispc" />
   </ItemGroup>
 </Project>
