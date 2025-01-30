@@ -35,6 +35,11 @@ jobs:
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v1
 
+    - name: install ISPC
+      uses: ispc/install-ispc-action@main
+      with:
+        version: 1.25.3
+
     - name: Download wxWidgets
       run: 
         git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2024.20 https://github.com/xLightsSequencer/wxWidgets C:/wxWidgets/
