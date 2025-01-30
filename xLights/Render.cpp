@@ -690,7 +690,7 @@ public:
                     // preload the buffer with the output from the lower layers
                     RenderBuffer& rb = buffer->BufferForLayer(layer, -1);
 
-                    // I have to calc the output here to apply blend, rotozoom and transitions
+                    // We have to calc the output here to apply blend, rotozoom and transitions
                     buffer->CalcOutput(frame, vl, layer, true);
                     std::vector<uint8_t> done(rb.GetPixelCount());
                     parallel_for(0, rb.GetNodes().size(), [&](int n) {
