@@ -152,7 +152,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText3" member="yes">
-												<label>Pre</label>
+												<label>Pre:</label>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -160,7 +160,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText4" member="yes">
-												<label>Post</label>
+												<label>Post:</label>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -231,10 +231,10 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer16" member="no">
-												<cols>3</cols>
+												<cols>2</cols>
 												<object class="sizeritem">
 													<object class="wxButton" name="ID_BUTTON_AddMilliseconds" variable="Button_AddMilliseconds" member="yes">
-														<label>Add Milliseconds</label>
+														<label>Adjust Milliseconds</label>
 														<size>143,23</size>
 														<handler function="OnButton_AddMillisecondsClick" entry="EVT_BUTTON" />
 													</object>

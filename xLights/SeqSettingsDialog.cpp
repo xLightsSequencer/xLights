@@ -247,9 +247,9 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     BitmapButton_Xml_Media_File = new wxBitmapButton(PanelInfo, ID_BITMAPBUTTON_Xml_Media_File, wxArtProvider::GetBitmapBundle("wxART_CDROM",wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_Xml_Media_File"));
     BitmapButton_Xml_Media_File->Disable();
     FlexGridSizer10->Add(BitmapButton_Xml_Media_File, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText3 = new wxStaticText(PanelInfo, ID_STATICTEXT2, _("Pre"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    StaticText3 = new wxStaticText(PanelInfo, ID_STATICTEXT2, _("Pre:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer10->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText4 = new wxStaticText(PanelInfo, ID_STATICTEXT3, _("Post"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+    StaticText4 = new wxStaticText(PanelInfo, ID_STATICTEXT3, _("Post:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer10->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText1 = new wxStaticText(PanelInfo, ID_STATICTEXT1, _("Hash:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer10->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -268,8 +268,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Button_Download = new wxButton(PanelInfo, ID_BUTTON1, _("Download Sequence and Lyrics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer10->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer16 = new wxFlexGridSizer(0, 3, 0, 0);
-    Button_AddMilliseconds = new wxButton(PanelInfo, ID_BUTTON_AddMilliseconds, _("Add Milliseconds"), wxDefaultPosition, wxSize(143,23), 0, wxDefaultValidator, _T("ID_BUTTON_AddMilliseconds"));
+    FlexGridSizer16 = new wxFlexGridSizer(0, 2, 0, 0);
+    Button_AddMilliseconds = new wxButton(PanelInfo, ID_BUTTON_AddMilliseconds, _("Adjust Milliseconds"), wxDefaultPosition, wxSize(143,23), 0, wxDefaultValidator, _T("ID_BUTTON_AddMilliseconds"));
     FlexGridSizer16->Add(Button_AddMilliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer10->Add(FlexGridSizer16, 1, wxLEFT, 5);
     FlexGridSizer4->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
@@ -1881,19 +1881,13 @@ void SeqSettingsDialog::OnButton_AddMillisecondsClick(wxCommandEvent& event) {
         wxMessageBox("Invalid Pre/Post value(s). Neither can be blank, 0 is okay.");
         return;
     }
-    auto const f_pre = std::stof(pre);
-    auto const f_post = std::stof(post);
     auto const f_mp3dur = std::stof(mp3dur);
-    if (fp_equal(0.0F, f_post) && fp_equal(0.0F, f_pre)) {
-        wxMessageBox("Pre and Post value(s) are Zero. Nothing to Do.");
+    if (fp_equal(0.0F, std::stof(pre)) && fp_equal(0.0F, std::stof(post))) {
+        wxMessageBox("Pre and Post value(s) are both zero. Nothing to do here.");
         return;
     }
     if (fp_equal(0.0F, f_mp3dur)) {
-        wxMessageBox("Audio Duration is Invalid.");
-        return;
-    }
-    if ((0.0F > f_post) || (0.0F > f_pre)) {
-        wxMessageBox("Pre and Post value(s) can't be less than Zero.");
+        wxMessageBox("Audio duration is invalid.");
         return;
     }
 
@@ -1923,9 +1917,35 @@ void SeqSettingsDialog::OnButton_AddMillisecondsClick(wxCommandEvent& event) {
     };
     std::list<musicEdit> edits;
     AudioManager* firstAudio = nullptr;
-    edits.push_back(musicEdit(inFile.GetFullName(), 0, f_pre / 1000, 0, 0, 0, 0, false, false));
-    edits.push_back(musicEdit(inFile.GetFullName(), f_pre / 1000, f_mp3dur, 0, 0, 0, 1, false, false));
-    edits.push_back(musicEdit(inFile.GetFullName(), f_pre / 1000 + f_mp3dur, f_post / 1000, 0, 0, 0, 0, false, false));
+    double pre_sec = std::stof(pre) / 1000.0;
+    double post_sec = std::stof(post) / 1000.0;
+    std::string filename = inFile.GetFullName();
+
+    if (pre_sec >= 0 && post_sec >= 0) {                                                                //Add silence at both front and back
+        edits.push_back(musicEdit(filename, 0, pre_sec, 0, 0, 0, 0, false, false));
+        edits.push_back(musicEdit(filename, pre_sec, f_mp3dur, 0, 0, 0, 1, false, false));
+        edits.push_back(musicEdit(filename, pre_sec + f_mp3dur, post_sec, 0, 0, 0, 0, false, false));
+    } else if (pre_sec >= 0 && post_sec < 0) {                                                          //Add silence at front and trim from the end
+        edits.push_back(musicEdit(filename, 0, pre_sec, 0, 0, 0, 0, false, false));
+        double main_length = f_mp3dur + post_sec;
+        if (main_length > 0) {
+            edits.push_back(musicEdit(filename, pre_sec, main_length, 0, 0, 0, 1, false, false));
+        }
+    } else if (pre_sec < 0 && post_sec >= 0) {                                                          //Trim from front and add silence at back
+        double source_offset = -pre_sec;
+        double main_length = f_mp3dur - source_offset;
+        if (main_length > 0) {
+            edits.push_back(musicEdit(filename, 0, main_length, source_offset, 0, 0, 1, false, false));
+            edits.push_back(musicEdit(filename, main_length, post_sec, 0, 0, 0, 0, false, false));
+        }
+    } else {                                                                                            //Trim from both front and back
+        double source_offset = -pre_sec;
+        double trim_end = -post_sec;
+        double main_length = f_mp3dur - source_offset - trim_end;
+        if (main_length > 0) {
+            edits.push_back(musicEdit(filename, 0, main_length, source_offset, 0, 0, 1, false, false));
+        }
+    }
 
     wxString music = inputFile;
 
