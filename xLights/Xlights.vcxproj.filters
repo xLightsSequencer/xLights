@@ -2207,6 +2207,7 @@
     <ClInclude Include="effects\ispc\PinwheelFunctions.ispc.h" />
     <ClInclude Include="effects\ispc\PlasmaFunctions.ispc.h" />
     <ClInclude Include="effects\ispc\SpacialColors.ispc.h" />
+    <ClInclude Include="effects\ispc\VideoFunctions.ispc.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2271,5 +2272,6 @@
     <CustomBuild Include="effects\ispc\ButterflyFunctions.ispc" />
     <CustomBuild Include="effects\ispc\PinwheelFunctions.ispc" />
     <CustomBuild Include="effects\ispc\PlasmaFunctions.ispc" />
+    <CustomBuild Include="effects\ispc\VideoFunctions.ispc" />
   </ItemGroup>
 </Project>
