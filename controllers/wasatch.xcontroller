@@ -1,0 +1,46 @@
+<Vendor Name="Wasatch Pixels">
+    <Controller Name="Advanced Eight">
+        <Variant Name="" Base="WLED:ESP32WLEDSettings">
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+            <Port2>4</Port2>
+            <Port3>12</Port3>
+            <Port4>14</Port4>
+            <Port5>15</Port5>
+            <Port6>17</Port6>
+            <Port7>5</Port7>
+            <Port8>33</Port8>
+        </Variant>
+    </Controller>
+    <Controller Name="Advanced Duo">
+        <Variant Name="" Base="WLED:ESP32WLEDSettings">
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+            <Port2>4</Port2>
+        </Variant>
+    </Controller>
+    <Controller Name="Quad">
+        <Variant Name="Base" Base="WLED:ESP32WLEDSettings">
+            <MaxPixelPort>4</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>16</Port1>
+            <Port2>4</Port2>
+            <Port3>17</Port3>
+            <Port4>5</Port4>
+        </Variant>
+        <Variant Name="w/ Differential" Base="WLED:ESP32WLEDSettings">
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>16</Port1>
+            <Port2>4</Port2>
+            <Port3>17</Port3>
+            <Port4>5</Port4>
+            <Port5>19</Port5>
+            <Port6>21</Port6>
+            <Port7>22</Port7>
+            <Port8>23</Port8>
+        </Variant>
+    </Controller>
+</Vendor>

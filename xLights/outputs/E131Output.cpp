@@ -302,7 +302,7 @@ bool E131Output::Open() {
 
     if (!_enabled) return true;
     if (_ip == "") return false;
-    if (_ip != "MULTICAST" && !ip_utils::IsIPValid(_resolvedIp)) return false;
+    if (_ip != "MULTICAST" && !ip_utils::IsIPValid(GetResolvedIP())) return false;
 
     _ok = IPOutput::Open();
     if (_fppProxyOutput) {

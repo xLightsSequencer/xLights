@@ -262,33 +262,23 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
 
     if (_options.GetClearQueueOnStart()) {
         AddMessage(MESSAGE_LEVEL::ML_INFO, "Clearing remote falcon list of songs.");
-        int tries = 100;
-        bool done = false;
-        do {
-            auto res = _remoteFalcon->UpdatePlaylistQueue();
-            AddMessage(MESSAGE_LEVEL::ML_INFO, "    " + res);
 
-            wxJSONReader reader;
-            wxJSONValue val;
-            reader.Parse(res, &val);
+        auto res = _remoteFalcon->PurgeQueue();
 
-            if (!val.IsNull()) {
-                if (val["message"].AsString() == "Queue Empty") {
-                    done = true;
-                }
-                else if (val["message"].AsString() == "Unauthorized") {
-                    tries = 1;
-                    AddMessage(MESSAGE_LEVEL::ML_ERROR, "Error: " + val["message"].AsString());
-                }
+        wxJSONReader reader;
+        wxJSONValue val;
+        reader.Parse(res, &val);
+
+        if (!val.IsNull()) {
+            if (val["message"].AsString() == "Success") {
+                AddMessage(MESSAGE_LEVEL::ML_INFO, "Cleared remote falcon list of songs.");
+            } else {
+                AddMessage(MESSAGE_LEVEL::ML_ERROR, "Error: " + val["message"].AsString());
             }
-            tries--;
-        } while (!done && tries > 0);
-
-        if (tries == 0) {
-            logger_base.warn("RemoteFalcon failed to clear existing list of songs.");
+        } else {
+            AddMessage(MESSAGE_LEVEL::ML_ERROR, "Error: " + val["message"].AsString());
         }
     }
-
     ValidateWindow();
 }
 
@@ -536,13 +526,13 @@ void RemoteFalconFrame::GetMode()
 
     if (_subdomain == "")         {
         MenuItem_VisitorWebPage->Enable(false);
-        HyperlinkCtrl1->SetLabel("https://remotefalcon.com");
-        HyperlinkCtrl1->SetURL("https://remotefalcon.com");
+        HyperlinkCtrl1->SetLabel("https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
+        HyperlinkCtrl1->SetURL("https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
     }
     else         {
         MenuItem_VisitorWebPage->Enable();
-        HyperlinkCtrl1->SetLabel("https://" + _subdomain + ".remotefalcon.com");
-        HyperlinkCtrl1->SetURL("https://" + _subdomain + ".remotefalcon.com");
+        HyperlinkCtrl1->SetLabel("https://" + _subdomain + "." + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
+        HyperlinkCtrl1->SetURL("https://" + _subdomain + "." + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
         AddMessage(MESSAGE_LEVEL::ML_INFO, "SUBDOMAIN: " + _subdomain);
     }
 }
@@ -581,12 +571,21 @@ void RemoteFalconFrame::GetAndPlaySong(const std::string& playing)
     }
 
     if (nextSong != "" && nextSong != "null" && playing != nextSong) {
-        AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking xSchedule to play " + nextSong);
-        auto result = xSchedule::EnqueuePlaylistStep(_playlist, nextSong);
+        std::string songresult;
+        if (_options.GetImmediatelyInterrupt()) {
+            AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking xSchedule to immediately play " + nextSong);
+           // xSchedule::NextStepinPlayList();
+            songresult = xSchedule::EnqueuePlaylistStep(_playlist, nextSong);
+        } else {
+            AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking xSchedule to play at end of step: " + nextSong);
+            songresult = xSchedule::EnqueuePlaylistStepAtEndOfStep(_playlist, nextSong);
+            std::this_thread::sleep_for(std::chrono::milliseconds(_options.GetLeadTime() * 1000 + 200));
+        }
+        
         if (_mode != "voting") {
             //auto result = xSchedule::PlayPlayListStep(_playlist, nextSong);
-            AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + result);
-            if (result == "{\"result\":\"ok\"}") {
+            AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + songresult);
+            if (songresult == "{\"result\":\"ok\"}") {
                 AddMessage(MESSAGE_LEVEL::ML_DEBUG, "Asking remote falcon to take the song off the queue as it is now playing.");
                 AddMessage(MESSAGE_LEVEL::ML_DEBUG, "    " + _remoteFalcon->UpdatePlaylistQueue());
             } else {
@@ -768,8 +767,81 @@ bool RemoteFalconFrame::SendCommand(const std::string& command, const std::strin
         msg = "Remote Falcon: Unknown playlist when trying to set playlist to " + parameters;
         return false;
     }
+    // Interupt schedule
+    else if (command == "interrupt_schedule") {
+        if (parameters == "on") {
+            
+            _options.SetImmediatelyInterrupt(true);
+            SaveOptions();
+            LoadOptions();
+            AddMessage(MESSAGE_LEVEL::ML_INFO, "Interrupt Schedule: " + parameters);
+
+            return true;
+        } else if (parameters == "off") {
+            
+            _options.SetImmediatelyInterrupt(false);
+            SaveOptions();
+            LoadOptions();
+            AddMessage(MESSAGE_LEVEL::ML_INFO, "Interrupt Schedule: " + parameters);
+
+            return true;
+        } else {
+            msg = "Remote Falcon: Interrupt unknown: " + parameters;
+            return false;
+        }
+    }
+    // Viewer Control
+    else if (command == "viewer_control") {
+        if (parameters == "start") {
+            AddMessage(MESSAGE_LEVEL::ML_INFO, "Asking remote falcon to enable viewer control.");
+            AddMessage(MESSAGE_LEVEL::ML_INFO, "    " + _remoteFalcon->EnableViewerControl(true));
+            _viewerControlEnabled = true;
+            return true;
+        } else if (parameters == "stop") {
+            AddMessage(MESSAGE_LEVEL::ML_INFO, "Asking remote falcon to disable viewer control.");
+            AddMessage(MESSAGE_LEVEL::ML_INFO, "    " + _remoteFalcon->EnableViewerControl(false));
+            _viewerControlEnabled = false;
+            return true;
+        } else {
+            msg = "Remote Falcon: Viewer Control unknown: " + parameters;
+            return false;
+        }
+        // Listener enable
+    } else if (command == "enable") {
+        if (parameters == "start") {
+            AddMessage(MESSAGE_LEVEL::ML_INFO, "Asking remote falcon to start Listener.");
+            Start();
+            Button_Pause->SetLabel("Stop");
+            return true;
+        } else if (parameters == "stop") {
+            AddMessage(MESSAGE_LEVEL::ML_INFO, "Asking remote falcon to stop Listener.");
+            Stop();
+            Button_Pause->SetLabel("Start");
+            return true;
+        } else {
+            msg = "Remote Falcon: Listener unknown: " + parameters;
+            return false;
+        }
+        //Managed PSA
+    } else if (command == "managed_psa") {
+        if (parameters == "on") {
+            AddMessage(MESSAGE_LEVEL::ML_INFO, "Asking remote falcon to enable Managaed PSA." + _remoteFalcon->EnableMangaedPSA(true));
+            return true;
+        } else if (parameters == "off") {
+            AddMessage(MESSAGE_LEVEL::ML_INFO, "Asking remote falcon to disable Managed PSA." + _remoteFalcon->EnableMangaedPSA(false));
+            return true;
+        } else {
+            msg = "Remote Falcon: Managed PSA unknown: " + parameters;
+            return false;
+        }
+        //Purge Queue
+    } else if (command == "purge_queue") {
+        msg = "Remote Falcon: Purging Queue";
+        AddMessage(MESSAGE_LEVEL::ML_INFO, "Asking remote falcon to purge Queue." + _remoteFalcon->PurgeQueue());
+        return true;
+    }   
     else         {
-        msg = "Remote Falcon: Unknown command";
+        msg = "Remote Falcon: Unknown command: " + command;
         return false;
     }
     return true;
@@ -816,12 +888,12 @@ void RemoteFalconFrame::OnTimer_UpdatePlaylistTrigger(wxTimerEvent& event)
 
 void RemoteFalconFrame::OnMenuItem_RFWebSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser(_("https://remotefalcon.com"));
+    ::wxLaunchDefaultBrowser(_("https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com")));
 }
 
 void RemoteFalconFrame::OnMenuItem_VisitorWebPageSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser("https://" + _subdomain + ".remotefalcon.com");
+    ::wxLaunchDefaultBrowser("https://" + _subdomain + "." + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
 }
 
 void RemoteFalconFrame::OnHyperlinkCtrl1Click(wxCommandEvent& event)

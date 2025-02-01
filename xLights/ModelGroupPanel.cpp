@@ -183,7 +183,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer6->Add(Choice_DefaultCamera, 1, wxALL|wxEXPAND, 5);
 	GridSizeLabel = new wxStaticText(this, ID_STATICTEXT4, _("Max Grid Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer6->Add(GridSizeLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	SizeSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("400"), wxDefaultPosition, wxDefaultSize, 0, 10, 2000, 400, _T("ID_SPINCTRL1"));
+	SizeSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("400"), wxDefaultPosition, wxDefaultSize, 0, 10, 4000, 400, _T("ID_SPINCTRL1"));
 	SizeSpinCtrl->SetValue(_T("400"));
 	FlexGridSizer6->Add(SizeSpinCtrl, 1, wxALL|wxEXPAND, 2);
 	StaticText6 = new wxStaticText(this, wxID_ANY, _("Preview:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -764,7 +764,7 @@ void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
     }
     e->AddAttribute("TagColour", ColourPickerCtrl_ModelGroupTagColour->GetColour().GetAsString());
     g->Reset();
-    layoutPanel->ModelGroupUpdated(g, true); // if i dont set this to true then it leaves the house preview with a pointer to an invalid model which crashes
+    layoutPanel->ModelGroupUpdated(g);
 }
 
 void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
@@ -772,7 +772,7 @@ void ModelGroupPanel::OnChoicePreviewsSelect(wxCommandEvent& event)
     ModelGroup *g = (ModelGroup*)mModels[mGroup];
     std::string layout_group = std::string(ChoicePreviews->GetString(ChoicePreviews->GetCurrentSelection()).mb_str());
     mModels[mGroup]->SetLayoutGroup(layout_group);
-    layoutPanel->ModelGroupUpdated(g, true);
+    layoutPanel->ModelGroupUpdated(g);
 }
 
 void ModelGroupPanel::OnSizeSpinCtrlChange(wxSpinEvent& event)
@@ -899,7 +899,6 @@ bool MGTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
 
 void ModelGroupPanel::OnDrop(wxCommandEvent& event)
 {
-    wxArrayString parms = wxSplit(event.GetString(), ',');
     int x = event.GetExtraLong() >> 16;
     int y = event.GetExtraLong() & 0xFFFF;
 

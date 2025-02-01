@@ -413,6 +413,8 @@
 		<Unit filename="SevenSegmentDialog.h" />
 		<Unit filename="ShaderDownloadDialog.cpp" />
 		<Unit filename="ShaderDownloadDialog.h" />
+		<Unit filename="ShowFolderSearchDialog.cpp" />
+		<Unit filename="ShowFolderSearchDialog.h" />
 		<Unit filename="SpecialOptions.cpp" />
 		<Unit filename="SpecialOptions.h" />
 		<Unit filename="SplashDialog.cpp" />
@@ -808,6 +810,16 @@
 		<Unit filename="effects/assist/xlGridCanvasMorph.h" />
 		<Unit filename="effects/assist/xlGridCanvasPictures.cpp" />
 		<Unit filename="effects/assist/xlGridCanvasPictures.h" />
+		<Unit filename="effects/ispc/ButterflyFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="effects/ispc/ISPCComputeUtilities.cpp" />
+		<Unit filename="effects/ispc/ISPCComputeUtilities.h" />
+		<Unit filename="effects/ispc/LayerBlendingFunctions.ispc">
+			<Option link="1" />
+			<Option compiler="gcc" use="0" buildCommand="../ispc-v1.25.3-linux.aarch64/bin/ispc -o $object $file" />
+		</Unit>
+		<Unit filename="effects/ispc/LayerBlendingFunctions.ispc.h" />
 		<Unit filename="graphics/opengl/DrawGLUtils.cpp" />
 		<Unit filename="graphics/opengl/DrawGLUtils.h" />
 		<Unit filename="graphics/opengl/xlGLCanvas.cpp" />
@@ -1285,6 +1297,7 @@
 		<Unit filename="wxsmith/ShapePanel.wxs" />
 		<Unit filename="wxsmith/ShimmerPanel.wxs" />
 		<Unit filename="wxsmith/ShockwavePanel.wxs" />
+		<Unit filename="wxsmith/ShowFolderSearchDialog.wxs" />
 		<Unit filename="wxsmith/SingleStrandPanel.wxs" />
 		<Unit filename="wxsmith/SkullConfigDialog.wxs" />
 		<Unit filename="wxsmith/SnowflakesPanel.wxs" />
@@ -1547,11 +1560,9 @@
 					<wxDialog wxs="wxsmith/AutoLabelDialog.wxs" src="AutoLabelDialog.cpp" hdr="AutoLabelDialog.h" fwddecl="0" i18n="1" name="AutoLabelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EditAliasesDialog.wxs" src="EditAliasesDialog.cpp" hdr="EditAliasesDialog.h" fwddecl="0" i18n="1" name="EditAliasesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EditSubmodelAliasesDialog.wxs" src="EditSubmodelAliasesDialog.cpp" hdr="EditSubmodelAliasesDialog.h" fwddecl="0" i18n="1" name="EditSubmodelAliasesDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ShowFolderSearchDialog.wxs" src="ShowFolderSearchDialog.cpp" hdr="ShowFolderSearchDialog.h" fwddecl="0" i18n="1" name="ShowFolderSearchDialog" language="CPP" />
 				</resources>
 			</wxsmith>
-			<code_completion />
-			<envvars />
-			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

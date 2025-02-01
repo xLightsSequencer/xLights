@@ -128,16 +128,19 @@ public:
     void SetEffectsTiming();
     void ProcessDroppedEffect(Effect* effect);
     void CutModelEffects(int row_number, bool allLayers);
-    void CopyModelEffects(int row_number, bool allLayers);
+    void CopyModelEffects(int row_number, bool allLayers, bool incSubModels = false);
     void PasteModelEffects(int row_number, bool allLayers);
     Effect* GetSelectedEffect() const;
     int GetSelectedEffectCount(const std::string& effectName) const;
     bool AreAllSelectedEffectsOnTheSameElement() const;
     void ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
     void ApplyButtonPressToSelected(const std::string& effectName, const std::string id);
-    void RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int>>& dmxmappings);
+    void RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings);
     void ConvertSelectedEffectsTo(const std::string& effectName);
     void DuplicateSelectedEffects();
+    void CreateTimingFromSelectedEffects();
+    bool IsTopModelVisible();
+    bool IsMouseOverTiming(int y);
 
     bool HandleACKey(wxChar key, bool shift = false);
     bool IsACActive();
@@ -147,6 +150,7 @@ public:
     bool DoACDraw(bool keyboard = false, ACTYPE typeOverride = ACTYPE::NILTYPEOVERRIDE, ACSTYLE styleOverride = ACSTYLE::NILSTYLEOVERRIDE, ACTOOL toolOverride = ACTOOL::NILTOOLOVERRIDE, ACMODE modeOverride = ACMODE::NILMODEOVERRIDE);
 
     void AlignSelectedEffects(EFF_ALIGN_MODE align_mode);
+    void AlignSelectedEffectsToTimingMark();
 
     int GetEffectRow(Effect* ef);
     Effect* OldPaste(const wxString &data, const wxString &pasteDataVer);
@@ -202,6 +206,8 @@ public:
     }
 
 protected:
+    bool m_wheel_down = false;
+    int m_previous_mouse_x = 0;
 
 private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
@@ -211,16 +217,18 @@ private:
     void CreateEffectForFile(int x, int y, const std::string& effectName, const std::string& filename);
     void render(wxPaintEvent& evt);
     void magnify(wxMouseEvent& event);
-	void mouseMoved(wxMouseEvent& event);
-	void mouseDown(wxMouseEvent& event);
-	void mouseWheelMoved(wxMouseEvent& event);
-	void mouseReleased(wxMouseEvent& event);
-	void rightClick(wxMouseEvent& event);
-	void mouseLeftDClick(wxMouseEvent& event);
-	void mouseLeftWindow(wxMouseEvent& event);
+    void mouseMoved(wxMouseEvent& event);
+    void mouseDown(wxMouseEvent& event);
+    void mouseWheelMoved(wxMouseEvent& event);
+    void mouseReleased(wxMouseEvent& event);
+    void rightClick(wxMouseEvent& event);
+    void mouseLeftDClick(wxMouseEvent& event);
+    void mouseLeftWindow(wxMouseEvent& event);
+    void mouseMiddleDown(wxMouseEvent& event);
+    void mouseMiddleUp(wxMouseEvent& event);
     void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
-	void keyPressed(wxKeyEvent& event);
-	void keyReleased(wxKeyEvent& event);
+    void keyPressed(wxKeyEvent& event);
+    void keyReleased(wxKeyEvent& event);
 
     void CreateEffectIconTextures(xlGraphicsContext *ctx);
     void SetRCToolTip();
@@ -338,6 +346,7 @@ private:
     int mDropEndX;
     int mDropRow;
     int mDropStartTimeMS;
+    int mRightClickStartTimeMS;
     int mDropEndTimeMS;
 
     bool mCellRangeSelected;
@@ -377,8 +386,10 @@ private:
     static const long ID_GRID_MNU_ALIGN_MATCH_DURATION;
     static const long ID_GRID_MNU_ALIGN_START_TIMES_SHIFT;
     static const long ID_GRID_MNU_ALIGN_END_TIMES_SHIFT;
+    static const long ID_GRID_MNU_ALIGN_TO_TIMING_MARK;
     static const long ID_GRID_MNU_SPLIT_EFFECT;
     static const long ID_GRID_MNU_DUPLICATE_EFFECT;
+    static const long ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT;
     EventPlayEffectArgs* playArgs = nullptr;
 
     const SequenceData *seqData = nullptr;

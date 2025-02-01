@@ -26,43 +26,64 @@ class Experience : public BaseController
 
 #pragma region Member Variables
     std::string _controllerType;
+    std::string _controllerModel;
+    int _firmwareMajor{ 0 };
+    int _firmwareMinor{ 0 };
+    int _firmwarePatch{ 0 };
+    int _firmwareBuild{ 0 };
+    int _modelYear{ 0 };
     int _numberOfPixelOutputs{ 0 };
     int _numberOfRemoteOutputs{ 0 };
     int _numberOfSerialOutputs{ 0 };
+    bool _has_efuses{ false };
+    std::string _opMode = "ddp";
 
 #pragma endregion
 
 #pragma region Private Functions
-    bool GetJSONData(const std::string& url, wxJSONValue& val) const;
-    std::string PostJSONToURL(const std::string& url, const wxJSONValue& val) const;
+    [[nodiscard]] bool GetJSONData(std::string const& url, wxJSONValue& val) const;
+    std::string PostJSONToURL(std::string const& url, wxJSONValue const& val) const;
+    bool DecodeFirmwareInformation(wxString const& firmware);
+    bool DecodeModelInformation(std::string const& model);
+    [[nodiscard]] bool IsVersionAtLeast(int maj, int min, int patch) const;
 
-    static const std::string GetStateURL() { return "/api/state"; };
-    static const std::string GetConfigURL() { return "/api/config"; };
-    const int GetNumberOfPixelOutputs() { return _numberOfPixelOutputs; }
-    const int GetNumberOfRemoteOutputs() { return _numberOfRemoteOutputs; }
-    const int GetNumberOfSerial() { return _numberOfSerialOutputs; }
+    [[nodiscard]] std::string GetVersionStr() const {
+        return std::to_string(_firmwareMajor) + "." +
+               std::to_string(_firmwareMinor) + "." +
+               std::to_string(_firmwarePatch) + "." + std::to_string(_firmwareBuild);
+    }
+
+    static std::string GetStateURL() { return "/api/state"; };
+    static std::string GetConfigURL() { return "/api/config"; };
+    [[nodiscard]] int GetNumberOfPixelOutputs() const { return _numberOfPixelOutputs; }
+    [[nodiscard]] int GetNumberOfRemoteOutputs() const { return _numberOfRemoteOutputs; }
+    [[nodiscard]] int GetNumberOfSerial() const { return _numberOfSerialOutputs; }
 
 #pragma endregion
 
 #pragma region Encode and Decode
-    int EncodeBrightness(int brightness) const;
-    int EncodeGamma(double gamma) const;
-    wxString EncodeColorOrder(std::string const& colorOrder) const;
+    [[nodiscard]] int EncodeBrightness(int brightness) const;
+    [[nodiscard]] int EncodeGamma(double gamma) const;
+    [[nodiscard]] wxString EncodeColorOrder(std::string const& colorOrder) const;
 #pragma endregion
 
 public:
 #pragma region Constructors and Destructors
-    Experience(const std::string& ip, const std::string& fppProxy);
-    virtual ~Experience(){};
+    Experience(std::string const& ip, std::string const& fppProxy);
+    virtual ~Experience() override {};
 #pragma endregion
 
-    bool UploadSequence(const std::string& seq, const std::string& file, std::function<bool(int, std::string)> progress);
+    [[nodiscard]] bool UploadSequence(std::string const& seq, std::string const& file, std::function<bool(int, std::string)> progress);
 
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    int32_t SetInputUniverses(wxJSONValue& data, Controller* controller);
+    [[nodiscard]] int32_t SetInputUniverses(wxJSONValue& data, Controller* controller);
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
-    virtual bool UsesHTTP() const override { return true; }
+    [[nodiscard]] bool UsesHTTP() const override { return true; }
+
+    [[nodiscard]] std::string GetFullName() const override {
+        return _model + " v" + GetVersionStr();
+    }
 #pragma endregion
 };

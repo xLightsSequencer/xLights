@@ -131,7 +131,7 @@ bool DmxColorAbilityCMY::IsValidModelSettings(Model* m) const
             white_channel < nodeCount + 1);
 }
 
-void DmxColorAbilityCMY::AddColorTypeProperties(wxPropertyGridInterface* grid) const
+void DmxColorAbilityCMY::AddColorTypeProperties(wxPropertyGridInterface* grid, bool pwm) const
 {
     wxPGProperty* p = grid->Append(new wxUIntProperty("Cyan Channel", "DmxCyanChannel", cyan_channel));
     p->SetAttribute("Min", 0);
@@ -353,18 +353,34 @@ void DmxColorAbilityCMY::ImportParameters(wxXmlNode* ImportXml, Model* m) const
     m->SetProperty("DmxWhiteChannel", wc);
 }
 
-void DmxColorAbilityCMY::SetNodeNames(std::vector<std::string>& names) const
+void DmxColorAbilityCMY::SetNodeNames(std::vector<std::string>& names, const std::string &pfx) const
 {
     if (CheckChannel(cyan_channel, names.size())) {
-        names[cyan_channel - 1] = "Cyan";
+        names[cyan_channel - 1] = pfx + "Cyan";
     }
     if (CheckChannel(magenta_channel, names.size())) {
-        names[magenta_channel - 1] = "Magenta";
+        names[magenta_channel - 1] = pfx + "Magenta";
     }
     if (CheckChannel(yellow_channel, names.size())) {
-        names[yellow_channel - 1] = "Yellow";
+        names[yellow_channel - 1] = pfx + "Yellow";
     }
     if (CheckChannel(white_channel, names.size())) {
-        names[white_channel - 1] = "White";
+        names[white_channel - 1] = pfx + "White";
+    }
+}
+
+
+void DmxColorAbilityCMY::GetPWMOutputs(std::map<uint32_t, PWMOutput> &map) const {
+    if (cyan_channel > 0) {
+        map[cyan_channel] = PWMOutput(cyan_channel, PWMOutput::Type::LED, 1, "Cyan");
+    }
+    if (magenta_channel > 0) {
+        map[magenta_channel] = PWMOutput(magenta_channel, PWMOutput::Type::LED, 1, "Magenta");
+    }
+    if (yellow_channel > 0) {
+        map[yellow_channel] = PWMOutput(yellow_channel, PWMOutput::Type::LED, 1, "Yellow");
+    }
+    if (white_channel > 0) {
+        map[white_channel] = PWMOutput(white_channel, PWMOutput::Type::LED, 1, "White");
     }
 }

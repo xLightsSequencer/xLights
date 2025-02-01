@@ -202,9 +202,9 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 
                 if (picture != "") {
                     if (!FileExists(picture)) {
-                        res.push_back(wxString::Format("    ERR: Face effect image file not found '%s'. Model '%s', Start %s", picture, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                        res.push_back(wxString::Format("    ERR: Face effect image file not found '%s'. Model '%s', Definition '%s', Start %s", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                     } else if (!IsFileInShowDir(xLightsFrame::CurrentDir, picture)) {
-                        res.push_back(wxString::Format("    WARN: Faces effect image file '%s' not under show directory. Model '%s', Start %s", picture, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                        res.push_back(wxString::Format("    WARN: Faces effect image file '%s' not under show directory. Model '%s', Definition '%s', Start %s", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                     }
 
                     if (FileExists(picture)) {
@@ -217,7 +217,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 #define IMAGESIZETHRESHOLD 10
                             if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi()) {
                                 float scale = std::max((float)ih / model->GetDefaultBufferHt(), (float)iw / model->GetDefaultBufferWi());
-                                res.push_back(wxString::Format("    WARN: Faces effect image file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '%s', Start %s", picture, scale, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                                res.push_back(wxString::Format("    WARN: Faces effect image file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '%s', Definition '%s', Start %s", picture, scale, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                             }
                         }
                     }
@@ -809,7 +809,6 @@ static bool parse_model(const wxString& want_model)
         //NOTE: assumes phoneme/face mapping is consistent for any given model across groups, which should be the case since the lights don't move
         for (wxXmlNode* group = Presets->GetChildren(); group != nullptr; group = group->GetNext())
         {
-            wxString grpname = group->GetAttribute(wxT("name"));
             for (wxXmlNode* voice = group->GetChildren(); voice != nullptr; voice = voice->GetNext())
             {
                 wxString voice_name = NoInactive(voice->GetAttribute(wxT("name")));

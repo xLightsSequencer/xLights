@@ -27,9 +27,9 @@ public:
     virtual xlVertexColorAccumulator *createVertexColorAccumulator() = 0;
     virtual xlVertexTextureAccumulator *createVertexTextureAccumulator() = 0;
     virtual xlVertexIndexedColorAccumulator *createVertexIndexedColorAccumulator() = 0;
-    virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) = 0;
-    virtual xlTexture *createTextureMipMaps(const std::vector<wxImage> &images) = 0;
-    virtual xlTexture *createTexture(const wxImage &image) = 0;
+    virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps, const std::string &name) = 0;
+    virtual xlTexture *createTextureMipMaps(const std::vector<wxImage> &images, const std::string &name) = 0;
+    virtual xlTexture *createTexture(const wxImage &image, const std::string &name, bool finalize = false) = 0;
     virtual xlTexture *createTexture(int w, int h, bool bgr, bool alpha) = 0;
     virtual xlTexture *createTextureForFont(const xlFontInfo &font) = 0;
     virtual xlGraphicsProgram *createGraphicsProgram() = 0;

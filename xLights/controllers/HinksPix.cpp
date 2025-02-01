@@ -282,8 +282,6 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
         return UploadInputUniversesEasyLights(controller, inputUniverses);
     }
 
-    wxString request;
-
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();
 
@@ -317,10 +315,10 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
         DisplayError("Getting HinksPix Input Mode FAILED.");
         return false;
     }
-    wxString const cur_mode = data.ItemAt("MODE").AsString();
 
     //Set Controller Input mode
-    if (cur_mode != type) {
+    //if (data.ItemAt("MODE").AsString() != type) //send mode every time
+    {
         auto const ret = GetJSONControllerData(GetJSONPostURL(), cmd);
         if (ret.find("\"OK\"") == std::string::npos) {
             logger_base.error("Failed Return %s", (const char*)ret.c_str());
@@ -391,8 +389,6 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
 {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("HinksPix Inputs Upload: Uploading to %s", (const char*)_ip.c_str());
-
-        wxString request;
 
         auto const data = GetControllerData(902);
         if (data.empty()) {

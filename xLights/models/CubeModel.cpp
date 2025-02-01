@@ -23,6 +23,7 @@
 #include "../outputs/OutputManager.h"
 #include "../outputs/Controller.h"
 #include "../ModelPreview.h"
+#include "CustomModel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1007,8 +1008,12 @@ void CubeModel::ExportXlightsModel()
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
-    //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+
+    if (!f.Create(filename, true) || !f.IsOpened()) {
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
+
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString p3 = ModelXml->GetAttribute("parm3");
@@ -1079,7 +1084,7 @@ void CubeModel::ExportXlightsModel()
     f.Close();
 }
 
-void CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "Cubemodel") {
         wxString name = root->GetAttribute("name");
@@ -1095,7 +1100,7 @@ void CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         wxString dir = root->GetAttribute("Dir");
         wxString sn = root->GetAttribute("StrandNames");
         wxString nn = root->GetAttribute("NodeNames");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString da = root->GetAttribute("DisplayAs");
         wxString pc = root->GetAttribute("PixelCount");
         wxString pt = root->GetAttribute("PixelType");
@@ -1140,8 +1145,11 @@ void CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading Cube model file.");
+        return false;
     }
 }
 
@@ -1206,7 +1214,8 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
             int string = index / nodesPerString + 1;
             int nodenum = index % nodesPerString + 1;
             wxString bgcolor = string % 2 == 1 ? "#ADD8E6" : "#90EE90";
-
+            if( IsDarkMode() )
+                bgcolor = string % 2 == 1 ? "#3f7c85" : "#962B09";
             html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ds%d</td>", nodenum, string);
         }
         html += "</tr>";
@@ -1227,34 +1236,32 @@ void CubeModel::ExportAsCustomXModel3D() const
 
     wxFile f(filename);
     //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
 
-    wxString cm = "";
     int width = parm1;
     int height = parm2;
     int depth = parm3;
 
     auto locations = BuildCube();
 
+    std::vector < std::vector < std::vector<int>>> data;
+
+    data.reserve(depth);
     for (int l = 0; l < depth; l++) {
-        if (cm != "")
-            cm += "|";
-        wxString ll = "";
-
+		std::vector < std::vector<int>> layer;
+        layer.reserve(height);
         for (int r = height - 1; r >= 0; r--) {
-            if (ll != "")
-                ll += ";";
-            wxString rr = "";
-
-            for (int c = 0; c < width; c++) {
-                if (rr != "")
-                    rr += ",";
-                rr += wxString::Format("%d ", FindNodeIndex(locations, c, r, l) + 1);
-            }
-            ll += rr;
-        }
-        cm += ll;
+			std::vector<int> row;
+			row.reserve(width);
+			for (int c = 0; c < width; c++) {
+				row.push_back(FindNodeIndex(locations, c, r, l) + 1);
+			}
+			layer.push_back(row);
+		}
+        data.push_back(layer);
     }
 
     wxString p1 = wxString::Format("%i", width);
@@ -1291,7 +1298,10 @@ void CubeModel::ExportAsCustomXModel3D() const
     if (psp != "")
         f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
     f.Write("CustomModel=\"");
-    f.Write(cm);
+    f.Write(CustomModel::ToCustomModel(data));
+    f.Write("\" ");
+    f.Write("CustomModelCompressed=\"");
+    f.Write(CustomModel::ToCompressed(data));
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(ExportSuperStringColors());

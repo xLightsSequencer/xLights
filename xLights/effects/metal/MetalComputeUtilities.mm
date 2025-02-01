@@ -43,7 +43,7 @@ MetalPixelBufferComputeData::~MetalPixelBufferComputeData() {
 }
 
 bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
-    if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < 1024) {
+    if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < 2048) {
         return false;
     }
     for (int l = validLayers.size() - 1; l >= 0; --l) {
@@ -104,6 +104,7 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
             data.chromaColor = layer->chromaKeyColour.asChar4();
             data.effectMixThreshold = layer->outputEffectMixThreshold;
             data.effectMixVaries = layer->effectMixVaries;
+            data.brightnessLevel = layer->brightnessLevel;
             data.fadeFactor = layer->fadeFactor;
             
             // first, we grab the color for the node from the buffer for the layer
@@ -181,10 +182,25 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                           threadsPerThreadgroup:threadsPerThreadgroup];
                 [computeEncoder endEncoding];
             }
+            if (layer->brightnessLevel) {
+                id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+                [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.brightnessLevelFunction];
+                setLabel(computeEncoder, "ApplyBrightnessLevel", l);
+                int dataSize = sizeof(data);
+                [computeEncoder setBytes:&data length:dataSize atIndex:0];
+                [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:1];
+                NSInteger maxThreads = MetalComputeUtilities::INSTANCE.brightnessLevelFunction.maxTotalThreadsPerThreadgroup;
+                NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);
+                MTLSize gridSize = MTLSizeMake(data.nodeCount, 1, 1);
+                MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
+                [computeEncoder dispatchThreads:gridSize
+                          threadsPerThreadgroup:threadsPerThreadgroup];
+                [computeEncoder endEncoding];
+            }
         }
     }
     
-    // not all the pixels are loaded and adjusted, now start the blending
+    // now all the pixels are loaded and adjusted, now start the blending
     bool first = true;
     for (int l = validLayers.size() - 1; l >= 0; --l) {
         if (validLayers[l]) {
@@ -817,6 +833,10 @@ bool MetalRenderBufferComputeData::blur(int radius) {
         // Smallish buffer, overhead of sending to GPU will be more than the gain
         return false;
     }
+    if (renderBuffer->BufferHt > 16384 || renderBuffer->BufferWi > 16384) {
+        // max size of Textures on macOS
+        return false;
+    }
     @autoreleasepool {
         id<MTLCommandBuffer> commandBuffer = getCommandBuffer("-Blur");
         if (commandBuffer == nil) {
@@ -1030,6 +1050,7 @@ MetalComputeUtilities::MetalComputeUtilities() {
     adjustHSVFunction = FindComputeFunction("AdjustHSV");
     applySparklesFunction = FindComputeFunction("ApplySparkles");
     brightnessContrastFunction = FindComputeFunction("AdjustBrightnessContrast");
+    brightnessLevelFunction = FindComputeFunction("AdjustBrightnessLevel");
     firstLayerFadeFunction = FindComputeFunction("FirstLayerFade");
     nonAlphaFadeFunction = FindComputeFunction("NonAlphaFade");
 
@@ -1108,6 +1129,7 @@ MetalComputeUtilities::~MetalComputeUtilities() {
         adjustHSVFunction = nil;
         applySparklesFunction = nil;
         brightnessContrastFunction = nil;
+        brightnessLevelFunction = nil;
         firstLayerFadeFunction = nil;
         nonAlphaFadeFunction = nil;
         

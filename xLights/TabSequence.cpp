@@ -13,6 +13,7 @@
 #include <wx/clipbrd.h>
 #include <wx/xml/xml.h>
 #include <wx/config.h>
+#include <wx/wfstream.h>
 
 #include "xLightsMain.h"
 #include "SeqSettingsDialog.h"
@@ -54,6 +55,10 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 {
+    if (readOnlyMode) {
+        DisplayError("Sequences cannot be opened in read only mode!", this);
+        return;
+    }
     OpenSequence("", nullptr);
 }
 
@@ -83,7 +88,6 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     wxFileName effectsFile;
     effectsFile.AssignDir(CurrentDir);
     effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
-    wxString myString = "Hello";
     UnsavedRgbEffectsChanges = false;
 
     if (!FileExists(effectsFile)) {
@@ -308,9 +312,14 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
     //Load FSEQ and Backup directory settings
     fseqDirectory = GetXmlSetting("fseqDir", showDirectory);
-    renderCacheDirectory = GetXmlSetting("renderCacheDir", fseqDirectory); // we user fseq directory if no setting is present
-    ObtainAccessToURL(renderCacheDirectory);
-    ObtainAccessToURL(fseqDirectory);
+    if (wxDir::Exists(fseqDirectory) && !ObtainAccessToURL(fseqDirectory, true)) {
+        std::string orig = fseqDirectory;
+        PromptForDirectorySelection("Reselect FSEQ Directory", fseqDirectory);
+        if (fseqDirectory != orig) {
+            SetXmlSetting("fseqDir", fseqDirectory);
+            UnsavedRgbEffectsChanges = true;
+        }
+    }
     if (!wxDir::Exists(fseqDirectory)) {
         logger_base.warn("FSEQ Directory not Found ... switching to Show Directory.");
         fseqDirectory = showDirectory;
@@ -318,6 +327,15 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         UnsavedRgbEffectsChanges = true;
     }
     FseqDir = fseqDirectory;
+    renderCacheDirectory = GetXmlSetting("renderCacheDir", fseqDirectory); // we user fseq directory if no setting is present
+    if (wxDir::Exists(renderCacheDirectory) && !ObtainAccessToURL(renderCacheDirectory, true)) {
+        std::string orig = renderCacheDirectory;
+        PromptForDirectorySelection("Reselect RenderCache Directory", renderCacheDirectory);
+        if (orig != renderCacheDirectory) {
+            SetXmlSetting("renderCacheDir", renderCacheDirectory);
+            UnsavedRgbEffectsChanges = true;
+        }
+    }
     if (!wxDir::Exists(renderCacheDirectory)) {
         logger_base.warn("Render Cache Directory not Found ... switching to Show Directory.");
         renderCacheDirectory = showDirectory;
@@ -696,7 +714,20 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
     }
 
-    if (!EffectsXml.Save(effectsFile.GetFullPath())) {
+    wxFileOutputStream fout(effectsFile.GetFullPath());
+    wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
+
+    if (!EffectsXml.Save(*bout)) {
+        if (backup) {
+            logger_base.warn("Unable to save backup of RGB effects file");
+        } else {
+            DisplayError("Unable to save RGB effects file", this);
+        }
+        delete bout;
+        return false;
+    }
+    delete bout;
+    if (!fout.Close()) {
         if (backup) {
             logger_base.warn("Unable to save backup of RGB effects file");
         } else {
@@ -704,7 +735,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         }
         return false;
     }
-
+    
     if (!backup) {
 #ifndef __WXOSX__
         SaveModelsFile();
@@ -1021,8 +1052,6 @@ void xLightsFrame::UpdateModelsList()
         modelPreview->GetVirtualCanvasWidth(),
         modelPreview->GetVirtualCanvasHeight());
 
-    wxString msg;
-
     // Add all models to default House Preview that are set to Default or All Previews
     for (const auto& it : AllModels) {
         Model* model = it.second;
@@ -1275,6 +1304,12 @@ void xLightsFrame::SaveSequence()
         return;
     }
 
+    if (readOnlyMode)
+    {
+        DisplayError("Sequences cannot be saved in read only mode!", this);
+        return;
+    }
+
     wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
     wxPostEvent(this, playEvent);
 
@@ -1350,7 +1385,11 @@ void xLightsFrame::SaveSequence()
     SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xsq."));
     logger_base.info("Saving XSQ file.");
     CurrentSeqXmlFile->AddJukebox(jukeboxPanel->Save());
-    CurrentSeqXmlFile->Save(_sequenceElements);
+    if (!CurrentSeqXmlFile->Save(_sequenceElements)) {
+        wxMessageDialog msgDlg(this, "Error Saving Sequence to " + CurrentSeqXmlFile->GetFullPath(),
+                               "Error Saving Sequence", wxOK | wxCENTRE);
+        msgDlg.ShowModal();
+    }
     logger_base.info("XSQ file done.");
 
     if (mBackupOnSave) {
@@ -1445,6 +1484,11 @@ void xLightsFrame::SetSequenceTiming(int timingMS)
 
 void xLightsFrame::SaveAsSequence()
 {
+    if (readOnlyMode) {
+		DisplayError("Sequences cannot be saved in read only mode!", this);
+		return;
+	}
+
     if (_seqData.NumFrames() == 0) {
         DisplayError("You must open a sequence first!", this);
         return;
@@ -1631,6 +1675,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItem_ImportEffects->Enable(false);
         MenuItemShiftEffects->Enable(false);
         MenuItemShiftSelectedEffects->Enable(false);
+        MenuItemShiftEffectsAndTiming->Enable(false);
         MenuItem_ColorReplace->Enable(false);
         if (revertToMenuItem) revertToMenuItem->Enable(false);
     }

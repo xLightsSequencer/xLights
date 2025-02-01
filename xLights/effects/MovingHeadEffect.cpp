@@ -27,6 +27,7 @@
 #include "../models/DMX/DmxMovingHeadComm.h"
 #include "../models/DMX/DmxMotor.h"
 #include "../models/ModelGroup.h"
+#include "../models/DMX/DmxColorAbilityWheel.h"
 
 MovingHeadEffect::MovingHeadEffect(int id) : RenderableEffect(id, "Moving Head", moving_head_16, moving_head_24, moving_head_32, moving_head_48, moving_head_64)
 {
@@ -65,12 +66,29 @@ void MovingHeadEffect::SetDefaultParameters() {
         return;
     }
 
-    SetSliderValue(dp->Slider_MHPan, 0);
-    SetSliderValue(dp->Slider_MHTilt, 0);
-    SetSliderValue(dp->Slider_MHCycles, 10);
-
     dp->ValueCurve_MHPan->SetActive(false);
     dp->ValueCurve_MHTilt->SetActive(false);
+    dp->ValueCurve_MHPanOffset->SetActive(false);
+    dp->ValueCurve_MHTiltOffset->SetActive(false);
+    dp->ValueCurve_MHGroupings->SetActive(false);
+    dp->ValueCurve_MHPathScale->SetActive(false);
+    dp->ValueCurve_MHTimeOffset->SetActive(false);
+
+    SetSliderValue(dp->Slider_MHPan, 0.0f);
+    SetSliderValue(dp->Slider_MHTilt, 0.0f);
+    SetSliderValue(dp->Slider_MHPanOffset, 0.0f);
+    SetSliderValue(dp->Slider_MHTiltOffset, 0.0f);
+    SetSliderValue(dp->Slider_MHGroupings, 1);
+    SetSliderValue(dp->Slider_MHCycles, 10);
+    SetSliderValue(dp->Slider_MHPathScale, 0.0f);
+    SetSliderValue(dp->Slider_MHTimeOffset, 0.0f);
+
+    dp->CheckBox_MHIgnorePan->SetValue(false);
+    dp->CheckBox_MHIgnoreTilt->SetValue(false);
+    dp->CheckBoxAutoShutter->SetValue(false);
+
+    dp->CheckAllFixtures();
+    dp->UpdateStatusPanel();
 }
 
 void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -99,37 +117,11 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
 void MovingHeadEffect::RenderMovingHeads(MovingHeadPanel *p, const Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     auto models = GetModels(model_info);
-    bool single_model = models.size() == 1;
-
-    // if single model make sure the effect setting is on correct head
-    if (single_model) {
-        auto mh = dynamic_cast<const DmxMovingHeadComm*>(model_info);
-        int fixture = mh->GetFixtureVal();
-        wxString mh_fix_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", fixture);
-        std::string mh_settings = SettingsMap[mh_fix_textbox];
-        if( mh_settings == xlEMPTY_STRING ) {
-            // need to search for settings
-            for( int i = 1; i <= 8; ++i ) {
-                if (i == fixture) {
-                    continue;
-                }
-                wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", i);
-                mh_settings = SettingsMap[mh_textbox];
-                if (mh_settings != xlEMPTY_STRING) {
-                    break;
-                }
-            }
-        }
+    for( int i = 1; i <= 8; ++i ) {
+        wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", i);
+        std::string mh_settings = SettingsMap[mh_textbox];
         if( mh_settings != xlEMPTY_STRING ) {
-            RenderMovingHead(mh_settings, fixture, model_info, buffer);
-        }
-    } else {
-        for( int i = 1; i <= 8; ++i ) {
-            wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", i);
-            std::string mh_settings = SettingsMap[mh_textbox];
-            if( mh_settings != xlEMPTY_STRING ) {
-                RenderMovingHead(mh_settings, i, model_info, buffer);
-            }
+            RenderMovingHead(mh_settings, i, model_info, buffer);
         }
     }
 }
@@ -145,7 +137,6 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
     float path_scale = 0.0f;
     float delta = 0.0f;
     float cycles = 1.0f;
-    wxPoint2DDouble path_pt;
     bool path_parsed = false;
     bool pan_path_active = true;
     bool tilt_path_active = true;
@@ -153,6 +144,7 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
     bool has_color = false;
     bool has_color_wheel = false;
     bool has_dimmers = false;
+    bool auto_shutter = false;
     std::string path_setting = "";
     wxArrayString heads;
     wxArrayString colors;
@@ -190,10 +182,13 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
             has_position = true;
         } else if ( cmd_type == "Tilt" ) {
             tilt_pos = atof(settings.c_str());
+            has_position = true;
         } else if ( cmd_type == "Pan VC" ) {
             GetValueCurvePosition(pan_pos, settings, eff_pos, buffer);
+            has_position = true;
         } else if ( cmd_type == "Tilt VC" ) {
             GetValueCurvePosition(tilt_pos, settings, eff_pos, buffer);
+            has_position = true;
         } else if( cmd_type == "PanOffset" ) {
             pan_offset = atof(settings.c_str());
         } else if( cmd_type == "TiltOffset" ) {
@@ -240,6 +235,8 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
         } else if( cmd_type == "Dimmer" ) {
             dimmers = wxSplit(settings, ',');
             has_dimmers = true;
+        } else if (cmd_type == "AutoShutter") {
+            auto_shutter = true;
         }
     }
 
@@ -275,6 +272,11 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
                         if( has_color_wheel ) {
                             xlColor c {GetWheelColor(eff_pos, colors)};
                             buffer.SetPixel(0, 0, c);
+                            auto shutter_chan = mhead->GetShutterChannel();
+                            if (0 != shutter_chan && auto_shutter) {
+                                auto shutter_on = mhead->GetShutterOnValue();
+                                CalculateColorWheelShutter(mh_color, eff_pos, colors, shutter_chan, shutter_on, buffer);
+                            }
                         } else if (has_color) {
                             xlColor c {GetMultiColorBlend(eff_pos, colors, buffer)};
                             buffer.SetPixel(0, 0, c);
@@ -282,6 +284,7 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
                     }
                 }
             }
+            buffer.EnableFixedDMXChannels(mhead);
         }
     }
 }
@@ -469,7 +472,74 @@ void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_pa
             tilt_pos = new_tilt;
         }
     }
+}
 
+void MovingHeadEffect::CalculateColorWheelShutter(DmxColorAbility* mh_color, double eff_pos, const wxArrayString& colors, int shutter_channel, int shutter_on, RenderBuffer& buffer) {
+    size_t num_colors = colors.size() / 3;
+    if (0 == num_colors) {
+        return;
+    }
+    DmxColorAbilityWheel* wheel_head = static_cast<DmxColorAbilityWheel*>(mh_color);
+    if (!wheel_head) {
+        return;
+    }
+
+    auto arrayToColor = [colors](int index) {
+        double hue{ wxAtof(colors[index]) };
+        double sat{ wxAtof(colors[index + 1]) };
+        double val{ wxAtof(colors[index + 2]) };
+        HSVValue v{ hue, sat, val };
+        return xlColor(v);
+    };
+    auto wheel_delay = wheel_head->GetWheelDelay();
+    if (0u == wheel_delay ) {
+        return;
+    }
+    long effect_len_ms = buffer.GetEndTimeMS() - buffer.GetStartTimeMS();
+    int frame_Time = buffer.frameTimeInMs;
+    ValueCurve vc;
+    int start_ind = wheel_head->GetDMXWheelIndex(arrayToColor(0));
+
+    //off to start
+    vc.SetValueAt(0, 0, true);
+    vc.SetValueAt((float)wheel_delay / effect_len_ms, shutter_on / 255.0F, true);
+
+    if (1 != num_colors) {
+        for (size_t i = 1; i < num_colors; ++i) {
+            int next_ind = wheel_head->GetDMXWheelIndex(arrayToColor(i * 3));
+            int rot_dist = next_ind - start_ind;
+            if (0 == rot_dist) {
+                continue;
+            }
+            if (0 > rot_dist) {//go around the whole wheel
+                rot_dist += wheel_head->GetColorWheelColorSize();
+            }
+            long cur_ms = effect_len_ms * ((float)i / num_colors);
+            float delay_end_pre = (float)((cur_ms - frame_Time) + (rot_dist * wheel_delay)) / effect_len_ms;
+            float delay_end = (float)(cur_ms + (rot_dist * wheel_delay)) / effect_len_ms;
+            delay_end = std::min(delay_end, 1.0F);
+
+            vc.SetValueAt((float)(cur_ms - frame_Time) / effect_len_ms, shutter_on / 255.0F, true);
+            vc.SetValueAt((float)cur_ms / effect_len_ms, 0, true);
+            vc.SetValueAt(delay_end_pre, 0, true);
+            vc.SetValueAt(delay_end, shutter_on / 255.0F, true);
+        }
+    }
+    // on to end
+    vc.SetValueAt(1.00, shutter_on / 255.0F, true);
+    vc.SetType("Custom");
+    vc.SetLimits(0, 255);
+    vc.SetActive(true);
+
+    uint8_t value = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    xlColor msb_c = xlBLACK;
+    msb_c.red = value;
+    msb_c.green = value;
+    msb_c.blue = value;
+
+    buffer.SetPixel(shutter_channel - 1, 0, msb_c, false, false, true);
+
+    //vc.SaveXVC(xLightsFrame::CurrentDir.ToStdString() + "//test.xvc");//this changes the point locations for some reason, do after
 }
 
 void MovingHeadEffect::WriteCmdToPixel(DmxMotorBase* motor, int value, RenderBuffer &buffer)

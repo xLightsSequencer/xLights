@@ -33,7 +33,7 @@ class RemoteFalcon
 
         RemoteFalcon(const RemoteFalconOptions& options) {
             __token = options.GetToken();
-            _URLBase = SpecialOptions::GetOption("RemoteFalconURL", "https://remotefalcon.com") + "/remotefalcon/api";
+            _URLBase = SpecialOptions::GetOption("RemoteFalconLocalIP", "https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com")) + SpecialOptions::GetOption("RemoteFalconAPI", "/remotefalcon/api");
         }
 
         void SetToken(const std::string& token)
@@ -69,6 +69,16 @@ class RemoteFalcon
             return Curl::HTTPSPost(_URLBase + "/updatePlaylistQueue", t, "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 
+        std::string PurgeQueue() {
+            std::string t = wxString::Format("{\"remoteToken\":\"%s\"}", __token);
+            return Curl::HTTPSDelete(_URLBase + "/purgeQueue", t, "", "", "JSON", 10, { { "remotetoken", __token } });
+        }
+
+        std::string EnableMangaedPSA(bool enable) {
+            std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"managedPsaEnabled\":\"%s\"}", __token, enable ? _("Y") : _("N"));
+            return Curl::HTTPSPost(_URLBase + "/updateManagedPsa", t, "", "", "JSON", 10, { { "remotetoken", __token } });
+        }
+
         std::string EnableViewerControl(bool enable)
         {
             std::string t = wxString::Format("{\"remoteToken\":\"%s\",\"viewerControlEnabled\":\"%s\"}", __token, enable ? _("Y") : _("N"));
@@ -101,8 +111,8 @@ class RemoteFalcon
                             body += ",";
                         }
 
-                        body += wxString::Format("{\"playlistName\":\"" + val["steps"][i]["name"].AsString() + "\",\"playlistDuration\":%d}",
-                            wxAtoi(val["steps"][i]["lengthms"].AsString()) / 1000);
+                        body += wxString::Format("{\"playlistName\":\"" + val["steps"][i]["name"].AsString() + "\",\"playlistIndex\":%d, \"playlistDuration\":%d}",
+                            (i+1), wxAtoi(val["steps"][i]["lengthms"].AsString()) / 1000);
                     }
                 }
             }

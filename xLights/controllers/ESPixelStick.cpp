@@ -464,146 +464,177 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
 
         GetOutputConfig(outputConfig);
 
-        for (int x = 0; x < cud.GetMaxPixelPort(); x++) {
-            UDControllerPort* port = cud.GetControllerPixelPort(x + 1);
-            std::string const proto = MapV4Type(port->GetProtocol());
-            std::string const pixels = std::to_string(port->Pixels());
-            int brightness{ -1 };
-            float gamma{ -1.0F };
-            std::string colorOrder;
-            int groupCount{ -1 };
-            int startNulls{ -1 };
-            int endNulls{ -1 };
-            auto s = port->GetModels().front();
-            if (s) {
-                brightness = s->GetBrightness(-1);
-                colorOrder = MapV4ColorOrder(s->GetColourOrder(""));
-                gamma = s->GetGamma(-1.0F);
-                int gc = s->GetGroupCount(-1);
-                if (gc == 0) {
-                    gc = 1;
+        if (controller->IsFullxLightsControl()) {
+            if (outputConfig.HasMember("channels")) {
+                wxJSONValue& channels = outputConfig["channels"];
+                for (const auto& key : channels.GetMemberNames()) {
+                    wxJSONValue& channel = channels[key];
+                    if (channel.HasMember("type"))
+                        channel["type"] = 0; // disable all outputs, since used ones will be re-enabled next
                 }
-                groupCount = gc;
-                startNulls = s->GetStartNullPixels(-1);
-                endNulls = s->GetEndNullPixels(-1);
-            }
-
-            std::string outidx = std::to_string(x);
-            std::string curIdx = std::to_string(outputConfig["channels"][outidx]["type"].AsInt());
-            if (outputConfig["channels"][outidx][curIdx]["type"].AsString() != proto) {
                 changed = true;
-                for (int i = 0; i < 20; i++) {
-                    std::string idx = std::to_string(i);
-                    if (!outputConfig["channels"][outidx].HasMember(idx)) {
-                        return false;
-                    }
-                    if (outputConfig["channels"][outidx][idx]["type"].AsString() == proto) {
-                        //found the new element, flip over to using that protocol
-                        outputConfig["channels"][outidx]["type"] = i;
-                        curIdx = idx;
-                        break;
-                    }
-                }
             }
-            if (proto == "WS2811" || proto == "TM1814") {
-                if (gamma > -1.0F) {
-                    if (gamma < 1.0F) {
-                        gamma = 1.0F;
-                    }
-                    if (gamma > 5.0F) {
-                        gamma = 5.0F;
-                    }
-                    std::string const s_gamma = std::to_string(gamma);
-                    if (s_gamma != outputConfig["channels"][outidx][curIdx]["gamma"].AsString()) {
-                        changed = true;
-                        outputConfig["channels"][outidx][curIdx]["gamma"] = s_gamma;
-                    }
-                }
-                if (brightness != -1) {
-                    int b = brightness;
-                    if (b > 100) {
-                        b = 100;
-                    }
+        }
 
-                    std::string const b2 = std::to_string(b);
-                    if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
-                        changed = true;
-                        outputConfig["channels"][outidx][curIdx]["brightness"] = b2;
+        for (int x = 0; x < cud.GetMaxPixelPort(); x++) {
+            if (cud.HasPixelPort(x + 1)) {
+                UDControllerPort* port = cud.GetControllerPixelPort(x + 1);
+                std::string const proto = MapV4Type(port->GetProtocol());
+                std::string const pixels = std::to_string(port->Pixels());
+                int brightness{ -1 };
+                float gamma{ -1.0F };
+                std::string colorOrder;
+                int groupCount{ -1 };
+                int startNulls{ -1 };
+                int endNulls{ -1 };
+                int zigzag{ -1 };
+                auto s = port->GetModels().front();
+                if (s) {
+                    brightness = s->GetBrightness(-1);
+                    if (brightness < 0 && controller->IsFullxLightsControl()) {
+                        brightness = controller->GetDefaultBrightnessUnderFullControl();
+                    };
+                    gamma = s->GetGamma(-1.0F);
+                    if (gamma < 0 && controller->IsFullxLightsControl()) {
+  						gamma = controller->GetDefaultGammaUnderFullControl();
+					};
+                    colorOrder = MapV4ColorOrder(s->GetColourOrder(""));
+                    int gc = s->GetGroupCount(-1);
+                    if (gc == 0) {
+                        gc = 1;
                     }
-                }
-                if (!colorOrder.empty() && colorOrder != outputConfig["channels"][outidx][curIdx]["color_order"].AsString()) {
-                    changed = true;
-                    outputConfig["channels"][outidx][curIdx]["color_order"] = colorOrder;
-                }
-                if (groupCount != -1) {
-                    std::string const s_groupCount = std::to_string(groupCount);
-                    if (s_groupCount != outputConfig["channels"][outidx][curIdx]["group_size"].AsString()) {
-                        changed = true;
-                        outputConfig["channels"][outidx][curIdx]["group_size"] = s_groupCount;
-                    }
-                }
-                if (startNulls != -1) {
-                    std::string const s_startNulls = std::to_string(startNulls);
-                    if (s_startNulls != outputConfig["channels"][outidx][curIdx]["prependnullcount"].AsString()) {
-                        changed = true;
-                        outputConfig["channels"][outidx][curIdx]["prependnullcount"] = s_startNulls;
-                    }
-                }
-                if (endNulls != -1) {
-                    std::string const s_endNulls = std::to_string(endNulls);
-                    if (s_endNulls != outputConfig["channels"][outidx][curIdx]["appendnullcount"].AsString()) {
-                        changed = true;
-                        outputConfig["channels"][outidx][curIdx]["appendnullcount"] = s_endNulls;
-                    }
-                }
-                if (pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
-                    changed = true;
-                    outputConfig["channels"][outidx][curIdx]["pixel_count"] = pixels;
-                }
-            } else if (proto == "GECE") {
-                if (brightness != -1) {
-                    int b = brightness;
-                    if (b > 100) {
-                        b = 100;
-                    }
-                    std::string const b2 = std::to_string(b);
-                    if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
-                        changed = true;
-                        outputConfig["channels"][outidx][curIdx]["brightness"] = b2;
-                    }
+                    groupCount = gc;
+                    startNulls = s->GetStartNullPixels(-1);
+                    endNulls = s->GetEndNullPixels(-1);
+                    zigzag = s->GetZigZag(1);
                 }
 
-                if (pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
+                std::string outidx = std::to_string(x);
+                std::string curIdx = std::to_string(outputConfig["channels"][outidx]["type"].AsInt());
+                if (outputConfig["channels"][outidx][curIdx]["type"].AsString() != proto) {
                     changed = true;
-                    outputConfig["channels"][outidx][curIdx]["pixel_count"] = pixels;
+                    for (int i = 0; i < 20; i++) {
+                        std::string idx = std::to_string(i);
+                        if (!outputConfig["channels"][outidx].HasMember(idx)) {
+                            return false;
+                        }
+                        if (outputConfig["channels"][outidx][idx]["type"].AsString() == proto) {
+                            // found the new element, flip over to using that protocol
+                            outputConfig["channels"][outidx]["type"] = i;
+                            curIdx = idx;
+                            break;
+                        }
+                    }
+                }
+                if (proto == "WS2811" || proto == "TM1814") {
+                    if (gamma > -1.0F) {
+                        if (gamma < 1.0F) {
+                            gamma = 1.0F;
+                        }
+                        if (gamma > 5.0F) {
+                            gamma = 5.0F;
+                        }
+                        std::string const s_gamma = std::to_string(gamma);
+                        if (s_gamma != outputConfig["channels"][outidx][curIdx]["gamma"].AsString()) {
+                            changed = true;
+                            outputConfig["channels"][outidx][curIdx]["gamma"] = s_gamma;
+                        }
+                    }
+                    if (brightness != -1) {
+                        int b = brightness;
+                        if (b > 100) {
+                            b = 100;
+                        }
+
+                        std::string const b2 = std::to_string(b);
+                        if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
+                            changed = true;
+                            outputConfig["channels"][outidx][curIdx]["brightness"] = b2;
+                        }
+                    }
+                    if (!colorOrder.empty() && colorOrder != outputConfig["channels"][outidx][curIdx]["color_order"].AsString()) {
+                        changed = true;
+                        outputConfig["channels"][outidx][curIdx]["color_order"] = colorOrder;
+                    }
+                    if (groupCount != -1) {
+                        std::string const s_groupCount = std::to_string(groupCount);
+                        if (s_groupCount != outputConfig["channels"][outidx][curIdx]["group_size"].AsString()) {
+                            changed = true;
+                            outputConfig["channels"][outidx][curIdx]["group_size"] = s_groupCount;
+                        }
+                    }
+                    if (zigzag != -1) {
+						std::string const s_zigzag = std::to_string(zigzag);
+                        if (s_zigzag != outputConfig["channels"][outidx][curIdx]["zig_size"].AsString()) {
+							changed = true;
+							outputConfig["channels"][outidx][curIdx]["zig_size"] = s_zigzag;
+						}
+					}
+                    if (startNulls != -1) {
+                        std::string const s_startNulls = std::to_string(startNulls);
+                        if (s_startNulls != outputConfig["channels"][outidx][curIdx]["prependnullcount"].AsString()) {
+                            changed = true;
+                            outputConfig["channels"][outidx][curIdx]["prependnullcount"] = s_startNulls;
+                        }
+                    }
+                    if (endNulls != -1) {
+                        std::string const s_endNulls = std::to_string(endNulls);
+                        if (s_endNulls != outputConfig["channels"][outidx][curIdx]["appendnullcount"].AsString()) {
+                            changed = true;
+                            outputConfig["channels"][outidx][curIdx]["appendnullcount"] = s_endNulls;
+                        }
+                    }
+                    if (pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
+                        changed = true;
+                        outputConfig["channels"][outidx][curIdx]["pixel_count"] = pixels;
+                    }
+                } else if (proto == "GECE") {
+                    if (brightness != -1) {
+                        int b = brightness;
+                        if (b > 100) {
+                            b = 100;
+                        }
+                        std::string const b2 = std::to_string(b);
+                        if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
+                            changed = true;
+                            outputConfig["channels"][outidx][curIdx]["brightness"] = b2;
+                        }
+                    }
+
+                    if (pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
+                        changed = true;
+                        outputConfig["channels"][outidx][curIdx]["pixel_count"] = pixels;
+                    }
                 }
             }
         }
         for (int x = 0; x < cud.GetMaxSerialPort(); x++) {
-            UDControllerPort* port = cud.GetControllerSerialPort(x + 1);
-            std::string proto = MapV4Type(port->GetProtocol());
-            std::string channels = std::to_string(port->Channels());
-            
-            std::string outidx = std::to_string(x + rules->GetMaxPixelPort());
-            std::string curIdx = std::to_string(outputConfig["channels"][outidx]["type"].AsInt());
-            if (outputConfig["channels"][outidx][curIdx]["type"].AsString() != proto) {
-                changed = true;
-                for (int i = 0; i < 20; i++) {
-                    std::string idx = std::to_string(i);
-                    if (!outputConfig["channels"][outidx].HasMember(idx)) {
-                        return false;
-                    }
-                    if (outputConfig["channels"][outidx][idx]["type"].AsString() == proto) {
-                        //found the new element, flip over to using that protocol
-                        outputConfig["channels"][outidx]["type"] = i;
-                        curIdx = idx;
-                        break;
+            if (cud.HasSerialPort(x + 1)) {
+                UDControllerPort* port = cud.GetControllerSerialPort(x + 1);
+                std::string proto = MapV4Type(port->GetProtocol());
+                std::string channels = std::to_string(port->Channels());
+
+                std::string outidx = std::to_string(x);
+                std::string curIdx = std::to_string(outputConfig["channels"][outidx]["type"].AsInt());
+                if (outputConfig["channels"][outidx][curIdx]["type"].AsString() != proto) {
+                    changed = true;
+                    for (int i = 0; i < 20; i++) {
+                        std::string idx = std::to_string(i);
+                        if (!outputConfig["channels"][outidx].HasMember(idx)) {
+                            return false;
+                        }
+                        if (outputConfig["channels"][outidx][idx]["type"].AsString() == proto) {
+                            // found the new element, flip over to using that protocol
+                            outputConfig["channels"][outidx]["type"] = i;
+                            curIdx = idx;
+                            break;
+                        }
                     }
                 }
-            }
-            if (channels != outputConfig["channels"][outidx][curIdx]["num_chan"].AsString()) {
-                changed = true;
-                outputConfig["channels"][outidx][curIdx]["num_chan"] = channels;
+                if (channels != outputConfig["channels"][outidx][curIdx]["num_chan"].AsString()) {
+                    changed = true;
+                    outputConfig["channels"][outidx][curIdx]["num_chan"] = channels;
+                }
             }
         }
         if (changed)

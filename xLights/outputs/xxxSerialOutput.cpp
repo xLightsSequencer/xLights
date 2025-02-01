@@ -10,6 +10,8 @@
  **************************************************************/
 
 #include "xxxSerialOutput.h"
+#include "ControllerSerial.h"
+#include "OutputModelManager.h"
 
 #include <wx/xml/xml.h>
 
@@ -35,12 +37,16 @@ xxxSerialOutput::xxxSerialOutput(const xxxSerialOutput& from) : SerialOutput(fro
     memset(_lastSent, 0x00, sizeof(_lastSent));
     memset(_notSentCount, 0x00, sizeof(_notSentCount));
     memset(_data, 0, sizeof(_data));
+    SetDeviceChannels(from._deviceChannels);
+    _dirty = false;
 }
 
 xxxSerialOutput::xxxSerialOutput(wxXmlNode* node) : SerialOutput(node) {
     memset(_lastSent, 0x00, sizeof(_lastSent));
     memset(_notSentCount, 0x00, sizeof(_notSentCount));
     memset(_data, 0, sizeof(_data));
+    SetDeviceChannels(node->GetAttribute("DeviceChannels", "8"));
+    _dirty = false;
 }
 
 xxxSerialOutput::xxxSerialOutput() : SerialOutput() {
@@ -49,6 +55,16 @@ xxxSerialOutput::xxxSerialOutput() : SerialOutput() {
     memset(_data, 0, sizeof(_data));
 }
 #pragma endregion
+
+wxXmlNode* xxxSerialOutput::Save() {
+    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+
+    node->AddAttribute("DeviceChannels", _deviceChannels);
+
+    SerialOutput::Save(node);
+
+    return node;
+}
 
 #pragma region Start and Stop
 bool xxxSerialOutput::Open() {
@@ -72,48 +88,36 @@ void xxxSerialOutput::ResetFrame() {
     _lastheartbeat = -1;
 }
 
+uint8_t xxxSerialOutput::PopulateBuffer(uint8_t* buffer, int32_t channel, uint8_t value) const {
+    uint8_t device = GetDeviceFromChannel(channel);
+    uint8_t channelOnDevice = GetChannelOnDevice(channel);
+    //uint8_t deviceChannels = GetDeviceChannels(device);
+    //uint32_t mask = 0x01 << channelOnDevice;
+
+    buffer[0] = 0x80;
+    buffer[1] = device + 1;
+    buffer[2] = 0x10;
+    buffer[3] = value;
+    buffer[4] = channelOnDevice;
+    buffer[5] = 0x81;
+    return 6;
+}
+
 void xxxSerialOutput::EndFrame(int suppressFrames) {
 
     if (!_enabled || _suspend || _serial == nullptr || !_ok) return;
 
     if (_changed || NeedToOutput(suppressFrames)) {
         if (_serial != nullptr) {
-			int devices = (_channels - 1) / 8 + 1;
-			for (int i = 0; i < devices; i++) {
-				if (memcmp(&_data[i * 8], &_lastSent[i*8], 8) != 0) {
-					// something changed
-					std::list<uint8_t> values;
-					for (int j = 0; j < 8; j++) {
-						if (std::find(values.begin(), values.end(), _data[i*8+j]) == values.end()) {
-							values.push_back(_data[i*8+j]);
-						}
-					}
-					for (const auto& it : values) {
-						uint8_t mask = 0;
-						uint8_t m = 0x01;
-						for (int j = 0; j < 8; j++) {
-							if (_data[i*8+j]==it) {
-                                if (_data[i * 8 + j] != _lastSent[i * 8 + j]) {
-                                    mask += m;
-                                }
-							}
-							m = m << 1;
-						}
-						
-                        if (mask != 0) {
-                            uint8_t d[6];
-                            d[0] = 0x80;
-                            d[1] = i + 1;
-                            d[2] = 0x11; // on
-                            d[3] = it;
-                            d[4] = mask;
-                            d[5] = 0x81;
-
-                            _serial->Write((char*)d, 6);
-                        }
-					}			
-				}
-			}
+            for (uint32_t i = 0; i < _channels; ++i)
+            {
+                if (_lastSent[i] != _data[i] || _notSentCount[i] > 200) {
+                    _notSentCount[i] = 0;
+                    uint8_t d[16];
+                    uint8_t used = PopulateBuffer(d, i, _data[i]);
+                    _serial->Write((char*)d, used);
+                }
+            }
         }
         memcpy(_lastSent, _data, GetMaxChannels());
         FrameOutput();
@@ -130,6 +134,41 @@ void xxxSerialOutput::EndFrame(int suppressFrames) {
 #pragma endregion 
 
 #pragma region Data Setting
+
+uint8_t xxxSerialOutput::GetDeviceFromChannel(uint32_t channel) const {
+    uint8_t device = 0;
+    auto deviceChannels = wxSplit(_deviceChannels, ',');
+    for (const auto& it : deviceChannels) {
+        int ch = wxAtoi(it);
+        if (channel < ch) {
+            break;
+        }
+        channel -= ch;
+        ++device;
+    }
+	return device;
+}
+
+uint8_t xxxSerialOutput::GetChannelOnDevice(uint32_t channel) const {
+    auto deviceChannels = wxSplit(_deviceChannels, ',');
+    for (const auto& it : deviceChannels) {
+        int ch = wxAtoi(it);
+        if (channel < ch) {
+            break;
+        }
+        channel -= ch;
+    }
+    return channel;
+}
+
+uint8_t xxxSerialOutput::GetDeviceChannels(uint8_t device) const {
+	auto deviceChannels = wxSplit(_deviceChannels, ',');
+    if (device < deviceChannels.size()) {
+		return wxAtoi(deviceChannels[device]);
+	}
+	return 0;
+}
+
 void xxxSerialOutput::SetOneChannel(int32_t channel, unsigned char data) {
 
     if (!_enabled || _serial == nullptr || !_ok) return;
@@ -137,21 +176,16 @@ void xxxSerialOutput::SetOneChannel(int32_t channel, unsigned char data) {
     // because xxx sends the channel number in the packet we can skip sending data that hasnt changed ... I think
     // Copied this from the way FPP seems to handle it - KW
     if (_lastSent[channel] != data || _notSentCount[channel] > 200) {
+        _data[channel] = data;
         _notSentCount[channel] = 0;
 		
-		uint8_t device = channel / 8;
-		uint8_t mask = 0x01 << (channel % 8);
-		
-        uint8_t d[6];
-        d[0] = 0x80;
-		d[1] = device + 1;
-		d[2] = 0x11; // on
-		d[3] = data;
-		d[4] = mask;
-		d[5] = 0x81;
+        uint8_t d[16];
+        uint8_t used = PopulateBuffer(d, channel, data);
+
+        //DumpBinary(d, used);
 
         if (_serial != nullptr) {
-            _serial->Write((char *)d, 6);
+            _serial->Write((char*)d, used);
             _lastSent[channel] = data;
         }
     }
@@ -178,3 +212,54 @@ void xxxSerialOutput::AllOff() {
 	_changed = true;
 }
 #pragma endregion 
+
+
+#pragma region UI
+#ifndef EXCLUDENETWORKUI
+#include "ControllerEthernet.h"
+#include "../models/ModelManager.h"
+
+void xxxSerialOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
+    SerialOutput::UpdateProperties(propertyGrid, c, modelManager, expandProperties);
+    ControllerSerial* ce = dynamic_cast<ControllerSerial*>(c);
+
+    auto p = propertyGrid->GetProperty("DeviceChannels");
+    if (p) {
+        if (ce->GetOutputs().size() > 1) {
+            p->SetValue(((xxxSerialOutput*)ce->GetOutputs().front())->GetDeviceChannels());
+            p->Hide(false);
+        } else {
+            p->Hide(true);
+        }
+    }
+}
+
+void xxxSerialOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty* before, Controller* c, bool allSameSize, std::list<wxPGProperty*>& expandProperties) {
+    SerialOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
+
+    propertyGrid->Insert(before, new wxStringProperty("Device Channels", "DeviceChannels", GetDeviceChannels()));
+}
+
+void xxxSerialOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
+    SerialOutput::RemoveProperties(propertyGrid);
+    propertyGrid->DeleteProperty("DeviceChannels");
+}
+
+bool xxxSerialOutput::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) {
+    if (SerialOutput::HandlePropertyEvent(event, outputModelManager, c)) {
+        return true;
+    }
+    wxString const name = event.GetPropertyName();
+    if (name == "DeviceChannels") {
+        SetDeviceChannels(event.GetValue().GetString().ToStdString());
+        wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
+        grid->GetProperty("Channels")->SetValueFromString(wxString::Format("%d", GetChannels()));
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "xxxSerialOutput::HandlePropertyEvent::DeviceChannels");
+        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "xxxSerialOutput::HandlePropertyEvent::DeviceChannels", nullptr);
+        return true;
+    }
+    return false;
+}
+
+#endif
+#pragma endregion

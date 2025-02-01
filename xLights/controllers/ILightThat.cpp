@@ -63,6 +63,25 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("ILightThat Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
+    std::unordered_map<std::string, int> model_test_cols = {};
+    std::string const json = GetURL("/settings");
+    if (!json.empty()) {
+        wxJSONValue jsonVal;
+        wxJSONReader reader;
+
+        reader.Parse(json, &jsonVal);
+        if (jsonVal["ports"].IsArray()) {
+            for (int i = 0; i < jsonVal["ports"].Size(); i++) {
+                for (int j = 0; j < jsonVal["ports"][i]["models"].Size(); j++) {
+                    wxJSONValue model = jsonVal["ports"][i]["models"][j];
+                    if (model.HasMember("test_colour")) {
+                        model_test_cols[model["name"].AsString()] = model["test_colour"].AsInt();
+                    }
+                }
+            }
+        }
+    }
+
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
     auto rules = ControllerCaps::GetControllerConfig(controller);
@@ -72,6 +91,16 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         wxJSONValue outputConfig = new wxJSONValue();
         int first_channel = cud.GetFirstOutput()->GetStartChannel();
         outputConfig["start_address"] = first_channel;
+        outputConfig["start_universe"] = cud.GetFirstOutput()->GetUniverse();
+        if (cud.GetFirstOutput()->GetType() == OUTPUT_E131 ||
+            cud.GetFirstOutput()->GetType() == OUTPUT_ARTNET) {
+            // We know number of channels will all be the same, as the xcontroller file specifies
+            // AllInputUniversesMustBeSameSize
+            outputConfig["channels_per_universe"] = cud.GetFirstOutput()->GetChannels();
+        } else {
+            // DDP or something else. Give a nice default value...
+            outputConfig["channels_per_universe"] = 510;
+        }
         //GetOutputConfig(outputConfig);
         for (int x = 0; x < cud.GetMaxPixelPort(); x++) {
             UDControllerPort* port = cud.GetControllerPixelPort(x + 1);
@@ -82,11 +111,21 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             for (auto model : port->GetModels()) {
                 outputConfig["ports"][x]["models"][i]["name"] = model->GetName();
                 int brightness = model->GetBrightness(-1);
-                if (brightness == -1)
-                {
-                    brightness = 100;
+                if (brightness == -1) {
+                    if (controller->IsFullxLightsControl()) {
+                        brightness = controller->GetDefaultBrightnessUnderFullControl();
+                    } else {
+                        brightness = 100;
+                    }
                 }
-                
+
+                if (model_test_cols.find(model->GetName()) == model_test_cols.end()) {
+                    outputConfig["ports"][x]["models"][i]["test_colour"] = _model_test_default_colours [_model_test_default_col_idx];
+                    _model_test_default_col_idx = (_model_test_default_col_idx + 1) % _model_test_default_colours.size();
+                } else {
+                    outputConfig["ports"][x]["models"][i]["test_colour"] = model_test_cols.find(model->GetName())->second;
+                }
+
                 outputConfig["ports"][x]["models"][i]["brightness"] = brightness;
                 outputConfig["ports"][x]["models"][i]["start"] = (model->GetStartChannel() - port->GetFirstModel()->GetStartChannel()) / 3;
                 outputConfig["ports"][x]["models"][i]["num_pixels"] = ((model->GetEndChannel() - model->GetStartChannel()) + 1) / 3;
@@ -95,11 +134,15 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 if (colorOrder != "unknown") {
                     outputConfig["ports"][x]["models"][i]["colour_order"] = colorOrder;
                 }
+                else
+                {
+                    outputConfig["ports"][x]["models"][i]["colour_order"] = std::string("RGB");
+                }
                 i++;
             }
         }
-        for (int i = cud.GetMaxPixelPort(); i < controller->GetControllerCaps()->GetMaxPixelPort() + 1; i++)
-        {
+
+        for (int i = cud.GetMaxPixelPort(); i < controller->GetControllerCaps()->GetMaxPixelPort(); i++) {
             outputConfig["ports"][i]["num_pixels"] = 0;
         }
 

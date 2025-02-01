@@ -62,14 +62,14 @@ protected:
 		wxString showDirectory;
 
 		//(*Identifiers(BatchRenderDialog)
-		static const long ID_CHOICE_FILTER;
-		static const long ID_CHOICE_FOLDER;
-		static const long ID_STATICTEXT1;
-		static const long ID_TEXTCTRL1;
-		static const long ID_CHECKBOX1;
-		static const long ID_PANEL_HOLDER;
-		static const long ID_BUTTON1;
-		static const long ID_BUTTON2;
+		static const wxWindowID ID_CHOICE_FILTER;
+		static const wxWindowID ID_CHOICE_FOLDER;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_TEXTCTRL1;
+		static const wxWindowID ID_CHECKBOX1;
+		static const wxWindowID ID_PANEL_HOLDER;
+		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_BUTTON2;
 		//*)
 		
         static const long ID_MNU_SELECTALL;
@@ -87,7 +87,8 @@ protected:
 		void OnInit(wxInitDialogEvent& event);
 		//*)
 
-		void DisplayDateModified(std::string const& fileName, wxTreeListItem& index) const;
+        void DisplayDateModified(std::string const& fileName, wxTreeListItem& index) const;
+        void DisplayDateRendered(std::string const& fileName, wxTreeListItem& item) const;
 
         void ValidateWindow();
         uint32_t UpdateCount();

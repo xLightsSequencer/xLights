@@ -18,9 +18,9 @@
 #include <wx/menu.h>
 
 //(*IdInit(CheckboxSelectDialog)
-const long CheckboxSelectDialog::ID_CHECKLISTBOXITEMS = wxNewId();
-const long CheckboxSelectDialog::ID_BUTTONOK = wxNewId();
-const long CheckboxSelectDialog::ID_BUTTONCANCEL = wxNewId();
+const wxWindowID CheckboxSelectDialog::ID_CHECKLISTBOXITEMS = wxNewId();
+const wxWindowID CheckboxSelectDialog::ID_BUTTONOK = wxNewId();
+const wxWindowID CheckboxSelectDialog::ID_BUTTONCANCEL = wxNewId();
 //*)
 
 const long CheckboxSelectDialog::ID_MCU_SELECTALL = wxNewId();
@@ -45,7 +45,7 @@ CheckboxSelectDialog::CheckboxSelectDialog(wxWindow* parent, const wxString &tit
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	CheckListBox_Items = new wxCheckListBox(this, ID_CHECKLISTBOXITEMS, wxDefaultPosition, wxSize(-1,300), 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOXITEMS"));
+	CheckListBox_Items = new wxCheckListBox(this, ID_CHECKLISTBOXITEMS, wxDefaultPosition, wxSize(-1,300), 0, 0, wxLB_EXTENDED, wxDefaultValidator, _T("ID_CHECKLISTBOXITEMS"));
 	FlexGridSizer1->Add(CheckListBox_Items, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTONOK, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONOK"));
@@ -55,12 +55,11 @@ CheckboxSelectDialog::CheckboxSelectDialog(wxWindow* parent, const wxString &tit
 	FlexGridSizer2->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_CHECKLISTBOXITEMS,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&CheckboxSelectDialog::OnCheckListBox_ItemsToggled);
-	Connect(ID_BUTTONOK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CheckboxSelectDialog::OnButton_OkClick);
-	Connect(ID_BUTTONCANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CheckboxSelectDialog::OnButton_CancelClick);
+	Connect(ID_CHECKLISTBOXITEMS, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, (wxObjectEventFunction)&CheckboxSelectDialog::OnCheckListBox_ItemsToggled);
+	Connect(ID_BUTTONOK, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&CheckboxSelectDialog::OnButton_OkClick);
+	Connect(ID_BUTTONCANCEL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&CheckboxSelectDialog::OnButton_CancelClick);
 	//*)
 
 	Connect(ID_CHECKLISTBOXITEMS, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& CheckboxSelectDialog::OnListRClick);

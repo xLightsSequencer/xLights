@@ -140,15 +140,6 @@ void ImageModel::DisableUnusedProperties(wxPropertyGridInterface *grid)
         p->Enable(false);
     }
 
-    p = grid->GetPropertyByName("ModelStringType");
-    if (p != nullptr) {
-        wxArrayString labels = ((wxEnumProperty*)p)->GetChoices().GetLabels();
-        std::for_each(labels.begin(), labels.end(), [&p](wxString label) {
-            if (!label.StartsWith("Single Color")) {
-                ((wxEnumProperty*)p)->DeleteChoice(((wxEnumProperty*)p)->GetChoices().Index(label));
-            }
-        });
-    }
 }
 
 int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -243,7 +234,10 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
         int w, h;
         preview->GetSize(&w, &h);
 
+        bool drawColor = (StringType.rfind("Single Color", 0) != 0 && StringType != "Node Single Color");
+
         xlTexture *texture = _images[preview->GetName().ToStdString()];
+        xlTexture* textureColorOverlay = _images[preview->GetName().ToStdString() + "_color_overlay"];
         if (texture == nullptr && FileExists(_imageFile)) {
             wxImage img(_imageFile);
             if (img.IsOk()) {
@@ -259,11 +253,40 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                         }
                     }
                 }
+                int maxBrightness = 0;
+                if (drawColor) {
+                    // Color Image mode selected. Convert image to grayscale image so custom color can be applied later
+                    for (int x = 0; x < img.GetWidth(); x++) {
+                        for (int y = 0; y < img.GetHeight(); y++) {
+                            int r = img.GetRed(x, y);
+                            int g = img.GetGreen(x, y);
+                            int b = img.GetBlue(x, y);
+                            // Colorimetric (perceptual luminance-preserving) conversion to grayscale
+                            int c = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 3; // Weights from https://en.wikipedia.org/wiki/Grayscale
+                            maxBrightness = MAX(c, maxBrightness);
+                            img.SetRGB(x, y, c, c, c);
+                        }
+                    }
+                }
                 width = img.GetWidth();
                 height = img.GetHeight();
-                texture = ctx->createTexture(img);
-                texture->SetName(GetName());
-                texture->Finalize();
+                texture = ctx->createTexture(img, GetName(), true);
+
+                // Modify image for color overlay
+                if (drawColor) {
+                    if (!mAlpha) {
+                        img.InitAlpha();
+                    }
+                    for (int x = 0; x < img.GetWidth(); x++) {
+                        for (int y = 0; y < img.GetHeight(); y++) {
+                            int l = img.GetGreen(x, y); // Take green as luminance. Red, Green, Blue should now be equal after grayscale conversion
+                            int a = img.GetAlpha(x, y);
+                            l = (l * 255) / maxBrightness;
+                            img.SetAlpha(x, y, MIN(a, l));
+                        }
+                    }
+                }
+                textureColorOverlay = ctx->createTexture(img, GetName() + "_color_overlay", true);
             }
         }
         if (texture) {
@@ -297,8 +320,13 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
             va->AddVertex(x4, y4, 0, 1.0, 1.0);
             va->AddVertex(x3, y3, 0, 1.0, 0.0);
 
-            preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext *ctx) {
+            preview->getCurrentSolidProgram()->addStep([=, this](xlGraphicsContext *ctx) {
                 ctx->drawTexture(va, texture, brightness, 255, 0, va->getCount());
+                if (drawColor) {
+                    xlColor c;
+                    Nodes[0]->GetColor(c);
+                    ctx->drawTexture(va, textureColorOverlay, c, 0, va->getCount());
+                }
                 delete va;
             });
         } else {
@@ -350,8 +378,11 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
 
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
-    
+
+    bool drawColor = (StringType.rfind("Single Color",0) != 0 && StringType != "Node Single Color");
+
     xlTexture *texture = _images[preview->GetName().ToStdString()];
+    xlTexture* textureColorOverlay = _images[preview->GetName().ToStdString() + "_color_overlay"];
     if (texture == nullptr && FileExists(_imageFile)) {
         wxImage img(_imageFile);
         if (img.IsOk()) {
@@ -367,14 +398,44 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
                     }
                 }
             }
+            int maxBrightness = 0;
+            if (drawColor) {
+                // Color Image mode selected. Convert image to grayscale image so custom color can be applied later
+                for (int x = 0; x < img.GetWidth(); x++) {
+                    for (int y = 0; y < img.GetHeight(); y++) {
+                        int r = img.GetRed(x, y);
+                        int g = img.GetGreen(x, y);
+                        int b = img.GetBlue(x, y);
+                        // Colorimetric (perceptual luminance-preserving) conversion to grayscale
+                        int c = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 3; // Weights from https://en.wikipedia.org/wiki/Grayscale
+                        maxBrightness = MAX(c, maxBrightness);
+                        img.SetRGB(x, y, c, c, c);
+                    }
+                }
+            }
             
             width = img.GetWidth();
             height = img.GetHeight();
             hasAlpha = img.HasAlpha();
-            texture = ctx->createTexture(img);
-            texture->SetName(GetName());
-            texture->Finalize();
+            texture = ctx->createTexture(img, GetName(), true);
             _images[preview->GetName().ToStdString()] = texture;
+
+            // Modify image for color overlay
+            if (drawColor) {
+                if (!mAlpha) {
+                    img.InitAlpha();
+                }
+                for (int x = 0; x < img.GetWidth(); x++) {
+                    for (int y = 0; y < img.GetHeight(); y++) {
+                        int l = img.GetGreen(x, y); // Take green as luminance. Red and Blue should now be equal to Green after grayscale conversion
+                        int a = img.GetAlpha(x, y);
+                        l = (l * 255) / maxBrightness;
+                        img.SetAlpha(x, y, MIN(a, l));
+                    }
+                }
+            }
+            textureColorOverlay = ctx->createTexture(img, GetName() + "_color_overlay", true);
+            _images[preview->GetName().ToStdString() + "_color_overlay"] = textureColorOverlay;
         }
     }
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
@@ -407,6 +468,11 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
             }
             GetModelScreenLocation().ApplyModelViewMatrices(ctx);
             ctx->drawTexture(va, texture, brightness, alpha, 0, va->getCount());
+            if (drawColor) {
+                xlColor c;
+                Nodes[0]->GetColor(c);
+                ctx->drawTexture(va, textureColorOverlay, c, 0, va->getCount());
+            }
             ctx->PopMatrix();
             delete va;
         });

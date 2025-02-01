@@ -21,6 +21,7 @@
 #include "MainSequencer.h"
 #include "SequenceElements.h"
 #include "../xLightsMain.h"
+#include "../JukeboxPanel.h"
 #include "TimeLine.h"
 #include "../UtilFunctions.h"
 #include "../xLightsVersion.h"
@@ -32,14 +33,14 @@
 #include <log4cpp/Category.hh>
 
 //(*IdInit(MainSequencer)
-const long MainSequencer::ID_CHOICE_VIEW_CHOICE = wxNewId();
-const long MainSequencer::ID_PANEL1 = wxNewId();
-const long MainSequencer::ID_PANEL3 = wxNewId();
-const long MainSequencer::ID_PANEL6 = wxNewId();
-const long MainSequencer::ID_PANEL2 = wxNewId();
-const long MainSequencer::ID_SCROLLBAR_EFFECTS_VERTICAL = wxNewId();
-const long MainSequencer::ID_CHECKBOX1 = wxNewId();
-const long MainSequencer::ID_SCROLLBAR_EFFECT_GRID_HORZ = wxNewId();
+const wxWindowID MainSequencer::ID_CHOICE_VIEW_CHOICE = wxNewId();
+const wxWindowID MainSequencer::ID_PANEL1 = wxNewId();
+const wxWindowID MainSequencer::ID_PANEL3 = wxNewId();
+const wxWindowID MainSequencer::ID_PANEL6 = wxNewId();
+const wxWindowID MainSequencer::ID_PANEL2 = wxNewId();
+const wxWindowID MainSequencer::ID_SCROLLBAR_EFFECTS_VERTICAL = wxNewId();
+const wxWindowID MainSequencer::ID_CHECKBOX1 = wxNewId();
+const wxWindowID MainSequencer::ID_SCROLLBAR_EFFECT_GRID_HORZ = wxNewId();
 //*)
 
 wxDEFINE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
@@ -104,34 +105,18 @@ public:
     }
     virtual ~TimeDisplayControl(){};
 
-    void SetGLSize(int w, int h) {
-        SetMinSize(wxSize(w, h));
-
-        wxSize size = GetSize();
-        if (w == -1) w = size.GetWidth();
-        if (h == -1) h = size.GetHeight();
-
-        SetSize(w, h);
-        if (h > 50) {
-            newFontSize = 14;
-        } else if (h > 36) {
-            newFontSize = 10;
-        } else if (h > 25) {
-            newFontSize = 8;
-        } else {
-            newFontSize = 6;
-        }
-        Refresh();
-    }
-
     void SetSelected(const wxString &sel) {
         _selected = sel;
         Refresh();
     }
-    void SetLabels(const wxString &time, const wxString &fps) {
+    bool SetLabels(const wxString &time, const wxString &fps = wxEmptyString, bool r = true) {
+        bool changed = _fps != fps || _time != time;
         _fps = fps;
         _time = time;
-        render();
+        if (r) {
+            render();
+        }
+        return changed;
     }
 
     protected:
@@ -166,6 +151,24 @@ public:
         if (ctx == nullptr) {
             return;
         }
+        
+        int h = mWindowHeight;
+        if (!drawingUsingLogicalSize()) {
+            h /= GetContentScaleFactor();
+        }
+        if (h > 50) {
+            newFontSize = 14;
+        } else if (h > 27) {
+            newFontSize = 11;
+        } else if (h > 24) {
+            newFontSize = 10;
+        } else if (h > 20) {
+            newFontSize = 9;
+        } else if (h > 14) {
+            newFontSize = 11; // drop the second line
+        } else {
+            newFontSize = 10;
+        }
         ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
         
         float fs = translateToBacking(fontSize);
@@ -184,19 +187,22 @@ public:
 #define LINEGAP 1.2
         xlVertexTextureAccumulator *vta = ctx->createVertexTextureAccumulator();
         float x = mapLogicalToAbsolute(5);
-        float perLine = mapLogicalToAbsolute(fontSize) * LINEGAP;
+        float perLine = fi.getSize() * LINEGAP;
         float y = perLine;
+        if (mWindowHeight > (perLine * 3)) {
+            y += perLine / 2;
+        }
         float factor = drawingUsingLogicalSize() ? translateToBacking(1.0) : 1.0;
         fi.populate(*vta, x, y, _time, factor);
         y += perLine;
-        // only display FPS if we have room
-        if ((y + perLine <= mWindowHeight)
-            || (_selected == "" && y <= mWindowHeight)) {
-            fi.populate(*vta, x, y, _fps, factor);
-            y += perLine;
-        }
         if (y <= mWindowHeight) {
             fi.populate(*vta, x, y, _selected, factor);
+            y += perLine;
+        }
+        // only display FPS if we have room
+        if (y <= mWindowHeight && !_fps.empty()) {
+            fi.populate(*vta, x, y, _fps, factor);
+            y += perLine;
         }
         ctx->enableBlending();
         ctx->drawTexture(vta, fontTexture, fgColor);
@@ -241,9 +247,9 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer2->AddGrowableCol(0);
     StaticText1 = new wxStaticText(this, wxID_ANY, _("View:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    FlexGridSizer2->Add(StaticText1, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(StaticText1, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
     ViewChoice = new wxChoice(this, ID_CHOICE_VIEW_CHOICE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_CHOICE"));
-    FlexGridSizer2->Add(ViewChoice, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
+    FlexGridSizer2->Add(ViewChoice, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 0);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 0, wxEXPAND, 0);
     FlexGridSizer4 = new wxFlexGridSizer(2, 0, 0, 0);
@@ -276,25 +282,25 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     FlexGridSizer1->Add(ScrollBarEffectsHorizontal, 1, wxALL|wxEXPAND, 0);
     SetSizer(FlexGridSizer1);
 
-    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_TOP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_BOTTOM,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_LINEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_LINEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_PAGEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_PAGEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MainSequencer::OnCheckBox_SuspendRenderClick);
-    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_BOTTOM,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_LINEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsHorizontalScrollLineUp);
-    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_LINEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsHorizontalScrollLineDown);
-    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_PAGEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_PAGEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_TOP, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_BOTTOM, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_LINEUP, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_LINEDOWN, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_PAGEUP, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_PAGEDOWN, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_THUMBTRACK, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&MainSequencer::OnCheckBox_SuspendRenderClick);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ, wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ, wxEVT_SCROLL_TOP, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ, wxEVT_SCROLL_BOTTOM, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ, wxEVT_SCROLL_LINEUP, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsHorizontalScrollLineUp);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ, wxEVT_SCROLL_LINEDOWN, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsHorizontalScrollLineDown);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ, wxEVT_SCROLL_PAGEUP, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ, wxEVT_SCROLL_PAGEDOWN, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ, wxEVT_SCROLL_THUMBTRACK, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ, wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
     //*)
 
 #ifdef __WXOSX__
@@ -306,17 +312,14 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     logger_base.debug("                Create time display control");
     timeDisplay = new TimeDisplayControl(this, wxID_ANY);
     FlexGridSizer2->Add(timeDisplay, 1, wxALL |wxEXPAND, 0);
-    //FlexGridSizer2->AddGrowableRow(3);
+    FlexGridSizer2->AddGrowableRow(3);
 
     FlexGridSizer2->Fit(this);
     FlexGridSizer2->SetSizeHints(this);
 
-    if (smallWaveform)
-    {
+    if (smallWaveform) {
         SetSmallWaveform();
-    }
-    else
-    {
+    } else {
         SetLargeWaveform();
     }
 
@@ -366,7 +369,7 @@ void MainSequencer::UpdateEffectGridVerticalScrollBar()
     PanelRowHeadings->Refresh();
 }
 
-void MainSequencer::UpdateTimeDisplay(int time_ms, float fps)
+bool MainSequencer::UpdateTimeDisplay(int time_ms, const std::vector<float> &fps, bool render)
 {
     int time = time_ms >= 0 ? time_ms : 0;
     int msec = time % 1000;
@@ -375,12 +378,16 @@ void MainSequencer::UpdateTimeDisplay(int time_ms, float fps)
     seconds = seconds % 60;
     wxString play_time = wxString::Format("Time: %d:%02d.%02d", minutes, seconds, msec);
     wxString fpsStr;
-    if (fps >= 0) {
-        fpsStr = wxString::Format("FPS: %5.1f", fps);
+    if (!fps.empty()) {
+        fpsStr = wxString::Format("FPS: ");
+        for (auto &f : fps) {
+            fpsStr += wxString::Format(" %5.1f", f);
+        }
     }
     if (timeDisplay != nullptr) {
-        timeDisplay->SetLabels(play_time, fpsStr);
+        return timeDisplay->SetLabels(play_time, fpsStr, render);
     }
+    return false;
 }
 
 void MainSequencer::UpdateSelectedDisplay(int selected)
@@ -526,8 +533,29 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "TIMING_SPLIT") {
                 SplitTimingMark();
-            }
-            else if (type == "ZOOM_IN") {
+            } else if (type == "EFFECTS_TO_TIMING") {
+                PanelEffectGrid->CreateTimingFromSelectedEffects();
+            } else if (type == "SELECT_TIMING_1") {
+                PanelRowHeadings->SelectTiming(0);
+            } else if (type == "SELECT_TIMING_2") {
+                PanelRowHeadings->SelectTiming(1);
+            } else if (type == "SELECT_TIMING_3") {
+                PanelRowHeadings->SelectTiming(2);
+            } else if (type == "SELECT_TIMING_4") {
+                PanelRowHeadings->SelectTiming(3);
+            } else if (type == "SELECT_TIMING_5") {
+                PanelRowHeadings->SelectTiming(4);
+            } else if (type == "SELECT_TIMING_6") {
+                PanelRowHeadings->SelectTiming(5);
+            } else if (type == "SELECT_TIMING_7") {
+                PanelRowHeadings->SelectTiming(6);
+            } else if (type == "SELECT_TIMING_8") {
+                PanelRowHeadings->SelectTiming(7);
+            } else if (type == "SELECT_TIMING_9") {
+                PanelRowHeadings->SelectTiming(8);
+            } else if (type == "SELECT_NO_TIMING") {
+                PanelRowHeadings->SelectTiming(-1);
+            } else if (type == "ZOOM_IN") {
                 PanelTimeLine->ZoomIn();
             }
             else if (type == "ZOOM_OUT") {
@@ -634,6 +662,31 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "PRIOR_TAG") {
                 PanelTimeLine->GoToPriorTag();
+            } else if (type == "JUKEBOX_BTN_1") {
+                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                if (jukeboxPanel != nullptr) {
+                    jukeboxPanel->PlayItem(1);
+                }
+            } else if (type == "JUKEBOX_BTN_2") {
+                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                if (jukeboxPanel != nullptr) {
+                    jukeboxPanel->PlayItem(2);
+                }
+            } else if (type == "JUKEBOX_BTN_3") {
+                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                if (jukeboxPanel != nullptr) {
+                    jukeboxPanel->PlayItem(3);
+                }
+            } else if (type == "JUKEBOX_BTN_4") {
+                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                if (jukeboxPanel != nullptr) {
+                    jukeboxPanel->PlayItem(4);
+                }
+            } else if (type == "JUKEBOX_BTN_5") {
+                JukeboxPanel* jukeboxPanel = mSequenceElements->GetXLightsFrame()->GetJukeboxPanel();
+                if (jukeboxPanel != nullptr) {
+                    jukeboxPanel->PlayItem(5);
+                }
             }
             else if (type == "NEXT_TAG") {
                 PanelTimeLine->GoToNextTag();
@@ -652,6 +705,24 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "INSERT_LAYER_ABOVE") {
                 PanelEffectGrid->InsertEffectLayerAbove();
+            } else if (type == "INCREASE_SPEED") {
+                float t = mSequenceElements->GetXLightsFrame()->GetPlaySpeed();
+                mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(t + 0.25);
+                mSequenceElements->GetXLightsFrame()->SetStatusText(wxString::Format("Speed now set %.2f ", t + 0.25));
+            } else if (type == "DECREASE_SPEED") {
+                float t = mSequenceElements->GetXLightsFrame()->GetPlaySpeed();
+                if (t > 0.50) {
+                    mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(t - 0.25);
+                    mSequenceElements->GetXLightsFrame()->SetStatusText(wxString::Format("Speed now set %.2f ", t - 0.25));
+                }
+            } else if (type == "PLAY_PRIOR_TAG") {
+                logger_base.debug("play prior tag");
+                wxCommandEvent playEvent(EVT_SEQUENCE_PRIOR_TAG);
+                wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
+            } else if (type == "PLAY_NEXT_TAG") {
+                logger_base.debug("play next tag");
+                wxCommandEvent playEvent(EVT_SEQUENCE_NEXT_TAG);
+                wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
             }
             else if (type == "AUDIO_FULL_SPEED") {
                 mSequenceElements->GetXLightsFrame()->SetPlaySpeedTo(1.0);
@@ -1181,7 +1252,6 @@ void MainSequencer::DoRedo(wxCommandEvent& event) {
 void MainSequencer::SetLargeWaveform()
 {
     PanelWaveForm->SetWaveFormSize(Waveform::GetLargeSize());
-    timeDisplay->SetGLSize(-1, Waveform::GetLargeSize() - 22);
     Layout();
     PanelWaveForm->Refresh();
     timeDisplay->Refresh();
@@ -1190,12 +1260,11 @@ void MainSequencer::SetLargeWaveform()
 void MainSequencer::SetSmallWaveform()
 {
     PanelWaveForm->SetWaveFormSize(Waveform::GetSmallSize());
-    timeDisplay->SetGLSize(-1, Waveform::GetSmallSize() - 22);
     Layout();
     PanelWaveForm->Refresh();
     timeDisplay->Refresh();
 }
-
+ 
 void MainSequencer::GetPresetData(wxString& copy_data)
 {
     if (PanelEffectGrid->IsACActive()) {
@@ -1514,8 +1583,7 @@ void MainSequencer::ApplyButtonPressToSelected(const std::string& effectName, co
     return PanelEffectGrid->ApplyButtonPressToSelected(effectName, id);
 }
 
-void MainSequencer::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int>>& dmxmappings)
-{
+void MainSequencer::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings) {
     return PanelEffectGrid->RemapSelectedDMXEffectValues(dmxmappings);
 }
 
@@ -1836,7 +1904,7 @@ void MainSequencer::TimelineChanged( wxCommandEvent& event)
     TimelineChangeArguments *tla = (TimelineChangeArguments*)(event.GetClientData());
     PanelWaveForm->SetZoomLevel(tla->ZoomLevel);
     PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
-    UpdateTimeDisplay(tla->CurrentTimeMS, -1);
+    UpdateTimeDisplay(tla->CurrentTimeMS, {});
     PanelTimeLine->Refresh();
     PanelTimeLine->Update();
     PanelWaveForm->render();
@@ -1850,7 +1918,7 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
 {
     PanelWaveForm->SetZoomLevel(PanelTimeLine->GetZoomLevel());
     PanelWaveForm->SetStartPixelOffset(PanelTimeLine->GetStartPixelOffset());
-    UpdateTimeDisplay(PanelTimeLine->GetCurrentPlayMarkerMS(), -1);
+    UpdateTimeDisplay(PanelTimeLine->GetCurrentPlayMarkerMS(), {});
 
     //printf("%d\n", PanelTimeLine->GetStartPixelOffset());
     PanelTimeLine->Refresh();

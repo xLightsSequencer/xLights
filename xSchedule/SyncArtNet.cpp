@@ -9,19 +9,18 @@
  **************************************************************/
 
 #include "SyncArtNet.h"
+#include "ScheduleManager.h"
 #include "ScheduleOptions.h"
-#include "events/ListenerManager.h"
 #include "../xLights/outputs/IPOutput.h"
 #include "PlayList/PlayList.h"
 #include "PlayList/PlayListStep.h"
-#include "ScheduleManager.h"
+#include "events/ListenerManager.h"
 
-#include <log4cpp/Category.hh>
 #include "../xLights/UtilFunctions.h"
 #include "../xLights/outputs/ArtNetOutput.h"
+#include <log4cpp/Category.hh>
 
-class ArtNetTimecodeThread : public wxThread
-{
+class ArtNetTimecodeThread : public wxThread {
     std::atomic<bool> _stop;
     SyncArtNet* _syncArtNet = nullptr;
     std::atomic<bool> _running;
@@ -30,8 +29,7 @@ class ArtNetTimecodeThread : public wxThread
     bool _toSendStop = false; // prevents us sending multiple stops
 
 public:
-    ArtNetTimecodeThread(SyncArtNet* syncArtNet, ScheduleManager* scheduleManager)
-    {
+    ArtNetTimecodeThread(SyncArtNet* syncArtNet, ScheduleManager* scheduleManager) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         _suspend = false;
@@ -40,64 +38,51 @@ public:
         _syncArtNet = syncArtNet;
         _scheduleManager = scheduleManager;
 
-        if (Run() != wxTHREAD_NO_ERROR)
-        {
+        if (Run() != wxTHREAD_NO_ERROR) {
             logger_base.error("Failed to start ArtNet Timecode thread");
-        }
-        else
-        {
+        } else {
             logger_base.info("ArtNet Timecode thread created.");
         }
     }
-    virtual ~ArtNetTimecodeThread()
-    {
+    virtual ~ArtNetTimecodeThread() {
         Stop();
     }
 
-    void Stop()
-    {
+    void Stop() {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("ArtNet Timecode thread stopping.");
         _stop = true;
     }
 
-    void UpdateSyncArtNet(SyncArtNet* syncArtNet)
-    {
+    void UpdateSyncArtNet(SyncArtNet* syncArtNet) {
         _suspend = true;
         wxMilliSleep(100); // ensure it is suspended ... this is lazy ... i really should use sync objects
         _syncArtNet = syncArtNet;
         _suspend = false;
     }
 
-    void* Entry()
-    {
+    void* Entry() {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         wxLongLong last = 0;
-        double interval = _syncArtNet->GetInterval() * 1000.0; 
+        double interval = _syncArtNet->GetInterval() * 1000.0;
         _running = true;
-        while (!_stop)
-        {
-            if (!_suspend)
-            {
+        while (!_stop) {
+            if (!_suspend) {
                 long long sleepfor = 0;
 
-                if (wxGetUTCTimeUSec() - last > interval)
-                {
+                if (wxGetUTCTimeUSec() - last > interval) {
                     // get our absolute position
                     PlayList* pl = _scheduleManager->GetRunningPlayList();
-                    if (pl != nullptr)
-                    {
+                    if (pl != nullptr) {
                         // sent a sync
                         auto ms = pl->GetPosition();
                         auto stepno = pl->GetRunningStepIndex();
                         auto stepms = pl->GetRunningStep() == nullptr ? 0 : pl->GetRunningStep()->GetPosition();
-                        _syncArtNet->SendSync(0, 0, stepms, ms, "", "", "", "", stepno);
+                        auto basesecs = pl->GetRunningStep() == nullptr ? -1 : pl->GetRunningStep()->GetBaseTimeCodeTime();
+                        _syncArtNet->SendSync(0, 0, stepms, ms, "", "", "", "", stepno, basesecs);
                         _toSendStop = true;
-                    }
-                    else
-                    {
-                        if (_toSendStop)
-                        {
+                    } else {
+                        if (_toSendStop) {
                             _syncArtNet->SendStop();
                             _toSendStop = false;
                         }
@@ -107,8 +92,7 @@ public:
                     last = wxGetUTCTimeUSec().GetValue();
                 }
 
-                if (sleepfor > 0)
-                {
+                if (sleepfor > 0) {
                     wxMicroSleep(sleepfor);
                 }
             }
@@ -119,9 +103,9 @@ public:
     }
 };
 
-SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) : SyncBase(sm, rm, options)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncBase(sm, rm, options, schm) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _supportsStepMMSSFormat = true;
     _timeCodeFormat = options.GetARTNetTimeCodeFormat();
@@ -129,52 +113,40 @@ SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& option
     _remoteAddr.Hostname("255.255.255.255");
     _remoteAddr.Service(ARTNET_PORT);
 
-    if (sm == SYNCMODE::ARTNETMASTER)
-    {
+    if (sm == SYNCMODE::ARTNETMASTER) {
         wxIPV4address localaddr;
-        if (localIP == "")
-        {
+        if (localIP == "") {
             localaddr.AnyAddress();
-        }
-        else
-        {
+        } else {
             localaddr.Hostname(localIP);
         }
 
         _artnetSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
-        if (_artnetSocket == nullptr)
-        {
-            logger_base.error("Error opening datagram for ARTNet Sync as master. %s", (const char *)localaddr.IPAddress().c_str());
-        }
-        else if (!_artnetSocket->IsOk())
-        {
-            logger_base.error("Error opening datagram for ARTNet Sync as master. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
+        if (_artnetSocket == nullptr) {
+            logger_base.error("Error opening datagram for ARTNet Sync as master. %s", (const char*)localaddr.IPAddress().c_str());
+        } else if (!_artnetSocket->IsOk()) {
+            logger_base.error("Error opening datagram for ARTNet Sync as master. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
             delete _artnetSocket;
             _artnetSocket = nullptr;
-        }
-        else if (_artnetSocket->Error())
-        {
+        } else if (_artnetSocket->Error()) {
             logger_base.error("Error opening datagram for ARTNet Sync as master. %d : %s",
-                _artnetSocket->LastError(),
-                (const char*)DecodeIPError(_artnetSocket->LastError()).c_str());
+                              _artnetSocket->LastError(),
+                              (const char*)DecodeIPError(_artnetSocket->LastError()).c_str());
             delete _artnetSocket;
             _artnetSocket = nullptr;
-        }
-        else
-        {
+        } else {
             logger_base.info("ARTNet Sync as master datagram opened successfully.");
             _threadTimecode = new ArtNetTimecodeThread(this, listenerManager->GetScheduleManager());
         }
     }
 
-    if (rm == REMOTEMODE::ARTNETSLAVE)
-    {
+    if (rm == REMOTEMODE::ARTNETSLAVE) {
         listenerManager->SetRemoteArtNet();
     }
 }
 
-SyncArtNet::SyncArtNet(SyncArtNet&& from) noexcept : SyncBase(from)
-{
+SyncArtNet::SyncArtNet(SyncArtNet&& from) noexcept :
+    SyncBase(from) {
     _threadTimecode = from._threadTimecode;
     from._threadTimecode = nullptr; // this is a transfer of ownership
     if (_threadTimecode != nullptr) {
@@ -186,12 +158,10 @@ SyncArtNet::SyncArtNet(SyncArtNet&& from) noexcept : SyncBase(from)
     _remoteAddr = from._remoteAddr;
 }
 
-SyncArtNet::~SyncArtNet()
-{
+SyncArtNet::~SyncArtNet() {
     // close the sending thread
-    if (_threadTimecode != nullptr)
-    {
-        //logger_base.debug("MIDI Timecode stopping.");
+    if (_threadTimecode != nullptr) {
+        // logger_base.debug("MIDI Timecode stopping.");
         _threadTimecode->Stop();
         _threadTimecode->Delete();
         _threadTimecode = nullptr;
@@ -204,10 +174,8 @@ SyncArtNet::~SyncArtNet()
     }
 }
 
-double SyncArtNet::GetInterval()
-{
-    switch (_timeCodeFormat)
-    {
+double SyncArtNet::GetInterval() {
+    switch (_timeCodeFormat) {
     default:
     case TIMECODEFORMAT::F24: // 24 fps
         return 1000.0 / 24.0;
@@ -222,9 +190,9 @@ double SyncArtNet::GetInterval()
     return 1000.0 / 25.0;
 }
 
-void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const
-{
-    if (_artnetSocket == nullptr) return;
+void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno, int overridetimeSecs) const {
+    if (_artnetSocket == nullptr)
+        return;
 
     // Artnet sends sync for every frame
 
@@ -245,13 +213,16 @@ void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t step
         ms = stepMS;
     }
 
-    if (ms == 0xFFFFFFFF)
-    {
+    if (ms == 0xFFFFFFFF) {
         ms = 0;
     }
 
+    if (overridetimeSecs >= 0) {
+        ms += overridetimeSecs * 1000;
+    }
+
     // hours
-    buffer[17] = GetHours(ms, stepno);
+    buffer[17] = GetHours(ms, stepno, overridetimeSecs);
     // minutes
     buffer[16] = GetMinutes(ms);
     // secs
@@ -261,9 +232,8 @@ void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t step
 
     buffer[18] = static_cast<int>(_timeCodeFormat);
 
-    switch (static_cast<TIMECODEFORMAT>(buffer[16]))
-    {
-    case TIMECODEFORMAT::F24: //24 fps
+    switch (static_cast<TIMECODEFORMAT>(buffer[16])) {
+    case TIMECODEFORMAT::F24: // 24 fps
         buffer[14] = ms * 24 / 1000;
         break;
     case TIMECODEFORMAT::F25: // 25 fps
@@ -279,10 +249,12 @@ void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t step
         break;
     }
 
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("ArtnetSync: %02d:%02d:%02d.%02d", buffer[17], buffer[16], buffer[15], buffer[14]);
+
     _artnetSocket->SendTo(_remoteAddr, &buffer[0], buffer.size());
 }
 
-void SyncArtNet::SendStop() const
-{
-    SendSync(50, 0, 0, 0xFFFFFFFF, "", "", "", "", 0);
+void SyncArtNet::SendStop() const {
+    SendSync(50, 0, 0, 0xFFFFFFFF, "", "", "", "", 0, 0);
 }

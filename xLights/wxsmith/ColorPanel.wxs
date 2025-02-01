@@ -58,6 +58,7 @@
 																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_reverse_xpm&quot;, wxART_BUTTON)' />
 																			<size>26,16</size>
 																			<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+																			<handler function="OnBitmapButton_ReverseColoursClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>2</border>
@@ -67,7 +68,7 @@
 																		<object class="wxBitmapButton" name="ID_BITMAPBUTTON_LeftShiftColours" subclass="xlSizedBitmapButton" variable="BitmapButton_LeftShiftColours" member="yes">
 																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_left_shift_xpm&quot;, wxART_BUTTON)' />
 																			<size>26,16</size>
-																			<handler function="OnBitmapButton_LeftShiftColoursClick" entry="EVT_BUTTON" />
+																			<handler function="OnBitmapButton_ShiftColoursLeftClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>2</border>
@@ -77,7 +78,7 @@
 																		<object class="wxBitmapButton" name="ID_BITMAPBUTTON_RightShiftColours" subclass="xlSizedBitmapButton" variable="BitmapButton_RightShiftColours" member="yes">
 																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_right_shift_xpm&quot;, wxART_BUTTON)' />
 																			<size>26,16</size>
-																			<handler function="OnBitmapButton_RightShiftColoursClick" entry="EVT_BUTTON" />
+																			<handler function="OnBitmapButton_ShiftColoursRightClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>2</border>
@@ -380,6 +381,29 @@
 													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOXBRIGHTNESSLEVEL" subclass="BulkEditCheckBox" variable="CheckBoxBrightnessLevel" member="yes">
+													<label>Brightness Level</label>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
 											</object>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>

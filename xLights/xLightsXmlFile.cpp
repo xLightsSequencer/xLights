@@ -897,7 +897,6 @@ bool xLightsXmlFile::LoadV3Sequence()
 
     if (!models_defined)  return false;  // no <tr> tag was found
 
-    wxString end_time;
     wxString last_time = "0";
     double time1;
 
@@ -1390,7 +1389,6 @@ wxString xLightsXmlFile::GetImageDir(wxWindow* parent)
 
     wxDirDialog* dlg = new wxDirDialog(parent, _("Select Directory for storing image files for this sequence"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
 
-    wxString newdir = wxEmptyString;
     if (dlg->ShowModal() != wxID_OK) {
         return wxEmptyString;
     }
@@ -1552,8 +1550,6 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
 void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
-    wxString line;
-
     for (size_t i = 0; i < filenames.Count(); ++i )
     {
         wxFileName next_file(filenames[i]);
@@ -1711,7 +1707,7 @@ wxString xLightsXmlFile::UniqueTimingName(xLightsFrame* xLightsParent, wxString 
 void xLightsXmlFile::ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent)
 {
     wxString name = UnXmlSafe(node->GetAttribute("name"));
-    wxString v = node->GetAttribute("SourceVersion");
+    //wxString v = node->GetAttribute("SourceVersion");
     wxString st = node->GetAttribute("subType");
 
     name = UniqueTimingName(xLightsParent, name);
@@ -1787,7 +1783,6 @@ void xLightsXmlFile::ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent
 void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     wxTextFile f;
-    wxString line;
 
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
@@ -2269,8 +2264,6 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxTextFile f;
-    wxString line;
-    wxString desc;
 
     xLightsParent->SetCursor(wxCURSOR_WAIT);
 
@@ -2396,8 +2389,6 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
 void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxTextFile f;
-    wxString line;
-    wxString desc;
 
     xLightsParent->SetCursor(wxCURSOR_WAIT);
     Element* element = nullptr;
@@ -2640,7 +2631,7 @@ void xLightsXmlFile::AddJukebox(wxXmlNode* node)
 }
 
 // function used to save sequence data
-void xLightsXmlFile::Save(SequenceElements& seq_elements)
+bool xLightsXmlFile::Save(SequenceElements& seq_elements)
 {
     wxXmlNode* root = seqDocument.GetRoot();
 
@@ -2768,6 +2759,9 @@ void xLightsXmlFile::Save(SequenceElements& seq_elements)
 
                 // Add layer node
                 wxXmlNode* effect_layer_node = AddChildXmlNode(element_effects_node, "EffectLayer");
+                if (!layer->GetLayerName().empty()) {
+                    effect_layer_node->AddAttribute("layerName", layer->GetLayerName());
+                }
                 WriteEffects(layer, effect_layer_node, colorPalettes,
                              colorPalette_node,
                              effectStrings,
@@ -2784,13 +2778,16 @@ void xLightsXmlFile::Save(SequenceElements& seq_elements)
                 for (int j = 0; j < num_layers; ++j) {
                     EffectLayer* layer = se->GetEffectLayer(j);
 
-                    if (layer->GetEffectCount() != 0) {
+                    if (layer->GetEffectCount() != 0 || !layer->GetLayerName().empty()) {
                         wxXmlNode* eln = AddChildXmlNode(element_effects_node, strEl == nullptr ? "SubModelEffectLayer" : "Strand");
                         if (strEl != nullptr) {
                             eln->AddAttribute("index", string_format("%d", strEl->GetStrand()));
                             if (j == 0) {
                                 effect_layer_node = eln;
                             }
+                        }
+                        if (!layer->GetLayerName().empty()) {
+                            eln->AddAttribute("layerName", layer->GetLayerName());
                         }
                         if (j > 0) {
                             eln->AddAttribute("layer", string_format("%d", j));
@@ -2819,8 +2816,8 @@ void xLightsXmlFile::Save(SequenceElements& seq_elements)
                         }
                         wxXmlNode* neffect_layer_node = AddChildXmlNode(effect_layer_node, "Node");
                         neffect_layer_node->AddAttribute("index", string_format("%d", n));
-                        if (nlayer->GetName() != "") {
-                            neffect_layer_node->AddAttribute("name", nlayer->GetName());
+                        if (nlayer->GetNodeName() != "") {
+                            neffect_layer_node->AddAttribute("name", nlayer->GetNodeName());
                         }
                         WriteEffects(nlayer, neffect_layer_node, colorPalettes,
                                      colorPalette_node,
@@ -2864,8 +2861,19 @@ void xLightsXmlFile::Save(SequenceElements& seq_elements)
     }
 #endif
 
-    seqDocument.Save(GetFullPath());
+    wxFileOutputStream fout(GetFullPath());
+    wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
+    if (!seqDocument.Save(*bout)) {
+        delete bout;
+        return false;
+    }
+    delete bout;
+    if (!fout.Close()) {
+        return false;
+    }
+
     MarkNewFileRevision(GetFullPath());
+    return true;
 }
 
 bool xLightsXmlFile::TimingAlreadyExists(const std::string & section, xLightsFrame* xLightsParent)
@@ -2882,6 +2890,16 @@ bool xLightsXmlFile::TimingAlreadyExists(const std::string & section, xLightsFra
     {
         if( timing_list[i] == section )
         {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool xLightsXmlFile::TimingMatchesModelName(const std::string& section, xLightsFrame* xLightsParent) {
+    if (sequence_loaded) {
+        SequenceElements& mSequenceElements = xLightsParent->GetSequenceElements();
+        if (mSequenceElements.ElementExists(section)) {
             return true;
         }
     }
@@ -3044,7 +3062,7 @@ void xLightsXmlFile::AddFixedTimingSection(const std::string& interval_name, xLi
     AddChildXmlNode(node, "EffectLayer");
 }
 
-void xLightsXmlFile::AddMetronomeLabelTimingSection(const std::string& interval_name, int interval, int count, xLightsFrame* xLightsParent)
+void xLightsXmlFile::AddMetronomeLabelTimingSection(const std::string& interval_name, int _interval, int count, xLightsFrame* xLightsParent, int minForRandomRange, bool randomLabels)
 {
     AddTimingDisplayElement(interval_name, "1", "0");
     wxXmlNode* node;
@@ -3056,12 +3074,20 @@ void xLightsXmlFile::AddMetronomeLabelTimingSection(const std::string& interval_
         int time {0};
         int id {0};
         int end_time = GetSequenceDurationMS();
+        int lastRandomState = -1;
         while (time < end_time)
         {
+            int interval = minForRandomRange == -1 ? _interval : intRand(minForRandomRange, _interval);
             int next_time = (time + interval <= end_time) ? time + interval : end_time;
             int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
             int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
-            effectLayer->AddEffect(0, std::to_string(id + 1), "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
+            if( randomLabels ) {
+                do {
+                    id = intRand(1, count);
+                } while( id == lastRandomState);
+                lastRandomState = id;
+            }
+            effectLayer->AddEffect(0, std::to_string(randomLabels ? id : id + 1), "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
             time += interval;
             id++;
             if (count != 0) {
@@ -3069,7 +3095,8 @@ void xLightsXmlFile::AddMetronomeLabelTimingSection(const std::string& interval_
             }
         }
     }
-    node = AddFixedTiming(interval_name, string_format("%d", interval));
+        
+    node = AddFixedTiming(interval_name, string_format("%d", _interval));
     
 
     AddChildXmlNode(node, "EffectLayer");
@@ -3733,7 +3760,6 @@ void xLightsXmlFile::FixEffectPresets(wxXmlNode* effects_node)
 
                 wxString eff1, eff2, prefix;
                 wxString effect1, effect2;
-                wxString after;
                 int cnt=0;
                 while (!settings.IsEmpty()) {
                     wxString before = settings.BeforeFirst(',');

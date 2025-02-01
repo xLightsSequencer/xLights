@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <stdint.h>
+#include <cmath>
 #include <map>
 #include <list>
 #include <vector>
@@ -47,6 +48,7 @@
 
 class AudioManager;
 class xLightsFrame;
+class DmxModel;
 enum class HEADER_INFO_TYPES;
 
 // eventually this will go in some header..
@@ -195,7 +197,7 @@ public:
         }
     }
 
-    void Set(xlColorVector& newcolors, xlColorCurveVector newcc)
+    void Set(const xlColorVector& newcolors, const xlColorCurveVector& newcc)
     {
         wxASSERT(newcolors.size() == newcc.size());
 
@@ -262,6 +264,12 @@ public:
     {
         if (idx >= color.size()) return false;
         return (cc[idx].IsActive() && cc[idx].GetTimeCurve() != TC_TIME);
+    }
+
+    bool IsGradient(size_t idx) const {
+        if (idx >= color.size())
+            return false;
+        return (cc[idx].IsActive() && cc[idx].GetTimeCurve() == TC_TIME);
     }
 
     bool IsRadial(size_t idx) const
@@ -508,10 +516,10 @@ public:
     void FillConvexPoly(const std::vector<std::pair<int, int>>& poly, const xlColor& color);
 
     //approximation of sin/cos, but much faster
-    static float sin(float rad);
-    static float cos(float rad);
-    static float cot(float rad) { return cos(rad) / sin(rad); }
-    static float acot(float rad) { return M_PI/2.0 - atan(rad); }
+    static inline float sin(float rad) { return std::sin(rad); }
+    static inline float cos(float rad) { return std::cos(rad); }
+    static inline float cot(float rad) { return std::cos(rad) / std::sin(rad); }
+    static inline float acot(float rad) { return M_PI/2.0 - std::atan(rad); }
 
     double calcAccel(double ratio, double accel);
 
@@ -551,7 +559,9 @@ private:
     xlColor *pixels = nullptr;
     xlColor *tempbuf = nullptr;
 
-    friend class MetalRenderBufferComputeData;
+    std::vector<uint32_t> blendBuffer;
+    std::vector<uint32_t> indexVector;
+    bool allSimpleIndex = true;
 public:
     uint32_t GetPixelCount() { return pixelVector.size(); }
     xlColor *GetPixels() { return pixels; }
@@ -559,6 +569,7 @@ public:
     void CopyTempBufToPixels();
     void CopyPixelsToTempBuf();
     wxPoint GetMaxBuffer(const SettingsMap& SettingsMap) const;
+    void EnableFixedDMXChannels(const DmxModel* dmx);
 
     PaletteClass palette;
     bool _nodeBuffer = false;
@@ -586,6 +597,7 @@ public:
     //place for GPU Renderers to attach extra data/objects it needs
     void *gpuRenderData = nullptr;
 
+    uint32_t perModelIndex = 0;
 private:
     PixelBufferClass *parent;
     const Model *model;
@@ -598,4 +610,6 @@ private:
     void Forget();
     
     friend class MetalPixelBufferComputeData;
+    friend class MetalRenderBufferComputeData;
+    friend class ISPCComputeUtilities;
 };

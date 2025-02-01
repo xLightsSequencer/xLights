@@ -88,6 +88,7 @@ Output::Output(wxXmlNode* node) {
 Output::Output() {
     _dirty = true;
     _ok = true;
+    _resolvedIp = "";
 }
 
 Output::~Output() {
@@ -180,12 +181,22 @@ int Output::GetBaudRate() const {
     return _baudRate;
 }
 
-void Output::SetIP(const std::string& ip, bool isActive) {
+void Output::SetIP(const std::string& ip, bool isActive, bool resolve) {
     auto i = ip_utils::CleanupIP(ip);
     if (i != _ip) {
         _ip = i;
         _resolvedIp = _ip;
         _dirty = true;
+    }
+}
+std::string Output::GetResolvedIP() const {
+    std::shared_lock<std::shared_mutex> lock(_resolveMutex);
+    return _resolvedIp;
+}
+void Output::SetResolvedIP(const std::string& resolvedIP) {
+    std::unique_lock<std::shared_mutex> lock(_resolveMutex);
+    if (resolvedIP != _resolvedIp) {
+        _resolvedIp = resolvedIP;
     }
 }
 

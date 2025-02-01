@@ -60,29 +60,29 @@
 #define COLOR_COL 1
 
 //(*IdInit(ModelFaceDialog)
-const long ModelFaceDialog::ID_STATICTEXT2 = wxNewId();
-const long ModelFaceDialog::ID_CHOICE3 = wxNewId();
-const long ModelFaceDialog::ID_BUTTON3 = wxNewId();
-const long ModelFaceDialog::ID_BUTTON_IMPORT = wxNewId();
-const long ModelFaceDialog::ID_BUTTON4 = wxNewId();
-const long ModelFaceDialog::ID_PANEL4 = wxNewId();
-const long ModelFaceDialog::ID_CHECKBOX1 = wxNewId();
-const long ModelFaceDialog::ID_GRID_COROFACES = wxNewId();
-const long ModelFaceDialog::ID_PANEL2 = wxNewId();
-const long ModelFaceDialog::ID_PANEL8 = wxNewId();
-const long ModelFaceDialog::ID_CHECKBOX2 = wxNewId();
-const long ModelFaceDialog::ID_CHECKBOX3 = wxNewId();
-const long ModelFaceDialog::ID_GRID3 = wxNewId();
-const long ModelFaceDialog::ID_PANEL6 = wxNewId();
-const long ModelFaceDialog::ID_PANEL7 = wxNewId();
-const long ModelFaceDialog::ID_CHOICE2 = wxNewId();
-const long ModelFaceDialog::ID_BUTTON1 = wxNewId();
-const long ModelFaceDialog::ID_GRID1 = wxNewId();
-const long ModelFaceDialog::ID_PANEL3 = wxNewId();
-const long ModelFaceDialog::ID_CHOICEBOOK1 = wxNewId();
-const long ModelFaceDialog::ID_PANEL5 = wxNewId();
-const long ModelFaceDialog::ID_PANEL1 = wxNewId();
-const long ModelFaceDialog::ID_SPLITTERWINDOW1 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_STATICTEXT2 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_CHOICE3 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_BUTTON3 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_BUTTON_IMPORT = wxNewId();
+const wxWindowID ModelFaceDialog::ID_BUTTON4 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_PANEL4 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_CHECKBOX1 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_GRID_COROFACES = wxNewId();
+const wxWindowID ModelFaceDialog::ID_PANEL2 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_PANEL8 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_CHECKBOX2 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_CHECKBOX3 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_GRID3 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_PANEL6 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_PANEL7 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_CHOICE2 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_BUTTON1 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_GRID1 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_PANEL3 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_CHOICEBOOK1 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_PANEL5 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_PANEL1 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
 const long ModelFaceDialog::ID_TIMER1 = wxNewId();
 
@@ -151,7 +151,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 	FlexGridSizer7->Add(NameChoice, 1, wxALL|wxEXPAND, 5);
 	AddButton = new wxButton(Panel3, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	FlexGridSizer7->Add(AddButton, 1, wxTOP|wxBOTTOM|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonImport = new wxButton(Panel3, ID_BUTTON_IMPORT, _("..."), wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
+	ButtonImport = new wxButton(Panel3, ID_BUTTON_IMPORT, _T("..."), wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
 	ButtonImport->SetMinSize(wxSize(20,-1));
 	FlexGridSizer7->Add(ButtonImport, 0, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	DeleteButton = new wxButton(Panel3, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
@@ -198,8 +198,6 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 	FlexGridSizer8->Add(SingleNodeGrid, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer2->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 0);
 	CoroPanel->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(CoroPanel);
-	FlexGridSizer2->SetSizeHints(CoroPanel);
 	NodeRangePanel = new wxPanel(FaceTypeChoice, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
 	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
@@ -260,8 +258,6 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 	FlexGridSizer9->Add(NodeRangeGrid, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer5->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 0);
 	NodeRangePanel->SetSizer(FlexGridSizer5);
-	FlexGridSizer5->Fit(NodeRangePanel);
-	FlexGridSizer5->SetSizeHints(NodeRangePanel);
 	Matrix = new wxPanel(FaceTypeChoice, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer3->AddGrowableCol(1);
@@ -309,8 +305,6 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 	FlexGridSizer10->Add(MatrixModelsGrid, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer3->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 0);
 	Matrix->SetSizer(FlexGridSizer3);
-	FlexGridSizer3->Fit(Matrix);
-	FlexGridSizer3->SetSizeHints(Matrix);
 	FaceTypeChoice->AddPage(CoroPanel, _("Single Nodes"), false);
 	FaceTypeChoice->AddPage(NodeRangePanel, _("Node Ranges"), false);
 	FaceTypeChoice->AddPage(Matrix, _("Matrix"), false);
@@ -321,52 +315,47 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 	StdDialogButtonSizer1->Realize();
 	FlexGridSizer4->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel3->SetSizer(FlexGridSizer4);
-	FlexGridSizer4->Fit(Panel3);
-	FlexGridSizer4->SetSizeHints(Panel3);
 	ModelPreviewPanelLocation = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	PreviewSizer = new wxFlexGridSizer(1, 1, 0, 0);
 	PreviewSizer->AddGrowableCol(0);
 	PreviewSizer->AddGrowableRow(0);
 	ModelPreviewPanelLocation->SetSizer(PreviewSizer);
-	PreviewSizer->Fit(ModelPreviewPanelLocation);
-	PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
 	SplitterWindow1->SplitVertically(Panel3, ModelPreviewPanelLocation);
 	FlexGridSizer1->Add(SplitterWindow1, 0, wxEXPAND, 0);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixNameChoiceSelect);
-	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixAddClicked);
-	Connect(ID_BUTTON_IMPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButtonImportClick);
-	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixDeleteClick);
-	Panel_SingleNode->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ModelFaceDialog::Paint,0,this);
-	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnCustomColorCheckboxClick);
-	Connect(ID_GRID_COROFACES,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellLeftClick);
-	Connect(ID_GRID_COROFACES,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellLeftDClick);
-	Connect(ID_GRID_COROFACES,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellChange);
-	Connect(ID_GRID_COROFACES,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellSelect);
-	SingleNodeGrid->Connect(wxEVT_SIZE,(wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridResize,0,this);
-	Panel_NodeRanges->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ModelFaceDialog::Paint,0,this);
-	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnCustomColorCheckboxClick);
-	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnCheckBox_OutputToLightsClick);
-	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellLeftClick);
-	Connect(ID_GRID3,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellRightClick);
-	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellLeftDClick);
-	Connect(ID_GRID3,wxEVT_GRID_LABEL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridLabelLeftDClick);
-	Connect(ID_GRID3,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellChange);
-	Connect(ID_GRID3,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellSelect);
-	NodeRangeGrid->Connect(wxEVT_SIZE,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridResize,0,this);
-	Panel_Matrix->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ModelFaceDialog::Paint,0,this);
-	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelFaceDialog::OnMatricImagePlacementChoiceSelect);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButton_DownloadImagesClick);
-	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellLeftClick1);
-	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellLeftClick);
-	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridLabelLeftDClick);
-	Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellChange);
-	Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellSelect);
-	MatrixModelsGrid->Connect(wxEVT_SIZE,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridResize,0,this);
-	Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&ModelFaceDialog::OnFaceTypeChoicePageChanged);
+	Connect(ID_CHOICE3, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ModelFaceDialog::OnMatrixNameChoiceSelect);
+	Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixAddClicked);
+	Connect(ID_BUTTON_IMPORT, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelFaceDialog::OnButtonImportClick);
+	Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixDeleteClick);
+	Panel_SingleNode->Connect(wxEVT_PAINT, (wxObjectEventFunction)&ModelFaceDialog::Paint, NULL, this);
+	Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelFaceDialog::OnCustomColorCheckboxClick);
+	Connect(ID_GRID_COROFACES, wxEVT_GRID_CELL_LEFT_CLICK, (wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellLeftClick);
+	Connect(ID_GRID_COROFACES, wxEVT_GRID_CELL_LEFT_DCLICK, (wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellLeftDClick);
+	Connect(ID_GRID_COROFACES, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellChange);
+	Connect(ID_GRID_COROFACES, wxEVT_GRID_SELECT_CELL, (wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellSelect);
+	SingleNodeGrid->Connect(wxEVT_SIZE, (wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridResize, NULL, this);
+	Panel_NodeRanges->Connect(wxEVT_PAINT, (wxObjectEventFunction)&ModelFaceDialog::Paint, NULL, this);
+	Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelFaceDialog::OnCustomColorCheckboxClick);
+	Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelFaceDialog::OnCheckBox_OutputToLightsClick);
+	Connect(ID_GRID3, wxEVT_GRID_CELL_LEFT_CLICK, (wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellLeftClick);
+	Connect(ID_GRID3, wxEVT_GRID_CELL_RIGHT_CLICK, (wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellRightClick);
+	Connect(ID_GRID3, wxEVT_GRID_CELL_LEFT_DCLICK, (wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellLeftDClick);
+	Connect(ID_GRID3, wxEVT_GRID_LABEL_LEFT_DCLICK, (wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridLabelLeftDClick);
+	Connect(ID_GRID3, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellChange);
+	Connect(ID_GRID3, wxEVT_GRID_SELECT_CELL, (wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellSelect);
+	NodeRangeGrid->Connect(wxEVT_SIZE, (wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridResize, NULL, this);
+	Panel_Matrix->Connect(wxEVT_PAINT, (wxObjectEventFunction)&ModelFaceDialog::Paint, NULL, this);
+	Connect(ID_CHOICE2, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ModelFaceDialog::OnMatricImagePlacementChoiceSelect);
+	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelFaceDialog::OnButton_DownloadImagesClick);
+	Connect(ID_GRID1, wxEVT_GRID_CELL_LEFT_CLICK, (wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellLeftClick1);
+	Connect(ID_GRID1, wxEVT_GRID_CELL_LEFT_DCLICK, (wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellLeftClick);
+	Connect(ID_GRID1, wxEVT_GRID_LABEL_LEFT_DCLICK, (wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridLabelLeftDClick);
+	Connect(ID_GRID1, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellChange);
+	Connect(ID_GRID1, wxEVT_GRID_SELECT_CELL, (wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellSelect);
+	MatrixModelsGrid->Connect(wxEVT_SIZE, (wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridResize, NULL, this);
+	Connect(ID_CHOICEBOOK1, wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&ModelFaceDialog::OnFaceTypeChoicePageChanged);
 	//*)
 
     model = nullptr;
@@ -658,12 +647,15 @@ void ModelFaceDialog::OnMatrixModelsGridCellChange(wxGridEvent& event)
         value = value.Truncate(value.size()-1);
     }
 
-    TryToFindPath(value);
+    if (!value.IsEmpty()) {
+        TryToFindPath(value);
+    }
 
     faceData[name][key.ToStdString()] = value;
     MatrixModelsGrid->SetCellValue(r, c, value);
-
-    TryToSetAllMatrixModels(name, key.ToStdString(), value, r, c);
+    if (!value.IsEmpty()) {
+        TryToSetAllMatrixModels(name, key.ToStdString(), value, r, c);
+    }
     ValidateMatrixGrid(r, c);
 }
 
@@ -826,6 +818,9 @@ void ModelFaceDialog::DoSetMatrixModels(wxFileName fn, std::string actualkey, st
 
 void ModelFaceDialog::TryToFindPath(wxString& filename) const
 {
+    if (filename.IsEmpty()) {
+        return;
+    }
     if (FileExists(filename)) {
         return;
     }
@@ -855,6 +850,9 @@ void ModelFaceDialog::TryToFindPath(wxString& filename) const
 
 void ModelFaceDialog::TryToSetAllMatrixModels(std::string name, std::string key, std::string new_filename, int row, int col)
 {
+    if (new_filename.empty()) {
+        return;
+    }
     wxFileName fn = wxFileName(new_filename);
 
     std::string k = ExtractKey(key);

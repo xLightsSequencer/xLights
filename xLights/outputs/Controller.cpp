@@ -104,6 +104,8 @@ Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& sh
                 // this shouldnt happen unless we are loading a future file with an output type we dont recognise
                 _outputs.pop_back();
             }
+        } else if (n->GetName() == "ExtraProperty") {
+            _extraProperties[n->GetAttribute("name")] = n->GetAttribute("value");
         }
     }
 
@@ -156,6 +158,7 @@ Controller::Controller(OutputManager* om, const Controller& from) :
     for (const auto& it : from._outputs) {
         _outputs.push_back(it->Copy());
     }
+    _extraProperties = from._extraProperties;
 }
 
 Controller::~Controller() {
@@ -188,7 +191,15 @@ wxXmlNode* Controller::Save() {
     for (const auto& it : _outputs) {
         node->AddChild(it->Save());
     }
-
+    if (!_extraProperties.empty()) {
+        
+        for (auto &p : _extraProperties) {
+            wxXmlNode *ep = new wxXmlNode(wxXML_ELEMENT_NODE, "ExtraProperty");
+            ep->AddAttribute("name", p.first);
+            ep->AddAttribute("value", p.second);
+            node->AddChild(ep);
+        }
+    }
     return node;
 }
 bool Controller::UpdateFrom(Controller* from)
@@ -295,8 +306,7 @@ bool Controller::UpdateFrom(Controller* from)
         }
     }
 
-    if (changed)
-    {
+    if (changed) {
         _dirty = true;
     }
 
@@ -400,6 +410,15 @@ void Controller::SearchForNewVendor( std::string const& vendor, std::string cons
         _vendor = newcap->GetVendor();
         _model = newcap->GetModel();
         _variant = newcap->GetVariantName();
+        _dirty = true;
+        VMVChanged();
+    }
+
+    ControllerCaps* newcap2 = ControllerCaps::GetControllerConfigByAlternateName(vendor, model, variant);
+    if (newcap2 && model != newcap2->GetModel()) {
+        _vendor = newcap2->GetVendor();
+        _model = newcap2->GetModel();
+        _variant = newcap2->GetVariantName();
         _dirty = true;
         VMVChanged();
     }
@@ -746,7 +765,7 @@ void Controller::AddVariants(wxPGProperty* p) {
 }
 
 
-void Controller::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
+void Controller::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager) {
     
     wxPGProperty* p = propertyGrid->GetProperty("ControllerName");
     if (p) p->SetValue(GetName());
@@ -891,6 +910,11 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
     p = propertyGrid->Append(new wxBoolProperty("Suppress Duplicate Frames", "SuppressDuplicates", IsSuppressDuplicateFrames()));
     p->SetEditor("CheckBox");
     p->SetHelpString("When selected if a data packet is the same in a subsequent frame then xLights will not send the duplicate frame trusting that the controller will just reuse the previously sent data. This can reduce unnecessary network traffic.");
+    
+    ControllerCaps* caps = ControllerCaps::GetControllerConfig(this);
+    if (caps) {
+        caps->AddProperties(this, propertyGrid);
+    }
 }
 
 bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager)
@@ -1030,6 +1054,14 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Variant");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Variant");
         return true;
+    } else {
+        ControllerCaps* caps = ControllerCaps::GetControllerConfig(this);
+        if (caps) {
+            if (caps->HandlePropertyEvent(this, event)) {
+                outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::" + name);
+                return true;
+            }
+        }
     }
     return false;
 }

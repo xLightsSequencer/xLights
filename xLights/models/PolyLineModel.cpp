@@ -1396,7 +1396,7 @@ void PolyLineModel::OnPropertyGridItemExpanded(wxPropertyGridInterface* grid, wx
     }
 }
 
-void PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "polylinemodel") {
         wxString name = root->GetAttribute("name");
@@ -1412,7 +1412,7 @@ void PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         wxString dir = root->GetAttribute("Dir");
         wxString sn = root->GetAttribute("StrandNames");
         wxString nn = root->GetAttribute("NodeNames");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString is = root->GetAttribute("IndivSegs");
         wxString pts = root->GetAttribute("NumPoints");
         wxString point_data = root->GetAttribute("PointData");
@@ -1477,8 +1477,11 @@ void PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading PolyLine model file.");
+        return false;
     }
 }
 
@@ -1490,9 +1493,12 @@ void PolyLineModel::ExportXlightsModel()
     if (filename.IsEmpty())
         return;
     wxFile f(filename);
-    //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+    
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
+    
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString p3 = ModelXml->GetAttribute("parm3");

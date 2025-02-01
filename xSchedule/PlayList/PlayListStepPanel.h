@@ -12,10 +12,12 @@
 
  //(*Headers(PlayListStepPanel)
  #include <wx/checkbox.h>
+ #include <wx/dateevt.h>
  #include <wx/panel.h>
  #include <wx/sizer.h>
  #include <wx/stattext.h>
  #include <wx/textctrl.h>
+ #include <wx/timectrl.h>
  //*)
 
 class PlayListStep;
@@ -36,10 +38,13 @@ class PlayListStepPanel: public wxPanel
 		wxCheckBox* CheckBox_ExcludeFirstStep;
 		wxCheckBox* CheckBox_ExcludeFromRandom;
 		wxCheckBox* CheckBox_ExcludeLastStep;
+		wxCheckBox* CheckBox_TimeCodeOverride;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
+		wxStaticText* StaticText_BaseTime;
 		wxTextCtrl* TextCtrl_PlayListStepName;
+		wxTimePickerCtrl* TimeCodeBaseTime;
 		//*)
 
 	protected:
@@ -53,6 +58,9 @@ class PlayListStepPanel: public wxPanel
 		static const long ID_CHECKBOX3;
 		static const long ID_STATICTEXT3;
 		static const long ID_CHECKBOX4;
+		static const long ID_CHECKBOX5;
+		static const long ID_STATICTEXT4;
+		static const long ID_TIMEPICKERCTRL1;
 		//*)
 
 	private:
@@ -61,6 +69,7 @@ class PlayListStepPanel: public wxPanel
 		void OnTextCtrl_PlayListStepNameText(wxCommandEvent& event);
 		void OnCheckBox_EveryStepClick(wxCommandEvent& event);
 		void OnCheckBox_ExcludeFirstStepClick(wxCommandEvent& event);
+		void OnCheckBox_TimeCodeOverrideClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

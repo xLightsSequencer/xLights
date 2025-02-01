@@ -79,17 +79,17 @@ class PicturesAssistPanel: public wxPanel
         PAColourList* BitmapButton_ColourChoice;
 
 		//(*Identifiers(PicturesAssistPanel)
-		static const long ID_BUTTON_NewImage;
-		static const long ID_BUTTON_LoadImage;
-		static const long ID_BUTTON_SaveImage;
-		static const long ID_BUTTON_SaveAs;
-		static const long ID_BUTTON1;
-		static const long ID_STATICTEXT_CurrentImage;
-		static const long ID_STATICTEXT_ImageSize;
-		static const long ID_STATICTEXT_ModelSize;
-		static const long ID_PANEL_RightSide;
-		static const long ID_SCROLLED_EffectAssist;
-		static const long ID_PANEL1;
+		static const wxWindowID ID_BUTTON_NewImage;
+		static const wxWindowID ID_BUTTON_LoadImage;
+		static const wxWindowID ID_BUTTON_SaveImage;
+		static const wxWindowID ID_BUTTON_SaveAs;
+		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_STATICTEXT_CurrentImage;
+		static const wxWindowID ID_STATICTEXT_ImageSize;
+		static const wxWindowID ID_STATICTEXT_ModelSize;
+		static const wxWindowID ID_PANEL_RightSide;
+		static const wxWindowID ID_SCROLLED_EffectAssist;
+		static const wxWindowID ID_PANEL1;
 		//*)
 
 

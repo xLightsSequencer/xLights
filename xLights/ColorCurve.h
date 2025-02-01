@@ -54,9 +54,9 @@ public:
         return res;
     }
 
-    void Deserialise(std::string s)
+    void Deserialise(const std::string &s)
     {
-        if (s == "")
+        if (s.empty())
         {
             throw;
         }
@@ -66,7 +66,7 @@ public:
         }
         else
         {
-            wxArrayString v = wxSplit(wxString(s.c_str()), '^');
+            wxArrayString v = wxSplit(s, '^');
             for (auto vs = v.begin(); vs != v.end(); vs++)
             {
                 wxArrayString v1 = wxSplit(*vs, '=');
@@ -78,7 +78,7 @@ public:
         }
     }
 
-    void SetSerialisedValue(std::string k, std::string v)
+    void SetSerialisedValue(const std::string &k, const std::string &v)
     {
         if (k == "x")
         {
@@ -92,7 +92,7 @@ public:
         }
     }
 
-    ccSortableColorPoint(std::string& s)
+    ccSortableColorPoint(const std::string& s)
     {
         Deserialise(s);
     }
@@ -182,7 +182,7 @@ public:
     ColorCurve(const std::string& id, const std::string type, xlColor c = xlBLACK);
     std::string Serialise();
     void Deserialise(const std::string& s);
-    void SetType(std::string type);
+    void SetType(const std::string &type);
     xlColor GetValueAt(float offset) const;
     ccSortableColorPoint* GetPointAt(float offset);
     wxBitmap GetImage(int x, int y, bool bars);

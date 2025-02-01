@@ -21,6 +21,7 @@
 #include "DmxImage.h"
 #include "Servo.h"
 
+#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -87,7 +88,8 @@ void DmxServo::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* o
     p->SetEditor("SpinCtrl");
 
     for (const auto& it : servos) {
-        it->AddTypeProperties(grid);
+        ControllerCaps *caps = GetControllerCaps();
+        it->AddTypeProperties(grid, IsPWMProtocol() && caps != nullptr && caps->SupportsPWM());
     }
 
     for (const auto& it : static_images) {
@@ -391,7 +393,7 @@ void DmxServo::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ct
     }
 
     xlGraphicsProgram* program = transparentProgram;
-    program->addStep([=](xlGraphicsContext* ctx) {
+    program->addStep([is_3d, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0 plane
@@ -532,8 +534,11 @@ void DmxServo::ExportXlightsModel()
     if (filename.IsEmpty())
         return;
     wxFile f(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxservo \n");
 
@@ -576,13 +581,14 @@ void DmxServo::ExportXlightsModel()
     f.Close();
 }
 
-void DmxServo::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool DmxServo::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "dmxservo") {
-        ImportBaseParameters(root);
+        if (!ImportBaseParameters(root))
+            return false;
 
         wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString bits = ModelXml->GetAttribute("Bits16", "1");
         wxString brt = root->GetAttribute("Brightness", "100");
         wxString trans = root->GetAttribute("Transparency", "0");
@@ -636,7 +642,16 @@ void DmxServo::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading DmxServo model file.");
+        return false;
+    }
+}
+void DmxServo::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
+    DmxModel::GetPWMOutputs(channels);
+    for (auto &s : servos) {
+        s->GetPWMOutputs(channels);
     }
 }

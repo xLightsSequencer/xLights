@@ -78,6 +78,8 @@ public:
 	void Reset();
     int GetViewCount() const { return _views.size(); }
 	wxArrayString GetViewList(bool skipMaster = true);
+    void MoveViewUp(int index) const;
+    void MoveViewDown(int index) const;
 
 protected:
     friend class SequenceElements;

@@ -106,22 +106,22 @@ static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeigh
 }
 
 //(*IdInit(LayoutPanel)
-const long LayoutPanel::ID_PANEL4 = wxNewId();
-const long LayoutPanel::ID_PANEL_Objects = wxNewId();
-const long LayoutPanel::ID_NOTEBOOK_OBJECTS = wxNewId();
-const long LayoutPanel::ID_PANEL3 = wxNewId();
-const long LayoutPanel::ID_PANEL2 = wxNewId();
-const long LayoutPanel::ID_SPLITTERWINDOW1 = wxNewId();
-const long LayoutPanel::ID_CHECKBOX_3D = wxNewId();
-const long LayoutPanel::ID_CHECKBOXOVERLAP = wxNewId();
-const long LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
-const long LayoutPanel::ID_PANEL5 = wxNewId();
-const long LayoutPanel::ID_STATICTEXT1 = wxNewId();
-const long LayoutPanel::ID_CHOICE_PREVIEWS = wxNewId();
-const long LayoutPanel::ID_SCROLLBAR1 = wxNewId();
-const long LayoutPanel::ID_SCROLLBAR2 = wxNewId();
-const long LayoutPanel::ID_PANEL1 = wxNewId();
-const long LayoutPanel::ID_SPLITTERWINDOW2 = wxNewId();
+const wxWindowID LayoutPanel::ID_PANEL4 = wxNewId();
+const wxWindowID LayoutPanel::ID_PANEL_Objects = wxNewId();
+const wxWindowID LayoutPanel::ID_NOTEBOOK_OBJECTS = wxNewId();
+const wxWindowID LayoutPanel::ID_PANEL3 = wxNewId();
+const wxWindowID LayoutPanel::ID_PANEL2 = wxNewId();
+const wxWindowID LayoutPanel::ID_SPLITTERWINDOW1 = wxNewId();
+const wxWindowID LayoutPanel::ID_CHECKBOX_3D = wxNewId();
+const wxWindowID LayoutPanel::ID_CHECKBOXOVERLAP = wxNewId();
+const wxWindowID LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
+const wxWindowID LayoutPanel::ID_PANEL5 = wxNewId();
+const wxWindowID LayoutPanel::ID_STATICTEXT1 = wxNewId();
+const wxWindowID LayoutPanel::ID_CHOICE_PREVIEWS = wxNewId();
+const wxWindowID LayoutPanel::ID_SCROLLBAR1 = wxNewId();
+const wxWindowID LayoutPanel::ID_SCROLLBAR2 = wxNewId();
+const wxWindowID LayoutPanel::ID_PANEL1 = wxNewId();
+const wxWindowID LayoutPanel::ID_SPLITTERWINDOW2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(LayoutPanel,wxPanel)
@@ -192,14 +192,17 @@ const long LayoutPanel::ID_MNU_EDIT_SUBMODEL_ALIAS = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_EMPTY_MODEL_GROUPS = wxNewId();
+const long LayoutPanel::ID_MNU_DELETE_ALL_ALIASES = wxNewId();
 const long LayoutPanel::ID_MNU_RENAME_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_CLONE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_BULKEDIT_GROUP_TAGCOLOR = wxNewId();
+const long LayoutPanel::ID_MNU_BULKEDIT_GROUP_PREVIEW = wxNewId();
 const long LayoutPanel::ID_MNU_MAKESCVALID = wxNewId();
 const long LayoutPanel::ID_MNU_MAKEALLSCVALID = wxNewId();
 const long LayoutPanel::ID_MNU_MAKEALLSCNOTOVERLAPPING = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_TO_EXISTING_GROUPS = wxNewId();
+const long LayoutPanel::ID_MNU_REMOVE_FROM_EXISTING_GROUPS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETE_ACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RENAME_ACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
@@ -327,7 +330,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
 	//(*Initialize(LayoutPanel)
 	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizerPreview;
@@ -363,7 +365,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	SecondPanel = new wxPanel(ModelSplitter, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	ModelSplitter->SplitHorizontally(FirstPanel, SecondPanel);
 	LeftPanelSizer->Add(ModelSplitter, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 2);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	CheckBox_3D = new wxCheckBox(LeftPanel, ID_CHECKBOX_3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_3D"));
 	CheckBox_3D->SetValue(false);
@@ -371,10 +372,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	CheckBoxOverlap = new wxCheckBox(LeftPanel, ID_CHECKBOXOVERLAP, _("Overlap checks enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXOVERLAP"));
 	CheckBoxOverlap->SetValue(false);
 	FlexGridSizer3->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	LeftPanelSizer->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	ButtonSavePreview = new wxButton(LeftPanel, ID_BUTTON_SAVE_PREVIEW, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_PREVIEW"));
-	FlexGridSizer2->Add(ButtonSavePreview, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	LeftPanelSizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	LeftPanelSizer->Add(ButtonSavePreview, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	LeftPanel->SetSizer(LeftPanelSizer);
 	PreviewGLPanel = new wxPanel(SplitterWindow2, ID_PANEL1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_PANEL1"));
 	PreviewGLSizer = new wxFlexGridSizer(2, 1, 0, 0);
@@ -516,19 +516,18 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Cube", cube_xpm);
     AddModelButton("Custom", custom);
     AddModelButton("DMX", add_dmx_xpm);
-    AddModelButton("Image", image_xpm);
     AddModelButton("Icicles", icicles_xpm);
+    AddModelButton("Image", image_xpm);
     AddModelButton("Matrix", matrix);
-    AddModelButton("Single Line", singleline);
     AddModelButton("Poly Line", polyline);
+    AddModelButton("Single Line", singleline);
     AddModelButton("Sphere", sphere);
     AddModelButton("Spinner", spinner);
     AddModelButton("Star", star);
     AddModelButton("Tree", tree);
     AddModelButton("Window Frame", frame);
-    AddModelButton("Wreath", wreath);
-    AddModelButton("Import Custom", import);
     AddModelButton("Download", download);
+    AddModelButton("Import Custom", import);
     obj_button = AddModelButton("Add Object", object);
     obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
 
@@ -607,6 +606,8 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
         tree = new wxTreeListCtrl(panel, ID_TREELISTVIEW_MODELS,
                                   wxDefaultPosition, wxDefaultSize,
                                   style, "ID_TREELISTVIEW_MODELS");
+    TreeListMiewInternalModel = tree->GetDataView()->GetModel();
+    TreeListMiewInternalModel->IncRef();
     tree->SetImages(m_imageList);
 
     tree->AppendColumn(MODELCOLNAME,
@@ -799,6 +800,8 @@ LayoutPanel::~LayoutPanel()
     }
     TreeListViewModels->SetItemComparator(nullptr);
     TreeListViewModels->DeleteAllItems();
+    TreeListMiewInternalModel->DecRef();
+
 	//(*Destroy(LayoutPanel)
 	//*)
 }
@@ -1185,12 +1188,59 @@ std::string LayoutPanel::TreeModelName(const Model* model, bool fullname)
 
 void LayoutPanel::FreezeTreeListView() {
     TreeListViewModels->Freeze();
+
     //turn off the column width auto-resize.  Makes it REALLY slow to populate the tree
     TreeListViewModels->SetColumnWidth(0, TreeListViewModels->GetColumnWidth(0));
     TreeListViewModels->SetColumnWidth(3, TreeListViewModels->GetColumnWidth(3));
+    treeSorted = TreeListViewModels->GetSortColumn(&treeSortCol, &treeSortAscending);
+    
+    //turn off the sorting as that is ALSO really slow
+    TreeListViewModels->SetItemComparator(nullptr);
+    if (treeSorted) {
+        //UnsetAsSortKey may be unimplemented on all  platforms so we'll set a
+        //sort column to 0 which is faster due to straight string compare
+        TreeListViewModels->SetSortColumn(0, true);
+        //then turn it off again so platforms that DO support this can benefit
+        TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
+    }
+#ifndef __WXMSW__
+    // dis-associate the model so the adds/removes will be a ton faster
+    TreeListViewModels->GetDataView()->AssociateModel(nullptr);
+#endif
 }
 
-void LayoutPanel::ThawTreeListView() {
+void LayoutPanel::ThawTreeListView(const std::list<wxTreeListItem> &toExpand) {
+#ifndef __WXMSW__
+    // re-associate the model
+    TreeListViewModels->GetDataView()->AssociateModel(TreeListMiewInternalModel);
+#endif
+
+    // Only set the column sizes the very first time we load it
+    if (_firstTreeLoad) {
+        _firstTreeLoad = false;
+
+        TreeListViewModels->SetColumnWidth(1, wxCOL_WIDTH_AUTOSIZE);
+        int width = TreeListViewModels->GetColumnWidth(1);
+        if (width < 20) {
+            width = TreeListViewModels->WidthFor(STARTCHANCOLNAME);
+        }
+        TreeListViewModels->SetColumnWidth(1, width);
+
+        TreeListViewModels->SetColumnWidth(2, wxCOL_WIDTH_AUTOSIZE);
+        width = TreeListViewModels->GetColumnWidth(2);
+        if (width < 20) {
+            width = TreeListViewModels->WidthFor(STARTCHANCOLNAME);
+        }
+        TreeListViewModels->SetColumnWidth(2, width);
+    }
+
+    //turn the sorting back on
+    TreeListViewModels->SetItemComparator(&comparator);
+    if (treeSorted) {
+        TreeListViewModels->SetSortColumn(treeSortCol, treeSortAscending);
+        TreeListViewModels->GetDataView()->GetModel()->Resort();
+    }
+    
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
     int i = TreeListViewModels->GetColumnWidth(0);
@@ -1202,6 +1252,11 @@ void LayoutPanel::ThawTreeListView() {
     }
     TreeListViewModels->SetColumnWidth(0, i);
     TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
+    
+    for (auto &i : toExpand) {
+        TreeListViewModels->Expand(i);
+    }
+    
     TreeListViewModels->Thaw();
     TreeListViewModels->Refresh();
 }
@@ -1220,6 +1275,7 @@ void LayoutPanel::refreshModelList() {
     logger_work.debug("        refreshModelList.");
     wxStopWatch sw;
 
+    std::list<wxTreeListItem> toExpand;
     FreezeTreeListView();
 
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
@@ -1258,7 +1314,7 @@ void LayoutPanel::refreshModelList() {
             }
         }
     }
-    ThawTreeListView();
+    ThawTreeListView(toExpand);
 
     if (sw.Time() > 500)
         logger_base.debug("        LayoutPanel::refreshModelList took %lums", sw.Time());
@@ -1268,23 +1324,21 @@ void LayoutPanel::RenameModelInTree(Model *model, const std::string& new_name)
 {
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
           item.IsOk();
-          item = TreeListViewModels->GetNextItem(item) )
-    {
+          item = TreeListViewModels->GetNextItem(item) ) {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
         if (data != nullptr && data->GetModel() == model) {
-            if (model->IsActive())
-            {
+            if (model->IsActive()) {
                 SetTreeListViewItemText(item, 0, new_name);
-            }
-            else
-            {
+            } else {
                 SetTreeListViewItemText(item, 0, "<" + new_name + ">");
             }
         }
     }
 }
 
-int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName) {
+int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded,
+                                std::list<wxTreeListItem> &toExpand,
+                                int nativeOrder, bool fullName) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (model == nullptr) {
@@ -1298,10 +1352,10 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
                                                          new ModelTreeData(model, nativeOrder, fullName));
 
     if (model->GetDisplayAs() != "ModelGroup") {
-        wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
         wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
+        wxString endStr = ((startStr[0] == '@' && model->HasIndividualStartChannels()) ? "" : model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager()));
         if (model->GetDisplayAs() != "SubModel") {
-            if (model->CouldComputeStartChannel && model->IsValidStartChannelString()) {
+            if ((model->CouldComputeStartChannel || startStr[0] == '@') && model->IsValidStartChannelString()) {
                 SetTreeListViewItemText(item, Col_StartChan, startStr);
             } else {
                 SetTreeListViewItemText(item, Col_StartChan, "*** " + model->ModelStartChannel);
@@ -1313,7 +1367,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
     }
 
     for (int x = 0; x < model->GetNumSubModels(); x++) {
-        AddModelToTree(model->GetSubModel(x), &item, false, x);
+        AddModelToTree(model->GetSubModel(x), &item, false, toExpand, x);
     }
 
     if( model->GetDisplayAs() == "ModelGroup" ) {
@@ -1326,14 +1380,14 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
             } else if (m == grp) {
                 logger_base.error("Model group contains itself. '%s'", (const char *)grp->GetName().c_str());
             } else {
-                AddModelToTree(m, &item, false, i, true);
+                AddModelToTree(m, &item, false, toExpand, i, true);
                 i++;
             }
         }
     }
-
-    if (expanded) TreeListViewModels->Expand(item);
-
+    if (expanded) {
+        toExpand.push_back(item);
+    }
     return 0;
 }
 
@@ -1352,10 +1406,21 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStopWatch sw;
 
+    std::list<std::string> expanded;
+    std::list<wxTreeListItem> toExpand;
+    if (full_refresh) {
+        // need to save the "expanded" state prior to freeze as freezing will disconnect the model from the view
+        // and the query will fail/always return false
+        wxTreeListItem item = TreeListViewModels->GetFirstChild(TreeListViewModels->GetRootItem());
+        while (item.IsOk()) {
+            if (TreeListViewModels->IsExpanded(item)) {
+                expanded.push_back(TreeListViewModels->GetItemText(item));
+            }
+            item = TreeListViewModels->GetNextSibling(item);
+        }
+    }
+    
     FreezeTreeListView();
-    unsigned sortcol;
-    bool ascending;
-    bool sorted = TreeListViewModels->GetSortColumn(&sortcol, &ascending);
 
     std::vector<Model *> dummy_models;
 
@@ -1380,34 +1445,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
 
     if (full_refresh) {
         UnSelectAllModels();
-
-        //turn off the sorting as that is ALSO really slow
-        TreeListViewModels->SetItemComparator(nullptr);
-        if (sorted) {
-            //UnsetAsSortKey may be unimplemented on all  platforms so we'll set a
-            //sort column to 0 which is faster due to straight string compare
-            TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
-        }
-
-        //delete all items will attempt to resort as each item is deleted, however, our Model pointers
-        //stored in the items may be invalid
-        wxTreeListItem child = TreeListViewModels->GetFirstItem();
-        std::list<std::string> expanded;
-        while (child.IsOk()) {
-            if (TreeListViewModels->IsExpanded(child)) {
-                expanded.push_back(TreeListViewModels->GetItemText(child));
-            }
-            TreeListViewModels->DeleteItem(child);
-            child = TreeListViewModels->GetFirstItem();
-        }
         TreeListViewModels->DeleteAllItems();
-        if (sorted) {
-            //UnsetAsSortKey may be unimplemented on all  platforms so we'll set a
-            //sort column to 0 which is faster due to straight string compare
-            TreeListViewModels->SetSortColumn(0, true);
-            //then turn it off again so platforms that DO support this can benefit
-            TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
-        }
 
         wxTreeListItem root = TreeListViewModels->GetRootItem();
         // add all the model groups
@@ -1417,7 +1455,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
                 if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
                     || (model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
                     bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
-                    AddModelToTree(model, &root, expand, 0);
+                    AddModelToTree(model, &root, expand, toExpand, 0);
                 }
             }
         }
@@ -1427,39 +1465,14 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             Model *model = it;
             if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
                 bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
-                AddModelToTree(model, &root, expand, 0);
+                AddModelToTree(model, &root, expand, toExpand, 0);
             }
         }
 
-        // Only set the column sizes the very first time we load it
-        if (_firstTreeLoad) {
-            _firstTreeLoad = false;
-
-            TreeListViewModels->SetColumnWidth(1, wxCOL_WIDTH_AUTOSIZE);
-            int width = TreeListViewModels->GetColumnWidth(1);
-            if (width < 20) {
-                width = TreeListViewModels->WidthFor(STARTCHANCOLNAME);
-            }
-            TreeListViewModels->SetColumnWidth(1, width);
-
-            TreeListViewModels->SetColumnWidth(2, wxCOL_WIDTH_AUTOSIZE);
-            width = TreeListViewModels->GetColumnWidth(2);
-            if (width < 20) {
-                width = TreeListViewModels->WidthFor(STARTCHANCOLNAME);
-            }
-            TreeListViewModels->SetColumnWidth(2, width);
-        }
-
-        //turn the sorting back on
-        TreeListViewModels->SetItemComparator(&comparator);
-        if (sorted) {
-            TreeListViewModels->SetSortColumn(sortcol, ascending);
-            TreeListViewModels->GetDataView()->GetModel()->Resort();
-        }
     }
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UpdateModelList");
 
-    ThawTreeListView();
+    ThawTreeListView(toExpand);
 
     if (sw.Time() > 500)
         logger_base.debug("        LayoutPanel::UpdateModelList took %lums", sw.Time());
@@ -1527,7 +1540,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                         }
                         if (m->DisplayAs == "SubModel") {
                             if (mark_selected) {
-                                prev_models.push_back(m);
+                              //  prev_models.push_back(m);  // setting this causes exception when prev_models render finds a submodel
                             }
                         }
                         else if (m->DisplayAs == "ModelGroup") {
@@ -2122,6 +2135,23 @@ void LayoutPanel::BulkEditControllerPreview()
     }
 }
 
+void LayoutPanel::BulkEditGroupControllerPreview() {
+    wxArrayString choices = Model::GetLayoutGroups(xlights->AllModels);
+    int sel = 0;
+    wxSingleChoiceDialog dlg(this, "Preview", "Preview", choices);
+    dlg.SetSelection(sel);
+    OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() == wxID_OK) {
+        for (const auto& item : selectedTreeGroups) {
+            Model* model = GetModelFromTreeItem(item);
+            model->SetLayoutGroup(dlg.GetStringSelection().ToStdString());
+        }
+        xlights->GetOutputModelManager()->ClearSelectedModel();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditGroupControllerPreview");
+        RenderLayout();
+    }
+}
+
 void LayoutPanel::CreateModelGroupFromSelected()
 {
     wxTextEntryDialog dlg(this, "Enter name for new group", "Enter name for new group");
@@ -2238,6 +2268,7 @@ void LayoutPanel::AddSelectedToExistingGroups() {
     bool reload = false;
 
     if (dlg.ShowModal() == wxID_OK) {
+        xlights->AbortRender();
         for (auto const& idx : dlg.GetSelections()) {
             std::string groupName = choices.at(idx).ToStdString();
 
@@ -2270,6 +2301,53 @@ void LayoutPanel::AddSelectedToExistingGroups() {
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::AddSelectedToExistingGroups");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::AddSelectedToExistingGroups");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::AddSelectedToExistingGroups", nullptr, nullptr, selectgroupName);
+        }
+    }
+}
+
+
+void LayoutPanel::RemoveSelectedFromExistingGroups() {
+
+    std::string selectedModel = this->selectedBaseObject->name;
+    Model* sourceModel = xlights->GetModel(selectedModel);
+    if (sourceModel != nullptr) {
+        auto inModelGroups = sourceModel->GetModelManager().GetGroupsContainingModel(sourceModel);
+        if (!inModelGroups.empty()) {
+            wxArrayString choices;
+            for (const auto& it : inModelGroups) {
+                choices.Add(it);
+            }
+            wxMultiChoiceDialog dlg(this, "Select groups to remove model from", "Model in Groups", choices);
+            OptimiseDialogPosition(&dlg);
+            
+            bool reload = false;
+            if (dlg.ShowModal() == wxID_OK) {
+                xlights->AbortRender();
+                for (auto const& idx : dlg.GetSelections()) {
+                    std::string groupName = choices.at(idx).ToStdString();
+                    Model* grp = xlights->GetModel(groupName);
+                    if (grp != nullptr) {
+                        wxXmlNode* node = grp->GetModelXml();
+                        wxArrayString models = wxSplit(node->GetAttribute("models", ""), ',');
+                        for (const auto& m : models) {
+                            if (m == selectedModel) {
+                                models.Remove(selectedModel);
+                                wxString xmlModels = wxJoin(models, ',');
+                                node->DeleteAttribute("models");
+                                node->AddAttribute("models", xmlModels);
+                                reload = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (reload) {
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::RemoveSelectedFromExistingGroups");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::RemoveSelectedFromExistingGroups");
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::RemoveSelectedFromExistingGroups", nullptr, nullptr, selectedModel);
+            }
         }
     }
 }
@@ -3664,10 +3742,26 @@ void LayoutPanel::FinalizeModel()
 
             // Models that support visitors don't use the ImportXlightsModel method
             // If there are import issues we need to try to fix them inside the XmlSerializer
+            // XmlSerializer::IsXmlSerializerFormat is not working as I expect here, the XML already has the type parameter removed
             if (!_newModel->SupportsVisitors() || !XmlSerializer::IsXmlSerializerFormat(_newModel->GetModelXml())) {
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import. " + _lastXlightsModel);
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Model type " + _newModel->GetDisplayAs());
-                _newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
+                bool success = _newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
+                if (!success) {
+                    _lastXlightsModel = "";
+                    xlights->GetOutputModelManager()->ClearSelectedModel();
+                    modelPreview->SetAdditionalModel(nullptr);
+                    if (_newModel != nullptr) {
+                        delete _newModel; // I am not sure this may cause issues ... but if we dont have it i think it leaks
+                        _newModel = nullptr;
+                    }
+                    modelPreview->SetCursor(wxCURSOR_DEFAULT);
+                    b->SetState(0);
+                    selectedButton = nullptr;
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "FinalizeModel");
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
+                    return;
+                }
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Import done.");
             }
 
@@ -4411,7 +4505,9 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         if (wi > 0 && ht > 0) {
             for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
                 if (modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected) {
-                    CreateUndoPoint("SingleModel", m->name, "location");
+                    if(!m->IsLocked()) {
+                        CreateUndoPoint("SingleModel", m->name, "location");
+                    }
                     modelPreview->GetModels()[i]->AddOffset(delta_x, delta_y, 0.0);
                     modelPreview->GetModels()[i]->UpdateXmlWithScale();
                     //SetupPropGrid(modelPreview->GetModels()[i]);
@@ -4544,6 +4640,9 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
                 break;
             }
         }
+        if (selectedTreeModels.size() == 1) {
+            menu.Append(ID_MNU_REMOVE_FROM_EXISTING_GROUPS, "Remove from Existing Groups");
+        }
         menu.Append(ID_PREVIEW_MODEL_CREATEGROUP, "Create Group");
         menu.AppendSeparator();
         menu.Append(ID_PREVIEW_FLIP_HORIZONTAL, "Flip Horizontal")->Enable(!selectedBaseObject->IsFromBase());
@@ -4655,15 +4754,14 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnu.Append(ID_PREVIEW_DISTRIBUTE, "Distribute", mnuDistribute, "");
         mnu.Append(ID_PREVIEW_RESIZE, "Resize", mnuResize, "");
         mnu.AppendSeparator();
-        
-        if (!is_3d) {
-            auto mg = GetSelectedModelGroup();
-            if (xlights->AllModels.IsModelValid(mg)) {
-                mnu.Append(ID_SET_CENTER_OFFSET, _("Set Center Offset Here"));
-                mnu.AppendSeparator();
-                m_previous_mouse_x = event.GetX();
-                m_previous_mouse_y = event.GetY();
-            }
+    }
+    if (!is_3d && selectedTreeGroups.size() == 1 && selectedTreeModels.size() == 0 && selectedTreeSubModels.size() == 0) {
+        auto mg = GetSelectedModelGroup();
+        if (xlights->AllModels.IsModelValid(mg)) {
+            mnu.Append(ID_SET_CENTER_OFFSET, _("Set Center Offset Here"));
+            mnu.AppendSeparator();
+            m_previous_mouse_x = event.GetX();
+            m_previous_mouse_y = event.GetY();
         }
     }
 
@@ -4919,6 +5017,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         CreateModelGroupFromSelected();
     } else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUPS) {
         AddSelectedToExistingGroups();
+    } else if (event.GetId() == ID_MNU_REMOVE_FROM_EXISTING_GROUPS) {
+        RemoveSelectedFromExistingGroups();
     } else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW) {
         ShowWiring();
     } else if (event.GetId() == ID_PREVIEW_MODEL_CAD_EXPORT) {
@@ -6324,7 +6424,7 @@ void LayoutPanel::Nudge(int key)
             static int repeats = 0;
             static int lastKey = 0;
 
-            if (wxGetUTCTimeMillis() - lastTime > 500 || key != lastKey)
+            if (wxGetUTCTimeMillis() - lastTime > 500 || key != lastKey || xlights->IsDisableKeyAcceleration())
             {
                 lastDelta = 1.0;
                 repeats = 0;
@@ -6777,8 +6877,6 @@ void LayoutPanel::DeleteSelectedGroups()
 		}
 	}
 
-	wxString const namesToDelete = wxJoin(groupsToDelete, ',');
-
 	if (wxMessageBox("Are you sure you want to delete the following group(s)?:\n\n" + groupsToConfirm, "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
 
 		CreateUndoPoint("All", wxJoin(groupsToDelete, ','));
@@ -6903,7 +7001,7 @@ void LayoutPanel::ReplaceModel()
         xlights->AllModels.RenameInListOnly(modelToReplaceItWith->GetName(), dlg.GetStringSelection().ToStdString());
         modelToReplaceItWith->Rename(dlg.GetStringSelection().ToStdString());
         xlights->AllModels.Delete("Iamgoingtodeletethismodel");
-        // xlights->ReplaceModelWithModelFixGroups(rmn, riw);           // no need to rename since replacing already has the original model name in groups
+        xlights->ReplaceModelWithModelFixGroups(rmn, riw);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ReplaceModel", nullptr, nullptr, dlg.GetStringSelection().ToStdString());
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ReplaceModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ReplaceModel");
@@ -7458,6 +7556,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         CreateModelGroupFromSelected();
     } else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUPS) {
         AddSelectedToExistingGroups();
+    } else if (event.GetId() == ID_MNU_REMOVE_FROM_EXISTING_GROUPS) {
+        RemoveSelectedFromExistingGroups();
     } else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW) {
         ShowWiring();
     } else if (event.GetId() == ID_PREVIEW_MODEL_CAD_EXPORT) {
@@ -7679,6 +7779,33 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
     } else if (id == ID_MNU_DELETE_MODEL_GROUP) {
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL_GROUP");
         DeleteSelectedGroups();
+    } else if (id == ID_MNU_DELETE_ALL_ALIASES) {
+        logger_base.debug("LayoutPanel::Popup DELETE_ALL_ALIASES");
+        if (wxMessageBox("This will remove aliases from *all* models, groups and submodels.\n Do you wish to continue?", "Delete all Aliases...", wxYES_NO, this) == wxYES) {
+            bool deleted = false;
+            bool rc = false;
+            for (const auto& m : xlights->AllModels) {
+                if (m.second->GetDisplayAs() == "ModelGroup") {
+                    ModelGroup* mg = dynamic_cast<ModelGroup*>(m.second);
+                    rc = mg->DeleteAllAliases();
+                    deleted = deleted || rc;
+                } else {
+                    Model* mm = dynamic_cast<Model*>(m.second);
+                    rc = mm->DeleteAllAliases();
+                    deleted = deleted || rc;
+                    for (auto sm : mm->GetSubModels()) {
+                        SubModel* s = dynamic_cast<SubModel*>(sm);
+                        if (s != nullptr) {
+                            rc = s->DeleteAllAliases();
+                            deleted = deleted || rc;
+                        }
+                    }
+                }
+            }
+            if (deleted) {
+                xlights->MarkEffectsFileDirty();
+            }
+        }
     } else if (id == ID_MNU_DELETE_EMPTY_MODEL_GROUPS) {
         logger_base.debug("LayoutPanel::OnModelsPopup DELETE_EMPTY_MODEL_GROUPS");
 
@@ -7836,8 +7963,9 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
     } else if (event.GetId() == ID_MNU_BULKEDIT_GROUP_TAGCOLOR) {
         BulkEditGroupTagColor();
-    }
-    else if (event.GetId() == ID_PREVIEW_FLIP_HORIZONTAL) {
+    } else if (event.GetId() == ID_MNU_BULKEDIT_GROUP_PREVIEW) {
+        BulkEditGroupControllerPreview();
+    } else if (event.GetId() == ID_PREVIEW_FLIP_HORIZONTAL) {
         if (editing_models) {
             PreviewModelFlipH();
         } else {
@@ -8384,17 +8512,11 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     if (selectedTreeGroups.size() == 0) {
         if (selectedTreeSubModels.size() == 0) {
             if (selectedTreeModels.size() == 1) {
-                ModelTreeData* data = (ModelTreeData*)TreeListViewModels->GetItemData(selectedTreeModels[0]);
-                Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
-                auto dm = mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Model");
-                if (model != nullptr) {
-                    dm->Enable(!model->IsLocked());
-                }
                 auto par = TreeListViewModels->GetItemParent(selectedTreeModels[0]);
                 if (par != TreeListViewModels->GetRootItem()) {
                     mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Model From Group");
+                    mnuContext.AppendSeparator();
                 }
-                mnuContext.AppendSeparator();
             }
             else 
             if (selectedTreeModels.size() > 1) {
@@ -8419,8 +8541,6 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                         allFromBase = allFromBase && model->IsFromBase();
                     }
                 }
-                auto dm = mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Models");
-                dm->Enable(!allLocked);
                 auto lm = mnuContext.Append(ID_PREVIEW_MODEL_LOCK, "Lock Models");
                 lm->Enable(!allLocked);
                 auto um = mnuContext.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock Models");
@@ -8431,6 +8551,9 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                 if (allSameParent && parent != TreeListViewModels->GetRootItem()) {
                     mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Group");
                 }
+                auto dm = mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Models");
+                dm->Enable(!allLocked);
+
                 mnuContext.AppendSeparator();
             }
         } else {
@@ -8452,6 +8575,12 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
 
     if (selectedTreeModels.size() == 1 && selectedTreeGroups.size() + selectedTreeSubModels.size() == 0) {
         AddSingleModelOptionsToBaseMenu(mnuContext);
+        ModelTreeData* data = (ModelTreeData*)TreeListViewModels->GetItemData(selectedTreeModels[0]);
+        Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
+        auto dm = mnuContext.Append(ID_MNU_DELETE_MODEL, "Delete Model");
+        if (model != nullptr) {
+            dm->Enable(!model->IsLocked());
+        }
         // Remove preview 'Create Group' option as it may be confusing with tree list 'Create Group from Selections'
         mnuContext.Remove(ID_PREVIEW_MODEL_CREATEGROUP);
         // Remove preview option 'Add to Existing Group' as it is added with the other group options below
@@ -8497,6 +8626,9 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                 break;
             }
         }
+        if (selectedTreeModels.size() == 1) {
+            mnuContext.Append(ID_MNU_REMOVE_FROM_EXISTING_GROUPS, "Remove from Existing Groups");
+        }
         mnuContext.Append(ID_PREVIEW_MODEL_CREATEGROUP, "Create Group from Selections");
     }
 
@@ -8518,9 +8650,12 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
 
     mnuContext.Append(ID_MNU_DELETE_EMPTY_MODEL_GROUPS, "Delete Empty Groups");
 
+    mnuContext.Append(ID_MNU_DELETE_ALL_ALIASES, "Delete All Aliases");
+
     if (selectedTreeGroups.size() > 1) {
         mnuContext.AppendSeparator();
         mnuContext.Append(ID_MNU_BULKEDIT_GROUP_TAGCOLOR, "Bulk Edit Tag Color");
+        mnuContext.Append(ID_MNU_BULKEDIT_GROUP_PREVIEW, "Bulk Edit Preview");
     }
 
     bool foundInvalid = false;
@@ -8761,7 +8896,7 @@ void LayoutPanel::HandleSelectionChanged() {
         logger_base.debug("        LayoutPanel::HandleSelectionChanged took %lums", sw.Time());
 }
 
-void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
+void LayoutPanel::ModelGroupUpdated(ModelGroup *grp) {
 
     if (grp == nullptr) return;
 
@@ -8770,80 +8905,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::ModelGroupUpdated");
 
     std::vector<Model *> models;
-    UpdateModelList(full_refresh, models);
-
-    // Not sure why this was here as I commented this out in older build and didn't notice any different,
-    // just commenting out for now in case I missed something as it was causing issues with tree selection
-    //UnSelectAllModels();
-
-    if (full_refresh) return;
-
-    FreezeTreeListView();
-
-    std::vector<Model *> modelsToAdd(models);
-
-    wxTreeListItem root = TreeListViewModels->GetRootItem();
-    std::vector<wxTreeListItem> toRemove;
-
-    for (wxTreeListItem item = TreeListViewModels->GetFirstItem(); item.IsOk(); item = TreeListViewModels->GetNextItem(item))
-    {
-        ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-        if (data != nullptr && data->GetModel() != nullptr) {
-            if (data->GetModel()->GetFullName() == grp->GetFullName())
-            {
-                bool expanded = TreeListViewModels->IsExpanded(item);
-                wxTreeListItem child = TreeListViewModels->GetFirstChild(item);
-                while (child.IsOk()) {
-                    TreeListViewModels->DeleteItem(child);
-                    child = TreeListViewModels->GetFirstChild(item);
-                }
-                int i = 0;
-                for (const auto& it : grp->ModelNames()) {
-                    Model *m = xlights->AllModels[it];
-                    if (m != nullptr) {
-                        if (currentLayoutGroup == "All Models" ||
-                            m->GetLayoutGroup() == currentLayoutGroup ||
-                            (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned"))
-                        {
-                            AddModelToTree(m, &item, false, i, true);
-                        }
-                        if (m->DisplayAs == "SubModel"
-                            && std::find(modelsToAdd.begin(), modelsToAdd.end(), m) != modelsToAdd.end()) {
-                            modelsToAdd.erase(std::find(modelsToAdd.begin(), modelsToAdd.end(), m));
-                        }
-                        i++;
-                    }
-                }
-                if (expanded) {
-                    TreeListViewModels->Expand(item);
-                }
-            }
-            else if (data->GetModel()->GetDisplayAs() != "ModelGroup"
-                && data->GetModel()->GetDisplayAs() != "SubModel") {
-                if (std::find(models.begin(), models.end(), data->GetModel()) == models.end()) {
-                    toRemove.push_back(item);
-                }
-            }
-            wxTreeListItem parent = TreeListViewModels->GetItemParent(item);
-            if (!parent.IsOk() || parent == root) {
-                //root item, see if we have this
-                if (std::find(modelsToAdd.begin(), modelsToAdd.end(), data->GetModel()) != modelsToAdd.end()) {
-                    modelsToAdd.erase(std::find(modelsToAdd.begin(), modelsToAdd.end(), data->GetModel()));
-                }
-            }
-        }
-    }
-
-    for (const auto& a : toRemove) {
-        TreeListViewModels->DeleteItem(a);
-    }
-
-    for (const auto& a : modelsToAdd) {
-        TreeListViewModels->GetRootItem();
-        AddModelToTree(a, &root, false, 0);
-    }
-
-    ThawTreeListView();
+    UpdateModelList(true, models);
 }
 
 CopyPasteBaseObject::~CopyPasteBaseObject()

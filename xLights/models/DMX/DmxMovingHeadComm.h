@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "DmxModel.h"
+#include "DmxShutterAbility.h"
 #include "../ModelManager.h"
 
 class DmxMotorBase;
@@ -26,8 +27,7 @@ enum DMX_FIXTURE {
     DMX_MOVING_HEAD_8
 };
 
-class DmxMovingHeadComm : public DmxModel
-{
+class DmxMovingHeadComm : public DmxModel, public DmxShutterAbility {
     public:
         DmxMovingHeadComm(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false) :
             DmxModel(node,manager,zeroBased)

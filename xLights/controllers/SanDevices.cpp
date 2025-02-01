@@ -134,7 +134,6 @@ wxInputStream *SimpleHTTP::GetInputStream(const wxString& path, wxString& startR
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     MyHTTPStream *inp_stream = nullptr;
-    wxString new_path;
 
     m_lastError = wxPROTO_CONNERR;  // all following returns share this type of error
     if (!m_addr) {

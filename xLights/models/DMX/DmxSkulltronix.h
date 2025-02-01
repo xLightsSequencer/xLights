@@ -53,7 +53,7 @@ class DmxSkulltronix : public DmxModel, public DmxPanTiltAbility
         virtual void InitModel() override;
 
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
         int nod_channel;
         int jaw_channel;

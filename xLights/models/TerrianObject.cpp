@@ -279,9 +279,7 @@ bool TerrianObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
                 (const char *)preview->GetName().c_str());
             wxImage image(_imageFile);
             if (image.IsOk()) {
-                xlTexture *t = ctx->createTexture(image);
-                t->SetName(GetName());
-                t->Finalize();
+                xlTexture *t = ctx->createTexture(image, GetName(), true);
                 _images[preview->GetName().ToStdString()] = t;
                 img_width = image.GetWidth();
                 img_height = image.GetHeight();

@@ -120,6 +120,7 @@ public:
     id<MTLComputePipelineState> adjustHSVFunction;
     id<MTLComputePipelineState> applySparklesFunction;
     id<MTLComputePipelineState> brightnessContrastFunction;
+    id<MTLComputePipelineState> brightnessLevelFunction;
     id<MTLComputePipelineState> firstLayerFadeFunction;
     id<MTLComputePipelineState> nonAlphaFadeFunction;
 

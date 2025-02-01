@@ -750,8 +750,6 @@ void MatrixFaceDownloadDialog::OnCheckBox_FilterUnsuitableClick(wxCommandEvent& 
 
 void MatrixFaceDownloadDialog::OnSearchCtrlFacesSearchClicked(wxCommandEvent& event)
 {
-    wxString const searchFor = SearchCtrlFaces->GetValue().Lower();
-
     // cant search if tree is empty
     if (TreeCtrl_Navigator->GetChildrenCount(TreeCtrl_Navigator->GetRootItem()) == 0) {
         wxBell();

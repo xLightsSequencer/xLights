@@ -28,7 +28,7 @@ public:
     IPOutput(wxXmlNode* node, bool isActive);
     IPOutput();
     IPOutput(const IPOutput& from);
-    virtual ~IPOutput() override {};
+    virtual ~IPOutput();
     virtual wxXmlNode* Save() override;
     #pragma endregion 
 
@@ -37,7 +37,7 @@ public:
     #pragma endregion 
 
     #pragma region Getters and Setters
-    virtual void SetIP(const std::string& ip, bool isActive) override;
+    virtual void SetIP(const std::string& ip, bool isActive, bool resolve = true) override;
 
     virtual bool IsIpOutput() const override { return true; }
     virtual bool IsSerialOutput() const override { return false; }

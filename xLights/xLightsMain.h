@@ -34,7 +34,6 @@
 #include <wx/menu.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
-#include <wx/splitter.h>
 #include <wx/stattext.h>
 #include <wx/timer.h>
 //*)
@@ -176,6 +175,8 @@ wxDECLARE_EVENT(EVT_SEQUENCE_FIRST_FRAME, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_LAST_FRAME, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_REWIND10, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_FFORWARD10, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SEQUENCE_NEXT_TAG, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SEQUENCE_PRIOR_TAG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_SEEKTO, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
@@ -384,6 +385,7 @@ public:
     wxString _userEmail;
     wxString _linkedSave = "None";
     wxString _linkedControllerUpload = "None";
+    wxString _aliasRenameBehavior = "Always Prompt";
     static wxString CurrentDir; //expose current folder name -DJ
     static wxString FseqDir; //expose current fseq name
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
@@ -430,7 +432,7 @@ public:
                              const std::string& source,
                              SequenceElements& seqEl,
                              bool eraseExisting);
-    void SaveWorking();
+    bool SaveWorking();
     void SaveWorkingLayout();
     void PlayerError(const wxString& msg);
     void AskCloseSequence();
@@ -440,6 +442,16 @@ public:
     void DoSetupWork();
     void DoLayoutWork();
     bool DoAllWork();
+
+    bool readOnlyMode = false;
+    void SetReadOnlyMode(bool mode) {
+    	readOnlyMode = mode;
+        UpdateReadOnlyState();
+	}
+    bool IsReadOnlyMode() const {
+		return readOnlyMode;
+	}
+    void UpdateReadOnlyState();
 
     EffectManager &GetEffectManager() { return effectManager; }
 
@@ -454,6 +466,7 @@ public:
     void SuspendRender(bool suspend) { _suspendRender = suspend; }
     bool IsRenderSuspended() const { return _suspendRender; }
     void SetPlaySpeedTo(float speed);
+    float GetPlaySpeed();
 
     //(*Handlers(xLightsFrame)
     void OnQuit(wxCommandEvent& event);
@@ -624,6 +637,10 @@ public:
     void OnCheckBox_AutoUpdateBaseClick(wxCommandEvent& event);
     void OnButton_UpdateBaseClick(wxCommandEvent& event);
     void ShowHideSelectEffectsWindow(wxCommandEvent& event);
+    void OnButtonFPPConnectClick(wxCommandEvent& event);
+    void OnButton_OpenBaseShowDirClick(wxCommandEvent& event);
+    void OnMenuItemFindShowFolderSelected(wxCommandEvent& event);
+    void OnMenuItemShiftEffectsAndTimingSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -642,201 +659,204 @@ private :
 public:
 
     //(*Identifiers(xLightsFrame)
-    static const long ID_AUITOOLBAR_OPENSHOW;
-    static const long ID_AUITOOLBAR_NEWSEQUENCE;
-    static const long ID_AUITOOLBAR_OPEN;
-    static const long ID_AUITOOLBAR_SAVE;
-    static const long ID_AUITOOLBAR_SAVEAS;
-    static const long ID_AUITOOLBAR_RENDERALL;
-    static const long ID_AUITOOLBAR_MAIN;
-    static const long ID_AUITOOLBAR_PLAY_NOW;
-    static const long ID_AUITOOLBAR_PAUSE;
-    static const long ID_AUITOOLBAR_STOP;
-    static const long ID_AUITOOLBAR_FIRST_FRAME;
-    static const long ID_AUITOOLBAR_LAST_FRAME;
-    static const long ID_AUITOOLBAR_REPLAY_SECTION;
-    static const long ID_CHECKBOX_LIGHT_OUTPUT;
-    static const long ID_AUITOOLBAR_PLAY;
-    static const long ID_AUITOOLBARITEM2;
-    static const long ID_AUITOOLBARITEM5;
-    static const long ID_AUITOOLBARITEM7;
-    static const long ID_AUITOOLBARITEM3;
-    static const long ID_TOGGLE_MODEL_PREVIEW;
-    static const long ID_TOGGLE_HOUSE_PREVIEW;
-    static const long ID_AUITOOLBARITEM6;
-    static const long ID_AUITOOLBARITEM8;
-    static const long ID_AUITOOLBARITEM9;
-    static const long ID_AUITOOLBARITEM10;
-    static const long ID_AUIWINDOWTOOLBAR;
-    static const long ID_PASTE_BY_TIME;
-    static const long ID_PASTE_BY_CELL;
-    static const long ID_AUITOOLBAR_EDIT;
-    static const long ID_AUITOOLBARITEM_ACDISABLED;
-    static const long ID_AUITOOLBARITEM_ACSELECT;
-    static const long ID_AUITOOLBARITEM_ACOFF;
-    static const long ID_AUITOOLBARITEM_ACON;
-    static const long ID_AUITOOLBARITEM_ACSHIMMER;
-    static const long ID_AUITOOLBARITEM_ACTWINKLE;
-    static const long ID_AUITOOLBARITEM_ACINTENSITY;
-    static const long ID_AUITOOLBARITEM_ACRAMPUP;
-    static const long ID_AUITOOLBARITEM_ACRAMPDOWN;
-    static const long ID_AUITOOLBARITEM_ACRAMPUPDOWN;
-    static const long ID_CHOICE_PARM1;
-    static const long ID_CHOICE_PARM2;
-    static const long ID_AUITOOLBARITEM_ACFILL;
-    static const long ID_AUITOOLBARITEM_ACCASCADE;
-    static const long ID_AUITOOLBARITEM_ACFOREGROUND;
-    static const long ID_AUITOOLBARITEM_ACBACKGROUND;
-    static const long ID_AUITOOLBAR_AC;
-    static const long ID_AUITOOLBARITEM14;
-    static const long ID_AUITOOLBAR_VIEW;
-    static const long ID_AUIEFFECTSTOOLBAR;
-    static const long ID_BUTTON3;
-    static const long ID_BUTTON11;
-    static const long ID_BUTTON13;
-    static const long ID_STATICTEXT4;
-    static const long ID_STATICTEXT2;
-    static const long ID_BUTTON14;
-    static const long ID_BUTTON15;
-    static const long ID_STATICTEXT3;
-    static const long ID_CHECKBOX1;
-    static const long ID_BUTTON16;
-    static const long ID_BUTTON_SAVE_SETUP;
-    static const long ID_BUTTON9;
-    static const long ID_BUTTON6;
-    static const long ID_BUTTON10;
-    static const long ID_BUTTON5;
-    static const long ID_BITMAPBUTTON1;
-    static const long ID_BITMAPBUTTON2;
-    static const long ID_PANEL2;
-    static const long ID_BUTTON1;
-    static const long ID_BUTTON2;
-    static const long ID_BUTTON4;
-    static const long ID_BUTTON7;
-    static const long ID_BUTTON12;
-    static const long ID_BUTTON8;
-    static const long ID_STATICTEXT1;
-    static const long ID_PANEL6;
-    static const long ID_SPLITTERWINDOW1;
-    static const long ID_PANEL_SETUP;
-    static const long ID_PANEL_PREVIEW;
-    static const long XLIGHTS_SEQUENCER_TAB;
-    static const long ID_NOTEBOOK1;
-    static const long ID_STATICTEXT6;
-    static const long ID_GAUGE1;
-    static const long ID_PANEL5;
-    static const long ID_STATICTEXT7;
-    static const long ID_PANEL1;
-    static const long ID_NEW_SEQUENCE;
-    static const long ID_OPEN_SEQUENCE;
-    static const long ID_MENUITEM4;
-    static const long ID_MENUITEM_OPENRECENTSEQUENCE;
-    static const long IS_SAVE_SEQ;
-    static const long ID_SAVE_AS_SEQUENCE;
-    static const long ID_CLOSE_SEQ;
-    static const long ID_SEQ_SETTINGS;
-    static const long ID_MNU_KEYBINDINGS;
-    static const long ID_EXPORT_VIDEO;
-    static const long ID_MENUITEM2;
-    static const long ID_MENUITEM8;
-    static const long ID_MENUITEM_RECENTFOLDERS;
-    static const long ID_FILE_BACKUP;
-    static const long ID_FILE_RESTOREBACKUP;
-    static const long ID_FILE_ALTBACKUP;
-    static const long ID_SHIFT_EFFECTS;
-    static const long ID_MNU_SHIFT_SELECTED_EFFECTS;
-    static const long ID_MNU_COLOURREPLACE;
-    static const long ID_MENUITEM13;
-    static const long ID_MNU_CHECKSEQ;
-    static const long ID_MNU_CLEANUPFILE;
-    static const long ID_MNU_PACKAGESEQUENCE;
-    static const long ID_MNU_DOWNLOADSEQUENCES;
-    static const long ID_MENU_BATCH_RENDER;
-    static const long ID_MENU_FPP_CONNECT;
-    static const long ID_MNU_BULKUPLOAD;
-    static const long ID_MENU_HINKSPIX_EXPORT;
-    static const long ID_MENU_RUN_SCRIPT;
-    static const long ID_EXPORT_MODELS;
-    static const long ID_MNU_EXPORT_EFFECTS;
-    static const long ID_MNU_EXPORT_CONTROLLER_CONNECTIONS;
-    static const long ID_MENU_VIEW_LOG;
-    static const long ID_MENUITEM18;
-    static const long iD_MNU_VENDORCACHEPURGE;
-    static const long ID_MNU_PURGERENDERCACHE;
-    static const long ID_MNU_CRASH;
-    static const long ID_MNU_DUMPRENDERSTATE;
-    static const long ID_MENU_GENERATE2DPATH;
-    static const long ID_MENUITEM_GenerateCustomModel;
-    static const long ID_MNU_REMAPCUSTOM;
-    static const long ID_MNU_GENERATELYRICS;
-    static const long ID_MENUITEM_CONVERT;
-    static const long ID_MNU_PREPAREAUDIO;
-    static const long ID_MENU_USER_DICT;
-    static const long ID_MNU_XSCHEDULE;
-    static const long ID_MENU_XCAPTURE;
-    static const long ID_MNU_XSCANNER;
-    static const long ID_MENUITEM5;
-    static const long MNU_ID_ACLIGHTS;
-    static const long ID_MNU_SHOWRAMPS;
-    static const long ID_MENUITEM_SAVE_PERSPECTIVE;
-    static const long ID_MENUITEM_SAVE_AS_PERSPECTIVE;
-    static const long ID_MENUITEM_LOAD_PERSPECTIVE;
-    static const long ID_MNU_PERSPECTIVES_AUTOSAVE;
-    static const long ID_MENUITEM7;
-    static const long ID_MENUITEM_DISPLAY_ELEMENTS;
-    static const long ID_MENU_TOGGLE_MODEL_PREVIEW;
-    static const long ID_MENU_TOGGLE_HOUSE_PREVIEW;
-    static const long ID_MENUITEM14;
-    static const long ID_MENUITEM15;
-    static const long ID_MENUITEM16;
-    static const long ID_MENUITEM9;
-    static const long ID_MENUITEM17;
-    static const long ID_MNU_VALUECURVES;
-    static const long ID_MNU_COLOURDROPPER;
-    static const long ID_MENUITEM_EFFECT_ASSIST_WINDOW;
-    static const long ID_MENUITEM_SELECT_EFFECT;
-    static const long ID_MENUITEM_SEARCH_EFFECTS;
-    static const long ID_MENUITEM_VIDEOPREVIEW;
-    static const long ID_MNU_JUKEBOX;
-    static const long ID_MNU_FINDDATA;
-    static const long ID_MNU_SUPPRESSDOCK_HP;
-    static const long ID_MNU_SUPPRESSDOCK_MP;
-    static const long ID_MENUITEM3;
-    static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
-    static const long ID_MENUITEM_WINDOWS_DOCKALL;
-    static const long ID_MENUITEM11;
-    static const long ID_MENUITEM10;
-    static const long ID_PLAY_FULL;
-    static const long ID_MNU_1POINT5SPEED;
-    static const long ID_MN_2SPEED;
-    static const long ID_MNU_3SPEED;
-    static const long ID_MNU_4SPEED;
-    static const long ID_PLAY_3_4;
-    static const long ID_PLAY_1_2;
-    static const long ID_PLAY_1_4;
-    static const long ID_MNU_LOUDVOLUME;
-    static const long ID_MNU_MEDVOLUME;
-    static const long ID_MNU_QUIET;
-    static const long ID_MNU_SUPERQUIET;
-    static const long ID_MNU_SILENT;
-    static const long ID_IMPORT_EFFECTS;
-    static const long ID_MNU_TOD;
-    static const long ID_MNU_MANUAL;
-    static const long ID_MNU_ZOOM;
-    static const long ID_MENUITEM1;
-    static const long idMenuHelpContent;
-    static const long ID_MENU_HELP_FORMUM;
-    static const long ID_MNU_VIDEOS;
-    static const long ID_MENU_HELP_DOWNLOAD;
-    static const long ID_MNU_HELP_RELEASE_NOTES;
-    static const long ID_MENU_HELP_ISSUE;
-    static const long ID_MENU_HELP_FACEBOOK;
-    static const long ID_MNU_DONATE;
-    static const long ID_MNU_UPDATE;
-    static const long ID_TIMER_OutputTimer;
-    static const long ID_TIMER_AutoSave;
-    static const long ID_TIMER_EFFECT_SETTINGS;
-    static const long ID_TIMER_RENDERSTATUS;
+    static const wxWindowID ID_AUITOOLBAR_OPENSHOW;
+    static const wxWindowID ID_AUITOOLBAR_NEWSEQUENCE;
+    static const wxWindowID ID_AUITOOLBAR_OPEN;
+    static const wxWindowID ID_AUITOOLBAR_SAVE;
+    static const wxWindowID ID_AUITOOLBAR_SAVEAS;
+    static const wxWindowID ID_AUITOOLBAR_RENDERALL;
+    static const wxWindowID ID_AUITOOLBAR_MAIN;
+    static const wxWindowID ID_AUITOOLBAR_PLAY_NOW;
+    static const wxWindowID ID_AUITOOLBAR_PAUSE;
+    static const wxWindowID ID_AUITOOLBAR_STOP;
+    static const wxWindowID ID_AUITOOLBAR_FIRST_FRAME;
+    static const wxWindowID ID_AUITOOLBAR_LAST_FRAME;
+    static const wxWindowID ID_AUITOOLBAR_REPLAY_SECTION;
+    static const wxWindowID ID_CHECKBOX_LIGHT_OUTPUT;
+    static const wxWindowID ID_AUITOOLBAR_PLAY;
+    static const wxWindowID ID_AUITOOLBARITEM2;
+    static const wxWindowID ID_AUITOOLBARITEM5;
+    static const wxWindowID ID_AUITOOLBARITEM7;
+    static const wxWindowID ID_AUITOOLBARITEM3;
+    static const wxWindowID ID_TOGGLE_MODEL_PREVIEW;
+    static const wxWindowID ID_TOGGLE_HOUSE_PREVIEW;
+    static const wxWindowID ID_AUITOOLBARITEM6;
+    static const wxWindowID ID_AUITOOLBARITEM8;
+    static const wxWindowID ID_AUITOOLBARITEM9;
+    static const wxWindowID ID_AUITOOLBARITEM10;
+    static const wxWindowID ID_AUIWINDOWTOOLBAR;
+    static const wxWindowID ID_PASTE_BY_TIME;
+    static const wxWindowID ID_PASTE_BY_CELL;
+    static const wxWindowID ID_AUITOOLBAR_EDIT;
+    static const wxWindowID ID_AUITOOLBARITEM_ACDISABLED;
+    static const wxWindowID ID_AUITOOLBARITEM_ACSELECT;
+    static const wxWindowID ID_AUITOOLBARITEM_ACOFF;
+    static const wxWindowID ID_AUITOOLBARITEM_ACON;
+    static const wxWindowID ID_AUITOOLBARITEM_ACSHIMMER;
+    static const wxWindowID ID_AUITOOLBARITEM_ACTWINKLE;
+    static const wxWindowID ID_AUITOOLBARITEM_ACINTENSITY;
+    static const wxWindowID ID_AUITOOLBARITEM_ACRAMPUP;
+    static const wxWindowID ID_AUITOOLBARITEM_ACRAMPDOWN;
+    static const wxWindowID ID_AUITOOLBARITEM_ACRAMPUPDOWN;
+    static const wxWindowID ID_CHOICE_PARM1;
+    static const wxWindowID ID_CHOICE_PARM2;
+    static const wxWindowID ID_AUITOOLBARITEM_ACFILL;
+    static const wxWindowID ID_AUITOOLBARITEM_ACCASCADE;
+    static const wxWindowID ID_AUITOOLBARITEM_ACFOREGROUND;
+    static const wxWindowID ID_AUITOOLBARITEM_ACBACKGROUND;
+    static const wxWindowID ID_AUITOOLBAR_AC;
+    static const wxWindowID ID_AUITOOLBARITEM14;
+    static const wxWindowID ID_AUITOOLBAR_VIEW;
+    static const wxWindowID ID_AUIEFFECTSTOOLBAR;
+    static const wxWindowID ID_BUTTON3;
+    static const wxWindowID ID_BUTTON11;
+    static const wxWindowID ID_BUTTON13;
+    static const wxWindowID ID_STATICTEXT4;
+    static const wxWindowID ID_STATICTEXT2;
+    static const wxWindowID ID_BUTTON14;
+    static const wxWindowID ID_BUTTON17;
+    static const wxWindowID ID_BUTTON15;
+    static const wxWindowID ID_STATICTEXT3;
+    static const wxWindowID ID_CHECKBOX1;
+    static const wxWindowID ID_BUTTON16;
+    static const wxWindowID ID_BUTTON_SAVE_SETUP;
+    static const wxWindowID ID_BUTTON9;
+    static const wxWindowID ID_BUTTON6;
+    static const wxWindowID ID_BUTTON10;
+    static const wxWindowID ID_BUTTON5;
+    static const wxWindowID ID_BUTTON18;
+    static const wxWindowID ID_BITMAPBUTTON1;
+    static const wxWindowID ID_BITMAPBUTTON2;
+    static const wxWindowID ID_PANEL2;
+    static const wxWindowID ID_BUTTON1;
+    static const wxWindowID ID_BUTTON2;
+    static const wxWindowID ID_BUTTON7;
+    static const wxWindowID ID_STATICTEXT1;
+    static const wxWindowID ID_BUTTON8;
+    static const wxWindowID ID_BUTTON4;
+    static const wxWindowID ID_BUTTON12;
+    static const wxWindowID ID_PANEL3;
+    static const wxWindowID ID_PANEL_SETUP;
+    static const wxWindowID ID_PANEL_PREVIEW;
+    static const wxWindowID XLIGHTS_SEQUENCER_TAB;
+    static const wxWindowID ID_NOTEBOOK1;
+    static const wxWindowID ID_STATICTEXT6;
+    static const wxWindowID ID_GAUGE1;
+    static const wxWindowID ID_PANEL5;
+    static const wxWindowID ID_STATICTEXT7;
+    static const wxWindowID ID_PANEL1;
+    static const wxWindowID ID_NEW_SEQUENCE;
+    static const wxWindowID ID_OPEN_SEQUENCE;
+    static const wxWindowID ID_MENUITEM4;
+    static const wxWindowID ID_MENUITEM_OPENRECENTSEQUENCE;
+    static const wxWindowID IS_SAVE_SEQ;
+    static const wxWindowID ID_SAVE_AS_SEQUENCE;
+    static const wxWindowID ID_CLOSE_SEQ;
+    static const wxWindowID ID_SEQ_SETTINGS;
+    static const wxWindowID ID_MNU_KEYBINDINGS;
+    static const wxWindowID ID_EXPORT_VIDEO;
+    static const wxWindowID ID_MENUITEM2;
+    static const wxWindowID ID_MENUITEM8;
+    static const wxWindowID ID_MENUITEM_RECENTFOLDERS;
+    static const wxWindowID ID_FILE_BACKUP;
+    static const wxWindowID ID_FILE_RESTOREBACKUP;
+    static const wxWindowID ID_FILE_ALTBACKUP;
+    static const wxWindowID ID_SHIFT_EFFECTS_AND_TIMING;
+    static const wxWindowID ID_SHIFT_EFFECTS;
+    static const wxWindowID ID_MNU_SHIFT_SELECTED_EFFECTS;
+    static const wxWindowID ID_MNU_COLOURREPLACE;
+    static const wxWindowID ID_MENUITEM13;
+    static const wxWindowID ID_MNU_CHECKSEQ;
+    static const wxWindowID ID_MNU_CLEANUPFILE;
+    static const wxWindowID ID_MNU_PACKAGESEQUENCE;
+    static const wxWindowID ID_MNU_DOWNLOADSEQUENCES;
+    static const wxWindowID ID_MENU_BATCH_RENDER;
+    static const wxWindowID ID_MENU_FPP_CONNECT;
+    static const wxWindowID ID_MNU_BULKUPLOAD;
+    static const wxWindowID ID_MENU_HINKSPIX_EXPORT;
+    static const wxWindowID ID_MENU_RUN_SCRIPT;
+    static const wxWindowID ID_EXPORT_MODELS;
+    static const wxWindowID ID_MNU_EXPORT_EFFECTS;
+    static const wxWindowID ID_MNU_EXPORT_CONTROLLER_CONNECTIONS;
+    static const wxWindowID ID_MENU_VIEW_LOG;
+    static const wxWindowID ID_MENUITEM18;
+    static const wxWindowID iD_MNU_VENDORCACHEPURGE;
+    static const wxWindowID ID_MNU_PURGERENDERCACHE;
+    static const wxWindowID ID_MNU_CRASH;
+    static const wxWindowID ID_MNU_DUMPRENDERSTATE;
+    static const wxWindowID ID_MENU_GENERATE2DPATH;
+    static const wxWindowID ID_MENUITEM_GenerateCustomModel;
+    static const wxWindowID ID_MNU_REMAPCUSTOM;
+    static const wxWindowID ID_MNU_GENERATELYRICS;
+    static const wxWindowID ID_MENUITEM_CONVERT;
+    static const wxWindowID ID_MNU_PREPAREAUDIO;
+    static const wxWindowID ID_MENU_USER_DICT;
+    static const wxWindowID ID_MENU_FIND_SHOW_FOLDER;
+    static const wxWindowID ID_MNU_XSCHEDULE;
+    static const wxWindowID ID_MENU_XCAPTURE;
+    static const wxWindowID ID_MNU_XSCANNER;
+    static const wxWindowID ID_MENUITEM5;
+    static const wxWindowID MNU_ID_ACLIGHTS;
+    static const wxWindowID ID_MNU_SHOWRAMPS;
+    static const wxWindowID ID_MENUITEM_SAVE_PERSPECTIVE;
+    static const wxWindowID ID_MENUITEM_SAVE_AS_PERSPECTIVE;
+    static const wxWindowID ID_MENUITEM_LOAD_PERSPECTIVE;
+    static const wxWindowID ID_MNU_PERSPECTIVES_AUTOSAVE;
+    static const wxWindowID ID_MENUITEM7;
+    static const wxWindowID ID_MENUITEM_DISPLAY_ELEMENTS;
+    static const wxWindowID ID_MENU_TOGGLE_MODEL_PREVIEW;
+    static const wxWindowID ID_MENU_TOGGLE_HOUSE_PREVIEW;
+    static const wxWindowID ID_MENUITEM14;
+    static const wxWindowID ID_MENUITEM15;
+    static const wxWindowID ID_MENUITEM16;
+    static const wxWindowID ID_MENUITEM9;
+    static const wxWindowID ID_MENUITEM17;
+    static const wxWindowID ID_MNU_VALUECURVES;
+    static const wxWindowID ID_MNU_COLOURDROPPER;
+    static const wxWindowID ID_MENUITEM_EFFECT_ASSIST_WINDOW;
+    static const wxWindowID ID_MENUITEM_SELECT_EFFECT;
+    static const wxWindowID ID_MENUITEM_SEARCH_EFFECTS;
+    static const wxWindowID ID_MENUITEM_VIDEOPREVIEW;
+    static const wxWindowID ID_MNU_JUKEBOX;
+    static const wxWindowID ID_MNU_FINDDATA;
+    static const wxWindowID ID_MNU_SUPPRESSDOCK_HP;
+    static const wxWindowID ID_MNU_SUPPRESSDOCK_MP;
+    static const wxWindowID ID_MENUITEM3;
+    static const wxWindowID ID_MENUITEM_WINDOWS_PERSPECTIVE;
+    static const wxWindowID ID_MENUITEM_WINDOWS_DOCKALL;
+    static const wxWindowID ID_MENUITEM11;
+    static const wxWindowID ID_MENUITEM10;
+    static const wxWindowID ID_PLAY_FULL;
+    static const wxWindowID ID_MNU_1POINT5SPEED;
+    static const wxWindowID ID_MN_2SPEED;
+    static const wxWindowID ID_MNU_3SPEED;
+    static const wxWindowID ID_MNU_4SPEED;
+    static const wxWindowID ID_PLAY_3_4;
+    static const wxWindowID ID_PLAY_1_2;
+    static const wxWindowID ID_PLAY_1_4;
+    static const wxWindowID ID_MNU_LOUDVOLUME;
+    static const wxWindowID ID_MNU_MEDVOLUME;
+    static const wxWindowID ID_MNU_QUIET;
+    static const wxWindowID ID_MNU_SUPERQUIET;
+    static const wxWindowID ID_MNU_SILENT;
+    static const wxWindowID ID_IMPORT_EFFECTS;
+    static const wxWindowID ID_MNU_TOD;
+    static const wxWindowID ID_MNU_MANUAL;
+    static const wxWindowID ID_MNU_ZOOM;
+    static const wxWindowID ID_MENUITEM1;
+    static const wxWindowID idMenuHelpContent;
+    static const wxWindowID ID_MENU_HELP_FORMUM;
+    static const wxWindowID ID_MNU_VIDEOS;
+    static const wxWindowID ID_MENU_HELP_DOWNLOAD;
+    static const wxWindowID ID_MNU_HELP_RELEASE_NOTES;
+    static const wxWindowID ID_MENU_HELP_ISSUE;
+    static const wxWindowID ID_MENU_HELP_FACEBOOK;
+    static const wxWindowID ID_MNU_DONATE;
+    static const wxWindowID ID_MNU_UPDATE;
+    static const wxWindowID ID_TIMER_OutputTimer;
+    static const wxWindowID ID_TIMER_AutoSave;
+    static const wxWindowID ID_TIMER_EFFECT_SETTINGS;
+    static const wxWindowID ID_TIMER_RENDERSTATUS;
     //*)
 
     static const long ID_PANEL_EFFECTS1;
@@ -866,21 +886,25 @@ public:
     wxButton* ButtonAddControllerSerial;
     wxButton* ButtonControllerDelete;
     wxButton* ButtonDiscover;
+    wxButton* ButtonFPPConnect;
     wxButton* ButtonOpen;
     wxButton* ButtonSaveSetup;
     wxButton* ButtonUploadInput;
     wxButton* ButtonUploadOutput;
     wxButton* ButtonVisualise;
     wxButton* Button_ChangeBaseShowDir;
+    wxButton* Button_ChangeShowDirPermanently;
     wxButton* Button_ChangeTemporarilyAgain;
     wxButton* Button_CheckShowFolderTemporarily;
     wxButton* Button_ClearBaseShowDir;
+    wxButton* Button_OpenBaseShowDir;
     wxButton* Button_OpenProxy;
     wxButton* Button_UpdateBase;
     wxCheckBox* CheckBox_AutoUpdateBase;
     wxChoice* ChoiceParm1;
     wxChoice* ChoiceParm2;
     wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizerSetup;
     wxFlexGridSizer* FlexGridSizerSetupControllerButtons;
     wxFlexGridSizer* FlexGridSizerSetupControllers;
@@ -924,6 +948,7 @@ public:
     wxMenuItem* MenuItemEffectDropper;
     wxMenuItem* MenuItemEffectSettings;
     wxMenuItem* MenuItemFindData;
+    wxMenuItem* MenuItemFindShowFolder;
     wxMenuItem* MenuItemHinksPixExport;
     wxMenuItem* MenuItemHousePreview;
     wxMenuItem* MenuItemJukebox;
@@ -936,6 +961,7 @@ public:
     wxMenuItem* MenuItemSearchEffects;
     wxMenuItem* MenuItemSelectEffect;
     wxMenuItem* MenuItemShiftEffects;
+    wxMenuItem* MenuItemShiftEffectsAndTiming;
     wxMenuItem* MenuItemShiftSelectedEffects;
     wxMenuItem* MenuItemUserDict;
     wxMenuItem* MenuItemValueCurves;
@@ -1003,7 +1029,6 @@ public:
     wxPanel* PanelPreview;
     wxPanel* PanelSequencer;
     wxPanel* PanelSetup;
-    wxSplitterWindow* SplitterWindowControllers;
     wxStaticBoxSizer* StaticBoxSizer1;
     wxStaticText* FileNameText;
     wxStaticText* ShowDirectoryLabel;
@@ -1084,6 +1109,7 @@ public:
     bool _autoShowHousePreview = false;
     bool _zoomMethodToCursor = true;
     bool _hidePresetPreview = false;
+    bool _disableKeyAcceleration = false;
     bool _smallWaveform = false;
     bool _modelBlendDefaultOff = true;
     bool _lowDefinitionRender = false;
@@ -1158,6 +1184,9 @@ public:
     bool GridIconBackgrounds() const { return mGridIconBackgrounds;}
     void SetGridIconBackgrounds(bool b);
 
+    bool ShowGroupEffectIndicator() const { return mShowGroupEffectIndicator;}
+    void SetShowGroupEffectIndicator(bool b);
+
     bool SmallWaveform() const { return _smallWaveform; }
     void SetSmallWaveform(bool b);
 
@@ -1203,6 +1232,9 @@ public:
 
     const wxString& GetLinkedControllerUpload() const { return _linkedControllerUpload; }
     void SetLinkedControllerUpload(const wxString& e);
+    
+    const wxString& GetRenameModelAliasPromptBehavior() const { return _aliasRenameBehavior; }
+    void SetRenameModelAliasPromptBehavior(const wxString& e);
 
     int SaveFSEQVersion() const { return _fseqVersion; }
     void SetSaveFSEQVersion(int i) { _fseqVersion = i; }
@@ -1261,8 +1293,10 @@ public:
     int AutoSaveInterval() const { return mAutoSaveInterval; }
     void SetAutoSaveInterval(int i);
 
+    bool IsDisableKeyAcceleration() const { return _disableKeyAcceleration; }
+    void SetDisableKeyAcceleration(bool b);
+
     bool IsSuppressFadeHints() const { return mSuppressFadeHints; }
-    bool SuppressFadeHints() const { return mSuppressFadeHints; }
     void SetSuppressFadeHints(bool b);
 
     bool IsSuppressColorWarn() const { return mSuppressColorWarn; }
@@ -1290,9 +1324,11 @@ public:
     int EffectAssistMode() const { return mEffectAssistMode;}
     void SetEffectAssistMode(int i);
 
-    int GetModelHandleScale() const { return _modelHandleSize; }
-    int ModelHandleSize() const { return _modelHandleSize;}
+    int GetModelHandleSize() const { return _modelHandleSize; }
     void SetModelHandleSize(int i);
+
+    int GetCrosshairSize() const { return _crosshairSize; }
+    void SetCrosshairSize(int i);
 
     const wxArrayString &RandomEffectsToUse() const { return _randomEffectsToUse;}
     void SetRandomEffectsToUse(const wxArrayString &e);
@@ -1370,7 +1406,8 @@ public:
     void UpdateFromBaseShowFolder(bool prompt);
     void UpdateRecentFilesList(bool reload);
     void AddToMRU(const std::string& filename);
-    bool PromptForShowDirectory(bool permanent);
+    bool PromptForShowDirectory(bool permanent, const std::string &defaultDir = "");
+    bool PromptForDirectorySelection(const std::string &msg, std::string &dir);
     bool SaveNetworksFile();
     bool IsControllersAndLayoutTabSaveLinked() { return _linkedSave == "Controllers and Layout Tab"; }
     bool IsControllerUploadLinked() { return _linkedControllerUpload == "Inputs and Outputs"; }
@@ -1557,6 +1594,9 @@ public:
     wxXmlNode* ViewObjectsNode = nullptr;
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
     void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
+    void OpenSequence(const wxString& passed_filename) {
+     OpenSequence(passed_filename, nullptr); 
+    }
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();
@@ -1590,6 +1630,7 @@ private:
     int mIconSize;
     int mGridSpacing;
     bool mGridIconBackgrounds;
+    bool mShowGroupEffectIndicator = true;
     bool mTimingPlayOnDClick;
     bool mGridNodeValues;
     int mEffectAssistMode = 0;
@@ -1598,6 +1639,7 @@ private:
     int abortedRenderJobs = 0;
     bool mSaveFseqOnSave;
     int _modelHandleSize = 1;
+    int _crosshairSize = 1;
 
     class RenderTree {
     public:
@@ -1617,8 +1659,9 @@ private:
     Model *playModel;
     int playType;
     int playStartMS;
-    std::list<FPSEvent> fpsEvents;
-    float _fps;
+    std::vector<std::list<FPSEvent>> fpsEvents;
+    std::vector<float> _fps;
+    int playCurFrame = -1;
     int playStartTime;
     int playOffsetTime;
     int playEndTime;
@@ -1691,6 +1734,9 @@ public:
     }
     void ShowDataFindPanel();
 
+    static xLightsFrame *GetFrame();
+    void CallOnEffectBeforeSelected(std::function<bool(Effect *)> &&cb);
+    void CallOnEffectAfterSelected(std::function<bool(Effect *)> &&cb);
 private:
 
     int _acParm1Intensity;
@@ -1773,6 +1819,8 @@ private:
     void SequenceRewind10(wxCommandEvent& event);
     void SequenceFForward10(wxCommandEvent& event);
     void SequenceSeekTo(wxCommandEvent& event);
+    void SequencePriorTag(wxCommandEvent& event);
+    void SequenceNextTag(wxCommandEvent& event);
     void SequenceReplaySection(wxCommandEvent& event);
     void TogglePlay(wxCommandEvent& event);
     void ExportModel(wxCommandEvent& event);
@@ -1840,6 +1888,7 @@ private:
     static const long ID_NETWORK_UNLINKFROMBASE;
     static const long ID_NETWORK_INACTIVE;
     static const long ID_NETWORK_DELETE;
+    static const long ID_NETWORK_UPLOADOUTPUT;
 
     #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 
@@ -1870,10 +1919,11 @@ public:
     MainSequencer* GetMainSequencer() const { return mainSequencer; }
     wxString GetSeqXmlFileName();
 
-    std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory);
+    std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory, const bool reuse = false);
     bool IsInShowFolder(const std::string & file) const;
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
     ColorPanel* GetColorPanel() const { return colorPanel; }
+    JukeboxPanel* GetJukeboxPanel() const { return jukeboxPanel; }
 
     std::string GetEffectTextFromWindows(std::string &palette) const;
     void ValidatePanels();

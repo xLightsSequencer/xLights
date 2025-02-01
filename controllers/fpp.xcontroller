@@ -44,6 +44,7 @@
         <SupportsDefaultBrightness/>
         <SupportsDefaultGamma/>
         <PreferredInputProtocol>DDP</PreferredInputProtocol>
+		<PreferredState>xLights Only</PreferredState>
         <ConfigDriver>FPP</ConfigDriver>
 		<FPS40Pixels>800</FPS40Pixels>
 		<FPS40Pixels_SR>720</FPS40Pixels_SR>
@@ -189,7 +190,7 @@
             </SerialProtocols>
         </Variant>
     </Controller>
-    <Controller Name="Pi4 Virtual Matrix">
+    <Controller Name="Pi4/Pi5 Virtual Matrix">
         <Variant Name="" ID="Pi4 Virtual Matrix" Base="FPP:BaseFPPSettings">
             <MaxPixelPort>0</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
@@ -210,6 +211,9 @@
                 <Protocol>Pixelnet-Open</Protocol>
                 <Protocol>Renard</Protocol>
             </SerialProtocols>
+            <AltNames>
+                <AltName>Pi4 Virtual Matrix</AltName>
+            </AltNames>
         </Variant>
     </Controller>
     <Controller Name="Pi Hat">

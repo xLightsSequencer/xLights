@@ -89,6 +89,18 @@ static std::set<std::string> FPP_VIDEO_EXT = {
     "mpg", "MPG", "mpeg", "MPEG"
 };
 
+struct FPPDInfo {
+    std::string hostname;
+    std::string ip;
+    std::string uuid;
+
+    bool operator<(const FPPDInfo& other) const {
+        // Custom comparison operator for uniqueness and sorting
+        return std::tie(hostname, ip, uuid) <
+               std::tie(other.hostname, other.ip, other.uuid);
+    }
+};
+std::set<FPPDInfo> fppDiscInfo;
 
 FPP::FPP(const std::string& ad) :
     BaseController(ad, ""), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), fppType(FPP_TYPE::FPP) {
@@ -308,13 +320,13 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
     }
     return response_code == 200;
 }
-int FPP::PostToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType) {
+int FPP::PostToURL(const std::string& url, const std::vector<uint8_t>& val, const std::string& contentType) const {
     return TransferToURL(url, val, contentType, true);
 }
-int FPP::PutToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType) {
+int FPP::PutToURL(const std::string& url, const std::vector<uint8_t>& val, const std::string& contentType) const {
     return TransferToURL(url, val, contentType, false);
 }
-int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t> &val, const std::string &contentType, bool isPost) {
+int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t>& val, const std::string& contentType, bool isPost) const {
 
     std::string fullUrl = ipAddress + url;
     std::string ipAddForGet = ipAddress;
@@ -615,8 +627,7 @@ int FPP::PostJSONToURLAsFormData(const std::string& url, const std::string &extr
     return PostToURL(url, memBuffPost, "application/x-www-form-urlencoded; charset=UTF-8");
 }
 
-void FPP::DumpJSON(const wxJSONValue& json)
-{
+void FPP::DumpJSON(const wxJSONValue& json) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString str;
     wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
@@ -624,12 +635,12 @@ void FPP::DumpJSON(const wxJSONValue& json)
     logger_base.debug(ToUTF8(str));
 }
 
-int FPP::PostToURL(const std::string& url, const std::string &val, const std::string &contentType) {
+int FPP::PostToURL(const std::string& url, const std::string& val, const std::string& contentType) const {
     std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, val);
     return PostToURL(url, memBuffPost, contentType);
 }
-int FPP::PutToURL(const std::string& url, const std::string &val, const std::string &contentType) {
+int FPP::PutToURL(const std::string& url, const std::string& val, const std::string& contentType) const {
     std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, val);
     return PutToURL(url, memBuffPost, contentType);
@@ -767,8 +778,10 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
                     logger_base.debug("Renaming done.");
                 }
             }
+            logger_base.debug(utfFilename + " upload complete to " + this->hostName + " (" + this->ipAddress + "). Bytes sent:" + std::to_string(data->totalWritten) + ".");
         } else {
             messages.push_back("ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code));
+            faileduploads.push_back(filename);
             logger_base.warn("Did not get 200 response code:  %d", response_code);
         }
         
@@ -829,7 +842,8 @@ int progress_callback(void *clientp,
 
 void prepareCurlForMulti(V7ProgressStruct *ps) {
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     constexpr uint64_t BLOCK_SIZE = 16*1024*1024;
     CurlManager::CurlPrivateData *cpd = nullptr;
     CURL *curl = CurlManager::INSTANCE.createCurl(ps->fullUrl, &cpd, true);
@@ -858,6 +872,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
     if (read != remaining) {
         logger_curl.info("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
         ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
+        ps->instance->faileduploads.push_back(ps->filename);
     }
     std::string contentSizeHeader = "Content-Length: " + std::to_string(remaining);
     headers = curl_slist_append(headers, contentSizeHeader.c_str());
@@ -887,6 +902,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
             ++ps->errorCount;
         } else if (response_code != 200) {
             ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + ". Response code: " + std::to_string(response_code));
+            ps->instance->faileduploads.push_back(ps->filename);
             cancelled = true;
         } else {
             ps->offset += remaining;
@@ -894,6 +910,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
         uint64_t pct = (ps->offset * 1000) / ps->length;
         cancelled |= ps->instance->updateProgress(pct, false);
         if (cancelled || ps->offset >= ps->length) {
+            logger_base.debug(ps->filename + " upload complete to " + ps->instance->hostName + " (" + ps->instance->ipAddress + "). Bytes sent:" + std::to_string(ps->length) + ".");
             delete ps;
         } else {
             prepareCurlForMulti(ps);
@@ -1350,7 +1367,7 @@ bool FPP::UploadUDPOut(const wxJSONValue &udp) {
             }
         }
     }
-    PostJSONToURL("/api/channel/output/universeOutputs", newudp);    
+    PostJSONToURL("/api/channel/output/universeOutputs", newudp);
     return false;
 }
 
@@ -1365,7 +1382,6 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
             continue;
         }
 
-        wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
         int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
         if (ch < startChan || ch > endChannel) {
             continue;
@@ -1391,6 +1407,7 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
         jm["ChannelCount"] = model->GetActChanCount();
         jm["StartChannel"] = ch;
         jm["ChannelCountPerNode"] = model->GetChanCountPerNode();
+        jm["xLights"] = true;
 
         MatrixModel *mm = dynamic_cast<MatrixModel*>(model);
         if (mm) {
@@ -1440,9 +1457,19 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
                 }
             }
 
-            if (ogModels->Item(i).HasMember("StartChannel") && ogModels->Item(i)["StartChannel"].IsInt32()) {
-                auto ogStartChan = ogModels->Item(i)["StartChannel"].AsInt32();
-                if (ogStartChan < startChan || ogStartChan > endChannel ) {
+            if (!IsVersionAtLeast(8, 0)) {
+                //I don't think this works
+                if (ogModels->Item(i).HasMember("StartChannel") && ogModels->Item(i)["StartChannel"].IsInt32()) {
+                    auto ogStartChan = ogModels->Item(i)["StartChannel"].AsInt32();
+                    if (ogStartChan < startChan || ogStartChan > endChannel ) {
+                        continue;
+                    }
+                }
+            }
+
+            if (ogModels->Item(i).HasMember("xLights") && ogModels->Item(i)["xLights"].IsBool()) {
+                auto isfromXlights = ogModels->Item(i)["xLights"].AsBool();
+                if (isfromXlights) {
                     continue;
                 }
             }
@@ -1463,11 +1490,10 @@ static bool Compare3dPointTuple(const std::tuple<float, float, float, int> &l,
     return std::get<2>(l) < std::get<2>(r);
 }
 
-std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels) {
+std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi, int previewHi) {
     std::string ret;
 
     constexpr float PADDING{ 10.0F };
-    bool first { true };
     float minX{ 0.0F };
     float maxX{ 0.0F };
     float minY{ 0.0F };
@@ -1487,21 +1513,18 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels) {
         if (model->GetDisplayAs() == "ModelGroup") {
             continue;
         }
-
-        if (first) {
-            first = false;
-            maxY = model->GetModelScreenLocation().previewH;
-            maxX = model->GetModelScreenLocation().previewW;
-        }
-
+        
         minY = std::min(model->GetModelScreenLocation().GetBottom() - PADDING, minY);
         maxY = std::max(model->GetModelScreenLocation().GetTop() + PADDING, maxY);
         minX = std::min(model->GetModelScreenLocation().GetLeft() - PADDING, minX);
         maxX = std::max(model->GetModelScreenLocation().GetRight() + PADDING, maxX);
     }
 
+    int totW = std::max(previewWi, int(maxX - minX));
+    int totH = std::max(previewHi, int(maxY - minY));
+
     ret += "# Preview Size\n";
-    ret += ToUTF8(wxString::Format("%d,%d\n", int(maxX - minX), int(maxY - minY)));
+    ret += ToUTF8(wxString::Format("%d,%d\n", totW, totH));
 
     for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
         Model* model = m->second;
@@ -1747,6 +1770,7 @@ bool FPP::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Cont
         && !UploadVirtualMatrixOutputs(allmodels, outputManager, controller)
         && !UploadPixelOutputs(allmodels, outputManager, controller)
         && !UploadSerialOutputs(allmodels, outputManager, controller)
+        && !UploadPWMOutputs(allmodels, outputManager, controller)
         && !Restart("");
 }
 
@@ -1758,6 +1782,7 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
     UploadVirtualMatrixOutputs(allmodels, outputManager, controller);
     UploadPixelOutputs(allmodels, outputManager, controller);
     UploadSerialOutputs(allmodels, outputManager, controller);
+    UploadPWMOutputs(allmodels, outputManager, controller);
     SetInputUniversesBridge(controller);
     
     if (restartNeeded) {
@@ -1976,6 +2001,18 @@ static bool UpdateJSONValue(wxJSONValue &v, const std::string &key, int newValue
     }
     return false;
 }
+static bool UpdateJSONFloatValue(wxJSONValue &v, const std::string &key, float newValue) {
+    if (!v.HasMember(key)) {
+        v[key] = newValue;
+        return true;
+    }
+    float origValue = v[key].AsDouble();
+    if (origValue != newValue) {
+        v[key] = (double)newValue;
+        return true;
+    }
+    return false;
+}
 static bool UpdateJSONValue(wxJSONValue &v, const std::string &key, const wxString &newValue) {
     if (!v.HasMember(key)) {
         v[key] = newValue;
@@ -2049,7 +2086,7 @@ static bool mergeSerialInto(wxJSONValue &otherDmxData, wxJSONValue &otherOrigRoo
 
 bool FPP::IsCompatible(const ControllerCaps *rules,
                        std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,
-                       std::string &driver) {
+                       std::string& driver, bool& supportsV5Receivers) {
     if (origMod == "") {
         Controller::ConvertOldTypeToVendorModel(origId, origVend, origMod, origVar);
     }
@@ -2105,6 +2142,9 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
                 if (val.HasMember("driver")) {
                     driver = val["driver"].AsString();
                 }
+                if (val.HasMember("falconV5ListenerConfig")) {
+                    supportsV5Receivers = true;;
+                }
             } else {
                 found = false;
             }
@@ -2125,7 +2165,6 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
     }
     return true;
 }
-
 
 #ifndef DISCOVERYONLY
 bool FPP::UploadPanelOutputs(ModelManager* allmodels,
@@ -2265,7 +2304,11 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
                     v["layout"] = layout;
                     v["colorOrder"] = wxString("RGB");
                     v["invert"] = 0;
-                    v["device"] = wxString::Format("fb%d", port);
+                    if (IsVersionAtLeast(8, 0)) {
+                        v["device"] = wxString::Format("HDMI-A-%d", port + 1); //hdmi ports are 1 based, not 0 like fb
+                    } else {
+                        v["device"] = wxString::Format("fb%d", port);
+                    }
                     v["xoff"] = 0;
                     v["description"] = name;
                     v["yoff"] = curOffset;
@@ -2409,6 +2452,121 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
     return false;
 }
 
+bool FPP::UploadPWMOutputs(ModelManager* allmodels,
+                           OutputManager* outputManager,
+                           Controller* controller) {
+    auto rules = ControllerCaps::GetControllerConfig(controller);
+    if (rules == nullptr) {
+        return false;
+    }
+    int maxPort = rules->GetMaxPWMPort();
+    if (maxPort <= 0) {
+        return false;
+    }
+    if (!IsVersionAtLeast(8, 0)) {
+        //PWM output requires FPP 8.0 or later
+        return true;
+    }
+    bool hasPWM = false;
+    if (!capeInfo.HasMember("id")) {
+        GetURLAsJSON("/api/cape", capeInfo);
+    }
+    for (int x = 0; x < capeInfo["provides"].Size(); x++) {
+        if (capeInfo["provides"][x].AsString() == "pwm") {
+            hasPWM = true;
+        }
+    }
+    if (!hasPWM) {
+        return true;
+    }
+    
+    UDController cud(controller, outputManager, allmodels, false);
+    if (cud.GetMaxPWMPort() == 0) {
+        return false;
+    }
+    bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
+
+    std::map<int, int> rngs;
+    FillRanges(rngs);
+    bool changed = false;
+    
+    wxJSONValue root;
+    int pca9685Index = -1;
+    if (!fullcontrol && GetURLAsJSON("/api/configfile/co-pwm.json", root, false)) {
+        if (root.HasMember("channelOutputs")) {
+            for (int x = 0; x < root["channelOutputs"].Size(); x++) {
+                if (root["channelOutputs"][x]["type"].AsString() == "PCA9685") {
+                    pca9685Index = x;
+                    break;
+                }
+            }
+        }
+    }
+    if (pca9685Index == -1) {
+        changed = true;
+        pca9685Index = 0;
+        root["channelOutputs"] = wxJSONValue(wxJSONTYPE_ARRAY);
+        root["channelOutputs"][pca9685Index]["type"] = wxString("PCA9685");
+        root["channelOutputs"][pca9685Index]["subType"] = rules->GetID();
+        root["channelOutputs"][pca9685Index]["enabled"] = 1;
+        root["channelOutputs"][pca9685Index]["frequency"] = controller->GetExtraProperty("PWMFrequency", "50hz");
+        root["channelOutputs"][pca9685Index]["startChannel"] = 0;
+        root["channelOutputs"][pca9685Index]["channelCount"] = -1;
+        root["channelOutputs"][pca9685Index]["outputs"] = wxJSONValue(wxJSONTYPE_ARRAY);
+    }
+    // make sure we have enough ports....
+    while (maxPort > root["channelOutputs"][pca9685Index]["outputs"].Size()) {
+        changed = true;
+        wxJSONValue v;
+        v["description"] = xlEMPTY_WXSTRING;
+        v["startChannel"] = 0;
+        v["is16bit"] = 1;
+        v["type"] = wxString("Servo");
+        v["min"] = 1000;
+        v["max"] = 2000;
+        v["reverse"] = 0;
+        v["zero"] = wxString("Hold");
+        v["dataType"] = wxString("Scaled");
+        root["channelOutputs"][pca9685Index]["outputs"].Append(v);
+    }
+    for (int x = 0; x < maxPort; x++) {
+        if (x < cud.GetMaxPWMPort()) {
+            auto *p = cud.GetControllerPWMPort(x + 1);
+            auto *m = p->GetFirstModel();
+            auto &jv = root["channelOutputs"][pca9685Index]["outputs"][x];
+            if (m) {
+                const auto &props = m->GetPWMProperties();
+                changed |= UpdateJSONValue(jv, "startChannel", m->GetStartChannel());
+                std::string mname = m->GetName();
+                changed |= UpdateJSONValue(jv, "description", mname + " - " + props.label);
+                changed |= UpdateJSONValue(jv, "is16bit", m->GetStartChannel() != m->GetEndChannel() ? 1 : 0);
+                if (props.type == 0) {
+                    //LED
+                    changed |= UpdateJSONValue(jv, "type", "LED");
+                    changed |= UpdateJSONValue(jv, "brightness", props.brightness);
+                    changed |= UpdateJSONFloatValue(jv, "gamma", props.gamma);
+                } else {
+                    //SERVO
+                    changed |= UpdateJSONValue(jv, "type", "Servo");
+                    changed |= UpdateJSONValue(jv, "min", props.minValue);
+                    changed |= UpdateJSONValue(jv, "max", props.maxValue);
+                    changed |= UpdateJSONValue(jv, "reverse", props.reverse ? 1 : 0);
+                    changed |= UpdateJSONValue(jv, "zero", props.zeroBehavior);
+                    changed |= UpdateJSONValue(jv, "dataType", props.dateType);
+                }
+            }
+        }
+    }
+    
+    if (changed) {
+        PostJSONToURL("/api/configfile/co-pwm.json", root);
+        SetRestartFlag();
+        SetNewRanges(rngs);
+    }
+    return false;
+}
+
+
 bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
                              Controller* controller) {
@@ -2442,9 +2600,6 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     cud.Check(rules, check);
     cud.Dump();
 
-    wxFileName fnOrig;
-    fnOrig.AssignTempFileName("pixelOutputs");
-    std::string file = fnOrig.GetFullPath().ToStdString();
     wxJSONValue origJson;
     GetURLAsJSON("/api/channel/output/" + fppFileName, origJson, false);
     logger_base.debug("Original JSON");
@@ -2499,8 +2654,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     maxport = cud.GetMaxPixelPort(); // 1 based
 
     std::string fppDriver = rules->GetCustomPropertyByPath("fppStringDriverType");
+    bool supportsV5Receivers{false};
     if (fppFileName == "co-bbbStrings") {
-        if (!IsCompatible(rules, controllerVendor, controllerModel, controllerVariant, origSubType, fppDriver)) {
+        if (!IsCompatible(rules, controllerVendor, controllerModel, controllerVariant, origSubType, fppDriver, supportsV5Receivers)) {
             return true;
         }
         if (fppDriver.empty()) {
@@ -2533,7 +2689,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     for (int pp = 1; pp <= rules->GetMaxPixelPort(); pp++) {
         if (cud.HasPixelPort(pp)) {
             UDControllerPort* port = cud.GetControllerPixelPort(pp);
-            port->CreateVirtualStrings(false);
+            port->CreateVirtualStrings(false, false);
             for (const auto& pvs : port->GetVirtualStrings()) {
                 wxJSONValue vs;
                 if (pvs->_isDummy) {
@@ -2624,7 +2780,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vsname += "F";
                 }
                 if (pvs->_smartRemote >= 1) {
-                    if (pvs->_smartRemoteType.find("v2") != std::string::npos) {
+                    auto const diff_type = DecodeReceiverType(pvs->_smartRemoteType, supportsV5Receivers);
+                    if (diff_type == ReceiverType::FalconV5) {
+                        stringData["outputs"][port->GetPort() - 1]["differentialType"] = 10;
+                    } else if(diff_type == ReceiverType::v2) {
                         stringData["outputs"][port->GetPort() - 1]["differentialType"] = 4;
                     } else {
                         stringData["outputs"][port->GetPort() - 1]["differentialType"] = 1;
@@ -2657,7 +2816,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         if ((x & 0x3) == 0) {
             //need to check the group of 4 to see if we need a smartRemote or not
             int remoteType = 0;
-            bool remoteTypeV2 = false;
+            ReceiverType receiverType{ ReceiverType::Standard };
             for (int z = 0; z < 4; z++) {
                 if ((x + z) < maxport) {
                     if (stringData["outputs"][x + z].HasMember("virtualStringsF")) {
@@ -2673,13 +2832,14 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     } else if (stringData["outputs"][x+z].HasMember("differentialType")) {
                         remoteType = std::max(remoteType, 1);
                     }
-                    if (stringData["outputs"][x + z].HasMember("differentialType") &&
-                        stringData["outputs"][x + z]["differentialType"].AsLong() > 3) {
-                        remoteTypeV2 = true;
+                    if (stringData["outputs"][x + z].HasMember("differentialType") ) {
+                        receiverType = DecodeReceiverType(stringData["outputs"][x + z]["differentialType"].AsLong(), supportsV5Receivers);
                     }
                 }
             }
-            if (remoteTypeV2) {
+            if (ReceiverType::FalconV5 == receiverType) {
+                remoteType += 9;
+            } else if (ReceiverType::v2 == receiverType) {
                 remoteType += 3;
             }
             if (remoteType) {
@@ -2823,14 +2983,6 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     if (!origJson.IsSameAs(root)) {
         logger_base.debug("Uploading New JSON");
-        wxFileName fn;
-        fn.AssignTempFileName("pixelOutputs");
-        file = fn.GetFullPath().ToStdString();
-        wxFileOutputStream ufile(fn.GetFullPath());
-        wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
-        writer.Write(root, ufile);
-        ufile.Close();
-
         PostJSONToURL("/api/channel/output/" + fppFileName, root);
         SetRestartFlag();
     } else {
@@ -2842,25 +2994,53 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
 bool FPP::UploadControllerProxies(OutputManager* outputManager)
 {
-    auto currentProxies = GetProxies();
-    std::vector<std::string> newProxies;
-
-    for (const auto& it : outputManager->GetControllers()) {
-        auto c = dynamic_cast<ControllerEthernet*>(it);
-        if (c != nullptr) {
-            std::string proxy_ip = ip_utils::ResolveIP(c->GetFPPProxy());
-            if (ipAddress.compare(proxy_ip) == 0) {
-                auto controllerip = c->GetIP();
-                if (std::find(currentProxies.begin(), currentProxies.end(), controllerip) == currentProxies.end()) {
-                    newProxies.push_back(controllerip);
-                    currentProxies.push_back(controllerip);
+    if(IsVersionAtLeast(8, 0)) {
+        auto currentProxies = GetProxies();
+        for (const auto& it : outputManager->GetControllers()) {
+            auto c = dynamic_cast<ControllerEthernet*>(it);
+            if (c != nullptr) {
+                std::string proxy_ip = ip_utils::ResolveIP(c->GetFPPProxy());
+                if (ipAddress.compare(proxy_ip) == 0) {
+                    auto const& controller_ip = c->GetIP();
+                    auto const& controller_name = c->GetName();
+                    if (std::find_if(currentProxies.begin(), currentProxies.end(),
+                        [controller_ip](auto const& pro) { return get<0>(pro) == controller_ip; }) == currentProxies.end()) {
+                        currentProxies.emplace_back(controller_ip, controller_name);
+                    }
                 }
             }
         }
-    }
 
-    for (const auto& nprox : newProxies) {
-        PostToURL("/api/proxies/" + nprox, "", "text/plain");
+        wxJSONValue proxies;
+        for (const auto& [ip, description] : currentProxies) {
+            wxJSONValue proxy;
+            proxy["host"] = ip;
+            proxy["description"] = description;
+            proxies.Append(proxy);
+        }
+
+        PostJSONToURL("/api/proxies", proxies);
+    } else {
+        auto currentProxies = GetProxyList();
+        std::vector<std::string> newProxies;
+
+        for (const auto& it : outputManager->GetControllers()) {
+            auto c = dynamic_cast<ControllerEthernet*>(it);
+            if (c != nullptr) {
+                std::string proxy_ip = ip_utils::ResolveIP(c->GetFPPProxy());
+                if (ipAddress.compare(proxy_ip) == 0) {
+                    auto controllerip = c->GetIP();
+                    if (std::find(currentProxies.begin(), currentProxies.end(), controllerip) == currentProxies.end()) {
+                        newProxies.push_back(controllerip);
+                        currentProxies.push_back(controllerip);
+                    }
+                }
+            }
+        }
+
+        for (const auto& nprox : newProxies) {
+            PostToURL("/api/proxies/" + nprox, "", "text/plain");
+        }
     }
     return false;
 }
@@ -2964,7 +3144,11 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
     } else if (inst->typeId >= 0x80 && inst->typeId <= 0x8F) {
         //falcon range
         if (created) {
-            inst->controller->SetProtocol(OUTPUT_E131);
+            if (inst->mode == "bridge") {
+                inst->controller->SetProtocol(OUTPUT_E131);
+            } else {
+                inst->controller->SetProtocol(OUTPUT_DDP);
+            }
             inst->SetVendor("Falcon");
             inst->SetModel(AfterLast(inst->platformModel, ' '));
             inst->controller->SetAutoLayout(true);
@@ -2975,8 +3159,6 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
 }
 
 static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsString) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxJSONValue origJson;
     wxJSONReader reader;
     bool parsed = reader.Parse(systemsString, &origJson) == 0;
@@ -3002,8 +3184,10 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         std::string hostName = system[HostNameKey].IsNull() ? "" : ToUTF8(system[HostNameKey].AsString());
         std::string uuid = system.HasMember("uuid") ? ToUTF8(system["uuid"].AsString()) : (system.HasMember("UUID") ? ToUTF8(system["UUID"].AsString()) : "");
         
-        logger_base.info("Processing ip: %s   host: %s    uuid: %s", address.c_str(), hostName.c_str(), uuid.c_str());
-        
+        //logger_base.info("Processing ip: %s   host: %s    uuid: %s", address.c_str(), hostName.c_str(), uuid.c_str());
+        if (!uuid.empty()) {
+            fppDiscInfo.insert({ hostName, address, uuid });
+        }
         if (address == "null" || hostName == "null") {
             continue;
         }
@@ -3084,6 +3268,9 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 if (found->typeId == 0) {
                     found->typeId = inst.typeId;
                 }
+                if (found->uuid == "") {
+                    found->uuid = inst.uuid;
+                }
                 if (inst.ranges.size() > found->ranges.size()) {
                     //if the json has the ranges, use it as the json can have a more exact set of ranges
                     //the Ping packet is limited to either 40 (v2) or 120 (v3) characters so
@@ -3156,7 +3343,12 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
     DiscoveredData *ipinst = discovery.FindByIp(ip, "", true);
     ipinst->extraData["httpConnected"] = true;
     for (int x = 0; x < origJson.Size(); x++) {
-        std::string proxy = ToUTF8(origJson[x].AsString());
+        std::string proxy;
+        if (origJson[x].IsString()) {
+            proxy = ToUTF8(origJson[x].AsString());
+        } else if (origJson[x].IsObject()) {//FPP 8 change
+            proxy = ToUTF8(origJson[x]["host"].AsString());
+        }
         DiscoveredData *inst = discovery.FindByIp(proxy, "", true);
         if (!inst->extraData.HasMember("httpConnected")) {
             inst->extraData["httpConnected"] = false;
@@ -3376,8 +3568,8 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
         snprintf(ip, sizeof(ip), "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
         //printf("Ping %s\n", ip);
         if (strcmp(ip, "0.0.0.0")) {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.info("FPP Discovery - Received Ping response from %s", ip);
+            //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            //logger_base.info("FPP Discovery - Received Ping response from %s", ip);
             AddTraceMessage("Received UDP result " + std::string(ip));
 
             //we found a system!!!
@@ -3511,9 +3703,16 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
     strcpy((char *)&buffer[84], ver.c_str());
 
     for (const auto &a : addresses) {
-        discovery.AddCurl(a, "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
+        discovery.AddCurl(a, "/api/fppd/multiSyncSystems", [a, &discovery] (int rc, const std::string &buffer, const std::string &err) {
             if (rc == 200) {
                 ProcessFPPSystems(discovery, buffer);
+            } else if (rc == 404) {
+                discovery.AddCurl(a, "/", [a, &discovery] (int rc, const std::string &buffer, const std::string &errorBuffer) {
+                    if (rc == 200) {
+                        discovery.DetectControllerType(a, "", buffer);
+                    }
+                    return true;
+                });
             }
             return true;
         });
@@ -3608,9 +3807,8 @@ static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputMan
         return res->majorVersion >= 4 && res->mode == "remote";
     }
 
-    if (res->typeId == 0x88 || res->typeId == 0x89 ||
-        res->typeId == 0x90 || res->typeId == 0x91) {
-        // F16V4 / F48V4 / F16V5 / F48V5
+    if (res->typeId >= 0x88 && res->typeId <= 0x9F) {
+        // F16V4 / F48V4 / F16V5 / F32V5 /  F48V5
         return res->mode != "bridge";
     }
 
@@ -3633,22 +3831,52 @@ inline void setIfEmpty(uint32_t &val, uint32_t nv) {
     }
 }
 
-void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager) {
+void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, OutputManager* outputManager) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool foundActiveController = false;
+    uint16_t activePlayerCount = 0;
+    std::unordered_set<std::string> allProxyList;
+    std::map<std::string, std::string> configuredIPs;
+    if (discovery.GetOutputManager()->GetGlobalFPPProxy() != "") {
+        auto ip = ip_utils::ResolveIP(discovery.GetOutputManager()->GetGlobalFPPProxy());
+        allProxyList.insert(ip);
+    };
+    for (auto& it : discovery.GetOutputManager()->GetControllers()) {
+        auto c = dynamic_cast<ControllerEthernet*>(it);
+        configuredIPs[c->GetResolvedIP()] = c->GetIP();
+        if (!c->GetFPPProxy().empty()) {
+            auto ip = ip_utils::ResolveIP(c->GetFPPProxy());
+            allProxyList.insert(ip);
+        }
+        if (Controller::DecodeActiveState(c->GetActive()) == "Active") {
+            foundActiveController = true;
+        }
+    }
     for (auto res : discovery.GetResults()) {
         if (::supportedForFPPConnect(res, outputManager)) {
-            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s (h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
+            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s (u: %s)(h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
             FPP *fpp = nullptr;
+            bool skipit = false;
 
             for (auto f : instances) {
                 if (f->ipAddress == res->ip) {
                     fpp = f;
                 }
+                if (!res->uuid.empty() && f->uuid == res->uuid) {
+                    if (configuredIPs.count(res->ip) > 0) {
+                        logger_base.info("FPP Discovery - Found Configured IP - %s for the same UUID - %s. Going to use this instead.", res->ip.c_str(), res->uuid.c_str());
+                        fpp = f;
+                    } else {
+                        skipit = true;
+                    }
+                }
             }
-            if (fpp == nullptr) {
+
+            if (!skipit && fpp == nullptr) {
                 FPP *fpp = new FPP(res->ip, res->proxy, res->pixelControllerType);
                 fpp->ipAddress = res->ip;//not needed, in constructor
                 fpp->hostName = res->hostname;
+                fpp->uuid = res->uuid;
                 fpp->description = res->description;
                 fpp->platform = res->platform;
                 fpp->model = res->platformModel;
@@ -3674,10 +3902,21 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 if (res->extraData.HasMember("cape")) {
                     fpp->capeInfo = res->extraData["cape"];
                 }
+                auto it = configuredIPs.find(res->ip);
+                if (it != configuredIPs.end()) {
+                    if (allProxyList.count(it->first) > 0 || allProxyList.count(it->second) > 0) {
+                        fpp->isaProxy = true;
+                    }
+                }
+                if (StartsWith(res->mode, "player")) {
+                    activePlayerCount++;
+                };
                 instances.push_back(fpp);
-            } else {
+            } else if (!skipit) {
+                fpp->ipAddress = res->ip;
                 setIfEmpty(fpp->proxy, res->proxy);
                 setIfEmpty(fpp->hostName, res->hostname);
+                setIfEmpty(fpp->uuid, res->uuid);
                 setIfEmpty(fpp->description, res->description);
                 setIfEmpty(fpp->platform, res->platform);
                 setIfEmpty(fpp->model, res->platformModel);
@@ -3691,7 +3930,6 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 setIfEmpty(fpp->controllerVendor, res->vendor);
                 setIfEmpty(fpp->controllerModel, res->model);
                 setIfEmpty(fpp->controllerVariant, res->variant);
-
                 setIfEmpty(fpp->minorVersion, res->minorVersion);
                 setIfEmpty(fpp->patchVersion, res->patchVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
@@ -3709,13 +3947,17 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
             logger_base.info("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());
         }
     }
+    for (auto f : instances) {
+        if (activePlayerCount == 1 && StartsWith(f->mode, "player")) {
+            f->solePlayer = true;
+        }
+    }
 }
 
 void FPP::TypeIDtoControllerType(int typeId, FPP* inst) {
     if (typeId < 0x80) {
         inst->fppType = FPP_TYPE::FPP;
-    } else if (typeId == 0x88 || typeId == 0x89 ||
-               typeId == 0x90 || typeId == 0x91) {
+    } else if (typeId >= 0x88 && typeId <= 0x9F) {
         inst->fppType = FPP_TYPE::FALCONV4V5;
     } else if (typeId == 0xC2 || typeId == 0xC3) {
         inst->fppType = FPP_TYPE::ESPIXELSTICK;
@@ -3724,11 +3966,18 @@ void FPP::TypeIDtoControllerType(int typeId, FPP* inst) {
     }
 }
 
-std::vector<std::string> FPP::GetProxies()
-{
+std::vector<std::string> FPP::GetProxyList() {
+    auto proxies = GetProxies();
+    std::vector<std::string> keys;
+    std::transform(proxies.begin(), proxies.end(), std::back_inserter(keys),
+                   [](auto const& host) { return std::get<0>(host); });
+    return keys;
+}
+
+std::vector<std::tuple<std::string, std::string>> FPP::GetProxies() {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    std::vector<std::string> res;
+    std::vector<std::tuple<std::string, std::string>> res;
 
     if (IsConnected()) {
         wxJSONValue val;
@@ -3736,7 +3985,10 @@ std::vector<std::string> FPP::GetProxies()
             for (int x = 0; x < val.Size(); x++) {
                 if (val[x].IsString()) {
                     logger_base.debug("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x].AsString().c_str());
-                    res.push_back(ToUTF8(val[x].AsString()));
+                    res.push_back({ ToUTF8(val[x].AsString()), std::string() });
+                } else if (val[x].IsObject()) { // FPP 8 change
+                    logger_base.debug("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x]["host"].AsString().c_str());
+                    res.push_back({ ToUTF8(val[x]["host"].AsString()), ToUTF8(val[x]["description"].AsString()) });
                 }
             }
         }
@@ -3750,7 +4002,7 @@ bool FPP::ValidateProxy(const std::string& to, const std::string& via)
 {
     FPP fpp(via);
     if (fpp.IsConnected()) {
-        for (const auto& it : fpp.GetProxies()) {
+        for (const auto& it : fpp.GetProxyList()) {
             if (to == it) return true;
         }
     }
@@ -3784,13 +4036,17 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     // show network to be easier to do
     for (auto& it : outputManager->GetControllers()) {
         auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr && eth->GetIP() != "" && eth->GetIP() != "MULTICAST") {
-            if (eth->GetResolvedIP() == "") {
+        if (eth != nullptr && !eth->GetIP().empty() && eth->GetIP() != "MULTICAST") {
+            std::string resolvedIP = eth->GetResolvedIP(true);
+            if (resolvedIP.empty()) {
                 startAddresses.push_back(::Lower(eth->GetIP()));
             } else {
-                startAddresses.push_back(::Lower(eth->GetResolvedIP()));
+                // only add the instances where we were actually able to resolve an IP address
+                if (eth->IsActive() && (ip_utils::IsIPValid(resolvedIP) || resolvedIP != eth->GetIP())) {
+                    startAddresses.push_back(::Lower(resolvedIP));
+                }
             }
-            if (eth->GetFPPProxy() != "") {
+            if (!eth->GetFPPProxy().empty()) {
                 startAddresses.push_back(::Lower(ip_utils::ResolveIP(eth->GetFPPProxy())));
             }
         }
@@ -3809,7 +4065,7 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     for (const auto& a : startAddressesForced) {
         for (const auto& fpp : instances) {
             if (case_insensitive_match(a, fpp->hostName) || case_insensitive_match(a, fpp->ipAddress)) {
-                if (newForce != "") {
+                if (!newForce.empty()) {
                     newForce.append(",");
                 }
                 newForce.append(a);
@@ -3822,4 +4078,35 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     }
 
     return instances;
+}
+
+
+ReceiverType FPP::DecodeReceiverType(const std::string& type, bool supportsV5) {
+    if (type.find("v1") != std::string::npos) {
+        return ReceiverType::v1;
+    }
+    if (type.find("v2") != std::string::npos) {
+        return ReceiverType::v2;
+    }
+    if (type.find("v5") != std::string::npos) {
+        if (supportsV5) {
+            return ReceiverType::FalconV5;
+        } else {
+            return ReceiverType::v2;
+        }
+    }
+    return ReceiverType::Standard;
+}
+
+ReceiverType FPP::DecodeReceiverType(int type, bool supportsV5) {
+    if (9 < type && supportsV5) {
+        return ReceiverType::FalconV5;
+    }
+    if (3 < type) {
+        return ReceiverType::v2;
+    }
+    if (0 < type) {
+        return ReceiverType::v1;
+    }
+    return ReceiverType::Standard;
 }

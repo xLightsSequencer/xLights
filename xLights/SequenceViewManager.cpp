@@ -342,6 +342,32 @@ SequenceView* SequenceViewManager::GetView(const std::string& name) const
 	return nullptr;
 }
 
+void SequenceViewManager::MoveViewUp(int index) const {
+    SequenceView* it = GetView(index);
+    if (it == nullptr) {
+        return;
+    }
+
+    SequenceView* prevIt = GetView(index - 1);
+    if (prevIt == nullptr) {
+        return;
+    }
+    std::swap(*it, *prevIt);
+}
+
+void SequenceViewManager::MoveViewDown(int index) const {
+    SequenceView* it = GetView(index);
+    if (it == nullptr) {
+        return;
+    }
+
+    SequenceView* nextIt = GetView(index + 1);
+    if (nextIt == nullptr) {
+        return;
+    }
+    std::swap(*it, *nextIt);
+}
+
 int SequenceViewManager::GetViewIndex(const std::string& name) const
 {
 	int index = 0;

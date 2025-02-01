@@ -23,6 +23,7 @@ bool IsArtificialPixelType(const std::string& p);
 bool IsPixelProtocol(const std::string& p);
 bool IsSerialProtocol(const std::string& p);
 bool IsMatrixProtocol(const std::string& p1);
+bool IsPWMProtocol(const std::string& p1);
 bool IsLEDPanelMatrixProtocol(const std::string& p1);
 bool IsVirtualMatrixProtocol(const std::string& p1);
 int GetChannelsPerPixel(const std::string& p);

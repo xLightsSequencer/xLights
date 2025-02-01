@@ -32,5 +32,5 @@
 	branch = stable
 [submodule "dependencies/nanosvg"]
 	path = dependencies/nanosvg
-	url = https://github.com/wxWidgets/nanosvg
+	url = https://github.com/wxWidgets/nanosvg.git
 	branch = wx

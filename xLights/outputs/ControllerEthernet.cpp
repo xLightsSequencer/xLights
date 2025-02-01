@@ -134,7 +134,7 @@ ControllerEthernet::ControllerEthernet(OutputManager* om, const ControllerEthern
 }
 
 ControllerEthernet::~ControllerEthernet() {
-
+    ip_utils::waitForAllToResolve();
     // wait for an active ping to finish
     if (_asyncPing.valid()) {
         _asyncPing.wait_for(std::chrono::seconds(2));
@@ -209,12 +209,26 @@ void ControllerEthernet::SetIP(const std::string& ip) {
     auto const& iip = ip_utils::CleanupIP(ip);
     if (_ip != iip) {
         _ip = iip;
-        if (IsActive()) _resolvedIp = ip_utils::ResolveIP(_ip);
+        if (IsActive()) {
+            std::unique_lock<std::shared_mutex> lock(_resolveMutex);
+            _resolvedIp = _ip;
+            lock.unlock();
+            ip_utils::ResolveIP(_ip, [this](const std::string &r) {
+                std::unique_lock<std::shared_mutex> lock(_resolveMutex);
+                _resolvedIp = r;
+                lock.unlock();
+                std::shared_lock<std::shared_mutex> lock2(_resolveMutex);
+                for (auto& it : GetOutputs()) {
+                    it->SetResolvedIP(_resolvedIp);
+                }
+            });
+        }
         _dirty = true;
         if (_outputManager != nullptr) _outputManager->UpdateUnmanaged();
 
+        std::shared_lock<std::shared_mutex> lock(_resolveMutex);
         for (auto& it : GetOutputs()) {
-            it->SetIP(_ip, IsActive());
+            it->SetIP(_ip, IsActive(), false); // don't resolve as we'll set it above in the callback
             it->SetResolvedIP(_resolvedIp);
         }
     }
@@ -223,16 +237,19 @@ void ControllerEthernet::SetIP(const std::string& ip) {
 // because we dont resolve IPs on creation for inactive controllers then if the controller is set active we need to resolve it then
 void ControllerEthernet::PostSetActive()
 {
-    if (IsActive() && _ip != "" && _resolvedIp == "")
-    {
+    std::unique_lock<std::shared_mutex> lock(_resolveMutex);
+    if (IsActive() && !_ip.empty() && _resolvedIp.empty()) {
         _resolvedIp = ip_utils::ResolveIP(_ip);
+        lock.unlock();
+        std::shared_lock<std::shared_mutex> lock(_resolveMutex);
         for (auto& it : GetOutputs()) {
             it->SetResolvedIP(_resolvedIp);
         }
     }
 }
 std::string ControllerEthernet::GetResolvedIP(bool forceResolve) const {
-    if (_resolvedIp == "" && _ip != "") {
+    std::shared_lock<std::shared_mutex> lock(_resolveMutex);
+    if (_resolvedIp.empty() && !_ip.empty() && forceResolve) {
         return ip_utils::ResolveIP(_ip);
     }
     return _resolvedIp;
@@ -273,6 +290,11 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
                 ddpo->SetId(_outputManager->UniqueId());
             }
             SetId(ddpo->GetId());
+            
+            auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
+            if( c && c->DDPStartsAtOne() )
+                ddpo->SetKeepChannelNumber(false);
+            
         } else if (_type == OUTPUT_TWINKLY) {
             auto to = new TwinklyOutput();
             _outputs.push_back(to);
@@ -373,6 +395,9 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
         delete oldoutputs.front();
         oldoutputs.pop_front();
     }
+
+    if (_outputManager != nullptr)
+        _outputManager->UpdateUnmanaged();
 }
 
 std::string ControllerEthernet::GetForceLocalIP() const
@@ -674,23 +699,33 @@ void ControllerEthernet::VMVChanged(wxPropertyGrid *grid)
     auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
     if (c != nullptr) {
         auto const& prefer = c->GetPreferredInputProtocol();
-        bool autoLayout = IsAutoLayout();
-        if (!prefer.empty() && autoLayout) {
-            #ifndef EXCLUDENETWORKUI
-            if (grid && GetProtocol() != prefer) {
-                if (_outputs.size() > 0) {
-                    _outputs.front()->RemoveProperties(grid);
+        bool const autoLayout = IsAutoLayout();
+        auto const& disable_monitor = c->DisableMonitoring();
+        if (disable_monitor) {
+            SetMonitoring(false);
+        }
+        if (autoLayout) {
+            if (!prefer.empty()) {
+#ifndef EXCLUDENETWORKUI
+                if (grid && GetProtocol() != prefer) {
+                    if (_outputs.size() > 0) {
+                        _outputs.front()->RemoveProperties(grid);
+                    }
+                    SetProtocol(prefer);
+                    if (_outputs.size() > 0) {
+                        std::list<wxPGProperty*> expandProperties;
+                        auto before = grid->GetProperty("Managed");
+                        _outputs.front()->AddProperties(grid, before, this, AllSameSize(), expandProperties);
+                    }
+                } else
+#endif
+                {
+                    SetProtocol(prefer);
                 }
-                SetProtocol(prefer);
-                if (_outputs.size() > 0) {
-                    std::list<wxPGProperty *> expandProperties;
-                    auto before = grid->GetProperty("Managed");
-                    _outputs.front()->AddProperties(grid, before, this, AllSameSize(), expandProperties);
-                }
-            } else 
-            #endif
-            {
-                SetProtocol(prefer);
+            }
+            auto const& state = c->GetPreferredState();
+            if (!state.empty()) {
+                SetActive(state);
             }
         }
     }
@@ -698,6 +733,16 @@ void ControllerEthernet::VMVChanged(wxPropertyGrid *grid)
 
 Output::PINGSTATE ControllerEthernet::Ping() {
 
+    if (hasAlpha(_resolvedIp)) {
+        for (auto& it : GetOutputs()) { // Get the actual IPOutput object
+            IPOutput* ipOutput = dynamic_cast<IPOutput*>(it);
+            if (ipOutput) {
+                ipOutput->SetIP(this->GetResolvedIP(), true, true); // Re-resolve IP
+                ip_utils::waitForAllToResolve();
+                _resolvedIp = it->GetResolvedIP();
+            }
+        }
+    }
     if (GetResolvedIP(false) == "MULTICAST") {
         _lastPingResult = Output::PINGSTATE::PING_UNAVAILABLE;
     } else if (_outputs.size() > 0) {
@@ -707,14 +752,16 @@ Output::PINGSTATE ControllerEthernet::Ping() {
         }
         _lastPingResult = dynamic_cast<IPOutput*>(_outputs.front())->Ping(ip, GetFPPProxy());
     } else {
-        E131Output ipo;
-        ipo.SetIP(_ip, IsActive());
-        _lastPingResult = ipo.Ping(GetResolvedIP(true), GetFPPProxy());
+        _lastPingResult = IPOutput::Ping( ip_utils::ResolveIP(_ip), GetFPPProxy());
     }
     return GetLastPingState();
 }
 
 void ControllerEthernet::AsyncPing() {
+    if (!IsActive()) {
+        // don't ping in-active controllers
+        return;
+    }
 
     // if one is already running dont start another
     if (_asyncPing.valid() && _asyncPing.wait_for(std::chrono::microseconds(1)) == std::future_status::timeout) return;
@@ -938,15 +985,15 @@ bool ControllerEthernet::SupportsUniversePerString() const
     return false;
 }
 
-void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) {
-    Controller::UpdateProperties(propertyGrid, modelManager, expandProperties);
+void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager) {
+    Controller::UpdateProperties(propertyGrid, modelManager, expandProperties, outputModelManager);
     wxPGProperty *p = propertyGrid->GetProperty("Protocol");
     if (p) {
         wxPGChoices protocols = GetProtocols();
         p->SetChoices(protocols);
         if (EncodeChoices(protocols, _type) == -1) {
             p->SetChoiceSelection(0);
-            SetProtocol(Controller::DecodeChoices(protocols, 0));
+            SetProtocolAndRebuildProperties(Controller::DecodeChoices(protocols, 0), propertyGrid, outputModelManager);
         }
         else
         {
@@ -985,7 +1032,7 @@ void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelMan
     }
     p = propertyGrid->GetProperty("Managed");
     if (p) {
-        if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {
+        // if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {
             p->Hide(false);
             p->SetValue(_managed);
             if (!_managed) {
@@ -993,9 +1040,9 @@ void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelMan
             } else {
                 p->SetHelpString("");
             }
-        } else {
-            p->Hide(true);
-        }
+        // } else {
+        //     p->Hide(true);
+        // }
     }
     p = propertyGrid->GetProperty("FPPProxy");
     if (p) {
@@ -1153,23 +1200,8 @@ bool ControllerEthernet::HandlePropertyEvent(wxPropertyGridEvent& event, OutputM
         return true;
     } else if (name == "Protocol") {
         auto protocols = GetProtocols();
-        
-        if (_outputs.size() > 0) {
-            wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
-            _outputs.front()->RemoveProperties(grid);
-        }
-        SetProtocol(Controller::DecodeChoices(protocols, event.GetValue().GetLong()));
-        
-        if (_outputs.size() > 0) {
-            wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
-            std::list<wxPGProperty *> expandProperties;
-            auto before = grid->GetProperty("Managed");
-            _outputs.front()->AddProperties(grid, before, this, AllSameSize(), expandProperties);
-        }
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol");
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
-        outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
-        outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
+        wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
+        SetProtocolAndRebuildProperties(Controller::DecodeChoices(protocols, event.GetValue().GetLong()), grid, outputModelManager);
         return true;
     } else if (name == "Universe") {
         int univ = event.GetValue().GetLong();
@@ -1384,6 +1416,23 @@ void ControllerEthernet::ValidateProperties(OutputManager* om, wxPropertyGrid* p
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
+}
+
+void ControllerEthernet::SetProtocolAndRebuildProperties(const std::string& protocol, wxPropertyGrid* grid, OutputModelManager* outputModelManager) {
+    if (_outputs.size() > 0) {
+        _outputs.front()->RemoveProperties(grid);
+    }
+    SetProtocol(protocol);
+
+    if (_outputs.size() > 0) {
+        std::list<wxPGProperty*> expandProperties;
+        auto before = grid->GetProperty("Managed");
+        _outputs.front()->AddProperties(grid, before, this, AllSameSize(), expandProperties);
+    }
+    outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol");
+    outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
+    outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
+    outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
 }
 #endif
 

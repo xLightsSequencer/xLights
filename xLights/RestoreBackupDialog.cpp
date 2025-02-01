@@ -89,17 +89,17 @@ struct BModel {
 };
 
 //(*IdInit(RestoreBackupDialog)
-const long RestoreBackupDialog::ID_STATICTEXT1 = wxNewId();
-const long RestoreBackupDialog::ID_LISTBOX_BACKUPS = wxNewId();
-const long RestoreBackupDialog::ID_PANEL1 = wxNewId();
-const long RestoreBackupDialog::ID_CHECKLISTBOX_LAYOUT = wxNewId();
-const long RestoreBackupDialog::ID_TREECTRL_LAYOUT = wxNewId();
-const long RestoreBackupDialog::ID_SPLITTERWINDOW2 = wxNewId();
-const long RestoreBackupDialog::ID_CHECKLISTBOX_SEQUENCES = wxNewId();
-const long RestoreBackupDialog::ID_NOTEBOOK1 = wxNewId();
-const long RestoreBackupDialog::ID_SPLITTERWINDOW1 = wxNewId();
-const long RestoreBackupDialog::ID_STATICTEXT_BACKUPFOLDER = wxNewId();
-const long RestoreBackupDialog::ID_BUTTON_RUN = wxNewId();
+const wxWindowID RestoreBackupDialog::ID_STATICTEXT1 = wxNewId();
+const wxWindowID RestoreBackupDialog::ID_LISTBOX_BACKUPS = wxNewId();
+const wxWindowID RestoreBackupDialog::ID_PANEL1 = wxNewId();
+const wxWindowID RestoreBackupDialog::ID_CHECKLISTBOX_LAYOUT = wxNewId();
+const wxWindowID RestoreBackupDialog::ID_TREECTRL_LAYOUT = wxNewId();
+const wxWindowID RestoreBackupDialog::ID_SPLITTERWINDOW2 = wxNewId();
+const wxWindowID RestoreBackupDialog::ID_CHECKLISTBOX_SEQUENCES = wxNewId();
+const wxWindowID RestoreBackupDialog::ID_NOTEBOOK1 = wxNewId();
+const wxWindowID RestoreBackupDialog::ID_SPLITTERWINDOW1 = wxNewId();
+const wxWindowID RestoreBackupDialog::ID_STATICTEXT_BACKUPFOLDER = wxNewId();
+const wxWindowID RestoreBackupDialog::ID_BUTTON_RUN = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(RestoreBackupDialog,wxDialog)
@@ -258,10 +258,13 @@ void RestoreBackupDialog::ListBackupDir()
     wxString folder;
     bool fcont = directory.GetFirst(&folder, "*");
 
+    wxArrayString dirList;
     while (fcont) {
-        ListBoxBackups->Append(folder);
+        dirList.Add(folder);
         fcont = directory.GetNext(&folder);
     }
+    dirList.Sort(true);
+    ListBoxBackups->Append(dirList);
 }
 
 void RestoreBackupDialog::PopulateLayoutDataBox(wxString const& folder)

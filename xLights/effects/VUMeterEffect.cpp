@@ -29,8 +29,6 @@
 
 #include "nanosvg/src/nanosvg.h"
 
-#include <regex>
-
 #include <algorithm>
 
 namespace RenderType
@@ -56,6 +54,7 @@ namespace RenderType
 		TIMING_EVENT_PULSE,
 		TIMING_EVENT_JUMP_100,
         TIMING_EVENT_BAR,
+        TIMING_EVENT_BAR_BOUNCE,
         TIMING_EVENT_RANDOM_BAR,
         LEVEL_BAR,
         LEVEL_RANDOM_BAR,
@@ -331,6 +330,7 @@ public:
         _colourindex = 0;
         _lasttimingmark = 0;
         _nCount = 0;
+        _lastDirection = 1;
 	};
     virtual ~VUMeterRenderCache() {
         if (_svgImage != nullptr) {
@@ -370,143 +370,102 @@ public:
     NSVGimage* _svgImage = nullptr;
     std::string _svgFilename;
     float _svgScaleBase = 1.0f;
+    int _lastDirection { 1 };
 };
 
 int VUMeterEffect::DecodeType(const std::string& type)
 {
     if (type == "Spectrogram") {
         return RenderType::SPECTROGRAM;
-    }
-    else if (type == "Volume Bars") {
+    } else if (type == "Volume Bars") {
         return RenderType::VOLUME_BARS;
-    }
-    else if (type == "Waveform") {
+    } else if (type == "Waveform") {
         return RenderType::WAVEFORM;
-    }
-    else if (type == "Timing Event Spike") {
+    } else if (type == "Timing Event Spike") {
         return RenderType::TIMING_EVENT_SPIKE;
-    }
-    else if (type == "Timing Event Sweep") {
+    } else if (type == "Timing Event Sweep") {
         return RenderType::TIMING_EVENT_SWEEP;
-    }
-    else if (type == "Timing Event Sweep 2") {
+    } else if (type == "Timing Event Sweep 2") {
         return RenderType::TIMING_EVENT_SWEEP2;
-    }
-    else if (type == "Timing Event Timed Sweep") {
+    } else if (type == "Timing Event Timed Sweep") {
         return RenderType::TIMING_EVENT_TIMED_SWEEP;
-    }
-    else if (type == "Timing Event Timed Sweep 2") {
+    } else if (type == "Timing Event Timed Sweep 2") {
         return RenderType::TIMING_EVENT_TIMED_SWEEP2;
-    }
-    else if (type == "Timing Event Alternate Timed Sweep") {
+    } else if (type == "Timing Event Alternate Timed Sweep") {
         return RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP;
-    }
-    else if (type == "Timing Event Alternate Timed Sweep 2") {
+    } else if (type == "Timing Event Alternate Timed Sweep 2") {
         return RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2;
-    }
-    else if (type == "Timing Event Timed Chase From Middle") {
+    } else if (type == "Timing Event Timed Chase From Middle") {
         return RenderType::TIMING_EVENT_CHASE_FROM_MIDDLE;
-    } 
-    else if (type == "Timing Event Timed Chase To Middle") {
+    } else if (type == "Timing Event Timed Chase To Middle") {
         return RenderType::TIMING_EVENT_CHASE_TO_MIDDLE;
-    }
-    else if (type == "On") {
+    } else if (type == "On") {
         return RenderType::ON;
-    }
-    else if (type == "Pulse") {
+    } else if (type == "Pulse") {
         return RenderType::PULSE;
-    }
-    else if (type == "Intensity Wave") {
+    } else if (type == "Intensity Wave") {
         return RenderType::INTENSITY_WAVE;
-    }
-    else if (type == "unused") {
+    } else if (type == "unused") {
         return RenderType::UNUSED;
-    }
-    else if (type == "Level Pulse") {
+    } else if (type == "Level Pulse") {
         return RenderType::LEVEL_PULSE;
-    }
-    else if (type == "Level Jump") {
+    } else if (type == "Level Jump") {
         return RenderType::LEVEL_JUMP;
-    }
-    else if (type == "Level Jump 100") {
+    } else if (type == "Level Jump 100") {
         return RenderType::LEVEL_JUMP100;
-    }
-    else if (type == "Level Shape") {
+    } else if (type == "Level Shape") {
         return RenderType::LEVEL_SHAPE;
-    }
-    else if (type == "Color On") {
+    } else if (type == "Color On") {
         return RenderType::COLOR_ON;
-    }
-    else if (type == "Timing Event Color") {
+    } else if (type == "Timing Event Color") {
         return RenderType::TIMING_EVENT_COLOR;
-    }
-    else if (type == "Note On") {
+    } else if (type == "Note On") {
         return RenderType::NOTE_ON;
-    }
-    else if (type == "Note Level Pulse") {
+    } else if (type == "Note Level Pulse") {
         return RenderType::NOTE_LEVEL_PULSE;
-    }
-    else if (type == "Note Level Jump") {
+    } else if (type == "Note Level Jump") {
         return RenderType::NOTE_LEVEL_JUMP;
-    }
-    else if (type == "Note Level Jump 100") {
+    } else if (type == "Note Level Jump 100") {
         return RenderType::NOTE_LEVEL_JUMP100;
-    }
-    else if (type == "Timing Event Jump") {
+    } else if (type == "Timing Event Jump") {
         return RenderType::TIMING_EVENT_JUMP;
-    }
-    else if (type == "Timing Event Pulse") {
+    } else if (type == "Timing Event Pulse") {
         return RenderType::TIMING_EVENT_PULSE;
-    }
-    else if (type == "Timing Event Jump 100") {
+    } else if (type == "Timing Event Jump 100") {
         return RenderType::TIMING_EVENT_JUMP_100;
-    }
-    else if (type == "Timing Event Bar") {
+    } else if (type == "Timing Event Bar") {
         return RenderType::TIMING_EVENT_BAR;
-    }
-    else if (type == "Timing Event Random Bar") {
+    } else if (type == "Timing Event Bar Bounce") {
+        return RenderType::TIMING_EVENT_BAR_BOUNCE;
+    } else if (type == "Timing Event Random Bar") {
         return RenderType::TIMING_EVENT_RANDOM_BAR;
-    }
-    else if (type == "Level Bar") {
+    } else if (type == "Level Bar") {
         return RenderType::LEVEL_BAR;
-    }
-    else if (type == "Level Random Bar") {
+    } else if (type == "Level Random Bar") {
         return RenderType::LEVEL_RANDOM_BAR;
-    }
-    else if (type == "Note Level Bar") {
+    } else if (type == "Note Level Bar") {
         return RenderType::NOTE_LEVEL_BAR;
-    }
-    else if (type == "Note Level Random Bar") {
+    } else if (type == "Note Level Random Bar") {
         return RenderType::NOTE_LEVEL_RANDOM_BAR;
-    }
-    else if (type == "Level Pulse Color") {
+    } else if (type == "Level Pulse Color") {
         return RenderType::LEVEL_PULSE_COLOR;
-    }
-    else if (type == "Timing Event Bars") {
+    } else if (type == "Timing Event Bars") {
         return RenderType::TIMING_EVENT_BARS;
-    }
-    else if (type == "Timing Event Pulse Color") {
+    } else if (type == "Timing Event Pulse Color") {
         return RenderType::TIMING_EVENT_PULSE_COLOR;
-    }
-    else if (type == "Level Color") {
+    } else if (type == "Level Color") {
         return RenderType::LEVEL_COLOR;
-    }
-    else if (type == "Spectrogram Peak") {
+    } else if (type == "Spectrogram Peak") {
         return RenderType::SPECTROGRAM_PEAK;
-    }
-    else if (type == "Spectrogram Line") {
+    } else if (type == "Spectrogram Line") {
         return RenderType::SPECTROGRAM_LINE;
-    }
-    else if (type == "Spectrogram Circle Line") {
+    } else if (type == "Spectrogram Circle Line") {
         return RenderType::SPECTROGRAM_CIRCLELINE;
-    }
-    else if (type == "Frame Waveform") {
+    } else if (type == "Frame Waveform") {
         return RenderType::FRAME_WAVEFORM;
-    }
-    else if (type == "Dominant Frequency Colour") {
+    } else if (type == "Dominant Frequency Colour") {
         return RenderType::DOMINANT_FREQUENCY_COLOUR;
-    }
-    else if (type == "Dominant Frequency Colour Gradient") {
+    } else if (type == "Dominant Frequency Colour Gradient") {
         return RenderType::DOMINANT_FREQUENCY_COLOUR_GRADIENT;
     }
     // default type is volume bars
@@ -515,83 +474,45 @@ int VUMeterEffect::DecodeType(const std::string& type)
 
 int VUMeterEffect::DecodeShape(const std::string& shape)
 {
-	if (shape == "Circle")
-	{
-		return ShapeType::CIRCLE;
-	}
-	else if (shape == "Filled Circle")
-	{
-		return ShapeType::FILLED_CIRCLE;
-	}
-	else if (shape == "Square")
-	{
-		return ShapeType::SQUARE;
-	}
-	else if (shape == "Filled Square")
-	{
-		return ShapeType::FILLED_SQUARE;
-	}
-	else if (shape == "Diamond")
-	{
-		return ShapeType::DIAMOND;
-	}
-	else if (shape == "Filled Diamond")
-	{
-		return ShapeType::FILLED_DIAMOND;
-	}
-	else if (shape == "Star")
-	{
-		return ShapeType::STAR;
-	}
-	else if (shape == "Filled Star")
-	{
-		return ShapeType::FILLED_STAR;
-	}
-	else if (shape == "Tree")
-	{
-		return ShapeType::TREE;
-	}
-	else if (shape == "Filled Tree")
-	{
-		return ShapeType::FILLED_TREE;
-	}
-	else if (shape == "Crucifix")
-	{
-		return ShapeType::CRUCIFIX;
-	}
-	else if (shape == "Filled Crucifix")
-	{
-		return ShapeType::FILLED_CRUCIFIX;
-	}
-	else if (shape == "Present")
-	{
-		return ShapeType::PRESENT;
-	}
-	else if (shape == "Filled Present")
-	{
-		return ShapeType::FILLED_PRESENT;
-	}
-	else if (shape == "Candy Cane")
-	{
-		return ShapeType::CANDY_CANE;;
-	}
-	else if (shape == "Snowflake")
-	{
-		return ShapeType::SNOWFLAKE;
-	}
-	else if (shape == "Heart")
-	{
-		return ShapeType::HEART;
-	}
-	else if (shape == "Filled Heart")
-	{
-		return ShapeType::FILLED_HEART;
-    }
-    else if (shape == "SVG")
-    {
+    if (shape == "Circle") {
+        return ShapeType::CIRCLE;
+    } else if (shape == "Filled Circle") {
+        return ShapeType::FILLED_CIRCLE;
+    } else if (shape == "Square") {
+        return ShapeType::SQUARE;
+    } else if (shape == "Filled Square") {
+        return ShapeType::FILLED_SQUARE;
+    } else if (shape == "Diamond") {
+        return ShapeType::DIAMOND;
+    } else if (shape == "Filled Diamond") {
+        return ShapeType::FILLED_DIAMOND;
+    } else if (shape == "Star") {
+        return ShapeType::STAR;
+    } else if (shape == "Filled Star") {
+        return ShapeType::FILLED_STAR;
+    } else if (shape == "Tree") {
+        return ShapeType::TREE;
+    } else if (shape == "Filled Tree") {
+        return ShapeType::FILLED_TREE;
+    } else if (shape == "Crucifix") {
+        return ShapeType::CRUCIFIX;
+    } else if (shape == "Filled Crucifix") {
+        return ShapeType::FILLED_CRUCIFIX;
+    } else if (shape == "Present") {
+        return ShapeType::PRESENT;
+    } else if (shape == "Filled Present") {
+        return ShapeType::FILLED_PRESENT;
+    } else if (shape == "Candy Cane") {
+        return ShapeType::CANDY_CANE;
+    } else if (shape == "Snowflake") {
+        return ShapeType::SNOWFLAKE;
+    } else if (shape == "Heart") {
+        return ShapeType::HEART;
+    } else if (shape == "Filled Heart") {
+        return ShapeType::FILLED_HEART;
+    } else if (shape == "SVG") {
         return ShapeType::SVG;
     }
-
 	return ShapeType::CIRCLE;
 }
 
@@ -622,7 +543,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	float& _lastsize = cache->_lastsize;
     int & _colourindex = cache->_colourindex;
     std::list<std::vector<wxPoint>>& _lineHistory = cache->_lineHistory;
-
+    int& _lastDirection = cache->_lastDirection;
 	// Check for config changes which require us to reset
 	if (buffer.needToInit)
 	{
@@ -636,6 +557,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 		_lastpeaks.clear();
         _pausepeakfall.clear();
 		_lastsize = 0;
+        _lastDirection = 1;
         if (timingtrack != "")
         {
             elements->AddRenderDependency(timingtrack, buffer.cur_model);
@@ -756,10 +678,13 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, false, 0, filter, regex);
             break;
         case RenderType::TIMING_EVENT_BAR:
-            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, false, false, filter, regex);
+            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, false, false, filter, regex, false, _lastDirection);
+            break;
+        case RenderType::TIMING_EVENT_BAR_BOUNCE:
+            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, false, false, filter, regex, true, _lastDirection);
             break;
         case RenderType::TIMING_EVENT_RANDOM_BAR:
-            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, false, true, filter, regex);
+            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, false, true, filter, regex, false, _lastDirection);
             break;
         case RenderType::LEVEL_BAR:
             RenderLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, gain, false);
@@ -777,7 +702,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             RenderLevelPulseColourFrame(buffer, usebars, sensitivity, _lasttimingmark, _colourindex, gain);
             break;
         case RenderType::TIMING_EVENT_BARS:
-            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, true, false, filter, regex);
+            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, true, false, filter, regex, false, _lastDirection);
             break;
         case RenderType::TIMING_EVENT_PULSE_COLOR:
             RenderTimingEventPulseColourFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, filter, regex);
@@ -2607,36 +2532,9 @@ Effect* VUMeterEffect::GetTimingEvent(const std::string& timingTrack, uint32_t m
     EffectLayer* el = t->GetEffectLayer(0);
     for (int j = 0; j < el->GetEffectCount(); j++) {
         Effect* e = el->GetEffect(j);
-        if (e->GetStartTimeMS() <= ms && e->GetEndTimeMS() > ms)
-        {
-            if (filter == "") return e;
-
-            const std::string name = e->GetEffectName();
-
-            if (name == "")
-                return nullptr;
-
-            if (regex)
-            {
-                std::regex r(filter, std::regex_constants::extended);
-                if (std::regex_search(name, r))
-                    return e;
-            }
-            else
-            {
-                // tokenise the label and then check if any match the filter
-                const std::string tokens = ": ;,";
-                char n[4096] = { 0 };
-                strncpy(n, name.c_str(), sizeof(n) - 1);
-                const char* token = strtok(n, tokens.c_str());
-                while (token != nullptr)
-                {
-                    if (filter == token)
-                        return e;
-                    token = strtok(nullptr, tokens.c_str());
-                }
-            }
-        }
+        if (e->GetStartTimeMS() <= ms && e->GetEndTimeMS() > ms && e->FilteredIn(filter, regex)) {
+			return e;
+		}
 
         if (e->GetStartTimeMS() > ms)
             return nullptr;
@@ -2976,8 +2874,7 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
     }
 }
 
-void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex, bool all, bool random, const std::string& filter, bool regex)
-{
+void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex, bool all, bool random, const std::string& filter, bool regex, bool bounce, int& lastDirection ) {
     if (timingtrack != "") {
         Effect* eff = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
@@ -2994,6 +2891,12 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
                 }
                 if (lastbar > bars)
                     lastbar = 1;
+            } else if (bounce) {
+                lastbar += lastDirection;
+                if (lastbar > bars || 0 == lastbar) {
+                    lastDirection *= -1;
+                    lastbar += (lastDirection*2);//2x so it moves
+                }
             } else {
                 lastbar++;
                 if (lastbar > bars)

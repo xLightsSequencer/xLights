@@ -42,6 +42,8 @@
 #include <log4cpp/Category.hh>
 #include <cmath>
 
+#include <xlsxwriter.h>
+
 //(*IdInit(ControllerModelDialog)
 const long ControllerModelDialog::ID_PANEL1 = wxNewId();
 const long ControllerModelDialog::ID_SCROLLBAR1 = wxNewId();
@@ -78,6 +80,7 @@ const long ControllerModelDialog::CONTROLLER_STARTNULLS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_ENDNULLS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_COLORORDER = wxNewId();
 const long ControllerModelDialog::CONTROLLER_GROUPCOUNT = wxNewId();
+const long ControllerModelDialog::CONTROLLER_GAMMA = wxNewId();
 
 BEGIN_EVENT_TABLE(ControllerModelDialog, wxDialog)
 //(*EventTable(ControllerModelDialog)
@@ -115,6 +118,7 @@ wxColour __charcoal(30, 30, 30);
 wxColour __lightGreen(153, 255, 145, wxALPHA_OPAQUE);
 wxColour __darkGreen(6, 60, 0, wxALPHA_OPAQUE);
 wxColour __darkBlue(0, 0, 60, wxALPHA_OPAQUE);
+wxColour __royalBlue(65, 105, 225, wxALPHA_OPAQUE);
 wxColour __lightPurple(184, 150, 255, wxALPHA_OPAQUE);
 wxColour __darkPurple(49, 0, 74, wxALPHA_OPAQUE);
 wxColour __darkRed(60, 0, 0, wxALPHA_OPAQUE);
@@ -133,6 +137,7 @@ wxBrush __over40Brush;
 wxPen __dropTargetPen;
 wxPen __pixelPortOutlinePen;
 wxPen __serialPortOutlinePen;
+wxPen __pwmPortOutlinePen;
 wxPen __vmPortOutlinePen;
 wxPen __lpmPortOutlinePen;
 wxPen __modelOutlinePen;
@@ -178,6 +183,7 @@ void SetColours(bool printing)
 {
     __invalidBrush.SetColour(__lightRed);
     __serialPortOutlinePen.SetColour(*wxGREEN);
+    __pwmPortOutlinePen.SetColour(__royalBlue);
     __over40Brush.SetColour(__lightOrange);
     __modelOutlinePen.SetColour(__grey);
     __modelOutlineLastDroppedPen.SetColour(__magenta);
@@ -245,6 +251,7 @@ public:
     const static int STYLE_PIXELS = 1;
     const static int STYLE_STRINGS = 2;
     const static int STYLE_CHANNELS = 4;
+    const static int STYLE_LABEL = 8;
     enum class HITLOCATION { NONE,
                              LEFT,
                              RIGHT,
@@ -324,7 +331,7 @@ public:
     {
         return (mouse.y < _location.y);
     }
-    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped) = 0;
+    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped, std::string badPorts) = 0;
     virtual void DrawIcon(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale)
     {
     }
@@ -364,6 +371,7 @@ class PortCMObject : public BaseCMObject
 public:
     enum class PORTTYPE { PIXEL,
                           SERIAL,
+                          PWM,
                           VIRTUAL_MATRIX,
                           PANEL_MATRIX };
 
@@ -389,9 +397,15 @@ public:
             return _cud->GetControllerVirtualMatrixPort(_port);
         } else if (_type == PORTTYPE::PANEL_MATRIX) {
             return _cud->GetControllerLEDPanelMatrixPort(_port);
+        } else if (_type == PORTTYPE::PWM) {
+            return _cud->GetControllerPWMPort(_port);
         }
         return nullptr;
     }
+
+    int GetPortNumber() const {
+        return _port;
+    };
 
     int GetBasePort() const
     {
@@ -407,6 +421,8 @@ public:
             return _caps->GetMaxPixelPortChannels();
         } else if (_type == PORTTYPE::SERIAL) {
             return _caps->GetMaxSerialPortChannels();
+        } else if (_type == PORTTYPE::PWM) {
+            return 2;
         }
         return 9999999;
     }
@@ -497,7 +513,7 @@ public:
     {
         return "PORT";
     }
-    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped) override
+    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped, std::string badPorts) override
     {
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
@@ -520,6 +536,14 @@ public:
                 {
                     max = _caps->GetMaxPixelsAt40FPS_SR();
                 }
+                if (!badPorts.empty() && ContainsBetweenCommas("," + badPorts + ",", std::to_string(GetPortNumber()))) {
+                        wxRect rect = wxRect(_location * scale + offset, _size * scale);
+                        wxBrush shadeBrush(wxColour(255, 0, 128));
+                        wxBrush oldBrush = dc.GetBrush();
+                        dc.SetBrush(shadeBrush);
+                        dc.DrawRectangle(rect);
+                        dc.SetBrush(oldBrush);
+                }
                 if (p->Channels() > max * 3) {
                     // draw indicator that this port is not able to achieve 40 FPS
                     dc.SetPen(*wxTRANSPARENT_PEN);
@@ -537,6 +561,8 @@ public:
             dc.SetPen(__vmPortOutlinePen);
         } else if (_type == PORTTYPE::PANEL_MATRIX) {
             dc.SetPen(__lpmPortOutlinePen);
+        } else if (_type == PORTTYPE::PWM) {
+            dc.SetPen(__pwmPortOutlinePen);
         } else {
             dc.SetPen(__serialPortOutlinePen);
         }
@@ -558,6 +584,8 @@ public:
             DrawTextLimited(dc, wxString::Format("Virtual Matrix %d", _port), pt, sz - wxSize(4, 4));
         } else if (_type == PORTTYPE::PANEL_MATRIX) {
             DrawTextLimited(dc, wxString::Format("LED Panel %d", _port), pt, sz - wxSize(4, 4));
+        } else if (_type == PORTTYPE::PWM) {
+            DrawTextLimited(dc, wxString::Format("PWM Port %d", _port), pt, sz - wxSize(4, 4));
         } else {
             DrawTextLimited(dc, wxString::Format("Serial Port %d", _port), pt, sz - wxSize(4, 4));
         }
@@ -603,6 +631,8 @@ public:
                 return;
             if (_type == PORTTYPE::PANEL_MATRIX && !_caps->SupportsLEDPanelMatrix())
                 return;
+            if (_type == PORTTYPE::PWM && !_caps->SupportsPWM())
+                return;
         }
         mnu.AppendSeparator();
         if (_type == PORTTYPE::PIXEL || _type == PORTTYPE::SERIAL) {
@@ -633,6 +663,8 @@ public:
                 port = _cud->GetControllerVirtualMatrixPort(GetPort());
             } else if (_type == PORTTYPE::PANEL_MATRIX) {
                 port = _cud->GetControllerLEDPanelMatrixPort(GetPort());
+            } else if (_type == PORTTYPE::PWM) {
+                port = _cud->GetControllerPWMPort(GetPort());
             } else {
                 port = _cud->GetControllerSerialPort(GetPort());
             }
@@ -752,8 +784,11 @@ public:
                     dlg.SetSelection(selection);
                 }
                 if (dlg.ShowModal() == wxID_OK) {
-                    for (const auto& it : GetUDPort()->GetModels()) {
-                        it->GetModel()->SetSmartRemoteType(choices[dlg.GetSelection()]);
+                    int basePort = GetBasePort();
+                    for (uint8_t p = 0; p < 4; ++p) {
+                        for (const auto& it : _cud->GetControllerPixelPort(basePort + p)->GetModels()) {
+                            it->GetModel()->SetSmartRemoteType(choices[dlg.GetSelection()]);
+                        }
                     }
                 }
                 return true;
@@ -792,7 +827,7 @@ public:
                         continue;
                     }
                     it->GetModel()->SetSmartRemote(startId + 1);
-                    int max_cas = std::min(it->GetModel()->GetSRMaxCascade(), (int)std::ceil(it->GetModel()->GetNumStrings() / 4.0));
+                    int max_cas = std::min(it->GetModel()->GetSRMaxCascade(), (int)std::ceil(it->GetModel()->GetNumPhysicalStrings() / 4.0));
                     max_cas = std::max(max_cas, 1);
                     startId += max_cas;
                     if (startId >= sr_count) {
@@ -1005,7 +1040,7 @@ public:
     {
         return "SR";
     }
-    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped) override
+    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped, std::string badPorts) override
     {
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
@@ -1223,6 +1258,7 @@ protected:
     bool _outline = false;
     bool _main = false;
     std::string _displayName;
+    std::string _label;
     int _string = 0;
     UDControllerPort* _port = nullptr;
     int _virtualString;
@@ -1230,8 +1266,8 @@ protected:
     bool _isShadowFor = false;
 
 public:
-    ModelCMObject(UDControllerPort* port, int virtualString, const std::string& name, const std::string displayName, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, double scale) :
-        BaseCMObject(cud, caps, location, size, style, scale), _mm(mm), _port(port), _virtualString(virtualString)
+    ModelCMObject(UDControllerPort* port, int virtualString, const std::string& name, const std::string displayName, ModelManager* mm, UDController* cud, ControllerCaps* caps, wxPoint location, wxSize size, int style, double scale, const std::string &label = "") :
+        BaseCMObject(cud, caps, location, size, style, scale), _mm(mm), _port(port), _virtualString(virtualString), _label(label)
     {
         _name = name;
         _main = name == displayName;
@@ -1252,7 +1288,9 @@ public:
             _isShadowFor = m->GetShadowModelFor() != "";
         }
     }
-
+    void SetString(int i) {
+        _string = i;
+    }
     std::string GetName() const
     {
         return _name;
@@ -1321,7 +1359,7 @@ public:
     {
         return "MODEL";
     }
-    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped) override
+    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped, std::string badPorts) override
     {
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
@@ -1433,6 +1471,10 @@ public:
                 DrawTextLimited(dc, wxString::Format("Strings: %d", m->GetNumPhysicalStrings()), pt, sz - wxSize(4, 4));
                 pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
             }
+            if (_style & STYLE_LABEL) {
+                DrawTextLimited(dc, _label, pt, sz - wxSize(4, 4));
+                pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
+            }
         }
 
         dc.SetBrush(origBrush);
@@ -1507,6 +1549,9 @@ public:
                 if (GetModel()->IsControllerBrightnessSet()) {
                     mnu.Append(ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR, "Clear Brightness");
                 }
+            }
+            if (_caps->SupportsPixelPortGamma()) {
+                mnu.Append(ControllerModelDialog::CONTROLLER_GAMMA, "Set Gamma");
             }
             if (_caps->SupportsPixelPortNullPixels()) {
                 mnu.Append(ControllerModelDialog::CONTROLLER_STARTNULLS, "Set Start Nulls");
@@ -1590,6 +1635,15 @@ public:
             wxNumberEntryDialog dlg(parent, "Enter the Group Count", "Group Count", "Model Group Count", GetModel()->GetControllerGroupCount(), 1, 500);
             if (dlg.ShowModal() == wxID_OK) {
                 GetModel()->SetControllerGroupCount(dlg.GetValue());
+            }
+            return true;
+        } else if (id == ControllerModelDialog::CONTROLLER_GAMMA) {
+            wxTextEntryDialog dialog(parent, "Enter the Model Gamma", "Gamma", wxString::Format("%.1f", GetModel()->GetControllerGamma()));
+            if (dialog.ShowModal() == wxID_OK) {
+                auto d_gamma = wxAtof(dialog.GetValue());
+                if (d_gamma > 0.1 && d_gamma < 100.0) {
+                    GetModel()->SetControllerGamma(d_gamma);
+                }
             }
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR) {
@@ -2132,10 +2186,16 @@ void ControllerModelDialog::ReloadModels()
                             sh += ", ";
                         sh += it;
                     }
-                    check += "WARN: " + it.second->Name() + " is shadowed by " + sh + ".\n ";
+                    check += "WARN: " + it.second->Name() + " is shadowed by " + sh + ".\n";
                 }
             }
         }
+    }
+    if (!_autoLayout) {
+        check += "WARN: Auto Layout not set. Some functionality disabled.\n";
+    }
+    if (!_controller->IsAutoSize()) {
+        check += "WARN: Auto Size not set. Some functionality disabled.\n";
     }
 
     TextCtrl_Check->SetValue(check);
@@ -2369,6 +2429,26 @@ void ControllerModelDialog::ReloadModels()
         }
         y += VERTICAL_GAP + VERTICAL_SIZE;
     }
+    
+    for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxPWMPort()), _cud->GetMaxPWMPort()); i++) {
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PWM, i + 1, _cud, _caps,
+                                                wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                                                BaseCMObject::STYLE_CHANNELS, false, _scale));
+        auto sp = _cud->GetControllerPWMPort(i + 1);
+        if (sp != nullptr) {
+            int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + FIRST_MODEL_GAP_MULTIPLIER * HORIZONTAL_GAP;
+            for (const auto& it : sp->GetModels()) {
+                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                                             BaseCMObject::STYLE_LABEL, _scale, it->GetLabel());
+                cmm->SetString(it->GetString());
+                _controllers.push_back(cmm);
+                x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
+            }
+            if (x > maxx)
+                maxx = x;
+        }
+        y += VERTICAL_GAP + VERTICAL_SIZE;
+    }
     for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxVirtualMatrixPort()), _cud->GetMaxVirtualMatrixPort()); i++) {
         _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::VIRTUAL_MATRIX, i + 1, _cud, _caps,
                                                 wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
@@ -2550,7 +2630,7 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
         if (it->GetType() != "MODEL") {
             if (it->GetRect().GetY() > startY && it->GetRect().GetY() < endY &&
                 it->GetRect().GetX() > startX && it->GetRect().GetX() < endX) {
-                it->Draw(dc, 0, wxPoint(0, 0), wxPoint(0, 0), wxSize(-startX, rowPos - startY), 1, true, true, nullptr);
+                it->Draw(dc, 0, wxPoint(0, 0), wxPoint(0, 0), wxSize(-startX, rowPos - startY), 1, true, true, nullptr, "");
             }
         }
     }
@@ -2559,7 +2639,7 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
         if (it->GetType() == "MODEL") {
             if (it->GetRect().GetY() > startY && it->GetRect().GetY() < endY &&
                 it->GetRect().GetX() > startX && it->GetRect().GetX() < endX) {
-                it->Draw(dc, 0, wxPoint(0, 0), wxPoint(0, 0), wxSize(-startX, rowPos - startY), 1, true, true, nullptr);
+                it->Draw(dc, 0, wxPoint(0, 0), wxPoint(0, 0), wxSize(-startX, rowPos - startY), 1, true, true, nullptr, "");
             }
         }
     }
@@ -2569,37 +2649,123 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
     return bitmap;
 }
 
-void ControllerModelDialog::SaveCSV()
-{
+void ControllerModelDialog::SaveCSV() {
     wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
 
     wxString cleanName = _controller->GetShortDescription();
     cleanName.Replace(".", "_");
-    cleanName += ".csv";
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, cleanName, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    cleanName += ".xlsx";
+    wxString const filename = wxFileSelector(_("Save Controller Spreadsheet"), wxEmptyString, cleanName, wxEmptyString, "Export files (*.xlsx)|*.xlsx", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-    if (filename.IsEmpty())
-        return;
-
-    wxFile f(filename);
-
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    if (filename.IsEmpty()) {
         return;
     }
+   
+    lxw_workbook* workbook = workbook_new(filename.c_str());
+    lxw_worksheet* worksheet = workbook_add_worksheet(workbook, NULL);
 
-    wxString const header = _controller->GetShortDescription() + "\n";
-    f.Write(header);
-    int columSize = 0;
+    lxw_format* header_format = workbook_add_format(workbook);
+    format_set_align(header_format, LXW_ALIGN_CENTER);
+    format_set_align(header_format, LXW_ALIGN_VERTICAL_CENTER);
+    format_set_bold(header_format);
+    format_set_bg_color(header_format, LXW_COLOR_YELLOW);
+    format_set_border(header_format, LXW_BORDER_THIN);
+
+    lxw_format* first_format = workbook_add_format(workbook);
+    format_set_border(first_format, LXW_BORDER_MEDIUM);
+    format_set_bold(first_format);
+
+    lxw_format* format = workbook_add_format(workbook);
+    format_set_border(format, LXW_BORDER_THIN);
+
+    lxw_format* sr1_format = workbook_add_format(workbook);
+    format_set_bg_color(sr1_format, 0x99FF99);
+    format_set_border(sr1_format, LXW_BORDER_THIN);
+
+    lxw_format* sr2_format = workbook_add_format(workbook);
+    format_set_bg_color(sr2_format, 0xB896FF);
+    format_set_border(sr2_format, LXW_BORDER_THIN);
+
+    lxw_format* sr3_format = workbook_add_format(workbook);
+    format_set_bg_color(sr3_format, 0xFFC996);
+    format_set_border(sr3_format, LXW_BORDER_THIN);
+
+    lxw_format* sr4_format = workbook_add_format(workbook);
+    format_set_bg_color(sr4_format, 0x80FFFF);
+    format_set_border(sr4_format, LXW_BORDER_THIN);
+
+    lxw_format* sr5_format = workbook_add_format(workbook);
+    format_set_bg_color(sr5_format, 0xFF85FF);
+    format_set_border(sr5_format, LXW_BORDER_THIN);
+
+    lxw_format* sr6_format = workbook_add_format(workbook);
+    format_set_bg_color(sr6_format, 0xFFFF85);
+    format_set_border(sr6_format, LXW_BORDER_THIN);
+
+    int row{ 0 };
+    std::map<int, double> _col_widths;
+    int columSize{ 0 };
+
     std::vector<std::vector<std::string>> const lines = _cud->ExportAsCSV(ExportSettings::GetSettings(this), _controller->GetDefaultBrightnessUnderFullControl(), columSize);
-    for (const auto& line : lines) {
-        for (const auto& col : line) {
-            f.Write(col);
-            f.Write(',');
+
+    worksheet_merge_range(worksheet, row, 0, row, columSize, _controller->GetShortDescription().c_str(), header_format);
+    ++row;
+    auto lformat = first_format;
+
+    for (auto const& line : lines) {
+        for (int i = 1; i <= columSize; ++i) {
+            worksheet_write_blank(worksheet, row, i, lformat);
         }
-        f.Write('\n');
+        int col{ 0 };
+        for (auto const& column : line) {
+            if (column.empty()) {
+                continue;
+            }
+            if (column.find("Remote A") != std::string::npos || 
+                column.find("Remote G") != std::string::npos ||
+                column.find("Remote M") != std::string::npos) {
+                lformat = sr1_format;
+            }
+            if (column.find("Remote B") != std::string::npos ||
+                column.find("Remote H") != std::string::npos ||
+                column.find("Remote N") != std::string::npos) {
+                lformat = sr2_format;
+            }
+            if (column.find("Remote C") != std::string::npos ||
+                column.find("Remote I") != std::string::npos ||
+                column.find("Remote O") != std::string::npos) {
+                lformat = sr3_format;
+            }
+            if (column.find("Remote D") != std::string::npos ||
+                column.find("Remote J") != std::string::npos ||
+                column.find("Remote P") != std::string::npos) {
+                lformat = sr4_format;
+            }
+            if (column.find("Remote E") != std::string::npos ||
+                column.find("Remote K") != std::string::npos ) {
+                lformat = sr5_format;
+            }
+            if (column.find("Remote F") != std::string::npos ||
+                column.find("Remote L") != std::string::npos) {
+                lformat = sr6_format;
+            }
+            worksheet_write_string(worksheet, row, col, column.c_str(), lformat);
+            double const width = column.size() + 1.3; // estimate column width
+            if (_col_widths[col] < width) {
+                _col_widths[col] = width;
+                worksheet_set_column(worksheet, col, col, width, NULL);
+            }
+            ++col;
+        }
+        ++row;
+        lformat = format;
     }
-    f.Close();
+    
+    lxw_error const error = workbook_close(workbook);
+    if (error) {
+        DisplayError(wxString::Format("Unable to create Spreadsheet, Error %d = %s\n", error, lxw_strerror(error)).ToStdString());
+        return;
+    }
 }
 
 // Ensure DMX channels increase as you move left to right
@@ -2701,6 +2867,9 @@ void ControllerModelDialog::DropModelFromModelsPaneOnModel(ModelCMObject* droppe
         m->SetSmartRemote(0);
     } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
         m->SetControllerProtocol("LED Panel Matrix");
+        m->SetSmartRemote(0);
+    } else if (port->GetPortType() == PortCMObject::PORTTYPE::PWM) {
+        m->SetControllerProtocol("PWM");
         m->SetSmartRemote(0);
     } else {
         if (port->GetModelCount() == 0) {
@@ -2839,6 +3008,9 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                 m->SetSmartRemote(0);
             } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
                 m->SetControllerProtocol("LED Panel Matrix");
+                m->SetSmartRemote(0);
+            } else if (port->GetPortType() == PortCMObject::PORTTYPE::PWM) {
+                m->SetControllerProtocol("PWM");
                 m->SetSmartRemote(0);
             } else {
                 if (port->GetModelCount() == 0) {
@@ -3137,6 +3309,9 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                 } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
                     m->SetControllerProtocol("LED Panel Matrix");
                     m->SetSmartRemote(0);
+                } else if (port->GetPortType() == PortCMObject::PORTTYPE::PWM) {
+                    m->SetControllerProtocol("PWM");
+                    m->SetSmartRemote(0);
                 } else {
                     if (port->GetModelCount() == 0) {
                         if (_caps != nullptr && !_caps->IsValidSerialProtocol(m->GetControllerProtocol()) && _caps->GetSerialProtocols().size() > 0) {
@@ -3361,7 +3536,7 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
                 wxBitmap bmp(32, 32);
                 wxMemoryDC dc;
                 dc.SelectObject(bmp);
-                it->Draw(dc, portMargin, wxPoint(-4, -4), wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false, _lastDropped);
+                it->Draw(dc, portMargin, wxPoint(-4, -4), wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false, _lastDropped, "");
 
 #ifdef __linux__
                 wxIcon dragCursor;
@@ -3680,6 +3855,10 @@ std::string ControllerModelDialog::GetPortTooltip(UDControllerPort* port, int vi
         protocol = wxString::Format("Protocol: %s\n", port->GetProtocol());
     }
 
+    if (!port->IsPixelProtocol() && port->GetFirstModel() != nullptr) {
+		protocol += wxString::Format("Rate: %d bps\n", port->GetFirstModel()->GetModel()->GetControllerProtocolSpeed());
+	}
+
     std::string vs;
     std::string sc;
     std::string sr;
@@ -3798,7 +3977,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     bool isSubsequentString = false;
 
     auto m = mob->GetModel();
-    if (m == nullptr && mob->GetString() > 0) {
+    if (m == nullptr) {
         // this is a 2nd+ string on a model
         isSubsequentString = true;
         m = _mm->GetModel(mob->GetName());
@@ -3846,6 +4025,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     std::string usc;
     std::string dmx;
     std::string stringSettings;
+    std::string stringText = "Strings " + std::to_string(m->GetNumPhysicalStrings())+ "\n";
     if (m->IsSerialProtocol()) {
         dmx = wxString::Format("\nChannel %d", m->GetControllerDMXChannel());
         UDControllerPortModel* udm = mob->GetUDModel();
@@ -3861,6 +4041,18 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
         }
     } else if (m->IsMatrixProtocol()) {
         // Any extra matrix properties to display?
+    } else if (m->IsPWMProtocol()) {
+        UDControllerPortModel* udm = mob->GetUDModel();
+        if (udm) {
+            usc = std::to_string(udm->GetStartChannel() + 1) + "\nBits: ";
+            if (udm->GetStartChannel() == udm->GetEndChannel()) {
+                usc += "8";
+            } else {
+                usc += "16";
+            }
+            isSubsequentString = udm->GetString() != 0;
+            stringText = "";
+        }
     } else {
         UDControllerPortModel* udm = mob->GetUDModel();
         if (udm != nullptr) {
@@ -3903,7 +4095,7 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
 
     // Not a fan of this code here but I dont have a better place for it right now
     std::string special;
-    if (_controller->GetVendor() == "HinksPix" && _controller->GetModel() == "PRO") {
+    if (_controller->GetVendor() == "HinksPix" && Contains(_controller->GetModel(), "PRO")) {
         if (m->GetSmartRemote() != 0) {
             int absPort = m->GetControllerPort();
             int absSM = m->GetSmartRemote();
@@ -3940,14 +4132,14 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     }
 
     if (_autoLayout) {
-        return wxString::Format("Name: %s\n%sController Name: %s\n%s%sStrings %d\n%sPort: %d\nProtocol: %s%s%s%s%s",
-                                mob->GetDisplayName(), shadow, controllerName, mc, sccc,
-                                m->GetNumPhysicalStrings(), sr, mob->GetPort() != nullptr ? (mob->GetPort()->GetPort() == 0 ? m->GetControllerPort() : mob->GetPort()->GetPort()) : m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special)
+        return wxString::Format("Name: %s\n%sController Name: %s\n%s%s%s%sPort: %d\nProtocol: %s%s%s%s%s",
+                                mob->GetDisplayName(), shadow, controllerName, mc, sccc, stringText,
+                                sr, mob->GetPort() != nullptr ? (mob->GetPort()->GetPort() == 0 ? m->GetControllerPort() : mob->GetPort()->GetPort()) : m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special)
             .ToStdString();
     } else {
-        return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\n%sStrings %d\nSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s%s",
-                                mob->GetDisplayName(), shadow, controllerName, universe, sccc,
-                                m->GetNumPhysicalStrings(), sr, mob->GetPort() != nullptr ? (mob->GetPort()->GetPort() == 0 ? m->GetControllerPort() : mob->GetPort()->GetPort()) : m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special)
+        return wxString::Format("name: %s\n%sController Name: %s\nIP/Serial: %s\n%s%sSmart Remote: %s\nPort: %d\nProtocol: %s%s%s%s%s",
+                                mob->GetDisplayName(), shadow, controllerName, universe, sccc, stringText,
+                                sr, mob->GetPort() != nullptr ? (mob->GetPort()->GetPort() == 0 ? m->GetControllerPort() : mob->GetPort()->GetPort()) : m->GetControllerPort(), m->GetControllerProtocol(), dmx, mdescription, stringSettings, special)
             .ToStdString();
     }
 }
@@ -4019,7 +4211,7 @@ void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
 
     wxMenu mnu;
     mnu.Append(CONTROLLERModel_PRINT, "Print");
-    mnu.Append(CONTROLLERModel_SAVE_CSV, "Save As CSV...");
+    mnu.Append(CONTROLLERModel_SAVE_CSV, "Save As Spreadsheet...");
 
     if (_cud->HasModels()) {
         mnu.Append(CONTROLLER_REMOVEALLMODELS, "Remove All Models From Controller");
@@ -4062,14 +4254,14 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
     // draw the SR first
     for (const auto& it : _controllers) {
         if (it->GetType() == "SR") {
-            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false, true, _lastDropped);
+            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false, true, _lastDropped, "");
         }
     }
 
     // now draw the models
     for (const auto& it : _controllers) {
         if (it->GetType() == "MODEL") {
-            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false, true, _lastDropped);
+            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false, true, _lastDropped, "");
         }
     }
 
@@ -4078,9 +4270,14 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
     dc.SetPen(__backgroundPen);
     dc.SetBrush(__backgroundBrush);
     dc.DrawRectangle(0, 0, _controllers.front()->GetRect().GetRight() + 2, _controllers.back()->GetRect().GetBottom() + 10);
+
+    auto ctrlDesc = this->_title;
+    ctrlDesc.erase(std::remove(ctrlDesc.begin(), ctrlDesc.end(), ' '), ctrlDesc.end());
+    std::string badPorts = ctrlDesc.substr(ctrlDesc.find("BadPorts:") + 9);
+
     for (const auto& it : _controllers) {
         if (it->GetType() == "PORT") {
-            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false, true, _lastDropped);
+            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false, true, _lastDropped, badPorts);
         }
     }
 
@@ -4213,7 +4410,7 @@ void ControllerModelDialog::OnPanelModelsPaint(wxPaintEvent& event)
     dc.SetFont(font);
 
     for (const auto& it : _models) {
-        it->Draw(dc, 0, mouse, mouse, wxSize(0, 0), 1, false, true, nullptr);
+        it->Draw(dc, 0, mouse, mouse, wxSize(0, 0), 1, false, true, nullptr, "");
     }
 }
 
@@ -4245,7 +4442,7 @@ void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event)
             wxBitmap bmp(32, 32);
             wxMemoryDC dc;
             dc.SelectObject(bmp);
-            it->Draw(dc, 0, wxPoint(-4, -4), wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false, nullptr);
+            it->Draw(dc, 0, wxPoint(-4, -4), wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false, nullptr, "");
 
 #ifdef __linux__
             wxIcon dragCursor;

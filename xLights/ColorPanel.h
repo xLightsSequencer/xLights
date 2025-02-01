@@ -134,6 +134,7 @@ public:
         void SetButtonColor(int btn, const xlColor &v, bool notify = true);
 
 		//(*Declarations(ColorPanel)
+		BulkEditCheckBox* CheckBoxBrightnessLevel;
 		BulkEditCheckBox* CheckBox_EnableChromakey;
 		BulkEditCheckBox* CheckBox_MusicSparkles;
 		BulkEditColourPickerCtrl* ColourPickerCtrl_ChromaColour;
@@ -213,6 +214,7 @@ public:
 		static const long ID_SLIDER_Contrast;
 		static const long IDD_TEXTCTRL_Contrast;
 		static const long ID_BITMAPBUTTON_SLIDER_Contrast;
+		static const long ID_CHECKBOXBRIGHTNESSLEVEL;
 		static const long ID_STATICTEXT4;
 		static const long ID_STATICTEXT_Color_HueAdjust;
 		static const long ID_SLIDER_Color_HueAdjust;
@@ -252,6 +254,7 @@ public:
         wxButton* GetPaletteButton(int idx);
         void OnColourChoiceDropDown(wxCommandEvent& event);
         void OnColourChoiceSelect(wxCommandEvent& event);
+        wxString RemoveNonAlphanumeric(wxString const& str) const;
 
         std::vector<ColorCurveButton*> buttons;
         std::vector<wxCheckBox*> checkBoxes;

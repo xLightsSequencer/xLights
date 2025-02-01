@@ -188,7 +188,7 @@ std::string xxxEthernetOutput::GetExport() const {
 bool xxxEthernetOutput::Open() {
 
     if (!_enabled) return true;
-    if (!ip_utils::IsIPValid(_resolvedIp)) return false;
+    if (!ip_utils::IsIPValid(GetResolvedIP())) return false;
 
     _ok = IPOutput::Open();
 
@@ -288,8 +288,6 @@ void xxxEthernetOutput::AllOff() {
     _changed = true;
 }
 #pragma endregion 
-
-
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI

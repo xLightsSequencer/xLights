@@ -194,6 +194,35 @@ void TimeLine::GoToTag(int tag)
     }
 }
 
+int TimeLine::GetNextTag(int pos) {
+    int end = GetTimeLength();
+    int next = end;
+
+    for (const auto& it : _tagPositions) {
+        if (it != -1) {
+            if (it > pos && it < next) {
+                next = it;
+            }
+        }
+    }
+
+    return next;
+}
+
+int TimeLine::GetPriorTag(int pos) {
+    int prior = 0;
+
+    for (const auto& it : _tagPositions) {
+        if (it != -1) {
+            if (it < pos && it > prior) {
+                prior = it;
+            }
+        }
+    }
+
+    return prior;
+}
+
 int TimeLine::GetTagPosition(int tag)
 {
     // update it if it is outside the sequence
@@ -690,9 +719,7 @@ void TimeLine::ZoomOut()
 
 void TimeLine::ZoomIn()
 {
-    wxString s;
-    if (mZoomLevel > 0)
-    {
+    if (mZoomLevel > 0) {
         SetZoomLevel(mZoomLevel - 1);
     }
 }
@@ -920,7 +947,6 @@ void TimeLine::render( wxDC& dc ) {
 
     dc.SetBrush(brush);
     dc.SetPen(pen);
-    wxString format;
     int minutes=0;
     int seconds=0;
     int subsecs=0;
@@ -1020,17 +1046,23 @@ void TimeLine::render( wxDC& dc ) {
 
 void TimeLine::DrawTag(wxDC& dc, int tag, int position, int y_bottom)
 {
-    const wxPen* pen_black = wxBLUE_PEN;
+    dc.SetPen(*wxBLUE_PEN);
 
-    dc.SetPen(*pen_black);
-    dc.DrawLine(position-5, y_bottom - 1, position+5, y_bottom -1);
-    dc.DrawLine(position-5, y_bottom - 1, position-5, y_bottom - 12);
-    dc.DrawLine(position+5, y_bottom - 1, position+5, y_bottom - 12);
-    dc.DrawLine(position-5, y_bottom - 12, position, y_bottom - 15);
-    dc.DrawLine(position+5, y_bottom - 12, position, y_bottom - 15);
-#ifndef __LINUX__
-    dc.FloodFill(position, y_bottom - 6, *wxLIGHT_GREY);
-#endif
+    if( IsDarkMode() ) {
+        dc.SetBrush(*wxBLUE_BRUSH);
+    } else {
+        dc.SetBrush(*wxLIGHT_GREY_BRUSH);
+    }
+
+    wxPoint points[5];
+    points[0] = wxPoint(position+5, y_bottom -1);
+    points[1] = wxPoint(position-5, y_bottom - 1);
+    points[2] = wxPoint(position-5, y_bottom - 12);
+    points[3] = wxPoint(position,   y_bottom - 15);
+    points[4] = wxPoint(position+5, y_bottom - 12);
+
+    dc.DrawPolygon(5, points, 0,0, wxWINDING_RULE);
+    dc.SetBrush(*wxBLACK_BRUSH);
     dc.DrawLabel(wxString::Format("%i", tag), wxRect(position - 4, y_bottom - 13, 10, 13), wxALIGN_CENTRE_HORIZONTAL | wxALIGN_CENTRE_VERTICAL);
 }
 

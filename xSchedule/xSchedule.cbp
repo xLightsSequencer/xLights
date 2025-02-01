@@ -16,7 +16,7 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
-					<Add option="-std=c++1z" />
+					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
@@ -53,7 +53,7 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-Wall" />
-					<Add option="-std=c++1z" />
+					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
@@ -460,6 +460,8 @@
 		<Unit filename="RemapDialog.h" />
 		<Unit filename="RemoteModeConfigDialog.cpp" />
 		<Unit filename="RemoteModeConfigDialog.h" />
+		<Unit filename="RGBEffects.cpp" />
+		<Unit filename="RGBEffects.h" />
 		<Unit filename="RunningSchedule.cpp" />
 		<Unit filename="RunningSchedule.h" />
 		<Unit filename="Schedule.cpp" />

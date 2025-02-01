@@ -432,6 +432,9 @@ void ControllerSerial::SetProtocol(const std::string& type)
         o = new PixelNetOutput();
     } else if (type == OUTPUT_xxxSERIAL) {
         o = new xxxSerialOutput();
+#ifndef EXCLUDENETWORKUI
+        SetAutoSize(false, nullptr);
+#endif
     } else if (type == OUTPUT_GENERICSERIAL) {
         o = new GenericSerialOutput();
     } else {
@@ -763,8 +766,22 @@ bool ControllerSerial::HandlePropertyEvent(wxPropertyGridEvent& event, OutputMod
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::Postfix");
         return true;
     } else if (name == "Protocol") {
+
+        if (_outputs.size() > 0) {
+            wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
+            _outputs.front()->RemoveProperties(grid);
+        }
+
         auto protocols = GetProtocols();
         SetProtocol(Controller::DecodeChoices(protocols, event.GetValue().GetLong()));
+
+        if (_outputs.size() > 0) {
+            wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
+            std::list<wxPGProperty*> expandProperties;
+            auto before = grid->GetProperty("Models");
+            _outputs.front()->AddProperties(grid, before, this, true, expandProperties);
+        }
+
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::Protocol");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::Protocol", nullptr);
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerSerial::HandlePropertyEvent::Protocol", nullptr);

@@ -21,6 +21,7 @@
 #include "TwoPointScreenLocation.h"
 #include "ThreePointScreenLocation.h"
 #include "PolyPointScreenLocation.h"
+#include "PWMOutput.h"
 
 #include "../Color.h"
 #include "BaseObject.h"
@@ -196,7 +197,8 @@ public:
     void AddState(wxXmlNode* n);
     void AddSubmodel(wxXmlNode* n);
     void AddModelAliases(wxXmlNode* n);
-    void ImportShadowModels(wxXmlNode* n, xLightsFrame* xlights);
+    void ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup);
+    Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, const std::string& startChannel, bool& cancelled) const;
 
     wxString SerialiseSubmodel() const;
     wxString SerialiseAliases() const;
@@ -214,8 +216,10 @@ public:
     const ModelManager& GetModelManager() const { return modelManager; }
     virtual bool SupportsXlightsModel() { return false; }
     static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview);
-    void ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
-    virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {}
+    [[nodiscard]] bool ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
+    [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
+        return true;
+    }
     virtual void ExportXlightsModel() {}
     virtual void ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname, float& min_x, float& max_x, float& min_y, float& max_y);
     bool FourChannelNodes() const;
@@ -238,6 +242,7 @@ public:
     void SetProperty(wxString const& property, wxString const& value, bool apply = false);
     virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
+    void GetSerialProtocolSpeeds(const std::string& protocol, wxArrayString& cp, int& idx) const;
     void GetControllerProtocols(wxArrayString& cp, int& idx);
     virtual void AddControllerProperties(wxPropertyGridInterface* grid);
     virtual void UpdateControllerProperties(wxPropertyGridInterface* grid);
@@ -290,7 +295,8 @@ protected:
     const ModelManager& modelManager;
 
     int FindNodeAtXY(int bufx, int bufy);
-    virtual void InitModel();
+    virtual void InitModel() {
+    }
     virtual int CalcCannelsPerString();
     virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
     void RecalcStartChannels();
@@ -333,10 +339,12 @@ protected:
     int rgbwHandlingType = 0;
     std::vector<xlColor> superStringColours;
 
+    mutable std::list<std::string> aliases;
     std::vector<Model*> subModels;
+    std::map<std::string, Model*> sortedSubModels;
     void ParseSubModel(wxXmlNode* subModelNode);
     void ColourClashingChains(wxPGProperty* p);
-    uint32_t ApplyLowDefinition(uint32_t val) const;
+    [[nodiscard]] uint32_t ApplyLowDefinition(uint32_t val) const;
 
     FaceStateData faceInfo;
     FaceStateNodes faceInfoNodes;
@@ -344,18 +352,20 @@ protected:
     FaceStateNodes stateInfoNodes;
 
 public:
-    bool IsControllerConnectionValid() const;
-    wxXmlNode* GetControllerConnection() const;
-    std::string GetControllerConnectionString() const;
-    std::string GetControllerConnectionRangeString() const;
-    std::string GetControllerConnectionPortRangeString() const;
-    std::string GetControllerConnectionAttributeString() const;
+    [[nodiscard]] bool IsControllerConnectionValid() const;
+    [[nodiscard]] wxXmlNode* GetControllerConnection() const;
+    [[nodiscard]] std::string GetControllerConnectionString() const;
+    [[nodiscard]] std::string GetControllerConnectionRangeString() const;
+    [[nodiscard]] std::string GetControllerConnectionPortRangeString() const;
+    [[nodiscard]] std::string GetControllerConnectionAttributeString() const;
     void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
     static std::string DecodeSmartRemote(int sr);
 
     void SetTagColour(wxColour colour);
-    wxColour GetTagColour() const { return modelTagColour; }
-    int32_t GetStringStartChan(int x) const;
+    [[nodiscard]] wxColour GetTagColour() const {
+        return modelTagColour;
+    }
+    [[nodiscard]] int32_t GetStringStartChan(int x) const;
     void SaveSuperStringColours();
     void SetSuperStringColours(int count);
     void SetSuperStringColour(int index, xlColor c);
@@ -363,6 +373,7 @@ public:
     void SetShadowModelFor(const std::string& shadowFor);
     void SetControllerName(const std::string& controllerName);
     void SetControllerProtocol(const std::string& protocol);
+    void SetControllerSerialProtocolSpeed(int speed);
     void SetControllerPort(int port);
     void SetControllerBrightness(int brightness);
     void ClearControllerBrightness();
@@ -371,6 +382,7 @@ public:
     [[nodiscard]] std::string GetShadowModelFor() const;
     [[nodiscard]] std::string GetControllerName() const;
     [[nodiscard]] std::string GetControllerProtocol() const;
+    [[nodiscard]] int GetControllerProtocolSpeed() const;
     [[nodiscard]] int GetControllerBrightness() const;
     [[nodiscard]] int GetControllerDMXChannel() const;
     [[nodiscard]] int GetSmartRemote() const;
@@ -385,7 +397,7 @@ public:
     [[nodiscard]] int GetControllerEndNulls() const;
     [[nodiscard]] wxString GetControllerColorOrder() const;
     [[nodiscard]] int GetControllerGroupCount() const;
-    [[nodiscard]] std::string GetControllerGamma() const;
+    [[nodiscard]] float GetControllerGamma() const;
     [[nodiscard]] int GetControllerZigZag() const;
     [[nodiscard]] int GetControllerReverse() const;
     [[nodiscard]] std::string GetRGBWHandling() const;
@@ -394,44 +406,57 @@ public:
     void SetControllerEndNulls(int nulls);
     void SetControllerColorOrder(wxString const& color);
     void SetControllerGroupCount(int grouping);
+    void SetControllerGamma(float gamma);
 
     bool IsAlias(const std::string& alias, bool oldnameOnly = false) const;
     void AddAlias(const std::string& alias);
     void DeleteAlias(const std::string& alias);
-    std::list<std::string> GetAliases() const;
-    void SetAliases(std::list<std::string>& aliases);
+    bool DeleteAllAliases();
+    const std::list<std::string> &GetAliases() const;
+    void SetAliases(const std::list<std::string>& aliases);
 
     void GetPortSR(int string, int& outport, int& outsr) const;
-    char GetSmartRemoteLetter() const;
-    char GetSmartRemoteLetterForString(int string = 1) const;
-    int GetSortableSmartRemote() const;
-    int GetSmartTs() const;
-    int GetSmartRemoteForString(int string = 1) const;
-    int GetControllerPort(int string = 1) const;
+    [[nodiscard]] char GetSmartRemoteLetter() const;
+    [[nodiscard]] char GetSmartRemoteLetterForString(int string = 1) const;
+    [[nodiscard]] int GetSortableSmartRemote() const;
+    [[nodiscard]] int GetSmartTs() const;
+    [[nodiscard]] int GetSmartRemoteForString(int string = 1) const;
+    [[nodiscard]] int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
     void SetSmartRemote(int sr);
     void SetSRCascadeOnPort(bool cascade);
     void SetSRMaxCascade(int max);
     void SetSmartRemoteType(const std::string& type);
     void SetControllerDMXChannel(int ch);
-    std::string GetModelChain() const;
-    const std::vector<Model*>& GetSubModels() const { return subModels; }
-    Model* GetSubModel(const std::string& name) const;
-    std::string GenerateUniqueSubmodelName(const std::string suggested) const;
-    int GetNumSubModels() const { return subModels.size(); }
-    Model* GetSubModel(int i) const { return i < (int)subModels.size() ? subModels[i] : nullptr; }
+    [[nodiscard]] std::string GetModelChain() const;
+    [[nodiscard]] const std::vector<Model*>& GetSubModels() const {
+        return subModels;
+    }
+    [[nodiscard]] Model* GetSubModel(const std::string& name) const;
+    [[nodiscard]] std::string GenerateUniqueSubmodelName(const std::string suggested) const;
+    [[nodiscard]] int GetNumSubModels() const {
+        return subModels.size();
+    }
+    [[nodiscard]] Model* GetSubModel(int i) const {
+        return i < (int)subModels.size() ? subModels[i] : nullptr;
+    }
     void RemoveSubModel(const std::string& name);
-    std::list<int> ParseFaceNodes(std::string channels);
+    [[nodiscard]] std::list<int> ParseFaceNodes(std::string channels);
 
-    bool IsPixelProtocol() const;
-    bool IsSerialProtocol() const;
-    bool IsMatrixProtocol() const;
-    bool IsLEDPanelMatrixProtocol() const;
-    bool IsVirtualMatrixProtocol() const;
+    [[nodiscard]] bool IsPixelProtocol() const;
+    [[nodiscard]] bool IsSerialProtocol() const;
+    [[nodiscard]] bool IsMatrixProtocol() const;
+    [[nodiscard]] bool IsLEDPanelMatrixProtocol() const;
+    [[nodiscard]] bool IsVirtualMatrixProtocol() const;
+    [[nodiscard]] bool IsPWMProtocol() const;
+    
+    virtual std::vector<PWMOutput> GetPWMOutputs() const;
 
     static wxArrayString GetSmartRemoteValues(int smartRemoteCount);
 
-    unsigned long GetChangeCount() const { return changeCount; }
+    [[nodiscard]] unsigned long GetChangeCount() const {
+        return changeCount;
+    }
 
     std::string rgbOrder;
     bool SingleNode = false;     // true for dumb strings and single channel strings
@@ -439,27 +464,27 @@ public:
 
     std::string ModelStartChannel{ "" };
     bool CouldComputeStartChannel = false;
-    bool Overlapping{ false };
+    bool Overlapping = false;
     std::string _pixelCount{ "" };
     std::string _pixelType{ "" };
     std::string _pixelSpacing{ "" };
 
     void SetFromXml(wxXmlNode* ModelNode, bool zeroBased = false) override;
     virtual bool ModelRenamed(const std::string& oldName, const std::string& newName);
-    uint32_t GetNodeCount() const;
-    NodeBaseClass* GetNode(uint32_t node) const;
-    uint32_t GetChanCount() const;
-    uint32_t GetActChanCount() const;
-    int GetChanCountPerNode() const;
-    uint32_t GetCoordCount(size_t nodenum) const;
-    int GetNodeStringNumber(size_t nodenum) const;
+    [[nodiscard]] uint32_t GetNodeCount() const;
+    [[nodiscard]] NodeBaseClass* GetNode(uint32_t node) const;
+    [[nodiscard]] uint32_t GetChanCount() const;
+    [[nodiscard]] uint32_t GetActChanCount() const;
+    [[nodiscard]] int GetChanCountPerNode() const;
+    [[nodiscard]] uint32_t GetCoordCount(size_t nodenum) const;
+    [[nodiscard]] int GetNodeStringNumber(size_t nodenum) const;
     void UpdateXmlWithScale() override;
     void SetPosition(double posx, double posy);
-    std::string GetChannelInStartChannelFormat(OutputManager* outputManager, uint32_t channel);
-    std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
-    std::string GetFirstChannelInStartChannelFormat(OutputManager* outputManager);
-    std::string GetStartChannelInDisplayFormat(OutputManager* outputManager);
-    bool IsValidStartChannelString() const;
+    [[nodiscard]] std::string GetChannelInStartChannelFormat(OutputManager* outputManager, uint32_t channel);
+    [[nodiscard]] std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
+    [[nodiscard]] std::string GetFirstChannelInStartChannelFormat(OutputManager* outputManager);
+    [[nodiscard]] std::string GetStartChannelInDisplayFormat(OutputManager* outputManager);
+    [[nodiscard]] bool IsValidStartChannelString() const;
     virtual uint32_t GetFirstChannel() const;
     virtual uint32_t GetLastChannel() const;
     uint32_t GetNumChannels() const;
@@ -502,7 +527,7 @@ public:
     bool HasState(std::string const& state) const;
 
     bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
-    const std::string& GetStringType(void) const { return StringType; }
+    const std::string& GetStringType() const { return StringType; }
     virtual int NodesPerString() const;
     virtual int NodesPerString(int string) const { return NodesPerString(); }
     virtual int MapPhysicalStringToLogicalString(int string) const { return string; }
@@ -528,7 +553,7 @@ public:
     virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
     virtual void ExportAsCustomXModel() const;
     virtual std::string GetStartLocation() const;
-    bool IsCustom(void);
+    bool IsCustom();
     virtual bool SupportsExportAsCustom() const = 0;
     virtual bool SupportsExportAsCustom3D() const
     {
@@ -563,7 +588,9 @@ public:
     void ClearIndividualStartChannels();
 
     void GetMinScreenXY(float& minx, float& miny) const;
-    virtual int GetNumStrands() const;
+    virtual int GetNumStrands() const {
+            return 1;
+    }
     std::string GetStrandName(size_t x, bool def = false) const
     {
         if (x < strandNames.size()) {
@@ -598,7 +625,7 @@ public:
     // returns true for models that only have 1 string and where parm1 does NOT represent the # of strings
     static bool HasOneString(const std::string& DispAs)
     {
-        return (DispAs == "Window Frame" || DispAs == "Custom");
+        return (DispAs == "Window Frame" || DispAs == "Custom" || DispAs == "Cube");
     }
     // true for dumb strings and traditional strings
     bool HasSingleNode(const std::string& StrType) const

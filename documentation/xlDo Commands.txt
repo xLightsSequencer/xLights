@@ -31,11 +31,11 @@ GET /closeSequence - closes the sequence
     force=true to close even if there are unsaved changes
 
 GET /newSequence
-    Needs two query params:
+    Needs either duration or media query params:
     duration=  Time in seconds
     media= Media filename
     frameMS= frame time in MS (typically 25 or 50 or 0) optional
-    view= view to use for mast view ("Empty", "All Models" or a valid view name) optional
+    view= view to use for master view ("Empty", "All Models" or a valid view name) optional
 
 GET /saveSequence
     seq=  Sequence name to save as, don't specify to use current name
@@ -230,7 +230,7 @@ Response
 Packaged Sequence Files
     {"cmd":"packageSequence"}
 Response
-    {"res":200, "output": "SequenceName.zip"}
+    {"res":200, "output": "SequenceName.xsqz"}
 
 Packaged Log Files
     {"cmd":"packageLogFiles"}
@@ -389,3 +389,14 @@ Command
     {"cmd":"setModelProperty","model":"model name","key":"ModelControllerConnectionPort","data":"5"}
 Response
     {"res":200, "msg":"Set Model Property.","worked":"true"}
+
+Get current show folder.
+Command
+	{"cmd":"getShowFolder"}
+Response
+    {"res":200, "folder":"C:\ShowFolder"}
+Get the fseq directory from preferences.
+Command
+	{"cmd":"getFseqDirectory"}
+Response
+    {"res":200, "folder":"C:\ShowFolder"}

@@ -20,7 +20,7 @@ wxGridCellButtonRenderer(wxString label)
 }
 
 wxGridCellButtonRenderer::
-~wxGridCellButtonRenderer(void)
+~wxGridCellButtonRenderer()
 {
 }
 
@@ -58,7 +58,7 @@ wxGridCellButtonEditor(wxString label)
 }
 
 wxGridCellButtonEditor::
-~wxGridCellButtonEditor(void)
+~wxGridCellButtonEditor()
 {
 }
 

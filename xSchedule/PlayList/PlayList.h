@@ -10,10 +10,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <wx/wx.h>
 #include <list>
 #include <map>
 #include <mutex>
-#include <wx/wx.h>
 
 class OutputManager;
 class PlayListItemText;
@@ -24,11 +24,9 @@ class Schedule;
 class PlayListItem;
 class ScheduleOptions;
 
-class PlayList
-{
+class PlayList {
 protected:
-
-    #pragma region Member Variables
+#pragma region Member Variables
     int _reentrancyCounter;
     wxUint32 _id;
     std::list<PlayListStep*> _steps;
@@ -55,7 +53,7 @@ protected:
     bool _jumpToEndStepsAtEndOfCurrentStep;
     std::string _forceNextStep;
     std::list<wxUint32> _played;
-    #pragma endregion Member Variables
+#pragma endregion Member Variables
 
     int GetPos(PlayListStep* step);
     PlayListStep* GetPriorStep();
@@ -67,31 +65,53 @@ protected:
     bool JumpToStep(PlayListStep* pls);
 
 public:
-
-    #pragma region Constructors and Destructors
+#pragma region Constructors and Destructors
     PlayList(OutputManager* outputManager, wxXmlNode* node);
     PlayList(PlayList& playlist, bool newid = false);
     PlayList();
     virtual ~PlayList();
-    #pragma endregion Constructors and Destructors
+#pragma endregion Constructors and Destructors
 
-    bool operator==(const PlayList& rhs) const { return _id == rhs._id; }
+    bool operator==(const PlayList& rhs) const {
+        return _id == rhs._id;
+    }
     PlayList& operator=(PlayList& playlist);
 
-    #pragma region Getters and Setters
+#pragma region Getters and Setters
     void RemoveEmptySteps();
-    void SetCommandAtEndOfCurrentStep(const std::string& command, const std::string& parameters) { _commandAtEndOfCurrentStep = command; _commandParametersAtEndOfCurrentStep = parameters; }
-    wxUint32 GetId() const { return _id; }
-    bool IsFinishingUp() const { return _jumpToEndStepsAtEndOfCurrentStep; }
-    void SetSuspendAtEndOfCurrentStep() { _suspendAtEndOfStep = true; }
-    void JumpToStepAtEndOfCurrentStep(const std::string& step) { _forceNextStep = step; }
+    void SetCommandAtEndOfCurrentStep(const std::string& command, const std::string& parameters) {
+        _commandAtEndOfCurrentStep = command;
+        _commandParametersAtEndOfCurrentStep = parameters;
+    }
+    wxUint32 GetId() const {
+        return _id;
+    }
+    bool IsFinishingUp() const {
+        return _jumpToEndStepsAtEndOfCurrentStep;
+    }
+    void SetSuspendAtEndOfCurrentStep() {
+        _suspendAtEndOfStep = true;
+    }
+    void JumpToStepAtEndOfCurrentStep(const std::string& step) {
+        _forceNextStep = step;
+    }
     PlayListStep* GetNextStep(bool& didloop);
-    PlayListStep* GetRunningStep() const { return _currentStep; }
-    uint32_t GetRunningStepIndex() { return GetPos(_currentStep); }
-    std::list<PlayListStep*> GetSteps() const { return _steps; }
-    int GetStepCount() const { return _steps.size(); }
+    PlayListStep* GetRunningStep() const {
+        return _currentStep;
+    }
+    uint32_t GetRunningStepIndex() {
+        return GetPos(_currentStep);
+    }
+    std::list<PlayListStep*> GetSteps() const {
+        return _steps;
+    }
+    int GetStepCount() const {
+        return _steps.size();
+    }
     std::string GetNextScheduledTime();
-    std::list<Schedule*> GetSchedules() const { return _schedules; }
+    std::list<Schedule*> GetSchedules() const {
+        return _schedules;
+    }
     size_t GetLengthMS();
     bool IsDirty();
     void ClearDirty();
@@ -99,34 +119,98 @@ public:
     int GetFrameMS();
     Schedule* GetSchedule(int id);
     Schedule* GetSchedule(const std::string& name);
-    int GetChangeCount() const { return _changeCount; }
+    int GetChangeCount() const {
+        return _changeCount;
+    }
     bool SupportsRandom();
     void SetPosition(long secs);
-    bool IsRandom() const { return _random || _alwaysShuffle; }
-    bool SetRandom(bool random) { _random = random; if (random) _played.clear(); return true; }
-    bool SetLooping(bool looping) { _looping = looping; return true; }
-    bool IsStepLooping() const { return _loopStep; }
-    int GetLoopsLeft() const { return _loops; }
-    void DoLoop() { --_loops; if (_loops == 1) { _loops = -1; _looping = false; } }
-    void SetStepLooping(bool loop) { _loopStep = loop; }
+    bool IsRandom() const {
+        return _random || _alwaysShuffle;
+    }
+    bool SetRandom(bool random) {
+        _random = random;
+        if (random)
+            _played.clear();
+        return true;
+    }
+    bool SetLooping(bool looping) {
+        _looping = looping;
+        return true;
+    }
+    bool IsStepLooping() const {
+        return _loopStep;
+    }
+    int GetLoopsLeft() const {
+        return _loops;
+    }
+    void DoLoop() {
+        --_loops;
+        if (_loops == 1) {
+            _loops = -1;
+            _looping = false;
+        }
+    }
+    void SetStepLooping(bool loop) {
+        _loopStep = loop;
+    }
     PlayListStep* GetStepAtTime(long ms, long& stepMS);
     size_t GetPosition();
     std::string GetName();
-    std::string GetRawName() const {  return _name; };
-    std::string GetNameNoTime() const { if (_name == "") return "<unnamed>"; else return _name; };
-    void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
-    bool GetFirstOnce() const
-    { return _firstOnlyOnce; }
-    void SetFirstOnce(bool foo) { if (_firstOnlyOnce != foo) { _firstOnlyOnce = foo; _changeCount++; } }
-    bool GetLastOnce() const { return _lastOnlyOnce; }
-    bool GetShuffle() const { return _alwaysShuffle; }
-    void SetLastOnce(bool foo) { if (_lastOnlyOnce != foo) { _lastOnlyOnce = foo; _changeCount++; } }
-    void SetShuffle(bool foo) { if (_alwaysShuffle != foo) { _alwaysShuffle = foo; _changeCount++; } }
+    std::string GetRawName() const {
+        return _name;
+    };
+    std::string GetNameNoTime() const {
+        if (_name == "")
+            return "<unnamed>";
+        else
+            return _name;
+    };
+    void SetName(const std::string& name) {
+        if (_name != name) {
+            _name = name;
+            _changeCount++;
+        }
+    }
+    bool GetFirstOnce() const {
+        return _firstOnlyOnce;
+    }
+    void SetFirstOnce(bool foo) {
+        if (_firstOnlyOnce != foo) {
+            _firstOnlyOnce = foo;
+            _changeCount++;
+        }
+    }
+    bool GetLastOnce() const {
+        return _lastOnlyOnce;
+    }
+    bool GetShuffle() const {
+        return _alwaysShuffle;
+    }
+    void SetLastOnce(bool foo) {
+        if (_lastOnlyOnce != foo) {
+            _lastOnlyOnce = foo;
+            _changeCount++;
+        }
+    }
+    void SetShuffle(bool foo) {
+        if (_alwaysShuffle != foo) {
+            _alwaysShuffle = foo;
+            _changeCount++;
+        }
+    }
     bool Frame(uint8_t* buffer, size_t size, bool outputframe); // true if this was the last frame
-    int GetPlayListSize() const { return _steps.size(); }
-    bool IsLooping() const { return _looping; }
-    void StopAtEndOfThisLoop() { _lastLoop = true; }
-    void ClearStopAtEndOfThisLoop() { _lastLoop = false; }
+    int GetPlayListSize() const {
+        return _steps.size();
+    }
+    bool IsLooping() const {
+        return _looping;
+    }
+    void StopAtEndOfThisLoop() {
+        _lastLoop = true;
+    }
+    void ClearStopAtEndOfThisLoop() {
+        _lastLoop = false;
+    }
     std::string GetStepStartTime(PlayListStep* step) const;
     long GetStepStartTimeMS(size_t index) const;
     bool IsSimple();
@@ -143,8 +227,12 @@ public:
     int Suspend(bool suspend);
     bool IsSuspended() const;
     void Stop();
-    void StopAtEndOfCurrentStep() { _stopAtEndOfCurrentStep = true; }
-    void ClearStopAtEndOfCurrentStep() { _stopAtEndOfCurrentStep = false; }
+    void StopAtEndOfCurrentStep() {
+        _stopAtEndOfCurrentStep = true;
+    }
+    void ClearStopAtEndOfCurrentStep() {
+        _stopAtEndOfCurrentStep = false;
+    }
     void TogglePause();
     void RemoveAllSteps();
     bool IsPaused() const;
@@ -174,11 +262,10 @@ public:
     void SeparateEveryDay();
 
     wxXmlNode* Save();
-    void Load(OutputManager* outputManager, wxXmlNode * node);
-    
-    #pragma region UI
+    void Load(OutputManager* outputManager, wxXmlNode* node);
+
+#pragma region UI
     // returns nullptr if cancelled
     PlayList* Configure(wxWindow* parent, OutputManager* outputManager, ScheduleOptions* options, bool advanced);
-    #pragma endregion UI
-
+#pragma endregion UI
 };

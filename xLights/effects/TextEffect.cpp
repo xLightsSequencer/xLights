@@ -539,6 +539,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                        SettingsMap["FONTPICKER_Text_Font"],
                        TextEffectDirectionsIndex(SettingsMap["CHOICE_Text_Dir"]),
                        wxAtoi(SettingsMap["CHECKBOX_TextToCenter"]),
+                       wxAtoi(SettingsMap["CHECKBOX_TextNoRepeat"]),
                        TextEffectsIndex(SettingsMap["CHOICE_Text_Effect"]),
                        TextCountDownIndex(SettingsMap["CHOICE_Text_Count"]),
                        wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed", "10")),
@@ -818,7 +819,8 @@ void DrawLabel(TextDrawingContext *dc,
                             }
                             dc->DrawText(c, loc, y);
                         }
-                        if ((perWord && c == ' ') || (!perWord && c != ' ')) {
+                        if ((perWord && c == ' ' && x1 + 1 < curLine.size() && curLine[x1 + 1] != ' ') ||
+                            (!perWord && c != ' ')) {
                             curPos++;
                         }
                     }
@@ -878,17 +880,6 @@ void DrawLabel(TextDrawingContext *dc,
 //#define WANT_DEBUG 99
 //#include "djdebug.cpp"
 
-static wxString StripLeft(wxString str, wxString pattern)
-{
-    while (str.StartsWith(pattern, &str)) {};
-    return str;
-}
-
-static wxString StripRight(wxString str, wxString pattern)
-{
-    while (str.EndsWith(pattern, &str)) {};
-    return str;
-}
 
 TextRenderCache *GetCache(RenderBuffer &buffer, int id) {
     TextRenderCache *cache = (TextRenderCache*)buffer.infoCache[id];
@@ -905,7 +896,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
                                     const wxString& Line_orig,
                                     const std::string &fontString,
                                     int dir,
-                                    bool center, int Effect, int Countdown, int tspeed,
+                                    bool center, bool norepeat, int Effect, int Countdown, int tspeed,
                                     int startx, int starty, int endx, int endy,
                                     bool isPixelBased, bool perWord) const
 {
@@ -951,11 +942,6 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
     wxSize textsize = GetMultiLineTextExtent(dc, msg, cache, fontString, fontSet);
     int extra_left = IsGoingLeft(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(false), cache, fontString, fontSet).x: 0; //CAUTION: trim() alters object, so make a copy first
     int extra_right = IsGoingRight(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(true), cache, fontString, fontSet).x: 0;
-    int extra_down = IsGoingDown(dir)? textsize.y - GetMultiLineTextExtent(dc, StripRight(msg, "\n"), cache, fontString, fontSet).y: 0;
-    int extra_up = IsGoingUp(dir)? textsize.y - GetMultiLineTextExtent(dc, StripLeft(msg, "\n"), cache, fontString, fontSet).y: 0;
-    //    debug(1, "size %d lstrip %d, rstrip %d, = %d, %d, text %s", dc.GetMultiLineTextExtent(msg).y, dc.GetMultiLineTextExtent(StripLeft(msg, "\n")).y, dc.GetMultiLineTextExtent(StripRight(msg, "\n")).y, extra_down, extra_up, (const char*)StripLeft(msg, "\n"));
-    int lineh = GetMultiLineTextExtent(dc, "X", cache, fontString, fontSet).y;
-    //    wxString debmsg = msg; debmsg.Replace("\n","\\n", true);
     int xoffset=0;
     int yoffset=0;
 
@@ -1024,38 +1010,71 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
                 rect.Offset(ex, ey);
             }
                 break;
-            case TEXTDIR_LEFT:
-                //           debug(1, "l2r[%d] center? %d, xlim/16 %d, state %d, xofs %d, extra l %d r %d, text %s", idx, center, xlimit/16, state, center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, extra_left, extra_right, (const char*)msg);
-                // rect.Offset(center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, OffsetTop);
+            case TEXTDIR_LEFT: // OS FONTS
                 {                
                     int state8 = state / 8;
                     if (state8 < 0) state8 += 32768;
                     if (state > 2000000)
                         state = state + 0;
-                    rect.Offset(center ? std::max((int)(xlimit / 16 - state8), -extra_left / 2) : xlimit / 16 - state % xlimit / 8, OffsetTop);
+                    if (norepeat && !center && state > xlimit) {
+                        rect.Offset(-xlimit, OffsetTop);
+                    } else {
+                        rect.Offset(center ? std::max((int)(xlimit / 16 - state8), -extra_left/2) : xlimit/16 - state % xlimit/8, OffsetTop);
+                    }
                 }
                 break; // left, optionally stop at center
-            case TEXTDIR_RIGHT:
-                rect.Offset(center? std::min((int)(state /*% xlimit*/ /8 - xlimit/16), extra_right/2): state % xlimit/8 - xlimit/16, OffsetTop);
+            case TEXTDIR_RIGHT: 
+                if (norepeat && !center && state > xlimit) {
+                    rect.Offset(xlimit, OffsetTop);
+                } else {
+                    rect.Offset(center ? std::min((int)(state /*% xlimit*/ / 8 - xlimit/16), extra_right/2) : state % xlimit/8 - xlimit/16, OffsetTop);
+                }
                 break; // right, optionally stop at center
             case TEXTDIR_UP:
-                rect.Offset(OffsetLeft, center? std::max((int)(ylimit/16 - state /*% ylimit*/ /8), lineh/2 - extra_up/2): ylimit/16 - state % ylimit/8);
+                if (norepeat && !center && state > ylimit) {
+                    rect.Offset(OffsetLeft, -ylimit);
+                } else {
+                    rect.Offset(OffsetLeft, center ? std::max((int)(ylimit/16 - state /*% ylimit*/ /8), 0): ylimit/16 - state % ylimit/8);
+                }
                 break; // up, optionally stop at center
-            case TEXTDIR_DOWN:
-                //            debug(1, "t2b[%d] center? %d, totht %d, ylimit %d, extra u %d d %d, lineh %d, text %s => yofs min(%d - %d, %d + %d)", idx, center, totheight, ylimit, extra_up, extra_down, lineh, (const char*)debmsg, state /*% ylimit*/ /8, ylimit/16, -lineh/2, extra_down/2);
-                rect.Offset(OffsetLeft, center? std::min((int)(state /*% ylimit*/ /8 - ylimit/16), -lineh/2 + extra_down/2): state % ylimit/8 - ylimit/16);
+            case TEXTDIR_DOWN:;
+                if (norepeat && !center && state > ylimit) {
+                    rect.Offset(OffsetLeft, ylimit);
+                } else {
+                    rect.Offset(OffsetLeft, center ? std::min((int)(state /*% ylimit*/ /8 - ylimit/16), 0) : state % ylimit/8 - ylimit/16);
+                }
                 break; // down, optionally stop at center
             case TEXTDIR_UPLEFT:
-                rect.Offset(center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, center? std::max((int)(ylimit/16 - state /*% ylimit*/ /8), lineh/2 - extra_up/2): ylimit/16 - state % ylimit/8);
+                if (norepeat && !center && (state > ylimit || state > xlimit)) {
+                    rect.Offset(-xlimit, -ylimit);
+                } else {
+                    rect.Offset(center ? std::max((int)(xlimit/16 - state /*% xlimit*/ /8) + startx, 0): xlimit/16 - state % xlimit/8 + startx, 
+                                center ? std::max((int)(ylimit/16 - state /*% ylimit*/ /8) - starty, 0): ylimit/16 - state % ylimit/8 - starty);
+                }
                 break; // up-left, optionally stop at center
             case TEXTDIR_DOWNLEFT:
-                rect.Offset(center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, center? std::min((int)(state /*% ylimit*/ /8 - ylimit/16), -lineh/2 + extra_down/2): state % ylimit/8 - ylimit/16);
+                if (norepeat && !center && (state > ylimit || state > xlimit)) {
+                    rect.Offset(-xlimit, ylimit);
+                } else {
+                    rect.Offset(center ? std::max((int)(xlimit/16 - state /*% xlimit*/ /8) + startx, 0): xlimit/16 - state % xlimit/8 + startx,
+                                center ? std::min((int)(state /*% ylimit*/ /8 - ylimit/16) + starty, 0): state % ylimit/8 - ylimit/16 + starty);
+                }
                 break; // down-left, optionally stop at center
             case TEXTDIR_UPRIGHT:
-                rect.Offset(center? std::min((int)(state /*% xlimit*/ /8 - xlimit/16), extra_right/2): state % xlimit/8 - xlimit/16, center? std::max((int)(ylimit/16 - state /*% ylimit*/ /8), lineh/2 - extra_up/2): ylimit/16 - state % ylimit/8);
+                if (norepeat && !center && (state > ylimit || state > xlimit)) {
+                    rect.Offset(xlimit, -ylimit);
+                } else {
+                    rect.Offset(center ? std::min((int)(state /*% xlimit*/ /8 - xlimit/16) - startx, 0): state % xlimit/8 - xlimit/16 - startx,
+                                center ? std::max((int)(ylimit/16 - state /*% ylimit*/ /8) - starty, 0): ylimit/16 - state % ylimit/8 - starty);
+                }
                 break; // up-right, optionally stop at center
             case TEXTDIR_DOWNRIGHT:
-                rect.Offset(center? std::min((int)(state /*% xlimit*/ /8 - xlimit/16), extra_right/2): state % xlimit/8 - xlimit/16, center? std::min((int)(state /*% ylimit*/ /8 - ylimit/16), -lineh/2 + extra_down/2): state % ylimit/8 - ylimit/16);
+                if (norepeat && !center && (state > ylimit || state > xlimit)) {
+                    rect.Offset(xlimit, ylimit);
+                } else {
+                    rect.Offset(center ? std::min((int)(state /*% xlimit*/ /8 - xlimit/16) - startx, 0): state % xlimit/8 - xlimit/16 - startx,
+                                center ? std::min((int)(state /*% ylimit*/ /8 - ylimit/16) + starty, 0): state % ylimit/8 - ylimit/16 + starty);
+                }
                 break; // down-right, optionally stop at center
             case TEXTDIR_WAVEY_LRUPDOWN:
                 if (center) //does to-center make sense with this one?
@@ -1605,7 +1624,8 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                 OffsetTop += font->GetHeight() + 1;
             } else {
                 buffer.palette.GetColor(curPos % num_colors, c);
-                if ((perWord && text[i] == ' ') || (!perWord && text[i] != ' ')) {
+                if ((perWord && text[i] == ' ' && i + 1 < text.size() && text[i + 1] != ' ') || 
+                    (!perWord && text[i] != ' ')) {
                     curPos++;
                 }
                 char ascii = text[i];
@@ -1681,7 +1701,8 @@ void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& 
     int ylimit = totheight * 8 + 1;
 
     TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
-    //int center = wxAtoi(settings["CHECKBOX_TextToCenter"]);  // not implemented yet - hoping to switch to value curves anyways
+    int center = wxAtoi(settings["CHECKBOX_TextToCenter"]);
+    int norepeat = wxAtoi(settings["CHECKBOX_TextNoRepeat"]);
 
     switch (dir) {
     case TEXTDIR_VECTOR:
@@ -1697,33 +1718,62 @@ void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& 
         OffsetTop += (ey - OffsetTop) * position;
     }
     break;
-    case TEXTDIR_LEFT:
-        OffsetLeft = buffer.BufferWi - state % (xlimit + buffer.BufferWi) / 8 + PreOffsetLeft + txtwidth / 2;
+    case TEXTDIR_LEFT: // XL FONTS REALLY
+        OffsetLeft = center ? std::max(buffer.BufferWi - (state / 8) + PreOffsetLeft + (txtwidth / 2),0):
+                                        (buffer.BufferWi - (state % (xlimit + buffer.BufferWi)) / 8) + PreOffsetLeft + (txtwidth / 2);
+        if (norepeat && !center && state > (buffer.BufferWi + PreOffsetLeft + txtwidth) * 8) {
+            OffsetLeft = -(buffer.BufferWi + PreOffsetLeft + txtwidth);
+        }
         break; // left
     case TEXTDIR_RIGHT:
-        OffsetLeft = state % xlimit / 8 - txtwidth + PreOffsetLeft;
+        OffsetLeft = center ? std::min(state / 8 - txtwidth + PreOffsetLeft, 0) : (state % xlimit / 8 - txtwidth + PreOffsetLeft);
+        if (norepeat && !center && state > xlimit) {
+            OffsetLeft = xlimit + PreOffsetLeft;
+        }
         break; // right
     case TEXTDIR_UP:
-        OffsetTop = buffer.BufferHt - state % ylimit / 8 - PreOffsetTop;
+        OffsetTop = center ? std::max(buffer.BufferHt - state / 8 - PreOffsetTop, 0) : (buffer.BufferHt - state % ylimit / 8 - PreOffsetTop);
+        if (norepeat && !center && state > ylimit) {
+            OffsetTop = -ylimit;
+        }
         break; // up
     case TEXTDIR_DOWN:
-        OffsetTop = state % ylimit / 8 - txtheight - PreOffsetTop;
+        OffsetTop = center ? std::min(state / 8 - (buffer.BufferHt / 2) - PreOffsetTop, 0):(state % ylimit / 8 - (buffer.BufferHt / 2) - PreOffsetTop);
+        if (norepeat && !center && state > (ylimit - (buffer.BufferHt / 2))) {
+            OffsetTop = ylimit;
+        }
         break; // down
     case TEXTDIR_UPLEFT:
-        OffsetLeft = buffer.BufferWi - state % xlimit / 8 + PreOffsetLeft;
-        OffsetTop = buffer.BufferHt - state % ylimit / 8 - PreOffsetTop;
+        OffsetLeft = center ? std::max(buffer.BufferWi - state / 8 + PreOffsetLeft,0):(buffer.BufferWi - state % xlimit / 8 + PreOffsetLeft);
+        OffsetTop = center ? std::max(buffer.BufferHt - state / 8 - PreOffsetTop,0):(buffer.BufferHt - state % ylimit / 8 - PreOffsetTop);
+        if (norepeat && !center && (state > ylimit || state > xlimit)) {
+                OffsetTop = -ylimit;
+                OffsetLeft= -xlimit;
+        }
         break; // up-left
     case TEXTDIR_DOWNLEFT:
-        OffsetLeft = buffer.BufferWi - state % xlimit / 8 + PreOffsetLeft;
-        OffsetTop = state % ylimit / 8 - txtheight - PreOffsetTop;
+        OffsetLeft = center ? std::max(buffer.BufferWi - state / 8 + PreOffsetLeft, 0) :(buffer.BufferWi - state % xlimit / 8 + PreOffsetLeft);
+        OffsetTop = center ? std::min(state / 8 - txtheight - PreOffsetTop,0):(state % ylimit / 8 - txtheight - PreOffsetTop);
+        if (norepeat && !center && (state > (ylimit - (buffer.BufferHt / 2)) || state > (buffer.BufferWi + PreOffsetLeft + txtwidth) * 8)) {
+            OffsetLeft = -(buffer.BufferWi + PreOffsetLeft + txtwidth);
+            OffsetTop = ylimit;
+        }
         break; // down-left
     case TEXTDIR_UPRIGHT:
-        OffsetLeft = state % xlimit / 8 - txtwidth + PreOffsetLeft;
-        OffsetTop = buffer.BufferHt - state % ylimit / 8 - PreOffsetTop;
+        OffsetLeft = center ? std::min(state / 8 - txtwidth + PreOffsetLeft,0):(state % xlimit / 8 - txtwidth + PreOffsetLeft);
+        OffsetTop = center ? std::max(buffer.BufferHt - state / 8 - PreOffsetTop, 0) : (buffer.BufferHt - state % ylimit / 8 - PreOffsetTop);
+        if (norepeat && !center && (state > ylimit || state > xlimit)) {
+            OffsetLeft = xlimit + PreOffsetLeft;
+            OffsetTop = -ylimit;
+        }
         break; // up-right
     case TEXTDIR_DOWNRIGHT:
-        OffsetLeft = state % xlimit / 8 - txtwidth + PreOffsetLeft;
-        OffsetTop = state % ylimit / 8 - txtheight - PreOffsetTop;
+        OffsetLeft = center ? std::min(state / 8 - txtwidth + PreOffsetLeft, 0) : (state % xlimit / 8 - txtwidth + PreOffsetLeft);
+        OffsetTop = center ? std::min(state / 8 - txtheight - PreOffsetTop, 0) : (state % ylimit / 8 - txtheight - PreOffsetTop);
+        if (norepeat && !center && (state > ylimit || state > (buffer.BufferWi + PreOffsetLeft + txtwidth) * 8)) {
+            OffsetLeft = -(buffer.BufferWi + PreOffsetLeft + txtwidth);
+            OffsetTop = -ylimit;
+        }
         break; // down-right
     case TEXTDIR_WAVEY_LRUPDOWN:
         OffsetLeft = xlimit / 16 - state % xlimit / 8;

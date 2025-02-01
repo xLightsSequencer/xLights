@@ -179,7 +179,8 @@ void StateEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                 SettingsMap["CHOICE_State_State"],
                 SettingsMap["CHOICE_State_TimingTrack"],
                 SettingsMap["CHOICE_State_Mode"],
-                SettingsMap["CHOICE_State_Color"]);
+                SettingsMap["CHOICE_State_Color"],
+                SettingsMap.GetInt("SLIDER_State_Fade_Time", 0));
 }
 
 std::string StateEffect::FindState(std::map<std::string, std::string>& map, std::string name) {
@@ -211,7 +212,7 @@ static std::list<int> const& findNodeKey(std::map<std::string, std::list<int>> c
 
 void StateEffect::RenderState(RenderBuffer& buffer,
                               SequenceElements* elements, const std::string& faceDefinition,
-                              const std::string& Phoneme, const std::string& trackName, const std::string& mode, const std::string& colourmode) {
+                              const std::string& Phoneme, const std::string& trackName, const std::string& mode, const std::string& colourmode, int fadeTime) {
     if (buffer.needToInit) {
         buffer.needToInit = false;
         elements->AddRenderDependency(trackName, buffer.cur_model);
@@ -277,7 +278,7 @@ void StateEffect::RenderState(RenderBuffer& buffer,
             return;
         }
 
-        std::recursive_timed_mutex* lock = lock = &track->GetChangeLock();
+        std::recursive_timed_mutex* lock = &track->GetChangeLock();
         std::unique_lock<std::recursive_timed_mutex> locker(*lock);
 
         EffectLayer* layer = track->GetEffectLayer(0);
@@ -302,7 +303,7 @@ void StateEffect::RenderState(RenderBuffer& buffer,
             }
         }
     }
-
+    uint8_t const alpha = CalculateAlpha(fadeTime,posms, startms, endms, buffer);
     std::vector<std::string> sstates;
 
     if (mode == "Default" || startms == -1) {
@@ -469,6 +470,7 @@ void StateEffect::RenderState(RenderBuffer& buffer,
                             color = xlColor(cname);
                         }
                     }
+                    color.alpha = ((int)alpha * color.alpha) / 255;
                     if (type == 1) {
                         for (const auto it : findNodeKey(model_info->GetStateInfoNodes().at(definition), statename)) {
                             buffer.SetNodePixel(it, color, true);
@@ -492,4 +494,20 @@ void StateEffect::RenderState(RenderBuffer& buffer,
             }
         }
     }
+}
+
+uint8_t StateEffect::CalculateAlpha(int fadeTime, int currentTime, int startTime, int endTime, RenderBuffer& buffer) {
+    if (0 == fadeTime || -1 == currentTime || -1 == startTime || -1 == endTime) {
+        return 255;
+    }
+    uint8_t beforeAlpha = 0;
+    uint8_t afterAlpha = 0;
+    if (endTime - currentTime < fadeTime) {                       
+        beforeAlpha = ((endTime - currentTime) * 255) / fadeTime;                        
+    } else if (currentTime + buffer.frameTimeInMs - startTime < fadeTime) { // buffer.frameTimeInMs
+        afterAlpha = ((currentTime + buffer.frameTimeInMs - startTime) * 255) / fadeTime;
+    } else {
+        return 255;
+    }         
+    return std::max(beforeAlpha, afterAlpha);
 }

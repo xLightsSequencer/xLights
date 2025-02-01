@@ -65,7 +65,6 @@ void DragColoursBitmapButton::OnMouseLeftDown(wxMouseEvent& event)
         return;
     }
 
-    wxString data;
     wxTextDataObject dragData(_c);
 
 #ifdef __linux__

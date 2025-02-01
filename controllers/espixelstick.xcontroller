@@ -11,6 +11,7 @@
 			<AllInputUniversesMustBeSameSize/>
 			<UniversesMustBeSequential/>
 			<SupportsAutoLayout/>
+            <DDPStartsAtOne/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>gece</Protocol>
@@ -25,17 +26,29 @@
 		</Variant>
 	</Controller>
     <AbstractVariant Name="BaseESPixelStickV4Settings">
+		<SupportsFullxLightsControl/>
+		<SupportsDefaultBrightness/>
+		<SupportsDefaultGamma/>
+		<SupportsPixelPortBrightness/>
+		<SupportsPixelPortGamma/>
+		<SupportsPixelPortNullPixels/>
+		<SupportsPixelPortEndNullPixels/>
+		<MaxStartNulls>20</MaxStartNulls>
+		<MaxEndNulls>20</MaxEndNulls>
+		<SupportsPixelPortGrouping/>
+		<MinGroup>1</MinGroup>
+		<MaxGroup>100</MaxGroup>
         <SupportsMultipleSimultaneousOutputProtocols/>
         <!--SupportsPixelPortCommonSettings/-->
         <SupportsPixelZigZag/>
         <MaxZigZag>256</MaxZigZag>
-
         <SupportsUpload/>
         <SupportsInputOnlyUpload/>
         <SupportsAutoUpload/>
         <AllInputUniversesMustBeSameSize/>
         <UniversesMustBeSequential/>
         <SupportsAutoLayout/>
+        <DDPStartsAtOne/>
         <SupportsPixelPortEndNullPixels/>
         <NeedsDDPInputUpload/>
         <InputProtocols>

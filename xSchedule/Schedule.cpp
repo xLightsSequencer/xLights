@@ -453,7 +453,7 @@ bool Schedule::ShouldFire() const
 
     if (_fireFrequency == "Fire every hour") {
         fire = false;
-        if (minute == start.GetMinute() ||
+        if (minute == start.GetMinute() &&
             gap.IsLongerThan(wxTimeSpan(0, 59, 59, 0)) &&
             gap.GetMinutes() > 0 && sinceStart.IsLongerThan(wxTimeSpan(0,59,59,0))) {
             fire = true;

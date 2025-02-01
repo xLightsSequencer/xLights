@@ -352,7 +352,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
     enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
 #if defined(__WXMSW__)
-        std::list<std::string> hwdecoders = { "cuda", "amf", "qsv", "vulkan" };
+        std::list<std::string> hwdecoders = { "cuda", "qsv", "d3d11va", "vulkan" };
 
         switch (HW_ACCELERATION_TYPE) {
             case WINHARDWARERENDERTYPE::FFMPEG_CUDA:
@@ -365,7 +365,8 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
                 hwdecoders = { "vulkan" };
                 break;
             case WINHARDWARERENDERTYPE::FFMPEG_AMF:
-                hwdecoders = { "amf" };
+            case WINHARDWARERENDERTYPE::FFMPEG_D3D11VA:
+                hwdecoders = { "d3d11va" };
                 break;
             case WINHARDWARERENDERTYPE::FFMPEG_AUTO:
             case WINHARDWARERENDERTYPE::DIRECX11_API:
@@ -660,7 +661,7 @@ void VideoReader::Seek(int timestampMS, bool readFrame)
 #ifdef VIDEO_EXTRALOGGING
         logger_base.info("VideoReader: Seeking to %d ms.", timestampMS);
 #endif
-        if (_atEnd && _videoToolboxAccelerated) {
+        if (_atEnd && (_videoToolboxAccelerated || _hw_device_ctx)) {
             // once the end is reached, the hardware decoder is done
             // so we need to reopen it to be able continue decoding
             reopenContext();
@@ -910,7 +911,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
                 int decodeCount = 0;
                 int ret = avcodec_send_packet(_codecContext, _packet);
                 while (!_abort && ret != 0) {
-                    if (ret != AVERROR(EAGAIN) && _videoToolboxAccelerated) {
+                    if (ret != AVERROR(EAGAIN) && (_videoToolboxAccelerated || _hw_device_ctx )) {
                         logger_base.debug("    Hardware video decoding failed for %s. Reverting to software decoding.", (const char*)_filename.c_str());
                         reopenContext(false);
                         Seek(timestampMS, false);

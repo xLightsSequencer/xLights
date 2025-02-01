@@ -439,6 +439,20 @@ namespace
        return tex2D(cb, pos2.x, pos2.y, xlBLACK);
    }
 
+   xlColor flip(const ColorBuffer& cb, double s, double t, const WarpEffectParams& params) {
+       int x = static_cast<int>(s * (cb.w - 1));
+       if (s <= params.xy.x && params.xy.x != 0) {
+           x = static_cast<int>((1.0 - s) * (cb.w - 1));
+       }
+
+       int y = static_cast<int>(t * (cb.h - 1));
+       if (t <= params.xy.y && params.xy.y != 0) {
+           y = static_cast<int>((1.0 - t) * (cb.h - 1));
+       }
+
+       return cb.GetPixel(x, y);
+   }
+
    xlColor wavy( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
       Vec2D uv( s, t );
@@ -535,12 +549,17 @@ std::list<std::string> WarpEffect::CheckEffectSettings(const SettingsMap& settin
 void WarpEffect::SetDefaultParameters()
 {
     WarpPanel *p = (WarpPanel *)panel;
+    if (p == nullptr) {
+        return;
+    }
 
     p->BitmapButton_Warp_X->SetActive( false );
     p->BitmapButton_Warp_Y->SetActive( false );
 
-    p->Choice_Warp_Type->SetSelection( 0 );
-    p->Choice_Warp_Treatment->SetSelection( 0 );
+    if (p->Choice_Warp_Type->GetStringSelection() == "") {
+        SetChoiceValue(p->Choice_Warp_Type, "water drops");
+        SetChoiceValue(p->Choice_Warp_Treatment, "constant");
+    }
 
     SetSliderValue( p->Slider_Warp_X, 50 );
 
@@ -606,6 +625,8 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
         RenderPixelTransform(mirror, buffer, params);
     } else if (warpType == WarpEffect::WarpType::COPY) {
         RenderPixelTransform(copy, buffer, params);
+    } else if (warpType == WarpEffect::WarpType::FLIP) {
+        RenderPixelTransform(flip, buffer, params);
     } else if (warpType == WarpEffect::WarpType::SINGLE_WATER_DROP) {
         float cycleCount = std::stof( warpStrCycleCount );
         float intervalLen = 1.f / cycleCount;
@@ -714,6 +735,9 @@ WarpEffect::WarpType WarpEffect::mapWarpType(const std::string &s) {
     }
     if (s == "mirror") {
         return WarpEffect::MIRROR;
+    }
+    if (s == "flip") {
+        return WarpEffect::FLIP;
     }
     return WarpEffect::COPY;
 }

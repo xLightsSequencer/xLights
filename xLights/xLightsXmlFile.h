@@ -49,7 +49,7 @@ public:
     bool Open(const wxString& ShowDir, bool ignore_audio, const wxFileName& realFilename);
 
     void AddJukebox(wxXmlNode* node);
-    void Save(SequenceElements& elements);
+    bool Save(SequenceElements& elements);
     wxXmlDocument& GetXmlDocument()
     {
         return seqDocument;
@@ -123,10 +123,11 @@ public:
     void AddNewTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent, std::vector<int>& starts,
                              std::vector<int>& ends, std::vector<std::string>& labels);
     void AddFixedTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent);
-    void AddMetronomeLabelTimingSection(const std::string& interval_name, int interval, int count,  xLightsFrame* xLightsParent);
+    void AddMetronomeLabelTimingSection(const std::string& interval_name, int interval, int count,  xLightsFrame* xLightsParent, int minForRandomRange = -1, bool randomTags = false);
     void DeleteTimingSection(const std::string& section);
     void SetTimingSectionName(const std::string& section, const std::string& name);
     bool TimingAlreadyExists(const std::string& section, xLightsFrame* xLightsParent);
+    bool TimingMatchesModelName(const std::string& section, xLightsFrame* xLightsParent);
     wxArrayString GetTimingList() const
     {
         return timing_list;

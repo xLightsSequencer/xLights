@@ -127,8 +127,8 @@ kernel void GetColorsForNodes(constant LayerBlendingData &data,
             int nidx = indexes[idx + nc];
             uchar4 c = src[nidx];
             
-            x = nidx % data.bufferWi;
-            y = nidx / data.bufferHi;
+            x = nidx / data.bufferHi;
+            y = nidx % data.bufferHi;
             midx = x * data.bufferHi + y;
             
             if (c.a > 0 && (!data.useMask || mask[midx] == 0)) {
@@ -153,20 +153,30 @@ kernel void PutColorsForNodes(constant LayerBlendingData &data,
     if (index > (uint)data.nodeCount) return;
     int32_t idx = indexes[index];
     if (idx == -1) {
-        result[idx] = {0, 0, 0, 0};
+        //result[idx] = {0, 0, 0, 0};
     } else if (idx & 0x80000000) {
         idx &= 0x7FFFFFFF;
         int cnt = indexes[idx++];
-        for (int x = 0; x < cnt; x++) {
-            int nidx = indexes[idx +x];
-            if (data.useMask && mask[idx] > 0) {
+        for (int n = 0; n < cnt; n++) {
+            int nidx = indexes[idx + n];
+            int32_t x = nidx / data.bufferHi;
+            int32_t y = nidx - (x * data.bufferHi);
+            int32_t midx = x * data.bufferHi + y;
+            if (data.useMask && mask[midx] > 0) {
                 result[nidx] = {0, 0, 0, 0};
             } else {
                 result[nidx] = src[index];
             }
         }
-    } else if (data.useMask && mask[idx] > 0) {
-        result[idx] = {0, 0, 0, 0};
+    } else if (data.useMask) {
+        int32_t x = idx / data.bufferHi;
+        int32_t y = idx - (x * data.bufferHi);
+        int32_t midx = x * data.bufferHi + y;
+        if (mask[midx] > 0) {
+            result[idx] = {0, 0, 0, 0};
+        } else {
+            result[idx] = src[index];
+        }
     } else {
         result[idx] = src[index];
     }
@@ -289,6 +299,21 @@ kernel void AdjustBrightnessContrast(constant LayerBlendingData &data,
     }
     result[index] = color;
 }
+kernel void AdjustBrightnessLevel(constant LayerBlendingData &data,
+                                  device uchar4* result,
+                                  uint index [[thread_position_in_grid]]) {
+    if (index > (uint)data.nodeCount) return;
+    uchar4 color = result[index];
+    uint8_t c = 0;
+    if (color.r > 25) ++c;
+    if (color.g > 25) ++c;
+    if (color.b > 25) ++c;
+    if (c == 0) {
+        return;
+    }
+    color /= {c, c, c, 1};
+    result[index] = color;
+}
 
 
 kernel void FirstLayerFade(constant LayerBlendingData &data,
@@ -389,6 +414,7 @@ kernel void Effect1_2_Function(constant LayerBlendingData &data,
     if (!data.isChromaKey || !applyChroma(data, fg)) {
         uchar4 bg = result[index];
         float emt, emtNot;
+        
         if (!data.effectMixVaries) {
             emt = data.effectMixThreshold;
             if ((emt > 0.000001) && (emt < 0.99999)) {

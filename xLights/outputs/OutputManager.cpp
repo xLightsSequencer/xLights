@@ -14,7 +14,9 @@
 #include <wx/config.h>
 #include <wx/filename.h>
 #include <wx/dir.h>
+#include <wx/wfstream.h>
 
+#include "IPOutput.h"
 #include "OutputManager.h"
 #include "ControllerEthernet.h"
 #include "ControllerNull.h"
@@ -29,6 +31,8 @@
 #include "TestPreset.h"
 #include "../Parallel.h"
 #include "../UtilFunctions.h"
+#include "utils/ip_utils.h"
+#include <wx/regex.h>
 
 #include <numeric>
 
@@ -426,8 +430,14 @@ bool OutputManager::Save() {
         root->AddChild(it->Save());
     }
 
-    if (doc.Save(_filename)) {
+    wxFileOutputStream fout(_filename);
+    wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
+    if (doc.Save(*bout)) {
         _dirty = false;
+    }
+    delete bout;
+    if (!fout.Close()) {
+        _dirty = true;
     }
 
     return (_dirty == false);
@@ -549,7 +559,7 @@ void OutputManager::AddController(Controller* controller, int pos)
 }
 
 void OutputManager::DeleteController(const std::string& controllerName) {
-
+    ip_utils::waitForAllToResolve();
     for (auto it = begin(_controllers); it != end(_controllers); ++it) {
         if ((*it)->GetName() == controllerName) {
             delete* it;
@@ -561,7 +571,7 @@ void OutputManager::DeleteController(const std::string& controllerName) {
 }
 
 void OutputManager::DeleteAllControllers() {
-
+    ip_utils::waitForAllToResolve();
     while (_controllers.size() > 0) {
         delete _controllers.front();
         _controllers.pop_front();
@@ -1008,12 +1018,12 @@ void OutputManager::UpdateUnmanaged() {
     {
         auto eth1 = dynamic_cast<ControllerEthernet*>(*it1);
         // only need to look at managed items
-        if (eth1 != nullptr && eth1->IsManaged() && (eth1->GetProtocol() == OUTPUT_E131 || eth1->GetProtocol() == OUTPUT_ARTNET || eth1->GetProtocol() == OUTPUT_KINET || eth1->GetProtocol() == OUTPUT_xxxETHERNET || eth1->GetProtocol() == OUTPUT_OPC) && eth1->GetIP() != "MULTICAST") {
+        if (eth1 != nullptr && eth1->IsManaged() /* && (eth1->GetProtocol() == OUTPUT_E131 || eth1->GetProtocol() == OUTPUT_ARTNET || eth1->GetProtocol() == OUTPUT_KINET || eth1->GetProtocol() == OUTPUT_xxxETHERNET || eth1->GetProtocol() == OUTPUT_OPC) */ && eth1->GetIP() != "MULTICAST") {
             auto it2 = it1;
             ++it2;
             while (it2 != _controllers.end()) {
                 auto eth2 = dynamic_cast<ControllerEthernet*>(*it2);
-                if (eth2 != nullptr && (eth2->GetProtocol() == OUTPUT_E131 || eth2->GetProtocol() == OUTPUT_ARTNET || eth2->GetProtocol() == OUTPUT_KINET || eth2->GetProtocol() == OUTPUT_xxxETHERNET || eth2->GetProtocol() == OUTPUT_OPC)) {
+                if (eth2 != nullptr /* && (eth2->GetProtocol() == OUTPUT_E131 || eth2->GetProtocol() == OUTPUT_ARTNET || eth2->GetProtocol() == OUTPUT_KINET || eth2->GetProtocol() == OUTPUT_xxxETHERNET || eth2->GetProtocol() == OUTPUT_OPC) */) {
                     if (eth1->GetIP() == eth2->GetIP()) {
                         eth1->SetManaged(false);
                         eth2->SetManaged(false);
@@ -1161,6 +1171,13 @@ bool OutputManager::StartOutput() {
         // make sure global FPP proxy is up to date ...
         it->SetGlobalFPPProxyIP(_globalFPPProxy);
         it->SetGlobalForceLocalIP(_globalForceLocalIP);
+
+        //try to refresh in case ctrl was turned on after xlights started
+        if (hasAlpha(it->GetResolvedIP())) {
+            IPOutput* ipOutput = dynamic_cast<IPOutput*>(it);
+            if (ipOutput) ipOutput->SetIP(it->GetResolvedIP(), true, true);
+            ip_utils::waitForAllToResolve();
+        }
 
         bool preok = ok;
         ok = it->Open() && ok;

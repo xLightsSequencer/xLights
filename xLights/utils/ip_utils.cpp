@@ -16,8 +16,17 @@
 #include <wx/regex.h>
 #include <wx/sckaddr.h>
 
+#ifndef __WXMSW__
+#include <netdb.h>
+#include <arpa/inet.h>
+#else
+#include <ws2tcpip.h>
+#endif
+
 #include <map>
 #include <mutex>
+
+#include "../JobPool.h"
 
 namespace ip_utils
 {
@@ -64,6 +73,14 @@ namespace ip_utils
         return false;
     }
 
+    bool IsValidHostname(const std::string& ip) {
+        static wxRegEx hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
+
+        wxString ips = wxString(ip).Trim(false).Trim(true);
+        
+        return hostAddr.Matches(ips);
+    }
+
     std::string CleanupIP(const std::string& ip)
     {
         bool hasChar = false;
@@ -108,6 +125,7 @@ namespace ip_utils
         std::unique_lock<std::mutex> lock(__resolvedIPMapLock);
         const std::string& resolvedIp = __resolvedIPMap[ip];
         if (resolvedIp == "") {
+            lock.unlock();
             wxIPV4address add;
             add.Hostname(ip);
             std::string r = add.IPAddress();
@@ -117,10 +135,97 @@ namespace ip_utils
             if (r == "255.255.255.255") {
                 r = ip;
             }
+            lock.lock();
             __resolvedIPMap[ip] = r;
             return __resolvedIPMap[ip];
         }
         return resolvedIp;
     }
 
+    class ResolveJob : public Job {
+    public:
+        ResolveJob(const std::string &i,  std::function<void(const std::string &)> &f) : Job(), ip(i), func(f) {}
+        virtual bool DeleteWhenComplete() { return true; }
+        virtual const std::string GetName() const {
+            return "RESOLVE_POOL - " + ip;
+        }
+        virtual void Process() {
+            struct addrinfo hints, *res, *result = nullptr;
+            int errcode;
+            void *ptr;
+
+            memset (&hints, 0, sizeof (hints));
+            hints.ai_family = PF_UNSPEC;
+            hints.ai_socktype = SOCK_STREAM;
+            hints.ai_flags |= AI_CANONNAME;
+
+            std::string ip4Addr;
+            std::string ip6Addr;
+            errcode = getaddrinfo(ip.c_str(), NULL, &hints, &result);
+            if (errcode != 0) {
+                ip4Addr = ip;
+            } else {
+                res = result;
+                while (res)  {
+                    char addrstr[100] = {0};
+                    switch (res->ai_family) {
+                        case AF_INET:
+                            ptr = &((struct sockaddr_in *) res->ai_addr)->sin_addr;
+                            inet_ntop(res->ai_family, ptr, addrstr, 100);
+                            ip4Addr = addrstr;
+                            break;
+                        case AF_INET6:
+                            ptr = &((struct sockaddr_in6 *) res->ai_addr)->sin6_addr;
+                            inet_ntop(res->ai_family, ptr, addrstr, 100);
+                            ip6Addr = addrstr;
+                            break;
+                    }
+                    res = res->ai_next;
+                }
+            }
+            freeaddrinfo(result);
+            if (ip4Addr.empty()) {
+                ip4Addr = ip6Addr;
+            }
+            if (ip4Addr.empty()) {
+                ip4Addr = ip;
+            }
+            func(ip4Addr);
+            std::unique_lock<std::mutex> lock(__resolvedIPMapLock);
+            __resolvedIPMap[ip] = ip4Addr;
+            lock.unlock();
+        }
+        std::string ip;
+        std::function<void(const std::string &)> func;
+    };
+
+    static JobPool RESOLVE_POOL("RESOLVE_POOL", 0, 128);
+    void ResolveIP(const std::string& ip, std::function<void(const std::string &)> &&func) {
+        // Dont resolve partially entered ip addresses as these resolve into unexpected addresses
+        if (IsIPValid(ip) || (ip == "MULTICAST") || ip == "" || StartsWith(ip, ".") || (ip[0] >= '0' && ip[0] <= '9')) {
+            func(ip);
+            return;
+        }
+        std::unique_lock<std::mutex> lock(__resolvedIPMapLock);
+        std::string resolvedIp = __resolvedIPMap[ip];
+        if (resolvedIp.empty() || hasAlpha(ip)) {
+            if (hasAlpha(ip))
+                __resolvedIPMap.erase(ip);
+
+            lock.unlock();
+            ResolveJob *job = new ResolveJob(ip, func);
+            RESOLVE_POOL.PushJob(job);
+        } else {
+            lock.unlock();
+            func(resolvedIp);
+        }
+    }
+
+    void waitForAllToResolve() {
+        int count = 0;
+        while (!RESOLVE_POOL.isEmpty() && count < 10000) {
+            wxMilliSleep(2);
+            //wxYieldIfNeeded();
+        }
+    }
 };

@@ -26,9 +26,12 @@ public:
     xLightsTimerCallback() {}
 };
 
+class xLightsTimerDataImpl;
+
 class xLightsTimer :
     public wxTimer
 {
+protected:
     xlTimerThread* _t;
     std::atomic<bool> _pending;
     xLightsTimerCallback* _timerCallback;
@@ -37,7 +40,8 @@ class xLightsTimer :
     std::string _name;
     size_t _fired = 0;
     std::chrono::time_point<std::chrono::system_clock> _startTime;
-
+    xLightsTimerDataImpl *data = nullptr;
+    
 public:
     xLightsTimer();
     virtual ~xLightsTimer();
@@ -50,14 +54,18 @@ public:
     int GetInterval() const;
     void SetLog(bool log) { _log = true; }
     std::chrono::time_point<std::chrono::system_clock> GetNextEventTime();
-    size_t GetFired() const
-    {
+    size_t GetFired() const {
         return _fired;
     }
-
+    
     // If you use this method to receive the timer notification then be sure that you dont do any UI
     // updates in the callback function as it will be called on another thread. Also if you are going
     // to delete objects used in the callback be sure to suspend the time first
     void SetTimerCallback(xLightsTimerCallback* callback) { _timerCallback = callback; }
     void Suspend(bool suspend = true);
+    
+    
+#ifdef __WXOSX__
+    double presentTimeForScreen(int i) const;
+#endif
 };

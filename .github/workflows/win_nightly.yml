@@ -16,6 +16,11 @@ jobs:
 
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v1
+
+    - name: install ISPC
+      uses: ispc/install-ispc-action@main
+      with:
+        version: 1.25.3
             
 #    - name: install Inno
 #      run: choco install innosetup   
@@ -45,7 +50,7 @@ jobs:
       run: ISCC.exe xLights_4_64bit_VS.iss
 
     - name: Upload Installer
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: xLights_x64_Installer
         path: 'C:\xLights\build_scripts\msw\output\**'

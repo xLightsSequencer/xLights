@@ -51,8 +51,8 @@ WX_DEFINE_ARRAY_PTR(xLightsImportModelNode*, xLightsImportModelNodePtrArray);
 class MDTextDropTarget : public wxTextDropTarget
 {
 public:
-    MDTextDropTarget(wxWindow *owner, wxListCtrl* list, wxString type) { _owner = owner; _list = list; _tree = nullptr; _type = type; };
-    MDTextDropTarget(wxWindow *owner, wxDataViewCtrl* tree, wxString type) { _owner = owner; _list = nullptr; _tree = tree; _type = type; };
+    MDTextDropTarget(wxWindow *owner, wxListCtrl* list, const wxString &type) { _owner = owner; _list = list; _tree = nullptr; _type = type; };
+    MDTextDropTarget(wxWindow *owner, wxDataViewCtrl* tree, const wxString &type) { _owner = owner; _list = nullptr; _tree = tree; _type = type; };
 
     virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override;
     virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
@@ -71,10 +71,10 @@ public:
                            const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const wxColor& color = *wxWHITE) :
         wxDataViewTreeStoreNode(parent, "XXX"),
         m_parent(parent),
-        _model(model),
-        _strand(strand),
-        _node(node),
-        _mapping(mapping),
+        _model(model.ToStdString()),
+        _strand(strand.ToStdString()),
+        _node(node.ToStdString()),
+        _mapping(mapping.ToStdString()),
         _color(color),
         _group(false),
         _mappingExists(mappingExists),
@@ -83,13 +83,13 @@ public:
     { }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
-        const wxString &model, const wxString &strand,
+                           const wxString &model, const wxString &strand,
                            const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const wxColor& color = *wxWHITE) :
         wxDataViewTreeStoreNode(parent, "XXX"),
         m_parent(parent),
-        _model(model),
-        _strand(strand),
-        _node(wxString()),
+        _model(model.ToStdString()),
+        _strand(strand.ToStdString()),
+        _node(),
         _mapping(mapping),
         _color(color),
         _group(false),
@@ -103,10 +103,10 @@ public:
                            const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const wxColor& color = *wxWHITE, const bool isGroup = false) :
         wxDataViewTreeStoreNode(parent, "XXX"),
         m_parent(parent),
-        _model(model),
-        _strand(wxString()),
-        _node(wxString()),
-        _mapping(mapping),
+        _model(model.ToStdString()),
+        _strand(),
+        _node(),
+        _mapping(mapping.ToStdString()),
         _color(color),
         _group(isGroup),
         _mappingExists(mappingExists),
@@ -137,13 +137,11 @@ public:
 
     bool IsGroup() const { return _group; }
 
-    std::list<std::string> GetAliases() const
-    {
+    std::list<std::string> GetAliases() const {
         return _aliases;
     }
 
-    bool HasMapping()
-    {
+    bool HasMapping() {
         if (!_mapping.empty()) {
             return true;
         } else {
@@ -157,8 +155,7 @@ public:
         return false;
     }
 
-    bool IsContainer() wxOVERRIDE
-    {
+    bool IsContainer() wxOVERRIDE {
         return m_container;
     }
 
@@ -188,13 +185,13 @@ public:
     }
 
 public:     // public to avoid getters/setters
-    wxString                _model;
-    wxString                _strand;
-    wxString                _node;
-    wxString                _mapping;
-    wxColor                 _color;
-    bool                    _group;
-    bool                    _mappingExists;
+    std::string                 _model;
+    std::string                 _strand;
+    std::string                 _node;
+    std::string                 _mapping;
+    wxColor                     _color;
+    bool                        _group;
+    bool                        _mappingExists;
     std::list<std::string> _aliases;
 
     // TODO/FIXME:
@@ -443,29 +440,29 @@ class xLightsImportChannelMapDialog: public wxDialog
 protected:
 
 		//(*Identifiers(xLightsImportChannelMapDialog)
-		static const long ID_SPINCTRL1;
-		static const long ID_CHECKBOX1;
-		static const long ID_CHECKBOX11;
-		static const long ID_CHECKBOX4;
-		static const long ID_CHECKBOX2;
-		static const long ID_STATICTEXT_BLEND_TYPE;
-		static const long ID_CHECKBOX3;
-		static const long ID_BUTTON_IMPORT_OPTIONS;
-		static const long ID_CHECKLISTBOX1;
-		static const long ID_STATICTEXT2;
-		static const long ID_TEXTCTRL2;
-		static const long ID_BUTTON3;
-		static const long ID_BUTTON4;
-		static const long ID_BUTTON6;
-		static const long ID_BUTTON5;
-		static const long ID_BUTTON1;
-		static const long ID_BUTTON2;
-		static const long ID_PANEL1;
-		static const long ID_STATICTEXT1;
-		static const long ID_TEXTCTRL1;
-		static const long ID_LISTCTRL1;
-		static const long ID_PANEL2;
-		static const long ID_SPLITTERWINDOW1;
+		static const wxWindowID ID_SPINCTRL1;
+		static const wxWindowID ID_CHECKBOX1;
+		static const wxWindowID ID_CHECKBOX11;
+		static const wxWindowID ID_CHECKBOX4;
+		static const wxWindowID ID_CHECKBOX2;
+		static const wxWindowID ID_STATICTEXT_BLEND_TYPE;
+		static const wxWindowID ID_CHECKBOX3;
+		static const wxWindowID ID_BUTTON_IMPORT_OPTIONS;
+		static const wxWindowID ID_CHECKLISTBOX1;
+		static const wxWindowID ID_STATICTEXT2;
+		static const wxWindowID ID_TEXTCTRL2;
+		static const wxWindowID ID_BUTTON3;
+		static const wxWindowID ID_BUTTON4;
+		static const wxWindowID ID_BUTTON5;
+		static const wxWindowID ID_BUTTON6;
+		static const wxWindowID ID_BUTTON2;
+		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_PANEL1;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_TEXTCTRL1;
+		static const wxWindowID ID_LISTCTRL1;
+		static const wxWindowID ID_PANEL2;
+		static const wxWindowID ID_SPLITTERWINDOW1;
 		//*)
 
         static const long ID_MNU_SELECTALL;
@@ -473,6 +470,8 @@ protected:
         static const long ID_MNU_COLLAPSEALL;
         static const long ID_MNU_EXPANDALL;
         static const long ID_MNU_SHOWALLMAPPED;
+        static const long ID_MNU_AUTOMAPSELECTED;
+        static const long ID_MNU_AUTOMAPSELECTED_AVAIL;
 
 	private:
         wxString FindTab(wxString &line);
@@ -489,16 +488,20 @@ protected:
 		void OnListCtrl_AvailableColumnClick(wxListEvent& event);
 		void OnCheckBox_MapCCRStrandClick(wxCommandEvent& event);
 		void OnButton_AutoMapClick(wxCommandEvent& event);
+        void OnButton_AutoMapSelClick(wxCommandEvent& event);
 		void OnListCtrl_AvailableItemActivated(wxListEvent& event);
 		void OnButtonImportOptionsClick(wxCommandEvent& event);
 		void OnCheckBoxImportMediaClick(wxCommandEvent& event);
 		void OnTextCtrl_FindFromText(wxCommandEvent& event);
 		void OnTextCtrl_FindToText(wxCommandEvent& event);
 		void OnButton_UpdateAliasesClick(wxCommandEvent& event);
+		void OnClose(wxCloseEvent& event);
+		void OnInit(wxInitDialogEvent& event);
 		//*)
 
         void RightClickTimingTracks(wxContextMenuEvent& event);
         void RightClickModels(wxDataViewEvent& event);
+        void RightClickModelsAvail(wxDataViewEvent& event);
         void CollapseAll();
         void ExpandAll();
         void ShowAllMapped();
@@ -514,7 +517,7 @@ protected:
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_model,
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_strand,
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_node,
-            const std::string& extra1, const std::string& extra2, const std::string& mg);
+            const std::string& extra1, const std::string& extra2, const std::string& mg, const bool& select);
 
 
         void LoadXMapMapping(wxString const& filename, bool hideWarnings);
@@ -531,12 +534,12 @@ protected:
                     return true;
 
                 for (const auto& it : aliases) {
-                    if (wxString(it).Trim(true).Trim(false).Lower() == "oldname:" + c)
+                    if (::Lower(::Trim(it)) == "oldname:" + c)
                         return true;
                 }
 
                 for (const auto& it : aliases) {
-                    if (wxString(it).Trim(true).Trim(false).Lower() == c)
+                    if (::Lower(::Trim(it)) == c)
                         return true;
                 }
 
@@ -545,7 +548,7 @@ protected:
 
         std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>&)> norm =
             [](const std::string& s, const std::string& c, const std::string& extra1, const std::string& extra2, const std::list<std::string>& aliases) {
-                return (wxString(s).Trim(true).Trim(false).Lower() == c);
+                return (::Lower(::Trim(s)) == c);
             };
 
         std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>&)> regex =
@@ -553,7 +556,7 @@ protected:
                 static wxRegEx r;
                 static std::string lastRegex;
 
-                if (wxString(c).Trim().Lower() != wxString(replacement).Trim().Lower())
+                if (::Lower(::Trim(c)) != ::Lower(::Trim(replacement)))
                     return false;
 
                 // create a regex from extra

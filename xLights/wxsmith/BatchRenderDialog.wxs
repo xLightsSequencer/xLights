@@ -27,10 +27,9 @@
 						<object class="wxChoice" name="ID_CHOICE_FILTER" variable="FilterChoice" member="yes">
 							<content>
 								<item>Recursive Search</item>
-								<item>Recursive Search - No Backups</item>
 								<item>Only Show Directory</item>
 							</content>
-							<selection>1</selection>
+							<selection>0</selection>
 							<handler function="OnFilterChoiceSelect" entry="EVT_CHOICE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

@@ -28,6 +28,7 @@
 #include "../outputs/E131Output.h"
 #include "../../xSchedule/wxHTTPServer/wxhttpserver.h"
 #include "../sequencer/MainSequencer.h"
+#include "../ModelPreview.h"
 #include <wx/uri.h>
 
 #include "LuaRunner.h"
@@ -361,7 +362,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         if (map == "true") {
-            std::string displayMap = FPP::CreateVirtualDisplayMap(&AllModels);
+            int pw, ph;
+            GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
+            std::string displayMap = FPP::CreateVirtualDisplayMap(&AllModels, pw, ph);
             fpp->UploadDisplayMap(displayMap);
             fpp->SetRestartFlag();
         }
@@ -613,16 +616,17 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
 
         auto ld = _lowDefinitionRender;
         auto highdef = params["highdef"];
+        auto model = params["model"];
+
+        if (AllModels.GetModel(model) == nullptr) {
+            return sendResponse("Unknown model.", "msg", 503, false);
+        }
+
         if (highdef == "true" && _lowDefinitionRender) {
             // override definition
             _lowDefinitionRender = false;
-            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::exportModelWithRender");
+            _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Automation::exportModelWithRender");
             _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::exportModelWithRender");
-        }
-
-        auto model = params["model"];
-        if (AllModels.GetModel(model) == nullptr) {
-            return sendResponse("Unknown model.", "msg", 503, false);
         }
 
         auto filename = params["filename"];
@@ -657,7 +661,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (DoExportModel(0, 0, model, filename, format, true)) {
             if (ld != _lowDefinitionRender) {
                 _lowDefinitionRender = ld;
-                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Automation::exportModelWithRender");
+                _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Automation::exportModelWithRender");  // Restore the models back to prior
                 _outputModelManager.AddImmediateWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Automation::exportModelWithRender");
             }
             return sendResponse("Model exported.", "msg", 200, false);
@@ -868,6 +872,22 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         models = "[" + models + "]";
         return sendResponse(models, "models", 200, true);
         
+    } else if (cmd == "deleteAllAliases") {
+        std::string models;
+        bool deleted = false;
+        for (auto m = (&AllModels)->begin(); m != (&AllModels)->end(); ++m) {
+            bool ret = m->second->DeleteAllAliases();
+            if (ret) {
+                models += (deleted ? ", " : "") + JSONSafe(m->first);
+                deleted = deleted || ret;
+            }
+        }
+        if (deleted) {
+            MarkEffectsFileDirty();
+            return sendResponse("\"" + models + "\"", "models", 200, true);
+        } else {
+        	return sendResponse("No aliases found to delete.", "msg", 503, false);
+		}
     } else if (cmd == "getViews") {
         std::string views; 
         if (CurrentSeqXmlFile == nullptr) {
@@ -1115,6 +1135,8 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Automation:setModelProperty");
         std::string response = wxString::Format("{\"msg\":\"Set Model Property.\",\"worked\":\"%s\"}", JSONSafe(toStr(m != nullptr)));
         return sendResponse(response, "", 200, true);
+    } else if (cmd == "getFseqDirectory") {
+        return sendResponse(JSONSafe(GetFseqDirectory()), "folder", 200, false);
     }
     return false;
 }

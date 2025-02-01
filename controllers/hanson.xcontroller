@@ -12,7 +12,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
-				<Protocol>dmx-open</Protocol>
+				<Protocol>opendmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -33,7 +33,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
-				<Protocol>dmx-open</Protocol>
+				<Protocol>opendmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -54,7 +54,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
-				<Protocol>dmx-open</Protocol>
+				<Protocol>opendmx</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>dmx</Protocol>
@@ -74,7 +74,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
-				<Protocol>dmx-open</Protocol>
+				<Protocol>opendmx</Protocol>
 			</SerialProtocols>
 			<SupportsAutoLayout/>
 			<InputProtocols>
@@ -95,7 +95,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
-				<Protocol>dmx-open</Protocol>
+				<Protocol>opendmx</Protocol>
 			</SerialProtocols>
 			<SupportsAutoLayout/>
 			<InputProtocols>
@@ -121,7 +121,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
                 <Protocol>DMX-Pro</Protocol>
-                <Protocol>DMX-Open</Protocol>
+                <Protocol>opendmx</Protocol>
                 <Protocol>GenericSerial</Protocol>
                 <Protocol>LOR</Protocol>
                 <Protocol>Pixelnet-Lynx</Protocol>
@@ -146,7 +146,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
                 <Protocol>DMX-Pro</Protocol>
-                <Protocol>DMX-Open</Protocol>
+                <Protocol>opendmx</Protocol>
                 <Protocol>GenericSerial</Protocol>
                 <Protocol>LOR</Protocol>
                 <Protocol>Pixelnet-Lynx</Protocol>
@@ -171,7 +171,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
                 <Protocol>DMX-Pro</Protocol>
-                <Protocol>DMX-Open</Protocol>
+                <Protocol>opendmx</Protocol>
                 <Protocol>GenericSerial</Protocol>
                 <Protocol>LOR</Protocol>
                 <Protocol>Pixelnet-Lynx</Protocol>
@@ -198,7 +198,7 @@
 			</PixelProtocols>
 			<SerialProtocols>
                 <Protocol>DMX-Pro</Protocol>
-                <Protocol>DMX-Open</Protocol>
+                <Protocol>opendmx</Protocol>
                 <Protocol>GenericSerial</Protocol>
                 <Protocol>LOR</Protocol>
                 <Protocol>Pixelnet-Lynx</Protocol>
@@ -257,8 +257,8 @@
 			</SerialProtocols>
 		</Variant>
 	</Controller>
-	<Controller Name="Octoscroller">
-		<Variant Name="" ID="Octoscroller" Base="FPP:BaseFPPSettings">
+	<Controller Name="Octoscrolla">
+		<Variant Name="" ID="Octoscrolla" Base="FPP:BaseFPPSettings">
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
@@ -292,6 +292,26 @@
 				<Protocol>e131</Protocol>
 				<Protocol>artnet</Protocol>
 				<Protocol>ddp</Protocol>
+			</InputProtocols>
+		</Variant>
+	</Controller>
+	<Controller Name="USB Dongle">
+		<Variant Name="">
+			<MaxInputUniverses>1</MaxInputUniverses>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<SupportsFullxLightsControl/>
+			<SupportsAutoLayout/>
+			<NoWebUI/>
+			<PixelProtocols>
+			</PixelProtocols>
+			<SerialProtocols>
+				<Protocol>opendmx</Protocol>
+			</SerialProtocols>
+			<InputProtocols>
+				<Protocol>opendmx</Protocol>
 			</InputProtocols>
 		</Variant>
 	</Controller>

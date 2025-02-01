@@ -631,30 +631,31 @@ private:
 };
 
 //(*IdInit(VendorModelDialog)
-const long VendorModelDialog::ID_TREECTRL1 = wxNewId();
-const long VendorModelDialog::ID_TEXTCTRL3 = wxNewId();
-const long VendorModelDialog::ID_BUTTON4 = wxNewId();
-const long VendorModelDialog::ID_PANEL3 = wxNewId();
-const long VendorModelDialog::ID_CHECKBOX1 = wxNewId();
-const long VendorModelDialog::ID_STATICBITMAP1 = wxNewId();
-const long VendorModelDialog::ID_TEXTCTRL1 = wxNewId();
-const long VendorModelDialog::ID_STATICTEXT8 = wxNewId();
-const long VendorModelDialog::ID_HYPERLINKCTRL4 = wxNewId();
-const long VendorModelDialog::ID_STATICTEXT4 = wxNewId();
-const long VendorModelDialog::ID_HYPERLINKCTRL2 = wxNewId();
-const long VendorModelDialog::ID_PANEL2 = wxNewId();
-const long VendorModelDialog::ID_BUTTON2 = wxNewId();
-const long VendorModelDialog::ID_STATICBITMAP2 = wxNewId();
-const long VendorModelDialog::ID_BUTTON3 = wxNewId();
-const long VendorModelDialog::ID_PANEL5 = wxNewId();
-const long VendorModelDialog::ID_TEXTCTRL2 = wxNewId();
-const long VendorModelDialog::ID_STATICTEXT7 = wxNewId();
-const long VendorModelDialog::ID_HYPERLINKCTRL3 = wxNewId();
-const long VendorModelDialog::ID_BUTTON1 = wxNewId();
-const long VendorModelDialog::ID_PANEL4 = wxNewId();
-const long VendorModelDialog::ID_NOTEBOOK1 = wxNewId();
-const long VendorModelDialog::ID_PANEL1 = wxNewId();
-const long VendorModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
+const wxWindowID VendorModelDialog::ID_TREECTRL1 = wxNewId();
+const wxWindowID VendorModelDialog::ID_TEXTCTRL3 = wxNewId();
+const wxWindowID VendorModelDialog::ID_BUTTON4 = wxNewId();
+const wxWindowID VendorModelDialog::ID_PANEL3 = wxNewId();
+const wxWindowID VendorModelDialog::ID_CHECKBOX1 = wxNewId();
+const wxWindowID VendorModelDialog::ID_STATICBITMAP1 = wxNewId();
+const wxWindowID VendorModelDialog::ID_TEXTCTRL1 = wxNewId();
+const wxWindowID VendorModelDialog::ID_STATICTEXT8 = wxNewId();
+const wxWindowID VendorModelDialog::ID_HYPERLINKCTRL4 = wxNewId();
+const wxWindowID VendorModelDialog::ID_STATICTEXT4 = wxNewId();
+const wxWindowID VendorModelDialog::ID_HYPERLINKCTRL2 = wxNewId();
+const wxWindowID VendorModelDialog::ID_PANEL2 = wxNewId();
+const wxWindowID VendorModelDialog::ID_BUTTON2 = wxNewId();
+const wxWindowID VendorModelDialog::ID_STATICBITMAP2 = wxNewId();
+const wxWindowID VendorModelDialog::ID_ANIMATIONCTRL1 = wxNewId();
+const wxWindowID VendorModelDialog::ID_BUTTON3 = wxNewId();
+const wxWindowID VendorModelDialog::ID_PANEL5 = wxNewId();
+const wxWindowID VendorModelDialog::ID_TEXTCTRL2 = wxNewId();
+const wxWindowID VendorModelDialog::ID_STATICTEXT7 = wxNewId();
+const wxWindowID VendorModelDialog::ID_HYPERLINKCTRL3 = wxNewId();
+const wxWindowID VendorModelDialog::ID_BUTTON1 = wxNewId();
+const wxWindowID VendorModelDialog::ID_PANEL4 = wxNewId();
+const wxWindowID VendorModelDialog::ID_NOTEBOOK1 = wxNewId();
+const wxWindowID VendorModelDialog::ID_PANEL1 = wxNewId();
+const wxWindowID VendorModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(VendorModelDialog,wxDialog)
@@ -667,6 +668,7 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     _showFolder = showFolder;
 
     //(*Initialize(VendorModelDialog)
+    wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
@@ -715,7 +717,7 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     FlexGridSizer4->Add(CheckBox_DontDownload, 1, wxALL|wxEXPAND, 5);
     StaticBitmap_VendorImage = new wxStaticBitmap(PanelVendor, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(256,128), 0, _T("ID_STATICBITMAP1"));
     StaticBitmap_VendorImage->SetMinSize(wxSize(256,128));
-    FlexGridSizer4->Add(StaticBitmap_VendorImage, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer4->Add(StaticBitmap_VendorImage, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_VendorDetails = new wxTextCtrl(PanelVendor, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
     FlexGridSizer4->Add(TextCtrl_VendorDetails, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -741,9 +743,15 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     FlexGridSizer7->AddGrowableRow(0);
     Button_Prior = new wxButton(ItemImagePanel, ID_BUTTON2, _T("<"), wxDefaultPosition, wxSize(30,-1), 0, wxDefaultValidator, _T("ID_BUTTON2"));
     FlexGridSizer7->Add(Button_Prior, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
     StaticBitmap_ModelImage = new wxStaticBitmap(ItemImagePanel, ID_STATICBITMAP2, wxNullBitmap, wxDefaultPosition, wxSize(256,256), 0, _T("ID_STATICBITMAP2"));
     StaticBitmap_ModelImage->SetMinSize(wxSize(256,256));
-    FlexGridSizer7->Add(StaticBitmap_ModelImage, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer10->Add(StaticBitmap_ModelImage, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+        wxAnimation anim_1(wxEmptyString);
+    AnimationCtrl1 = new wxAnimationCtrl(ItemImagePanel, ID_ANIMATIONCTRL1, anim_1, wxDefaultPosition, wxSize(256,256), wxAC_DEFAULT_STYLE, _T("ID_ANIMATIONCTRL1"));
+    AnimationCtrl1->SetMinSize(wxSize(256,256));
+    FlexGridSizer10->Add(AnimationCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer7->Add(FlexGridSizer10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Next = new wxButton(ItemImagePanel, ID_BUTTON3, _T(">"), wxDefaultPosition, wxSize(30,-1), 0, wxDefaultValidator, _T("ID_BUTTON3"));
     FlexGridSizer7->Add(Button_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ItemImagePanel->SetSizer(FlexGridSizer7);
@@ -1458,17 +1466,30 @@ void VendorModelDialog::LoadImage(wxStaticBitmap* sb, wxImage* image) const
 
 void VendorModelDialog::LoadModelImage(std::list<wxFileName> imageFiles, int image)
 {
+    wxAnimation animation;
+
+    if (AnimationCtrl1->IsPlaying()) {
+        AnimationCtrl1->Stop();
+    }
+
     auto it = imageFiles.begin();
-    for (int i = 0; i < image; i++)
-    {
+    for (int i = 0; i < image; i++) {
         ++it;
     }
-    if (FileExists(*it))
-    {
-        _modelImage.LoadFile(it->GetFullPath());
-        if (_modelImage.IsOk())
-        {
-            LoadImage(StaticBitmap_ModelImage, &_modelImage);
+
+    if (FileExists(*it)) {
+        if (animation.LoadFile(it->GetFullPath(), wxANIMATION_TYPE_GIF)) {
+            StaticBitmap_ModelImage->Hide();
+            AnimationCtrl1->Show();
+            AnimationCtrl1->SetAnimation(animation);
+            AnimationCtrl1->Play();
+        } else {
+            _modelImage.LoadFile(it->GetFullPath());
+            if (_modelImage.IsOk()) {
+                StaticBitmap_ModelImage->Show();
+                AnimationCtrl1->Hide();
+                LoadImage(StaticBitmap_ModelImage, &_modelImage);
+            }
         }
     }
 }
@@ -1688,8 +1709,6 @@ void VendorModelDialog::OnTextCtrl_SearchText(wxCommandEvent& event)
 
 void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 {
-	wxString const searchFor = TextCtrl_Search->GetValue().Lower();
-
 	// cant search if tree is empty
 	if (TreeCtrl_Navigator->GetChildrenCount(TreeCtrl_Navigator->GetRootItem()) == 0)
 	{

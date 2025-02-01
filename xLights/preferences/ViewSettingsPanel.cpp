@@ -24,15 +24,17 @@
 #include <wx/preferences.h>
 
 //(*IdInit(ViewSettingsPanel)
-const long ViewSettingsPanel::ID_CHOICE3 = wxNewId();
-const long ViewSettingsPanel::ID_CHOICE4 = wxNewId();
-const long ViewSettingsPanel::ID_CHOICE5 = wxNewId();
-const long ViewSettingsPanel::ID_CHECKBOX1 = wxNewId();
-const long ViewSettingsPanel::ID_CHECKBOX2 = wxNewId();
-const long ViewSettingsPanel::ID_CHECKBOX3 = wxNewId();
-const long ViewSettingsPanel::ID_CHOICE_TIMELINEZOOMING = wxNewId();
-const long ViewSettingsPanel::ID_CHECKBOX4 = wxNewId();
-const long ViewSettingsPanel::ID_CHECKBOX_ZoomMethod = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHOICE3 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHOICE4 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHOICE5 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHECKBOX1 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHECKBOX2 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHECKBOX5 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHECKBOX3 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHOICE_TIMELINEZOOMING = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHECKBOX4 = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHECKBOX_ZoomMethod = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHOICE_CROSSHAIRSIZE = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ViewSettingsPanel, wxPanel)
@@ -46,20 +48,21 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
     //(*Initialize(ViewSettingsPanel)
     wxGridBagSizer* GridBagSizer1;
     wxStaticText* StaticText1;
+    wxStaticText* StaticText2;
     wxStaticText* StaticText4;
     wxStaticText* StaticText5;
     wxStaticText* StaticText6;
 
     Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
     GridBagSizer1 = new wxGridBagSizer(0, 0);
-    StaticText1 = new wxStaticText(this, wxID_ANY, _("Tool Icon Size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    StaticText1 = new wxStaticText(this, wxID_ANY, _("Effect Icon Size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     GridBagSizer1->Add(StaticText1, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ToolIconSizeChoice = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
     ToolIconSizeChoice->Append(_("Small"));
     ToolIconSizeChoice->SetSelection( ToolIconSizeChoice->Append(_("Medium")) );
     ToolIconSizeChoice->Append(_("Large"));
     ToolIconSizeChoice->Append(_("Extra Large"));
-    GridBagSizer1->Add(ToolIconSizeChoice, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(ToolIconSizeChoice, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText4 = new wxStaticText(this, wxID_ANY, _("Model Handle Size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     GridBagSizer1->Add(StaticText4, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ModelHandleSizeChoice = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
@@ -80,9 +83,12 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
     HousePreviewCheckBox = new wxCheckBox(this, ID_CHECKBOX2, _("Auto Show House Preview"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
     HousePreviewCheckBox->SetValue(true);
     GridBagSizer1->Add(HousePreviewCheckBox, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_DisableKeyAcceleration = new wxCheckBox(this, ID_CHECKBOX5, _("Disable key acceleration when held down"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
+    CheckBox_DisableKeyAcceleration->SetValue(false);
+    GridBagSizer1->Add(CheckBox_DisableKeyAcceleration, wxGBPosition(9, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
     CheckBox_BaseShowFolder = new wxCheckBox(this, ID_CHECKBOX3, _("Enable Base Show Folder Settings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
     CheckBox_BaseShowFolder->SetValue(false);
-    GridBagSizer1->Add(CheckBox_BaseShowFolder, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(CheckBox_BaseShowFolder, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText6 = new wxStaticText(this, wxID_ANY, _("Timeline Zooming"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     GridBagSizer1->Add(StaticText6, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_TimelineZooming = new wxChoice(this, ID_CHOICE_TIMELINEZOOMING, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_TIMELINEZOOMING"));
@@ -95,19 +101,28 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
     CheckBox_ZoomMethod = new wxCheckBox(this, ID_CHECKBOX_ZoomMethod, _("Zoom To Cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ZoomMethod"));
     CheckBox_ZoomMethod->SetValue(true);
     GridBagSizer1->Add(CheckBox_ZoomMethod, wxGBPosition(8, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText2 = new wxStaticText(this, wxID_ANY, _("Group Center Crosshair Size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    GridBagSizer1->Add(StaticText2, wxGBPosition(10, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    CrosshairSizeChoice = new wxChoice(this, ID_CHOICE_CROSSHAIRSIZE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_CROSSHAIRSIZE"));
+    CrosshairSizeChoice->Append(_("Large"));
+    CrosshairSizeChoice->SetSelection( CrosshairSizeChoice->Append(_("Normal")) );
+    CrosshairSizeChoice->Append(_("Small"));
+    CrosshairSizeChoice->Append(_("Tiny"));
+    CrosshairSizeChoice->Append(_("None"));
+    CrosshairSizeChoice->SetToolTip(_("Control the size of the crosshair for group centering"));
+    GridBagSizer1->Add(CrosshairSizeChoice, wxGBPosition(10, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(GridBagSizer1);
-    GridBagSizer1->Fit(this);
-    GridBagSizer1->SetSizeHints(this);
 
-    Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnToolIconSizeChoiceSelect);
-    Connect(ID_CHOICE4,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnModelHandleSizeChoiceSelect);
-    Connect(ID_CHOICE5,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnEffectAssistChoiceSelect);
-    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnPlayControlsCheckBoxClick);
-    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnHousePreviewCheckBoxClick);
-    Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_BaseShowFolderClick);
-    Connect(ID_CHOICE_TIMELINEZOOMING,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ViewSettingsPanel::OnChoice_TimelineZoomingSelect);
-    Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnPresetPreviewCheckBoxClick);
-    Connect(ID_CHECKBOX_ZoomMethod,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_ZoomMethodClick);
+    Connect(ID_CHOICE3, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnToolIconSizeChoiceSelect);
+    Connect(ID_CHOICE4, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnModelHandleSizeChoiceSelect);
+    Connect(ID_CHOICE5, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnEffectAssistChoiceSelect);
+    Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnPlayControlsCheckBoxClick);
+    Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnHousePreviewCheckBoxClick);
+    Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_BaseShowFolderClick);
+    Connect(ID_CHOICE_TIMELINEZOOMING, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnChoice_TimelineZoomingSelect);
+    Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnPresetPreviewCheckBoxClick);
+    Connect(ID_CHECKBOX_ZoomMethod, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_ZoomMethodClick);
+    Connect(ID_CHOICE_CROSSHAIRSIZE, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnCrosshairSizeChoiceSelect);
     //*)
 
 #ifdef _MSC_VER
@@ -131,7 +146,8 @@ bool ViewSettingsPanel::TransferDataToWindow()
         i = 0;
     }
     EffectAssistChoice->SetSelection(i);
-    ModelHandleSizeChoice->SetSelection(frame->ModelHandleSize());
+    ModelHandleSizeChoice->SetSelection(frame->GetModelHandleSize());
+    CrosshairSizeChoice->SetSelection(frame->GetCrosshairSize());
     int ts = frame->ToolIconSize();
     switch (ts) {
     case 48:
@@ -151,16 +167,19 @@ bool ViewSettingsPanel::TransferDataToWindow()
 
     Choice_TimelineZooming->SetSelection(frame->GetTimelineZooming() & 1);
     CheckBox_PresetPreview->SetValue(frame->HidePresetPreview());
+    CheckBox_DisableKeyAcceleration->SetValue(frame->IsDisableKeyAcceleration());
     return true;
 }
 bool ViewSettingsPanel::TransferDataFromWindow()
 {
     frame->SetModelHandleSize(ModelHandleSizeChoice->GetSelection());
+    frame->SetCrosshairSize(CrosshairSizeChoice->GetSelection());
     frame->SetEffectAssistMode(EffectAssistChoice->GetSelection());
     frame->SetPlayControlsOnPreview(PlayControlsCheckBox->IsChecked());
     frame->SetAutoShowHousePreview(HousePreviewCheckBox->IsChecked());
     frame->SetZoomMethodToCursor(CheckBox_ZoomMethod->IsChecked());
     frame->SetShowBaseShowFolder(CheckBox_BaseShowFolder->IsChecked());
+    frame->SetDisableKeyAcceleration(CheckBox_DisableKeyAcceleration->IsChecked());
     switch (ToolIconSizeChoice->GetSelection()) {
     case 3:
         frame->SetToolIconSize(48);
@@ -254,6 +273,20 @@ void ViewSettingsPanel::OnChoice_TimelineZoomingSelect(wxCommandEvent& event)
 }
 
 void ViewSettingsPanel::OnCheckBox_ZoomMethodClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void ViewSettingsPanel::OnCheckBox_DisableKeyAccelerationClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void ViewSettingsPanel::OnCrosshairSizeChoiceSelect(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

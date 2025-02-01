@@ -162,9 +162,8 @@ void PaletteMgmtDialog::OnButtonLoadPalette2Click(wxCommandEvent& event)
 
 void PaletteMgmtDialog::OnButtonCopyClick(wxCommandEvent& event)
 {
-    wxColour c;
     for (int i=1; i<=6; i++) {
-//~        c=panel1->GetPaletteColor(i);
+//~        wxColour c=panel1->GetPaletteColor(i);
 //~        panel2->SetPaletteColor(i,&c);
     }
 }
@@ -182,7 +181,7 @@ void PaletteMgmtDialog::OnButtonDeleteClick(wxCommandEvent& event)
 
 void PaletteMgmtDialog::SavePalette(EffectsPanel* panel)
 {
-    wxString ChildName,AttrName;
+    wxString AttrName;
     wxColour color;
     wxString name = wxGetTextFromUser(_("Enter name for palette"), _("Save Color Palette"));
     name.Trim(true);

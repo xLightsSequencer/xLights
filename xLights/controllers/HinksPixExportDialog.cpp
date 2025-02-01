@@ -521,8 +521,6 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Scanning folder for sequences for FPP upload: %s", (const char*)dir.c_str());
 
-    const wxString fseqDir = xLightsFrame::FseqDir;
-
     wxDir directory;
     directory.Open(dir);
 
@@ -952,7 +950,6 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
             ++count;
             continue;
         }
-        wxString const ip = hix->GetIP();
 
         prgs.Update(++count, wxString::Format("Generating HinksPix Files for '%s'", hix->GetName()));
 
@@ -1007,6 +1004,8 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
             wxDirDialog dlg(this, "Select SD Directory for " + hix->GetName(), drive, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
             if (dlg.ShowModal() == wxID_OK) {
                 drive = dlg.GetPath();
+            } else {
+                continue;
             }
             if (!ObtainAccessToURL(drive)) {
                 errorMsg = wxString::Format("Could not obtain write access for '%s'", drive);
@@ -1029,7 +1028,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
                     wxString auName = shortName + ".au";
                     prgs.Update(count, "Generating AU File " + auName);
                     if (std::find(filesDone.begin(), filesDone.end(), auName) == filesDone.end()) {
-                        AudioLoader audioLoader(play.Audio.ToStdString(), true);
+                        AudioLoader audioLoader(play.Audio.ToStdString(), 44100, true);
                         worked &= audioLoader.loadAudioData();
 
                         if (worked) {

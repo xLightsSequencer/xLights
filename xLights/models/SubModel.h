@@ -66,7 +66,7 @@ public:
     std::string GetSubModelLayout() const { return _layout; }
     std::string GetSubModelType() const { return _type; }
     std::string GetSubModelBufferStyle() const { return _bufferStyle; }
-    std::string GetSubModelNodeRanges() const { return _properyGridDisplay; }
+    //std::string GetSubModelNodeRanges() const { return _properyGridDisplay; }
 
     private:
     void CheckDuplicates(const std::vector<int>& nodeIndexes);
@@ -76,7 +76,7 @@ public:
     const std::string _layout;
     const std::string _type;
     const std::string _bufferStyle;
-    std::string _properyGridDisplay;
+    std::string _propertyGridDisplay;
     std::string _duplicateNodes;
     
     static std::vector<std::string> SUBMODEL_BUFFER_STYLES;

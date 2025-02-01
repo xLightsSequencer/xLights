@@ -38,6 +38,7 @@ class RemapDMXChannelsDialog: public wxDialog
 		double GetChanScale(int idx);
 		int GetChanOffset(int idx);
 		int GetToChannel(int idx);
+        wxString GetChanInvert(int idx);
 
 	protected:
 
@@ -52,7 +53,7 @@ class RemapDMXChannelsDialog: public wxDialog
 
 	private:
 
-		enum DMXMappingColumns { From, To, Scale, Offset };
+		enum DMXMappingColumns { From, To, Scale, Offset, Invert };
 
 		//(*Handlers(RemapDMXChannelsDialog)
 		void OnButton_OkClick(wxCommandEvent& event);

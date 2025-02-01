@@ -100,8 +100,7 @@ void SyncFPP::Ping(bool remote, const std::string& localIP)
     delete fppBroadcastSocket;
 }
 
-void SyncFPP::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno) const
-{
+void SyncFPP::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno, int overridetimeSecs) const {
     static std::string lastfseq = "";
     static std::string lastmedia = "";
     static size_t lastfseqmsec = 0;
@@ -215,7 +214,7 @@ void SyncFPP::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS,
 
 void SyncFPP::SendStop() const
 {
-    SendSync(50, 0, 0xFFFFFFFF, 0, "", "", "", "", 0);
+    SendSync(50, 0, 0xFFFFFFFF, 0, "", "", "", "", 0, 0);
 }
 
 void SyncBroadcastFPP::SendFPPSync(const std::string& item, uint32_t stepMS, uint32_t frameMS) const
@@ -441,8 +440,8 @@ SyncMulticastFPP::~SyncMulticastFPP()
     }
 }
 
-SyncBroadcastFPP::SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) :
-    SyncFPP(sm, rm, options)
+SyncBroadcastFPP::SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncFPP(sm, rm, options, schm)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -490,8 +489,8 @@ SyncBroadcastFPP::SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOpt
     }
 }
 
-SyncUnicastFPP::SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) :
-    SyncFPP(sm, rm, options)
+SyncUnicastFPP::SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncFPP(sm, rm, options, schm)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -540,8 +539,8 @@ SyncUnicastFPP::SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions
     }
 }
 
-SyncUnicastCSVFPP::SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) : SyncFPP(sm, rm, options)
-{
+SyncUnicastCSVFPP::SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncFPP(sm, rm, options, schm) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (sm == SYNCMODE::FPPUNICASTCSVMASTER)
@@ -589,8 +588,8 @@ SyncUnicastCSVFPP::SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleO
     }
 }
 
-SyncMulticastFPP::SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) : SyncFPP(sm, rm, options)
-{
+SyncMulticastFPP::SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncFPP(sm, rm, options, schm) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (sm == SYNCMODE::FPPMULTICASTMASTER)

@@ -11,17 +11,15 @@
  **************************************************************/
 
 #include "PlayListItem.h"
-#include <string>
 #include "../Blend.h"
+#include <string>
 
 class wxXmlNode;
 class OutputManager;
 
-class PlayListItemMicrophone : public PlayListItem
-{
+class PlayListItemMicrophone : public PlayListItem {
 protected:
-
-    #pragma region Member Variables
+#pragma region Member Variables
     std::string _mode;
     wxColor _colour;
     size_t _sc;
@@ -31,30 +29,61 @@ protected:
     size_t _duration;
     APPLYMETHOD _blendMode;
     std::string _device = "";
-    #pragma endregion Member Variables
+#pragma endregion Member Variables
 
     void SetPixel(uint8_t* p, uint8_t r, uint8_t g, uint8_t b, APPLYMETHOD blendMode);
 
 public:
-
-    #pragma region Constructors and Destructors
+#pragma region Constructors and Destructors
     PlayListItemMicrophone(OutputManager* outputManager, wxXmlNode* node);
     PlayListItemMicrophone(OutputManager* outputManager);
     virtual ~PlayListItemMicrophone();
     virtual PlayListItem* Copy(const bool isClone) const override;
-    #pragma endregion Constructors and Destructors
+#pragma endregion Constructors and Destructors
 
-    #pragma region Getters and Setters
-    virtual size_t GetDurationMS() const override { return _duration; }
-    void SetDuration(size_t duration) { if (_duration != duration) { _duration = duration; _changeCount++; } }
-    void SetColour(wxColor colour) { if (_colour != colour) { _colour = colour; _changeCount++; } }
+#pragma region Getters and Setters
+    virtual size_t GetDurationMS() const override {
+        return _duration;
+    }
+    void SetDuration(size_t duration) {
+        if (_duration != duration) {
+            _duration = duration;
+            _changeCount++;
+        }
+    }
+    void SetColour(wxColor colour) {
+        if (_colour != colour) {
+            _colour = colour;
+            _changeCount++;
+        }
+    }
     virtual std::string GetNameNoTime() const override;
-    void SetMode(const std::string& mode) { if (_mode != mode) { _mode = mode; _changeCount++; } };
-    void SetStartChannel(const std::string startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _sc = 0; _changeCount++; } };
-    void SetPixels(const size_t pixels) { if (_pixels != pixels) { _pixels = pixels; _changeCount++; } };
-    void SetBlendMode(const std::string& blendMode) { if (_blendMode != EncodeBlendMode(blendMode)) { _blendMode = EncodeBlendMode(blendMode); _changeCount++; } }
-    void SetInputDevice(const std::string& device)
-    {
+    void SetMode(const std::string& mode) {
+        if (_mode != mode) {
+            _mode = mode;
+            _changeCount++;
+        }
+    };
+    void SetStartChannel(const std::string startChannel) {
+        if (_startChannel != startChannel) {
+            _startChannel = startChannel;
+            _sc = 0;
+            _changeCount++;
+        }
+    };
+    void SetPixels(const size_t pixels) {
+        if (_pixels != pixels) {
+            _pixels = pixels;
+            _changeCount++;
+        }
+    };
+    void SetBlendMode(const std::string& blendMode) {
+        if (_blendMode != EncodeBlendMode(blendMode)) {
+            _blendMode = EncodeBlendMode(blendMode);
+            _changeCount++;
+        }
+    }
+    void SetInputDevice(const std::string& device) {
         auto d = device;
         if (d == "(Default)")
             d = "";
@@ -63,33 +92,36 @@ public:
             _changeCount++;
         }
     }
-    int GetBlendMode() const
-    {
+    int GetBlendMode() const {
         return _blendMode;
     }
-    wxColour GetColour() const { return _colour; }
-    std::string GetStartChannel() const { return _startChannel; }
+    wxColour GetColour() const {
+        return _colour;
+    }
+    std::string GetStartChannel() const {
+        return _startChannel;
+    }
     size_t GetStartChannelAsNumber();
-    size_t GetPixels() const { return _pixels; }
-    std::string GetMode() const
-    {
+    size_t GetPixels() const {
+        return _pixels;
+    }
+    std::string GetMode() const {
         return _mode;
     }
-    std::string GetInputDevice() const
-    {
+    std::string GetInputDevice() const {
         return _device;
     }
     virtual std::string GetTitle() const override;
-    #pragma endregion Getters and Setters
+#pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
     void Load(wxXmlNode* node) override;
 
-    #pragma region Playing
+#pragma region Playing
     virtual void Start(long stepLengthMS) override;
     virtual void Stop() override;
     virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
-    #pragma endregion Playing
+#pragma endregion Playing
 
 #pragma region UI
     virtual void Configure(wxNotebook* notebook) override;

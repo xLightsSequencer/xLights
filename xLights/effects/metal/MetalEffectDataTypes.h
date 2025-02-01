@@ -17,6 +17,8 @@ struct ButterflyData
     uint16_t height;
     uint16_t numColors;
 
+    float plasmaTime;
+    int plasmaStyle;
 };
 
 
@@ -142,6 +144,7 @@ struct LayerBlendingData {
     float fadeFactor;
     float effectMixThreshold;
     bool effectMixVaries;
+    bool brightnessLevel;
     int mixTypeData;
     
     int outputSparkleCount;

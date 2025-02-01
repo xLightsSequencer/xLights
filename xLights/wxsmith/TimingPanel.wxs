@@ -111,7 +111,6 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_LayerMorph" subclass="xlLockButton" variable="BitmapButton_CheckBox_LayerMorph" member="yes">
-													
 													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -145,7 +144,6 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" subclass="xlLockButton" variable="BitmapButton_EffectLayerMix" member="yes">
-													
 													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
@@ -197,30 +195,30 @@
 																<object class="sizeritem">
 																	<object class="wxChoice" name="ID_CHOICE_In_Transition_Type" subclass="BulkEditChoice" variable="Choice_In_Transition_Type" member="yes">
 																		<content>
-																			<item>Fade</item>
-																			<item>Wipe</item>
-																			<item>Clock</item>
-																			<item>From Middle</item>
-																			<item>Square Explode</item>
-																			<item>Circle Explode</item>
-																			<item>Blinds</item>
 																			<item>Blend</item>
-																			<item>Slide Checks</item>
-																			<item>Slide Bars</item>
-																			<item>Fold</item>
-																			<item>Dissolve</item>
-																			<item>Circular Swirl</item>
-																			<item>Bow Tie</item>
-																			<item>Zoom</item>
-																			<item>Doorway</item>
+																			<item>Blinds</item>
 																			<item>Blobs</item>
+																			<item>Bow Tie</item>
+																			<item>Circle Explode</item>
+																			<item>Circles</item>
+																			<item>Circular Swirl</item>
+																			<item>Clock</item>
+																			<item>Dissolve</item>
+																			<item>Doorway</item>
+																			<item>Fade</item>
+																			<item>Fold</item>
+																			<item>From Middle</item>
 																			<item>Pinwheel</item>
+																			<item>Shatter</item>
+																			<item>Slide Bars</item>
+																			<item>Slide Checks</item>
+																			<item>Square Explode</item>
 																			<item>Star</item>
 																			<item>Swap</item>
-																			<item>Shatter</item>
-																			<item>Circles</item>
+																			<item>Wipe</item>
+																			<item>Zoom</item>
 																		</content>
-																		<selection>0</selection>
+																		<selection>10</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -334,30 +332,30 @@
 																<object class="sizeritem">
 																	<object class="wxChoice" name="ID_CHOICE_Out_Transition_Type" subclass="BulkEditChoice" variable="Choice_Out_Transition_Type" member="yes">
 																		<content>
-																			<item>Fade</item>
-																			<item>Wipe</item>
-																			<item>Clock</item>
-																			<item>From Middle</item>
-																			<item>Square Explode</item>
-																			<item>Circle Explode</item>
-																			<item>Blinds</item>
 																			<item>Blend</item>
-																			<item>Slide Checks</item>
-																			<item>Slide Bars</item>
-																			<item>Fold</item>
-																			<item>Dissolve</item>
-																			<item>Circular Swirl</item>
-																			<item>Bow Tie</item>
-																			<item>Zoom</item>
-																			<item>Doorway</item>
+																			<item>Blinds</item>
 																			<item>Blobs</item>
+																			<item>Bow Tie</item>
+																			<item>Circle Explode</item>
+																			<item>Circles</item>
+																			<item>Circular Swirl</item>
+																			<item>Clock</item>
+																			<item>Dissolve</item>
+																			<item>Doorway</item>
+																			<item>Fade</item>
+																			<item>Fold</item>
+																			<item>From Middle</item>
 																			<item>Pinwheel</item>
+																			<item>Shatter</item>
+																			<item>Slide Bars</item>
+																			<item>Slide Checks</item>
+																			<item>Square Explode</item>
 																			<item>Star</item>
 																			<item>Swap</item>
-																			<item>Shatter</item>
-																			<item>Circles</item>
+																			<item>Wipe</item>
+																			<item>Zoom</item>
 																		</content>
-																		<selection>0</selection>
+																		<selection>10</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

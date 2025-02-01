@@ -16,7 +16,7 @@
 						<growablerows>0</growablerows>
 						<object class="sizeritem">
 							<object class="wxGrid" name="ID_GRID1" variable="Grid1" member="yes">
-								<cols>4</cols>
+								<cols>5</cols>
 								<rows>48</rows>
 								<defaultcolsize>150</defaultcolsize>
 								<collabels>
@@ -24,6 +24,7 @@
 									<item>Map To</item>
 									<item>Scale</item>
 									<item>Offset</item>
+									<item>Invert</item>
 								</collabels>
 								<size>609,400</size>
 							</object>

@@ -50,14 +50,16 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual std::string GetDimension() const override { return ""; }
 
-        bool HasColorAbility() const { return nullptr != color_ability ; }
-        DmxColorAbility* GetColorAbility() const { return color_ability.get(); }
+        [[nodiscard]] bool HasColorAbility() const { return nullptr != color_ability ; }
+        [[nodiscard]] DmxColorAbility* GetColorAbility() const { return color_ability.get(); }
+        [[nodiscard]] bool HasPresetAbility() const { return nullptr != preset_ability ; }
+        [[nodiscard]] DmxPresetAbility* GetPresetAbility() const { return preset_ability.get(); }
         virtual void EnableFixedChannels(xlColorVector& pixelVector) const;
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
         virtual void ExportXlightsModel() override {}
-        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override = 0;
+        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override = 0;
         virtual int GetNumPhysicalStrings() const override { return 1; }
         virtual bool IsDMXModel() const override { return true; }
         virtual std::list<std::string> CheckModelSettings() override;
@@ -77,18 +79,20 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
             return DMX_COLOR_TYPE_RGBW;
         }
 
+        virtual std::vector<PWMOutput> GetPWMOutputs() const override;
+        virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const;
     protected:
         virtual void InitModel() override;
         void ExportBaseParameters(wxFile& f);
-        void ImportBaseParameters(wxXmlNode* root);
+        bool ImportBaseParameters(wxXmlNode* root);
         void UpdateChannelCount(int num_channels, bool do_work);
 
         virtual int GetChannelValue( int channel, bool bits16);
         int GetChannelValue(int channel_coarse, int channel_fine);
        void SetNodeNames(const std::string& default_names, bool force = false);
 
-        std::unique_ptr<DmxColorAbility> color_ability;
-        std::unique_ptr<DmxPresetAbility> preset_ability;
+        std::unique_ptr<DmxColorAbility> color_ability{ nullptr };
+        std::unique_ptr<DmxPresetAbility> preset_ability{ nullptr };
 
     private:
 };

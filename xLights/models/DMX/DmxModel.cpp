@@ -71,7 +71,7 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* o
     p->SetEditor("SpinCtrl");
 
     if (nullptr != preset_ability ) {
-        preset_ability->AddProperties(grid);
+        preset_ability->AddProperties(grid, ModelXml);
     }
 }
 
@@ -345,7 +345,7 @@ void DmxModel::ExportBaseParameters(wxFile& f)
     }
 }
 
-void DmxModel::ImportBaseParameters(wxXmlNode* root)
+bool DmxModel::ImportBaseParameters(wxXmlNode* root)
 {
     wxString p1 = root->GetAttribute("parm1");
     wxString p2 = root->GetAttribute("parm2");
@@ -380,6 +380,8 @@ void DmxModel::ImportBaseParameters(wxXmlNode* root)
     if (nullptr != preset_ability) {
         preset_ability->ImportParameters(root, this);
     }
+
+    return true;
 }
 
 std::vector<std::string> DmxModel::GenerateNodeNames() const
@@ -402,4 +404,24 @@ void DmxModel::EnableFixedChannels(xlColorVector& pixelVector) const
     if (nullptr != preset_ability) {
          preset_ability->SetPresetValues(pixelVector);
     }
+}
+
+void DmxModel::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
+    if (nullptr != color_ability) {
+        color_ability->GetPWMOutputs(channels);
+    }
+}
+std::vector<PWMOutput> DmxModel::GetPWMOutputs() const {
+    std::map<uint32_t, PWMOutput> channels;
+    GetPWMOutputs(channels);
+    std::vector<PWMOutput> ret;
+    uint32_t startChannel = GetFirstChannel();
+    for (auto &a : channels) {
+        if ((a.first - 1) < nodeNames.size() && !nodeNames[a.first - 1].empty()) {
+            a.second.label = nodeNames[a.first - 1];
+        }
+        ret.emplace_back(a.second);
+        ret.back().startChannel += startChannel - 1;
+    }
+    return ret;
 }

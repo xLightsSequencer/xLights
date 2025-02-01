@@ -33,38 +33,44 @@ DMXEffect::~DMXEffect()
     //dtor
 }
 
-void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::tuple<int, int, float, int>>& dmxmappings) const
-{
+void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings) const {
     SettingsMap &settings = effect->GetSettings();
-    SettingsMap oldSettings = settings;
-    for (auto const &[ fromi, toi, scale, offset ] : dmxmappings)
-    {
-        auto froms = wxString::Format("%d", fromi);
-        auto tos = wxString::Format("%d", toi);
-        auto slider = oldSettings.Get("E_SLIDER_DMX" + froms, "NOTTHERE");
-        auto vc = oldSettings.Get("E_VALUECURVE_DMX" + froms, "NOTTHERE");
+    SettingsMap const oldSettings = settings;
+    for (auto const& [fromi, toi, scale, offset, inv] : dmxmappings) {
+        auto const froms = wxString::Format("%d", fromi);
+        auto const tos = wxString::Format("%d", toi);
+        auto const slider = oldSettings.Get("E_SLIDER_DMX" + froms, "NOTTHERE");
+        auto const vc = oldSettings.Get("E_VALUECURVE_DMX" + froms, "NOTTHERE");
+        auto invert_chbx = oldSettings.Get("E_CHECKBOX_INVDMX" + froms, "NOTTHERE");
 
-        if (slider != "NOTTHERE")
-        {
-            int new_value = ((double)std::stoi(slider) * scale) + offset;
+        if (slider != "NOTTHERE") {
+            int const new_value = ((float)std::stoi(slider) * scale) + offset;
             settings["E_SLIDER_DMX" + tos] = std::to_string( new_value);
-        }
-        else
-        {
+        } else {
             settings.erase("E_SLIDER_DMX" + tos);
         }
-        if (vc != "NOTTHERE")
-        {
+
+        if (vc != "NOTTHERE") {
             ValueCurve valc;
             valc.SetDivisor(1.0F);
             valc.SetLimits(DMX_MIN, DMX_MAX);
             valc.Deserialise(vc);
             valc.ScaleAndOffsetValues(scale, offset);
             settings["E_VALUECURVE_DMX" + tos] = valc.Serialise();
-        }
-        else
-        {
+        } else {
             settings.erase("E_VALUECURVE_DMX" + tos);
+        }
+
+        if (inv == "Check") {
+            invert_chbx = "1";
+        } else if (inv == "Uncheck") {
+            invert_chbx = "0";
+        }
+
+        if (invert_chbx != "NOTTHERE") {
+            settings["E_CHECKBOX_INVDMX" + tos] = invert_chbx;
+        } else {
+            settings.erase("E_CHECKBOX_INVDMX" + tos);
         }
     }
 }
@@ -73,7 +79,7 @@ xlEffectPanel *DMXEffect::CreatePanel(wxWindow *parent) {
     return new DMXPanel(parent);
 }
 
-static int GetPct(wxString val)
+static int GetPct(wxString const& val)
 {
     int value = wxAtoi(val);
     return (value * 100) / 255;
@@ -307,7 +313,7 @@ void DMXEffect::adjustSettings(const std::string &version, Effect *effect, bool 
 bool DMXEffect::SetDMXSinglColorPixel(int chan, int num_channels, const SettingsMap &SettingsMap, double eff_pos, xlColor& color, RenderBuffer &buffer)
 {
     if( num_channels >= chan ) {
-        std::string name = wxString::Format("DMX%d", chan).ToStdString();
+        std::string const name = wxString::Format("DMX%d", chan).ToStdString();
         int value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
         if (SettingsMap.GetBool("CHECKBOX_INV" + name, false))
@@ -320,9 +326,8 @@ bool DMXEffect::SetDMXSinglColorPixel(int chan, int num_channels, const Settings
         color.blue = value;
         buffer.SetPixel(chan-1, 0, color, false, false, true);
         return false;
-    } else {
-        return true;
-    }
+    } 
+    return true;
 }
 
 void DMXEffect::SetColorBasedOnStringType(int value, int slot, xlColor& color, const std::string& string_type)
@@ -341,7 +346,7 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, const SettingsMap &Set
 {
     bool return_val = false;
     color = xlBLACK;
-    int base_chan = ((node-1)*3+1);
+    int const base_chan = ((node - 1) * 3 + 1);
     if( num_channels >= base_chan || buffer.BufferWi < node) {
         std::string name = wxString::Format("DMX%d", base_chan).ToStdString();
         int value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -351,7 +356,7 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, const SettingsMap &Set
         }
 
         SetColorBasedOnStringType(value, 1, color, string_type);
-        if( num_channels >= base_chan+1 ) {
+        if( num_channels >= base_chan + 1 ) {
             name = wxString::Format("DMX%d", base_chan+1);
             value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
@@ -360,8 +365,8 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, const SettingsMap &Set
             }
 
             SetColorBasedOnStringType(value, 2, color, string_type);
-            if( num_channels >= base_chan+2 ) {
-                name = wxString::Format("DMX%d", base_chan+2);
+            if( num_channels >= base_chan + 2 ) {
+                name = wxString::Format("DMX%d", base_chan + 2);
                 value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
                 if (SettingsMap.GetBool("CHECKBOX_INV" + name, false)) {
@@ -383,9 +388,9 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, const SettingsMap &Set
 }
 
 void DMXEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    double eff_pos = buffer.GetEffectTimeIntervalPosition();
+    double const eff_pos = buffer.GetEffectTimeIntervalPosition();
 
-    if (buffer.cur_model == "") {
+    if (buffer.cur_model.empty()) {
         return;
     }
     const Model* model_info = buffer.GetModel();
@@ -393,7 +398,7 @@ void DMXEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
         return;
     }
 
-    int num_channels = model_info->GetNumChannels();
+    int const num_channels = model_info->GetNumChannels();
 
     const std::string& string_type = model_info->GetStringType();
 
@@ -401,13 +406,13 @@ void DMXEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
 
     if (StartsWith(string_type, "Single Color")) {
         // handle channels for single color nodes
-        for (uint32_t i = 1; i <= 40; ++i) {
+        for (uint32_t i = 1; i <= DMX_CHANNELS; ++i) {
             if (SetDMXSinglColorPixel(i, num_channels, SettingsMap, eff_pos, color, buffer))
                 return;
         }
    } else {
         // handle channels for 3 color nodes
-        for (uint32_t i = 1; i <= 40 / 3; ++i) {
+       for (uint32_t i = 1; i <= DMX_CHANNELS / 3; ++i) {
             if (SetDMXRGBNode(i, num_channels, SettingsMap, eff_pos, color, buffer, string_type))
                 return;
         }
@@ -429,26 +434,26 @@ void DMXEffect::SetPanelStatus(Model *cls) {
         if (m == nullptr) m = cls;
     }
 
-    int num_channels = m->GetNumChannels();
+    int const num_channels = m->GetNumChannels();
 
     for (int i = 1; i <= DMX_CHANNELS; ++i) {
-        wxString label_ctrl = wxString::Format("ID_STATICTEXT_DMX%d", i);
-        std::string name = m->GetNodeName(i-1);
+        wxString const label_ctrl = wxString::Format("ID_STATICTEXT_DMX%d", i);
+        std::string const name = m->GetNodeName(i - 1);
         wxStaticText* label = (wxStaticText*)(p->FindWindowByName(label_ctrl));
         if( label != nullptr ) {
-            if( name == "" ) {
+            if (name.empty()) {
                 label->SetLabel(wxString::Format("Channel%d:", i));
             } else {
                 label->SetLabel(wxString::Format("%s:", name));
             }
         }
-        wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i);
+        wxString const slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i);
         wxSlider* slider = (wxSlider*)(p->FindWindowByName(slider_ctrl));
-        wxString vc_ctrl = wxString::Format("ID_VALUECURVE_DMX%d", i);
+        wxString const vc_ctrl = wxString::Format("ID_VALUECURVE_DMX%d", i);
         wxBitmapButton* curve = (wxBitmapButton*)(p->FindWindowByName(vc_ctrl));
-        wxString text_ctrl = wxString::Format("IDD_TEXTCTRL_DMX%d", i);
+        wxString const text_ctrl = wxString::Format("IDD_TEXTCTRL_DMX%d", i);
         wxBitmapButton* text = (wxBitmapButton*)(p->FindWindowByName(text_ctrl));
-        wxString inv_ctrl = wxString::Format("ID_CHECKBOX_INVDMX%d", i);
+        wxString const inv_ctrl = wxString::Format("ID_CHECKBOX_INVDMX%d", i);
         wxBitmapButton* inv = (wxBitmapButton*)(p->FindWindowByName(inv_ctrl));
         if (i > num_channels) {
             if( label != nullptr ) label->Enable(false);

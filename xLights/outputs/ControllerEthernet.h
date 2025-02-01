@@ -13,6 +13,8 @@
 #include <list>
 #include <string>
 #include <future>
+#include <mutex>
+#include <shared_mutex>
 
 #include "Controller.h"
 #include "IPOutput.h"
@@ -23,6 +25,9 @@ class Output;
 // An ethernet controller sends data to a unique IP address
 class ControllerEthernet : public Controller
 {
+private:
+    void SetProtocolAndRebuildProperties(const std::string& protocol, wxPropertyGrid* grid, OutputModelManager* outputModelManager);
+
 protected:
 
 #pragma region Property Choices
@@ -34,6 +39,7 @@ protected:
 #pragma region Member Variables
     std::string _ip;
     std::string _resolvedIp;
+    mutable std::shared_mutex _resolveMutex;
     std::string _type;
     std::string _forceLocalIP;
     bool _forceSizes = false;
@@ -160,7 +166,7 @@ public:
     #ifndef EXCLUDENETWORKUI
         bool SupportsUniversePerString() const;
     
-        virtual void UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
+        virtual void UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager) override;
         virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;
         virtual bool HandlePropertyEvent(wxPropertyGridEvent & event, OutputModelManager * outputModelManager) override;
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const override;

@@ -110,6 +110,7 @@ PlayListStep::PlayListStep(const PlayListStep& step)
     _everyStepExcludeFirst = step._everyStepExcludeFirst;
     _everyStepExcludeLast = step._everyStepExcludeLast;
     _id = step._id;
+    _baseTimeCodeTime = step._baseTimeCodeTime;
     {
         ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = step._items.begin(); it != step._items.end(); ++it)
@@ -132,6 +133,7 @@ PlayListStep* PlayListStep::Clone() const
     pls->_everyStep = _everyStep;
     pls->_everyStepExcludeFirst = _everyStepExcludeFirst;
     pls->_everyStepExcludeLast = _everyStepExcludeLast;
+    pls->_baseTimeCodeTime = _baseTimeCodeTime;
     // Note: We are intentially NOT copying "_lastSavedChangeCount" and "_id" here.
 
     {
@@ -198,6 +200,10 @@ wxXmlNode* PlayListStep::Save()
     if (_everyStepExcludeLast) {
         res->AddAttribute("EveryStepExcludeLast", "TRUE");
     }
+    if (_baseTimeCodeTime != 0xFFFFFFFF)
+    {
+        res->AddAttribute("BaseTimeCodeTime", std::to_string(_baseTimeCodeTime));
+    }
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
@@ -217,6 +223,7 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
     _everyStep = node->GetAttribute("EveryStep", "FALSE") == "TRUE";
     _everyStepExcludeFirst = node->GetAttribute("EveryStepExcludeFirst", "FALSE") == "TRUE";
     _everyStepExcludeLast = node->GetAttribute("EveryStepExcludeLast", "FALSE") == "TRUE";
+    _baseTimeCodeTime = wxAtoi(node->GetAttribute("BaseTimeCodeTime", "-1"));
 
     for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext())
     {

@@ -11,11 +11,11 @@
  **************************************************************/
 
  //(*Headers(CheckboxSelectDialog)
-#include <wx/button.h>
-#include <wx/checklst.h>
-#include <wx/dialog.h>
-#include <wx/sizer.h>
-//*)
+ #include <wx/button.h>
+ #include <wx/checklst.h>
+ #include <wx/dialog.h>
+ #include <wx/sizer.h>
+ //*)
 
 class CheckboxSelectDialog: public wxDialog
 {
@@ -36,9 +36,9 @@ class CheckboxSelectDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(CheckboxSelectDialog)
-		static const long ID_CHECKLISTBOXITEMS;
-		static const long ID_BUTTONOK;
-		static const long ID_BUTTONCANCEL;
+		static const wxWindowID ID_CHECKLISTBOXITEMS;
+		static const wxWindowID ID_BUTTONOK;
+		static const wxWindowID ID_BUTTONCANCEL;
 		//*)
 
 		static const long ID_MCU_SELECTALL;

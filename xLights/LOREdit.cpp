@@ -349,7 +349,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         wxString thickness = parms[3];
         wxString vcThickness;
         thickness = RescaleWithRangeI(thickness, "E_VALUECURVE_Spirals_Thickness", 0, 100, 0, 100, vcThickness, SPIRALS_THICKNESS_MIN, SPIRALS_THICKNESS_MAX);
-        wxString thicknessChange = parms[4];
+        // wxString thicknessChange = parms[4]; //unused
         wxString blend = parms[5];
         wxString show3d = parms[6];
         wxString speed = parms[7];
@@ -522,8 +522,8 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         velocity = RescaleWithRangeI(velocity, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
         wxString fade = parms[3];
         fade = RescaleWithRangeI(fade, "IGNORE", 1, 100, 1, 100, vcCrap, -1, -1);
-        wxString pattern = parms[4]; // not used
-        wxString rateChange = parms[5]; // not used
+        // wxString pattern = parms[4]; // not used
+        // wxString rateChange = parms[5]; // not used
         settings += ",E_SLIDER_Fireworks_Explosions=" + explosionRate;
         settings += ",E_SLIDER_Fireworks_Count=" + particles;
         settings += ",E_SLIDER_Fireworks_Fade=" + fade;
@@ -752,19 +752,19 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         // MAX: pinwheel_1, color_per_arm,   10,       100,           32,   50,        10,    32,   200,    200,  50,  50
         // pinwheel_1,color_per_arm,10,15,0,0,5,15,200,200,-24,0
 
-        wxString style = parms[0];
-        wxString colour_mode = parms[1];
+        // wxString style = parms[0]; // unused
+        // wxString colour_mode = parms[1]; //unused
         wxString arms = parms[2];
         wxString vcCrap;
         arms = RescaleWithRangeI(arms, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
         wxString armwidth = parms[3];
         wxString vcArmWidth;
         armwidth = RescaleWithRangeI(armwidth, "E_VALUECURVE_Pinwheel_Thickness", 0, 100, 0, 100, vcArmWidth, PINWHEEL_THICKNESS_MIN, PINWHEEL_THICKNESS_MAX);
-        wxString innerRadius = parms[4]; // not used
+        // wxString innerRadius = parms[4]; // not used
         wxString bend = parms[5];
         wxString vcBend;
         bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", 0, 50, -360, 360, vcBend, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX);
-        wxString curvature = parms[6]; // not used
+        // wxString curvature = parms[6]; // not used
         wxString speed = parms[7];
         wxString vcSpeed;
         bool ccw = false;
@@ -784,7 +784,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         wxString vcLength;
         length = RescaleWithRangeI(length, "E_VALUECURVE_Pinwheel_ArmSize", 1, 100, 0, 400, vcLength, PINWHEEL_ARMSIZE_MIN, PINWHEEL_ARMSIZE_MAX);
 
-        wxString height = parms[9];
+        // wxString height = parms[9]; //unused
 
         wxString x = parms[10];
         wxString vcX;
@@ -826,7 +826,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         wxString bend = parms[2];
         wxString vcBend;
         bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", -10, 10, -360, 360, vcBend, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX);
-        wxString colour = parms[3]; // not used
+        // wxString colour = parms[3]; // not used
         wxString CCW = parms[4];
         wxString speed = parms[5];
         wxString vcSpeed;
@@ -912,7 +912,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         wxString speed = parms[6];
         speed = RescaleWithRangeI(speed, "IGNORE", 0, 50, 0, 50, vcCrap, -1, -1);
         if (parms.size() > 7) {
-            wxString unknown1 = parms[7]; // unused
+            // wxString unknown1 = parms[7]; // unused
         }
 
         settings += ",E_TEXTCTRL_Text=" + text;

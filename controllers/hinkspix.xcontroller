@@ -18,6 +18,7 @@
 			<SupportsAutoLayout/>
 			<SupportsFullxLightsControl/>
 			<SupportsDefaultBrightness/>
+			<DisableMonitoring/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -36,7 +37,7 @@
 			<ConfigDriver>HinksPix</ConfigDriver>
 		</Variant>
 	</Controller>
-	<Controller Name="PRO">
+	<Controller Name="PRO V1/V2">
 		<Variant Name="">
 			<SupportsPixelPortBrightness/>
 			<SupportsPixelPortGamma/>
@@ -56,6 +57,7 @@
 			<SupportsAutoLayout/>
 			<SupportsFullxLightsControl/>
 			<SupportsDefaultBrightness/>
+			<DisableMonitoring/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -75,11 +77,14 @@
 				<Type>hinkspix_16</Type>
 				<Type>hinkspix_16ac</Type>
 			</SmartRemoteTypes>
+			<AltNames>
+				<AltName>PRO</AltName>
+			</AltNames>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<ConfigDriver>HinksPix</ConfigDriver>
 		</Variant>
 	</Controller>
-	<Controller Name="PRO80">
+	<Controller Name="PRO V3">
 		<Variant Name="">
 			<SupportsPixelPortBrightness/>
 			<SupportsPixelPortGamma/>
@@ -99,6 +104,7 @@
 			<SupportsAutoLayout/>
 			<SupportsFullxLightsControl/>
 			<SupportsDefaultBrightness/>
+			<DisableMonitoring/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -118,6 +124,9 @@
 				<Type>hinkspix_16</Type>
 				<Type>hinkspix_16ac</Type>
 			</SmartRemoteTypes>
+			<AltNames>
+				<AltName>PRO80</AltName>
+			</AltNames>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 			<ConfigDriver>HinksPix</ConfigDriver>
 		</Variant>

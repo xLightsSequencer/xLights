@@ -55,7 +55,7 @@ private:
         const wxString& Line_orig,
         const std::string& fontString,
         int dir,
-        bool center, int Effect, int Countdown, int tspeed,
+        bool center, bool norepeat, int Effect, int Countdown, int tspeed,
         int startx, int starty, int endx, int endy,
         bool isPixelBased, bool perWord) const;
     void RenderXLText(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer);

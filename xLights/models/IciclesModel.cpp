@@ -14,6 +14,8 @@
 
 #include "IciclesModel.h"
 #include "../OutputModelManager.h"
+#include "../xLightsVersion.h"
+#include "../xLightsMain.h"
 
 IciclesModel::IciclesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -219,4 +221,154 @@ void IciclesModel::AddDimensionProperties(wxPropertyGridInterface* grid)
     static_cast<TwoPointScreenLocation>(screenLocation).AddDimensionProperties(grid, 1.0);
 }
 
-void IciclesModel::ExportXlightsModel() {}
+void IciclesModel::ExportXlightsModel()
+{
+    wxString name = ModelXml->GetAttribute("name");
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "xLights Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (filename.IsEmpty()) return;
+    wxFile f(filename);
+
+    if (!f.Create(filename, true) || !f.IsOpened()) {
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
+
+    wxString p1 = ModelXml->GetAttribute("parm1");
+    wxString p2 = ModelXml->GetAttribute("parm2");
+    wxString p3 = ModelXml->GetAttribute("DropPattern");
+    wxString an = ModelXml->GetAttribute("AlternateNodes");
+    wxString st = ModelXml->GetAttribute("StringType");
+    wxString ps = ModelXml->GetAttribute("PixelSize");
+    wxString t = ModelXml->GetAttribute("Transparency", "0");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
+    wxString a = ModelXml->GetAttribute("Antialias");
+    wxString ss = ModelXml->GetAttribute("StartSide");
+    wxString dir = ModelXml->GetAttribute("Dir");
+    wxString sn = ModelXml->GetAttribute("StrandNames");
+    wxString nn = ModelXml->GetAttribute("NodeNames");
+    wxString da = ModelXml->GetAttribute("DisplayAs");
+    wxString s0 = ModelXml->GetAttribute("Strings");
+    wxString s1 = ModelXml->GetAttribute("Start");
+    wxString s2 = ModelXml->GetAttribute("Style");
+    wxString s3 = ModelXml->GetAttribute("StrandPerLine");
+    wxString s4 = ModelXml->GetAttribute("StrandPerLayer");
+    wxString v = xlights_version_string;
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<iciclemodel \n");
+    f.Write(wxString::Format("name=\"%s\" ", name));
+    f.Write(wxString::Format("parm1=\"%s\" ", p1));
+    f.Write(wxString::Format("parm2=\"%s\" ", p2));
+    f.Write(wxString::Format("DropPattern=\"%s\" ", p3));
+    f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
+    f.Write(wxString::Format("DisplayAs=\"%s\" ", da));
+    f.Write(wxString::Format("StringType=\"%s\" ", st));
+    f.Write(wxString::Format("Transparency=\"%s\" ", t));
+    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
+    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
+    f.Write(wxString::Format("Antialias=\"%s\" ", a));
+    f.Write(wxString::Format("StartSide=\"%s\" ", ss));
+    f.Write(wxString::Format("Dir=\"%s\" ", dir));
+    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
+    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(wxString::Format("Strings=\"%s\" ", s0));
+    f.Write(wxString::Format("Start=\"%s\" ", s1));
+    f.Write(wxString::Format("Style=\"%s\" ", s2));
+    f.Write(wxString::Format("StrandsPerLine=\"%s\" ", s3));
+    f.Write(wxString::Format("StrandsPerLayer=\"%s\" ", s4));
+    f.Write(ExportSuperStringColors());
+    f.Write(" >\n");
+    wxString aliases = SerialiseAliases();
+    if (aliases != "") {
+        f.Write(aliases);
+    }
+    wxString groups = SerialiseGroups();
+    if (groups != "") {
+        f.Write(groups);
+    }
+    wxString state = SerialiseState();
+    if (state != "")
+    {
+        f.Write(state);
+    }
+    wxString face = SerialiseFace();
+    if (face != "")
+    {
+        f.Write(face);
+    }
+    wxString submodel = SerialiseSubmodel();
+    if (submodel != "")
+    {
+        f.Write(submodel);
+    }
+    ExportDimensions(f);
+    f.Write("</iciclemodel>");
+    f.Close();
+}
+
+bool IciclesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    if (root->GetName() == "iciclemodel") {
+        wxString name = root->GetAttribute("name");
+        wxString p1 = root->GetAttribute("parm1");
+        wxString p2 = root->GetAttribute("parm2");
+        wxString p3 = root->GetAttribute("DropPattern");
+        wxString an = root->GetAttribute("AlternateNodes");
+        wxString st = root->GetAttribute("StringType");
+        wxString ps = root->GetAttribute("PixelSize");
+        wxString t = root->GetAttribute("Transparency", "0");
+        wxString mb = root->GetAttribute("ModelBrightness", "0");
+        wxString a = root->GetAttribute("Antialias");
+        wxString ss = root->GetAttribute("StartSide");
+        wxString dir = root->GetAttribute("Dir");
+        wxString sn = root->GetAttribute("StrandNames");
+        wxString nn = root->GetAttribute("NodeNames");
+        wxString da = root->GetAttribute("DisplayAs");
+        wxString pc = root->GetAttribute("PixelCount");
+        wxString pt = root->GetAttribute("PixelType");
+        wxString psp = root->GetAttribute("PixelSpacing");
+        wxString s0 = root->GetAttribute("Strings");
+        wxString s1 = root->GetAttribute("Start");
+        wxString s2 = root->GetAttribute("Style");
+        wxString s3 = root->GetAttribute("StrandsPerLine");
+        wxString s4 = root->GetAttribute("StrandsPerLayer");
+
+        SetProperty("parm1", p1);
+        SetProperty("parm2", p2);
+        SetProperty("DropPattern", p3);
+        SetProperty("AlternateNodes", an);
+        SetProperty("StringType", st);
+        SetProperty("PixelSize", ps);
+        SetProperty("Transparency", t);
+        SetProperty("ModelBrightness", mb);
+        SetProperty("Antialias", a);
+        SetProperty("StartSide", ss);
+        SetProperty("Dir", dir);
+        SetProperty("StrandNames", sn);
+        SetProperty("NodeNames", nn);
+        SetProperty("DisplayAs", da);
+        SetProperty("PixelCount", pc);
+        SetProperty("PixelType", pt);
+        SetProperty("PixelSpacing", psp);
+        SetProperty("Strings", s0);
+        SetProperty("Start", s1);
+        SetProperty("Style", s2);
+        SetProperty("StrandsPerLine", s3);
+        SetProperty("StrandsPerLayer", s4);
+
+        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
+        GetModelScreenLocation().Write(ModelXml);
+        SetProperty("name", newname, true);
+
+        ImportSuperStringColours(root);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
+
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IcicleModel::ImportXlightsModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IcicleModel::ImportXlightsModel");
+
+        return true;
+    } else {
+        DisplayError("Failure loading Icicle model file.");
+        return false;
+    }
+}

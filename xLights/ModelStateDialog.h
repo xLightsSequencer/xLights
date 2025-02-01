@@ -52,6 +52,7 @@ public:
     wxCheckBox* CheckBox_OutputToLights;
     wxCheckBox* CustomColorNodeRanges;
     wxCheckBox* CustomColorSingleNode;
+    wxChoice* ChoiceColorDraw;
     wxChoice* NameChoice;
     wxChoicebook* StateTypeChoice;
     wxGrid* NodeRangeGrid;
@@ -59,6 +60,7 @@ public:
     wxPanel* ModelPreviewPanelLocation;
     wxPanel* Panel3;
     wxSplitterWindow* SplitterWindow1;
+    wxStaticText* StaticText1;
     wxStaticText* StaticText3;
     //*)
 
@@ -69,24 +71,26 @@ public:
 
 protected:
     //(*Identifiers(ModelStateDialog)
-    static const long ID_STATICTEXT2;
-    static const long ID_CHOICE3;
-    static const long ID_BUTTON3;
-    static const long ID_BUTTON_IMPORT;
-    static const long ID_BUTTON4;
-    static const long ID_CHECKBOX1;
-    static const long ID_BUTTON1;
-    static const long ID_GRID_COROSTATES;
-    static const long ID_PANEL2;
-    static const long ID_CHECKBOX2;
-    static const long ID_CHECKBOX3;
-    static const long ID_BUTTON2;
-    static const long ID_GRID3;
-    static const long ID_PANEL6;
-    static const long ID_CHOICEBOOK1;
-    static const long ID_PANEL5;
-    static const long ID_PANEL_PREVIEW;
-    static const long ID_SPLITTERWINDOW1;
+    static const wxWindowID ID_STATICTEXT2;
+    static const wxWindowID ID_CHOICE3;
+    static const wxWindowID ID_BUTTON3;
+    static const wxWindowID ID_BUTTON_IMPORT;
+    static const wxWindowID ID_BUTTON4;
+    static const wxWindowID ID_CHECKBOX1;
+    static const wxWindowID ID_BUTTON1;
+    static const wxWindowID ID_GRID_COROSTATES;
+    static const wxWindowID ID_PANEL2;
+    static const wxWindowID ID_CHECKBOX2;
+    static const wxWindowID ID_CHECKBOX3;
+    static const wxWindowID ID_BUTTON2;
+    static const wxWindowID ID_GRID3;
+    static const wxWindowID ID_PANEL6;
+    static const wxWindowID ID_CHOICEBOOK1;
+    static const wxWindowID ID_PANEL5;
+    static const wxWindowID ID_STATICTEXT1;
+    static const wxWindowID ID_CHOICE_COLOR_DRAW;
+    static const wxWindowID ID_PANEL_PREVIEW;
+    static const wxWindowID ID_SPLITTERWINDOW1;
     //*)
     static const long ID_TIMER1;
 
@@ -95,10 +99,13 @@ protected:
     static const long STATE_DIALOG_COPY_STATES;
     static const long STATE_DIALOG_IMPORT_MODEL;
     static const long STATE_DIALOG_IMPORT_FILE;
+    static const long STATE_DIALOG_IMPORT_DOWNLOAD;
     static const long STATE_DIALOG_COPY;
     static const long STATE_DIALOG_RENAME;
     static const long STATE_DIALOG_SHIFT;
     static const long STATE_DIALOG_REVERSE;
+    static const long STATE_DIALOG_CLEAR_SELECTED_ROWS;
+    static const long STATE_DIALOG_CLEAR_STATES;
 
 private:
     //(*Handlers(ModelStateDialog)
@@ -122,6 +129,8 @@ private:
     void OnSingleNodeGridLabelLeftClick(wxGridEvent& event);
     void OnNodeRangeGridLabelLeftClick(wxGridEvent& event);
     void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
+    void OnInit(wxInitDialogEvent& event);
+    void OnChoiceColorDrawSelect(wxCommandEvent& event);
     //*)
 
     void OnAddBtnPopup(wxCommandEvent& event);
@@ -170,7 +179,11 @@ private:
     void AddStates(std::map<std::string, std::map<std::string, std::string>> const& states);
     wxArrayString getModelList(ModelManager* modelManager);
 
+    wxString GetDownloadStates();
+
     void CopyStates(wxGridEvent& event);
+    void ClearStates(wxGridEvent& event);
+    void ClearSelectedStates(wxGridEvent& event);
 
     void CopyStateData();
     void RenameState();

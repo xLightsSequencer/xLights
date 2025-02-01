@@ -25,6 +25,7 @@
 #include "../ExternalHooks.h"
 
 #include <unordered_map>
+#include <regex>
 
 #include <log4cpp/Category.hh>
 
@@ -170,6 +171,10 @@ void Effect::ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColor
 }
 
 #pragma region Constructors and Destructors
+
+bool Effect::backgroundDisplayListsEnabled = true;
+
+
 
 // Used to create a temp copy of the effect in rendering only
 Effect::Effect(const Effect& ef)
@@ -336,6 +341,17 @@ std::string Effect::GetSetting(const std::string& id) const
     return "";
 }
 
+bool Effect::SetSetting(const std::string& id, const std::string &v)
+{
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    if (!mSettings.Contains(id) || mSettings[id] != v) {
+        mSettings[id] = v;
+        IncrementChangeCount();
+        return true;
+    }
+    return false;
+}
+
 wxString Effect::GetDescription() const
 {
         return GetSetting("X_Effect_Description");
@@ -370,6 +386,35 @@ void Effect::SetEndTimeMS(int endTimeMS)
 bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS) const
 {
     return (startTimeMS < GetEndTimeMS() && EndTimeMS > GetStartTimeMS());
+}
+
+bool Effect::FilteredIn(const std::string& filterText, bool isFilterTextRegex) const {
+    if (filterText == "")
+        return true;
+
+    const std::string name = GetEffectName();
+
+    if (name == "")
+        return false;
+
+    if (isFilterTextRegex) {
+        std::regex r(filterText, std::regex_constants::extended);
+        if (std::regex_search(name, r))
+            return true;
+    } else {
+        // tokenise the label and then check if any match the filter
+        const std::string tokens = ": ;,";
+        char n[4096] = { 0 };
+        strncpy(n, name.c_str(), sizeof(n) - 1);
+        const char* token = strtok(n, tokens.c_str());
+        while (token != nullptr) {
+            if (filterText == token)
+                return true;
+            token = strtok(nullptr, tokens.c_str());
+        }
+    }
+
+    return false;
 }
 
 void Effect::ConvertTo(int effectIndex)

@@ -76,9 +76,13 @@ bool xlPasswordEntryDialog::GetStoredPasswordForService(const std::string &servi
 
 bool xlPasswordEntryDialog::StorePasswordForService(const std::string &service, const std::string &user, const std::string &pwd) {
     if (pwdStore.IsOk()) {
-        wxSecretValue password(pwd);
-        if (pwdStore.Save("xLights/Discovery/" + service, user, password)) {
-            return true;
+        if (pwd.empty()) {
+            pwdStore.Delete("xLights/Discovery/" + service);
+        } else {
+            wxSecretValue password(pwd);
+            if (pwdStore.Save("xLights/Discovery/" + service, user, password)) {
+                return true;
+            }
         }
     }
     return false;
@@ -339,11 +343,12 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
     data->urls.insert(furl);
     CURL *curl = CurlManager::INSTANCE.createCurl(furl);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 3000L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 30000L);
 
     logger_curl.info("Discovery Adding CURL - URL: %s    Method: GET", furl.c_str());
 
-    CurlManager::INSTANCE.addCURL(furl, curl, [this, url, furl, host, callback](CURL* c) {
+    int authStatus = data->authStatus;
+    CurlManager::INSTANCE.addCURL(furl, curl, [this, url, furl, host, callback, authStatus, data](CURL* c) {
         if (finished) {
             return;
         }
@@ -354,8 +359,9 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
 
         logger_curl.info("    Discovery CURL Callback - URL: %s  RC: %d    Size: %d", furl.c_str(), rc, cpd ? cpd->resp.size() : -1);
         if (rc == 401) {
-            if (HandleAuth(host, c)) {
-                AddCurl(host, url, [callback](int rc, const std::string &buffer, const std::string &errorBuffer) {
+            if (HandleAuth(host, c, authStatus) || authStatus != data->authStatus) {
+                data->urls.erase(furl);
+                AddCurl(host, url, [callback, furl](int rc, const std::string &buffer, const std::string &errorBuffer) {
                     return callback(rc, buffer, errorBuffer);
                 });
             } else {
@@ -368,13 +374,18 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
     });
 }
 
-bool Discovery::HandleAuth(const std::string &host, CURL* curl) {
+bool Discovery::HandleAuth(const std::string &host, CURL* curl, int origAuthStatus) {
     // we need to authenticate and redo
     Discovery::CurlData *data = https[host];
-
-    if (data->authStatus != 1) {
+    if (origAuthStatus != 0) {
+        // still 401 so password must not be correct, remove it and re-prompt
+        data->authStatus = 0;
+        xlPasswordEntryDialog::StorePasswordForService(host, "admin", "");
+    }
+    if (data->authStatus == 0) {
         bool handled = false;
         std::string ip = host;
+        CurlManager::INSTANCE.setProcessCallbacks(false);
         if (data->authStatus != 2) {
             std::string username;
             std::string password;
@@ -398,8 +409,11 @@ bool Discovery::HandleAuth(const std::string &host, CURL* curl) {
                 }
                 CurlManager::INSTANCE.setHostUsernamePassword(host, username, password);
                 handled = true;
+                discoveryFinishTime = wxGetLocalTimeMillis().GetValue() + 10000L;
+                data->authStatus = 1;
             }
         }
+        CurlManager::INSTANCE.setProcessCallbacks(true);
         return handled;
     }
     return false;
@@ -631,20 +645,20 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
 
 
 void Discovery::Discover() {
-    auto endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 1500l;
-    auto maxTime = wxGetLocalTimeMillis().GetValue() + 10000L; // 10 seconds max
+    auto endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 2000l;
+    discoveryFinishTime = wxGetLocalTimeMillis().GetValue() + 10000L; // 10 seconds max
     bool running = CurlManager::INSTANCE.processCurls();
     uint8_t buffer[1500];
     finished = false;
     
     while ((running || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime))
-           && (wxGetLocalTimeMillis().GetValue() < maxTime)){
+           && (wxGetLocalTimeMillis().GetValue() < discoveryFinishTime)){
         memset(buffer, 0x00, sizeof(buffer));
         int readSize = 0;
         //first check to see if any of the socket have received data
         for (const auto& dg : datagrams) {
             for (const auto &socket : dg->sockets) {
-                if (socket->IsOk() && socket->IsData()) {
+                while (socket->IsOk() && socket->IsData()) {
                     socket->Read(&buffer[0], sizeof(buffer));
                     readSize = socket->GetLastIOReadSize();
                     if (readSize != 0) {

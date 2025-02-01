@@ -48,7 +48,6 @@
 #include "outputs/TwinklyOutput.h"
 #include "Discovery.h"
 #include "outputs/OutputManager.h"
-#include "string.h"
 
 //(*IdInit(CustomModelDialog)
 const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
@@ -126,13 +125,17 @@ const long CustomModelDialog::ID_TIMER1 = wxNewId();
 
 wxDEFINE_EVENT(EVT_GRID_KEY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SWITCH_GRID, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UNDO_GRID, wxCommandEvent);
+wxDEFINE_EVENT(EVT_REDO_GRID, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(CustomModelDialog,wxDialog)
 	//(*EventTable(CustomModelDialog)
 	//*)
     EVT_COMMAND(wxID_ANY, EVT_GRID_KEY, CustomModelDialog::OnGridKey)
     EVT_COMMAND(wxID_ANY, EVT_SWITCH_GRID, CustomModelDialog::OnSwitchGrid)
-END_EVENT_TABLE()
+    EVT_COMMAND(wxID_ANY, EVT_UNDO_GRID, CustomModelDialog::OnUndoGrid)
+    EVT_COMMAND(wxID_ANY, EVT_REDO_GRID, CustomModelDialog::OnRedoGrid)
+    END_EVENT_TABLE()
 
 class CustomNotebook : public wxNotebook
 {
@@ -270,6 +273,26 @@ class CopyPasteGrid : public wxGrid
                 wxCommandEvent keyEvent(EVT_GRID_KEY);
                 keyEvent.SetInt(WXK_CONTROL_A);
                 wxPostEvent(this, keyEvent);
+                event.StopPropagation();
+            }
+            break;
+        case 'z':
+        case 'Z':
+        case WXK_CONTROL_Z:
+            if (event.CmdDown() || event.ControlDown()) {
+                wxCommandEvent keyundoEvent(EVT_UNDO_GRID);
+                keyundoEvent.SetInt(WXK_CONTROL_A);
+                wxPostEvent(this, keyundoEvent);
+                event.StopPropagation();
+            }
+            break;
+        case 'y':
+        case 'Y':
+        case WXK_CONTROL_Y:
+            if (event.CmdDown() || event.ControlDown()) {
+                wxCommandEvent keyundoEvent(EVT_REDO_GRID);
+                keyundoEvent.SetInt(WXK_CONTROL_A);
+                wxPostEvent(this, keyundoEvent);
                 event.StopPropagation();
             }
             break;
@@ -559,8 +582,7 @@ void CustomModelDialog::ValidateWindow()
     }
 }
 
-void CustomModelDialog::UpdatePreview(int width, int height, int depth, const std::string& modelData)
-{
+void CustomModelDialog::UpdatePreview(int width, int height, int depth, const std::vector<std::vector<std::vector<int>>>& modelData) {
     _model->GetBaseObjectScreenLocation().SetMDepth(depth);
     _model->UpdateModel(width, height, depth, modelData);
     _model->GetModelScreenLocation().SetWorldPosition(glm::vec3(0, 0, 0)); // centre the model
@@ -586,8 +608,7 @@ void CustomModelDialog::Setup(CustomModel* m)
     FilePickerCtrl1->SetFileName(wxFileName(background_image));
     lightness = m->GetCustomLightness();
     SliderCustomLightness->SetValue(lightness);
-    std::string data = m->GetCustomData();
-    bool _hasCM2 = m->hasCM2();
+    auto data = m->GetData();
 
     if (background_image != "" && FileExists(background_image)) {
         bkg_image = new wxImage(background_image);
@@ -597,7 +618,7 @@ void CustomModelDialog::Setup(CustomModel* m)
     WidthSpin->SetValue(m->GetCustomWidth());
     HeightSpin->SetValue(m->GetCustomHeight());
 
-    if (data == "") {
+    if (data.size() == 0) {
         for (int i = 0; i < m->GetCustomDepth(); i++) {
             AddPage();
             auto grid = GetLayerGrid(i);
@@ -605,45 +626,18 @@ void CustomModelDialog::Setup(CustomModel* m)
             wxFont font = grid->GetDefaultCellFont();
             SetGridSizeForFont(font);
         }
-    }
-    else {
-        if (_hasCM2) {
-            wxArrayString layers = wxSplit(data, '|');
-            wxArrayString ctrllayers = wxSplit(layers[0], ',');
-            int type = std::stoi(ctrllayers[0].ToStdString());
-            int node = 1;
-            int step = (type == 1 ? 2 : 3);
-            for (auto layer = 1; layer < layers.size(); layer++) {
-                AddPage();
-                // ResizeCustomGrid();
-                auto grid = GetLayerGrid(layer-1);
-                wxArrayString data = wxSplit(layers[layer], ',');
-                for (auto d = 0; d < data.size();d+=step){
-                    if (type == 1) {
-                        grid->SetCellValue(std::stoi(data[d].ToStdString()), std::stoi(data[d + 1].ToStdString()), std::to_string(node));
-                        node++;
-                    } else {
-                        grid->SetCellValue(std::stoi(data[d].ToStdString()), std::stoi(data[d + 1].ToStdString()), data[d + 2]);
-                    }
-                }
+    } else {
+        for (auto layer = 0; layer < m->GetCustomDepth(); ++layer) {
+            AddPage();
 
-                wxFont font = grid->GetDefaultCellFont();
-                SetGridSizeForFont(font);
-            }
-        } else {
-            wxArrayString layers = wxSplit(data, '|');
-            for (auto layer = 0; layer < layers.size(); layer++) {
-                AddPage();
-                // ResizeCustomGrid();
+            if (layer < data.size()) {
+
                 auto grid = GetLayerGrid(layer);
-                wxArrayString rows = wxSplit(layers[layer], ';');
 
-                for (auto row = 0; row < rows.size(); row++) {
-                    wxArrayString cols = wxSplit(rows[row], ',');
-                    for (auto col = 0; col < cols.size(); col++) {
-                        wxString value = cols[col];
-                        if (!value.IsEmpty() && value != "0") {
-                            grid->SetCellValue(row, col, value);
+                for (auto row = 0; row < data[0].size(); ++row) {
+                    for (auto col = 0; col < data[0][0].size(); col++) {
+                        if (data[layer][row][col] > 0) {
+                            grid->SetCellValue(row, col, std::to_string(data[layer][row][col]));
                         }
                     }
                 }
@@ -683,7 +677,7 @@ void CustomModelDialog::Setup(CustomModel* m)
     //        GridCustom->SetDefaultEditor(reditor);
 
     // neither does this
-    //for (int r = 0; r < GridCustom->GetNumberRows(); ++r)
+    // for (int r = 0; r < GridCustom->GetNumberRows(); ++r)
     //{
     //    for (int c = 0; c < GridCustom->GetNumberCols(); ++c)
     //    {
@@ -745,33 +739,37 @@ wxString StripIllegalChars(const wxString& s)
     return res;
 }
 
-std::string CustomModelDialog::GetModelData()
-{
-    std::string customChannelData = "";
+std::vector<std::vector<std::vector<int>>> CustomModelDialog::GetModelData() {
+    std::vector<std::vector<std::vector<int>>> modelData;
+
     for (int layer = 0; layer < Notebook1->GetPageCount(); layer++) {
-        if (layer > 0) customChannelData += "|";
-        auto grid = GetLayerGrid(layer);
-        int numCols = grid->GetNumberCols();
-        int numRows = grid->GetNumberRows();
-        for (int row = 0; row < numRows; row++) {
-            if (row > 0) customChannelData += ";";
-            for (int col = 0; col < numCols; col++) {
-                if (col > 0) customChannelData += ",";
-                wxString value = StripIllegalChars(grid->GetCellValue(row, col));
-                if (value == "0" || value.StartsWith("-") || value.size() > 6) value.clear();
-                customChannelData += value;
-            }
-        }
-    }
-    return customChannelData;
+		auto grid = GetLayerGrid(layer);
+		int numCols = grid->GetNumberCols();
+		int numRows = grid->GetNumberRows();
+		std::vector<std::vector<int>> layerData;
+		for (int row = 0; row < numRows; row++) {
+			std::vector<int> rowData;
+			for (int col = 0; col < numCols; col++) {
+				wxString value = StripIllegalChars(grid->GetCellValue(row, col));
+				if (value == "") {
+					rowData.push_back(-1);
+				}
+				else {
+					rowData.push_back(wxAtoi(value));
+				}
+			}
+			layerData.push_back(rowData);
+		}
+		modelData.push_back(layerData);
+	}
+    return modelData;
 }
 
 void CustomModelDialog::Save(CustomModel *m) {
     m->SetCustomHeight(HeightSpin->GetValue());
     m->SetCustomWidth(WidthSpin->GetValue());
     m->SetCustomDepth(SpinCtrl_Depth->GetValue());
-    std::string customChannelData = GetModelData();
-    m->SetCustomData(customChannelData);
+    m->SetCustomData(GetModelData());
     m->SetCustomLightness(lightness);
     m->SetCustomBackground(FilePickerCtrl1->GetFileName().GetFullPath());
 }
@@ -1157,10 +1155,8 @@ void CustomModelDialog::OnCheckBox_RearViewClick(wxCommandEvent& event)
 
 void CustomModelDialog::OnButtonCancelClick(wxCommandEvent& event)
 {
-    if (_changed)
-    {
-        if (wxMessageBox("Abandon changes to this custom model?", "Abandon changes", wxYES_NO, this) == wxNO)
-        {
+    if (_changed) {
+        if (wxMessageBox("Are you sure you want to discard your current custom model changes?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
             return;
         }
     }
@@ -1683,10 +1679,48 @@ void CustomModelDialog::Reverse()
             }
         }
     }
+    if (wxMessageBox("Do you want to also reverse the submodels?\nThere is no way to undo it - other than to reverse again", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES) {
+        ReverseSubmodels();
+    }
 
     UpdateBackground();
     UpdatePreview();
     ValidateWindow();
+}
+
+void CustomModelDialog::ReverseSubmodels() {
+    long max = _model->GetNodeCount() + 1;
+
+    for (auto sm : _model->GetSubModels()) {
+        wxXmlNode* root = sm->GetModelXml();
+
+        if (root->GetName() == "subModel") {
+            const bool isRanges = root->GetAttribute("type", "") == "ranges";
+            if (isRanges) {
+                int line = 0;
+                while (root->HasAttribute(wxString::Format("line%d", line))) {
+                    auto l = root->GetAttribute(wxString::Format("line%d", line), "");
+                    wxString oldnodes = l;
+                    auto oldNodeArray = wxSplit(ExpandNodes(oldnodes), ',');
+                    wxArrayString newNodeArray;
+                    for (auto const& node : oldNodeArray) {
+                        long val;
+                        if (node.ToCLong(&val) == true) {
+                            long newVal = max - val;
+                            if (val == 0) {
+                                newVal = 0;
+                            }
+                            newNodeArray.Add( wxString::Format("%ld", newVal) );
+                        }
+                    }
+                    l = CompressNodes(wxJoin(newNodeArray, ','));
+                    root->DeleteAttribute(wxString::Format("line%d", line));
+                    root->AddAttribute(wxString::Format("line%d", line), l);
+                    line++;
+                }
+            }
+        }
+    }
 }
 
 bool CustomModelDialog::CheckScale(std::list<wxPoint>& points, float scale) const
@@ -1988,7 +2022,7 @@ void CustomModelDialog::ShiftSelected()
 {
     //I think not "wrapping around" is better when shifting selected nodes.
     //I see this being used when a Node is missed and only half need to be shifted by one.
-    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -10000, 10000);
+    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -1000000, 1000000);
     if (dlg.ShowModal() == wxID_OK) {
         auto scaleFactor = dlg.GetValue();
         if (scaleFactor != 0) {
@@ -2087,17 +2121,21 @@ void CustomModelDialog::OnGridKey(wxCommandEvent& event)
     case WXK_PAGEUP: // CTRL+SHIFT
         if (Notebook1->GetSelection() != 0)
         {
+            auto old = GetActiveGrid();
             int newLayer = Notebook1->GetSelection() - 1;
-            Notebook1->SetSelection(Notebook1->GetSelection() - 1);
+            GetLayerGrid(newLayer)->Scroll(old->GetScrollPos(wxHORIZONTAL), old->GetScrollPos(wxVERTICAL));
             GetLayerGrid(newLayer)->SetGridCursor(row, col);
+            Notebook1->SetSelection(Notebook1->GetSelection() - 1);
         }
         break;
     case WXK_PAGEDOWN: // CTRL+SHIFT
         if (Notebook1->GetSelection() != Notebook1->GetPageCount() - 1)
         {
+            auto old = GetActiveGrid();
             int newLayer = Notebook1->GetSelection() + 1;
-            Notebook1->SetSelection(newLayer);
+            GetLayerGrid(newLayer)->Scroll(old->GetScrollPos(wxHORIZONTAL), old->GetScrollPos(wxVERTICAL));
             GetLayerGrid(newLayer)->SetGridCursor(row, col);
+            Notebook1->SetSelection(newLayer);
         }
         break;
     case WXK_HOME: // CTRL+SHIFT
@@ -2839,14 +2877,14 @@ void CustomModelDialog::AddPage()
     grid->EnableDragGridSize(false);
     grid->EnableDragRowSize(false);
 
-    while (grid->GetNumberCols() < WidthSpin->GetValue())
-    {
-        grid->AppendCols();
+    int numColsToAdd = WidthSpin->GetValue() - grid->GetNumberCols();
+    if (numColsToAdd > 0) {
+        grid->AppendCols(numColsToAdd);
     }
 
-    while (grid->GetNumberRows() < HeightSpin->GetValue())
-    {
-        grid->AppendRows();
+    int numRowsToAdd = HeightSpin->GetValue() - grid->GetNumberRows();
+    if (numRowsToAdd > 0) {
+        grid->AppendRows(numRowsToAdd);
     }
 
     auto renderer = new wxModelGridCellRenderer(bkg_image, *grid);
@@ -3243,6 +3281,17 @@ void CustomModelDialog::OnButton_ImportFromControllerClick(wxCommandEvent& event
         }
     }
 
+    // Discovery returns results in an arbitrary order, so sort them lexicographically (and ignoring case)
+    std::sort(choices.begin(), choices.end(),
+              [](const auto& str1, const auto& str2) {
+                  return std::lexicographical_compare(
+                      std::begin(str1), std::end(str1),
+                      std::begin(str2), std::end(str2),
+                      [](const char& char1, const char& char2) {
+                          return tolower(char1) < tolower(char2);
+                      });
+              });
+
 #ifndef TEST_TWINKLY_FORMAT
     wxSingleChoiceDialog dlg(this, "Select controller to load from", "Download from controller", choices);
 
@@ -3471,5 +3520,36 @@ void CustomModelDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
         StartOutputToLights();
     } else {
         StopOutputToLights();
+    }
+}
+
+void CustomModelDialog::OnUndoGrid(wxCommandEvent& event) {  
+    if (autoincrement) {
+        auto grid = GetActiveGrid();
+        next_channel--;
+        next_channel = std::max(1, next_channel);
+        SpinCtrlNextChannel->SetValue(next_channel);
+        for (auto c = 0; c < grid->GetNumberCols(); c++) {
+            for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+                wxString s = grid->GetCellValue(r, c);
+
+                if (!s.IsEmpty()) {
+                    long v;
+                    if (s.ToCLong(&v) == true) {
+                        if (next_channel ==v ) {
+                            GetActiveGrid()->SetCellValue(r, c, "");
+                            GetActiveGrid()->SetGridCursor(r, c);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void CustomModelDialog::OnRedoGrid(wxCommandEvent& event) {
+    if (autoincrement) {
+        next_channel++;
+        SpinCtrlNextChannel->SetValue(next_channel);
     }
 }

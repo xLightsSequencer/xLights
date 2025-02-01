@@ -102,8 +102,7 @@ void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
 int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
                                    xlVertexColorAccumulator &bg, xlColor* colorMask, bool ramp) 
 {
-    if (ramp)
-    {
+    if (ramp) {
         bool shimmer = e->GetSettings().GetInt("E_CHECKBOX_On_Shimmer", 0) > 0;
         int starti = e->GetSettings().GetInt("E_TEXTCTRL_Eff_On_Start", 100);
         int endi = e->GetSettings().GetInt("E_TEXTCTRL_Eff_On_End", 100);
@@ -139,9 +138,7 @@ int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int 
         }
 
         return 2;
-    }
-    else
-    {
+    } else {
         if (e->HasBackgroundDisplayList()) {
             e->GetBackgroundDisplayList().addToAccumulator(x1, y1, x2 - x1, y2 - y1, bg);
             return e->GetBackgroundDisplayList().iconSize;
@@ -182,7 +179,6 @@ void OnEffect::RemoveDefaults(const std::string &version, Effect *effect) {
 }
 
 void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    
     int start = SettingsMap.GetInt(TEXTCTRL_Eff_On_Start, 100);
     int end = SettingsMap.GetInt(TEXTCTRL_Eff_On_End, 100);
     bool shimmer = SettingsMap.GetInt(CHECKBOX_On_Shimmer, 0) > 0;
@@ -200,6 +196,7 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
     }
 
     bool spatialcolour = buffer.palette.IsSpatial(cidx);
+    bool gradientcolour = buffer.palette.IsGradient(cidx);
     double adjust = buffer.GetEffectTimeIntervalPosition(cycles);
 
     xlColor color;
@@ -214,7 +211,7 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
         hsv.value = hsv.value * d;
         color = hsv;
     }
-    
+
     int transparency = GetValueCurveInt("On_Transparency", 0, SettingsMap, adjust, ON_TRANSPARENCY_MIN, ON_TRANSPARENCY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     if (transparency) {
         transparency *= 255;
@@ -261,27 +258,31 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
         });
     } else {
         buffer.Fill(color);
-    }    
+    }
 
-    if (shimmer || cycles != 1.0) {
-        std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
-        eff->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);
-        buffer.CopyPixelsToDisplayListX(eff, 0, 0, 0);
+    if (shimmer || cycles != 1.0 || gradientcolour || spatialcolour) {
+        if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
+            std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
+            eff->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6);
+            buffer.CopyPixelsToDisplayListX(eff, 0, 0, 0);
+        }
     } else if (buffer.needToInit) {
-        std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
-        eff->GetBackgroundDisplayList().resize(6);
-        if (start == 100 && end == 100) {
-            buffer.palette.GetColor(0, color);
-            buffer.SetDisplayListHRect(eff, 0, 0.0, 0.0, 1.0, 1.0, color, color);
-        } else {
-            HSVValue hsv;
-            buffer.palette.GetHSV(cidx,hsv);
-            hsv.value = hsv.value * start / 100.0;
-            color = hsv;
+        if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
+            std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
+            eff->GetBackgroundDisplayList().resize(6);
+            if (start == 100 && end == 100) {
+                buffer.palette.GetColor(0, color);
+                buffer.SetDisplayListHRect(eff, 0, 0.0, 0.0, 1.0, 1.0, color, color);
+            } else {
+                HSVValue hsv;
+                buffer.palette.GetHSV(cidx, hsv);
+                hsv.value = hsv.value * start / 100.0;
+                color = hsv;
 
-            buffer.palette.GetHSV(cidx,hsv);
-            hsv.value = hsv.value * end / 100.0;
-            buffer.SetDisplayListHRect(eff, 0, 0.0, 0.0, 1.0, 1.0, color, xlColor(hsv));
+                buffer.palette.GetHSV(cidx, hsv);
+                hsv.value = hsv.value * end / 100.0;
+                buffer.SetDisplayListHRect(eff, 0, 0.0, 0.0, 1.0, 1.0, color, xlColor(hsv));
+            }
         }
         buffer.needToInit = false;
     }

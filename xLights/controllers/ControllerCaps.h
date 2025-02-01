@@ -19,6 +19,8 @@
 
 class Controller;
 class BaseController;
+class wxPropertyGrid;
+class wxPropertyGridEvent;
 
 class ControllerCaps
 {
@@ -53,6 +55,8 @@ public:
     static ControllerCaps* GetControllerConfig(const Controller* const controller);
     static ControllerCaps* GetControllerConfigByID(const std::string& ID);
     static ControllerCaps* GetControllerConfigByModel(const std::string& model, const std::string& variant);
+    static ControllerCaps* GetControllerConfigByAlternateName(const std::string& vendor, const std::string& model, const std::string& variant);
+
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
@@ -61,12 +65,14 @@ public:
     bool SupportsInputOnlyUpload() const;
     bool NeedsDDPInputUpload() const;
     bool SupportsLEDPanelMatrix() const;
+    bool SupportsPWM() const;
     bool SupportsVirtualMatrix() const;
     bool SupportsVirtualStrings() const;
     bool SupportsSmartRemotes() const;
     bool SupportsRemotes() const;
     bool SupportsAutoLayout() const;
     bool SupportsAutoUpload() const;
+    bool DDPStartsAtOne() const;
     bool SupportsUniversePerString() const;
     bool SupportsMultipleSimultaneousOutputProtocols() const;
     bool SupportsMultipleSimultaneousInputProtocols() const;
@@ -98,6 +104,7 @@ public:
     int GetMaxInputE131Universes() const;
     int GetMaxPixelPort() const;
     int GetMaxSerialPort() const;
+    int GetMaxPWMPort() const;
     int GetMaxVirtualMatrixPort() const;
     int GetMaxLEDPanelMatrixPort() const;
     int GetMaxPixelPortChannels() const;
@@ -126,18 +133,25 @@ public:
     std::string GetID() const;
 
     std::string GetPreferredInputProtocol() const;
+    std::string GetPreferredState() const;
 
     std::vector<std::string> GetInputProtocols() const;
     std::vector<std::string> GetPixelProtocols() const;
     std::vector<std::string> GetSerialProtocols() const;
     std::vector<std::string> GetAllProtocols() const;
     std::vector<std::string> GetSmartRemoteTypes() const;
+    std::vector<std::string> GetAlternativeNames() const;
 
     std::string GetCustomPropertyByPath(const std::string path, const std::string& def = "") const;
     
     
     std::string GetConfigDriver() const;
+    bool DisableMonitoring() const;
 
     void Dump() const;
+    
+    void AddProperties(Controller *controller, wxPropertyGrid* propertyGrid);
+    bool HandlePropertyEvent(Controller *controller, wxPropertyGridEvent& event);
+
     #pragma endregion
 };

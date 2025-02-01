@@ -21,11 +21,12 @@ public:
     virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual bool SupportsExportAsCustom() const override { return true; }
+    virtual bool SupportsXlightsModel() override { return true; }
     virtual bool SupportsWiringView() const override { return true; }
     virtual std::string GetDimension() const override;
-    virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
-    virtual bool SupportsXlightsModel() override { return true; }
     virtual void ExportXlightsModel() override;
+    [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+    virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
     bool HasAlternateNodes() const { return _alternateNodes; }
     std::string GetDropPattern() const { return _dropPattern; }
 

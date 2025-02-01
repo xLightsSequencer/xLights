@@ -6,6 +6,7 @@
 
 //(*Headers(FPPConnectDialog)
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/panel.h>
@@ -27,6 +28,7 @@ class FPPConnectDialog: public wxDialog
 {
     void SaveSettings(bool onlyInsts = false);
     void ApplySavedHostSettings();
+    wxString Fixitup(wxString val);
 
 	public:
 
@@ -36,6 +38,8 @@ class FPPConnectDialog: public wxDialog
 		//(*Declarations(FPPConnectDialog)
 		wxButton* AddFPPButton;
 		wxButton* Button_Upload;
+		wxButton* ReDiscover;
+		wxCheckBox* KeepWinOpen;
 		wxChoice* ChoiceFilter;
 		wxChoice* ChoiceFolder;
 		wxFlexGridSizer* FPPInstanceSizer;
@@ -53,24 +57,22 @@ class FPPConnectDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(FPPConnectDialog)
-		static const long ID_SCROLLEDWINDOW1;
-		static const long ID_STATICTEXT1;
-		static const long ID_CHOICE_FILTER;
-		static const long ID_STATICTEXT2;
-		static const long ID_CHOICE_FOLDER;
-		static const long ID_STATICTEXT3;
-		static const long ID_PANEL2;
-		static const long ID_PANEL1;
-		static const long ID_SPLITTERWINDOW1;
-		static const long ID_BUTTON1;
-		static const long ID_BUTTON_Upload;
+		static const wxWindowID ID_SCROLLEDWINDOW1;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_CHOICE_FILTER;
+		static const wxWindowID ID_STATICTEXT2;
+		static const wxWindowID ID_CHOICE_FOLDER;
+		static const wxWindowID ID_STATICTEXT3;
+		static const wxWindowID ID_PANEL2;
+		static const wxWindowID ID_PANEL1;
+		static const wxWindowID ID_SPLITTERWINDOW1;
+		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_BUTTON2;
+		static const wxWindowID ID_CHECKBOX1;
+		static const wxWindowID ID_BUTTON_Upload;
 		//*)
 
-        static const long ID_MNU_SELECTALL;
-        static const long ID_MNU_SELECTNONE;
-        static const long ID_MNU_SELECTHIGH;
-        static const long ID_MNU_DESELECTHIGH;
-        static const long ID_FPP_INSTANCE_LIST;
+
 
     
         std::list<FPP*> instances;
@@ -83,14 +85,19 @@ class FPPConnectDialog: public wxDialog
 		void OnClose(wxCloseEvent& event);
 		void SequenceListPopup(wxTreeListEvent& event);
 		void OnAddFPPButtonClick(wxCommandEvent& event);
+        void OnFPPReDiscoverClick(wxCommandEvent& event);
 		void OnChoiceFolderSelect(wxCommandEvent& event);
 		void OnChoiceFilterSelect(wxCommandEvent& event);
-		void LocationPopupMenu(wxContextMenuEvent& event);
-		void OnLocationPopupClick(wxCommandEvent& event);
+		void HostSortMenu(wxContextMenuEvent& event);
+        void IPSortMenu(wxContextMenuEvent& event);
+		void OnHostSortClick(wxCommandEvent& event);
+        void OnIPSortClick(wxCommandEvent& event);
 		void UploadPopupMenu(wxContextMenuEvent& event);
 		void OnUploadPopupClick(wxCommandEvent& event);
 		void CapePopupMenu(wxContextMenuEvent& event);
 		void OnCapePopupClick(wxCommandEvent& event);
+        void MediaPopupMenu(wxContextMenuEvent& event);
+        void OnMediaPopupClick(wxCommandEvent& event);
 		//*)
 
         void LoadSequencesFromFolder(wxString dir) const;
@@ -113,9 +120,14 @@ class FPPConnectDialog: public wxDialog
 		void DisplayDateModified(const wxString& filePath, wxTreeListItem &index) const;
 
 		void UpdateSeqCount();
+        uint32_t GetSelectedSeqCount();
         void OnSequenceListToggled(wxDataViewEvent& event);
     
         void doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload);
+        std::vector<int> SplitIP(const wxString& ip) const; 
+
+        void SequenceSelector(const std::string regexKey);
+        void SelectIPsWithSubnet();
 
 		DECLARE_EVENT_TABLE()
 };

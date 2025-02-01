@@ -11,13 +11,18 @@
  **************************************************************/
 
 #include <string>
+#include <functional>
 
 namespace ip_utils
 {
 	bool IsIPValid(const std::string& ip);
 
 	bool IsIPValidOrHostname(const std::string &ip, bool iponly = false);
+    bool IsValidHostname(const std::string& ip);
 	std::string CleanupIP(const std::string& ip);
 	std::string ResolveIP(const std::string& ip);
+
+    void ResolveIP(const std::string& ip, std::function<void(const std::string &)> &&func);
+    void waitForAllToResolve();
 
 };

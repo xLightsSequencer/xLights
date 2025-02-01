@@ -30,9 +30,9 @@ class RowHeading : public wxWindow
 public:
     //RowHeading(wxScrolledWindow* parent);
     RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize,
-        long style = 0, const wxString &name = wxPanelNameStr);
+               long style = 0, const wxString &name = wxPanelNameStr);
     virtual ~RowHeading();
-
+    
     void SetSequenceElements(SequenceElements* elements);
     void SetSelectedRow(int row_number);
     int getWidth() const;
@@ -40,9 +40,12 @@ public:
     int GetMaxRows();
     void SetCanPaste(bool value) { mCanPaste = value; }
     void ToggleExpand(Element * element);
+    void SelectTiming(int timing);
+    
+    void SetShowGroupEffectIndicator(bool b) { groupEffectIndicator = b; }
 
     static int rowHeadingSize;
-
+    
 protected:
 private:
     DECLARE_EVENT_TABLE()
@@ -65,19 +68,21 @@ private:
     bool ExpandElementIfEffects(Element* e);
     bool ModelInView(const std::string& model, int view) const;
     void SetWidth(int w);
-
+    
     wxBitmapBundle papagayo_icon;
     wxBitmapBundle papagayox_icon;
     wxBitmapBundle fppCommand_icon;
     wxBitmapBundle fppEffect_icon;
     wxBitmapBundle model_group_icon;
-
+    
     int mSelectedRow = -1;
     SequenceElements* mSequenceElements = nullptr;
     bool mCanPaste = false;
     const int _minRowHeadingWidth = 158;
     bool _dragging = false;
+    bool groupEffectIndicator = true;
 
+    
     static const long ID_ROW_MNU_INSERT_LAYER_ABOVE;
     static const long ID_ROW_MNU_INSERT_LAYER_BELOW;
     static const long ID_ROW_MNU_INSERT_LAYERS_BELOW;
@@ -103,6 +108,7 @@ private:
     static const long ID_ROW_MNU_CUT_MODEL;
     static const long ID_ROW_MNU_COPY_ROW;
     static const long ID_ROW_MNU_COPY_MODEL;
+    static const long ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS;
     static const long ID_ROW_MNU_PASTE_ROW;
     static const long ID_ROW_MNU_PASTE_MODEL;
     static const long ID_ROW_MNU_RENDERENABLE_ALL;
@@ -116,9 +122,10 @@ private:
     static const long ID_ROW_MNU_SELECT_ROW_EFFECTS;
     static const long ID_ROW_MNU_SELECT_MODEL_EFFECTS;
     static const long ID_ROW_MNU_SELECT_TIMING_EFFECTS;
+    static const long ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS;
     static const long ID_ROW_MNU_MODEL_CONVERTTOPERMODEL;
     static const long ID_ROW_MNU_ROW_CONVERTTOPERMODEL;
-
+    
     static const long ID_ROW_MNU_ADD_TIMING_TRACK;
     static const long ID_ROW_MNU_RENAME_TIMING_TRACK;
     static const long ID_ROW_MNU_DELETE_TIMING_TRACK;
@@ -134,4 +141,6 @@ private:
     static const long ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES;
     static const long ID_ROW_MNU_SHOWALLTIMING;
     static const long ID_ROW_MNU_HIDEALLTIMING;
+    
+    static const long ID_ROW_MNU_SETLAYERNAME;
 };

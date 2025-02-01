@@ -23,6 +23,7 @@
 #include <string>
 #include <algorithm>
 #include <map>
+#include <limits>
 
 #include <locale>
 #include <codecvt>
@@ -48,6 +49,7 @@ bool IsVersionOlder(const std::string &compare, const std::string &version);
 std::string JSONSafe(const std::string& s);
 std::string UnXmlSafe(const std::string &s);
 std::string XmlSafe(const std::string& s);
+bool IsXmlSafe(const std::string& s);
 std::string RemoveUnsafeXmlChars(const std::string& s);
 std::string EscapeCSV(const std::string& s);
 std::string EscapeRegex(const std::string& s);
@@ -96,6 +98,14 @@ inline int roundTo16(int i) {
 inline double rand01()
 {
     return (double)rand() / (double)RAND_MAX;
+}
+
+// checks if two floating point numbers are equal
+template<class Ty>
+    requires std::is_floating_point_v<Ty>
+[[nodiscard]] constexpr bool
+fp_equal(Ty a, Ty b, const Ty eps = std::numeric_limits<Ty>::epsilon()) {
+    return std::abs(a - b) <= (std::min(abs(a), std::abs(b)) * eps);
 }
 
 void SaveWindowPosition(const std::string& tag, wxWindow* window);
@@ -169,6 +179,7 @@ std::string ReverseCSV(const std::string& csv);
 void DumpBinary(uint8_t* buffer, size_t read);
 wxColor CyanOrBlue();
 wxColor LightOrMediumGrey();
+wxColor BlueOrLightBlue();
 bool IsFloat(const std::string& number);
 bool IsDarkMode();
 void SetSuppressDarkMode(bool suppress);

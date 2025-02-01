@@ -121,6 +121,8 @@ public:
     void GoToTag(int tag);
     void GoToPriorTag();
     void GoToNextTag();
+    int GetPriorTag(int pos);
+    int GetNextTag(int pos);
     int GetTagPosition(int tag);
     void SetTagPosition(int tag, int position , bool flag = true );
     void ClearTags();

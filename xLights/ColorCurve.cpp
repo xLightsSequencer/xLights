@@ -196,7 +196,7 @@ void ColorCurve::SetSerialisedValue(std::string k, std::string s)
     _values.sort();
 }
 
-void ColorCurve::SetType(std::string type)
+void ColorCurve::SetType(const std::string &type)
 {
     _type = type;
 }
@@ -424,10 +424,10 @@ void ColorCurve::LoadXCC(const std::string& filename)
         if (root->GetName() == "colorcurve")
         {
             wxString data = root->GetAttribute("data");
-            wxString v = root->GetAttribute("SourceVersion");
 
             // Add any colorcurve version conversion logic here
             // Source version will be the program version that created the custom model
+            //wxString v = root->GetAttribute("SourceVersion");
 
             Deserialise(data.ToStdString());
             SetActive(true);

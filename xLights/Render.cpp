@@ -32,8 +32,6 @@
 
 #define END_OF_RENDER_FRAME INT_MAX
 
-//other common strings
-static const std::string STR_EMPTY("");
 
 class EffectLayerInfo {
 public:
@@ -692,7 +690,7 @@ public:
                     // preload the buffer with the output from the lower layers
                     RenderBuffer& rb = buffer->BufferForLayer(layer, -1);
 
-                    // I have to calc the output here to apply blend, rotozoom and transitions
+                    // We have to calc the output here to apply blend, rotozoom and transitions
                     buffer->CalcOutput(frame, vl, layer, true);
                     std::vector<uint8_t> done(rb.GetPixelCount());
                     parallel_for(0, rb.GetNodes().size(), [&](int n) {
@@ -901,6 +899,8 @@ public:
                         SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, -1, strand, inode, cleared);
                         if (xLights->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
                             SetCalOutputStatus(frame, -1, strand, inode);
+                            buffer->HandleLayerBlurZoom(frame, 0);
+                            buffer->HandleLayerTransitions(frame, 0);
                             //copy to output
                             std::vector<bool> valid(2, true);
                             buffer->SetColors(1, &((*seqData)[frame][0]));

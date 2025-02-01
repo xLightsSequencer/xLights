@@ -11,6 +11,7 @@
         <AllInputUniversesMustBeSameSize/>
         <UniversesMustBeSequential/>
         <SupportsAutoLayout/>
+        <DDPStartsAtOne/>
         <SupportsMultipleSimultaneousOutputProtocols/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>

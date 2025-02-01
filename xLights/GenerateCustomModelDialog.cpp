@@ -32,6 +32,7 @@
 #include "xLightsMain.h"
 #include "ExternalHooks.h"
 #include "Parallel.h"
+#include "models/CustomModel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -4074,6 +4075,9 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write("CustomModel=\"");
     f.Write(cm);
+    f.Write("\" ");
+    f.Write("CustomModelCompressed=\"");
+    f.Write(CustomModel::CustomModelToCompressed(cm));
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(" >\n");

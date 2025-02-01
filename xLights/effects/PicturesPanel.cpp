@@ -31,6 +31,7 @@
 #include "EffectPanelUtils.h"
 #include "GIFImage.h"
 #include "../ExternalHooks.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(PicturesPanel)
 const long PicturesPanel::ID_FILEPICKER_Pictures_Filename = wxNewId();
@@ -382,5 +383,15 @@ void PicturesPanel::ValidateWindow()
     CheckBox_LoopGIF->Enable(enable);
     CheckBox_SuppressGIFBackground->Enable(enable);
 
-    FilePickerCtrl1->SetToolTip(wxFileName(FilePickerCtrl1->GetFileName()).GetFullName());
+	auto file = FilePickerCtrl1->GetFileName().GetFullPath();
+	if (!file.empty() && !FileExists(file)) {
+		FilePickerCtrl1->SetBackgroundColour(*wxRED);
+		SetToolTip("File " + file + " does not exist.");
+	} else if (!file.empty() && !IsXmlSafe(file)) {
+		FilePickerCtrl1->SetBackgroundColour(*wxYELLOW);
+		SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
+	} else {
+		FilePickerCtrl1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+		SetToolTip(file);
+	}
 }

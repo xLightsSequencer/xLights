@@ -16,6 +16,9 @@
 #include <wx/stdpaths.h>
 #include <wx/dir.h>
 
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
+
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
 #include "../outputs/Controller.h"
@@ -302,6 +305,24 @@ ControllerCaps* ControllerCaps::GetControllerConfigByModel( const std::string& m
     }
     return nullptr;
 }
+
+ControllerCaps* ControllerCaps::GetControllerConfigByAlternateName(const std::string& vendor, const std::string& model, const std::string& variant) {
+    LoadControllers();
+    // look for controller if name changed
+
+    auto v = __controllers.find(vendor);
+    if (v != __controllers.end()) {
+        for (auto const &[_, cap] : v->second) {
+            for (auto const& vr : cap) {
+                auto const& names = vr->GetAlternativeNames();
+                if (std::find(names.begin(), names.end(), model) != names.end() && vr->GetVariantName() == variant) {
+                    return vr;
+                }
+            }
+        }
+    }
+    return nullptr;
+}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -331,6 +352,12 @@ bool ControllerCaps::SupportsLEDPanelMatrix() const {
 
     return DoesXmlNodeExist(_config, "SupportsLEDPanelMatrix");
 }
+
+bool ControllerCaps::SupportsPWM() const {
+
+    return DoesXmlNodeExist(_config, "SupportsPWM");
+}
+
 bool ControllerCaps::SupportsVirtualMatrix() const {
 
     return DoesXmlNodeExist(_config, "SupportsVirtualMatrix");
@@ -357,6 +384,10 @@ bool ControllerCaps::SupportsAutoLayout() const {
 
 bool ControllerCaps::SupportsAutoUpload() const {
     return DoesXmlNodeExist(_config, "SupportsAutoUpload");
+}
+
+bool ControllerCaps::DDPStartsAtOne() const {
+    return DoesXmlNodeExist(_config, "DDPStartsAtOne");
 }
 
 bool ControllerCaps::SupportsUniversePerString() const
@@ -518,6 +549,11 @@ int ControllerCaps::GetMaxPixelPort() const {
 int ControllerCaps::GetMaxSerialPort() const {
     return wxAtoi(GetXmlNodeContent(_config, "MaxSerialPort"));
 }
+
+int ControllerCaps::GetMaxPWMPort() const {
+    return wxAtoi(GetXmlNodeContent(_config, "MaxPWMPort"));
+}
+
 int ControllerCaps::GetMaxVirtualMatrixPort() const {
     //for now, use 1 if supported.  Technially FPP supports unlimitted Virtual Matrices,
     //on one port, but has two HDMI ports on the Pi4 so some of this may need to
@@ -666,6 +702,9 @@ std::vector<std::string> ControllerCaps::GetAllProtocols() const
     if (SupportsLEDPanelMatrix()) {
         res.push_back("LED Panel Matrix");
     }
+    if (SupportsPWM()) {
+        res.push_back("PWM");
+    }
     return res;
 }
 
@@ -683,11 +722,18 @@ std::string ControllerCaps::GetPreferredInputProtocol() const
     return GetXmlNodeContent(_config, "PreferredInputProtocol", "");
 }
 
+std::string ControllerCaps::GetPreferredState() const {
+    return GetXmlNodeContent(_config, "PreferredState", "");
+}
+
 std::string ControllerCaps::GetConfigDriver() const
 {
     return GetXmlNodeContent(_config, "ConfigDriver", "");
 }
 
+bool ControllerCaps::DisableMonitoring() const {
+    return DoesXmlNodeExist(_config, "DisableMonitoring");
+}
 
 std::vector<std::string> ControllerCaps::GetSmartRemoteTypes() const {
     if (!SupportsSmartRemotes()) {
@@ -708,6 +754,10 @@ bool ControllerCaps::AllSmartRemoteTypesPerPortMustBeSame() const {
 std::string ControllerCaps::GetCustomPropertyByPath(const std::string name, const std::string& def) const {
 
     return GetXmlNodeContent(_config, name, def);
+}
+
+std::vector<std::string> ControllerCaps::GetAlternativeNames() const {
+    return GetXmlNodeListContent(_config, "AltNames", "AltName");
 }
 
 void ControllerCaps::Dump() const
@@ -746,5 +796,54 @@ void ControllerCaps::Dump() const
     }
 }
 
+
+void ControllerCaps::AddProperties(Controller *controller, wxPropertyGrid* propertyGrid) {
+    for (wxXmlNode* n = _config->GetChildren(); n != nullptr; n = n->GetNext()) {
+        if (n->GetName() == "ExtraProperties") {
+            for (wxXmlNode* pnode = n->GetChildren(); pnode != nullptr; pnode = pnode->GetNext()) {
+                std::string name = pnode->GetAttribute("name");
+                std::string label = pnode->GetAttribute("label");
+                std::string def = GetXmlNodeContent(pnode, "Default");
+                std::string type = GetXmlNodeContent(pnode, "Type", "String");
+                if (type == "Enum") {
+                    std::vector<std::string> values = GetXmlNodeListContent(pnode, "Values", "Value");
+                    wxPGChoices pgcValues;
+                    for (auto &v : values) {
+                        pgcValues.Add(v);
+                    }
+                    int idx = pgcValues.Index(controller->GetExtraProperty(name, def));
+                    propertyGrid->Append(new wxEnumProperty(label, "Controller" + name, pgcValues, idx));
+                } else if (type == "String") {
+                    propertyGrid->Append(new wxStringProperty(label, "Controller" + name, controller->GetExtraProperty(name, def)));
+                }
+            }
+        }
+    }
+}
+bool ControllerCaps::HandlePropertyEvent(Controller *controller, wxPropertyGridEvent& event) {
+    for (wxXmlNode* n = _config->GetChildren(); n != nullptr; n = n->GetNext()) {
+        if (n->GetName() == "ExtraProperties") {
+            for (wxXmlNode* pnode = n->GetChildren(); pnode != nullptr; pnode = pnode->GetNext()) {
+                std::string name = pnode->GetAttribute("name");
+                std::string type = GetXmlNodeContent(pnode, "Type", "String");
+                if (event.GetPropertyName() == "Controller" + name) {
+                    if (type == "String") {
+                        controller->SetExtraProperty(name, event.GetPropertyValue().GetString());
+                        return true;
+                    }
+                    if (type == "Enum") {
+                        std::vector<std::string> values = GetXmlNodeListContent(pnode, "Values", "Value");
+                        int idx = event.GetPropertyValue().GetLong();
+                        if (idx < values.size()) {
+                            controller->SetExtraProperty(name, values[idx]);
+                        }
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
 
 #pragma endregion

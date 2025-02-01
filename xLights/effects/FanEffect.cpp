@@ -127,6 +127,7 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
     int acceleration = GetValueCurveInt("Fan_Accel", 0, SettingsMap, eff_pos, FAN_ACCEL_MIN, FAN_ACCEL_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Fan_Reverse");
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Fan_Blend_Edges");
+    bool scale = SettingsMap.GetBool("CHECKBOX_Fan_Scale");
 
     HSVValue hsv, hsv1;
     int num_colors = buffer.palette.Size();
@@ -141,6 +142,15 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
 
     double radius1 = start_radius;
     double radius2 = end_radius;
+
+    if (scale) { // convert to percentage of buffer, i.e 100 is 100% of buffer size
+        double bufferMax = std::max(buffer.BufferHt, buffer.BufferWi);
+        radius1 = radius1 * (bufferMax / 200.0); // 200 bc radius is half of the width
+        radius2 = radius2 * (bufferMax / 200.0);
+
+        start_radius = start_radius * (bufferMax / 200.0);
+        end_radius = end_radius * (bufferMax / 200.0);
+    }
 
     int xc_adj = (center_x-50)*buffer.BufferWi / 100;
     int yc_adj = (center_y-50)*buffer.BufferHt / 100;

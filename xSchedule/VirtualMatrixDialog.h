@@ -10,22 +10,21 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
- //(*Headers(VirtualMatrixDialog)
- #include <wx/button.h>
- #include <wx/checkbox.h>
- #include <wx/choice.h>
- #include <wx/dialog.h>
- #include <wx/sizer.h>
- #include <wx/spinctrl.h>
- #include <wx/stattext.h>
- #include <wx/textctrl.h>
- //*)
+//(*Headers(VirtualMatrixDialog)
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
+//*)
 
 class OutputManager;
 class ScheduleOptions;
 
-class VirtualMatrixDialog : public wxDialog
-{
+class VirtualMatrixDialog : public wxDialog {
     std::string& _name;
     int& _width;
     int& _height;
@@ -33,6 +32,7 @@ class VirtualMatrixDialog : public wxDialog
     bool& _useMatrixSize;
     int& _matrixMultiplier;
     std::string& _startChannel;
+    std::string& _fromModel;
     wxSize& _size;
     wxPoint& _location;
     std::string& _rotation;
@@ -43,9 +43,10 @@ class VirtualMatrixDialog : public wxDialog
     wxPoint _tempLocation;
     ScheduleOptions* _options = nullptr;
 
-public:
+    void PopulateModels();
 
-    VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& pixelChannels, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& _startChannel, bool& useMatrixSize, int& matrixMultiplier, ScheduleOptions* options, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+public:
+    VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& pixelChannels, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& _startChannel, bool& useMatrixSize, int& matrixMultiplier, ScheduleOptions* options, std::string& fromModel, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~VirtualMatrixDialog();
 
     //(*Declarations(VirtualMatrixDialog)
@@ -53,6 +54,7 @@ public:
     wxButton* Button_Ok;
     wxButton* Button_Position;
     wxCheckBox* CheckBox_Topmost;
+    wxChoice* Choice_FromModel;
     wxChoice* Choice_PixelChannels;
     wxChoice* Choice_Quality;
     wxChoice* Choice_Rotation;
@@ -65,16 +67,18 @@ public:
     wxStaticText* StaticText5;
     wxStaticText* StaticText6;
     wxStaticText* StaticText7;
+    wxStaticText* StaticText8;
     wxStaticText* StaticText9;
     wxTextCtrl* TextCtrl_Name;
     wxTextCtrl* TextCtrl_StartChannel;
     //*)
 
 protected:
-
     //(*Identifiers(VirtualMatrixDialog)
     static const long ID_STATICTEXT7;
     static const long ID_TEXTCTRL1;
+    static const long ID_STATICTEXT8;
+    static const long ID_CHOICE3;
     static const long ID_STATICTEXT1;
     static const long ID_SPINCTRL1;
     static const long ID_STATICTEXT4;
@@ -95,12 +99,18 @@ protected:
     //*)
 
 private:
-
     //(*Handlers(VirtualMatrixDialog)
     void OnButton_OkClick(wxCommandEvent& event);
     void OnButton_CancelClick(wxCommandEvent& event);
     void OnButton_PositionClick(wxCommandEvent& event);
     void OnTextCtrl_StartChannelText(wxCommandEvent& event);
+    void OnChoice_FromModelSelect(wxCommandEvent& event);
+    void OnTextCtrl_NameText(wxCommandEvent& event);
+    void OnSpinCtrl_HeightChange(wxSpinEvent& event);
+    void OnSpinCtrl_WidthChange(wxSpinEvent& event);
+    void OnChoice_PixelChannelsSelect(wxCommandEvent& event);
+    void OnChoice_RotationSelect(wxCommandEvent& event);
+    void OnChoice_QualitySelect(wxCommandEvent& event);
     //*)
 
     void ValidateWindow();

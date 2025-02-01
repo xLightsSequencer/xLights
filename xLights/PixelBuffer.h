@@ -90,6 +90,7 @@ private:
             mixType = MixTypes::Mix_Normal;
             effectMixThreshold = 0.0;
             effectMixVaries = false;
+            brightnessLevel = false;
             canvas = false;
             BufferHt = BufferWi = BufferOffsetX = BufferOffsetY = 0;
             persistent = false;
@@ -154,6 +155,7 @@ private:
         float zoom;
         int zoomquality;
         std::string rotationorder;
+        bool brightnessLevel = false;
         int pivotpointx;
         int pivotpointy;
         int xpivot;
@@ -234,6 +236,7 @@ private:
     int numLayers = 0;
     std::vector<LayerInfo*> layers;
     std::vector<uint16_t> sparklesVector;
+    std::vector<uint32_t> blendDataBuffer;
     uint16_t *sparkles = nullptr;
     int frameTimeInMs = 50;
 
@@ -320,6 +323,7 @@ public:
     // place for GPU Renderers to attach extra data/objects it needs
     void* gpuRenderData = nullptr;
     friend class MetalPixelBufferComputeData;
+    friend class ISPCComputeUtilities;
 };
 
 typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;

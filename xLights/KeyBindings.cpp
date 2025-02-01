@@ -124,18 +124,36 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "AUDIO_S_1_4_SPEED", KBSCOPE::Sequence },
     { "PRIOR_TAG", KBSCOPE::Sequence },
     { "NEXT_TAG", KBSCOPE::Sequence },
+    { "PLAY_PRIOR_TAG", KBSCOPE::Sequence },
+    { "PLAY_NEXT_TAG", KBSCOPE::Sequence },
     { "MODEL_TOGGLE", KBSCOPE::Sequence },
     { "MODEL_DISABLE", KBSCOPE::Sequence },
     { "MODEL_ENABLE", KBSCOPE::Sequence },
     { "EFFECT_TOGGLE", KBSCOPE::Sequence },
     { "EFFECT_DISABLE", KBSCOPE::Sequence },
     { "EFFECT_ENABLE", KBSCOPE::Sequence },
-    { "MODEL_EFFECT_TOGGLE", KBSCOPE::Sequence }
-
+    { "MODEL_EFFECT_TOGGLE", KBSCOPE::Sequence },
+    { "EFFECTS_TO_TIMING", KBSCOPE::Sequence },
+    { "SELECT_TIMING_1", KBSCOPE::Sequence },
+    { "SELECT_TIMING_2", KBSCOPE::Sequence },
+    { "SELECT_TIMING_3", KBSCOPE::Sequence },
+    { "SELECT_TIMING_4", KBSCOPE::Sequence },
+    { "SELECT_TIMING_5", KBSCOPE::Sequence },
+    { "SELECT_TIMING_6", KBSCOPE::Sequence },
+    { "SELECT_TIMING_7", KBSCOPE::Sequence },
+    { "SELECT_TIMING_8", KBSCOPE::Sequence },
+    { "SELECT_TIMING_9", KBSCOPE::Sequence },
+    { "SELECT_NO_TIMING", KBSCOPE::Sequence },
+    { "INCREASE_SPEED", KBSCOPE::Sequence },
+    { "DECREASE_SPEED", KBSCOPE::Sequence },
+    { "JUKEBOX_BTN_1", KBSCOPE::Sequence },
+    { "JUKEBOX_BTN_2", KBSCOPE::Sequence },
+    { "JUKEBOX_BTN_3", KBSCOPE::Sequence },
+    { "JUKEBOX_BTN_4", KBSCOPE::Sequence },
+    { "JUKEBOX_BTN_5", KBSCOPE::Sequence }
 };
 
-static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
-{
+static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
     { "TIMING_ADD", "Add a timing mark." },
     { "TIMING_SPLIT", "Split a timing mark." },
     { "ZOOM_IN", "Zoom into the effects grid." },
@@ -232,6 +250,8 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
     { "AUDIO_S_1_4_SPEED", "Playback audio at 1/4 speed." },
     { "PRIOR_TAG", "Jump to prior audio tag." },
     { "NEXT_TAG", "Jump to next audio tag." },
+    { "PLAY_PRIOR_TAG", "Play from prior audio tag." },
+    { "PLAY_NEXT_TAG", "Play from next audio tag." },
     { "MODEL_SUBMODELS", "Edit model submodels." },
     { "MODEL_FACES", "Edit model faces." },
     { "MODEL_STATES", "Edit model states." },
@@ -242,7 +262,25 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips =
     { "EFFECT_TOGGLE", "Toggle (Enable/Disable) rendering of the selected effects in the sequencer" },
     { "EFFECT_DISABLE", "Disable rendering of the selected effects in the sequencer" },
     { "EFFECT_ENABLE", "Enable rendering of the selected effects in the sequencer" },
-    { "MODEL_EFFECT_TOGGLE", "Toggle (Enable/Disable) rendering of the selected model or the effects in the sequencer" }
+    { "MODEL_EFFECT_TOGGLE", "Toggle (Enable/Disable) rendering of the selected model or the effects in the sequencer" },
+    { "EFFECTS_TO_TIMING", "Convert selected effects to timing marks." },
+    { "SELECT_TIMING_1", "Select first timing." },
+    { "SELECT_TIMING_2", "Select second timing." },
+    { "SELECT_TIMING_3", "Select third timing." },
+    { "SELECT_TIMING_4", "Select fourth timing." },
+    { "SELECT_TIMING_5", "Select fifth timing." },
+    { "SELECT_TIMING_6", "Select sixth timing." },
+    { "SELECT_TIMING_7", "Select seventh timing." },
+    { "SELECT_TIMING_8", "Select eighth timing." },
+    { "SELECT_TIMING_9", "Select ninth timing." },
+    { "SELECT_NO_TIMING", "Select no timing tracks." },
+    { "INCREASE_SPEED", "Increase speed." },
+    { "DECREASE_SPEED", "Decrease speed." },
+    { "JUKEBOX_BTN_1", "Jukebox Button 1." },
+    { "JUKEBOX_BTN_2", "Jukebox Button 2." },
+    { "JUKEBOX_BTN_3", "Jukebox Button 3." },
+    { "JUKEBOX_BTN_4", "Jukebox Button 4." },
+    { "JUKEBOX_BTN_5", "Jukebox Button 5." }
 };
 
 const std::vector<KeyBinding> DefaultBindings =
@@ -278,6 +316,13 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("", true, "AUDIO_S_1_4_SPEED", true, true),
     KeyBinding("", true, "PRIOR_TAG", true, true),
     KeyBinding("", true, "NEXT_TAG", true, true),
+    KeyBinding("", true, "INCREASE_SPEED", true, true),
+    KeyBinding("", true, "DECREASE_SPEED", true, true),
+    KeyBinding("", true, "JUKEBOX_BTN_1", true, true),
+    KeyBinding("", true, "JUKEBOX_BTN_2", true, true),
+    KeyBinding("", true, "JUKEBOX_BTN_3", true, true),
+    KeyBinding("", true, "JUKEBOX_BTN_4", true, true),
+    KeyBinding("", true, "JUKEBOX_BTN_5", true, true),
 
     KeyBinding("s", false, "SAVE_CURRENT_TAB", true),
     KeyBinding("", true, "SAVE_SEQUENCE", true),

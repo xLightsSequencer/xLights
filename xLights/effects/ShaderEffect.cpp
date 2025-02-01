@@ -238,7 +238,7 @@ bool ShaderEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& Settin
     {
         if (!frame->IsInShowFolder(file))
         {
-            SettingsMap["E_0FILEPICKERCTRL_IFS"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Shaders");
+            SettingsMap["E_0FILEPICKERCTRL_IFS"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Shaders", true);
             rc = true;
         }
     }

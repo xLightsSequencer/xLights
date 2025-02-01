@@ -57,6 +57,9 @@ public:
     virtual void ValidateWindow() override;
 
     void SetEffectTimeRange(int startTimeMs, int endTimeMs);
+    std::list<Model*> GetActiveModels();
+    void UpdateStatusPanel();
+    void CheckAllFixtures();
 
     //(*Declarations(MovingHeadPanel)
     BulkEditCheckBox* CheckBox_MHIgnorePan;
@@ -91,6 +94,7 @@ public:
     wxButton* Button_None;
     wxButton* Button_Odds;
     wxButton* Button_ResetToDefault;
+    wxCheckBox* CheckBoxAutoShutter;
     wxCheckBox* CheckBox_MH1;
     wxCheckBox* CheckBox_MH2;
     wxCheckBox* CheckBox_MH3;
@@ -143,82 +147,84 @@ public:
 protected:
     
     //(*Identifiers(MovingHeadPanel)
-    static const long ID_STATICTEXT_Fixtures;
-    static const long IDD_CHECKBOX_MH1;
-    static const long IDD_CHECKBOX_MH2;
-    static const long IDD_CHECKBOX_MH3;
-    static const long IDD_CHECKBOX_MH4;
-    static const long IDD_CHECKBOX_MH5;
-    static const long IDD_CHECKBOX_MH6;
-    static const long IDD_CHECKBOX_MH7;
-    static const long IDD_CHECKBOX_MH8;
-    static const long ID_BUTTON_All;
-    static const long ID_BUTTON_None;
-    static const long ID_BUTTON_Evens;
-    static const long ID_BUTTON_Odds;
-    static const long ID_STATICTEXT_Pan;
-    static const long ID_SLIDER_MHPan;
-    static const long ID_VALUECURVE_MHPan;
-    static const long IDD_TEXTCTRL_MHPan;
-    static const long ID_STATICTEXT_Tilt;
-    static const long ID_SLIDER_MHTilt;
-    static const long ID_VALUECURVE_MHTilt;
-    static const long IDD_TEXTCTRL_MHTilt;
-    static const long ID_STATICTEXT_PanOffset;
-    static const long ID_SLIDER_MHPanOffset;
-    static const long ID_VALUECURVE_MHPanOffset;
-    static const long IDD_TEXTCTRL_MHPanOffset;
-    static const long ID_STATICTEXT_TiltOffset;
-    static const long ID_SLIDER_MHTiltOffset;
-    static const long ID_VALUECURVE_MHTiltOffset;
-    static const long IDD_TEXTCTRL_MHTiltOffset;
-    static const long ID_STATICTEXT_Groupings;
-    static const long ID_SLIDER_MHGroupings;
-    static const long ID_VALUECURVE_MHGroupings;
-    static const long IDD_TEXTCTRL_MHGroupings;
-    static const long ID_STATICTEXT_MHCycles;
-    static const long ID_SLIDER_MHCycles;
-    static const long IDD_TEXTCTRL_MHCycles;
-    static const long ID_BUTTON_SavePreset;
-    static const long ID_PANEL_Position;
-    static const long ID_BUTTON_DimmerOn;
-    static const long ID_BUTTON_DimmerOff;
-    static const long ID_BUTTON_SaveDimmerPreset;
-    static const long ID_PANEL_Dimmer;
-    static const long ID_BUTTON_MHPathContinue;
-    static const long ID_BUTTON_MHPathClear;
-    static const long ID_BUTTON_MHPathClose;
-    static const long ID_TEXTCTRL_MHPathDef;
-    static const long ID_STATICTEXT_PathScale;
-    static const long ID_SLIDER_MHPathScale;
-    static const long ID_VALUECURVE_MHPathScale;
-    static const long IDD_TEXTCTRL_MHPathScale;
-    static const long ID_STATICTEXT_TimeOffset;
-    static const long ID_SLIDER_MHTimeOffset;
-    static const long ID_VALUECURVE_MHTimeOffset;
-    static const long IDD_TEXTCTRL_MHTimeOffset;
-    static const long ID_CHECKBOX_MHIgnorePan;
-    static const long ID_CHECKBOX_MHIgnoreTilt;
-    static const long ID_BUTTON_SavePathPreset;
-    static const long ID_PANEL_Pathing;
-    static const long ID_PANEL_Color;
-    static const long ID_PANEL_ColorWheel;
-    static const long ID_NOTEBOOK2;
-    static const long ID_PANEL_Control;
-    static const long IDD_TEXTCTRL_Status;
-    static const long ID_BUTTON_ResetToDefault;
-    static const long ID_PANEL1;
-    static const long ID_NOTEBOOK1;
-    static const long ID_TEXTCTRL_MH1_Settings;
-    static const long ID_TEXTCTRL_MH2_Settings;
-    static const long ID_TEXTCTRL_MH3_Settings;
-    static const long ID_TEXTCTRL_MH4_Settings;
-    static const long ID_TEXTCTRL_MH5_Settings;
-    static const long ID_TEXTCTRL_MH6_Settings;
-    static const long ID_TEXTCTRL_MH7_Settings;
-    static const long ID_TEXTCTRL_MH8_Settings;
+    static const wxWindowID ID_STATICTEXT_Fixtures;
+    static const wxWindowID ID_BUTTON_All;
+    static const wxWindowID ID_BUTTON_None;
+    static const wxWindowID ID_BUTTON_Evens;
+    static const wxWindowID ID_BUTTON_Odds;
+    static const wxWindowID IDD_CHECKBOX_MH1;
+    static const wxWindowID IDD_CHECKBOX_MH2;
+    static const wxWindowID IDD_CHECKBOX_MH3;
+    static const wxWindowID IDD_CHECKBOX_MH4;
+    static const wxWindowID IDD_CHECKBOX_MH5;
+    static const wxWindowID IDD_CHECKBOX_MH6;
+    static const wxWindowID IDD_CHECKBOX_MH7;
+    static const wxWindowID IDD_CHECKBOX_MH8;
+    static const wxWindowID ID_STATICTEXT_Pan;
+    static const wxWindowID ID_SLIDER_MHPan;
+    static const wxWindowID ID_VALUECURVE_MHPan;
+    static const wxWindowID IDD_TEXTCTRL_MHPan;
+    static const wxWindowID ID_STATICTEXT_Tilt;
+    static const wxWindowID ID_SLIDER_MHTilt;
+    static const wxWindowID ID_VALUECURVE_MHTilt;
+    static const wxWindowID IDD_TEXTCTRL_MHTilt;
+    static const wxWindowID ID_STATICTEXT_PanOffset;
+    static const wxWindowID ID_SLIDER_MHPanOffset;
+    static const wxWindowID ID_VALUECURVE_MHPanOffset;
+    static const wxWindowID IDD_TEXTCTRL_MHPanOffset;
+    static const wxWindowID ID_STATICTEXT_TiltOffset;
+    static const wxWindowID ID_SLIDER_MHTiltOffset;
+    static const wxWindowID ID_VALUECURVE_MHTiltOffset;
+    static const wxWindowID IDD_TEXTCTRL_MHTiltOffset;
+    static const wxWindowID ID_STATICTEXT_Groupings;
+    static const wxWindowID ID_SLIDER_MHGroupings;
+    static const wxWindowID ID_VALUECURVE_MHGroupings;
+    static const wxWindowID IDD_TEXTCTRL_MHGroupings;
+    static const wxWindowID ID_STATICTEXT_MHCycles;
+    static const wxWindowID ID_SLIDER_MHCycles;
+    static const wxWindowID IDD_TEXTCTRL_MHCycles;
+    static const wxWindowID ID_BUTTON_SavePreset;
+    static const wxWindowID ID_PANEL_Position;
+    static const wxWindowID ID_BUTTON_DimmerOn;
+    static const wxWindowID ID_BUTTON_DimmerOff;
+    static const wxWindowID ID_BUTTON_SaveDimmerPreset;
+    static const wxWindowID ID_PANEL_Dimmer;
+    static const wxWindowID ID_BUTTON_MHPathContinue;
+    static const wxWindowID ID_BUTTON_MHPathClear;
+    static const wxWindowID ID_BUTTON_MHPathClose;
+    static const wxWindowID ID_TEXTCTRL_MHPathDef;
+    static const wxWindowID ID_STATICTEXT_PathScale;
+    static const wxWindowID ID_SLIDER_MHPathScale;
+    static const wxWindowID ID_VALUECURVE_MHPathScale;
+    static const wxWindowID IDD_TEXTCTRL_MHPathScale;
+    static const wxWindowID ID_STATICTEXT_TimeOffset;
+    static const wxWindowID ID_SLIDER_MHTimeOffset;
+    static const wxWindowID ID_VALUECURVE_MHTimeOffset;
+    static const wxWindowID IDD_TEXTCTRL_MHTimeOffset;
+    static const wxWindowID ID_CHECKBOX_MHIgnorePan;
+    static const wxWindowID ID_CHECKBOX_MHIgnoreTilt;
+    static const wxWindowID ID_BUTTON_SavePathPreset;
+    static const wxWindowID ID_PANEL_Pathing;
+    static const wxWindowID ID_PANEL_Color;
+    static const wxWindowID ID_CHECKBOX_AUTO_SHUTTER;
+    static const wxWindowID ID_PANEL_ColorWheel;
+    static const wxWindowID ID_NOTEBOOK2;
+    static const wxWindowID ID_PANEL_Control;
+    static const wxWindowID IDD_TEXTCTRL_Status;
+    static const wxWindowID ID_BUTTON_ResetToDefault;
+    static const wxWindowID ID_PANEL1;
+    static const wxWindowID ID_NOTEBOOK1;
+    static const wxWindowID ID_TEXTCTRL_MH1_Settings;
+    static const wxWindowID ID_TEXTCTRL_MH2_Settings;
+    static const wxWindowID ID_TEXTCTRL_MH3_Settings;
+    static const wxWindowID ID_TEXTCTRL_MH4_Settings;
+    static const wxWindowID ID_TEXTCTRL_MH5_Settings;
+    static const wxWindowID ID_TEXTCTRL_MH6_Settings;
+    static const wxWindowID ID_TEXTCTRL_MH7_Settings;
+    static const wxWindowID ID_TEXTCTRL_MH8_Settings;
     //*)
     
+    static void SetSliderValue(wxSlider* slider, int value);
 private:
     
     //(*Handlers(MovingHeadPanel)
@@ -243,17 +249,17 @@ private:
     void OnButtonSaveDimmerPresetClick(wxCommandEvent& event);
     void OnButtonDimmerOnClick(wxCommandEvent& event);
     void OnButtonDimmerOffClick(wxCommandEvent& event);
+    void OnValueCurve_MHTiltOffsetClick(wxCommandEvent& event);
+    void OnCheckBoxAutoShutterClick(wxCommandEvent& event);
     //*)
     
     DECLARE_EVENT_TABLE()
 
-    std::list<Model*> GetActiveModels();
     void UncheckAllFixtures();
     void UpdateMHSettings();
     void UpdateColorSettings();
     void UpdatePathSettings();
     void UpdateDimmerSettings();
-    void UpdateStatusPanel();
     void RemoveSettings(std::list<std::string>& settings);
     void AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings);
     void AddPath(std::string& mh_settings);
@@ -269,6 +275,7 @@ private:
     void UpdatePositionCanvas(float pan, float tilt);
     void RecallSettings(const std::string mh_settings);
     bool IsHeadActive(int num);
+    void GetFixturesGroups();
     
     // Preset Functions
     void PopulatePresets();
@@ -297,6 +304,9 @@ private:
 
     int startTimeMs_ {0};
     int endTimeMs_ {0};
+    std::string mh_evens;
+    std::string mh_odds;
+    std::string mh_all;
 
 //***************************************************
 // Pathing support

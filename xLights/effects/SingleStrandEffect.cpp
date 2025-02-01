@@ -105,16 +105,32 @@ void SingleStrandEffect::SetDefaultParameters()
     SetSliderValue(sp->Slider_FX_Intensity, 128);
     SetSliderValue(sp->Slider_FX_Speed, 128);
 
-    SetCheckBoxValue(sp->CheckBox_Chase_3dFade1, false);
+    SetChoiceValue(sp->Choice_Fade_Type, "None");
     SetCheckBoxValue(sp->CheckBox_Chase_Group_All, false);
 }
 
 bool SingleStrandEffect::needToAdjustSettings(const std::string& version) {
     // give the base class a chance to adjust any settings
-    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2024.05", version);
+    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2024.15", version);
 }
 
 void SingleStrandEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
+    if (IsVersionOlder("2024.15", version)) {
+        SettingsMap& settings = effect->GetSettings();
+        bool Three_dfade_checked = settings.GetBool("E_CHECKBOX_Chase_3dFade1", false);
+
+        if (Three_dfade_checked) {
+            settings["E_CHOICE_Fade_Type"] = "From Head";
+            settings.erase("E_CHECKBOX_Chase_3dFade1");
+        }
+
+        bool Three_dfade_unchecked = settings.GetBool("E_CHECKBOX_Chase_3dFade1", true);
+        if (!Three_dfade_unchecked) {
+            settings["E_CHOICE_Fade_Type"] = "None";
+            settings.erase("E_CHECKBOX_Chase_3dFade1");
+        }
+    }
+    
     if (IsVersionOlder("2024.05", version)) {
         std::string mn = effect->GetParentEffectLayer()->GetParentElement()->GetFullName();
         if (mn.find("/") != std::string::npos) {
@@ -178,7 +194,7 @@ void SingleStrandEffect::Render(Effect* effect, const SettingsMap& SettingsMap, 
                                 GetValueCurveInt("Number_Chases", 1, SettingsMap, eff_pos, SINGLESTRAND_CHASES_MIN, SINGLESTRAND_CHASES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
                                 GetValueCurveInt("Color_Mix1", 10, SettingsMap, eff_pos, SINGLESTRAND_COLOURMIX_MIN, SINGLESTRAND_COLOURMIX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
                                 SettingsMap.Get("CHOICE_Chase_Type1", "Left-Right"),
-                                SettingsMap.GetBool("CHECKBOX_Chase_3dFade1", false),
+                                SettingsMap.Get("CHOICE_Fade_Type", "None"),
                                 SettingsMap.GetBool("CHECKBOX_Chase_Group_All", false),
                                 GetValueCurveDouble("Chase_Rotations", 1.0, SettingsMap, eff_pos, SINGLESTRAND_ROTATIONS_MIN, SINGLESTRAND_ROTATIONS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SINGLESTRAND_ROTATIONS_DIVISOR),
                                 GetValueCurveDouble("Chase_Offset", 0.0, SettingsMap, eff_pos, SINGLESTRAND_OFFSET_MIN, SINGLESTRAND_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SINGLESTRAND_OFFSET_DIVISOR));
@@ -208,9 +224,11 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
 
     if (buffer.needToInit) {
         buffer.needToInit = false;
-        std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
-        int rects = (Skips_SkipSize + Skips_BandSize) * (buffer.curEffEndPer - buffer.curEffStartPer + 1);
-        eff->GetBackgroundDisplayList().resize(rects * 6);
+        if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
+            std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
+            int rects = (Skips_SkipSize + Skips_BandSize) * (buffer.curEffEndPer - buffer.curEffStartPer + 1);
+            eff->GetBackgroundDisplayList().resize(rects * 6);
+        }
     }
 
     int firstX = x;
@@ -275,7 +293,9 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
     max = Skips_SkipSize + Skips_BandSize - 1;
     if (max >= buffer.BufferWi) max = buffer.BufferWi - 1;
 
-    buffer.CopyPixelsToDisplayListX(eff, 0, 0, max);
+    if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
+        buffer.CopyPixelsToDisplayListX(eff, 0, 0, max);
+    }
 }
 
 class SingleStrandFXRenderCache : public EffectRenderCache
@@ -362,7 +382,8 @@ int mapChaseType(const std::string &Chase_Type) {
 void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* eff,
     const std::string & ColorSchemeName, int Number_Chases, int chaseSize,
     const std::string &Chase_Type1,
-    bool Chase_Fade3d1, bool Chase_Group_All,
+    const std::string &Fade_Type,
+    bool Chase_Group_All,
     float chaseSpeed, float offset)
 {
     int ColorScheme = "Palette" == ColorSchemeName;
@@ -384,11 +405,24 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
 
     //chasesize is a value curve item and can change throughout the effect and thus
     //the number of rects could change
-    int rects = (chaseSize + 1) * (buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6;
+    int numRects = chaseSize;
+    int rectInc = 1;
+    if (chaseSize > MaxNodes) {
+        numRects = MaxNodes;
+    }
+    if (numRects > 32) {
+        rectInc = numRects / 32;
+    }
+    int rects = (std::floor(numRects / rectInc) + 1) * (buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6;
+    if (!eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
+        rects = 0;
+    }
     if (buffer.needToInit || rects >= eff->GetBackgroundDisplayList().size()) {
         buffer.needToInit = false;
-        std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
-        eff->GetBackgroundDisplayList().resize(rects);
+        if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
+            std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
+            eff->GetBackgroundDisplayList().resize(rects);
+        }
     }
 
     bool Mirror = false;
@@ -512,28 +546,30 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
             x = chase * dx + startState - scaledChaseWidth; // L-R
         }
 
-        draw_chase(buffer, DoubleEnd ? width - x - 1 * scaledChaseWidth : x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Chase_Fade3d1, bool(ChaseDirection) != DoubleEnd, Mirror); // Turn pixel on
+        draw_chase(buffer, DoubleEnd ? width - x - 1 * scaledChaseWidth : x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Fade_Type, bool(ChaseDirection) != DoubleEnd, Mirror); // Turn pixel on
         if (Dual_Chases) {
-            draw_chase(buffer, DoubleEnd ? x - 1 * scaledChaseWidth : x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Chase_Fade3d1, bool(ChaseDirection) == DoubleEnd, Mirror);
+            draw_chase(buffer, DoubleEnd ? x - 1 * scaledChaseWidth : x, Chase_Group_All, ColorScheme, Number_Chases, AutoReverse, width, chaseSize, Fade_Type, bool(ChaseDirection) == DoubleEnd, Mirror);
         }
     }
-    buffer.CopyPixelsToDisplayListX(eff, 0, 0, chaseSize);
+    if (eff->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
+        buffer.CopyPixelsToDisplayListX(eff, 0, 0, numRects, rectInc);
+    }
 }
 
-void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
-    int x, bool GroupAll,
-    int ColorScheme,
-    int Number_Chases,
-    bool AutoReverse,
-    int width,
-    int Chase_Width,
-    bool Chase_Fade3d1,
-    int ChaseDirection,
-    bool mirror)
-{
+void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
+                                    int x, bool GroupAll,
+                                    int ColorScheme,
+                                    int Number_Chases,
+                                    bool AutoReverse,
+                                    int width,
+                                    int Chase_Width,
+                                    const std::string& Fade_Type,
+                                    int ChaseDirection,
+                                    bool mirror) {
     size_t colorcnt = buffer.GetColorCount();
 
     int max_chase_width = width * Chase_Width / 100.0;
+    int middle_chase_index = 0; 
     if (max_chase_width < 1) max_chase_width = 1;
 
     wxASSERT(Number_Chases != 0);
@@ -602,6 +638,13 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
     }
 
     if (max_chase_width >= 1) {
+        if (Fade_Type != "None") {
+            if (max_chase_width % 2 == 0) {
+                middle_chase_index = (max_chase_width / 2) - 1.0;
+            } else{
+                middle_chase_index = (max_chase_width / 2.0);
+            }
+        }
         for (int i = 0; i < max_chase_width; i++) {
             xlColor color;
             if (ColorScheme == 0) {
@@ -661,13 +704,94 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
                     }
                 }
 
-                if (Chase_Fade3d1) {
+                if (Fade_Type == "None") {
+                } else if (Fade_Type == "From Head") { /// 3d fade
                     if (buffer.allowAlpha) {
                         color.alpha = 255.0 * (i + 1.0) / max_chase_width;
                     } else {
                         HSVValue hsv1 = color.asHSV();
                         hsv1.value = orig_v - ((max_chase_width - (i + 1.0)) / max_chase_width); // fades data down over chase width
-                        if (hsv1.value < 0.0) hsv1.value = 0.0;
+                        if (hsv1.value < 0.0) {
+                            hsv1.value = 0.0;
+                        }
+                        color = hsv1;
+                    }
+                } else if (Fade_Type == "From Tail") {
+                    if (buffer.allowAlpha) {
+                        // reverse the fade black to white
+                        color.alpha = 255.0 * (max_chase_width - i + 1.0) / max_chase_width;
+                    } else {
+                        HSVValue hsv1 = color.asHSV();
+                        hsv1.value = ((max_chase_width - (i + 1.0)) / max_chase_width);
+                        if (hsv1.value < 0.0) {
+                            hsv1.value = 0.0;
+                        }
+                        color = hsv1;
+                    }
+                } else if (Fade_Type == "Head and Tail") {
+                    if (buffer.allowAlpha) {
+
+                        if (i <= middle_chase_index) {
+                            // first half of the string
+                            color.alpha = 255.0 * ((max_chase_width - (2.0 * i) + 0.0)) / max_chase_width;
+                        } else {
+                            // second half of the string
+                            if (  ((2.0 * i + 1.0 - max_chase_width) / max_chase_width) > 1.0 ) {
+                                color.alpha = 255.0;
+                            } else {
+                                color.alpha = 255.0 * ((2 * i +1 - max_chase_width)) / max_chase_width;
+                            }
+                            
+                        }
+                    } else {   // head tail not alpha 
+                        HSVValue hsv1 = color.asHSV();
+
+                        if (i <= middle_chase_index) {
+                            hsv1.value = orig_v * (1.0 - (2.0 * i) / max_chase_width);
+                        } else {
+                            hsv1.value = orig_v * ((2.0 * (i - middle_chase_index)) / max_chase_width);
+                        }
+
+                        if (hsv1.value > orig_v) {
+                            hsv1.value = orig_v;
+                        }
+
+                        if (hsv1.value < 0.0) {
+                            hsv1.value = 0.0;
+                        }
+
+                        color = hsv1;
+                    }
+                } else if (Fade_Type == "Middle") {
+                    if (buffer.allowAlpha) {
+
+                        if (i >= middle_chase_index) {
+                            // second half of the string
+                            if ((((max_chase_width - (i) + 0.0)) / (.5 * max_chase_width)) > 1) {
+                                color.alpha = 255.0;
+                            } else {
+                                color.alpha = 255.0 * ((max_chase_width - (i) + 0.0)) / (.5 * max_chase_width);
+                            }
+
+                        } else {
+                            // first half of the string
+                            if (((i + 1 - max_chase_width) / (.5 * max_chase_width)) > 1) {
+                                color.alpha = 255.0;
+                            } else {
+                                color.alpha = 255.0 * ((i + 1 - max_chase_width)) / (.5 * max_chase_width);
+                            }
+                        }
+                    } else {  // middle not alpha blend
+                        HSVValue hsv1 = color.asHSV();
+                        if (i > middle_chase_index) {
+                            hsv1.value = ((max_chase_width - (i + 1.0)) / (.5 * max_chase_width));
+                        } else {
+                            hsv1.value = orig_v - ((max_chase_width - (2.0 * i + 1.0)) / max_chase_width);
+                        }
+
+                        if (hsv1.value < 0.0) {
+                            hsv1.value = 0.0;
+                        }
                         color = hsv1;
                     }
                 }
@@ -677,18 +801,26 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
                         int y = 0;
                         int mirrorx = buffer.BufferWi*buffer.BufferHt - new_x - 1;
                         int mirrory = 0;
-                        
+
                         y += new_x / buffer.BufferWi;
                         new_x = new_x % buffer.BufferWi;
                         mirrory += mirrorx / buffer.BufferWi;
                         mirrorx = mirrorx % buffer.BufferWi;
-                        if (Chase_Fade3d1) {
+                        if (Fade_Type != "None") {
                             xlColor c;
                             buffer.GetPixel(new_x, y, c);
                             if (c != xlBLACK) {
-                                int a = color.alpha;
-                                color = color.AlphaBlend(c);
-                                color.alpha = c.alpha > a ? c.alpha : a;
+                                if (buffer.allowAlpha) {
+                                    int a = color.alpha;
+                                    color = color.AlphaBlend(c);
+                                    color.alpha = c.alpha > a ? c.alpha : a;
+                                } else {
+                                    // only blend new fade types for hsv types to allow for backward compatabilty 
+                                    // overcomes leading black on bounce effects overriding trailing brightness
+                                    if (Fade_Type == "Middle" || Fade_Type == "From Tail" || Fade_Type == "Head and Tail") {
+                                        color = color.ChannelMax(c);
+                                    }
+                                }
                             }
                         }
 
@@ -697,13 +829,21 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
                             buffer.SetPixel(mirrorx, mirrory, color); // Turn pixel on
                         }
                     } else {
-                        if (Chase_Fade3d1) {
+                        if (Fade_Type != "None") {
                             xlColor c;
                             buffer.GetPixel(new_x, 0, c);
                             if (c != xlBLACK) {
-                                int a = color.alpha;
-                                color = color.AlphaBlend(c);
-                                color.alpha = c.alpha > a ? c.alpha : a;
+                                if (buffer.allowAlpha) {
+                                    int a = color.alpha;
+                                    color = color.AlphaBlend(c);
+                                    color.alpha = c.alpha > a ? c.alpha : a;
+                                } else {
+                                    // only blend new fade types for hsv types to allow for backward compatabilty
+                                    // overcomes leading black on bounce effects overriding trailing brightness
+                                    if (Fade_Type == "Middle" || Fade_Type == "From Tail" || Fade_Type == "Head and Tail") {
+                                        color = color.ChannelMax(c);
+                                   }
+                                }
                             }
                         }
                         for (int y = 0; y < buffer.BufferHt; y++) {
@@ -718,4 +858,3 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
         }
     }
 }
-

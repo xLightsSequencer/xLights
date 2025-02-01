@@ -247,7 +247,7 @@ wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxStri
 // modifed for partially random, allow random colors also -DJ
 wxString EffectsPanel::GetRandomEffectString(int effidx)
 {
-    wxString s,ChildName,AttrName;
+    wxString s;
     wxString prefix=",E_";
 
     // get effect controls

@@ -199,8 +199,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer31->Add(StaticText17, 1, wxALL|wxEXPAND, 2);
 	FilePickerCtrl_SVGFile = new BulkEditFilePickerCtrl(this, ID_FILEPICKERCTRL_SVGFile, wxEmptyString, _("Select a file"), _T("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_SVGFile"));
 	FlexGridSizer31->Add(FilePickerCtrl_SVGFile, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer31->Add(0,0,1, wxALL|wxEXPAND, 5);
-	FlexGridSizer31->Add(0,0,1, wxALL|wxEXPAND, 5);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer31->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_VUMeter_SlowDownFalls = new BulkEditCheckBox(this, ID_CHECKBOX_VUMeter_SlowDownFalls, _("Slow Down Falls"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_VUMeter_SlowDownFalls"));
@@ -310,6 +310,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
     Choice_VUMeter_Type->Append(_("Level Pulse Color"));
     Choice_VUMeter_Type->Append(_("Level Shape"));
     Choice_VUMeter_Type->Append(_("Timing Event Bar"));
+    Choice_VUMeter_Type->Append(_("Timing Event Bar Bounce"));
     Choice_VUMeter_Type->Append(_("Timing Event Random Bar"));
     Choice_VUMeter_Type->Append(_("Timing Event Bars"));
     Choice_VUMeter_Type->Append(_("Timing Event Spike"));
@@ -347,7 +348,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent) : xlEffectPanel(parent)
     BitmapButton_VUMeter_YOffsetVC->GetValue()->SetLimits(VUMETER_OFFSET_MIN, VUMETER_OFFSET_MAX);
     BitmapButton_VUMeter_Gain->GetValue()->SetLimits(VUMETER_GAIN_MIN, VUMETER_GAIN_MAX);
 
-    TextCtrl_Filter->SetToolTip("Only trigger on timing events which contain this token in their text. Blank matches all.");
+    TextCtrl_Filter->SetToolTip("Only trigger on timing events which contain this token in their text. Blank matches all. Multiple tokens can be ; separated in non-regex mode.");
 
 	ValidateWindow();
 }
@@ -421,6 +422,7 @@ void VUMeterPanel::ValidateWindow()
         type == "Timing Event Color" ||
         type == "Timing Event Pulse" ||
         type == "Timing Event Bar" ||
+        type == "Timing Event Bar Bounce" ||
         type == "Timing Event Random Bar" ||
         type == "Timing Event Bars" ||
         type == "Timing Event Jump 100" ||

@@ -18,7 +18,7 @@
 
 class DmxMotorBase;
 
-class DmxMovingHead : public DmxMovingHeadComm, public DmxShutterAbility, public DmxDimmerAbility
+class DmxMovingHead : public DmxMovingHeadComm, public DmxDimmerAbility
 {
     public:
         DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
@@ -38,10 +38,16 @@ class DmxMovingHead : public DmxMovingHeadComm, public DmxShutterAbility, public
         void EnableFixedChannels(xlColorVector& pixelVector) const override;
         [[nodiscard]] std::vector<std::string> GenerateNodeNames() const override;
 
-        DmxMotorBase* GetPanMotor() const override { return pan_motor.get(); }
-        DmxMotorBase* GetTiltMotor() const override { return tilt_motor.get(); }
-    
-        uint32_t GetMHDimmerChannel() const override {return GetDimmerChannel();}
+        [[nodiscard]] DmxMotorBase* GetPanMotor() const override { return pan_motor.get(); }
+        [[nodiscard]] DmxMotorBase* GetTiltMotor() const override { return tilt_motor.get(); }
+
+        [[nodiscard]] uint32_t GetMHDimmerChannel() const override {return GetDimmerChannel();}
+        [[nodiscard]] std::string const& GetDMXStyle() const { return dmx_style; }
+        [[nodiscard]] float GetBeamLength() const { return beam_length; }
+        [[nodiscard]] float GetBeamWidth() const { return beam_width; }
+        [[nodiscard]] bool GetHideBody() const { return hide_body; }
+        [[nodiscard]] virtual bool SupportsVisitors() override { return true; }
+        void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
     protected:
         void Draw3DDMXBaseLeft(xlVertexColorAccumulator &va, const xlColor& c, float pan_angle);
@@ -52,7 +58,7 @@ class DmxMovingHead : public DmxMovingHeadComm, public DmxShutterAbility, public
         virtual void InitModel() override;
 
         virtual void ExportXlightsModel() override;
-        virtual void ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
         virtual float GetDefaultBeamWidth() const { return 30; }
 

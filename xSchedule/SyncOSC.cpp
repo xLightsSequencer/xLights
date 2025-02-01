@@ -10,21 +10,20 @@
 
 #include "SyncOSC.h"
 #include "OSCPacket.h"
-#include "../xLights/outputs/IPOutput.h"
 #include "ScheduleOptions.h"
+#include "../xLights/outputs/IPOutput.h"
 #include "events/ListenerManager.h"
 
 #include <wx/socket.h>
 
-#include <log4cpp/Category.hh>
 #include "../xLights/UtilFunctions.h"
+#include <log4cpp/Category.hh>
 
-SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) : SyncBase(mode, remoteMode, options)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncBase(mode, remoteMode, options, schm) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (mode == SYNCMODE::OSCMASTER)
-    {
+    if (mode == SYNCMODE::OSCMASTER) {
         int port = options.GetOSCOptions()->GetServerPort();
         _path = options.GetOSCOptions()->GetMasterPath();
         _isTime = options.GetOSCOptions()->IsTime();
@@ -35,48 +34,37 @@ SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& op
         logger_base.error("OSC Sync sending to %s port %d", (const char*)options.GetOSCOptions()->GetIPAddress().c_str(), port);
 
         wxIPV4address localaddr;
-        if (localIP == "")
-        {
+        if (localIP == "") {
             localaddr.AnyAddress();
-        }
-        else
-        {
+        } else {
             localaddr.Hostname(localIP);
         }
 
         _oscSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
-        if (_oscSocket == nullptr)
-        {
-            logger_base.error("Error opening datagram for OSC Sync as master. %s", (const char *)localaddr.IPAddress().c_str());
-        }
-        else if (!_oscSocket->IsOk())
-        {
-            logger_base.error("Error opening datagram for OSC Sync as master. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
+        if (_oscSocket == nullptr) {
+            logger_base.error("Error opening datagram for OSC Sync as master. %s", (const char*)localaddr.IPAddress().c_str());
+        } else if (!_oscSocket->IsOk()) {
+            logger_base.error("Error opening datagram for OSC Sync as master. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
             delete _oscSocket;
             _oscSocket = nullptr;
-        }
-        else if (_oscSocket->Error())
-        {
+        } else if (_oscSocket->Error()) {
             logger_base.error("Error opening datagram for OSC Sync as master. %d : %s",
-                _oscSocket->LastError(),
-                (const char*)DecodeIPError(_oscSocket->LastError()).c_str());
+                              _oscSocket->LastError(),
+                              (const char*)DecodeIPError(_oscSocket->LastError()).c_str());
             delete _oscSocket;
             _oscSocket = nullptr;
-        }
-        else
-        {
+        } else {
             logger_base.info("OSC Sync as master datagram opened successfully.");
         }
     }
 
-    if (remoteMode == REMOTEMODE::OSCSLAVE)
-    {
+    if (remoteMode == REMOTEMODE::OSCSLAVE) {
         listenerManager->SetRemoteOSC();
     }
 }
 
-SyncOSC::SyncOSC(SyncOSC&& from) : SyncBase(from)
-{
+SyncOSC::SyncOSC(SyncOSC&& from) :
+    SyncBase(from) {
     _oscSocket = from._oscSocket;
     from._oscSocket = nullptr; // this is a transfer of ownership
     _frameCode = from._frameCode;
@@ -86,8 +74,7 @@ SyncOSC::SyncOSC(SyncOSC&& from) : SyncBase(from)
     _timeType = from._timeType;
 }
 
-SyncOSC::~SyncOSC()
-{
+SyncOSC::~SyncOSC() {
     if (_oscSocket != nullptr) {
         _oscSocket->Close();
         delete _oscSocket;
@@ -95,18 +82,18 @@ SyncOSC::~SyncOSC()
     }
 }
 
-void SyncOSC::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& stepName, const std::string& timingItemName, uint32_t stepno) const
-{
-    if (_mode != SYNCMODE::OSCMASTER || _oscSocket == nullptr) return;
+void SyncOSC::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& stepName, const std::string& timingItemName, uint32_t stepno, int overridetimeSecs) const {
+    if (_mode != SYNCMODE::OSCMASTER || _oscSocket == nullptr)
+        return;
 
     auto path = _path;
-    if (!stepName.empty()) Replace(path, "%STEPNAME%", stepName);
-    if (!timingItemName.empty()) Replace(path, "%TIMINGITEM%", timingItemName);
+    if (!stepName.empty())
+        Replace(path, "%STEPNAME%", stepName);
+    if (!timingItemName.empty())
+        Replace(path, "%TIMINGITEM%", timingItemName);
 
-    if (_isTime)
-    {
-        switch (_timeType)
-        {
+    if (_isTime) {
+        switch (_timeType) {
         case OSCTIME::TIME_SECONDS:
             SendOSC(OSCPacket(path, static_cast<float>(stepMS) / 1000.0f));
             break;
@@ -114,11 +101,8 @@ void SyncOSC::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS,
             SendOSC(OSCPacket(path, static_cast<int>(stepMS)));
             break;
         }
-    }
-    else
-    {
-        switch (_frameCode)
-        {
+    } else {
+        switch (_frameCode) {
         case OSCFRAME::FRAME_24:
             SendOSC(OSCPacket(path, static_cast<int>(stepMS * 24 / 1000)));
             break;
@@ -144,12 +128,10 @@ void SyncOSC::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS,
     }
 }
 
-void SyncOSC::SendStop() const
-{
+void SyncOSC::SendStop() const {
     // Do nothing
 }
 
-void SyncOSC::SendOSC(const OSCPacket& osc) const
-{
+void SyncOSC::SendOSC(const OSCPacket& osc) const {
     _oscSocket->SendTo(_remoteAddr, osc.GetBuffer(), osc.GetBuffSize());
 }

@@ -241,7 +241,7 @@ void JobPoolWorker::Entry()
                 logger_jobpool.debug("JobPoolWorker::Entry processed job.  %X", this);
                 status = IDLE;
                 --pool->inFlight;
-            } else if (pool->numThreads > pool->minNumThreads && pool->idleThreads > 4) {
+            } else if (pool->numThreads > pool->minNumThreads) {
                 break;
             }
         }
@@ -313,6 +313,9 @@ void JobPoolWorker::ProcessJob(Job *job)
 }
 
 JobPool::JobPool(const std::string &n) : threadLock(), queueLock(), signal(), queue(), numThreads(0), maxNumThreads(8), minNumThreads(2), idleThreads(0), inFlight(0), threadNameBase(n)
+{
+}
+JobPool::JobPool(const std::string &n, int min, int max) : threadLock(), queueLock(), signal(), queue(), numThreads(0), maxNumThreads(max), minNumThreads(min), idleThreads(0), inFlight(0), threadNameBase(n)
 {
 }
 
@@ -428,6 +431,9 @@ void JobPool::PushJobs(const std::list<Job *> &jobs) {
     } else {
         signal.notify_one();
     }
+}
+bool JobPool::isEmpty() const {
+    return inFlight == 0;
 }
 
 void JobPool::Start(size_t poolSize, size_t minPoolSize)

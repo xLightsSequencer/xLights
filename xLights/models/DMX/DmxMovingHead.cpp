@@ -24,11 +24,13 @@
 #include "DmxPresetAbility.h"
 #include "DmxMotorPanTilt.h"
 #include "../ModelScreenLocation.h"
+#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
+#include "../XmlSerializer.h"
 
 DmxMovingHead::DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased) :
     DmxMovingHeadComm(node, manager, zeroBased), hide_body(false), style_changed(false), dmx_style("Moving Head Top"),
@@ -147,7 +149,8 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
         grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
         int selected = DMX_COLOR_TYPES.Index(color_ability->GetTypeName());
         grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES, selected));
-        color_ability->AddColorTypeProperties(grid);
+        ControllerCaps *caps = GetControllerCaps();
+        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
     }
     AddDimmerTypeProperties(grid);
     AddShutterTypeProperties(grid);
@@ -396,7 +399,7 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
         boundingBox[4] = 0.5;
         boundingBox[5] = 0.5;
     }
-    sprogram->addStep([=](xlGraphicsContext* ctx) {
+    sprogram->addStep([is_3d, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane
@@ -405,7 +408,7 @@ void DmxMovingHead::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
         }
         GetModelScreenLocation().ApplyModelViewMatrices(ctx);
     });
-    tprogram->addStep([=](xlGraphicsContext* ctx) {
+    tprogram->addStep([is_3d, this](xlGraphicsContext* ctx) {
         ctx->PushMatrix();
         if (!is_3d) {
             //not 3d, flatten to the 0.5 plane
@@ -1170,15 +1173,18 @@ void DmxMovingHead::Draw3DDMXHead(xlVertexColorAccumulator& va, const xlColor& c
 
 void DmxMovingHead::ExportXlightsModel()
 {
-    wxString name = ModelXml->GetAttribute("name");
+    wxASSERT(false);//shouldnt be used anymore
+    /* wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty())
         return;
     wxFile f(filename);
-    //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+    
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
@@ -1242,15 +1248,20 @@ void DmxMovingHead::ExportXlightsModel()
     //ExportDimensions(f);
     f.Write("</dmxmodel>");
     f.Close();
+    */
 }
 
-void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
+    if (XmlSerializer::IsXmlSerializerFormat(root)) {
+        return true;
+    }
     if (root->GetName() == "dmxmodel") {
-        ImportBaseParameters(root);
+        if (!ImportBaseParameters(root))
+            return false;
 
         wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
 
         wxString s = root->GetAttribute("DmxStyle");
         wxString pdr = root->GetAttribute("DmxPanDegOfRot");
@@ -1312,8 +1323,11 @@ void DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHead::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading DmxMovingHead model file.");
+        return false;
     }
 }
 

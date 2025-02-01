@@ -58,7 +58,7 @@
 						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText2" member="yes">
 							<label>String Appearance</label>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>

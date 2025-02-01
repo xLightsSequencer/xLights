@@ -22,6 +22,7 @@
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
+#include "CustomModel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -161,8 +162,12 @@ void SphereModel::ExportXlightsModel()
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
-    //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    
+    if (!f.Create(filename, true) || !f.IsOpened()) {
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
+    
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString p3 = ModelXml->GetAttribute("parm3");
@@ -178,7 +183,7 @@ void SphereModel::ExportXlightsModel()
     wxString da = ModelXml->GetAttribute("DisplayAs");
     wxString sl = ModelXml->GetAttribute("StartLatitude", "-86");
     wxString el = ModelXml->GetAttribute("EndLatitude", "86");
-    wxString d = ModelXml->GetAttribute("Degrees");
+    wxString d = ModelXml->GetAttribute("Degrees", "360");
 
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<spheremodel \n");
@@ -230,7 +235,7 @@ void SphereModel::ExportXlightsModel()
     f.Close();
 }
 
-void SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "spheremodel") {
         wxString name = root->GetAttribute("name");
@@ -249,7 +254,7 @@ void SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         wxString d = root->GetAttribute("Degrees", "360");
         wxString sn = root->GetAttribute("StrandNames");
         wxString nn = root->GetAttribute("NodeNames");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
         wxString da = root->GetAttribute("DisplayAs");
         wxString pc = root->GetAttribute("PixelCount");
         wxString pt = root->GetAttribute("PixelType");
@@ -287,8 +292,10 @@ void SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::ImportXlightsModel");
+        return true;
     } else {
         DisplayError("Failure loading Sphere model file.");
+        return false;
     }
 }
 
@@ -303,7 +310,10 @@ void SphereModel::ExportAsCustomXModel3D() const
 
     wxFile f(filename);
     //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+    if (!f.Create(filename, true) || !f.IsOpened()) {
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
 
     float minx = 99999;
     float miny = 99999;
@@ -363,39 +373,6 @@ void SphereModel::ExportAsCustomXModel3D() const
         data[zz][yy][xx] = i++;
     }
 
-    wxString cm = "";
-    for (auto l : data)
-    {
-        if (cm != "") cm += "|";
-        wxString ll = "";
-
-        for (auto r : l)
-        {
-            if (ll != "") ll += ";";
-            wxString rr = "";
-
-            bool first = true;
-            for (auto c : r)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    rr += ",";
-                }
-
-                if (c != -1)
-                {
-                    rr += wxString::Format("%d ", c);
-                }
-            }
-            ll += rr;
-        }
-        cm += ll;
-    }
-
     wxString p1 = wxString::Format("%i", (int)(scaleFactor3D * BufferWi + 1));
     wxString p2 = wxString::Format("%i", (int)(scaleFactor3D * BufferHt + 1));
     wxString dd = wxString::Format("%i", (int)(scaleFactor3D * BufferWi + 1));
@@ -438,7 +415,10 @@ void SphereModel::ExportAsCustomXModel3D() const
     if (psp != "")
         f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
     f.Write("CustomModel=\"");
-    f.Write(cm);
+    f.Write(CustomModel::ToCustomModel(data));
+    f.Write("\" ");
+    f.Write("CustomModelCompressed=\"");
+    f.Write(CustomModel::ToCompressed(data));
     f.Write("\" ");
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(ExportSuperStringColors());

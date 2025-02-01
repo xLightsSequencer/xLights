@@ -1095,6 +1095,10 @@
     <ClCompile Include="effects\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp">
       <Filter>Effects\MovingHeadPanels</Filter>
     </ClCompile>
+    <ClCompile Include="ShowFolderSearchDialog.cpp" />
+    <ClCompile Include="effects\ispc\ISPCComputeUtilities.cpp">
+      <Filter>Effects\ispc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2154,20 +2158,12 @@
     <ClInclude Include="xlColourData.h" />
     <ClInclude Include="controllers\ILightThat.h" />
     <ClInclude Include="EditSubmodelAliasesDialog.h" />
-    <ClInclude Include="effects\MovingHeadEffect.h" />
-    <ClInclude Include="effects\MovingHeadPanel.h" />
-    <ClInclude Include="effects\MovingHeadPanels\MHColorPanel.h" />
-    <ClInclude Include="effects\MovingHeadPanels\MHColorWheelPanel.h" />
     <ClInclude Include="effects\MovingHeadPanels\MHPathPresetBitmapButton.h" />
     <ClInclude Include="effects\MovingHeadPanels\MHPresetBitmapButton.h" />
-    <ClInclude Include="effects\MovingHeadPanels\MHRgbPickerPanel.h" />
-    <ClInclude Include="effects\MovingHeadPanels\MovingHeadCanvasPanel.h" />
     <ClInclude Include="models\BaseObjectVisitor.h" />
     <ClInclude Include="models\DMX\DmxMotor.h" />
     <ClInclude Include="models\DMX\DmxMotorBase.h" />
     <ClInclude Include="models\DMX\DmxMotorPanTilt.h" />
-    <ClInclude Include="models\DMX\DmxMovingHeadAdv.h" />
-    <ClInclude Include="models\DMX\DmxMovingHeadComm.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhChannel.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhChannelDialog.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhFeature.h" />
@@ -2176,6 +2172,41 @@
     <ClInclude Include="models\DMX\DmxDimmerAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
+    <ClInclude Include="effects\MovingHeadEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanel.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxMovingHeadAdv.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DMX\DmxMovingHeadComm.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MovingHeadCanvasPanel.h">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MHRgbPickerPanel.h">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MHColorWheelPanel.h">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\MovingHeadPanels\MHColorPanel.h">
+      <Filter>Effects\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="ShowFolderSearchDialog.h" />
+    <ClInclude Include="effects\ispc\ISPCComputeUtilities.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ispc\LayerBlendingFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ispc\ButterflyFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\PinwheelFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\PlasmaFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\SpacialColors.ispc.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2223,6 +2254,9 @@
     <Filter Include="Effects\MovingHeadPanels">
       <UniqueIdentifier>{dea5bd41-37f4-437f-872b-6b26dc00a5c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\ispc">
+      <UniqueIdentifier>{6b247f11-eaa7-479e-9e82-e1369cd64fad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -2231,5 +2265,11 @@
     <Text Include="..\documentation\xlDo Commands.txt">
       <Filter>automation</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="effects\ispc\LayerBlendingFunctions.ispc" />
+    <CustomBuild Include="effects\ispc\ButterflyFunctions.ispc" />
+    <CustomBuild Include="effects\ispc\PinwheelFunctions.ispc" />
+    <CustomBuild Include="effects\ispc\PlasmaFunctions.ispc" />
   </ItemGroup>
 </Project>

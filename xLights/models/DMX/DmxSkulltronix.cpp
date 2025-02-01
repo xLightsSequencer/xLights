@@ -192,7 +192,7 @@ void DmxSkulltronix::AddTypeProperties(wxPropertyGridInterface* grid, OutputMana
     p->SetEditor("SpinCtrl");
 
     if (nullptr != color_ability) {
-        color_ability->AddColorTypeProperties(grid);
+        color_ability->AddColorTypeProperties(grid, false);
     }
 }
 
@@ -1104,9 +1104,11 @@ void DmxSkulltronix::ExportXlightsModel()
     if (filename.IsEmpty())
         return;
     wxFile f(filename);
-    //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened())
+
+    if (!f.Create(filename, true) || !f.IsOpened()) {
         DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
@@ -1195,13 +1197,14 @@ void DmxSkulltronix::ExportXlightsModel()
     f.Close();
 }
 
-void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     if (root->GetName() == "dmxmodel") {
-        ImportBaseParameters(root);
+        if (!ImportBaseParameters(root))
+            return false;
 
         wxString name = root->GetAttribute("name");
-        wxString v = root->GetAttribute("SourceVersion");
+        //wxString v = root->GetAttribute("SourceVersion");
 
         wxString pdr = root->GetAttribute("DmxPanDegOfRot");
         wxString tdr = root->GetAttribute("DmxTiltDegOfRot");
@@ -1284,7 +1287,10 @@ void DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkulltronix::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkulltronix::ImportXlightsModel");
+
+        return true;
     } else {
         DisplayError("Failure loading DmxSkulltronix model file.");
+        return false;
     }
 }

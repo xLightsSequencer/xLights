@@ -287,8 +287,7 @@ void xLightsFrame::InitSequencer()
                 m_mgr->Update();
             }
             LogPerspective(machinePerspective);
-        }
-        else {
+        } else {
             if (mCurrentPerpective != nullptr) {
                 DoLoadPerspective(mCurrentPerpective);
             }
@@ -347,8 +346,7 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         UnsavedRgbEffectsChanges = true;
         UpdateLayoutSave();
         UpdateControllerSave();
-    }
-    else {
+    } else {
         wxString currentName = PerspectivesNode->GetAttribute("current");
         for (wxXmlNode* p = PerspectivesNode->GetChildren(); p != nullptr; p = p->GetNext()) {
             if (p->GetName() == "perspective") {
@@ -932,7 +930,11 @@ void xLightsFrame::Scrub(wxCommandEvent& event)
     if (ms > CurrentSeqXmlFile->GetSequenceDurationMS()) ms = CurrentSeqXmlFile->GetSequenceDurationMS();
     if (frame >= _seqData.NumFrames()) frame = _seqData.NumFrames();
 
-    mainSequencer->UpdateTimeDisplay(ms, -1.0);
+    for (auto &f : _fps) {
+        f = -1;
+    }
+    playCurFrame = -1;
+    mainSequencer->UpdateTimeDisplay(ms, _fps);
 
     // update any video diaplay
     sequenceVideoPanel->UpdateVideo(ms);
@@ -1495,7 +1497,7 @@ void xLightsFrame::CutModelEffects(wxCommandEvent& event)
 
 void xLightsFrame::CopyModelEffects(wxCommandEvent& event)
 {
-    mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt(), event.GetString() == "All");
+    mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt(), event.GetString().StartsWith("All"), event.GetString() == "AllInclSub");
 }
 
 void xLightsFrame::PasteModelEffects(wxCommandEvent& event)
@@ -1672,7 +1674,7 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, true);
-			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
+			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, false);
             _housePreviewPanel->EnablePlayControls("Play", true);
@@ -1808,7 +1810,10 @@ void xLightsFrame::DoStopSequence()
 {
     if (CurrentSeqXmlFile == nullptr) return;
 
-    _fps = -1;
+    for (auto &f : _fps) {
+        f = -1;
+    }
+    playCurFrame = -1;
 	mLoopAudio = false;
     if( playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED ) {
         if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
@@ -1839,7 +1844,10 @@ void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)
 {
     if (CurrentSeqXmlFile == nullptr) return;
 
-    _fps = -1;
+    for (auto &f : _fps) {
+        f = -1;
+    }
+    playCurFrame = -1;
     if( playType == PLAY_TYPE_EFFECT_PAUSED || playType == PLAY_TYPE_EFFECT ) {
         playStartMS = -1;
     }
@@ -1860,7 +1868,10 @@ void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
 {
     if (CurrentSeqXmlFile == nullptr) return;
 
-    _fps = -1;
+    for (auto &f : _fps) {
+        f = -1;
+    }
+    playCurFrame = -1;
     int limit = mainSequencer->ScrollBarEffectsHorizontal->GetRange();
     mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(limit-1);
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
@@ -1954,6 +1965,84 @@ void xLightsFrame::SequenceFForward10(wxCommandEvent& event)
     }
     else
     {
+        starttime += wxTimeSpan(0, 0, (origtime - current_play_time) / 1000, (origtime - current_play_time) % 1000);
+    }
+
+    mainSequencer->PanelWaveForm->UpdatePlayMarker();
+    mainSequencer->PanelEffectGrid->ForceRefresh();
+    mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
+}
+
+void xLightsFrame::SequencePriorTag(wxCommandEvent& event) {
+    if (CurrentSeqXmlFile == nullptr)
+        return;
+
+    int current_play_time;
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr) {
+        current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
+    } else {
+        wxTimeSpan ts = wxDateTime::UNow() - starttime;
+        long curtime = ts.GetMilliseconds().ToLong();
+        int msec;
+        if (playAnimation) {
+            msec = curtime * playSpeed;
+        } else {
+            msec = curtime;
+        }
+        current_play_time = (playStartTime + msec - playStartMS);
+    }
+
+    long origtime = current_play_time;
+    current_play_time = mainSequencer->PanelTimeLine->GetPriorTag(origtime - 500);
+
+    int end_ms = CurrentSeqXmlFile->GetSequenceDurationMS();
+    if (current_play_time > end_ms)
+        current_play_time = end_ms;
+
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
+        if (CurrentSeqXmlFile->GetMedia() != nullptr) {
+            CurrentSeqXmlFile->GetMedia()->Seek(current_play_time);
+        }
+    } else {
+        starttime += wxTimeSpan(0, 0, (origtime - current_play_time) / 1000, (origtime - current_play_time) % 1000);
+    }
+
+    mainSequencer->PanelWaveForm->UpdatePlayMarker();
+    mainSequencer->PanelEffectGrid->ForceRefresh();
+    mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
+}
+
+void xLightsFrame::SequenceNextTag(wxCommandEvent& event) {
+    if (CurrentSeqXmlFile == nullptr)
+        return;
+
+    int current_play_time;
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr) {
+        current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
+    } else {
+        wxTimeSpan ts = wxDateTime::UNow() - starttime;
+        long curtime = ts.GetMilliseconds().ToLong();
+        int msec;
+        if (playAnimation) {
+            msec = curtime * playSpeed;
+        } else {
+            msec = curtime;
+        }
+
+        current_play_time = (playStartTime + msec - playStartMS);
+    }
+
+    long origtime = current_play_time;
+    current_play_time = mainSequencer->PanelTimeLine->GetNextTag(origtime);
+    int end_ms = CurrentSeqXmlFile->GetSequenceDurationMS();
+    if (current_play_time > end_ms)
+        current_play_time = end_ms;
+
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
+        if (CurrentSeqXmlFile->GetMedia() != nullptr) {
+            CurrentSeqXmlFile->GetMedia()->Seek(current_play_time);
+        }
+    } else {
         starttime += wxTimeSpan(0, 0, (origtime - current_play_time) / 1000, (origtime - current_play_time) % 1000);
     }
 
@@ -2333,15 +2422,46 @@ void xLightsFrame::SetPlayStatus(int status) {
 }
 void xLightsFrame::StartOutputTimer() {
     GPURenderUtils::prioritizeGraphics(true);
+    playCurFrame = -1;
     OutputTimer.Start(_seqData.FrameTime(), wxTIMER_CONTINUOUS);
 }
 void xLightsFrame::StopOutputTimer() {
     OutputTimer.Stop();
+    playCurFrame = -1;
     GPURenderUtils::prioritizeGraphics(false);
 }
+
+#ifdef XL_DRAWING_WITH_METAL
+static bool NeedToRenderFrame(wxMetalCanvas *w, const xLightsTimer& t, std::vector<bool> &didRender) {
+    int i = w->getScreenIndex();
+    if (i >= 0) {
+        if (i >= didRender.size()) {
+            didRender.resize(i + 1);
+        }
+        double f = t.presentTimeForScreen(i);
+        if (f > 0) {
+            bool b = w->startFrameForTime(f);
+            if (!b) {
+                return false;
+            }
+        }
+        didRender[i] = true;
+        return true;
+    }
+    return false;
+}
+#else
+static bool NeedToRenderFrame(wxWindow *w, const xLightsTimer& t, std::vector<bool> &didRender) {
+    didRender[0] = true;
+    return true;
+}
+#endif
+
 bool xLightsFrame::TimerRgbSeq(long msec)
 {
-    //check if there are models that depend on timing tracks or similar that need to be rendered
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // check if there are models that depend on timing tracks or similar that need to be rendered
     std::vector<Element *> elsToRender;
     if (_sequenceElements.GetElementsToRender(elsToRender)) {
         for (const auto& it : elsToRender) {
@@ -2372,7 +2492,9 @@ bool xLightsFrame::TimerRgbSeq(long msec)
     // capture start time if necessary
     if (playStartMS == -1) {
         playStartMS = msec;
-        fpsEvents.clear();
+        for (auto &f : fpsEvents) {
+            f.clear();
+        }
     }
 
     // record current time
@@ -2396,18 +2518,6 @@ bool xLightsFrame::TimerRgbSeq(long msec)
         return true;
     }
 
-    
-    StartGraphicsSyncPoint();
-
-#if 0
-    std::array<uint32_t, 20> timePoints;
-    int currTimePoint = 0;
-#define DO_PRINT_TIMINGS
-#define RecordTimingCheckpoint() timePoints[currTimePoint++] = wxGetUTCTimeMillis().GetLo()
-#else
-#define RecordTimingCheckpoint()
-#endif
-
     int current_play_time = 0;
     if (playType == PLAY_TYPE_MODEL) {
         if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING) {
@@ -2416,14 +2526,44 @@ bool xLightsFrame::TimerRgbSeq(long msec)
         } else {
             current_play_time = curt;
         }
+
+        // see if its time to stop model play
+        if (curt >= playEndTime) {
+            if (mLoopAudio) {
+                DoPlaySequence();
+                curt = playStartTime;
+                current_play_time = curt;
+                for (auto &f : fpsEvents) {
+                    f.clear(); // we need to clear FPS data
+                }
+                // return true;
+            } else {
+                playStartTime = playEndTime = 0;
+                playStartMS = -1;
+                wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+                wxPostEvent(this, playEvent);
+                //logger_base.debug("Stopping play");
+                return true;
+            }
+        }
     }
     
-    RecordTimingCheckpoint();
     int frame = curt / _seqData.FrameTime();
+    if (frame == playCurFrame) {
+        // same frame as before, no need to update anything
+        return true;
+    }
+    playCurFrame = frame;
+    
+    if (_outputManager.IsOutputting()) {
+        _outputManager.StartFrame(msec);
+    }
+    std::vector<bool> didRender(8);
     if (frame < _seqData.NumFrames()) {
-        //have the frame, copy from SeqData
+        //logger_base.debug("Outputting Frame %d", frame);
+        // have the frame, copy from SeqData
         TimerOutput(frame);
-        if (playModel != nullptr) {
+        if (playModel != nullptr && NeedToRenderFrame(_modelPreviewPanel, OutputTimer, didRender)) {
             int nn = playModel->GetNodeCount();
             for (int node = 0; node < nn; node++) {
                 int start = playModel->NodeStartChannel(node);
@@ -2433,82 +2573,69 @@ bool xLightsFrame::TimerRgbSeq(long msec)
             _modelPreviewPanel->setCurrentFrameTime(curt);
             playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
         }
-        RecordTimingCheckpoint();
-        _housePreviewPanel->GetModelPreview()->Render(curt, &_seqData[frame][0]);
-        RecordTimingCheckpoint();
+        if (NeedToRenderFrame(_housePreviewPanel->GetModelPreview(), OutputTimer, didRender)) {
+            _housePreviewPanel->GetModelPreview()->Render(curt, &_seqData[frame][0]);
+        }
 
         for (const auto& it : PreviewWindows) {
-            if (it->GetActive()) {
+            if (it->GetActive() && NeedToRenderFrame(it, OutputTimer, didRender)) {
                 it->Render(curt, &_seqData[frame][0]);
             }
         }
-        RecordTimingCheckpoint();
     }
-    
+
     if (playType == PLAY_TYPE_MODEL) {
-        // see if its time to stop model play
-        if (curt >= playEndTime) {
-            if (mLoopAudio) {
-                DoPlaySequence();
-                EndGraphicsSyncPoint();
-                return true;
-            } else {
-                playStartTime = playEndTime = 0;
-                playStartMS = -1;
-                wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
-                wxPostEvent(this, playEvent);
-                EndGraphicsSyncPoint();
-                return true;
-            }
-        }
-
         wxASSERT(_seqData.FrameTime() != 0);
-        int frame = curt / _seqData.FrameTime();
-        fpsEvents.push_back(FPSEvent(frame));
-        size_t fpsSize = fpsEvents.size();
-        while (fpsSize > (2000 / _seqData.FrameTime())) {
-            fpsEvents.pop_front();
-            fpsSize--;
-        }
-        if (!fpsEvents.empty()) {
-            FPSEvent b = fpsEvents.front();
-            FPSEvent e = fpsEvents.back();
-            if (e.when == b.when) {
-                _fps = 0;
-            } else {
-                _fps = (float)((double)(fpsSize-1) * 1000.0) / ((e.when - b.when).GetMilliseconds().ToDouble());
+        if (NeedToRenderFrame(mainSequencer->PanelEffectGrid, OutputTimer, didRender)) {
+            bool reRender = mainSequencer->UpdateTimeDisplay(current_play_time, _fps, false);
+            if (reRender) {
+                GRAPHICS_BASE_CLASS *td = (GRAPHICS_BASE_CLASS*)mainSequencer->timeDisplay;
+                if (NeedToRenderFrame(td, OutputTimer, didRender)) {
+                    td->render();
+                }
             }
-            if ((frame % 200) == 0) {
-                static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-                logger_opengl.debug("Play fps  %f   (%u ms)", _fps, _seqData.FrameTime());
+            if (mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time)) {
+                if (NeedToRenderFrame(mainSequencer->PanelWaveForm, OutputTimer, didRender)) {
+                    mainSequencer->PanelWaveForm->UpdatePlayMarker();
+                    mainSequencer->PanelWaveForm->CheckNeedToScroll();
+                    mainSequencer->PanelEffectGrid->ForceRefresh();
+                }
+                wxASSERT(CurrentSeqXmlFile->GetFrameMS() != 0);
+                _housePreviewPanel->SetPositionFrames(current_play_time / CurrentSeqXmlFile->GetFrameMS());
             }
         }
-
-        RecordTimingCheckpoint();
-        mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
-        RecordTimingCheckpoint();
-        if (mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time)) {
-            mainSequencer->PanelWaveForm->UpdatePlayMarker();
-            mainSequencer->PanelWaveForm->CheckNeedToScroll();
-            mainSequencer->PanelEffectGrid->ForceRefresh();
-            wxASSERT(CurrentSeqXmlFile->GetFrameMS() != 0);
-            _housePreviewPanel->SetPositionFrames(current_play_time / CurrentSeqXmlFile->GetFrameMS());
-        }
-        RecordTimingCheckpoint();
         sequenceVideoPanel->UpdateVideo( current_play_time );
-        RecordTimingCheckpoint();
     }
-    EndGraphicsSyncPoint();
-#ifdef DO_PRINT_TIMINGS
-    timePoints[currTimePoint++] = wxGetUTCTimeMillis().GetLo();
-    printf("Frame %d \n", frame);
-    for (int x = 1; x < currTimePoint; x++) {
-        int r = timePoints[x];
-        int d = timePoints[x] - timePoints[x - 1];
-        int dt = timePoints[x] - timePoints[0];
-        printf("   %d:   %d      %d   %d\n", x, r, d, dt);
+// #define DO_FPS
+#ifdef DO_FPS
+    for (int x = 0; x < didRender.size(); x++) {
+        if (didRender[x]) {
+            if (x >= _fps.size()) {
+                fpsEvents.resize(x + 1);
+                _fps.resize(x + 1);
+            }
+            fpsEvents[x].push_back(FPSEvent(frame));
+            size_t fpsSize = fpsEvents[x].size();
+            while (fpsSize > (2000 / _seqData.FrameTime())) {
+                fpsEvents[x].pop_front();
+                fpsSize--;
+            }
+            if (!fpsEvents[x].empty()) {
+                FPSEvent b = fpsEvents[x].front();
+                FPSEvent e = fpsEvents[x].back();
+                if (e.when == b.when) {
+                    _fps[x] = 0;
+                } else {
+                    _fps[x] = (float)((double)(fpsSize-1) * 1000.0) / ((e.when - b.when).GetMilliseconds().ToDouble());
+                }
+            }
+
+        }
     }
 #endif
+    if (_outputManager.IsOutputting()) {
+        _outputManager.EndFrame();
+    }
     return true;
 }
 
@@ -2551,15 +2678,11 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
     bool res = true;
     auto orig = name;
     wxWindow* ContextWin = nullptr;
-	if (name.StartsWith("E_"))
-	{
+	if (name.StartsWith("E_")) {
 		ContextWin = EffectsPanel1;
-	}
-	else if (name.StartsWith("T_"))
-	{
+	} else if (name.StartsWith("T_")) {
         // Layers selected is not stored in a control so we handle it here
-        if (name == "T_LayersSelected")
-        {
+        if (name == "T_LayersSelected") {
             timingPanel->SetLayersSelected(value.ToStdString());
             return res;
         }
@@ -2567,26 +2690,17 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 	    if (name == "T_CHECKBOX_OverlayBkg") {
 			//temporary until this key is remapped
 			ContextWin = bufferPanel;
-		}
-		else {
+		} else {
 			ContextWin = timingPanel;
 		}
-	}
-	else if (name.StartsWith("B_"))
-	{
+	} else if (name.StartsWith("B_")) {
 	    ContextWin = bufferPanel;
-	}
-	else if (name.StartsWith("C_"))
-	{
+	} else if (name.StartsWith("C_")) {
 		ContextWin = colorPanel;
-	}
-    else if (name.StartsWith("X_"))
-    {
+	} else if (name.StartsWith("X_")) {
         // This is used for properties that are not displayed on a panel ... but are typically accessed via the right click menu on an effect
         return res;
-    }
-    else
-	{
+    } else {
         logger_base.error("ApplySetting: Unable to panel type for: %s", (const char*)name.c_str());
         return false;
 	}
@@ -2594,10 +2708,8 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
     name = "ID_" + name.Mid(2);
 	wxWindow *CtrlWin = wxWindow::FindWindowByName(name, ContextWin);
 
-    if (CtrlWin != nullptr)
-	{
-		if (name.StartsWith("ID_SLIDER"))
-		{
+    if (CtrlWin != nullptr) {
+		if (name.StartsWith("ID_SLIDER")) {
 			wxSlider* ctrl = (wxSlider*)CtrlWin;
             long tempLong;
 			if (value.ToLong(&tempLong)) {
@@ -2608,14 +2720,11 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 				event.SetInt(tempLong);
 				ctrl->ProcessWindowEvent(event);
 			}
-		}
-		else if (name.StartsWith("ID_TEXTCTRL"))
-		{
+        } else if (name.StartsWith("ID_TEXTCTRL")) {
 			wxTextCtrl* ctrl = dynamic_cast<wxTextCtrl*>(CtrlWin);
             if (ctrl != nullptr) {
                 ctrl->SetValue(value);
-            }
-            else {
+            } else {
                 // some text ctrls have been replace with combo boxes ... maybe this is one of those
                 wxComboBox* ctrl = dynamic_cast<wxComboBox*>(CtrlWin);
                 if (ctrl != nullptr) {
@@ -2624,14 +2733,10 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
                     wxASSERT(false);
                 }
             }
-		}
-		else if (name.StartsWith("ID_SPINCTRL"))
-		{
+		} else if (name.StartsWith("ID_SPINCTRL")) {
 			wxSpinCtrl* ctrl = (wxSpinCtrl*)CtrlWin;
 			ctrl->SetValue(wxAtoi(value));
-		}
-		else if (name.StartsWith("ID_CHOICE"))
-		{
+		} else if (name.StartsWith("ID_CHOICE")) {
 			wxString nn = "IDD_RADIOBUTTON" + name.SubString(9, name.size());
 			wxRadioButton *b = (wxRadioButton*)wxWindow::FindWindowByName(nn, ContextWin);
 			if (b != nullptr) {
@@ -2661,16 +2766,11 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
                 event.SetString(ctrl->GetStringSelection());
                 ctrl->ProcessWindowEvent(event);
             }
-		}
-		else if (name.StartsWith("ID_BUTTON"))
-		{
-            if (name.StartsWith("ID_BUTTON_Palette"))
-            {
+        } else if (name.StartsWith("ID_BUTTON")) {
+            if (name.StartsWith("ID_BUTTON_Palette")) {
                 colorPanel->SetButtonColor((ColorCurveButton*)CtrlWin, value.ToStdString());
             }
-		}
-		else if (name.StartsWith("ID_CHECKBOX"))
-		{
+		} else if (name.StartsWith("ID_CHECKBOX")) {
 			wxCheckBox* ctrl = (wxCheckBox*)CtrlWin;
             long tempLong;
 			if (value.ToLong(&tempLong)) {
@@ -2680,59 +2780,44 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 				evt.SetInt(tempLong != 0);
 				ctrl->ProcessWindowEvent(evt);
 			}
-		}
-		else if (name.StartsWith("ID_NOTEBOOK"))
-		{
+		} else if (name.StartsWith("ID_NOTEBOOK")) {
 			wxNotebook* ctrl = (wxNotebook*)CtrlWin;
-			for (size_t z = 0; z < ctrl->GetPageCount(); z++)
-			{
-				if (value == ctrl->GetPageText(z))
-				{
+			for (size_t z = 0; z < ctrl->GetPageCount(); z++) {
+				if (value == ctrl->GetPageText(z)) {
 					ctrl->SetSelection(z);
 				}
 			}
-		}
-		else if (name.StartsWith("ID_FILEPICKER") || name.StartsWith("ID_0FILEPICKER"))
-		{
+		} else if (name.StartsWith("ID_FILEPICKER") || name.StartsWith("ID_0FILEPICKER")) {
 			wxFilePickerCtrl *picker = (wxFilePickerCtrl*)CtrlWin;
 			picker->SetFileName(value);
 
 			wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, picker, picker->GetId(), value);
 			evt.SetEventObject(picker);
 			picker->ProcessWindowEvent(evt);
-		}
-		else if (name.StartsWith("ID_FONTPICKER"))
-		{
+		} else if (name.StartsWith("ID_FONTPICKER")) {
 			wxFontPickerCtrl *picker = (wxFontPickerCtrl*)CtrlWin;
 			wxFont oldfont;
 			oldfont.SetNativeFontInfoUserDesc(value);
 			picker->SetSelectedFont(oldfont);
-		}
-        else if (name.StartsWith("ID_COLOURPICKER"))
-        {
+		} else if (name.StartsWith("ID_COLOURPICKER")) {
             wxColourPickerCtrl* picker = (wxColourPickerCtrl*)CtrlWin;
             wxColour c(value);
             picker->SetColour(c);
-        }
-        else if (name.StartsWith("ID_CUSTOM"))
-        {
+        } else if (name.StartsWith("ID_CUSTOM")) {
             xlCustomControl *custom = dynamic_cast<xlCustomControl *>(CtrlWin);
             custom->SetValue(value.ToStdString());
-        }
-        else if (name.StartsWith("ID_VALUECURVE"))
-        {
+        } else if (name.StartsWith("ID_VALUECURVE")) {
             ValueCurveButton *vcb = dynamic_cast<ValueCurveButton *>(CtrlWin);
             vcb->SetValue(value.ToStdString());
-        }
-        else
-		{
+        } else if (name.StartsWith("ID_TOGGLEBUTTON")) {
+            wxToggleButton *vcb = dynamic_cast<wxToggleButton *>(CtrlWin);
+            vcb->SetValue(wxAtoi(value) != 0);
+        } else {
 			logger_base.error("ApplySetting: Unknown type: %s", (const char*)name.c_str());
             res = false;
             wxASSERT(false);
         }
-	}
-	else
-	{
+    } else {
 		if (name.StartsWith("ID_")) {
 			//check if the control has been renamed to be ignored
 			wxString nn = "IDD_" + name.SubString(3, name.size());
@@ -2752,8 +2837,7 @@ void xLightsFrame::SetEffectChoice(wxCommandEvent& event)
     auto v = wxSplit(event.GetString(), '|');
     if (v.size() == 2) {
         ApplySetting(v[0], v[1], event.GetInt());
-    }
-    else {
+    } else {
         wxASSERT(false);
     }
 }
@@ -2818,12 +2902,9 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 
 	// Apply those settings without APPLYLAST in their name first
     for (const auto& it : settings) {
-		if (it.first.find("APPLYLAST") == std::string::npos)
-		{
+		if (it.first.find("APPLYLAST") == std::string::npos) {
 			ApplySetting(it.first, ToWXString(it.second));
-		}
-        else
-        {
+        } else {
             applylast = true;
         }
     }
@@ -2831,15 +2912,12 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     MixTypeChanged = true;
     FadesChanged = true;
 
-    if (applylast)
-    {
+    if (applylast) {
         // we do this asynchronously as we tyically need other events to process first
         wxCommandEvent event(EVT_APPLYLAST);
         event.SetClientData(new SettingsMap(settings));
         wxPostEvent(this, event);
-    }
-    else
-    {
+    } else {
         ValidatePanels();
     }
 }
@@ -2856,8 +2934,7 @@ void xLightsFrame::ValidatePanels()
 std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette) const
 {
     RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
-    if (eff == nullptr)
-    {
+    if (eff == nullptr) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.crit("xLightsFrame::GetEffectTextFromWindows eff returned nullptr for effect %d. This is going to crash.", EffectsPanel1->EffectChoicebook->GetSelection());
     }
@@ -4123,5 +4200,35 @@ void xLightsFrame::UpdateSequenceVideoPanel(const wxString& path)
         std::string spath(path.ToStdString());
         ObtainAccessToURL(spath);
         sequenceVideoPanel->SetMediaPath(spath);
+    }
+}
+
+
+void xLightsFrame::CallOnEffectBeforeSelected(std::function<bool(Effect *)> &&cb) {
+    if (selectedEffect != nullptr) {
+        Effect *ef = selectedEffect->GetParentEffectLayer()->GetEffectAtTime(selectedEffect->GetStartTimeMS() - 1);
+        if (ef != nullptr) {
+            _sequenceElements.get_undo_mgr().CaptureModifiedEffect(ef->GetParentEffectLayer()->GetParentElement()->GetFullName(),
+                                                                   ef->GetParentEffectLayer()->GetIndex(), ef);
+            bool changed = cb(ef);
+            if (!changed) {
+                //didn't change, cancel the undo step
+                _sequenceElements.get_undo_mgr().CancelLastStep();
+            }
+        }
+    }
+}
+void xLightsFrame::CallOnEffectAfterSelected(std::function<bool(Effect *)> &&cb) {
+    if (selectedEffect != nullptr) {
+        Effect *ef = selectedEffect->GetParentEffectLayer()->GetEffectAtTime(selectedEffect->GetEndTimeMS() + 1);
+        if (ef != nullptr) {
+            _sequenceElements.get_undo_mgr().CaptureModifiedEffect(ef->GetParentEffectLayer()->GetParentElement()->GetFullName(),
+                                                                   ef->GetParentEffectLayer()->GetIndex(), ef);
+            bool changed = cb(ef);
+            if (!changed) {
+                //didn't change, cancel the undo step
+                _sequenceElements.get_undo_mgr().CancelLastStep();
+            }
+        }
     }
 }

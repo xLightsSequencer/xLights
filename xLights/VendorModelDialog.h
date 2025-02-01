@@ -11,6 +11,7 @@
  **************************************************************/
  
 //(*Headers(VendorModelDialog)
+#include <wx/animate.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/dialog.h>
@@ -72,6 +73,7 @@ class VendorModelDialog: public wxDialog
         static CachedFileDownloader& GetCache() { return CachedFileDownloader::GetDefaultCache(); }
 
 		//(*Declarations(VendorModelDialog)
+		wxAnimationCtrl* AnimationCtrl1;
 		wxButton* Button_InsertModel;
 		wxButton* Button_Next;
 		wxButton* Button_Prior;
@@ -101,30 +103,31 @@ class VendorModelDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(VendorModelDialog)
-		static const long ID_TREECTRL1;
-		static const long ID_TEXTCTRL3;
-		static const long ID_BUTTON4;
-		static const long ID_PANEL3;
-		static const long ID_CHECKBOX1;
-		static const long ID_STATICBITMAP1;
-		static const long ID_TEXTCTRL1;
-		static const long ID_STATICTEXT8;
-		static const long ID_HYPERLINKCTRL4;
-		static const long ID_STATICTEXT4;
-		static const long ID_HYPERLINKCTRL2;
-		static const long ID_PANEL2;
-		static const long ID_BUTTON2;
-		static const long ID_STATICBITMAP2;
-		static const long ID_BUTTON3;
-		static const long ID_PANEL5;
-		static const long ID_TEXTCTRL2;
-		static const long ID_STATICTEXT7;
-		static const long ID_HYPERLINKCTRL3;
-		static const long ID_BUTTON1;
-		static const long ID_PANEL4;
-		static const long ID_NOTEBOOK1;
-		static const long ID_PANEL1;
-		static const long ID_SPLITTERWINDOW1;
+		static const wxWindowID ID_TREECTRL1;
+		static const wxWindowID ID_TEXTCTRL3;
+		static const wxWindowID ID_BUTTON4;
+		static const wxWindowID ID_PANEL3;
+		static const wxWindowID ID_CHECKBOX1;
+		static const wxWindowID ID_STATICBITMAP1;
+		static const wxWindowID ID_TEXTCTRL1;
+		static const wxWindowID ID_STATICTEXT8;
+		static const wxWindowID ID_HYPERLINKCTRL4;
+		static const wxWindowID ID_STATICTEXT4;
+		static const wxWindowID ID_HYPERLINKCTRL2;
+		static const wxWindowID ID_PANEL2;
+		static const wxWindowID ID_BUTTON2;
+		static const wxWindowID ID_STATICBITMAP2;
+		static const wxWindowID ID_ANIMATIONCTRL1;
+		static const wxWindowID ID_BUTTON3;
+		static const wxWindowID ID_PANEL5;
+		static const wxWindowID ID_TEXTCTRL2;
+		static const wxWindowID ID_STATICTEXT7;
+		static const wxWindowID ID_HYPERLINKCTRL3;
+		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_PANEL4;
+		static const wxWindowID ID_NOTEBOOK1;
+		static const wxWindowID ID_PANEL1;
+		static const wxWindowID ID_SPLITTERWINDOW1;
 		//*)
 
 	private:

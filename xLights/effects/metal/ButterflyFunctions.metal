@@ -5,10 +5,11 @@ using namespace metal;
 
 #include "MetalEffectDataTypes.h"
 
+constant half pi2 = 3.14159h * 2.0h;
+constant half pi = 3.14159h;
 constant half4 K = half4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-constant float pi2 = 3.14159*2.0;
-
 uchar4 hsv2rgb(half3 c) {
+    c = clamp(c, 0.0h, 1.0h);
     half3 p = abs(fract(c.xxx + K.xyz) * 6.0h - K.www);
     c = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0h, 1.0h), c.y);
     return uchar4(c.r * 255.0h, c.g * 255.0h, c.b * 255.0h, 255);
@@ -155,4 +156,79 @@ kernel void ButterflyEffectStyle5(constant ButterflyData &data,
             result[index] = getMultiColorBlend(data, h, false);
         }
     }
+}
+
+
+
+kernel void ButterflyEffectPlasmaStyles(constant ButterflyData &data,
+                                        device uchar4* result,
+                                        uint index [[thread_position_in_grid]]) {
+    const half invh = 1.0h / ((half)(data.height));
+    const half invw = 1.0h / ((half)(data.width));
+    const half time = data.plasmaTime;
+    const half onehalf = 1.0 / 2.0;
+    const half onethird = 1.0 / 3.0;
+    const half halfTime = time / 2.0;
+    const half thirdTime = time / 3.0;
+    const half fifthTime = time / 5.0;
+    const half chunks = data.chunks;
+
+    if (index > (data.width * data.height)) return;
+    int x = index % data.width;
+    int y = index / data.width;
+    
+    half v = 0;
+
+    half rx = ((half)x) * invw - 0.5h;
+    half ry = ((half)y) * invh - 0.5h;
+
+    // 1st equation
+    v = sin(rx * 10.0h + time);
+            
+    //  second equation
+    v += sin(10.0h * (rx * sin(halfTime) + ry * cos(thirdTime)) + time);
+            
+    //  third equation
+    float cx = rx + 0.5h * sin(fifthTime);
+    float cy = ry + 0.5h * cos(thirdTime);
+    v += sin(sqrt(100*((cx*cx)+(cy*cy))+1+time));
+                            
+    v += sin(rx + time);
+    v += sin((ry + time) * onehalf);
+    v += sin((rx + ry + time) * onehalf);
+    
+    v += sin(sqrt(rx * rx + ry * ry + 1.0) + time);
+    v = v * onehalf;
+            
+    uchar4 color;
+    color.a = 255;
+    switch (data.plasmaStyle) {
+        case 6:
+            color.r = (sin(v * chunks * pi) + 1.0h) * 128.0h;
+            color.g= (cos(v * chunks * pi) + 1.0h) * 128.0h;
+            color.b = 0;
+        break;
+        case 7:
+            color.r = 1;
+            color.g = (cos(v * chunks * pi) + 1.0h) * 128.0h;
+            color.b = (sin(v * chunks * pi) + 1.0h) * 128.0h;
+            break;
+        case 8:
+            color.r = (sin(v * chunks * pi) + 1.0h) * 128.0h;
+            color.g= (sin(v * chunks * pi + 2.0h * pi * onethird) + 1.0h) * 128.0h;
+            color.b =(sin(v * chunks * pi + 4.0h * pi * onethird) + 1.0h) * 128.0h;
+            break;
+        case 9:
+            color.r = color.g = color.b = (sin(v * chunks * pi) + 1.0h) * 128.0h;
+            break;
+        case 10:
+            if (data.numColors >= 2) {
+                half h = sin(v * chunks * pi + 2.0h * pi * onethird) + 0.5h;
+                color = getMultiColorBlend(data, h, false);
+            } else {
+                color.r = 0; color.g = 0; color.b = 0;
+            }
+            break;
+    }
+    result[index] = color;
 }

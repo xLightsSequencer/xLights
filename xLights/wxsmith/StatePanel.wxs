@@ -135,6 +135,42 @@
 				<border>2</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>3</cols>
+					<growablecols>1</growablecols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText3" member="yes">
+							<label>Fade(ms)</label>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_State_Fade_Time" subclass="BulkEditSlider" variable="SLIDER_State_Fade_Time" member="yes">
+							<max>1000</max>
+							<tickfreq>100</tickfreq>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_State_Fade_Time" subclass="BulkEditTextCtrl" variable="TextCtrl_State_Fade_Time" member="yes">
+							<value>0</value>
+							<maxlength>4</maxlength>
+							<size>45,-1</size>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>

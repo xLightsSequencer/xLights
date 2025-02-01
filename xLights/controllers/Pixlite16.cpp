@@ -1129,7 +1129,7 @@ bool Pixlite16::GetMK3Config()
 
     if (_mk3APIVersion != "") {
         std::string request = "{\"req\":\"configRead\",\"id\":1,\"params\":{\"path\":[\"\"]}}";
-        _mk3Config = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request);
+        _mk3Config = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
 
         wxJSONValue jsonVal;
         wxJSONReader reader;
@@ -1192,7 +1192,7 @@ bool Pixlite16::GetMK3Config()
             }
 
             request = "{\"req\":\"constantRead\",\"id\":1,\"params\":{\"path\":[\"\"]}}";
-            _mk3Constants = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request);
+            _mk3Constants = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
 
             return true;
         }
@@ -1431,7 +1431,12 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"zigZag\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += wxString::Format("%d", _config._outputZigZag[i]);
+        if (_config._outputZigZag[i] == 0) {
+            request += "1";
+        }
+        else {
+            request += wxString::Format("%d", _config._outputZigZag[i]);
+        }
         if (i != pp - 1) {
             request += ",";
         }
@@ -1479,14 +1484,23 @@ bool Pixlite16::SendMk3Config(bool logresult) const
     // aux port
     request += "\"auxPort\":{";
 
-    request += "\"dataSrc\": [";
+    bool alloff = true;
     for (uint8_t i = 0; i < _config._dmxOn.size(); ++i) {
-        request += _config._protocol == 0 ? "\"sACN\"" : "\"Art-Net\"";
-        if (i != _config._dmxOn.size() - 1) {
-            request += ",";
+        if (_config._dmxOn[i]) {
+            alloff = false;
         }
     }
-    request += "],";
+
+    if (!alloff) {
+        request += "\"dataSrc\": [";
+        for (uint8_t i = 0; i < _config._dmxOn.size(); ++i) {
+            request += _config._protocol == 0 ? "\"sACN\"" : "\"Art-Net\"";
+            if (i != _config._dmxOn.size() - 1) {
+                request += ",";
+            }
+        }
+        request += "],";
+    }                   
 
     request += "\"mode\": [";
     for (uint8_t i = 0; i < _config._dmxOn.size(); ++i) {
@@ -1499,16 +1513,18 @@ bool Pixlite16::SendMk3Config(bool logresult) const
             request += ",";
         }
     }
-    request += "],";
-
-    request += "\"uni\":[";
-    for (uint8_t i = 0; i < _config._dmxUniverse.size(); ++i) {
-        request += wxString::Format("%d", _config._dmxUniverse[i]);
-        if (i != _config._dmxUniverse.size() - 1) {
-            request += ",";
-        }
-    }
     request += "]";
+
+    if (!alloff) {
+        request += ",\"uni\":[";
+        for (uint8_t i = 0; i < _config._dmxUniverse.size(); ++i) {
+            request += wxString::Format("%d", _config._dmxUniverse[i]);
+            if (i != _config._dmxUniverse.size() - 1) {
+                request += ",";
+            }
+        }
+        request += "]";
+    }
 
     request += "}";
 
@@ -1516,7 +1532,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     logger_base.debug(request);
 
-    auto res = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request);
+    auto res = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
 
     logger_base.debug(res);
 

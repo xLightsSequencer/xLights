@@ -55,6 +55,7 @@
 								<item>FFmpeg QSV</item>
 								<item>FFmpeg Vulkan</item>
 								<item>FFmpeg AMF</item>
+								<item>FFmpeg DirectX11</item>
 							</content>
 							<selection>1</selection>
 							<handler function="OnControlChanged" entry="EVT_CHOICE" />
@@ -207,7 +208,7 @@
 					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 				</object>
 				<col>0</col>
-				<row>8</row>
+				<row>9</row>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
@@ -295,6 +296,37 @@
 				</object>
 				<col>0</col>
 				<row>7</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+					<cols>2</cols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText7" member="yes">
+							<label>Model reanaming alias behavior:</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE_ALIASPROMPT" variable="Choice_AliasPromptBehavior" member="yes">
+							<content>
+								<item>Always Prompt</item>
+								<item>Always Yes</item>
+								<item>Always No</item>
+							</content>
+							<selection>0</selection>
+							<handler function="OnControlChanged" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<col>0</col>
+				<row>8</row>
 				<flag>wxALL|wxEXPAND</flag>
 				<option>1</option>
 			</object>

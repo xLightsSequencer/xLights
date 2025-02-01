@@ -925,6 +925,14 @@ bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &new
 
     if (RemoveDuplicates()) {
         changed = true;
+        wxString oss;
+        for (size_t i = 0; i < modelNames.size(); ++i) {
+            oss << modelNames[i];
+            if (i < modelNames.size() - 1) {
+                oss << ",";
+            }
+        }
+        newVal = oss;
     }
 
     if (changed) {

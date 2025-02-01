@@ -13,6 +13,8 @@
 #include <map>
 #include <string>
 #include <wx/panel.h>
+#include <wx/tglbtn.h>
+#include <wx/bmpbuttn.h>
 
 #include "../xlLockButton.h"
 
@@ -92,3 +94,8 @@ protected:
     wxTimer *changeTimer;
 };
 
+
+class LinkedToggleButton : public wxBitmapToggleButton {
+public:
+    LinkedToggleButton(wxWindow* parent, wxWindowID id, const wxString& label, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name);
+};

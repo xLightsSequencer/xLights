@@ -70,7 +70,7 @@ protected:
     bool _tempDisable = false;
     bool _fromBase = false;
 
-    std::map<std::string, std::string> _runtimeProperties;  // place to store various properties/state/etc that may be needed at runtime
+    std::map<std::string, std::string> _extraProperties;  
 #pragma endregion
 
 public:
@@ -190,14 +190,14 @@ public:
 
     Output::PINGSTATE GetLastPingState() const { return _lastPingResult; }
 
-    const std::string &GetRuntimeProperty(const std::string &p, const std::string &def = "") const {
-        const auto &a = _runtimeProperties.find(p);
-        if (a != _runtimeProperties.end()) {
+    const std::string &GetExtraProperty(const std::string &p, const std::string &def = "") const {
+        const auto &a = _extraProperties.find(p);
+        if (a != _extraProperties.end()) {
             return a->second;
         }
         return def;
     }
-    void SetRuntimeProperty(const std::string &p, const std::string &v) { _runtimeProperties[p] = v;}
+    void SetExtraProperty(const std::string &p, const std::string &v) { _extraProperties[p] = v;}
     #pragma endregion
 
     #pragma region Virtual Functions
@@ -301,7 +301,7 @@ public:
         void AddModels(wxPGProperty* property, wxPGProperty* vp);
         void AddVariants(wxPGProperty* property);
 
-        virtual void UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties);
+        virtual void UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager);
         virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties);
 	    virtual bool HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager);
         virtual void ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid) const;

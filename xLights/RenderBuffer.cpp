@@ -798,6 +798,45 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
             tempbuf = &tempbufVector[0];
         }
     }
+    
+    blendBuffer.resize(Nodes.size());
+    int indexCount = Nodes.size();
+    for (auto &n : Nodes) {
+        if (n->Coords.size() > 1) {
+            indexCount += n->Coords.size() + 1;
+        }
+    }
+    if (indexVector.size() < indexCount) {
+        indexVector.resize(indexCount);
+    }
+    allSimpleIndex = true;
+    int idx = 0;
+    int extraIdx = Nodes.size();
+    for (auto &n : Nodes) {
+        if (n->Coords.size() > 1) {
+            allSimpleIndex = false;
+            indexVector[idx] = extraIdx | 0x80000000;
+            int countIdx = extraIdx++;
+            indexVector[countIdx] = n->Coords.size();
+            for (auto &c : n->Coords) {
+                if (c.bufY < 0 || c.bufY >= BufferHt ||
+                    c.bufX < 0 || c.bufX >= BufferWi ) {
+                    indexVector[countIdx] -= 1;
+                } else {
+                    int32_t pidx = c.bufY * BufferWi + c.bufX;
+                    indexVector[extraIdx++] = pidx;
+                }
+            }
+        } else if (n->Coords[0].bufY < 0 || n->Coords[0].bufY >= BufferHt ||
+                   n->Coords[0].bufX < 0 || n->Coords[0].bufX >= BufferWi ) {
+            indexVector[idx] = 0xFFFFFFFF;
+        } else {
+            int32_t pidx = n->Coords[0].bufY * BufferWi + n->Coords[0].bufX;
+            indexVector[idx] = pidx;
+        }
+        ++idx;
+    }
+    
     isTransformed = (bufferTransform != "None");
 }
 
@@ -816,64 +855,6 @@ void RenderBuffer::SetPalette(xlColorVector& newcolors, xlColorCurveVector& newc
 size_t RenderBuffer::GetColorCount()
 {
     return palette.Size();
-}
-
-class SinTable {
-public:
-    static constexpr float precision = 300.0f; // gradations per Pi, 942 entries of size float is under 4K or less than a memory page
-    static constexpr int modulus = (int)(M_PI * precision) + 1;
-    static constexpr int modulus2 = modulus * 2;
-
-    SinTable() {
-        for (int i = 0; i<modulus; i++) {
-            float f = i;
-            f /= precision;
-            table[i]=sinf(f);
-        }
-        /*
-        for (int x = -720; x <= 720; x++) {
-            float s = ((float)x)*3.14159f/180.0f;
-            printf("%d:\t%f\t%f\n", x, this->cos(s), cosf(s));
-        }
-         */
-    }
-    ~SinTable() {
-    }
-    float table[modulus]; // lookup table
-
-    float sinLookup(int a) {
-        if (a >= 0) {
-            int idx = a%(modulus2);
-            if (idx >= modulus) {
-                idx -= modulus;
-                return -table[idx];
-            }
-            return table[idx];
-        }
-        int idx = -a%(modulus2);
-        if (idx >= modulus) {
-            idx -= modulus;
-            return table[idx];
-        }
-        return -table[idx];
-    }
-    float sin(float rad) {
-        float idx = rad * precision + 0.5f;
-        return sinLookup((int)idx);
-    }
-    float cos(float a) {
-        return this->sin(a + M_PI_2);
-    }
-};
-static SinTable sinTable;
-
-float RenderBuffer::sin(float rad)
-{
-    return sinTable.sin(rad);
-}
-float RenderBuffer::cos(float rad)
-{
-    return sinTable.cos(rad);
 }
 
 // generates a random number between num1 and num2 inclusive
@@ -1592,6 +1573,9 @@ void RenderBuffer::SetDisplayListVRect(Effect *eff, int idx, float x1, float y1,
 void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, float x1, float y1, float x2, float y2,
                                     const xlColor &cx1y1, const xlColor &cx1y2,
                                     const xlColor &cx2y1, const xlColor &cx2y2) {
+    if (!eff->IsBackgroundDisplayListEnabled()) {
+        return;
+    }
 
     xlColor* colorMask = eff->GetColorMask();
     xlColor maskcx1y1 = cx1y1;
@@ -1626,6 +1610,9 @@ void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, float x1, float y1, 
 }
 
 void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex, int inc) {
+    if (!eff->IsBackgroundDisplayListEnabled()) {
+        return;
+    }
     std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
     int count = curEffEndPer - curEffStartPer + 1;
 
@@ -1642,7 +1629,7 @@ void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex
 
         int idx = cur * count + (curPeriod - curEffStartPer);
         cur++;
-        SetDisplayListHRect(eff, idx*6, x, y, x2, y2, c, c);
+        SetDisplayListHRect(eff, idx * 6, x, y, x2, y2, c, c);
     }
 }
 
@@ -1715,5 +1702,11 @@ void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)
             }
             dmx->EnableFixedChannels(pixelVector);
         }
+    }
+}
+
+void RenderBuffer::EnableFixedDMXChannels(const DmxModel* dmx) {
+    if (dmx != nullptr) {
+        dmx->EnableFixedChannels(pixelVector);
     }
 }

@@ -3,19 +3,25 @@
 		<SupportsPixelPortBrightness/>
 		<SupportsPixelPortColourOrder/>
         <SupportsUpload/>
-        <MaxInputUniverses>9</MaxInputUniverses>
+        <MaxInputUniverses>36</MaxInputUniverses>
         <MaxSerialPortChannels>0</MaxSerialPortChannels>
         <MaxPixelPortChannels>2250</MaxPixelPortChannels>
         <AllInputUniversesMustBeSameSize/>
         <UniversesMustBeSequential/>
+        <SupportsFullxLightsControl/>
+        <SupportsDefaultBrightness/>
         <SupportsAutoLayout/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
         </PixelProtocols>
-        <SerialProtocols/>
         <InputProtocols>
             <Protocol>ddp</Protocol>
+            <Protocol>artnet</Protocol>
+            <Protocol>e131</Protocol>
         </InputProtocols>
+        <SerialProtocols>
+            <Protocol>dmx</Protocol>
+        </SerialProtocols>
         <ConfigDriver>ILightThat</ConfigDriver>
     </AbstractVariant>
     <Controller Name="Baldrick 8 Port v1">
@@ -24,4 +30,25 @@
 			<MaxSerialPort>0</MaxSerialPort>
 		</Variant>
     </Controller>
+    <Controller Name="Baldrick8">
+		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
+			<MaxPixelPort>8</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+		</Variant>
+	</Controller>
+	<Controller Name="BaldrickSwitchy">
+		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
+			<MaxPixelPort>4</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>3</MaxPixelPortChannels>
+			<MaxInputUniverses>1</MaxInputUniverses>
+		</Variant>
+	</Controller>
+	<Controller Name="BaldrickDMX">
+		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>1</MaxSerialPort>
+			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+		</Variant>
+	</Controller>
 </Vendor>

@@ -44,12 +44,10 @@
 #define DoInAppPurchases(w)
 #define WXGLUnsetCurrentContext()
 #define GetOSFormattedClipboardData() ""
-#define StartGraphicsSyncPoint()
-#define EndGraphicsSyncPoint()
 #define SetThreadQOS(a)
 
 inline double xlOSGetMainScreenContentScaleFactor() { return 1.0; }
-inline bool ObtainAccessToURL(const std::string &path) { return true; }
+inline bool ObtainAccessToURL(const std::string &path, bool enforceWritable = false) { return true; }
 inline bool IsFromAppStore() { return false; }
 inline void AdjustColorToDeviceColorspace(const wxColor& c, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a) { r = c.Red(); g = c.Green(); b = c.Blue(); a = c.Alpha();}
 inline bool IsMouseEventFromTouchpad() { return false; }
