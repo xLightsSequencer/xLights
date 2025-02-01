@@ -1,14 +1,14 @@
 export struct VideoData {
-    uint32 width;
-    uint32 height;
-    int32 yoffset;
-    int32 xoffset;
-    int32 ytail;
-    int32 xtail;
+    uint16 width;
+    uint16 height;
+    int16 yoffset;
+    int16 xoffset;
+    int16 ytail;
+    int16 xtail;
     bool transparentBlack;
-    int32 transparentBlackLevel;
-    int32 image_width;
-    int32 image_height;
+    int16 transparentBlackLevel;
+    int16 image_width;
+    int16 image_height;
     int32 startx;
     int32 starty;
     int32 sampleSpacing;
@@ -42,13 +42,9 @@ export void VideoEffectProcess(const uniform VideoData &data,
         c.w = ch == 3 ? 255 : *(ptr + 3);
         if (data.transparentBlack) {
             int level = c.x + c.y + c.z;
-            if (level <= data.transparentBlackLevel) {
-                c.x = 0;
-                c.y = 0;
-                c.z = 0;
-                c.w = 0;
+            if (level > data.transparentBlackLevel) {
+                result[newindex] = c;
             }
-            result[newindex] = c;
         } else {
             result[newindex] = c;
         }

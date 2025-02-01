@@ -50,16 +50,16 @@ struct uint8_t4 { uint8_t v[4]; } __attribute__ ((aligned(4)));
 #ifndef __ISPC_STRUCT_VideoData__
 #define __ISPC_STRUCT_VideoData__
 struct VideoData {
-    uint32_t width;
-    uint32_t height;
-    int32_t yoffset;
-    int32_t xoffset;
-    int32_t ytail;
-    int32_t xtail;
+    uint16_t width;
+    uint16_t height;
+    int16_t yoffset;
+    int16_t xoffset;
+    int16_t ytail;
+    int16_t xtail;
     bool transparentBlack;
-    int32_t transparentBlackLevel;
-    int32_t image_width;
-    int32_t image_height;
+    int16_t transparentBlackLevel;
+    int16_t image_width;
+    int16_t image_height;
     int32_t startx;
     int32_t starty;
     int32_t sampleSpacing;
