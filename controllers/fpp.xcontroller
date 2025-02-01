@@ -171,7 +171,7 @@
     <Controller Name="Virtual Matrix">
         <Variant Name="" ID="Virtual Matrix" Base="FPP:BaseFPPSettings">
             <MaxPixelPort>0</MaxPixelPort>
-            <MaxSerialPort>1</MaxSerialPort>
+            <MaxSerialPort>2</MaxSerialPort>
             <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>0</MaxPixelPortChannels>
             <SupportsVirtualMatrix/>
@@ -426,6 +426,26 @@
             <PlayerOnly/>
             <PreferredInputProtocol>Player Only</PreferredInputProtocol>
             <ConfigDriver>FPP</ConfigDriver>
+        </Variant>
+    </Controller>
+    <Controller Name="Serial/USB-DMX">
+        <Variant Name="" ID="Serial/USB-DMX" Base="FPP:BaseFPPSettings">
+            <MaxPixelPort>0</MaxPixelPort>
+            <MaxSerialPort>4</MaxSerialPort>
+            <MaxSerialPortChannels>512</MaxSerialPortChannels>
+            <MaxPixelPortChannels>0</MaxPixelPortChannels>
+            <SupportsAutoLayout/>
+            <PixelProtocols>
+            </PixelProtocols>
+            <SerialProtocols>
+                <Protocol>DMX-Open</Protocol>
+                <Protocol>DMX-Pro</Protocol>
+                <Protocol>GenericSerial</Protocol>
+                <Protocol>LOR</Protocol>
+                <Protocol>Pixelnet-Lynx</Protocol>
+                <Protocol>Pixelnet-Open</Protocol>
+                <Protocol>Renard</Protocol>
+            </SerialProtocols>
         </Variant>
     </Controller>
 </Vendor>
