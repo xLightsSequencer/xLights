@@ -2240,24 +2240,27 @@ void xLightsImportChannelMapDialog::MarkUsed()
     for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
         auto model = _dataModel->GetNthChild(i);
         if (model->_mapping != "") {
-            if (std::find(used.begin(), used.end(), model->_mapping) == used.end()) {
-                used.push_back(model->_mapping);
+            std::string lowerMapping = ::Lower(model->_mapping);
+            if (std::find(used.begin(), used.end(), lowerMapping) == used.end()) {
+                used.push_back(lowerMapping);
             }
         }
 
         for (unsigned int j = 0; j < model->GetChildCount(); ++j) {
             auto strand = model->GetNthChild(j);
             if (strand->_mapping != "") {
-                if (std::find(used.begin(), used.end(), strand->_mapping) == used.end()) {
-                    used.push_back(strand->_mapping);
+                std::string lowerMapping = ::Lower(strand->_mapping);
+                if (std::find(used.begin(), used.end(), lowerMapping) == used.end()) {
+                    used.push_back(lowerMapping);
                 }
             }
 
             for (unsigned int k = 0; k < strand->GetChildCount(); ++k) {
                 auto node = strand->GetNthChild(k);
                 if (node->_mapping != "") {
-                    if (std::find(used.begin(), used.end(), node->_mapping) == used.end()) {
-                        used.push_back(node->_mapping);
+                    std::string lowerMapping = ::Lower(node->_mapping);
+                    if (std::find(used.begin(), used.end(), lowerMapping) == used.end()) {
+                        used.push_back(lowerMapping);
                     }
                 }
             }
@@ -2269,7 +2272,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
     int items = ListCtrl_Available->GetItemCount();
     ListCtrl_Available->Freeze();
     for (int i = 0; i < items; ++i) {
-        if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i).ToStdString())) {
+        if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i).Lower().ToStdString())) {
             // not used
             ImportChannel* im = GetImportChannel(ListCtrl_Available->GetItemText(i).ToStdString());
             if (im != nullptr && im->type == "ModelGroup") {
@@ -2448,6 +2451,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
 {
     if (_dataModel == nullptr) return;
 
+    _dirty = true;
     DoAutoMap(norm, norm, norm, "", "", "B", false);
     DoAutoMap(aggressive, aggressive, aggressive, "", "", "B", false);
 
@@ -2470,6 +2474,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapSelClick(wxCommandEvent& eve
     if (_dataModel == nullptr)
         return;
 
+    _dirty = true;
     DoAutoMap(norm, norm, norm, "", "", "B", true);
     DoAutoMap(aggressive, aggressive, aggressive, "", "", "B", true);
 
