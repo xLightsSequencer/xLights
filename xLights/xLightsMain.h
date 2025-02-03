@@ -20,6 +20,8 @@
     #endif
 #endif
 
+// #define ENABLE_SERVICES
+
 // Every time this regenerates from code blocks you will need to remove wx/led.h
 
 //(*Headers(xLightsFrame)
@@ -1308,6 +1310,9 @@ public:
 
     bool HidePresetPreview() const { return _hidePresetPreview;}
     void SetHidePresetPreview(bool b);
+
+    void SetServiceSetting(const std::string& setting, const std::string& value);
+    std::string GetServiceSetting(const std::string& setting, const std::string& defaultValue = "");
 
     bool IsShowBaseShowFolder() const
     {

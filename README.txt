@@ -11,7 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2025.02 January 27, 2024
+2025.02 January 27, 2025
     - enh (cybercop23)      Enable replay button without needing to first hit play
     - enh (cybercop23)      Add ability to remove model(s) from existing groups from popup menus
     - enh (cybercop23)      Add popup menu option to add timing track to all views
@@ -35,7 +35,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - bug (derwin12)        Fix problems opening HTML check sequence report in some cases
     - bug (dkulp)           Don't pollute the recent sequences list during batch render
     - bug (dkulp)           Fix some crashes with canvas mode effects with ispc rendering
-2025.01 January 20, 2024
+2025.01 January 20, 2025
     - enh (dkulp)           MacOS/Linux - start using ISPC to use SIMD/SSE/AVX/NEON for certain effect renderings
                                 - Butterfly effect ported to ISPC
                                 - Plasma effect ported to ISPC
