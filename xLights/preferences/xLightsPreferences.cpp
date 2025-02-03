@@ -22,6 +22,7 @@
 #include "ColorManagerSettingsPanel.h"
 #include "OtherSettingsPanel.h"
 #include "CheckSequenceSettingsPanel.h"
+#include "ServicesPanel.h"
 
 #include "grid_icon.xpm"
 #include "settings_panel_icon.xpm"
@@ -96,6 +97,11 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
 
         f = [this] (wxWindow *p) { return (wxWindow*)(new OtherSettingsPanel(p, this));};
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Other", settingIcon, f));
+
+        #ifdef ENABLE_SERVICES
+        f = [this] (wxWindow *p) { return (wxWindow*)(new ServicesPanel(p, this));};
+        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Services", wxArtProvider::GetBitmap("xlART_SETTINGS", wxART_BUTTON, wxSize(64, 64)), f));
+        #endif
     }
 
     mPreferencesEditor->Show(this);
