@@ -1099,6 +1099,10 @@
     <ClCompile Include="effects\ispc\ISPCComputeUtilities.cpp">
       <Filter>Effects\ispc</Filter>
     </ClCompile>
+    <ClCompile Include="ServicesPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="chatGPT.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2207,6 +2211,10 @@
     <ClInclude Include="effects\ispc\PinwheelFunctions.ispc.h" />
     <ClInclude Include="effects\ispc\PlasmaFunctions.ispc.h" />
     <ClInclude Include="effects\ispc\SpacialColors.ispc.h" />
+    <ClInclude Include="ServicesPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="chatGPT.h" />
     <ClInclude Include="effects\ispc\VideoFunctions.ispc.h" />
   </ItemGroup>
   <ItemGroup>

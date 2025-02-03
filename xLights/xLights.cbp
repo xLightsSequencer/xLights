@@ -409,6 +409,8 @@
 		<Unit filename="SequenceVideoPreview.h" />
 		<Unit filename="SequenceViewManager.cpp" />
 		<Unit filename="SequenceViewManager.h" />
+		<Unit filename="ServicesPanel.cpp" />
+		<Unit filename="ServicesPanel.h" />
 		<Unit filename="SevenSegmentDialog.cpp" />
 		<Unit filename="SevenSegmentDialog.h" />
 		<Unit filename="ShaderDownloadDialog.cpp" />
@@ -506,6 +508,8 @@
 		<Unit filename="cad/STLWriter.h" />
 		<Unit filename="cad/VRMLWriter.cpp" />
 		<Unit filename="cad/VRMLWriter.h" />
+		<Unit filename="chatGPT.h" />		
+		<Unit filename="chatGPT.cpp" />		
 		<Unit filename="controllers/AlphaPix.cpp" />
 		<Unit filename="controllers/AlphaPix.h" />
 		<Unit filename="controllers/BaseController.cpp" />
@@ -1289,6 +1293,7 @@
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
 		<Unit filename="wxsmith/SequenceFileSettingsPanel.wxs" />
 		<Unit filename="wxsmith/SequenceVideoPanel.wxs" />
+		<Unit filename="wxsmith/ServicesPanel.wxs" />
 		<Unit filename="wxsmith/ServoConfigDialog.wxs" />
 		<Unit filename="wxsmith/ServoPanel.wxs" />
 		<Unit filename="wxsmith/SevenSegmentDialog.wxs" />
@@ -1561,6 +1566,7 @@
 					<wxDialog wxs="wxsmith/EditAliasesDialog.wxs" src="EditAliasesDialog.cpp" hdr="EditAliasesDialog.h" fwddecl="0" i18n="1" name="EditAliasesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EditSubmodelAliasesDialog.wxs" src="EditSubmodelAliasesDialog.cpp" hdr="EditSubmodelAliasesDialog.h" fwddecl="0" i18n="1" name="EditSubmodelAliasesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ShowFolderSearchDialog.wxs" src="ShowFolderSearchDialog.cpp" hdr="ShowFolderSearchDialog.h" fwddecl="0" i18n="1" name="ShowFolderSearchDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/ServicesPanel.wxs" src="ServicesPanel.cpp" hdr="ServicesPanel.h" fwddecl="0" i18n="1" name="ServicesPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

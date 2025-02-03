@@ -492,6 +492,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="automation\LuaRunner.cpp" />
     <ClCompile Include="automation\PythonRunner.cpp" />
     <ClCompile Include="automation\xLightsAutomations.cpp" />
+    <ClCompile Include="chatGPT.cpp" />
     <ClCompile Include="controllers\ILightThat.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditColourPickerDialog.cpp" />
@@ -604,6 +605,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="models\DMX\MovingHeads\MhChannelDialog.cpp" />
     <ClCompile Include="models\DMX\MovingHeads\MhFeature.cpp" />
     <ClCompile Include="models\DMX\MovingHeads\MhFeatureDialog.cpp" />
+    <ClCompile Include="ServicesPanel.cpp" />
     <ClCompile Include="ShowFolderSearchDialog.cpp" />
     <ClCompile Include="SpecialOptions.cpp" />
     <ClCompile Include="TempFileManager.cpp" />
@@ -1005,6 +1007,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="automation\automation.h" />
     <ClInclude Include="automation\LuaRunner.h" />
     <ClInclude Include="automation\PythonRunner.h" />
+    <ClInclude Include="chatGPT.h" />
     <ClInclude Include="controllers\ILightThat.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditColourPickerDialog.h" />
@@ -1133,6 +1136,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="models\DMX\MovingHeads\MhFeature.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhFeatureDialog.h" />
     <ClInclude Include="models\XmlSerializer.h" />
+    <ClInclude Include="ServicesPanel.h" />
     <ClInclude Include="ShowFolderSearchDialog.h" />
     <ClInclude Include="TempFileManager.h" />
     <ClInclude Include="utils\CurlManager.h" />

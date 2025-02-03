@@ -10728,3 +10728,19 @@ void xLightsFrame::OnMenuItemFindShowFolderSelected(wxCommandEvent& event)
     ShowFolderSearchDialog dlg(this);
     dlg.ShowModal();
 }
+
+void xLightsFrame::SetServiceSetting(const std::string& key, const std::string& value)
+{
+    // It would be nice if we had a secret we  could encrypt these with
+	wxConfigBase* config = wxConfigBase::Get();
+	config->Write(wxString("xLightsServiceSettings" + key), wxString(value));
+	config->Flush();
+}
+
+std::string xLightsFrame::GetServiceSetting(const std::string& key, const std::string& defaultValue)
+{
+    // It would be nice if we had a secret we  could encrypt these with
+    wxConfigBase* config = wxConfigBase::Get();
+    wxString value = config->Read(wxString("xLightsServiceSettings" + key), wxString(defaultValue));
+    return value.ToStdString();
+}
