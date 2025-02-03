@@ -2211,11 +2211,14 @@
     <ClInclude Include="effects\ispc\PinwheelFunctions.ispc.h" />
     <ClInclude Include="effects\ispc\PlasmaFunctions.ispc.h" />
     <ClInclude Include="effects\ispc\SpacialColors.ispc.h" />
+    <ClInclude Include="effects\ispc\VideoFunctions.ispc.h" />
     <ClInclude Include="ServicesPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
     <ClInclude Include="chatGPT.h" />
+=========
     <ClInclude Include="effects\ispc\VideoFunctions.ispc.h" />
+>>>>>>>>> Temporary merge branch 2
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
