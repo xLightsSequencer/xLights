@@ -2216,9 +2216,7 @@
       <Filter>Preferences</Filter>
     </ClInclude>
     <ClInclude Include="chatGPT.h" />
-=========
     <ClInclude Include="effects\ispc\VideoFunctions.ispc.h" />
->>>>>>>>> Temporary merge branch 2
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
