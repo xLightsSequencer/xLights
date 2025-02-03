@@ -1,6 +1,6 @@
 #include "chatGPT.h"
 #include "xLightsMain.h"
-#include "utils/curl.h"
+#include "utils/Curl.h"
 
 #include <vector>
 #include <string>
