@@ -605,7 +605,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="models\DMX\MovingHeads\MhChannelDialog.cpp" />
     <ClCompile Include="models\DMX\MovingHeads\MhFeature.cpp" />
     <ClCompile Include="models\DMX\MovingHeads\MhFeatureDialog.cpp" />
-    <ClCompile Include="ServicesPanel.cpp" />
+    <ClCompile Include="preferences\ServicesPanel.cpp" />
     <ClCompile Include="ShowFolderSearchDialog.cpp" />
     <ClCompile Include="SpecialOptions.cpp" />
     <ClCompile Include="TempFileManager.cpp" />
@@ -1133,7 +1133,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="models\DMX\MovingHeads\MhFeature.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhFeatureDialog.h" />
     <ClInclude Include="models\XmlSerializer.h" />
-    <ClInclude Include="ServicesPanel.h" />
+    <ClInclude Include="preferences\ServicesPanel.h" />
     <ClInclude Include="ShowFolderSearchDialog.h" />
     <ClInclude Include="TempFileManager.h" />
     <ClInclude Include="utils\CurlManager.h" />

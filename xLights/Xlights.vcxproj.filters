@@ -1099,7 +1099,7 @@
     <ClCompile Include="effects\ispc\ISPCComputeUtilities.cpp">
       <Filter>Effects\ispc</Filter>
     </ClCompile>
-    <ClCompile Include="ServicesPanel.cpp">
+    <ClCompile Include="preferences\ServicesPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
     <ClCompile Include="chatGPT.cpp" />
@@ -2211,7 +2211,7 @@
     <ClInclude Include="effects\ispc\PinwheelFunctions.ispc.h" />
     <ClInclude Include="effects\ispc\PlasmaFunctions.ispc.h" />
     <ClInclude Include="effects\ispc\SpacialColors.ispc.h" />
-    <ClInclude Include="ServicesPanel.h">
+    <ClInclude Include="preferences\ServicesPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
     <ClInclude Include="chatGPT.h" />
