@@ -442,6 +442,7 @@ const wxWindowID xLightsImportChannelMapDialog::ID_SPINCTRL1 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX1 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX11 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX4 = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX5 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX2 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_STATICTEXT_BLEND_TYPE = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX3 = wxNewId();
@@ -526,7 +527,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     CheckBox_MapCCRStrand->SetValue(false);
     FlexGridSizer1->Add(CheckBox_MapCCRStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer11 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer11->AddGrowableCol(0);
     CheckBox_EraseExistingEffects = new wxCheckBox(Panel1, ID_CHECKBOX11, _("Erase existing effects on imported models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX11"));
     CheckBox_EraseExistingEffects->SetValue(false);
@@ -534,6 +535,10 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     CheckBox_LockEffects = new wxCheckBox(Panel1, ID_CHECKBOX4, _("Lock effects on import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
     CheckBox_LockEffects->SetValue(true);
     FlexGridSizer11->Add(CheckBox_LockEffects, 1, wxALL|wxEXPAND, 5);
+    CheckBox_ConvertRenderStyle = new wxCheckBox(Panel1, ID_CHECKBOX5, _("Convert Render Style"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
+    CheckBox_ConvertRenderStyle->SetValue(false);
+    CheckBox_ConvertRenderStyle->SetToolTip(_("When mapping model to group, convert render styles to \'Per Model\' when applicable"));
+    FlexGridSizer11->Add(CheckBox_ConvertRenderStyle, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 1);
     FlexGridSizer_Blend_Mode = new wxFlexGridSizer(0, 2, 0, 0);
     CheckBox_Import_Blend_Mode = new wxCheckBox(Panel1, ID_CHECKBOX2, _("Import Model Blend Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
@@ -616,6 +621,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     OldSizer->SetSizeHints(this);
 
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick);
+    Connect(ID_CHECKBOX5, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBox_ConvertRenderStyleClick);
     Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBoxImportMediaClick);
     Connect(ID_BUTTON_IMPORT_OPTIONS, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButtonImportOptionsClick);
     Connect(ID_TEXTCTRL2, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindToText);
@@ -663,6 +669,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 
     wxConfigBase* config = wxConfigBase::Get();
     CheckBox_LockEffects->SetValue(config->ReadBool("ImportEffectsLocked", false));
+    CheckBox_ConvertRenderStyle->SetValue(config->ReadBool("ImportEffectsRenderStyle", false));
 
     EnsureWindowHeaderIsOnScreen(this);
 }
@@ -912,6 +919,15 @@ bool xLightsImportChannelMapDialog::IsLockEffects() const
     wxConfigBase* config = wxConfigBase::Get();
     bool b = CheckBox_LockEffects->IsChecked();
     config->Write("ImportEffectsLocked", b);
+    config->Flush();
+    return b;
+}
+
+bool xLightsImportChannelMapDialog::IsConvertRenderStyle() const
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    bool b = CheckBox_ConvertRenderStyle->IsChecked();
+    config->Write("ImportEffectsRenderStyle", b);
     config->Flush();
     return b;
 }
@@ -2813,4 +2829,8 @@ void xLightsImportChannelMapDialog::OnClose(wxCloseEvent& event)
     } else {
         EndDialog(wxID_CANCEL);
     }
+}
+
+void xLightsImportChannelMapDialog::OnCheckBox_ConvertRenderStyleClick(wxCommandEvent& event)
+{
 }

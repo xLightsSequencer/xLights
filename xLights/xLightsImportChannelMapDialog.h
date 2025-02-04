@@ -382,7 +382,8 @@ class xLightsImportChannelMapDialog: public wxDialog
         bool InitImport(std::string checkboxText = "");
         void SetModelBlending(bool enabled);
         [[nodiscard]] bool GetImportModelBlending() const;
-        [[nodiscard]] bool IsLockEffects() const;
+        [[nodiscard]] bool IsLockEffects() const; 
+        [[nodiscard]] bool IsConvertRenderStyle() const; 
         void SetXsqPkg(SequencePackage* xsqPkg);
         [[nodiscard]] std::vector<std::string> const GetChannelNames() const;
         [[nodiscard]] ImportChannel* GetImportChannel(std::string const& name) const;
@@ -399,6 +400,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxButton* Button_UpdateAliases;
 		wxCheckBox* CheckBoxImportMedia;
+		wxCheckBox* CheckBox_ConvertRenderStyle;
 		wxCheckBox* CheckBox_EraseExistingEffects;
 		wxCheckBox* CheckBox_Import_Blend_Mode;
 		wxCheckBox* CheckBox_LockEffects;
@@ -444,6 +446,7 @@ protected:
 		static const wxWindowID ID_CHECKBOX1;
 		static const wxWindowID ID_CHECKBOX11;
 		static const wxWindowID ID_CHECKBOX4;
+		static const wxWindowID ID_CHECKBOX5;
 		static const wxWindowID ID_CHECKBOX2;
 		static const wxWindowID ID_STATICTEXT_BLEND_TYPE;
 		static const wxWindowID ID_CHECKBOX3;
@@ -488,7 +491,7 @@ protected:
 		void OnListCtrl_AvailableColumnClick(wxListEvent& event);
 		void OnCheckBox_MapCCRStrandClick(wxCommandEvent& event);
 		void OnButton_AutoMapClick(wxCommandEvent& event);
-        void OnButton_AutoMapSelClick(wxCommandEvent& event);
+		void OnButton_AutoMapSelClick(wxCommandEvent& event);
 		void OnListCtrl_AvailableItemActivated(wxListEvent& event);
 		void OnButtonImportOptionsClick(wxCommandEvent& event);
 		void OnCheckBoxImportMediaClick(wxCommandEvent& event);
@@ -497,6 +500,7 @@ protected:
 		void OnButton_UpdateAliasesClick(wxCommandEvent& event);
 		void OnClose(wxCloseEvent& event);
 		void OnInit(wxInitDialogEvent& event);
+		void OnCheckBox_ConvertRenderStyleClick(wxCommandEvent& event);
 		//*)
 
         void RightClickTimingTracks(wxContextMenuEvent& event);

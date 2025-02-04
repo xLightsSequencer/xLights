@@ -4,7 +4,6 @@
 		<title>Map Channels</title>
 		<id_arg>0</id_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxFULL_REPAINT_ON_RESIZE</style>
-		<handler function="OnInit" entry="EVT_INIT_DIALOG" />
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="OldSizer" member="yes">
 			<cols>1</cols>
@@ -65,7 +64,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="yes">
-									<cols>2</cols>
+									<cols>3</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
 										<object class="wxCheckBox" name="ID_CHECKBOX11" variable="CheckBox_EraseExistingEffects" member="yes">
@@ -81,6 +80,16 @@
 											<checked>1</checked>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_ConvertRenderStyle" member="yes">
+											<label>Convert Render Style</label>
+											<tooltip>When mapping model to group, convert render styles to &apos;Per Model&apos; when applicable</tooltip>
+											<handler function="OnCheckBox_ConvertRenderStyleClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
@@ -147,7 +156,6 @@
 									<object class="sizeritem">
 										<object class="wxCheckListBox" name="ID_CHECKLISTBOX1" variable="TimingTrackListBox" member="yes">
 											<style>wxLB_MULTIPLE|wxVSCROLL</style>
-											<handler function="OnTimingTrackListBoxToggled" entry="EVT_CHECKLISTBOX" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<option>1</option>

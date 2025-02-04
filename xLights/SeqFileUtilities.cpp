@@ -1056,8 +1056,9 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     }
 }
 
-void MapXLightsEffects(EffectLayer* target, EffectLayer* src, std::vector<EffectLayer*>& mapped, bool eraseExisting, SequencePackage& xsqPkg, bool lock, const std::map<std::string, std::string>& mapping)
-{
+void MapXLightsEffects(EffectLayer* target, EffectLayer* src, std::vector<EffectLayer*>& mapped,
+                       bool eraseExisting, SequencePackage& xsqPkg,
+                       bool lock, const std::map<std::string, std::string>& mapping, bool convertRender) {
     if (eraseExisting)
         target->DeleteAllEffects();
 
@@ -1091,6 +1092,30 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src, std::vector<Effect
                 if (m != nullptr) {
                     auto mg = dynamic_cast<const ModelGroup*>(m);
                     if (mg != nullptr) {
+
+                        if (convertRender) {
+                            Model* sm = src->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->GetModel(src->GetParentElement()->GetModelName());
+                            if (sm != nullptr) {
+                                if (sm->GetDisplayAs() != "ModelGroup") {
+                                    auto buffer = ef->GetSettings()["B_CHOICE_BufferStyle"];
+                                    if (buffer == "Per Preview" || buffer == "Default" || buffer == "Single Line") {
+                                        Replace(settings, "B_CHOICE_BufferStyle=" + buffer,
+                                                "B_CHOICE_BufferStyle=Per Model " + buffer);
+                                    } else if (buffer.empty()) {
+                                        if (Contains(settings, "B_CHOICE_BufferStyle")) {
+                                            Replace(settings, "B_CHOICE_BufferStyle=",
+                                                    "B_CHOICE_BufferStyle=Per Model Default");
+                                        } else {
+                                            if (!settings.empty()) {
+                                                settings += ",";
+                                            }
+                                            settings += "B_CHOICE_BufferStyle=Per Model Default";
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         // so is it a per preview render buffer
                         auto rb = ef->GetSettings()["B_CHOICE_BufferStyle"];
                         if (BufferPanel::CanRenderBufferUseCamera(rb)) {
@@ -1132,7 +1157,7 @@ void MapXLightsStrandEffects(EffectLayer* target, const std::string& name,
                              std::map<std::string, EffectLayer*>& layerMap,
                              SequenceElements& seqEl,
                              std::vector<EffectLayer*>& mapped, bool eraseExisting,
-                             SequencePackage& xsqPkg, bool lock, const std::map<std::string, std::string>& mapping)
+                             SequencePackage& xsqPkg, bool lock, const std::map<std::string, std::string>& mapping, bool convertRender)
 {
     EffectLayer* src = layerMap[name];
     if (src == nullptr) {
@@ -1144,7 +1169,7 @@ void MapXLightsStrandEffects(EffectLayer* target, const std::string& name,
         src = srcEl->GetEffectLayer(0);
     }
     if (src != nullptr) {
-        MapXLightsEffects(target, src, mapped, eraseExisting, xsqPkg, lock, mapping);
+        MapXLightsEffects(target, src, mapped, eraseExisting, xsqPkg, lock, mapping, convertRender);
     } else {
         printf("Source strand %s doesn't exist\n", name.c_str());
     }
@@ -1156,7 +1181,7 @@ void MapXLightsEffects(Element* target,
                        std::map<std::string, Element*>& elementMap,
                        std::map<std::string, EffectLayer*>& layerMap,
                        std::vector<EffectLayer*>& mapped, bool eraseExisting,
-                       SequencePackage& xsqPkg, bool lock, const std::map<std::string, std::string>& mapping)
+                       SequencePackage& xsqPkg, bool lock, const std::map<std::string, std::string>& mapping, bool convertRender)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (target->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
@@ -1170,7 +1195,7 @@ void MapXLightsEffects(Element* target,
     Element* el = elementMap[name];
 
     if (src != nullptr) {
-        MapXLightsEffects(target->GetEffectLayer(0), src, mapped, eraseExisting, xsqPkg, lock, mapping);
+        MapXLightsEffects(target->GetEffectLayer(0), src, mapped, eraseExisting, xsqPkg, lock, mapping, convertRender);
         return;
     }
 
@@ -1189,7 +1214,7 @@ void MapXLightsEffects(Element* target,
     }
     for (size_t x = 0; x < el->GetEffectLayerCount(); ++x) {
         target->GetEffectLayer(x)->SetLayerName(el->GetEffectLayer(x)->GetLayerName());
-        MapXLightsEffects(target->GetEffectLayer(x), el->GetEffectLayer(x), mapped, eraseExisting, xsqPkg, lock, mapping);
+        MapXLightsEffects(target->GetEffectLayer(x), el->GetEffectLayer(x), mapped, eraseExisting, xsqPkg, lock, mapping, convertRender);
     }
 }
 
@@ -1352,6 +1377,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
     }
 
     bool lock = dlg.IsLockEffects();
+    bool convertRender = dlg.IsConvertRenderStyle();
 
     // if the user is importing at least one timing element and the current sequence only has one timing track called New Timing with no timing marks in it ...
     if (dlg.TimingTrackListBox->GetCount() > 0 && _sequenceElements.GetNumberOfTimingElements() == 1 && _sequenceElements.GetTimingElement("New Timing") != nullptr && !_sequenceElements.GetTimingElement("New Timing")->HasEffects()) {
@@ -1393,7 +1419,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 }
                 EffectLayer* dst = target->GetEffectLayer(l);
                 std::vector<EffectLayer*> mapped2;
-                MapXLightsEffects(dst, src, mapped2, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping);
+                MapXLightsEffects(dst, src, mapped2, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping, convertRender);
             }
         }
     }
@@ -1415,7 +1441,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
             if (model == nullptr) {
                 logger_base.error("Attempt to add model %s during xLights import failed.", (const char*)modelName.c_str());
             } else {
-                MapXLightsEffects(model, m->_mapping, se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping);
+                MapXLightsEffects(model, m->_mapping, se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping, convertRender);
             }
         }
 
@@ -1432,7 +1458,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 } else {
                     SubModelElement* ste = model->GetSubModel(str);
                     if (ste != nullptr) {
-                        MapXLightsEffects(ste, s->_mapping, se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping);
+                        MapXLightsEffects(ste, s->_mapping, se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping, convertRender);
                     }
                 }
             }
@@ -1450,7 +1476,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                         if (stre != nullptr) {
                             NodeLayer* nl = stre->GetNodeLayer(n, true);
                             if (nl != nullptr) {
-                                MapXLightsStrandEffects(nl, ns->_mapping, layerMap, se, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping);
+                                MapXLightsStrandEffects(nl, ns->_mapping, layerMap, se, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping, convertRender);
                             }
                         }
                     }
