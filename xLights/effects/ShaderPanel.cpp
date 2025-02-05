@@ -241,10 +241,6 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 
 bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceElements)
 {
-    if (_shaderConfig != nullptr && _shaderConfig->GetFilename() == filename && !_shaderConfig->UsesEvents()) {
-        return false;
-    }
-
     Freeze();
 
     FlexGridSizer_Dynamic->DeleteWindows();
