@@ -1108,6 +1108,7 @@
     <ClCompile Include="ai\chatGPT.cpp">
       <Filter>ai</Filter>
     </ClCompile>
+    <ClCompile Include="CheckSequenceReport.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1780,7 +1781,6 @@
     <ClInclude Include="outputs\LOROutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="CheckboxSelectDialog.h" />
     <ClInclude Include="EmailDialog.h" />
     <ClInclude Include="DragValueCurveBitmapButton.h" />
     <ClInclude Include="ValueCurvesPanel.h" />
@@ -2225,6 +2225,7 @@
     <ClInclude Include="ai\chatGPT.h">
       <Filter>ai</Filter>
     </ClInclude>
+    <ClInclude Include="CheckSequenceReport.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
