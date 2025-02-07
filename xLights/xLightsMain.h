@@ -20,7 +20,7 @@
     #endif
 #endif
 
-// #define ENABLE_SERVICES
+#define ENABLE_SERVICES
 
 // Every time this regenerates from code blocks you will need to remove wx/led.h
 

@@ -8,11 +8,13 @@
 
 #include <log4cpp/Category.hh>
 
+// https://platform.openai.com/docs/api-reference/introduction
+
 #define CHATGPT_API_URL "https://api.openai.com/v1/chat/completions"
 
 // we may want to make these user controlled in the future or even feature controlled
 #define CHATGPT_MODEL "gpt-4o-mini"
-#define TEMPERATURE "0.1"
+#define TEMPERATURE "0.0"
 
 // to get a list of models curl https://api.openai.com/v1/models -H "Authorization: Bearer YOUR_API_KEY"
 

@@ -8005,3 +8005,57 @@ std::string Model::GetAttributesAsJSON() const
     json += "}}";
     return json;
 }
+
+// Determines a simplified class for a model to be used by LLMs for better model understanding
+std::string Model::DetermineClass(const std::string& displayAs, bool isSingingFace, bool isSpiralTree, bool isSticks, const std::string& dropPattern) {
+    // drop pattern dir is 1 if dropping down and -1 if going up .. 0 if no drop pattern
+    int dropPatternDir = 0;
+    if (dropPattern != "") {
+        auto drops = wxSplit(dropPattern, ',');
+        for (const auto& it : drops) {
+            int i = wxAtoi(it);
+            if (i != 0) {
+                dropPatternDir = i < 0 ? -1 : 1;
+                break;
+            }
+        }
+    }
+
+    if (displayAs == "Custom" && isSingingFace) {
+        return "SingingFace";
+    }
+
+    if ((displayAs == "Candy Canes" && isSticks) || (displayAs == "Poly Line" && dropPatternDir == -1)) {
+        return "Sticks";
+    }
+
+    if (displayAs == "Icicles" || (displayAs == "Poly Line" && dropPatternDir == 1)) {
+        return "Icicles";
+    }
+
+    if (displayAs == "Single Line" || displayAs == "Poly Line" || displayAs == "Arches" || displayAs == "Candy Canes" || displayAs == "Circle" || isSpiralTree || displayAs == "Window Frame") {
+        return "Line";
+    }
+
+    if (displayAs == "Horiz Matrix" || displayAs == "Vert Matrix" || StartsWith(displayAs, "Tree ")) {
+        return "Matrix";
+    }
+
+    if (displayAs == "Channel Block" || displayAs == "Image") {
+        return "Pixel";
+    }
+
+    if (displayAs == "DmxMovingHeadAdv") {
+        return "Moving Head";
+    }
+
+    if (displayAs == "DmxFloodlight" || displayAs == "DmxFloodArea") {
+        return "Floodlight";
+    }
+
+    if (displayAs == "DmxGeneral" || displayAs == "DmxServo" || displayAs == "DmxSkull") {
+        return "DMX Special Purpose";
+    }
+
+    return "";
+}
