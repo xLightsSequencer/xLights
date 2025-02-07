@@ -2534,7 +2534,7 @@ void xLightsImportChannelMapDialog::DoAIAutoMap(bool select) {
     prompt = prompt.replace(prompt.find("{sourcemodels}"), 13, sourceDescription);
     prompt = prompt.replace(prompt.find("{targetmodels}"), 13, targetDescription);
 
-    wxProgressDialog* dlg = new wxProgressDialog("Generating mapping", "Please give me some time to map your models.", 0, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_SMOOTH);
+    wxProgressDialog* dlg = new wxProgressDialog("Generating mapping", "Please give me some time to map your models. This can take up to a minute.", 0, this, wxPD_APP_MODAL | wxPD_SMOOTH);
     dlg->Show();
 
     std::string response = CallChatGPT(xlights, prompt, "");
