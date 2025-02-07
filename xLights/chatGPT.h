@@ -16,3 +16,4 @@ class xLightsFrame;
 
 std::string CallChatGPT(xLightsFrame* frame, const std::string& prompt, const std::string& token = "");
 bool TestChatGPT(xLightsFrame* frame, const std::string& token = "");
+bool IsChatGPTAvailable(xLightsFrame* frame, const std::string& token = "");

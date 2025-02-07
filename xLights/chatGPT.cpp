@@ -1,6 +1,7 @@
 #include "chatGPT.h"
 #include "xLightsMain.h"
 #include "utils/Curl.h"
+#include "UtilFunctions.h"
 
 #include <vector>
 #include <string>
@@ -15,6 +16,10 @@
 
 // to get a list of models curl https://api.openai.com/v1/models -H "Authorization: Bearer YOUR_API_KEY"
 
+bool IsChatGPTAvailable(xLightsFrame* frame, const std::string& token) {
+    return token != "" || frame->GetServiceSetting("ChatGPTBearerToken") != "";
+}
+
 std::string CallChatGPT(xLightsFrame* frame, const std::string& prompt, const std::string& token) {
 
 	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -28,7 +33,13 @@ std::string CallChatGPT(xLightsFrame* frame, const std::string& prompt, const st
 		return "";
 	}
 
-	std::string request = "{ \"model\": \"" + std::string(CHATGPT_MODEL) + "\", \"messages\": [ { \"role\": \"user\",\"content\": \"" + prompt + "\" } ] , \"temperature\": "+std::string(TEMPERATURE)+" }";
+	// remove all \t, \r and \n as chatGPT does not like it
+    std::string p = prompt;
+    Replace(p, std::string("\t"), std::string(" "));
+    Replace(p, std::string("\r"), std::string(""));
+    Replace(p, std::string("\n"), std::string("\\n"));
+
+	std::string request = "{ \"model\": \"" + std::string(CHATGPT_MODEL) + "\", \"messages\": [ { \"role\": \"user\",\"content\": \"" + JSONSafe(p) + "\" } ] , \"temperature\": " + std::string(TEMPERATURE) + " }";
 
 	std::vector<std::pair<std::string, std::string>> customHeaders = {
         { "Authorization", "Bearer " + bearerToken }

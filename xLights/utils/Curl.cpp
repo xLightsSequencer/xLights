@@ -284,6 +284,8 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
         logger_curl.info("BODY START ----------");
         logger_curl.info("%s", (const char*)body.c_str());
         logger_curl.info("BODY END ----------");
+        logger_curl.info("BODY SIZE: %d", body.size());
+        logger_curl.info("TIMEOUT: %d", timeout);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
@@ -478,35 +480,35 @@ std::string Curl::HTTPSGet(const std::string& s, const std::string& user, const 
 int Curl::CurlDebug(CURL* handle, curl_infotype type, char* data, size_t size, void* userp)
 {
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     switch (type) {
     case CURLINFO_TEXT:
         // strip off the cr
         if (strlen(data) > 0 && data[strlen(data) - 1] == '\n')
             data[strlen(data) - 1] = 0x00;
-        logger_base.debug("== Info: %s", data);
+        logger_curl.debug("== Info: %s", data);
         /* FALLTHROUGH */
     default: /* in case a new one is introduced to shock us */
         return 0;
 
     case CURLINFO_HEADER_OUT:
-        logger_base.debug("=> Send header %lu", size);
+        logger_curl.debug("=> Send header %lu", size);
         break;
     case CURLINFO_DATA_OUT:
-        logger_base.debug("=> Send data %lu", size);
+        logger_curl.debug("=> Send data %lu", size);
         break;
     case CURLINFO_SSL_DATA_OUT:
-        logger_base.debug("=> Send SSL data %lu", size);
+        logger_curl.debug("=> Send SSL data %lu", size);
         break;
     case CURLINFO_HEADER_IN:
         logger_curl.debug("<= Recv header %lu %s", size, data);
-        logger_base.debug("<= Recv header %lu", size);
+        logger_curl.debug("<= Recv header %lu", size);
         break;
     case CURLINFO_DATA_IN:
-        logger_base.debug("<= Recv data %lu", size);
+        logger_curl.debug("<= Recv data %lu", size);
         break;
     case CURLINFO_SSL_DATA_IN:
-        logger_base.debug("<= Recv SSL data %lu", size);
+        logger_curl.debug("<= Recv SSL data %lu", size);
         break;
     }
 

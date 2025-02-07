@@ -153,6 +153,9 @@ Source: "../../meshobjects/*.*"; DestDir: "{app}/meshobjects"   ; Flags: ignorev
 ; Controllers
 Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: ignoreversion recursesubdirs
 
+; Prompts
+Source: "../../prompts/*.*"; DestDir: "{app}/prompts"   ; Flags: ignoreversion recursesubdirs
+
 ; Palettes
 Source: "../../palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: ignoreversion recursesubdirs
 

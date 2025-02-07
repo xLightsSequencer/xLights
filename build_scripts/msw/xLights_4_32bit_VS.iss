@@ -127,6 +127,9 @@ Source: "../../mhpresets/*.*"; DestDir: "{app}/mhpresets"   ; Flags: ignoreversi
 ; Controllers
 Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: ignoreversion recursesubdirs
 
+; Prompts
+Source: "../../prompts/*.*"; DestDir: "{app}/prompts"   ; Flags: ignoreversion recursesubdirs
+
 ; Palettes
 Source: "../../palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: ignoreversion recursesubdirs
 
