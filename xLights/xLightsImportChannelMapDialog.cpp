@@ -35,7 +35,7 @@
 #include "../../xSchedule/wxJSON/jsonwriter.h"
 #include "xlColourData.h"
 #include "utils/string_utils.h"
-#include "chatGPT.h"
+#include "ai/aiBase.h"
 
 #include <algorithm>
 #include <fstream>
@@ -678,8 +678,8 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     wxConfigBase* config = wxConfigBase::Get();
     CheckBox_LockEffects->SetValue(config->ReadBool("ImportEffectsLocked", false));
 
-    Button_AIMap->Enable(IsChatGPTAvailable(xlights));
-
+    auto ai = xlights->GetLLM();
+    Button_AIMap->Enable(ai != nullptr);
 
     EnsureWindowHeaderIsOnScreen(this);
 }
@@ -2522,7 +2522,11 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
 
     logger_base.debug("Prompt: %s", prompt.c_str());
 
-    std::string response = CallChatGPT(xlights, prompt, "");
+    auto ai = xlights->GetLLM();
+    if (ai == nullptr)
+        return false;
+
+    std::string response = ai->CallLLM(prompt, "");
 
     logger_base.debug("Response: %s", response.c_str());
 
@@ -2564,12 +2568,15 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
     return mapped;
 }
 
-bool xLightsImportChannelMapDialog::AIModelMap(wxProgressDialog* dlg, const std::string& aiEngine, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
+bool xLightsImportChannelMapDialog::AIModelMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
     // we only model map if there are models in target
     if (targetModels.size() == 0)
         return false;
 
-    std::string prompt = GetAIPrompt(aiEngine + "_AI_Model_AutoMap.txt");
+    auto llm = xlights->GetLLM();
+    if (llm == nullptr)
+        return false;
+    std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_Model_AutoMap.txt");
 
     // exclude pixels and strands
     std::string sourceModelsPrompt = BuildSourceModelPrompt(sourceModels, [](const ImportChannel* m) { return !m->IsNode() && !m->IsStrand(); });
@@ -2591,7 +2598,7 @@ bool xLightsImportChannelMapDialog::AIModelMap(wxProgressDialog* dlg, const std:
     return res;
 }
 
-bool xLightsImportChannelMapDialog::AISubModelMap(wxProgressDialog* dlg, const std::string& aiEngine, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
+bool xLightsImportChannelMapDialog::AISubModelMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
     // we only submodel map if there are submodels in target
     int submodelCount = 0;
     for (const auto& it : targetModels) {
@@ -2603,7 +2610,10 @@ bool xLightsImportChannelMapDialog::AISubModelMap(wxProgressDialog* dlg, const s
     if (submodelCount == 0)
         return false;
 
-    std::string prompt = GetAIPrompt(aiEngine + "_AI_SubModel_AutoMap.txt");
+    auto llm = xlights->GetLLM();
+    if (llm == nullptr)
+        return false;
+    std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_SubModel_AutoMap.txt");
 
     // exclude pixels and strands
     std::string sourceModelsPrompt = BuildSourceModelPrompt(sourceModels, [](const ImportChannel* m) { return !m->IsNode() && !m->IsStrand(); });
@@ -2625,7 +2635,7 @@ bool xLightsImportChannelMapDialog::AISubModelMap(wxProgressDialog* dlg, const s
     return res;
 }
 
-bool xLightsImportChannelMapDialog::AIStrandMap(wxProgressDialog* dlg, const std::string& aiEngine, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
+bool xLightsImportChannelMapDialog::AIStrandMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
     // we only strand map if there source models which are strands
     int strandCount = 0;
     for (const auto& it : sourceModels) {
@@ -2637,7 +2647,10 @@ bool xLightsImportChannelMapDialog::AIStrandMap(wxProgressDialog* dlg, const std
     if (strandCount == 0)
         return false;
 
-    std::string prompt = GetAIPrompt(aiEngine + "_AI_Strand_AutoMap.txt");
+    auto llm = xlights->GetLLM();
+    if (llm == nullptr)
+		return false;
+    std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_Strand_AutoMap.txt");
 
     // only include strands
     std::string sourceModelsPrompt = BuildSourceModelPrompt(sourceModels, [](const ImportChannel* m) { return m->IsStrand(); });
@@ -2661,7 +2674,7 @@ bool xLightsImportChannelMapDialog::AIStrandMap(wxProgressDialog* dlg, const std
 
 #define AI_NODE_COUNT_LIMIT 16
 
-bool xLightsImportChannelMapDialog::AINodeMap(wxProgressDialog* dlg, const std::string& aiEngine, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
+bool xLightsImportChannelMapDialog::AINodeMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
     // we only node map if there are > 0 models in target with < 16 nodes and there is some node level sequencing
     int nodeModelCount = 0;
     for (const auto& it : sourceModels) {
@@ -2681,7 +2694,10 @@ bool xLightsImportChannelMapDialog::AINodeMap(wxProgressDialog* dlg, const std::
     if (nodeModelCount == 0)
         return false;
 
-    std::string prompt = GetAIPrompt(aiEngine + "_AI_Node_AutoMap.txt");
+    auto llm = xlights->GetLLM();
+    if (llm == nullptr)
+        return false;
+    std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_Node_AutoMap.txt");
 
     // include all node level sequencing
     std::string sourceModelsPrompt = BuildSourceModelPrompt(sourceModels, [](const ImportChannel* m) { return m->IsNode(); });
@@ -2789,13 +2805,13 @@ void xLightsImportChannelMapDialog::DoAIAutoMap(bool select) {
     wxProgressDialog* dlg = new wxProgressDialog("Generating mapping", "Please give me some time to map your models. This can take a minute or two.", 100, this, wxPD_APP_MODAL | wxPD_SMOOTH | wxPD_AUTO_HIDE);
     dlg->Show();
 
-    bool mapped = AIModelMap(dlg, "ChatGPT", sourceModels, targetModels);
+    bool mapped = AIModelMap(dlg, sourceModels, targetModels);
     TreeListCtrl_Mapping->Refresh();
-    mapped = AISubModelMap(dlg, "ChatGPT", sourceModels, targetModels) || mapped;
+    mapped = AISubModelMap(dlg, sourceModels, targetModels) || mapped;
     TreeListCtrl_Mapping->Refresh();
-    mapped = AIStrandMap(dlg, "ChatGPT", sourceModels, targetModels) || mapped;
+    mapped = AIStrandMap(dlg, sourceModels, targetModels) || mapped;
     TreeListCtrl_Mapping->Refresh();
-    mapped = AINodeMap(dlg, "ChatGPT", sourceModels, targetModels) || mapped;
+    mapped = AINodeMap(dlg, sourceModels, targetModels) || mapped;
 
     delete dlg;
 

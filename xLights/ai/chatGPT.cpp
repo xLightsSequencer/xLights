@@ -8,27 +8,18 @@
 
 #include <log4cpp/Category.hh>
 
-// https://platform.openai.com/docs/api-reference/introduction
 
-#define CHATGPT_API_URL "https://api.openai.com/v1/chat/completions"
-
-// we may want to make these user controlled in the future or even feature controlled
-#define CHATGPT_MODEL "gpt-4o-mini"
-#define TEMPERATURE "0.0"
-
-// to get a list of models curl https://api.openai.com/v1/models -H "Authorization: Bearer YOUR_API_KEY"
-
-bool IsChatGPTAvailable(xLightsFrame* frame, const std::string& token) {
-    return token != "" || frame->GetServiceSetting("ChatGPTBearerToken") != "";
+bool chatGPT::IsAvailable(const std::string& token) const {
+    return token != "" || _frame->GetServiceSetting("ChatGPTBearerToken") != "";
 }
 
-std::string CallChatGPT(xLightsFrame* frame, const std::string& prompt, const std::string& token) {
+std::string chatGPT::CallLLM(const std::string& prompt, const std::string& token) const {
 
 	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
 	std::string bearerToken = token;
     
-	if (bearerToken == "") bearerToken = frame->GetServiceSetting("ChatGPTBearerToken");
+	if (bearerToken == "") bearerToken = _frame->GetServiceSetting("ChatGPTBearerToken");
 
 	if (token == "" && bearerToken.empty()) {
 		wxMessageBox("You must set a ChatGPT Bearer Token in the Preferences on the Services Panel", "Error", wxICON_ERROR);
@@ -41,7 +32,7 @@ std::string CallChatGPT(xLightsFrame* frame, const std::string& prompt, const st
     Replace(p, std::string("\r"), std::string(""));
     Replace(p, std::string("\n"), std::string("\\n"));
 
-	std::string request = "{ \"model\": \"" + std::string(CHATGPT_MODEL) + "\", \"messages\": [ { \"role\": \"user\",\"content\": \"" + JSONSafe(p) + "\" } ] , \"temperature\": " + std::string(TEMPERATURE) + " }";
+	std::string request = "{ \"model\": \"" + model + "\", \"messages\": [ { \"role\": \"user\",\"content\": \"" + JSONSafe(p) + "\" } ] , \"temperature\": " + std::to_string(temperature) + " }";
 
 	std::vector<std::pair<std::string, std::string>> customHeaders = {
         { "Authorization", "Bearer " + bearerToken }
@@ -50,7 +41,7 @@ std::string CallChatGPT(xLightsFrame* frame, const std::string& prompt, const st
     logger_base.debug("ChatGPT: %s", request.c_str());
 
 	int responseCode = 0;	
-	std::string response = Curl::HTTPSPost(CHATGPT_API_URL, request, "", "", "JSON", 60, customHeaders, &responseCode);
+	std::string response = Curl::HTTPSPost(url, request, "", "", "JSON", 60, customHeaders, &responseCode);
 
     logger_base.debug("ChatGPT Response %d: %s", responseCode, response.c_str());
 
@@ -85,8 +76,8 @@ std::string CallChatGPT(xLightsFrame* frame, const std::string& prompt, const st
     return response;
 }
 
-bool TestChatGPT(xLightsFrame* frame, const std::string& token) {
-	std::string response = CallChatGPT(frame, "Hello", token);
+bool chatGPT::TestLLM(const std::string& token) const {
+	std::string response = CallLLM("Hello", token);
 	if (response.empty()) {
 		return false;
 	}

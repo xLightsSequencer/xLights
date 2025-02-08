@@ -440,10 +440,10 @@ class xLightsImportChannelMapDialog: public wxDialog
     std::list<std::unique_ptr<StashedMapping>> _stashedMappings;
     StashedMapping* GetStashedMapping(wxString const& modelName, wxString const& strandName, wxString const& nodeName);
     bool AnyStashedMappingExists(wxString const& modelName, wxString const& strandName);
-    bool AIModelMap(wxProgressDialog* dlg, const std::string& aiEngine, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
-    bool AISubModelMap(wxProgressDialog* dlg, const std::string& aiEngine, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
-    bool AIStrandMap(wxProgressDialog* dlg, const std::string& aiEngine, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
-    bool AINodeMap(wxProgressDialog* dlg, const std::string& aiEngine, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
+    bool AIModelMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
+    bool AISubModelMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
+    bool AIStrandMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
+    bool AINodeMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
     std::string GetAIPrompt(const std::string& promptType);
     std::string BuildSourceModelPrompt(const std::list<ImportChannel*>& sourceModels, std::function<bool(const ImportChannel*)> filter);
     std::string BuildTargetModelPrompt(const std::list<xLightsImportModelNode*>& targetModels, std::function<bool(const xLightsImportModelNode*)> filter);

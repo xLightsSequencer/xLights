@@ -1,5 +1,7 @@
 # Lines in prompts which have a # at the first character are comments and should be ignored. They will not be passed to the LLM.
 #
+# This is the LLM generic prompt. Copy this file and prefix with the appropriate LLM name followed by an underscore for an LLM specific prompt.
+#
 # This prompt is used in AI mapping of sequences to submodels.
 # Submodels can receive effects from models, submodels or groups in the source sequence.
 #

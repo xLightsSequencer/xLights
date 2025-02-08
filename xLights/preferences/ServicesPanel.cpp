@@ -1,7 +1,7 @@
 #include "ServicesPanel.h"
 
 #include "xLightsMain.h"
-#include "chatGPT.h"
+#include "ai/chatGPT.h"
 
 //(*InternalHeaders(ServicesPanel)
 #include <wx/intl.h>
@@ -176,7 +176,8 @@ void ServicesPanel::OnButtonTestClick(wxCommandEvent& event) {
         if (IsServiceValid(servicesList->GetItemText(i, 0), servicesList->GetItemText(i,1), servicesList->GetItemText(i,2), servicesList->GetItemText(i,3)))
         {
             if (servicesList->GetItemText(i, 0) == "ChatGPT") {
-                if (TestChatGPT(frame, servicesList->GetItemText(i, 2))) {
+                chatGPT llm(frame);
+                if (llm.TestLLM(servicesList->GetItemText(i, 2))) {
                     wxMessageBox("Service " + servicesList->GetItemText(i, 0) + " is valid", "Success", wxICON_INFORMATION);
                 } else {
                     wxMessageBox("Service " + servicesList->GetItemText(i, 0) + " is not valid", "Error", wxICON_ERROR);

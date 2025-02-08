@@ -117,6 +117,7 @@
 #include "TempFileManager.h"
 #include "xlColourData.h"
 #include "utils/Curl.h"
+#include "ai/chatGPT.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -10743,4 +10744,17 @@ std::string xLightsFrame::GetServiceSetting(const std::string& key, const std::s
     wxConfigBase* config = wxConfigBase::Get();
     wxString value = config->Read(wxString("xLightsServiceSettings" + key), wxString(defaultValue));
     return value.ToStdString();
+}
+
+std::unique_ptr<aiBase> xLightsFrame::GetLLM()
+{
+    // we arrange these in priority order ... although in reality users are likely to only have one
+    // maybe we need to give the user control over the order of use (although i am not sure when it would use anything other than the top one)
+
+    auto gpt = std::make_unique<chatGPT>(chatGPT(this));
+    if (gpt->IsAvailable()) {
+		return gpt;
+	}
+
+    return nullptr;
 }

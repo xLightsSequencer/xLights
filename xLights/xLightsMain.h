@@ -89,6 +89,7 @@
 
 class wxDebugReport;
 
+class aiBase;
 class ControllerCaps;
 class EffectTreeDialog;
 class ConvertDialog;
@@ -1313,6 +1314,7 @@ public:
 
     void SetServiceSetting(const std::string& setting, const std::string& value);
     std::string GetServiceSetting(const std::string& setting, const std::string& defaultValue = "");
+    std::unique_ptr<aiBase> GetLLM();
 
     bool IsShowBaseShowFolder() const
     {

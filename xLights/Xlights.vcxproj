@@ -497,13 +497,14 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="ai\aiBase.cpp" />
+    <ClCompile Include="ai\chatGPT.cpp" />
     <ClCompile Include="AlignmentDialog.cpp" />
     <ClCompile Include="AutoLabelDialog.cpp" />
     <ClCompile Include="automation\automation.cpp" />
     <ClCompile Include="automation\LuaRunner.cpp" />
     <ClCompile Include="automation\PythonRunner.cpp" />
     <ClCompile Include="automation\xLightsAutomations.cpp" />
-    <ClCompile Include="chatGPT.cpp" />
     <ClCompile Include="controllers\ILightThat.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditColourPickerDialog.cpp" />
@@ -1013,12 +1014,13 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\xSchedule\wxHTTPServer\sha1.h" />
     <ClInclude Include="..\xSchedule\wxHTTPServer\wxhttpserver.h" />
     <ClInclude Include="AboutDialog.h" />
+    <ClInclude Include="ai\aiBase.h" />
+    <ClInclude Include="ai\chatGPT.h" />
     <ClInclude Include="AlignmentDialog.h" />
     <ClInclude Include="AutoLabelDialog.h" />
     <ClInclude Include="automation\automation.h" />
     <ClInclude Include="automation\LuaRunner.h" />
     <ClInclude Include="automation\PythonRunner.h" />
-    <ClInclude Include="chatGPT.h" />
     <ClInclude Include="controllers\ILightThat.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditColourPickerDialog.h" />
@@ -1542,13 +1544,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\documentation\xlDo Commands.txt" />
-    <Text Include="..\prompts\ChatGPT_AI_Model_AutoMap.txt">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
-    </Text>
-    <Text Include="..\prompts\ChatGPT_AI_Node_AutoMap.txt" />
-    <Text Include="..\prompts\ChatGPT_AI_Strand_AutoMap.txt" />
-    <Text Include="..\prompts\ChatGPT_AI_SubModel_AutoMap.txt" />
+    <Text Include="..\prompts\AI_Model_AutoMap.txt" />
+    <Text Include="..\prompts\AI_Node_AutoMap.txt" />
+    <Text Include="..\prompts\AI_Strand_AutoMap.txt" />
+    <Text Include="..\prompts\AI_SubModel_AutoMap.txt" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="effects\ispc\LayerBlendingFunctions.ispc">

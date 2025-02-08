@@ -506,8 +506,10 @@
 		<Unit filename="cad/STLWriter.h" />
 		<Unit filename="cad/VRMLWriter.cpp" />
 		<Unit filename="cad/VRMLWriter.h" />
-		<Unit filename="chatGPT.h" />		
-		<Unit filename="chatGPT.cpp" />		
+		<Unit filename="ai/aiBase.h" />		
+		<Unit filename="ai/aiBase.cpp" />		
+		<Unit filename="ai/chatGPT.h" />		
+		<Unit filename="ai/chatGPT.cpp" />		
 		<Unit filename="controllers/AlphaPix.cpp" />
 		<Unit filename="controllers/AlphaPix.h" />
 		<Unit filename="controllers/BaseController.cpp" />
