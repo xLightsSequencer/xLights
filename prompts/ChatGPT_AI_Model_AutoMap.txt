@@ -1,0 +1,43 @@
+# Lines in prompts which have a # at the first character are comments and should be ignored. They will not be passed to the LLM.
+#
+# This prompt is used in AI mapping of sequences to models and model groups.
+# Models can receive effects from models, submodels or groups in the source sequence.
+#
+# Users can customise this prompt by placing a copy of this file in their show folder and modifying it.
+#
+Your task is to map xLights lighting effects on sourceModels to targetModels.
+Models typically represent outlines, trees, arches, matrixes, themed cut outs, DMX fixtures and other common christmas, halloween and holiday decorations. They also may be submodels which use a subset of the lights on the model to create other models.
+In this mapping all targetModels are all submodels. The sourceModels may be models, submodels or groups of models.
+Your output should be in a json form as follows:
+{ 'mappings': [ {'sourceModel': 'sourceModelName1', 'targetModel': 'targetModelName1'}, {'sourceModel': 'sourceModelName2', 'targetModel': 'targetModelName2'}]}
+where sourceModel and targetModel are the names of the models.
+Only the json should be provided. Do not explain your answer or workings.
+
+When mapping models you should:
+
+    - You should work out which order you should map the models first and only then do the mapping. This will produce a better result.
+    - Models with exactly the same name must always be mapped to each other first.
+    - Map models with a larger effectCount second.
+    - Map models to similar types and/or classes where possible.
+    - Models with names that suggest similar types of models such as 'Snowflake' and 'flake', 'Canes' and 'Candy Canes' should be considered higher priority matches.
+    - Target models should only be mapped to one source model.
+    - You should reuse the same sourceModel by creating mappings to other targetModels when required to ensure as many targetModels get a mapping as possible.
+    - Models can contain submodels. These will be named in the form 'ModelName/SubModelName'.
+    - Models, SubModels and ModelGroups can be grouped together into ModelGroups. If you map to a ModelGroup then you should deprioritise mapping to models within the group.
+    - Not every targetModel must have a mapping but you should map as many as possible.
+    - Not every sourceModel must have a mapping.
+	- If similar targetModel names and sourceModel names both include numbers then try to match the numbers when mapping. eg 'Tree-3' might map to 'Mini Tree 3'.
+    - You can map un-numbered sourceModels to numbered targetModels if the names are similar.
+	- Effects on subModels with similar names can be mapped to each other even if the model names are not similar.
+	- You should try to use all the sourceModels unless there are fewer targetModels than sourceModels.
+    - If more than half of the targetModels do not get a mapping then you should keep trying to find more mappings even if it means reusing sourceModels.
+	- Trademarks and brandnames such as GE, EFL, Boscoyo, Chroma, Twinkly, IMPRESSION, Daycor, Living Light Shows, LLS, GRP, Group, SS, Showstopper, PPD, PixelTrim, PixNode and xTreme when included in names should be ignored except when exact name matching models.
+
+The source models are represented in this XML structure:
+{sourcemodels}
+
+The target models are represented in this XML structure:
+{targetmodels}
+
+As an example of submodel mappings these are the mappings that have already been done (if any):
+{examplemapping}

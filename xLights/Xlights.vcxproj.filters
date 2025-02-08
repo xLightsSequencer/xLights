@@ -2265,6 +2265,9 @@
     <Filter Include="Effects\ispc">
       <UniqueIdentifier>{6b247f11-eaa7-479e-9e82-e1369cd64fad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Prompts">
+      <UniqueIdentifier>{22d4d199-c5a9-4be6-8413-da0802e96e06}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -2272,6 +2275,18 @@
   <ItemGroup>
     <Text Include="..\documentation\xlDo Commands.txt">
       <Filter>automation</Filter>
+    </Text>
+    <Text Include="..\prompts\ChatGPT_AI_Model_AutoMap.txt">
+      <Filter>Prompts</Filter>
+    </Text>
+    <Text Include="..\prompts\ChatGPT_AI_Node_AutoMap.txt">
+      <Filter>Prompts</Filter>
+    </Text>
+    <Text Include="..\prompts\ChatGPT_AI_Strand_AutoMap.txt">
+      <Filter>Prompts</Filter>
+    </Text>
+    <Text Include="..\prompts\ChatGPT_AI_SubModel_AutoMap.txt">
+      <Filter>Prompts</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>

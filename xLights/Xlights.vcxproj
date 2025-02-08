@@ -245,6 +245,17 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>xcopy /Y /I "$(ProjectDir)..\prompts\*.txt" "$(TargetDir)prompts\"
+</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(TargetDir)prompts\x.txt</Outputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <TreatOutputAsContent>false</TreatOutputAsContent>
+      <Inputs>$(ProjectDir)..\prompts\*.txt</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
     <ClCompile>
@@ -1531,6 +1542,13 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\documentation\xlDo Commands.txt" />
+    <Text Include="..\prompts\ChatGPT_AI_Model_AutoMap.txt">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+    </Text>
+    <Text Include="..\prompts\ChatGPT_AI_Node_AutoMap.txt" />
+    <Text Include="..\prompts\ChatGPT_AI_Strand_AutoMap.txt" />
+    <Text Include="..\prompts\ChatGPT_AI_SubModel_AutoMap.txt" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="effects\ispc\LayerBlendingFunctions.ispc">
