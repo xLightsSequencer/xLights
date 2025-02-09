@@ -247,6 +247,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>xcopy /Y /I "$(ProjectDir)..\prompts\*.txt" "$(TargetDir)prompts\"
+xcopy /Y /I "$(ProjectDir)..\resources\*.*" "$(TargetDir)resources\"
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
@@ -254,7 +255,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>false</TreatOutputAsContent>
-      <Inputs>$(ProjectDir)..\prompts\*.txt</Inputs>
+      <Inputs>$(ProjectDir)..\prompts\*.txt;$(ProjectDir)..\resources\*.*</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
