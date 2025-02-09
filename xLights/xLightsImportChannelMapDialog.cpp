@@ -2382,8 +2382,7 @@ std::string xLightsImportChannelMapDialog::GetAIPrompt(const std::string& prompt
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string showFolderPromptFile = xlights->GetShowDirectory() + "/" + promptFile;
-    std::string xlFolder = wxStandardPaths::Get().GetExecutablePath().ToStdString();
-    xlFolder = xlFolder.substr(0, xlFolder.find_last_of("/\\"));
+    std::string xlFolder = GetResourcesDirectory();
     std::string xLightsFolderPromptFile = xlFolder + "/prompts/" + promptFile;
 
     std::string fileToLoad;
