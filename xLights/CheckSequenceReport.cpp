@@ -48,6 +48,26 @@ void CheckSequenceReport::UpdateCounts() {
     }
 }
 
+std::string GetCssPath() {
+    std::string resourcesPath = GetResourcesDirectory();
+
+    // Convert backslashes to forward slashes for consistent URL format
+    std::replace(resourcesPath.begin(), resourcesPath.end(), '\\', '/');
+
+    // Remove the executable name from the path
+    size_t lastSlash = resourcesPath.find_last_of('/');
+    if (lastSlash != std::string::npos) {
+        resourcesPath = resourcesPath.substr(0, lastSlash);
+    }
+
+    // For Windows, add an extra forward slash after file:
+    #ifdef __WXMSW__
+        return "file:///" + resourcesPath + "/resources/tailwind.min.css";
+    #else
+        return "file://" + resourcesPath + "/resources/tailwind.min.css";
+    #endif
+}
+
 std::string CheckSequenceReport::GenerateHTML() const {
     std::string darkMode = IsDarkMode() ? "true" : "false";
     std::string html = R"(
@@ -56,9 +76,9 @@ std::string CheckSequenceReport::GenerateHTML() const {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>xLights Show Status Report</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <style>
+    <title>xLights Show Status Report</title>)";
+    html += "<link href=\"" + GetCssPath() + "\" rel=\"stylesheet\">\n";
+    html += R"(    <style>
         :root {
             --bg-primary: #f3f4f6;
             --bg-secondary: #ffffff;
