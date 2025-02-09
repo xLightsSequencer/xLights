@@ -54,12 +54,6 @@ std::string GetCssPath() {
     // Convert backslashes to forward slashes for consistent URL format
     std::replace(resourcesPath.begin(), resourcesPath.end(), '\\', '/');
 
-    // Remove the executable name from the path
-    size_t lastSlash = resourcesPath.find_last_of('/');
-    if (lastSlash != std::string::npos) {
-        resourcesPath = resourcesPath.substr(0, lastSlash);
-    }
-
     // For Windows, add an extra forward slash after file:
     #ifdef __WXMSW__
         return "file:///" + resourcesPath + "/resources/tailwind.min.css";
