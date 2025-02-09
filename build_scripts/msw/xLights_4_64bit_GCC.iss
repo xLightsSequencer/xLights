@@ -155,6 +155,9 @@ Source: "../../prompts/*.*"; DestDir: "{app}/prompts"   ; Flags: ignoreversion r
 ; Palettes
 Source: "../../palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: ignoreversion recursesubdirs
 
+; Resources
+Source: "../../resources/*.*"; DestDir: "{app}/resources"   ; Flags: ignoreversion recursesubdirs
+
 ; Scripts
 ;Source: "../../scripts/*.*"; DestDir: "{app}/scripts"   ; Flags: ignoreversion recursesubdirs
 

@@ -183,6 +183,8 @@
 		<Unit filename="CharMapDialog.h" />
 		<Unit filename="CheckboxSelectDialog.cpp" />
 		<Unit filename="CheckboxSelectDialog.h" />
+		<Unit filename="CheckSequenceReport.cpp" />
+		<Unit filename="CheckSequenceReport.h" />
 		<Unit filename="Color.cpp" />
 		<Unit filename="ColorCurve.cpp" />
 		<Unit filename="ColorCurve.h" />
