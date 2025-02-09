@@ -285,7 +285,8 @@ std::string GetResourcesDirectory() {
 #ifndef __WXMSW__
     return wxStandardPaths::Get().GetResourcesDir().ToStdString();
 #else
-    return wxStandardPaths::Get().GetExecutablePath().ToStdString();
+    auto exec = wxStandardPaths::Get().GetExecutablePath().ToStdString();
+    return exec.substr(0, exec.find_last_of("/\\"));
 #endif
 }
 
