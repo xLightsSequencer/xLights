@@ -2256,7 +2256,7 @@ void LayoutPanel::AddSelectedToExistingGroups() {
     // User has selected all available groups, let them know and bail
     if (choices.size() == 0) {
         std::string userMsg = "You have selected all available groups, there must be at least one group that is not selected and available to add selections to.";
-        wxMessageDialog msgDlg(this, _(userMsg), _("No Available Groups To Add To"), wxOK | wxCENTRE);
+        wxMessageDialog msgDlg(this, userMsg, "No Available Groups To Add To", wxOK | wxCENTRE);
         msgDlg.ShowModal();
         return;
     }
