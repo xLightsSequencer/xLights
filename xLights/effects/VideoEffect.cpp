@@ -26,6 +26,9 @@
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
 
+#include "../Parallel.h"
+#include "ispc/VideoFunctions.ispc.h"
+
 #include <log4cpp/Category.hh>
 
 VideoEffect::VideoEffect(int id) : RenderableEffect(id, "Video", video_16, video_24, video_32, video_48, video_64)
@@ -480,37 +483,37 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     // wxASSERT(xoffset + xtail + buffer.BufferWi == _videoreader->GetWidth());
                     // wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
 
-                    // draw the image
-                    xlColor c;
-                    for (int y = 0; y < _videoreader->GetHeight() - yoffset - ytail; y++) {
-                        uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - y - yoffset) * _videoreader->GetWidth() * ch + xoffset * ch;
+                    ispc::VideoData rdata;
+                    rdata.width = buffer.BufferWi;
+                    rdata.height = buffer.BufferHt;
+                    rdata.ytail = ytail;
+                    rdata.xtail = xtail;
+                    rdata.yoffset = yoffset;
+                    rdata.xoffset = xoffset;
+                    rdata.transparentBlack = transparentBlack;
+                    rdata.transparentBlackLevel = transparentBlackLevel;
+                    rdata.ch = _videoreader->GetPixelChannels();
+                    rdata.image_width = _videoreader->GetWidth();
+                    rdata.image_height = _videoreader->GetHeight();
+                    rdata.image = image->data[0];
+                    rdata.startx = startx;
+                    rdata.starty = starty;
+                    rdata.bufferData = (void*)&buffer;
+                    rdata.sampleSpacing = sampleSpacing;
 
-                        for (int x = 0; x < _videoreader->GetWidth() - xoffset - xtail; x++) {
-                            try {
-                                c.Set(*(ptr),
-                                      *(ptr + 1),
-                                      *(ptr + 2), ch == 3 ? 255 : *(ptr + 3));
-                            } catch (...) {
-                                // this shouldnt happen so make it stand out
-                                c = xlRED;
-                            }
+                    int max = buffer.BufferHt * buffer.BufferWi;
+                    constexpr int bfBlockSize = 4096;
+                    int blocks = max / bfBlockSize + 1;
 
-                            if (transparentBlack) {
-                                int level = c.Red() + c.Green() + c.Blue();
-                                if (level > transparentBlackLevel) {
-                                    buffer.SetPixel(x + startx, y + starty, c);
-                                }
-                            } else {
-                                buffer.SetPixel(x + startx, y + starty, c);
-                            }
-
-                            ptr += ch;
+                    parallel_for(0, blocks, [&rdata, &buffer, max](int y) {
+                        int start = y * bfBlockSize;
+                        int end = start + bfBlockSize;
+                        if (end > max) {
+                            end = max;
                         }
-                    }
-                    // logger_base.debug("Video render %s frame %d timestamp %ldms took %ldms.", (const char *)filename.c_str(), buffer.curPeriod, frame, sw.Time());
-                }
-                else
-                {
+                            VideoEffectProcess(rdata, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+                        });
+                } else {
                     // this handles video sampling where we sample pixels from the image rather than scaling it and thus washing out the colours
                     int xneeded = buffer.BufferWi * sampleSpacing;
                     int yneeded = buffer.BufferHt * sampleSpacing;
@@ -520,31 +523,45 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     int starty = imageHeightAferCropping / 2 - yneeded / 2 + ((100 - cropTop) * image->height) / 100;
 
                     int cury = starty;
-                    xlColor c;
-                    for (int y = 0; y < buffer.BufferHt; ++y)
-                    {
-                        if (cury >= 0 && cury < image->height)
-                        {
-                            int curx = startx;
-                            for (int x = 0; x < buffer.BufferWi; ++x) {
-                                if (curx >= 0 && curx < image->width) {
-                                    uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - cury) * _videoreader->GetWidth() * ch + curx * ch;
-                                    try {
-                                        c.Set(*(ptr),
-                                              *(ptr + 1),
-                                              *(ptr + 2), ch == 3 ? 255 : *(ptr + 3));
-                                    } catch (...) {
-                                        // this shouldnt happen so make it stand out
-                                        c = xlRED;
-                                    }
 
-                                    buffer.SetPixel(x, y, c);
-                                }
-                                curx += sampleSpacing;
-                            }
+                    int xoffset = cropLeft * _videoreader->GetWidth() / 100;
+                    int yoffset = cropBottom * _videoreader->GetHeight() / 100;
+                    int xtail = (100 - cropRight) * _videoreader->GetWidth() / 100;
+                    int ytail = (100 - cropTop) * _videoreader->GetHeight() / 100;
+
+                    // wxASSERT(xoffset + xtail + buffer.BufferWi == _videoreader->GetWidth());
+                    // wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
+
+                    ispc::VideoData rdata;
+                    rdata.width = buffer.BufferWi;
+                    rdata.height = buffer.BufferHt;
+                    rdata.ytail = ytail;
+                    rdata.xtail = xtail;
+                    rdata.yoffset = yoffset;
+                    rdata.xoffset = xoffset;
+                    rdata.transparentBlack = transparentBlack;
+                    rdata.transparentBlackLevel = transparentBlackLevel;
+                    rdata.ch = _videoreader->GetPixelChannels();
+                    rdata.image_width = _videoreader->GetWidth();
+                    rdata.image_height = _videoreader->GetHeight();
+                    rdata.image = image->data[0];
+                    rdata.startx = startx;
+                    rdata.starty = starty;
+                    rdata.bufferData = (void*)&buffer;
+                    rdata.sampleSpacing = sampleSpacing;
+
+                    int max = buffer.BufferHt * buffer.BufferWi;
+                    constexpr int bfBlockSize = 4096;
+                    int blocks = max / bfBlockSize + 1;
+
+                    parallel_for(0, blocks, [&rdata, &buffer, max](int y) {
+                        int start = y * bfBlockSize;
+                        int end = start + bfBlockSize;
+                        if (end > max) {
+                            end = max;
                         }
-                        cury += sampleSpacing;
-                    }
+                        VideoEffectProcessSample(rdata, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+                        });
                 }
             } else {
                 if (durationTreatment == "Normal") {

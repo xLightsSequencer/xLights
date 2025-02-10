@@ -2219,6 +2219,7 @@
     <ClInclude Include="preferences\ServicesPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
+    <ClInclude Include="effects\ispc\VideoFunctions.ispc.h" />
     <ClInclude Include="ai\aiBase.h">
       <Filter>ai</Filter>
     </ClInclude>
@@ -2308,5 +2309,6 @@
     <CustomBuild Include="effects\ispc\ButterflyFunctions.ispc" />
     <CustomBuild Include="effects\ispc\PinwheelFunctions.ispc" />
     <CustomBuild Include="effects\ispc\PlasmaFunctions.ispc" />
+    <CustomBuild Include="effects\ispc\VideoFunctions.ispc" />
   </ItemGroup>
 </Project>
