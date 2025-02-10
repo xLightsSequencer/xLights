@@ -6134,9 +6134,20 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
                 SubModel* sm = dynamic_cast<SubModel*>(it.second->GetSubModel(i));
                 if (sm != nullptr) {
-                    std::string dups = sm->GetDuplicateNodes();
-                    if (dups != "") {
-                        wxString msg = wxString::Format("    WARN: SubModel '%s' contains duplicate nodes: %s. This may not render as expected.", (const char*)sm->GetFullName().c_str(), (const char*)dups.c_str());
+                    std::string sameDups = sm->GetSameLineDuplicates();
+                    std::string crossDups = sm->GetCrossLineDuplicates();
+
+                    if (sameDups != "") {
+                        wxString msg = wxString::Format("    WARN: SubModel '%s' contains same line duplicate nodes: %s.",
+                                                        (const char*)sm->GetFullName().c_str(),
+                                                        (const char*)sameDups.c_str());
+                        LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "submodelsdups", errcount, warncount);
+                    }
+
+                    if (crossDups != "") {
+                        wxString msg = wxString::Format("    WARN: SubModel '%s' contains cross line duplicate nodes: %s.",
+                                                        (const char*)sm->GetFullName().c_str(),
+                                                        (const char*)crossDups.c_str());
                         LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "submodelsdups", errcount, warncount);
                     }
                 }
