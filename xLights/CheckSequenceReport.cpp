@@ -1695,31 +1695,27 @@ std::string CheckSequenceReport::RenderModelIssues(const std::vector<ReportIssue
 
     html += RenderSectionEnd();
 
-    html += RenderSectionStart("SubModels with duplicate nodes", " mt-4");
+    html += RenderSectionStart("SubModels with duplicate nodes (These may not render as expected)", " mt-4");
 
     bool hasSubModelDupNodesIssues = false;
-    std::map<std::string, std::vector<std::pair<std::string, std::string>>> submodelsByModelDups;
+    std::map<std::string, std::map<std::string, std::vector<std::string>>> submodelsByModelDups;
 
-    for (const auto& issue : issues) {
+for (const auto& issue : issues) {
         if (issue.category == "submodelsdups") {
             hasSubModelDupNodesIssues = true;
             std::string msg = issue.message;
-
             // Extract the full model/submodel name
             size_t modelStart = msg.find("'") + 1;
             size_t modelEnd = msg.find("'", modelStart);
             if (modelStart != std::string::npos && modelEnd != std::string::npos) {
                 std::string fullName = msg.substr(modelStart, modelEnd - modelStart);
-
                 // Split into model and submodel
                 size_t slashPos = fullName.find('/');
                 if (slashPos != std::string::npos) {
                     std::string modelName = fullName.substr(0, slashPos);
                     std::string subModelName = fullName.substr(slashPos + 1);
-                    // Get the rest of the message after the model name quote
-                    std::string restOfMsg = msg.substr(modelEnd + 1);
-
-                    submodelsByModelDups[modelName].push_back(std::make_pair(subModelName, restOfMsg));
+                    std::string restOfMsg = msg.substr(modelEnd + 2);
+                    submodelsByModelDups[modelName][subModelName].push_back(restOfMsg);
                 }
             }
         }
@@ -1728,26 +1724,32 @@ std::string CheckSequenceReport::RenderModelIssues(const std::vector<ReportIssue
     if (hasSubModelDupNodesIssues) {
         for (const auto& model : submodelsByModelDups) {
             html += R"(
-                    <div class="theme-warning rounded p-3 warning-item filterable-item">
-                        <div class="flex flex-col">
-                            <h4 class="font-medium mb-2 group-heading">)" +
+                <div class="theme-warning rounded p-3 warning-item filterable-item">
+                    <div class="flex flex-col">
+                        <h4 class="font-medium mb-2 group-heading">)" +
                     EscapeHTML(model.first) + R"(:</h4>
-                            <div class="ml-4">)";
+                        <div class="ml-4">)";
+
 
             for (const auto& subModel : model.second) {
                 html += R"(
-                                <div class="mb-2 filterable-item">
-                                    <p class="font-medium">)" +
+                            <div class="mb-2 filterable-item">
+                                <p class="font-medium">)" +
                         EscapeHTML(subModel.first) + R"(</p>
-                                    <p class="pl-4">)" +
-                        CleanMessage(subModel.second) + R"(</p>
-                                </div>)";
+                                <div class="pl-4">)";
+
+                for (const auto& msg : subModel.second) {
+                    html += R"(<p>)" + CleanMessage(msg) + R"(</p>)";
+                }
+
+                html += R"(</div>
+                            </div>)";
             }
 
             html += R"(
-                            </div>
                         </div>
-                    </div>)";
+                    </div>
+                </div>)";
         }
     } else {
         html += RenderNoIssuesFound("submodel with duplicate nodes issues");
