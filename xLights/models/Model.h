@@ -136,6 +136,7 @@ public:
     virtual int GetNumPhysicalStrings() const;
     ControllerCaps* GetControllerCaps() const;
     Controller* GetController() const;
+    static std::string DetermineClass(const std::string& displayAs, bool isSingingFace, bool isSpiralTree, bool isSticks, const std::string& dropPattern);
 
     std::string GetModelStartChannel() const { return ModelStartChannel; }
     const std::string GetStartSide() const { return _startSide; }

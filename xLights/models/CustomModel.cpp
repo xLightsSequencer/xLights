@@ -113,7 +113,7 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
 
     p = grid->Append(new wxUIntProperty("# Strings", "CustomModelStrings", _strings));
     p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 48);
+    p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("This is typically the number of connections from the prop to your controller.");
 
@@ -1768,6 +1768,7 @@ bool CustomModel::ChangeStringCount(long count, std::string& message)
     ModelXml->AddAttribute("CustomStrings", wxString::Format("%d", count));
 
     if (count != 1) {    
+        _strings = count;
         wxString nm = StartNodeAttrName(0);
         bool hasIndiv = ModelXml->HasAttribute(nm);
 

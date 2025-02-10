@@ -281,6 +281,16 @@ void ClearNonExistentFiles() {
     __nonExistentFiles.clear();
 }
 
+std::string GetResourcesDirectory() {
+#ifndef __WXMSW__
+    return wxStandardPaths::Get().GetResourcesDir().ToStdString();
+#else
+    auto exec = wxStandardPaths::Get().GetExecutablePath().ToStdString();
+    return exec.substr(0, exec.find_last_of("/\\"));
+#endif
+}
+
+
 wxString FixFile(const wxString& ShowDir, const wxString& file) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -782,14 +792,23 @@ bool IsVersionOlder(const std::string& compare, const std::string& version) {
         return true;
     if (wxAtoi(version_parts[1]) > wxAtoi(compare_parts[1]))
         return false;
-    // From 2016 versions only have 2 parts
-    if (version_parts.Count() == 2 || compare_parts.Count() == 2) {
+    if (version_parts.Count() == 3 && compare_parts.Count() == 3) {
+        // actually they are the same but we return true when they are the same
+        return true;
+    }
+        // From 2016 versions only have 2 parts
+    else if (version_parts.Count() == 2 || compare_parts.Count() == 2) {
         if (version_parts.Count() > 2) {
             return false; // remote version has 2 components but local has three so local must be newer
         }
         return true;
     } else {
-        if (wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2]))
+    if (version_parts.Count() == 2 || compare_parts.Count() == 2) {
+        if (version_parts.Count() > 2) {
+            return false; // remote version has 2 components but local has three so local must be newer
+        }
+        return true;
+    }        if (wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2]))
             return true;
     }
     return false;

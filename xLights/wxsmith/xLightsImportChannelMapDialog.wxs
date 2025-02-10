@@ -4,8 +4,6 @@
 		<title>Map Channels</title>
 		<id_arg>0</id_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxFULL_REPAINT_ON_RESIZE</style>
-		<handler function="OnInit" entry="EVT_INIT_DIALOG" />
-		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="OldSizer" member="yes">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -147,7 +145,6 @@
 									<object class="sizeritem">
 										<object class="wxCheckListBox" name="ID_CHECKLISTBOX1" variable="TimingTrackListBox" member="yes">
 											<style>wxLB_MULTIPLE|wxVSCROLL</style>
-											<handler function="OnTimingTrackListBoxToggled" entry="EVT_CHECKLISTBOX" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<option>1</option>
@@ -238,7 +235,16 @@
 															<label>Auto Map</label>
 															<handler function="OnButton_AutoMapClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON7" variable="Button_AIMap" member="yes">
+															<label>AI Map</label>
+															<handler function="OnButton_AIMapClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -247,7 +253,7 @@
 															<label>Update Aliases w/ Maps</label>
 															<handler function="OnButton_UpdateAliasesClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -272,7 +278,7 @@
 															<label>Save Map</label>
 															<handler function="SaveMapping" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -281,7 +287,7 @@
 															<label>Load Map</label>
 															<handler function="LoadMapping" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>

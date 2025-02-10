@@ -1310,7 +1310,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                             if (nodeName == "") {
                                 nodeName = wxString::Format("Node %d", (int)(n + 1));
                             }
-                            dlg.AddChannel(el->GetName() + "/" + smName + "/" + nodeName, nl->GetEffectCount());
+                            dlg.AddChannel(el->GetName() + "/" + smName + "/" + nodeName, nl->GetEffectCount(), true);
                             layerMap[el->GetName() + "/" + smName + "/" + nodeName] = nl;
                         }
                     }

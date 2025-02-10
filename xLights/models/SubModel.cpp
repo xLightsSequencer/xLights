@@ -36,7 +36,7 @@ void SubModel::CheckDuplicates(const std::vector<int>& nodeIndexes)
         ++it2;
         while (it2 != end(nodeIndexes)) {
             if (*it == *it2) {
-                if (_duplicateNodes != "") _duplicateNodes += ",";
+                if (_duplicateNodes != "") _duplicateNodes += ", ";
                 _duplicateNodes += wxString::Format("%d", *it + 1);
             }
             ++it2;

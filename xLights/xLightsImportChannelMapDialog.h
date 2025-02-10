@@ -42,6 +42,7 @@
 class SequenceElements;
 class xLightsFrame;
 class Model;
+class wxProgressDialog;
 
 wxDECLARE_EVENT(EVT_MDDROP, wxCommandEvent);
 
@@ -68,7 +69,7 @@ class xLightsImportModelNode : wxDataViewTreeStoreNode
 public:
     xLightsImportModelNode(xLightsImportModelNode* parent,
                            const wxString& model, const wxString& strand, const wxString& node,
-                           const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const wxColor& color = *wxWHITE) :
+                           const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const std::string& modelType, const std::string& groupModels, bool isSubmodel, const std::string& modelClass, int nodeCount, const wxColor& color = *wxWHITE) :
         wxDataViewTreeStoreNode(parent, "XXX"),
         m_parent(parent),
         _model(model.ToStdString()),
@@ -79,12 +80,17 @@ public:
         _group(false),
         _mappingExists(mappingExists),
         _aliases(aliases),
-        m_container(false)
-    { }
+        _modelType(modelType),
+        m_container(false),
+        _groupModels(groupModels),
+        _isSubmodel(isSubmodel),
+        _modelClass(modelClass),
+        _nodeCount(nodeCount) {
+    }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
-                           const wxString &model, const wxString &strand,
-                           const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const wxColor& color = *wxWHITE) :
+                           const wxString& model, const wxString& strand,
+                           const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const std::string& modelType, const std::string& groupModels, bool isSubmodel, const std::string& modelClass, int nodeCount, const wxColor& color = *wxWHITE) :
         wxDataViewTreeStoreNode(parent, "XXX"),
         m_parent(parent),
         _model(model.ToStdString()),
@@ -95,12 +101,17 @@ public:
         _group(false),
         _mappingExists(mappingExists),
         _aliases(aliases),
-        m_container(true)
-    { }
+        _modelType(modelType),
+        m_container(true),
+        _groupModels(groupModels),
+        _isSubmodel(isSubmodel),
+        _modelClass(modelClass) ,
+        _nodeCount(nodeCount) {
+    }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model,
-                           const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const wxColor& color = *wxWHITE, const bool isGroup = false) :
+                           const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const std::string& modelType, const std::string& groupModels, bool isSubmodel, const std::string& modelClass, int nodeCount, const wxColor& color = *wxWHITE, const bool isGroup = false) :
         wxDataViewTreeStoreNode(parent, "XXX"),
         m_parent(parent),
         _model(model.ToStdString()),
@@ -111,7 +122,12 @@ public:
         _group(isGroup),
         _mappingExists(mappingExists),
         _aliases(aliases),
-        m_container(!isGroup)
+        _modelType(modelType),
+        m_container(!isGroup),
+        _groupModels(groupModels),
+        _isSubmodel(isSubmodel),
+        _modelClass(modelClass),
+        _nodeCount(nodeCount)
     { }
 
     ~xLightsImportModelNode()
@@ -141,6 +157,17 @@ public:
         return _aliases;
     }
 
+    std::string GetModelType() const {
+		return _modelType;
+	}
+
+    void Map(const std::string& mapTo)
+        {
+		_mapping = mapTo;
+		_mappingExists = true;
+	}
+
+    // This also considers children
     bool HasMapping() {
         if (!_mapping.empty()) {
             return true;
@@ -153,6 +180,12 @@ public:
             }
         }
         return false;
+    }
+
+    // This just considers this node
+    bool IsMapped() const
+    {
+        return !_mapping.empty();
     }
 
     bool IsContainer() wxOVERRIDE {
@@ -184,15 +217,43 @@ public:
         return m_children.GetCount();
     }
 
+    std::string GetModelName() const {
+        std::string name = _model;
+        if (!_strand.empty()) {
+            name += "/" + _strand;
+        }
+        if (!_node.empty()) {
+            name += "/" + _node;
+        }
+        return name;
+    }
+
+    bool IsSubModel() const {
+        return _strand != "" && _isSubmodel;
+    }
+
+    bool IsStrand() const {
+        return _strand != "" && !_isSubmodel;
+    }
+
+    bool IsNode() const {
+        return _node != "";
+    }
+
 public:     // public to avoid getters/setters
     std::string                 _model;
     std::string                 _strand;
     std::string                 _node;
     std::string                 _mapping;
     wxColor                     _color;
-    bool                        _group;
-    bool                        _mappingExists;
+    bool                        _group = false;
+    bool                        _mappingExists = false;
     std::list<std::string> _aliases;
+    std::string _modelType;
+    std::string _groupModels;
+    bool _isSubmodel = false;
+    std::string _modelClass;
+    int _nodeCount = 0;
 
     // TODO/FIXME:
     // the GTK version of wxDVC (in particular wxDataViewCtrlInternal::ItemAdded)
@@ -322,6 +383,12 @@ struct ImportChannel
     std::string name;
     std::string type;
     int effectCount{0};
+    bool isNode = false;
+    bool isUsed = false;
+    std::string groupModels;
+    std::string modelClass;
+    int nodeCount = 0;
+
     //ImportChannel(std::string name_, std::string type_):
     //    name(std::move(name_)), type(std::move(type_))
     //{ }
@@ -329,9 +396,21 @@ struct ImportChannel
     //    name(std::move(name_))
     //{ }
 
-    ImportChannel(std::string name_, int count) :
-        name(std::move(name_)), effectCount(count)
+    ImportChannel(std::string name_, int count, bool isNode) :
+        name(std::move(name_)), effectCount(count), isNode(isNode)
     {}
+
+    bool IsSubModel() const {
+        return type == "SubModel";
+    }
+
+    bool IsStrand() const {
+		return type == "Strand";
+	}
+
+    bool IsNode() const {
+		return isNode;
+	}
 
     inline bool operator==(const ImportChannel& rhs)
     {
@@ -361,6 +440,15 @@ class xLightsImportChannelMapDialog: public wxDialog
     std::list<std::unique_ptr<StashedMapping>> _stashedMappings;
     StashedMapping* GetStashedMapping(wxString const& modelName, wxString const& strandName, wxString const& nodeName);
     bool AnyStashedMappingExists(wxString const& modelName, wxString const& strandName);
+    bool AIModelMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
+    bool AISubModelMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
+    bool AIStrandMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
+    bool AINodeMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
+    std::string GetAIPrompt(const std::string& promptType);
+    std::string BuildSourceModelPrompt(const std::list<ImportChannel*>& sourceModels, std::function<bool(const ImportChannel*)> filter);
+    std::string BuildTargetModelPrompt(const std::list<xLightsImportModelNode*>& targetModels, std::function<bool(const xLightsImportModelNode*)> filter);
+    std::string BuildAlreadyMappedPrompt(const std::list<xLightsImportModelNode*>& targetModels, std::function<bool(const xLightsImportModelNode*)> filter);
+    bool RunAIPrompt(wxProgressDialog* dlg, const std::string& prompt, const std::list<xLightsImportModelNode*>& targetModels);
 
     bool _dirty;
     wxFileName _filename;
@@ -387,13 +475,14 @@ class xLightsImportChannelMapDialog: public wxDialog
         [[nodiscard]] std::vector<std::string> const GetChannelNames() const;
         [[nodiscard]] ImportChannel* GetImportChannel(std::string const& name) const;
         void SortChannels();
-        void AddChannel(std::string const& name, int effectCount = 0);
+        void AddChannel(std::string const& name, int effectCount = 0, bool isNode = false);
         void LoadMappingFile(wxString const& filepath, bool hideWarnings = false);
 
         xLightsImportTreeModel *_dataModel;
 
 		//(*Declarations(xLightsImportChannelMapDialog)
 		wxButton* ButtonImportOptions;
+		wxButton* Button_AIMap;
 		wxButton* Button_AutoMap;
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
@@ -440,29 +529,30 @@ class xLightsImportChannelMapDialog: public wxDialog
 protected:
 
 		//(*Identifiers(xLightsImportChannelMapDialog)
-		static const wxWindowID ID_SPINCTRL1;
-		static const wxWindowID ID_CHECKBOX1;
-		static const wxWindowID ID_CHECKBOX11;
-		static const wxWindowID ID_CHECKBOX4;
-		static const wxWindowID ID_CHECKBOX2;
-		static const wxWindowID ID_STATICTEXT_BLEND_TYPE;
-		static const wxWindowID ID_CHECKBOX3;
-		static const wxWindowID ID_BUTTON_IMPORT_OPTIONS;
-		static const wxWindowID ID_CHECKLISTBOX1;
-		static const wxWindowID ID_STATICTEXT2;
-		static const wxWindowID ID_TEXTCTRL2;
-		static const wxWindowID ID_BUTTON3;
-		static const wxWindowID ID_BUTTON4;
-		static const wxWindowID ID_BUTTON5;
-		static const wxWindowID ID_BUTTON6;
-		static const wxWindowID ID_BUTTON2;
-		static const wxWindowID ID_BUTTON1;
-		static const wxWindowID ID_PANEL1;
-		static const wxWindowID ID_STATICTEXT1;
-		static const wxWindowID ID_TEXTCTRL1;
-		static const wxWindowID ID_LISTCTRL1;
-		static const wxWindowID ID_PANEL2;
-		static const wxWindowID ID_SPLITTERWINDOW1;
+		static const long ID_SPINCTRL1;
+		static const long ID_CHECKBOX1;
+		static const long ID_CHECKBOX11;
+		static const long ID_CHECKBOX4;
+		static const long ID_CHECKBOX2;
+		static const long ID_STATICTEXT_BLEND_TYPE;
+		static const long ID_CHECKBOX3;
+		static const long ID_BUTTON_IMPORT_OPTIONS;
+		static const long ID_CHECKLISTBOX1;
+		static const long ID_STATICTEXT2;
+		static const long ID_TEXTCTRL2;
+		static const long ID_BUTTON3;
+		static const long ID_BUTTON4;
+		static const long ID_BUTTON5;
+		static const long ID_BUTTON7;
+		static const long ID_BUTTON6;
+		static const long ID_BUTTON2;
+		static const long ID_BUTTON1;
+		static const long ID_PANEL1;
+		static const long ID_STATICTEXT1;
+		static const long ID_TEXTCTRL1;
+		static const long ID_LISTCTRL1;
+		static const long ID_PANEL2;
+		static const long ID_SPLITTERWINDOW1;
 		//*)
 
         static const long ID_MNU_SELECTALL;
@@ -488,7 +578,7 @@ protected:
 		void OnListCtrl_AvailableColumnClick(wxListEvent& event);
 		void OnCheckBox_MapCCRStrandClick(wxCommandEvent& event);
 		void OnButton_AutoMapClick(wxCommandEvent& event);
-        void OnButton_AutoMapSelClick(wxCommandEvent& event);
+		void OnButton_AutoMapSelClick(wxCommandEvent& event);
 		void OnListCtrl_AvailableItemActivated(wxListEvent& event);
 		void OnButtonImportOptionsClick(wxCommandEvent& event);
 		void OnCheckBoxImportMediaClick(wxCommandEvent& event);
@@ -497,6 +587,8 @@ protected:
 		void OnButton_UpdateAliasesClick(wxCommandEvent& event);
 		void OnClose(wxCloseEvent& event);
 		void OnInit(wxInitDialogEvent& event);
+		void OnButton_AIMapClick(wxCommandEvent& event);
+		void OnTimingTrackListBoxToggled(wxCommandEvent& event);
 		//*)
 
         void RightClickTimingTracks(wxContextMenuEvent& event);
@@ -518,6 +610,7 @@ protected:
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_strand,
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_node,
             const std::string& extra1, const std::string& extra2, const std::string& mg, const bool& select);
+        void DoAIAutoMap(bool select);
 
 
         void LoadXMapMapping(wxString const& filename, bool hideWarnings);
