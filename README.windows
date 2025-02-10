@@ -29,7 +29,7 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
 **** Skip "c)" if Using the "clone_&_build_WX_master_x64.cmd" script ****
   c) Download and build wxWidgets for Windows (currently using a patched version of 3.2.0).
 	
-    git clone  --recurse-submodules -b xlights_2024.20 https://github.com/xLightsSequencer/wxWidgets
+    git clone  --recurse-submodules -b xlights_2025.03 https://github.com/xLightsSequencer/wxWidgets
 
      1) Also if you have built wxWidgets before you should delete the following 2 folders
         - <basedir>\wxWidgets\build\msw\vc_mswuddll
@@ -116,7 +116,7 @@ ISPC is a compiler for a variant of the C programming language, with extensions 
 It is used in xLights for the generation of AVX1, AVX2, SEE2 and SSE4 optimized code.
 
   a) Download ISPC from
-        https://github.com/ispc/ispc/releases/download/v1.25.3/ispc-v1.25.3-windows.zip
+        https://github.com/ispc/ispc/releases/download/v1.26.0/ispc-v1.26.0-windows.zip
 
   b) Extract the zip file to a folder of your choice.
 
