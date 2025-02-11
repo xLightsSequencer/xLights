@@ -11,6 +11,19 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.03 February 11, 2025
+    - enh (derwin12)        Use ispc on Windows to match Linux and MacOS
+    - enh (keith)           Start adding infrastructure for API/AI driven features
+    - enh (keith)           Experimental support for using AI to map importaed sequences
+    - enh (MrPierreB)       Enhanced HTML "Check Sequence" report
+    - enh (derwin12)        Allow for more than 48 strings for custom models
+    - enh (derwin12)        Use ispc to handle video frame to render buffer transfers
+    - enh (cybercop23)      Add ability to trim audio in sequence settings
+    - enh (derwin12)        Use case insensitive compared when handling import mappings
+    - bug (dkulp)           Fix rendering of brightness and 2 is unmask with ispc rendering
+    - bug (dkulp)           Fix Shadow 1 on 2, Shadow 2 on 1 blending with ispc
+    - bug (derwin12)        Updates for building Shader UI when effect is changed
+    - bug (dkulp)           Fix rendering of Canvas mode effects if layers are not explicitely selected
 2025.02 January 27, 2025
     - enh (cybercop23)      Enable replay button without needing to first hit play
     - enh (cybercop23)      Add ability to remove model(s) from existing groups from popup menus
