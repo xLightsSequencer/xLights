@@ -1192,7 +1192,6 @@ void MapXLightsEffects(Element* target,
     if (it != mappingModelType.end()) {
         srcModelType = it->second;
     }
-    logger_base.debug("Mapping %s which is a %s", name.c_str(), srcModelType.c_str());
     bool cr = convertRender;
     if (srcModelType == "ModelGroup") {
         cr = false;

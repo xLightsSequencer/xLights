@@ -108,7 +108,7 @@ public:
         m_container(true),
         _groupModels(groupModels),
         _isSubmodel(isSubmodel),
-        _modelClass(modelClass) ,
+        _modelClass(modelClass),
         _nodeCount(nodeCount),
         _mappingModelType(mappingModelType.ToStdString())
     { }
@@ -165,15 +165,14 @@ public:
     }
 
     std::string GetModelType() const {
-		return _modelType;
-	}
+        return _modelType;
+    }
 
-    void Map(const std::string& mapTo, const std::string& mappingModelType)
-        {
-		_mapping = mapTo;
-		_mappingExists = true;
+    void Map(const std::string& mapTo, const std::string& mappingModelType) {
+        _mapping = mapTo;
+        _mappingExists = true;
         _mappingModelType = mappingModelType;
-	}
+    }
 
     // This also considers children
     bool HasMapping() {

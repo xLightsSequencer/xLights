@@ -2162,13 +2162,11 @@ void xLightsImportChannelMapDialog::OnDrop(wxCommandEvent& event)
 
 std::string xLightsImportChannelMapDialog::findModelType(std::string modelName)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (modelName.find('/') != std::string::npos) {
         return "Strand";
     }
 
     for (size_t j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
-        logger_base.debug("Compare %s to %s", ListCtrl_Available->GetItemText(j, 0).Lower().ToStdString().c_str(), ::Lower(modelName).c_str());
         if (ListCtrl_Available->GetItemText(j, 0).Lower().ToStdString() == ::Lower(modelName)) {
             wxListItem item;
             item.SetId(j);
