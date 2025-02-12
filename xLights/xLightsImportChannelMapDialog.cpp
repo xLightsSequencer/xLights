@@ -25,6 +25,7 @@
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
+#include "models/CustomModel.h"
 #include "ColorManager.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
@@ -34,10 +35,11 @@
 #include "../../xSchedule/wxJSON/jsonwriter.h"
 #include "xlColourData.h"
 #include "utils/string_utils.h"
-#include "chatGPT.h"
+#include "ai/aiBase.h"
 
 #include <algorithm>
 #include <fstream>
+#include <string>
 
 #include <log4cpp/Category.hh>
 
@@ -683,8 +685,8 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     CheckBox_LockEffects->SetValue(config->ReadBool("ImportEffectsLocked", false));
     CheckBox_ConvertRenderStyle->SetValue(config->ReadBool("ImportEffectsRenderStyle", false));
 
-    Button_AIMap->Enable(IsChatGPTAvailable(xlights));
-
+    auto ai = xlights->GetLLM();
+    Button_AIMap->Enable(ai != nullptr);
 
     EnsureWindowHeaderIsOnScreen(this);
 }
@@ -1036,15 +1038,21 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         }
     }
 
-    xLightsImportModelNode* lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), groupModels, false, *wxWHITE, (m->GetDisplayAs() == "ModelGroup"));
+    std::string modelClass = Model::DetermineClass(m->GetDisplayAs(), m->GetFaceInfo().size() != 0, 
+        m->GetModelXml()->GetAttribute("TreeSpiralRotations", "0") != "0", 
+        m->GetModelXml()->GetAttribute("CandyCaneSticks", "false") == "true", 
+        m->GetModelXml()->GetAttribute("DropPattern", ""));
+
+    xLightsImportModelNode* lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), groupModels, false, modelClass, m->GetNodeCount(), *wxWHITE, (m->GetDisplayAs() == "ModelGroup"));
     _dataModel->BulkInsert(lastmodel, ms++);
     for (int s = 0; s < m->GetNumSubModels(); ++s) {
         Model *subModel = m->GetSubModel(s);
         xLightsImportModelNode* laststrand;
+        // nore we deliberately passing in the models node count ... as this is most relevant
         if (channelColors.find(subModel->GetName()) != channelColors.end()) {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", true, channelColors.find(subModel->GetName())->second.asWxColor());
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", true, "", m->GetNodeCount(), channelColors.find(subModel->GetName())->second.asWxColor());
         } else {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", true, *wxWHITE);
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", true, "", m->GetNodeCount(), *wxWHITE);
         }
         lastmodel->Append(laststrand);
     }
@@ -1055,10 +1063,11 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
             sn = wxString::Format("Strand %d", s + 1);
         }
         xLightsImportModelNode* laststrand;
+        // nore we deliberately passing in the models node count ... as this is most relevant
         if (channelColors.find(sn.ToStdString()) != channelColors.end()) {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, channelColors.find(sn.ToStdString())->second.asWxColor());
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), channelColors.find(sn.ToStdString())->second.asWxColor());
         } else {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, *wxWHITE);
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), *wxWHITE);
         }
         lastmodel->Append(laststrand);
         for (int n = 0; n < m->GetStrandLength(s); ++n) {
@@ -1068,9 +1077,9 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
             }
             xLightsImportModelNode* lastnode;
             if (channelColors.find(nn.ToStdString()) != channelColors.end()) {
-                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, channelColors.find(nn.ToStdString())->second.asWxColor());
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), channelColors.find(nn.ToStdString())->second.asWxColor());
             } else {
-                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, *wxWHITE);
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), *wxWHITE);
             }
             laststrand->Insert(lastnode, n);
         }
@@ -2321,24 +2330,27 @@ void xLightsImportChannelMapDialog::MarkUsed()
     for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
         auto model = _dataModel->GetNthChild(i);
         if (model->_mapping != "") {
-            if (std::find(used.begin(), used.end(), model->_mapping) == used.end()) {
-                used.push_back(model->_mapping);
+            std::string lowerMapping = ::Lower(model->_mapping);
+            if (std::find(used.begin(), used.end(), lowerMapping) == used.end()) {
+                used.push_back(lowerMapping);
             }
         }
 
         for (unsigned int j = 0; j < model->GetChildCount(); ++j) {
             auto strand = model->GetNthChild(j);
             if (strand->_mapping != "") {
-                if (std::find(used.begin(), used.end(), strand->_mapping) == used.end()) {
-                    used.push_back(strand->_mapping);
+                std::string lowerMapping = ::Lower(strand->_mapping);
+                if (std::find(used.begin(), used.end(), lowerMapping) == used.end()) {
+                    used.push_back(lowerMapping);
                 }
             }
 
             for (unsigned int k = 0; k < strand->GetChildCount(); ++k) {
                 auto node = strand->GetNthChild(k);
                 if (node->_mapping != "") {
-                    if (std::find(used.begin(), used.end(), node->_mapping) == used.end()) {
-                        used.push_back(node->_mapping);
+                    std::string lowerMapping = ::Lower(node->_mapping);
+                    if (std::find(used.begin(), used.end(), lowerMapping) == used.end()) {
+                        used.push_back(lowerMapping);
                     }
                 }
             }
@@ -2350,7 +2362,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
     int items = ListCtrl_Available->GetItemCount();
     ListCtrl_Available->Freeze();
     for (int i = 0; i < items; ++i) {
-        if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i).ToStdString())) {
+        if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i).Lower().ToStdString())) {
             // not used
             ImportChannel* im = GetImportChannel(ListCtrl_Available->GetItemText(i).ToStdString());
             if (im != nullptr && im->type == "ModelGroup") {
@@ -2418,15 +2430,354 @@ wxString xLightsImportChannelMapDialog::AggressiveAutomap(const wxString& name) 
     return s;
 }
 
-void xLightsImportChannelMapDialog::DoAIAutoMap(bool select) {
+std::string xLightsImportChannelMapDialog::GetAIPrompt(const std::string& promptFile) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    std::string showFolderPromptFile = xlights->GetShowDirectory() + "/" + promptFile;
+    std::string xlFolder = GetResourcesDirectory();
+    std::string xLightsFolderPromptFile = xlFolder + "/prompts/" + promptFile;
+
+    std::string fileToLoad;
+    if (wxFileExists(showFolderPromptFile)) {
+        logger_base.debug("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
+        fileToLoad = showFolderPromptFile;
+    } else if (wxFileExists(xLightsFolderPromptFile)) {
+        logger_base.debug("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
+        fileToLoad = xLightsFolderPromptFile;
+    } else {
+        // This looks for a prompt without the aiEngine prefix
+        std::string pf = AfterFirst(promptFile, '_');
+
+        showFolderPromptFile = xlights->GetShowDirectory() + "/" + pf;
+        xLightsFolderPromptFile = xlFolder + "/prompts/" + pf;
+
+        if (wxFileExists(showFolderPromptFile)) {
+            logger_base.debug("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
+            fileToLoad = showFolderPromptFile;
+        } else if (wxFileExists(xLightsFolderPromptFile)) {
+            logger_base.debug("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
+            fileToLoad = xLightsFolderPromptFile;
+        } else {
+            logger_base.error("Prompt file not found: %s", promptFile.c_str());
+            wxMessageBox("The prompt file could not be found " + promptFile, "Error", wxICON_ERROR | wxOK, this);
+            return "";
+        }
+    }
+
+    // read the prompt from the ./prompts/AIAutoMap.txt file relative to where this executable is
+    std::string instructions;
+    std::ifstream file(fileToLoad);
+    if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+            if (line != "" && line[0] == '#') {
+                // we skip over lines with a # as the first character so we can add comments into prompt files
+            } else {
+                instructions += line + "\\n";
+            }
+        }
+        file.close();
+    }
+
+    if (instructions == "") {
+        wxMessageBox("The prompt file contained no prompt. " + fileToLoad, "Error", wxICON_ERROR | wxOK, this);
+    }
+
+    return instructions;
+}
+
+std::string xLightsImportChannelMapDialog::BuildSourceModelPrompt(const std::list<ImportChannel*>& sourceModels, std::function<bool(const ImportChannel*)> filter) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::string sourceDescription = "<sourceModels>\\n";
+    for (const auto& it : sourceModels) {
+        if (filter(it)) {
+            std::string type = it->type;
+            if (type == "") {
+                if (it->isNode)
+                    type = "pixel";
+                else
+                    type = "strand";
+            }
+
+            std::string groupModels = "";
+            if (type == "ModelGroup") {
+                groupModels = " groupModels='" + it->groupModels + "'";
+            }
+
+            sourceDescription += "  <model name='" + it->name + "' type='" + type + "'" + groupModels + " class='" + it->modelClass + "' effectCount='" + std::to_string(it->effectCount) + "'/>\\n";
+        }
+    }
+    sourceDescription += "</sourceModels>";
+    logger_base.debug("Source models: %s", sourceDescription.c_str());
+
+    return sourceDescription;
+}
+
+std::string xLightsImportChannelMapDialog::BuildTargetModelPrompt(const std::list<xLightsImportModelNode*>& targetModels, std::function<bool(const xLightsImportModelNode*)> filter) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::string targetDescription = "<targetModels>\\n";
+    for (const auto& it : targetModels) {
+        if (filter(it)) {
+            std::string name = it->GetModelName();
+            std::string type = it->_modelType;
+            if (it->_strand != "") {
+                if (it->_isSubmodel) {
+                    type = "SubModel";
+                } else {
+                    type = "strand";
+                }
+            }
+            if (it->_node != "") {
+                type = "pixel";
+            }
+            std::string groupModels = "";
+            if (it->_groupModels != "") {
+                groupModels = " groupModels='" + it->_groupModels + "'";
+            }
+            targetDescription += "  <model name='" + name + "' type='" + type + "' class='" + it->_modelClass + "'" + groupModels + "/>\\n";
+        }
+    }
+    targetDescription += "</targetModels>";
+    logger_base.debug("Target models: %s", targetDescription.c_str());
+
+    return targetDescription;
+}
+
+std::string xLightsImportChannelMapDialog::BuildAlreadyMappedPrompt(const std::list<xLightsImportModelNode*>& targetModels, std::function<bool(const xLightsImportModelNode*)> filter) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::string exampleMappings = "<exampleMappings>\\n";
+    for (const auto& it : targetModels) {
+        if (filter(it)) {
+            std::string name = it->GetModelName();
+            std::string type = it->_modelType;
+            if (it->IsStrand())
+                type = "strand";
+            else if (it->IsNode())
+                type = "pixel";
+            else if (it->IsSubModel())
+                type = "SubModel";
+            exampleMappings += "  <model name='" + name + "' mappedTo='" + it->_mapping + "'/>\\n";
+        }
+    }
+    exampleMappings += "</exampleMappings>";
+    logger_base.debug("Example mappings: %s", exampleMappings.c_str());
+
+    return exampleMappings;
+}
+
+bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std::string& prompt, const std::list<xLightsImportModelNode*>& targetModels) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Prompt: %s", prompt.c_str());
+
+    auto ai = xlights->GetLLM();
+    if (ai == nullptr)
+        return false;
+
+    std::string response = ai->CallLLM(prompt, "");
+
+    logger_base.debug("Response: %s", response.c_str());
+
+    bool mapped = false;
+
+    try {
+        wxJSONValue root;
+        wxJSONReader reader;
+
+        reader.Parse(response, &root);
+
+        logger_base.debug("Parsed response");
+
+        wxJSONValue mappings = root["mappings"];
+        if (mappings.IsNull()) {
+            logger_base.error("No mappings found in response");
+        } else {
+            // now go through all the targets
+            for (const auto& it : targetModels) {
+                if (!it->HasMapping()) {
+                    auto mn = it->GetModelName();
+                    // find the model in the mappings sourceModel
+                    for (size_t i = 0; i < mappings.Size(); ++i) {
+                        wxString targetModel = mappings[i]["targetModel"].AsString();
+
+                        if (targetModel == mn) {
+                            it->Map(mappings[i]["sourceModel"].AsString(),"Unknown");
+                            mapped = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    } catch (const std::exception& e) {
+        logger_base.error("Error parsing response: %s", e.what());
+    }
+
+    return mapped;
+}
+
+bool xLightsImportChannelMapDialog::AIModelMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
+    // we only model map if there are models in target
+    if (targetModels.size() == 0)
+        return false;
+
+    auto llm = xlights->GetLLM();
+    if (llm == nullptr)
+        return false;
+    std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_Model_AutoMap.txt");
+
+    // exclude pixels and strands
+    std::string sourceModelsPrompt = BuildSourceModelPrompt(sourceModels, [](const ImportChannel* m) { return !m->IsNode() && !m->IsStrand(); });
+    // exlude already mapped models and Submodels, strands and pixels
+    std::string targetModelsPrompt = BuildTargetModelPrompt(targetModels, [](const xLightsImportModelNode* m) { return !m->IsMapped() && !m->IsSubModel() && !m->IsStrand() && !m->IsNode(); });
+    // include already mapped models and exclude Submodels, strands and pixels
+    std::string altreadyMappedPrompt = BuildAlreadyMappedPrompt(targetModels, [](const xLightsImportModelNode* m) { return m->IsMapped() && !m->IsSubModel() && !m->IsStrand() && m->IsNode(); });
+
+    if (prompt.find("{sourcemodels}") != std::string::npos)
+        prompt = prompt.replace(prompt.find("{sourcemodels}"), 13, sourceModelsPrompt);
+    if (prompt.find("{targetmodels}") != std::string::npos)
+        prompt = prompt.replace(prompt.find("{targetmodels}"), 13, targetModelsPrompt);
+    if (prompt.find("{examplemapping}") != std::string::npos)
+        prompt = prompt.replace(prompt.find("{examplemapping}"), 15, altreadyMappedPrompt);
+
+    bool res = RunAIPrompt(dlg, prompt, targetModels);
+    dlg->Update(25, "Models mapped");
+
+    return res;
+}
+
+bool xLightsImportChannelMapDialog::AISubModelMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
+    // we only submodel map if there are submodels in target
+    int submodelCount = 0;
+    for (const auto& it : targetModels) {
+        if (it->IsSubModel()) {
+            ++submodelCount;
+            break;
+        }
+    }
+    if (submodelCount == 0)
+        return false;
+
+    auto llm = xlights->GetLLM();
+    if (llm == nullptr)
+        return false;
+    std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_SubModel_AutoMap.txt");
+
+    // exclude pixels and strands
+    std::string sourceModelsPrompt = BuildSourceModelPrompt(sourceModels, [](const ImportChannel* m) { return !m->IsNode() && !m->IsStrand(); });
+    // exlude already mapped submodels and only include submodels
+    std::string targetModelsPrompt = BuildTargetModelPrompt(targetModels, [](const xLightsImportModelNode* m) { return !m->_mappingExists && m->IsSubModel(); });
+    // include already mapped sub models only
+    std::string altreadyMappedPrompt = BuildAlreadyMappedPrompt(targetModels, [](const xLightsImportModelNode* m) { return m->_mappingExists && m->IsSubModel(); });
+
+    if (prompt.find("{sourcemodels}") != std::string::npos)
+        prompt = prompt.replace(prompt.find("{sourcemodels}"), 13, sourceModelsPrompt);
+    if (prompt.find("{targetmodels}") != std::string::npos)
+        prompt = prompt.replace(prompt.find("{targetmodels}"), 13, targetModelsPrompt);
+    if (prompt.find("{examplemapping}") != std::string::npos)
+        prompt = prompt.replace(prompt.find("{examplemapping}"), 15, altreadyMappedPrompt);
+
+    bool res = RunAIPrompt(dlg, prompt, targetModels);
+    dlg->Update(50, "SubModels mapped");
+
+    return res;
+}
+
+bool xLightsImportChannelMapDialog::AIStrandMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
+    // we only strand map if there source models which are strands
+    int strandCount = 0;
+    for (const auto& it : sourceModels) {
+        if (it->IsStrand()) {
+            ++strandCount;
+            break;
+        }
+    }
+    if (strandCount == 0)
+        return false;
+
+    auto llm = xlights->GetLLM();
+    if (llm == nullptr)
+		return false;
+    std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_Strand_AutoMap.txt");
+
+    // only include strands
+    std::string sourceModelsPrompt = BuildSourceModelPrompt(sourceModels, [](const ImportChannel* m) { return m->IsStrand(); });
+    // only include strands
+    std::string targetModelsPrompt = BuildTargetModelPrompt(targetModels, [](const xLightsImportModelNode* m) { return !m->IsMapped() && m->IsStrand(); });
+    // include already mapped strands only
+    std::string altreadyMappedPrompt = BuildAlreadyMappedPrompt(targetModels, [](const xLightsImportModelNode* m) { return m->IsMapped() && m->IsStrand(); });
+
+    if (prompt.find("{sourcemodels}") != std::string::npos)
+        prompt = prompt.replace(prompt.find("{sourcemodels}"), 13, sourceModelsPrompt);
+    if (prompt.find("{targetmodels}") != std::string::npos)
+        prompt = prompt.replace(prompt.find("{targetmodels}"), 13, targetModelsPrompt);
+    if (prompt.find("{examplemapping}") != std::string::npos)
+        prompt = prompt.replace(prompt.find("{examplemapping}"), 15, altreadyMappedPrompt);
+
+    bool res = RunAIPrompt(dlg, prompt, targetModels);
+    dlg->Update(75, "Strands mapped");
+
+    return res;
+}
+
+#define AI_NODE_COUNT_LIMIT 16
+
+bool xLightsImportChannelMapDialog::AINodeMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
+    // we only node map if there are > 0 models in target with < 16 nodes and there is some node level sequencing
+    int nodeModelCount = 0;
+    for (const auto& it : sourceModels) {
+        if (it->IsNode()) {
+            ++nodeModelCount;
+            break;
+        }
+    }
+    if (nodeModelCount == 0) {
+        for (const auto& it : targetModels) {
+            if (it->_nodeCount < AI_NODE_COUNT_LIMIT) {
+                ++nodeModelCount;
+                break;
+            }
+        }
+    }
+    if (nodeModelCount == 0)
+        return false;
+
+    auto llm = xlights->GetLLM();
+    if (llm == nullptr)
+        return false;
+    std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_Node_AutoMap.txt");
+
+    // include all node level sequencing
+    std::string sourceModelsPrompt = BuildSourceModelPrompt(sourceModels, [](const ImportChannel* m) { return m->IsNode(); });
+    // only include nodes on models with less than AI_NODE_COUNT_LIMIT nodes
+    std::string targetModelsPrompt = BuildTargetModelPrompt(targetModels, [](const xLightsImportModelNode* m) { return !m->IsMapped() && m->IsNode() && m->_nodeCount < AI_NODE_COUNT_LIMIT; });
+    // include already mapped nodes
+    std::string altreadyMappedPrompt = BuildAlreadyMappedPrompt(targetModels, [](const xLightsImportModelNode* m) { return m->IsMapped() && m->IsNode(); });
+
+    if (prompt.find("{sourcemodels}") != std::string::npos)
+        prompt = prompt.replace(prompt.find("{sourcemodels}"), 13, sourceModelsPrompt);
+    if (prompt.find("{targetmodels}") != std::string::npos)
+        prompt = prompt.replace(prompt.find("{targetmodels}"), 13, targetModelsPrompt);
+    if (prompt.find("{examplemapping}") != std::string::npos)
+        prompt = prompt.replace(prompt.find("{examplemapping}"), 15, altreadyMappedPrompt);
+
+    bool res = RunAIPrompt(dlg, prompt, targetModels);
+    dlg->Update(100, "Nodes mapped");
+
+    return res;
+}
+
+void xLightsImportChannelMapDialog::DoAIAutoMap(bool select) {
     // Ideas for future improvement
 
     // - We could try to represent the location of the models against a normalised coordinate system to encourage left/right etc to map better
     // - We could build some sort of asset with special hints for really common custom models
-    // - We could classify models further
-    //      - Line models (polyline, arch, circle, singleline etc)
-    //      - Grid models (matrix, tree, cube etc)
+    // - We could include aliases in the information as further hints
+    // - We could drop the models list in model groups to save space as I dont think it helps that much
+    // - we could include strand and node names where they exist (although that may already be there ... i have not checked)
 
     // I welcome other developers experimenting with the prompt and trying to improve it.
 
@@ -2442,17 +2793,12 @@ void xLightsImportChannelMapDialog::DoAIAutoMap(bool select) {
         if (selectMapAvail) {
             bool isSourceSelected = ListCtrl_Available->GetItemState(j, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
             if (isSourceSelected) {
-                // We only consider a node as being available for AI mapping if it is not already mapped
-                if (!m->isNode || !m->isUsed) {
-                    sourceModels.push_back(m);
-                    sourceContainsNodes |= m->isNode;
-                }
-            }
-        } else {
-            if (!m->isNode || !m->isUsed) {
                 sourceModels.push_back(m);
                 sourceContainsNodes |= m->isNode;
             }
+        } else {
+            sourceModels.push_back(m);
+            sourceContainsNodes |= m->isNode;
         }
     }
 
@@ -2468,21 +2814,18 @@ void xLightsImportChannelMapDialog::DoAIAutoMap(bool select) {
                 auto index = (wxDataViewItem)model;
                 for (const wxDataViewItem& selectedItem : targetSelectedItems) {
                     if (index.GetID() == selectedItem.GetID()) {
-                        //if (!model->HasMapping()) {
-                            targetModels.push_back(model);
-                        //}
+                        targetModels.push_back(model);
                         for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
                             auto strand = model->GetNthChild(k);
                             if (strand != nullptr) {
-                                //if (!strand->HasMapping()) {
-                                    targetModels.push_back(strand);
-                                //}
-                                for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
-                                    auto node = strand->GetNthChild(m);
-                                    if (node != nullptr) {
-                                        //if (!node->HasMapping()) {
+                                targetModels.push_back(strand);
+                                // we only add in nodes if the source sequence contains node level effects
+                                if (sourceContainsNodes) {
+                                    for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
+                                        auto node = strand->GetNthChild(m);
+                                        if (node != nullptr) {
                                             targetModels.push_back(node);
-                                        //}
+                                        }
                                     }
                                 }
                             }
@@ -2490,23 +2833,17 @@ void xLightsImportChannelMapDialog::DoAIAutoMap(bool select) {
                     }
                 }
             } else {
-                if (!model->HasMapping()) {
-                    targetModels.push_back(model);
-                }
+                targetModels.push_back(model);
                 for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
                     auto strand = model->GetNthChild(k);
                     if (strand != nullptr) {
-                        if (!strand->HasMapping()) {
-                            targetModels.push_back(strand);
-                        }
+                        targetModels.push_back(strand);
                         // we only add in nodes if the source sequence contains node level effects
                         if (sourceContainsNodes) {
                             for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
                                 auto node = strand->GetNthChild(m);
                                 if (node != nullptr) {
-                                    if (!node->HasMapping()) {
-                                        targetModels.push_back(node);
-                                    }
+                                    targetModels.push_back(node);
                                 }
                             }
                         }
@@ -2516,120 +2853,21 @@ void xLightsImportChannelMapDialog::DoAIAutoMap(bool select) {
         }
     }
 
-    std::string sourceDescription = "<sourceModels>\\n";
-    for (const auto& it : sourceModels) {
-        std::string type = it->type;
-        if (type == "") {
-            if (it->isNode)
-                type = "pixel";
-            else
-                type = "strand";
-        }
-
-        std::string groupModels = "";
-        if (type == "ModelGroup") {
-            groupModels = " groupModels='" + it->groupModels + "'";
-        }
-
-        sourceDescription += "  <model name='" + it->name + "' type='" + type + "'" + groupModels + " effectCount='" + std::to_string(it->effectCount) + "'/>\\n";
-    }
-    sourceDescription += "</sourceModels>";
-    logger_base.debug("Source models: %s", sourceDescription.c_str());
-
-    std::string targetDescription = "<targetModels>\\n";
-    for (const auto& it : targetModels) {
-        std::string name = it->GetModelName();
-        std::string type = it->_modelType;
-        if (it->_strand != "") {
-            if (it->_isSubmodel) {
-                type = "SubModel";
-            } else {
-                type = "strand";
-            }
-        }
-        if (it->_node != "") {
-            type = "pixel";
-        }
-        std::string groupModels = "";
-        if (it->_groupModels != "") {
-            groupModels = " groupModels='" + it->_groupModels + "'";
-        }
-        targetDescription += "  <model name='" + name + "' type='" + type + "'" + groupModels + "/>\\n";
-    }
-    targetDescription += "</targetModels>";
-    logger_base.debug("Target models: %s", targetDescription.c_str());
-
-    // read the prompt from the ./prompts/AIAutoMap.txt file relative to where this executable is
-    std::string promptFile = wxStandardPaths::Get().GetExecutablePath().ToStdString();
-    promptFile = promptFile.substr(0, promptFile.find_last_of("/\\"));
-    promptFile += "/prompts/AutoMap.txt";
-
-    std::string instructions;
-    std::ifstream file(promptFile);
-    if (file.is_open()) {
-		std::string line;
-		while (std::getline(file, line)) {
-			instructions += line + "\\n";
-		}
-		file.close();
-	}
-
-    if (instructions == "") {
-        wxMessageBox("The prompt file could not be found " + promptFile, "Error", wxICON_ERROR | wxOK, this);
-        return;
-    }
-
-    std::string prompt = instructions;
-    prompt = prompt.replace(prompt.find("{sourcemodels}"), 13, sourceDescription);
-    prompt = prompt.replace(prompt.find("{targetmodels}"), 13, targetDescription);
-
-    wxProgressDialog* dlg = new wxProgressDialog("Generating mapping", "Please give me some time to map your models. This can take up to a minute.", 0, this, wxPD_APP_MODAL | wxPD_SMOOTH);
+    wxProgressDialog* dlg = new wxProgressDialog("Generating mapping", "Please give me some time to map your models. This can take a minute or two.", 100, this, wxPD_APP_MODAL | wxPD_SMOOTH | wxPD_AUTO_HIDE);
     dlg->Show();
 
-    std::string response = CallChatGPT(xlights, prompt, "");
+    bool mapped = AIModelMap(dlg, sourceModels, targetModels);
+    TreeListCtrl_Mapping->Refresh();
+    mapped = AISubModelMap(dlg, sourceModels, targetModels) || mapped;
+    TreeListCtrl_Mapping->Refresh();
+    mapped = AIStrandMap(dlg, sourceModels, targetModels) || mapped;
+    TreeListCtrl_Mapping->Refresh();
+    mapped = AINodeMap(dlg, sourceModels, targetModels) || mapped;
 
     delete dlg;
 
-    logger_base.debug("Response: %s", response.c_str());
-
-    bool mapped = true;
-
-    try {
-        wxJSONValue root;
-        wxJSONReader reader;
-
-        reader.Parse(response, &root);
-
-        logger_base.debug("Parsed response");
-
-        wxJSONValue mappings = root["mappings"];
-        if (mappings.IsNull()) {
-            logger_base.error("No mappings found in response");
-            mapped = false;
-        } else {
-            // now go through all the targets
-            for (const auto& it : targetModels) {
-                if (!it->HasMapping()) {
-                    auto mn = it->GetModelName();
-                    // find the model in the mappings sourceModel
-                    for (size_t i = 0; i < mappings.Size(); ++i) {
-                        wxString targetModel = mappings[i]["targetModel"].AsString();
-
-                        if (targetModel == mn) {
-                            it->Map(mappings[i]["sourceModel"].AsString(),"Unknown");
-                        }
-                    }
-                }
-            }
-        }
-    } catch (const std::exception& e) {
-		logger_base.error("Error parsing response: %s", e.what());
-        mapped = false;
-    }
-
-    if (!mapped)
-    {
-        wxMessageBox("Unable to generate mappings. Check log file for details.", "Mapping Failed", 5, this);
+    if (!mapped) {
+        wxMessageBox("Unable to generate mappings. Check log file for details.", "Mapping Failed", 5);
     }
 }
 
@@ -2741,6 +2979,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
 {
     if (_dataModel == nullptr) return;
 
+    _dirty = true;
     DoAutoMap(norm, norm, norm, "", "", "B", false);
     DoAutoMap(aggressive, aggressive, aggressive, "", "", "B", false);
 
@@ -2763,6 +3002,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapSelClick(wxCommandEvent& eve
     if (_dataModel == nullptr)
         return;
 
+    _dirty = true;
     DoAutoMap(norm, norm, norm, "", "", "B", true);
     DoAutoMap(aggressive, aggressive, aggressive, "", "", "B", true);
 
@@ -2872,6 +3112,7 @@ void xLightsImportChannelMapDialog::LoadRgbEffectsFile() {
                 if (auto mm = GetImportChannel(node->GetAttribute("name")); mm) {
                     mm->type = "ModelGroup";
                     mm->groupModels = node->GetAttribute("models");
+                    mm->nodeCount = 1000; // just hardcode a large value
                 }
             }
         }
@@ -2879,6 +3120,45 @@ void xLightsImportChannelMapDialog::LoadRgbEffectsFile() {
             for (wxXmlNode* node = modelNode->GetChildren(); node != nullptr; node = node->GetNext()) {
                 if (auto mm = GetImportChannel(node->GetAttribute("name")); mm) {
                     mm->type = node->GetAttribute("DisplayAs");
+                    bool singingFace = false;
+                    if (mm->type == "Custom") {
+                        for (wxXmlNode* nodechildren = node->GetChildren(); nodechildren != nullptr; nodechildren = nodechildren->GetNext()) {
+                            if (nodechildren->GetName() == "faceInfo") {
+                                singingFace = true;
+                            }
+                        }
+                    }
+                    bool spiralTree = node->GetAttribute("TreeSpiralRotations", "0") != "0";
+                    bool sticks = node->GetAttribute("CandyCaneSticks", "false") == "true";
+                    std::string dropPattern = node->GetAttribute("DropPattern", "");
+                    mm->modelClass = Model::DetermineClass(mm->type, singingFace, spiralTree, sticks, dropPattern);
+                    if (mm->type == "Channel Block")
+                    {
+                        // these models use param1 only
+                        mm->nodeCount = wxAtoi(node->GetAttribute("param1", "1"));
+                    } else if (mm->type == "Cube") {
+                        // these use param1 * param2 * param3
+                        mm->nodeCount = wxAtoi(node->GetAttribute("param1", "1")) * wxAtoi(node->GetAttribute("param2", "1")) * wxAtoi(node->GetAttribute("param3", "1"));
+                    } 
+                    else if (mm->type == "Custom") {
+                        auto data = CustomModel::ParseCustomModel(node->GetAttribute("CustomModel", ""));
+
+                        int count = 0;
+                        for (int l = 0; l < data.size(); l++) {
+                            for (int r = 0; r < data[l].size(); r++) {
+                                for (int c = 0; c < data[l][r].size(); c++) {
+                                    if (data[l][r][c] != 0) {
+                                        ++count;
+                                    }
+                                }
+                            }
+                        }
+                        mm->nodeCount = count;
+                    }
+                    else {
+                        // these use param1 * param2
+                        mm->nodeCount = wxAtoi(node->GetAttribute("param1", "1")) * wxAtoi(node->GetAttribute("param2", "1"));
+                    }
                 }
                 for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
                     if (n->GetName() == "subModel") {

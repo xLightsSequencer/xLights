@@ -685,6 +685,14 @@ public:
                             vl[numLayers] = true;
                             blend = false;
                         }
+                    } else {
+                        // default if not specified is all valid layers below it except the blend layer
+                        // mark them as being part of the
+                        for (int i = layer + 1; i < vl.size(); i++) {
+                            if (vl[i]) {
+                                partOfCanvas[i] = true;
+                            }
+                        }
                     }
 
                     // preload the buffer with the output from the lower layers

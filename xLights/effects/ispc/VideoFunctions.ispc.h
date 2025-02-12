@@ -32,15 +32,6 @@ struct uint8_t4 { uint8_t v[4]; } __attribute__ ((aligned(4)));
 #endif
 #endif
 
-#ifndef __ISPC_VECTOR_float3__
-#define __ISPC_VECTOR_float3__
-#ifdef _MSC_VER
-__declspec( align(16) ) struct float3 { float v[3]; };
-#else
-struct float3 { float v[3]; } __attribute__ ((aligned(16)));
-#endif
-#endif
-
 
 
 #ifndef __ISPC_ALIGN__
@@ -55,40 +46,25 @@ struct float3 { float v[3]; } __attribute__ ((aligned(16)));
 #endif
 #endif
 
-#ifndef __ISPC_STRUCT_PinwheelData__
-#define __ISPC_STRUCT_PinwheelData__
-struct PinwheelData {
-    uint32_t width;
-    uint32_t height;
-    int32_t pinwheel_arms;
-    int32_t xc_adj;
-    int32_t yc_adj;
-    int32_t degrees_per_arm;
-    int32_t pinwheel_twist;
-    int32_t max_radius;
-    int32_t poffset;
-    int32_t pw3dType;
-    int32_t pinwheel_rotation;
-    float tmax;
-    float pos;
-    int32_t allowAlpha;
-    uint32_t numColors;
-    uint8_t4   * colorsAsColor;
-    float3   * colorsAsHSV;
-    uint8_t * colorIsSpacial;
-    uint32_t * colorarray;
+#ifndef __ISPC_STRUCT_VideoData__
+#define __ISPC_STRUCT_VideoData__
+struct VideoData {
+    uint16_t width;
+    uint16_t height;
+    int16_t yoffset;
+    int16_t xoffset;
+    int16_t ytail;
+    int16_t xtail;
+    bool transparentBlack;
+    int16_t transparentBlackLevel;
+    int16_t image_width;
+    int16_t image_height;
+    int32_t startx;
+    int32_t starty;
+    int32_t sampleSpacing;
+    int8_t ch;
+    uint8_t * image;
     void * bufferData;
-};
-#endif
-
-#ifndef __ISPC_STRUCT_v16_varying_SpacialData__
-#define __ISPC_STRUCT_v16_varying_SpacialData__
-__ISPC_ALIGNED_STRUCT__(64) v16_varying_SpacialData {
-    __ISPC_ALIGN__(64)     uint32_t colorIdx[16];
-    __ISPC_ALIGN__(64)     float x[16];
-    __ISPC_ALIGN__(64)     float y[16];
-    __ISPC_ALIGN__(64)     float r[16];
-    __ISPC_ALIGN__(64)     uint32_t result[16];
 };
 #endif
 
@@ -100,10 +76,15 @@ __ISPC_ALIGNED_STRUCT__(64) v16_varying_SpacialData {
 extern "C" {
 #endif // __cplusplus
 #if defined(__cplusplus)
-    extern void PinwheelEffectStyle0(const struct PinwheelData &data, int32_t startIdx, int32_t endIdx, uint8_t4   * result);
+    extern void VideoEffectProcess(const struct VideoData &data, int32_t startIdx, int32_t endIdx, uint8_t4   * result);
 #else
-    extern void PinwheelEffectStyle0(const struct PinwheelData *data, int32_t startIdx, int32_t endIdx, uint8_t4   * result);
-#endif // PinwheelEffectStyle0 function declaraion
+    extern void VideoEffectProcess(const struct VideoData *data, int32_t startIdx, int32_t endIdx, uint8_t4   * result);
+#endif // VideoEffectProcess function declaraion
+#if defined(__cplusplus)
+    extern void VideoEffectProcessSample(const struct VideoData &data, int32_t startIdx, int32_t endIdx, uint8_t4   * result);
+#else
+    extern void VideoEffectProcessSample(const struct VideoData *data, int32_t startIdx, int32_t endIdx, uint8_t4   * result);
+#endif // VideoEffectProcessSample function declaraion
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 } /* end extern C */
 #endif // __cplusplus

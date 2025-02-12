@@ -888,7 +888,7 @@ void RemoteFalconFrame::OnTimer_UpdatePlaylistTrigger(wxTimerEvent& event)
 
 void RemoteFalconFrame::OnMenuItem_RFWebSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser(_("https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com")));
+    ::wxLaunchDefaultBrowser("https://" + SpecialOptions::GetOption("RemoteFalconURL", "remotefalcon.com"));
 }
 
 void RemoteFalconFrame::OnMenuItem_VisitorWebPageSelected(wxCommandEvent& event)

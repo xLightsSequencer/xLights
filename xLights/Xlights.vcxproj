@@ -245,6 +245,18 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>xcopy /Y /I "$(ProjectDir)..\prompts\*.txt" "$(TargetDir)prompts\"
+xcopy /Y /I "$(ProjectDir)..\resources\*.*" "$(TargetDir)resources\"
+</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(TargetDir)prompts\x.txt</Outputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <TreatOutputAsContent>false</TreatOutputAsContent>
+      <Inputs>$(ProjectDir)..\prompts\*.txt;$(ProjectDir)..\resources\*.*</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
     <ClCompile>
@@ -486,13 +498,15 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="ai\aiBase.cpp" />
+    <ClCompile Include="ai\chatGPT.cpp" />
     <ClCompile Include="AlignmentDialog.cpp" />
     <ClCompile Include="AutoLabelDialog.cpp" />
     <ClCompile Include="automation\automation.cpp" />
     <ClCompile Include="automation\LuaRunner.cpp" />
     <ClCompile Include="automation\PythonRunner.cpp" />
     <ClCompile Include="automation\xLightsAutomations.cpp" />
-    <ClCompile Include="chatGPT.cpp" />
+    <ClCompile Include="CheckSequenceReport.cpp" />
     <ClCompile Include="controllers\ILightThat.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditColourPickerDialog.cpp" />
@@ -1002,12 +1016,14 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\xSchedule\wxHTTPServer\sha1.h" />
     <ClInclude Include="..\xSchedule\wxHTTPServer\wxhttpserver.h" />
     <ClInclude Include="AboutDialog.h" />
+    <ClInclude Include="ai\aiBase.h" />
+    <ClInclude Include="ai\chatGPT.h" />
     <ClInclude Include="AlignmentDialog.h" />
     <ClInclude Include="AutoLabelDialog.h" />
     <ClInclude Include="automation\automation.h" />
     <ClInclude Include="automation\LuaRunner.h" />
     <ClInclude Include="automation\PythonRunner.h" />
-    <ClInclude Include="chatGPT.h" />
+    <ClInclude Include="CheckSequenceReport.h" />
     <ClInclude Include="controllers\ILightThat.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditColourPickerDialog.h" />
@@ -1024,7 +1040,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="cad\STLWriter.h" />
     <ClInclude Include="cad\VRMLWriter.h" />
     <ClInclude Include="CharMapDialog.h" />
-    <ClInclude Include="CheckboxSelectDialog.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColourReplaceDialog.h" />
     <ClInclude Include="ColoursPanel.h" />
@@ -1077,6 +1092,9 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="effects\ispc\SpacialColors.ispc.h" />
+    <ClInclude Include="effects\ispc\VideoFunctions.ispc.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="effects\KaleidoscopeEffect.h" />
     <ClInclude Include="effects\KaleidoscopePanel.h" />
     <ClInclude Include="effects\LinesEffect.h" />
@@ -1531,6 +1549,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\documentation\xlDo Commands.txt" />
+    <Text Include="..\prompts\AI_Model_AutoMap.txt" />
+    <Text Include="..\prompts\AI_Node_AutoMap.txt" />
+    <Text Include="..\prompts\AI_Strand_AutoMap.txt" />
+    <Text Include="..\prompts\AI_SubModel_AutoMap.txt" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="effects\ispc\LayerBlendingFunctions.ispc">
@@ -1582,6 +1604,20 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="effects\ispc\VideoFunctions.ispc">
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -h "effects\\ispc\\%(Filename).ispc.h" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64
+ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -h "effects\\ispc\\%(Filename).ispc.h" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64
+ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

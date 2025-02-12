@@ -14,6 +14,17 @@
 
 class xLightsFrame;
 
-std::string CallChatGPT(xLightsFrame* frame, const std::string& prompt, const std::string& token = "");
-bool TestChatGPT(xLightsFrame* frame, const std::string& token = "");
-bool IsChatGPTAvailable(xLightsFrame* frame, const std::string& token = "");
+class aiBase {
+
+protected:
+    xLightsFrame* _frame = nullptr;
+
+public:
+    aiBase(xLightsFrame* frame) : _frame(frame) {}
+	virtual ~aiBase() {}
+
+    virtual std::string CallLLM(const std::string& prompt, const std::string& token = "") const = 0;
+    virtual bool TestLLM(const std::string& token = "") const = 0;
+    virtual bool IsAvailable(const std::string& token = "") const = 0;
+    virtual std::string GetLLMName() const = 0;
+};

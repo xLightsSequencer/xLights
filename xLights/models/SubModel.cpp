@@ -27,21 +27,48 @@ const std::vector<std::string> SubModel::BUFFER_STYLES{ DEFAULT, KEEP_XY, STACKE
 // Check for duplicate nodes in a submodel
 void SubModel::CheckDuplicates(const std::vector<int>& nodeIndexes)
 {
-    _duplicateNodes = "";
+    _sameLineDuplicates = "";
+    _crossLineDuplicates = "";
+    std::set<int> lineNodes;
+    std::set<int> seenNodes;
+    std::set<int> sameLineDups;     // Track same-line duplicates
+    std::vector<int> sameDupNodes;  // For sorting
+    std::vector<int> crossDupNodes; // For sorting
 
-    auto it = begin(nodeIndexes);
-
-    while (it != end(nodeIndexes)) {
-        auto it2 = it;
-        ++it2;
-        while (it2 != end(nodeIndexes)) {
-            if (*it == *it2) {
-                if (_duplicateNodes != "") _duplicateNodes += ",";
-                _duplicateNodes += wxString::Format("%d", *it + 1);
-            }
-            ++it2;
+    for (int node : nodeIndexes) {
+        if (node == -1) {
+            lineNodes.clear();
+            continue;
         }
-        ++it;
+
+        if (!lineNodes.insert(node).second) {
+            sameLineDups.insert(node);
+            sameDupNodes.push_back(node);
+        }
+
+        if (!seenNodes.insert(node).second && sameLineDups.find(node) == sameLineDups.end()) {
+            crossDupNodes.push_back(node);
+        }
+    }
+
+    // Sort the vectors
+    std::sort(sameDupNodes.begin(), sameDupNodes.end());
+    std::sort(crossDupNodes.begin(), crossDupNodes.end());
+
+    // Remove duplicates from the sorted vectors
+    sameDupNodes.erase(std::unique(sameDupNodes.begin(), sameDupNodes.end()), sameDupNodes.end());
+    crossDupNodes.erase(std::unique(crossDupNodes.begin(), crossDupNodes.end()), crossDupNodes.end());
+
+    for (int node : sameDupNodes) {
+        if (_sameLineDuplicates != "")
+            _sameLineDuplicates += ", ";
+        _sameLineDuplicates += wxString::Format("%d", node + 1);
+    }
+
+    for (int node : crossDupNodes) {
+        if (_crossLineDuplicates != "")
+            _crossLineDuplicates += ", ";
+        _crossLineDuplicates += wxString::Format("%d", node + 1);
     }
 }
 
@@ -113,6 +140,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                         }
                     }
                 }
+                nodeIndexes.push_back(-1);
                 line++;
             }
 
@@ -252,6 +280,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
                         row++;
                     }
                 }
+                nodeIndexes.push_back(-1);
                 line++;
             }
             CheckDuplicates(nodeIndexes);

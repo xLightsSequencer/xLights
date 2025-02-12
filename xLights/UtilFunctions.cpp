@@ -281,6 +281,16 @@ void ClearNonExistentFiles() {
     __nonExistentFiles.clear();
 }
 
+std::string GetResourcesDirectory() {
+#ifndef __WXMSW__
+    return wxStandardPaths::Get().GetResourcesDir().ToStdString();
+#else
+    auto exec = wxStandardPaths::Get().GetExecutablePath().ToStdString();
+    return exec.substr(0, exec.find_last_of("/\\"));
+#endif
+}
+
+
 wxString FixFile(const wxString& ShowDir, const wxString& file) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

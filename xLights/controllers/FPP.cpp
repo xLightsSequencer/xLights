@@ -3843,13 +3843,15 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
     };
     for (auto& it : discovery.GetOutputManager()->GetControllers()) {
         auto c = dynamic_cast<ControllerEthernet*>(it);
-        configuredIPs[c->GetResolvedIP()] = c->GetIP();
-        if (!c->GetFPPProxy().empty()) {
-            auto ip = ip_utils::ResolveIP(c->GetFPPProxy());
-            allProxyList.insert(ip);
-        }
-        if (Controller::DecodeActiveState(c->GetActive()) == "Active") {
-            foundActiveController = true;
+        if (c != nullptr) {
+            configuredIPs[c->GetResolvedIP()] = c->GetIP();
+            if (!c->GetFPPProxy().empty()) {
+                auto ip = ip_utils::ResolveIP(c->GetFPPProxy());
+                allProxyList.insert(ip);
+            }
+            if (Controller::DecodeActiveState(c->GetActive()) == "Active") {
+                foundActiveController = true;
+            }
         }
     }
     for (auto res : discovery.GetResults()) {
