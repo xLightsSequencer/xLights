@@ -69,7 +69,8 @@ class xLightsImportModelNode : wxDataViewTreeStoreNode
 public:
     xLightsImportModelNode(xLightsImportModelNode* parent,
                            const wxString& model, const wxString& strand, const wxString& node,
-                           const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const std::string& modelType, const std::string& groupModels, bool isSubmodel, const wxColor& color = *wxWHITE) :
+                           const wxString& mapping, const bool mappingExists, const std::list<std::string> aliases, const std::string& modelType, const std::string& groupModels,
+                           bool isSubmodel, const std::string& modelClass, int nodeCount, const wxString& mappingModelType, const wxColor& color = *wxWHITE) :
         wxDataViewTreeStoreNode(parent, "XXX"),
         m_parent(parent),
         _model(model.ToStdString()),
@@ -108,7 +109,7 @@ public:
         _groupModels(groupModels),
         _isSubmodel(isSubmodel),
         _modelClass(modelClass) ,
-        _nodeCount(nodeCount)
+        _nodeCount(nodeCount),
         _mappingModelType(mappingModelType.ToStdString())
     { }
 
@@ -131,7 +132,7 @@ public:
         _groupModels(groupModels),
         _isSubmodel(isSubmodel),
         _modelClass(modelClass),
-        _nodeCount(nodeCount)
+        _nodeCount(nodeCount),
         _mappingModelType(mappingModelType.ToStdString())
     { }
 
