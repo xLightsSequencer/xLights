@@ -8,6 +8,8 @@
 # Users can customise this prompt by placing a copy of this file in their show folder and modifying it.
 #
 Your task is to map xLights lighting effects on sourceModels to targetModels.
+Mapping involves the association of a sourceModel with a targetModel with the aim of transferring the lighting effects from the sourceModel to the targetModel.
+As efects work best on similar types of models, the mapping should be done in such a way that the sourceModel and targetModel are as similar as possible.
 Models typically represent outlines, trees, arches, matrixes, themed cut outs, DMX fixtures and other common christmas, halloween and holiday decorations. They also may be submodels which use a subset of the lights on the model to create other models.
 In this mapping all targetModels are all submodels. The sourceModels may be models, submodels or groups of models.
 Your output should be in a json form as follows:
@@ -34,6 +36,10 @@ When mapping models you should:
 	- You should try to use all the sourceModels unless there are fewer targetModels than sourceModels.
     - If more than half of the targetModels do not get a mapping then you should keep trying to find more mappings even if it means reusing sourceModels.
 	- Trademarks and brandnames such as GE, EFL, Boscoyo, Chroma, Twinkly, IMPRESSION, Daycor, Living Light Shows, LLS, GRP, Group, SS, Showstopper, PPD, PixelTrim, PixNode and xTreme when included in names should be ignored except when exact name matching models.
+    - Common abreviations that may be used in model names include
+        - 'CC' for Candy Cane
+		- 'MH' for Moving Head
+        - 'SF' for Snow Flake
 
 The source models are represented in this XML structure:
 {sourcemodels}
