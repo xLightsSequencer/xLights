@@ -8857,6 +8857,24 @@ void LayoutPanel::HandleSelectionChanged() {
             } else {
                 logger_base.crit("LayoutPanel::HandleSelectionChanged Model was selected and now is null, this should not have happened.");
             }
+            if (selectedBaseObject->GetModelXml()->HasAttribute("X2")) {
+                float x1 = wxAtof(selectedBaseObject->GetModelXml()->GetAttribute("X1", "0"));
+                float x2 = wxAtof(selectedBaseObject->GetModelXml()->GetAttribute("X2", "0"));
+                float y1 = wxAtof(selectedBaseObject->GetModelXml()->GetAttribute("Y1", "0"));
+                float y2 = wxAtof(selectedBaseObject->GetModelXml()->GetAttribute("Y2", "0"));
+                if (x2 < x1 && std::abs(x2 - x1) > 30.0) {
+                    if (!tooltip.empty()) {
+                        tooltip += "\n";
+                    }
+                    tooltip += "Warning: Model is perhaps flipped left to right.";
+                }
+                if (y2 < y1 && std::abs(x2 - x1) < 30.0) {
+                    if (!tooltip.empty()) {
+                        tooltip += "\n";
+                    }
+                    tooltip += "Warning: Model is perhaps flipped top to bottom.";
+                }
+            }
             SetupPropGrid(model);
             ShowPropGrid(true);
         } else {
