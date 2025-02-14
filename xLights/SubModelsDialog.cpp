@@ -1148,6 +1148,7 @@ void SubModelsDialog::OnListCtrl_SubModelsItemSelect(wxListEvent& event)
     shouldProcessGridCellChanged = false;
     if (ListCtrl_SubModels->GetSelectedItemCount() == 1)
     {
+	SetTitle(wxString::Format("SubModels - %s - %s", model->GetName(), GetSelectedName()));
         Select(GetSelectedName());
     }
 }
