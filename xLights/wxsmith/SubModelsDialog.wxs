@@ -137,8 +137,8 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+							<minsize>100</minsize>
 							<orientation>vertical</orientation>
-							<minsize>100,100</minsize>
 							<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 							<handler function="OnSplitterSashPosChanging" entry="EVT_SPLITTER_SASH_POS_CHANGING" />
 							<object class="wxPanel" name="ID_PANEL5" variable="Panel3" member="yes">
