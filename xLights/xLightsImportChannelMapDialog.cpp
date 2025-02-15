@@ -2501,7 +2501,7 @@ std::string xLightsImportChannelMapDialog::BuildAlreadyMappedPrompt(const std::l
 
     std::string exampleMappings = "<exampleMappings>\\n";
     for (const auto& it : targetModels) {
-        if (filter(it)) {
+        if (filter(it) && it->HasMapping()) {
             std::string name = it->GetModelName();
             std::string type = it->_modelType;
             if (it->IsStrand())
