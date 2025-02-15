@@ -75,6 +75,7 @@ EditSubmodelAliasesDialog::EditSubmodelAliasesDialog(wxWindow* parent, Model* m,
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_LISTBOX1, wxEVT_COMMAND_LISTBOX_SELECTED, (wxObjectEventFunction)&EditSubmodelAliasesDialog::OnListBoxAliasesSelect);
+    Connect(ID_BITMAPBUTTONUP, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EditSubmodelAliasesDialog::OnButtonMoveUpClick);
     Connect(ID_BITMAPBUTTONDOWN, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EditSubmodelAliasesDialog::OnButtonMoveDownClick);
     Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EditSubmodelAliasesDialog::OnButtonAddClick);
     Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EditSubmodelAliasesDialog::OnButtonDeleteClick);
