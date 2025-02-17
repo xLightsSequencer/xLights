@@ -484,8 +484,8 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     // wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
 
                     ispc::VideoData rdata;
-                    rdata.width = buffer.BufferWi;
-                    rdata.height = buffer.BufferHt;
+                    rdata.width = _videoreader->GetWidth() - xoffset - xtail;
+                    rdata.height = _videoreader->GetHeight() - yoffset - ytail;
                     rdata.ytail = ytail;
                     rdata.xtail = xtail;
                     rdata.yoffset = yoffset;
@@ -501,7 +501,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     rdata.bufferData = (void*)&buffer;
                     rdata.sampleSpacing = sampleSpacing;
 
-                    int max = buffer.BufferHt * buffer.BufferWi;
+                    int max = std::min(rdata.width * rdata.height, buffer.BufferHt * buffer.BufferWi);
                     constexpr int bfBlockSize = 4096;
                     int blocks = max / bfBlockSize + 1;
 
