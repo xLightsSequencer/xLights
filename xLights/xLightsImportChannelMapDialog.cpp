@@ -2585,11 +2585,11 @@ bool xLightsImportChannelMapDialog::AIModelMap(wxProgressDialog* dlg, const std:
     std::string altreadyMappedPrompt = BuildAlreadyMappedPrompt(targetModels, [](const xLightsImportModelNode* m) { return m->IsMapped() && !m->IsSubModel() && !m->IsStrand() && m->IsNode(); });
 
     if (prompt.find("{sourcemodels}") != std::string::npos)
-        prompt = prompt.replace(prompt.find("{sourcemodels}"), 13, sourceModelsPrompt);
+        prompt = prompt.replace(prompt.find("{sourcemodels}"), 14, sourceModelsPrompt);
     if (prompt.find("{targetmodels}") != std::string::npos)
-        prompt = prompt.replace(prompt.find("{targetmodels}"), 13, targetModelsPrompt);
+        prompt = prompt.replace(prompt.find("{targetmodels}"), 14, targetModelsPrompt);
     if (prompt.find("{examplemapping}") != std::string::npos)
-        prompt = prompt.replace(prompt.find("{examplemapping}"), 15, altreadyMappedPrompt);
+        prompt = prompt.replace(prompt.find("{examplemapping}"), 16, altreadyMappedPrompt);
 
     bool res = RunAIPrompt(dlg, prompt, targetModels);
     dlg->Update(25, "Models mapped");
@@ -2622,11 +2622,11 @@ bool xLightsImportChannelMapDialog::AISubModelMap(wxProgressDialog* dlg, const s
     std::string altreadyMappedPrompt = BuildAlreadyMappedPrompt(targetModels, [](const xLightsImportModelNode* m) { return m->_mappingExists && m->IsSubModel(); });
 
     if (prompt.find("{sourcemodels}") != std::string::npos)
-        prompt = prompt.replace(prompt.find("{sourcemodels}"), 13, sourceModelsPrompt);
+        prompt = prompt.replace(prompt.find("{sourcemodels}"), 14, sourceModelsPrompt);
     if (prompt.find("{targetmodels}") != std::string::npos)
-        prompt = prompt.replace(prompt.find("{targetmodels}"), 13, targetModelsPrompt);
+        prompt = prompt.replace(prompt.find("{targetmodels}"), 14, targetModelsPrompt);
     if (prompt.find("{examplemapping}") != std::string::npos)
-        prompt = prompt.replace(prompt.find("{examplemapping}"), 15, altreadyMappedPrompt);
+        prompt = prompt.replace(prompt.find("{examplemapping}"), 16, altreadyMappedPrompt);
 
     bool res = RunAIPrompt(dlg, prompt, targetModels);
     dlg->Update(50, "SubModels mapped");
@@ -2659,11 +2659,11 @@ bool xLightsImportChannelMapDialog::AIStrandMap(wxProgressDialog* dlg, const std
     std::string altreadyMappedPrompt = BuildAlreadyMappedPrompt(targetModels, [](const xLightsImportModelNode* m) { return m->IsMapped() && m->IsStrand(); });
 
     if (prompt.find("{sourcemodels}") != std::string::npos)
-        prompt = prompt.replace(prompt.find("{sourcemodels}"), 13, sourceModelsPrompt);
+        prompt = prompt.replace(prompt.find("{sourcemodels}"), 14, sourceModelsPrompt);
     if (prompt.find("{targetmodels}") != std::string::npos)
-        prompt = prompt.replace(prompt.find("{targetmodels}"), 13, targetModelsPrompt);
+        prompt = prompt.replace(prompt.find("{targetmodels}"), 14, targetModelsPrompt);
     if (prompt.find("{examplemapping}") != std::string::npos)
-        prompt = prompt.replace(prompt.find("{examplemapping}"), 15, altreadyMappedPrompt);
+        prompt = prompt.replace(prompt.find("{examplemapping}"), 16, altreadyMappedPrompt);
 
     bool res = RunAIPrompt(dlg, prompt, targetModels);
     dlg->Update(75, "Strands mapped");
@@ -2706,11 +2706,11 @@ bool xLightsImportChannelMapDialog::AINodeMap(wxProgressDialog* dlg, const std::
     std::string altreadyMappedPrompt = BuildAlreadyMappedPrompt(targetModels, [](const xLightsImportModelNode* m) { return m->IsMapped() && m->IsNode(); });
 
     if (prompt.find("{sourcemodels}") != std::string::npos)
-        prompt = prompt.replace(prompt.find("{sourcemodels}"), 13, sourceModelsPrompt);
+        prompt = prompt.replace(prompt.find("{sourcemodels}"), 14, sourceModelsPrompt);
     if (prompt.find("{targetmodels}") != std::string::npos)
-        prompt = prompt.replace(prompt.find("{targetmodels}"), 13, targetModelsPrompt);
+        prompt = prompt.replace(prompt.find("{targetmodels}"), 14, targetModelsPrompt);
     if (prompt.find("{examplemapping}") != std::string::npos)
-        prompt = prompt.replace(prompt.find("{examplemapping}"), 15, altreadyMappedPrompt);
+        prompt = prompt.replace(prompt.find("{examplemapping}"), 16, altreadyMappedPrompt);
 
     bool res = RunAIPrompt(dlg, prompt, targetModels);
     dlg->Update(100, "Nodes mapped");
