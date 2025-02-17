@@ -1019,13 +1019,10 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         if (grp != nullptr) {
             auto modelNames = grp->ModelNames();
             for (const auto& it : modelNames) {
-                Model* mdl = grp->GetModel(it);
-                if (mdl != nullptr) {
                     if (groupModels != "") {
                         groupModels += ",";
                     }
-                    groupModels += mdl->GetName();
-                }
+                    groupModels += it;
             }
         }
     }
