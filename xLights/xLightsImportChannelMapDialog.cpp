@@ -2516,7 +2516,7 @@ std::string xLightsImportChannelMapDialog::BuildAlreadyMappedPrompt(const std::l
     return exampleMappings;
 }
 
-bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std::string& prompt, const std::list<xLightsImportModelNode*>& targetModels) {
+bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std::string& prompt, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     logger_base.debug("Prompt: %s", prompt.c_str());
@@ -2526,6 +2526,11 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
         return false;
 
     std::string response = ai->CallLLM(prompt, "");
+
+    std::string possibleSources = "";
+    for (const auto& it : sourceModels) {
+        possibleSources += it->name + ", ";
+    }
 
     logger_base.debug("Response: %s", response.c_str());
 
@@ -2550,9 +2555,9 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
                     // find the model in the mappings sourceModel
                     for (size_t i = 0; i < mappings.Size(); ++i) {
                         wxString targetModel = mappings[i]["targetModel"].AsString();
-
-                        if (targetModel == mn) {
-                            it->Map(mappings[i]["sourceModel"].AsString());
+                        std::string mappingSource = mappings[i]["sourceModel"].AsString();
+                        if (targetModel == mn && possibleSources.find(mappingSource) != std::string::npos) {
+                            it->Map(mappingSource);
                             mapped = true;
                             break;
                         }
@@ -2591,7 +2596,7 @@ bool xLightsImportChannelMapDialog::AIModelMap(wxProgressDialog* dlg, const std:
     if (prompt.find("{examplemapping}") != std::string::npos)
         prompt = prompt.replace(prompt.find("{examplemapping}"), 16, altreadyMappedPrompt);
 
-    bool res = RunAIPrompt(dlg, prompt, targetModels);
+    bool res = RunAIPrompt(dlg, prompt, sourceModels, targetModels);
     dlg->Update(25, "Models mapped");
 
     return res;
@@ -2628,7 +2633,7 @@ bool xLightsImportChannelMapDialog::AISubModelMap(wxProgressDialog* dlg, const s
     if (prompt.find("{examplemapping}") != std::string::npos)
         prompt = prompt.replace(prompt.find("{examplemapping}"), 16, altreadyMappedPrompt);
 
-    bool res = RunAIPrompt(dlg, prompt, targetModels);
+    bool res = RunAIPrompt(dlg, prompt, sourceModels, targetModels);
     dlg->Update(50, "SubModels mapped");
 
     return res;
@@ -2665,7 +2670,7 @@ bool xLightsImportChannelMapDialog::AIStrandMap(wxProgressDialog* dlg, const std
     if (prompt.find("{examplemapping}") != std::string::npos)
         prompt = prompt.replace(prompt.find("{examplemapping}"), 16, altreadyMappedPrompt);
 
-    bool res = RunAIPrompt(dlg, prompt, targetModels);
+    bool res = RunAIPrompt(dlg, prompt, sourceModels, targetModels);
     dlg->Update(75, "Strands mapped");
 
     return res;
@@ -2712,7 +2717,7 @@ bool xLightsImportChannelMapDialog::AINodeMap(wxProgressDialog* dlg, const std::
     if (prompt.find("{examplemapping}") != std::string::npos)
         prompt = prompt.replace(prompt.find("{examplemapping}"), 16, altreadyMappedPrompt);
 
-    bool res = RunAIPrompt(dlg, prompt, targetModels);
+    bool res = RunAIPrompt(dlg, prompt, sourceModels, targetModels);
     dlg->Update(100, "Nodes mapped");
 
     return res;
