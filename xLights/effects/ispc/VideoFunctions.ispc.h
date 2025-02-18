@@ -52,6 +52,8 @@ struct uint8_t4 { uint8_t v[4]; } __attribute__ ((aligned(4)));
 struct VideoData {
     uint16_t width;
     uint16_t height;
+    uint16_t buffer_width;
+    uint16_t buffer_height;
     int16_t yoffset;
     int16_t xoffset;
     int16_t ytail;
