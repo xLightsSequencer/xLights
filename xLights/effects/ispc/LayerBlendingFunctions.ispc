@@ -204,11 +204,11 @@ export void GetColorsISPCKernel(uniform const LayerBlendingData &data,
                             nc = cnt;
                         }
                     }
-                }
+              }
             }
         } else if (data.useMask && mask) {
-            int32 x = idx / data.bufferHi;
-            int32 y = idx - (x * data.bufferHi);
+            int32 x = idx % data.bufferWi;
+            int32 y = idx / data.bufferWi;
             int32 midx = x * data.bufferHi + y;
 
             if (mask[midx] > 0) {
