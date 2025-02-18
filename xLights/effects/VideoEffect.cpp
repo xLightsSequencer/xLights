@@ -486,6 +486,8 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     ispc::VideoData rdata;
                     rdata.width = _videoreader->GetWidth() - xoffset - xtail;
                     rdata.height = _videoreader->GetHeight() - yoffset - ytail;
+                    rdata.buffer_width = buffer.BufferWi;
+                    rdata.buffer_height = buffer.BufferHt;
                     rdata.ytail = ytail;
                     rdata.xtail = xtail;
                     rdata.yoffset = yoffset;
