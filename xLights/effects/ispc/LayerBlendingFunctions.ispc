@@ -764,9 +764,9 @@ export void SubtractiveFunction(uniform const LayerBlendingData &data,
         uint32 fg = src[index];
         if (!data.isChromaKey || !applyChroma(data, fg)) {
             uint32 bg = result[index];
-            int r = red(bg) - red(fg);
-            int g = green(bg) - green(fg);
-            int b = blue(bg) - blue(fg);
+            int r = (int)red(bg) - (int)red(fg);
+            int g = (int)green(bg) - (int)green(fg);
+            int b = (int)blue(bg) - (int)blue(fg);
             if (r < 0)
                 r = 0;
             if (g < 0)
