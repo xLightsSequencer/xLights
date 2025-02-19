@@ -196,6 +196,7 @@ void ServicesPanel::OnButtonTestClick(wxCommandEvent& event) {
                     wxMessageBox("Service " + servicesList->GetItemText(i, 0) + " is not valid", "Error", wxICON_ERROR);
                 }
             }
-        }
+        } else {
+        	wxMessageBox("Service " + servicesList->GetItemText(i, 0) + " is not yet configured. Please check API key(s).", "Error", wxICON_ERROR);}
     }
 }
