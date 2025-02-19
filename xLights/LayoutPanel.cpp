@@ -105,6 +105,10 @@ static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeigh
 	return r;
 }
 
+static bool ctrlFPressed = false;
+static bool ctrlshiftFPressed = false;
+wxTreeListItem lastFoundItem = nullptr;
+
 //(*IdInit(LayoutPanel)
 const wxWindowID LayoutPanel::ID_PANEL4 = wxNewId();
 const wxWindowID LayoutPanel::ID_PANEL_Objects = wxNewId();
@@ -9048,16 +9052,25 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
     Refresh();
 }
 
-bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
-{
+bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event) {
     log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     auto k = event.GetKeyCode();
-    if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
+
+    if ((event.ControlDown() || event.CmdDown()) && event.ShiftDown() && k == 'F') { // consume ctrl+shift+F and ctrl+F keybinding and observe the next key press
+        ctrlshiftFPressed = true;
+        return true;
+    } else if ((event.ControlDown() || event.CmdDown()) && k == 'F') {
+        ctrlFPressed = true;
+        return true;
+    }
+
+    if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT)
+        return false;
 
     if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) ||
         (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown())) {
-        // let crontrol A through
+        // Let Control + A through
         // Just a regular key ... If current focus is a control then we need to not process this
         if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
             (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL)) {
@@ -9065,6 +9078,54 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         }
     }
 
+    if ((ctrlFPressed || ctrlshiftFPressed) && wxIsalpha(k)) {
+        wxTreeListItems currentItems;
+        TreeListViewModels->GetSelections(currentItems);
+
+        if (currentItems.empty()) return false;
+
+        wxChar letter = event.GetUnicodeKey();
+        if (!wxIsalpha(letter)) return false;
+
+        wxTreeListItem startItem = lastFoundItem.IsOk() ? lastFoundItem : currentItems[0];
+        wxTreeListItem nextItem = TreeListViewModels->GetNextItem(startItem);
+        bool found = false;
+
+        while (nextItem.IsOk() && !found) {
+            if (TreeListViewModels->GetItemParent(nextItem) == TreeListViewModels->GetRootItem() || ctrlshiftFPressed) {
+                wxString itemName = TreeListViewModels->GetItemText(nextItem, 0);
+                if (wxToupper(itemName.GetChar(0)) == wxToupper(letter)) {
+                    TreeListViewModels->UnselectAll();
+                    TreeListViewModels->Select(nextItem);
+                    TreeListViewModels->EnsureVisible(nextItem);
+                    lastFoundItem = nextItem;
+                    found = true;
+                    break;
+                }
+            }
+            nextItem = TreeListViewModels->GetNextItem(nextItem);
+        }
+        if (!found) {       // If not found, wrap around to start
+            nextItem = TreeListViewModels->GetFirstItem();
+            while (nextItem.IsOk() && nextItem != startItem && !found) {
+                if (TreeListViewModels->GetItemParent(nextItem) == TreeListViewModels->GetRootItem() || ctrlshiftFPressed) {
+                    wxString itemName = TreeListViewModels->GetItemText(nextItem, 0);
+                    if (wxToupper(itemName.GetChar(0)) == wxToupper(letter)) {
+                        TreeListViewModels->UnselectAll();
+                        TreeListViewModels->Select(nextItem);
+                        TreeListViewModels->EnsureVisible(nextItem);
+                        lastFoundItem = nextItem;
+                        break;
+                    }
+                }
+                nextItem = TreeListViewModels->GetNextItem(nextItem);
+            }
+        }
+        ctrlFPressed = ctrlshiftFPressed = false;
+        return true;
+    }
+
+    // Handle other keybindings
     auto binding = xlights->GetMainSequencer()->keyBindings.Find(event, KBSCOPE::Layout);
     if (binding != nullptr) {
         std::string type = binding->GetType();
@@ -9072,25 +9133,19 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
             LockSelectedModels(true);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleLayoutKey::LOCK_MODEL");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::HandleLayoutKey::LOCK_MODEL");
-        }
-        else if (type == "UNLOCK_MODEL") {
+        } else if (type == "UNLOCK_MODEL") {
             LockSelectedModels(false);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleLayoutKey::UNLOCK_MODEL");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::HandleLayoutKey::UNLOCK_MODEL");
-        }
-        else if (type == "GROUP_MODELS") {
+        } else if (type == "GROUP_MODELS") {
             CreateModelGroupFromSelected();
-        }
-        else if (type == "WIRING_VIEW") {
+        } else if (type == "WIRING_VIEW") {
             ShowWiring();
-        }
-        else if (type == "EXPORT_MODEL_CAD") {
+        } else if (type == "EXPORT_MODEL_CAD") {
             ExportModelAsCAD();
-        }
-        else if (type == "EXPORT_LAYOUT_DXF") {
+        } else if (type == "EXPORT_LAYOUT_DXF") {
             ExportLayoutDXF();
-        }
-        else if (type == "NODE_LAYOUT") {
+        } else if (type == "NODE_LAYOUT") {
             ShowNodeLayout();
         } else if (type == "MODEL_SUBMODELS") {
             EditSubmodels();
@@ -9105,48 +9160,35 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
             if (xlights->IsControllersAndLayoutTabSaveLinked()) {
                 xlights->SaveNetworksFile();
             }
-        }
-        else if (type == "MODEL_ALIGN_TOP") {
+        } else if (type == "MODEL_ALIGN_TOP") {
             PreviewModelAlignTops();
-        }
-        else if (type == "MODEL_ALIGN_BOTTOM") {
+        } else if (type == "MODEL_ALIGN_BOTTOM") {
             PreviewModelAlignBottoms();
-        }
-        else if (type == "MODEL_ALIGN_LEFT") {
+        } else if (type == "MODEL_ALIGN_LEFT") {
             PreviewModelAlignLeft();
-        }
-        else if (type == "MODEL_ALIGN_RIGHT") {
+        } else if (type == "MODEL_ALIGN_RIGHT") {
             PreviewModelAlignRight();
-        }
-        else if (type == "MODEL_ALIGN_CENTER_VERT") {
+        } else if (type == "MODEL_ALIGN_CENTER_VERT") {
             PreviewModelAlignVCenter();
-        }
-        else if (type == "MODEL_ALIGN_CENTER_HORIZ") {
+        } else if (type == "MODEL_ALIGN_CENTER_HORIZ") {
             PreviewModelAlignHCenter();
-        } 
-        else if (type == "MODEL_ALIGN_BACKS") {
+        } else if (type == "MODEL_ALIGN_BACKS") {
             PreviewModelAlignBacks();
-        } 
-        else if (type == "MODEL_ALIGN_FRONTS") {
+        } else if (type == "MODEL_ALIGN_FRONTS") {
             PreviewModelAlignFronts();
-        } 
-        else if (type == "MODEL_ALIGN_GROUND") {
+        } else if (type == "MODEL_ALIGN_GROUND") {
             PreviewModelAlignWithGround();
-        }
-        else if (type == "MODEL_DISTRIBUTE_HORIZ") {
+        } else if (type == "MODEL_DISTRIBUTE_HORIZ") {
             PreviewModelHDistribute();
-        }
-        else if (type == "SELECT_ALL_MODELS") {
+        } else if (type == "SELECT_ALL_MODELS") {
             SelectAllModels();
-        }
-        else if (type == "MODEL_DISTRIBUTE_VERT") {
+        } else if (type == "MODEL_DISTRIBUTE_VERT") {
             PreviewModelVDistribute();
         } else if (type == "MODEL_FLIP_VERT") {
             PreviewModelFlipV();
         } else if (type == "MODEL_FLIP_HORIZ") {
             PreviewModelFlipH();
-        }
-        else {
+        } else {
             logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());
             wxASSERT(false);
             return false;
