@@ -1143,6 +1143,19 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
         logger_base.debug("Batch render cancelled.");
         EnableSequenceControls(true);
         printf("Batch render cancelled.\n");
+
+        wxConfigBase* config = wxConfigBase::Get();
+        if (config != nullptr) {
+            auto selectGridIcon = config->ReadBool("BatchRendererGridIconBackgrounds", false);
+            if (selectGridIcon) {
+                SetGridIconBackgrounds(selectGridIcon);
+            }
+            auto selectGroupEffect = config->ReadBool("BatchRendererGroupEffectBackgrounds", false);
+            if (selectGroupEffect) {
+                SetShowGroupEffectIndicator(selectGroupEffect);
+            }
+        }
+
         if (exitOnDone) {
             Destroy();
         }
@@ -1196,6 +1209,19 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         logger_base.debug("Batch render done.");
         printf("Done All Files\n");
         wxBell();
+
+        wxConfigBase* config = wxConfigBase::Get();
+        if (config != nullptr) {
+            auto selectGridIcon = config->ReadBool("BatchRendererGridIconBackgrounds", false);
+            if (selectGridIcon) {
+                SetGridIconBackgrounds(selectGridIcon);
+            }
+            auto selectGroupEffect = config->ReadBool("BatchRendererGroupEffectBackgrounds", false);
+            if (selectGroupEffect) {
+                SetShowGroupEffectIndicator(selectGroupEffect);
+            }
+        }
+
         if (exitOnDone) {
             Destroy();
         } else {
@@ -1210,6 +1236,19 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         logger_base.debug("Batch render cancelled.");
         EnableSequenceControls(true);
         printf("Batch render cancelled.\n");
+
+        wxConfigBase* config = wxConfigBase::Get();
+        if (config != nullptr) {
+            auto selectGridIcon = config->ReadBool("BatchRendererGridIconBackgrounds", false);
+            if (selectGridIcon) {
+                SetGridIconBackgrounds(selectGridIcon);
+            }
+            auto selectGroupEffect = config->ReadBool("BatchRendererGroupEffectBackgrounds", false);
+            if (selectGroupEffect) {
+                SetShowGroupEffectIndicator(selectGroupEffect);
+            }
+        }
+
         if (exitOnDone) {
             Destroy();
         }

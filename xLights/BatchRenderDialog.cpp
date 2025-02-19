@@ -380,6 +380,18 @@ void BatchRenderDialog::ValidateWindow()
 void BatchRenderDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     SaveSettings();
+    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr) {
+        config->Write("BatchRendererGridIconBackgrounds", frame->GridIconBackgrounds());
+        config->Write("BatchRendererGroupEffectBackgrounds", frame->ShowGroupEffectIndicator());
+    }
+    if(frame->GridIconBackgrounds()) {
+        frame->SetGridIconBackgrounds(false);
+    }
+    if(frame->ShowGroupEffectIndicator()) {
+        frame->SetShowGroupEffectIndicator(false);
+    }
     EndDialog(wxID_OK);
 }
 
