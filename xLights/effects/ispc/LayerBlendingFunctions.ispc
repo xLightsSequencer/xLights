@@ -820,9 +820,9 @@ export void AsBrightnessFunction(uniform const LayerBlendingData &data,
         if (!data.isChromaKey || !applyChroma(data, fg)) {
             uint32 bg = result[index];
             float alpha = (float)alpha(fg) / 255.0;
-            int r = div_255_fast(red(fg) * red(bg) * alpha);
-            int g = div_255_fast(green(fg) * green(bg) * alpha);
-            int b = div_255_fast(blue(fg) * blue(bg) * alpha);
+            int r = div_255_fast((int)red(fg) * (int)red(bg) * alpha);
+            int g = div_255_fast((int)green(fg) * (int)green(bg) * alpha);
+            int b = div_255_fast((int)blue(fg) * (int)blue(bg) * alpha);
             result[index] = fromComponents((uint8)r, (uint8)g, (uint8)b, 255);
         }
     }
