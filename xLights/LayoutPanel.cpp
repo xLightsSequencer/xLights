@@ -1346,9 +1346,11 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
         wxASSERT(false);
     }
 
+    ModelGroup* mg = dynamic_cast<ModelGroup*>(model);
+    bool isOrgGroup = mg != nullptr ? mg->IsOrgGroup() : false; 
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, TreeModelName(model, fullName),
-                                                         LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Closed),
-                                                         LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Opened),
+                                                         LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Closed, isOrgGroup),
+                                                         LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Opened, isOrgGroup),
                                                          new ModelTreeData(model, nativeOrder, fullName));
 
     if (model->GetDisplayAs() != "ModelGroup") {

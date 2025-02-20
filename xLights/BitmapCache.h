@@ -20,6 +20,7 @@ public:
     static wxBitmapBundle GetPapgayoIcon();
     static wxBitmapBundle GetPapgayoXIcon();
     static wxBitmapBundle GetModelGroupIcon();
+    static wxBitmapBundle GetModelOrgGroupIcon();
     
     static wxBitmapBundle GetLockIcon(bool locked);
     static const wxImage &GetCornerIcon(int position, int size);

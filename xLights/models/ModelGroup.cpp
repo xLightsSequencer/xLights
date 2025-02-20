@@ -543,6 +543,7 @@ bool ModelGroup::Reset(bool zeroBased) {
     this->zeroBased = zeroBased;
     selected = false;
     name = ModelXml->GetAttribute("name").Trim(true).Trim(false).ToStdString();
+    orgGroup = wxAtoi(ModelXml->GetAttribute("OrgGroup", "false"));
 
     DisplayAs = "ModelGroup";
     StringType = "RGB Nodes";

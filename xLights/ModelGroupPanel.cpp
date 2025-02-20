@@ -85,38 +85,39 @@ public:
 };
 
 //(*IdInit(ModelGroupPanel)
-const long ModelGroupPanel::ID_STATICTEXT5 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT6 = wxNewId();
-const long ModelGroupPanel::ID_CHOICE1 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT12 = wxNewId();
-const long ModelGroupPanel::ID_CHOICE2 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT4 = wxNewId();
-const long ModelGroupPanel::ID_SPINCTRL1 = wxNewId();
-const long ModelGroupPanel::ID_CHOICE_PREVIEWS = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT7 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT10 = wxNewId();
-const long ModelGroupPanel::ID_SPINCTRL2 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT11 = wxNewId();
-const long ModelGroupPanel::ID_SPINCTRL3 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT8 = wxNewId();
-const long ModelGroupPanel::ID_COLOURPICKERCTRL_MG_TAGCOLOUR = wxNewId();
-const long ModelGroupPanel::ID_BUTTON2 = wxNewId();
-const long ModelGroupPanel::ID_CHECKBOX1 = wxNewId();
-const long ModelGroupPanel::ID_CHECKBOX3 = wxNewId();
-const long ModelGroupPanel::ID_CHECKBOX2 = wxNewId();
-const long ModelGroupPanel::ID_CHECKBOX4 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT3 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT2 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT9 = wxNewId();
-const long ModelGroupPanel::ID_TEXTCTRL1 = wxNewId();
-const long ModelGroupPanel::ID_BUTTON1 = wxNewId();
-const long ModelGroupPanel::ID_LISTCTRL1 = wxNewId();
-const long ModelGroupPanel::ID_BITMAPBUTTON4 = wxNewId();
-const long ModelGroupPanel::ID_BITMAPBUTTON3 = wxNewId();
-const long ModelGroupPanel::ID_BITMAPBUTTON1 = wxNewId();
-const long ModelGroupPanel::ID_BITMAPBUTTON2 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT1 = wxNewId();
-const long ModelGroupPanel::ID_LISTCTRL2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT5 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT6 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHOICE1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT12 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHOICE2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT4 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_SPINCTRL1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHOICE_PREVIEWS = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT7 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT10 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_SPINCTRL2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT11 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_SPINCTRL3 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT8 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_COLOURPICKERCTRL_MG_TAGCOLOUR = wxNewId();
+const wxWindowID ModelGroupPanel::ID_BUTTON2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHECKBOX5 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHECKBOX1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHECKBOX3 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHECKBOX2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHECKBOX4 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT3 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT9 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_TEXTCTRL1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_BUTTON1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_LISTCTRL1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_BITMAPBUTTON4 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_BITMAPBUTTON3 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_BITMAPBUTTON1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_BITMAPBUTTON2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_LISTCTRL2 = wxNewId();
 //*)
 
 const long ModelGroupPanel::ID_MNU_CLEARALL = wxNewId();
@@ -195,12 +196,12 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
 	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("X"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
 	FlexGridSizer4->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_XCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL2, _T("0"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, -5000, 5000, 0, _T("ID_SPINCTRL2"));
+	SpinCtrl_XCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL2, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -5000, 5000, 0, _T("ID_SPINCTRL2"));
 	SpinCtrl_XCentreOffset->SetValue(_T("0"));
 	FlexGridSizer4->Add(SpinCtrl_XCentreOffset, 1, wxALL|wxEXPAND, 2);
 	StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
 	FlexGridSizer4->Add(StaticText11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_YCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, -5000, 5000, 0, _T("ID_SPINCTRL3"));
+	SpinCtrl_YCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -5000, 5000, 0, _T("ID_SPINCTRL3"));
 	SpinCtrl_YCentreOffset->SetValue(_T("0"));
 	FlexGridSizer4->Add(SpinCtrl_YCentreOffset, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer6->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
@@ -211,6 +212,10 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer5->Add(ColourPickerCtrl_ModelGroupTagColour, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonAliases = new wxButton(this, ID_BUTTON2, _("Aliases"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer5->Add(ButtonAliases, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Checkbox_OrgGroup = new wxCheckBox(this, ID_CHECKBOX5, _("Group Folder"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
+	Checkbox_OrgGroup->SetValue(false);
+	Checkbox_OrgGroup->SetToolTip(_("Group of groups/folders to clean-up and reduce the number of items in the model/group list, especially for those with large number of submodel groups."));
+	FlexGridSizer5->Add(Checkbox_OrgGroup, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
 	CheckBox_ShowSubmodels = new wxCheckBox(this, ID_CHECKBOX1, _("Show SubModels to Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_ShowSubmodels->SetValue(true);
@@ -270,35 +275,34 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer3->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 0);
 	Panel_Sizer->Add(FlexGridSizer3, 0, wxEXPAND, 0);
 	SetSizer(Panel_Sizer);
-	Panel_Sizer->Fit(this);
-	Panel_Sizer->SetSizeHints(this);
 
-	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoiceModelLayoutTypeSelect);
-	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoice_DefaultCameraSelect);
-	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSizeSpinCtrlChange);
-	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoicePreviewsSelect);
-	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange);
-	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange);
-	Connect(ID_COLOURPICKERCTRL_MG_TAGCOLOUR,wxEVT_COMMAND_COLOURPICKER_CHANGED,(wxObjectEventFunction)&ModelGroupPanel::OnColourPickerCtrl_ModelGroupTagColourColourChanged);
-	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonAliasesClick);
-	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowSubmodelsClick);
-	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowInactiveModelsClick);
-	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowModelGroupsClick);
-	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowOnlyModelsInCurrentViewClick);
-	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnTextCtrl_FilterText);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonClearFilterClick);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupBeginDrag);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemSelect);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_DESELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemDeselect);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemActivated);
-	Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonAddToModelGroupClick);
-	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonRemoveFromModelGroupClick);
-	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonUpClick);
-	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonDownClick);
-	Connect(ID_LISTCTRL2,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupBeginDrag);
-	Connect(ID_LISTCTRL2,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemSelect);
-	Connect(ID_LISTCTRL2,wxEVT_COMMAND_LIST_ITEM_DESELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemDeselect);
-	Connect(ID_LISTCTRL2,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemActivated);
+	Connect(ID_CHOICE1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnChoiceModelLayoutTypeSelect);
+	Connect(ID_CHOICE2, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnChoice_DefaultCameraSelect);
+	Connect(ID_SPINCTRL1, wxEVT_COMMAND_SPINCTRL_UPDATED, (wxObjectEventFunction)&ModelGroupPanel::OnSizeSpinCtrlChange);
+	Connect(ID_CHOICE_PREVIEWS, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnChoicePreviewsSelect);
+	Connect(ID_SPINCTRL2, wxEVT_COMMAND_SPINCTRL_UPDATED, (wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange);
+	Connect(ID_SPINCTRL3, wxEVT_COMMAND_SPINCTRL_UPDATED, (wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange);
+	Connect(ID_COLOURPICKERCTRL_MG_TAGCOLOUR, wxEVT_COMMAND_COLOURPICKER_CHANGED, (wxObjectEventFunction)&ModelGroupPanel::OnColourPickerCtrl_ModelGroupTagColourColourChanged);
+	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnButtonAliasesClick);
+	Connect(ID_CHECKBOX5, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnCheckbox_OrgGroupClick);
+	Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowSubmodelsClick);
+	Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowInactiveModelsClick);
+	Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowModelGroupsClick);
+	Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowOnlyModelsInCurrentViewClick);
+	Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&ModelGroupPanel::OnTextCtrl_FilterText);
+	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnButtonClearFilterClick);
+	Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_BEGIN_DRAG, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupBeginDrag);
+	Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemSelect);
+	Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_DESELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemDeselect);
+	Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemActivated);
+	Connect(ID_BITMAPBUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnButtonAddToModelGroupClick);
+	Connect(ID_BITMAPBUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnButtonRemoveFromModelGroupClick);
+	Connect(ID_BITMAPBUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnButtonUpClick);
+	Connect(ID_BITMAPBUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnButtonDownClick);
+	Connect(ID_LISTCTRL2, wxEVT_COMMAND_LIST_BEGIN_DRAG, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupBeginDrag);
+	Connect(ID_LISTCTRL2, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemSelect);
+	Connect(ID_LISTCTRL2, wxEVT_COMMAND_LIST_ITEM_DESELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemDeselect);
+	Connect(ID_LISTCTRL2, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemActivated);
 	//*)
 
     Connect(ID_LISTCTRL2, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemRClick);
@@ -523,6 +527,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
         SpinCtrl_XCentreOffset->SetValue(wxAtoi(e->GetAttribute("XCentreOffset", "0")));
         SpinCtrl_YCentreOffset->SetValue(wxAtoi(e->GetAttribute("YCentreOffset", "0")));
         ColourPickerCtrl_ModelGroupTagColour->SetColour(e->GetAttribute("TagColour", "Black"));
+        Checkbox_OrgGroup->SetValue(e->GetAttribute("OrgGroup", "0") == "1");
     }
 
     ResizeColumns();
@@ -763,6 +768,8 @@ void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
         break;
     }
     e->AddAttribute("TagColour", ColourPickerCtrl_ModelGroupTagColour->GetColour().GetAsString());
+    e->DeleteAttribute("OrgGroup");
+    e->AddAttribute("OrgGroup", wxString::Format("%d",Checkbox_OrgGroup->IsChecked()));
     g->Reset();
     layoutPanel->ModelGroupUpdated(g);
 }
@@ -1441,4 +1448,9 @@ void ModelGroupPanel::OnSpinCtrlTextEnter(wxCommandEvent& evt)
 {
     wxWindow* win = dynamic_cast<wxWindow*>(evt.GetEventObject());
     win->Navigate();
+}
+
+void ModelGroupPanel::OnCheckbox_OrgGroupClick(wxCommandEvent& event)
+{
+    SaveGroupChanges();
 }

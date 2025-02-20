@@ -74,6 +74,7 @@ private:
     wxBitmapBundle fppCommand_icon;
     wxBitmapBundle fppEffect_icon;
     wxBitmapBundle model_group_icon;
+    wxBitmapBundle model_orggroup_icon;
     
     int mSelectedRow = -1;
     SequenceElements* mSequenceElements = nullptr;

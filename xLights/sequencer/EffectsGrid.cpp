@@ -44,6 +44,7 @@
 #include "effects/ShaderEffect.h"
 #include "effects/VideoEffect.h"
 #include "models/Model.h"
+#include "models/ModelGroup.h"
 
 #include <cmath>
 #include <limits>
@@ -344,6 +345,8 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
     }
 
     Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
+    Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
+    ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
 
     if (ri == nullptr)
         logger_base.crit("EffectsGrid::rightClick No row information ... this is not going to end well.");
@@ -351,172 +354,175 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
     Element* element = ri->element;
     if (element == nullptr)
         logger_base.crit("EffectsGrid::rightClick No row element ... this is not going to end well.");
-    if (element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-        wxMenu mnuLayer;
-        // Copy / Paste / Delete
-        wxMenuItem* menu_cut = mnuLayer.Append(ID_GRID_MNU_CUT, "Cut");
-        wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY, "Copy");
-        wxMenuItem* menu_paste = mnuLayer.Append(ID_GRID_MNU_PASTE, "Paste");
-        wxMenuItem* menu_delete = mnuLayer.Append(ID_GRID_MNU_DELETE, "Delete");
-        if ((mSelectedEffect == nullptr && !AtLeastOneEffectSelected()) &&
-            !(IsACActive() && mCellRangeSelected)) {
-            menu_cut->Enable(false);
-            menu_copy->Enable(false);
-            menu_delete->Enable(false);
-        }
-        if (!(mCellRangeSelected || mPartialCellSelected)) {
-            menu_paste->Enable(false);
-        }
 
-        mRightClickStartTimeMS = mTimeline->GetRawTimeMSfromPosition(event.GetX());
-        wxMenuItem* menu_split = mnuLayer.Append(ID_GRID_MNU_SPLIT_EFFECT, "Split");
-        if (mSelectedEffect == nullptr || MultipleEffectsSelected() || (mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS() <= mSequenceElements->GetFrameMS())) {
-            menu_split->Enable(false);
-        }
-
-        wxMenuItem* menu_createTiming = mnuLayer.Append(ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT, "Create Timing");
-        if ((mSelectedEffect == nullptr && !MultipleEffectsSelected()) || GetActiveTimingElement() == nullptr) {
-            menu_createTiming->Enable(false);
-        }
-
-        wxMenuItem* menu_duplicate = mnuLayer.Append(ID_GRID_MNU_DUPLICATE_EFFECT, "Duplicate");
-        if (mSelectedEffect == nullptr) {
-            menu_duplicate->Enable(false);
-        }
-
-        // Undo
-        mnuLayer.AppendSeparator();
-        wxString undo_string = mSequenceElements->get_undo_mgr().GetUndoString();
-        wxMenuItem* menu_undo = mnuLayer.Append(ID_GRID_MNU_UNDO, undo_string);
-        if (!mSequenceElements->get_undo_mgr().CanUndo()) {
-            menu_undo->Enable(false);
-        }
-
-        // Redo
-        wxString redo_string = mSequenceElements->get_undo_mgr().GetRedoString();
-        wxMenuItem* menu_redo = mnuLayer.Append(ID_GRID_MNU_REDO, redo_string);
-        if (!mSequenceElements->get_undo_mgr().CanRedo()) {
-            menu_redo->Enable(false);
-        }
-
-        // Alignment
-        mnuLayer.AppendSeparator();
-        wxMenu* mnuAlignment = new wxMenu();
-        wxMenuItem* menu_align_start_times = mnuAlignment->Append(ID_GRID_MNU_ALIGN_START_TIMES, "Align Start Times");
-        wxMenuItem* menu_align_end_times = mnuAlignment->Append(ID_GRID_MNU_ALIGN_END_TIMES, "Align End Times");
-        wxMenuItem* menu_align_both_times = mnuAlignment->Append(ID_GRID_MNU_ALIGN_BOTH_TIMES, "Align Both Times");
-        wxMenuItem* menu_align_centerpoints = mnuAlignment->Append(ID_GRID_MNU_ALIGN_CENTERPOINTS, "Align Centerpoints");
-        wxMenuItem* menu_align_match_duration = mnuAlignment->Append(ID_GRID_MNU_ALIGN_MATCH_DURATION, "Align Match Duration");
-        wxMenuItem* menu_align_start_times_shift = mnuAlignment->Append(ID_GRID_MNU_ALIGN_START_TIMES_SHIFT, "Shift Align Start Times");
-        wxMenuItem* menu_align_end_times_shift = mnuAlignment->Append(ID_GRID_MNU_ALIGN_END_TIMES_SHIFT, "Shift Align End Times");
-        wxMenuItem* menu_align_to_timing_mark = mnuAlignment->Append(ID_GRID_MNU_ALIGN_TO_TIMING_MARK, "Align To Closest Timing Mark");
-        mnuAlignment->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
-        mnuLayer.AppendSubMenu(mnuAlignment, "Alignment");
-        if ((mSelectedEffect == nullptr) || !MultipleEffectsSelected()) {
-            menu_align_start_times->Enable(false);
-            menu_align_end_times->Enable(false);
-            menu_align_both_times->Enable(false);
-            menu_align_centerpoints->Enable(false);
-            menu_align_match_duration->Enable(false);
-            menu_align_start_times_shift->Enable(false);
-            menu_align_end_times_shift->Enable(false);
-        }
-
-        if ((mSelectedEffect == nullptr && !MultipleEffectsSelected()) || GetActiveTimingElement() == nullptr) {
-            menu_align_to_timing_mark->Enable(false);
-        }
-
-        // Miscellaneous
-        mnuLayer.AppendSeparator();
-        mnuLayer.Append(ID_GRID_MNU_PRESETS, "Effect Presets");
-        wxMenuItem* menu_random = mnuLayer.Append(ID_GRID_MNU_RANDOM_EFFECTS, "Create Random Effects");
-        if (!(mCellRangeSelected || mPartialCellSelected)) {
-            menu_random->Enable(false);
-        }
-
-        wxMenuItem* menu_effect_reseteffect = mnuLayer.Append(ID_GRID_MNU_RESETEFFECT, "Reset Effect");
-        wxMenuItem* menu_effect_description = mnuLayer.Append(ID_GRID_MNU_DESCRIPTION, "Description");
-        wxMenuItem* menu_effect_lock = mnuLayer.Append(ID_GRID_MNU_LOCK, "Lock");
-        wxMenuItem* menu_effect_unlock = mnuLayer.Append(ID_GRID_MNU_UNLOCK, "Unlock");
-        wxMenuItem* menu_effect_renderdisable = mnuLayer.Append(ID_GRID_MNU_RENDERDISABLE, "Disable Render");
-        wxMenuItem* menu_effect_renderenable = mnuLayer.Append(ID_GRID_MNU_RENDERENABLE, "Enable Render");
-        if (mSelectedEffect == nullptr && !AtLeastOneEffectSelected()) {
-            menu_effect_description->Enable(false);
-            menu_effect_unlock->Enable(false);
-            menu_effect_lock->Enable(false);
-            menu_effect_renderdisable->Enable(false);
-            menu_effect_renderenable->Enable(false);
-        }
-        if (mSelectedEffect == nullptr) {
-            // This only works on the currently selected effect
-            menu_effect_reseteffect->Enable(false);
-        }
-
-        if (ri->nodeIndex >= 0) {
-            wxMenuItem* menu_effect_findeffect = mnuLayer.Append(ID_GRID_MNU_FINDEFFECTFORDATA, "Find Possible Source Effects");
-            _findDataRI = ri;
-            _findDataMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
-
-            // we can only do this in the master view ... other views likely wont contain the effects the user needs to look at
-            if (mSequenceElements->GetCurrentView() != MASTER_VIEW) {
-                menu_effect_findeffect->Enable(false);
+    if (mg == nullptr || !mg->IsOrgGroup()) {
+        if (element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            wxMenu mnuLayer;
+            // Copy / Paste / Delete
+            wxMenuItem* menu_cut = mnuLayer.Append(ID_GRID_MNU_CUT, "Cut");
+            wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY, "Copy");
+            wxMenuItem* menu_paste = mnuLayer.Append(ID_GRID_MNU_PASTE, "Paste");
+            wxMenuItem* menu_delete = mnuLayer.Append(ID_GRID_MNU_DELETE, "Delete");
+            if ((mSelectedEffect == nullptr && !AtLeastOneEffectSelected()) &&
+                !(IsACActive() && mCellRangeSelected)) {
+                menu_cut->Enable(false);
+                menu_copy->Enable(false);
+                menu_delete->Enable(false);
             }
-        }
+            if (!(mCellRangeSelected || mPartialCellSelected)) {
+                menu_paste->Enable(false);
+            }
 
-        wxMenuItem* menu_effect_timing = mnuLayer.Append(ID_GRID_MNU_TIMING, "Timing");
-        if (mSelectedEffect == nullptr ||
-            MultipleEffectsSelected() ||
-            (mSelectedEffect != nullptr && mSelectedEffect->IsLocked())) {
-            menu_effect_timing->Enable(false);
-        }
+            mRightClickStartTimeMS = mTimeline->GetRawTimeMSfromPosition(event.GetX());
+            wxMenuItem* menu_split = mnuLayer.Append(ID_GRID_MNU_SPLIT_EFFECT, "Split");
+            if (mSelectedEffect == nullptr || MultipleEffectsSelected() || (mSelectedEffect->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS() <= mSequenceElements->GetFrameMS())) {
+                menu_split->Enable(false);
+            }
 
-        mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
-        Draw();
-        PopupMenu(&mnuLayer);
-    } else {
-        wxMenu mnuLayer;
-        int effectIndex;
-        HitLocation selectionType;
-        int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
-        Effect* selectedEffect = GetEffectAtRowAndTime(mSelectedRow, startTime, effectIndex, selectionType);
-        if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
-            if (ri->layerIndex == 0) {
-                mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_PHRASE, "Breakdown Phrase");
-            } else if (ri->layerIndex == 1) {
-                mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORD, "Breakdown Word");
-                if (selectedEffect->GetParentEffectLayer()->GetSelectedEffectCount() > 1) {
-                    mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORDS, "Breakdown Selected Words");
+            wxMenuItem* menu_createTiming = mnuLayer.Append(ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT, "Create Timing");
+            if ((mSelectedEffect == nullptr && !MultipleEffectsSelected()) || GetActiveTimingElement() == nullptr) {
+                menu_createTiming->Enable(false);
+            }
+
+            wxMenuItem* menu_duplicate = mnuLayer.Append(ID_GRID_MNU_DUPLICATE_EFFECT, "Duplicate");
+            if (mSelectedEffect == nullptr) {
+                menu_duplicate->Enable(false);
+            }
+
+            // Undo
+            mnuLayer.AppendSeparator();
+            wxString undo_string = mSequenceElements->get_undo_mgr().GetUndoString();
+            wxMenuItem* menu_undo = mnuLayer.Append(ID_GRID_MNU_UNDO, undo_string);
+            if (!mSequenceElements->get_undo_mgr().CanUndo()) {
+                menu_undo->Enable(false);
+            }
+
+            // Redo
+            wxString redo_string = mSequenceElements->get_undo_mgr().GetRedoString();
+            wxMenuItem* menu_redo = mnuLayer.Append(ID_GRID_MNU_REDO, redo_string);
+            if (!mSequenceElements->get_undo_mgr().CanRedo()) {
+                menu_redo->Enable(false);
+            }
+
+            // Alignment
+            mnuLayer.AppendSeparator();
+            wxMenu* mnuAlignment = new wxMenu();
+            wxMenuItem* menu_align_start_times = mnuAlignment->Append(ID_GRID_MNU_ALIGN_START_TIMES, "Align Start Times");
+            wxMenuItem* menu_align_end_times = mnuAlignment->Append(ID_GRID_MNU_ALIGN_END_TIMES, "Align End Times");
+            wxMenuItem* menu_align_both_times = mnuAlignment->Append(ID_GRID_MNU_ALIGN_BOTH_TIMES, "Align Both Times");
+            wxMenuItem* menu_align_centerpoints = mnuAlignment->Append(ID_GRID_MNU_ALIGN_CENTERPOINTS, "Align Centerpoints");
+            wxMenuItem* menu_align_match_duration = mnuAlignment->Append(ID_GRID_MNU_ALIGN_MATCH_DURATION, "Align Match Duration");
+            wxMenuItem* menu_align_start_times_shift = mnuAlignment->Append(ID_GRID_MNU_ALIGN_START_TIMES_SHIFT, "Shift Align Start Times");
+            wxMenuItem* menu_align_end_times_shift = mnuAlignment->Append(ID_GRID_MNU_ALIGN_END_TIMES_SHIFT, "Shift Align End Times");
+            wxMenuItem* menu_align_to_timing_mark = mnuAlignment->Append(ID_GRID_MNU_ALIGN_TO_TIMING_MARK, "Align To Closest Timing Mark");
+            mnuAlignment->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
+            mnuLayer.AppendSubMenu(mnuAlignment, "Alignment");
+            if ((mSelectedEffect == nullptr) || !MultipleEffectsSelected()) {
+                menu_align_start_times->Enable(false);
+                menu_align_end_times->Enable(false);
+                menu_align_both_times->Enable(false);
+                menu_align_centerpoints->Enable(false);
+                menu_align_match_duration->Enable(false);
+                menu_align_start_times_shift->Enable(false);
+                menu_align_end_times_shift->Enable(false);
+            }
+
+            if ((mSelectedEffect == nullptr && !MultipleEffectsSelected()) || GetActiveTimingElement() == nullptr) {
+                menu_align_to_timing_mark->Enable(false);
+            }
+
+            // Miscellaneous
+            mnuLayer.AppendSeparator();
+            mnuLayer.Append(ID_GRID_MNU_PRESETS, "Effect Presets");
+            wxMenuItem* menu_random = mnuLayer.Append(ID_GRID_MNU_RANDOM_EFFECTS, "Create Random Effects");
+            if (!(mCellRangeSelected || mPartialCellSelected)) {
+                menu_random->Enable(false);
+            }
+
+            wxMenuItem* menu_effect_reseteffect = mnuLayer.Append(ID_GRID_MNU_RESETEFFECT, "Reset Effect");
+            wxMenuItem* menu_effect_description = mnuLayer.Append(ID_GRID_MNU_DESCRIPTION, "Description");
+            wxMenuItem* menu_effect_lock = mnuLayer.Append(ID_GRID_MNU_LOCK, "Lock");
+            wxMenuItem* menu_effect_unlock = mnuLayer.Append(ID_GRID_MNU_UNLOCK, "Unlock");
+            wxMenuItem* menu_effect_renderdisable = mnuLayer.Append(ID_GRID_MNU_RENDERDISABLE, "Disable Render");
+            wxMenuItem* menu_effect_renderenable = mnuLayer.Append(ID_GRID_MNU_RENDERENABLE, "Enable Render");
+            if (mSelectedEffect == nullptr && !AtLeastOneEffectSelected()) {
+                menu_effect_description->Enable(false);
+                menu_effect_unlock->Enable(false);
+                menu_effect_lock->Enable(false);
+                menu_effect_renderdisable->Enable(false);
+                menu_effect_renderenable->Enable(false);
+            }
+            if (mSelectedEffect == nullptr) {
+                // This only works on the currently selected effect
+                menu_effect_reseteffect->Enable(false);
+            }
+
+            if (ri->nodeIndex >= 0) {
+                wxMenuItem* menu_effect_findeffect = mnuLayer.Append(ID_GRID_MNU_FINDEFFECTFORDATA, "Find Possible Source Effects");
+                _findDataRI = ri;
+                _findDataMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+
+                // we can only do this in the master view ... other views likely wont contain the effects the user needs to look at
+                if (mSequenceElements->GetCurrentView() != MASTER_VIEW) {
+                    menu_effect_findeffect->Enable(false);
                 }
             }
-            mnuLayer.Append(ID_GRID_MNU_HALVETIMINGS, "Divide Timings")->Enable(!selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer());
-            if (ri->layerIndex == 0) {
-                mnuLayer.Append(ID_GRID_MNU_AUTOLABEL, "Auto Label Timings");
+
+            wxMenuItem* menu_effect_timing = mnuLayer.Append(ID_GRID_MNU_TIMING, "Timing");
+            if (mSelectedEffect == nullptr ||
+                MultipleEffectsSelected() ||
+                (mSelectedEffect != nullptr && mSelectedEffect->IsLocked())) {
+                menu_effect_timing->Enable(false);
             }
-            mSelectedEffect = selectedEffect;
+
+            mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
+            Draw();
+            PopupMenu(&mnuLayer);
+        } else {
+            wxMenu mnuLayer;
+            int effectIndex;
+            HitLocation selectionType;
+            int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+            Effect* selectedEffect = GetEffectAtRowAndTime(mSelectedRow, startTime, effectIndex, selectionType);
+            if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+                if (ri->layerIndex == 0) {
+                    mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_PHRASE, "Breakdown Phrase");
+                } else if (ri->layerIndex == 1) {
+                    mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORD, "Breakdown Word");
+                    if (selectedEffect->GetParentEffectLayer()->GetSelectedEffectCount() > 1) {
+                        mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORDS, "Breakdown Selected Words");
+                    }
+                }
+                mnuLayer.Append(ID_GRID_MNU_HALVETIMINGS, "Divide Timings")->Enable(!selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer());
+                if (ri->layerIndex == 0) {
+                    mnuLayer.Append(ID_GRID_MNU_AUTOLABEL, "Auto Label Timings");
+                }
+                mSelectedEffect = selectedEffect;
+            }
+            mnuLayer.AppendSeparator();
+            wxMenuItem* menu_effect_lock = mnuLayer.Append(ID_GRID_MNU_LOCK, "Lock");
+            wxMenuItem* menu_effect_unlock = mnuLayer.Append(ID_GRID_MNU_UNLOCK, "Unlock");
+            if (mSelectedEffect == nullptr && !AtLeastOneEffectSelected()) {
+                menu_effect_unlock->Enable(false);
+                menu_effect_lock->Enable(false);
+            }
+            mnuLayer.AppendSeparator();
+            wxMenuItem* menu_cut = mnuLayer.Append(ID_GRID_MNU_CUT, "Cut");
+            wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY, "Copy");
+            wxMenuItem* menu_paste = mnuLayer.Append(ID_GRID_MNU_PASTE, "Paste");
+            wxMenuItem* menu_delete = mnuLayer.Append(ID_GRID_MNU_DELETE, "Delete");
+            if (mSelectedEffect == nullptr && !AtLeastOneEffectSelected()) {
+                menu_cut->Enable(false);
+                menu_copy->Enable(false);
+                menu_delete->Enable(false);
+            }
+            if (!(mCellRangeSelected || mPartialCellSelected)) {
+                menu_paste->Enable(false);
+            }
+            mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
+            Draw();
+            PopupMenu(&mnuLayer);
         }
-        mnuLayer.AppendSeparator();
-        wxMenuItem* menu_effect_lock = mnuLayer.Append(ID_GRID_MNU_LOCK, "Lock");
-        wxMenuItem* menu_effect_unlock = mnuLayer.Append(ID_GRID_MNU_UNLOCK, "Unlock");
-        if (mSelectedEffect == nullptr && !AtLeastOneEffectSelected()) {
-            menu_effect_unlock->Enable(false);
-            menu_effect_lock->Enable(false);
-        }
-        mnuLayer.AppendSeparator();
-        wxMenuItem* menu_cut = mnuLayer.Append(ID_GRID_MNU_CUT, "Cut");
-        wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY, "Copy");
-        wxMenuItem* menu_paste = mnuLayer.Append(ID_GRID_MNU_PASTE, "Paste");
-        wxMenuItem* menu_delete = mnuLayer.Append(ID_GRID_MNU_DELETE, "Delete");
-        if (mSelectedEffect == nullptr && !AtLeastOneEffectSelected()) {
-            menu_cut->Enable(false);
-            menu_copy->Enable(false);
-            menu_delete->Enable(false);
-        }
-        if (!(mCellRangeSelected || mPartialCellSelected)) {
-            menu_paste->Enable(false);
-        }
-        mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
-        Draw();
-        PopupMenu(&mnuLayer);
     }
 }
 
@@ -1164,7 +1170,12 @@ bool EffectsGrid::DragOver(int x, int y) {
 
     mDragDropping = false;
     int row = GetRow(y);
-    if (row < mSequenceElements->GetVisibleRowInformationSize()) {
+
+    Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
+    Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
+    ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
+
+    if (row < mSequenceElements->GetVisibleRowInformationSize() && (mg != nullptr && !mg->IsOrgGroup())) {
         int effectIndex;
         HitLocation selectionType;
         int time = mTimeline->GetRawTimeMSfromPosition(x);
@@ -3557,7 +3568,10 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
         while (row + mSequenceElements->GetFirstVisibleModelRow() >= mSequenceElements->GetNumberOfTimingRows()) {
             EffectLayer* new_el = mSequenceElements->GetEffectLayer(mSequenceElements->GetFirstVisibleModelRow() + row);
             if (new_el != nullptr) {
-                if (new_el->GetRangeIsClearMS(mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS())) {
+                Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
+                Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
+                ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
+                if ((mg == nullptr || !mg->IsOrgGroup()) && new_el->GetRangeIsClearMS(mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS())) {
                     mSequenceElements->get_undo_mgr().CreateUndoStep();
                     Effect* ef = new_el->AddEffect(0,
                                                    mSelectedEffect->GetEffectName(),
@@ -3686,7 +3700,10 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
         while (row < mSequenceElements->GetRowInformationSize()) {
             EffectLayer* new_el = mSequenceElements->GetEffectLayer(mSequenceElements->GetFirstVisibleModelRow() + row);
             if (new_el != nullptr) {
-                if (new_el->GetRangeIsClearMS(mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS())) {
+                Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
+                Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
+                ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
+                if ((mg == nullptr || !mg->IsOrgGroup()) && new_el->GetRangeIsClearMS(mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS())) {
                     mSequenceElements->get_undo_mgr().CreateUndoStep();
                     Effect* ef = new_el->AddEffect(0,
                                                    mSelectedEffect->GetEffectName(),
@@ -4642,64 +4659,126 @@ Effect* EffectsGrid::OldPaste(const wxString& data, const wxString& pasteDataVer
     if (mSequenceElements == nullptr)
         return res;
 
+    Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mDropRow);
+    Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
+    ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
+
     logger_base.debug("EffectsGrid::OldPaste.");
 
-    bool paste_by_cell = ((MainSequencer*)mParent)->PasteByCellActive();
-    ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
-    if (mPartialCellSelected || OneCellSelected()) {
-        wxArrayString all_efdata = wxSplit(data, '\n');
-        if (all_efdata.size() == 0) {
-            return res;
-        }
-        if (all_efdata.size() > 2) // multi-effect paste
-        {
-            wxArrayString eff1data = wxSplit(all_efdata[0], '\t');
-            if (eff1data.size() < 7) {
-                // this code assumes at least 7 so dont go there
-                wxASSERT(false);
-            } else {
-                int column_start_time = wxAtoi(eff1data[6]);
-                int drop_time_offset = wxAtoi(eff1data[3]);
-                EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
-                if (column_start_time < 0 || tel == nullptr) {
-                    drop_time_offset = mDropStartTimeMS - drop_time_offset;
+    if (mg == nullptr || !mg->IsOrgGroup()) {
+        bool paste_by_cell = ((MainSequencer*)mParent)->PasteByCellActive();
+        ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
+        if (mPartialCellSelected || OneCellSelected()) {
+            wxArrayString all_efdata = wxSplit(data, '\n');
+            if (all_efdata.size() == 0) {
+                return res;
+            }
+            if (all_efdata.size() > 2) // multi-effect paste
+            {
+                wxArrayString eff1data = wxSplit(all_efdata[0], '\t');
+                if (eff1data.size() < 7) {
+                    // this code assumes at least 7 so dont go there
+                    wxASSERT(false);
                 } else {
-                    drop_time_offset = mDropStartTimeMS - column_start_time;
-                }
-                int drop_row = mDropRow;
-                int start_row = wxAtoi(eff1data[5]);
-                int drop_row_offset = drop_row - start_row;
-                mSequenceElements->get_undo_mgr().CreateUndoStep();
-                for (size_t i = 0; i < all_efdata.size() - 1; i++) {
-                    wxArrayString efdata = wxSplit(all_efdata[i], '\t');
-                    if (efdata.size() < 7) {
-                        break;
+                    int column_start_time = wxAtoi(eff1data[6]);
+                    int drop_time_offset = wxAtoi(eff1data[3]);
+                    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+                    if (column_start_time < 0 || tel == nullptr) {
+                        drop_time_offset = mDropStartTimeMS - drop_time_offset;
+                    } else {
+                        drop_time_offset = mDropStartTimeMS - column_start_time;
                     }
-                    int new_start_time = wxAtoi(efdata[3]);
-                    int new_end_time = wxAtoi(efdata[4]);
-                    new_start_time += drop_time_offset;
-                    new_end_time += drop_time_offset;
-                    int eff_row = wxAtoi(efdata[5]);
-                    drop_row = eff_row + drop_row_offset + mSequenceElements->GetFirstVisibleModelRow();
-                    Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
-                    if (row_info == nullptr)
-                        break;
-                    Element* elem = row_info->element;
-                    if (elem == nullptr)
-                        break;
-                    EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
-                    if (el == nullptr)
-                        break;
-                    if (el->GetRangeIsClearMS(new_start_time, new_end_time)) {
-                        int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
-                        if (effectIndex >= 0) {
+                    int drop_row = mDropRow;
+                    int start_row = wxAtoi(eff1data[5]);
+                    int drop_row_offset = drop_row - start_row;
+                    mSequenceElements->get_undo_mgr().CreateUndoStep();
+                    for (size_t i = 0; i < all_efdata.size() - 1; i++) {
+                        wxArrayString efdata = wxSplit(all_efdata[i], '\t');
+                        if (efdata.size() < 7) {
+                            break;
+                        }
+                        int new_start_time = wxAtoi(efdata[3]);
+                        int new_end_time = wxAtoi(efdata[4]);
+                        new_start_time += drop_time_offset;
+                        new_end_time += drop_time_offset;
+                        int eff_row = wxAtoi(efdata[5]);
+                        drop_row = eff_row + drop_row_offset + mSequenceElements->GetFirstVisibleModelRow();
+                        Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
+                        if (row_info == nullptr)
+                            break;
+                        Element* elem = row_info->element;
+                        if (elem == nullptr)
+                            break;
+                        EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
+                        if (el == nullptr)
+                            break;
+                        if (el->GetRangeIsClearMS(new_start_time, new_end_time)) {
+                            int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
+                            if (effectIndex >= 0) {
+                                Effect* ef = el->AddEffect(0,
+                                                           efdata[0].ToStdString(),
+                                                           efdata[1].ToStdString(),
+                                                           efdata[2].ToStdString(),
+                                                           new_start_time,
+                                                           new_end_time,
+                                                           EFFECT_NOT_SELECTED,
+                                                           false);
+                                if (res == nullptr)
+                                    res = ef;
+
+                                if (ef != nullptr) {
+                                    ef->SetLocked(false);
+                                    if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
+                                        xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
+                                    }
+                                    mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
+                                    if (!ef->GetPaletteMap().empty() && !ef->IsRenderDisabled()) {
+                                        sendRenderEvent(el->GetParentElement()->GetModelName(),
+                                                        new_start_time,
+                                                        new_end_time, true);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    mPartialCellSelected = false;
+                }
+            } else {
+                wxArrayString efdata = wxSplit(all_efdata[0], '\t');
+                if (efdata.size() < 3) {
+                    return res;
+                }
+                if (efdata[0] == "Random") {
+                    Effect* ef = FillRandomEffects();
+                    if (res == nullptr)
+                        res = ef;
+                } else {
+                    if (mCellRangeSelected && !mPartialCellSelected) {
+                        EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+                        mDropStartTimeMS = tel->GetEffect(mRangeStartCol)->GetStartTimeMS();
+                        mDropEndTimeMS = tel->GetEffect(mRangeEndCol)->GetEndTimeMS();
+                        int first_row = mSequenceElements->GetFirstVisibleModelRow();
+                        mDropRow = mRangeStartRow - first_row;
+                    }
+                    int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
+                    if (effectIndex >= 0) {
+                        int end_time = mDropEndTimeMS;
+                        if ((efdata.size() == 7) && GetActiveTimingElement() == nullptr) // use original effect length if no timing track is active
+                        {
+                            int drop_time_offset = wxAtoi(efdata[3]);
+                            drop_time_offset = mDropStartTimeMS - drop_time_offset;
+                            end_time = wxAtoi(efdata[4]);
+                            end_time += drop_time_offset;
+                        }
+                        EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
+                        if (el != nullptr && el->GetRangeIsClearMS(mDropStartTimeMS, end_time)) {
                             Effect* ef = el->AddEffect(0,
                                                        efdata[0].ToStdString(),
                                                        efdata[1].ToStdString(),
                                                        efdata[2].ToStdString(),
-                                                       new_start_time,
-                                                       new_end_time,
-                                                       EFFECT_NOT_SELECTED,
+                                                       mDropStartTimeMS,
+                                                       end_time,
+                                                       EFFECT_SELECTED,
                                                        false);
                             if (res == nullptr)
                                 res = ef;
@@ -4709,187 +4788,130 @@ Effect* EffectsGrid::OldPaste(const wxString& data, const wxString& pasteDataVer
                                 if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
                                     xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                                 }
+                                mSequenceElements->get_undo_mgr().CreateUndoStep();
                                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                                 if (!ef->GetPaletteMap().empty() && !ef->IsRenderDisabled()) {
                                     sendRenderEvent(el->GetParentElement()->GetModelName(),
-                                                    new_start_time,
-                                                    new_end_time, true);
+                                                    mDropStartTimeMS,
+                                                    mDropEndTimeMS, true);
                                 }
+                                RaiseSelectedEffectChanged(ef, true);
+                                mSelectedEffect = ef;
+                                mPartialCellSelected = false;
+                                mSelectedRow = mDropRow;
                             }
                         }
                     }
                 }
-                mPartialCellSelected = false;
             }
-        } else {
-            wxArrayString efdata = wxSplit(all_efdata[0], '\t');
-            if (efdata.size() < 3) {
+        } else if (mCellRangeSelected) {
+            wxArrayString all_efdata = wxSplit(data, '\n');
+            if (all_efdata.size() == 0) {
                 return res;
             }
-            if (efdata[0] == "Random") {
-                Effect* ef = FillRandomEffects();
-                if (res == nullptr)
-                    res = ef;
-            } else {
-                if (mCellRangeSelected && !mPartialCellSelected) {
-                    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
-                    mDropStartTimeMS = tel->GetEffect(mRangeStartCol)->GetStartTimeMS();
-                    mDropEndTimeMS = tel->GetEffect(mRangeEndCol)->GetEndTimeMS();
-                    int first_row = mSequenceElements->GetFirstVisibleModelRow();
-                    mDropRow = mRangeStartRow - first_row;
+            if (all_efdata.size() <= 2) // only single effect paste allowed for range
+            {
+                wxArrayString efdata = wxSplit(all_efdata[0], '\t');
+                if (efdata.size() < 3) {
+                    return res;
                 }
-                int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
-                if (effectIndex >= 0) {
-                    int end_time = mDropEndTimeMS;
-                    if ((efdata.size() == 7) && GetActiveTimingElement() == nullptr) // use original effect length if no timing track is active
-                    {
-                        int drop_time_offset = wxAtoi(efdata[3]);
-                        drop_time_offset = mDropStartTimeMS - drop_time_offset;
-                        end_time = wxAtoi(efdata[4]);
-                        end_time += drop_time_offset;
+                if (efdata[0] == "Random") {
+                    Effect* ef = FillRandomEffects();
+                    if (res == nullptr)
+                        res = ef;
+                } else {
+                    int row1 = mRangeStartRow;
+                    int row2 = mRangeEndRow;
+                    if (row1 > row2) {
+                        std::swap(row1, row2);
                     }
-                    EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
-                    if (el != nullptr && el->GetRangeIsClearMS(mDropStartTimeMS, end_time)) {
-                        Effect* ef = el->AddEffect(0,
-                                                   efdata[0].ToStdString(),
-                                                   efdata[1].ToStdString(),
-                                                   efdata[2].ToStdString(),
-                                                   mDropStartTimeMS,
-                                                   end_time,
-                                                   EFFECT_SELECTED,
-                                                   false);
-                        if (res == nullptr)
-                            res = ef;
-
-                        if (ef != nullptr) {
-                            ef->SetLocked(false);
-                            if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
-                                xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
-                            }
-                            mSequenceElements->get_undo_mgr().CreateUndoStep();
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
-                            if (!ef->GetPaletteMap().empty() && !ef->IsRenderDisabled()) {
-                                sendRenderEvent(el->GetParentElement()->GetModelName(),
-                                                mDropStartTimeMS,
-                                                mDropEndTimeMS, true);
-                            }
-                            RaiseSelectedEffectChanged(ef, true);
-                            mSelectedEffect = ef;
-                            mPartialCellSelected = false;
-                            mSelectedRow = mDropRow;
-                        }
+                    int col1 = mRangeStartCol;
+                    int col2 = mRangeEndCol;
+                    if (col1 > col2) {
+                        std::swap(col1, col2);
                     }
-                }
-            }
-        }
-    } else if (mCellRangeSelected) {
-        wxArrayString all_efdata = wxSplit(data, '\n');
-        if (all_efdata.size() == 0) {
-            return res;
-        }
-        if (all_efdata.size() <= 2) // only single effect paste allowed for range
-        {
-            wxArrayString efdata = wxSplit(all_efdata[0], '\t');
-            if (efdata.size() < 3) {
-                return res;
-            }
-            if (efdata[0] == "Random") {
-                Effect* ef = FillRandomEffects();
-                if (res == nullptr)
-                    res = ef;
-            } else {
-                int row1 = mRangeStartRow;
-                int row2 = mRangeEndRow;
-                if (row1 > row2) {
-                    std::swap(row1, row2);
-                }
-                int col1 = mRangeStartCol;
-                int col2 = mRangeEndCol;
-                if (col1 > col2) {
-                    std::swap(col1, col2);
-                }
-                for (int row = row1; row <= row2; row++) {
-                    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
-                    if (paste_by_cell) {
-                        EffectLayer* tel1 = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
-                        int timingIndex1 = mRangeStartCol;
-                        int timingIndex2 = mRangeEndCol;
-                        if (timingIndex1 > timingIndex2) {
-                            std::swap(timingIndex1, timingIndex2);
-                        }
-                        if (timingIndex1 != -1 && timingIndex2 != -1) {
-                            mSequenceElements->get_undo_mgr().CreateUndoStep();
-                            for (int row4 = row1; row4 <= row2; row4++) {
-                                EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(row4);
-                                for (int i = timingIndex1; i <= timingIndex2; i++) {
-                                    Effect* eff = tel1->GetEffect(i);
-                                    if (effectLayer != nullptr && effectLayer->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS())) {
-                                        Effect* ef = effectLayer->AddEffect(0,
-                                                                            efdata[0].ToStdString(),
-                                                                            efdata[1].ToStdString(),
-                                                                            efdata[2].ToStdString(),
-                                                                            eff->GetStartTimeMS(),
-                                                                            eff->GetEndTimeMS(),
-                                                                            EFFECT_SELECTED,
-                                                                            false);
-                                        if (res == nullptr)
-                                            res = ef;
-                                        if (ef != nullptr) {
-                                            ef->SetLocked(false);
-                                            if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
-                                                xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
+                    for (int row = row1; row <= row2; row++) {
+                        EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+                        if (paste_by_cell) {
+                            EffectLayer* tel1 = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+                            int timingIndex1 = mRangeStartCol;
+                            int timingIndex2 = mRangeEndCol;
+                            if (timingIndex1 > timingIndex2) {
+                                std::swap(timingIndex1, timingIndex2);
+                            }
+                            if (timingIndex1 != -1 && timingIndex2 != -1) {
+                                mSequenceElements->get_undo_mgr().CreateUndoStep();
+                                for (int row4 = row1; row4 <= row2; row4++) {
+                                    EffectLayer* effectLayer = mSequenceElements->GetEffectLayer(row4);
+                                    for (int i = timingIndex1; i <= timingIndex2; i++) {
+                                        Effect* eff = tel1->GetEffect(i);
+                                        if (effectLayer != nullptr && effectLayer->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS())) {
+                                            Effect* ef = effectLayer->AddEffect(0,
+                                                                                efdata[0].ToStdString(),
+                                                                                efdata[1].ToStdString(),
+                                                                                efdata[2].ToStdString(),
+                                                                                eff->GetStartTimeMS(),
+                                                                                eff->GetEndTimeMS(),
+                                                                                EFFECT_SELECTED,
+                                                                                false);
+                                            if (res == nullptr)
+                                                res = ef;
+                                            if (ef != nullptr) {
+                                                ef->SetLocked(false);
+                                                if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
+                                                    xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
+                                                }
+                                                mSequenceElements->get_undo_mgr().CaptureAddedEffect(effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID());
+                                                RaiseSelectedEffectChanged(ef, true);
+                                                mSelectedEffect = ef;
                                             }
-                                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID());
-                                            RaiseSelectedEffectChanged(ef, true);
-                                            mSelectedEffect = ef;
                                         }
                                     }
                                 }
                             }
-                        }
-                    } else {
-                        mSequenceElements->get_undo_mgr().CreateUndoStep();
-                        int start_time = tel->GetEffect(col1)->GetStartTimeMS();
-                        int end_time = tel->GetEffect(col2)->GetEndTimeMS();
-                        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-                        if (el != nullptr && el->GetRangeIsClearMS(start_time, end_time)) {
-                            int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
-                            if (effectIndex >= 0) {
-                                Effect* ef = el->AddEffect(0,
-                                                           efdata[0].ToStdString(),
-                                                           efdata[1].ToStdString(),
-                                                           efdata[2].ToStdString(),
-                                                           start_time,
-                                                           end_time,
-                                                           EFFECT_SELECTED,
-                                                           false);
-                                if (res == nullptr)
-                                    res = ef;
-                                if (ef != nullptr) {
-                                    ef->SetLocked(false);
-                                    if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
-                                        xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
+                        } else {
+                            mSequenceElements->get_undo_mgr().CreateUndoStep();
+                            int start_time = tel->GetEffect(col1)->GetStartTimeMS();
+                            int end_time = tel->GetEffect(col2)->GetEndTimeMS();
+                            EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+                            if (el != nullptr && el->GetRangeIsClearMS(start_time, end_time)) {
+                                int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
+                                if (effectIndex >= 0) {
+                                    Effect* ef = el->AddEffect(0,
+                                                               efdata[0].ToStdString(),
+                                                               efdata[1].ToStdString(),
+                                                               efdata[2].ToStdString(),
+                                                               start_time,
+                                                               end_time,
+                                                               EFFECT_SELECTED,
+                                                               false);
+                                    if (res == nullptr)
+                                        res = ef;
+                                    if (ef != nullptr) {
+                                        ef->SetLocked(false);
+                                        if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
+                                            xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
+                                        }
+                                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
+                                        if (!ef->GetPaletteMap().empty() && !ef->IsRenderDisabled()) {
+                                            sendRenderEvent(el->GetParentElement()->GetModelName(),
+                                                            start_time,
+                                                            end_time, true);
+                                        }
+                                        RaiseSelectedEffectChanged(ef, true);
+                                        mSelectedEffect = ef;
                                     }
-                                    mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
-                                    if (!ef->GetPaletteMap().empty() && !ef->IsRenderDisabled()) {
-                                        sendRenderEvent(el->GetParentElement()->GetModelName(),
-                                                        start_time,
-                                                        end_time, true);
-                                    }
-                                    RaiseSelectedEffectChanged(ef, true);
-                                    mSelectedEffect = ef;
                                 }
                             }
                         }
                     }
                 }
-            }
-            if (!xlights->IsACActive()) {
-                mCellRangeSelected = false;
+                if (!xlights->IsACActive()) {
+                    mCellRangeSelected = false;
+                }
             }
         }
     }
-
     Draw();
     return res;
 }
@@ -5103,7 +5125,10 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                     EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
                     if (el == nullptr)
                         break;
-                    if (el->GetRangeIsClearMS(new_start_time, new_end_time)) {
+                    Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(drop_row);
+                    Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
+                    ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
+                    if ((mg == nullptr || !mg->IsOrgGroup()) && el->GetRangeIsClearMS(new_start_time, new_end_time)) {
                         int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                         if (effectIndex >= 0 || is_timing_effect) {
                             Effect* ef = el->AddEffect(0,

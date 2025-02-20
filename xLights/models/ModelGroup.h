@@ -42,6 +42,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetXCentreOffset( float cx );
         void SetYCentreOffset( float cy );
         std::string GetDefaultCamera() const;
+        bool IsOrgGroup() const { return orgGroup;}
 
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}
@@ -102,5 +103,6 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         bool centreDefined = false;
         float centrex;
         float centrey;
+        bool orgGroup = false;
 };
 

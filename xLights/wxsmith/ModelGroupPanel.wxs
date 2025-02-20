@@ -200,6 +200,16 @@
 										<border>5</border>
 										<option>1</option>
 									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX5" variable="Checkbox_OrgGroup" member="yes">
+											<label>Group Folder</label>
+											<tooltip>Group of groups/folders to clean-up and reduce the number of items in the model/group list, especially for those with large number of submodel groups.</tooltip>
+											<handler function="OnCheckbox_OrgGroupClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>

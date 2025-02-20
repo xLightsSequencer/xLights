@@ -851,7 +851,8 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
             Element* e = mSequenceElements->GetElement(i);
 
             Model *m = xlights->GetModel(e->GetName());
-            if (m != nullptr) {
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
+            if ((mg == nullptr || !mg->IsOrgGroup())) {
                 AddModel(m, ms);
             }
         }
