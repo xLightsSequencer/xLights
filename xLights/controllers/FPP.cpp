@@ -35,6 +35,7 @@
 #include <wx/progdlg.h>
 #include <wx/gauge.h>
 #include <zstd.h>
+#include <wx/debugrpt.h>
 
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonwriter.h"
@@ -691,7 +692,20 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     bool usingJqUpload = true;
     bool usingMove = true;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
-        fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
+        if (this->canZipUpload) {
+            auto from = fullFileName;
+            wxDebugReportCompress report;
+            report.AddFile(fullFileName, wxFileName(from).GetFullName());
+            report.Process();
+            from = report.GetCompressedFileName();
+            wxRenameFile(from, fullFileName);
+            wxFileName to = filename;
+            to.SetExt("xlz");
+            fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(to.GetFullPath());
+        }
+        else {
+			fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
+        }
         usingJqUpload = false;
         usingMove = false;
     } else if (IsVersionAtLeast(6, 3, 3)) {
@@ -3467,7 +3481,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
         if (inst->typeId == 0 && val["typeId"].IsInt()) {
             inst->typeId = val["typeId"].AsInt();
         }
-
+        inst->canZipUpload = val.HasMember("zip");
         if (inst->version != "") {
             inst->majorVersion = wxAtoi(inst->version);
             if (inst->version[2] == 'x') {
@@ -3913,6 +3927,7 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
                 if (StartsWith(res->mode, "player")) {
                     activePlayerCount++;
                 };
+                fpp->canZipUpload = res->canZipUpload;
                 instances.push_back(fpp);
             } else if (!skipit) {
                 fpp->ipAddress = res->ip;
@@ -3944,6 +3959,7 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
                 if (res->extraData.HasMember("cape")) {
                     fpp->capeInfo = res->extraData["cape"];
                 }
+                fpp->canZipUpload = res->controller;
             }
         } else {
             logger_base.info("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());
