@@ -610,6 +610,11 @@ wxBitmapBundle BitmapCache::GetPapgayoXIcon() {
 wxBitmapBundle BitmapCache::GetModelGroupIcon() {
     return CreateBitmapBundleFromXPMs(16, "ModelGroup", {model_16, model_64, model_64, model_64, model_64});
 }
+
+wxBitmapBundle BitmapCache::GetModelOrgGroupIcon() {
+    return CreateBitmapBundleFromXPMs(16, "xlART_PADLOCK_CLOSED", { padlock_close_14, padlock_close_28, padlock_close_28, padlock_close_28, padlock_close_28 });
+}
+
 wxBitmapBundle BitmapCache::GetFPPIcon() {
     return wxBitmapBundle::FromSVG(fpp_app_icon_svg, sizeof(fpp_app_icon_svg), wxSize(16, 16));
 }
