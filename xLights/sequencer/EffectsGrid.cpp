@@ -1175,7 +1175,7 @@ bool EffectsGrid::DragOver(int x, int y) {
     Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
     ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
 
-    if (row < mSequenceElements->GetVisibleRowInformationSize() && (mg != nullptr && !mg->IsOrgGroup())) {
+    if (row < mSequenceElements->GetVisibleRowInformationSize() && (mg == nullptr || !mg->IsOrgGroup())) {
         int effectIndex;
         HitLocation selectionType;
         int time = mTimeline->GetRawTimeMSfromPosition(x);
