@@ -204,11 +204,11 @@ export void GetColorsISPCKernel(uniform const LayerBlendingData &data,
                             nc = cnt;
                         }
                     }
-                }
+              }
             }
         } else if (data.useMask && mask) {
-            int32 x = idx / data.bufferHi;
-            int32 y = idx - (x * data.bufferHi);
+            int32 x = idx % data.bufferWi;
+            int32 y = idx / data.bufferWi;
             int32 midx = x * data.bufferHi + y;
 
             if (mask[midx] > 0) {
@@ -764,9 +764,9 @@ export void SubtractiveFunction(uniform const LayerBlendingData &data,
         uint32 fg = src[index];
         if (!data.isChromaKey || !applyChroma(data, fg)) {
             uint32 bg = result[index];
-            int r = red(bg) - red(fg);
-            int g = green(bg) - green(fg);
-            int b = blue(bg) - blue(fg);
+            int r = (int)red(bg) - (int)red(fg);
+            int g = (int)green(bg) - (int)green(fg);
+            int b = (int)blue(bg) - (int)blue(fg);
             if (r < 0)
                 r = 0;
             if (g < 0)
@@ -820,9 +820,9 @@ export void AsBrightnessFunction(uniform const LayerBlendingData &data,
         if (!data.isChromaKey || !applyChroma(data, fg)) {
             uint32 bg = result[index];
             float alpha = (float)alpha(fg) / 255.0;
-            int r = div_255_fast(red(fg) * red(bg) * alpha);
-            int g = div_255_fast(green(fg) * green(bg) * alpha);
-            int b = div_255_fast(blue(fg) * blue(bg) * alpha);
+            int r = div_255_fast((int)red(fg) * (int)red(bg) * alpha);
+            int g = div_255_fast((int)green(fg) * (int)green(bg) * alpha);
+            int b = div_255_fast((int)blue(fg) * (int)blue(bg) * alpha);
             result[index] = fromComponents((uint8)r, (uint8)g, (uint8)b, 255);
         }
     }

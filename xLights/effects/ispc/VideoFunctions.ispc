@@ -1,6 +1,8 @@
 export struct VideoData {
     uint16 width;
     uint16 height;
+    uint16 buffer_width;
+    uint16 buffer_height;
     int16 yoffset;
     int16 xoffset;
     int16 ytail;
@@ -19,20 +21,17 @@ export struct VideoData {
 };
 
 export void VideoEffectProcess(const uniform VideoData &data,
-                                  uniform int startIdx, uniform int endIdx,
-                                  uniform uint8<4> result[])
+                               uniform int startIdx, uniform int endIdx,
+                               uniform uint8<4> result[])
 {
-    uniform float width = data.width;
-    uniform float rszw = 1.0 / width;
-    uniform float height = data.height;
     uniform int ch = data.ch;
 
 
     foreach (index = startIdx...endIdx) {
         float fidx = index;
-        float y = (floor)(fidx * rszw + 0.00001);
-        float x = fidx - (y * width);
-        int newIndex = x + data.startx + ((y + data.starty) * width);
+        float y = (floor)(fidx / data.buffer_width);
+        float x = fidx - (y * data.buffer_width);
+        int newIndex = x + data.startx + ((y + data.starty) * data.buffer_width);
 
         uint8* ptr = data.image + (data.image_height - 1 - y - data.yoffset) * (data.image_width * ch) + (data.xoffset * ch) + (x * ch);
         uint8<4> c;
