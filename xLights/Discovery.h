@@ -101,7 +101,8 @@ public:
     std::string proxy;
     std::string username;
     std::string password;
-    
+    bool canZipUpload = false;
+
     wxJSONValue extraData;
 };
 
