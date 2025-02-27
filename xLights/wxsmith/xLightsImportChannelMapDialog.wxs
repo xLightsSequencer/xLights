@@ -63,7 +63,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="yes">
-									<cols>2</cols>
+									<cols>3</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
 										<object class="wxCheckBox" name="ID_CHECKBOX11" variable="CheckBox_EraseExistingEffects" member="yes">
@@ -79,6 +79,15 @@
 											<checked>1</checked>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_ConvertRenderStyle" member="yes">
+											<label>Convert Render Style</label>
+											<tooltip>When mapping model to group, convert render style to &apos;Per Model&apos; when applicable</tooltip>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
