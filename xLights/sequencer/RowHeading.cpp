@@ -123,6 +123,7 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     model_group_icon = BitmapCache::GetModelGroupIcon();
     fppCommand_icon = BitmapCache::GetFPPIcon();
     fppEffect_icon = BitmapCache::GetFPPIcon();
+    model_orggroup_icon = BitmapCache::GetModelOrgGroupIcon();
     
     mCanPaste = false;
 
@@ -330,8 +331,9 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
     ToggleExpand(element);
 }
 
-void RowHeading::rightClick( wxMouseEvent& event)
-{
+void RowHeading::rightClick( wxMouseEvent& event) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxMenu mnuLayer;
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
     if (mSelectedRow >= mSequenceElements->GetVisibleRowInformationSize()) {
@@ -339,8 +341,17 @@ void RowHeading::rightClick( wxMouseEvent& event)
     }
 
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
-    if (ri != nullptr) {
-        Element* element = ri->element;
+    Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
+    ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
+
+    if (ri == nullptr)
+        logger_base.crit("RowHeading::rightClick No row information ... this is not going to end well.");
+
+    Element* element = ri->element;
+    if (element == nullptr)
+        logger_base.crit("RowHeading::rightClick No row element ... this is not going to end well.");
+
+    if (mg == nullptr || !mg->IsOrgGroup()) {
         if (element != nullptr) {
             if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL
                 || element->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL
@@ -1726,9 +1737,14 @@ void RowHeading::render( wxPaintEvent& event )
             }
             // draw Model Group icon if necessary
             Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
             if (m != nullptr) {
                 if (m->GetDisplayAs() == "ModelGroup") {
-                    dc.DrawBitmap(model_group_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
+                    if (mg->IsOrgGroup()) {
+                        dc.DrawBitmap(model_orggroup_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
+                    } else {
+                        dc.DrawBitmap(model_group_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
+                    }
                 } else if (StartsWith(m->GetStringType(), "Single Color") || m->GetStringType() == "Node Single Color") {
                     if (m->GetNodeCount() > 0) {
                         xlColor color;

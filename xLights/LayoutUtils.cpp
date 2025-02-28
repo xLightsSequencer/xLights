@@ -30,6 +30,7 @@ namespace LayoutUtils
         idxs[Icon_File] = pushBack(imageList, wxArtProvider::GetBitmapBundle("wxART_NORMAL_FILE", wxART_LIST, sz));
         idxs[Icon_FolderClosed] = pushBack(imageList, wxArtProvider::GetBitmapBundle("xlART_GROUP_CLOSED", wxART_LIST, sz));
         idxs[Icon_FolderOpened] = pushBack(imageList, wxArtProvider::GetBitmapBundle("xlART_GROUP_OPEN", wxART_LIST, sz));
+        idxs[Icon_OrgGroup] = pushBack(imageList, wxArtProvider::GetBitmapBundle("wxART_HELP_FOLDER", wxART_LIST, sz));
         idxs[Icon_Group] = pushBack(imageList, BitmapCache::GetModelGroupIcon());
         idxs[Icon_Arches] = pushBack(imageList, wxArtProvider::GetBitmapBundle("xlART_ARCH_ICON", wxART_LIST));
         idxs[Icon_CandyCane] = pushBack(imageList, wxArtProvider::GetBitmapBundle("xlART_CANE_ICON", wxART_LIST));
@@ -56,9 +57,12 @@ namespace LayoutUtils
         CreateImageList(imageList, idxs);
     }
 
-    int GetModelTreeIcon(std::string const& type, GroupMode mode)
+    int GetModelTreeIcon(std::string const& type, GroupMode mode, bool orgGroup)
     {
         if (type == "ModelGroup") {
+            if (orgGroup == true) {
+                return Icon_OrgGroup;
+            }
             if (mode == GroupMode::Opened) {
                 return Icon_FolderOpened;
             }
