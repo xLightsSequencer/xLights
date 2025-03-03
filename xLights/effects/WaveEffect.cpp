@@ -324,11 +324,10 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             deltay = y2 - y1;
             wxASSERT(deltay > 0);
 
-            for (y = y1; y < y2; y++) {
+            for (y = y1; y <= y2; y++) {
                 int adjustedY = y + roundedWaveYOffset;
                 if (FillColor <= 0) { //default to this if no selection -DJ
                     buffer.SetPixel(x, adjustedY, hsv0);  // fill with color 2
-                    //       hsv.hue=(double)(BufferHt-y)/deltay;
                 } else if (FillColor == 1) {
 
                     hsv.hue = (double)(y - y1) / deltay;
@@ -350,7 +349,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     y1 = y2mirror;
                 }
 
-                for (y = y1; y < y2; y++) {
+                for (y = y1; y <= y2; y++) {
                     int adjustedY = y + roundedWaveYOffset;
                     if (FillColor <= 0) { //default to this if no selection -DJ
                         buffer.SetPixel(x, adjustedY, hsv0);  // fill with color 2
