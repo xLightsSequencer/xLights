@@ -105,8 +105,6 @@ static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeigh
 	return r;
 }
 
-static bool ctrlFPressed = false;
-static bool ctrlshiftFPressed = false;
 wxTreeListItem lastFoundItem = nullptr;
 
 //(*IdInit(LayoutPanel)
