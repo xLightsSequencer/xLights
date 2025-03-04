@@ -290,7 +290,14 @@ ControllerCaps* ControllerCaps::GetControllerConfigByID(const std::string& ID) {
     }
     return nullptr;
 }
-
+ControllerCaps* ControllerCaps::GetControllerConfigByVendor(const std::string& vendor) {
+    LoadControllers();
+    auto v = __controllers.find(vendor);
+    if (v != __controllers.end()) {
+            return v->second.begin()->second.front();
+    }
+    return nullptr;
+}
 ControllerCaps* ControllerCaps::GetControllerConfigByModel( const std::string& model, const std::string& variant)
 {
     LoadControllers();

@@ -54,6 +54,7 @@ public:
     static ControllerCaps* GetControllerConfig(const std::string& vendor, const std::string& model, const std::string& variant);
     static ControllerCaps* GetControllerConfig(const Controller* const controller);
     static ControllerCaps* GetControllerConfigByID(const std::string& ID);
+    static ControllerCaps* GetControllerConfigByVendor(const std::string& vendor);
     static ControllerCaps* GetControllerConfigByModel(const std::string& model, const std::string& variant);
     static ControllerCaps* GetControllerConfigByAlternateName(const std::string& vendor, const std::string& model, const std::string& variant);
 
