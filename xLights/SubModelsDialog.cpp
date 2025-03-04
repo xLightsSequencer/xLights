@@ -240,13 +240,14 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
 	FlexGridSizer6->Add(LayoutCheckbox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxFIXED_MINSIZE, 5);
 	NodesGrid = new wxGrid(Panel1, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_GRID1"));
-	NodesGrid->CreateGrid(5,1);
+	NodesGrid->CreateGrid(5,2);
 	NodesGrid->SetMaxSize(wxSize(400,-1));
 	NodesGrid->EnableEditing(true);
 	NodesGrid->EnableGridLines(true);
 	NodesGrid->SetColLabelSize(18);
 	NodesGrid->SetDefaultColSize(160, true);
 	NodesGrid->SetColLabelValue(0, _("Node Ranges"));
+	NodesGrid->SetColLabelValue(1, _("Node Count"));
 	NodesGrid->SetRowLabelValue(0, _("Strand   1"));
 	NodesGrid->SetDefaultCellFont( NodesGrid->GetFont() );
 	NodesGrid->SetDefaultCellTextColour( NodesGrid->GetForegroundColour() );
@@ -363,6 +364,10 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     nm0.SetText(_("SubModel"));
     ListCtrl_SubModels->InsertColumn(0, nm0);
 
+    NodesGrid->SetColFormatNumber(1);
+    for (int row = 0; row < NodesGrid->GetNumberRows(); row++) {
+        NodesGrid->SetReadOnly(row, 1);
+    }
     _parent = parent;
 
     modelPreview = new ModelPreview(ModelPreviewPanelLocation);
@@ -433,8 +438,12 @@ void SubModelsDialog::OnInit(wxInitDialogEvent& event)
         SplitterWindow1->SetSashPosition(h);
     }
     if (NodesGrid && NodesGrid->GetNumberCols() > 0) {
-        int colSize = NodesGrid->FromDIP(std::max(h - 210, 300));
-        NodesGrid->SetColSize(0, colSize);
+        int gridWidth = NodesGrid->GetSize().GetWidth();
+        int rowLabelWidth = NodesGrid->GetRowLabelSize();
+        int secondColWidth = NodesGrid->FromDIP(80);
+        int firstColWidth = gridWidth - rowLabelWidth - secondColWidth - NodesGrid->FromDIP(20);
+        NodesGrid->SetColSize(0, firstColWidth);
+        NodesGrid->SetColSize(1, secondColWidth);
     }
 
     EnsureWindowHeaderIsOnScreen(this);
@@ -474,6 +483,32 @@ SubModelsDialog::~SubModelsDialog()
     if (_oldOutputToLights) {
         _outputManager->StartOutput();
     }
+}
+
+int SubModelsDialog::CountNodesInRange(const wxString& range) {
+    if (range.IsEmpty())
+        return 0;
+
+    int count = 0;
+    wxStringTokenizer tokenizer(range, ",");
+    while (tokenizer.HasMoreTokens()) {
+        wxString nodeRange = tokenizer.GetNextToken();
+        if (nodeRange.IsEmpty())
+            continue;
+
+        if (nodeRange.Contains("-")) {
+            int dashPosition = nodeRange.Index('-');
+            int start = wxAtoi(nodeRange.Left(dashPosition));
+            int end = wxAtoi(nodeRange.Right(nodeRange.size() - dashPosition - 1));
+            if (start > 0 && end > 0) {
+                count += std::abs(end - start) + 1;
+            }
+        } else {
+            if (wxAtoi(nodeRange) > 0)
+                count++;
+        }
+    }
+    return count;
 }
 
 //void SubModelsDialog::OnGridChar(wxKeyEvent& event)
@@ -930,7 +965,10 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
             logger_base.crit("SubModelsDialog::OnNodesGridCellChange submodel '%s' tried to access strand %d. This should have crashed.", (const char*)GetSelectedName().c_str(), str);
             wxASSERT(false);
         } else {
-            sm->strands[str] = NodesGrid->GetCellValue(r, 0);
+            wxString newValue = NodesGrid->GetCellValue(r, 0);
+            sm->strands[str] = newValue;
+            NodesGrid->SetCellValue(r, 1, wxString::Format("%d", CountNodesInRange(newValue)));
+
         }
     } else {
         logger_base.crit("SubModelsDialog::OnNodesGridCellChange submodel '%s' ... not found. This should have crashed.", (const char*)GetSelectedName().c_str());
@@ -2218,11 +2256,15 @@ void SubModelsDialog::Select(const wxString &name)
         if (NodesGrid->GetNumberRows() > 0) {
             NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
         }
+       
         for (int x = sm->strands.size() - 1; x >= 0; x--) {
             int cellrow = (sm->strands.size() - 1) - x;
             NodesGrid->AppendRows(1);
             NodesGrid->SetCellValue(cellrow, 0, sm->strands[x]);
+            NodesGrid->SetCellValue(cellrow, 1, wxString::Format("%d", CountNodesInRange(sm->strands[x])));
+            NodesGrid->SetReadOnly(cellrow, 1);
         }
+
         applySubmodelRowLabels(name);
         NodesGrid->EndBatch();
         NodesGrid->GoToCell(0, 0);

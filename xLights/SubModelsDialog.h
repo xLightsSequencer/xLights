@@ -299,6 +299,7 @@ protected:
     void Symmetrize();
 
     void processAllStrands(wxString (*func)(wxString));
+    int CountNodesInRange(const wxString& range);
 
 private:
 
