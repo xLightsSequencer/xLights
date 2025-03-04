@@ -612,6 +612,7 @@
 								<object class="sizeritem">
 									<object class="wxCheckBox" name="ID_CHECKBOX_Galaxy_Scale" subclass="BulkEditCheckBox" variable="CheckBox_Galaxy_Scale" member="yes">
 										<label>Scale To Buffer:</label>
+										<checked>1</checked>
 										<style>wxALIGN_RIGHT</style>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>

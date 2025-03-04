@@ -77,7 +77,24 @@ void ShockwaveEffect::SetDefaultParameters()
     SetSliderValue(sp->Slider_Shockwave_Cycles, 1);
 
     SetCheckBoxValue(sp->CheckBox_Shockwave_Blend_Edges, true);
-    SetCheckBoxValue(sp->CheckBox_Shockwave_Scale, false);
+    SetCheckBoxValue(sp->CheckBox_Shockwave_Scale, true);
+}
+
+bool ShockwaveEffect::needToAdjustSettings(const std::string& version) {
+    return IsVersionOlder("2025.04", version);
+}
+
+void ShockwaveEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
+    // give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+
+    SettingsMap& settings = effect->GetSettings();
+
+    if (IsVersionOlder("2025.04", version)) {
+        settings["CHECKBOX_Shockwave_Scale"] = "0";
+    }
 }
 
 #define ToRadians(x) ((double)x * PI / (double)180.0)
@@ -94,7 +111,7 @@ void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
     int end_width = GetValueCurveInt("Shockwave_End_Width", 0, SettingsMap, eff_pos, SHOCKWAVE_ENDWIDTH_MIN, SHOCKWAVE_ENDWIDTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int acceleration = SettingsMap.GetInt("SLIDER_Shockwave_Accel", 0);
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Shockwave_Blend_Edges");
-    bool scale = SettingsMap.GetBool("CHECKBOX_Shockwave_Scale", false);
+    bool scale = SettingsMap.GetBool("CHECKBOX_Shockwave_Scale", true);
 
     int num_colors = buffer.palette.Size();
     if (num_colors == 0)
