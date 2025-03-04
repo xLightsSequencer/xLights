@@ -9487,6 +9487,9 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
                 wxCommandEvent e;
                 OnMenuOpenFolderSelected(e);
             }
+        } else if (type == "FPP_CONNECT") {
+            wxCommandEvent e;
+            OnButtonFPPConnectClick(e);
         } else {
             return false;
         }
