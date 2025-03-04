@@ -1092,6 +1092,21 @@ void Controller::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid)
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
         }
     }
+
+    p = propGrid->GetPropertyByName("KeepChannelNumbers");
+    if (p != nullptr) {
+        ControllerCaps* c = nullptr;
+        if (!_model.empty()) {
+            c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
+        } else {
+            c = ControllerCaps::GetControllerConfigByVendor(_vendor);
+        }
+        if (c && c->DDPStartsAtOne() && p->GetValue() == true) {
+            p->SetBackgroundColour(*wxRED);
+        } else {
+            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
+    }
 }
 
 void Controller::HandleExpanded(wxPropertyGridEvent& event, bool expanded)

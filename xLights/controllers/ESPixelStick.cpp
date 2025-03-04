@@ -359,7 +359,7 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
                 DDPOutput* ddp = dynamic_cast<DDPOutput*>(outputs.front());
                 if (ddp) {
                     if (ddp->IsKeepChannelNumbers()) {
-                        DisplayError("The DDP 'Keep Channel Numbers' option is not support with ESPixelStick, Please Disable");
+                        DisplayError("The DDP 'Keep Channel Numbers' option is not supported with ESPixelStick. Please disable.");
                         return false;
                     }
                 }
