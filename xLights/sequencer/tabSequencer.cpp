@@ -4041,7 +4041,7 @@ Effect* xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
     Effect* res = nullptr;
     wxXmlNode* ele = nullptr;
 
-    auto path = wxSplit(presetName, '/');
+    auto path = wxSplit(presetName, '\\');
 
     ele = FindPreset(_sequenceElements.GetEffectsNode(), path, 0);
 
