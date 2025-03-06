@@ -11,6 +11,32 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.04
+    - enh (cybercop23)      And SubModel name to SubModelDialog title
+    - enh (derwin12)        Rename OK button to "Close" for effect preset dialog
+    - enh (cybercop23)      Support for zipping sequences for upload to latest ESPixelStick
+    - enh (cybercop23/keith) Several updates/fixes for AI Mapping
+    - enh (derwin12)        Disable effect icon backgrounds and effect indicators during batch render
+    - enh (cybercop23)      Add FPP Connect key binding
+    - enh (MrPierreB)       Add Node Count to Submodel Dialog Window
+    - enh (cybercop23)      Add search support for Layout Group/Model & SubModels
+    - enh (cybercop23)      Flag Keep Channel Number for Wled/EsPixelStick
+    - enh (derwin12)        Add option to Import Effects to convert to 'Per Model'
+    - enh (scott)           Default Galaxy, Shockwave, and Fan to Scale to Buffer
+    - enh (derwin12)        Allow entering state names in mixed case
+    - bug (scott)           Don't allow sequence media adjustment options if sequence is an Animation
+    - bug (derwin12)        Fix buffer overflow crash in video effect
+    - bug (derwin12)        Rounding error causing crash and skewed image in Video Effect
+    - bug (derwin12)        Fix the overflow/underflow of Brightness setting
+    - bug (derwin12)        Fix Overflow/Undeflow of Subtractive Function
+    - bug (derwin12)        Fix Wipe, Blend, From Mid Transitions
+    - bug (derwin12)        Fix Up arrow button on Aliases dialog
+    - bug (derwin12)        Wave Effect: Allow wave to reach the Y limit
+    - bug (cybercop23)      Don't allow Visualization of Inactive/Unassigned Preview items
+    - bug (derwin12)        Fix Import of Cube Model
+    - bug (cybercop23)      Fix apply preset from folders using key bindings
+    - bug (dkulp)           Fix visualize/upload of DMXSkull if eye/color channels become disabled
+    - change (dkulp)        Cleanup FPP Connect to remove support for deprecated FPP API's
 2025.03 February 11, 2025
     - enh (derwin12)        Use ispc on Windows to match Linux and MacOS
     - enh (keith)           Start adding infrastructure for API/AI driven features
