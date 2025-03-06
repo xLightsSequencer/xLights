@@ -243,13 +243,7 @@ const long LayoutPanel::ID_SET_CENTER_OFFSET = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
-// OnSelectionChanged() doesn't fire on MSW or GTK when Select is called
-// se we mimic it by calling HandleSelectionChanged as needed
-#if defined(__WXMSW__) || defined(__LINUX__)
 #define PlatformHandleSelectionChanged() HandleSelectionChanged()
-#else
-#define PlatformHandleSelectionChanged()
-#endif
 
 class ModelTreeData : public wxTreeItemData {
 public:
