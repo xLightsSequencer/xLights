@@ -36,6 +36,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - bug (derwin12)        Fix Import of Cube Model
     - bug (cybercop23)      Fix apply preset from folders using key bindings
     - bug (dkulp)           Fix visualize/upload of DMXSkull if eye/color channels become disabled
+    - bug (dkulp)           Fix Model list sorting after list rebuild on Layout tab
     - change (dkulp)        Cleanup FPP Connect to remove support for deprecated FPP API's
 2025.03 February 11, 2025
     - enh (derwin12)        Use ispc on Windows to match Linux and MacOS

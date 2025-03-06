@@ -1205,14 +1205,14 @@ void LayoutPanel::FreezeTreeListView() {
         //then turn it off again so platforms that DO support this can benefit
         TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
     }
-#ifndef __WXMSW__
+#ifdef __WXOSX__
     // dis-associate the model so the adds/removes will be a ton faster
     TreeListViewModels->GetDataView()->AssociateModel(nullptr);
 #endif
 }
 
 void LayoutPanel::ThawTreeListView(const std::list<wxTreeListItem> &toExpand) {
-#ifndef __WXMSW__
+#ifdef __WXOSX__
     // re-associate the model
     TreeListViewModels->GetDataView()->AssociateModel(TreeListMiewInternalModel);
 #endif
@@ -1235,10 +1235,14 @@ void LayoutPanel::ThawTreeListView(const std::list<wxTreeListItem> &toExpand) {
         }
         TreeListViewModels->SetColumnWidth(2, width);
     }
-
     //turn the sorting back on
     TreeListViewModels->SetItemComparator(&comparator);
     if (treeSorted) {
+#ifdef __WXOSX__
+        // if the sort direction doesn't acutally change from previous setting,
+        // it won't actually sort for some reason so we'll double toggle to make sure
+        TreeListViewModels->SetSortColumn(treeSortCol, !treeSortAscending);
+#endif
         TreeListViewModels->SetSortColumn(treeSortCol, treeSortAscending);
         TreeListViewModels->GetDataView()->GetModel()->Resort();
     }
@@ -1258,7 +1262,6 @@ void LayoutPanel::ThawTreeListView(const std::list<wxTreeListItem> &toExpand) {
     for (auto &i : toExpand) {
         TreeListViewModels->Expand(i);
     }
-    
     TreeListViewModels->Thaw();
     TreeListViewModels->Refresh();
 }
