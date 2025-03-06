@@ -379,7 +379,7 @@ void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<s
 
     for (int x = 0; x < SingleNodeGrid->GetNumberRows(); x++) {
         wxGridCellTextEditor* neditor = new wxGridCellTextEditor();
-        wxString nfilter("abcdefghijklmnopqrstuvwxyz0123456789-_/\\|#");
+        wxString nfilter("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_/\\|#");
         wxTextValidator nvalidator(wxFILTER_INCLUDE_CHAR_LIST);
         nvalidator.SetCharIncludes(nfilter);
         neditor->SetValidator(nvalidator);
@@ -400,7 +400,7 @@ void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<s
         reditor->SetValidator(validator);
 
         wxGridCellTextEditor* neditor2 = new wxGridCellTextEditor();
-        wxString nfilter2("abcdefghijklmnopqrstuvwxyz0123456789-_/\\|#");
+        wxString nfilter2("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_/\\|#");
         wxTextValidator nvalidator2(wxFILTER_INCLUDE_CHAR_LIST);
         nvalidator2.SetCharIncludes(nfilter2);
         neditor2->SetValidator(nvalidator2);
