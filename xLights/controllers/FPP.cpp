@@ -394,9 +394,6 @@ bool FPP::AuthenticateAndUpdateVersions() {
             if (GetURLAsJSON("/api/system/info", val)) {
                 sysInfoLoaded = true;
                 return fppType == FPP_TYPE::FPP && parseSysInfo(val);
-            } else if (GetURLAsJSON("/fppjson.php?command=getSysInfo&simple", val)) {
-                sysInfoLoaded = true;
-                return fppType == FPP_TYPE::FPP && parseSysInfo(val);
             }
         }
         return false;
@@ -688,8 +685,7 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     char error[1024];
 
 
-    std::string fullUrl = ipAddress + "/jqupload.php";
-    bool usingJqUpload = true;
+    std::string fullUrl;
     bool usingMove = true;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
         if (this->canZipUpload) {
@@ -706,11 +702,9 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
         else {
 			fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
         }
-        usingJqUpload = false;
         usingMove = false;
-    } else if (IsVersionAtLeast(6, 3, 3)) {
+    } else {
         fullUrl = ipAddress + "/api/file/uploads/" + URLEncode(filename);
-        usingJqUpload = false;
     }
     if (!_fppProxy.empty()) {
         fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
@@ -725,46 +719,18 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
     }
-    const std::string bound = "----WebKitFormBoundaryb29a7c2fe47b9481";
     struct curl_slist *chunk = nullptr;
-    std::string ctMime = "Content-Type: multipart/form-data; boundary=" + bound;
-    if (!usingJqUpload) {
-        ctMime = "Content-Type: application/octet-stream";
-    } else {
-        chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
-    }
+    std::string ctMime = "Content-Type: application/octet-stream";
     chunk = curl_slist_append(chunk, ctMime.c_str());
     chunk = curl_slist_append(chunk, "X-Requested-With: FPPConnect");
     chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
     FPPWriteData *data = new FPPWriteData();
-    if (usingJqUpload) {
-        addString(data->memBuffPost, "\r\n--");
-        addString(data->memBuffPost, bound);
-        addString(data->memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
-        addString(data->memBuffPost, bound);
-        addString(data->memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
-        addString(data->memBuffPost, bound);
-        addString(data->memBuffPost, "--\r\n");
-
-        std::string cd = "Content-Disposition: form-data; name=\"myfile\"; filename=\"";
-        cd += fn.ToStdString();
-        cd += "\"\r\n";
-        addString(data->memBuffPre, "--");
-        addString(data->memBuffPre, bound);
-        addString(data->memBuffPre, "\r\n");
-        addString(data->memBuffPre, cd);
-        addString(data->memBuffPre, ct);
-        addString(data->memBuffPre, "\r\n\r\n");
-    }
-
     data->realFile.Open(fullFileName);
-    if (!usingJqUpload) {
-        std::string cl = "Content-Length: " + std::to_string(data->realFile.Length());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data->realFile.Length());
-        chunk = curl_slist_append(chunk, cl.c_str());
-    }
+    std::string cl = "Content-Length: " + std::to_string(data->realFile.Length());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data->realFile.Length());
+    chunk = curl_slist_append(chunk, cl.c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
     data->realFile.Seek(0);
@@ -812,11 +778,7 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
 
 bool FPP::callMoveFile(const std::string &filename) {
     std::string val;
-    if (IsVersionAtLeast(6, 3, 2)) {
-        return GetURLAsString("/api/file/move/" + URLEncode(filename), val);
-    }
-    //api/file/move is broken on older versions of FPP (doesn't decode filename properly), use fppxml
-    return GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename), val);
+    return GetURLAsString("/api/file/move/" + URLEncode(filename), val);
 }
 
 class V7ProgressStruct {
@@ -967,7 +929,7 @@ bool FPP::uploadFileV7(const std::string &filename,
 bool FPP::uploadOrCopyFile(const std::string &filename,
                            const std::string &file,
                            const std::string &dir) {
-    if (fppType == FPP_TYPE::FPP && IsVersionAtLeast(6, 3, 2)) {
+    if (fppType == FPP_TYPE::FPP) {
         return uploadFileV7(filename, file, dir);
     }
     return uploadFile(filename, file);
@@ -1444,10 +1406,7 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
         std::string corner = model->GetIsBtoT() ? "B" : "T";
         corner += model->GetIsLtoR() ? "L" : "R";
         jm["StartCorner"] = corner;
-
-        if (IsVersionAtLeast(6, 0)) {
-            jm["Type"] = wxString("Channel");
-        }
+        jm["Type"] = wxString("Channel");
         names.emplace_back(name);
         models.Append(jm);
     }
@@ -3323,14 +3282,6 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                     if (rc == 200) {
                         found->extraData["httpConnected"] = true;
                         ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
-                    } else {
-                        discovery.AddCurl(ipAddr, "/fppjson.php?command=getSysInfo&simple", [&discovery, ipAddr, found] (int rc, const std::string &buffer, const std::string &err) {
-                            if (rc == 200) {
-                                found->extraData["httpConnected"] = true;
-                                ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
-                            }
-                            return true;
-                        });
                     }
                     return true;
                 });
@@ -3607,13 +3558,6 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
                     discovery.AddCurl(ipAddr, "/api/system/info", [&discovery, ipAddr] (int rc, const std::string &buffer, const std::string &err) {
                         if (rc == 200) {
                             ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
-                        } else {
-                            discovery.AddCurl(ipAddr, "/fppjson.php?command=getSysInfo&simple", [&discovery, ipAddr] (int rc, const std::string &buffer, const std::string &err) {
-                                if (rc == 200) {
-                                    ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
-                                }
-                                return true;
-                            });
                         }
                         return true;
                     });
@@ -3777,10 +3721,10 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
     });
 }
 bool FPP::supportedForFPPConnect() const {
-    if (this->IsVersionAtLeast(6, 0)) {
+    if (this->IsVersionAtLeast(7, 1)) {
         return true;
     }
-    if (this->IsVersionAtLeast(5, 3)) {
+    if (this->IsVersionAtLeast(6, 3, 3)) {
         if (capeInfo.HasMember("verifiedKeyId")) {
             return true;
         }
