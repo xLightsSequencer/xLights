@@ -120,6 +120,8 @@ class LayoutPanel: public wxPanel
 		wxScrolledWindow* ModelGroupWindow = nullptr;
 		wxTreeListCtrl* TreeListViewModels = nullptr;
         wxDataViewModel* TreeListMiewInternalModel = nullptr;
+        bool ctrlFPressed = false;
+        bool ctrlshiftFPressed = false;
 
 	protected:
 
