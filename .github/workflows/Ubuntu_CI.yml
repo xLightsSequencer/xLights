@@ -53,7 +53,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v2
@@ -62,5 +62,5 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install g++ gcc build-essential libgtk-3-dev libunwind-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libavutil-dev libportmidi-dev libzstd-dev libwebp-dev libcurl4-openssl-dev libltc-dev liblua5.3-dev wget git cbp2make
     - name: Make
-      run: make -j 2
+      run: make -j 4
 

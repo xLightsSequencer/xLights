@@ -1650,7 +1650,7 @@ public:
             GetModel()->ClearControllerBrightness();
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_MODEL_STRINGS) {
-            wxNumberEntryDialog dlg(parent, "Set String Count", "String Count", "Model String Count", GetModel()->GetNumPhysicalStrings(), 1, 48);
+            wxNumberEntryDialog dlg(parent, "Set String Count", "String Count", "Model String Count", GetModel()->GetNumPhysicalStrings(), 1, 100);
             if (dlg.ShowModal() == wxID_OK) {
                 std::string mess;
                 if (!GetModel()->ChangeStringCount(dlg.GetValue(), mess)) {
@@ -2186,16 +2186,22 @@ void ControllerModelDialog::ReloadModels()
                             sh += ", ";
                         sh += it;
                     }
-                    check += "WARN: " + it.second->Name() + " is shadowed by " + sh + ".\n ";
+                    check += "WARN: " + it.second->Name() + " is shadowed by " + sh + ".\n";
                 }
             }
         }
+    }
+    if (!_autoLayout) {
+        check += "WARN: Auto Layout not set. Some functionality disabled.\n";
+    }
+    if (!_controller->IsAutoSize()) {
+        check += "WARN: Auto Size not set. Some functionality disabled.\n";
     }
 
     TextCtrl_Check->SetValue(check);
 
     for (const auto& it : *_mm) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != "ModelGroup" && it.second->IsActive() && it.second->GetLayoutGroup() != "Unassigned") {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
                  ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||

@@ -35,6 +35,7 @@
 #include <wx/progdlg.h>
 #include <wx/gauge.h>
 #include <zstd.h>
+#include <wx/debugrpt.h>
 
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonwriter.h"
@@ -393,9 +394,6 @@ bool FPP::AuthenticateAndUpdateVersions() {
             if (GetURLAsJSON("/api/system/info", val)) {
                 sysInfoLoaded = true;
                 return fppType == FPP_TYPE::FPP && parseSysInfo(val);
-            } else if (GetURLAsJSON("/fppjson.php?command=getSysInfo&simple", val)) {
-                sysInfoLoaded = true;
-                return fppType == FPP_TYPE::FPP && parseSysInfo(val);
             }
         }
         return false;
@@ -687,16 +685,26 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     char error[1024];
 
 
-    std::string fullUrl = ipAddress + "/jqupload.php";
-    bool usingJqUpload = true;
+    std::string fullUrl;
     bool usingMove = true;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
-        fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
-        usingJqUpload = false;
+        if (this->canZipUpload) {
+            auto from = fullFileName;
+            wxDebugReportCompress report;
+            report.AddFile(fullFileName, wxFileName(from).GetFullName());
+            report.Process();
+            from = report.GetCompressedFileName();
+            wxRenameFile(from, fullFileName);
+            wxFileName to = filename;
+            to.SetExt("xlz");
+            fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(to.GetFullPath());
+        }
+        else {
+			fullUrl = ipAddress + "/fpp?path=uploadFile&filename=" + URLEncode(filename);
+        }
         usingMove = false;
-    } else if (IsVersionAtLeast(6, 3, 3)) {
+    } else {
         fullUrl = ipAddress + "/api/file/uploads/" + URLEncode(filename);
-        usingJqUpload = false;
     }
     if (!_fppProxy.empty()) {
         fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
@@ -711,46 +719,18 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NEGOTIATE);
     }
-    const std::string bound = "----WebKitFormBoundaryb29a7c2fe47b9481";
     struct curl_slist *chunk = nullptr;
-    std::string ctMime = "Content-Type: multipart/form-data; boundary=" + bound;
-    if (!usingJqUpload) {
-        ctMime = "Content-Type: application/octet-stream";
-    } else {
-        chunk = curl_slist_append(chunk, "Transfer-Encoding: chunked");
-    }
+    std::string ctMime = "Content-Type: application/octet-stream";
     chunk = curl_slist_append(chunk, ctMime.c_str());
     chunk = curl_slist_append(chunk, "X-Requested-With: FPPConnect");
     chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
     FPPWriteData *data = new FPPWriteData();
-    if (usingJqUpload) {
-        addString(data->memBuffPost, "\r\n--");
-        addString(data->memBuffPost, bound);
-        addString(data->memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
-        addString(data->memBuffPost, bound);
-        addString(data->memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
-        addString(data->memBuffPost, bound);
-        addString(data->memBuffPost, "--\r\n");
-
-        std::string cd = "Content-Disposition: form-data; name=\"myfile\"; filename=\"";
-        cd += fn.ToStdString();
-        cd += "\"\r\n";
-        addString(data->memBuffPre, "--");
-        addString(data->memBuffPre, bound);
-        addString(data->memBuffPre, "\r\n");
-        addString(data->memBuffPre, cd);
-        addString(data->memBuffPre, ct);
-        addString(data->memBuffPre, "\r\n\r\n");
-    }
-
     data->realFile.Open(fullFileName);
-    if (!usingJqUpload) {
-        std::string cl = "Content-Length: " + std::to_string(data->realFile.Length());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data->realFile.Length());
-        chunk = curl_slist_append(chunk, cl.c_str());
-    }
+    std::string cl = "Content-Length: " + std::to_string(data->realFile.Length());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data->realFile.Length());
+    chunk = curl_slist_append(chunk, cl.c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
     data->realFile.Seek(0);
@@ -778,8 +758,10 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
                     logger_base.debug("Renaming done.");
                 }
             }
+            logger_base.debug(utfFilename + " upload complete to " + this->hostName + " (" + this->ipAddress + "). Bytes sent:" + std::to_string(data->totalWritten) + ".");
         } else {
             messages.push_back("ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code));
+            faileduploads.push_back(filename);
             logger_base.warn("Did not get 200 response code:  %d", response_code);
         }
         
@@ -796,11 +778,7 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
 
 bool FPP::callMoveFile(const std::string &filename) {
     std::string val;
-    if (IsVersionAtLeast(6, 3, 2)) {
-        return GetURLAsString("/api/file/move/" + URLEncode(filename), val);
-    }
-    //api/file/move is broken on older versions of FPP (doesn't decode filename properly), use fppxml
-    return GetURLAsString("/fppxml.php?command=moveFile&file=" + URLEncode(filename), val);
+    return GetURLAsString("/api/file/move/" + URLEncode(filename), val);
 }
 
 class V7ProgressStruct {
@@ -840,7 +818,8 @@ int progress_callback(void *clientp,
 
 void prepareCurlForMulti(V7ProgressStruct *ps) {
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     constexpr uint64_t BLOCK_SIZE = 16*1024*1024;
     CurlManager::CurlPrivateData *cpd = nullptr;
     CURL *curl = CurlManager::INSTANCE.createCurl(ps->fullUrl, &cpd, true);
@@ -869,6 +848,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
     if (read != remaining) {
         logger_curl.info("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
         ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
+        ps->instance->faileduploads.push_back(ps->filename);
     }
     std::string contentSizeHeader = "Content-Length: " + std::to_string(remaining);
     headers = curl_slist_append(headers, contentSizeHeader.c_str());
@@ -898,6 +878,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
             ++ps->errorCount;
         } else if (response_code != 200) {
             ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + ". Response code: " + std::to_string(response_code));
+            ps->instance->faileduploads.push_back(ps->filename);
             cancelled = true;
         } else {
             ps->offset += remaining;
@@ -905,6 +886,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
         uint64_t pct = (ps->offset * 1000) / ps->length;
         cancelled |= ps->instance->updateProgress(pct, false);
         if (cancelled || ps->offset >= ps->length) {
+            logger_base.debug(ps->filename + " upload complete to " + ps->instance->hostName + " (" + ps->instance->ipAddress + "). Bytes sent:" + std::to_string(ps->length) + ".");
             delete ps;
         } else {
             prepareCurlForMulti(ps);
@@ -947,7 +929,7 @@ bool FPP::uploadFileV7(const std::string &filename,
 bool FPP::uploadOrCopyFile(const std::string &filename,
                            const std::string &file,
                            const std::string &dir) {
-    if (fppType == FPP_TYPE::FPP && IsVersionAtLeast(6, 3, 2)) {
+    if (fppType == FPP_TYPE::FPP) {
         return uploadFileV7(filename, file, dir);
     }
     return uploadFile(filename, file);
@@ -1424,10 +1406,7 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
         std::string corner = model->GetIsBtoT() ? "B" : "T";
         corner += model->GetIsLtoR() ? "L" : "R";
         jm["StartCorner"] = corner;
-
-        if (IsVersionAtLeast(6, 0)) {
-            jm["Type"] = wxString("Channel");
-        }
+        jm["Type"] = wxString("Channel");
         names.emplace_back(name);
         models.Append(jm);
     }
@@ -3153,8 +3132,6 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
 }
 
 static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsString) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxJSONValue origJson;
     wxJSONReader reader;
     bool parsed = reader.Parse(systemsString, &origJson) == 0;
@@ -3180,7 +3157,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         std::string hostName = system[HostNameKey].IsNull() ? "" : ToUTF8(system[HostNameKey].AsString());
         std::string uuid = system.HasMember("uuid") ? ToUTF8(system["uuid"].AsString()) : (system.HasMember("UUID") ? ToUTF8(system["UUID"].AsString()) : "");
         
-        logger_base.info("Processing ip: %s   host: %s    uuid: %s", address.c_str(), hostName.c_str(), uuid.c_str());
+        //logger_base.info("Processing ip: %s   host: %s    uuid: %s", address.c_str(), hostName.c_str(), uuid.c_str());
         if (!uuid.empty()) {
             fppDiscInfo.insert({ hostName, address, uuid });
         }
@@ -3264,6 +3241,9 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 if (found->typeId == 0) {
                     found->typeId = inst.typeId;
                 }
+                if (found->uuid == "") {
+                    found->uuid = inst.uuid;
+                }
                 if (inst.ranges.size() > found->ranges.size()) {
                     //if the json has the ranges, use it as the json can have a more exact set of ranges
                     //the Ping packet is limited to either 40 (v2) or 120 (v3) characters so
@@ -3302,14 +3282,6 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                     if (rc == 200) {
                         found->extraData["httpConnected"] = true;
                         ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
-                    } else {
-                        discovery.AddCurl(ipAddr, "/fppjson.php?command=getSysInfo&simple", [&discovery, ipAddr, found] (int rc, const std::string &buffer, const std::string &err) {
-                            if (rc == 200) {
-                                found->extraData["httpConnected"] = true;
-                                ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
-                            }
-                            return true;
-                        });
                     }
                     return true;
                 });
@@ -3323,11 +3295,6 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 });
             }
        }
-        //for (const auto& [ip, hostAnduuid] : fppDiscInfo) {
-       for (const auto& info : fppDiscInfo) {
-            //logger_base.info("IP: %s, HostName: %s, UUID: %s", info.hostname.ToStdString().c_str(), hostAnduuid.first.ToStdString().c_str(), hostAnduuid.second.ToStdString().c_str());
-           logger_base.info("HostName: %s, UUID: %s, IP: %s", info.hostname.c_str(), info.uuid.c_str(), info.ip.c_str());
-        }
    }
 }
 static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const std::string &proxies) {
@@ -3465,7 +3432,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
         if (inst->typeId == 0 && val["typeId"].IsInt()) {
             inst->typeId = val["typeId"].AsInt();
         }
-
+        inst->canZipUpload = val.HasMember("zip");
         if (inst->version != "") {
             inst->majorVersion = wxAtoi(inst->version);
             if (inst->version[2] == 'x') {
@@ -3566,8 +3533,8 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
         snprintf(ip, sizeof(ip), "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
         //printf("Ping %s\n", ip);
         if (strcmp(ip, "0.0.0.0")) {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.info("FPP Discovery - Received Ping response from %s", ip);
+            //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            //logger_base.info("FPP Discovery - Received Ping response from %s", ip);
             AddTraceMessage("Received UDP result " + std::string(ip));
 
             //we found a system!!!
@@ -3591,13 +3558,6 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
                     discovery.AddCurl(ipAddr, "/api/system/info", [&discovery, ipAddr] (int rc, const std::string &buffer, const std::string &err) {
                         if (rc == 200) {
                             ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
-                        } else {
-                            discovery.AddCurl(ipAddr, "/fppjson.php?command=getSysInfo&simple", [&discovery, ipAddr] (int rc, const std::string &buffer, const std::string &err) {
-                                if (rc == 200) {
-                                    ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
-                                }
-                                return true;
-                            });
                         }
                         return true;
                     });
@@ -3761,10 +3721,10 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
     });
 }
 bool FPP::supportedForFPPConnect() const {
-    if (this->IsVersionAtLeast(6, 0)) {
+    if (this->IsVersionAtLeast(7, 1)) {
         return true;
     }
-    if (this->IsVersionAtLeast(5, 3)) {
+    if (this->IsVersionAtLeast(6, 3, 3)) {
         if (capeInfo.HasMember("verifiedKeyId")) {
             return true;
         }
@@ -3829,22 +3789,54 @@ inline void setIfEmpty(uint32_t &val, uint32_t nv) {
     }
 }
 
-void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager) {
+void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, OutputManager* outputManager) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool foundActiveController = false;
+    uint16_t activePlayerCount = 0;
+    std::unordered_set<std::string> allProxyList;
+    std::map<std::string, std::string> configuredIPs;
+    if (discovery.GetOutputManager()->GetGlobalFPPProxy() != "") {
+        auto ip = ip_utils::ResolveIP(discovery.GetOutputManager()->GetGlobalFPPProxy());
+        allProxyList.insert(ip);
+    };
+    for (auto& it : discovery.GetOutputManager()->GetControllers()) {
+        auto c = dynamic_cast<ControllerEthernet*>(it);
+        if (c != nullptr) {
+            configuredIPs[c->GetResolvedIP()] = c->GetIP();
+            if (!c->GetFPPProxy().empty()) {
+                auto ip = ip_utils::ResolveIP(c->GetFPPProxy());
+                allProxyList.insert(ip);
+            }
+            if (Controller::DecodeActiveState(c->GetActive()) == "Active") {
+                foundActiveController = true;
+            }
+        }
+    }
     for (auto res : discovery.GetResults()) {
         if (::supportedForFPPConnect(res, outputManager)) {
-            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s (h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
+            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s (u: %s)(h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
             FPP *fpp = nullptr;
+            bool skipit = false;
 
             for (auto f : instances) {
                 if (f->ipAddress == res->ip) {
                     fpp = f;
                 }
+                if (!res->uuid.empty() && f->uuid == res->uuid) {
+                    if (configuredIPs.count(res->ip) > 0) {
+                        logger_base.info("FPP Discovery - Found Configured IP - %s for the same UUID - %s. Going to use this instead.", res->ip.c_str(), res->uuid.c_str());
+                        fpp = f;
+                    } else {
+                        skipit = true;
+                    }
+                }
             }
-            if (fpp == nullptr) {
+
+            if (!skipit && fpp == nullptr) {
                 FPP *fpp = new FPP(res->ip, res->proxy, res->pixelControllerType);
                 fpp->ipAddress = res->ip;//not needed, in constructor
                 fpp->hostName = res->hostname;
+                fpp->uuid = res->uuid;
                 fpp->description = res->description;
                 fpp->platform = res->platform;
                 fpp->model = res->platformModel;
@@ -3870,10 +3862,22 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 if (res->extraData.HasMember("cape")) {
                     fpp->capeInfo = res->extraData["cape"];
                 }
+                auto it = configuredIPs.find(res->ip);
+                if (it != configuredIPs.end()) {
+                    if (allProxyList.count(it->first) > 0 || allProxyList.count(it->second) > 0) {
+                        fpp->isaProxy = true;
+                    }
+                }
+                if (StartsWith(res->mode, "player")) {
+                    activePlayerCount++;
+                };
+                fpp->canZipUpload = res->canZipUpload;
                 instances.push_back(fpp);
-            } else {
+            } else if (!skipit) {
+                fpp->ipAddress = res->ip;
                 setIfEmpty(fpp->proxy, res->proxy);
                 setIfEmpty(fpp->hostName, res->hostname);
+                setIfEmpty(fpp->uuid, res->uuid);
                 setIfEmpty(fpp->description, res->description);
                 setIfEmpty(fpp->platform, res->platform);
                 setIfEmpty(fpp->model, res->platformModel);
@@ -3887,7 +3891,6 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 setIfEmpty(fpp->controllerVendor, res->vendor);
                 setIfEmpty(fpp->controllerModel, res->model);
                 setIfEmpty(fpp->controllerVariant, res->variant);
-
                 setIfEmpty(fpp->minorVersion, res->minorVersion);
                 setIfEmpty(fpp->patchVersion, res->patchVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
@@ -3900,9 +3903,15 @@ void FPP::MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, Ou
                 if (res->extraData.HasMember("cape")) {
                     fpp->capeInfo = res->extraData["cape"];
                 }
+                fpp->canZipUpload = res->controller;
             }
         } else {
             logger_base.info("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());
+        }
+    }
+    for (auto f : instances) {
+        if (activePlayerCount == 1 && StartsWith(f->mode, "player")) {
+            f->solePlayer = true;
         }
     }
 }

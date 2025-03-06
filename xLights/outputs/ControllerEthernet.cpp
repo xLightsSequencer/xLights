@@ -395,6 +395,9 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
         delete oldoutputs.front();
         oldoutputs.pop_front();
     }
+
+    if (_outputManager != nullptr)
+        _outputManager->UpdateUnmanaged();
 }
 
 std::string ControllerEthernet::GetForceLocalIP() const
@@ -720,6 +723,10 @@ void ControllerEthernet::VMVChanged(wxPropertyGrid *grid)
                     SetProtocol(prefer);
                 }
             }
+            auto const& state = c->GetPreferredState();
+            if (!state.empty()) {
+                SetActive(state);
+            }
         }
     }
 }
@@ -1025,7 +1032,7 @@ void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelMan
     }
     p = propertyGrid->GetProperty("Managed");
     if (p) {
-        if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {
+        // if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {
             p->Hide(false);
             p->SetValue(_managed);
             if (!_managed) {
@@ -1033,9 +1040,9 @@ void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelMan
             } else {
                 p->SetHelpString("");
             }
-        } else {
-            p->Hide(true);
-        }
+        // } else {
+        //     p->Hide(true);
+        // }
     }
     p = propertyGrid->GetProperty("FPPProxy");
     if (p) {

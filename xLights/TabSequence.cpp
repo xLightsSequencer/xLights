@@ -1143,6 +1143,19 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
         logger_base.debug("Batch render cancelled.");
         EnableSequenceControls(true);
         printf("Batch render cancelled.\n");
+
+        wxConfigBase* config = wxConfigBase::Get();
+        if (config != nullptr) {
+            auto selectGridIcon = config->ReadBool("BatchRendererGridIconBackgrounds", false);
+            if (selectGridIcon) {
+                SetGridIconBackgrounds(selectGridIcon);
+            }
+            auto selectGroupEffect = config->ReadBool("BatchRendererGroupEffectBackgrounds", false);
+            if (selectGroupEffect) {
+                SetShowGroupEffectIndicator(selectGroupEffect);
+            }
+        }
+
         if (exitOnDone) {
             Destroy();
         }
@@ -1196,6 +1209,19 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         logger_base.debug("Batch render done.");
         printf("Done All Files\n");
         wxBell();
+
+        wxConfigBase* config = wxConfigBase::Get();
+        if (config != nullptr) {
+            auto selectGridIcon = config->ReadBool("BatchRendererGridIconBackgrounds", false);
+            if (selectGridIcon) {
+                SetGridIconBackgrounds(selectGridIcon);
+            }
+            auto selectGroupEffect = config->ReadBool("BatchRendererGroupEffectBackgrounds", false);
+            if (selectGroupEffect) {
+                SetShowGroupEffectIndicator(selectGroupEffect);
+            }
+        }
+
         if (exitOnDone) {
             Destroy();
         } else {
@@ -1210,6 +1236,19 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         logger_base.debug("Batch render cancelled.");
         EnableSequenceControls(true);
         printf("Batch render cancelled.\n");
+
+        wxConfigBase* config = wxConfigBase::Get();
+        if (config != nullptr) {
+            auto selectGridIcon = config->ReadBool("BatchRendererGridIconBackgrounds", false);
+            if (selectGridIcon) {
+                SetGridIconBackgrounds(selectGridIcon);
+            }
+            auto selectGroupEffect = config->ReadBool("BatchRendererGroupEffectBackgrounds", false);
+            if (selectGroupEffect) {
+                SetShowGroupEffectIndicator(selectGroupEffect);
+            }
+        }
+
         if (exitOnDone) {
             Destroy();
         }
@@ -1227,11 +1266,10 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
 
     auto b = _renderMode;
     _renderMode = false;
-    if (fileNames.size() == 1)
-    {
-        SetStatusText(_("Batch Rendering " + seq + ". Last sequence."));
+    if (fileNames.size() == 1) {
+        SetStatusText("Batch Rendering " + seq + ". Last sequence.");
     } else {
-        SetStatusText(_("Batch Rendering " + seq + ". " + wxString::Format("%d", (int)fileNames.size() - 1) + " sequences left to render."));
+        SetStatusText("Batch Rendering " + seq + ". " + wxString::Format("%d", (int)fileNames.size() - 1) + " sequences left to render.");
     }
     _renderMode = b;
 
@@ -1675,6 +1713,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItem_ImportEffects->Enable(false);
         MenuItemShiftEffects->Enable(false);
         MenuItemShiftSelectedEffects->Enable(false);
+        MenuItemShiftEffectsAndTiming->Enable(false);
         MenuItem_ColorReplace->Enable(false);
         if (revertToMenuItem) revertToMenuItem->Enable(false);
     }

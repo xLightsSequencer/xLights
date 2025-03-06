@@ -1096,6 +1096,19 @@
       <Filter>Effects\MovingHeadPanels</Filter>
     </ClCompile>
     <ClCompile Include="ShowFolderSearchDialog.cpp" />
+    <ClCompile Include="effects\ispc\ISPCComputeUtilities.cpp">
+      <Filter>Effects\ispc</Filter>
+    </ClCompile>
+    <ClCompile Include="preferences\ServicesPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="ai\aiBase.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
+    <ClCompile Include="ai\chatGPT.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
+    <ClCompile Include="CheckSequenceReport.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1768,7 +1781,6 @@
     <ClInclude Include="outputs\LOROutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="CheckboxSelectDialog.h" />
     <ClInclude Include="EmailDialog.h" />
     <ClInclude Include="DragValueCurveBitmapButton.h" />
     <ClInclude Include="ValueCurvesPanel.h" />
@@ -2194,6 +2206,27 @@
       <Filter>Effects\MovingHeadPanels</Filter>
     </ClInclude>
     <ClInclude Include="ShowFolderSearchDialog.h" />
+    <ClInclude Include="effects\ispc\ISPCComputeUtilities.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ispc\LayerBlendingFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ispc\ButterflyFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\PinwheelFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\PlasmaFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\SpacialColors.ispc.h" />
+    <ClInclude Include="preferences\ServicesPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\ispc\VideoFunctions.ispc.h" />
+    <ClInclude Include="ai\aiBase.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai\chatGPT.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckSequenceReport.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2241,6 +2274,15 @@
     <Filter Include="Effects\MovingHeadPanels">
       <UniqueIdentifier>{dea5bd41-37f4-437f-872b-6b26dc00a5c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effects\ispc">
+      <UniqueIdentifier>{6b247f11-eaa7-479e-9e82-e1369cd64fad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Prompts">
+      <UniqueIdentifier>{22d4d199-c5a9-4be6-8413-da0802e96e06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ai">
+      <UniqueIdentifier>{b7af1744-89fc-4b00-b7a5-fac169948940}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -2249,5 +2291,24 @@
     <Text Include="..\documentation\xlDo Commands.txt">
       <Filter>automation</Filter>
     </Text>
+    <Text Include="..\prompts\AI_Model_AutoMap.txt">
+      <Filter>Prompts</Filter>
+    </Text>
+    <Text Include="..\prompts\AI_Node_AutoMap.txt">
+      <Filter>Prompts</Filter>
+    </Text>
+    <Text Include="..\prompts\AI_Strand_AutoMap.txt">
+      <Filter>Prompts</Filter>
+    </Text>
+    <Text Include="..\prompts\AI_SubModel_AutoMap.txt">
+      <Filter>Prompts</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="effects\ispc\LayerBlendingFunctions.ispc" />
+    <CustomBuild Include="effects\ispc\ButterflyFunctions.ispc" />
+    <CustomBuild Include="effects\ispc\PinwheelFunctions.ispc" />
+    <CustomBuild Include="effects\ispc\PlasmaFunctions.ispc" />
+    <CustomBuild Include="effects\ispc\VideoFunctions.ispc" />
   </ItemGroup>
 </Project>

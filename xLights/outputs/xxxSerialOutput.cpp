@@ -109,7 +109,7 @@ void xxxSerialOutput::EndFrame(int suppressFrames) {
 
     if (_changed || NeedToOutput(suppressFrames)) {
         if (_serial != nullptr) {
-            for (uint32_t i = 0; i < _channels; ++i)
+            for (int32_t i = 0; i < _channels; ++i)
             {
                 if (_lastSent[i] != _data[i] || _notSentCount[i] > 200) {
                     _notSentCount[i] = 0;

@@ -8,6 +8,7 @@ using namespace metal;
 constant simd::float4 K = simd::float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
 
 uchar4 hsv2rgb(simd::float3 c) {
+    c = clamp(c, 0.0, 1.0);
     simd::float3 p = abs(fract(c.xxx + K.xyz) * 6.0h - K.www);
     c = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0h, 1.0h), c.y);
     return uchar4(c.r * 255.0h, c.g * 255.0h, c.b * 255.0h, 255);

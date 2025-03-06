@@ -543,6 +543,10 @@ void MovingHeadPanel::SetEffectTimeRange(int startTimeMs, int endTimeMs)
 
 void MovingHeadPanel::OnResize(wxSizeEvent& event)
 {
+    // If this window is not fully initialized, dismiss this event
+    if ( !IsShownOnScreen() )
+        return;
+
     wxSize old_sz = m_sketchCanvasPanel->GetSize();
     if( old_sz.GetWidth() != old_sz.GetHeight() ) {
         if( old_sz.GetWidth() > 270 ) {
@@ -1153,6 +1157,9 @@ void MovingHeadPanel::UpdateMHSettings()
     if( !presets_loaded ) { // I'd like to do this during construction but apparently the current directory is not set yet
         PopulatePresets();
         presets_loaded = true;
+        if (!IsShownOnScreen()) {
+            return;
+        }
         FlexGridSizer_Main->SetSizeHints(this);
         Layout();
         Refresh();

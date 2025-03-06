@@ -49,6 +49,7 @@ bool IsVersionOlder(const std::string &compare, const std::string &version);
 std::string JSONSafe(const std::string& s);
 std::string UnXmlSafe(const std::string &s);
 std::string XmlSafe(const std::string& s);
+bool IsXmlSafe(const std::string& s);
 std::string RemoveUnsafeXmlChars(const std::string& s);
 std::string EscapeCSV(const std::string& s);
 std::string EscapeRegex(const std::string& s);
@@ -78,6 +79,8 @@ wxString CompressNodes(const wxString& nodes);
 void ShiftNodes(std::map<std::string, std::string> & nodes, int shift, int min, int max);
 //reverse nodes, numbering 1->100, 100->1
 void ReverseNodes(std::map<std::string, std::string> & nodes, int max);
+
+std::string GetResourcesDirectory();
 
 inline long roundTo4(long i) {
     long remainder = i % 4;

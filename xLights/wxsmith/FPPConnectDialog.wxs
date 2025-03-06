@@ -96,7 +96,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-					<cols>4</cols>
+					<cols>6</cols>
 					<growablecols>1</growablecols>
 					<growablerows>0</growablerows>
 					<object class="sizeritem">
@@ -109,10 +109,27 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON2" variable="ReDiscover" member="yes">
+							<label>Re-Discover</label>
+							<handler function="OnAddFPPButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxStaticText" name="wxID_ANY" variable="StaticText3" member="no">
 							<label></label>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX1" variable="KeepWinOpen" member="yes">
+							<label>Keep Open</label>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

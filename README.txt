@@ -11,6 +11,80 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.03 February 11, 2025
+    - enh (derwin12)        Use ispc on Windows to match Linux and MacOS
+    - enh (keith)           Start adding infrastructure for API/AI driven features
+    - enh (keith)           Experimental support for using AI to map importaed sequences
+    - enh (MrPierreB)       Enhanced HTML "Check Sequence" report
+    - enh (derwin12)        Allow for more than 48 strings for custom models
+    - enh (derwin12)        Use ispc to handle video frame to render buffer transfers
+    - enh (cybercop23)      Add ability to trim audio in sequence settings
+    - enh (derwin12)        Use case insensitive compared when handling import mappings
+    - bug (dkulp)           Fix rendering of brightness and 2 is unmask with ispc rendering
+    - bug (dkulp)           Fix Shadow 1 on 2, Shadow 2 on 1 blending with ispc
+    - bug (derwin12)        Updates for building Shader UI when effect is changed
+    - bug (dkulp)           Fix rendering of Canvas mode effects if layers are not explicitely selected
+2025.02 January 27, 2025
+    - enh (cybercop23)      Enable replay button without needing to first hit play
+    - enh (cybercop23)      Add ability to remove model(s) from existing groups from popup menus
+    - enh (cybercop23)      Add popup menu option to add timing track to all views
+    - enh (cybercop23)      Sort and restore controler tab column order
+    - enh (derwin12)        Increase maximum size of group buffers
+    - enh (cybercop23)      Add status message/indicator during Cleanup File Locations
+    - enh (cybercop23)      FPP Connect - show FPP instances that are configured, but could not be found
+    - enh (cybercop23)      Discovery - better job of finding duplicates, matching existing controller, etc...
+    - enh (dkulp)           Pinwheel Effect - "spacial colors" now supported by ispc rendering
+    - enh (dkulp)           Much faster populating of Model List on Layout tab (Mac/Linux)
+    - enh (dkulp)           Add libsecret to Linux builds so wxSecretStore should work (passwords for FPP Connect)
+    - enh (dkulp)           Add setting to disable the effect indicator for deep groups
+    - enh (cybercop23)      Set discovered FPP instances to xLights Only by default
+    - bug (derwin12)        Limit the splitter on the submodel dialog from collapsing all the way
+    - bug (derwin12)        Fix "newSequence" Lua call
+    - bug (cybercop23)      Don't report if Sketch effect background is missing
+    - bug (cybercop23)      Map meshobjects to proper resources directory during filename fixups
+    - bug (dkulp)           Fix background display issues/fragments when using Single Strand Chase effect
+    - bug (dkulp)           Aliases may not have been properly removed from SubModels
+    - bug (dkulp)           Fix sparkle/brightness/contrast rendering with ispc
+    - bug (derwin12)        Fix problems opening HTML check sequence report in some cases
+    - bug (dkulp)           Don't pollute the recent sequences list during batch render
+    - bug (dkulp)           Fix some crashes with canvas mode effects with ispc rendering
+2025.01 January 20, 2025
+    - enh (dkulp)           MacOS/Linux - start using ISPC to use SIMD/SSE/AVX/NEON for certain effect renderings
+                                - Butterfly effect ported to ISPC
+                                - Plasma effect ported to ISPC
+                                - Non-spacial color Pinwheel effect ported to ISPC
+                                - Layer Blending ported to ISPC
+    - enh (dkulp)           Butterfly Effect - add styles >5 to Metal rendering
+    - enh (cybercop23)      FPP Connect - split ip and hostname to separate columns, clickable links for each
+    - enh (scott)           FPP Connect - add selection options for subnet, add select all/deselect all for cape
+    - enh (scott)           FPP Connect - more sequence selection options, select based on last batch render
+    - enh (cybercop23)      FPP Connect - add re-discover button to re-run discovery
+    - enh (cybercop23)      FPP Connect - allow option to keep dialog open after uploads complete
+    - enh (cybercop23)      FPP Connect - de-duplicate FPP isntanced based on UUID
+    - enh (derwin12)        Import Mapping Dialog - remove useless timer
+    - enh (derwin12)        On Effect - show gradient in background
+    - enh (derwin12)        Servo Effect - servo background is clearer and more distinquishable
+    - enh (cybercop23)      ESPixelStick v4 - bunch of updates to make upload to ESPixelSticks more reliable
+    - enh (scott)           DMX Remap Dialog - Add Copy/Check/Uncheck to Invert Setting
+    - enh (derwin12)        Effect Settings - filename controls set background to yellow if invalid characters are used
+    - enh (keith)           Controller Properties - provide better warnings/indicators if multiple controllers are configured with same IP
+    - enh (cybercop23)      Check Sequence - move to simple HTML to make report easier to navigate
+    - enh (derwin12)        Layout Tab - add preference to hide/size the Group Crosshair
+    - enh (derwin12)        Layout Tab - Remove invalid controller properies/settings if controller is changed
+    - enh (derwin12)        Layout Tab - add ability to export/import native icicles model
+    - enh (derwin12)        Model Properties - add ability to re-order the aliases
+    - enh (cybercop23)      Model Properties - add ability (and Lua script) to delete all aliases
+    - bug (cybercop23)      Batch Render - don't list sequences in backup directories
+    - bug (scott)           Fix preview/model import crash if click select sibling on a preview
+    - bug (dkulp)           Fix a crash at startup if controllers in base directories are using hostnames
+    - bug (dkulp)           Fix a crash with single strand effect used in a group with "Per Model" render styles
+    - bug (dkulp)           Fix a potential crash if a controller hostname cannot be resolved
+    - bug (dkulp)           Fix a crash if using Linux in parallels if EGL is required
+    - bug (dkulp)           Fix a crash on Linux if MovingHeadPanel is resized before being placed on screen (startup)
+    - bug (dkulp)           Fix incompatability with Ubuntu 22.04 and Debian 12
+    - bug (derwin12)        Fix getFseqDir Lua command to match conventions, update docs
+    - bug (cybercop23)      Experience Controllers - retain/support Remote/Standalone modes
+    - bug (dkulp)           Butteryfly Effect - clamp HSV->RGB routines to 0..1 for Hue
 2024.20 December 31, 2024
     - enh (dkulp)           Performance - if effect backgrounds are turned off, don't waste time/memory calculating them during render
     - enh (cyercop23)       Scripting - add command to get fseq dir from preferences

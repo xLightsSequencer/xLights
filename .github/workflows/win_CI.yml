@@ -72,6 +72,11 @@ jobs:
           submodules: 'true'
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v1
+      
+    - name: install ISPC
+      uses: ispc/install-ispc-action@main
+      with:
+        version: 1.26.0
 
     - name: Download wxWidgets
       run: 

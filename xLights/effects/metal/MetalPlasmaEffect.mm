@@ -87,7 +87,7 @@ void MetalPlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, R
     MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
 
     const int ColorScheme = GetPlasmaColorScheme(SettingsMap["CHOICE_Plasma_Color"]);    
-    if (rbcd == nullptr || !data->canRenderStyle(ColorScheme) || ((buffer.BufferWi * buffer.BufferHt) < 1024)) {
+    if (rbcd == nullptr || !data->canRenderStyle(ColorScheme) || ((buffer.BufferWi * buffer.BufferHt) < 2048)) {
         PlasmaEffect::Render(effect, SettingsMap, buffer);
         return;
     }

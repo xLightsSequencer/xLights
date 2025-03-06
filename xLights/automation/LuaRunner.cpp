@@ -43,6 +43,13 @@ void LuaRunner::ShowMessage(std::string const& text) const
     wxMessageBox(text, text, wxOK);
 }
 
+std::string LuaRunner::PromptOption(std::string const& question, std::string const& title, std::string const& button1, std::string const& button2) const
+{
+    wxMessageDialog dlg(_frame, question, title, wxYES_NO | wxICON_QUESTION);
+    dlg.SetYesNoLabels(button1.c_str(), button2.c_str());
+    return dlg.ShowModal() == wxID_YES ? button1 : button2;
+}
+
 std::string LuaRunner::PromptString(std::string const& message) const
 {
     wxTextEntryDialog dialog(_frame, message, message);
@@ -128,6 +135,7 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
 
     lua.set_function("PromptSequences", &LuaRunner::PromptSequences, this);
     lua.set_function("ShowMessage", &LuaRunner::ShowMessage, this);
+    lua.set_function("PromptOption", &LuaRunner::PromptOption, this);
     lua.set_function("PromptString", &LuaRunner::PromptString, this);
     lua.set_function("PromptSelection", &LuaRunner::PromptSelection, this);
     lua.set_function("SplitString", &LuaRunner::SplitString, this);

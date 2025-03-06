@@ -127,8 +127,8 @@ kernel void GetColorsForNodes(constant LayerBlendingData &data,
             int nidx = indexes[idx + nc];
             uchar4 c = src[nidx];
             
-            x = nidx % data.bufferWi;
-            y = nidx / data.bufferHi;
+            x = nidx / data.bufferHi;
+            y = nidx % data.bufferHi;
             midx = x * data.bufferHi + y;
             
             if (c.a > 0 && (!data.useMask || mask[midx] == 0)) {
@@ -153,20 +153,30 @@ kernel void PutColorsForNodes(constant LayerBlendingData &data,
     if (index > (uint)data.nodeCount) return;
     int32_t idx = indexes[index];
     if (idx == -1) {
-        result[idx] = {0, 0, 0, 0};
+        //result[idx] = {0, 0, 0, 0};
     } else if (idx & 0x80000000) {
         idx &= 0x7FFFFFFF;
         int cnt = indexes[idx++];
-        for (int x = 0; x < cnt; x++) {
-            int nidx = indexes[idx +x];
-            if (data.useMask && mask[idx] > 0) {
+        for (int n = 0; n < cnt; n++) {
+            int nidx = indexes[idx + n];
+            int32_t x = nidx / data.bufferHi;
+            int32_t y = nidx - (x * data.bufferHi);
+            int32_t midx = x * data.bufferHi + y;
+            if (data.useMask && mask[midx] > 0) {
                 result[nidx] = {0, 0, 0, 0};
             } else {
                 result[nidx] = src[index];
             }
         }
-    } else if (data.useMask && mask[idx] > 0) {
-        result[idx] = {0, 0, 0, 0};
+    } else if (data.useMask) {
+        int32_t x = idx / data.bufferHi;
+        int32_t y = idx - (x * data.bufferHi);
+        int32_t midx = x * data.bufferHi + y;
+        if (mask[midx] > 0) {
+            result[idx] = {0, 0, 0, 0};
+        } else {
+            result[idx] = src[index];
+        }
     } else {
         result[idx] = src[index];
     }

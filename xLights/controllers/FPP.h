@@ -59,6 +59,8 @@ class FPP : public BaseController
 
     std::string proxy;
     std::set<std::string> proxies;
+    bool isaProxy = false;
+    bool solePlayer = false;
 
     std::string username;
     std::string password;
@@ -67,6 +69,8 @@ class FPP : public BaseController
     std::string controllerVendor;
     std::string controllerModel;
     std::string controllerVariant;
+    bool upload;
+    bool canZipUpload = false;
 
     wxWindow *parent = nullptr;
     void setProgress(FPPUploadProgressDialog*d, wxGauge *g) { progressDialog = d; progress = g; }
@@ -74,6 +78,7 @@ class FPP : public BaseController
 
     
     std::list<std::string> messages;
+    std::list<std::string> faileduploads;
     int defaultConnectTimeout = 2000;
 
     std::map<int, int> GetExpansionPorts(ControllerCaps* caps) const;
@@ -232,10 +237,22 @@ static inline int case_insensitive_match(std::string s1, std::string s2)
 
 static inline bool sortByName(const FPP* i, const FPP* j)
 {
-    return i->hostName < j->hostName;
+    std::string lowerI = i->hostName;
+    std::string lowerJ = j->hostName;
+
+    std::transform(lowerI.begin(), lowerI.end(), lowerI.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    std::transform(lowerJ.begin(), lowerJ.end(), lowerJ.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+
+    return lowerI < lowerJ;
 }
 
 static inline bool sortByIP(const FPP* i, const FPP* j)
 {
     return i->ipAddress < j->ipAddress;
+}
+
+static inline bool sortByUpload(const FPP* i, const FPP* j) {
+    return i->upload > j->upload;
 }

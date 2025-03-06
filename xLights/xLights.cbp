@@ -183,6 +183,8 @@
 		<Unit filename="CharMapDialog.h" />
 		<Unit filename="CheckboxSelectDialog.cpp" />
 		<Unit filename="CheckboxSelectDialog.h" />
+		<Unit filename="CheckSequenceReport.cpp" />
+		<Unit filename="CheckSequenceReport.h" />
 		<Unit filename="Color.cpp" />
 		<Unit filename="ColorCurve.cpp" />
 		<Unit filename="ColorCurve.h" />
@@ -506,6 +508,10 @@
 		<Unit filename="cad/STLWriter.h" />
 		<Unit filename="cad/VRMLWriter.cpp" />
 		<Unit filename="cad/VRMLWriter.h" />
+		<Unit filename="ai/aiBase.h" />		
+		<Unit filename="ai/aiBase.cpp" />		
+		<Unit filename="ai/chatGPT.h" />		
+		<Unit filename="ai/chatGPT.cpp" />		
 		<Unit filename="controllers/AlphaPix.cpp" />
 		<Unit filename="controllers/AlphaPix.h" />
 		<Unit filename="controllers/BaseController.cpp" />
@@ -810,6 +816,16 @@
 		<Unit filename="effects/assist/xlGridCanvasMorph.h" />
 		<Unit filename="effects/assist/xlGridCanvasPictures.cpp" />
 		<Unit filename="effects/assist/xlGridCanvasPictures.h" />
+		<Unit filename="effects/ispc/ButterflyFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="effects/ispc/ISPCComputeUtilities.cpp" />
+		<Unit filename="effects/ispc/ISPCComputeUtilities.h" />
+		<Unit filename="effects/ispc/LayerBlendingFunctions.ispc">
+			<Option link="1" />
+			<Option compiler="gcc" use="0" buildCommand="../ispc-v1.25.3-linux.aarch64/bin/ispc -o $object $file" />
+		</Unit>
+		<Unit filename="effects/ispc/LayerBlendingFunctions.ispc.h" />
 		<Unit filename="graphics/opengl/DrawGLUtils.cpp" />
 		<Unit filename="graphics/opengl/DrawGLUtils.h" />
 		<Unit filename="graphics/opengl/xlGLCanvas.cpp" />
@@ -1049,6 +1065,8 @@
 		<Unit filename="preferences/OutputSettingsPanel.h" />
 		<Unit filename="preferences/RandomEffectsSettingsPanel.cpp" />
 		<Unit filename="preferences/RandomEffectsSettingsPanel.h" />
+        <Unit filename="preferences/ServicesPanel.cpp" />
+        <Unit filename="preferences/ServicesPanel.h" />
 		<Unit filename="preferences/SequenceFileSettingsPanel.cpp" />
 		<Unit filename="preferences/SequenceFileSettingsPanel.h" />
 		<Unit filename="preferences/ViewSettingsPanel.cpp" />
@@ -1279,6 +1297,7 @@
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
 		<Unit filename="wxsmith/SequenceFileSettingsPanel.wxs" />
 		<Unit filename="wxsmith/SequenceVideoPanel.wxs" />
+		<Unit filename="wxsmith/ServicesPanel.wxs" />
 		<Unit filename="wxsmith/ServoConfigDialog.wxs" />
 		<Unit filename="wxsmith/ServoPanel.wxs" />
 		<Unit filename="wxsmith/SevenSegmentDialog.wxs" />
@@ -1551,11 +1570,9 @@
 					<wxDialog wxs="wxsmith/EditAliasesDialog.wxs" src="EditAliasesDialog.cpp" hdr="EditAliasesDialog.h" fwddecl="0" i18n="1" name="EditAliasesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EditSubmodelAliasesDialog.wxs" src="EditSubmodelAliasesDialog.cpp" hdr="EditSubmodelAliasesDialog.h" fwddecl="0" i18n="1" name="EditSubmodelAliasesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ShowFolderSearchDialog.wxs" src="ShowFolderSearchDialog.cpp" hdr="ShowFolderSearchDialog.h" fwddecl="0" i18n="1" name="ShowFolderSearchDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/ServicesPanel.wxs" src="preferences/ServicesPanel.cpp" hdr="preferences/ServicesPanel.h" fwddecl="0" i18n="1" name="ServicesPanel" language="CPP" />
 				</resources>
 			</wxsmith>
-			<code_completion />
-			<envvars />
-			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

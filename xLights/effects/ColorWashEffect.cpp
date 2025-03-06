@@ -241,7 +241,7 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     } else {
         orig = xlBLACK;
     }
-    if (effect->IsBackgroundDisplayListEnabled()) {
+    if (effect->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
         std::unique_lock<std::recursive_mutex> lock(effect->GetBackgroundDisplayList().lock);
         if (VertFade || HorizFade) {
             effect->GetBackgroundDisplayList().resize((buffer.curEffEndPer - buffer.curEffStartPer + 1) * 6 * 2);

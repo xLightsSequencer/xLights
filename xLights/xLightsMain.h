@@ -20,6 +20,8 @@
     #endif
 #endif
 
+#define ENABLE_SERVICES
+
 // Every time this regenerates from code blocks you will need to remove wx/led.h
 
 //(*Headers(xLightsFrame)
@@ -84,9 +86,11 @@
 #include "SequencePackage.h"
 #include "ScriptsDialog.h"
 #include "TipOfTheDayDialog.h"
+#include <CheckSequenceReport.h>
 
 class wxDebugReport;
 
+class aiBase;
 class ControllerCaps;
 class EffectTreeDialog;
 class ConvertDialog;
@@ -640,6 +644,7 @@ public:
     void OnButtonFPPConnectClick(wxCommandEvent& event);
     void OnButton_OpenBaseShowDirClick(wxCommandEvent& event);
     void OnMenuItemFindShowFolderSelected(wxCommandEvent& event);
+    void OnMenuItemShiftEffectsAndTimingSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -760,6 +765,7 @@ public:
     static const wxWindowID ID_FILE_BACKUP;
     static const wxWindowID ID_FILE_RESTOREBACKUP;
     static const wxWindowID ID_FILE_ALTBACKUP;
+    static const wxWindowID ID_SHIFT_EFFECTS_AND_TIMING;
     static const wxWindowID ID_SHIFT_EFFECTS;
     static const wxWindowID ID_MNU_SHIFT_SELECTED_EFFECTS;
     static const wxWindowID ID_MNU_COLOURREPLACE;
@@ -959,6 +965,7 @@ public:
     wxMenuItem* MenuItemSearchEffects;
     wxMenuItem* MenuItemSelectEffect;
     wxMenuItem* MenuItemShiftEffects;
+    wxMenuItem* MenuItemShiftEffectsAndTiming;
     wxMenuItem* MenuItemShiftSelectedEffects;
     wxMenuItem* MenuItemUserDict;
     wxMenuItem* MenuItemValueCurves;
@@ -1181,6 +1188,9 @@ public:
     bool GridIconBackgrounds() const { return mGridIconBackgrounds;}
     void SetGridIconBackgrounds(bool b);
 
+    bool ShowGroupEffectIndicator() const { return mShowGroupEffectIndicator;}
+    void SetShowGroupEffectIndicator(bool b);
+
     bool SmallWaveform() const { return _smallWaveform; }
     void SetSmallWaveform(bool b);
 
@@ -1303,6 +1313,10 @@ public:
     bool HidePresetPreview() const { return _hidePresetPreview;}
     void SetHidePresetPreview(bool b);
 
+    void SetServiceSetting(const std::string& setting, const std::string& value);
+    std::string GetServiceSetting(const std::string& setting, const std::string& defaultValue = "");
+    std::unique_ptr<aiBase> GetLLM();
+
     bool IsShowBaseShowFolder() const
     {
         return _showBaseShowFolder;
@@ -1318,9 +1332,11 @@ public:
     int EffectAssistMode() const { return mEffectAssistMode;}
     void SetEffectAssistMode(int i);
 
-    int GetModelHandleScale() const { return _modelHandleSize; }
-    int ModelHandleSize() const { return _modelHandleSize;}
+    int GetModelHandleSize() const { return _modelHandleSize; }
     void SetModelHandleSize(int i);
+
+    int GetCrosshairSize() const { return _crosshairSize; }
+    void SetCrosshairSize(int i);
 
     const wxArrayString &RandomEffectsToUse() const { return _randomEffectsToUse;}
     void SetRandomEffectsToUse(const wxArrayString &e);
@@ -1622,6 +1638,7 @@ private:
     int mIconSize;
     int mGridSpacing;
     bool mGridIconBackgrounds;
+    bool mShowGroupEffectIndicator = true;
     bool mTimingPlayOnDClick;
     bool mGridNodeValues;
     int mEffectAssistMode = 0;
@@ -1630,6 +1647,7 @@ private:
     int abortedRenderJobs = 0;
     bool mSaveFseqOnSave;
     int _modelHandleSize = 1;
+    int _crosshairSize = 1;
 
     class RenderTree {
     public:
@@ -1851,9 +1869,9 @@ private:
     void ValidateEffectAssets();
     bool CleanupRGBEffectsFileLocations();
     bool CleanupSequenceFileLocations();
-    void CheckElement(Element* e, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, std::list<std::string>& allfiles);
-    void CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints);
-    bool CheckStart(wxFile& f, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);
+    void CheckElement(Element* e, wxFile& f, CheckSequenceReport& report, bool writeToTextFile, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, std::list<std::string>& allfiles);
+    void CheckEffect(Effect* ef, wxFile& f, CheckSequenceReport& report, bool writeToTextFile, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints);
+    bool CheckStart(wxFile& f, CheckSequenceReport& report, bool writeToTextFile, size_t& errcount, size_t& warncount, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);
     void ValidateWindow();
     void DoDonate();
     void AutoShowHouse();
@@ -1878,6 +1896,7 @@ private:
     static const long ID_NETWORK_UNLINKFROMBASE;
     static const long ID_NETWORK_INACTIVE;
     static const long ID_NETWORK_DELETE;
+    static const long ID_NETWORK_UPLOADOUTPUT;
 
     #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 

@@ -685,12 +685,20 @@ public:
                             vl[numLayers] = true;
                             blend = false;
                         }
+                    } else {
+                        // default if not specified is all valid layers below it except the blend layer
+                        // mark them as being part of the
+                        for (int i = layer + 1; i < vl.size(); i++) {
+                            if (vl[i]) {
+                                partOfCanvas[i] = true;
+                            }
+                        }
                     }
 
                     // preload the buffer with the output from the lower layers
                     RenderBuffer& rb = buffer->BufferForLayer(layer, -1);
 
-                    // I have to calc the output here to apply blend, rotozoom and transitions
+                    // We have to calc the output here to apply blend, rotozoom and transitions
                     buffer->CalcOutput(frame, vl, layer, true);
                     std::vector<uint8_t> done(rb.GetPixelCount());
                     parallel_for(0, rb.GetNodes().size(), [&](int n) {
