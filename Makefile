@@ -25,7 +25,7 @@ SUDO		= `which sudo`
 
 SUBDIRS         = xLights xSchedule xCapture xFade xScanner xSchedule/xSMSDaemon xSchedule/RemoteFalcon
 
-WXWIDGETS_TAG=xlights_2025.03
+WXWIDGETS_TAG=xlights_2025.04
 ISPC_VERSION=1.26.0
 ISPC_ARCH=$(shell uname -m)
 
