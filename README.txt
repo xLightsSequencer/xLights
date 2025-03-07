@@ -11,7 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2025.04
+2025.04 March 7, 2025
     - enh (cybercop23)      And SubModel name to SubModelDialog title
     - enh (derwin12)        Rename OK button to "Close" for effect preset dialog
     - enh (cybercop23)      Support for zipping sequences for upload to latest ESPixelStick
@@ -37,6 +37,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - bug (cybercop23)      Fix apply preset from folders using key bindings
     - bug (dkulp)           Fix visualize/upload of DMXSkull if eye/color channels become disabled
     - bug (dkulp)           Fix Model list sorting after list rebuild on Layout tab
+    - bug (dkulp)           Fix potential crash on startup on Linux
     - change (dkulp)        Cleanup FPP Connect to remove support for deprecated FPP API's
 2025.03 February 11, 2025
     - enh (derwin12)        Use ispc on Windows to match Linux and MacOS
