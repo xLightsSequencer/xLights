@@ -17,6 +17,7 @@
 #include <wx/artprov.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
+#include <wx/thread.h>
 
 #include "xLightsMain.h"
 #include "LayoutPanel.h"
@@ -60,6 +61,25 @@
 #include "../xFade/wxLED.h"
 
 #include <log4cpp/Category.hh>
+
+// Thread class to ping a single controller
+class ControllerPingThread : public wxThread {
+public:
+    ControllerPingThread(Controller* controller) :
+        wxThread(wxTHREAD_DETACHED), _controller(controller) {
+    }
+
+protected:
+    virtual ExitCode Entry() override {
+        if (_controller && _controller->IsActive()) {
+            _controller->Ping();
+        }
+        return (ExitCode)0;
+    }
+
+private:
+    Controller* _controller;
+};
 
 const long xLightsFrame::ID_List_Controllers = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDETHERNET = wxNewId();
@@ -1576,6 +1596,46 @@ void xLightsFrame::OnButtonAddControllerNullClick(wxCommandEvent& event) {
 }
 #pragma endregion
 
+wxBitmap xLightsFrame::CreateLedBitmap(bool online) {
+    wxBitmap bitmap(8, 8);
+    wxMemoryDC dc(bitmap);
+    dc.SetBrush(online ? *wxGREEN_BRUSH : *wxRED_BRUSH);
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.DrawCircle(4, 4, 4);
+    dc.SelectObject(wxNullBitmap);
+    return bitmap;
+}
+
+void xLightsFrame::OnPingTimer(wxTimerEvent& event) {
+    if (Notebook1->GetSelection() != SETUPTAB || _pingInProgress) {
+        return;
+    }
+    _pingInProgress = true;
+    for (int row = 0; row < List_Controllers->GetItemCount(); ++row) {
+        auto controller = dynamic_cast<Controller*>(_outputManager.GetController(List_Controllers->GetItemText(row, 0).ToStdString()));
+        if (controller != nullptr && controller->IsActive()) {
+            ControllerPingThread* thread = new ControllerPingThread(controller);
+            thread->Run();
+        }
+    }
+    _pingInProgress = false;
+    StatusRefreshTimer(event);
+}
+
+void xLightsFrame::StatusRefreshTimer(wxTimerEvent& event) {
+    if (Notebook1->GetSelection() == SETUPTAB) {
+        List_Controllers->Freeze();
+        for (int row = 0; row < List_Controllers->GetItemCount(); ++row) {
+            auto controller = dynamic_cast<Controller*>(_outputManager.GetController(List_Controllers->GetItemText(row, 0).ToStdString()));
+            if (controller != nullptr && controller->IsActive()) {
+                int imageIndex = (controller->GetLastPingState() == Output::PINGSTATE::PING_OK || controller->GetLastPingState() == Output::PINGSTATE::PING_WEBOK) ? 0 : 1;
+                List_Controllers->SetItem(row, 12, "", imageIndex);
+            }
+        }
+        List_Controllers->Thaw();
+    }
+}
+
 void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
     inInitialize = true;
     // create the checked tree control
@@ -1592,7 +1652,13 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         Connect(ID_List_Controllers, wxEVT_LIST_BEGIN_DRAG, (wxObjectEventFunction)&xLightsFrame::OnListItemBeginDragControllers);
         Connect(ID_List_Controllers, wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemSelectedControllers);
 
-        List_Controllers->AppendColumn("Name");
+        // Create image list with actual LED bitmaps
+        wxImageList* imageList = new wxImageList(8, 8, true, 2);
+        imageList->Add(CreateLedBitmap(true));
+        imageList->Add(CreateLedBitmap(false));
+        List_Controllers->AssignImageList(imageList, wxIMAGE_LIST_SMALL);
+
+        List_Controllers->AppendColumn("   Name");
         List_Controllers->AppendColumn("Protocol");
         List_Controllers->AppendColumn("Address");
         List_Controllers->AppendColumn("Universes/Id");
@@ -1604,11 +1670,12 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         List_Controllers->AppendColumn("Auto Layout");
         List_Controllers->AppendColumn("Auto Size");
         List_Controllers->AppendColumn("Description");
+        List_Controllers->AppendColumn("Status", wxLIST_FORMAT_LEFT, _controllerPingInterval >0 ? 45 : 0);
 
         wxConfigBase* config = wxConfigBase::Get();
         if (config != nullptr) {
             wxString co;
-            config->Read("ControllerTabColumnOrder", &co, "0,1,2,3,4,5,6,7,8,9,10,11");
+            config->Read("ControllerTabColumnOrder", &co, "0,1,2,3,4,5,6,7,8,9,10,11,12");
             wxArrayString tokens = wxSplit(co, ',');
             wxArrayInt controllerTabColumns;
             for (const auto& token : tokens) {
@@ -1617,6 +1684,7 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
                     controllerTabColumns.Add(static_cast<int>(value));
                 }
             }
+            if (controllerTabColumns.size() != 13) controllerTabColumns.Add(13);
             List_Controllers->SetColumnsOrder(controllerTabColumns);
         }
 
@@ -1659,7 +1727,7 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
 
     // Reload the list
     for (const auto& it : _outputManager.GetControllers()) {
-        int row = List_Controllers->InsertItem(List_Controllers->GetItemCount(), it->GetName());
+        int row = List_Controllers->InsertItem(List_Controllers->GetItemCount(), it->GetName(), -1);
         if (std::find(begin(selections), end(selections), it->GetName()) != selections.end()) {
             List_Controllers->SetItemState(row, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
         }
@@ -1685,6 +1753,10 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         else if (!it->IsActive()) {
             List_Controllers->SetItemTextColour(row, *wxLIGHT_GREY);
         }
+        if (it->IsActive() && _controllerPingInterval > 0) {
+            int imageIndex = (it->GetLastPingState() == Output::PINGSTATE::PING_OK || it->GetLastPingState() == Output::PINGSTATE::PING_WEBOK) ? 0 : 1;
+            List_Controllers->SetItem(row, 12, "", imageIndex);
+        }
     }
 
     auto sz = 0;
@@ -1694,7 +1766,7 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         sz += List_Controllers->GetColumnWidth(i);
     }
 
-    int lc = List_Controllers->GetColumnCount() - 1;
+    int lc = List_Controllers->GetColumnCount() - 2;
     List_Controllers->SetColumnWidth(lc, wxLIST_AUTOSIZE_USEHEADER);
     if (List_Controllers->GetColumnWidth(lc) < 100) List_Controllers->SetColumnWidth(lc, 100);
 
