@@ -659,6 +659,9 @@ private :
 	void SetEffectAssistWindowState(bool show);
     void UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect);
     void AddDebugFilesToReport(wxDebugReport &report);
+    wxTimer* _pingTimer;
+    wxTimer* _statusRefreshTimer;
+    bool _pingInProgress = false;
 
 public:
 
@@ -1122,6 +1125,7 @@ public:
     bool _autoSavePerspecive = true;
     bool _ignoreVendorModelRecommendations = false;
     bool _purgeDownloadCacheOnStart = false;
+    int _controllerPingInterval = 0;
     int _fseqVersion;
     int _timelineZooming;
     bool _wasMaximised = false;
@@ -1262,6 +1266,8 @@ public:
 
     bool GetIgnoreVendorModelRecommendations() const { return _ignoreVendorModelRecommendations; }
     void SetIgnoreVendorModelRecommendations(bool b) { _ignoreVendorModelRecommendations = b; }
+    int GetControllerPingInterval() const { return _controllerPingInterval; }
+    void SetControllerPingInterval(int secs) { _controllerPingInterval = secs; }
     void PurgeDownloadCache();
 
     bool GetPurgeDownloadCacheOnStart() const { return _purgeDownloadCacheOnStart; }
@@ -1384,6 +1390,9 @@ public:
     void SelectController(const std::string& controllerName);
     void UnselectAllControllers();
     void InitialiseControllersTab(bool rebuildPropGrid = true);
+    void OnPingTimer(wxTimerEvent& event);
+    void StatusRefreshTimer(wxTimerEvent& event);
+    wxBitmap CreateLedBitmap(bool online);
     void SetControllersProperties(bool rebuildPropGrid = true);
     void DeleteSelectedControllers();
     void UnlinkSelectedControllers();

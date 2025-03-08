@@ -56,6 +56,8 @@ const wxWindowID OtherSettingsPanel::ID_STATICTEXT6 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHOICE_ALIASPROMPT = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_TEXTCTRL1 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX9 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_STATICTEXT7 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CTRLPINGINTERVAL = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
@@ -74,6 +76,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
+    wxFlexGridSizer* FlexGridSizer8;
     wxGridBagSizer* GridBagSizer1;
     wxGridBagSizer* GridBagSizer2;
     wxStaticBoxSizer* StaticBoxSizer1;
@@ -171,7 +174,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     FlexGridSizer5->Add(Choice_LinkControllerUpload, 1, wxALL|wxEXPAND, 5);
     GridBagSizer1->Add(FlexGridSizer5, wxGBPosition(7, 0), wxDefaultSpan, wxALL|wxEXPAND, 0);
     FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
-    StaticText7 = new wxStaticText(this, ID_STATICTEXT6, _("Model renaming alias behavior"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+    StaticText7 = new wxStaticText(this, ID_STATICTEXT6, _("Model renaming alias behavior:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
     FlexGridSizer7->Add(StaticText7, 1, wxALL|wxEXPAND, 5);
     Choice_AliasPromptBehavior = new wxChoice(this, ID_CHOICE_ALIASPROMPT, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_ALIASPROMPT"));
     Choice_AliasPromptBehavior->SetSelection( Choice_AliasPromptBehavior->Append(_("Always Prompt")) );
@@ -189,6 +192,14 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     GPURenderCheckbox->SetValue(true);
     GPURenderCheckbox->SetToolTip(_("Some effects can be rendered on the GPU if this is enabled."));
     GridBagSizer1->Add(GPURenderCheckbox, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer8->AddGrowableCol(1);
+    StaticText8 = new wxStaticText(this, ID_STATICTEXT7, _("Controller ping interval in seconds (0=Off):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+    FlexGridSizer8->Add(StaticText8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CtrlPingInterval = new wxSpinCtrlDouble(this, ID_CTRLPINGINTERVAL, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 300, 0, 10, _T("ID_CTRLPINGINTERVAL"));
+    CtrlPingInterval->SetValue(_T("0"));
+    FlexGridSizer8->Add(CtrlPingInterval, 1, wxALL|wxEXPAND, 5);
+    GridBagSizer1->Add(FlexGridSizer8, wxGBPosition(10, 0), wxDefaultSpan, wxALL, 0);
     SetSizer(GridBagSizer1);
 
     Connect(ID_CHOICE1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
@@ -209,6 +220,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX9, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CTRLPINGINTERVAL, wxEVT_SPINCTRLDOUBLE, (wxObjectEventFunction)&OtherSettingsPanel::OnSpinCtrlDoubleBitrateChange);
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&OtherSettingsPanel::OnPaint);
     //*)
 
@@ -253,6 +265,7 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetRenameModelAliasPromptBehavior(Choice_AliasPromptBehavior->GetStringSelection());
 	frame->SetPromptBatchRenderIssues(CheckBox_BatchRenderPromptIssues->GetValue());
 	frame->SetIgnoreVendorModelRecommendations(CheckBox_IgnoreVendorModelRecommendations->GetValue());
+    frame->SetControllerPingInterval(CtrlPingInterval->GetValue());
 	frame->SetPurgeDownloadCacheOnStart(CheckBox_PurgeDownloadCache->GetValue());
     frame->SetVideoExportCodec(ChoiceCodec->GetStringSelection());
     frame->SetVideoExportBitrate(SpinCtrlDoubleBitrate->GetValue());
@@ -277,6 +290,7 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     Choice_AliasPromptBehavior->SetStringSelection(frame->GetRenameModelAliasPromptBehavior());
 	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
 	CheckBox_IgnoreVendorModelRecommendations->SetValue(frame->GetIgnoreVendorModelRecommendations());
+    CtrlPingInterval->SetValue(frame->GetControllerPingInterval());
 	CheckBox_PurgeDownloadCache->SetValue(frame->GetPurgeDownloadCacheOnStart());
     ChoiceCodec->SetStringSelection(frame->GetVideoExportCodec());
     SpinCtrlDoubleBitrate->SetValue(frame->GetVideoExportBitrate());

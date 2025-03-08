@@ -629,7 +629,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     _checkSequenceMode = false;
     _suspendAutoSave = false;
     _sequenceViewManager.SetModelManager(&AllModels);
-
+    _pingTimer = new wxTimer(this, wxID_ANY);
+    Bind(wxEVT_TIMER, &xLightsFrame::OnPingTimer, this, _pingTimer->GetId());
+    _statusRefreshTimer = new wxTimer(this, wxID_ANY);
+    Bind(wxEVT_TIMER, &xLightsFrame::StatusRefreshTimer, this, _statusRefreshTimer->GetId());
     Bind(EVT_SELECTED_EFFECT_CHANGED, &xLightsFrame::SelectedEffectChanged, this);
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
     wxHTTP::Initialize();
@@ -1706,6 +1709,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsIgnoreVendorModelRecommendations2", &_ignoreVendorModelRecommendations, defVMR);
     logger_base.debug("Ignore vendor model recommendations: %s.", toStr(_ignoreVendorModelRecommendations));
 
+    config->Read("XLightsControllerPingInterval", &_controllerPingInterval, 0);   
+    if (_controllerPingInterval > 0) {
+        _pingTimer->Start(_controllerPingInterval * 1000);
+        _statusRefreshTimer->Start(_controllerPingInterval/2 * 1000);
+    
+    }
+    logger_base.debug("Controller ping interval in seconds: %s.", toStr(_controllerPingInterval));
+
     config->Read("xLightsPurgeDownloadCacheOnStart", &_purgeDownloadCacheOnStart, false);
     logger_base.debug("Purge download cache on start: %s.", toStr(_purgeDownloadCacheOnStart));
 
@@ -2126,6 +2137,15 @@ xLightsFrame::~xLightsFrame()
     RenderStatusTimer.Stop();
     DrawingContext::CleanUp();
 
+    if (_pingTimer != nullptr) {
+        _pingTimer->Stop();
+        delete _pingTimer;
+        _pingTimer = nullptr;
+        _statusRefreshTimer->Stop();
+        delete _statusRefreshTimer;
+        _statusRefreshTimer = nullptr;
+    }
+
     if (_automationServer != nullptr) {
         _automationServer->Stop();
         delete _automationServer;
@@ -2154,6 +2174,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsExcludePresetsPkgSeq", _excludePresetsFromPackagedSequences);
     config->Write("xLightsPromptBatchRenderIssues", _promptBatchRenderIssues);
     config->Write("xLightsIgnoreVendorModelRecommendations2", _ignoreVendorModelRecommendations);
+    config->Write("xLightsControllerPingInterval", _controllerPingInterval);
     config->Write("xLightsPurgeDownloadCacheOnStart", _purgeDownloadCacheOnStart);
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
     config->Write("xLightsShowACLights", _showACLights);
