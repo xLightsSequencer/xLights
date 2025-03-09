@@ -1875,6 +1875,10 @@ void SeqSettingsDialog::OnButton_MusicOpenClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnButton_AddMillisecondsClick(wxCommandEvent& event) {
     const std::string inputFile = TextCtrl_Xml_Media_File->GetValue();
+    if (inputFile.empty()) {
+        wxMessageBox("Media is empty.");
+        return;
+    }
     wxFileName inFile(inputFile);
     const std::string mp3dur = TextCtrl_Xml_Seq_Duration->GetValue();
     const std::string pre = TextCtrl_Premilliseconds->GetValue().Trim(true).Trim(false);
