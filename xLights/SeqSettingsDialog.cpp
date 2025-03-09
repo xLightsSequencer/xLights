@@ -811,9 +811,9 @@ void SeqSettingsDialog::ProcessSequenceType()
     BitmapButton_Xml_Media_File->Enable((type == "Media"));
     TextCtrl_Xml_Media_File->Enable((type == "Media"));
     CheckBox_Overwrite_Tags->Enable((type == "Media"));
-    Button_AddMilliseconds->Enable((type == "Media"));
-    TextCtrl_Premilliseconds->Enable((type == "Media"));
-    TextCtrl_Postmilliseconds->Enable((type == "Media"));
+    Button_AddMilliseconds->Enable((type == "Media") && xml_file->HasAudioMedia());
+    TextCtrl_Premilliseconds->Enable((type == "Media") && xml_file->HasAudioMedia());
+    TextCtrl_Postmilliseconds->Enable((type == "Media") && xml_file->HasAudioMedia());
     if( !wizard_active && type == "Media" && !xml_file->HasAudioMedia() )
     {
         StaticText_Warn_No_Media->Show();
@@ -1875,10 +1875,6 @@ void SeqSettingsDialog::OnButton_MusicOpenClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnButton_AddMillisecondsClick(wxCommandEvent& event) {
     const std::string inputFile = TextCtrl_Xml_Media_File->GetValue();
-    if (inputFile.empty()) {
-        wxMessageBox("Media is empty.");
-        return;
-    }
     wxFileName inFile(inputFile);
     const std::string mp3dur = TextCtrl_Xml_Seq_Duration->GetValue();
     const std::string pre = TextCtrl_Premilliseconds->GetValue().Trim(true).Trim(false);
