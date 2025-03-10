@@ -9930,7 +9930,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                             } else {
                                 // exponent out
                                 // 1 - log 10 (x/fadeoutsamples +.1)
-                                double f = 1.0 - pow(10.0, ((double)(inputSamples - i) / fadeinsamples - 1.0) - 0.1) * 1.1;
+                                double f = exp(-it.fadeout * (double)(i - fadeoutstart) / fadeoutsamples); // Exponential fade-out
                                 if (f < 0)
                                     f = 0.0;
                                 if (f > 1)
