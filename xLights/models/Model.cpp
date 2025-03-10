@@ -5196,10 +5196,16 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
     html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
 
     if (BufferHt == 1) {
-        // single line or arch or cane
+        // single line or arch or single row matrix
         html += "<tr>";
-        for (size_t i = 1; i <= NodeCount; ++i) {
-            int n = IsLtoR ? i : NodeCount - i + 1;
+        for (size_t i = 0; i < NodeCount; ++i) {
+            size_t idx = Nodes[i]->Coords[0].bufY * BufferWi + Nodes[i]->Coords[0].bufX;
+            if (idx < chmap.size()) {
+                chmap[idx] = i + 1;
+            }
+        }
+        for (size_t i = 0; i < NodeCount; ++i) {
+            int n = chmap[i];
             int s = Nodes[n - 1]->StringNum + 1;
             wxString bgcolor = s % 2 == 1 ? "#ADD8E6" : "#90EE90";
             while (n > NodesPerString()) {
