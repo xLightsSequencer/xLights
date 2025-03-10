@@ -40,6 +40,8 @@ void SphereModel::InitModel() {
     _startLatitude = wxAtof(ModelXml->GetAttribute("StartLatitude", "-86"));
     _endLatitude = wxAtof(ModelXml->GetAttribute("EndLatitude", "86"));
     _sphereDegrees = wxAtoi(ModelXml->GetAttribute("Degrees", "360"));
+    _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
+    _noZig = (ModelXml->GetAttribute("NoZig", "false") == "true");
 
     InitVMatrix(0);
     screenLocation.SetPerspective2D(0.1f);
@@ -132,6 +134,26 @@ int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::Degrees");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::Degrees");
         return 0;
+    } else if (event.GetPropertyName() == "AlternateNodes") {
+        ModelXml->DeleteAttribute("AlternateNodes");
+        ModelXml->AddAttribute("AlternateNodes", event.GetPropertyValue().GetBool() ? "true" : "false");
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::AlternateNodes");
+        grid->GetPropertyByName("NoZig")->Enable(event.GetPropertyValue().GetBool() == false);
+        return 0;
+    } else if (event.GetPropertyName() == "NoZig") {
+        ModelXml->DeleteAttribute("NoZig");
+        ModelXml->AddAttribute("NoZig", event.GetPropertyValue().GetBool() ? "true" : "false");
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::NoZig");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::NoZig");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::NoZig");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::NoZig");
+        grid->GetPropertyByName("AlternateNodes")->Enable(event.GetPropertyValue().GetBool() == false);
+        return 0;
     }
 
     return MatrixModel::OnPropertyGridChange(grid, event);
@@ -153,6 +175,18 @@ void SphereModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", "1");
     p->SetAttribute("Max", "89");
     p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
+    p->SetEditor("CheckBox");
+    if (SingleNode) {
+        p->Enable(_noZig == false);
+    }
+
+    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZig));
+    p->SetEditor("CheckBox");
+    if (SingleNode) {
+        p->Enable(_alternateNodes == false);
+    }
 }
 
 void SphereModel::ExportXlightsModel()
@@ -184,6 +218,8 @@ void SphereModel::ExportXlightsModel()
     wxString sl = ModelXml->GetAttribute("StartLatitude", "-86");
     wxString el = ModelXml->GetAttribute("EndLatitude", "86");
     wxString d = ModelXml->GetAttribute("Degrees", "360");
+    wxString an = ModelXml->GetAttribute("AlternateNodes", "false");
+    wxString nz = ModelXml->GetAttribute("NoZig", "false");
 
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<spheremodel \n");
@@ -200,6 +236,8 @@ void SphereModel::ExportXlightsModel()
     f.Write(wxString::Format("StartSide=\"%s\" ", ss));
     f.Write(wxString::Format("Dir=\"%s\" ", dir));
     f.Write(wxString::Format("Degrees=\"%s\" ", d));
+    f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
+    f.Write(wxString::Format("NoZig=\"%s\" ", nz));
     f.Write(wxString::Format("StartLatitude=\"%s\" ", sl));
     f.Write(wxString::Format("EndLatitude=\"%s\" ", el));
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
@@ -259,6 +297,8 @@ bool SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         wxString pc = root->GetAttribute("PixelCount");
         wxString pt = root->GetAttribute("PixelType");
         wxString psp = root->GetAttribute("PixelSpacing");
+        wxString an = root->GetAttribute("AlternateNodes");
+        wxString nz = root->GetAttribute("NoZig");
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
@@ -282,6 +322,8 @@ bool SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         SetProperty("StartLatitude", sl);
         SetProperty("EndLatitude", el);
         SetProperty("Degrees", d);
+        SetProperty("AlternateNodes", an);
+        SetProperty("NoZig", nz);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);
@@ -390,6 +432,8 @@ void SphereModel::ExportAsCustomXModel3D() const
     wxString sl = ModelXml->GetAttribute("StartLatitude");
     wxString el = ModelXml->GetAttribute("EndLatitude");
     wxString dg = ModelXml->GetAttribute("Degrees");
+    wxString an = ModelXml->GetAttribute("AlternateNodes", "false");
+    wxString nz = ModelXml->GetAttribute("NoZig", "false");
 
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
@@ -408,6 +452,8 @@ void SphereModel::ExportAsCustomXModel3D() const
     f.Write(wxString::Format("StartLatitude=\"%s\" ", sl));
     f.Write(wxString::Format("EndLatitude=\"%s\" ", el));
     f.Write(wxString::Format("Degrees=\"%s\" ", dg));
+    f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
+    f.Write(wxString::Format("NoZig=\"%s\" ", nz));
     if (pc != "")
         f.Write(wxString::Format("PixelCount=\"%s\" ", pc));
     if (pt != "")
