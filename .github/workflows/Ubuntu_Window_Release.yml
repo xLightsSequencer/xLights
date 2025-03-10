@@ -62,3 +62,9 @@ jobs:
            allowUpdates: true
            artifacts: 'C:\xLights\build_scripts\msw\output\*'
            token: ${{ secrets.GITHUB_TOKEN }}
+
+    - uses: vedantmgoyal9/winget-releaser@main
+      with:
+            identifier: xLightsSequencer.xLights
+            installers-regex: '\.exe$' # Only .exe files
+            token: ${{ secrets.WINGET_TOKEN }}
