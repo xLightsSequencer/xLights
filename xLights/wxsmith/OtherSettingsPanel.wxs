@@ -11,7 +11,7 @@
 						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText2" member="yes">
 							<label>Link save:</label>
 						</object>
-						<flag>wxALL|wxEXPAND</flag>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -42,7 +42,7 @@
 							<label>Hardware Video Decoding</label>
 							<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 						</object>
-						<flag>wxALL|wxEXPAND</flag>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -276,7 +276,7 @@
 						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText3" member="yes">
 							<label>Link controller upload:</label>
 						</object>
-						<flag>wxALL|wxEXPAND</flag>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -306,7 +306,7 @@
 						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText7" member="yes">
 							<label>Model renaming alias behavior:</label>
 						</object>
-						<flag>wxALL|wxEXPAND</flag>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

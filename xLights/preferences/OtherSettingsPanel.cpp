@@ -88,7 +88,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     GridBagSizer1 = new wxGridBagSizer(0, 0);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText2 = new wxStaticText(this, ID_STATICTEXT1, _("Link save:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer4->Add(StaticText2, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Choice_LinkSave = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
     Choice_LinkSave->SetSelection( Choice_LinkSave->Append(_("None")) );
     Choice_LinkSave->Append(_("Controllers and Layout Tab"));
@@ -97,7 +97,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
     HardwareVideoDecodingCheckBox = new wxCheckBox(this, ID_CHECKBOX1, _("Hardware Video Decoding"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     HardwareVideoDecodingCheckBox->SetValue(false);
-    FlexGridSizer3->Add(HardwareVideoDecodingCheckBox, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer3->Add(HardwareVideoDecodingCheckBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     HardwareVideoRenderChoice = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
     HardwareVideoRenderChoice->Append(_("DirectX11"));
     HardwareVideoRenderChoice->SetSelection( HardwareVideoRenderChoice->Append(_("FFmpeg Auto")) );
@@ -167,7 +167,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     GridBagSizer1->Add(StaticBoxSizer3, wxGBPosition(7, 1), wxGBSpan(4, 1), wxALL|wxEXPAND, 0);
     FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT2, _("Link controller upload:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer5->Add(StaticText3, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer5->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Choice_LinkControllerUpload = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
     Choice_LinkControllerUpload->SetSelection( Choice_LinkControllerUpload->Append(_("None")) );
     Choice_LinkControllerUpload->Append(_("Inputs and Outputs"));
@@ -175,7 +175,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     GridBagSizer1->Add(FlexGridSizer5, wxGBPosition(7, 0), wxDefaultSpan, wxALL|wxEXPAND, 0);
     FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText7 = new wxStaticText(this, ID_STATICTEXT6, _("Model renaming alias behavior:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
-    FlexGridSizer7->Add(StaticText7, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer7->Add(StaticText7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Choice_AliasPromptBehavior = new wxChoice(this, ID_CHOICE_ALIASPROMPT, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_ALIASPROMPT"));
     Choice_AliasPromptBehavior->SetSelection( Choice_AliasPromptBehavior->Append(_("Always Prompt")) );
     Choice_AliasPromptBehavior->Append(_("Always Yes"));
