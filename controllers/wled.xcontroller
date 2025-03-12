@@ -141,6 +141,14 @@
             <Port1>2</Port1>
         </Variant>
     </Controller>
+    <Controller Name="E2-WiFi">
+        <Variant Name="V3" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>18</Port1>
+            <Port2>19</Port2>
+        </Variant>
+    </Controller>
     <Controller Name="E8-WiFi">
         <Variant Name="E8-WiFi" Base="WLED:ESP32WLEDSettings">
             <MaxPixelPort>8</MaxPixelPort>
