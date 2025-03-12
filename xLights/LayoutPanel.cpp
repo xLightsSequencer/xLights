@@ -9113,6 +9113,7 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event) {
                     TreeListViewModels->EnsureVisible(nextItem);
                     lastFoundItem = nextItem;
                     found = true;
+                    HandleSelectionChanged();
                     break;
                 }
             }
