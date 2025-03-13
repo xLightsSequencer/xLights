@@ -9906,59 +9906,29 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                         } else {
                             r = l;
                         }
-                        if (i < fadeinsamples) {
-                            // Linear
-                            // l *= (double)i / fadeinsamples; // linear fade for now
-                            // r *= (double)i / fadeinsamples; // linear fade for now
-
+                        if (fadeinsamples > 0 && i < fadeinsamples) {
+                            double f = 0.0;
+                            double progress = (double)i / fadeinsamples;
                             if (it.crossfadein) {
-                                // cross fade in
-                                // log10(x/fadeinsamples+.1)*10/11
-                                double f = log10((double)i / fadeinsamples + 0.1) * 10.0 / 11.0;
-                                if (f < 0)
-                                    f = 0.0;
-                                if (f > 1)
-                                    f = 1.0;
-                                l *= f;
-                                r *= f;
+                                f = std::log10(progress * 9.0 + 1.0);
                             } else {
-                                // exponent in
-                                //(10 ^ (x/fadeinsamples - 1)-.1) * 1.1
-                                double f = pow(10.0, ((double)i / fadeinsamples - 1.0) - 0.1) * 1.1;
-                                if (f < 0)
-                                    f = 0.0;
-                                if (f > 1)
-                                    f = 1.0;
-                                l *= f;
-                                r *= f;
+                                f = exp(-it.fadein * (double)(fadeinsamples - i) / fadeinsamples);
                             }
+                            f = std::clamp(f, 0.0, 1.0);
+                            l *= f;
+                            r *= f;
                         }
-                        if (i > fadeoutstart) {
-                            // Linear
-                            // l *= (double)(inputSamples - i) / fadeoutsamples; // linear fade for now
-                            // r *= (double)(inputSamples - i) / fadeoutsamples; // linear fade for now
-
+                        if (fadeoutsamples > 0 && i > fadeoutstart) {
+                            double progress = (double)(inputSamples - i) / fadeoutsamples;
+                            double f = 0.0;
                             if (it.crossfadeout) {
-                                // cross fade out
-                                //  1 - 10 ^ (x/fadeoutsamples - .95) + .1
-                                double f = 1.0 - log10((double)(inputSamples - i) / fadeinsamples + 0.1) * 10.0 / 11.0;
-                                if (f < 0)
-                                    f = 0.0;
-                                if (f > 1)
-                                    f = 1.0;
-                                l *= f;
-                                r *= f;
+                                f = std::log10(progress * 9.0 + 1.0);
                             } else {
-                                // exponent out
-                                // 1 - log 10 (x/fadeoutsamples +.1)
-                                double f = 1.0 - pow(10.0, ((double)(inputSamples - i) / fadeinsamples - 1.0) - 0.1) * 1.1;
-                                if (f < 0)
-                                    f = 0.0;
-                                if (f > 1)
-                                    f = 1.0;
-                                l *= f;
-                                r *= f;
+                                f = exp(-it.fadeout * (double)(i - fadeoutstart) / fadeoutsamples);
                             }
+                            f = std::clamp(f, 0.0, 1.0);
+                            l *= f;
+                            r *= f;
                         }
                         left[startOutput + i] += l;
                         right[startOutput + i] += r;
