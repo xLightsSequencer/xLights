@@ -933,14 +933,14 @@ void BulkEditChoice::OnChoicePopup(wxCommandEvent& event)
             std::string value = GetString(dlg.GetSelection());
             id = FixIdForPanel(GetPanelName(GetParent()), id);
 
-            if (GetPanelName(GetParent()) == "Effect")
-            {
+            if (GetPanelName(GetParent()) == "Effect") {
                 std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
                 xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, value, nullptr, "");
-            }
-            else
-            {
+            } else {
                 xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, value, nullptr, "");
+                if (GetPanelName(GetParent()) == "Buffer") {
+                    xLightsApp::GetFrame()->ValidatePanels();
+                }
             }
         }
     }
