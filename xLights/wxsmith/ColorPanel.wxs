@@ -122,6 +122,7 @@
 																		<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" subclass="xlSizedBitmapButton" variable="BitmapButton_SavePalette" member="yes">
 																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_save_xpm&quot;, wxART_BUTTON)' />
 																			<size>24,24</size>
+																			<tooltip>Ctrl+Click to enter a palette name.</tooltip>
 																			<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
 																			<handler function="OnBitmapButton_SavePaletteClick" entry="EVT_BUTTON" />
 																		</object>

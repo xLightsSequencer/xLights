@@ -830,6 +830,7 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
             if (allowPreviewChange) {
                 mnu.Append(ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE, _("Restore Default ViewPoint"));
                 mnu.AppendSeparator();
+                mnu.Append(0x3001, "Maximize Window");
                 if (is3d) {
                     if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
                         wxMenu* mnuViewPoint = new wxMenu();
@@ -838,6 +839,7 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
                             mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
                         }
                         mnuViewPoint->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ModelPreview::OnPopup, nullptr, this);
+                        mnu.AppendSeparator();
                         mnu.Append(ID_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
                     }
                 } else {
@@ -878,6 +880,29 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
 
     if (id == ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE - 1) {
         RestoreDefaultCameraPosition();
+    } else if (id == 0x3000) {
+        xLightsFrame* frame = xlights->GetFrame();
+        if (frame) {
+            wxAuiManager* mgr = frame->GetAuiManager();
+            if (mgr) {
+                wxAuiPaneInfo& info = mgr->GetPane("HousePreview");
+                if (info.IsOk()) {
+                    if (info.IsFloating()) {
+                        wxWindow* paneWindow = info.window;
+                        if (paneWindow) {
+                            wxFrame* floatingFrame = dynamic_cast<wxFrame*>(paneWindow->GetParent());
+                            if (floatingFrame) {
+                                floatingFrame->SetWindowStyleFlag(wxMAXIMIZE_BOX | wxCLOSE_BOX);
+                                floatingFrame->Maximize(true);
+                            }
+                        }
+                    } else {
+                        mgr->MaximizePane(info);
+                        mgr->Update();
+                    }
+                }
+            }
+        }
     } else if (id == 0x2000) {
         Reset();
     } else if (id == 0x1000) {
