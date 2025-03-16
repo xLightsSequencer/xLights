@@ -450,6 +450,15 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
             menu_effect_renderdisable->Enable(false);
             menu_effect_renderenable->Enable(false);
         }
+        if (mSelectedEffect != nullptr && !MultipleEffectsSelected()) {
+            if (mSelectedEffect->IsEffectRenderDisabled()) {
+                menu_effect_renderenable->Enable(true);
+                menu_effect_renderdisable->Enable(false);
+            } else {
+                menu_effect_renderenable->Enable(false);
+                menu_effect_renderdisable->Enable(true);
+            }
+        }
         if (mSelectedEffect == nullptr) {
             // This only works on the currently selected effect
             menu_effect_reseteffect->Enable(false);
