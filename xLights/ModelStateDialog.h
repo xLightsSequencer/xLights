@@ -155,6 +155,8 @@ private:
     int mPointSize;
     ModelPreview* modelPreview = nullptr;
     Model* model = nullptr;
+    bool overRide = false;
+    bool showDialog = true;
 
     std::map<std::string, std::map<std::string, std::string>> stateData;
     void SelectStateModel(const std::string& s);
