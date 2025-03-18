@@ -2001,6 +2001,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     SetAudioControls();
 
+    if (mRenderOnSave) {
+        MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVE, _("Render and Save"));
+        MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVEAS, _("Render and Save As"));
+        MainToolBar->Realize();
+    }
+
 #ifdef __WXOSX__
     revertToMenu = new wxMenu;
     revertToMenu->Append(wxID_ANY, "Last Saved");

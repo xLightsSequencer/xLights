@@ -134,6 +134,16 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
 
     mPreferencesEditor->Show(this);
 
+    if (mRenderOnSave) {
+        MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVE, _("Render All and Save"));
+        MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVEAS, _("Render All and Save As"));
+        MainToolBar->Realize();
+    } else {
+        MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVE, _("Save"));
+        MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVEAS, _("Save As"));
+        MainToolBar->Realize();
+    }
+
     ResizeMainSequencer(); // just in case row height has changed
 
     if (ld != _lowDefinitionRender) {
