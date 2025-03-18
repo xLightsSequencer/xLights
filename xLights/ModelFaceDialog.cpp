@@ -2055,15 +2055,14 @@ void ModelFaceDialog::OnNodeRangeGridResize(wxSizeEvent& event)
 }
 
 void ModelFaceDialog::ExportFacesToOtherModels() {
-    if (wxMessageBox("Are you sure you want to Export this model's Face definitions to other models?\nThis will override all the other model's existing faces and there is no way to undo it.",
-                     "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
+    if (wxMessageBox("Are you sure you want to Export this model's Face definitions to other models?\nThis will override all the other model's existing faces and there is no way to undo it.","Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
         return;
     }
 
     xLightsFrame* xlights = xLightsApp::GetFrame();
     wxArrayString choices = getModelList(&xlights->AllModels);
 
-    wxMultiChoiceDialog dlg(this, "Export Face Definitions to Other Models", "Export Faces", choices);
+    wxMultiChoiceDialog dlg(this, "Export Face Definitions to Other Models", "Choose Model(s)", choices);
     OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK) {

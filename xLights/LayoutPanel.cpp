@@ -66,7 +66,6 @@
 #include "outputs/Output.h"
 #include "cad/ModelToCAD.h"
 #include "LORPreview.h"
-#include "ExternalHooks.h"
 #include "ModelFaceDialog.h"
 #include "ModelStateDialog.h"
 #include "CustomModelDialog.h"
@@ -237,6 +236,7 @@ const long LayoutPanel::ID_ADD_DMX_FLOODLIGHT = wxNewId();
 const long LayoutPanel::ID_ADD_DMX_FLOODAREA = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_CAD_EXPORT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_LAYOUT_DXF_EXPORT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_FLIP_HORIZONTAL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_FLIP_VERTICAL = wxNewId();
 const long LayoutPanel::ID_SET_CENTER_OFFSET = wxNewId();
@@ -4632,6 +4632,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
 #ifdef _DEBUG
         menu.Append(ID_PREVIEW_MODEL_CAD_EXPORT, "Export As DXF/STL/VRML");
 #endif
+        menu.Append(ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS, "Export Faces/States/SubModels");
         menu.AppendSeparator();
         for (const auto& it : xlights->AllModels) {
             if (it.second->GetDisplayAs() == "ModelGroup") {
@@ -5024,6 +5025,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         ExportModelAsCAD();
     } else if (event.GetId() == ID_PREVIEW_LAYOUT_DXF_EXPORT) {
         ExportLayoutDXF();
+    } else if (event.GetId() == ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS) {
+        ExportFacesStatesSubModels();
     } else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
@@ -5300,6 +5303,53 @@ void LayoutPanel::ExportLayoutDXF()
         } else {
             xlights->SetStatusText(wxString::Format("Export Failed '%s'", filename));
         }
+    }
+}
+
+void LayoutPanel::ExportFacesStatesSubModels() {
+    if (wxMessageBox("Are you sure you want to Export this model's Face/States/SubModels definitions to other models?\nThis will override all the other model's existing properties and there is no way to undo it.","Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
+        return;
+    }
+
+    Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
+    wxArrayString choices;
+    
+    for (const auto& model : modelPreview->GetModels()) {
+        if (model->Name() == selectedBaseObject->Name())
+            continue;
+        choices.Add(model->Name());
+    }
+
+    wxMultiChoiceDialog dlg(this, "Export Face/States/SubModels to Other Models", "Choose Model(s)", choices);
+    OptimiseDialogPosition(&dlg);
+
+    if (dlg.ShowModal() == wxID_OK) {
+        std::map<std::string, std::map<std::string, std::string>> sourceFaces = selectedModel->GetFaceInfo();
+        std::map<std::string, std::map<std::string, std::string>> sourceStates = selectedModel->GetStateInfo();
+
+        for (auto const& idx : dlg.GetSelections()) {
+            Model* targetModel = xlights->GetModel(choices.at(idx));
+            targetModel->SetFaceInfo(sourceFaces);
+            targetModel->SetStateInfo(sourceStates);
+            wxXmlNode* targetXml = targetModel->GetModelXml();
+            wxXmlNode* node = targetXml->GetChildren();
+            while (node != nullptr) {
+                wxXmlNode* next = node->GetNext();      // Store the next node before removal
+                if (node->GetName() == "subModel") {
+                    targetXml->RemoveChild(node);
+                    delete node;                        // Free the memory
+                }
+                node = next;                            // Move to the next node
+            }
+            for (wxXmlNode* node = selectedModel->GetModelXml()->GetChildren(); node != nullptr; node = node->GetNext()) {
+                if (node->GetName() == "subModel") {
+                    wxXmlNode* subModelCopy = new wxXmlNode(*node);
+                    targetModel->AddSubmodel(node,true);
+                }
+            }
+            targetModel->IncrementChangeCount();
+        }
+        xlights->MarkEffectsFileDirty();
     }
 }
 
@@ -7561,6 +7611,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         ShowWiring();
     } else if (event.GetId() == ID_PREVIEW_MODEL_CAD_EXPORT) {
         ExportModelAsCAD();
+    } else if (event.GetId() == ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS) {
+        ExportFacesStatesSubModels();
     } else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
