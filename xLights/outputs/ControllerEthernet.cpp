@@ -840,8 +840,11 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
         it2->AllOff();
         it2->EndFrame(0);
     }
-    
+
     if (_type == OUTPUT_ZCPP || _type == OUTPUT_DDP || _type == OUTPUT_TWINKLY) {
+        if (_outputs.front() == nullptr) {
+            return false;
+        }
         _outputs.front()->SetChannels(channels);
         return true;
     }
@@ -892,7 +895,8 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
         //if required universes is greater than  num of outputs, add needed universes
         int diff = universes - _outputs.size();
         for (int i = 0; i < diff; i++) {
-            auto const lastUsedUniverse = _outputs.back()->GetUniverse();
+            auto lastUsedUniverse = 1;
+            if (_outputs.back() != nullptr) lastUsedUniverse = _outputs.back()->GetUniverse();
             if (_type == OUTPUT_E131) {
                 _outputs.push_back(new E131Output());
                 if (dynamic_cast<E131Output*>(_outputs.back()) != nullptr) {
