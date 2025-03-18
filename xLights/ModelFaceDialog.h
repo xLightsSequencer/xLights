@@ -86,6 +86,7 @@ class ModelFaceDialog : public wxDialog
     static const long FACES_DIALOG_IMPORT_SUB;
     static const long FACES_DIALOG_IMPORT_MODEL;
     static const long FACES_DIALOG_IMPORT_FILE;
+    static const long FACES_DIALOG_EXPORT_TOOTHERS;
     static const long FACES_DIALOG_COPY;
     static const long FACES_DIALOG_RENAME;
     static const long FACES_DIALOG_SHIFT;
@@ -198,4 +199,5 @@ private:
     void RenderModel();
     void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
     void SelectAllInBoundingRect(bool shiftdwn);
+    void ExportFacesToOtherModels();
 };
