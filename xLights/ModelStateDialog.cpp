@@ -1211,6 +1211,8 @@ void ModelStateDialog::ImportStatesFromModel()
         }
 
         AddStates(m->GetStateInfo());
+        overRide = false;
+        showDialog = true;
 
         NameChoice->Enable();
         StateTypeChoice->Enable();
@@ -1247,6 +1249,8 @@ void ModelStateDialog::ImportStates(const wxString & filename)
                 AddStates(stateInfo);
             }
         }
+        overRide = false;
+        showDialog = true;
 
         if (stateFound)
         {
@@ -1324,9 +1328,6 @@ std::string ModelStateDialog::cleanSubName(std::string name)
 
 void ModelStateDialog::AddStates(std::map<std::string, std::map<std::string, std::string> > const& states)
 {
-    bool overRide = false;
-    bool showDialog = true;
-
     for (const auto& state : states)
     {
         auto fname = state.first;
