@@ -89,7 +89,7 @@ void VideoReader::InitHWAcceleration() {
 }
 
 VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/,
-                         bool wantAlpha, bool bgr, bool wantsHWType)
+                         bool wantAlpha, bool bgr, bool wantsHWType, std::string scalerString)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _wantsHWType = wantsHWType;
@@ -107,6 +107,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     _curPos = -1000;
     _wantAlpha = wantAlpha;
     _videoToolboxAccelerated = false;
+    _scalerString = scalerString;
     if (_wantAlpha) {
         _pixelFmt = bgr ? AVPixelFormat::AV_PIX_FMT_BGRA : AVPixelFormat::AV_PIX_FMT_RGBA;
     } else {
@@ -772,6 +773,20 @@ bool VideoReader::readFrame(int timestampMS) {
                     f = _srcFrame;
                 }
 
+                //logger_base.debug("Scaling alogrithm %s", _scalerString.c_str());
+                auto scaler = SWS_POINT;
+                if (_scalerString == "Nearest Neighbor") scaler = SWS_POINT;
+                else if (_scalerString == "Linear") scaler = SWS_BILINEAR;
+                else if (_scalerString == "Cubic") scaler = SWS_BICUBIC;
+                else if (_scalerString == "Experimental") scaler = SWS_X;
+                else if (_scalerString == "Area Avg") scaler = SWS_AREA;
+                else if (_scalerString == "Bicubic + Linear") scaler = SWS_BICUBLIN;
+                else if (_scalerString == "Gaussian") scaler = SWS_GAUSS;
+                else if (_scalerString == "Sinc") scaler = SWS_SINC;
+                else if (_scalerString == "Lanczos") scaler = SWS_LANCZOS;
+                else if (_scalerString == "Spline") scaler = SWS_SPLINE;
+                else scaler = SWS_BICUBIC; // Fallback
+
                 // first time through we wont have a scale context so create it
                 if (_swsCtx == nullptr) {
                     if (_abandonHardwareDecode) {
@@ -781,7 +796,7 @@ bool VideoReader::readFrame(int timestampMS) {
                     if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
                         logger_base.debug("Hardware format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
-                            _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
+                            _width, _height, _pixelFmt, scaler, nullptr, nullptr, nullptr);
                         if (_swsCtx == nullptr) {
                             logger_base.error("VideoReader: Error creating SWSContext");
                         }
@@ -796,7 +811,7 @@ bool VideoReader::readFrame(int timestampMS) {
                         // software decoding
                         logger_base.debug("Software format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)f->format), av_get_pix_fmt_name((AVPixelFormat)_pixelFmt));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
-                            _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
+                            _width, _height, _pixelFmt, scaler, nullptr, nullptr, nullptr);
                         if (_swsCtx == nullptr) {
                             logger_base.error("VideoReader: Error creating SWSContext");
                         }

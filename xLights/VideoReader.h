@@ -40,7 +40,7 @@ public:
     static bool IsVideoFile(const std::string &filename);
     static long GetVideoLength(const std::string& filename);
 	VideoReader(const std::string& filename, int width, int height, bool keepaspectratio, bool usenativeresolution = false,
-                bool wantAlpha = false, bool bgr = false, bool wantsHardwareDecoderType = false);
+                bool wantAlpha = false, bool bgr = false, bool wantsHardwareDecoderType = false, std::string scalerString = "Cubic");
 	~VideoReader();
 	int GetLengthMS() const { return (int)_lengthMS; };
 	void Seek(int timestampMS, bool readFrame = true);
@@ -96,6 +96,7 @@ private:
     bool _abort = false;
     bool _videoToolboxAccelerated; 
     bool _abandonHardwareDecode = false;
+    std::string _scalerString = "Cubic";
     #ifdef __WXMSW__
     WindowsHardwareVideoReader* _windowsHardwareVideoReader = nullptr;
     #endif

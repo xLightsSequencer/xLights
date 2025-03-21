@@ -123,7 +123,6 @@
 												<item>Manual and Loop</item>
 											</content>
 											<selection>0</selection>
-											<handler function="OnChoice_Video_DurationTreatmentSelect" entry="EVT_CHOICE" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
@@ -183,17 +182,26 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Video_AspectRatio" subclass="BulkEditCheckBox" variable="CheckBox_Video_AspectRatio" member="yes">
-									<label>Maintain Aspect Ratio</label>
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_SynchroniseWithAudio" subclass="BulkEditCheckBox" variable="CheckBox_SynchroniseWithAudio" member="yes">
-									<label>Use sequence audio file as video file and synchronise</label>
-									<handler function="OnCheckBox_SynchroniseWithAudioClick" entry="EVT_CHECKBOX" />
+								<object class="wxFlexGridSizer" variable="FlexGridSizer13" member="no">
+									<cols>1</cols>
+									<hgap>0d</hgap>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_Video_AspectRatio" subclass="BulkEditCheckBox" variable="CheckBox_Video_AspectRatio" member="yes">
+											<label>Maintain Aspect Ratio</label>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_SynchroniseWithAudio" subclass="BulkEditCheckBox" variable="CheckBox_SynchroniseWithAudio" member="yes">
+											<label>Use sequence audio file as video file and sync</label>
+											<handler function="OnCheckBox_SynchroniseWithAudioClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
@@ -391,6 +399,50 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer14" member="no">
+									<cols>3</cols>
+									<growablecols>1</growablecols>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText10" member="yes">
+											<label>Video Scaling</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxChoice" name="ID_CHOICE_Video_Scaling" subclass="BulkEditChoice" variable="Choice_Video_Scaling" member="yes">
+											<content>
+												<item>Cubic</item>
+												<item>Lanczos</item>
+												<item>Nearest Neighbor</item>
+												<item>Linear</item>
+												<item>Experimental</item>
+												<item>Area Avg</item>
+												<item>Bicubic + Linear</item>
+												<item>Gaussian</item>
+												<item>Sinc</item>
+												<item>Spline</item>
+											</content>
+											<selection>0</selection>
+											<tooltip>Algorithm used to rescale the video.</tooltip>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="spacer">
+										<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+										<border>2</border>
+										<option>1</option>
+										<size>124,23</size>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
 									<cols>3</cols>
 									<growablecols>1</growablecols>
@@ -451,7 +503,7 @@
 									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
