@@ -122,6 +122,8 @@ const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EVEN_ROWS = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_EVEN_ROWS_FRONT = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_EVEN_ROWS_REAR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SYMMETRIZE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SORT_POINTS_ALL = wxNewId();
@@ -1052,6 +1054,8 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.Append(SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR, "Suppress Duplicates All Left->Right");
     mnu.Append(SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB, "Suppress Duplicates All Top->Bottom");
     mnu.Append(SUBMODEL_DIALOG_EVEN_ROWS, "Uniform Row Length");
+    mnu.Append(SUBMODEL_DIALOG_EVEN_ROWS_FRONT, "Uniform Row Length - Pad Front");
+    mnu.Append(SUBMODEL_DIALOG_EVEN_ROWS_REAR, "Uniform Row Length - Pad Rear");
     mnu.Append(SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS, "Pivot Rows / Columns");
     mnu.Append(SUBMODEL_DIALOG_SORT_POINTS_ALL, "Geometrically Sort Points All Strands...");
 
@@ -1074,47 +1078,37 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
 {
     if (event.GetId() == SUBMODEL_DIALOG_REMOVE_DUPLICATE) {
         RemoveDuplicates(false);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_DUPLICATE) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_DUPLICATE) {
         RemoveDuplicates(true);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR) {
         RemoveAllDuplicates(true, false);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB) {
         RemoveAllDuplicates(false, false);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR) {
         RemoveAllDuplicates(true, true);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB) {
         RemoveAllDuplicates(false, true);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_EVEN_ROWS) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_EVEN_ROWS) {
         MakeRowsUniform();
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_EVEN_ROWS_FRONT) {
+        MakeRowsUniformFront();
+    } else if (event.GetId() == SUBMODEL_DIALOG_EVEN_ROWS_REAR) {
+        MakeRowsUniformRear();
+    } else if (event.GetId() == SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS) {
         PivotRowsColumns();
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_SYMMETRIZE) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_SYMMETRIZE) {
         Symmetrize();
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS) {
         OrderPoints(false);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS_ALL) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS_ALL) {
         OrderPoints(true);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_COMBINE_STRANDS) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_COMBINE_STRANDS) {
         CombineStrands();
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_EXPAND_STRANDS_ALL) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_EXPAND_STRANDS_ALL) {
         processAllStrands([](wxString str) { return ExpandNodes(str); });
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL) {
         processAllStrands([](wxString str) { return CompressNodes(str); });
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_ZERO) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_ZERO) {
         processAllStrands([](wxString str) {
             auto ns = wxSplit(str, ',');
             for (auto i = ns.begin(); i != ns.end(); ++i) {
@@ -1123,8 +1117,7 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
             }
             return wxJoin(ns, ',');
         });
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_EMPTY) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_EMPTY) {
         processAllStrands([](wxString str) {
             auto ns = wxSplit(str, ',');
             for (auto i = ns.begin(); i != ns.end(); ++i) {
@@ -4160,6 +4153,86 @@ void SubModelsDialog::MakeRowsUniform()
         }
 
         sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(ndata, ','));
+    }
+
+    // Update UI
+    Select(GetSelectedName());
+
+    if (row >= 0) {
+        NodesGrid->SetGridCursor(row, 0);
+    }
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::MakeRowsUniformFront() {
+    auto const name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    auto const row = NodesGrid->GetGridCursorRow();
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm) {
+        return;
+    }
+
+    size_t mlen = 0; // longest length of any row
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        auto row_data = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
+        mlen = std::max(mlen, row_data.size());
+    }
+
+    // Write back
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        auto row_data = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
+        int const dlt = mlen - row_data.size();        
+        for (unsigned s = 0; s < dlt; ++s) {
+            row_data.insert(row_data.begin(), "");
+        }
+        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(row_data, ','));
+    }
+
+    // Update UI
+    Select(GetSelectedName());
+
+    if (row >= 0) {
+        NodesGrid->SetGridCursor(row, 0);
+    }
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::MakeRowsUniformRear() {
+    auto const name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    auto const row = NodesGrid->GetGridCursorRow();
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm){
+        return;
+    }
+
+    size_t mlen = 0; // longest length of any row
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        auto row_data = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
+        mlen = std::max(mlen, row_data.size());
+    }
+
+    // Write back
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        auto row_data = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
+        auto const dlt = mlen - row_data.size();
+        for (unsigned s = 0; s < dlt; ++s) {
+            row_data.push_back("");
+        }
+        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(row_data, ','));
     }
 
     // Update UI
