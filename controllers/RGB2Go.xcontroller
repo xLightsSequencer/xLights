@@ -1,4 +1,20 @@
 <Vendor Name="RGB2Go">
+     <Controller Name="RGB2Go-Solo2Go">
+        <Variant Name="Base" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>1</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+        </Variant>
+        <Variant Name="w/ Differential Module" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>5</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>2</Port1>
+            <Port2>27</Port2>
+            <Port3>26</Port3>
+            <Port4>25</Port4>
+            <Port5>33</Port5>
+        </Variant>
+    </Controller>
     <Controller Name="RGB2Go-Duo2Go">
        <Variant Name="2.x (ESP32)" Base="WLED:BaseWLEDSettings">
             <MaxPixelPort>2</MaxPixelPort>
