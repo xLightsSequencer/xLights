@@ -1192,6 +1192,9 @@ public:
     bool GridIconBackgrounds() const { return mGridIconBackgrounds;}
     void SetGridIconBackgrounds(bool b);
 
+    bool ShowAlternateTimingFormat() const { return mShowAlternateTimingFormat;}
+    void SetShowAlternateTimingFormat(bool b);
+
     bool ShowGroupEffectIndicator() const { return mShowGroupEffectIndicator;}
     void SetShowGroupEffectIndicator(bool b);
 
@@ -1647,6 +1650,7 @@ private:
     int mIconSize;
     int mGridSpacing;
     bool mGridIconBackgrounds;
+    bool mShowAlternateTimingFormat = false;
     bool mShowGroupEffectIndicator = true;
     bool mTimingPlayOnDClick;
     bool mGridNodeValues;

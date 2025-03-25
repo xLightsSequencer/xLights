@@ -104,6 +104,7 @@ public:
     int GetTimeMSfromPosition(int position);
     int GetAbsoluteTimeMSfromPosition(int position);
     int GetRawTimeMSfromPosition(int position);
+    void SetShowAlternateTimingFormat(bool mode) {mShowAlternateTimingFormat = mode;}
 
     static int RoundToMultipleOfPeriod(int number, double period);
 
@@ -177,6 +178,7 @@ private:
     int mMousePosition;
     bool m_dragging;
     bool timeline_initiated_play;
+    bool mShowAlternateTimingFormat;
 
     void Paint(wxPaintEvent& event);
     void render(wxDC& dc);

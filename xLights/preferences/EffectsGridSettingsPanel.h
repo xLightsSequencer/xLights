@@ -31,6 +31,7 @@ class EffectsGridSettingsPanel: public wxPanel
 		wxCheckBox* GroupEffectIndicator;
 		wxCheckBox* IconBackgroundsCheckBox;
 		wxCheckBox* NodeValuesCheckBox;
+		wxCheckBox* ShowAlternateTimingFormatCheckBox;
 		wxCheckBox* SmallWaveformCheckBox;
 		wxCheckBox* SnapToTimingCheckBox;
 		wxCheckBox* TransistionMarksCheckBox;
@@ -55,6 +56,7 @@ class EffectsGridSettingsPanel: public wxPanel
 		static const wxWindowID ID_CHECKBOX4;
 		static const wxWindowID ID_CHECKBOX6;
 		static const wxWindowID ID_CHECKBOX5;
+		static const wxWindowID ID_CHECKBOX8;
 		//*)
 
 	private:
@@ -72,6 +74,7 @@ class EffectsGridSettingsPanel: public wxPanel
 		void OnColorUpdateWarnCheckBoxClick(wxCommandEvent& event);
 		void OnGroupEffectIndicatorClick(wxCommandEvent& event);
 		void OnPaint(wxPaintEvent& event);
+		void OnAlternateTimingFormatCheckBoxClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
