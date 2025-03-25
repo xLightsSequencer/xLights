@@ -1135,7 +1135,6 @@ void DmxSkull::DisableUnusedProperties(wxPropertyGridInterface* grid)
 
 
 void DmxSkull::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
-    DmxModel::GetPWMOutputs(channels);
     if (has_jaw) {
         jaw_servo->GetPWMOutputs(channels);
     }
@@ -1154,8 +1153,11 @@ void DmxSkull::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
     if (has_eye_lr) {
         eye_lr_servo->GetPWMOutputs(channels);
     }
-    if (eye_brightness_channel > 0) {
-        channels[eye_brightness_channel] = PWMOutput(eye_brightness_channel, PWMOutput::Type::LED, 1, "Eye Brightness");
+    if (has_color) {
+        color_ability->GetPWMOutputs(channels);
+        if (eye_brightness_channel > 0) {
+            channels[eye_brightness_channel] = PWMOutput(eye_brightness_channel, PWMOutput::Type::LED, 1, "Eye Brightness");
+        }
     }
 }
 

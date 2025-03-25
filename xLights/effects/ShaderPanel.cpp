@@ -18,6 +18,7 @@
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 #include "../TimingPanel.h"
+#include "UtilFunctions.h"
 
  //(*InternalHeaders(ShaderPanel)
  #include <wx/bitmap.h>
@@ -182,6 +183,17 @@ ShaderPanel::~ShaderPanel()
 
 void ShaderPanel::ValidateWindow()
 {
+    auto file = FilePickerCtrl1->GetFileName().GetFullPath();
+    if (!file.empty() && !FileExists(file)) {
+        FilePickerCtrl1->SetBackgroundColour(*wxRED);
+        SetToolTip("File " + file + " does not exist.");
+    } else if (!file.empty() && !IsXmlSafe(file)) {
+        FilePickerCtrl1->SetBackgroundColour(*wxYELLOW);
+        SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
+    } else {
+        FilePickerCtrl1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        SetToolTip(file);
+    }
 }
 
 void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
@@ -195,6 +207,8 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
     if (newf == last && newf == "") {
         return;
     }
+
+    ValidateWindow();
 
     // restore time to defaults
     BitmapButton_Shader_Speed->SetActive(false);
@@ -227,10 +241,6 @@ void ShaderPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
 
 bool ShaderPanel::BuildUI(const wxString& filename, SequenceElements* sequenceElements)
 {
-    if (_shaderConfig != nullptr && _shaderConfig->GetFilename() == filename && !_shaderConfig->UsesEvents()) {
-        return false;
-    }
-
     Freeze();
 
     FlexGridSizer_Dynamic->DeleteWindows();

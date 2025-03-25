@@ -60,7 +60,7 @@ const wxWindowID SeqSettingsDialog::ID_TEXTCTRL1 = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_TEXTCTRL2 = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_TEXTCTRL3 = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_BUTTON1 = wxNewId();
-const wxWindowID SeqSettingsDialog::ID_BUTTON_AddMiliseconds = wxNewId();
+const wxWindowID SeqSettingsDialog::ID_BUTTON_AddMilliseconds = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_STATICTEXT_Xml_Total_Length = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_TEXTCTRL_Xml_Seq_Duration = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_CHECKBOX_Overwrite_Tags = wxNewId();
@@ -247,30 +247,30 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     BitmapButton_Xml_Media_File = new wxBitmapButton(PanelInfo, ID_BITMAPBUTTON_Xml_Media_File, wxArtProvider::GetBitmapBundle("wxART_CDROM",wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_Xml_Media_File"));
     BitmapButton_Xml_Media_File->Disable();
     FlexGridSizer10->Add(BitmapButton_Xml_Media_File, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText3 = new wxStaticText(PanelInfo, ID_STATICTEXT2, _("Pre"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    StaticText3 = new wxStaticText(PanelInfo, ID_STATICTEXT2, _("Pre:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer10->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText4 = new wxStaticText(PanelInfo, ID_STATICTEXT3, _("Post"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+    StaticText4 = new wxStaticText(PanelInfo, ID_STATICTEXT3, _("Post:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer10->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText1 = new wxStaticText(PanelInfo, ID_STATICTEXT1, _("Hash:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer10->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Hash = new wxTextCtrl(PanelInfo, ID_TEXTCTRL1, _("N/A"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL1"));
     FlexGridSizer10->Add(TextCtrl_Hash, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_Premiliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL2, _T("0"), wxDefaultPosition, wxSize(50,25), 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
-    TextCtrl_Premiliseconds->SetMaxLength(5);
-    TextCtrl_Premiliseconds->SetToolTip(_("Miliseconds to add to the begining of the sequence"));
-    FlexGridSizer10->Add(TextCtrl_Premiliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_Postmiliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL3, _T("0"), wxDefaultPosition, wxSize(50,25), 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
-    TextCtrl_Postmiliseconds->SetMaxLength(5);
-    TextCtrl_Postmiliseconds->SetToolTip(_("Miliseconds to add to the ending of the sequence"));
-    FlexGridSizer10->Add(TextCtrl_Postmiliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Premilliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL2, _T("0"), wxDefaultPosition, wxSize(50,25), 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+    TextCtrl_Premilliseconds->SetMaxLength(5);
+    TextCtrl_Premilliseconds->SetToolTip(_("Milliseconds to add to the begining of the sequence"));
+    FlexGridSizer10->Add(TextCtrl_Premilliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Postmilliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL3, _T("0"), wxDefaultPosition, wxSize(50,25), 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
+    TextCtrl_Postmilliseconds->SetMaxLength(5);
+    TextCtrl_Postmilliseconds->SetToolTip(_("Milliseconds to add to the ending of the sequence"));
+    FlexGridSizer10->Add(TextCtrl_Postmilliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Download = new wxButton(PanelInfo, ID_BUTTON1, _("Download Sequence and Lyrics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer10->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer16 = new wxFlexGridSizer(0, 3, 0, 0);
-    Button_AddMiliseconds = new wxButton(PanelInfo, ID_BUTTON_AddMiliseconds, _("Add Miliseconds"), wxDefaultPosition, wxSize(143,23), 0, wxDefaultValidator, _T("ID_BUTTON_AddMiliseconds"));
-    FlexGridSizer16->Add(Button_AddMiliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer16 = new wxFlexGridSizer(0, 2, 0, 0);
+    Button_AddMilliseconds = new wxButton(PanelInfo, ID_BUTTON_AddMilliseconds, _("Adjust Milliseconds"), wxDefaultPosition, wxSize(143,23), 0, wxDefaultValidator, _T("ID_BUTTON_AddMilliseconds"));
+    FlexGridSizer16->Add(Button_AddMilliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer10->Add(FlexGridSizer16, 1, wxLEFT, 5);
     FlexGridSizer4->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer6 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -434,7 +434,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Connect(ID_CHOICE_Xml_Seq_Type, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect);
     Connect(ID_BITMAPBUTTON_Xml_Media_File, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick);
     Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_DownloadClick);
-    Connect(ID_BUTTON_AddMiliseconds, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_AddMilisecondsClick);
+    Connect(ID_BUTTON_AddMilliseconds, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_AddMillisecondsClick);
     Connect(ID_TEXTCTRL_Xml_Seq_Duration, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText);
     Connect(ID_BITMAPBUTTON__ModifyTiming, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_ModifyTimingClick);
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnCheckBox1Click);
@@ -569,13 +569,17 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 
         wxFileName name_and_path(media);
         MediaLoad(name_and_path);
-        EndModal(wxID_OK);
+        if (wizard_active) {
+            EndModal(wxID_OK);
+        }
 
     } else if (durationMS != 0) {
         float d = (float)(durationMS) / 1000.0f;
         TextCtrl_Xml_Seq_Duration->SetValue(wxString::Format("%f", d));
         UpdateSequenceTiming();
-        EndModal(wxID_OK);
+        if (wizard_active) {
+            EndModal(wxID_OK);
+        }
     }
 }
 
@@ -807,6 +811,9 @@ void SeqSettingsDialog::ProcessSequenceType()
     BitmapButton_Xml_Media_File->Enable((type == "Media"));
     TextCtrl_Xml_Media_File->Enable((type == "Media"));
     CheckBox_Overwrite_Tags->Enable((type == "Media"));
+    Button_AddMilliseconds->Enable((type == "Media") && xml_file->HasAudioMedia());
+    TextCtrl_Premilliseconds->Enable((type == "Media") && xml_file->HasAudioMedia());
+    TextCtrl_Postmilliseconds->Enable((type == "Media") && xml_file->HasAudioMedia());
     if( !wizard_active && type == "Media" && !xml_file->HasAudioMedia() )
     {
         StaticText_Warn_No_Media->Show();
@@ -1866,30 +1873,24 @@ void SeqSettingsDialog::OnButton_MusicOpenClick(wxCommandEvent& event)
     ::wxLaunchDefaultBrowser(link);
 }
 
-void SeqSettingsDialog::OnButton_AddMilisecondsClick(wxCommandEvent& event) {
+void SeqSettingsDialog::OnButton_AddMillisecondsClick(wxCommandEvent& event) {
     const std::string inputFile = TextCtrl_Xml_Media_File->GetValue();
     wxFileName inFile(inputFile);
     const std::string mp3dur = TextCtrl_Xml_Seq_Duration->GetValue();
-    const std::string pre = TextCtrl_Premiliseconds->GetValue().Trim(true).Trim(false);
-    const std::string post = TextCtrl_Postmiliseconds->GetValue().Trim(true).Trim(false);
+    const std::string pre = TextCtrl_Premilliseconds->GetValue().Trim(true).Trim(false);
+    const std::string post = TextCtrl_Postmilliseconds->GetValue().Trim(true).Trim(false);
 
     if (pre.empty() || post.empty()) {
         wxMessageBox("Invalid Pre/Post value(s). Neither can be blank, 0 is okay.");
         return;
     }
-    auto const f_pre = std::stof(pre);
-    auto const f_post = std::stof(post);
     auto const f_mp3dur = std::stof(mp3dur);
-    if (fp_equal(0.0F, f_post) && fp_equal(0.0F, f_pre)) {
-        wxMessageBox("Pre and Post value(s) are Zero. Nothing to Do.");
+    if (fp_equal(0.0F, std::stof(pre)) && fp_equal(0.0F, std::stof(post))) {
+        wxMessageBox("Pre and Post value(s) are both zero. Nothing to do here.");
         return;
     }
     if (fp_equal(0.0F, f_mp3dur)) {
-        wxMessageBox("Audio Duration is Invalid.");
-        return;
-    }
-    if ((0.0F > f_post) || (0.0F > f_pre)) {
-        wxMessageBox("Pre and Post value(s) can't be less than Zero.");
+        wxMessageBox("Audio duration is invalid.");
         return;
     }
 
@@ -1919,9 +1920,35 @@ void SeqSettingsDialog::OnButton_AddMilisecondsClick(wxCommandEvent& event) {
     };
     std::list<musicEdit> edits;
     AudioManager* firstAudio = nullptr;
-    edits.push_back(musicEdit(inFile.GetFullName(), 0, f_pre / 1000, 0, 0, 0, 0, false, false));
-    edits.push_back(musicEdit(inFile.GetFullName(), f_pre / 1000, f_mp3dur, 0, 0, 0, 1, false, false));
-    edits.push_back(musicEdit(inFile.GetFullName(), f_pre / 1000 + f_mp3dur, f_post / 1000, 0, 0, 0, 0, false, false));
+    double pre_sec = std::stof(pre) / 1000.0;
+    double post_sec = std::stof(post) / 1000.0;
+    std::string filename = inFile.GetFullName();
+
+    if (pre_sec >= 0 && post_sec >= 0) {                                                                //Add silence at both front and back
+        edits.push_back(musicEdit(filename, 0, pre_sec, 0, 0, 0, 0, false, false));
+        edits.push_back(musicEdit(filename, pre_sec, f_mp3dur, 0, 0, 0, 1, false, false));
+        edits.push_back(musicEdit(filename, pre_sec + f_mp3dur, post_sec, 0, 0, 0, 0, false, false));
+    } else if (pre_sec >= 0 && post_sec < 0) {                                                          //Add silence at front and trim from the end
+        edits.push_back(musicEdit(filename, 0, pre_sec, 0, 0, 0, 0, false, false));
+        double main_length = f_mp3dur + post_sec;
+        if (main_length > 0) {
+            edits.push_back(musicEdit(filename, pre_sec, main_length, 0, 0, 0, 1, false, false));
+        }
+    } else if (pre_sec < 0 && post_sec >= 0) {                                                          //Trim from front and add silence at back
+        double source_offset = -pre_sec;
+        double main_length = f_mp3dur - source_offset;
+        if (main_length > 0) {
+            edits.push_back(musicEdit(filename, 0, main_length, source_offset, 0, 0, 1, false, false));
+            edits.push_back(musicEdit(filename, main_length, post_sec, 0, 0, 0, 0, false, false));
+        }
+    } else {                                                                                            //Trim from both front and back
+        double source_offset = -pre_sec;
+        double trim_end = -post_sec;
+        double main_length = f_mp3dur - source_offset - trim_end;
+        if (main_length > 0) {
+            edits.push_back(musicEdit(filename, 0, main_length, source_offset, 0, 0, 1, false, false));
+        }
+    }
 
     wxString music = inputFile;
 

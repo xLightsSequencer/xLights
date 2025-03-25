@@ -785,6 +785,24 @@ void Model::DeleteAlias(const std::string& alias)
     }
 }
 
+bool Model::DeleteAllAliases() {
+    bool changed = false;
+    for (auto x = ModelXml->GetChildren(); x != nullptr; x = x->GetNext()) {
+        if (x->GetName() == "Aliases") {
+            ModelXml->RemoveChild(x);
+            changed = true;
+        } else if (x->GetName() == "subModel") {
+            for (auto sm = x->GetChildren(); sm != nullptr; sm = sm->GetNext()) {
+                if (sm->GetName() == "Aliases") {
+                    x->RemoveChild(sm);
+                    changed = true;
+                }
+			}
+        }
+    }
+    return changed;
+}
+
 const std::list<std::string> &Model::GetAliases() const
 {
     if (aliases.empty()) {
@@ -1336,6 +1354,10 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
+        } else {
+            if (node->HasAttribute("brightness")) {
+                node->DeleteAttribute("brightness");
+            }
         }
 
         if (caps == nullptr || caps->SupportsPixelPortGamma()) {
@@ -1352,6 +1374,10 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
+        } else {
+            if (node->HasAttribute("gamma")) {
+                node->DeleteAttribute("gamma");
+            }
         }
 
         if (caps == nullptr || caps->SupportsPixelPortColourOrder()) {
@@ -1363,7 +1389,11 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
-        }
+        } else {
+            if (node->HasAttribute("colorOrder")) {
+                node->DeleteAttribute("colorOrder");
+            }
+        } 
 
         if (caps == nullptr || caps->SupportsPixelPortDirection()) {
             sp = grid->AppendIn(p, new wxBoolProperty("Set Pixel Direction", "ModelControllerConnectionPixelSetDirection", node->HasAttribute("reverse")));
@@ -1374,19 +1404,27 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
-        }
+        } else {
+            if (node->HasAttribute("reverse")) {
+                node->DeleteAttribute("reverse");
+            }
+        } 
 
         if (caps == nullptr || caps->SupportsPixelPortGrouping()) {
             sp = grid->AppendIn(p, new wxBoolProperty("Set Group Count", "ModelControllerConnectionPixelSetGroupCount", node->HasAttribute("groupCount")));
             sp->SetAttribute("UseCheckbox", true);
             auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Group Count", "ModelControllerConnectionPixelGroupCount",
                                                              wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "1"))));
-            sp2->SetAttribute("Min", 0);
+            sp2->SetAttribute("Min", 1);
             sp2->SetAttribute("Max", 500);
             sp2->SetEditor("SpinCtrl");
             if (!node->HasAttribute("groupCount")) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
+            }
+        } else {
+            if (node->HasAttribute("groupCount")) {
+                node->DeleteAttribute("groupCount");
             }
         }
 
@@ -1401,6 +1439,10 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
             if (!node->HasAttribute("zigZag")) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
+            }
+        } else {
+            if (node->HasAttribute("zigZag")) {
+                node->DeleteAttribute("zigZag");
             }
         }
 
@@ -2025,8 +2067,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
         grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->AddAttribute("groupCount", "0");
-            prop->SetValueFromInt(0);
+            GetControllerConnection()->AddAttribute("groupCount", "1");
+            prop->SetValueFromInt(1);
             grid->Expand(event.GetProperty());
         } else {
             grid->Collapse(event.GetProperty());
@@ -2543,6 +2585,7 @@ wxString Model::SerialiseFace() const
             }
             res += "/>\n";
         }
+        res.Replace("&", "&amp;", true);
     }
 
     return res;
@@ -2685,6 +2728,7 @@ wxString Model::SerialiseState() const
             }
             res += "/>\n";
         }
+        res.Replace("&", "&amp;", true);
     }
 
     return res;
@@ -4169,6 +4213,10 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
             int maxDimension = ((ModelGroup*)this)->GetGridSize();
             if (maxDimension != 0 && (maxX - minX > maxDimension || maxY - minY > maxDimension)) {
                 // we need to resize all the points by this amount
+                logger_base.warn("Model Group (%s), Actual Grid Size of %.0f exceeded the Max Grid Size of %d.",
+                    (const char*)GetFullName().c_str(), 
+                    ((maxX - minX) > (maxY - minY) ? (maxX - minX) : (maxY - minY)), 
+                    maxDimension);
                 factor = std::max(((float)(maxX - minX)) / (float)maxDimension, ((float)(maxY - minY)) / (float)maxDimension);
                 // But if it is already smaller we dont want to make it bigger
                 if (factor < 1.0) {
@@ -6326,6 +6374,45 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         model->SetLayoutGroup(lg);
         model->Selected = true;
         return model;
+    } else if (node->GetName() == "iciclemodel") {
+        // grab the attributes I want to keep
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto x = model->GetHcenterPos();
+        auto y = model->GetVcenterPos();
+        auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
+        auto lg = model->GetLayoutGroup();
+
+        // not a custom model so delete the default model that was created
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to Icicle");
+            delete model;
+        }
+        model = xlights->AllModels.CreateDefaultModel("Icicles", startChannel);
+        model->SetHcenterPos(x);
+        model->SetVcenterPos(y);
+        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
+    } else if (node->GetName() == "Cubemodel") {
+        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        auto x = model->GetHcenterPos();
+        auto y = model->GetVcenterPos();
+        auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
+        auto lg = model->GetLayoutGroup();
+
+        // not a custom model so delete the default model that was created
+        if (model != nullptr) {
+            xlights->AddTraceMessage("GetXlightsModel converted model to Cube");
+            delete model;
+        }
+        model = xlights->AllModels.CreateDefaultModel("Cube", startChannel);
+        model->SetHcenterPos(x);
+        model->SetVcenterPos(y);
+        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
+        model->SetLayoutGroup(lg);
+        model->Selected = true;
+        return model;
     } else {
         logger_base.error("GetXlightsModel no code to convert to " + node->GetName());
         xlights->AddTraceMessage("GetXlightsModel no code to convert to " + node->GetName());
@@ -7708,7 +7795,10 @@ void Model::ExportDimensions(wxFile& f) const
             u = "m";
             break;
         }
-        f.Write(wxString::Format("<dimensions units=\"%s\" width=\"%f\" height=\"%f\" depth=\"%f\"/>", u, GetModelScreenLocation().GetRealWidth(), GetModelScreenLocation().GetRealHeight(), GetModelScreenLocation().GetRealDepth()));
+        f.Write(wxString::Format("<dimensions units=\"%s\" width=\"%f\" height=\"%f\" depth=\"%f\"/>",
+                                 u,
+                                 GetModelScreenLocation().GetRealWidth(),
+                                 (DisplayAs == "Icicles") ? GetModelScreenLocation().GetRestorableMHeight() : GetModelScreenLocation().GetRealHeight(), GetModelScreenLocation().GetRealDepth()));
     }
 }
 
@@ -7933,4 +8023,58 @@ std::string Model::GetAttributesAsJSON() const
     }
     json += "}}";
     return json;
+}
+
+// Determines a simplified class for a model to be used by LLMs for better model understanding
+std::string Model::DetermineClass(const std::string& displayAs, bool isSingingFace, bool isSpiralTree, bool isSticks, const std::string& dropPattern) {
+    // drop pattern dir is 1 if dropping down and -1 if going up .. 0 if no drop pattern
+    int dropPatternDir = 0;
+    if (dropPattern != "") {
+        auto drops = wxSplit(dropPattern, ',');
+        for (const auto& it : drops) {
+            int i = wxAtoi(it);
+            if (i != 0) {
+                dropPatternDir = i < 0 ? -1 : 1;
+                break;
+            }
+        }
+    }
+
+    if (displayAs == "Custom" && isSingingFace) {
+        return "SingingFace";
+    }
+
+    if ((displayAs == "Candy Canes" && isSticks) || (displayAs == "Poly Line" && dropPatternDir == -1)) {
+        return "Sticks";
+    }
+
+    if (displayAs == "Icicles" || (displayAs == "Poly Line" && dropPatternDir == 1)) {
+        return "Icicles";
+    }
+
+    if (displayAs == "Single Line" || displayAs == "Poly Line" || displayAs == "Arches" || displayAs == "Candy Canes" || displayAs == "Circle" || isSpiralTree || displayAs == "Window Frame") {
+        return "Line";
+    }
+
+    if (displayAs == "Horiz Matrix" || displayAs == "Vert Matrix" || StartsWith(displayAs, "Tree ")) {
+        return "Matrix";
+    }
+
+    if (displayAs == "Channel Block" || displayAs == "Image") {
+        return "Pixel";
+    }
+
+    if (displayAs == "DmxMovingHeadAdv") {
+        return "Moving Head";
+    }
+
+    if (displayAs == "DmxFloodlight" || displayAs == "DmxFloodArea") {
+        return "Floodlight";
+    }
+
+    if (displayAs == "DmxGeneral" || displayAs == "DmxServo" || displayAs == "DmxSkull") {
+        return "DMX Special Purpose";
+    }
+
+    return "";
 }

@@ -41,6 +41,8 @@ public:
     void SetCanPaste(bool value) { mCanPaste = value; }
     void ToggleExpand(Element * element);
     void SelectTiming(int timing);
+    
+    void SetShowGroupEffectIndicator(bool b) { groupEffectIndicator = b; }
 
     static int rowHeadingSize;
     
@@ -78,6 +80,8 @@ private:
     bool mCanPaste = false;
     const int _minRowHeadingWidth = 158;
     bool _dragging = false;
+    bool groupEffectIndicator = true;
+
     
     static const long ID_ROW_MNU_INSERT_LAYER_ABOVE;
     static const long ID_ROW_MNU_INSERT_LAYER_BELOW;
@@ -118,6 +122,7 @@ private:
     static const long ID_ROW_MNU_SELECT_ROW_EFFECTS;
     static const long ID_ROW_MNU_SELECT_MODEL_EFFECTS;
     static const long ID_ROW_MNU_SELECT_TIMING_EFFECTS;
+    static const long ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS;
     static const long ID_ROW_MNU_MODEL_CONVERTTOPERMODEL;
     static const long ID_ROW_MNU_ROW_CONVERTTOPERMODEL;
     

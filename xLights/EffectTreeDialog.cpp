@@ -34,23 +34,23 @@ const long EffectTreeDialog::ID_GRID_MNU_SORT_ASC = wxNewId();
 const long EffectTreeDialog::ID_GRID_MNU_SORT_ALL_ASC = wxNewId();
 
 //(*IdInit(EffectTreeDialog)
-const long EffectTreeDialog::ID_TREECTRL1 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON11 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON9 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON10 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON12 = wxNewId();
-const long EffectTreeDialog::ID_STATICBITMAP_GIF = wxNewId();
-const long EffectTreeDialog::ID_BUTTON6 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON7 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON2 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON4 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON1 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON8 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON3 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON5 = wxNewId();
-const long EffectTreeDialog::ID_TEXTCTRL_SEARCH = wxNewId();
-const long EffectTreeDialog::ID_BUTTON_SEARCH = wxNewId();
-const long EffectTreeDialog::ID_TIMER_GIF = wxNewId();
+const wxWindowID EffectTreeDialog::ID_TREECTRL1 = wxNewId();
+const wxWindowID EffectTreeDialog::ID_BUTTON11 = wxNewId();
+const wxWindowID EffectTreeDialog::ID_BUTTON9 = wxNewId();
+const wxWindowID EffectTreeDialog::ID_BUTTON10 = wxNewId();
+const wxWindowID EffectTreeDialog::ID_BUTTON12 = wxNewId();
+const wxWindowID EffectTreeDialog::ID_STATICBITMAP_GIF = wxNewId();
+const wxWindowID EffectTreeDialog::ID_BUTTON6 = wxNewId();
+const wxWindowID EffectTreeDialog::ID_BUTTON7 = wxNewId();
+const wxWindowID EffectTreeDialog::ID_BUTTON2 = wxNewId();
+const wxWindowID EffectTreeDialog::ID_BUTTON4 = wxNewId();
+const wxWindowID EffectTreeDialog::ID_BUTTON1 = wxNewId();
+const wxWindowID EffectTreeDialog::ID_BUTTON8 = wxNewId();
+const wxWindowID EffectTreeDialog::ID_BUTTON3 = wxNewId();
+const wxWindowID EffectTreeDialog::ID_BUTTON5 = wxNewId();
+const wxWindowID EffectTreeDialog::ID_TEXTCTRL_SEARCH = wxNewId();
+const wxWindowID EffectTreeDialog::ID_BUTTON_SEARCH = wxNewId();
+const wxWindowID EffectTreeDialog::ID_TIMER_GIF = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectTreeDialog,wxDialog)
@@ -84,9 +84,9 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	TreeCtrl1->SetMinSize(wxDLG_UNIT(this,wxSize(80,-1)));
 	FlexGridSizer2->Add(TreeCtrl1, 1, wxALL|wxEXPAND, 5);
 	BoxSizer3 = new wxBoxSizer(wxVERTICAL);
-	Button_Top = new wxButton(this, ID_BUTTON11, _("^^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(15,-1)), 0, wxDefaultValidator, _T("ID_BUTTON11"));
+	Button_Top = new wxButton(this, ID_BUTTON11, _T("^^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(15,-1)), 0, wxDefaultValidator, _T("ID_BUTTON11"));
 	BoxSizer3->Add(Button_Top, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	Button_MoveUp = new wxButton(this, ID_BUTTON9, _("^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(15,-1)), 0, wxDefaultValidator, _T("ID_BUTTON9"));
+	Button_MoveUp = new wxButton(this, ID_BUTTON9, _T("^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(15,-1)), 0, wxDefaultValidator, _T("ID_BUTTON9"));
 	BoxSizer3->Add(Button_MoveUp, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	Button_MoveDown = new wxButton(this, ID_BUTTON10, _("v"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(15,-1)), 0, wxDefaultValidator, _T("ID_BUTTON10"));
 	BoxSizer3->Add(Button_MoveDown, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
@@ -132,34 +132,33 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
-	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
+	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, _("Close")));
 	StdDialogButtonSizer1->Realize();
 	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	TimerGif.SetOwner(this, ID_TIMER_GIF);
-	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_BEGIN_DRAG,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1BeginDrag);
-	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_ACTIVATED,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1ItemActivated);
-	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1ItemRightClick);
-	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1SelectionChanged);
-	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_KEY_DOWN,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1KeyDown);
-	Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnButton_TopClick);
-	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnButton_MoveUpClick);
-	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnButton_MoveDownClick);
-	Connect(ID_BUTTON12,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnButton_BottomClick);
-	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtApplyClick);
-	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtAddGroupClick);
-	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtUpdateClick);
-	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtDeleteClick);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtNewPresetClick);
-	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtImportClick);
-	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtRenameClick);
-	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtExportClick);
-	Connect(ID_TEXTCTRL_SEARCH,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&EffectTreeDialog::OnTextCtrl1TextEnter);
-	Connect(ID_BUTTON_SEARCH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnETButton1Click);
-	Connect(ID_TIMER_GIF,wxEVT_TIMER,(wxObjectEventFunction)&EffectTreeDialog::OnTimerGifTrigger);
+	Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_BEGIN_DRAG, (wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1BeginDrag);
+	Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, (wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1ItemActivated);
+	Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_ITEM_RIGHT_CLICK, (wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1ItemRightClick);
+	Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_SEL_CHANGED, (wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1SelectionChanged);
+	Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_KEY_DOWN, (wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1KeyDown);
+	Connect(ID_BUTTON11, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnButton_TopClick);
+	Connect(ID_BUTTON9, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnButton_MoveUpClick);
+	Connect(ID_BUTTON10, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnButton_MoveDownClick);
+	Connect(ID_BUTTON12, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnButton_BottomClick);
+	Connect(ID_BUTTON6, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnbtApplyClick);
+	Connect(ID_BUTTON7, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnbtAddGroupClick);
+	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnbtUpdateClick);
+	Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnbtDeleteClick);
+	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnbtNewPresetClick);
+	Connect(ID_BUTTON8, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnbtImportClick);
+	Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnbtRenameClick);
+	Connect(ID_BUTTON5, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnbtExportClick);
+	Connect(ID_TEXTCTRL_SEARCH, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&EffectTreeDialog::OnTextCtrl1TextEnter);
+	Connect(ID_BUTTON_SEARCH, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnETButton1Click);
+	Connect(ID_TIMER_GIF, wxEVT_TIMER, (wxObjectEventFunction)&EffectTreeDialog::OnTimerGifTrigger);
 	//*)
 
     treeRootID = TreeCtrl1->AddRoot("Effect Presets");
@@ -198,7 +197,7 @@ EffectTreeDialog::~EffectTreeDialog()
     StaticBitmapGif->SetBitmap(wxNullBitmap);
 
     //(*Destroy(EffectTreeDialog)
-	//*)
+    //*)
 }
 
 void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)

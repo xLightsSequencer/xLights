@@ -264,6 +264,19 @@ bool SearchPanel::ContainsSetting(Effect* eff, std::string const& search, bool r
             return true;
         }
     }
+    bool first = true;
+    std::string cmpvalue = "";
+    for (auto [key, setting] : eff->GetSettings()) {
+        if (!first) {
+            cmpvalue += ",";
+        }
+        cmpvalue += key + "=" + setting;
+        first = false;
+    }
+    if (compare(cmpvalue)) {
+        value = cmpvalue;
+        return true;
+    }
     for (auto [key, setting] : eff->GetPaletteMap()) {
         std::string cmpvalue{ key + "=" + setting };
         if (compare(cmpvalue)) {

@@ -71,23 +71,23 @@ class EffectTreeDialog : public wxDialog
 	protected:
 
 		//(*Identifiers(EffectTreeDialog)
-		static const long ID_TREECTRL1;
-		static const long ID_BUTTON11;
-		static const long ID_BUTTON9;
-		static const long ID_BUTTON10;
-		static const long ID_BUTTON12;
-		static const long ID_STATICBITMAP_GIF;
-		static const long ID_BUTTON6;
-		static const long ID_BUTTON7;
-		static const long ID_BUTTON2;
-		static const long ID_BUTTON4;
-		static const long ID_BUTTON1;
-		static const long ID_BUTTON8;
-		static const long ID_BUTTON3;
-		static const long ID_BUTTON5;
-		static const long ID_TEXTCTRL_SEARCH;
-		static const long ID_BUTTON_SEARCH;
-		static const long ID_TIMER_GIF;
+		static const wxWindowID ID_TREECTRL1;
+		static const wxWindowID ID_BUTTON11;
+		static const wxWindowID ID_BUTTON9;
+		static const wxWindowID ID_BUTTON10;
+		static const wxWindowID ID_BUTTON12;
+		static const wxWindowID ID_STATICBITMAP_GIF;
+		static const wxWindowID ID_BUTTON6;
+		static const wxWindowID ID_BUTTON7;
+		static const wxWindowID ID_BUTTON2;
+		static const wxWindowID ID_BUTTON4;
+		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_BUTTON8;
+		static const wxWindowID ID_BUTTON3;
+		static const wxWindowID ID_BUTTON5;
+		static const wxWindowID ID_TEXTCTRL_SEARCH;
+		static const wxWindowID ID_BUTTON_SEARCH;
+		static const wxWindowID ID_TIMER_GIF;
 		//*)
 
 	private:

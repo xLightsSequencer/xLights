@@ -103,6 +103,25 @@ void GalaxyEffect::SetDefaultParameters() {
     SetCheckBoxValue(gp->CheckBox_Galaxy_Blend_Edges, true);
     SetCheckBoxValue(gp->CheckBox_Galaxy_Inward, false);
     SetCheckBoxValue(gp->CheckBox_Galaxy_Reverse, false);
+
+    SetCheckBoxValue(gp->CheckBox_Galaxy_Scale, true);
+}
+
+bool GalaxyEffect::needToAdjustSettings(const std::string& version) {
+    return IsVersionOlder("2025.04", version);
+}
+
+void GalaxyEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
+    // give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+
+    SettingsMap& settings = effect->GetSettings();
+
+    if (IsVersionOlder("2025.04", version)) {
+        settings["E_CHECKBOX_Galaxy_Scale"] = "0";
+    }
 }
 
 #define ToRadians(x) ((double)x * PI / (double)180.0)
@@ -146,7 +165,7 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Galaxy_Reverse");
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Galaxy_Blend_Edges");
     bool inward = SettingsMap.GetBool("CHECKBOX_Galaxy_Inward");
-    bool scale = SettingsMap.GetBool("CHECKBOX_Galaxy_Scale");
+    bool scale = SettingsMap.GetBool("CHECKBOX_Galaxy_Scale", true);
 
     if (revolutions == 0)
         return;

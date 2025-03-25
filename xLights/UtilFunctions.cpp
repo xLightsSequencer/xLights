@@ -281,6 +281,16 @@ void ClearNonExistentFiles() {
     __nonExistentFiles.clear();
 }
 
+std::string GetResourcesDirectory() {
+#ifndef __WXMSW__
+    return wxStandardPaths::Get().GetResourcesDir().ToStdString();
+#else
+    auto exec = wxStandardPaths::Get().GetExecutablePath().ToStdString();
+    return exec.substr(0, exec.find_last_of("/\\"));
+#endif
+}
+
+
 wxString FixFile(const wxString& ShowDir, const wxString& file) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -296,6 +306,15 @@ wxString FixFile(const wxString& ShowDir, const wxString& file) {
 
     if (FileExists(file, false)) {
         return file;
+    }
+
+    if (file.find("/meshobjects/") != std::string::npos) {
+#ifndef __WXMSW__
+            return wxStandardPaths::Get().GetResourcesDir() + file.substr(file.find("/meshobjects/"));
+#else
+            wxStandardPaths stdp = wxStandardPaths::Get();
+            return wxFileName(stdp.GetExecutablePath()).GetPath() + file.substr(file.find("/meshobjects/"));
+#endif
     }
 
     std::unique_lock<std::recursive_mutex> lock(__fixFilesMutex);
@@ -541,6 +560,20 @@ std::string XmlSafe(const std::string& s) {
     return res;
 }
 
+bool IsXmlSafe(const std::string& s) {
+    bool res = true;
+    for (auto c = s.begin(); c != s.end(); ++c) {
+        if ((int)(*c) < 32 || (int)(*c) > 127) {
+            res = false;
+        } else if (*c == ',') {
+            res = false;
+        } else if (*c == '\'') {
+            res = false;
+        }
+    }
+    return res;
+}
+
 // This takes a string and removes all problematic characters from it for an XML file
 std::string RemoveUnsafeXmlChars(const std::string& s) {
     std::string res;
@@ -759,14 +792,23 @@ bool IsVersionOlder(const std::string& compare, const std::string& version) {
         return true;
     if (wxAtoi(version_parts[1]) > wxAtoi(compare_parts[1]))
         return false;
-    // From 2016 versions only have 2 parts
-    if (version_parts.Count() == 2 || compare_parts.Count() == 2) {
+    if (version_parts.Count() == 3 && compare_parts.Count() == 3) {
+        // actually they are the same but we return true when they are the same
+        return true;
+    }
+        // From 2016 versions only have 2 parts
+    else if (version_parts.Count() == 2 || compare_parts.Count() == 2) {
         if (version_parts.Count() > 2) {
             return false; // remote version has 2 components but local has three so local must be newer
         }
         return true;
     } else {
-        if (wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2]))
+    if (version_parts.Count() == 2 || compare_parts.Count() == 2) {
+        if (version_parts.Count() > 2) {
+            return false; // remote version has 2 components but local has three so local must be newer
+        }
+        return true;
+    }        if (wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2]))
             return true;
     }
     return false;

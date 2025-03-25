@@ -762,6 +762,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     SetPosition(wxPoint(x, y));
     SetSize(w, h);
+    SplitterWindow1->SetSashPosition(config->ReadLong("xsSashPositionV", 500));
+    SplitterWindow2->SetSashPosition(config->ReadLong("xsSashPositionH", 150));
     EnsureWindowHeaderIsOnScreen(this);
 
     logger_base.debug("xSchedule UI %d,%d %dx%d.", x, y, w, h);
@@ -1089,6 +1091,8 @@ xScheduleFrame::~xScheduleFrame()
         config->Write(_("xsWindowPosY"), y);
         config->Write(_("xsWindowPosW"), w);
         config->Write(_("xsWindowPosH"), h);
+        config->Write("xsSashPositionV", SplitterWindow1->GetSashPosition());
+        config->Write("xsSashPositionH", SplitterWindow2->GetSashPosition());
         config->Flush();
     }
 
@@ -1767,6 +1771,8 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
         for (const auto c : __schedule->GetOutputManager()->GetControllers()) {
             c->TempDisable(false);
         }
+
+        __schedule->GetSyncManager()->ReloadOptions();
 
         Schedule::SetCity(__schedule->GetOptions()->GetCity());
         __schedule->GetOutputManager()->SetParallelTransmission(__schedule->GetOptions()->IsParallelTransmission());
@@ -3769,4 +3775,6 @@ void xScheduleFrame::OnMenuItem_ResetWindowLocationsSelected(wxCommandEvent& eve
     config->DeleteEntry(_("xsWindowPosY"));
     config->DeleteEntry(_("xsWindowPosW"));
     config->DeleteEntry(_("xsWindowPosH"));
+    config->DeleteEntry("xsSashPositionH");
+    config->DeleteEntry("xsSashPositionV");
 }

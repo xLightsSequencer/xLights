@@ -108,7 +108,7 @@ protected:
         PinwheelData(int i) : pinwheel_arms(i), colorarray(i), colorIsSpacial(i), colorsAsHSV(i), colorsAsColor(i) {
             
         }
-        std::vector<size_t> colorarray;
+        std::vector<uint32_t> colorarray;
         std::vector<bool> colorIsSpacial;
         std::vector<HSVValue> colorsAsHSV;
         std::vector<xlColor> colorsAsColor;

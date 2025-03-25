@@ -300,7 +300,6 @@ void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& ev
         Slider_Video_Starttime->SetMax(99999);
         TextCtrl2->SetValue(FORMATTIME(0));
     }
-    FilePicker_Video_Filename->SetToolTip(fn.GetFullName());
 }
 
 void VideoPanel::OnCheckBox_SynchroniseWithAudioClick(wxCommandEvent& event)
@@ -343,6 +342,18 @@ void VideoPanel::ValidateWindow()
         TextCtrl_Video_Speed->Disable();
         BitmapButton_Video_Speed->Disable();
     }
+
+	auto file = FilePicker_Video_Filename->GetFileName().GetFullPath();
+	if (!file.empty() && !FileExists(file)) {
+		FilePicker_Video_Filename->SetBackgroundColour(*wxRED);
+		SetToolTip("File " + file + " does not exist.");
+	} else if (!file.empty() && !IsXmlSafe(file)) {
+		FilePicker_Video_Filename->SetBackgroundColour(*wxYELLOW);
+		SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
+	} else {
+		FilePicker_Video_Filename->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+		SetToolTip(file);
+	}
 }
 
 void VideoPanel::OnChoice_Video_DurationTreatmentSelect(wxCommandEvent& event)

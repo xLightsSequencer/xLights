@@ -440,8 +440,8 @@ SyncMulticastFPP::~SyncMulticastFPP()
     }
 }
 
-SyncBroadcastFPP::SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) :
-    SyncFPP(sm, rm, options)
+SyncBroadcastFPP::SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncFPP(sm, rm, options, schm)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -489,8 +489,8 @@ SyncBroadcastFPP::SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOpt
     }
 }
 
-SyncUnicastFPP::SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) :
-    SyncFPP(sm, rm, options)
+SyncUnicastFPP::SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncFPP(sm, rm, options, schm)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -539,8 +539,8 @@ SyncUnicastFPP::SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions
     }
 }
 
-SyncUnicastCSVFPP::SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) : SyncFPP(sm, rm, options)
-{
+SyncUnicastCSVFPP::SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncFPP(sm, rm, options, schm) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (sm == SYNCMODE::FPPUNICASTCSVMASTER)
@@ -588,8 +588,8 @@ SyncUnicastCSVFPP::SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleO
     }
 }
 
-SyncMulticastFPP::SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager, const std::string& localIP) : SyncFPP(sm, rm, options)
-{
+SyncMulticastFPP::SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
+    SyncFPP(sm, rm, options, schm) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (sm == SYNCMODE::FPPMULTICASTMASTER)

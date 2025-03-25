@@ -57,6 +57,7 @@ protected:
     SYNCMODE _mode = SYNCMODE::STANDALONE;
     REMOTEMODE _remoteMode = REMOTEMODE::DISABLED;
     bool _useStepMMSSFormat = false;
+    ScheduleManager* _scheduleManager = nullptr;
 
     uint32_t GetHours(uint32_t ms, uint32_t step, int overrideBaseTime) const {
         if (overrideBaseTime < 0 && _useStepMMSSFormat && _supportsStepMMSSFormat) {
@@ -72,7 +73,7 @@ protected:
     }
 
 public:
-    SyncBase(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options);
+    SyncBase(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options, ScheduleManager* sm);
     virtual ~SyncBase() {
     }
     virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno, int overridetimeSecs) const = 0;
@@ -93,6 +94,7 @@ public:
     virtual bool IsReactive() const {
         return true;
     }
+    void ReloadOptions();
 };
 
 class SyncManager {
@@ -124,4 +126,5 @@ public:
     bool IsFPPRemoteOrMaster() const;
     bool IsMaster(SYNCMODE mode) const;
     void SendStop() const;
+    void ReloadOptions() const;
 };

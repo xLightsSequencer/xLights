@@ -25,24 +25,24 @@
 std::unique_ptr<SyncBase> SyncManager::CreateSync(SYNCMODE sm, REMOTEMODE rm) const {
     wxASSERT(_scheduleManager != nullptr);
     if (sm == SYNCMODE::OSCMASTER || rm == REMOTEMODE::OSCSLAVE) {
-        return std::make_unique<SyncOSC>(SyncOSC(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
+        return std::make_unique<SyncOSC>(SyncOSC(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager, _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     } else if (sm == SYNCMODE::ARTNETMASTER || rm == REMOTEMODE::ARTNETSLAVE) {
-        return std::make_unique<SyncArtNet>(SyncArtNet(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
+        return std::make_unique<SyncArtNet>(SyncArtNet(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager, _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     } else if (sm == SYNCMODE::FPPBROADCASTMASTER) {
-        return std::make_unique<SyncBroadcastFPP>(SyncBroadcastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
+        return std::make_unique<SyncBroadcastFPP>(SyncBroadcastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager, _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     } else if (sm == SYNCMODE::FPPUNICASTMASTER) {
-        return std::make_unique<SyncUnicastFPP>(SyncUnicastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
+        return std::make_unique<SyncUnicastFPP>(SyncUnicastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager, _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     } else if (sm == SYNCMODE::FPPUNICASTCSVMASTER || rm == REMOTEMODE::FPPCSVSLAVE) {
-        return std::make_unique<SyncUnicastCSVFPP>(SyncUnicastCSVFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
+        return std::make_unique<SyncUnicastCSVFPP>(SyncUnicastCSVFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager, _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     } else if (sm == SYNCMODE::FPPMULTICASTMASTER) {
-        return std::make_unique<SyncMulticastFPP>(SyncMulticastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
+        return std::make_unique<SyncMulticastFPP>(SyncMulticastFPP(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager, _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     } else if (rm == REMOTEMODE::FPPSLAVE || rm == REMOTEMODE::FPPBROADCASTSLAVE || rm == REMOTEMODE::FPPUNICASTSLAVE) {
         // really doesnt matter which FPP I create
-        return std::make_unique<SyncMulticastFPP>(SyncMulticastFPP(sm, REMOTEMODE::FPPSLAVE, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
+        return std::make_unique<SyncMulticastFPP>(SyncMulticastFPP(sm, REMOTEMODE::FPPSLAVE, *_scheduleManager->GetOptions(), _scheduleManager, _scheduleManager->GetListenerManager(), _scheduleManager->GetForceLocalIP()));
     } else if (sm == SYNCMODE::MIDIMASTER || rm == REMOTEMODE::MIDISLAVE) {
-        return std::make_unique<SyncMIDI>(SyncMIDI(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
+        return std::make_unique<SyncMIDI>(SyncMIDI(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager, _scheduleManager->GetListenerManager()));
     } else if (rm == REMOTEMODE::SMPTESLAVE) {
-        return std::make_unique<SyncSMPTE>(SyncSMPTE(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager->GetListenerManager()));
+        return std::make_unique<SyncSMPTE>(SyncSMPTE(sm, rm, *_scheduleManager->GetOptions(), _scheduleManager, _scheduleManager->GetListenerManager()));
     } else if (rm == REMOTEMODE::DISABLED) {
         return nullptr;
     } else {
@@ -205,7 +205,21 @@ void SyncManager::SendStop() const {
     }
 }
 
-SyncBase::SyncBase(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options) :
-    _mode(mode), _remoteMode(remoteMode) {
-    _useStepMMSSFormat = options.IsUseStepMMSSTimecodeFormat();
+void SyncManager::ReloadOptions() const {
+	for (auto& it : _masters) {
+		it->ReloadOptions();
+	}
+    if (_remote != nullptr) {
+		_remote->ReloadOptions();
+	}
+}
+
+SyncBase::SyncBase(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options, ScheduleManager* sm) :
+    _mode(mode), _remoteMode(remoteMode), _scheduleManager(sm) {
+    ReloadOptions();
+}
+
+void SyncBase::ReloadOptions()
+{
+    _useStepMMSSFormat = _scheduleManager->GetOptions()->IsUseStepMMSSTimecodeFormat();
 }

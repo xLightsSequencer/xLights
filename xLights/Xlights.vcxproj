@@ -1,9 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM64EC">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64EC</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64EC">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64EC</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
@@ -54,6 +70,24 @@
     <DefineConstants>
     </DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <DefineConstants />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <DefineConstants />
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -64,6 +98,26 @@
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <DefineConstants>
     </DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <DefineConstants />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <DefineConstants />
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -79,7 +133,19 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -94,12 +160,34 @@
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\lib\windows;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include;..\include\ffmpeg-6\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.2.2\;..\dependencies\pybind11\include;$(Python_ROOT_DIR)\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\lib\windows;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include;..\include\ffmpeg-6\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.2.2\;..\dependencies\pybind11\include;$(Python_ROOT_DIR)\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\lib\windows;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);ffmpeg-dev\include;..\include;$(ProjectDir);..\include\zlib</IncludePath>
     <LibraryPath>..\..\wxWidgets\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include\ffmpeg-6\include;..\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\include\sol2-3.2.2\;..\dependencies\lua\src;..\dependencies\pybind11\include;$(Python_ROOT_DIR)\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include\ffmpeg-6\include;..\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\include\sol2-3.2.2\;..\dependencies\lua\src;..\dependencies\pybind11\include;$(Python_ROOT_DIR)\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include\ffmpeg-6\include;..\include;$(ProjectDir);..\include\zlib;..\dependencies\libxlsxwriter\include;..\include\sol2-3.2.2\;..\dependencies\lua\src;..\dependencies\pybind11\include;$(Python_ROOT_DIR)\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
@@ -125,6 +213,86 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);wxUSE_WEBP</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/D "NOMINMAX"</AdditionalOptions>
+      <ExceptionHandling>Async</ExceptionHandling>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <GenerateMapFile>false</GenerateMapFile>
+    </Link>
+    <Manifest>
+      <AdditionalManifestFiles>xLightsApp64.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
+
+</Command>
+    </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>xcopy /Y /I "$(ProjectDir)..\prompts\*.txt" "$(TargetDir)prompts\"
+xcopy /Y /I "$(ProjectDir)..\resources\*.*" "$(TargetDir)resources\"
+</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(TargetDir)prompts\x.txt</Outputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <TreatOutputAsContent>false</TreatOutputAsContent>
+      <Inputs>$(ProjectDir)..\prompts\*.txt;$(ProjectDir)..\resources\*.*</Inputs>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);wxUSE_WEBP</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/D "NOMINMAX"</AdditionalOptions>
+      <ExceptionHandling>Async</ExceptionHandling>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <GenerateMapFile>false</GenerateMapFile>
+    </Link>
+    <Manifest>
+      <AdditionalManifestFiles>xLightsApp64.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
+
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
@@ -225,6 +393,94 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants)</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/D "NOMINMAX" %(AdditionalOptions)</AdditionalOptions>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <GenerateMapFile>true</GenerateMapFile>
+    </Link>
+    <Manifest>
+      <AdditionalManifestFiles>xLightsApp64.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <OutputManifestFile>$(IntDir)$(TargetName)$(TargetExt).embed.manifest</OutputManifestFile>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
+    <ManifestResourceCompile>
+      <ResourceOutputFileName>$(IntDir)$(TargetName)$(TargetExt).embed.manifest.res</ResourceOutputFileName>
+    </ManifestResourceCompile>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants)</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/D "NOMINMAX" %(AdditionalOptions)</AdditionalOptions>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <GenerateMapFile>true</GenerateMapFile>
+    </Link>
+    <Manifest>
+      <AdditionalManifestFiles>xLightsApp64.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <OutputManifestFile>$(IntDir)$(TargetName)$(TargetExt).embed.manifest</OutputManifestFile>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
+    <ManifestResourceCompile>
+      <ResourceOutputFileName>$(IntDir)$(TargetName)$(TargetExt).embed.manifest.res</ResourceOutputFileName>
+    </ManifestResourceCompile>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)..\bin\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\*_dictionary" "$(TargetDir)"
+copy "$(SolutionDir)..\bin\phoneme_mapping" "$(TargetDir)"
+xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\xlBaseApp.cpp" />
     <ClCompile Include="..\xFade\wxLED.cpp" />
@@ -242,12 +498,15 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="ai\aiBase.cpp" />
+    <ClCompile Include="ai\chatGPT.cpp" />
     <ClCompile Include="AlignmentDialog.cpp" />
     <ClCompile Include="AutoLabelDialog.cpp" />
     <ClCompile Include="automation\automation.cpp" />
     <ClCompile Include="automation\LuaRunner.cpp" />
     <ClCompile Include="automation\PythonRunner.cpp" />
     <ClCompile Include="automation\xLightsAutomations.cpp" />
+    <ClCompile Include="CheckSequenceReport.cpp" />
     <ClCompile Include="controllers\ILightThat.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditColourPickerDialog.cpp" />
@@ -303,6 +562,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="effects\FX.cpp" />
     <ClCompile Include="effects\GuitarEffect.cpp" />
     <ClCompile Include="effects\GuitarPanel.cpp" />
+    <ClCompile Include="effects\ispc\ISPCComputeUtilities.cpp" />
     <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
     <ClCompile Include="effects\KaleidoscopePanel.cpp" />
     <ClCompile Include="effects\LinesEffect.cpp" />
@@ -359,6 +619,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="models\DMX\MovingHeads\MhChannelDialog.cpp" />
     <ClCompile Include="models\DMX\MovingHeads\MhFeature.cpp" />
     <ClCompile Include="models\DMX\MovingHeads\MhFeatureDialog.cpp" />
+    <ClCompile Include="preferences\ServicesPanel.cpp" />
+    <ClCompile Include="ShowFolderSearchDialog.cpp" />
     <ClCompile Include="SpecialOptions.cpp" />
     <ClCompile Include="TempFileManager.cpp" />
     <ClCompile Include="utils\CurlManager.cpp" />
@@ -754,11 +1016,14 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\xSchedule\wxHTTPServer\sha1.h" />
     <ClInclude Include="..\xSchedule\wxHTTPServer\wxhttpserver.h" />
     <ClInclude Include="AboutDialog.h" />
+    <ClInclude Include="ai\aiBase.h" />
+    <ClInclude Include="ai\chatGPT.h" />
     <ClInclude Include="AlignmentDialog.h" />
     <ClInclude Include="AutoLabelDialog.h" />
     <ClInclude Include="automation\automation.h" />
     <ClInclude Include="automation\LuaRunner.h" />
     <ClInclude Include="automation\PythonRunner.h" />
+    <ClInclude Include="CheckSequenceReport.h" />
     <ClInclude Include="controllers\ILightThat.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditColourPickerDialog.h" />
@@ -775,7 +1040,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="cad\STLWriter.h" />
     <ClInclude Include="cad\VRMLWriter.h" />
     <ClInclude Include="CharMapDialog.h" />
-    <ClInclude Include="CheckboxSelectDialog.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColourReplaceDialog.h" />
     <ClInclude Include="ColoursPanel.h" />
@@ -819,6 +1083,18 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="effects\FX.h" />
     <ClInclude Include="effects\GuitarEffect.h" />
     <ClInclude Include="effects\GuitarPanel.h" />
+    <ClInclude Include="effects\ispc\ButterflyFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\ISPCComputeUtilities.h" />
+    <ClInclude Include="effects\ispc\LayerBlendingFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\PinwheelFunctions.ispc.h" />
+    <ClInclude Include="effects\ispc\PlasmaFunctions.ispc.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="effects\ispc\SpacialColors.ispc.h" />
+    <ClInclude Include="effects\ispc\VideoFunctions.ispc.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="effects\KaleidoscopeEffect.h" />
     <ClInclude Include="effects\KaleidoscopePanel.h" />
     <ClInclude Include="effects\LinesEffect.h" />
@@ -875,6 +1151,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="models\DMX\MovingHeads\MhFeature.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhFeatureDialog.h" />
     <ClInclude Include="models\XmlSerializer.h" />
+    <ClInclude Include="preferences\ServicesPanel.h" />
+    <ClInclude Include="ShowFolderSearchDialog.h" />
     <ClInclude Include="TempFileManager.h" />
     <ClInclude Include="utils\CurlManager.h" />
     <ClInclude Include="utils\ip_utils.h" />
@@ -1271,6 +1549,76 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\documentation\xlDo Commands.txt" />
+    <Text Include="..\prompts\AI_Model_AutoMap.txt" />
+    <Text Include="..\prompts\AI_Node_AutoMap.txt" />
+    <Text Include="..\prompts\AI_Strand_AutoMap.txt" />
+    <Text Include="..\prompts\AI_SubModel_AutoMap.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="effects\ispc\LayerBlendingFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64 -o "$(IntDir)%(Filename).obj"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64 -o "$(IntDir)%(Filename).obj"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(FileName).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="effects\ispc\ButterflyFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="effects\ispc\PinwheelFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="effects\ispc\PlasmaFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="effects\ispc\VideoFunctions.ispc">
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -h "effects\\ispc\\%(Filename).ispc.h" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64
+ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -h "effects\\ispc\\%(Filename).ispc.h" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64
+ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

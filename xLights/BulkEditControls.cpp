@@ -100,12 +100,12 @@ void BulkEditFilePickerCtrl::ValidateControl()
         GetTextCtrl()->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
     } else {
         auto file = GetFileName().GetFullPath();
-        if (file.Contains(',')) {
-            GetTextCtrl()->SetBackgroundColour(*wxYELLOW);
-            SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
-        } else if (!FileExists(file)) {
+        if (!FileExists(file)) {
             GetTextCtrl()->SetBackgroundColour(*wxRED);
             SetToolTip("File " + file + " does not exist.");
+        } else if (!file.empty() && !IsXmlSafe(file)) {
+            GetTextCtrl()->SetBackgroundColour(*wxYELLOW);
+            SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
         } else {
             if (GetToolTipText() != "") { // we do this because setting tooltips seems slow
                 SetToolTip("");
@@ -933,14 +933,14 @@ void BulkEditChoice::OnChoicePopup(wxCommandEvent& event)
             std::string value = GetString(dlg.GetSelection());
             id = FixIdForPanel(GetPanelName(GetParent()), id);
 
-            if (GetPanelName(GetParent()) == "Effect")
-            {
+            if (GetPanelName(GetParent()) == "Effect") {
                 std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
                 xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, value, nullptr, "");
-            }
-            else
-            {
+            } else {
                 xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, value, nullptr, "");
+                if (GetPanelName(GetParent()) == "Buffer") {
+                    xLightsApp::GetFrame()->ValidatePanels();
+                }
             }
         }
     }

@@ -101,7 +101,8 @@ public:
     std::string proxy;
     std::string username;
     std::string password;
-    
+    bool canZipUpload = false;
+
     wxJSONValue extraData;
 };
 
@@ -139,7 +140,7 @@ public:
     DiscoveredData *FindByIp(const std::string &ip, const std::string &hostname = "", bool create = false);
     DiscoveredData *FindByUUID(const std::string &uuid, const std::string &ip);
 private:
-    bool HandleAuth(const std::string &host, CURL* curl);
+    bool HandleAuth(const std::string &host, CURL* curl, int authStatus);
 
     class DatagramData {
     public:
@@ -171,4 +172,6 @@ private:
     std::list<BonjourData *> bonjours;
     std::vector<DiscoveredData*> results;
     bool finished = false;
+    
+    uint64_t discoveryFinishTime;
 };

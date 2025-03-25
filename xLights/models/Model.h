@@ -136,6 +136,7 @@ public:
     virtual int GetNumPhysicalStrings() const;
     ControllerCaps* GetControllerCaps() const;
     Controller* GetController() const;
+    static std::string DetermineClass(const std::string& displayAs, bool isSingingFace, bool isSpiralTree, bool isSticks, const std::string& dropPattern);
 
     std::string GetModelStartChannel() const { return ModelStartChannel; }
     const std::string GetStartSide() const { return _startSide; }
@@ -404,6 +405,7 @@ public:
     bool IsAlias(const std::string& alias, bool oldnameOnly = false) const;
     void AddAlias(const std::string& alias);
     void DeleteAlias(const std::string& alias);
+    bool DeleteAllAliases();
     const std::list<std::string> &GetAliases() const;
     void SetAliases(const std::list<std::string>& aliases);
 

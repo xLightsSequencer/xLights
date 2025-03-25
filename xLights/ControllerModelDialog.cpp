@@ -331,7 +331,7 @@ public:
     {
         return (mouse.y < _location.y);
     }
-    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped) = 0;
+    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped, std::string badPorts) = 0;
     virtual void DrawIcon(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale)
     {
     }
@@ -402,6 +402,10 @@ public:
         }
         return nullptr;
     }
+
+    int GetPortNumber() const {
+        return _port;
+    };
 
     int GetBasePort() const
     {
@@ -509,7 +513,7 @@ public:
     {
         return "PORT";
     }
-    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped) override
+    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped, std::string badPorts) override
     {
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
@@ -531,6 +535,14 @@ public:
                 if (p->AtLeastOneModelIsUsingSmartRemote())
                 {
                     max = _caps->GetMaxPixelsAt40FPS_SR();
+                }
+                if (!badPorts.empty() && ContainsBetweenCommas("," + badPorts + ",", std::to_string(GetPortNumber()))) {
+                        wxRect rect = wxRect(_location * scale + offset, _size * scale);
+                        wxBrush shadeBrush(wxColour(255, 0, 128));
+                        wxBrush oldBrush = dc.GetBrush();
+                        dc.SetBrush(shadeBrush);
+                        dc.DrawRectangle(rect);
+                        dc.SetBrush(oldBrush);
                 }
                 if (p->Channels() > max * 3) {
                     // draw indicator that this port is not able to achieve 40 FPS
@@ -1028,7 +1040,7 @@ public:
     {
         return "SR";
     }
-    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped) override
+    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped, std::string badPorts) override
     {
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
@@ -1347,7 +1359,7 @@ public:
     {
         return "MODEL";
     }
-    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped) override
+    virtual void Draw(wxDC& dc, int portMargin, wxPoint mouse, wxPoint adjustedMouse, wxSize offset, float scale, bool printing, bool border, Model* lastDropped, std::string badPorts) override
     {
         auto origBrush = dc.GetBrush();
         auto origPen = dc.GetPen();
@@ -1638,7 +1650,7 @@ public:
             GetModel()->ClearControllerBrightness();
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_MODEL_STRINGS) {
-            wxNumberEntryDialog dlg(parent, "Set String Count", "String Count", "Model String Count", GetModel()->GetNumPhysicalStrings(), 1, 48);
+            wxNumberEntryDialog dlg(parent, "Set String Count", "String Count", "Model String Count", GetModel()->GetNumPhysicalStrings(), 1, 100);
             if (dlg.ShowModal() == wxID_OK) {
                 std::string mess;
                 if (!GetModel()->ChangeStringCount(dlg.GetValue(), mess)) {
@@ -2174,16 +2186,22 @@ void ControllerModelDialog::ReloadModels()
                             sh += ", ";
                         sh += it;
                     }
-                    check += "WARN: " + it.second->Name() + " is shadowed by " + sh + ".\n ";
+                    check += "WARN: " + it.second->Name() + " is shadowed by " + sh + ".\n";
                 }
             }
         }
+    }
+    if (!_autoLayout) {
+        check += "WARN: Auto Layout not set. Some functionality disabled.\n";
+    }
+    if (!_controller->IsAutoSize()) {
+        check += "WARN: Auto Size not set. Some functionality disabled.\n";
     }
 
     TextCtrl_Check->SetValue(check);
 
     for (const auto& it : *_mm) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != "ModelGroup" && it.second->IsActive() && it.second->GetLayoutGroup() != "Unassigned") {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
                  ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
@@ -2612,7 +2630,7 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
         if (it->GetType() != "MODEL") {
             if (it->GetRect().GetY() > startY && it->GetRect().GetY() < endY &&
                 it->GetRect().GetX() > startX && it->GetRect().GetX() < endX) {
-                it->Draw(dc, 0, wxPoint(0, 0), wxPoint(0, 0), wxSize(-startX, rowPos - startY), 1, true, true, nullptr);
+                it->Draw(dc, 0, wxPoint(0, 0), wxPoint(0, 0), wxSize(-startX, rowPos - startY), 1, true, true, nullptr, "");
             }
         }
     }
@@ -2621,7 +2639,7 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
         if (it->GetType() == "MODEL") {
             if (it->GetRect().GetY() > startY && it->GetRect().GetY() < endY &&
                 it->GetRect().GetX() > startX && it->GetRect().GetX() < endX) {
-                it->Draw(dc, 0, wxPoint(0, 0), wxPoint(0, 0), wxSize(-startX, rowPos - startY), 1, true, true, nullptr);
+                it->Draw(dc, 0, wxPoint(0, 0), wxPoint(0, 0), wxSize(-startX, rowPos - startY), 1, true, true, nullptr, "");
             }
         }
     }
@@ -3518,7 +3536,7 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
                 wxBitmap bmp(32, 32);
                 wxMemoryDC dc;
                 dc.SelectObject(bmp);
-                it->Draw(dc, portMargin, wxPoint(-4, -4), wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false, _lastDropped);
+                it->Draw(dc, portMargin, wxPoint(-4, -4), wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false, _lastDropped, "");
 
 #ifdef __linux__
                 wxIcon dragCursor;
@@ -4236,14 +4254,14 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
     // draw the SR first
     for (const auto& it : _controllers) {
         if (it->GetType() == "SR") {
-            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false, true, _lastDropped);
+            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false, true, _lastDropped, "");
         }
     }
 
     // now draw the models
     for (const auto& it : _controllers) {
         if (it->GetType() == "MODEL") {
-            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false, true, _lastDropped);
+            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false, true, _lastDropped, "");
         }
     }
 
@@ -4252,9 +4270,14 @@ void ControllerModelDialog::OnPanelControllerPaint(wxPaintEvent& event)
     dc.SetPen(__backgroundPen);
     dc.SetBrush(__backgroundBrush);
     dc.DrawRectangle(0, 0, _controllers.front()->GetRect().GetRight() + 2, _controllers.back()->GetRect().GetBottom() + 10);
+
+    auto ctrlDesc = this->_title;
+    ctrlDesc.erase(std::remove(ctrlDesc.begin(), ctrlDesc.end(), ' '), ctrlDesc.end());
+    std::string badPorts = ctrlDesc.substr(ctrlDesc.find("BadPorts:") + 9);
+
     for (const auto& it : _controllers) {
         if (it->GetType() == "PORT") {
-            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false, true, _lastDropped);
+            it->Draw(dc, portMargin, mouse, adjustedMouse, wxSize(0, 0), 1, false, true, _lastDropped, badPorts);
         }
     }
 
@@ -4387,7 +4410,7 @@ void ControllerModelDialog::OnPanelModelsPaint(wxPaintEvent& event)
     dc.SetFont(font);
 
     for (const auto& it : _models) {
-        it->Draw(dc, 0, mouse, mouse, wxSize(0, 0), 1, false, true, nullptr);
+        it->Draw(dc, 0, mouse, mouse, wxSize(0, 0), 1, false, true, nullptr, "");
     }
 }
 
@@ -4419,7 +4442,7 @@ void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event)
             wxBitmap bmp(32, 32);
             wxMemoryDC dc;
             dc.SelectObject(bmp);
-            it->Draw(dc, 0, wxPoint(-4, -4), wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false, nullptr);
+            it->Draw(dc, 0, wxPoint(-4, -4), wxPoint(-4, -4), wxSize(-1 * it->GetRect().GetLeft(), -1 * it->GetRect().GetTop()), 1, false, false, nullptr, "");
 
 #ifdef __linux__
             wxIcon dragCursor;

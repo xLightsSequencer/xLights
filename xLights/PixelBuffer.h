@@ -236,6 +236,7 @@ private:
     int numLayers = 0;
     std::vector<LayerInfo*> layers;
     std::vector<uint16_t> sparklesVector;
+    std::vector<uint32_t> blendDataBuffer;
     uint16_t *sparkles = nullptr;
     int frameTimeInMs = 50;
 
@@ -322,6 +323,7 @@ public:
     // place for GPU Renderers to attach extra data/objects it needs
     void* gpuRenderData = nullptr;
     friend class MetalPixelBufferComputeData;
+    friend class ISPCComputeUtilities;
 };
 
 typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;

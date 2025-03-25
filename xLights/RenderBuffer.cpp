@@ -798,6 +798,45 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
             tempbuf = &tempbufVector[0];
         }
     }
+    
+    blendBuffer.resize(Nodes.size());
+    int indexCount = Nodes.size();
+    for (auto &n : Nodes) {
+        if (n->Coords.size() > 1) {
+            indexCount += n->Coords.size() + 1;
+        }
+    }
+    if (indexVector.size() < indexCount) {
+        indexVector.resize(indexCount);
+    }
+    allSimpleIndex = true;
+    int idx = 0;
+    int extraIdx = Nodes.size();
+    for (auto &n : Nodes) {
+        if (n->Coords.size() > 1) {
+            allSimpleIndex = false;
+            indexVector[idx] = extraIdx | 0x80000000;
+            int countIdx = extraIdx++;
+            indexVector[countIdx] = n->Coords.size();
+            for (auto &c : n->Coords) {
+                if (c.bufY < 0 || c.bufY >= BufferHt ||
+                    c.bufX < 0 || c.bufX >= BufferWi ) {
+                    indexVector[countIdx] -= 1;
+                } else {
+                    int32_t pidx = c.bufY * BufferWi + c.bufX;
+                    indexVector[extraIdx++] = pidx;
+                }
+            }
+        } else if (n->Coords[0].bufY < 0 || n->Coords[0].bufY >= BufferHt ||
+                   n->Coords[0].bufX < 0 || n->Coords[0].bufX >= BufferWi ) {
+            indexVector[idx] = 0xFFFFFFFF;
+        } else {
+            int32_t pidx = n->Coords[0].bufY * BufferWi + n->Coords[0].bufX;
+            indexVector[idx] = pidx;
+        }
+        ++idx;
+    }
+    
     isTransformed = (bufferTransform != "None");
 }
 
@@ -1590,7 +1629,7 @@ void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex
 
         int idx = cur * count + (curPeriod - curEffStartPer);
         cur++;
-        SetDisplayListHRect(eff, idx*6, x, y, x2, y2, c, c);
+        SetDisplayListHRect(eff, idx * 6, x, y, x2, y2, c, c);
     }
 }
 

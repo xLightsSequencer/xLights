@@ -37,8 +37,8 @@
 // |--------------------------------------------------------------------------------------------------------------------------------------|
 // | APA102         | RGB, 8bit, 4 wire      | APA101, APA102, APA102C, HD107S, SK9822           |                                        |
 // |--------------------------------------------------------------------------------------------------------------------------------------|
-// | APA109         | RGBW, 8bit, 3 wire     | APA109, SK6812RGBW, SK6818, SM16704, UCS2904      |                                        |
-// |                |                        | WS2814                                            |                                        |
+// | APA109         | RGBW, 8bit, 3 wire     | APA109, SK6812RGBW, SK6818, SM16704, SM16804,     |                                        |
+// |                |                        | UCS2904, WS2814                                   |                                        |
 // |--------------------------------------------------------------------------------------------------------------------------------------|
 // | DM412          | ?, ? bit, ? wire       |                                                   |                                        |
 // |--------------------------------------------------------------------------------------------------------------------------------------|
@@ -125,7 +125,7 @@ const static std::vector<std::vector<std::string>> __equivalentPixels =
     { "9pdot" },
     { "9pdot (16)" },
     { "apa101", "apa102", "apa102c", "hd107s", "sk9822" },
-    { "apa109", "sk6812rgbw", "sk6818", "sm16704", "ucs2904", "ws2814" },
+    { "apa109", "sk6812rgbw", "sk6818", "sm16704", "sm16804", "ucs2904", "ws2814" },
     { "dm412" },
     { "dmx512p", "dmx512", "ucs512", "ws2822" },
     { "dmx512p-4", "ucs512c4" },
@@ -357,7 +357,7 @@ bool IsPWMProtocol(const std::string& p1) {
 
 int GetChannelsPerPixel(const std::string& p)
 {
-    const static std::vector<std::string> fourChanPixels = { "apa109", "sk6812rgbw", "sk6818", "sm16704", "ucs2904", "ws2814", "dmx512p-4", "dmx512", "my9291", "tm1814", "tm1814a", "ucs8904", "ucs8904 (16)" };
+    const static std::vector<std::string> fourChanPixels = { "apa109", "sk6812rgbw", "sk6818", "sm16704", "sm16804", "ucs2904", "ws2814", "dmx512p-4", "dmx512", "my9291", "tm1814", "tm1814a", "ucs8904", "ucs8904 (16)" };
 
     if (std::find(begin(fourChanPixels), end(fourChanPixels), p) != end(fourChanPixels)) {
         return 4;

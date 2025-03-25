@@ -284,6 +284,8 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
         logger_curl.info("BODY START ----------");
         logger_curl.info("%s", (const char*)body.c_str());
         logger_curl.info("BODY END ----------");
+        logger_curl.info("BODY SIZE: %d", body.size());
+        logger_curl.info("TIMEOUT: %d", timeout);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
@@ -478,35 +480,35 @@ std::string Curl::HTTPSGet(const std::string& s, const std::string& user, const 
 int Curl::CurlDebug(CURL* handle, curl_infotype type, char* data, size_t size, void* userp)
 {
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     switch (type) {
     case CURLINFO_TEXT:
         // strip off the cr
         if (strlen(data) > 0 && data[strlen(data) - 1] == '\n')
             data[strlen(data) - 1] = 0x00;
-        logger_base.debug("== Info: %s", data);
+        logger_curl.debug("== Info: %s", data);
         /* FALLTHROUGH */
     default: /* in case a new one is introduced to shock us */
         return 0;
 
     case CURLINFO_HEADER_OUT:
-        logger_base.debug("=> Send header %lu", size);
+        logger_curl.debug("=> Send header %lu", size);
         break;
     case CURLINFO_DATA_OUT:
-        logger_base.debug("=> Send data %lu", size);
+        logger_curl.debug("=> Send data %lu", size);
         break;
     case CURLINFO_SSL_DATA_OUT:
-        logger_base.debug("=> Send SSL data %lu", size);
+        logger_curl.debug("=> Send SSL data %lu", size);
         break;
     case CURLINFO_HEADER_IN:
         logger_curl.debug("<= Recv header %lu %s", size, data);
-        logger_base.debug("<= Recv header %lu", size);
+        logger_curl.debug("<= Recv header %lu", size);
         break;
     case CURLINFO_DATA_IN:
-        logger_base.debug("<= Recv data %lu", size);
+        logger_curl.debug("<= Recv data %lu", size);
         break;
     case CURLINFO_SSL_DATA_IN:
-        logger_base.debug("<= Recv SSL data %lu", size);
+        logger_curl.debug("<= Recv SSL data %lu", size);
         break;
     }
 
@@ -833,4 +835,102 @@ bool Curl::HTTPUploadFile(const std::string& url, const std::string& filename, c
     }
 
     return res;
+}
+
+std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode) {
+    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
+    logger_curl.info("URL: %s", url.c_str());
+
+    CURL* curl = curl_easy_init();
+
+    if (curl != nullptr) {
+#ifdef _DEBUG
+        curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, CurlDebug);
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+#endif
+        struct curl_slist* headerlist = nullptr;
+        static const char buf[] = "Expect:";
+        headerlist = curl_slist_append(headerlist, buf);
+
+        logger_curl.info("CONTENTTYPE: %s", contentType.c_str());
+        if (contentType == "JSON") {
+            static const char buf2[] = "Content-Type: application/json";
+            headerlist = curl_slist_append(headerlist, buf2);
+        } else if (contentType == "XML") {
+            static const char buf2[] = "Content-Type: application/xml";
+            headerlist = curl_slist_append(headerlist, buf2);
+        } else if (contentType == "TEXT XML") {
+            static const char buf2[] = "Content-Type: text/xml";
+            headerlist = curl_slist_append(headerlist, buf2);
+        } else if (contentType == "HTML") {
+            static const char buf2[] = "Content-Type: text/html";
+            headerlist = curl_slist_append(headerlist, buf2);
+        } else if (contentType == "TEXT") {
+            static const char buf2[] = "Content-Type: text/plain";
+            headerlist = curl_slist_append(headerlist, buf2);
+        } else {
+            static const char buf2[] = "Content-Type: application/x-www-form-urlencoded";
+            headerlist = curl_slist_append(headerlist, buf2);
+        }
+
+        logger_curl.info("HEADER START ----------");
+        for (const auto& it : customHeaders) {
+            std::string s = it.first + ": " + it.second;
+            headerlist = curl_slist_append(headerlist, s.c_str());
+            logger_curl.info("    %s", (const char*)s.c_str());
+        }
+        logger_curl.info("HEADER END ----------");
+
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        if (user != "" || password != "") {
+            std::string sAuth = user + ":" + password;
+            curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+            curl_easy_setopt(curl, CURLOPT_USERPWD, sAuth.c_str());
+        }
+
+        // This prevents us verifying the remote site certificate ... not thrilled about that but without it https calls are failing on windows.
+        // This may be because of the library we are including ... really not sure. Right now RemoteFalcon will not work without this.
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
+
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+        std::string buffer = "";
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+
+        logger_curl.info("BODY START ----------");
+        logger_curl.info("%s", (const char*)body.c_str());
+        logger_curl.info("BODY END ----------");
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+        curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+
+        // #ifdef _DEBUG
+        //             curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
+        // #endif
+
+        CURLcode res = curl_easy_perform(curl);
+        if (responseCode) {
+            long rc = 0;
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
+            *responseCode = rc;
+        }
+        curl_easy_cleanup(curl);
+        if (headerlist != nullptr) {
+            curl_slist_free_all(headerlist);
+        }
+        if (res == CURLE_OK) {
+            logger_curl.debug("RESPONSE START ------");
+            logger_curl.debug("%s", (const char*)buffer.c_str());
+            logger_curl.debug("RESPONSE END ------");
+            return buffer;
+        } else {
+            logger_curl.error("Curl post failed: %d", res);
+        }
+    }
+
+    return "";
 }

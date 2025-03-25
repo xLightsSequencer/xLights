@@ -33,16 +33,15 @@ DMXEffect::~DMXEffect()
     //dtor
 }
 
-void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::tuple<int, int, float, int>>& dmxmappings) const
-{
+void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings) const {
     SettingsMap &settings = effect->GetSettings();
     SettingsMap const oldSettings = settings;
-    for (auto const &[ fromi, toi, scale, offset ] : dmxmappings) {
+    for (auto const& [fromi, toi, scale, offset, inv] : dmxmappings) {
         auto const froms = wxString::Format("%d", fromi);
         auto const tos = wxString::Format("%d", toi);
         auto const slider = oldSettings.Get("E_SLIDER_DMX" + froms, "NOTTHERE");
         auto const vc = oldSettings.Get("E_VALUECURVE_DMX" + froms, "NOTTHERE");
-        auto const invert_chbx = oldSettings.Get("E_CHECKBOX_INVDMX" + froms, "NOTTHERE");
+        auto invert_chbx = oldSettings.Get("E_CHECKBOX_INVDMX" + froms, "NOTTHERE");
 
         if (slider != "NOTTHERE") {
             int const new_value = ((float)std::stoi(slider) * scale) + offset;
@@ -60,6 +59,12 @@ void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<s
             settings["E_VALUECURVE_DMX" + tos] = valc.Serialise();
         } else {
             settings.erase("E_VALUECURVE_DMX" + tos);
+        }
+
+        if (inv == "Check") {
+            invert_chbx = "1";
+        } else if (inv == "Uncheck") {
+            invert_chbx = "0";
         }
 
         if (invert_chbx != "NOTTHERE") {

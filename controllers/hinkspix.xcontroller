@@ -18,6 +18,7 @@
 			<SupportsAutoLayout/>
 			<SupportsFullxLightsControl/>
 			<SupportsDefaultBrightness/>
+			<DisableMonitoring/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -56,6 +57,7 @@
 			<SupportsAutoLayout/>
 			<SupportsFullxLightsControl/>
 			<SupportsDefaultBrightness/>
+			<DisableMonitoring/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -102,6 +104,7 @@
 			<SupportsAutoLayout/>
 			<SupportsFullxLightsControl/>
 			<SupportsDefaultBrightness/>
+			<DisableMonitoring/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
