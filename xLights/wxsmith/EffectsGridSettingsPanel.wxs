@@ -2,7 +2,6 @@
 <wxsmith>
 	<object class="wxPanel" name="EffectsGridSettingsPanel">
 		<id_arg>0</id_arg>
-		<handler function="OnPaint" entry="EVT_PAINT" />
 		<object class="wxFlexGridSizer" variable="GridSizer1" member="no">
 			<cols>3</cols>
 			<growablecols>2</growablecols>
@@ -37,7 +36,8 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="IconBackgroundsCheckBox" member="yes">
-					<label>Icon Backgrounds</label>
+					<label>Effect Backgrounds</label>
+					<tooltip>Show gif backgrounds for most effects</tooltip>
 					<handler function="OnIconBackgroundsCheckBoxClick" entry="EVT_CHECKBOX" />
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -77,6 +77,7 @@
 				<object class="wxCheckBox" name="ID_CHECKBOX7" variable="GroupEffectIndicator" member="yes">
 					<label>Group Effect Indicator</label>
 					<checked>1</checked>
+					<tooltip>Show bar on model box to indicate presence of an effect</tooltip>
 					<handler function="OnGroupEffectIndicatorClick" entry="EVT_CHECKBOX" />
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -141,6 +142,7 @@
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX4" variable="SmallWaveformCheckBox" member="yes">
 					<label>Small Waveform</label>
+					<tooltip>Reduce the vertical size of the waveform</tooltip>
 					<handler function="OnSmallWaveformCheckBoxClick" entry="EVT_CHECKBOX" />
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -188,6 +190,20 @@
 			</object>
 			<object class="spacer">
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX8" variable="ShowAlternateTimingFormatCheckBox" member="yes">
+					<label>Show Alternate Timing Format</label>
+					<tooltip>Sequencer timing will be displayed in seconds and milliseconds</tooltip>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

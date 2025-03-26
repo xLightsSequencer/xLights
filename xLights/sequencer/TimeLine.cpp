@@ -968,21 +968,26 @@ void TimeLine::render( wxDC& dc ) {
             seconds = (t-(minutes*60000))/1000;
             subsecs = t - (minutes*60000 + seconds*1000);
 
-            if(minutes > 0)
-            {
-                if(mFrequency>=40)
-                    sTime =  wxString::Format("%d:%02d.%.3d",minutes,seconds,subsecs);
+            if (mShowAlternateTimingFormat) {
+                int totalSeconds = (minutes * 60) + seconds;
+                if (mFrequency >= 40)
+                    sTime = wxString::Format("%d.%.3d", totalSeconds, subsecs);
                 else
-                    sTime =  wxString::Format("%d:%.2d.%.2d",minutes,seconds,subsecs/10);
+                    sTime = wxString::Format("%d.%.2d", totalSeconds, subsecs / 10);
+            } else {
+                if (minutes > 0) {
+                    if (mFrequency >= 40)
+                        sTime = wxString::Format("%d:%02d.%.3d", minutes, seconds, subsecs);
+                    else
+                        sTime = wxString::Format("%d:%.2d.%.2d", minutes, seconds, subsecs / 10);
+                } else {
+                    if (mFrequency >= 40)
+                        sTime = wxString::Format("%2d.%.3d", seconds, subsecs);
+                    else
+                        sTime = wxString::Format("%2d.%.2d", seconds, subsecs / 10);
+                }
             }
-            else
-            {
-                if(mFrequency>=40)
-                    sTime =  wxString::Format("%2d.%.3d",seconds,subsecs);
-                else
-                    sTime =  wxString::Format("%2d.%.2d",seconds,subsecs/10);
-            }
-            dc.DrawLabel(sTime,r,wxALIGN_CENTER);
+            dc.DrawLabel(sTime, r, wxALIGN_CENTER);
         }
     }
 
