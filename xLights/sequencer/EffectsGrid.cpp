@@ -5691,7 +5691,60 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex, int x, int y) {
 
 void EffectsGrid::SetEffectStatusText(Effect* eff) const {
     if (eff != nullptr) {
-        wxString e = wxString::Format("start: %s end: %s duration: %s %s %s %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()), eff->GetEffectName(), eff->GetDescription(), eff->IsEffectRenderDisabled() ? _("DISABLED") : _(""));
+        wxString columnInfo = "";
+        int selectedTimingRow = mSequenceElements->GetSelectedTimingRow();
+        if (selectedTimingRow >= 0) {
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(selectedTimingRow);
+            if (tel != nullptr) {
+                int startColumn = -1, endColumn = -1;
+                int effectCount = tel->GetEffectCount();
+
+                for (int i = 0; i < effectCount; i++) {
+                    Effect* timingEffect = tel->GetEffect(i);
+
+                    if (timingEffect->GetStartTimeMS() <= eff->GetStartTimeMS() &&
+                        timingEffect->GetEndTimeMS() > eff->GetStartTimeMS()) {
+                        startColumn = i;
+                    }
+
+                    if (timingEffect->GetStartTimeMS() < eff->GetEndTimeMS() &&
+                        timingEffect->GetEndTimeMS() >= eff->GetEndTimeMS()) {
+                        endColumn = i;
+
+                        if (startColumn != -1)
+                            break;
+                    }
+                }
+
+                if (startColumn != -1 && endColumn != -1) {
+                    int columnCount = endColumn - startColumn + 1;
+                    bool isExactMatch = false;
+                    if (startColumn >= 0 && startColumn < effectCount &&
+                        endColumn >= 0 && endColumn < effectCount) {
+                        isExactMatch =
+                            (eff->GetStartTimeMS() == tel->GetEffect(startColumn)->GetStartTimeMS()) &&
+                            (eff->GetEndTimeMS() == tel->GetEffect(endColumn)->GetEndTimeMS());
+                    }
+
+                    if (isExactMatch) {
+                        columnInfo = wxString::Format(" spans: %d timing marks (exact)", columnCount);
+                    } else {
+                        columnInfo = wxString::Format(" spans: %d timing marks (partial)", columnCount);
+                    }
+                }
+            }
+        }
+
+        wxString disabledStr = eff->IsEffectRenderDisabled() ? "DISABLED" : "";
+
+        wxString e = wxString::Format("start: %s end: %s duration: %s%s %s %s %s",
+                                      FORMATTIME(eff->GetStartTimeMS()),
+                                      FORMATTIME(eff->GetEndTimeMS()),
+                                      FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()),
+                                      columnInfo,
+                                      eff->GetEffectName(),
+                                      eff->GetDescription(),
+                                      disabledStr);
         xlights->SetStatusText(e, true);
     } else {
         if (xlights->GetFilename() != "") {
