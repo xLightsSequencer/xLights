@@ -51,6 +51,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
         }
     }
 
+    std::string scalerString = settings.Get("CHOICE_Video_Scaling", "Cubic");
     if (filename == "" || !FileExists(filename))
     {
         res.push_back(wxString::Format("    ERR: Video effect video file '%s' does not exist. Model '%s', Start %s", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
@@ -62,7 +63,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
             res.push_back(wxString::Format("    WARN: Video effect video file '%s' not under show directory. Model '%s', Start %s", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
 
-        VideoReader* videoreader = new VideoReader(filename.ToStdString(), 100, 100, false, true, true);
+        VideoReader* videoreader = new VideoReader(filename.ToStdString(), 100, 100, false, true, true, false, false, scalerString);
         if (videoreader == nullptr || videoreader->GetLengthMS() == 0)
         {
             res.push_back(wxString::Format("    ERR: Video effect video file '%s' could not be understood. Format may not be supported. Model '%s', Start %s", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
@@ -178,6 +179,7 @@ void VideoEffect::SetDefaultParameters()
     vp->BitmapButton_Video_Speed->SetActive(false);
     SetCheckBoxValue(vp->CheckBox_Video_AspectRatio, false);
     SetChoiceValue(vp->Choice_Video_DurationTreatment, "Normal");
+    SetChoiceValue(vp->Choice_Video_Scaling, "Cubic");
 
     SetCheckBoxValue(vp->CheckBox_TransparentBlack, false);
     SetSliderValue(vp->Slider1, 0);
@@ -230,7 +232,8 @@ void VideoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
            SettingsMap.GetBool("CHECKBOX_Video_TransparentBlack", false),
            SettingsMap.GetInt("TEXTCTRL_Video_TransparentBlack", 0),
            GetValueCurveDouble("Video_Speed", 1.0, SettingsMap, offset, VIDEO_SPEED_MIN, VIDEO_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), VIDEO_SPEED_DIVISOR),
-           SettingsMap.GetInt("TEXTCTRL_SampleSpacing", 0));
+           SettingsMap.GetInt("TEXTCTRL_SampleSpacing", 0),
+           SettingsMap.Get("CHOICE_Video_Scaling", "Cubic"));
 }
 
 class VideoRenderCache : public EffectRenderCache {
@@ -259,7 +262,7 @@ public:
 };
 
 void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
-    double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool aspectratio, std::string durationTreatment, bool synchroniseAudio, bool transparentBlack, int transparentBlackLevel, double speed, uint32_t sampleSpacing)
+    double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool aspectratio, std::string durationTreatment, bool synchroniseAudio, bool transparentBlack, int transparentBlackLevel, double speed, uint32_t sampleSpacing, std::string scalerString)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -344,7 +347,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 
             bool useNativeResolution = (sampleSpacing > 0);
 
-            _videoreader = new VideoReader(filename, width, height, aspectratio, useNativeResolution, true);
+            _videoreader = new VideoReader(filename, width, height, aspectratio, useNativeResolution, true, false, false, scalerString);
 
             if (_videoreader == nullptr)
             {
@@ -413,7 +416,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         if (!vwidthEq || !vheightEq) {
             // need to close and reopen video reader to the new size ... this is inefficient ... but lots of work to do to change video reader size dynamically
             delete _videoreader;
-            _videoreader = new VideoReader(filename, width, height, aspectratio, false, true);
+            _videoreader = new VideoReader(filename, width, height, aspectratio, false, true, false, false, scalerString);
         }
     }
 
