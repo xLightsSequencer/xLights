@@ -22,6 +22,7 @@
 #include "../ModelPreview.h"
 #include "../support/VectorMath.h"
 #include "RulerObject.h"
+#include "ColorManager.h"
 
 #include <log4cpp/Category.hh>
 
@@ -782,14 +783,17 @@ void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *pro
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
+    prop->SetTextColour(*wxRED);
     prop = propertyEditor->Append(new wxFloatProperty("Y", "ModelY", worldPos_y));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
+    prop->SetTextColour(*wxGREEN);
     prop = propertyEditor->Append(new wxFloatProperty("Z", "ModelZ", worldPos_z));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
+    prop->SetTextColour(BlueOrLightBlue());
     prop = propertyEditor->Append(new wxFloatProperty("ScaleX", "ScaleX", scalex));
     prop->SetAttribute("Precision", 3);
     prop->SetAttribute("Step", 0.1);
