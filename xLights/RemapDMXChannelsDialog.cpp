@@ -22,12 +22,12 @@
 
 
 //(*IdInit(RemapDMXChannelsDialog)
-const long RemapDMXChannelsDialog::ID_GRID1 = wxNewId();
-const long RemapDMXChannelsDialog::ID_SCROLLEDWINDOW1 = wxNewId();
-const long RemapDMXChannelsDialog::ID_BUTTON_OK = wxNewId();
-const long RemapDMXChannelsDialog::ID_BUTTON_CANCEL = wxNewId();
-const long RemapDMXChannelsDialog::ID_BUTTON_SAVE_MAPPING = wxNewId();
-const long RemapDMXChannelsDialog::ID_BUTTON_LOAD_MAPPING = wxNewId();
+const wxWindowID RemapDMXChannelsDialog::ID_GRID1 = wxNewId();
+const wxWindowID RemapDMXChannelsDialog::ID_SCROLLEDWINDOW1 = wxNewId();
+const wxWindowID RemapDMXChannelsDialog::ID_BUTTON_OK = wxNewId();
+const wxWindowID RemapDMXChannelsDialog::ID_BUTTON_CANCEL = wxNewId();
+const wxWindowID RemapDMXChannelsDialog::ID_BUTTON_SAVE_MAPPING = wxNewId();
+const wxWindowID RemapDMXChannelsDialog::ID_BUTTON_LOAD_MAPPING = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(RemapDMXChannelsDialog,wxDialog)
@@ -64,8 +64,6 @@ RemapDMXChannelsDialog::RemapDMXChannelsDialog(wxWindow* parent, wxWindowID id,c
 	Grid1->SetDefaultCellTextColour( Grid1->GetForegroundColour() );
 	FlexGridSizer3->Add(Grid1, 0, wxEXPAND, 0);
 	ScrolledWindow1->SetSizer(FlexGridSizer3);
-	FlexGridSizer3->Fit(ScrolledWindow1);
-	FlexGridSizer3->SetSizeHints(ScrolledWindow1);
 	FlexGridSizer1->Add(ScrolledWindow1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON_OK, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_OK"));
@@ -79,13 +77,12 @@ RemapDMXChannelsDialog::RemapDMXChannelsDialog(wxWindow* parent, wxWindowID id,c
 	FlexGridSizer2->Add(Button_LoadMapping, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_BUTTON_OK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RemapDMXChannelsDialog::OnButton_OkClick);
-	Connect(ID_BUTTON_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RemapDMXChannelsDialog::OnButton_CancelClick);
-	Connect(ID_BUTTON_SAVE_MAPPING,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RemapDMXChannelsDialog::OnButton_SaveMappingClick);
-	Connect(ID_BUTTON_LOAD_MAPPING,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RemapDMXChannelsDialog::OnButton_LoadMappingClick);
+	Connect(ID_BUTTON_OK, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RemapDMXChannelsDialog::OnButton_OkClick);
+	Connect(ID_BUTTON_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RemapDMXChannelsDialog::OnButton_CancelClick);
+	Connect(ID_BUTTON_SAVE_MAPPING, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RemapDMXChannelsDialog::OnButton_SaveMappingClick);
+	Connect(ID_BUTTON_LOAD_MAPPING, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&RemapDMXChannelsDialog::OnButton_LoadMappingClick);
 	//*)
 
     SetEscapeId(ID_BUTTON_CANCEL);
@@ -100,8 +97,7 @@ RemapDMXChannelsDialog::RemapDMXChannelsDialog(wxWindow* parent, wxWindowID id,c
     Grid1->SetColSize(DMXMappingColumns::Scale, 75);
     Grid1->SetColSize(DMXMappingColumns::Offset, 75);
 
-	wxArrayString invert_options{ "Copy", "Check", "Uncheck" };
-    wxGridCellChoiceEditor* invert_editor = new wxGridCellChoiceEditor(invert_options);
+    wxArrayString invert_options{ "Copy", "Check", "Uncheck" };
 
     wxArrayString mapTo;
     for (int i = 0; i < 48; i++)
@@ -112,6 +108,7 @@ RemapDMXChannelsDialog::RemapDMXChannelsDialog(wxWindow* parent, wxWindowID id,c
         Grid1->SetCellValue(i, DMXMappingColumns::Scale, "1.00");
         Grid1->SetCellValue(i, DMXMappingColumns::Offset, "0");
         Grid1->SetCellValue(i, DMXMappingColumns::Invert, invert_options.front());
+        wxGridCellChoiceEditor* invert_editor = new wxGridCellChoiceEditor(invert_options);
         Grid1->SetCellEditor(i, DMXMappingColumns::Invert, invert_editor);
     }
     wxGridCellChoiceEditor *editor = new wxGridCellChoiceEditor(mapTo);

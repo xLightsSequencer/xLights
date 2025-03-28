@@ -43,12 +43,12 @@ class RemapDMXChannelsDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(RemapDMXChannelsDialog)
-		static const long ID_GRID1;
-		static const long ID_SCROLLEDWINDOW1;
-		static const long ID_BUTTON_OK;
-		static const long ID_BUTTON_CANCEL;
-		static const long ID_BUTTON_SAVE_MAPPING;
-		static const long ID_BUTTON_LOAD_MAPPING;
+		static const wxWindowID ID_GRID1;
+		static const wxWindowID ID_SCROLLEDWINDOW1;
+		static const wxWindowID ID_BUTTON_OK;
+		static const wxWindowID ID_BUTTON_CANCEL;
+		static const wxWindowID ID_BUTTON_SAVE_MAPPING;
+		static const wxWindowID ID_BUTTON_LOAD_MAPPING;
 		//*)
 
 	private:
