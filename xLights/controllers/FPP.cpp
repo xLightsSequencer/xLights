@@ -272,13 +272,13 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
 
-    std::string fullUrl = ipAddress + url;
+    std::string fullUrl = (ip_utils::IsIPv6(ipAddress) ? "[" + ipAddress + "]" : ipAddress) + url;
     std::string ipAddForGet = ipAddress;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
         fullUrl = ipAddress + "/fpp?path=" + url;
     }
     if (!_fppProxy.empty()) {
-        fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+        fullUrl = "http://" +  (ip_utils::IsIPv6(_fppProxy) ? "[" + _fppProxy + "]" : _fppProxy) + "/proxy/" + fullUrl;
         ipAddForGet = _fppProxy;
     } else {
         fullUrl = "http://" + fullUrl;
@@ -335,7 +335,7 @@ int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t>& val, 
         fullUrl = ipAddress + "/fpp?path=" +  url;
     }
     if (!_fppProxy.empty()) {
-        fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
+        fullUrl = "http://" +  ip_utils::IsIPv6(_fppProxy) ? "[" + _fppProxy + "]" : _fppProxy + "/proxy/" + fullUrl;
         ipAddForGet = _fppProxy;
     } else {
         fullUrl = "http://" + fullUrl;
