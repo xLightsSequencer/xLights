@@ -24,7 +24,7 @@ export void VideoEffectProcess(const uniform VideoData &data,
                                uniform int startIdx, uniform int endIdx,
                                uniform uint8<4> result[])
 {
-    if (data.buffer_width <= 0 || data.image_width <= 0 || data.image_height <= 0) {
+    if (data.buffer_width <= 0 || data.buffer_height <= 0 || data.image_width <= 0 || data.image_height <= 0) {
         return;
     }
     if (data.ch != 3 && data.ch != 4) {
