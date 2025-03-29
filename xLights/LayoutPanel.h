@@ -232,6 +232,7 @@ class LayoutPanel: public wxPanel
         static const long ID_ADD_DMX_FLOODAREA;
         static const long ID_PREVIEW_MODEL_CAD_EXPORT;
         static const long ID_PREVIEW_LAYOUT_DXF_EXPORT;
+        static const long ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS;
         static const long ID_PREVIEW_FLIP_HORIZONTAL;
         static const long ID_PREVIEW_FLIP_VERTICAL;
         static const long ID_SET_CENTER_OFFSET;
@@ -368,6 +369,7 @@ class LayoutPanel: public wxPanel
         void ShowWiring();
         void ExportModelAsCAD();
         void ExportLayoutDXF();
+        void ExportFacesStatesSubModels();
         bool IsAllSelectedModelsArePixelProtocol() const;
         void AddSingleModelOptionsToBaseMenu(wxMenu &menu);
         void AddBulkEditOptionsToMenu(wxMenu* bulkEditMenu);

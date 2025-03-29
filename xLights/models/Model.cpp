@@ -2573,7 +2573,12 @@ void Model::AddSubmodel(wxXmlNode* n)
      }
  }
 
-wxString Model::SerialiseFace() const
+void Model::AddSubmodel(wxXmlNode* n, bool skipPrompt) {
+    importAliases = skipPrompt;
+    AddSubmodel(n);
+ }
+
+     wxString Model::SerialiseFace() const
 {
     wxString res = "";
 
