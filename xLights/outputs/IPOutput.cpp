@@ -117,7 +117,7 @@ Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy
 #endif
         std::string url = "http://";
         if (proxy != "") {
-            url += proxy + "/proxy/";
+            url += (ip_utils::IsIPv6(proxy) ? "[" + proxy + "]" : proxy) + "/proxy/";
         }
         url += ip + "/";
         if (Curl::HTTPSGet(url, "", "", 2) != "") {

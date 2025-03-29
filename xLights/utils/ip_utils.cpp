@@ -81,6 +81,11 @@ namespace ip_utils
         return hostAddr.Matches(ips);
     }
 
+    bool IsIPv6(const std::string& ip) {
+        wxIPV6address ipv6Addr;
+        return ipv6Addr.Hostname(ip)  && ip.find(':') != std::string::npos;
+    }
+
     std::string CleanupIP(const std::string& ip)
     {
         bool hasChar = false;

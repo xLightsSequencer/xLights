@@ -448,8 +448,11 @@ void ControllerEthernet::SetFPPProxy(const std::string& proxy) {
 
 std::string ControllerEthernet::GetFPPProxy() const {
 
-    if (_fppProxy != "" && _fppProxy != _ip) {
-        return _fppProxy;
+    if (_fppProxy != "") {
+        std::string _resolvedfppProxy = ip_utils::ResolveIP(_fppProxy);
+        if (_resolvedfppProxy != _ip) {
+            return _resolvedfppProxy;
+        }
     }
 
     // a controller should not proxy itself
