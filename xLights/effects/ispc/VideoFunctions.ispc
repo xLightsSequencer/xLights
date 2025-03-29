@@ -24,6 +24,16 @@ export void VideoEffectProcess(const uniform VideoData &data,
                                uniform int startIdx, uniform int endIdx,
                                uniform uint8<4> result[])
 {
+    if (data.buffer_width <= 0 || data.image_width <= 0 || data.image_height <= 0) {
+        return;
+    }
+    if (data.ch != 3 && data.ch != 4) {
+        return;
+    }
+    if (startIdx < 0 || endIdx < startIdx) {
+        return;
+    }
+
     uniform int ch = data.ch;
 
 
@@ -31,7 +41,25 @@ export void VideoEffectProcess(const uniform VideoData &data,
         float fidx = index;
         float y = (floor)(fidx / data.buffer_width);
         float x = fidx - (y * data.buffer_width);
+
+        if (x < 0 || x >= data.buffer_width || y < 0 || y >= data.buffer_height) {
+            continue;
+        }
+
         int newIndex = x + data.startx + ((y + data.starty) * data.buffer_width);
+        if (newIndex < 0 || newIndex >= (data.buffer_width * data.buffer_height)) {
+            continue;
+        }
+
+        int row = (int)(data.image_height - 1 - y - data.yoffset);
+        if (row < 0 || row >= data.image_height) {
+            continue;
+        }
+        
+        int col = (int)(data.xoffset + x) * ch;
+        if (col < 0 || col >= (data.image_width * ch)) {
+            continue;
+        }
 
         uint8* ptr = data.image + (data.image_height - 1 - y - data.yoffset) * (data.image_width * ch) + (data.xoffset * ch) + (x * ch);
         uint8<4> c;
