@@ -32,6 +32,11 @@
         <link>https://models.mattosdesigns.com/xlights/mattos.xml</link>
         <maxmodels>50</maxmodels>
     </vendor>
+    <vendor>
+        <name>Wired Watts</name>
+        <link>https://wiredwatts.com/xmodels</link>
+        <maxmodels>50</maxmodels>
+    </vendor>
 	<vendor>
 		<name>DMX Fixture Library</name>
 		<link>https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/dmx_fixtures.xml</link>
